@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.4",
+  "version": "2026-08-30.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-30T23:59:59+08:00",
+  "generated_at": "2026-08-31T00:20:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -68,7 +68,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:51f422e7a17e106aec60c9839139b778e8266323501d9e7815b776b12f93a711",
+      "section_digest": "sha256:9a8a0488a3f2bcf58c9e5f83381958c0890197392049c579f284833d10fee3a0",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another. Section 6.0.2 fixes one construction for every registered proof context: the unsigned projection deletes the proof carrier member rather than nulling it and never defaults an absent optional, an absent optional binding field is omitted rather than written as null, audience is a single string or a duplicate-free array with the single-value form mandatory for one audience, and the context constant is a binding object member rather than a JWS header parameter, so a signature valid under one object family's context MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -100,7 +100,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:2641b0a828df1dfab48aafdcbd64a3a5be27a523e9f7a103093fe89b36cbcef2",
+      "section_digest": "sha256:af4e6aa48890eb07b53f5f7f3375a5ea8632f0bed78bd8c5cb560f53c4287e82",
       "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -163,7 +163,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:04c1b396628ac39dbb9a5ddf3850f52c0e16332e4721c8e8576c81910c63d903",
+      "section_digest": "sha256:100f700ba8ff1390a1af2d2716622fb16cae8a7d51433471c83c31fd34745b0d",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -178,8 +178,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:3e781bafb0d7f15252b4dc19fbd64bf2ebc7856371ff5ae68a4ac760a206048f",
-      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Principal Server admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; every MLS epoch binds the independently re-derived security frontier for its accepted key-access state; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
+      "section_digest": "sha256:08ae728969d0317b46561d437ed242d88c6c1f839a1b63b7b93edc4a799134da",
+      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Station admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; every MLS epoch binds the independently re-derived security frontier for its accepted key-access state; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.encrypted_envelope_digest.v1",
@@ -250,8 +250,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:d9b37a71d0efa49e0601e39e60cc3ea997d1ef67a8be73b25d784bcb879d2901",
-      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Principal-Server replay MUST fail closed rather than widen the effective permission set.",
+      "section_digest": "sha256:e2b03a8657dabda99277781b352e123330bdba65fd8d7ff2a46fbb262ff48576",
+      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.capability.authority_chain.v1",
@@ -298,7 +298,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:3ad98aa7c0afca1d993e9b125f8d058c93d50f881bcb5459940e1a0871e11e00",
+      "section_digest": "sha256:5333380d251a955551a50008fb125dbb4bbfe40cd36d6c1307e35bb4a5961414",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -329,7 +329,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:42cb2d6925b04416d252290f83ca9a062ba5b2cfdb61d86ee4c97080831f6ad9",
+      "section_digest": "sha256:947e5b2baddd20d49c1af4cc5b840e43313d6cd38a6507c2c46b952d16684971",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -344,7 +344,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:6db583113735a183de9df9a9ab29fb520642003e55a9a7d4a84573d82277d3e1",
+      "section_digest": "sha256:088c17dbbd0d2d86e0675b472c7c3f9784c39e9997834a67558e2b302f583721",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -359,7 +359,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/models/account-data.md#5-并发写入与收敛契约normative",
-      "section_digest": "sha256:871f648bff880c6c9968ce13231a17de5cf67da27a5cb044937d3aebe3a5be65",
+      "section_digest": "sha256:4292dfc7868392670466c4a45218402ca161eb0be5fc160b82dd348a55474591",
       "requirement": "Account Data keys are server-versioned compare-and-set registers with explicitly registered writer authority and holder self operations: a stale write MUST fail with cas_conflict, the revision high-water mark never goes backwards, and domain merge runs client-side on plaintext.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -420,7 +420,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:65d24fabfd3790d54d9fcdaefb4c275c251320fd3bf4f7e0ebd0249df628df4a",
+      "section_digest": "sha256:ce3c9c68e89d05ab88ef13f7e4b1c618dcea728eeadcd8fce21b1a5608e812f3",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -442,7 +442,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:65d24fabfd3790d54d9fcdaefb4c275c251320fd3bf4f7e0ebd0249df628df4a",
+      "section_digest": "sha256:ce3c9c68e89d05ab88ef13f7e4b1c618dcea728eeadcd8fce21b1a5608e812f3",
       "requirement": "An accepted ordinary-Realm or managed-Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [

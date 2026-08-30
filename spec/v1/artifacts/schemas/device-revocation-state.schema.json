@@ -69,7 +69,7 @@
           "const": "event_write"
         },
         {
-          "const": "principal_server_admission_proof_issue"
+          "const": "station_admission_proof_issue"
         }
       ],
       "minItems": 5,
@@ -84,7 +84,7 @@
         "keypackage_claim",
         "to_device_write",
         "event_write",
-        "principal_server_admission_proof_issue"
+        "station_admission_proof_issue"
       ]
     },
     "common_record": {
@@ -131,7 +131,7 @@
         "acceptance_seq": {
           "type": "integer",
           "minimum": 1,
-          "description": "Monotonic sequence assigned by the origin Principal Server in the same atomic commit as accepted_at and the pending index."
+          "description": "Monotonic sequence assigned by the origin Station in the same atomic commit as accepted_at and the pending index."
         },
         "control_proposal_ack": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
@@ -300,7 +300,7 @@
     },
     "device_revocation_gate_check_request_body": {
       "type": "object",
-      "description": "Authenticated S2S request from an Account Authority or another registered issuer to the exact origin Principal Server. The exact authorization Event and PCR-local generation are derived from the origin's locked durable current device projection. expected selectors are issuer-verified, appear together or not at all, and MAY be omitted only for session_grant_issue or returning_session_grant_issue. returning_session_grant_issue and human session_grant_refresh require AcceptedDevicePossessionProof; registration/recovery session_grant_issue uses its already verified durable root/recovery evidence and forbids that proof. The intent digest identifies immutable prepared issuance or refresh bytes.",
+      "description": "Authenticated S2S request from an Account Authority or another registered issuer to the exact origin Station. The exact authorization Event and PCR-local generation are derived from the origin's locked durable current device projection. expected selectors are issuer-verified, appear together or not at all, and MAY be omitted only for session_grant_issue or returning_session_grant_issue. returning_session_grant_issue and human session_grant_refresh require AcceptedDevicePossessionProof; registration/recovery session_grant_issue uses its already verified durable root/recovery evidence and forbids that proof. The intent digest identifies immutable prepared issuance or refresh bytes.",
       "required": [
         "account_id",
         "device_id",
@@ -399,7 +399,7 @@
     },
     "device_revocation_gate_decision_receipt": {
       "type": "object",
-      "description": "Origin-Principal-Server-signed durable linearization receipt. Under the same database lock/serializable transaction used to accept ak.device.revoke, the origin derives the current authorization Event and generation from its own durable projection, compares them with any expected binding in the request, and atomically records (action_class,intent_digest) at linearization_seq before signing. Derivation is a partial function: a device with no current accepted authorization has no derived selector and returns authority_mismatch; authorization_absent is deliberately not a separate decision. Only an allow carries the derived target_device_authorize_event_id and target_device_generation_ref, and that pair is the sole source for the issued grant's device_binding; the issuer MUST copy it verbatim and MUST NOT accept a binding from client input. No other decision discloses the derived binding, so a generation_mismatch cannot be turned into a silent re-issue at the new generation. Exact replay returns byte-identical output. An allow records that exact immutable issue/refresh intent as lawfully admitted before any later revocation_pending transition; a later pending transition blocks only intents linearized after it. The issuer MUST atomically commit the same immutable intent plus this receipt before expires_at and MUST NOT mint a new/different intent after pending. The receipt authorizes no different intent and cannot be refreshed or reused after expiry. An unauthorized caller, an account this service does not host, an unknown or not-currently-authorized device and a device outside the named account all return the same authority_mismatch. A malformed internal row that claims to be current/verified while omitting its authorization Event or generation is an integrity failure, not an authorization-absence decision. A block can name pending/revoked without disclosing any other private device state.",
+      "description": "Origin-Station-signed durable linearization receipt. Under the same database lock/serializable transaction used to accept ak.device.revoke, the origin derives the current authorization Event and generation from its own durable projection, compares them with any expected binding in the request, and atomically records (action_class,intent_digest) at linearization_seq before signing. Derivation is a partial function: a device with no current accepted authorization has no derived selector and returns authority_mismatch; authorization_absent is deliberately not a separate decision. Only an allow carries the derived target_device_authorize_event_id and target_device_generation_ref, and that pair is the sole source for the issued grant's device_binding; the issuer MUST copy it verbatim and MUST NOT accept a binding from client input. No other decision discloses the derived binding, so a generation_mismatch cannot be turned into a silent re-issue at the new generation. Exact replay returns byte-identical output. An allow records that exact immutable issue/refresh intent as lawfully admitted before any later revocation_pending transition; a later pending transition blocks only intents linearized after it. The issuer MUST atomically commit the same immutable intent plus this receipt before expires_at and MUST NOT mint a new/different intent after pending. The receipt authorizes no different intent and cannot be refreshed or reused after expiry. An unauthorized caller, an account this service does not host, an unknown or not-currently-authorized device and a device outside the named account all return the same authority_mismatch. A malformed internal row that claims to be current/verified while omitting its authorization Event or generation is an integrity failure, not an authorization-absence decision. A block can name pending/revoked without disclosing any other private device state.",
       "required": [
         "account_id",
         "device_id",
@@ -449,7 +449,7 @@
         "linearization_seq": {
           "type": "integer",
           "minimum": 1,
-          "description": "Monotonic sequence from the origin Principal Server's durable device-revocation log."
+          "description": "Monotonic sequence from the origin Station's durable device-revocation log."
         },
         "linearized_at": {
           "$ref": "#/$defs/timestamp"
@@ -471,7 +471,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Origin Principal Server signature with context ak.device_revocation_gate_decision_proof.v1. payload_digest MUST equal sha256(JCS(the complete receipt with proof omitted)); proof.verification_method MUST equal receipt.verification_method; proof.created_at MUST equal linearized_at; and the verification-method controller projected to Core MUST equal account_id.principal_server_id."
+          "description": "Origin Station signature with context ak.device_revocation_gate_decision_proof.v1. payload_digest MUST equal sha256(JCS(the complete receipt with proof omitted)); proof.verification_method MUST equal receipt.verification_method; proof.created_at MUST equal linearized_at; and the verification-method controller projected to Core MUST equal account_id.station_id."
         }
       },
       "allOf": [

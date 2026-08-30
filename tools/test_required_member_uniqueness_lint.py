@@ -27,7 +27,7 @@ class RequiredMemberUniquenessLintTest(unittest.TestCase):
                         "required": required,
                         "properties": {
                             "principal_id": {"type": "string"},
-                            "principal_server_id": {"type": "string"},
+                            "station_id": {"type": "string"},
                         },
                         "additionalProperties": False,
                     }
@@ -46,16 +46,16 @@ class RequiredMemberUniquenessLintTest(unittest.TestCase):
 
     def test_unique_required_members_pass(self) -> None:
         self.assertEqual(
-            self._run(["principal_id", "principal_server_id"]),
+            self._run(["principal_id", "station_id"]),
             [],
         )
 
     def test_duplicate_required_member_fails(self) -> None:
         errors = self._run(
-            ["principal_id", "principal_server_id", "principal_server_id"]
+            ["principal_id", "station_id", "station_id"]
         )
         self.assertTrue(
-            any("duplicate member(s): ['principal_server_id']" in error for error in errors),
+            any("duplicate member(s): ['station_id']" in error for error in errors),
             errors,
         )
 

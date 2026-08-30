@@ -65,7 +65,7 @@ class KeyPackageWriteTranscriptLintTest(unittest.TestCase):
             case = self._case(fixture, "revoke_with_reason")
             case["unsigned_request"]["owner_account_id"] = {
                 "principal_id": "ak:did_core:did:webvh:z6mkfixtureagentexample:agent.example",
-                "principal_server_id": "ak:did_core:did:webvh:z6mkfixtureps:ps.example",
+                "station_id": "ak:did_core:did:webvh:z6mkfixtureps:ps.example",
             }
             self._resign(fixture, case)
 

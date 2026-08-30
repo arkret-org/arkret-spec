@@ -23,7 +23,7 @@ Arkret 协议核心定义的是：
 
 **v1 core 互操作 transport 锁定为 HTTP/JSON**：默认 binding 由 [`service-http-binding.md`](./service-http-binding.md) 与
 [`arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 规定。声称
-`ak.profile.principal_server.v1` / `ak.profile.full_client.v1` 等 v1 core profile 的实现
+`ak.profile.station.v1` / `ak.profile.full_client.v1` 等 v1 core profile 的实现
 **MUST** 提供 HTTP/JSON binding；其他 transport（gRPC、WebSocket-frame、SSE、message queue、
 libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供。本规范当前定义的
 第一个可选 profile 是 [`ak.profile.binding.websocket.v1`](./websocket-binding.md)。
@@ -172,7 +172,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 
 ```json
 {
-  "service_kind": "principal_server",
+  "service_kind": "station",
   "service_id": "ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD",
   "service_resolution": {
     "did": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
@@ -187,8 +187,8 @@ transport MUST 各自通过 binding profile 单独 normative 化。
     }
   ],
   "supported_operation_bundles": [
-    "ak.operation_bundle.principal_server.describe.v1",
-    "ak.operation_bundle.principal_server.http_core.v1"
+    "ak.operation_bundle.station.describe.v1",
+    "ak.operation_bundle.station.http_core.v1"
   ]
 }
 ```

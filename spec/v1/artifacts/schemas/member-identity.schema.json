@@ -26,7 +26,7 @@
     },
     "subject_actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
-      "description": "Exact durable subject represented by a Realm-scoped or pairwise actor. Account and hosted-principal subjects retain their principal-server component; authorization and audit continue to use the Event actor and member state."
+      "description": "Exact durable subject represented by a Realm-scoped or pairwise actor. Account and hosted-principal subjects retain their station component; authorization and audit continue to use the Event actor and member state."
     },
     "display_profile": {
       "type": "object",

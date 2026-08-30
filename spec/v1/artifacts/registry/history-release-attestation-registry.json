@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-30.2",
+  "version": "2026-08-30.3",
   "source_of_truth": true,
   "schema_ref": "schemas/history-key.schema.json#/$defs/history_release_attestation",
   "wire_registry_binding": "HistoryReleaseAttestation.verifier_profile_id is ak.history_release_predicates.v1. The enclosing HistoryKeyResponseRecord.service_proof covers the complete attestation. An unsupported verifier profile is rejected only for the affected object and is never translated to an authorization failure.",
@@ -121,7 +121,7 @@
             "exact source DeviceId has a current PCR authorize Event not superseded by revoke or reanchor generation"
           ],
           "closed_predicates": [
-            "release service verifies the complete short-lived SourceRelayAttestation from the source's current delivery-bound Principal Server",
+            "release service verifies the complete short-lived SourceRelayAttestation from the source's current delivery-bound Station",
             "relay destination, source record digest, request receipt, source identity/profile/incarnation and expiry match exactly"
           ]
         },
@@ -187,7 +187,7 @@
     ]
   },
   "linearization": "Before the local enqueue transaction the service obtains intent-bound short-lived observations from each required local authority, verifies the source relay and scope facts, then atomically verifies every observation is unexpired. For every Realm/Circle/PCR Seal authority it re-resolves the complete canonical accepted non-quarantined Seal antichain, requires no known successor, recomputes the closed current-gate projection, and CAS-binds the exact basis+projection vector. It then stores the immutable response record and ReleaseAttestation, assigns the request response-stream sequence/cursor, freezes the compact HistoryKeyResponseSendReceipt and charges quota. It does not claim a cross-service atomic snapshot. Failure writes nothing. Exact source retry returns the original byte-identical compact send receipt through request expiry. Recipient high-water ack atomically removes the large response record and attestation; they are not readable after ack.",
-  "release_service_route_rule": "The request receipt's frozen release_id is the only release authority for that request. Before first enqueue it must project the requester destination from the exact ActorId: account and hosted_principal use principal_server_id, while service uses service_id, and require that destination to equal this service DID. A ServiceResolution successor for that same service DID is permitted and becomes the current endpoint; a different projected service DID rejects first enqueue and requires a new request. v1 does not migrate a mailbox or idempotency ledger. Already accepted records remain byte-identically retryable from the old ledger until expiry.",
+  "release_service_route_rule": "The request receipt's frozen release_id is the only release authority for that request. Before first enqueue it must project the requester destination from the exact ActorId: account and hosted_principal use station_id, while service uses service_id, and require that destination to equal this service DID. A ServiceResolution successor for that same service DID is permitted and becomes the current endpoint; a different projected service DID rejects first enqueue and requires a new request. v1 does not migrate a mailbox or idempotency ledger. Already accepted records remain byte-identically retryable from the old ledger until expiry.",
   "audit_record": "The immutable service-signed ReleaseAttestation created in the first durable chunk-enqueue transaction is the sole history-release audit record. v1 has no history_release_audit policy facet, pre-release audit token, audit evidence carrier or audit authority slot. Compliance projections index attestations; separate approval workflows are orthogonal capabilities.",
   "predicate_failure": "Any required locator, authority response, subject, incarnation, tuple, digest or exact binding that is missing, Bottom, stale, mismatched or unavailable rejects the chunk before enqueue. No caller-supplied boolean can replace a predicate.",
   "unknown_input_behavior": "fail_closed"

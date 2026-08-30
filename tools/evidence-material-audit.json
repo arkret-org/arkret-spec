@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 382,
+  "audited_occurrence_count": 370,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -509,7 +509,7 @@
       "key": "accepted_contact_evidence_digest",
       "occurrences": 1,
       "disposition": "derived_summary",
-      "reason": "Commits the exact portable Contact round evidence bundle that the founder's source Principal Server verified when it atomically accepted the Direct Conversation founding unit and closed its local unique slot."
+      "reason": "Commits the exact portable Contact round evidence bundle that the founder's source Station verified when it atomically accepted the Direct Conversation founding unit and closed its local unique slot."
     },
     {
       "file": "direct-conversation-operations.schema.json",
@@ -547,14 +547,14 @@
       "key": "producer_signer_resolution_evidence_digest",
       "occurrences": 1,
       "disposition": "qualifier",
-      "reason": "Origin Principal Server commitment to the exact producer signer-evidence root used at admission."
+      "reason": "Origin Station commitment to the exact producer signer-evidence root used at admission."
     },
     {
       "file": "event-envelope.schema.json",
       "key": "producer_signer_resolution_evidence_ref",
       "occurrences": 1,
       "disposition": "qualifier",
-      "reason": "Content-addressed producer evidence locator signed into the Principal Server admission transcript."
+      "reason": "Content-addressed producer evidence locator signed into the Station admission transcript."
     },
     {
       "file": "event-envelope.schema.json",
@@ -914,10 +914,10 @@
     },
     {
       "file": "invite-delivery-request.schema.json",
-      "key": "same_principal_server_evidence",
+      "key": "same_station_evidence",
       "occurrences": 1,
       "disposition": "qualifier",
-      "reason": "Names the closed same-principal-server alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
+      "reason": "Names the closed same-station alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
     },
     {
       "file": "invite-delivery-request.schema.json",
@@ -1021,7 +1021,7 @@
         "attestation",
         "commitment"
       ],
-      "reason": "Relays the complete frozen registration evidence to the Principal Server for independent historical verification."
+      "reason": "Relays the complete frozen registration evidence to the Station for independent historical verification."
     },
     {
       "file": "registration-did-evidence.schema.json",
@@ -1161,42 +1161,42 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 37,
+      "occurrences": 33,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
     {
       "file": "contract-registry.json",
       "key": "evidence_kind",
-      "occurrences": 6,
+      "occurrences": 5,
       "disposition": "qualifier",
       "reason": "Classifies the registered deployment prototype evidence source without carrying evidence material itself."
     },
     {
       "file": "contract-registry.json",
       "key": "evidence_ref",
-      "occurrences": 6,
+      "occurrences": 5,
       "disposition": "registry_contract",
       "reason": "Stable reference to the implementation source location used to audit a deployment support vector."
     },
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 37,
+      "occurrences": 33,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },
     {
       "file": "operation-registry.json",
       "key": "evidence_kind",
-      "occurrences": 6,
+      "occurrences": 5,
       "disposition": "qualifier",
       "reason": "Generated deployment-prototype evidence classification."
     },
     {
       "file": "operation-registry.json",
       "key": "evidence_ref",
-      "occurrences": 6,
+      "occurrences": 5,
       "disposition": "registry_contract",
       "reason": "Generated stable source reference for deployment support-vector audit."
     }

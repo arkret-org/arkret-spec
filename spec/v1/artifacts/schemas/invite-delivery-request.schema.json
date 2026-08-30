@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/invite-delivery-request.schema.json",
   "title": "Arkret Invite Delivery Request",
-  "description": "Private service-to-service request used by an inviter-side Principal Server to deliver a Realm invite to the invitee-side Principal Server. The request carries an explicit invite address and introduction evidence; raw locator tokens are never written into durable Realm events.",
+  "description": "Private service-to-service request used by an inviter-side Station to deliver a Realm invite to the invitee-side Station. The request carries an explicit invite address and introduction evidence; raw locator tokens are never written into durable Realm events.",
   "type": "object",
   "required": [
     "schema",
@@ -85,15 +85,15 @@
       "properties": {
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact invite recipient account. Delivery is sent only to account_id.principal_server_id."
+          "description": "Exact invite recipient account. Delivery is sent only to account_id.station_id."
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-          "description": "First-hop resolution material for account_id.principal_server_id."
+          "description": "First-hop resolution material for account_id.station_id."
         },
         "route_assistance": {
           "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
-          "description": "Optional transport-only hints for recovering the same Principal Server route. This field is outside invite_event canonical bytes and MUST NOT be copied into durable Realm state; it does not extend invite/locator TTL, change AccountId, or authorize delivery."
+          "description": "Optional transport-only hints for recovering the same Station route. This field is outside invite_event canonical bytes and MUST NOT be copied into durable Realm state; it does not extend invite/locator TTL, change AccountId, or authorize delivery."
         }
       },
       "additionalProperties": false
@@ -113,7 +113,7 @@
           "$ref": "#/$defs/handle_claim_evidence"
         },
         {
-          "$ref": "#/$defs/same_principal_server_evidence"
+          "$ref": "#/$defs/same_station_evidence"
         },
         {
           "$ref": "#/$defs/explicit_address_evidence"
@@ -213,14 +213,14 @@
       },
       "additionalProperties": false
     },
-    "same_principal_server_evidence": {
+    "same_station_evidence": {
       "type": "object",
       "required": [
         "kind"
       ],
       "properties": {
         "kind": {
-          "const": "same_principal_server"
+          "const": "same_station"
         }
       },
       "additionalProperties": false

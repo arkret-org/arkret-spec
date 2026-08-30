@@ -755,7 +755,7 @@ def check_naming_predicates(lint: Lint) -> None:
         if nc_lexeme_001(key):
             lint.fail(path, f"{where} violates NC-LEXEME-001 (`{key}`)")
             return
-        if key != "principal_server_did" and (key == "service_did" or "_service_did" in key):
+        if key != "station_did" and (key == "service_did" or "_service_did" in key):
             lint.fail(
                 path,
                 f"{where} uses forbidden legacy service identity field `{key}`; "
@@ -1991,6 +1991,49 @@ def check_normative_prose_role_names(lint: Lint) -> None:
         for token, label in forbidden.items():
             if token in body:
                 lint.fail(path, f"normative prose contains {label}: {token!r}")
+
+
+def check_station_role_clean_break(lint: Lint) -> None:
+    """Reject retired role names and public identities after the Station clean break."""
+    forbidden = {
+        "Principal Server": "retired Station prose name",
+        "principal_server": "retired Station wire stem",
+        "PrincipalServer": "retired Station type stem",
+        "principal-server": "retired Station file/id stem",
+        "PrincipalAuthorityKey": "retired authority-named account identity",
+        "Device / Key Server": "retired Station-internal role",
+        "Sync / Federation Server": "retired Station-internal role",
+        "Blob / Media Server": "retired compound role",
+        "Realtime Media Server": "retired compound role",
+        "Moderation / Compliance Server": "retired compound role",
+        "ak.profile.auth_server.v1": "retired public Auth Server role profile",
+        '"service_kind": "auth_server"': "retired public Auth Server service kind",
+        '"service_kind": "authz_service"': "retired public authorization service kind",
+        '"service_kind": "device_key_service"': "retired public device/key service kind",
+        '"service_kind": "search_service"': "retired public search service kind",
+        "ak.operation_bundle.auth_server.": "retired Auth Server bundle stem",
+        "ak.operation_bundle.authz_service.": "retired authorization bundle stem",
+        "ak.operation_bundle.device_key_service.": "retired device/key bundle stem",
+        "ak.operation_bundle.search_service.describe.v1": "retired search role Describe bundle",
+    }
+    roots = (SPEC_ROOT / "zh", ARTIFACTS)
+    retired_station_stem = re.compile(r"principal(?:[ _-]?server)", re.IGNORECASE)
+    suffixes = {".json", ".md", ".mdx", ".py", ".yaml", ".yml"}
+    for root in roots:
+        for path in sorted(candidate for candidate in root.rglob("*") if candidate.suffix in suffixes):
+            if "proposals" in path.parts:
+                continue
+            text = path.read_text(encoding="utf-8")
+            match = retired_station_stem.search(text)
+            if match:
+                lint.fail(
+                    path,
+                    "Station clean-break violation (retired Station role stem): "
+                    f"{match.group(0)!r}",
+                )
+            for token, label in forbidden.items():
+                if token in text:
+                    lint.fail(path, f"Station clean-break violation ({label}): {token!r}")
 
 
 

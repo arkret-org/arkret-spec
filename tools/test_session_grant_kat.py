@@ -226,7 +226,7 @@ class SessionGrantKatTests(unittest.TestCase):
                 "subject": claims["subject"],
                 "account_id": {
                     "principal_id": "did:webvh:z6mkfixture:alice.example",
-                    "principal_server_id": "did:webvh:z6mkfixture:principal.example",
+                    "station_id": "did:webvh:z6mkfixture:principal.example",
                 },
                 "audience": claims["audience"],
                 "scopes": claims["scopes"],

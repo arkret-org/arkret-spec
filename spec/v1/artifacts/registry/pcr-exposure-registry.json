@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.1",
+  "version": "2026-08-30.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -51,7 +51,7 @@
     },
     {
       "policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1",
-      "description": "Authenticated Account Authority or Principal Server service call carrying that operation's own authority evidence."
+      "description": "Authenticated Account Authority or Station service call carrying that operation's own authority evidence."
     },
     {
       "policy_id": "ak.pcr_exposure_policy.contact_pending_verified_mirror_target.v1",

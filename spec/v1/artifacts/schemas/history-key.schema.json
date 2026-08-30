@@ -576,7 +576,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Digest locator for the complete SourceRelayAttestation verified by the requester release service. Source account/device/Agent or holder authority coordinates remain solely inside the source local Principal Server's signed relay attestation."
+      "description": "Digest locator for the complete SourceRelayAttestation verified by the requester release service. Source account/device/Agent or holder authority coordinates remain solely inside the source local Station's signed relay attestation."
     },
     "accepted_authority_view_vector": {
       "type": "object",
@@ -890,7 +890,7 @@
         },
         "release_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "The requester's authenticated current Principal Server selected as the unique honest release service for this request response stream."
+          "description": "The requester's authenticated current Station selected as the unique honest release service for this request response stream."
         },
         "release_service_binding_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -1265,7 +1265,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private S2S immutable request fanout from the release service to either the Principal Server selected by one exact current member identity and membership Event, or an exact RRK holder service whose archive tuple intersects requested ranges. destination_authorization is a closed union and must name destination_id."
+      "description": "Private S2S immutable request fanout from the release service to either the Station selected by one exact current member identity and membership Event, or an exact RRK holder service whose archive tuple intersects requested ranges. destination_authorization is a closed union and must name destination_id."
     },
     "history_key_request_replica_outcome": {
       "type": "object",
@@ -1493,7 +1493,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "The source's authenticated local Principal Server verifies current source AccountId/device, hosted ActorId, exact membership Event or RRK holder authority and signs this private relay receipt. The first accepted self send atomically stores the exact relay envelope/outbox keyed by (response_id,source_record_digest); relayed_at and proof are never regenerated on retry/restart, and the first accepted outcome is durably backfilled. Exact retry returns those byte-identical bytes without a duplicate status. For RRK the source proof uses current_holder_signing_ref; historical archive holder_signing_ref is provenance only."
+      "description": "The source's authenticated local Station verifies current source AccountId/device, hosted ActorId, exact membership Event or RRK holder authority and signs this private relay receipt. The first accepted self send atomically stores the exact relay envelope/outbox keyed by (response_id,source_record_digest); relayed_at and proof are never regenerated on retry/restart, and the first accepted outcome is durably backfilled. Exact retry returns those byte-identical bytes without a duplicate status. For RRK the source proof uses current_holder_signing_ref; historical archive holder_signing_ref is provenance only."
     },
     "history_key_source_relay": {
       "type": "object",
@@ -2083,7 +2083,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "Immutable honest-release-service T1 decision receipt from first durable chunk enqueue. The requester Principal Server verifies its local recipient authority slots, the short-lived SourceRelayAttestation and relay-service binding, plus current scope membership. Source account/device/Agent or holder facts occur only in that source-local relay attestation and are not duplicated as remote views. The service validates every intent-bound observation is unexpired and has no known successor, then CAS-writes this locator vector and record in one local transaction. The vector is an audit coordinate, not a portable multi-authority proof."
+      "description": "Immutable honest-release-service T1 decision receipt from first durable chunk enqueue. The requester Station verifies its local recipient authority slots, the short-lived SourceRelayAttestation and relay-service binding, plus current scope membership. Source account/device/Agent or holder facts occur only in that source-local relay attestation and are not duplicated as remote views. The service validates every intent-bound observation is unexpired and has no known successor, then CAS-writes this locator vector and record in one local transaction. The vector is an audit coordinate, not a portable multi-authority proof."
     },
     "history_key_response_record": {
       "type": "object",

@@ -39,7 +39,7 @@
             }
           },
           "proofs": [],
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         }
       },
       "expected": {
@@ -93,7 +93,7 @@
               }
             ]
           },
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         },
         "supported_features": [
           "ak.feature.detached_jws.v1"
@@ -150,7 +150,7 @@
               "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           ],
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         }
       },
       "expected": {
@@ -203,7 +203,7 @@
             }
           },
           "proofs": [],
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         }
       },
       "expected": {
@@ -376,7 +376,7 @@
             }
           },
           "proofs": [],
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         }
       },
       "expected": {
@@ -416,7 +416,7 @@
             }
           },
           "proofs": [],
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         }
       },
       "expected": {
@@ -461,7 +461,7 @@
             }
           },
           "proofs": [],
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         }
       },
       "expected": {
@@ -521,7 +521,7 @@
             "event_id": "ak:event:AfJRB2whShXS-ghpXQhgN5u_MsXwor5nNWDxQ6YCfvce"
           },
           "proofs": [],
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         }
       },
       "expected": {
@@ -564,7 +564,7 @@
             "typing": true
           },
           "proofs": [],
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         }
       },
       "expected": {
@@ -615,7 +615,7 @@
               }
             },
             "proofs": [],
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         }
       },
@@ -669,7 +669,7 @@
               }
             },
             "proofs": [],
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         }
       },
@@ -723,7 +723,7 @@
               }
             },
             "proofs": [],
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         }
       },

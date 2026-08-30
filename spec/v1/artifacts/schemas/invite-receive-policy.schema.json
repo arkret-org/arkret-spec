@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/invite-receive-policy.schema.json",
   "title": "Arkret Invite and Contact Receive Policy",
-  "description": "Subject-private policy used by a Principal Server to decide which invite delivery or first-contact request introduction evidence may notify the holder. This policy is not written into the target Realm durable event log or the public contact fact log.",
+  "description": "Subject-private policy used by a Station to decide which invite delivery or first-contact request introduction evidence may notify the holder. This policy is not written into the target Realm durable event log or the public contact fact log.",
   "type": "object",
   "required": [
     "schema",
@@ -165,7 +165,7 @@
         },
         "low_trust": {
           "$ref": "#/$defs/disclosure_level",
-          "description": "Disclosure level for the low-trust introduction tier: same_principal_server, explicit_address, and missing/non-compliant evidence. Default opaque."
+          "description": "Disclosure level for the low-trust introduction tier: same_station, explicit_address, and missing/non-compliant evidence. Default opaque."
         }
       },
       "additionalProperties": false

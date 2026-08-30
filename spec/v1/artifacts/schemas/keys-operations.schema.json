@@ -166,10 +166,10 @@
     },
     "device_projection_attestation_core": {
       "type": "object",
-      "description": "Origin Principal Server assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the cross-principal keys/query surface: the row carries no PCR genesis receipt, no device authorization chain and no accepted Seal, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
+      "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the cross-principal keys/query surface: the row carries no PCR genesis receipt, no device authorization chain and no accepted Seal, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
       "required": [
         "principal_id",
-        "principal_server_id",
+        "station_id",
         "device_id",
         "device_signing_key_did",
         "hpke_key",
@@ -183,9 +183,9 @@
         "principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "principal_server_id": {
+        "station_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Origin Principal Server of the account. The proof controller MUST project exactly onto this value; an attestation that verifies under any other key is not evidence about this device."
+          "description": "Origin Station of the account. The proof controller MUST project exactly onto this value; an attestation that verifies under any other key is not evidence about this device."
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -219,7 +219,7 @@
     },
     "device_projection_attestation": {
       "type": "object",
-      "description": "Complete origin-Principal-Server-signed device projection attestation. The detached proof signs the ak.device_projection_attestation_proof.v1 transcript; proof.created_at MUST equal attestation.attested_at.",
+      "description": "Complete origin-Station-signed device projection attestation. The detached proof signs the ak.device_projection_attestation_proof.v1 transcript; proof.created_at MUST equal attestation.attested_at.",
       "required": [
         "attestation",
         "proof"
@@ -236,7 +236,7 @@
     },
     "query_device_record": {
       "type": "object",
-      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. principal_id and device_id are the device_keys map keys, not row fields. Every returned row is complete and attested: the origin Principal Server signs the exact projection, so a relationship-gated third party can verify the row without ever seeing PCR material. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
+      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. principal_id and device_id are the device_keys map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so a relationship-gated third party can verify the row without ever seeing PCR material. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
       "required": [
         "algorithms",
         "trust_algorithms",
@@ -255,7 +255,7 @@
         },
         "device_projection_attestation": {
           "$ref": "#/$defs/device_projection_attestation",
-          "description": "Origin-Principal-Server signature over the authoritative device projection. Consumers read device_signing_key, hpke_key, device_status, device_authorize_event_id and authorized_generation_ref from the verified attestation. A row whose attestation is missing or whose controller does not project onto principal_server_id MUST NOT be used for E2EE, Signal verification or a KeyPackage claim."
+          "description": "Origin-Station signature over the authoritative device projection. Consumers read device_signing_key, hpke_key, device_status, device_authorize_event_id and authorized_generation_ref from the verified attestation. A row whose attestation is missing or whose controller does not project onto station_id MUST NOT be used for E2EE, Signal verification or a KeyPackage claim."
         }
       },
       "additionalProperties": false

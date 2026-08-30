@@ -52,12 +52,12 @@
         "keypackage_claim",
         "to_device_write",
         "event_write",
-        "principal_server_admission_proof_issue"
+        "station_admission_proof_issue"
       ],
       "invariants": [
         "base and E2EE/hardening profiles have identical results",
         "all failed actions have zero domain writes",
-        "no new principal_server_admission proof is appended",
+        "no new station_admission proof is appended",
         "local distinguishable operations use device_revocation_pending while KeyPackage anti-enumeration surfaces preserve opaque claim_failed"
       ]
     },
@@ -71,7 +71,7 @@
         "gate decision and revoke acceptance serialize on one durable order",
         "issuer commits the exact intent plus receipt before the at-most-30-second expires_at",
         "pending blocks every later issue/refresh intent and cache/private RPC cannot replace the receipt",
-        "a Principal Server accepting a protected self request checks its own durable gate locally in the request transaction rather than asking introspection to carry a reusable receipt"
+        "a Station accepting a protected self request checks its own durable gate locally in the request transaction rather than asking introspection to carry a reusable receipt"
       ]
     },
     {
@@ -127,7 +127,7 @@
     {
       "name": "exact_replay_does_not_duplicate_or_extend_pending",
       "given": "one accepted revoke Event and Ack",
-      "action": "replay byte-identical submission and restart the Principal Server",
+      "action": "replay byte-identical submission and restart the Station",
       "expected": "same_accepted_event_ack_and_pending_record",
       "invariants": [
         "no second pending record",
@@ -179,7 +179,7 @@
         "allow and mismatch carry neither blocker nor Seal",
         "pending carries the lexicographically smallest pending blocker and no Seal while revoked carries the covering Seal of the smallest acceptance_seq then proposal_digest revoked record and no blocker",
         "payload_digest equals sha256 JCS of the complete receipt with proof omitted",
-        "proof context is ak.device_revocation_gate_decision_proof.v1 and the method equals receipt method its controller projects to the exact principal server and proof created_at equals linearized_at"
+        "proof context is ak.device_revocation_gate_decision_proof.v1 and the method equals receipt method its controller projects to the exact Station and proof created_at equals linearized_at"
       ]
     },
     {

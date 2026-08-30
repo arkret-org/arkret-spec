@@ -52,7 +52,7 @@ TSP 的 VID 可映射到 Arkret：
 | TSP Endpoint | actor 设备、service 节点、Applet、agent runtime |
 | TSP Relationship | 两个 principal / service 之间的 pairwise 可信通道 |
 | TSP Support System | identity registry、DID method adapter、witness、governance registry |
-| TSP Intermediary | Principal Server sync surface、privacy router、store-and-forward 服务 |
+| TSP Intermediary | Station sync surface、privacy router、store-and-forward 服务 |
 | TSP Message | 承载 Arkret operation 或控制 payload 的已签名 / 加密 transport envelope |
 
 Arkret wire 中的 `TspVid` 不是 `Did` 的 alias，也不是让实现自行解析前缀的裸字符串。它使用

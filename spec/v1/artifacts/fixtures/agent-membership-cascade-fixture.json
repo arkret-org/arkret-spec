@@ -25,7 +25,7 @@
         "member_id": {
           "kind": "hosted_principal",
           "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         },
         "membership": "leave",
         "reason": "controller membership ended",
@@ -33,7 +33,7 @@
         "agent_controller_binding": {
           "controller_account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           },
           "controller_membership_generation_ref": "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
           "controller_terminal_event_ref": "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe"

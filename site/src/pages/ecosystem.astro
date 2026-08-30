@@ -50,7 +50,7 @@ const tiers: Tier[] = [
   },
   {
     id: "principal",
-    title: "Principal Server 部署栈",
+    title: "Station 部署栈",
     blurb:
       "组织 / 个人自托管时使用的服务端组件：状态机本体、与企业身份系统的桥接、运维管理面、推送出口。",
     projects: [
@@ -59,14 +59,14 @@ const tiers: Tier[] = [
         tag: "server · principal",
         status: "wip",
         body:
-          "Principal server 的参考实现。负责 actor / org / space 状态、event ingestion 与 reducer、authz 求值，以及与其他 principal server 的 federation。",
+          "Station 的参考实现。负责 actor / org / space 状态、event ingestion 与 reducer、authz 求值，以及与其他 Station 的 federation。",
       },
       {
         name: "coauth",
         tag: "server · auth-bridge",
         status: "wip",
         body:
-          "组织部署 principal server 时的内部账号桥。把企业 OIDC / SSO 与 Arkret DID 绑定，统一管理账号、密钥轮换、内部权限策略。",
+          "组织部署 Station 时的内部账号桥。把企业 OIDC / SSO 与 Arkret DID 绑定，统一管理账号、密钥轮换、内部权限策略。",
       },
       {
         name: "sodmin",
@@ -141,7 +141,7 @@ const tiers: Tier[] = [
 
 <MarketingLayout
   title="Arkret 生态 · Ecosystem"
-  description="Arkret 协议生态：spec、SDK、principal server、客户端、push gateway、conformance 测试套件等参考实现的总览。"
+  description="Arkret 协议生态：spec、SDK、Station、客户端、push gateway、conformance 测试套件等参考实现的总览。"
 >
   {
     tiers.map((tier) => (

@@ -124,7 +124,7 @@ submit_reanchor_unit -> issue_terminal_receipt
 ```
 
 `submit_reanchor_unit` 原样提交 policy-authorized `ak.device.reanchor` 与 replacement-device-signed
-`ak.device.authorize`。Principal Server 验证 accepted recovery policy/session、proof threshold、payload digest
+`ak.device.authorize`。Station 验证 accepted recovery policy/session、proof threshold、payload digest
 单向承诺、Event predecessor、candidate possession、monotonic generation CAS 与 old-device fence，再原子接受
 两条 Event。Account Authority/transport signature 不构成内容 authority；coordinator 不持有 recovery/device
 private key，不生成、更改或代签 Event。

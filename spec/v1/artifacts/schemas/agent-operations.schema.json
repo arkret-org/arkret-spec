@@ -948,15 +948,15 @@
           "minimum": 1,
           "maximum": 43200000
         },
-        "controller_principal_server_id": {
+        "controller_station_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Authenticated controller account Principal Server. Together with the session principal_id this selects the controller authority; PCR identifiers are not exposed."
+          "description": "Authenticated controller account Station. Together with the session principal_id this selects the controller authority; PCR identifiers are not exposed."
         }
       },
       "oneOf": [
         {
           "required": [
-            "controller_principal_server_id"
+            "controller_station_id"
           ],
           "properties": {
             "phase": {
@@ -1003,7 +1003,7 @@
           },
           "not": {
             "required": [
-              "controller_principal_server_id"
+              "controller_station_id"
             ]
           }
         }

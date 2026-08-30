@@ -34,8 +34,8 @@ ak.profile.<name>.v<major>
 示例：
 
 - `ak.profile.minimal_client.v1`
-- `ak.profile.principal_server_events_api.v1`
-- `ak.profile.principal_server.v1`
+- `ak.profile.station_events_api.v1`
+- `ak.profile.station.v1`
 - `ak.profile.full_client.v1`
 - `ak.profile.e2ee_client.v1`
 - `ak.profile.federation_minimal.v1`
@@ -48,13 +48,13 @@ ak.profile.<name>.v<major>
 | 层级 | 含义 | 典型内容 |
 | --- | --- | --- |
 | Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `ak.profile.core_event_store.v1`：Event Envelope、per-actor event chain、events submit/get/list/frontier/backfill、标准错误。 |
-| Stable profile catalog | v1 stable catalog 中可独立声明的实现 profile，不构成默认全量包。 | `chat_mvp`、`kanban_mvp`、`minimal_client`、`full_client`、`principal_server`、`identity_registry`、`blob_node`、`push_gateway`、`federation_minimal`、`sovereign_client` 等。 |
+| Stable profile catalog | v1 stable catalog 中可独立声明的实现 profile，不构成默认全量包。 | `chat_mvp`、`kanban_mvp`、`minimal_client`、`full_client`、`station`、`identity_registry`、`blob_node`、`push_gateway`、`federation_minimal`、`sovereign_client` 等。 |
 | Extension（v1 interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `ak.profile.matrix_compat.v1`（Matrix 兼容声明：to-device / `/_arkret/self/keys/*` / push gateway / SAS 与 Matrix 等价语义；PCR 设备授权不在该兼容声明内，账号聚合也不声明 Matrix `/sync` wire parity）。 |
 | Interop staging extension | **不属于 v1 core interop floor**，跟踪外部演进标准；声明 v1 core 的实现 MAY 完全省略。 | MIMI interop、Applet integration、Agent protocol bridge、TSP integration 等；这些 profile 在外部标准定型后将被稳定版本固定取代。 |
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
-Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh:1.0`（v1 core MTI/default human 与 service adapter）、`did:web`（可作冻结 bootstrap evidence 的 human anchor 或显式 no-history service）与 `did:key`（可作不可变 human anchor；在 `ak.profile.ephemeral_pairwise_principal.v1` 下则是 exact MLS LeafNode-bound、无账号/PCR/设备目录的 Realm-local actor）。角色资格 MUST 从 `did-method-adapter-registry.json` 的 active adapter 客观属性与 `role_requirements` 推导；profile 的 `allowed_principal_methods`、`allowed_service_methods` 与 `allowed_actor_methods` 是该推导结果的受检副本，不是独立真相源。所有声明 `ak.profile.principal_server.v1` / `ak.profile.full_client.v1` / `ak.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh:1.0` witness / SCID / entry hash chain 验证；method evidence 中的 `parameters.method` MUST 精确等于 `did:webvh:1.0`，缺失或未知版本 MUST `unsupported_did_method`，不得按“当前最新版”解释。组织高保证实现 SHOULD 声明 `ak.profile.organization_high_assurance_identity.v1` 并要求 `did:webvh` witness evidence threshold ≥ 1；`watchers` 只按 adapter 登记为 accepted-but-not-consumed，不参与 authorization。AT Protocol 互通实现 SHOULD 额外声明 `ak.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 只产生外部 interop claim，不扩展 v1 principal 创建 allowlist。
+Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh:1.0`（v1 core MTI/default human 与 service adapter）、`did:web`（可作冻结 bootstrap evidence 的 human anchor 或显式 no-history service）与 `did:key`（可作不可变 human anchor；在 `ak.profile.ephemeral_pairwise_principal.v1` 下则是 exact MLS LeafNode-bound、无账号/PCR/设备目录的 Realm-local actor）。角色资格 MUST 从 `did-method-adapter-registry.json` 的 active adapter 客观属性与 `role_requirements` 推导；profile 的 `allowed_principal_methods`、`allowed_service_methods` 与 `allowed_actor_methods` 是该推导结果的受检副本，不是独立真相源。所有声明 `ak.profile.station.v1` / `ak.profile.full_client.v1` / `ak.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh:1.0` witness / SCID / entry hash chain 验证；method evidence 中的 `parameters.method` MUST 精确等于 `did:webvh:1.0`，缺失或未知版本 MUST `unsupported_did_method`，不得按“当前最新版”解释。组织高保证实现 SHOULD 声明 `ak.profile.organization_high_assurance_identity.v1` 并要求 `did:webvh` witness evidence threshold ≥ 1；`watchers` 只按 adapter 登记为 accepted-but-not-consumed，不参与 authorization。AT Protocol 互通实现 SHOULD 额外声明 `ak.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 只产生外部 interop claim，不扩展 v1 principal 创建 allowlist。
 
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
@@ -62,7 +62,7 @@ v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 - `ak.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Realm、`ak.member.state`、启用 discussion track 且可设为 primary 的 Strand、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
 - `ak.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space（`kind=board/list`）、Strand、`contains` position Relation、`ak.strand.move`、`ak.strand.reorder`、`ak.space.create`、`ak.space.update`、`ak.space.parent`、客户端 Collection projection 和 wait-for query。
 
-`minimal_client`、`full_client`、`principal_server` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
+`minimal_client`、`full_client`、`station` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
 
 `chat_mvp` 与 `kanban_mvp` 不要求实现任意 Morph renderer、任意 facet reducer 或插件 UI。它们只需要按声明 profile 保留未知 Morph / facet 字段、同步相关 Event、执行 schema/capability 校验，并在必须展示时提供 generic Morph fallback。任何依赖特定 `morph_kind` 或 facet 的交互能力 MUST 由额外 profile 显式声明。
 
@@ -122,7 +122,7 @@ SDK 侧构建期守卫的具体实现形态（feature 矩阵测试、声明常�
 
 ### `ak.profile.federation_minimal.v1`
 
-适用于最小跨 Principal Server 操作交换。
+适用于最小跨 Station 操作交换。
 
 MUST 支持：
 
@@ -141,7 +141,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 ### `ak.profile.signal_peer_relay.v1`
 
-这是 Signal Extension 的可选对称 Principal Server profile，只声明 encrypted Signal 的单跳 peer relay，不继承 durable Event federation：
+这是 Signal Extension 的可选对称 Station profile，只声明 encrypted Signal 的单跳 peer relay，不继承 durable Event federation：
 
 - MUST 支持 `ak.self.signal.command.send.v1`、`ak.self.signal.stream.subscribe.v1` 与 `ak.peer.signal.command.relay.v1`；
 - MUST 支持 `ak.schema.signal_envelope.v1`、`ak.schema.signal_relay.v1` 与 `signal-federation-fixture.json`；
@@ -243,14 +243,14 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 
 MUST NOT：
 
-- 把明文消息发送给未授权 Principal Server sync surface 或受托 search / projection 服务
+- 把明文消息发送给未授权 Station sync surface 或受托 search / projection 服务
 - 把解密密钥上传给不受信服务
 - 在未验证 KeyPackage 所属 DID 的情况下加密给对方
 - 在 `governance_binding` 的 policy / membership root 不匹配时继续解密正文（违反 MLS Governance Binding）
 
-## 7. Principal Server Events API
+## 7. Station Events API
 
-`ak.profile.principal_server_events_api.v1` 适用于 Principal Server 暴露的 Event 提交、读取、回填和 frontier 查询 API。
+`ak.profile.station_events_api.v1` 适用于 Station 暴露的 Event 提交、读取、回填和 frontier 查询 API。
 
 MUST 支持：
 
@@ -274,9 +274,9 @@ SHOULD 支持：
 - rate limiting
 - quota accounting
 
-## 8. Principal Server
+## 8. Station
 
-`ak.profile.principal_server.v1` 适用于用户、组织或 agent principal 控制/委托的服务入口。
+`ak.profile.station.v1` 适用于用户、组织或 agent principal 控制/委托的服务入口。
 
 MUST 支持：
 
@@ -293,13 +293,13 @@ MUST 支持：
 
 SHOULD 支持：
 
-- multi-upstream Principal Server federation
+- multi-upstream Station federation
 - quarantine queue
 - witness receipt
 - snapshot pointer distribution
 
-Principal Server MUST NOT 成为 Realm 状态的 canonical 真相源。
-Principal Server MUST NOT 将非 E2EE 的私有内容或可还原的派生明文转发给未列入相应 DID 委托或 Realm policy `plaintext_visible_services` 的服务。
+Station MUST NOT 成为 Realm 状态的 canonical 真相源。
+Station MUST NOT 将非 E2EE 的私有内容或可还原的派生明文转发给未列入相应 DID 委托或 Realm policy `plaintext_visible_services` 的服务。
 
 ## 9. Identity Registry Node
 
@@ -324,7 +324,7 @@ SHOULD 支持：
 
 ## 9a. Auth Server
 
-`ak.profile.auth_server.v1` 适用于负责登录因子验证、短期会话授权与 session-grant 生命周期管理的服务（reference implementation：`coauth`）。
+登录因子验证、短期会话授权与 session-grant 生命周期管理属于 `ak.profile.station.v1` 的 Account Authority capability。`coauth` 是可部署在 Station 认证 TCB 内的 reference component，但不声明公开 role profile、service kind、service registration 或 role-local Describe。
 
 MUST 支持：
 
@@ -346,10 +346,10 @@ SHOULD 支持：
 
 - `ak.gate.account.command.issue_session_grant.v1` 规范化 HTTP binding
 - 采用 account-first onboarding 时，完整实现 `ak.gate.account.exchange.create_handoff.v1` → `ak.gate.account.command.issue_identity_binding_challenge.v1` → `ak.gate.account.command.register.v1`；不得以私有 endpoint、普通 OAuth bearer 或进程内 challenge store 替代
-- 多 principal-server delegation target 配置
+- 多 station delegation target 配置
 - DID binding / claim attestation
 
-Auth Server MUST NOT 声明 `ak.profile.identity_registry.v1`、`ak.profile.principal_server.v1` 或 `ak.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `interop_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
+Auth Server MUST NOT 声明 `ak.profile.identity_registry.v1`、`ak.profile.station.v1` 或 `ak.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `interop_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
 
 Auth Server MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID 控制证明。Account-first inception binding 必须按 [`../identity/account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 验证由 entry 0 method-native control key 签发的 fresh proof；普通已发布 DID binding 与下游资源服务器仍 MUST 重新验证 DID control state（见 `guides/migrating-from-matrix.md`）。
 
@@ -508,7 +508,7 @@ MUST 支持：
 MUST NOT：
 
 - 向外部成员暴露内部 Realm 目录
-- 将外部 Principal Server 或 search / projection 服务视为权威
+- 将外部 Station 或 search / projection 服务视为权威
 - 默认允许公共 federation
 - 在无显式 capability 和 policy 时允许外部 Applet 或 Agent handoff
 
@@ -553,7 +553,7 @@ MUST 支持：
 
 MUST NOT：
 
-- 允许用户添加任意 Principal Server / Directory / Blob endpoint
+- 允许用户添加任意 Station / Directory / Blob endpoint
 - 默认通过公共 resolver endpoint 解析内部 principal
 - 静默加入包含外部成员或可审计 E2EE 的 Realm
 - 向公共搜索暴露私有组织目录
@@ -579,7 +579,7 @@ Deployment profile 用于发布与验收，不替代实现 profile。完整 depl
 
 `ak.profile.personal_node.v1` MUST cover：
 
-- Principal Server、Events API、Principal Server sync surface、Blob Store 可以同机合并
+- Station、Events API、Station sync surface、Blob Store 可以同机合并
 - 默认最小管理员面
 - 本地备份与恢复
 
@@ -640,7 +640,7 @@ SHOULD 支持：
 `ak.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ak.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_arkret/self/agents` (`ak.self.agent.command.provision.v1`) 使用闭合的两段 DID bootstrap。controller 先可恢复地保存 WebVH update key，签署并发布不含 PCR binding 的 entry 0；prepare 接收 caller-supplied `did`，验证其 accepted entry 0 与 managed-controller delegation，创建 private durable reservation 并返回 exact `initial_resolution`、controller PCR、delegation、scope digest 及 service-signed opaque `allocation_handle`，但**不**生成 Agent DID/私钥、分配 Agent PCR id 或发布 canonical Event/cell。controller 把该承诺写入本地冻结的 managed Agent PCR `ak.realm.create`，自算 `event_id` 并取 `principal_control_realm_id = retype(event_id)`，由唯一 controller-signed `ak.agent.provision` 前向声明。commit 只接受 byte-identical reserved bytes，并在一个 reducer transaction 原子派生四个分别闭合且最小的 provision/accountability/selector/realm-id-claim cells；第二条声明同一 realm id 的 provision 必须拒绝。commit 返回 `awaiting_pcr_genesis`。genesis 必须另一次提交；两条 create admission 路径都必须把其 `initial_resolution` 与 provisioning durable 保存值逐字段比较，再反查 controller PCR 中声明了 `retype(create.event_id)` 的 accepted provision。genesis accepted 后只推进到 `awaiting_did_binding`，Agent、pairing 及 list/get 仍不可见。controller 随后以 entry 0 预承诺 key 签署连续 entry 1，加入 exact create-locked `ArkretPrincipalControlRealm.serviceEndpoint`；只有 entry 1 accepted 后才条件写 Agent active 状态、创建 pairing handle 并返回 `complete`。provision 不物化 Realm grant；Principal Server 不得生成 Agent PCR MLS private state。放弃未提交 genesis 的 reservation 必须走显式 abandonment operation，不得靠过期或垃圾回收静默释放。
+- `POST /_arkret/self/agents` (`ak.self.agent.command.provision.v1`) 使用闭合的两段 DID bootstrap。controller 先可恢复地保存 WebVH update key，签署并发布不含 PCR binding 的 entry 0；prepare 接收 caller-supplied `did`，验证其 accepted entry 0 与 managed-controller delegation，创建 private durable reservation 并返回 exact `initial_resolution`、controller PCR、delegation、scope digest 及 service-signed opaque `allocation_handle`，但**不**生成 Agent DID/私钥、分配 Agent PCR id 或发布 canonical Event/cell。controller 把该承诺写入本地冻结的 managed Agent PCR `ak.realm.create`，自算 `event_id` 并取 `principal_control_realm_id = retype(event_id)`，由唯一 controller-signed `ak.agent.provision` 前向声明。commit 只接受 byte-identical reserved bytes，并在一个 reducer transaction 原子派生四个分别闭合且最小的 provision/accountability/selector/realm-id-claim cells；第二条声明同一 realm id 的 provision 必须拒绝。commit 返回 `awaiting_pcr_genesis`。genesis 必须另一次提交；两条 create admission 路径都必须把其 `initial_resolution` 与 provisioning durable 保存值逐字段比较，再反查 controller PCR 中声明了 `retype(create.event_id)` 的 accepted provision。genesis accepted 后只推进到 `awaiting_did_binding`，Agent、pairing 及 list/get 仍不可见。controller 随后以 entry 0 预承诺 key 签署连续 entry 1，加入 exact create-locked `ArkretPrincipalControlRealm.serviceEndpoint`；只有 entry 1 accepted 后才条件写 Agent active 状态、创建 pairing handle 并返回 `complete`。provision 不物化 Realm grant；Station 不得生成 Agent PCR MLS private state。放弃未提交 genesis 的 reservation 必须走显式 abandonment operation，不得靠过期或垃圾回收静默释放。
 - controller-owned `backup_kind=mls_history` 只可保存 exporter history-secret ranges；不得保存 Agent PCR active MLS state、leaf signer、ratchet、proposal、sender counter 或 pending Welcome。fresh endpoint 必须通过标准 KeyPackage/Add/Welcome 重新加入唯一 derived group，backup 状态不得投影成 pairing readiness。
 - `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key.v1`) 校验 current controller/Agent authority、pairing handle、requested-scope disclosure、proof-of-possession 与 accepted control frontier，不得以 history-only backup 为前置。agent 已有 active key 时(runtime replacement re-pairing)以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization。
 - Agent 通用 list/get projection 恰好暴露 lifecycle、readiness、presence 三轴；generic readiness 只含主体级 durable blockers，例如 `runtime_key_missing`、`pairing_open`，不得出现 `session_missing`、backup 状态、KP 库存、target Realm grant/membership 或 MLS blocker。`key_state` 只承载 key/handle/authorization，不得重复产品状态或备份状态。pairing poll 的 closed `runtime_state` 仅返回该 handle 的 pairing mode、expiry 和当前步骤所需 refs，不披露其它 Agent/handle/requested scope/grant/PCR history/session。SDK 必须区分 controller、pairing-handle runtime、authorized-key/no-session runtime、authenticated runtime 四种角色；authorized-key/no-session runtime 凭 active authorization 与 PoP 申请 session，不依赖 controller 在线或 generic list/get
@@ -827,7 +827,7 @@ Applet bridge SHOULD 支持：
 
 ## 19a. Franking (E2EE Abuse Reporting)
 
-`ak.profile.franking.v1` 适用于在 E2EE Realm 中提供可验证投递证明的服务（典型为 Principal Server sync surface / MIMI provider facade / Principal Server）。
+`ak.profile.franking.v1` 适用于在 E2EE Realm 中提供可验证投递证明的服务（典型为 Station sync surface / MIMI provider facade / Station）。
 
 参考：`governance/content-moderation.md` §3.4 与 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) franking 段落。
 
@@ -852,7 +852,7 @@ SHOULD 支持：
 - franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 Seal state_root 独立，因为 franking proof 不进入 Realm seal frontier（franking proof 是 service-side audit material，不改变协作状态）。
 - 显式 `franking_proof_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 franking proof（如 service downgrade / outage），而不是误以为消息根本未投递。
 
-## 19b. Realtime Media Server
+## 19b. Realtime Media Services
 
 `ak.profile.webrtc_media.v1` 适用于提供 ICE config / TURN / SFU 等 RTC 基础设施的服务。
 
@@ -902,7 +902,7 @@ SHOULD 支持：
 
 所有 profile MUST 能按 `../models/common-fields.md` 与各对象专属文件（`realm-and-space.md` / `strand-and-message.md` / `morph.md` / `relation.md` / `event-and-patch.md` 等）解码和验证其声明支持的核心对象字段。实现 MUST 拒绝 canonical object schema 未声明的未知字段，对 schema 显式声明扩展位（已登记的 `payload.x_*` 槽、`requirements.critical_extensions[].parameters`）中的未识别内容 MUST 保留，并覆盖“schema 未声明字段被拒绝”与“扩展位内容在 hash/signature 校验、存储、联邦转发、backfill 后仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。标准 Event 必须加载 `event-kind-registry.json` 与 `event-payload.schema.json`，确认每个 active durable kind 都有可执行 payload 校验路径。
 
-所有 profile MUST 按 `conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、Ed25519 detached JWS fixture、HLC 和 cursor 的基础向量。Events API、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Principal Server MUST 覆盖 encrypted envelope digest。
+所有 profile MUST 按 `conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、Ed25519 detached JWS fixture、HLC 和 cursor 的基础向量。Events API、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Station MUST 覆盖 encrypted envelope digest。
 
 E2EE profile MUST 额外提供：
 
@@ -923,7 +923,7 @@ Client Sync 相关 profile MUST/SHOULD 按 `conformance-vectors.md` 执行对应
 - Kanban MVP Client（`ak.profile.kanban_mvp.v1`）MUST 覆盖 Board projection、Strand move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
 - Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
-- Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
+- Station SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
 - Snapshot bootstrap MUST 覆盖 `event_set_commitment` root、covered event set、conflict/soft-fail/quarantine 摘要和 inclusion / omission challenge hint。
 
 上述 Minimal Client 与 Chat MVP 的 prose MUST 覆盖项在 `conformance-profiles.json#profile_requirements` 中通过 `required_fixtures` 和 `prose_requirement_coverage` 建立映射；实现声明 profile 时必须同时提供这些 fixture / runner 的通过结果。
@@ -988,8 +988,8 @@ Feature discovery MUST 使用
 - `minimal_client`
 - `chat_mvp`
 - `kanban_mvp`
-- `principal_server_events_api`
-- `principal_server`
+- `station_events_api`
+- `station`
 - `federation_minimal`
 - `identity_registry`
 - `blob_node`

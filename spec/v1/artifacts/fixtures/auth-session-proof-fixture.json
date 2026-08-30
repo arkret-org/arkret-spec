@@ -1,5 +1,5 @@
 {
-  "profile": "ak.profile.auth_server.v1",
+  "profile": "ak.profile.station.v1",
   "version": "2026-08-20",
   "suite": "auth_session_proof",
   "runner": {
@@ -32,7 +32,7 @@
       "expires_at": "2026-08-20T00:05:00.000Z",
       "server_max_ttl_seconds": 900,
       "attempted_verified_profiles": [
-        "ak.profile.auth_server.v1"
+        "ak.profile.station.v1"
       ],
       "expected": {
         "audience_mismatch_reason": "audience_mismatch",
@@ -45,7 +45,7 @@
         "the accepted-device proof binds request_id, account_subject, account_handoff_grant_digest, principal_id, device_id, audience, holder_jkt, verification_method, session intent, and a window no longer than 300 seconds",
         "the origin verifies the accepted-device signature with the durable current accepted-device key in the same current-authorization linearization",
         "human scope and lifetime are issuer-fixed and are not request fields",
-        "development_mode=true must not advertise ak.profile.auth_server.v1 in verified_profiles"
+        "development_mode=true must not advertise ak.profile.station.v1 in verified_profiles"
       ]
     },
     {

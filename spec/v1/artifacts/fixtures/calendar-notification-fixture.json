@@ -44,7 +44,7 @@
           "version_id": "1"
         },
         "trust_domain": "ak:trust_domain:example.test",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "protocol_version": "1.0",
         "supported_profiles": [
           "ak.profile.calendar_notification_dispatch.v1"
@@ -63,8 +63,8 @@
         "interop_surfaces": [],
         "development_mode": false,
         "supported_operation_bundles": [
-          "ak.operation_bundle.principal_server.describe.v1",
-          "ak.operation_bundle.principal_server.http_core.v1"
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1"
         ],
         "transport_bindings": [
           {

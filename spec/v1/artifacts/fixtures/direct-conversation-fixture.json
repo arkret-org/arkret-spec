@@ -102,14 +102,14 @@
             "kind": "account",
             "account_id": {
               "principal_id": "ak:did_core:webvh:z6mkfixture",
-              "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
             }
           },
           {
             "kind": "account",
             "account_id": {
               "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
-              "principal_server_id": "ak:did_core:webvh:z6mkfixturebobprincipalserverexample"
+              "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
             }
           }
         ],
@@ -702,7 +702,7 @@
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "realm_policy_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "membership_frontier": [],
-          "destination_kind": "principal_server"
+          "destination_kind": "station"
         },
         "events": [
           {},
@@ -739,7 +739,7 @@
       "semantic_outcome": "accept",
       "assertions": [
         "state is creation_required and next_founding_input is present",
-        "next_founding_input member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies founding_authority_evidence and origin Principal Server identity from the signed Events across with no renaming map",
+        "next_founding_input member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies founding_authority_evidence and origin Station identity from the signed Events across with no renaming map",
         "exactly one founding_authority_evidence branch is returned for this pair, human for a peer Contact founding and controller_agent for an own-Agent founding",
         "the container carries no Event bytes, no coordinates, no idempotency_key and no receipt: the founder still authors and signs all four Events",
         "a service that cannot assemble or verify the material returns temporarily_unavailable instead of a creation_required outcome without the container",
@@ -765,7 +765,7 @@
     {
       "name": "same_founder_authority_recovery_is_not_succession",
       "vector_id": "ak.vector.direct_conversation.founder_loss_terminality.v1",
-      "precondition": "the derived founder temporarily lost all usable devices, then ordinary account/device recovery restored control of the exact same (principal_id, principal_server_id) before any Direct Conversation Realm was accepted",
+      "precondition": "the derived founder temporarily lost all usable devices, then ordinary account/device recovery restored control of the exact same (principal_id, station_id) before any Direct Conversation Realm was accepted",
       "action": "resolve and submit the original pair's founding unit with current ordinary founder authority evidence",
       "semantic_outcome": "accept",
       "assertions": [
@@ -837,7 +837,7 @@
     {
       "name": "founder_multi_device_concurrency_admits_first_valid_unit",
       "precondition": "two founder devices independently author different valid units for the same pair",
-      "action": "both submit concurrently to the same Principal Server slot",
+      "action": "both submit concurrently to the same Station slot",
       "semantic_outcome": "accept",
       "assertions": [
         "exactly one unit is accepted and four Events are written once",
@@ -866,8 +866,8 @@
       ]
     },
     {
-      "name": "same_and_dual_principal_server_deployments_agree",
-      "precondition": "the pair is hosted on one Principal Server in one run and on two Principal Servers in another",
+      "name": "same_and_dual_station_deployments_agree",
+      "precondition": "the pair is hosted on one Station in one run and on two Stations in another",
       "action": "run self founding and the federation direct_conversation_founding branch",
       "semantic_outcome": "accept",
       "assertions": [
@@ -877,7 +877,7 @@
     },
     {
       "name": "federation_founding_dependency_missing_is_atomic",
-      "precondition": "the Contact round mirror has not reached the destination Principal Server",
+      "precondition": "the Contact round mirror has not reached the destination Station",
       "action": "deliver the founding unit through the peer direct_conversation_founding branch",
       "semantic_outcome": "reject",
       "expected_reason_code": "dependency_missing",
@@ -1101,7 +1101,7 @@
     {
       "name": "contact_mirror_branch_returns_exact_event_without_seal",
       "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
-      "precondition": "the holder holds a Contact verified mirror whose receipt was cryptographically verified at ingest and CAS-stored, the contact row is pending_incoming, and the requester lives on a different Principal Server so the Event is absent from the holder's realm event store",
+      "precondition": "the holder holds a Contact verified mirror whose receipt was cryptographically verified at ingest and CAS-stored, the contact row is pending_incoming, and the requester lives on a different Station so the Event is absent from the holder's realm event store",
       "action": "call ak.self.events.read.resolve.v1 for the exact request Event id with include_payload true",
       "semantic_outcome": "accept",
       "assertions": [

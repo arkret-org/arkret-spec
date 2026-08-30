@@ -259,14 +259,14 @@ Canonical franking proof 结构（示例中的 signature 字节以 `...` 省略�
 - 唯一签名字节是 `RFC8785_JCS({domain:"ak.franking_proof.signature.v1",realm_id,event_id,received_by,verification_method,received_at,replay_nonce})`。该 locally anchored detached signature domain 登记在 `proof-context-registry.json#domain_separations`；不得添加另一个 digest、proof id、kind 或 sender claim 镜像。
 - `event_id` 是目标 Event producer-signed canonical content projection 的唯一承诺。Verifier 必须取得目标 accepted Event、按该 Realm 的 digest suite 重算 Event ID 并逐字比较，同时走普通 Event admission 路径验证 envelope proof、actor、Realm 与 routing binding。Franking proof 不复制任何可从目标 Event 投影出的 digest 或 sender 元数据，也不因自身存在而获得 MLS secret 或 AEAD 验证权限。
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash。
-- **`received_by` / `received_at` 向非群成员 moderator 最小化（normative）**：Canonical `franking_proof` 必须保留被签名的 receiving service DID 与精确接收时间，分别按 schema 的 DID / timestamp 形态承载，否则无法执行 service-key authority 与签名时点校验；实现 MUST NOT 把 DID digest 填入 canonical `received_by`，也 MUST NOT 把 bucket 值冒充 canonical `received_at`。由于这两项会暴露 Principal Server 拓扑与秒级活动 timing，完整 proof payload 只允许在持有对应治理 capability 的验证路径内解密/读取。普通 reporter 或不具该能力的非群 moderator只能取得**非 proof 的最小化投影**：`received_by` MAY 投影为 service DID digest 或“某授权投递服务”布尔证明，`received_at` SHOULD bucket 化；该投影 MUST 标记为不可直接验签，MUST NOT 重新提交为 `ModerationReport.franking_proof` 或 `ak.moderation.franking_proof` payload。Raw Event API、backfill 与 federation 对无权 caller / peer MUST 隐去完整 payload，只可返回 payload digest / redacted stub。§3.4.1 的精确校验只发生在授权验证路径内。
+- **`received_by` / `received_at` 向非群成员 moderator 最小化（normative）**：Canonical `franking_proof` 必须保留被签名的 receiving service DID 与精确接收时间，分别按 schema 的 DID / timestamp 形态承载，否则无法执行 service-key authority 与签名时点校验；实现 MUST NOT 把 DID digest 填入 canonical `received_by`，也 MUST NOT 把 bucket 值冒充 canonical `received_at`。由于这两项会暴露 Station 拓扑与秒级活动 timing，完整 proof payload 只允许在持有对应治理 capability 的验证路径内解密/读取。普通 reporter 或不具该能力的非群 moderator只能取得**非 proof 的最小化投影**：`received_by` MAY 投影为 service DID digest 或“某授权投递服务”布尔证明，`received_at` SHOULD bucket 化；该投影 MUST 标记为不可直接验签，MUST NOT 重新提交为 `ModerationReport.franking_proof` 或 `ak.moderation.franking_proof` payload。Raw Event API、backfill 与 federation 对无权 caller / peer MUST 隐去完整 payload，只可返回 payload digest / redacted stub。§3.4.1 的精确校验只发生在授权验证路径内。
 - `franking_proof` 只证明服务接收过对应密文事件；它不证明 reporter 提交的明文与密文一致，也不证明 sender 在群外不可抵赖地 authored 该明文。
 - Moderator 验证时 MUST 检查 reporter 可见性、目标消息 accepted state 与内容承诺、franking service signature、durable proof Event/Seal observation 和 evidence package 签名。具备独立 MLS/治理密钥权限时 MAY 在另一证据路径验证 AEAD/AAD；该结果不写回 franking proof。
 - 若任一环节缺失，moderator MAY 把材料作为人工线索，但 MUST NOT 将 `franking_proof` 视为可验证投递证明。
 
 #### 3.4.1 不存在治理密钥释放
 
-Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ak.self.moderation.command.report.v1` 自动升级为 `ak.audit.session.request`，MUST NOT 因举报向 moderator、Principal Server sync surface 或外部 verifier release 历史 key / epoch key。
+Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ak.self.moderation.command.report.v1` 自动升级为 `ak.audit.session.request`，MUST NOT 因举报向 moderator、Station sync surface 或外部 verifier release 历史 key / epoch key。
 
 需要政府 / 企业合规审计时，必须走 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 Audit Applet Binding + sealed release session；这与用户举报是不同协议流程。
 
@@ -336,7 +336,7 @@ Franking 信任链：
 
 ### 4.4 隐私要求
 
-个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Principal Server sync surface、Realm、Directory 或被屏蔽方可见的位置。
+个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Station sync surface、Realm、Directory 或被屏蔽方可见的位置。
 
 跨设备同步 SHOULD 使用加密 account data。服务端只应看到不透明密文。
 
@@ -354,7 +354,7 @@ Franking 信任链：
 管理员通过 `ak.member.state{membership="ban"}` Event 封禁用户（成员状态机详见 [`../models/realm-and-space.md` §2.7](../models/realm-and-space.md)，policy 对象详见 [`../models/governance-objects.md` §3](../models/governance-objects.md)）。封禁后：
 
 - 被封禁用户无法重新加入该 Realm
-- 其未来的 Operation 提交将被 Principal Server sync surface 拒绝
+- 其未来的 Operation 提交将被 Station sync surface 拒绝
 - 是否对其隐藏**已可见**历史内容由 Realm Policy 决定；但 ban 后的 **key share 与 server-mediated backfill MUST fail closed**，其 fail-closed 真相源为 [`history-visibility.md` §6](./history-visibility.md) 与 [`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md)（把“接收 principal / device 已处于 ban / leave / removed”列为主体级拒绝终态）。Realm policy 只能在此基础上**更严**，MUST NOT 放宽该 fail-closed 边界向被封禁主体继续交付 key / 历史。
 
 ### 5.3 Realm 内审核状态边界
@@ -451,7 +451,7 @@ Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/mod
 
 ### 6.1 本地部署 ACL 与 Realm ACL 的边界
 
-Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联邦请求被接受、拒绝或停止 fanout：
+Station 可以配置本地服务器级 ACL，控制哪些 peer 的联邦请求被接受、拒绝或停止 fanout：
 
 ```json
 {
@@ -476,7 +476,7 @@ v1 不提供可复制的 Realm 级 server ACL。接收方以 §6.1 的部署本�
 需要跨独立 peer 协调 Realm 级 ACL 时，必须另行定义完整扩展（包括 Event kind、合并语义、授权、SDK 与 conformance），不得提交未注册的 `ak.realm.server_acl`、`ak.server.acl` 或其他临时 Realm policy Event。
 ### 6.3 与联邦协议的关系
 
-Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Principal Server 收到来自被 deny 的 peer 的 `ak.peer.events.command.submit.v1`（`/_arkret/peer/events`，`Source-Service-ID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
+Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Station 收到来自被 deny 的 peer 的 `ak.peer.events.command.submit.v1`（`/_arkret/peer/events`，`Source-Service-ID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
 
 整机级 defederation 需要入站与出站同时配置：拒收该 peer 的 push / pull / frontier probe，并停止向其 fanout 新 Event、push、to-device、key-package、backfill 和媒体 / snapshot fetch。
 
@@ -537,7 +537,7 @@ bytes，只会多出一条可漂移的第二真相源。
 
 - 组织策略只对显式引用它的 Realm / 服务有权威；对官方 Realm 也仅当其 `ak.realm.organization` 背书声明组织策略适用时才生效。
 - v1 不定义 Realm 级 override；组织策略是否适用完全由已接受的 Organization / Realm 关联与 `policy_scope` 决定。
-- 组织级 deny SHOULD 由 Principal Server ACL、Directory 过滤与直接治理 Event 共同执行。
+- 组织级 deny SHOULD 由 Station ACL、Directory 过滤与直接治理 Event 共同执行。
 - 组织策略 MUST 由 Organization DID 或受授权的 governance service DID 签名。
 - 组织策略 MUST NOT 暴露用户私有 blocklist、私有 handle 或未披露的组织成员关系。
 

@@ -71,7 +71,7 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
   "from_ref": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
   "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
   "rank": "mV",
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```

@@ -91,7 +91,7 @@ Schema id: `ak.schema.morph.v1`
     "severity": "high"
   },
   "stage": "in_progress",
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```

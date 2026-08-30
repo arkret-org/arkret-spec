@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.14",
+  "version": "2026-08-29.16",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -21,28 +21,8 @@
       "sha256": "sha256:c6c9103cbb436f41eb8a008ca75ea72cd3c7e678999a10bf9cd9d0e1d5b55e23"
     },
     {
-      "operation_bundle_id": "ak.operation_bundle.auth_server.account_authority.v1",
-      "sha256": "sha256:df275ec795ef115b12f9bb5bf1429e3dea5d22b6e17df8cc3951eb8eb4d1f8bf"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.auth_server.describe.v1",
-      "sha256": "sha256:08564b78f6eb9221bc52b9f5663b580dec14b2b596fc0e7060b951f59c4da885"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.auth_server.http_core.v1",
-      "sha256": "sha256:0e96d0161d9739ea0c3f4ca15b49acc51625879289c96e03fd218b935826de6e"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.authz_service.describe.v1",
-      "sha256": "sha256:59d944d465e9138d757a3df2b08c01ea50979d8bb141202a98d1209b41b38e50"
-    },
-    {
       "operation_bundle_id": "ak.operation_bundle.blob_node.describe.v1",
       "sha256": "sha256:4cd6d77fe454ed9d2db333fed974aeeacef1d207a1828a7342403265a004e7eb"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.device_key_service.describe.v1",
-      "sha256": "sha256:37e03ecaf4e109c20b9ab1062cff087ab6e6bf1b513089ef593e6283944440f0"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.directory_service.describe.v1",
@@ -85,54 +65,6 @@
       "sha256": "sha256:f35df3634238df7e5c60ee2e90f029fb974accc2d5447865ad5bdeebdd75cdaa"
     },
     {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.agent_pairing_handoff.v1",
-      "sha256": "sha256:ef119b2038b5f589890d22a06d708f707f5260d68f0c7960d4716d299ce26499"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.agent_runtime.v1",
-      "sha256": "sha256:d1f82ce8d302d2613fb39817b1dc810be6c31b4dbe7889804a7648828b7eb5cd"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.applet.v1",
-      "sha256": "sha256:10b0218db504b9af0995a85f39372fa69eb500dff1ade40b2ed6890a39c6461f"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.applet_ghost.v1",
-      "sha256": "sha256:cdf35968c653761dacbe84765a0727a17653a05cc32573d3bfdf1cd0d65598e1"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.applet_install.v1",
-      "sha256": "sha256:5de18c973b691b05ca189676ca590e2e5d5dea8411c16edd515ef3186ea5c496"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.describe.v1",
-      "sha256": "sha256:daf76086b60162714664af3a3a5567a51645c02efee630ba1003e4a5dc37e08e"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.history_key_recovery.v1",
-      "sha256": "sha256:9a4d0388f19817f9c32a9fdfad1e1794e40dbdf77447037d5e5cdc89e5e0b80a"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.http_core.v1",
-      "sha256": "sha256:cb7468392d49bcfd161b872358566618e791b91e337f5524844bfa1b85066154"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.mimi_interop.v1",
-      "sha256": "sha256:ca0d246c4b4a2d00df15f4a106d6c6a803456fbd493727e4bdb9a17f2d379d47"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.push.v1",
-      "sha256": "sha256:6790bcdd8e91f7bcd86a8cb62621cdc98938ad0ab6f1718e2d831c02da237574"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.tus_upload.v1",
-      "sha256": "sha256:9ff897f47edf25e41492475360de76481ad80d23fb3251f7103c1f09b1150cad"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.websocket.v1",
-      "sha256": "sha256:2ebf42c8699ab20eb29f9bd511681b3b19b46ce29dc5b390a36a71af332528ea"
-    },
-    {
       "operation_bundle_id": "ak.operation_bundle.push_gateway.describe.v1",
       "sha256": "sha256:96cd1579ffc244ca9699f5480f52b595c6a0ba8542a5ffca3452249c848d80bd"
     },
@@ -145,12 +77,64 @@
       "sha256": "sha256:d99568972cd6c8db05f843f1491f74b6e08fc8782698be8324da01af9a140194"
     },
     {
-      "operation_bundle_id": "ak.operation_bundle.search_service.describe.v1",
-      "sha256": "sha256:d297c60dac3b51071ce620e0a44a7c78d77f547617e314df441e31159c266fa5"
-    },
-    {
       "operation_bundle_id": "ak.operation_bundle.sfu_service.describe.v1",
       "sha256": "sha256:d9a34c869fe2f50c6b2fbffb85877224f20f2a9807fe72d691e5559ab70f7f4f"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.account_authority.v1",
+      "sha256": "sha256:038a7b66e3b5f3e4ff56886e387fc4721f8d6adc49cd4d479d47ead4efc66953"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.account_authority_support.v1",
+      "sha256": "sha256:ca631bd4fff3c0cc361f78021527641f167fb8cf4e1bf3998dba4645ebb3f0a4"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.agent_pairing_handoff.v1",
+      "sha256": "sha256:71eb189aad2c6a8d771128fa5eb4554ad3e194c488a7fd3e74a2faefe4dd86d7"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.agent_runtime.v1",
+      "sha256": "sha256:3daad16b340e84c59f356538f14698e075f7fd012ec51d6f79baf1b8d05146f2"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.applet.v1",
+      "sha256": "sha256:30129f86455a7843bacdf3b535266f8a81eb16d5eaf84abe710223915c0d59b1"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.applet_ghost.v1",
+      "sha256": "sha256:6131afd65d66e70f2bde467cce1772e5d03eefda4714905cee33993a882dcad5"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.applet_install.v1",
+      "sha256": "sha256:fa2ec018cbcfeb1b0ca35bc8d0284e9ea8c447193a103cdb20c3436c2e81321a"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.describe.v1",
+      "sha256": "sha256:e46c58aafde8c1358bd90a8e392647ad42cad4c341086cde146a35817f64cf2a"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.history_key_recovery.v1",
+      "sha256": "sha256:4db332b9d44b2392f5a1ee590eb9483a01f00e89ea0d9d9367cfe2d5ad5b367a"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.http_core.v1",
+      "sha256": "sha256:e940b7cc3b0d79a8ab4038d84896932221a74569db3b85f7a2086cc890d8af04"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.mimi_interop.v1",
+      "sha256": "sha256:b9cffcfb166b66773d400cbf45625614ece8ad844e59b21e765b9d6221712ae8"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.push.v1",
+      "sha256": "sha256:f4423190787097402416cf9f7c16b113d6e3dc482f6c9a8e616cb42e69e6ae64"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.tus_upload.v1",
+      "sha256": "sha256:fdc763a212149e7ab92ae095f9a1683b5728f0c34b82c378c71624afd8ea3b07"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.websocket.v1",
+      "sha256": "sha256:1bc838d7a1c028f6403ff38503e521e8a47ef6ca3cccde555588325afac04352"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.turn_service.describe.v1",

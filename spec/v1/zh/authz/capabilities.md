@@ -25,7 +25,7 @@ Arkret 的权限模型采用 capability 思路，而不是只依赖成员关系�
 
 ### 2.1 授权主体 MUST 使用完整 ActorId
 
-grant 的 `issuer_id` 与具体主体分支的 `subject` MUST 使用闭合 `ActorId`。账号主体使用 `{kind:"account", account_id:{principal_id, principal_server_id}}`；托管 principal 与 service 分别使用对应的 ActorId 分支。裸 `did_core_id` 不足以标识账号，也不得再附加平行的 `*_principal_server_id` sidecar。
+grant 的 `issuer_id` 与具体主体分支的 `subject` MUST 使用闭合 `ActorId`。账号主体使用 `{kind:"account", account_id:{principal_id, station_id}}`；托管 principal 与 service 分别使用对应的 ActorId 分支。裸 `did_core_id` 不足以标识账号，也不得再附加平行的 `*_station_id` sidecar。
 
 Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主体主键。
 
@@ -66,8 +66,8 @@ ID 语义：
   "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
   "schema": "ak.schema.capability.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "issuer_id": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6qRDFWgaBgTY3UGDLivJztno","principal_server_id":"ak:did_core:webvh:z6mkfixtureissuerprincipalserver"}},
-  "subject": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z8NNMm8UHw7JcDSuuZd34UisF","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserver"}},
+  "issuer_id": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6qRDFWgaBgTY3UGDLivJztno","station_id":"ak:did_core:webvh:z6mkfixtureissuerstation"}},
+  "subject": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z8NNMm8UHw7JcDSuuZd34UisF","station_id":"ak:did_core:webvh:z6mkfixturestation"}},
   "issuer_authority_refs": [
     {
       "kind": "realm_root",
@@ -116,7 +116,7 @@ ID 语义：
 
 ### 3.0.1 单一 durable signature（normative）
 
-`ak.capability.grant` 的 `event.payload.grant` 是无 `id`、无 `authority_depth`、无 `authority_root_refs`、无内层 proof 的 closed authoring body；这些 reducer-derived 字段若由 producer 自填，schema MUST 拒绝。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖完整 `ActorId`、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 cell subject 和投影 `grant.id`。该 Event 的 `actor_id` MUST 逐字段等于 `grant.issuer_id`，且本 kind MUST NOT 使用 `executed_by`。账号与托管 principal 的 server 归属已经封闭在 ActorId 内，reducer 不再复制或派生 `issuer_principal_server_id`，也不得接受 `subject_principal_server_id`。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
+`ak.capability.grant` 的 `event.payload.grant` 是无 `id`、无 `authority_depth`、无 `authority_root_refs`、无内层 proof 的 closed authoring body；这些 reducer-derived 字段若由 producer 自填，schema MUST 拒绝。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖完整 `ActorId`、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 cell subject 和投影 `grant.id`。该 Event 的 `actor_id` MUST 逐字段等于 `grant.issuer_id`，且本 kind MUST NOT 使用 `executed_by`。账号与托管 principal 的 server 归属已经封闭在 ActorId 内，reducer 不再复制或派生 `issuer_station_id`，也不得接受 `subject_station_id`。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
 
 ### 3.1 条件化 Grant
 
@@ -401,7 +401,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.capability.revoke`
 - `ak.agent.key.authorize`（high risk；授权 agent key，target=`ak.agent.key.authorize`。key 替换不设独立 rotate action：runtime replacement 的 controller-signed authorize Event 必须用精确 `supersedes[]` 列出全部既有 active authorization；reducer 接受该单一 Event 时原子 observe-remove，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)）
 - `ak.agent.key.revoke`（high risk；撤销 agent key，target=`ak.agent.key.revoke`）
-- `ak.self.agent.command.provision.v1`(aggregate admin action,`target_event_kinds=[ak.agent.provision]`,profile=`ak.profile.personal_agent_provisioning.v1`；controller 先生成并发布不含 PCR binding 的 Agent DID inception，服务端 prepare 只验证并返回 exact `initial_resolution`/delegation/allocation，**不**生成 Agent DID/私钥或分配 PCR id。controller 把该承诺写入本地冻结的 PCR genesis，取 `retype(event_id)` 作为 `principal_control_realm_id`，再提交唯一 closed controller-signed `ak.agent.provision` Event。Principal Server MUST NOT 代签、重建 proof transcript、自选 realm id 或用 service/dev proof 替代。provision accepted 后为 `awaiting_pcr_genesis`；genesis accepted 后为 `awaiting_did_binding`；controller 使用 inception 预承诺 key 发布 exact PCR service update，accepted 后才 complete 并暴露 pairing/list/get。Agent Profile 与首次 `ak.agent.key.authorize` 都是后续独立提交。Provisioning MUST NOT 物化任何 `ak.capability.grant`；完整时序见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md))
+- `ak.self.agent.command.provision.v1`(aggregate admin action,`target_event_kinds=[ak.agent.provision]`,profile=`ak.profile.personal_agent_provisioning.v1`；controller 先生成并发布不含 PCR binding 的 Agent DID inception，服务端 prepare 只验证并返回 exact `initial_resolution`/delegation/allocation，**不**生成 Agent DID/私钥或分配 PCR id。controller 把该承诺写入本地冻结的 PCR genesis，取 `retype(event_id)` 作为 `principal_control_realm_id`，再提交唯一 closed controller-signed `ak.agent.provision` Event。Station MUST NOT 代签、重建 proof transcript、自选 realm id 或用 service/dev proof 替代。provision accepted 后为 `awaiting_pcr_genesis`；genesis accepted 后为 `awaiting_did_binding`；controller 使用 inception 预承诺 key 发布 exact PCR service update，accepted 后才 complete 并暴露 pairing/list/get。Agent Profile 与首次 `ak.agent.key.authorize` 都是后续独立提交。Provisioning MUST NOT 物化任何 `ak.capability.grant`；完整时序见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md))
 - `ak.self.agent.command.renew_pairing.v1`(controller-only,high risk;重开一次性 pairing handle；bootstrap 状态或已持有 active authorized key 且 lifecycle 为 `active | paused` 的 agent 均可调用，`active` 无需先 pause；怀疑旧 key 失陷时 SHOULD 先 pause；`target_event_kinds=[]`,`event_mapping_kind=non_event_surface`，不产生 durable Event，也不创建、撤销或重发 Realm grant；语义见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
 - `ak.self.agent.command.pause.v1`(controller-only;target=`ak.self.agent.pause`)
 - `ak.self.agent.command.resume.v1`(controller-only;target=`ak.self.agent.resume`)
@@ -622,7 +622,7 @@ canonical 展开表:
 | --- | --- | --- | --- | --- |
 | `read` | `ak.event.read` | 显式 resource selector(MUST) | 显式 Realm / Strand / Circle scope,MUST NOT Realm-wide 无约束 | 授予**内容层**事件投影读能力。`ak.event.read` 是 `non_event_surface` 的内容读能力,**MUST NOT** 被解释为授予 events 服务面本身——agent 要真正调用 events 查询 / 订阅 endpoint,其 **session 还 MUST 携带对应服务面 scope**(`ak.self.events.read.scan.v1` / `ak.self.events.stream.subscribe.v1`,§5.5;见下方「服务面 scope 与内容能力分层」)。二者按 **AND** 组合:读取 surface 由服务面 scope 授权,payload 由 `ak.event.read` + membership / history visibility 授权(见 [`../models/relation.md` §4.2](../models/relation.md))。**MUST NOT** 隐含 object content/history 读取、`ak.object.read*`、`ak.strand.read`、E2EE history key 或 MLS membership。 |
 | `read_content` / `read_history` | `ak.object.read_content` / `ak.object.read_history`(按需分别授予) | 显式 resource selector(MUST) | 同上 | 对象正文 / 历史读取是**独立的 additive 预设**,不折叠进 `read`。实现若需要"读事件+读正文",MUST 分别授予这些 action,而不是扩大 `read` 的展开集合。 |
-| `draft` | `ak.agent.draft.propose`, `ak.agent.action_request` | —(revocation-governed;`expires_at` MAY 由部署 / controller 策略添加) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求，由 Principal Server materialize controller-owned `ak.agent.draft.v1` account-data(见 [`../models/private-objects.md` §4.1](../models/private-objects.md))。两个 action 均 profile-gated 于 `ak.profile.personal_agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event`)。 |
+| `draft` | `ak.agent.draft.propose`, `ak.agent.action_request` | —(revocation-governed;`expires_at` MAY 由部署 / controller 策略添加) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求，由 Station materialize controller-owned `ak.agent.draft.v1` account-data(见 [`../models/private-objects.md` §4.1](../models/private-objects.md))。两个 action 均 profile-gated 于 `ak.profile.personal_agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event`)。 |
 | `reply_as_agent` | `ak.message.create`, `ak.reaction.add` | 显式 resource selector(MUST) | 显式 Strand / Circle scope | agent 以自身 principal identity 在授权 scope 内发消息 / 加反应。 |
 | `act_on_behalf` | `ak.message.create`(及选定 workflow actions) | controller approval / accountability 证据(MUST,见 §8)+ 有限 `expires_at`(MUST)+ resource selector narrowing + audit evidence ref | 显式 scope,MUST NOT 全 Realm 无约束 | **高风险。** `actor_id` 为 controller、`executed_by` 为 agent 的 accountable-actor 授权(§8)。MUST 携带 controller approval / accountability 约束,MUST NOT 仅做 action union。 |
 | `organizer` | `ak.strand.create`, `ak.strand.update`, `ak.relation.create`,受限 `ak.message.create` | `ak.strand.update` MUST 携带 `allowed_write_fields`(registry required);显式 resource selector(MUST) | 显式 Realm / Space scope | **中到高风险。** 结构化编排权限。包含 `ak.strand.update` 时 MUST 通过 `allowed_write_fields` 限定可写字段,MUST NOT 展开为无约束的 strand 全字段写。 |
@@ -660,7 +660,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 
 没有普通 `authority_control` constraint 的 grant 不具备再授权能力，MUST NOT 被任何 child grant 引用为 ref。若某条 ref 的普通 `authority_control` constraint 声明 `authority_regrant_allowed=false`（字段缺省同样为 false），则以它为 ref 的 child grant MUST 在 wire 上显式携带普通 `authority_control` 与 `max_authority_depth=0`，且 child 的 `authority_regrant_allowed` 必须为 false（字段省略按 false 求值）；该 terminal child MUST NOT 再被任何 grant 引用为 ref。省略 carrier、声明正深度或重新开启 regrant 时 reducer MUST 以 `failed_precondition` reason=`authority_regrant_denied` 拒绝。`constraint_subkind=applet_authority` 不构成普通再授权控制。
 
-**求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 必须保持 active，且其具体 `subject` 必须与 child 的 `issuer_id` 做完整 ActorId 相等比较；只比较 `signing_principal_id` 或裸 DID MUST 视为未提供 issuer authority，并以 `failed_precondition`、reason=`grant_exceeds_issuer_authority` fail closed。该比较只读取已物化 ActorId，不得按 DID 二次查询或把当前路由服务替换进身份；因此离线 replay、迁移和联邦重放不会把同一 DID 的另一 Principal Server 实例串成授权链。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 cell 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
+**求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 必须保持 active，且其具体 `subject` 必须与 child 的 `issuer_id` 做完整 ActorId 相等比较；只比较 `signing_principal_id` 或裸 DID MUST 视为未提供 issuer authority，并以 `failed_precondition`、reason=`grant_exceeds_issuer_authority` fail closed。该比较只读取已物化 ActorId，不得按 DID 二次查询或把当前路由服务替换进身份；因此离线 replay、迁移和联邦重放不会把同一 DID 的另一 Station 实例串成授权链。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 cell 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
 
 **接受后物化字段（normative）**：reducer MUST 物化下列两个字段；它们都不属于 producer 的 closed authoring body，因此不可由作者谎报：
 
@@ -839,7 +839,7 @@ profile-gated 动作沿用同一原则：出现在 schedule、roster 或成员�
 权限检查 MUST 至少在以下协议边界执行：
 
 - Events API 接收写入时
-- Principal Server sync surface 分发前
+- Station sync surface 分发前
 - 受托 search / projection 服务返回结果前
 - blob store 下发内容前
 
@@ -866,7 +866,7 @@ Facets 不属于独立授权输入。算法 MUST NOT 在上述步骤之外读取
 
 ### 18.1 高频交互的 O(1) 快速路径
 
-在“discussion 消息收发”或“Strand 状态拖拽”等高频交互场景下，声称支持主客户端或 Principal Server profile 的实现 SHOULD 提供 capability 快照缓存或语义等价 fast path。
+在“discussion 消息收发”或“Strand 状态拖拽”等高频交互场景下，声称支持主客户端或 Station profile 的实现 SHOULD 提供 capability 快照缓存或语义等价 fast path。
 
 高频 fast path 典型事件：
 
@@ -903,7 +903,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - 已被 GC 的 grant 仍 MUST 保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现 MUST NOT 因为 grant payload 已压缩或归档而让旧 cache 重新生效。
 - `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态 MUST NOT 生成 allow cache；只能生成 deny / unknown / pending 诊断。
 - fast path（capability 快照缓存）**MUST** 只适用于"该 grant 的全部 constraint 的 `evaluation_class` 均为 `stateless` 或 `grant_local`"的 grant；只要 grant 含任一 `external` 或 `realm_state` 类 constraint（见 [`constraint-schema.md` §2.3](./constraint-schema.md) evaluation_class 分类，典型如 `claim_based` / `quota.rate` / `confidentiality` / `field_access` 带 `condition` 等），该 grant 的判定 **MUST** 走完整授权判定，**MUST NOT** 仅凭 fast-path cache 命中放行。该绑定与 §18.1 fast-path cache 的 `auth_state_digest` 失效机制叠加生效，不互相替代。
-- 多 Principal Server 部署中，cache TTL 只是额外保险，MUST NOT 替代 revoke fanout、frontier 对账和 `auth_state_digest` 失效。
+- 多 Station 部署中，cache TTL 只是额外保险，MUST NOT 替代 revoke fanout、frontier 对账和 `auth_state_digest` 失效。
 
 ### 18.2 撤销新鲜度 (Revocation Freshness)
 

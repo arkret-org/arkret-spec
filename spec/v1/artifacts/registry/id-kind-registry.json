@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-08-30.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-30T23:30:00+08:00",
+  "generated_at": "2026-08-31T00:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -641,7 +641,7 @@
       "category": "account_private",
       "status": "active",
       "wire_form": "ak:invite_locator:<uuidv7>",
-      "description": "Non-secret Principal Server administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token.",
+      "description": "Non-secret Station administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

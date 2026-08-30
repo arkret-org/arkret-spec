@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-去中心化协作协议面临着复杂的隐私与合规矛盾：一方面，商业数据和私密频道必须提供不可被 Principal Server sync surface 或未授权受托服务窃听的端到端加密 (E2EE)；另一方面，在特定组织边界内，数据流又需要受到法律或合规层面的安全审查。
+去中心化协作协议面临着复杂的隐私与合规矛盾：一方面，商业数据和私密频道必须提供不可被 Station sync surface 或未授权受托服务窃听的端到端加密 (E2EE)；另一方面，在特定组织边界内，数据流又需要受到法律或合规层面的安全审查。
 
 本规范定义了 Arkret 官方推荐的加密标准，旨在实现：
 - 基于 **MLS (RFC 9420)** 的高效大规模协作加密
@@ -33,7 +33,7 @@ Arkret 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf
   portable authorization evidence。DID method history 只验证 identity root；普通设备签名 key
   只来自 registration-anchor PCR genesis、完整 control history、accepted Seal 与 current device projection，
   **MUST NOT** 回退到 DID Document verification method。Native Agent 则验证 current-admission
-  `AgentSignerEvidence`，两分支不得互相 fallback，也不得以 Principal Server 裸投影替代。
+  `AgentSignerEvidence`，两分支不得互相 fallback，也不得以 Station 裸投影替代。
 
 ### 2.2 握手与组成员管理 (Welcome, Commit)
 MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Arkret 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Realm` 与 Event 模型中：
@@ -41,28 +41,28 @@ MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Arkret 中，群组的�
 ```mermaid
 sequenceDiagram
     participant Alice
-    participant Principal Server sync surface (Realm Events)
+    participant Station sync surface (Realm Events)
     participant BobClient as Bob Client
 
-    Alice->>Principal Server sync surface: POST /_arkret/self/keys/query
-    Principal Server sync surface-->>Alice: Bob's signed KeyPackage / device keys
+    Alice->>Station sync surface: POST /_arkret/self/keys/query
+    Station sync surface-->>Alice: Bob's signed KeyPackage / device keys
 
     note over Alice: Computes GroupContext & Tree
 
-    Alice->>Principal Server sync surface: Submit `ak.mls.commit` (Group state update)
-    Principal Server sync surface-->>Alice: Commit accepted / duplicate
-    Alice->>Principal Server sync surface: Submit exact bound `ak.mls.welcome` (Encrypted for Bob)
+    Alice->>Station sync surface: Submit `ak.mls.commit` (Group state update)
+    Station sync surface-->>Alice: Commit accepted / duplicate
+    Alice->>Station sync surface: Submit exact bound `ak.mls.welcome` (Encrypted for Bob)
 
-    Principal Server sync surface->>BobClient: Push Notification & Sync
+    Station sync surface->>BobClient: Push Notification & Sync
 
-    BobClient->>Principal Server sync surface: Fetch `ak.mls.welcome`
+    BobClient->>Station sync surface: Fetch `ak.mls.welcome`
     note over BobClient: Decrypts Welcome using InitKey
     note over BobClient: Derives Group Epoch Secret
 ```
 
 - **`ak.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `ak.mls.commit` 类型的 Event 提交至 Realm Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
-- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。完整 Welcome bytes MUST 以 canonical unpadded base64url `ciphertext` 内联在 durable `ak.mls.welcome` Event 中，并保留至被消费、撤销或过期；解码必须成功、不得含 padding，重新编码必须与 wire 字符串逐字节一致。Principal Server sync surface 的 Signal Extension 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
-- **投递不得降维**：Delivery / Principal Server sync surface 把 accepted `ak.mls.welcome` 投影为 endpoint delivery 时，MUST 原样保留其规范 payload，至少包括 `mls_group_id`、`epoch`、closed recipient endpoint（ordinary `recipient_principal_id + recipient_device_id`、Native-Agent identity/method/authorization，或 minimal-metadata pairwise actor/method）、`claim_ref`、`claim_envelope`、`governance_binding`、`commit_ref` 与 inline `ciphertext`。服务端不得只转发 MLS ciphertext 或重新构造一个缺少 claim / governance 字段的缩减信封；接收端必须在解密和入组前验证 `claim_envelope.welcome_digest` 精确等于 `sha256:` 加解码后 Welcome bytes 的 lowercase hex SHA-256、验证邀请方签名，并将同一个 `governance_binding` 与 MLS GroupContext extension 及 Seal 证明逐字段比较。
+- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。完整 Welcome bytes MUST 以 canonical unpadded base64url `ciphertext` 内联在 durable `ak.mls.welcome` Event 中，并保留至被消费、撤销或过期；解码必须成功、不得含 padding，重新编码必须与 wire 字符串逐字节一致。Station sync surface 的 Signal Extension 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
+- **投递不得降维**：Delivery / Station sync surface 把 accepted `ak.mls.welcome` 投影为 endpoint delivery 时，MUST 原样保留其规范 payload，至少包括 `mls_group_id`、`epoch`、closed recipient endpoint（ordinary `recipient_principal_id + recipient_device_id`、Native-Agent identity/method/authorization，或 minimal-metadata pairwise actor/method）、`claim_ref`、`claim_envelope`、`governance_binding`、`commit_ref` 与 inline `ciphertext`。服务端不得只转发 MLS ciphertext 或重新构造一个缺少 claim / governance 字段的缩减信封；接收端必须在解密和入组前验证 `claim_envelope.welcome_digest` 精确等于 `sha256:` 加解码后 Welcome bytes 的 lowercase hex SHA-256、验证邀请方签名，并将同一个 `governance_binding` 与 MLS GroupContext extension 及 Seal 证明逐字段比较。
 
 **发送方 admission saga（normative）**：一次 Add admission 的 Commit、面向全部目标设备的 Welcome、以及 Commit 后本地 MLS group state 是同一不可拆分的恢复单元。发送客户端在完成必要的 KeyPackage claim、构造出该 admission 后，MUST 在首次 Commit / Welcome 网络写入前，把以下材料原子写入 crash-recoverable outbound state：精确签名后的 `ak.mls.commit` Event、每条精确签名后的 `ak.mls.welcome` Event，以及仅在投递完成后安装的 post-Commit group state。网络时序 MUST 是 Commit accepted / duplicate 后才投递与其 `commit_ref` 绑定的 Welcome；不得先投递 Welcome，也不得在 Commit 未被接受时安装 post-Commit group state。
 
@@ -153,7 +153,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
   [`../governance/history-visibility.md`](../governance/history-visibility.md) §4 的 receipt-bound direct Seal traversal，重放 winning transition、current 单向收紧 history_access 与 current incarnation/join floor，并执行首次入队 T1 gate；v1 不存在
   第二套 key-sharing policy 或公开 share/withheld Event。
 
-服务端和 Principal Server sync surface 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
+服务端和 Station sync surface 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
 
 #### 2.4.1 Membership 与 Epoch 不一致窗口
 
@@ -256,9 +256,9 @@ membership_frontier、covered_seal_refs、policy_root、capability_root 与 disc
 
 每个 ak.mls.commit MUST 同时携带 mls_group_id、base_epoch、next_epoch、完整 commit_bytes_b64、commit_digest 与 governance_binding。receiver 先校验 digest，再按 RFC 9420 应用完整 Commit bytes，并核对 epoch、group 与 security frontier。只提供 digest 或 object ref 不合规。
 
-Principal Server 对 `ak.mls.commit` 的 admission 边界是 schema、Event proof/capability、canonical effective scope/group identity、`commit_bytes_b64` 的 `commit_digest`、`base_epoch -> next_epoch` CAS 与 governance-binding shape。服务端不是 member MLS frontier authority，MUST NOT 因自己没有 member leaf/private tree state 而返回 `frontier_unavailable` 或固定 503，也无需建设第二套 server-side public-tree tracker。`security_frontier_digest` 的语义重算与 RFC 9420 Commit 应用属于持有相应 group state 的 member receiver；receiver 即使看到 accepted Event 也 MUST 独立执行，错误 Commit 不得进入 verified MLS state。
+Station 对 `ak.mls.commit` 的 admission 边界是 schema、Event proof/capability、canonical effective scope/group identity、`commit_bytes_b64` 的 `commit_digest`、`base_epoch -> next_epoch` CAS 与 governance-binding shape。服务端不是 member MLS frontier authority，MUST NOT 因自己没有 member leaf/private tree state 而返回 `frontier_unavailable` 或固定 503，也无需建设第二套 server-side public-tree tracker。`security_frontier_digest` 的语义重算与 RFC 9420 Commit 应用属于持有相应 group state 的 member receiver；receiver 即使看到 accepted Event 也 MUST 独立执行，错误 Commit 不得进入 verified MLS state。
 
-ak.mls.welcome MUST 携带 commit_ref，并与同一 Commit、recipient 和 claimed KeyPackage 逐字段闭合。Delivery/Principal Server sync surface 必须原样保留完整 payload；不得转发缺 claim、commit_ref、binding 或 ciphertext 的缩减 envelope。
+ak.mls.welcome MUST 携带 commit_ref，并与同一 Commit、recipient 和 claimed KeyPackage 逐字段闭合。Delivery/Station sync surface 必须原样保留完整 payload；不得转发缺 claim、commit_ref、binding 或 ciphertext 的缩减 envelope。
 #### 2.5.2 Send gate 与 self-heal
 
 E2EE DataEvent 必须声明 mls_group_id、epoch 与 security_frontier_digest，并携带普通 Event admission 所需的 seal_ref。receiver 接受 application message 当且仅当：
@@ -418,9 +418,9 @@ Claim 成功后：
 
 - KeyPackage 进入 `claimed`，并绑定 claim/requester/intended Realm、capability/digest、expiry 与 claimed endpoint 的 closed authority。普通 device 必须且只能使用 `device_authorize_event_id`；Native Agent runtime 必须且只能使用 `agent_key_authorize_event_id`；minimal-metadata endpoint 必须且只能使用 exact `did:key` method + `intended_realm_id`，不得伪造前两类 authorization ref。
 - 同一 KeyPackage 不得被第二个 Realm/group、requester 或 Welcome 重复使用。
-- Welcome `claim_ref` 携带 `{claim_id,keypackage_ref,keypackage_digest,capabilities_digest}` 加上述三分支之一的 authority binding，并进入 governance/AAD transcript。origin Principal Server 在 claim admission 前验证 device/Agent 的 current generation 与未撤销状态，或独立验证 pairwise actor、exact `did:key` method、MLS LeafNode BasicCredential 与 signature key 逐字节一致；对端验证 target service 的签名 claim，不接收 PCR history sidecar。
+- Welcome `claim_ref` 携带 `{claim_id,keypackage_ref,keypackage_digest,capabilities_digest}` 加上述三分支之一的 authority binding，并进入 governance/AAD transcript。origin Station 在 claim admission 前验证 device/Agent 的 current generation 与未撤销状态，或独立验证 pairwise actor、exact `did:key` method、MLS LeafNode BasicCredential 与 signature key 逐字节一致；对端验证 target service 的签名 claim，不接收 PCR history sidecar。
 - 若 device 在 claim 与 Welcome 之间 revoke、re-anchor fenced 或其 authorization 被替换，未消费 claim 失效；发送方必须以 current `device_authorize_event_id` 新建 claim。Agent authorization revoke/supersede/expiry 同理。
-- 返回 KeyPackage 时必须附 destination Principal Server 签发的 claim receipt；该 receipt 以 `claims_digest` 覆盖 exact claim bytes，并与 destination durable claim ledger、request digest 和服务签名逐字绑定。upload endpoint signature 只在发布准入时验证，claim record 不复制无法由其自身重建验证前像的签名。claim 不携 device/PCR/Agent signer history sidecar；destination service receipt 提供对本地 admission 决定的可验证归责。device、Native Agent 与 pairwise method 三分支是 closed XOR，不能互相 fallback。
+- 返回 KeyPackage 时必须附 destination Station 签发的 claim receipt；该 receipt 以 `claims_digest` 覆盖 exact claim bytes，并与 destination durable claim ledger、request digest 和服务签名逐字绑定。upload endpoint signature 只在发布准入时验证，claim record 不复制无法由其自身重建验证前像的签名。claim 不携 device/PCR/Agent signer history sidecar；destination service receipt 提供对本地 admission 决定的可验证归责。device、Native Agent 与 pairwise method 三分支是 closed XOR，不能互相 fallback。
 
 #### 2.6.1 Welcome `claim_envelope` 签名（normative）
 
@@ -562,7 +562,7 @@ content_aad = JCS(reconstruct_pre_encryption_header(outer_signed_event, exact_gr
 
 `sender_domain` 不上 wire，只取 producer 在 seal 前冻结的最终 producer proof verification method / signer，并与 exact active
 Leaf BasicCredential identity 交叉验证：ordinary 从 verification-method fragment 投影 canonical DeviceId；Native Agent 与 minimal
-从 verified signer/actor 投影 canonical ActorId。principal_server_admission proof 不参与。Producer proof 自身后生成且不进入 EventId
+从 verified signer/actor 投影 canonical ActorId。station_admission proof 不参与。Producer proof 自身后生成且不进入 EventId
 preimage；若最终 proof method 与冻结值不同，admission 必须先拒绝，receiver 重构 AAD 也必然 open 失败。Producer 以原子 CAS 在
 `(mls_group_id,epoch,sender_domain)` 域耐久预留 counter；崩溃可留下 gap，但不得复用、回退或 random fallback。
 counter 耗尽或状态无法证明时必须先推进 epoch。Nonce 不上 wire；counter 只出现于 exporter `encryption_context`，nonce 由其机械派生。
@@ -673,7 +673,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 `utf8(canonical realm_id) || 0x1f || utf8(canonical sidecar_id)`。三类 typed id 的 lexical space 均不含
 `0x1f`。`mls_group_id` MUST 等于
 `base64url_no_pad(canonical_effective_scope_key_bytes(effective_scope))`；`RealmGenesis` 或其它 scope 不可执行。
-producer、Principal Server 与 receiver MUST 复算比较。普通 Realm/Circle/Sidecar scope 不定义第二 active group、
+producer、Station 与 receiver MUST 复算比较。普通 Realm/Circle/Sidecar scope 不定义第二 active group、
 隐式 replacement 或 activate Event；同 scope 的不同 group id 在 schema 后的 semantic admission 阶段直接拒绝。
 
 `ak.mls.genesis.payload` MUST 至少包含：
@@ -826,13 +826,13 @@ Routing metadata 不得要求每小时 Commit。Exporter transition 在 accepted
 
 
 ## 6. 离线支持与消息延迟到达
-- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `ak.mls.commit` 操作中强制内联的 `commit_bytes_b64` 按 accepted Seal 顺序跟上 Epoch 的演进，并解密积压在 Principal Server sync surface 中的加密事件。实现不得假设发送者仍在线，也不得把可选 `commit_message_ref` 对应 blob 的可用性作为恢复前提。
+- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `ak.mls.commit` 操作中强制内联的 `commit_bytes_b64` 按 accepted Seal 顺序跟上 Epoch 的演进，并解密积压在 Station sync surface 中的加密事件。实现不得假设发送者仍在线，也不得把可选 `commit_message_ref` 对应 blob 的可用性作为恢复前提。
 - 对于极端网络分区情况，客户端 SHOULD 保存尚未完全确认的前驱 Epoch 密钥状态，直到所有相关的历史 `encrypted_payload` 都已被成功拉取与解密。
 - 这种前驱 Epoch 保留是有界的恢复缓存，不是为后加入成员历史共享而无限期保存先前 secret。客户端 MUST 对本地先前 epoch key 使用设备保护存储或明确授权的 key backup，并在 retention / legal hold / erasure policy 不再要求保留时销毁。
 
 ## 7. v1 集成要求
 
-- KeyPackage 在 DID Document 或 Device / Key Server 中的映射 MUST 绑定 principal DID、device id、KeyPackage hash、supported cipher suites、created_at、expires_at、revocation status 和 device signature。客户端必须通过 DID 控制链和 device trust chain 验证后才能加密。
+- KeyPackage 在 DID Document 或 Station device/key surface 中的映射 MUST 绑定 principal DID、device id、KeyPackage hash、supported cipher suites、created_at、expires_at、revocation status 和 device signature。客户端必须通过 DID 控制链和 device trust chain 验证后才能加密。
 - 当 Audit Applet Binding 声明 `audit_assurance_class = "attested_hardware"`（profile = `ak.profile.attested_audit.e2ee.v1`）时，release service remote attestation MUST 绑定 measurement、service DID、`audit_actor_id`、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明受控输出路径和代码身份，不能绕过 `ak.audit.release`、notice 与 RYW receipt 要求。`ak.profile.disclosed_audit.e2ee.v1` 不得伪造或暗示存在 TEE attestation；client UI 必须按 [`audited-e2ee.md`](./audited-e2ee.md) 的两类提示区分展示，不得合并、省略关键限定词。
 - Signal / Double Ratchet 私信互操作只能作为 profile-specific interop profile。该 profile 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和互通边界；不得在 MLS Realm 内静默降级。
 

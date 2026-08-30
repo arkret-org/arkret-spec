@@ -7,7 +7,7 @@
   "profile": "ak.vector_group.federation.v1",
   "topology": {
     "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-    "principal_servers": [
+    "stations": [
       {
         "service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
         "endpoint": "https://server-alpha.example",
@@ -33,7 +33,7 @@
       "membership_frontier": [
         "ak:event:AdxKl-xLUTrlSY_4g_1Fd8-dG5GhLSaMBGSgfzopgvI8"
       ],
-      "destination_kind": "principal_server"
+      "destination_kind": "station"
     }
   },
   "cases": [

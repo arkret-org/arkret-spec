@@ -8,7 +8,7 @@ updated: 2026-07-02
 
 > **状态：interop extension profile（非 v1 core 互操作必需）**。本文档描述的 MIMI Provider Facade 跟踪的
 > 是仍在演进的 IETF MIMI Internet-Draft。Arkret v1 core 互操作 **不要求** 实现 MIMI
-> facade；声称 `ak.profile.principal_server.v1` 或 `ak.profile.full_client.v1` 的实现
+> facade；声称 `ak.profile.station.v1` 或 `ak.profile.full_client.v1` 的实现
 > 可以完全不实现本 profile。当 MIMI 升级为 RFC 后，将以新的 `ak.profile.mimi_interop_<rfc>.v1`
 > 引入稳定 profile；当前 `ak.profile.mimi_interop.v1` 视为实验性 interop extension profile。
 
@@ -37,8 +37,8 @@ updated: 2026-07-02
 
 | MIMI 角色 | Arkret 映射 |
 | --- | --- |
-| Provider | `mimi_provider_facade` service DID，通常由 Principal Server、notary service 或受托 bridge 暴露。 |
-| Hub provider | 对外拥有 MIMI room URI 的 provider service；在 Arkret 侧通常映射为 Principal Server 或 notary service，负责 MIMI room fanout 和 groupInfo。 |
+| Provider | `mimi_provider_facade` service DID，通常由 Station、notary service 或受托 bridge 暴露。 |
+| Hub provider | 对外拥有 MIMI room URI 的 provider service；在 Arkret 侧通常映射为 Station 或 notary service，负责 MIMI room fanout 和 groupInfo。 |
 | Follower provider | 参与 MIMI room 的远端 provider；在 Arkret 中表现为 federation peer 或 Applet bridge peer。 |
 | User / client | Arkret principal DID + device id，可按 Realm policy 使用 pairwise DID 或 room-scoped pseudonym。 |
 | Room | Arkret Strand discussion track 的 MIMI room 投影，可附带所在 Realm 的最小上下文。 |
@@ -341,7 +341,7 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret DataEv
 
 ### 5.1 MIMI operation actor proof（normative）
 
-MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对具体操作的 detached payload proof，不是 Event Envelope proof。它 MUST 使用 `payload_digest`，MUST NOT 使用只适用于 Event Envelope 的 `event_digest`。单值形态由 `mimi-operations.schema.json#/$defs/signature` 定义，数组形态由各对象族自己内联的 `proofs[]`（元素为 `#/$defs/proof`）定义；两者的 `domain` MUST 等于接收部署的 `trust_domain`，`audience` MUST 覆盖接收 Principal Server service DID。
+MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对具体操作的 detached payload proof，不是 Event Envelope proof。它 MUST 使用 `payload_digest`，MUST NOT 使用只适用于 Event Envelope 的 `event_digest`。单值形态由 `mimi-operations.schema.json#/$defs/signature` 定义，数组形态由各对象族自己内联的 `proofs[]`（元素为 `#/$defs/proof`）定义；两者的 `domain` MUST 等于接收部署的 `trust_domain`，`audience` MUST 覆盖接收 Station service DID。
 
 **每个对象族一个 context（normative）**：`mimi-operations.schema.json` 是 DTO 容器而不是一个对象族，因此**不存在**覆盖全文件的 MIMI operation context。持有 detached proof 的对象族逐个登记独立 context，schema 侧以 `x-arkret-proof-context` 逐字投影；对象族、context 与 operation 的对应关系分别以 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 和 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 经 schema ref 连接后的结果为唯一真源，本节不复述派生 join 表。
 
@@ -356,7 +356,7 @@ MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对�
   "verification_method": "<proof.verification_method>",
   "created_at": "<proof.created_at>",
   "domain": "<destination trust_domain>",
-  "audience": "<destination Principal Server service DID>"
+  "audience": "<destination Station service DID>"
 }
 ```
 

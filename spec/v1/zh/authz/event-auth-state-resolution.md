@@ -37,7 +37,7 @@ Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）
 | seal_basis | Control Move 签名覆盖的控制面基线：canonical sorted、duplicate-free `{leaves[]}`。Seal roots 由 receiver 从被引用 Seal 重算，不在 Event 复制。 |
 | control_event_set_root | Seal 对递归控制面覆盖集 `covered_set(S)` 的 authenticated root。basis、inclusion、non-membership、receipt obligation 与 censorship evidence 都以它为锚点。 |
 | KeyView | Seal 对某个 data cell 的观测记录，包含 cell、lattice type、heads / value digest 与 last covered event。 |
-| Event Batch Receipt | issuer（relay / notary / witness / Principal Server）对其选择承诺的 Event 集合签发的 receipt object（`ak.schema.event_batch_receipt.v1`）。数据面单事件"已看见"确认是其 `events[]` 单元素用法。它不是准入证明，不进入 state。 |
+| Event Batch Receipt | issuer（relay / notary / witness / Station）对其选择承诺的 Event 集合签发的 receipt object（`ak.schema.event_batch_receipt.v1`）。数据面单事件"已看见"确认是其 `events[]` 单元素用法。它不是准入证明，不进入 state。 |
 | AvailabilityReceipt | holder 对某个 Event bytes 在 retention 窗口内可获取的签名承诺。 |
 
 ## 3. Plane 判定
@@ -557,7 +557,7 @@ MUST 以 `schema_violation` 拒绝。若 `max_proposal_defers > 0`，两者 MUST
 `max_proposal_defers` MUST 为 `0`。该判定基于签名 payload 与冻结 basis，是所有 reducer
 必须执行的确定性跨字段校验。
 
-**外部 authority Ack set（normative）**：当接收 Event 的 Principal Server 不持有当前
+**外部 authority Ack set（normative）**：当接收 Event 的 Station 不持有当前
 notary authority，或单个 signer 不能满足 threshold/mixed quorum 时，它不得用服务密钥代签。
 proposal author 必须对每个真实 authority 使用
 `ak.self.control_proposal_acks.command.issue.v1` 的 typed request；本地 Agent/device signer
@@ -728,13 +728,13 @@ AvailabilityReceipt {
 
 需要内容寻址时，selector digest 由 `H(JCS(AvailabilityReceipt))` 计算并覆盖完整签名内容；receipt wire 本身不回显该 digest。
 
-其中 `bytes_digest = H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`，`H` 使用该 Realm 的 digest suite。`event_id`、`actor_kind` 与所有 accepted producer / principal-server proofs 都在 preimage 内；因此它覆盖实际保留的准入证明字节，但仍须与按普通 Event preimage 重算的 `event_digest` / `event_id` 及逐项 proof 验证交叉核对。
+其中 `bytes_digest = H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`，`H` 使用该 Realm 的 digest suite。`event_id`、`actor_kind` 与所有 accepted producer / station proofs 都在 preimage 内；因此它覆盖实际保留的准入证明字节，但仍须与按普通 Event preimage 重算的 `event_digest` / `event_id` 及逐项 proof 验证交叉核对。
 
 规则：
 
 - `Realm.availability_policy` 是本义务的唯一机器承载，结构见 `realm.schema.json`。缺失时按 `{min_holders:1, applies_to:["seal_include"], minimum_retention_ms:86400000}` 解释；不得按“Realm 大小”或产品类别自行选择隐式门槛。v1 不携 `holder_roles`，eligible holder 只按 predecessor accepted closure 的下列两个互斥分支派生：
-  - ordinary Collaboration / Direct Conversation Realm：从全部 effective joined membership 的完整 `member_id: ActorId` 派生目标 Principal Server，并按 service DID 去重。account 与 hosted-principal 分支使用其内嵌 `principal_server_id`；service 分支使用 `service_id`。leave/ban、`via_ids`、Event actor、notary、当前 resolver 与本批 post-state 均不产生 holder。暂时无法解析 endpoint 只影响投递重试，不改变 membership 或 holder identity。
-  - `purpose="principal_control" | "managed_agent_control" | "applet_managed_control"` 的 create-locked control Realm：human / managed Agent PCR genesis 按 `realm-and-space.md` §2.8.1、Applet managed principal genesis 按 `applet-integration.md` 明确不产生 member state，因此唯一 holder 是从 predecessor closure 中唯一 accepted `ak.realm.create` 的 actual-author `ActorId` 导出的 origin service。receiver 必须先完整验证该 create 的 Principal Server admission proof、proof 所引用的 historical `AuthenticatedSignerResolutionEvidence`、`signer_id == route(actual_author_actor_id)` 以及 Event/Realm/proof binding，才可把该 frozen service DID 加入 holder set。genesis unit 内出现多个不同 route-derived origin service、缺 admission proof或 signer binding 不一致时整个 closure 无合法 holder；不得从 current account row、session、resolver、notary 或部署配置回填。
+  - ordinary Collaboration / Direct Conversation Realm：从全部 effective joined membership 的完整 `member_id: ActorId` 派生目标 Station，并按 service DID 去重。account 与 hosted-principal 分支使用其内嵌 `station_id`；service 分支使用 `service_id`。leave/ban、`via_ids`、Event actor、notary、当前 resolver 与本批 post-state 均不产生 holder。暂时无法解析 endpoint 只影响投递重试，不改变 membership 或 holder identity。
+  - `purpose="principal_control" | "managed_agent_control" | "applet_managed_control"` 的 create-locked control Realm：human / managed Agent PCR genesis 按 `realm-and-space.md` §2.8.1、Applet managed principal genesis 按 `applet-integration.md` 明确不产生 member state，因此唯一 holder 是从 predecessor closure 中唯一 accepted `ak.realm.create` 的 actual-author `ActorId` 导出的 origin service。receiver 必须先完整验证该 create 的 Station admission proof、proof 所引用的 historical `AuthenticatedSignerResolutionEvidence`、`signer_id == route(actual_author_actor_id)` 以及 Event/Realm/proof binding，才可把该 frozen service DID 加入 holder set。genesis unit 内出现多个不同 route-derived origin service、缺 admission proof或 signer binding 不一致时整个 closure 无合法 holder；不得从 current account row、session、resolver、notary 或部署配置回填。
 - notary 在 Seal include 一个 Control Move 前 MUST 收集满足 effective policy 的签名 AvailabilityReceipt；device-signed PCR notary 使用 `ak.self.seals.command.issue_availability_receipts.v1`，以 exact predecessor antichain 与待 include Event digest 集取得 holder 选择的 `sealed_at`、receipt commitments 和完整 typed dependencies，再用同一 `sealed_at` 与 canonical digest 列表签 Seal。`apply_seal` receiver MUST 按 §6.3 step 5 独立验证 full canonical digest、receipt 的 event/digest、holder DID、签发时冻结的 `AuthenticatedSignerResolutionEvidence`、accepted holder eligibility、互异 holder 数与 `retention_expires_at >= Seal.sealed_at + minimum_retention_ms`。不得用 current resolver 代替历史签名 key；不满足时拒绝 Seal，而不是降级为诊断。
 - policy 的 `applies_to` 含 `snapshot` 或 `backfill` 时，相关签发服务在作出 bytes-available 承诺前 MUST 收集同样门槛的 receipts，并把 receipt digest / proof 随响应或承诺 root 暴露给 verifier；verifier 缺少可验证门槛时 MUST NOT 声称 availability 已满足。
 - 数据面默认 SHOULD 在 relay 签 Event Batch Receipt（§4.4）时同时签 availability 承诺；高对抗部署 MAY 要求更高 storage quorum。

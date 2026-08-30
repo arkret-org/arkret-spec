@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.8",
+  "version": "2026-08-30.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T00:00:00+08:00",
+  "generated_at": "2026-08-31T00:10:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2122,14 +2122,14 @@
         "schema_kind": "object",
         "required": [
           "principal_id",
-          "principal_server_id",
+          "station_id",
           "resolution_projection",
           "method_history_evidence",
           "projection_attestation"
         ],
         "properties": [
           "principal_id",
-          "principal_server_id",
+          "station_id",
           "resolution_projection",
           "method_history_evidence",
           "projection_attestation"
@@ -4821,7 +4821,7 @@
             "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
             "schema_kind": null,
             "required": [
-              "controller_principal_server_id"
+              "controller_station_id"
             ],
             "properties": [
               "phase"
@@ -7685,7 +7685,7 @@
         "schema_kind": "object",
         "required": [
           "principal_id",
-          "principal_server_id",
+          "station_id",
           "principal_control_realm_id",
           "principal_genesis_receipt",
           "principal_genesis_event",
@@ -7696,7 +7696,7 @@
         ],
         "properties": [
           "principal_id",
-          "principal_server_id",
+          "station_id",
           "principal_control_realm_id",
           "principal_genesis_receipt",
           "principal_genesis_event",

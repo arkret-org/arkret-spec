@@ -163,7 +163,7 @@ current session/lifecycle/policy gate只能控制当前交付、展示与新副�
 
 1. **online self**：唯一 carrier 是 sender-constrained verified session grant + typed introspection holder/device binding。request context 从 `subject + audience` 构造 exact `AccountId`，并携 `SessionGrantDeviceBinding {device_id, authorization_event_id, model_generation_ref}` selector；它必须与 producer-signed Event 的 exact actual-author `ActorId` 及 `proof.verification_method` 机械交集，再从本地 accepted PCR/device evidence 重放。`EventInitialSubmission` 不增加 publication-authority member，也不得携平行 server sidecar。
 2. **offline/delayed ingress**：唯一 carrier 是 `AuthorizationLease`，且服务在 lease 窗口内成功签收后产生 `IngressReceipt`。online request context 不能代替 lease，lease 也不能塞入 online authority context。
-3. **peer federation**：peer authority 只来自 Event envelope 内已验证的 origin `principal_server_admission` proof。若 peer 转发最初 offline ingress 的 lease/receipt，它们只证明 origin 的历史签收窗口，不替代也不扩展 origin admission proof。
+3. **peer federation**：peer authority 只来自 Event envelope 内已验证的 origin `station_admission` proof。若 peer 转发最初 offline ingress 的 lease/receipt，它们只证明 origin 的历史签收窗口，不替代也不扩展 origin admission proof。
 
 managed Agent online Event 复用 controller session 的同一 online context，并额外交集 Agent 当前 delegated runtime binding 与 portable signer evidence；不得伪造 human device authority。三条 lane 不得启发式 fallback，也不得从裸 Event core、当前 DID、最新 PCR 或全局 device row猜测 authority。
 
@@ -210,7 +210,7 @@ transparency 存档、离线转发与 durable idempotency ledger 必须把 recei
 `control_proposal_ack` 只允许 Control Move，且必须是
 [`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 canonical
 authority receipt set；DataEvent携带该字段必须拒绝。它不属于通用CBA bundle，也不能由接收
-Principal Server在不持有真实authority key时补签。
+Station在不持有真实authority key时补签。
 
 ### 2.2 租约签发
 
@@ -232,7 +232,7 @@ Realm 和当前 authority policy；intent 本身不是授权。`events` 与 `int
 anchor unit。lease action 必须是其 `target_event_kinds` 覆盖 Event kind 且 actor 在该 basis
 实际持有的 registered capability action；未知 action 按 high risk fail closed。
 
-issuer 是完成上述 admission 的 authenticated Principal Server admission authority，不必同时是
+issuer 是完成上述 admission 的 authenticated Station admission authority，不必同时是
 Realm Seal notary。`authority_set_digest` 必须冻结 issuer service DID、Realm 与精确 basis；
 receiver 还 MUST 验证该 service 在 basis/policy 中是合格 ingress 或 delegated admission signer。
 proof audience 必须覆盖 issuer service DID。

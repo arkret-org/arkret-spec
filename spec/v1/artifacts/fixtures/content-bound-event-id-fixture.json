@@ -34,8 +34,8 @@
         "outcome": "accepted",
         "realm_id_source": "genesis_event_derived",
         "nonzero_reserved_nibble": "rejected",
-        "same_did_on_different_principal_servers": "distinct_realm_ids",
-        "same_account_second_genesis": "rejected_by_principal_server_account_uniqueness"
+        "same_did_on_different_stations": "distinct_realm_ids",
+        "same_account_second_genesis": "rejected_by_station_account_uniqueness"
       },
       "rejected_form": {
         "realm_header_hex": "11",

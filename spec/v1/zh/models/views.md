@@ -210,7 +210,7 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
   "id": "ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem",
   "schema": "ak.schema.view.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00Z",
   "kind": "collection",
   "state": "active",

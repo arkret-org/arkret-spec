@@ -51,12 +51,12 @@
       "prose_only": 2,
       "schema_reference": 130,
       "startup_compile": 195,
-      "vectors": 122
+      "vectors": 121
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 73,
+    "without_vector_coverage": 74,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -137,6 +137,7 @@
     "ak.schema.sdk_conformance_claim.v1",
     "ak.schema.seal_transparency.v1",
     "ak.schema.security_rotation_local_commit.v1",
+    "ak.schema.service_describe.v1",
     "ak.schema.service_identity_bundle.v1",
     "ak.schema.signal_presence.v1",
     "ak.schema.signal_typing.v1",
@@ -3270,13 +3271,20 @@
         "outbound": "exact",
         "prose": "normative_text",
         "schema_reference": "fragment",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
+        "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.edge.applet.read.describe.v1",
+          "ak.find.directory.read.describe.v1",
+          "ak.root.identity.registry.read.describe.v1",
+          "ak.self.account.read.describe.v1",
+          "ak.self.events.read.describe.v1",
+          "ak.server.read.describe.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
     },
     {

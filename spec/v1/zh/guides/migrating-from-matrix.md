@@ -26,7 +26,7 @@ Arkret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circl
 | --- | --- | --- |
 | 数据根 | Room 内事件流与 room state。 | Realm 内授权 Event 集合，归约为 Realm、Strand、Message、Morph、Relation、View；看板与列容器是独立的 Space 对象（`ak:space:`），永远住在某 Realm 内。 |
 | 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、agent 协作、审计工作流。 |
-| 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Events、Sync、Blob、Policy 分层。 |
+| 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Station 是 principal 控制或显式委托的服务边界；Events、Sync、Blob、Policy 分层。 |
 | 真相源 | Room event graph 与状态解析。 | Actor/device/service 签名 Event Envelope，加上 Realm reducer；搜索和 View projection 都是派生层。 |
 | 身份 | Matrix user ID 绑定 homeserver 域，如 `@alice:example.org`。 | Principal 使用 DID 作为协议主键；`@alice:example.org` 这类标识可作为 handle、登录入口或 bridge alias，但不作为权限主体。 |
 | 服务迁移 | 账号和 room 与 homeserver 域耦合较强。 | 身份、Event 发布链与服务 endpoint 分离，DID / handle / service delegation 支持迁移。 |
@@ -143,8 +143,8 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 
 - per `(account_id, device_id, push_route)` 伪名；熵下限和高安全部署参数见 `device-lifecycle.md` §5.6.1。
 - 伪名派生不使用公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码作为可观察输入。
-- 同一 principal 在不同 Principal Server、两台设备或同一 device 的两条 push_route 上得到不可链接的 `push_target_id`。
-- gateway / vendor 不保存可逆映射；被 joined-member ActorId routing projection 授权的 Principal Server sync surface 在本服务上下文内持有运行时索引。
+- 同一 principal 在不同 Station、两台设备或同一 device 的两条 push_route 上得到不可链接的 `push_target_id`。
+- gateway / vendor 不保存可逆映射；被 joined-member ActorId routing projection 授权的 Station sync surface 在本服务上下文内持有运行时索引。
 - 推送 payload 以加密 envelope 或等价 ephemeral encrypted blob 表达，gateway / vendor 不持有解密语义。
 
 #### 4.5.7 Arkret 新增的密钥类别
@@ -211,11 +211,11 @@ Arkret capability 更适合细粒度协作系统：
 - 可以委托给 agent、Applet、设备、组织角色或外部服务。
 - 可撤销、可审计，并与持久治理策略分离。
 
-### 5.3 Homeserver 与 Principal Server
+### 5.3 Homeserver 与 Station
 
 Matrix homeserver 是用户与 room federation 的核心承载点。
 
-Arkret Principal Server 是受 principal 或 Realm policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Events API、Sync、Blob、Push、Policy，但协议仍保持分层。
+Arkret Station 是受 principal 或 Realm policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Events API、Sync、Blob、Push、Policy，但协议仍保持分层。
 
 这也是 Arkret 去掉独立第三方分发服务器后的核心边界：未加密私有内容停留在用户、组织或 Realm policy 控制的服务边界内。
 

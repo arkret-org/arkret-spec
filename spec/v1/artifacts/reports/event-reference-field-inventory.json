@@ -512,13 +512,13 @@
     },
     {
       "schema": "event-envelope.schema.json",
-      "json_pointer": "/$defs/principal_server_admission_proof/properties/event_digest",
+      "json_pointer": "/$defs/producer_event_proof/properties/event_digest",
       "field": "event_digest",
       "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "event-envelope.schema.json",
-      "json_pointer": "/$defs/producer_event_proof/properties/event_digest",
+      "json_pointer": "/$defs/station_admission_proof/properties/event_digest",
       "field": "event_digest",
       "classification": "digest_copy_or_commitment"
     },

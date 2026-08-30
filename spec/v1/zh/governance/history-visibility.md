@@ -270,7 +270,7 @@ Request create 返回成功前，release service 必须冻结并完整验证 req
 Control Move 及 registered replay dependencies。remote member source 只走普通 authenticated Realm/federation 治理可见性；request replica 只证明请求/receipt bytes、authorization 与 TTL，不承诺 cut 且不扩张治理可见性。仅 RRK pending archive replica 可用 `pending_archive_replica_digest` 取得 peer retained-cut 窄访问。caller 不得自报 allowed ref 数组；服务从 retained intent/cut 机械判定。普通 timeline visibility 与
 TraversalAccess 互斥，unknown/unauthorized/out-of-cut 同形。旧 evidence-page read operation 与 descriptor-access branch 均不存在。
 
-Request create 时 requester authenticated AccountId 的 `principal_server_id` 是该 request response stream 唯一 `release_id`。Request
+Request create 时 requester authenticated AccountId 的 `station_id` 是该 request response stream 唯一 `release_id`。Request
 receipt、sealed capability context 与 response stream 都冻结 exact AccountId、该 service DID、resolution refs 和 route digest；后续 retry 或路由变化
 不得替换。固定 service DID 是该 request 的唯一 release authority；chunk 首次入队时仍必须确认 receipt 的 exact AccountId
 未变。同一 DID 的 ServiceResolution successor 允许成为新 route；请求若改用另一 AccountId 或另一 service DID则

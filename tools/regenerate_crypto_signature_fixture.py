@@ -225,10 +225,10 @@ def main() -> None:
                     "kind": "account",
                     "account_id": {
                         "principal_id": "ak:did_core:webvh:z6mkfixture",
-                        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample",
                     },
                 }
-                event.pop("principal_server_id", None)
+                event.pop("station_id", None)
     vectors = {vector["name"]: vector for vector in data["vectors"]}
     ed = vectors["ak.vector.encoding.crypto.ed25519_detached_jws.v1"]
     es = vectors["ak.vector.encoding.crypto.es256_detached_jws.v1"]

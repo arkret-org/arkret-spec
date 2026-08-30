@@ -13,7 +13,7 @@
     "actor_id": {
       "kind": "hosted_principal",
       "principal_id": "ak:did_core:webvh:z6mkfixtureghost",
-      "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver"
+      "station_id": "ak:did_core:webvh:z6mkfixturestation"
     }
   },
   "fixed_bot_unit_order": [
@@ -62,8 +62,8 @@
       "expect": "http_signature_required_or_invalid"
     },
     {
-      "name": "remote_principal_server_claim",
-      "mutation": "actor_id.principal_server_id != receiving_principal_server_id",
+      "name": "remote_station_claim",
+      "mutation": "actor_id.station_id != receiving_station_id",
       "expect": "applet_managed_actor_provision_invalid"
     },
     {
@@ -144,7 +144,7 @@
     },
     {
       "name": "rotation_wrong_authority_pair",
-      "mutation": "same actor_id.principal_id but actor_id.principal_server_id selects a different lineage",
+      "mutation": "same actor_id.principal_id but actor_id.station_id selects a different lineage",
       "expect": "applet_managed_actor_authority_mismatch"
     },
     {

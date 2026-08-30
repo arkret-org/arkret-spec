@@ -218,7 +218,7 @@ expected_<role>_<kind>_id
 
 #### 2.1.3 角色、表示后缀与主体类别
 
-<!-- rule_id: NC-IDROLE-001 --> **角色 + 表示后缀（normative）**：Arkret-owned identifier 字段默认使用完整语义角色加表示后缀：稳定责任主体为 `<role>_id`，W3C DID 为 `<role>_did`，generic URI identity/reference 为 `<role>_uri`，HTTP(S)/WS(S) network locator 为 `<role>_url`，key selector 为 `<role>_kid`。`issuer`、`subject`、`audience`、`inviter`、`invitee` 等裸角色名没有 crypto / governance 例外；裸名通常只允许完整对象或 schema 明确闭合的 discriminated union，并且例外必须按精确 schema path 登记。`service`、`human`、`organization`、`agent` 是与字段词法正交的 `required_subject_class` 约束，MUST NOT 插入角色与表示后缀之间。因而 service-only 的稳定责任主体仍写作 `issuer_id`、`recipient_id`、`source_id`、`destination_id`、`verifier_id`，由 schema / operation contract 声明它必须属于 service class。
+<!-- rule_id: NC-IDROLE-001 --> **角色 + 表示后缀（normative）**：Arkret-owned identifier 字段默认使用完整语义角色加表示后缀：稳定责任主体为 `<role>_id`，W3C DID 为 `<role>_did`，generic URI identity/reference 为 `<role>_uri`，HTTP(S)/WS(S) network locator 为 `<role>_url`，key selector 为 `<role>_kid`。`AccountId` 是唯一的 closed compound identity 例外：wire 字段仍写 `account_id`，值固定为原子对象 `{principal_id, station_id}`；这不是任意 object role，也不允许其它 `*_id` 使用 object 值。`issuer`、`subject`、`audience`、`inviter`、`invitee` 等裸角色名没有 crypto / governance 例外；裸名通常只允许完整对象或 schema 明确闭合的 discriminated union，并且例外必须按精确 schema path 登记。`service`、`human`、`organization`、`agent` 是与字段词法正交的 `required_subject_class` 约束，MUST NOT 插入角色与表示后缀之间。因而 service-only 的稳定责任主体仍写作 `issuer_id`、`recipient_id`、`source_id`、`destination_id`、`verifier_id`，由 schema / operation contract 声明它必须属于 service class。
 
 唯一的词类级裸名规则是已登记的 provenance/byline 角色：`<past-participle>_by` 整体是完整角色词，而不是“角色 + 被遗漏的 identifier 后缀”。`created_by`、`updated_by`、`executed_by`、`generated_by` 等登记字段永远保持裸名，MUST NOT 改成 `*_by_id`、`*_by_did` 或 `*_by_verification_method`；其值仍须按该字段的真实职责精确登记为 `ActorId`、W3C `did`、DID URL，或其它词法互斥的闭合 identifier union。字段名绝不为了保留裸 byline 而降级为 `string`，类型也绝不为了统一而强制成裸 `did_core_id`。该规则不构成任意裸角色白名单：只有 `tools/identifier-role-suffix-registry.json#registered_provenance_byline_fields` 中登记的精确字段名可使用此形态；新增词必须证明它表达 durable provenance/byline、声明 terminal profile，并通过 mutation gate。查询或索引函数中的 `get_by_id` / `*_by_id` 局部变量不属于 wire 字段命名合同。
 
@@ -232,7 +232,7 @@ Web Origin 的完整角色名不等于宽松字符串：所有真实 Web Origin 
 
 Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`，或使用 `<role>_did` / `<role>_dids`。Organization registration / principal-control accepted-evidence 对象同时携带稳定 `organization_id` 与 exact Organization DID 时，二者是同一语义角色的两种表示，MUST 使用逐字配对的 `organization_id` + `organization_did`，不得用裸 `did` 依赖容器类型隐式补全角色。稳定主体引用仍使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_id`、`audit_actor_id` 等 `_id` 字段。`did` 与 `_did` 明确表示 W3C DID，绝不表示 `did_core_id`。
 
-公共类型与 schema 定义固定为 `Did` / `did`；不得另定义裸 DID alias。旧的“完整 ID”类型、字段、别名或双读均禁止。`principal_server_id` 中的 `principal_server` 是已登记协议角色，不是 entity-class 限定词；旧式 `principal_server_service_id` 双重形态禁止。
+公共类型与 schema 定义固定为 `Did` / `did`；不得另定义裸 DID alias。旧的“完整 ID”类型、字段、别名或双读均禁止。`station_id` 中的 `station` 是已登记协议角色，不是 entity-class 限定词；旧式 `station_service_id` 双重形态禁止。
 
 `did` 的存在性由对象职责决定：普通 canonical identity object、Event、membership、grant、profile 与普通主体/service 引用禁止携带 DID；registration / genesis accepted evidence、Identity/Service Resolution Record 与 DID method evidence/control proof 必须把 DID 声明为 required。不得使用通用 optional `did` 充当缓存；缺失、不可见、停用、过期或 stale 必须由对象存在性、closed discriminator/state 与 freshness evidence 表达。
 
@@ -405,7 +405,7 @@ value category，不会自动触发 DID Document 解析或在线验证。
 
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
-| `actor_id` | Event Envelope、membership 与通用 actor-scoped 状态 | 完整 ActorId closed union；account 分支携带 exact AccountId，hosted principal 分支携带 `principal_id + principal_server_id`，service 分支携带 `service_id`。不得用并列 `actor_kind` 或裸 DID 补足语义。 |
+| `actor_id` | Event Envelope、membership 与通用 actor-scoped 状态 | 完整 ActorId closed union；account 分支携带 exact AccountId，hosted principal 分支携带 `principal_id + station_id`，service 分支携带 `service_id`。不得用并列 `actor_kind` 或裸 DID 补足语义。 |
 | `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 ActorId；字段名说明角色，值形态仍使用同一个 closed union。若专属 schema 明确只允许某一 DID-core 角色，必须使用该专属角色名而不是泛化 `actor_id`。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal `did_core_id`；稳定权限主体引用。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的完整 ActorId，由 reducer 从 Event `actor_id` 原样派生；不得只保存其中的 principal DID。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing actor 语义。 |
@@ -420,7 +420,7 @@ value category，不会自动触发 DID Document 解析或在线验证。
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
 
 ActorId 的服务路由投影是封闭且无状态的：account 分支取
-`account_id.principal_server_id`，hosted-principal 分支取 `principal_server_id`，service 分支取
+`account_id.station_id`，hosted-principal 分支取 `station_id`，service 分支取
 `service_id`。任何需要按托管服务分桶、去重或解析 endpoint 的协议都 MUST 使用这个投影；不得再保存
 member-specific route object、route source、fallback 或 rebind 状态。路由刷新只更新对应 service
 DID core 的 `ServiceResolutionRecord`，不改变 ActorId；service DID core 变化会形成不同 ActorId，必须通过
@@ -480,7 +480,7 @@ session scope、membership 和 lifecycle 是并列的独立 admission 条件，�
 
 Realm 与 Circle 的 materialized membership 共用唯一状态集 `join / knock / leave / ban`，`initial_state=leave`；
 不存在 `none` 或 `invite`。Invite 是独立 pending workflow，只有 exact target ActorId 的有效 acceptance 才把 membership
-从 `leave` 推进到 `join`。same-state transition 一律非法；endpoint、transport 或 Principal Server 变化不得伪装成
+从 `leave` 推进到 `join`。same-state transition 一律非法；endpoint、transport 或 Station 变化不得伪装成
 `join -> join`。
 
 | from | to | wire event kind | guard / writer |
@@ -755,9 +755,9 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
   "id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
   "schema": "ak.schema.strand.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00Z",
-  "updated_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "updated_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "updated_at": "2026-04-26T00:00:00Z"
 }
 ```

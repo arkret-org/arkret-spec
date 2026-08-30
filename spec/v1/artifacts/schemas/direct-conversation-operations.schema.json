@@ -47,7 +47,7 @@
     },
     "direct_conversation_founding_acceptance_receipt": {
       "type": "object",
-      "description": "Source-signed evidence that the founder current Principal Server atomically accepted exactly one Direct Conversation founding unit and closed its local unique slot. It creates no Realm, authorizes no Message and is not a global slot; a second receipt for the same pair and founder but a different unit is direct_conversation_pair_materialization_conflict evidence. proof signs the closed transcript H(\"ak.direct-conversation.founding-receipt.v1\", this object without proof); the receiver recomputes that preimage from the receipt fields and never trusts a carried digest. proof.verification_method resolves to the issuer_id current service key at accepted_at and proof.created_at equals accepted_at.",
+      "description": "Source-signed evidence that the founder current Station atomically accepted exactly one Direct Conversation founding unit and closed its local unique slot. It creates no Realm, authorizes no Message and is not a global slot; a second receipt for the same pair and founder but a different unit is direct_conversation_pair_materialization_conflict evidence. proof signs the closed transcript H(\"ak.direct-conversation.founding-receipt.v1\", this object without proof); the receiver recomputes that preimage from the receipt fields and never trusts a carried digest. proof.verification_method resolves to the issuer_id current service key at accepted_at and proof.created_at equals accepted_at.",
       "required": [
         "pair_key",
         "founder_id",
@@ -65,7 +65,7 @@
         },
         "founder_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id",
-          "description": "Exact founder ActorId. A bare principal DID is insufficient because the same principal hosted by two Principal Servers denotes two distinct account authorities."
+          "description": "Exact founder ActorId. A bare principal DID is insufficient because the same principal hosted by two Stations denotes two distinct account authorities."
         },
         "realm_id": {
           "$ref": "./principal-operations.schema.json#/$defs/realm_id"

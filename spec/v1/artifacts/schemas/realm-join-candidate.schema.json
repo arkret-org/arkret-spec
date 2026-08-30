@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-join-candidate.schema.json",
   "title": "Arkret Realm Join Candidate",
-  "description": "Time-bounded transport hint used by the invitee's Principal Server to forward Realm join, invite-accept, knock, or restricted-join material to an existing joined member's Principal Server. Clients submit only to their own Principal Server. This object is neither membership identity nor authorization and cannot select or change an AccountId.",
+  "description": "Time-bounded transport hint used by the invitee's Station to forward Realm join, invite-accept, knock, or restricted-join material to an existing joined member's Station. Clients submit only to their own Station. This object is neither membership identity nor authorization and cannot select or change an AccountId.",
   "type": "object",
   "required": [
     "realm_id",
@@ -35,16 +35,16 @@
     "service_kind": {
       "type": "string",
       "enum": [
-        "principal_server"
+        "station"
       ],
-      "description": "Join-side submission target. v1 permits only the invitee's or an existing joined member's Principal Server."
+      "description": "Join-side submission target. v1 permits only the invitee's or an existing joined member's Station."
     },
     "role": {
       "type": "string",
       "enum": [
-        "joined_member_principal_server"
+        "joined_member_station"
       ],
-      "description": "The only v1 forwarding role: the Principal Server component of a current joined account member. This is a bounded route hint, not an authorization grant."
+      "description": "The only v1 forwarding role: the Station component of a current joined account member. This is a bounded route hint, not an authorization grant."
     },
     "endpoint_url": {
       "type": "string",
@@ -63,7 +63,7 @@
       },
       "uniqueItems": true,
       "minItems": 1,
-      "description": "Endpoint-callable operation ids available at this candidate. Join-side forwarding from the invitee Principal Server requires ak.peer.events.command.submit.v1; clients never call the candidate directly."
+      "description": "Endpoint-callable operation ids available at this candidate. Join-side forwarding from the invitee Station requires ak.peer.events.command.submit.v1; clients never call the candidate directly."
     },
     "join_methods": {
       "type": "array",
@@ -83,7 +83,7 @@
     },
     "encryption_profile": {
       "$ref": "./realm.schema.json#/properties/encryption_profile",
-      "description": "Effective encryption_profile of this Realm in the issuer's accepted projection at as_of. Principal-server candidates MUST include it so a pre-join client can apply the E2EE recovery-material gate (identity/key-management.md section 7.11) without reading membership-gated Realm history. The issuer MUST NOT substitute a default when the accepted projection is missing or unverifiable; it MUST omit the candidate instead."
+      "description": "Effective encryption_profile of this Realm in the issuer's accepted projection at as_of. Station candidates MUST include it so a pre-join client can apply the E2EE recovery-material gate (identity/key-management.md section 7.11) without reading membership-gated Realm history. The issuer MUST NOT substitute a default when the accepted projection is missing or unverifiable; it MUST omit the candidate instead."
     },
     "digest_algorithm": {
       "$ref": "./realm.schema.json#/properties/digest_algorithm",
@@ -118,7 +118,7 @@
     },
     "seal_basis": {
       "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-      "description": "Complete canonical non-empty, duplicate-free Control Move basis for the candidate service's current accepted Realm Seal frontier at as_of. Single-signer and threshold authorities have one leaf; open_set carries the complete non-quarantined leaf antichain. Principal-server candidates MUST include this so pre-join Realm join / invite-accept Control Moves can be signed without a separate membership-gated frontier read. This is a routing/anchoring hint, not membership authorization: the receiving service still validates the submitted basis, its joined digest_algorithm, and the invite."
+      "description": "Complete canonical non-empty, duplicate-free Control Move basis for the candidate service's current accepted Realm Seal frontier at as_of. Single-signer and threshold authorities have one leaf; open_set carries the complete non-quarantined leaf antichain. Station candidates MUST include this so pre-join Realm join / invite-accept Control Moves can be signed without a separate membership-gated frontier read. This is a routing/anchoring hint, not membership authorization: the receiving service still validates the submitted basis, its joined digest_algorithm, and the invite."
     },
     "as_of": {
       "$ref": "#/$defs/timestamp",

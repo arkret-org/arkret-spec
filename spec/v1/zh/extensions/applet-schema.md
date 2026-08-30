@@ -60,7 +60,7 @@ updated: 2026-07-02
 > 示例中 `proof` 字段省略字段不是合法 v1 wire 形态：它必须是 accepted Applet Package
 > 的 controller DID detached proof 的逐字副本，并包含 `detached_proof` schema 的全部 required
 > 字段；`payload_digest` 覆盖 canonical package（不含 package `proof` 自身）。formal registration
-> Event 另由安装管理员签署，且由接收 Principal Server 加 admission proof。
+> Event 另由安装管理员签署，且由接收 Station 加 admission proof。
 > 空 `"proof": {}` 形态 MUST 被 receiver 以 `schema_violation` 拒绝。
 
 > **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ak.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §11](./applet-integration.md)（末段）与 §4.1。
@@ -91,12 +91,12 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 
 ## 1a. Applet Package Schema
 
-`ak.schema.applet_package.v1` 是开发者/供应商发布的可安装 package；它不进入 Realm history，不授权写入。安装时 Principal Server / authz service MUST 从 package 派生 canonical `ak.applet.registration` payload，再根据管理员批准生成 grant。
+`ak.schema.applet_package.v1` 是开发者/供应商发布的可安装 package；它不进入 Realm history，不授权写入。安装时 Station / authz service MUST 从 package 派生 canonical `ak.applet.registration` payload，再根据管理员批准生成 grant。
 
 `registration_epoch_evidence` **不是 AppletPackage 字段**。它是安装时验证 DID resolution 与重算
 `registration_epoch` 的 authority input，唯一 wire 载体是 §1b caller-signed
 `registration_event.payload.manifest.registration_epoch_evidence`。AppletPackage 必须拒绝该未知成员；
-`package_digest` 与 controller proof transcript 均不得包含 evidence。Principal Server 与 Applet service 都从
+`package_digest` 与 controller proof transcript 均不得包含 evidence。Station 与 Applet service 都从
 同一个管理员签名 Event 读取并验证 evidence，accepted value 持久化后供 epoch runtime check 使用。
 
 字段参考:
@@ -158,7 +158,7 @@ Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`
 `ak.schema.applet_managed_actor_provision.v1` 以
 [`applet-managed-actor.schema.json`](../../artifacts/schemas/applet-managed-actor.schema.json) 为唯一闭合
 wire schema。payload 必须携完整 `actor_id: ActorId`；Applet managed actor 使用
-`hosted_principal` 分支，`principal_id` 与 `principal_server_id` 封闭在同一对象内。payload 还必须携闭合
+`hosted_principal` 分支，`principal_id` 与 `station_id` 封闭在同一对象内。payload 还必须携闭合
 `actor_role=bot|ghost`、`initial_resolution`、v1 唯一合法的完整 WebVH
 `method_history_evidence`、immutable `registration_ref` 与 `applet_authority_ref`。did:web snapshot 与
 did:key expansion 不能为长期可轮换的高风险 managed authority 提供所需 history/version pinning，均非法。Ghost 还必须携
@@ -169,19 +169,19 @@ anchor；current resolution ref 不属于这些对象。provision cell subject �
 
 ## 1b. Applet Install Operation Objects
 
-安装使用管理员、目标 Principal Server 与 Applet service 的两步 co-sign 握手，机器契约分别是
+安装使用管理员、目标 Station 与 Applet service 的两步 co-sign 握手，机器契约分别是
 [`applet-install-operations.schema.json`](../../artifacts/schemas/applet-install-operations.schema.json) 与
 [`applet-install-authoring.schema.json`](../../artifacts/schemas/applet-install-authoring.schema.json)。
 
 Install preview request 只含 `applet_package` 与 closed `authoring_request_basis`。install basis 固定
-`purpose=install_bot`，精确绑定目标 Principal Server、安装管理员、typed `applet_id`、Applet
+`purpose=install_bot`，精确绑定目标 Station、安装管理员、typed `applet_id`、Applet
 `service_id`、`package_digest`、effective scope、审批/策略，并且唯一内嵌管理员签名的
 `registration_event` 与 `capability_grant_events`。basis 不携请求时间。registration epoch evidence 只在
 `registration_event.payload.manifest.registration_epoch_evidence` 出现；preview 顶层、basis sibling、package
 及 commit 均不得镜像。
 
-Principal Server 重新验证 package、Event/evidence、当前策略和 namespace，生成 canonical `InstallPlan`，再返回
-`{plan, authoring_request}`。Principal Server 自行取得 `issued_at`，要求
+Station 重新验证 package、Event/evidence、当前策略和 namespace，生成 canonical `InstallPlan`，再返回
+`{plan, authoring_request}`。Station 自行取得 `issued_at`，要求
 `0 < expires_at-issued_at <= 5 minutes` 且 `proof.created_at == issued_at`。closed request 固定
 `purpose=install_bot`，携 exact basis、`plan_digest`、current `hosting_notary`、时间窗与 proof。
 `request_payload_digest` 是不含 proof 的 closed request 的 RFC 8785 SHA-256，逐字等于
@@ -193,7 +193,7 @@ mint request ID。相同 subject/payload 的 preview 返回 ledger 中已保存�
 `POST /_arkret/edge/applet/managed-actors/author`
 （`ak.edge.applet.managed_actor.command.author.v1`）。该 operation 以
 `purpose=install_bot|provision_ghost` 的 closed union 同时服务 Bot 与 Ghost；Applet service 必须用
-current trusted Principal Server service identity/key 验证 proof，并逐字校验 package/service/admin
+current trusted Station service identity/key 验证 proof，并逐字校验 package/service/admin
 Event/evidence/actor/plan/expiry 绑定；不得只接受自洽历史 key。Applet service 按既有 creation admission 签
 `ak.applet.managed_actor.provision`、Bot PCR `ak.realm.create`、
 `ak.identity.accountability_grant`、`ak.profile.create` 四个 formal Events：provision/accountability 使用 service actor，
@@ -218,16 +218,16 @@ Commit request 只有：
 }
 ```
 
-Principal Server 从 authoring request 唯一提取管理员 Events/evidence/scope/policies，从 bundle 唯一提取四个
+Station 从 authoring request 唯一提取管理员 Events/evidence/scope/policies，从 bundle 唯一提取四个
 Applet/Bot Events，重新计算所有 digest、Event refs、plan 与权限，并在一个 durable transaction 内原子提交完整
 formal Event 集合、Applet record、namespace/managed-authority claims 与 idempotency outcome。任何失败必须零
-Event 可见；Principal Server 不得代签、重建或逐条 fan-out。
+Event 可见；Station 不得代签、重建或逐条 fan-out。
 
-同一 `(applet_id,target_principal_server_id)` 的后续 Realm/Circle install 走 closed
+同一 `(applet_id,target_station_id)` 的后续 Realm/Circle install 走 closed
 `reuse_existing_managed_actor` 分支，只重验首次 accepted provision/PCR/accountability/profile anchors 并提交
 本次 registration/grant；不得再携新 bundle 或创建第二 Bot。Ghost subject 是
-`(provision_ghost,applet_id,target_principal_server_id,external_ref)`，Realm 与 package digest 均不是 identity
-维度，因此同 external tuple 跨 Realm 复用、跨 target Principal Server 独立。
+`(provision_ghost,applet_id,target_station_id,external_ref)`，Realm 与 package digest 均不是 identity
+维度，因此同 external tuple 跨 Realm 复用、跨 target Station 独立。
 
 首次 commit 必须在 `authoring_request.expires_at` 前到达。对于已经成功的相同
 `Idempotency-Key` + exact canonical body，durable replay lookup 必须先于 expiry 检查并返回原 outcome，即使

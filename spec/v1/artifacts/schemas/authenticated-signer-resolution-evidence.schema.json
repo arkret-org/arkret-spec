@@ -66,7 +66,7 @@
         "attester_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
       },
       "additionalProperties": false,
-      "description": "attester_signer_evidence_ref/digest resolves to a service-kind leaf that historically verifies the Principal Server projection attestation. Current route or DID expiry is not a retrospective validity input."
+      "description": "attester_signer_evidence_ref/digest resolves to a service-kind leaf that historically verifies the Station projection attestation. Current route or DID expiry is not a retrospective validity input."
     },
     "native_agent_signer_evidence": {
       "type": "object",

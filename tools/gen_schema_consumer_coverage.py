@@ -6,7 +6,7 @@ every logical schema ID in the schema registry, which consumers actually bind
 it:
 
   inbound          an operation declares it as request_schema_ref, or it is the
-                   Event envelope / payload contract a Principal Server admits.
+                   Event envelope / payload contract a Station admits.
   outbound         an operation declares it as response_schema_ref.
   startup_compile  it is a registry row, so ensure_all_schemas_compile() and
                    any equivalent startup gate compiles it.

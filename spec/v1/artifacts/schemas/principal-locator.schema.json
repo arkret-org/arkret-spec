@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/principal-locator.schema.json",
   "title": "Arkret Principal Locator",
-  "description": "Signed online locator returned from a holder-controlled Principal Server locator ref. It asserts an exact AccountId and current first-hop route used for private invite delivery; it is not a Realm membership grant and cannot alter account identity.",
+  "description": "Signed online locator returned from a holder-controlled Station locator ref. It asserts an exact AccountId and current first-hop route used for private invite delivery; it is not a Realm membership grant and cannot alter account identity.",
   "type": "object",
   "required": [
     "schema",
@@ -23,7 +23,7 @@
     },
     "service_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-      "description": "First-hop resolution material for account_id.principal_server_id; it is covered by the locator proofs."
+      "description": "First-hop resolution material for account_id.station_id; it is covered by the locator proofs."
     },
     "route_assistance": {
       "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
@@ -126,7 +126,7 @@
           "minimum": 60,
           "maximum": 3600,
           "default": 900,
-          "description": "Requested locator lifetime. The Principal Server MAY shorten it but MUST NOT exceed the v1 one-hour ceiling."
+          "description": "Requested locator lifetime. The Station MAY shorten it but MUST NOT exceed the v1 one-hour ceiling."
         },
         "one_time_use": {
           "type": "boolean",
@@ -152,7 +152,7 @@
           "type": "integer",
           "minimum": 60,
           "maximum": 3600,
-          "description": "Requested replacement-locator lifetime. When omitted, preserve the old locator's granted lifetime (old expires_at minus old issued_at). The Principal Server MAY shorten it but MUST NOT exceed the v1 one-hour ceiling."
+          "description": "Requested replacement-locator lifetime. When omitted, preserve the old locator's granted lifetime (old expires_at minus old issued_at). The Station MAY shorten it but MUST NOT exceed the v1 one-hour ceiling."
         },
         "one_time_use": {
           "type": "boolean",

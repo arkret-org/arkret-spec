@@ -131,8 +131,8 @@ index 与首 Seal obligation 仍必须原子建立。不得把此例外扩大到
 organization PCR 或 re-anchor/recovery。
 这里的 identity-root / founding-device “proof”均指各 Event 的唯一 producer proof。首次 admission
 落库后，两条 canonical Event 可各自按 federation 规则追加一个已验证的
-`principal_server_admission` proof；后续为首个 successor Seal 重放 genesis 时，validator 必须接受
-`[producer, principal_server_admission]` 的 accepted-Event 形态并继续只用 producer proof 判断
+`station_admission` proof；后续为首个 successor Seal 重放 genesis 时，validator 必须接受
+`[producer, station_admission]` 的 accepted-Event 形态并继续只用 producer proof 判断
 identity-root / founding-device authority。不得把 admission proof 误计为第二个 author。
 
 该 authority set 正由单元创建，不能循环要求尚未生效的 founding notary state 作为 receipt
@@ -143,15 +143,15 @@ identity-root / founding-device authority。不得把 admission proof 误计为�
    `NotaryValue` / `authority_set_ref`，再以 accepted Agent DID delegation 验证当前 controller
    device；receipt signer 是 controller device，不能伪装成 Agent key。候选 create、Agent DID、
    controller DID、Realm 与 `authorization_ref` 任一不闭合即 fail closed。
-2. 否则，完成全量预准入并为同一有序单元签发 `AuthorizationLease` 的 Principal Server MAY
+2. 否则，完成全量预准入并为同一有序单元签发 `AuthorizationLease` 的 Station MAY
    签发 receipt；receipt 的 `authority_set_ref` MUST 等于这些 lease 的
    `authority_set_digest`，且每个 receipt 仍逐一绑定 exact Event digest，并以自身真实 admission
    verification method 产生唯一 `authority_acks[0]`。此路径的 caller MUST 为完整单元逐项携带
-   同序 lease，MUST NOT 预填 `control_proposal_ack`；admitting Principal Server 在重新验证
+   同序 lease，MUST NOT 预填 `control_proposal_ack`；admitting Station 在重新验证
    完整 lease-bound unit 后、提交事务内签发 receipt。这样 receipt 时间与 durable ingress 是同一
    事实，也避免单 Event receipt 请求无法独立重建完整 genesis unit 的循环。
 
-第二条不是把 Principal Server 冒充为 founding notary，也不得与其它服务 receipt 拼成虚构
+第二条不是把 Station 冒充为 founding notary，也不得与其它服务 receipt 拼成虚构
 notary quorum。两条路径都只确认 ingress，不产生授权、accepted state 或 finality；首个 accepted
 Seal 仍 MUST 由单元声明的 founding notary 签署并独立重算 genesis state。已有 accepted Realm
 authority、reanchor、recovery 或普通 Control Move 不得使用第二条例外。
@@ -173,7 +173,7 @@ canonical Event 与无 Ack 的 pending Control row，并只在同一 current dev
 都必须 fail closed，且不得使用本例外。managed Agent controller delegation、organization governance、
 ordinary Realm、re-anchor/recovery 与任意 threshold/mixed notary 继续走上文的显式 Ack/quorum 轨道。
 首次 admission 后的 canonical Event 会按 federation 规则追加且仅追加一个已验证的
-`principal_server_admission` proof；Ack-less authority 重验必须只选择唯一 producer proof，并忽略该
+`station_admission` proof；Ack-less authority 重验必须只选择唯一 producer proof，并忽略该
 transport-origin attestation。实现不得因 admission proof 的存在把已接受 Event 误判为多 producer，
 也不得把 admission proof 当作 producer authority 或接受两个 producer proofs。
 

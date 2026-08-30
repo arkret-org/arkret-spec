@@ -20,7 +20,7 @@ sidebar:
 - reducer 一致性（特别是 auth/state 重算）
 - redaction 与隐私字段保留规则
 - capability 与授权派生规则
-- Principal Server Events API / Principal Server sync surface / E2EE / applet 关键接口
+- Station Events API / Station sync surface / E2EE / applet 关键接口
 
 Schema 依赖由 Event Envelope 的 `requirements.schema[]` 声明；Realm reducer 版本由 reducer-profile singleton control cell 决定，并且只通过 `ak.realm.create` / `ak.realm.upgrade` 写入。v1 不使用顶层 `space_version` wire 字段。
 
@@ -48,9 +48,8 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 - `ak.profile.kanban_mvp.v1`
 - `ak.profile.full_client.v1`
 - `ak.profile.e2ee_client.v1`
-- `ak.profile.principal_server_events_api.v1`
-- `ak.profile.principal_server.v1`
-- `ak.profile.auth_server.v1`
+- `ak.profile.station_events_api.v1`
+- `ak.profile.station.v1`
 - `ak.profile.federation_minimal.v1`
 - `ak.profile.federation.high_assurance.v1`
 - `ak.profile.identity_registry.v1`
@@ -90,7 +89,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 - canonical JSON 字段顺序与空值处理一致。
 - Event Envelope 校验必须按 kind 选择 payload schema；active 标准 kind 未命中 payload class 或 payload class 校验失败，必须在 reducer 前以 `schema_violation` 失败。
-- 同一请求在不同服务节点（Principal Server Events API / Principal Server sync surface）可重放得到一致事件 hash 或查询结果边界。
+- 同一请求在不同服务节点（Station Events API / Station sync surface）可重放得到一致事件 hash 或查询结果边界。
 
 ## 4. Conformance 向量分层
 
@@ -167,7 +166,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 | --- | --- | --- |
 | Minimal/Full Client | filter、pagination、state_after、decryption_pending | snapshot frontier、causal wait |
 | Events API | submitEvent、eventIdempotency、eventDigest 验证、signature 校验 | snapshot generation、event batch receipt |
-| Principal Server | sync stream 续传、backfill 顺序、重复过滤、加密转发不解密、来源限速与回压 | 多上游 federation、快照指针 |
+| Station | sync stream 续传、backfill 顺序、重复过滤、加密转发不解密、来源限速与回压 | 多上游 federation、快照指针 |
 | Auth Server | issuer-record ID/JTI 重算、canonical JWK、DPoP binding、durable exact replay/conflict/terminal outcome、原子 refresh/revoke/introspection | issuer key rotation、commit 后响应丢失与并发重试 |
 | E2EE Client | epoch 回填、to-device、removed 成员 fail-closed | 本地 search 协调 |
 | Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal realm 映射 |

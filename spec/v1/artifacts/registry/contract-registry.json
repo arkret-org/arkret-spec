@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.8",
+  "version": "2026-08-30.9",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T00:00:00+08:00",
+  "generated_at": "2026-08-31T00:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -24,7 +24,7 @@
     }
   },
   "realm_bootstrap_registry": {
-    "version": "2026-08-29.1",
+    "version": "2026-08-30.1",
     "ordinary_collaboration": {
       "atomic": true,
       "all_or_nothing": true,
@@ -6859,7 +6859,7 @@
         "verb_form": "base",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Agent-initiated draft proposal. Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history.",
+        "payload": "Agent-initiated draft proposal. Submitted by agent runtime; Station materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload",
         "id_source": "not_an_object_id"
       },
@@ -7157,7 +7157,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Server-revision-CAS active binding or revoked tombstone for an (account_id, device_id, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on account_id.principal_server_id only; MUST NOT be replicated to another Principal Server.",
+        "payload": "Server-revision-CAS active binding or revoked tombstone for an (account_id, device_id, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on account_id.station_id only; MUST NOT be replicated to another Station.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
         "id_source": "not_an_object_id"
       },
@@ -8703,7 +8703,7 @@
       "contract_id": "ak.push.bridge.v1",
       "status": "active",
       "defined_in": "zh/discovery/push-notifications.md",
-      "description": "Push bridge discovery and delivery contract shared by gateway, principal server and clients."
+      "description": "Push bridge discovery and delivery contract shared by gateway, Station and clients."
     }
   ],
   "schema_registry": {
@@ -9038,7 +9038,7 @@
         "schema_id": "ak.schema.invite_delivery.v1",
         "file": "schemas/invite-delivery.schema.json",
         "status": "active",
-        "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Principal Server on the notify branch. See zh/sync/invite-addressing.md section 7.",
+        "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Station on the notify branch. See zh/sync/invite-addressing.md section 7.",
         "consumer_binding": {
           "kind": "account_data_plaintext",
           "selector": "account_data key ak.account.invite_delivery",
@@ -9049,7 +9049,7 @@
         "schema_id": "ak.schema.invite_quarantine.v1",
         "file": "schemas/invite-quarantine.schema.json",
         "status": "active",
-        "description": "Actor-private plaintext account-data cell value of ak.account.invite_quarantine, written only by the recipient Principal Server CAS materializer. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
+        "description": "Actor-private plaintext account-data cell value of ak.account.invite_quarantine, written only by the recipient Station CAS materializer. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
         "consumer_binding": {
           "kind": "account_data_plaintext",
           "selector": "account_data key ak.account.invite_quarantine",
@@ -9095,7 +9095,7 @@
         "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
         "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
         "status": "active",
-        "description": "Content-addressed historical signer-resolution evidence pinned for Event, Principal Server and AvailabilityReceipt signature verification."
+        "description": "Content-addressed historical signer-resolution evidence pinned for Event, Station and AvailabilityReceipt signature verification."
       },
       {
         "schema_id": "ak.schema.patch.v1",
@@ -9537,7 +9537,7 @@
         "schema_id": "ak.schema.realm_join_candidate.v1",
         "file": "schemas/realm-join-candidate.schema.json",
         "status": "active",
-        "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Principal Server during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
+        "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
       },
       {
         "schema_id": "ak.schema.grant_constraint.v1",
@@ -9641,20 +9641,20 @@
         "schema_id": "ak.schema.applet_install_plan.v1",
         "file": "schemas/applet-install-plan.schema.json",
         "status": "active",
-        "description": "Canonical Applet InstallPlan nested in the Principal Server-signed authoring request and recomputed by install commit before admission. plan_digest is calculated over this object with plan_digest omitted."
+        "description": "Canonical Applet InstallPlan nested in the Station-signed authoring request and recomputed by install commit before admission. plan_digest is calculated over this object with plan_digest omitted."
       },
       {
         "schema_id": "ak.schema.applet_install_authoring.v1",
         "file": "schemas/applet-install-authoring.schema.json",
         "status": "active",
-        "description": "Closed Principal Server preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
+        "description": "Closed Station preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
       },
       {
         "schema_id": "ak.schema.applet_ghost_authoring_request_basis.v1",
         "file": "schemas/applet-install-authoring.schema.json",
         "fragment": "#/$defs/ghost_authoring_request_basis",
         "status": "active",
-        "description": "Principal Server-derived Ghost basis binding the exact target server, active installation coordinates, Realm and external tuple.",
+        "description": "Station-derived Ghost basis binding the exact target server, active installation coordinates, Realm and external tuple.",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "Ghost preview authoring_request.basis",
@@ -9666,7 +9666,7 @@
         "file": "schemas/applet-install-authoring.schema.json",
         "fragment": "#/$defs/install_authoring_request_basis",
         "status": "active",
-        "description": "Canonical unsigned basis frozen by the Principal Server preview and covered by the install authoring request signature.",
+        "description": "Canonical unsigned basis frozen by the Station preview and covered by the install authoring request signature.",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "Applet install preview authoring_request.basis",
@@ -9678,7 +9678,7 @@
         "file": "schemas/applet-install-authoring.schema.json",
         "fragment": "#/$defs/authoring_request",
         "status": "active",
-        "description": "Principal Server-signed, expiry-bounded install_bot or provision_ghost managed-actor authoring request.",
+        "description": "Station-signed, expiry-bounded install_bot or provision_ghost managed-actor authoring request.",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "Applet install or Ghost preview and unified managed-actor author request",
@@ -10126,8 +10126,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-29.3",
-    "generated_at": "2026-08-29T22:30:00+08:00"
+    "version": "2026-08-30.1",
+    "generated_at": "2026-08-30T23:30:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -10767,7 +10767,7 @@
         "category": "account_private",
         "status": "active",
         "wire_form": "ak:invite_locator:<uuidv7>",
-        "description": "Non-secret Principal Server administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token.",
+        "description": "Non-secret Station administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
       },
@@ -11079,8 +11079,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-29.2",
-    "generated_at": "2026-08-29T18:45:00+08:00"
+    "version": "2026-08-30.1",
+    "generated_at": "2026-08-30T23:30:00+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -11766,7 +11766,7 @@
         "did_authority": {
           "evidence_class": "ongoing_governance",
           "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
-          "purpose": "Verify the announce governance proof of the announcing service or organization, and resolve the principal server endpoint inside the same first-ingest admission."
+          "purpose": "Verify the announce governance proof of the announcing service or organization, and resolve the Station endpoint inside the same first-ingest admission."
         },
         "http": "POST /_arkret/find/directory/announce",
         "grpc": "FindDirectory/Announce",
@@ -11952,7 +11952,7 @@
         "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/session-grants/introspect",
-        "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Principal Server validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and optional S2S holder confirmation) and learns whether the issuer ledger considers it active, plus non-secret grant metadata. The Account Authority MUST read the same issuer ledger used by issue, refresh, revoke and cascade; lifecycle status distinguishes active, revoked, superseded and dynamically expired records rather than consulting a Principal Event/cell. Introspection does not call back to the origin Principal Server and carries no reusable revocation-gate receipt: before accepting each protected self request, that origin Principal Server checks its own exact device/generation pending/Seal state locally in the request transaction. The introspection response MUST include the grant's cnf_jkt (RFC 7638 thumbprint of the bound DPoP holder key) so the Principal Server can verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3); clients do not send a separate introspection-proof header on self-path requests. session_public_key is also returned for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
+        "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Station validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and optional S2S holder confirmation) and learns whether the issuer ledger considers it active, plus non-secret grant metadata. The Account Authority MUST read the same issuer ledger used by issue, refresh, revoke and cascade; lifecycle status distinguishes active, revoked, superseded and dynamically expired records rather than consulting a Principal Event/cell. Introspection does not call back to the origin Station and carries no reusable revocation-gate receipt: before accepting each protected self request, that origin Station checks its own exact device/generation pending/Seal state locally in the request transaction. The introspection response MUST include the grant's cnf_jkt (RFC 7638 thumbprint of the bound DPoP holder key) so the Station can verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3); clients do not send a separate introspection-proof header on self-path requests. session_public_key is also returned for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
@@ -11972,7 +11972,7 @@
         },
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/controller-gate-attestations",
-        "notes": "Account Authority S2S producer operation for Native Agent signer evidence. The request carries agent_authority_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(did), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Principal Server is the Agent PCR authority under the managed-Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
+        "notes": "Account Authority S2S producer operation for Native Agent signer evidence. The request carries agent_authority_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(did), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Station is the Agent PCR authority under the managed-Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -12012,7 +12012,7 @@
         },
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/did-binding-challenges",
-        "notes": "Issue a single-use challenge for binding an ALREADY-PUBLISHED did to the authenticated service account under stable principal_id. Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. Unlike issue_identity_binding_challenge the caller supplies principal_id plus did rather than an unpublished DID operation: the Account Authority MUST resolve did itself at the high freshness tier (synchronous refresh or fail closed), MUST require the registered adapter to project(did)=principal_id, MUST NOT attempt to resolve did_core_id, MUST NOT accept caller-supplied history, and derives did_version_id, log_head_digest and control_key_digest from the resolved current entry. Deployments that do not host the DID MUST additionally require method-native witness / freshness evidence, because accepting registry and Principal Server co-location does not extend trust to third-party DIDs. The <=300s single-use challenge and returned control proof bind account_subject, principal_id, did, holder cnf.jkt, the resolved DID pins, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation performs no PCR genesis and reserves no principal: it only proves current control of an existing DID.",
+        "notes": "Issue a single-use challenge for binding an ALREADY-PUBLISHED did to the authenticated service account under stable principal_id. Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. Unlike issue_identity_binding_challenge the caller supplies principal_id plus did rather than an unpublished DID operation: the Account Authority MUST resolve did itself at the high freshness tier (synchronous refresh or fail closed), MUST require the registered adapter to project(did)=principal_id, MUST NOT attempt to resolve did_core_id, MUST NOT accept caller-supplied history, and derives did_version_id, log_head_digest and control_key_digest from the resolved current entry. Deployments that do not host the DID MUST additionally require method-native witness / freshness evidence, because accepting registry and Station co-location does not extend trust to third-party DIDs. The <=300s single-use challenge and returned control proof bind account_subject, principal_id, did, holder cnf.jkt, the resolved DID pins, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation performs no PCR genesis and reserves no principal: it only proves current control of an existing DID.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -12112,7 +12112,7 @@
         "http": "POST /_arkret/gate/account/erasure-requests",
         "grpc": "GateAccount/RequestErasure",
         "mq": "gate.account.command.request_erasure",
-        "notes": "The only client entry point for self-initiated account erasure (zh/identity/account-lifecycle.md section 8.1). The Account Authority accepts it directly on the gate surface: it authenticates the holder as a high-risk action, durably records the erasure intent and continues its existing erasure_pending AccountStatusRecord issuance flow within the same service — there is no cross-service handoff, because the record issuer, the status-transition legality oracle and the section-8 fanout orchestrator are all the Account Authority, so no 'accepted but issuance pending on another service' intermediate state exists. Authentication freshness is judged locally by the Account Authority, the only party holding recent login / WebAuthn / recovery key facts; a Principal Server MUST NOT determine or approximate it from session-grant introspection or local session state (introspection deliberately projects neither auth_time nor proof kind). The success response is an acceptance confirmation only: the current status is observed through the existing account-status read surface and physical completion only through the erasure receipt rail. The Account Authority MAY insert a deployment-governed withdrawal window (possibly zero) between acceptance and record signing, echoing withdrawal_window_ends_at when one exists; once the erasure_pending record is signed the request is irreversible and any withdrawal MUST fail closed. Replaying the same request_id returns the recorded acceptance outcome; the same request_id with different canonical bytes is duplicate_conflict with zero writes; a different request_id while a live unsigned-record intent exists is failed_precondition with reason_code erasure_request_already_pending. A session that does not satisfy the deployment's fresh high-risk action authentication policy is rejected with reauthentication_required.",
+        "notes": "The only client entry point for self-initiated account erasure (zh/identity/account-lifecycle.md section 8.1). The Account Authority accepts it directly on the gate surface: it authenticates the holder as a high-risk action, durably records the erasure intent and continues its existing erasure_pending AccountStatusRecord issuance flow within the same service — there is no cross-service handoff, because the record issuer, the status-transition legality oracle and the section-8 fanout orchestrator are all the Account Authority, so no 'accepted but issuance pending on another service' intermediate state exists. Authentication freshness is judged locally by the Account Authority, the only party holding recent login / WebAuthn / recovery key facts; a Station MUST NOT determine or approximate it from session-grant introspection or local session state (introspection deliberately projects neither auth_time nor proof kind). The success response is an acceptance confirmation only: the current status is observed through the existing account-status read surface and physical completion only through the erasure receipt rail. The Account Authority MAY insert a deployment-governed withdrawal window (possibly zero) between acceptance and record signing, echoing withdrawal_window_ends_at when one exists; once the erasure_pending record is signed the request is irreversible and any withdrawal MUST fail closed. Replaying the same request_id returns the recorded acceptance outcome; the same request_id with different canonical bytes is duplicate_conflict with zero writes; a different request_id while a live unsigned-record intent exists is failed_precondition with reason_code erasure_request_already_pending. A session that does not satisfy the deployment's fresh high-risk action authentication policy is rejected with reauthentication_required.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "request_id",
@@ -12261,7 +12261,7 @@
           ],
           "cross_service_effects": [
             "public_did_log_entry_published",
-            "pcr_genesis_unit_accepted_on_principal_server",
+            "pcr_genesis_unit_accepted_on_station",
             "account_to_principal_binding_committed"
           ],
           "irreversibility_note": "Beyond authoring the genesis Events this operation publishes a public did:webvh log entry and commits a one-account-one-principal binding that can never be rebound. Retry and audit logic MUST treat it as cross-service irreversible even though the closed durable_effect kind vocabulary can only name the Event-log half."
@@ -12409,7 +12409,7 @@
         "http": "GET /_arkret/open/principals/{principal_id}/resolution",
         "grpc": "OpenIdentity/Resolution",
         "mq": "open.identity.query.resolution",
-        "notes": "Reads the current public principal resolution projection from the known Principal Server. The response carries only the account pair, the projection, bounded adapter method evidence and the Principal Server projection attestation; it MUST NOT carry principal_control_realm_id, PCR genesis Event, genesis receipt, resolution Events or accepted Seal. Account-internal audit material moved to ak.self.identity.read.resolution_audit.v1, so this surface has no history selector. This is a second-hop projection fetch, not a global resolver or authorization oracle. Sensitive consumers fetch fresh, verify the attestation proof under the current principal_server_id method history, independently run the registered DID method adapter, and require project(did)=principal_id; durable storage of arbitrary remote-principal bindings is not required.",
+        "notes": "Reads the current public principal resolution projection from the known Station. The response carries only the account pair, the projection, bounded adapter method evidence and the Station projection attestation; it MUST NOT carry principal_control_realm_id, PCR genesis Event, genesis receipt, resolution Events or accepted Seal. Account-internal audit material moved to ak.self.identity.read.resolution_audit.v1, so this surface has no history selector. This is a second-hop projection fetch, not a global resolver or authorization oracle. Sensitive consumers fetch fresh, verify the attestation proof under the current station_id method history, independently run the registered DID method adapter, and require project(did)=principal_id; durable storage of arbitrary remote-principal bindings is not required.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/public_principal_resolution"
@@ -12713,7 +12713,7 @@
         "http": "POST /_arkret/peer/device-revocations/check",
         "grpc": "PeerDeviceRevocations/Check",
         "mq": "peer.device_revocations.command.check",
-        "notes": "Authenticated Account-Authority-to-origin-Principal-Server current-device and revocation gate. returning_session_grant_issue and human session_grant_refresh bind AcceptedDevicePossessionProof; registration/recovery session_grant_issue uses its separately verified durable evidence and forbids this proof. Under one device lock/serializable transaction the origin reads the durable current accepted-device projection, verifies any required proof with its key, derives authorization Event/generation, evaluates pending/revoked state and persists a signed decision receipt binding proof digest and intent. A lock-external key/status read followed by a second gate transaction is forbidden. expected selectors are required for refresh and may be omitted for both issue action classes. Only allow carries derived selectors and can produce complete human device_binding; authority_mismatch maps to device_unauthorized and every non-allow yields zero grant. Exact replay returns the byte-identical <=30 second receipt.",
+        "notes": "Authenticated Account-Authority-to-origin-Station current-device and revocation gate. returning_session_grant_issue and human session_grant_refresh bind AcceptedDevicePossessionProof; registration/recovery session_grant_issue uses its separately verified durable evidence and forbids this proof. Under one device lock/serializable transaction the origin reads the durable current accepted-device projection, verifies any required proof with its key, derives authorization Event/generation, evaluates pending/revoked state and persists a signed decision receipt binding proof digest and intent. A lock-external key/status read followed by a second gate transaction is forbidden. expected selectors are required for refresh and may be omitted for both issue action classes. Only allow carries derived selectors and can produce complete human device_binding; authority_mismatch maps to device_unauthorized and every non-allow yields zero grant. Exact replay returns the byte-identical <=30 second receipt.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -12808,7 +12808,7 @@
         "http": "POST /_arkret/peer/invites",
         "grpc": "PeerInvites/Submit",
         "mq": "peer.invites.command.submit",
-        "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-ID equal to invite_address.recipient_id, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
+        "notes": "Private Station to Station invite delivery. Requires service-to-service authentication, Destination-Service-ID equal to invite_address.recipient_id, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -12825,7 +12825,7 @@
         "http": "POST /_arkret/self/invites/dispatch",
         "grpc": "SelfInvites/Dispatch",
         "mq": "self.invites.command.dispatch",
-        "notes": "Authenticated client dispatch of private invite evidence through the inviter Principal Server. invite_event_id must resolve to an Event already accepted by this service and authored by the current session actor. The service reads its own stored canonical Event bytes; local delivery reuses the peer receive policy path and remote delivery builds the peer request from those bytes.",
+        "notes": "Authenticated client dispatch of private invite evidence through the inviter Station. invite_event_id must resolve to an Event already accepted by this service and authored by the current session actor. The service reads its own stored canonical Event bytes; local delivery reuses the peer receive policy path and remote delivery builds the peer request from those bytes.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -12842,7 +12842,7 @@
         "http": "POST /_arkret/peer/keys/keypackages/claim",
         "grpc": "PeerKeys/KeyPackagesClaim",
         "mq": "peer.keys.keypackages.command.claim",
-        "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination Principal Server is the sole CAS authority. The authenticated source Principal Server first admits the participant request against its exact local account/device/generation durable state; revocation_pending fails before any remote call or inventory disclosure and is exposed only as the existing opaque claim_failed result. Request and response carry no PCR/control-history or signer-evidence sidecar. Every claim binds the matching accepted authorization Event id, whose in-envelope Principal Server admission proof, the signed destination claim receipt, exact selectors and KeyPackage signature MUST all validate. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
+        "notes": "Atomic cross-Station KeyPackage claim. The destination Station is the sole CAS authority. The authenticated source Station first admits the participant request against its exact local account/device/generation durable state; revocation_pending fails before any remote call or inventory disclosure and is exposed only as the existing opaque claim_failed result. Request and response carry no PCR/control-history or signer-evidence sidecar. Every claim binds the matching accepted authorization Event id, whose in-envelope Station admission proof, the signed destination claim receipt, exact selectors and KeyPackage signature MUST all validate. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -13638,7 +13638,7 @@
         "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision/preview",
         "grpc": "SelfApplet/GhostPreview",
         "mq": "self.applet.ghost.command.preview",
-        "notes": "The active Applet service submits only Realm, exact external tuple, and optional display input. The Principal Server derives every current registration, grant, registration-epoch, package, hosting, and time coordinate, atomically supersedes any prior uncommitted generation for the same branch subject, and returns the exact persisted signed authoring request.",
+        "notes": "The active Applet service submits only Realm, exact external tuple, and optional display input. The Station derives every current registration, grant, registration-epoch, package, hosting, and time coordinate, atomically supersedes any prior uncommitted generation for the same branch subject, and returns the exact persisted signed authoring request.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -13648,7 +13648,7 @@
         "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "No Event is admitted, but the Principal Server durably records the current subject generation and exact signed request before returning"
+          "rationale": "No Event is admitted, but the Station durably records the current subject generation and exact signed request before returning"
         }
       },
       {
@@ -13685,7 +13685,7 @@
         "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/install_preview_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "No Event is admitted, but the Principal Server atomically persists the branch-subject winner, exact unsigned payload, exact signed request, and superseded generations before returning"
+          "rationale": "No Event is admitted, but the Station atomically persists the branch-subject winner, exact unsigned payload, exact signed request, and superseded generations before returning"
         }
       },
       {
@@ -14269,7 +14269,7 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. Before accepting a device-authored Event or appending principal_server_admission, the origin Principal Server reads the exact durable device revocation state in the same admission transaction; revocation_pending returns device_revocation_pending and zero Event/proof writes. Accepted ak.device.revoke is Ack-required and atomically writes its derived exact device/generation pending record. For a locally authored Realm Event, canonical acceptance, the complete distinct recipient-service target set and every target outbox intent commit atomically. A missing route creates durable pending_route and never rejects the Event; each send rechecks the frozen exact joined-member ActorId routing authority, authority loss terminally cancels the old target, and submit exposes only pending_delivery_count; clients derive delivery state as pending iff the count is non-zero. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The direct_conversation_founding branch remains its closed four-Event atomic unit: Realm create, peer membership join, main Strand create and founder membership join. The agent_membership_cascade branch is the only controller-cascade carrier: atomic_self_leave accepts the controller terminal Event and the exact pre-state Agent leave set all-or-nothing; emergency_terminal accepts a third-party terminal Event and atomically freezes a durable exact-set cleanup intent without synthesizing Agent Events; emergency_cleanup accepts only the same initiator's complete signed Agent leave set and commits it atomically. Effective Agent membership is invalid immediately after the terminal transition, independent of cleanup completion. Exact replay returns the original byte-identical outcome, while the same cleanup intent with different canonical content is duplicate_conflict.",
+        "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. Before accepting a device-authored Event or appending station_admission, the origin Station reads the exact durable device revocation state in the same admission transaction; revocation_pending returns device_revocation_pending and zero Event/proof writes. Accepted ak.device.revoke is Ack-required and atomically writes its derived exact device/generation pending record. For a locally authored Realm Event, canonical acceptance, the complete distinct recipient-service target set and every target outbox intent commit atomically. A missing route creates durable pending_route and never rejects the Event; each send rechecks the frozen exact joined-member ActorId routing authority, authority loss terminally cancels the old target, and submit exposes only pending_delivery_count; clients derive delivery state as pending iff the count is non-zero. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The direct_conversation_founding branch remains its closed four-Event atomic unit: Realm create, peer membership join, main Strand create and founder membership join. The agent_membership_cascade branch is the only controller-cascade carrier: atomic_self_leave accepts the controller terminal Event and the exact pre-state Agent leave set all-or-nothing; emergency_terminal accepts a third-party terminal Event and atomically freezes a durable exact-set cleanup intent without synthesizing Agent Events; emergency_cleanup accepts only the same initiator's complete signed Agent leave set and commits it atomically. Effective Agent membership is invalid immediately after the terminal transition, independent of cleanup completion. Exact replay returns the original byte-identical outcome, while the same cleanup intent with different canonical content is duplicate_conflict.",
         "body_class": "non_streaming_json",
         "max_items": 1000,
         "success_shape_kind": "typed_response",
@@ -14292,7 +14292,7 @@
         "http": "POST /_arkret/self/seals/availability-receipts",
         "grpc": "SelfSeals/IssueAvailabilityReceipts",
         "mq": "self.seals.command.issue_availability_receipts",
-        "notes": "PCR-only pre-sign preparation for one exact prospective successor Seal. The receiver requires the exact current predecessor frontier and exact accepted uncovered Control Event set, derives the sole eligible holder from the accepted PCR genesis ak.realm.create principal_server_id after validating its principal_server_admission and historical signer evidence, chooses sealed_at, issues and durably stores every required AvailabilityReceipt plus authenticated holder-signer evidence, and returns every-and-only dependency with canonical digests. It fails closed when the local Principal Server is not that create-locked holder, the default min_holders=1 contract cannot be met, or any requested basis is stale or incomplete. The response is preparation material only and does not commit a Seal.",
+        "notes": "PCR-only pre-sign preparation for one exact prospective successor Seal. The receiver requires the exact current predecessor frontier and exact accepted uncovered Control Event set, derives the sole eligible holder from the accepted PCR genesis ak.realm.create station_id after validating its station_admission and historical signer evidence, chooses sealed_at, issues and durably stores every required AvailabilityReceipt plus authenticated holder-signer evidence, and returns every-and-only dependency with canonical digests. It fails closed when the local Station is not that create-locked holder, the default min_holders=1 contract cannot be met, or any requested basis is stale or incomplete. The response is preparation material only and does not commit a Seal.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "canonical_hash",
@@ -14667,7 +14667,7 @@
         "http": "POST /_arkret/self/keys/keypackages/claim",
         "grpc": "SelfKeys/KeyPackagesClaim",
         "mq": "self.keys.keypackages.command.claim",
-        "notes": "Session-authenticated entry to the canonical KeyPackage claim carrier. The participant supplies the same closed device|native_agent requester_authorization and stable service_binding with source/destination service DIDs used by peer claim; deployment trust domains are absent from participant-authored bytes and are bound only by the Principal Server's verified resolution plus outer RFC 9421 headers. The local Principal Server verifies the current durable requester authorization and exact current joined-member ActorId routing projection; local source=destination uses the same destination-authority CAS, while remote targets are durably relayed without rewriting the participant-signed body. Uncertain outcomes are queried by the original claim_request_id and request digest before any exact resend.",
+        "notes": "Session-authenticated entry to the canonical KeyPackage claim carrier. The participant supplies the same closed device|native_agent requester_authorization and stable service_binding with source/destination service DIDs used by peer claim; deployment trust domains are absent from participant-authored bytes and are bound only by the Station's verified resolution plus outer RFC 9421 headers. The local Station verifies the current durable requester authorization and exact current joined-member ActorId routing projection; local source=destination uses the same destination-authority CAS, while remote targets are durably relayed without rewriting the participant-signed body. Uncertain outcomes are queried by the original claim_request_id and request digest before any exact resend.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -15141,7 +15141,7 @@
         "http": "POST /_arkret/peer/history-key-responses/relay",
         "grpc": "PeerHistoryKey/ResponseRelay",
         "mq": "peer.history_key_responses.command.relay",
-        "notes": "Private S2S relay of the immutable source record plus SourceRelayAttestation from the source's authenticated current local Principal Server to request_receipt.release_id. Destination validates the relay service against current source delivery/authority binding and performs the only final T1/release linearization. The two-service cut is not globally atomic; v1 assumes honest services and bounded TTL observation.",
+        "notes": "Private S2S relay of the immutable source record plus SourceRelayAttestation from the source's authenticated current local Station to request_receipt.release_id. Destination validates the relay service against current source delivery/authority binding and performs the only final T1/release linearization. The two-service cut is not globally atomic; v1 assumes honest services and bounded TTL observation.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -15230,8 +15230,8 @@
     "generated_at": "2026-08-30T23:50:00+08:00",
     "deployment_prototypes": [
       {
-        "prototype_id": "ak.deployment_prototype.soland_principal_server.v1",
-        "service_kind": "principal_server",
+        "prototype_id": "ak.deployment_prototype.soland_station.v1",
+        "service_kind": "station",
         "evidence_kind": "reference_implementation",
         "evidence_ref": "soland:crates/http/src/wire.rs#canonical_operation_ids",
         "independent_gates": [
@@ -15256,13 +15256,6 @@
         "service_kind": "identity_registry",
         "evidence_kind": "reference_implementation",
         "evidence_ref": "soland:crates/http/src/routing/identity/mod.rs#protocol_router",
-        "independent_gates": []
-      },
-      {
-        "prototype_id": "ak.deployment_prototype.coauth_auth_server.v1",
-        "service_kind": "auth_server",
-        "evidence_kind": "reference_implementation",
-        "evidence_ref": "coauth:crates/backend/src/server/routers.rs#build_account_api_router",
         "independent_gates": []
       },
       {
@@ -15302,26 +15295,8 @@
         "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.auth_server.describe.v1",
-        "service_kind": "auth_server",
-        "deployment_evidence": ["ak.deployment_prototype.coauth_auth_server.v1"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
-      },
-      {
-        "operation_bundle_id": "ak.operation_bundle.authz_service.describe.v1",
-        "service_kind": "authz_service",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
-      },
-      {
         "operation_bundle_id": "ak.operation_bundle.blob_node.describe.v1",
         "service_kind": "blob_node",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
-      },
-      {
-        "operation_bundle_id": "ak.operation_bundle.device_key_service.describe.v1",
-        "service_kind": "device_key_service",
         "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
         "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
       },
@@ -15362,9 +15337,9 @@
         "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.describe.v1",
-        "service_kind": "principal_server",
-        "deployment_evidence": ["ak.deployment_prototype.soland_principal_server.v1"],
+        "operation_bundle_id": "ak.operation_bundle.station.describe.v1",
+        "service_kind": "station",
+        "deployment_evidence": ["ak.deployment_prototype.soland_station.v1"],
         "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
       },
       {
@@ -15376,12 +15351,6 @@
       {
         "operation_bundle_id": "ak.operation_bundle.recovery_service.describe.v1",
         "service_kind": "recovery_service",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
-      },
-      {
-        "operation_bundle_id": "ak.operation_bundle.search_service.describe.v1",
-        "service_kind": "search_service",
         "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
         "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
       },
@@ -15398,10 +15367,10 @@
         "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.auth_server.account_authority.v1",
-        "service_kind": "auth_server",
+        "operation_bundle_id": "ak.operation_bundle.station.account_authority.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.coauth_auth_server.v1"
+          "normative:zh/sync/service-surface.md#account-authority-与认证方法发现"
         ],
         "members": [
           {
@@ -15431,10 +15400,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.auth_server.http_core.v1",
-        "service_kind": "auth_server",
+        "operation_bundle_id": "ak.operation_bundle.station.account_authority_support.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.coauth_auth_server.v1"
+          "normative:zh/sync/service-surface.md#account-authority-与认证方法发现"
         ],
         "members": [
           {
@@ -15462,10 +15431,6 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.gate.account.command.pair_agent_key.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
             "binding_kind": "http_json"
           },
@@ -15474,19 +15439,7 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.gate.account.command.revoke_session.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.gate.account.exchange.create_handoff.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.open.service.read.resolution.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.peer.account_status.read.resolve.v1",
             "binding_kind": "http_json"
           },
           {
@@ -15619,10 +15572,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.agent_pairing_handoff.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.agent_pairing_handoff.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#agent_pairing_handoff"
+          "ak.deployment_prototype.soland_station.v1#agent_pairing_handoff"
         ],
         "members": [
           {
@@ -15640,10 +15593,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.agent_runtime.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.agent_runtime.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#agent_runtime"
+          "ak.deployment_prototype.soland_station.v1#agent_runtime"
         ],
         "members": [
           {
@@ -15701,10 +15654,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.applet.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.applet.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#applet"
+          "ak.deployment_prototype.soland_station.v1#applet"
         ],
         "members": [
           {
@@ -15746,10 +15699,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.applet_ghost.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.applet_ghost.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#applet_ghost"
+          "ak.deployment_prototype.soland_station.v1#applet_ghost"
         ],
         "members": [
           {
@@ -15763,10 +15716,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.applet_install.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.applet_install.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#applet_install"
+          "ak.deployment_prototype.soland_station.v1#applet_install"
         ],
         "members": [
           {
@@ -15788,10 +15741,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.history_key_recovery.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.history_key_recovery.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#history_key_recovery"
+          "ak.deployment_prototype.soland_station.v1#history_key_recovery"
         ],
         "members": [
           {
@@ -15841,10 +15794,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.http_core.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.http_core.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1"
+          "ak.deployment_prototype.soland_station.v1"
         ],
         "members": [
           {
@@ -16338,10 +16291,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.mimi_interop.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.mimi_interop.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#mimi_interop"
+          "ak.deployment_prototype.soland_station.v1#mimi_interop"
         ],
         "members": [
           {
@@ -16387,10 +16340,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.push.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.push.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#push"
+          "ak.deployment_prototype.soland_station.v1#push"
         ],
         "members": [
           {
@@ -16408,10 +16361,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.tus_upload.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.tus_upload.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#tus_upload"
+          "ak.deployment_prototype.soland_station.v1#tus_upload"
         ],
         "members": [
           {
@@ -16421,10 +16374,10 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.websocket.v1",
-        "service_kind": "principal_server",
+        "operation_bundle_id": "ak.operation_bundle.station.websocket.v1",
+        "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#websocket"
+          "ak.deployment_prototype.soland_station.v1#websocket"
         ],
         "members": [
           {
@@ -18795,7 +18748,7 @@
       "normalized_document_schema_ref is the sole owner of the document_digest preimage; raw resolver bytes use raw_document_digest and no third DID-document digest name is permitted",
       "Every W3C DID Document member normatively consumed by Arkret MUST appear in known_members and MUST survive projection into normalized_document_schema_ref",
       "Unknown extension members are retained losslessly in sorted extension rows; duplicate or conflicting properties, ids, relationship entries, metadata keys or extension names fail closed before digesting",
-      "ArkretService plus serviceKind is the only service-identity bootstrap shape. ArkretPrincipalServer and ArkretDirectory are not registered aliases and MUST be rejected as Arkret service types",
+      "ArkretService plus serviceKind is the only service-identity bootstrap shape. ArkretStation and ArkretDirectory are not registered aliases and MUST be rejected as Arkret service types",
       "Specialized organization and managed-Agent service types remain distinct from service bootstrap and use only their registered endpoint shapes"
     ],
     "normalized_document_schema_ref": "schemas/did-binding-contracts.schema.json#/$defs/normalized_did_document",
@@ -18949,7 +18902,7 @@
         "did_path": "did",
         "did_requirement": "required",
         "expected_core_path": "enclosing principal_id",
-        "route_evidence": "known_principal_server_account_pair"
+        "route_evidence": "known_station_account_pair"
       },
       {
         "boundary_id": "service_resolution_record",
@@ -19027,7 +18980,7 @@
       "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors."
     ],
     "principal_resolution_contract": {
-      "version": "2026-08-29.1",
+      "version": "2026-08-30.1",
       "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
       "cell_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
       "profile_write_policy": {
@@ -19077,11 +19030,11 @@
         "schema_ref": "schemas/identity-resolution.schema.json#/$defs/public_principal_resolution",
         "checks": [
           "the response carries none of principal_control_realm_id, principal_genesis_event, principal_genesis_receipt, current_resolution_event, predecessor_resolution_events or accepted_seal; any such member is a schema violation on this surface",
-          "projection_attestation.attestation.principal_id == principal_id and projection_attestation.attestation.principal_server_id == principal_server_id",
+          "projection_attestation.attestation.principal_id == principal_id and projection_attestation.attestation.station_id == station_id",
           "projection_attestation.attestation.resolution_projection equals resolution_projection field for field",
           "projection_attestation.attestation.method_history_evidence_digest == sha256 over RFC 8785 JCS of method_history_evidence",
           "projection_attestation.proof signs the registered attestation transcript, proof.created_at == attestation.issued_at, and attestation.issued_at < attestation.expires_at",
-          "projection_attestation.proof.verification_method resolves to an assertion-capable key under the current verified method history of principal_server_id",
+          "projection_attestation.proof.verification_method resolves to an assertion-capable key under the current verified method history of station_id",
           "project(resolution_projection.did) == principal_id",
           "method_history_evidence boundary and currentness validate under the adapter selected by resolution_projection.did"
         ],
@@ -19651,7 +19604,7 @@
         "conflicts": []
       }
     ],
-    "version": "2026-08-29.3",
-    "generated_at": "2026-08-29T17:54:23+08:00"
+    "version": "2026-08-30.1",
+    "generated_at": "2026-08-30T23:30:00+08:00"
   }
 }

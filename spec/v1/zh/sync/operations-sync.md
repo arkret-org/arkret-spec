@@ -88,7 +88,7 @@ Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_sco
 
 ## 3. 接收与验证
 
-任何接收 Event Envelope 的 Events API 或 Principal Server sync surface，MUST 先执行通用验证：
+任何接收 Event Envelope 的 Events API 或 Station sync surface，MUST 先执行通用验证：
 
 1. JSON schema validation。
 2. canonical bytes 与 `proofs[]` 校验；proof signer MUST 对应 `actor_id`，或在 `executed_by` 场景下对应代理身份并满足 `authorization_ref`。验签 MUST 优先使用 Event 所引用的 accepted auth-state / key epoch / device authorization / agent signer evidence 中固定的公钥绑定；命中既有绑定时不得重新在线解析 DID。只有出现新 DID、新 verification method、rotation / recovery / deactivation、service delegation 变化或 freshness policy 明确要求更新证据时，才进入 [`../identity/did-usage-and-verification.md` §4](../identity/did-usage-and-verification.md) 的 DID 权威验证路径。
@@ -155,7 +155,7 @@ flowchart TB
         P1 --> P3
     end
 
-    subgraph S ["Principal Server / Principal Server sync surface"]
+    subgraph S ["Station / Station sync surface"]
         S1["schema + signature + actor chain"]
         S2["DataEvent verify at seal_ref"]
         S3["Control Move verify at seal_basis"]
@@ -181,7 +181,7 @@ flowchart TB
 规范要点：
 
 - Producer 与 Consumer 都可以从 signed Event 与 Seal proof 独立验证历史。
-- Principal Server sync surface 是传播与投影服务，不是签名事实的来源；它不能伪造 actor Event。
+- Station sync surface 是传播与投影服务，不是签名事实的来源；它不能伪造 actor Event。
 - DataEvent 可以离线产生，但必须选择一个可验证且足够新鲜的 `seal_ref`。
 - Control Move 的 finality 来自 Seal，而不是到达顺序。
 
@@ -334,7 +334,7 @@ Arkret 不用全局链决定普通协作写入顺序。状态收敛由 cell fami
 
 - OR-Set、ordered log、RGA、PN-counter、escrow counter 等可合并 cell MUST 对输入顺序不敏感。
 - 单值、硬配额、跨 cell 原子性和不可交换操作不得放在 data plane，除非使用专门 sequencer。
-- 并发不可合并时，reducer MUST 产生 structured bottom / conflict diagnostic，而不是用 HLC、actor id、数据库自增 ID、本地到达顺序或 Principal Server sync surface 顺序挑选 winner。
+- 并发不可合并时，reducer MUST 产生 structured bottom / conflict diagnostic，而不是用 HLC、actor id、数据库自增 ID、本地到达顺序或 Station sync surface 顺序挑选 winner。
 - Timeline 展示顺序是 projection，MUST NOT 反向写入 canonical state、授权判断或 Lattice winner。
 
 DataEvent 的 `causal_refs[]` 可以帮助投影层稳定排序和诊断缺依赖；它不是全局 completeness proof。
@@ -368,11 +368,11 @@ Snapshot 后续恢复流程：
 
 ## 11. 首次加入 Realm
 
-**加入提交目标（normative）**：跨域加入时客户端唯一提交目标是自己的 Principal Server。后者完成本地 admission 后，才可使用 `ak.find.directory.read.resolve_realm.v1` / `ak.find.directory.read.resolve_target.v1` / signed invite metadata 中由 signed invite 或当前 joined-joined-member ActorId routing projection 裁剪的 `join_candidates[]` 作为 federation forwarding hints（见 [`federation.md` §5.0](./federation.md)）。客户端不得直投 candidate；所有重试 MUST 绑定同一 canonical `realm_id`。
+**加入提交目标（normative）**：跨域加入时客户端唯一提交目标是自己的 Station。后者完成本地 admission 后，才可使用 `ak.find.directory.read.resolve_realm.v1` / `ak.find.directory.read.resolve_target.v1` / signed invite metadata 中由 signed invite 或当前 joined-joined-member ActorId routing projection 裁剪的 `join_candidates[]` 作为 federation forwarding hints（见 [`federation.md` §5.0](./federation.md)）。客户端不得直投 candidate；所有重试 MUST 绑定同一 canonical `realm_id`。
 
 推荐流程：
 
-1. 解析 canonical `realm_id` 与所需 signed invite / Seal basis；客户端把 join material 提交给自己的 Principal Server，后者按 [`federation.md` §5.0](./federation.md) 从有界 `join_candidates[]` 选择 joined-member Principal Server 转发目标。
+1. 解析 canonical `realm_id` 与所需 signed invite / Seal basis；客户端把 join material 提交给自己的 Station，后者按 [`federation.md` §5.0](./federation.md) 从有界 `join_candidates[]` 选择 joined-member Station 转发目标。
 2. 获取与 caller 相关的 invite、claim、grant 或 presentation challenge。
 3. 拉取当前 Seal 与必要控制面 proof。
 4. 验证 membership / capability / policy。
@@ -404,7 +404,7 @@ Snapshot 后续恢复流程：
 
 ## 14. 可见性、密文负载与 E2EE 索引
 
-ACL 不等于密文保护。Principal Server sync surface 可以转发不透明密文，但不得把未授权的明文元数据暴露给未被 policy 委托的服务。
+ACL 不等于密文保护。Station sync surface 可以转发不透明密文，但不得把未授权的明文元数据暴露给未被 policy 委托的服务。
 
 字段可见性分级：
 
@@ -425,7 +425,7 @@ Arkret v1 固定：
 - Event 签名、accepted DID/key binding 和 capability 检查解决伪造事件问题；DID authority
   resolution 只在身份 / key binding 建立、变更或显式 freshness 触发时执行。
 - 数据面的核心分布式问题是冲突、可用性、可见性与观测证明；冲突由 Lattice / CRDT / bottom diagnostic 解决。
-- 密文负载可以由不解密的 Principal Server sync surface 转发。
+- 密文负载可以由不解密的 Station sync surface 转发。
 - hard erasure 只能删除本地 payload / blob / 派生内容，并保留事件图验证所需的最小 verification stub；Event subject 的 `event_id` 本身保留完整 `(digest suite wire_code, event_digest)`。这只能保留已记录的身份，不能在 canonical bytes 已擦除后重新证明原 hash 正确。不得重写 Event hash 或伪装事件从未存在。
 
 ## 16. 规范性引用

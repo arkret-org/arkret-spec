@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-30.4",
+  "version": "2026-08-30.5",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-30T23:59:59+08:00",
+  "generated_at": "2026-08-31T00:10:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -28,7 +28,7 @@
         "authoring_request_expired",
         "applet_registration_unauthorized"
       ],
-      "description": "The Applet service verifies the target Principal Server signature and exact immutable bindings before signing the fixed managed-actor Event bundle. A successful exact request is durably replayable; changed bytes conflict and an uncommitted expired request is terminally rejected."
+      "description": "The Applet service verifies the target Station signature and exact immutable bindings before signing the fixed managed-actor Event bundle. A successful exact request is durably replayable; changed bytes conflict and an uncommitted expired request is terminally rejected."
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
@@ -290,7 +290,7 @@
       "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
       "http_alias": "POST /_arkret/gate/account/session-grants/introspect",
       "operation_specific": [],
-      "description": "Server-to-server session-grant introspection is read-only and reports issuer-ledger state in a typed 200 outcome. It carries no reusable device-revocation receipt; the origin Principal Server gates each protected self request against its own durable device state in the local request transaction."
+      "description": "Server-to-server session-grant introspection is read-only and reports issuer-ledger state in a typed 200 outcome. It carries no reusable device-revocation receipt; the origin Station gates each protected self request against its own durable device state in the local request transaction."
     },
     {
       "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
@@ -445,7 +445,7 @@
         "device_revocation_pending",
         "device_revoked"
       ],
-      "description": "Account registration validates the frozen DID operation, root control transcript, exact PCR genesis unit and InitialSessionGrantRequest; relays the unit to the Principal Server; verifies the pcr_genesis_unit receipt; commits the one-account/one-principal binding; then obtains a fresh exact-intent origin-PS revocation-gate allow before issuing the first Standard grant from the durable issuer ledger. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome."
+      "description": "Account registration validates the frozen DID operation, root control transcript, exact PCR genesis unit and InitialSessionGrantRequest; relays the unit to the Station; verifies the pcr_genesis_unit receipt; commits the one-account/one-principal binding; then obtains a fresh exact-intent origin-PS revocation-gate allow before issuing the first Standard grant from the durable issuer ledger. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome."
     },
     {
       "operation_id": "ak.gate.account.command.request_erasure.v1",
@@ -1281,7 +1281,7 @@
         "applet_registration_epoch_evidence_deactivated",
         "applet_registration_unauthorized"
       ],
-      "description": "The active Applet service supplies only the requested Realm, exact external tuple and optional display name. The Principal Server derives all current installation coordinates and fails closed if the pinned registration epoch is deactivated or the Realm is outside current authorization."
+      "description": "The active Applet service supplies only the requested Realm, exact external tuple and optional display name. The Station derives all current installation coordinates and fails closed if the pinned registration epoch is deactivated or the Realm is outside current authorization."
     },
     {
       "operation_id": "ak.self.applet.ghost.command.provision.v1",

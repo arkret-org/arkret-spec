@@ -124,11 +124,11 @@
         "complete",
         "incomplete"
       ],
-      "description": "Cross-Principal-Server erasure receipt fanout aggregate status tracked by the issuing server (models/realm-and-space.md §2.6.2). 'pending' = peers still within erasure_propagation_window_ms and not all acknowledged; 'complete' = every peer that ever held this Realm's content returned a receipt; 'incomplete' = at least one peer failed to acknowledge within erasure_propagation_window_ms. The issuing server MUST surface 'incomplete' to audit/UI and MUST NOT silently swallow it. Absent on receipts that do not drive fanout tracking."
+      "description": "Cross-Station erasure receipt fanout aggregate status tracked by the issuing server (models/realm-and-space.md §2.6.2). 'pending' = peers still within erasure_propagation_window_ms and not all acknowledged; 'complete' = every peer that ever held this Realm's content returned a receipt; 'incomplete' = at least one peer failed to acknowledge within erasure_propagation_window_ms. The issuing server MUST surface 'incomplete' to audit/UI and MUST NOT silently swallow it. Absent on receipts that do not drive fanout tracking."
     },
     "peer_receipts": {
       "type": "array",
-      "description": "Per-peer fanout acknowledgement records maintained by the issuing server: one entry per peer Principal Server that ever held this Realm's content. Each entry records that peer's acknowledgement status and time, backing the aggregate fanout_status.",
+      "description": "Per-peer fanout acknowledgement records maintained by the issuing server: one entry per peer Station that ever held this Realm's content. Each entry records that peer's acknowledgement status and time, backing the aggregate fanout_status.",
       "items": {
         "type": "object",
         "required": [

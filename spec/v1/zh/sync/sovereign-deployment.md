@@ -32,11 +32,11 @@ Sovereign deployment 是由单一组织或联盟控制的 Arkret 服务域。它
 
 - Organization DID / governance registry / witness
 - Identity Registry
-- Principal Server / Principal Server sync surface
+- Station / Station sync surface
 - Directory
 - Blob Store
 - Push Gateway
-- TURN / SFU / Realtime Media Server
+- TURN / SFU / Realtime Media Services
 - Applet / Agent Runtime allowlist
 
 这些服务 SHOULD 使用 service DID，并由 Organization DID 或联盟治理 DID 明确委派。
@@ -82,14 +82,14 @@ flowchart TB
     subgraph "External Organization Domain"
         EXTORG["External Organization<br/>DID"]
         EXTCLIENT["External Managed<br/>Client"]
-        EXTAPI["External Principal Server /<br/>Events API"]
-        EXTSYNC["External Principal Server /<br/>Principal Server sync surface"]
+        EXTAPI["External Station /<br/>Events API"]
+        EXTSYNC["External Station /<br/>Station sync surface"]
     end
 
     subgraph "Controlled Collaboration Enclave"
         ESPACE["External Collaboration<br/>Realm"]
         EPOL["Enclave Policy<br/>Server"]
-        ESYNC["Enclave Principal Server /<br/>Principal Server sync surface"]
+        ESYNC["Enclave Station /<br/>Station sync surface"]
     end
 
     EXTCLIENT -->|"invite + restricted join"| ESPACE
@@ -105,7 +105,7 @@ flowchart TB
 - 主网络保持 closed federation，不向外部主体暴露内部 Directory 或服务拓扑。
 - Controlled Collaboration Enclave 是独立协作边界，只承载被批准的 Realm。
 - 外部主体通过 DID / VC / authority chain / invite / restricted join 进入 enclave Realm。
-- 外部组织可以保留自己的 Principal Server / Events API，但写入必须经过 enclave Principal Server / Principal Server sync surface 和本地授权验证。
+- 外部组织可以保留自己的 Station / Events API，但写入必须经过 enclave Station / Station sync surface 和本地授权验证。
 - 主网络与 enclave 之间没有默认桥接；资料进出必须经过 export / import review。
 
 ## 2.2 Sovereign Client
@@ -117,7 +117,7 @@ Sovereign client MUST:
 - pin organization trust seals：Organization DID、governance DID、registry DID、witness DID、service DID allowlist。
 - 使用组织配置的 DID resolver policy，MUST NOT 默认查询公共 registry / public directory。
 - 验证服务 DID 委派、证书、HTTP message signature 和 feature profile。
-- MUST NOT 允许用户手动添加未批准 Principal Server sync surface / Directory / Blob / Applet endpoint。
+- MUST NOT 允许用户手动添加未批准 Station sync surface / Directory / Blob / Applet endpoint。
 - 默认关闭公共 federation、公共搜索、外部 Applet 和外部 Agent handoff。
 - 对每个 Realm 显示 classification、E2EE、auditable E2EE、export、external member policy。
 - 支持远程撤销 session、device、grant、Applet delegation 和 cached secret。
@@ -138,7 +138,7 @@ Sovereign client(在 `ak.profile.sovereign_deployment.v1` 语境下)逐条强制
 - 禁止公共 federation(MUST)。
 - 禁止公共 directory listing(MUST)。
 - frontier 交换只通过 `/_arkret/peer/events/frontier` 对 allowlist peer 开放（见 [`federation.md` §4.5.1](federation.md)）；sovereign profile 不定义匿名 frontier 探测面，避免 `frontier_root` 摘要被多次轮询推断 Realm 活跃度时间序列。
-- Principal Server sync surface / Directory 只接受 allowlist service DID(MUST)。
+- Station sync surface / Directory 只接受 allowlist service DID(MUST)。
 - Blob、snapshot、backup、audit log 存储在组织控制基础设施内(MUST)。
 - E2EE 默认开启(MUST);需要合规审查时使用 auditable E2EE，且必须向成员显示。
 - 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Realm 明确开启(MUST)。
@@ -187,7 +187,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 - 仅当 policy 允许且权限链已验证时，MAY 为外部协作方接受公共 DID 方法。
 - 当 `public_resolver_allowed:false` 时，`did:plc` 等本质依赖公共 directory 的方法 MUST NOT 直接查询公共 PLC directory；其 DID Document 与操作历史 MUST 经受批准的 PLC mirror、审计日志 source 或离线 bundle 解析（与上条内部主体同一约束）。无可用受批准来源时 MUST fail closed，不得回退到公共 resolver。
 - 涉及关联风险的外部协作 SHOULD 使用 pairwise DID。
-- 指向公共 Principal Server sync surface / Directory 的 `ServiceResolutionRecord.base_url` 或 bootstrap hint 在未 allowlist 时 MUST 被忽略；DID Document service endpoint 也不得绕过该规则。
+- 指向公共 Station sync surface / Directory 的 `ServiceResolutionRecord.base_url` 或 bootstrap hint 在未 allowlist 时 MUST 被忽略；DID Document service endpoint 也不得绕过该规则。
 
 **`did:key` 的 `ephemeral_only` enforcement 语义（normative）**：`method_policy` 把某 method（默认 `did:key`）设为 `ephemeral_only` 时，该取值是可测试约束而非口号。落入 `ephemeral_only` 的 DID **MUST NOT** 被用作：
 
@@ -215,7 +215,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "reducer_profile": "ak.reducer.core.v1",
       "security_class": "high_assurance",
       "title": "External Collaboration",
-      "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+      "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
       "trust_domain": "ak:trust_domain:did.webvh.defense.example",
       "owning_organization_ids": [
         "ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL"
@@ -246,7 +246,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 }
 ```
 
-Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm create 冻结一个 did_core actor、DID URL verification method、exact key bytes/digest 与 JOSE 算法；后续 Seal 始终按 predecessor-state frozen descriptor 验签，不依赖 current DID 解析。Principal Server 可托管 actor，但 service DID 本身不是 notary wire identity（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。DataEvent 仍按签名、`seal_ref`、capability 与 Lattice/CRDT 本地接受；membership、policy、capability、notary、lifecycle、MLS epoch 等 Control Move 必须被该 notary 的 Seal 覆盖后才 `sealed`。组织间共享 Realm 可以使用 `notary.kind=threshold|mixed`；notary 变更是 Control Move，由旧控制面 basis 授权并由后续 Seal finality，fallback recovery 由 Realm create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `notary.kind="open_set"`。
+Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm create 冻结一个 did_core actor、DID URL verification method、exact key bytes/digest 与 JOSE 算法；后续 Seal 始终按 predecessor-state frozen descriptor 验签，不依赖 current DID 解析。Station 可托管 actor，但 service DID 本身不是 notary wire identity（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。DataEvent 仍按签名、`seal_ref`、capability 与 Lattice/CRDT 本地接受；membership、policy、capability、notary、lifecycle、MLS epoch 等 Control Move 必须被该 notary 的 Seal 覆盖后才 `sealed`。组织间共享 Realm 可以使用 `notary.kind=threshold|mixed`；notary 变更是 Control Move，由旧控制面 basis 授权并由后续 Seal finality，fallback recovery 由 Realm create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `notary.kind="open_set"`。
 
 推荐 policy：
 
@@ -297,7 +297,7 @@ Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm crea
 }
 ```
 
-外部组织 MAY 运营自己的 Principal Server / Events API，但受控 Realm SHOULD 要求：
+外部组织 MAY 运营自己的 Station / Events API，但受控 Realm SHOULD 要求：
 
 - 外部 service DID 已通过审批
 - federation 事务签名
@@ -315,7 +315,7 @@ Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm crea
 - 主网络保持 closed federation。
 - 创建独立的 collaboration enclave。
 - 外部主体只被邀请到 enclave Realm。
-- enclave Realm 使用独立 Principal Server / Blob。
+- enclave Realm 使用独立 Station / Blob。
 - 从主网络复制到 enclave 的资料必须经 redaction / export review / declassification policy。
 - 从 enclave 回流主网络的资料必须经 import review / malware scan / policy approval。
 
@@ -403,4 +403,4 @@ sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `ak
 
 这里的 `federation_policy=closed` 只限制网络可达性与 peer allowlist，不把多个 witness 自动视为同一控制主体。high-assurance range completeness 若声明 `witness_independence=distinct_controlling_organization`，仍必须由至少 `witnessed_min_attestations` 个组织控制相互独立、且已在 `Realm.audit_policy.range_completeness_witness_ids[]` allowlist 中的 witness 签署；它们可以位于同一封闭网络、联盟成员域或经批准的单向 evidence gateway。只有一个 controlling organization 的完全单组织部署无法满足该档独立性：它 MUST 把 completeness 保持为 unverified / degraded，或选择与实际保障一致的较低声明；不得把同组织内两个 service DID、两个 HSM key 或两个机房伪装成组织独立 witness。封闭部署因此是可满足的，但满足性来自组织控制独立，而非公网 federation。
 
-理由：sovereign 部署的威胁模型默认包含"独立 Principal Server 在同一 Realm 共同写入"，单纯依赖 seal 签名、duplicate_conflict、witness receipt 只能证明"看到的有效"，无法证明"对方没藏分支"——high-assurance frontier 主动交换 + fail-state 是 silent fork 抗性的最后一道防线。
+理由：sovereign 部署的威胁模型默认包含"独立 Station 在同一 Realm 共同写入"，单纯依赖 seal 签名、duplicate_conflict、witness receipt 只能证明"看到的有效"，无法证明"对方没藏分支"——high-assurance frontier 主动交换 + fail-state 是 silent fork 抗性的最后一道防线。

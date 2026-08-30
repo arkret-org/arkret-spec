@@ -115,7 +115,7 @@
       "instance": {
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixtureinviteeexamplenet",
-          "principal_server_id": "ak:did_core:webvh:z6mkfixturerecipientservice"
+          "station_id": "ak:did_core:webvh:z6mkfixturerecipientservice"
         },
         "service_resolution": {
           "current_record_url": "https://recipient.example.net/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturerecipientservice/resolution"
@@ -312,10 +312,10 @@
           "version_id": "1"
         },
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "protocol_version": "1.0",
         "supported_profiles": [
-          "ak.profile.principal_server.v1"
+          "ak.profile.station.v1"
         ],
         "supported_features": [],
         "auth_metadata": {
@@ -347,8 +347,8 @@
         "interop_surfaces": [],
         "development_mode": false,
         "supported_operation_bundles": [
-          "ak.operation_bundle.principal_server.describe.v1",
-          "ak.operation_bundle.principal_server.http_core.v1"
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1"
         ],
         "transport_bindings": [
           {
@@ -545,7 +545,7 @@
           "version_id": "1"
         },
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "protocol_version": "1.0",
         "supported_profiles": [],
         "supported_features": [],
@@ -577,8 +577,8 @@
         "verified_profiles": [],
         "interop_surfaces": [],
         "supported_operation_bundles": [
-          "ak.operation_bundle.principal_server.describe.v1",
-          "ak.operation_bundle.principal_server.http_core.v1"
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1"
         ],
         "transport_bindings": [
           {
@@ -601,7 +601,7 @@
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1"
         },
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "protocol_version": "1.0",
         "supported_profiles": [],
         "supported_features": [],
@@ -634,8 +634,8 @@
         "interop_surfaces": [],
         "development_mode": false,
         "supported_operation_bundles": [
-          "ak.operation_bundle.principal_server.describe.v1",
-          "ak.operation_bundle.principal_server.http_core.v1"
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1"
         ],
         "transport_bindings": [
           {
@@ -659,7 +659,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "trust_domain": "ak:trust_domain:did.webvh.acme.example",
@@ -701,7 +701,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
@@ -749,7 +749,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
@@ -799,7 +799,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "schema_refs": [
@@ -847,7 +847,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "trust_domain": "ak:trust_domain:did.webvh.acme.example",
@@ -891,7 +891,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "trust_domain": "ak:trust_domain:did.webvh.agent.example",
@@ -1001,7 +1001,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "actor_seq": 1,
@@ -1059,7 +1059,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureerasureexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "actor_seq": 1,
@@ -1121,7 +1121,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "actor_seq": 0,
@@ -1212,14 +1212,14 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "executed_by": {
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#controller-alice",
@@ -1291,7 +1291,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "actor_seq": 0,
@@ -1382,7 +1382,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "actor_seq": 0,
@@ -1454,7 +1454,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureauditexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "actor_seq": 1,
@@ -1530,14 +1530,14 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureownerexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver"
+            "station_id": "ak:did_core:webvh:z6mkfixtureownerserver"
           }
         },
         "subject": {
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver"
+            "station_id": "ak:did_core:webvh:z6mkfixturestation"
           }
         },
         "actions": [
@@ -1572,14 +1572,14 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureownerexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver"
+            "station_id": "ak:did_core:webvh:z6mkfixtureownerserver"
           }
         },
         "subject": {
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver"
+            "station_id": "ak:did_core:webvh:z6mkfixturestation"
           }
         },
         "actions": [
@@ -1616,7 +1616,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver"
+            "station_id": "ak:did_core:webvh:z6mkfixturestation"
           }
         },
         "actions": [
@@ -1644,7 +1644,7 @@
       "name": "capability_grant_producer_identity_sidecar_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/capability_grant_payload",
       "expect_valid": false,
-      "first_expected_error": "$.grant: Additional properties are not allowed ('issuer_principal_server_id' was unexpected)",
+      "first_expected_error": "$.grant: Additional properties are not allowed ('issuer_station_id' was unexpected)",
       "instance": {
         "grant": {
           "schema": "ak.schema.capability.v1",
@@ -1652,15 +1652,15 @@
             "kind": "account",
             "account_id": {
               "principal_id": "ak:did_core:webvh:z6mkfixtureownerexample",
-              "principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver"
+              "station_id": "ak:did_core:webvh:z6mkfixtureownerserver"
             }
           },
-          "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver",
+          "issuer_station_id": "ak:did_core:webvh:z6mkfixtureownerserver",
           "subject": {
             "kind": "account",
             "account_id": {
               "principal_id": "ak:did_core:webvh:z6mkfixture",
-              "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver"
+              "station_id": "ak:did_core:webvh:z6mkfixturestation"
             }
           },
           "actions": [
@@ -1872,7 +1872,7 @@
       "instance": {
         "phase": "prepare",
         "did": "did:webvh:z6mkfixtureagentexample:agent.example",
-        "controller_principal_server_id": "ak:did_core:web:ps.example",
+        "controller_station_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000101",
         "idempotency_key": "agent-provision-prepare-001",
         "slug": "summary",
@@ -1898,7 +1898,7 @@
       "instance": {
         "phase": "prepare",
         "did": "did:webvh:z6mkfixtureagentexample:agent.example",
-        "controller_principal_server_id": "ak:did_core:web:ps.example",
+        "controller_station_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000102",
         "idempotency_key": "agent-provision-prepare-002",
         "slug": "summary"
@@ -1911,7 +1911,7 @@
       "instance": {
         "phase": "prepare",
         "did": "did:webvh:z6mkfixtureagentexample:agent.example",
-        "controller_principal_server_id": "ak:did_core:web:ps.example",
+        "controller_station_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000103",
         "idempotency_key": "agent-provision-prepare-003",
         "slug": "circle-summary",
@@ -1937,7 +1937,7 @@
       "instance": {
         "phase": "prepare",
         "did": "did:webvh:z6mkfixtureagentexample:agent.example",
-        "controller_principal_server_id": "ak:did_core:web:ps.example",
+        "controller_station_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000104",
         "idempotency_key": "agent-provision-prepare-004",
         "slug": "ambiguous-service-scope",
@@ -2126,7 +2126,7 @@
         "created_at": "2026-05-20T00:00:00.000Z",
         "inviter_account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
         }
       }
     },
@@ -2422,7 +2422,7 @@
         "trust_domain": "ak:trust_domain:example.local",
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example"
+          "station_id": "ak:did_core:web:ps.example"
         }
       }
     },
@@ -2437,7 +2437,7 @@
         "unexpected": "x",
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example"
+          "station_id": "ak:did_core:web:ps.example"
         }
       },
       "first_expected_error": "$: Additional properties are not allowed ('unexpected' was unexpected)"
@@ -3308,7 +3308,7 @@
         "account_authority_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalexample"
+          "station_id": "ak:did_core:webvh:z6mkfixtureprincipalexample"
         },
         "status_seq": 1,
         "receiver_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
@@ -3334,7 +3334,7 @@
         "account_authority_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver"
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
         },
         "status_seq": 1,
         "receiver_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
@@ -3509,7 +3509,7 @@
         "account_authority_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalexample"
+          "station_id": "ak:did_core:webvh:z6mkfixtureprincipalexample"
         },
         "records": [],
         "has_more": false
@@ -3579,7 +3579,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "principal_server_id": "ak:did_core:web:ps.example",
+        "station_id": "ak:did_core:web:ps.example",
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3603,7 +3603,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "principal_server_id": "ak:did_core:web:ps.example",
+        "station_id": "ak:did_core:web:ps.example",
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3625,7 +3625,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "principal_server_id": "ak:did_core:web:ps.example",
+        "station_id": "ak:did_core:web:ps.example",
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3649,7 +3649,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "principal_server_id": "ak:did_core:web:ps.example",
+        "station_id": "ak:did_core:web:ps.example",
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3850,7 +3850,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureAlice",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "created_at": "2026-04-26T00:00:00.000Z",
@@ -3890,7 +3890,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "created_at": "2026-08-18T00:00:00.000Z"
@@ -3921,7 +3921,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "created_at": "2026-08-18T00:00:00.000Z"
@@ -3948,7 +3948,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "created_at": "2026-08-18T00:00:00.000Z"
@@ -3975,7 +3975,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
           }
         },
         "created_at": "2026-08-18T00:00:00.000Z"

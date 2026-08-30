@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-30.5",
-  "generated_at": "2026-08-30T23:59:59+08:00",
+  "version": "2026-08-30.6",
+  "generated_at": "2026-08-31T00:10:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -338,7 +338,7 @@
       "code": "source_refs_unverifiable",
       "http_status": 400,
       "scope": "service_call",
-      "description": "Directory ingest or cross-service projection could not verify declared source_refs against the authoritative principal server, resource source, or signed projection frontier.",
+      "description": "Directory ingest or cross-service projection could not verify declared source_refs against the authoritative Station, resource source, or signed projection frontier.",
       "type_uri": "https://arkret.org/problems/source_refs_unverifiable",
       "title": "Source refs unverifiable"
     },
@@ -1794,7 +1794,7 @@
       "code": "authoring_request_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "A first Applet managed-actor authoring or install commit attempt arrived after the Principal Server-signed authoring request expiry. Exact durable replay of an already successful request remains available; the caller must otherwise obtain a fresh preview.",
+      "description": "A first Applet managed-actor authoring or install commit attempt arrived after the Station-signed authoring request expiry. Exact durable replay of an already successful request remains available; the caller must otherwise obtain a fresh preview.",
       "type_uri": "https://arkret.org/problems/authoring_request_expired",
       "title": "Authoring request expired"
     },
@@ -2340,7 +2340,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A Principal Server received an otherwise valid AccountStatusRecord whose binding_version is lower than the durable floor for the same Account Authority and account. The receiver MUST return failed_precondition with this reason, perform zero replica/outbox/erasure-intent writes, and MUST NOT retry the same record. See zh/identity/account-lifecycle.md §3."
+      "description": "A Station received an otherwise valid AccountStatusRecord whose binding_version is lower than the durable floor for the same Account Authority and account. The receiver MUST return failed_precondition with this reason, perform zero replica/outbox/erasure-intent writes, and MUST NOT retry the same record. See zh/identity/account-lifecycle.md §3."
     },
     {
       "code": "account_status_record_fork",
@@ -2349,7 +2349,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A Principal Server received an AccountStatusRecord that conflicts with the issuer-ledger chain: either the durable status_seq already names a different record, or the next status_seq does not name the durable head as previous_account_status_record_id. The receiver MUST return failed_precondition with this reason, perform zero writes, stop automatic retry or gap recovery for the conflicting record, and quarantine/alert for operator investigation. It MUST NOT reuse duplicate_conflict, which is reserved by this operation for Idempotency-Key reuse with different canonical request bytes. See zh/identity/account-lifecycle.md §3."
+      "description": "A Station received an AccountStatusRecord that conflicts with the issuer-ledger chain: either the durable status_seq already names a different record, or the next status_seq does not name the durable head as previous_account_status_record_id. The receiver MUST return failed_precondition with this reason, perform zero writes, stop automatic retry or gap recovery for the conflicting record, and quarantine/alert for operator investigation. It MUST NOT reuse duplicate_conflict, which is reserved by this operation for Idempotency-Key reuse with different canonical request bytes. See zh/identity/account-lifecycle.md §3."
     },
     {
       "code": "account_status_record_stale",
@@ -2358,7 +2358,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A Principal Server received an otherwise valid AccountStatusRecord whose status_seq is lower than its durable replica head. The durable head is the only comparison baseline, so this reason applies even when the submitted record is byte-identical to a history row the receiver still stores for that status_seq; a retained history row MUST NOT downgrade the outcome to duplicate. The receiver MUST return failed_precondition with this reason, perform zero writes, and treat the exact record as terminal/non-retryable. duplicate is reserved for a submission whose status_seq and record identity both equal the durable head. The full ordered classification is registry/account-status-replica-decision-table.json. See zh/identity/account-lifecycle.md §3.1."
+      "description": "A Station received an otherwise valid AccountStatusRecord whose status_seq is lower than its durable replica head. The durable head is the only comparison baseline, so this reason applies even when the submitted record is byte-identical to a history row the receiver still stores for that status_seq; a retained history row MUST NOT downgrade the outcome to duplicate. The receiver MUST return failed_precondition with this reason, perform zero writes, and treat the exact record as terminal/non-retryable. duplicate is reserved for a submission whose status_seq and record identity both equal the durable head. The full ordered classification is registry/account-status-replica-decision-table.json. See zh/identity/account-lifecycle.md §3.1."
     },
     {
       "code": "account_status_transition_invalid",
@@ -2496,7 +2496,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A second ak.agent.provision declared a principal_control_realm_id that another accepted provision already claims. Inside one controller PCR the cas_register, bottom=reject claim cell rejects it; across controllers the Principal Server's local uniqueness index rejects it. Either way the write set is empty and the earlier claim is untouched. See zh/identity/key-management.md §3.6.3."
+      "description": "A second ak.agent.provision declared a principal_control_realm_id that another accepted provision already claims. Inside one controller PCR the cas_register, bottom=reject claim cell rejects it; across controllers the Station's local uniqueness index rejects it. Either way the write set is empty and the earlier claim is untouched. See zh/identity/key-management.md §3.6.3."
     },
     {
       "code": "agent_pcr_genesis_declaration_missing",
@@ -3192,7 +3192,7 @@
         "federation_transaction",
         "state_resolution"
       ],
-      "description": "Account deactivation could not be acknowledged by every peer Principal Server inside deactivation_propagation_window_ms. Source services MUST keep deactivation fanout retrying and pause new Realm onboard, session/device grant, and KeyPackage publication for the principal."
+      "description": "Account deactivation could not be acknowledged by every peer Station inside deactivation_propagation_window_ms. Source services MUST keep deactivation fanout retrying and pause new Realm onboard, session/device grant, and KeyPackage publication for the principal."
     },
     {
       "code": "decryption_failed",
@@ -3333,7 +3333,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A second accepted Direct Conversation Realm was observed for the same pair_key while both carried apparently valid founder admission and source acceptance receipts, indicating slot, cutover-fence or signature equivocation by a trusted current Principal Server. Both Realms freeze new Message, membership, policy, MLS and binding writes and all evidence is retained; implementations MUST NOT pick a winner by Realm-token lexical order or arrival order, tombstone either Realm, or migrate history. See zh/identity/contact-and-direct-conversation.md §5.7."
+      "description": "A second accepted Direct Conversation Realm was observed for the same pair_key while both carried apparently valid founder admission and source acceptance receipts, indicating slot, cutover-fence or signature equivocation by a trusted current Station. Both Realms freeze new Message, membership, policy, MLS and binding writes and all evidence is retained; implementations MUST NOT pick a winner by Realm-token lexical order or arrival order, tombstone either Realm, or migrate history. See zh/identity/contact-and-direct-conversation.md §5.7."
     },
     {
       "code": "direct_conversation_participant_authority_denied",
@@ -3358,7 +3358,7 @@
         "service_call",
         "federation_transaction"
       ],
-      "description": "The founder's current Principal Server already closed its local (founder_id, trust_domain_id, pair_key) founding slot with a different unit, so this unit is refused with zero writes. Carried under conflict. The caller MUST re-resolve the existing coordinates through ak.self.direct_conversation.read.resolve.v1 instead of authoring another unit; the service MUST NOT accept a second unit, degrade it to a partial acceptance or quarantine it. A byte-identical replay of the committed unit is not this code: it returns the stored byte-identical receipt. See zh/identity/contact-and-direct-conversation.md section 5.5."
+      "description": "The founder's current Station already closed its local (founder_id, trust_domain_id, pair_key) founding slot with a different unit, so this unit is refused with zero writes. Carried under conflict. The caller MUST re-resolve the existing coordinates through ak.self.direct_conversation.read.resolve.v1 instead of authoring another unit; the service MUST NOT accept a second unit, degrade it to a partial acceptance or quarantine it. A byte-identical replay of the committed unit is not this code: it returns the stored byte-identical receipt. See zh/identity/contact-and-direct-conversation.md section 5.5."
     },
     {
       "code": "direct_conversation_space_forbidden",
@@ -3900,7 +3900,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch.v1 supplies an invite_event_id that this Principal Server cannot resolve to an accepted durable ak.invite.create Event. Private delivery only starts from that resolved accepted Event; see zh/sync/invite-addressing.md §7."
+      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch.v1 supplies an invite_event_id that this Station cannot resolve to an accepted durable ak.invite.create Event. Private delivery only starts from that resolved accepted Event; see zh/sync/invite-addressing.md §7."
     },
     {
       "code": "invite_kind_requires_revoke",
@@ -3954,7 +3954,7 @@
       "applies_to": [
         "schema_validation"
       ],
-      "description": "Device / Key Server received a `ak.keys.backups.*` request body that does not validate as `ak.schema.key_backup.v1`. Wire backups MUST carry the dedicated key-backup envelope with `series_id` and `series_seq`; client-local secret-storage envelopes are not accepted on wire endpoints. See zh/crypto-media/device-lifecycle.md §11."
+      "description": "Station device/key surface received a `ak.keys.backups.*` request body that does not validate as `ak.schema.key_backup.v1`. Wire backups MUST carry the dedicated key-backup envelope with `series_id` and `series_seq`; client-local secret-storage envelopes are not accepted on wire endpoints. See zh/crypto-media/device-lifecycle.md §11."
     },
     {
       "code": "keypackage_claim_rate_limited",

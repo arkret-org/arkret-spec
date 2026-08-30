@@ -1,7 +1,7 @@
 {
   "suite": "service_route_handover_mirror",
   "fixture_kind": "schema_and_semantic",
-  "profile": "ak.profile.principal_server.v1",
+  "profile": "ak.profile.station.v1",
   "version": "2026-08-10",
   "covers_vectors": [
     "ak.vector.service_resolution.handover_mirror.v1"
@@ -35,7 +35,7 @@
       "semantic_outcome": "accept",
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkTarget",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "handover_id": "ak:service_route_handover:019b0000-0000-7000-8000-000000000001",
         "notice_revision": 0,
         "state": "scheduled",
@@ -58,7 +58,7 @@
       "first_expected_error": "contains:0 is less than the minimum of 1",
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkTarget",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "handover_id": "ak:service_route_handover:019b0000-0000-7000-8000-000000000001",
         "notice_revision": 0,
         "state": "cancelled",
@@ -76,7 +76,7 @@
       "semantic_outcome": "accept",
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkTarget",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "handover_id": "ak:service_route_handover:019b0000-0000-7000-8000-000000000001",
         "notice_revision": 1,
         "state": "cancelled",
@@ -95,7 +95,7 @@
       "instance": {
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "target_id": "ak:did_core:webvh:z6mkTarget",
-        "target_kind": "principal_server",
+        "target_kind": "station",
         "known_record_sequence": 7,
         "known_record_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "max_records": 32,
@@ -110,7 +110,7 @@
       "instance": {
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "target_id": "ak:did_core:webvh:z6mkTarget",
-        "target_kind": "principal_server",
+        "target_kind": "station",
         "known_record_sequence": 7,
         "known_record_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "max_records": 33,
@@ -134,7 +134,7 @@
       "semantic_outcome": "accept",
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkTarget",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "record_sequence": 8,
         "record_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "verified_at": "2026-08-11T02:00:00.000Z"
@@ -147,7 +147,7 @@
       "semantic_outcome": "accept",
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkTarget",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "handover_id": "ak:service_route_handover:019b0000-0000-7000-8000-000000000001",
         "notice_revision": 1,
         "notice_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
@@ -206,7 +206,7 @@
       "semantic_outcome": "accept",
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkTarget",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "did": "did:webvh:z6mkTarget:target-new.example",
         "method_history_head": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "version_id": "8",
@@ -308,12 +308,12 @@
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record_core",
       "inputs": {
         "notice_service_id": "ak:did_core:webvh:z6mkTarget",
-        "notice_service_kind": "principal_server",
+        "notice_service_kind": "station",
         "from_record_sequence": 7,
         "from_record_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "candidate_record": {
           "service_id": "ak:did_core:webvh:z6mkTarget",
-          "service_kind": "principal_server",
+          "service_kind": "station",
           "did": "did:webvh:z6mkTarget:target-new.example",
           "method_history_head": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "version_id": "8",
@@ -552,7 +552,7 @@
       "name": "same_core_route_refresh_does_not_rebind_new_core_does",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_cache_entry",
       "inputs": {
-        "account_principal_server_id": "ak:did_core:webvh:z6mkTarget",
+        "account_station_id": "ak:did_core:webvh:z6mkTarget",
         "same_core_successor_service_id": "ak:did_core:webvh:z6mkTarget",
         "new_core_candidate_service_id": "ak:did_core:webvh:z6mkReplacement"
       },

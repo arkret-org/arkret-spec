@@ -68,10 +68,10 @@
           "version_id": "1"
         },
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
-        "service_kind": "principal_server",
+        "service_kind": "station",
         "protocol_version": "1.0",
         "supported_profiles": [
-          "ak.profile.principal_server.v1",
+          "ak.profile.station.v1",
           "ak.profile.binding.websocket.v1"
         ],
         "supported_features": [],
@@ -103,9 +103,9 @@
         "interop_surfaces": [],
         "development_mode": false,
         "supported_operation_bundles": [
-          "ak.operation_bundle.principal_server.describe.v1",
-          "ak.operation_bundle.principal_server.http_core.v1",
-          "ak.operation_bundle.principal_server.websocket.v1"
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1",
+          "ak.operation_bundle.station.websocket.v1"
         ],
         "transport_bindings": [
           {
@@ -124,7 +124,7 @@
           }
         ]
       },
-      "required_bundle": "ak.operation_bundle.principal_server.websocket.v1",
+      "required_bundle": "ak.operation_bundle.station.websocket.v1",
       "required_operations": [
         "ak.self.account.stream.subscribe.v1",
         "ak.self.events.stream.subscribe.v1",
@@ -135,7 +135,7 @@
     },
     {
       "name": "missing_websocket_bundle_falls_back",
-      "remove_bundle": "ak.operation_bundle.principal_server.websocket.v1",
+      "remove_bundle": "ak.operation_bundle.station.websocket.v1",
       "expect_valid": true,
       "expected_transport": "http_json"
     },
@@ -344,7 +344,7 @@
     {
       "name": "events_data",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"data\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"event\",\"payload\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"principal_server_id\":\"ak:did_core:webvh:z6mkfixtureprincipalserverexample\"},\"kind\":\"account\"},\"actor_seq\":1,\"auth_context\":{\"key_epoch\":1,\"key_id\":\"ed25519-2026-05-fixture\"},\"created_at\":\"2026-05-02T00:00:00.000Z\",\"event_id\":\"ak:event:AcjND2gGymspYp0k207y4H-EMmKs1m7SESy_g3-ziRUm\",\"hlc\":\"01970e589d21-0001-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"proofs\":[{\"created_at\":\"2026-05-02T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"event_digest\":\"sha256:c8cd0f6806ca6b29629d24db4ef2e07f843262acd66ed2112cbf837fb3891526\",\"jws\":\"eyJhbGciOiJFZDI1NTE5In0..GEyS6EkuX4ZIPfbFHuL4OFIrXmwl4d094OFYNdAYj9ylPe5o9U2Bd_NL2fBzImXgwOG6OHyaqnEJXFX20A5tCA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}],\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\",\"refs\":[],\"requirements\":{\"critical_extensions\":[{\"extension_scope\":\"payload\",\"fail_closed\":true,\"id\":\"ak.feature.message_content_block.v1\",\"schema_ref\":\"ak.profile.chat_mvp.v1\"}],\"features\":[\"ak.feature.detached_jws.v1\"],\"schema\":[\"ak.profile.chat_mvp.v1\"]},\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"seal_ref\":\"ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"}}",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"data\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"event\",\"payload\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"actor_seq\":1,\"auth_context\":{\"key_epoch\":1,\"key_id\":\"ed25519-2026-05-fixture\"},\"created_at\":\"2026-05-02T00:00:00.000Z\",\"event_id\":\"ak:event:ASATIQNGf2myis2y6tc69ZTjiYaGxz7xwFiQ0fottsdO\",\"hlc\":\"01970e589d21-0001-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"proofs\":[{\"created_at\":\"2026-05-02T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"event_digest\":\"sha256:20132103467f69b28acdb2ead73af594e3898686c73ef1c05890d1fa2db6c74e\",\"jws\":\"eyJhbGciOiJFZDI1NTE5In0..JO50cFuv5Ulqnv5Bj7x3g_lwyttlgRIwuVKHCT7uSkDnN_aOagHeCLFxDjzr84C9onaZUxl8K7fr4juJNeD3Bw\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}],\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\",\"refs\":[],\"requirements\":{\"critical_extensions\":[{\"extension_scope\":\"payload\",\"fail_closed\":true,\"id\":\"ak.feature.message_content_block.v1\",\"schema_ref\":\"ak.profile.chat_mvp.v1\"}],\"features\":[\"ak.feature.detached_jws.v1\"],\"schema\":[\"ak.profile.chat_mvp.v1\"]},\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"seal_ref\":\"ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"}}",
       "expect_valid": true
     },
     {

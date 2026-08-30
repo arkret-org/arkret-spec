@@ -1,34 +1,50 @@
 {
-  "suite": "principal_server_admission",
+  "suite": "station_admission",
   "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "ak.suite.identity.principal_server_admission.v1"
+    "entrypoint": "ak.suite.identity.station_admission.v1"
   },
-  "version": "2026-08-13",
+  "version": "2026-08-30",
   "covers_vectors": [
-    "ak.vector.identity.principal_server_admission.v1"
+    "ak.vector.identity.station_admission.v1"
   ],
-  "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-principal-server-authority-与准入证明normative",
+  "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-station-authority-与准入证明normative",
   "semantic_cases": [
     {
       "name": "authority_pair_is_complete_external_identity",
-      "given": "the same principal_id exists on two Principal Servers",
+      "given": "the same principal_id exists on two Stations",
       "action": "compare accounts, memberships, Contacts or grants",
-      "expected": "equal_only_when_principal_id_and_principal_server_id_both_match",
+      "expected": "equal_only_when_principal_id_and_station_id_both_match",
       "invariants": [
         "PCR ids and receipt digests are not equality inputs",
-        "each Principal Server enforces create-once lineage uniqueness for its pair"
+        "each Station enforces create-once lineage uniqueness for its pair"
+      ]
+    },
+    {
+      "name": "same_core_two_station_accounts_never_merge_state",
+      "given": "the same normalized principal_id completes onboarding independently on Station A and Station B",
+      "action": "resolve, sync, federate, recover or operate either AccountId",
+      "expected": "two_independent_station_bound_accounts",
+      "invariants": [
+        "AccountId A and AccountId B differ because station_id differs",
+        "Event history and PCR lineage never migrate, merge or inherit across the two AccountIds",
+        "device context and active generation never merge or authorize the other AccountId",
+        "session grants and cursors are valid only for their original AccountId and Station audience",
+        "to-device queues and push registrations remain partitioned by their original AccountId",
+        "Station admission proofs remain signed by and attributable to the original station_id",
+        "neither Station may take over, redirect or rewrite the other Station's data lineage",
+        "DID representation, DID Document, handle and service route changes do not alter either AccountId"
       ]
     },
     {
       "name": "deactivated_pair_rejects_local_replacement_account",
-      "given": "an account for (principal_id, principal_server_id) is deactivated and its lifetime uniqueness tombstone remains",
-      "action": "create a replacement account for the same pair on that Principal Server",
+      "given": "an account for (principal_id, station_id) is deactivated and its lifetime uniqueness tombstone remains",
+      "action": "create a replacement account for the same pair on that Station",
       "expected": "reject",
       "invariants": [
         "deactivation never releases pair uniqueness",
-        "no second PCR lineage or account_id is allocated on the same Principal Server"
+        "no second PCR lineage or account_id is allocated on the same Station"
       ]
     },
     {
@@ -66,20 +82,20 @@
       ]
     },
     {
-      "name": "deactivated_principal_may_onboard_at_another_principal_server",
-      "given": "an account is deactivated on Principal Server A",
-      "action": "create a service account for the same principal_id on Principal Server B",
+      "name": "deactivated_principal_may_onboard_at_another_station",
+      "given": "an account is deactivated on Station A",
+      "action": "create a service account for the same principal_id on Station B",
       "expected": "accept_after_full_onboarding",
       "invariants": [
-        "the new account has a distinct principal_server_id and account_id",
+        "the new account has a distinct station_id and account_id",
         "the old account, session, device and KeyPackage resources remain terminal",
-        "onboarding at another Principal Server is an independent holder choice, not a mandatory deactivation recovery path"
+        "onboarding at another Station is an independent holder choice, not a mandatory deactivation recovery path"
       ]
     },
     {
       "name": "account_actor_origin_is_producer_signed",
       "given": "a producer proof validates the canonical Event",
-      "action": "rewrite actor_id.account_id.principal_server_id after signing",
+      "action": "rewrite actor_id.account_id.station_id after signing",
       "expected": "reject",
       "reason_code": "signature_invalid"
     },
@@ -95,8 +111,8 @@
     },
     {
       "name": "wrong_origin_service_cannot_admit",
-      "given": "a valid producer Event author ActorId routes to Principal Server A",
-      "action": "Principal Server B appends an admission proof",
+      "given": "a valid producer Event author ActorId routes to Station A",
+      "action": "Station B appends an admission proof",
       "expected": "reject",
       "invariants": [
         "admission verification_method controller must project to the origin service derived from the exact author ActorId"
@@ -115,7 +131,7 @@
       "expected": "reject",
       "reason_code": "device_revocation_pending",
       "invariants": [
-        "no principal_server_admission proof is appended",
+        "no station_admission proof is appended",
         "pending is reconstructed from the durable proposal/Ack/decision/Seal store rather than cache"
       ]
     },

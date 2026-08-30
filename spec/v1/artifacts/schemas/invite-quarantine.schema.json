@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/invite-quarantine.schema.json",
   "title": "Arkret Invite Quarantine",
-  "description": "Closed plaintext account-data cell value of ak.account.invite_quarantine. The recipient Principal Server is the sole CAS writer; the cell is a pending-review pointer inbox and grants no membership, contact, or consent authority.",
+  "description": "Closed plaintext account-data cell value of ak.account.invite_quarantine. The recipient Station is the sole CAS writer; the cell is a pending-review pointer inbox and grants no membership, contact, or consent authority.",
   "type": "object",
   "required": [
     "schema",
@@ -15,7 +15,7 @@
     },
     "updated_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",
-      "description": "Instant of the accepted Principal Server CAS write that produced this value."
+      "description": "Instant of the accepted Station CAS write that produced this value."
     },
     "quarantine_entries": {
       "type": "array",
@@ -41,7 +41,7 @@
         "consent_grant",
         "shared_realm",
         "handle_claim",
-        "same_principal_server",
+        "same_station",
         "explicit_address"
       ]
     },

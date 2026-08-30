@@ -267,7 +267,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:web:rrk-holder.example",
-            "principal_server_id": "ak:did_core:web:rrk-holder.example"
+            "station_id": "ak:did_core:web:rrk-holder.example"
           }
         },
         "actor_seq": 8,
@@ -326,7 +326,7 @@
           {
             "kind": "detached_jws",
             "verification_method": "did:web:rrk-holder.example#ed25519-1",
-            "event_digest": "sha256:66450682f5554f50f714803190946be39d5cd17facde48f9668f08d2866d9644",
+            "event_digest": "sha256:e760217a0f2781858f2fc5c1d27207b1a7a57a00546dc8cc1c12157929bcd517",
             "created_at": "2026-08-23T00:00:00.000Z",
             "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:7272727272727272727272727272727272727272727272727272727272727272",
             "signer_resolution_evidence_digest": "sha256:7272727272727272727272727272727272727272727272727272727272727272",
@@ -346,7 +346,7 @@
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:web:rrk-holder.example",
-            "principal_server_id": "ak:did_core:web:rrk-holder.example"
+            "station_id": "ak:did_core:web:rrk-holder.example"
           }
         },
         "actor_seq": 9,
@@ -407,7 +407,7 @@
           {
             "kind": "detached_jws",
             "verification_method": "did:web:rrk-holder.example#ed25519-1",
-            "event_digest": "sha256:028d2316936dded21ede411278edfd67628d4e8e40285380c2534e690ff8e824",
+            "event_digest": "sha256:7e72786c5bd9e618837a688f3a370d3442a1f60636dec959a963693f75521553",
             "created_at": "2026-08-23T00:00:00.000Z",
             "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:7272727272727272727272727272727272727272727272727272727272727272",
             "signer_resolution_evidence_digest": "sha256:7272727272727272727272727272727272727272727272727272727272727272",
@@ -449,12 +449,12 @@
           "ak:seal:sha256:67230dde893bc7eaab64fbed0efb078f306e7bc9462b2cc42cbb793e073c0b3e"
         ],
         "delta": [
-          "sha256:66450682f5554f50f714803190946be39d5cd17facde48f9668f08d2866d9644"
+          "sha256:e760217a0f2781858f2fc5c1d27207b1a7a57a00546dc8cc1c12157929bcd517"
         ],
         "covered_event_digests": [
-          "sha256:66450682f5554f50f714803190946be39d5cd17facde48f9668f08d2866d9644"
+          "sha256:e760217a0f2781858f2fc5c1d27207b1a7a57a00546dc8cc1c12157929bcd517"
         ],
-        "control_event_set_root": "sha256:1e1c0bf599ea022ed92cefe14e525bbb51514847b1696a11d4475ae5496527d0",
+        "control_event_set_root": "sha256:0cffe924bff65790aa4ee3e7f2bd48fdac7217c0be1ef9fd893ded19aeb78bea",
         "state_root": "sha256:6b82791fc202d41f94309c8f7e8c6d4cf7b16c0400531d1b79746bf11ef5d8f8",
         "notary_seq": 1,
         "sealed_at": "2026-08-23T00:00:03.000Z"
@@ -1235,7 +1235,7 @@
         "service_resolution_record": {
           "record": {
             "service_id": "ak:did_core:key:z6MkfixtureService",
-            "service_kind": "principal_server",
+            "service_kind": "station",
             "did": "did:key:z6MkfixtureService",
             "method_history_head": "did-key-head-fixture",
             "version_id": "did-key-v1",
@@ -1308,9 +1308,9 @@
         }
       }
     },
-    "evidence_ref": "ak:signer_evidence:sha256:ad25277efe76357166a563efa1778c5240605fe8d21d9d91bf7871c972be2b90",
-    "evidence_digest": "sha256:ad25277efe76357166a563efa1778c5240605fe8d21d9d91bf7871c972be2b90",
-    "canonical_bytes": 2120
+    "evidence_ref": "ak:signer_evidence:sha256:7b9094dbcf695300d22d0feb8bbfc22f8a3343f3cad60290828c1d1d443773fb",
+    "evidence_digest": "sha256:7b9094dbcf695300d22d0feb8bbfc22f8a3343f3cad60290828c1d1d443773fb",
+    "canonical_bytes": 2111
   },
   "governance_dependency_resolve_kat": {
     "accepted_event_without_unsigned": {
@@ -1330,23 +1330,23 @@
       "bytes_digest": "sha256:1e3ced5770464815ca4ef738fdc55edd5826eb59eece2e8adff2f03c2c354133",
       "holder_id": "ak:did_core:key:z6MkfixtureService",
       "retention_expires_at": "2026-08-28T00:00:00.000Z",
-      "holder_signer_evidence_ref": "ak:signer_evidence:sha256:ad25277efe76357166a563efa1778c5240605fe8d21d9d91bf7871c972be2b90",
-      "holder_signer_evidence_digest": "sha256:ad25277efe76357166a563efa1778c5240605fe8d21d9d91bf7871c972be2b90",
+      "holder_signer_evidence_ref": "ak:signer_evidence:sha256:7b9094dbcf695300d22d0feb8bbfc22f8a3343f3cad60290828c1d1d443773fb",
+      "holder_signer_evidence_digest": "sha256:7b9094dbcf695300d22d0feb8bbfc22f8a3343f3cad60290828c1d1d443773fb",
       "signature": {
         "kind": "detached_jws",
         "verification_method": "did:key:z6MkfixtureService#key-1",
-        "payload_digest": "sha256:3a187e01febb149d144464e6195d3921b5ea0dcdacd9d94f22f0e15f12fce1b9",
+        "payload_digest": "sha256:f6e7abd2dd77ae196565fef9374e0ee66930a6fbfb292fd165ffbbaff219e71b",
         "created_at": "2026-08-21T00:00:00.000Z",
         "jws": "e30..c2ln"
       }
     },
-    "availability_receipt_digest": "sha256:34d08279393e0fb73d3101385e4ee23862ec6edc10a997fad2d1ecf6e1eb7228",
+    "availability_receipt_digest": "sha256:2c13d9b61c0904c727db70d6babbbbebad7266b265762baf0a86253ad1458380",
     "resolve_outcome": {
       "items": [
         {
           "selector": {
             "kind": "authenticated_signer_resolution_evidence",
-            "content_digest": "sha256:ad25277efe76357166a563efa1778c5240605fe8d21d9d91bf7871c972be2b90"
+            "content_digest": "sha256:7b9094dbcf695300d22d0feb8bbfc22f8a3343f3cad60290828c1d1d443773fb"
           },
           "authenticated_signer_resolution_evidence": {
             "kind": "service",
@@ -1356,7 +1356,7 @@
               "service_resolution_record": {
                 "record": {
                   "service_id": "ak:did_core:key:z6MkfixtureService",
-                  "service_kind": "principal_server",
+                  "service_kind": "station",
                   "did": "did:key:z6MkfixtureService",
                   "method_history_head": "did-key-head-fixture",
                   "version_id": "did-key-v1",
@@ -1433,7 +1433,7 @@
         {
           "selector": {
             "kind": "availability_receipt",
-            "content_digest": "sha256:34d08279393e0fb73d3101385e4ee23862ec6edc10a997fad2d1ecf6e1eb7228"
+            "content_digest": "sha256:2c13d9b61c0904c727db70d6babbbbebad7266b265762baf0a86253ad1458380"
           },
           "availability_receipt": {
             "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e",
@@ -1441,12 +1441,12 @@
             "bytes_digest": "sha256:1e3ced5770464815ca4ef738fdc55edd5826eb59eece2e8adff2f03c2c354133",
             "holder_id": "ak:did_core:key:z6MkfixtureService",
             "retention_expires_at": "2026-08-28T00:00:00.000Z",
-            "holder_signer_evidence_ref": "ak:signer_evidence:sha256:ad25277efe76357166a563efa1778c5240605fe8d21d9d91bf7871c972be2b90",
-            "holder_signer_evidence_digest": "sha256:ad25277efe76357166a563efa1778c5240605fe8d21d9d91bf7871c972be2b90",
+            "holder_signer_evidence_ref": "ak:signer_evidence:sha256:7b9094dbcf695300d22d0feb8bbfc22f8a3343f3cad60290828c1d1d443773fb",
+            "holder_signer_evidence_digest": "sha256:7b9094dbcf695300d22d0feb8bbfc22f8a3343f3cad60290828c1d1d443773fb",
             "signature": {
               "kind": "detached_jws",
               "verification_method": "did:key:z6MkfixtureService#key-1",
-              "payload_digest": "sha256:3a187e01febb149d144464e6195d3921b5ea0dcdacd9d94f22f0e15f12fce1b9",
+              "payload_digest": "sha256:f6e7abd2dd77ae196565fef9374e0ee66930a6fbfb292fd165ffbbaff219e71b",
               "created_at": "2026-08-21T00:00:00.000Z",
               "jws": "e30..c2ln"
             }

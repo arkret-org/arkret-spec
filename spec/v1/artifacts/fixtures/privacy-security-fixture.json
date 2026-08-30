@@ -479,7 +479,7 @@
           "plaintext_visible_services": [
             {
               "service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-              "service_kind": "principal_server",
+              "service_kind": "station",
               "data_classes": [
                 "message_content"
               ],

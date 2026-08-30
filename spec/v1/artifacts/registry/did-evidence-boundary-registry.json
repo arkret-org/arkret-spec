@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.1",
+  "version": "2026-08-30.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T00:00:00+08:00",
+  "generated_at": "2026-08-30T23:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -46,7 +46,7 @@
       "did_path": "did",
       "did_requirement": "required",
       "expected_core_path": "enclosing principal_id",
-      "route_evidence": "known_principal_server_account_pair"
+      "route_evidence": "known_station_account_pair"
     },
     {
       "boundary_id": "service_resolution_record",

@@ -127,7 +127,7 @@
     },
     "reuse_existing_managed_actor": {
       "type": "object",
-      "description": "Immutable anchors of the one existing Bot authority winner for this applet and target Principal Server. The receiver recomputes every field from accepted local state.",
+      "description": "Immutable anchors of the one existing Bot authority winner for this applet and target Station. The receiver recomputes every field from accepted local state.",
       "required": [
         "actor_id",
         "managed_actor_provision_ref",

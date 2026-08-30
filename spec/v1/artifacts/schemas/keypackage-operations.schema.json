@@ -1490,7 +1490,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Recipient Principal Server signed durable consume acknowledgement. recipient_durable_receipt is the sole carrier of claim request, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service coordinates. The service-generated request_digest, claim_id, and consumed_at plus the complete nested durable receipt are covered by signature. For an ordinary KeyPackage it is issued only after the exact single-use claim transitions to consumed. For a reusable last-resort KeyPackage it terminally acknowledges only that exact claim audit while the KeyPackage row remains published. Same exact consume replays this receipt; any claim, coordinate, signer-branch or evidence mismatch conflicts."
+      "description": "Recipient Station signed durable consume acknowledgement. recipient_durable_receipt is the sole carrier of claim request, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service coordinates. The service-generated request_digest, claim_id, and consumed_at plus the complete nested durable receipt are covered by signature. For an ordinary KeyPackage it is issued only after the exact single-use claim transitions to consumed. For a reusable last-resort KeyPackage it terminally acknowledges only that exact claim audit while the KeyPackage row remains published. Same exact consume replays this receipt; any claim, coordinate, signer-branch or evidence mismatch conflicts."
     },
     "keypackages_consume_request_body": {
       "type": "object",

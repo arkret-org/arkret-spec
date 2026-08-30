@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-08-30.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-30T23:30:00+08:00",
+  "generated_at": "2026-08-31T00:10:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -463,7 +463,7 @@
       ],
       "defined_in": "zh/models/event-and-patch.md",
       "schema_ref": "schemas/event-envelope.schema.json#/$defs/event_proof",
-      "regime_rule": "Exactly one event-level branch applies. With one valid principal_server_admission proof, producer signer evidence fields are absent and admission.producer_signing_key verifies the bound producer proof. Without admission, both signer evidence fields are present, enter this transcript and resolve to the exact producer verification_method."
+      "regime_rule": "Exactly one event-level branch applies. With one valid station_admission proof, producer signer evidence fields are absent and admission.producer_signing_key verifies the bound producer proof. Without admission, both signer evidence fields are present, enter this transcript and resolve to the exact producer verification_method."
     },
     {
       "context": "ak.extension_manifest_proof.v1",
@@ -725,7 +725,7 @@
       "binding_fields": [
         "payload_digest",
         "principal_id",
-        "principal_server_id",
+        "station_id",
         "device_id",
         "device_signing_key",
         "hpke_key",
@@ -761,7 +761,7 @@
       "binding_fields": [
         "payload_digest",
         "principal_id",
-        "principal_server_id",
+        "station_id",
         "resolution_projection",
         "method_history_evidence_digest",
         "issued_at",
@@ -773,8 +773,8 @@
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_projection_attestation"
     },
     {
-      "context": "ak.principal_server_admission_proof.v1",
-      "object_family": "principal_server_event_admission",
+      "context": "ak.station_admission_proof.v1",
+      "object_family": "station_event_admission",
       "binding_fields": [
         "event_digest",
         "producer_proof_digest",
@@ -786,7 +786,7 @@
         "verification_method"
       ],
       "defined_in": "zh/models/event-and-patch.md#31-principal-authority-与-origin-admission",
-      "schema_ref": "schemas/event-envelope.schema.json#/$defs/principal_server_admission_proof"
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/station_admission_proof"
     },
     {
       "context": "ak.range_completeness_attestation_proof.v1",

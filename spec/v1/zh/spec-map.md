@@ -49,7 +49,7 @@ see_also:
 初次理解协议时，建议按以下顺序阅读：
 
 1. `overview/protocol-layers.md` 与 `overview/architecture.md`：先理解 Kernel / Collaboration Base / Extension 分层、实际服务器角色和信任边界。
-2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Realm / Event / Principal Server。
+2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Realm / Event / Station。
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Strand 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/strand-and-message.md` 等专项文件，理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/security-transactions.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、安全事务、consent gate、联系人关系和 1:1 私聊入口。
@@ -92,11 +92,11 @@ see_also:
 - Strand 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载独立正式记录正文与 Message 讨论时间线。Strand 顶层 `content` 始终是 Description，不属于任何 track。Track **不携带独立 access security boundary**——整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](./models/circle.md)）；写入权限仍可由 action 与字段 / track constraints 收窄。需要独立 membership、历史可见性或 E2EE 边界时，把整 Strand 落在 Circle，或按 [`models/circle.md` §7.2](./models/circle.md) 拆为两个 Strand + Relation。
 - View 是投影定义，不拥有真相数据。
 
-### 3.3 Principal Server / Events / Sync / Projection
+### 3.3 Station / Events / Sync / Projection
 
 - signed Event Envelope 是唯一 canonical fact。
-- Principal Server 通过 `/_arkret/self/events/*` API 提交、读取、回填和验证 Event frontier。
-- Principal Server 是主体控制或委托的服务边界；Principal Server sync surface 是其 Realm 同步能力。
+- Station 通过 `/_arkret/self/events/*` API 提交、读取、回填和验证 Event frontier。
+- Station 是主体控制或委托的服务边界；Station sync surface 是其 Realm 同步能力。
 - 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不充当真相源（规范约束见 [`conformance/query-schema.md`](./conformance/query-schema.md) §8–§9）。
 
 ### 3.4 Discoverability / Join Rule / History Visibility
@@ -120,7 +120,7 @@ see_also:
 | --- | --- |
 | `index.md` | 项目定位、设计目标、规范入口。 |
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
-| `overview/architecture.md` | 顶层架构、Principal Server 部署形态、部署拓扑、信任边界。 |
+| `overview/architecture.md` | 顶层架构、Station 部署形态、部署拓扑、信任边界。 |
 | `overview/protocol-layers.md` | Kernel、Collaboration Base 与 Extension 的协议边界、依赖方向和演进规则。 |
 | `overview/current-model.md` | Strand / track / Board / List / View 的统一模型说明。 |
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
@@ -195,7 +195,7 @@ see_also:
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
 | `sync/signal.md` | encrypted-only Signal Extension send / subscribe rail、可见分类与 TTL。 |
-| `sync/service-surface.md` | 最小服务面与实际服务组合：Principal Server、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
+| `sync/service-surface.md` | 最小服务面与实际服务组合：Station、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
 | `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ak.realm.search_policy` 与 search result fail-closed 语义。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `sync/invite-addressing.md` | Realm invite 的显式 invite address、online principal locator、introduction evidence、private invite delivery 与 handle/mention 边界。 |

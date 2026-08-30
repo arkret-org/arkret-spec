@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.1",
+  "version": "2026-08-30.1",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -163,7 +163,7 @@
     "availability_event_bytes_digest": {
       "domain": "ak.availability_event_bytes.v1",
       "formula": "<Realm-suite>:<digest of UTF8('ak.availability_event_bytes.v1') || 0x00 || JCS(complete accepted EventEnvelope with unsigned removed)>",
-      "preimage": "the complete accepted canonical EventEnvelope with only unsigned removed; event_id, actor_kind and every accepted producer/principal-server proof remain included",
+      "preimage": "the complete accepted canonical EventEnvelope with only unsigned removed; event_id, actor_kind and every accepted producer/station proof remain included",
       "rule": "the receiver also recomputes the ordinary event_digest/event_id from their separately registered preimage and verifies every included proof before accepting bytes_digest; bytes_digest is not an alias for event_id"
     },
     "history_governance_traversal_intent_digest": {

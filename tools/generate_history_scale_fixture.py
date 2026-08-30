@@ -190,7 +190,7 @@ def build_signer_evidence(schemas: SchemaSet) -> dict[str, Any]:
     record = {
         "record": {
             "service_id": SERVICE_CORE,
-            "service_kind": "principal_server",
+            "service_kind": "station",
             "did": SERVICE_DID,
             "method_history_head": history_head,
             "version_id": version_id,
@@ -977,13 +977,13 @@ def build_rrk_registration_rotation_kat(
                 "kind": "account",
                 "account_id": {
                     "principal_id": register_tuple["holder_principal_id"],
-                    "principal_server_id": register_tuple["holder_id"],
+                    "station_id": register_tuple["holder_id"],
                 },
             },
             "actor_seq": actor_seq,
             "payload": payload,
         })
-        event.pop("principal_server_id", None)
+        event.pop("station_id", None)
         event["proofs"][0]["verification_method"] = register_tuple["holder_signing_ref"]
         event["proofs"][0]["event_digest"] = sha256(jcs({k: v for k, v in event.items() if k != "proofs"}))
         return event

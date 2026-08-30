@@ -21,7 +21,7 @@ sidebar:
 - ephemeral 信令（offer/answer/candidate、ICE/TURN 发现与刷新、一对一通话、推送）见 [`webrtc-signaling.md`](./webrtc-signaling.md)。
 - durable 会议状态（`ak.call.state` payload、状态机、participant 与录制生命周期）见 [`call-state.md`](./call-state.md)。
 
-## 2. Realtime Media Server
+## 2. Realtime Media Services
 
 `ak.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / arkret_native / MoQ-relay 都作为可替换 backend 通过 `foci[].focus_kind` 区分，具体 wire 见 [`bindings/<focus_kind>.md`](./bindings/) 附录。
 
@@ -191,7 +191,7 @@ v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 
 ## 4. SFU Service
 
-SFU 在 v1 通过 [§2](#2-realtime-media-server) 的 `foci[]` 声明，每个 focus 通过 `focus_kind` 选择具体 backend binding：
+SFU 在 v1 通过 [§2](#2-realtime-media-services) 的 `foci[]` 声明，每个 focus 通过 `focus_kind` 选择具体 backend binding：
 
 - `focus_kind="livekit"`：见 [`bindings/livekit.md`](./bindings/livekit.md)。
 - `focus_kind="arkret_native"`：见 [`bindings/arkret-native.md`](./bindings/arkret-native.md)（reference / conformance binding，不作为生产媒体后端）。

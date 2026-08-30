@@ -201,11 +201,11 @@
     },
     "device_reanchor_scope": {
       "type": "object",
-      "description": "Durable acceptance evidence for an account-local PCR-policy re-anchor unit. The authority pair plus monotonic device generation selects the create-once lineage maintained by the Principal Server.",
+      "description": "Durable acceptance evidence for an account-local PCR-policy re-anchor unit. The authority pair plus monotonic device generation selects the create-once lineage maintained by the Station.",
       "required": [
         "kind",
         "principal_id",
-        "principal_server_id",
+        "station_id",
         "realm_id",
         "previous_device_generation",
         "new_device_generation"
@@ -217,9 +217,9 @@
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "principal_server_id": {
+        "station_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Account authority Principal Server; together with principal_id it must equal the covered re-anchor Event authority pair."
+          "description": "Account authority Station; together with principal_id it must equal the covered re-anchor Event authority pair."
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -280,7 +280,7 @@
         },
         "registration_evidence_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "SHA-256 digest of RFC 8785 JCS of the complete accepted registration_did_evidence relayed to the Principal Server."
+          "description": "SHA-256 digest of RFC 8785 JCS of the complete accepted registration_did_evidence relayed to the Station."
         },
         "accepted_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"

@@ -31,7 +31,7 @@
     },
     "issuer_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
-      "description": "Exact issuing actor. Its closed ActorId shape already contains the account or hosted-principal routing authority when one exists; no parallel principal-server sidecar is permitted."
+      "description": "Exact issuing actor. Its closed ActorId shape already contains the account or hosted-principal routing authority when one exists; no parallel station sidecar is permitted."
     },
     "subject": {
       "oneOf": [

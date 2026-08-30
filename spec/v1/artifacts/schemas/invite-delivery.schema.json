@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/invite-delivery.schema.json",
   "title": "Arkret Invite Delivery",
-  "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private carrier that delivers directed-invite credential material to the invitee's devices on the notify branch (zh/sync/invite-addressing.md section 7). The cell is written by the recipient Principal Server, so it cannot be a client-encrypted envelope; invite_token is a server-issued private locator that MUST NOT enter the Invite object or Realm history (zh/models/governance-objects.md section 5.3).",
+  "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private carrier that delivers directed-invite credential material to the invitee's devices on the notify branch (zh/sync/invite-addressing.md section 7). The cell is written by the recipient Station, so it cannot be a client-encrypted envelope; invite_token is a server-issued private locator that MUST NOT enter the Invite object or Realm history (zh/models/governance-objects.md section 5.3).",
   "type": "object",
   "required": [
     "schema",
@@ -58,7 +58,7 @@
         },
         "received_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "Instant the recipient Principal Server accepted this delivery into the cell."
+          "description": "Instant the recipient Station accepted this delivery into the cell."
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",

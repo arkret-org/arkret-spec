@@ -63,13 +63,13 @@
       "description": "Complete protocol account identity. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key.",
       "required": [
         "principal_id",
-        "principal_server_id"
+        "station_id"
       ],
       "properties": {
         "principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "principal_server_id": {
+        "station_id": {
           "$ref": "#/$defs/did_core_id"
         }
       },
@@ -100,7 +100,7 @@
           "required": [
             "kind",
             "principal_id",
-            "principal_server_id"
+            "station_id"
           ],
           "properties": {
             "kind": {
@@ -109,7 +109,7 @@
             "principal_id": {
               "$ref": "#/$defs/did_core_id"
             },
-            "principal_server_id": {
+            "station_id": {
               "$ref": "#/$defs/did_core_id"
             }
           },

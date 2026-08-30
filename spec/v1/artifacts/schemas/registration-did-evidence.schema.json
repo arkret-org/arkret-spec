@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/registration-did-evidence.schema.json",
   "title": "Arkret Registration DID Evidence",
-  "description": "Account-onboarding historical DID evidence retained inside the Principal Server account/PCR boundary. It is not federated signer-key evidence and does not identify an external principal account-local lineage.",
+  "description": "Account-onboarding historical DID evidence retained inside the Station account/PCR boundary. It is not federated signer-key evidence and does not identify an external principal account-local lineage.",
   "oneOf": [
     {
       "$ref": "#/$defs/registration_did_evidence_draft"

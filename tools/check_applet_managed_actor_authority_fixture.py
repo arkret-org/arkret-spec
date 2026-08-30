@@ -20,7 +20,7 @@ EXPECTED: dict[str, tuple[str, Any]] = {
     "ghost_external_tuple_is_single_closed_carrier": ("expect", "accepted"),
     "ghost_external_tuple_rejects_legacy_or_extra_mirrors": ("expect", "schema_violation"),
     "ghost_provision_requires_registration_service_signature": ("expect", "http_signature_required_or_invalid"),
-    "remote_principal_server_claim": ("expect", "applet_managed_actor_provision_invalid"),
+    "remote_station_claim": ("expect", "applet_managed_actor_provision_invalid"),
     "actor_reuses_service_or_controller": ("expect", "applet_managed_actor_provision_invalid"),
     "bot_does_not_equal_registration_bot": ("expect", "applet_managed_actor_provision_invalid"),
     "ghost_core_used_for_did_namespace": ("expect", "applet_namespace_mismatch"),

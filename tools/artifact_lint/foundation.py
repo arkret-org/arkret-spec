@@ -2426,8 +2426,8 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if canonical_members != sorted(set(canonical_members)):
             lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
 
-    if len(bundle_ids) != 37:
-        lint.fail(operation_path, f"operation_bundles must contain the 37 evidenced v1 bundles, got {len(bundle_ids)}")
+    if len(bundle_ids) != 33:
+        lint.fail(operation_path, f"operation_bundles must contain the 33 evidenced v1 bundles, got {len(bundle_ids)}")
     describe_pair = ("ak.server.read.describe.v1", "http_json")
     for service_kind in sorted(service_kinds):
         describe_bundle_id = f"ak.operation_bundle.{service_kind}.describe.v1"
@@ -2520,7 +2520,7 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
             lint.fail(operation_path, f"{bundle_id} must contain only {operation_id}")
 
     auth_account_authority = exact_http_members(
-        "ak.operation_bundle.auth_server.account_authority.v1"
+        "ak.operation_bundle.station.account_authority.v1"
     )
     expected_auth_account_authority = {
         "ak.gate.account.command.abandon_identity_creation.v1",
@@ -2533,25 +2533,25 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
     if auth_account_authority != expected_auth_account_authority:
         lint.fail(
             operation_path,
-            "auth_server.account_authority must exactly project Coauth's unconditional Account Authority routes",
+            "station.account_authority must exactly project Coauth's deployment-private Account Authority routes",
         )
 
-    principal_core = exact_http_members("ak.operation_bundle.principal_server.http_core.v1")
+    principal_core = exact_http_members("ak.operation_bundle.station.http_core.v1")
     leaked_role_operations = sorted(principal_core & (identity_surface | directory_surface))
     if leaked_role_operations:
         lint.fail(
             operation_path,
-            "principal_server.http_core leaks identity/directory role operations: "
+            "station.http_core leaks identity/directory role operations: "
             f"{leaked_role_operations}",
         )
 
     history_key_recovery = exact_http_members(
-        "ak.operation_bundle.principal_server.history_key_recovery.v1"
+        "ak.operation_bundle.station.history_key_recovery.v1"
     )
     if history_key_recovery != surface_operations.get("history_key_recovery", set()):
         lint.fail(
             operation_path,
-            "principal_server.history_key_recovery must exactly project the complete history_key_recovery surface",
+            "station.history_key_recovery must exactly project the complete history_key_recovery surface",
         )
 
     migration_path = ROOT / "tools" / "operation-id-v1-migration.json"

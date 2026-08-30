@@ -1,14 +1,14 @@
 {
-  "version": "2026-08-29.14",
+  "version": "2026-08-30.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T22:30:00+08:00",
+  "generated_at": "2026-08-30T23:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "normalized_document_schema_ref is the sole owner of the document_digest preimage; raw resolver bytes use raw_document_digest and no third DID-document digest name is permitted",
     "Every W3C DID Document member normatively consumed by Arkret MUST appear in known_members and MUST survive projection into normalized_document_schema_ref",
     "Unknown extension members are retained losslessly in sorted extension rows; duplicate or conflicting properties, ids, relationship entries, metadata keys or extension names fail closed before digesting",
-    "ArkretService plus serviceKind is the only service-identity bootstrap shape. ArkretPrincipalServer and ArkretDirectory are not registered aliases and MUST be rejected as Arkret service types",
+    "ArkretService plus serviceKind is the only service-identity bootstrap shape. ArkretStation and ArkretDirectory are not registered aliases and MUST be rejected as Arkret service types",
     "Specialized organization and managed-Agent service types remain distinct from service bootstrap and use only their registered endpoint shapes"
   ],
   "normalized_document_schema_ref": "schemas/did-binding-contracts.schema.json#/$defs/normalized_did_document",

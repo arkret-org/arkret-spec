@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.8",
+  "version": "2026-08-30.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T00:00:00+08:00",
+  "generated_at": "2026-08-31T00:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -4124,7 +4124,7 @@
       "verb_form": "base",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Agent-initiated draft proposal. Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history.",
+      "payload": "Agent-initiated draft proposal. Submitted by agent runtime; Station materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload",
       "id_source": "not_an_object_id"
     },
@@ -4930,7 +4930,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Server-revision-CAS active binding or revoked tombstone for an (account_id, device_id, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on account_id.principal_server_id only; MUST NOT be replicated to another Principal Server.",
+      "payload": "Server-revision-CAS active binding or revoked tombstone for an (account_id, device_id, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on account_id.station_id only; MUST NOT be replicated to another Station.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "id_source": "not_an_object_id"
     },

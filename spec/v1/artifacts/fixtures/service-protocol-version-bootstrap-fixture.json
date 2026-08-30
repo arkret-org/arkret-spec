@@ -73,7 +73,7 @@
       "poison_fields": {
         "http_json_base_url": "https://must-not-cache.invalid",
         "supported_operation_bundles": [
-          "ak.operation_bundle.principal_server.http_core.v1"
+          "ak.operation_bundle.station.http_core.v1"
         ]
       },
       "expected": {

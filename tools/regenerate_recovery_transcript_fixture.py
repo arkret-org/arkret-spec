@@ -36,7 +36,7 @@ def common(kind: str) -> dict[str, object]:
         "kind": kind,
         "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-            "principal_server_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
+            "station_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
         },
         "request_id": "ak:request:019b6a40-0000-7000-8000-000000000000",
         "session_grant_id": "ak:session_grant:ARZh3t6pUePAQHfZ8vZbYERKa2BqFWV_dynfVmrmHA_N",

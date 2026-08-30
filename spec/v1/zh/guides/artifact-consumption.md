@@ -53,7 +53,7 @@ Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类�
 
 ## Soland
 
-Soland 是 Principal Server，不是协议 registry 的来源。
+Soland 是 Station，不是协议 registry 的来源。
 
 - Event kind admission 先查 `event-kind-registry.json` 的 active durable event kind。
 - 已有强语义 validator 可以继续留在 `crates/http/src/routing/events/operations/`，用于 strand、message、redaction 等需要 server policy 的路径。
@@ -82,6 +82,6 @@ Cotest 应测实现对 artifact 的遵循，而不是维护另一份手写协议
 
 1. Spec artifact 新增或修改协议事实。
 2. SDK generated/artifact reader 更新并有 drift test。
-3. 各下游实现（Principal Server、客户端、bridge、媒体服务等）通过 SDK 或 embedded artifact 消费。
+3. 各下游实现（Station、客户端、bridge、媒体服务等）通过 SDK 或 embedded artifact 消费。
 4. Cotest 增加默认或 soft-gated 断言。
 5. 删除项目内重复事实表或把它降级为 alias。

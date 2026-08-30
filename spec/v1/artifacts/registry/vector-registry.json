@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.4",
+  "version": "2026-08-30.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-30T23:59:59+08:00",
+  "generated_at": "2026-08-31T00:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -67,7 +67,7 @@
       "applies_to_fixtures": [
         "security-closure-fixture.json"
       ],
-      "description": "Account Authority issuer-ledger genesis/CAS, signed record identity, exact replay/conflict, monotonic replica gap/fork handling and bounded Principal Server fanout.",
+      "description": "Account Authority issuer-ledger genesis/CAS, signed record identity, exact replay/conflict, monotonic replica gap/fork handling and bounded Station fanout.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1092,7 +1092,7 @@
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "Capability materialization preserves exact issuer and concrete-subject ActorIds, derives maximum depth plus canonical sorted and deduplicated root identities, and requires each parent subject ActorId to equal the child issuer ActorId in full. Producer-supplied derived members and same-DID cross-Principal-Server replay are rejected; missing parents remain dependency-pending and independent reducers produce the same state-root input.",
+      "description": "Capability materialization preserves exact issuer and concrete-subject ActorIds, derives maximum depth plus canonical sorted and deduplicated root identities, and requires each parent subject ActorId to equal the child issuer ActorId in full. Producer-supplied derived members and same-DID cross-Station replay are rejected; missing parents remain dependency-pending and independent reducers produce the same state-root input.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
@@ -1895,7 +1895,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "A lost Direct Conversation founder never transfers the existing pair slot: ordinary recovery of the exact same (principal_id, principal_server_id) resumes as the original founder, while timeout, root Contact recovery policy, third-party attestation and after-the-fact bilateral designation all write nothing. The non-founder remains awaiting_founder, the closed wire union has no founder_unrecoverable state, and only a genuinely different stable participant pair derives a new pair_key with no inherited history, MLS state, keys, audit identity or authority.",
+      "description": "A lost Direct Conversation founder never transfers the existing pair slot: ordinary recovery of the exact same (principal_id, station_id) resumes as the original founder, while timeout, root Contact recovery policy, third-party attestation and after-the-fact bilateral designation all write nothing. The non-founder remains awaiting_founder, the closed wire union has no founder_unrecoverable state, and only a genuinely different stable participant pair derives a new pair_key with no inherited history, MLS state, keys, audit identity or authority.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
@@ -1908,7 +1908,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "One accepted founding unit per (founder_id, trust_domain_id, pair_key) slot across same-Principal-Server, dual-Principal-Server and founder multi-device concurrency: first valid unit wins, the loser gets direct_conversation_slot_already_committed with zero writes, exact replay returns the byte-identical receipt without advancing accepted_at, the same idempotency key with a different unit is duplicate_conflict, every crash point converges to the same coordinates, and the federation branch reports a missing bounded dependency as a top-level retryable dependency_missing rather than a partial.",
+      "description": "One accepted founding unit per (founder_id, trust_domain_id, pair_key) slot across same-Station, dual-Station and founder multi-device concurrency: first valid unit wins, the loser gets direct_conversation_slot_already_committed with zero writes, exact replay returns the byte-identical receipt without advancing accepted_at, the same idempotency key with a different unit is duplicate_conflict, every crash point converges to the same coordinates, and the federation branch reports a missing bounded dependency as a top-level retryable dependency_missing rather than a partial.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
@@ -3296,7 +3296,7 @@
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
         "ak.profile.full_client.v1",
-        "ak.profile.principal_server.v1",
+        "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
       "source_refs": [
@@ -3312,7 +3312,7 @@
       "applies_to_profiles": [
         "ak.profile.identity_registry.v1",
         "ak.profile.organization_high_assurance_identity.v1",
-        "ak.profile.principal_server.v1",
+        "ak.profile.station.v1",
         "ak.profile.full_client.v1"
       ],
       "source_refs": [
@@ -3417,19 +3417,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.identity.principal_server_admission.v1",
-      "status": "active",
-      "domain": "identity",
-      "applies_to_fixtures": [
-        "principal-server-admission-fixture.json"
-      ],
-      "description": "Lifetime AccountId uniqueness including deactivation tombstones and cross-Principal-Server replacement, signed exact Event ActorId, route-derived origin-only admission, exact producer-proof binding and replica preservation.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/principal-server-admission-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.identity.producer_allocated_collision.v1",
       "status": "active",
       "domain": "identity",
@@ -3475,7 +3462,7 @@
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
         "ak.profile.full_client.v1",
-        "ak.profile.principal_server.v1",
+        "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
       "source_refs": [
@@ -3491,7 +3478,7 @@
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
         "ak.profile.full_client.v1",
-        "ak.profile.principal_server.v1"
+        "ak.profile.station.v1"
       ],
       "source_refs": [
         "spec/v1/zh/identity/key-management.md",
@@ -3519,7 +3506,7 @@
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
         "ak.profile.full_client.v1",
-        "ak.profile.principal_server.v1",
+        "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
       "source_refs": [
@@ -3559,12 +3546,25 @@
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
         "ak.profile.full_client.v1",
-        "ak.profile.principal_server.v1",
+        "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
       "source_refs": [
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.station_admission.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "station-admission-fixture.json"
+      ],
+      "description": "Lifetime AccountId uniqueness including deactivation tombstones and cross-Station replacement, signed exact Event ActorId, route-derived origin-only admission, exact producer-proof binding and replica preservation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/station-admission-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -3833,7 +3833,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Cross-Principal-Server KeyPackage claim linearization and uncertain-outcome recovery: claim CAS, request ledger and serialized result commit atomically; same source/id/digest replays byte-identically; another digest conflicts without a second claim; query recovers the original outcome.",
+      "description": "Cross-Station KeyPackage claim linearization and uncertain-outcome recovery: claim CAS, request ledger and serialized result commit atomically; same source/id/digest replays byte-identically; another digest conflicts without a second claim; query recovers the original outcome.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -5514,24 +5514,9 @@
       "vector_id": "ak.vector.proof_context.transcript.principal_resolution_projection_attestation.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.principal_resolution_projection_attestation_proof.v1: digest input is the `attestation` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.principal_server_admission_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.principal_resolution_projection_attestation_proof.v1: digest input is the `attestation` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.station_admission_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.principal_resolution_projection_attestation_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.principal_server_event_admission.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.principal_server_admission_proof.v1: digest input deletes `actor_kind`, `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.range_completeness_attestation_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.principal_server_admission_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -5697,6 +5682,21 @@
       "description": "Transcript KAT for ak.snapshot_witness_attestation_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.account_binding_receipt_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.snapshot_witness_attestation_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.station_event_admission.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.station_admission_proof.v1: digest input deletes `actor_kind`, `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.range_completeness_attestation_proof.v1 rejected.",
+      "covers_proof_contexts": [
+        "ak.station_admission_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -6719,7 +6719,7 @@
       "status": "active",
       "domain": "signal",
       "applies_to_profiles": [
-        "ak.profile.principal_server.v1",
+        "ak.profile.station.v1",
         "ak.profile.full_client.v1"
       ],
       "description": "Signal verification uses two independent state domains: seal_ref selects only the Realm/scope authorization basis, while device authorization resolves against each verifier's current accepted device directory. A device authorized after seal_ref but currently active passes the device check; a device active at seal_ref but currently revoked/fenced/conflicted is rejected; a verification_method whose full value is not byte-identical to sender_actor_id#sender_device_id is rejected; a missing current directory key or missing Tier-2/service-attested trust anchor is rejected; a currently active device whose sender lacks scope send eligibility or the signal_class action under the Realm seal_ref is rejected.",

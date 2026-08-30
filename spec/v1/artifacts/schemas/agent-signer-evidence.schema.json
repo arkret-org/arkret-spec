@@ -514,7 +514,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Receiver-signed immutable record that the exact Event and the origin-frozen producer signer-evidence root were durably accepted. producer_accepted_at is copied from the verified principal_server_admission proof. Event digest already commits to seal_ref or seal_basis, so no ambiguous receipt Seal id is repeated. The proof domain is ak.agent_signer_admission_receipt.v1 and covers every field except proof.jws."
+      "description": "Receiver-signed immutable record that the exact Event and the origin-frozen producer signer-evidence root were durably accepted. producer_accepted_at is copied from the verified station_admission proof. Event digest already commits to seal_ref or seal_basis, so no ambiguous receipt Seal id is repeated. The proof domain is ak.agent_signer_admission_receipt.v1 and covers every field except proof.jws."
     },
     "outer_attestation": {
       "type": "object",

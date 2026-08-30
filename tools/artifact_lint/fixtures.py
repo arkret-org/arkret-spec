@@ -1130,7 +1130,7 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
     allowed_status = {"active", "reserved", "deprecated"}
     allowed_storage = {"encrypted_account_data", "local_only", "encrypted_account_data_or_local", "plaintext_account_data"}
     allowed_deletion_modes = {"physical_delete", "value_tombstone"}
-    allowed_writer_authorities = {"holder_event", "principal_server_cas"}
+    allowed_writer_authorities = {"holder_event", "station_cas"}
     allowed_holder_self_operations = {"put", "delete"}
     for index, row in enumerate(rows):
         label = f"account_data_key_patterns[{index}]"
@@ -1205,11 +1205,11 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
             lint.fail(path, f"{label} holder self put requires ak.account_data.set")
         if "delete" in holder_self_operations and row.get("deletion_mode") != "physical_delete":
             lint.fail(path, f"{label} holder self delete requires deletion_mode=physical_delete")
-        if "principal_server_cas" in writer_authorities:
+        if "station_cas" in writer_authorities:
             if row.get("storage") != "plaintext_account_data":
-                lint.fail(path, f"{label} principal_server_cas requires plaintext_account_data")
+                lint.fail(path, f"{label} station_cas requires plaintext_account_data")
             if not isinstance(row.get("plaintext_schema"), str) or not row["plaintext_schema"]:
-                lint.fail(path, f"{label} principal_server_cas requires plaintext_schema")
+                lint.fail(path, f"{label} station_cas requires plaintext_schema")
 
         encrypted_value_schema = row.get("encrypted_value_schema")
         if encrypted_value_schema is not None:

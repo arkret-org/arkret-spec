@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.1",
+  "version": "2026-08-30.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T00:00:00+08:00",
+  "generated_at": "2026-08-30T23:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -16,7 +16,7 @@
     "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors."
   ],
   "principal_resolution_contract": {
-    "version": "2026-08-29.1",
+    "version": "2026-08-30.1",
     "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
     "cell_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
     "profile_write_policy": {
@@ -66,11 +66,11 @@
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/public_principal_resolution",
       "checks": [
         "the response carries none of principal_control_realm_id, principal_genesis_event, principal_genesis_receipt, current_resolution_event, predecessor_resolution_events or accepted_seal; any such member is a schema violation on this surface",
-        "projection_attestation.attestation.principal_id == principal_id and projection_attestation.attestation.principal_server_id == principal_server_id",
+        "projection_attestation.attestation.principal_id == principal_id and projection_attestation.attestation.station_id == station_id",
         "projection_attestation.attestation.resolution_projection equals resolution_projection field for field",
         "projection_attestation.attestation.method_history_evidence_digest == sha256 over RFC 8785 JCS of method_history_evidence",
         "projection_attestation.proof signs the registered attestation transcript, proof.created_at == attestation.issued_at, and attestation.issued_at < attestation.expires_at",
-        "projection_attestation.proof.verification_method resolves to an assertion-capable key under the current verified method history of principal_server_id",
+        "projection_attestation.proof.verification_method resolves to an assertion-capable key under the current verified method history of station_id",
         "project(resolution_projection.did) == principal_id",
         "method_history_evidence boundary and currentness validate under the adapter selected by resolution_projection.did"
       ],

@@ -51,7 +51,7 @@
           "capability_delegations": [],
           "services": [
             {
-              "uri": "did:web:alice.example#principal-server",
+              "uri": "did:web:alice.example#station",
               "protocol_names": [
                 "ArkretService"
               ],
@@ -59,7 +59,7 @@
               "extensions": [
                 {
                   "name": "serviceKind",
-                  "value": "principal_server"
+                  "value": "station"
                 }
               ]
             }
@@ -71,7 +71,7 @@
         }
       },
       "expected": {
-        "jcs_utf8": "{\"also_known_as\":[\"acct:alice@example.com\"],\"assertion_methods\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"authentication\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"capability_delegations\":[],\"capability_invocations\":[],\"contexts\":[\"https://www.w3.org/ns/did/v1\"],\"controller_dids\":[],\"did\":\"did:web:alice.example\",\"extensions\":[],\"key_agreements\":[],\"metadata\":{\"primary_handle\":\"alice:example.com\"},\"services\":[{\"endpoint\":\"https://ps.alice.example/\",\"extensions\":[{\"name\":\"serviceKind\",\"value\":\"principal_server\"}],\"protocol_names\":[\"ArkretService\"],\"uri\":\"did:web:alice.example#principal-server\"}],\"verification_methods\":[{\"controller_did\":\"did:web:alice.example\",\"extensions\":[],\"public_key_material\":{\"publicKeyMultibase\":\"z6MkfixtureAlicePublicKey1111111111111111111\"},\"verification_method\":\"did:web:alice.example#key-1\",\"verification_method_suite\":\"Multikey\"}]}",
+        "jcs_utf8": "{\"also_known_as\":[\"acct:alice@example.com\"],\"assertion_methods\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"authentication\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"capability_delegations\":[],\"capability_invocations\":[],\"contexts\":[\"https://www.w3.org/ns/did/v1\"],\"controller_dids\":[],\"did\":\"did:web:alice.example\",\"extensions\":[],\"key_agreements\":[],\"metadata\":{\"primary_handle\":\"alice:example.com\"},\"services\":[{\"endpoint\":\"https://ps.alice.example/\",\"extensions\":[{\"name\":\"serviceKind\",\"value\":\"station\"}],\"protocol_names\":[\"ArkretService\"],\"uri\":\"did:web:alice.example#station\"}],\"verification_methods\":[{\"controller_did\":\"did:web:alice.example\",\"extensions\":[],\"public_key_material\":{\"publicKeyMultibase\":\"z6MkfixtureAlicePublicKey1111111111111111111\"},\"verification_method\":\"did:web:alice.example#key-1\",\"verification_method_suite\":\"Multikey\"}]}",
         "document_digest": "sha256:b57c4d71d80930c8e8484a08a5d319c84b4abf0fd15278d48e01af2fe3005b81"
       },
       "assertions": [

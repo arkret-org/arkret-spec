@@ -273,7 +273,7 @@
       "verification_key_from_active_service_resolution": true,
       "bearer_used_as_signature_substitute": false,
       "authenticated_source_matches_agent_authority_id": true,
-      "current_principal_server_matches_source": true,
+      "current_station_matches_source": true,
       "account_authority_projection_status": "active",
       "issued_eligibility": "active",
       "attestation_ttl_seconds": 300,
@@ -299,7 +299,7 @@
       "name": "controller_gate_wrong_source_and_unknown_principal_are_indistinguishable",
       "scenarios": [
         "unknown_principal",
-        "missing_current_principal_server",
+        "missing_current_station",
         "source_service_mismatch",
         "unauthorized_service"
       ],

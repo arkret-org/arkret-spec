@@ -215,7 +215,7 @@ _INLINE_DID_KEY_ENCODING_POINTERS = {
     "device-pairing.schema.json#/$defs/device_pairing_target_attestation/properties/device_public_key_did/pattern",
     "keys-operations.schema.json#/$defs/did_key/pattern",
     "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key_did/pattern",
-    "event-envelope.schema.json#/$defs/principal_server_admission_proof/properties/producer_signing_key_did/pattern",
+    "event-envelope.schema.json#/$defs/station_admission_proof/properties/producer_signing_key_did/pattern",
 }
 
 
@@ -861,9 +861,9 @@ def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -
     }
     if "ak.self.seals.read.frontier.v1" not in core_endpoints:
         lint.fail(profiles_path, "core_event_store must require the Seal frontier operation")
-    child_endpoints = (requirements.get("ak.profile.principal_server_events_api.v1") or {}).get("operation_requirements")
+    child_endpoints = (requirements.get("ak.profile.station_events_api.v1") or {}).get("operation_requirements")
     if child_endpoints != []:
-        lint.fail(profiles_path, "principal_server_events_api must inherit the parent endpoint set without duplicating it")
+        lint.fail(profiles_path, "station_events_api must inherit the parent endpoint set without duplicating it")
     runtime_endpoints = {
         row.get("operation_id")
         for row in (requirements.get("ak.profile.agent_runtime.v1") or {}).get("operation_requirements", [])
@@ -3092,7 +3092,7 @@ def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
             lint.fail(
                 payload_path,
                 f"$defs.device_reanchor_payload.{name} restores a retired DID-version authority field; "
-                "the base re-anchor branch selects authority only through principal_id plus principal_server_id and the "
+                "the base re-anchor branch selects authority only through principal_id plus station_id and the "
                 "PCR-local device generation CAS",
             )
         if name in scope_props:
@@ -3124,7 +3124,7 @@ def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
                 "for the same authority field allows silent substitution",
             )
 
-    for name in ("principal_id", "principal_server_id", "previous_device_generation", "new_device_generation"):
+    for name in ("principal_id", "station_id", "previous_device_generation", "new_device_generation"):
         if name not in scope_required:
             lint.fail(
                 receipt_path,
@@ -3876,7 +3876,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             document_contract_path,
             f"Arkret DID service type closure mismatch: expected {sorted(expected_types)!r}, got {sorted(registered_types)!r}",
         )
-    rejected_service_types = ("ArkretPrincipalServer", "ArkretDirectory")
+    rejected_service_types = ("ArkretStation", "ArkretDirectory")
     for forbidden_type in rejected_service_types:
         if forbidden_type in registered_types:
             lint.fail(document_contract_path, f"legacy service type {forbidden_type} must not be registered")

@@ -12,7 +12,7 @@ updated: 2026-07-30
 
 ## 1. 目标
 
-Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal Server。当来自不同域的 Actor 需要在同一个 Realm 中协作时，Principal Server 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
+Arkret 是去中心化协议，不同用户或组织各自运行受控 Station。当来自不同域的 Actor 需要在同一个 Realm 中协作时，Station 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
 
 - 节点之间如何互相发现与认证
 - 如何安全交换签名 Event Envelope
@@ -27,21 +27,21 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 跨域协作的信任不来自"服务器管理员彼此认识"，而来自**每个 Actor 的 signed Event chain 都是密码学可验证的**。任何节点在接收到来自外部域的 Event Envelope 时，可以独立验证签名、DID、`actor_seq`、`prev_refs` 和授权因果链，不需要信任对方服务器。
 
-### 2.2 Principal Server 是受控同步边界，不是全局权威
+### 2.2 Station 是受控同步边界，不是全局权威
 
-联邦场景中没有独立第三方分发服务器角色。Realm 范围传播由参与方 Principal Server 之间的 federation transaction 完成。Principal Server 不能伪造、篡改或选择性隐藏已签名的 Event Envelope；任何参与者都可以通过直接查询源 Events API、witness receipt、snapshot frontier 或其他受信 Principal Server 交叉验证历史。
+联邦场景中没有独立第三方分发服务器角色。Realm 范围传播由参与方 Station 之间的 federation transaction 完成。Station 不能伪造、篡改或选择性隐藏已签名的 Event Envelope；任何参与者都可以通过直接查询源 Events API、witness receipt、snapshot frontier 或其他受信 Station 交叉验证历史。
 
 ### 2.3 Seal Finality 优于全局同步共识
 
-跨域网络延迟不可预测。联邦协议不要求所有 Principal Server 同步参与一个全局共识组；每个 Realm 通过 Seal DAG 表达控制面 ordering commitment。`single_signer`（单 did_core actor）、`threshold`（k-of-n actor 委员会）、`open_set`（开放对等）和 `mixed`（含 sovereign fallback）只是 `notary` control cell value 与 Notary profile 的不同配置；详见 §2.4。
+跨域网络延迟不可预测。联邦协议不要求所有 Station 同步参与一个全局共识组；每个 Realm 通过 Seal DAG 表达控制面 ordering commitment。`single_signer`（单 did_core actor）、`threshold`（k-of-n actor 委员会）、`open_set`（开放对等）和 `mixed`（含 sovereign fallback）只是 `notary` control cell value 与 Notary profile 的不同配置；详见 §2.4。
 
 ### 2.4 Notary Profile 决定控制面 finality
 
 联邦传播按目标 Realm create-locked 的 `notary.kind`（参见 [`../models/realm-and-space.md` §2.3](../models/realm-and-space.md#23-schema-id-与字段)）决定控制面 Seal 的签发方式；DataEvent 仍按签名、`seal_ref` 与 Lattice/CRDT 规则在参与方之间传播：
 
-- **`single_signer`**：单一 did_core actor 的 current authorized verification method 签发 Seal；wire 不把 service DID 或 DID URL 当作 authority member。DataEvent 可由参与方 Principal Server 直接验证并传播；Control Move 由该 actor 的 Seal 覆盖后 `sealed`。
+- **`single_signer`**：单一 did_core actor 的 current authorized verification method 签发 Seal；wire 不把 service DID 或 DID URL 当作 authority member。DataEvent 可由参与方 Station 直接验证并传播；Control Move 由该 actor 的 Seal 覆盖后 `sealed`。
 - **`threshold`**：k-of-n committee 签发 Seal。Control Move finality 需要 threshold signature。
-- **`open_set`**：多个 federation peer / admin DID 可以签发 Seal leaf。Principal Server 之间 push / pull DataEvent、pending Control Move 与 Seal leaf；查询时使用 deterministic control view join。
+- **`open_set`**：多个 federation peer / admin DID 可以签发 Seal leaf。Station 之间 push / pull DataEvent、pending Control Move 与 Seal leaf；查询时使用 deterministic control view join。
 - **`mixed`**：正常由主 notary 签发 Seal；主 notary 故障、签发矛盾 Seal 或 notary control cell 变成 `⊥` 时，fallback recovery notary 可以签发恢复 Seal。
 
 跨域 Realm 跨过两个 deployment（A 与 B）时，`notary.kind` 与 genesis notary descriptors 由 Realm create 固定，所有参与 deployment 都按同一 Seal 验证规则处理；不存在 "A 当 hub、B 当 peer mesh" 的分裂状态。
@@ -50,7 +50,7 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 ### 3.1 基于 core/DID 的服务器身份与路由
 
-每个 Principal Server / Events API 节点 MUST 拥有一对由注册 method adapter 绑定的身份：业务合同和 `Source-Service-ID` / `Destination-Service-ID` 使用稳定 `did_core_id`；首次注册、control key 与 method history 验证使用完整 bare `did`。默认 method 为 `did:webvh`；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，并 MUST 声明无历史信任强度，见 [`../identity/identity-did.md` §3](../identity/identity-did.md)。首次注册 MUST 提交 `did`，注册方独立解析并验证其 DID Document，再确认 `project(did) == service_id`。
+每个 Station / Events API 节点 MUST 拥有一对由注册 method adapter 绑定的身份：业务合同和 `Source-Service-ID` / `Destination-Service-ID` 使用稳定 `did_core_id`；首次注册、control key 与 method history 验证使用完整 bare `did`。默认 method 为 `did:webvh`；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，并 MUST 声明无历史信任强度，见 [`../identity/identity-did.md` §3](../identity/identity-did.md)。首次注册 MUST 提交 `did`，注册方独立解析并验证其 DID Document，再确认 `project(did) == service_id`。
 
 DID Document 仍负责 control key / delegation 证明，但不再充当从 `service_id` 到 HTTP URL 的通用首跳。高频路由使用由 service control identity 签名、可独立验证的 current `ServiceResolutionRecord`：
 
@@ -58,7 +58,7 @@ DID Document 仍负责 control key / delegation 证明，但不再充当从 `ser
 {
   "record": {
     "service_id": "ak:did_core:webvh:zCXaWSDv1afiBoxDX5sVBU5an",
-    "service_kind": "principal_server",
+    "service_kind": "station",
     "did": "did:webvh:zCXaWSDv1afiBoxDX5sVBU5an:server.acme.example.com",
     "method_history_head": "QmHistoryHead...",
     "version_id": "1-QmHistoryHead...",
@@ -187,7 +187,7 @@ Fail-closed 条件：
 
 ### 4.0.2 Principal-private peer 投递与 KeyPackage command 不是共享 Event 接收轨（normative）
 
-`/_arkret/peer/invites`（`ak.peer.invites.command.submit.v1`）与 `/_arkret/peer/contacts`（`ak.peer.contacts.command.submit.v1`）是 Principal-private 事实投递面：前者承载目标 holder 的 invite command submit envelope；后者只承载联系人请求 / 响应 / scope replacement / tombstone 的原签名 `ak.contact.*` envelope，用于把 principal-scoped Contact fact 投递到对端 Principal Server。`/_arkret/peer/keys/keypackages/claim` 与 `/_arkret/peer/keys/keypackages/claims/query` 则是目标 KeyPackage authority 的原子 command / outcome-query 面，不承载 Event。三类 surface **MUST NOT** 接受共享 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_arkret/peer/events` 的并行替代 fanout 通道。Direct Conversation 的 binding、Realm、member、Strand 与 MLS Event 只能走 `ak.peer.events.command.submit.v1`——founding 四 Event unit 走 §4.0.4 的 `direct_conversation_founding` branch，其余走通用 branch；`/_arkret/peer/contacts` 不得镜像或夹带 `ak.direct_conversation.bound`；KeyPackage surface 只改变目标 authority 的 KeyPackage lifecycle 与幂等 ledger。
+`/_arkret/peer/invites`（`ak.peer.invites.command.submit.v1`）与 `/_arkret/peer/contacts`（`ak.peer.contacts.command.submit.v1`）是 Principal-private 事实投递面：前者承载目标 holder 的 invite command submit envelope；后者只承载联系人请求 / 响应 / scope replacement / tombstone 的原签名 `ak.contact.*` envelope，用于把 principal-scoped Contact fact 投递到对端 Station。`/_arkret/peer/keys/keypackages/claim` 与 `/_arkret/peer/keys/keypackages/claims/query` 则是目标 KeyPackage authority 的原子 command / outcome-query 面，不承载 Event。三类 surface **MUST NOT** 接受共享 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_arkret/peer/events` 的并行替代 fanout 通道。Direct Conversation 的 binding、Realm、member、Strand 与 MLS Event 只能走 `ak.peer.events.command.submit.v1`——founding 四 Event unit 走 §4.0.4 的 `direct_conversation_founding` branch，其余走通用 branch；`/_arkret/peer/contacts` 不得镜像或夹带 `ak.direct_conversation.bound`；KeyPackage surface 只改变目标 authority 的 KeyPackage lifecycle 与幂等 ledger。
 
 这些 endpoint 仍属于 `/_arkret/peer/*` 联邦协议面，因而 MUST 复用 §3 的 service-to-service HTTP Message Signature、trust-domain、destination binding、body digest、最小披露错误和 replay 防护。invite / contact 接收方只把 payload 投影进目标 holder 的 principal control / account-private 处理路径；KeyPackage authority 还 MUST 执行 [`../crypto-media/device-lifecycle.md` §9.2](../crypto-media/device-lifecycle.md) 的 participant authorization、唯一 CAS、幂等 ledger 与反枚举 gate。任何尝试在这些 endpoint 中夹带共享 Realm Event Envelope 的请求 MUST fail closed（`schema_violation` 或 `capability_denied`，对外仍遵守最小披露）。
 
@@ -256,13 +256,13 @@ Realm 在接收方 accepted 后，该 pair 的后续 Event 立即回落普通 fe
 
 本文件中的联邦载荷项是 v1 规范性 Event Envelope。请求与响应体中的共享事实字段使用 `events[]`，不引入第二套 Operation wire object。
 
-当 Actor A（托管在 `server-alpha.com`）向 Realm S 提交了新 Event，而 Realm S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Realm 时：
+当 Actor A（托管在 `server-alpha.com`）向 Realm S 提交了新 Event，而 Realm S 的另一参与方 Station `server-beta.com` 也服务同一个 Realm 时：
 
 1. `server-alpha.com` 检测到新 Event 属于跨域 Realm
-2. `server-alpha.com` 从 Realm policy / membership / service delegation 中解析应接收该 Event 的对端 Principal Server，并生成接收方服务绑定快照
+2. `server-alpha.com` 从 Realm policy / membership / service delegation 中解析应接收该 Event 的对端 Station，并生成接收方服务绑定快照
 3. `server-alpha.com` 向 `server-beta.com` 发送推送请求：
 
-**实时 fanout 的责任与目标集合（normative）**：首次接受本地 Actor 所签 Event 的 Principal Server 是该 Event 实时 push 的唯一编排方；通过 `/_arkret/peer/events` 收到该 Event 的 remote Principal Server MUST 验证、持久化并服务其本地成员，但 MUST NOT 因该次 peer ingress 再创建第二轮实时 fanout。缺失副本通过 frontier probe、pull、backfill 或 snapshot 修复，不能靠接收方无界转广播。
+**实时 fanout 的责任与目标集合（normative）**：首次接受本地 Actor 所签 Event 的 Station 是该 Event 实时 push 的唯一编排方；通过 `/_arkret/peer/events` 收到该 Event 的 remote Station MUST 验证、持久化并服务其本地成员，但 MUST NOT 因该次 peer ingress 再创建第二轮实时 fanout。缺失副本通过 frontier probe、pull、backfill 或 snapshot 修复，不能靠接收方无界转广播。
 
 对 Realm 共享 Event，发送方 MUST 从同一 accepted Realm view 取所有未撤销的 effective joined member ActorId，按 `common-fields.md §4.2` 的封闭规则投影 routing service，排除本机并按 service `did_core_id` 去重。多个成员由同一 remote service 托管时只创建一份 Event transaction。bot、service、notary、archive 或 search projection 若要持有 Realm Event，必须成为显式 joined ActorId，并受 membership、capability、E2EE 与 plaintext visibility 约束；已知 peer、allowlist、mirror、resolver 或部署拓扑都不自动取得内容。
 
@@ -309,11 +309,11 @@ Signature: sig1=:base64...:
 | `service_binding_ref.realm_id` | body | `id` | required | 本请求唯一受影响的 Realm；每个 `events[].event.realm_id` 与每个 bundle 中可归属 Realm 的对象 MUST 与其逐字相等。多 Realm 投递 MUST 拆成独立请求。 |
 | `service_binding_ref.realm_policy_digest` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Realm policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
-| `service_binding_ref.destination_kind` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
+| `service_binding_ref.destination_kind` | body | `string` | required | 目标服务类型，例如 `station`。 |
 
 Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 profile。接收方对每个 Event 独立读取其 CBA governance basis 中的 `ak.component.realm.reducer_profile.v1` cell：DataEvent 使用 `seal_ref` 认证的 joined control state，Control Move 使用 `seal_basis` 的 frozen predecessor `J(L)`。缺少求值依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`；settled profile 本地未实现时返回 `unsupported_profile`。
 
-每个 federation Event 必须原样携带 origin `principal_server_admission` proof。接收方重算 canonical Event digest、exact producer proof digest、producer JWS 与 admission JWS，并要求 admission service 等于 Event `actor_id` 的 routing-service projection；Native Agent Event 还必须带 admission proof 已签入的 `producer_signer_resolution_evidence_ref/digest` pair。receiver 只复制并绑定这组 content-addressed selector，不接收内联 device/PCR/Agent signer evidence sidecar，也不得由 receiver 或 relay 重签 origin proof。
+每个 federation Event 必须原样携带 origin `station_admission` proof。接收方重算 canonical Event digest、exact producer proof digest、producer JWS 与 admission JWS，并要求 admission service 等于 Event `actor_id` 的 routing-service projection；Native Agent Event 还必须带 admission proof 已签入的 `producer_signer_resolution_evidence_ref/digest` pair。receiver 只复制并绑定这组 content-addressed selector，不接收内联 device/PCR/Agent signer evidence sidecar，也不得由 receiver 或 relay 重签 origin proof。
 
 ### 4.1.0 推送时序
 
@@ -328,7 +328,7 @@ sequenceDiagram
     participant Beta as server-beta 接收方
 
     Cli->>Alpha: 提交 signed Event 到 Realm S
-    Alpha->>Pol: 解析应接收的 Principal Server
+    Alpha->>Pol: 解析应接收的 Station
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier)
     Alpha->>Beta: POST /_arkret/peer/events (ak.peer.events.command.submit.v1)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest + receiver-computed canonical body digest<br>service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. 从 CBA basis 读取 reducer-profile cell<br>7. Lattice / Seal
@@ -367,7 +367,7 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
-当节点发现自己的验证图中存在缺失（`prev_refs` 引用了本地没有的 Event，或 `refs[role=authorized_by]` 所指 grant record 无法从本地 sealed control history 重建）时，可以主动向源 Principal Server 的 peer surface 拉取对应历史。`authorized_by` 仍保留 `ak:grant:` id，不得改写为承载 Event alias；接收方从回填的 control Event 与 Seal 重建 grant record 后继续验证。v1 联邦 Event pull 使用 `ak.peer.events.read.scan.v1`（`QUERY /_arkret/peer/events`），JSON content 的 `before` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
+当节点发现自己的验证图中存在缺失（`prev_refs` 引用了本地没有的 Event，或 `refs[role=authorized_by]` 所指 grant record 无法从本地 sealed control history 重建）时，可以主动向源 Station 的 peer surface 拉取对应历史。`authorized_by` 仍保留 `ak:grant:` id，不得改写为承载 Event alias；接收方从回填的 control Event 与 Seal 重建 grant record 后继续验证。v1 联邦 Event pull 使用 `ak.peer.events.read.scan.v1`（`QUERY /_arkret/peer/events`），JSON content 的 `before` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
 
 ```
 QUERY /_arkret/peer/events
@@ -413,16 +413,16 @@ v1 的 peer pull **只有**这一种带 JSON body 的 `QUERY` 形态，没有无
 
 ### 4.3 重复与幂等
 
-- 同一个 `event_id` 的 Event MAY 被多个 Principal Server 推送多次
+- 同一个 `event_id` 的 Event MAY 被多个 Station 推送多次
 - 接收方 MUST 以 `event_id` 去重
 - 内容相同的重复推送 MUST 幂等接受
 - `event_id` 相同但内容不同的推送 MUST 以 `duplicate_conflict`（HTTP 409 / conflict-class reason）拒绝，与 [operations-sync.md](./operations-sync.md) §12 一致；不得退化为 `causal_conflict` / `state_mismatch`
 
 ### 4.4 Capability Revoke Fanout
 
-`ak.capability.revoke`、superseding grant、membership removal、ban、device/session revoke 和会使既有 allow cache 失效的 policy change 是高优先级 auth state。源 Principal Server 在接受这类 Event 后，MUST 主动推送给所有当前已知的相关 Principal Server，而不是只等待对端下一次 pull：
+`ak.capability.revoke`、superseding grant、membership removal、ban、device/session revoke 和会使既有 allow cache 失效的 policy change 是高优先级 auth state。源 Station 在接受这类 Event 后，MUST 主动推送给所有当前已知的相关 Station，而不是只等待对端下一次 pull：
 
-- fanout 目标包括 Realm policy / membership / service delegation 中声明的 shared notary / Principal Server sync surface、受影响 subject 的 Principal Server、grant issuer / delegatee 所在 Principal Server，以及正在服务该 Realm 的 federation peer。
+- fanout 目标包括 Realm policy / membership / service delegation 中声明的 shared notary / Station sync surface、受影响 subject 的 Station、grant issuer / delegatee 所在 Station，以及正在服务该 Realm 的 federation peer。
 - 推送 payload MUST 包含原始 Event Envelope、必要 auth refs、当前 auth frontier 或可验证 snapshot reference，便于接收方立即失效 capability cache。
 - 接收方即使暂时无法完整验证该 revoke，也 MUST 将匹配 scope 的 allow cache 标记为 stale / `revocation_freshness_unknown`，直到 backfill 完成。
 - fanout 失败时，源服务器 MUST 保留重试队列并在后续 federation transaction、frontier probe 或 pull 响应中暴露缺失诊断；不得因单个 peer 不可达而回滚已 accepted revoke。
@@ -431,7 +431,7 @@ v1 的 peer pull **只有**这一种带 JSON body 的 `QUERY` 形态，没有无
 
 #### 4.4.1 Account Deactivation Federation Fanout
 
-`AccountStatusRecord` 进入 terminal / `deactivated` 状态时，首个接收 Principal Server MUST 把原始 signed record 主动推送给所有曾持有该 exact AccountId 的 device/KeyPackage/to-device/push-route 状态、或持有引用该 AccountId 的 Realm membership 的 peer Principal Server。该路径与 §4.4 的 revoke fanout 同等级，不得只等待常规 pull，也不得按相同 `principal_id` 扩大目标集合。
+`AccountStatusRecord` 进入 terminal / `deactivated` 状态时，首个接收 Station MUST 把原始 signed record 主动推送给所有曾持有该 exact AccountId 的 device/KeyPackage/to-device/push-route 状态、或持有引用该 AccountId 的 Realm membership 的 peer Station。该路径与 §4.4 的 revoke fanout 同等级，不得只等待常规 pull，也不得按相同 `principal_id` 扩大目标集合。
 
 - 默认 `deactivation_propagation_window_ms` MUST ≤ 600000（10 分钟）。高安全部署 MAY 更短。
 - peer 收到 deactivation 后 MUST 立即 drop `recipient_principal_id == deactivated_principal` 的 pending to-device message、停止 KeyPackage claim、撤销 push route 投递，并拒绝该 principal 后续 device-side effect。
@@ -447,7 +447,7 @@ v1 的 peer pull **只有**这一种带 JSON body 的 `QUERY` 形态，没有无
 
 #### 4.5.1 Frontier Probe 能力 (MUST)
 
-每个托管 Realm S effective joined member 的 Principal Server **MUST** 暴露 `QUERY /_arkret/peer/events/frontier`（`ak.peer.events.read.frontier.v1`），使被 Realm S policy 授权的对端 peer 可以按需查询当前 frontier。该 endpoint 只承接 federation peer probe 调用面：调用方必须是托管当前 effective joined member 的 Principal Server DID，鉴权必须满足 §3 节点间认证，响应形态是完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)`；请求携带可选 `actor_id` 时，响应还必须返回该 actor scope 的 `auth_state_root`、`policy_frontier_root` 与 `membership_frontier_root`。
+每个托管 Realm S effective joined member 的 Station **MUST** 暴露 `QUERY /_arkret/peer/events/frontier`（`ak.peer.events.read.frontier.v1`），使被 Realm S policy 授权的对端 peer 可以按需查询当前 frontier。该 endpoint 只承接 federation peer probe 调用面：调用方必须是托管当前 effective joined member 的 Station DID，鉴权必须满足 §3 节点间认证，响应形态是完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)`；请求携带可选 `actor_id` 时，响应还必须返回该 actor scope 的 `auth_state_root`、`policy_frontier_root` 与 `membership_frontier_root`。
 
 Probe **MUST** 是 capability-gated：
 
@@ -529,25 +529,25 @@ Probe 响应 payload：
 
 ### 5.0 Join Candidate Routing
 
-跨域加入 Realm 时，客户端唯一的提交目标是 invitee AccountId 中的 Principal Server。`join_candidates[]` 只供该 Principal Server 在完成本地 admission 后，按 signed invite / current joined-member ActorId routing projection 选择已有 Realm 成员 Principal Server 作为有界 federation forwarding 目标；它不创造 Realm ingress authority。结构见 [`ak.schema.realm_join_candidate.v1`](../../artifacts/schemas/realm-join-candidate.schema.json) 与 [`discovery-directory.md` §9.1.1](../discovery/discovery-directory.md)。
+跨域加入 Realm 时，客户端唯一的提交目标是 invitee AccountId 中的 Station。`join_candidates[]` 只供该 Station 在完成本地 admission 后，按 signed invite / current joined-member ActorId routing projection 选择已有 Realm 成员 Station 作为有界 federation forwarding 目标；它不创造 Realm ingress authority。结构见 [`ak.schema.realm_join_candidate.v1`](../../artifacts/schemas/realm-join-candidate.schema.json) 与 [`discovery-directory.md` §9.1.1](../discovery/discovery-directory.md)。
 
 规范约束：
 
 1. 客户端在提交 `ak.invite.accept`、`ak.member.state{membership="join"}`、`ak.member.state{membership="knock"}` 或 application receipt 前，MUST 取得 canonical `realm_id` 与所需 `seal_basis`，然后只向 Event `actor_id` 的 routing-service projection 提交。
-2. invitee Principal Server 完成本地 schema、producer proof、session pair 与 device/PCR 状态 admission 后，MAY 从 signed invite 或 inviter 当前 joined-member ActorId routing projection 裁剪 `join_candidates[]`，并按 service DID 去重后选择未过期的 joined-member Principal Server 转发。部署已知 peer、notary、mirror、Directory/search projection 或裸 URL 不得成为候选来源。
-3. 接收 joined-member Principal Server MUST 验证 `realm_id`、producer proof、内嵌 origin Principal Server admission proof、Source-Service-ID 是否等于 Event `actor_id` 的 routing-service projection、candidate provenance，以及 Join Policy / invite / review 链。Candidate 本身不是 authorization grant。
+2. invitee Station 完成本地 schema、producer proof、session pair 与 device/PCR 状态 admission 后，MAY 从 signed invite 或 inviter 当前 joined-member ActorId routing projection 裁剪 `join_candidates[]`，并按 service DID 去重后选择未过期的 joined-member Station 转发。部署已知 peer、notary、mirror、Directory/search projection 或裸 URL 不得成为候选来源。
+3. 接收 joined-member Station MUST 验证 `realm_id`、producer proof、内嵌 origin Station admission proof、Source-Service-ID 是否等于 Event `actor_id` 的 routing-service projection、candidate provenance，以及 Join Policy / invite / review 链。Candidate 本身不是 authorization grant。
 4. **join-side 接收的最小披露失败语义（normative）**：candidate 服务接收 `ak.invite.accept` / `ak.member.state{membership="join"|"knock"}` / application receipt 时，§3.2 定义的**统一最小披露失败族**（存在性不可区分 + 固定 timing bucket）MUST 同样适用于该接收路径——对外 MUST NOT 可区分"该 `(realm_id, subject)` 不存在 pending invite / 不是该 Realm 成员候选"与"存在但本提交鉴权 / 完整性 / Join Policy 校验失败"。具体而言：对这两类原因 MUST 返回同一 HTTP status 与同一 `reason_code`（沿用 §3.2 的统一鉴权失败码），响应可见字段 MUST NOT 携带 Realm / invite / membership 是否存在的可区分信息，timing MUST 归一到 §3.2 同口径的固定 bucket（≥30 次采样 p95 差异 SHOULD ≤ 50ms，高安全 profile MUST 使 p99 落入同桶）。真实 reason 仅写入接收方审计日志。这把"可探测 `(realm_id, subject)` 是否存在 pending invite"的枚举面在 join-side submission 接收上关闭，与 [`third-party-invites.md` §6](./third-party-invites.md) 的不可枚举 claim 响应口径一致。
-5. 客户端不得读取或选择 federation forwarding candidate，也不得绕过自己的 Principal Server 直投；invitee Principal Server 不得从 Realm metadata、URL hint 或部署配置推导额外 target。
-6. 候选不可达、过期或返回 fail-closed diagnostics 时，invitee Principal Server MAY 在同一有界来源集合中尝试下一个候选。所有重试 MUST 绑定同一 canonical `realm_id` 与 byte-identical accepted Event，不得跨 Realm 重定向或重签 origin admission proof。
+5. 客户端不得读取或选择 federation forwarding candidate，也不得绕过自己的 Station 直投；invitee Station 不得从 Realm metadata、URL hint 或部署配置推导额外 target。
+6. 候选不可达、过期或返回 fail-closed diagnostics 时，invitee Station MAY 在同一有界来源集合中尝试下一个候选。所有重试 MUST 绑定同一 canonical `realm_id` 与 byte-identical accepted Event，不得跨 Realm 重定向或重签 origin admission proof。
 
 ### 5.1 邀请流程
 
-当 Realm S 的管理员邀请外部用户 Bob（Principal Server 在 `server-beta.com`）时：
+当 Realm S 的管理员邀请外部用户 Bob（Station 在 `server-beta.com`）时：
 
 1. 管理员提交 `ak.invite.create` Event，`invitee_account_id` 指向 Bob 的 exact AccountId；邀请的私有 metadata MAY 携带从 inviter 当前 joined-member ActorId routing projection 裁剪的候选提示，但不得把该列表当作授权本身。
-2. 该 Event 通过联邦推送到达 Bob 的 Principal Server；Bob 的客户端也 MAY 用 invite token / signed link 调用 `ak.find.directory.read.resolve_realm.v1` 刷新 candidate 列表。
-3. Bob 的客户端发现 Invite，决定接受，并把 `ak.invite.accept` Event 提交给 Bob 自己的 Principal Server。
-4. Bob 的 Principal Server 完成本地 admission，追加唯一 `principal_server_admission` proof，再按 signed invite / inviter 当前 joined-member ActorId routing projection 将 byte-identical Event 转发给一个已有成员 Principal Server。
+2. 该 Event 通过联邦推送到达 Bob 的 Station；Bob 的客户端也 MAY 用 invite token / signed link 调用 `ak.find.directory.read.resolve_realm.v1` 刷新 candidate 列表。
+3. Bob 的客户端发现 Invite，决定接受，并把 `ak.invite.accept` Event 提交给 Bob 自己的 Station。
+4. Bob 的 Station 完成本地 admission，追加唯一 `station_admission` proof，再按 signed invite / inviter 当前 joined-member ActorId routing projection 将 byte-identical Event 转发给一个已有成员 Station。
 5. 接收方验证 invite、完整 membership ActorId、路由投影与 Event proofs 后，仅向 effective joined-member routing services 按 service DID 去重扇出。
 6. 各参与方按 reducer 验证 Invite 有效性并收敛成员状态
 7. 若 Realm 启用了 E2EE，管理员的客户端构造 MLS `Welcome` 消息发给 Bob
@@ -560,7 +560,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 
 1. Bob 发现 Realm S 的元数据（通过公开的 Realm Directory、链接或 `directory_hint`），并取得 `join_candidates[]`
 2. Bob 直接提交 `ak.member.state{membership="join", gate_proofs=[...]}` Control Move，附带 claim presentation / challenge proof
-3. Bob 的客户端 / Principal Server 将 join Control Move 推送至所选未过期 candidate。**候选来源只有 §5.0 step 2 的两处**：signed invite，或当前 joined-member ActorId routing projection；部署已知 peer、shared notary、mirror、Directory / search projection 与裸 URL MUST NOT 成为候选
+3. Bob 的客户端 / Station 将 join Control Move 推送至所选未过期 candidate。**候选来源只有 §5.0 step 2 的两处**：signed invite，或当前 joined-member ActorId routing projection；部署已知 peer、shared notary、mirror、Directory / search projection 与裸 URL MUST NOT 成为候选
 4. 各参与方 reducer 加载当前 Join Policy component，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
 5. 若 Realm 启用了 E2EE，Bob join 后由现有成员通过 MLS commit + welcome 引入
 
@@ -568,7 +568,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 
 1. Bob 发现 Realm S 的元数据，并取得 `join_candidates[]`
 2. Bob 提交 `ak.member.state{membership="knock"}` Control Move；该公开状态只表达加入意图，不携带申请正文
-3. knock Control Move 先提交给 Bob 的 Principal Server；后者 admission 后按有界 candidate 转发，接收方验证完整 proofs 与 candidate provenance 后扇出至管理员设备
+3. knock Control Move 先提交给 Bob 的 Station；后者 admission 后按有界 candidate 转发，接收方验证完整 proofs 与 candidate provenance 后扇出至管理员设备
 4. 持有目标 Realm 精确 `ak.realm.admin` capability 的管理员根据本地或独立加密扩展流程决定是否邀请；v1 base 不定义 application、review、quorum 或 request-changes 协议
 5. 同意加入时，管理员提交普通 `ak.invite.create`，Bob 随后提交 `ak.invite.accept`；reducer 按标准 Invite 状态机收敛 `membership=join`
 6. 若 Realm 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
@@ -577,9 +577,9 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 
 ## 6. 联邦级服务发现
 
-### 6.1 Member Principal Server 发现
+### 6.1 Member Station 发现
 
-Realm 不声明独立 Principal Server sync surface、mirror 或 endpoint 列表。frontier probe、backfill、snapshot 与 Event push 只在当前 effective joined members 的 ActorId 所投影的 routing services 之间进行；endpoint 来自该 service DID core 的 current verified `ServiceResolutionRecord`。同一 service 托管多个成员时按 service DID 去重。
+Realm 不声明独立 Station sync surface、mirror 或 endpoint 列表。frontier probe、backfill、snapshot 与 Event push 只在当前 effective joined members 的 ActorId 所投影的 routing services 之间进行；endpoint 来自该 service DID core 的 current verified `ServiceResolutionRecord`。同一 service 托管多个成员时按 service DID 去重。
 
 
 ### 6.2 Actor Event Source 与 member route 发现
@@ -590,7 +590,7 @@ Profile 的 current principal resolution projection 只公开 `did_core_id -> di
 | --- | --- |
 | 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `Profile / identity evidence -> authorized service binding -> ServiceResolutionRecord -> base_url` |
 | Bootstrap 一个 actor 刚发现时的服务发现 hint | 同上；hint 不授权，必须独立验证 binding 与 record |
-| 已加入 Realm 的成员的 events / account aggregate / to_device / push / keypackages 投递 | **MUST** 从完整 member ActorId 派生 Principal Server service identity，再走标准 service resolution；**MUST NOT** 从裸 DID、DID Document 或当前服务猜测目标 |
+| 已加入 Realm 的成员的 events / account aggregate / to_device / push / keypackages 投递 | **MUST** 从完整 member ActorId 派生 Station service identity，再走标准 service resolution；**MUST NOT** 从裸 DID、DID Document 或当前服务猜测目标 |
 
 任何把 DID Document service entry 或 `did` method domain 当作 "Realm 投递 fallback" 的实现都违反 §4.1。join Control Move sealed 后，后续投递只使用 membership 中完整 ActorId 所投影的 service `did_core_id`；同-core record refresh 不改变 ActorId，service core 变更形成不同 ActorId，必须经新的 membership transition。
 
@@ -761,13 +761,13 @@ push 见 §4.1，pull / backfill 与成员视图见 §4.2，operation 行见
 
 - 请求 MUST 使用来源 service DID 的 HTTP Message Signature。
 - `purpose` MUST 是 `event_source`、`federation_join`、`device_binding` 或 Realm policy 明确允许的等价目的。
-- 请求方 MUST 是该 Realm 的参与方 Principal Server、被委托 notary / Principal Server sync surface，或拥有相关 federation / join 处理权限的服务。
+- 请求方 MUST 是该 Realm 的参与方 Station、被委托 notary / Station sync surface，或拥有相关 federation / join 处理权限的服务。
 - 服务端 MUST 限流，并对不可见 actor 返回统一 `not_found` / `capability_denied` 语义，避免批量枚举 DID。
 - 响应只能作为缓存加速或诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy。
 
 ### 7.5 Agent Event federation
 
-managed/native Agent Event 与其它普通 Event 使用相同 in-envelope Principal Server admission proof。receiver 不接收 Agent signer evidence bundle；origin Principal Server 在 admission 前验证 controller/runtime branch 与当前本地状态。
+managed/native Agent Event 与其它普通 Event 使用相同 in-envelope Station admission proof。receiver 不接收 Agent signer evidence bundle；origin Station 在 admission 前验证 controller/runtime branch 与当前本地状态。
 
 
 ## 8. 安全考量
@@ -845,7 +845,7 @@ managed/native Agent Event 与其它普通 Event 使用相同 in-envelope Princi
 v1 core 的联邦恢复只依赖已注册的 Event push/pull、Event frontier、Seal frontier 与精确 resolve 操作，不定义独立 peer snapshot manifest endpoint。首次加入或大范围缺失可能退化为分段历史回放，这是当前互操作 floor 的明确取舍。
 
 未来若增加 snapshot-assisted bootstrap，必须作为完整扩展 profile 同时定义 manifest 签名、authority binding、chunk 获取、frontier 锚定、失败回退、SDK 与 conformance；实现不得把本地 `/_soland/` 快照或 `ak.self.snapshot.read.manifest_head.v1` 直接暴露为 peer 协议。
-### 9.2 多 Principal Server 的 Gossip / 批量同步（增强项）
+### 9.2 多 Station 的 Gossip / 批量同步（增强项）
 
 该方向用于性能和可靠性提升，不是签名真实性的前提条件。最小实现可直接使用本文件 4/7 节的 push + pull。实现支持时应遵循：
 
@@ -865,7 +865,7 @@ v1 core 的联邦恢复只依赖已注册的 Event push/pull、Event frontier、
 
 - 默认不跨域、不中继地隐式级联。任何权限在跨域传递前都必须有明确 `ak.capability.grant` Event 表达，并通过 `issuer_authority_refs[]` 绑定上游 authority，同时绑定目标 `realm_id`、目标服务/主体、可见范围、时效和可撤销性。
 - 受权链必须可审计、可传递上限（如 depth / scope）并支持回收（revoke）。在未满足上限或超出范围时应 fail closed。
-- 委托不得扩大被委托方可见范围；只能收窄或保持不变。`principal_server` 不能仅凭受托委托获得不在其角色定义内的明文访问。
+- 委托不得扩大被委托方可见范围；只能收窄或保持不变。`station` 不能仅凭受托委托获得不在其角色定义内的明文访问。
 - 对级联场景，只允许显式 opt-in，且每一跳必须重复检查 policy 与签名。无法验明权利链的来源时必须 fail closed 视为未授权（拒绝并按 `capability_denied` 处理）。
 
 ### 9.4 联邦节点声誉系统（可选项）

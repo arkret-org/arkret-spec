@@ -21,7 +21,7 @@
       "operation_id": "ak.open.identity.read.resolution.v1",
       "expected_required_fields": [
         "principal_id",
-        "principal_server_id",
+        "station_id",
         "resolution_projection",
         "method_history_evidence",
         "projection_attestation"

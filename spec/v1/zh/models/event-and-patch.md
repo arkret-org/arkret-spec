@@ -69,7 +69,7 @@ Schema id: `ak.schema.event.v1`
 | `seal_basis` | conditional | `object` | Control Move 必填；只含 canonical sorted、duplicate-free `leaves[]` 并进入 canonical bytes。receiver 验证这些 Seal 并重算 covered control set、joined state 与 Seal roots；不得由 producer 重复抄写 roots。 | 控制面提交基线。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
-| `proofs` | yes | `array<Proof>` | 至少一个 producer proof；origin Principal Server 完成本地准入后最多追加一个 `principal_server_admission`。 | producer 签名与 origin admission 证明。 |
+| `proofs` | yes | `array<Proof>` | 至少一个 producer proof；origin Station 完成本地准入后最多追加一个 `station_admission`。 | producer 签名与 origin admission 证明。 |
 
 #### 2.2.1 Wire Event 与 producer 的已验证提交态（normative）
 
@@ -152,7 +152,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
     "kind": "account",
     "account_id": {
       "principal_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
-      "principal_server_id": "ak:did_core:webvh:z6mkprincipalserverexample"
+      "station_id": "ak:did_core:webvh:z6mkstationexample"
     }
   },
   "actor_seq": 4,
@@ -490,7 +490,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 跨桶累计超过 64 时，上述“整桶”扩展为同一 `(realm_id, actor_id, actor_seq)` 的全部 sibling。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 digest 与确定性 reducer 输出 MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move仍按上段移除。
 
-`ak.device.reanchor` 使用 account-local 冲突槽 `(principal_id, principal_server_id, new_device_generation)`。Principal Server 的 create-once 合同保证该 pair 只有一条 PCR lineage；同槽 re-anchor 与 replacement-authorize digest 全同才是幂等重试，任一不同则 quarantine 全部候选及后继 generation Seal。该槽不暴露 PCR digest 为第二套身份，也不能用 first-seen 或数据库唯一约束丢弃冲突证据。
+`ak.device.reanchor` 使用 account-local 冲突槽 `(principal_id, station_id, new_device_generation)`。Station 的 create-once 合同保证该 pair 只有一条 PCR lineage；同槽 re-anchor 与 replacement-authorize digest 全同才是幂等重试，任一不同则 quarantine 全部候选及后继 generation Seal。该槽不暴露 PCR digest 为第二套身份，也不能用 first-seen 或数据库唯一约束丢弃冲突证据。
 
 上述独立冲突槽、到达顺序无关性与解除路径由 `ak.vector.identity.device_reanchor.v1` 执行验证。
 
@@ -526,17 +526,17 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 ## 3. Proof
 
-### 3.1 Principal Server authority 与准入证明（normative）
+### 3.1 Station authority 与准入证明（normative）
 
-账号型 principal 的完整外部 authority key 只有 `(principal_id, principal_server_id)`。前者回答“是谁”，后者回答“哪个 Principal Server 对该账号、设备和恢复状态负责”。同一 `principal_id` 在不同 Principal Server 上形成不同账号；单个 Principal Server 上同一 pair **MUST** 终身 create-once，只能对应一条 PCR lineage。注销、hard erasure 或停用后 **MUST** 保留最小 uniqueness tombstone，恢复只能沿原 lineage；换服务必须形成新的 pair。PCR Realm、genesis receipt、entry digest 与 frontier 可以作为账号内部审计和恢复状态，但 **MUST NOT** 参与外部 principal equality、membership、Contact、grant、普通 Event 或 cache/query identity。
+账号型 principal 的完整外部 authority key 只有 `(principal_id, station_id)`。前者回答“是谁”，后者回答“哪个 Station 对该账号、设备和恢复状态负责”。同一 `principal_id` 在不同 Station 上形成不同账号；单个 Station 上同一 pair **MUST** 终身 create-once，只能对应一条 PCR lineage。注销、hard erasure 或停用后 **MUST** 保留最小 uniqueness tombstone，恢复只能沿原 lineage；换服务必须形成新的 pair。PCR Realm、genesis receipt、entry digest 与 frontier 可以作为账号内部审计和恢复状态，但 **MUST NOT** 参与外部 principal equality、membership、Contact、grant、普通 Event 或 cache/query identity。
 
-普通 Event 先定义 `author_id = executed_by ?? actor_id`，再以封闭路由函数导出唯一 origin service：`account -> account_id.principal_server_id`、`hosted_principal -> principal_server_id`、`service -> service_id`。`actor_id` 仍是业务事实归属者，delegated execution 的授权由 `authorization_ref` 另行证明。Event **MUST NOT** 再携带顶层 `principal_server_id` 或任何平行 server sidecar；否则同一归属已在 `ActorId` 中表达两次，并会产生不一致分支。
+普通 Event 先定义 `author_id = executed_by ?? actor_id`，再以封闭路由函数导出唯一 origin service：`account -> account_id.station_id`、`hosted_principal -> station_id`、`service -> service_id`。`actor_id` 仍是业务事实归属者，delegated execution 的授权由 `authorization_ref` 另行证明。Event **MUST NOT** 再携带顶层 `station_id` 或任何平行 server sidecar；否则同一归属已在 `ActorId` 中表达两次，并会产生不一致分支。
 
-普通 caller-signed Event 的首次准入 **MUST** 只发生在上述路由函数导出的 origin service。caller submit 只能携带 producer proof；origin Principal Server 完成 schema、producer proof、完整 author ActorId、设备 generation/PCR 或相应 author branch 状态检查后，在同一 `proofs[]` 追加且只追加一个：
+普通 caller-signed Event 的首次准入 **MUST** 只发生在上述路由函数导出的 origin service。caller submit 只能携带 producer proof；origin Station 完成 schema、producer proof、完整 author ActorId、设备 generation/PCR 或相应 author branch 状态检查后，在同一 `proofs[]` 追加且只追加一个：
 
 ```json
 {
-  "kind": "principal_server_admission",
+  "kind": "station_admission",
   "verification_method": "did:webvh:example.com:principal#event-admission",
   "event_digest": "sha256:<canonical Event digest>",
   "producer_proof_digest": "sha256:<complete producer proof object digest>",
@@ -551,11 +551,11 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 }
 ```
 
-admission proof 使用独立 `context="ak.principal_server_admission_proof.v1"`。其 `verification_method` controller **MUST** 投影为从 `author_id` 导出的 origin service；`event_digest` 必须同时等于唯一 producer proof 与重算 Event digest；`producer_proof_digest` 固定为完整 producer proof object 的 SHA-256；producer verification method/signing key 必须逐字绑定 origin 实际验证的唯一 producer proof。`producer_signer_resolution_evidence_ref/digest` 是 optional pair，存在时绑定原始 producer 的完整 content-addressed signer evidence；Native Agent author 时两项 **MUST** 存在并解析为 origin 在此次准入中冻结的 exact `CurrentAdmission` root。无前缀的两项 `signer_resolution_evidence_*` 仍只绑定 admission proof 自身的 Principal Server 历史签名证据，不得冒充 producer evidence。`proofs[]` 恰有一个 producer proof，最多一个 admission proof。`accepted_at` 只进入 admission transcript，不进入 Event digest、Event ID 或 reducer。
+admission proof 使用独立 `context="ak.station_admission_proof.v1"`。其 `verification_method` controller **MUST** 投影为从 `author_id` 导出的 origin service；`event_digest` 必须同时等于唯一 producer proof 与重算 Event digest；`producer_proof_digest` 固定为完整 producer proof object 的 SHA-256；producer verification method/signing key 必须逐字绑定 origin 实际验证的唯一 producer proof。`producer_signer_resolution_evidence_ref/digest` 是 optional pair，存在时绑定原始 producer 的完整 content-addressed signer evidence；Native Agent author 时两项 **MUST** 存在并解析为 origin 在此次准入中冻结的 exact `CurrentAdmission` root。无前缀的两项 `signer_resolution_evidence_*` 仍只绑定 admission proof 自身的 Station 历史签名证据，不得冒充 producer evidence。`proofs[]` 恰有一个 producer proof，最多一个 admission proof。`accepted_at` 只进入 admission transcript，不进入 Event digest、Event ID 或 reducer。
 
-exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof 即可验证；signer evidence 只允许按 proof 内 required content-addressed ref/digest 通过标准 governance-dependency resolve 取得，**MUST NOT** 接收重复内嵌或 ad-hoc signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/range-completeness，也不得删除、替换或由 replica 重签 origin proof。origin Principal Server MUST 在追加 admission proof 的同一 serializable gate 中读取 exact `(JCS(author_id), device_id, current_device_generation_ref)` 的 durable `ak.schema.device_revocation_state.v1`；任一未终结 `revocation_pending` 或 `revoked` record 都拒绝新 Event 且不得追加 proof，缓存只能加速。只有精确绑定 proposal/Ack/device/generation 的有效 `signed_reject` 能清除对应 pending record；overdue、restart、cache eviction 或管理员布尔值均不能。此前在 pending 线性化点之前合法产生的 proof 继续仅按其签名 `accepted_at` 验证，不因后来 revoke 而追溯失效。
+exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof 即可验证；signer evidence 只允许按 proof 内 required content-addressed ref/digest 通过标准 governance-dependency resolve 取得，**MUST NOT** 接收重复内嵌或 ad-hoc signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/range-completeness，也不得删除、替换或由 replica 重签 origin proof。origin Station MUST 在追加 admission proof 的同一 serializable gate 中读取 exact `(JCS(author_id), device_id, current_device_generation_ref)` 的 durable `ak.schema.device_revocation_state.v1`；任一未终结 `revocation_pending` 或 `revoked` record 都拒绝新 Event 且不得追加 proof，缓存只能加速。只有精确绑定 proposal/Ack/device/generation 的有效 `signed_reject` 能清除对应 pending record；overdue、restart、cache eviction 或管理员布尔值均不能。此前在 pending 线性化点之前合法产生的 proof 继续仅按其签名 `accepted_at` 验证，不因后来 revoke 而追溯失效。
 
-这把 Principal Server 明确纳入账号设备 authority 的信任边界：服务 DID 签名提供可验证归责，但不能密码学阻止恶意服务虚假准入。若未来要抵抗恶意 Principal Server，应另行设计 principal-root/device certificate transparency，且不得把 account-local PCR 状态重新暴露为跨服务身份选择器。
+这把 Station 明确纳入账号设备 authority 的信任边界：服务 DID 签名提供可验证归责，但不能密码学阻止恶意服务虚假准入。若未来要抵抗恶意 Station，应另行设计 principal-root/device certificate transparency，且不得把 account-local PCR 状态重新暴露为跨服务身份选择器。
 
 ### 3.2 Producer proof
 
@@ -740,7 +740,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     "kind": "account",
     "account_id": {
       "principal_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
-      "principal_server_id": "ak:did_core:webvh:z6mkprincipalserverexample"
+      "station_id": "ak:did_core:webvh:z6mkstationexample"
     }
   },
   "actor_seq": 5,
@@ -837,7 +837,7 @@ Schema id: `ak.schema.event_batch_receipt.v1`
 | --- | --- | --- | --- | --- |
 | `schema` | yes | `string` | 固定为 `ak.schema.event_batch_receipt.v1`。 | Receipt schema id。 |
 | `receipt_id` | yes | `id:receipt` |  | Receipt ID。 |
-| `issuer` | yes | `did` | 必须控制签名 key。 | 签发者，可以是 principal、Principal Server 或 witness。 |
+| `issuer` | yes | `did` | 必须控制签名 key。 | 签发者，可以是 principal、Station 或 witness。 |
 | `scope` | yes | `object` | MUST 至少包含 `actor_id`、`realm_id` 或查询范围 hash 之一；Realm-scoped receipt MUST 包含 `realm_id`。 | receipt 覆盖范围。 |
 | `events` | yes | `array<receipt-item>` | canonical set：每项以 `canonical_json(item)` 的 UTF-8 bytes 为排序键严格升序，禁止重复。每项固定使用 `event_id + kind`。 | 被 receipt 覆盖的 Event identity；数组位置没有业务语义。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |

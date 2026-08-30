@@ -27,7 +27,7 @@ HTTP/JSON、NDJSON binding。
 operation。普通写操作继续使用 canonical HTTPS binding。LiveKit/SFU 等媒体 WebSocket 不属于
 本 profile，不得放进 `ServiceDescribe.transport_bindings` 的 Arkret `websocket` 条目。
 
-一个 authenticated Principal Server session **SHOULD** 只建立一个 Arkret WebSocket；上述
+一个 authenticated Station session **SHOULD** 只建立一个 Arkret WebSocket；上述
 operation 作为逻辑 channel 在该物理连接内多路复用。operation 的授权、cursor、filter、
 dedupe、catch-up 与完成语义保持独立，不因共享连接而合并。
 
@@ -67,7 +67,7 @@ transport descriptor 只承载连接坐标与传输 limit，**MUST NOT** 携带�
 **MUST** 关闭连接。
 
 广告本 profile 的服务 **MUST** 在同一 `ServiceDescribe` 的 `supported_operation_bundles` 中
-公告 `ak.operation_bundle.principal_server.websocket.v1`；该 bundle 在
+公告 `ak.operation_bundle.station.websocket.v1`；该 bundle 在
 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 中的成员恰好是
 §1 三个 operation 与 `binding_kind=websocket` 的配对，因此"部分覆盖"没有可广告形态。
 服务不得只公告 transport descriptor 而不公告该 bundle，也不得用其它 bundle 组合等价替代。

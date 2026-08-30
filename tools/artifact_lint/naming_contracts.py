@@ -1348,6 +1348,11 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                 )
                 continue
             if name.endswith(("_id", "_ids")) and ("type", '"object"') in terminals:
+                if name == "account_id":
+                    # AccountId is the one closed compound identity in v1. Its two
+                    # did_core_id components are atomic identity material, not an
+                    # arbitrary embedded object or a role with a missing suffix.
+                    continue
                 expected = (
                     name.removesuffix("_ids") + "s"
                     if name.endswith("_ids")

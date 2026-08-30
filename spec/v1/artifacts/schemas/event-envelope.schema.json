@@ -34,7 +34,7 @@
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
-      "description": "Complete identity of the principal whose Realm/cell state the Event mutates and to whom the durable fact is attributed. Account and hosted-principal variants carry their Principal Server namespace inside actor_id; a service variant carries the directly authoring service identity. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
+      "description": "Complete identity of the principal whose Realm/cell state the Event mutates and to whom the durable fact is attributed. Account and hosted-principal variants carry their Station namespace inside actor_id; a service variant carries the directly authoring service identity. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
     },
     "executed_by": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
@@ -191,7 +191,7 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Producer proofs sign canonical Event bytes, including the complete actor_id and executed_by when present. After local admission, the origin Principal Server named by the account or hosted-principal signer variant appends at most one principal_server_admission proof that binds the exact producer proof it verified; a directly authoring service is its own service identity. proofs and unsigned remain excluded from event_digest; federation and backfill preserve the accepted Event byte-for-byte.",
+      "description": "Producer proofs sign canonical Event bytes, including the complete actor_id and executed_by when present. After local admission, the origin Station named by the account or hosted-principal signer variant appends at most one station_admission proof that binds the exact producer proof it verified; a directly authoring service is its own service identity. proofs and unsigned remain excluded from event_digest; federation and backfill preserve the accepted Event byte-for-byte.",
       "items": {
         "$ref": "#/$defs/event_proof"
       },
@@ -206,7 +206,7 @@
         },
         {
           "contains": {
-            "$ref": "#/$defs/principal_server_admission_proof"
+            "$ref": "#/$defs/station_admission_proof"
           },
           "minContains": 0,
           "maxContains": 1
@@ -257,7 +257,7 @@
         "properties": {
           "proofs": {
             "contains": {
-              "$ref": "#/$defs/principal_server_admission_proof"
+              "$ref": "#/$defs/station_admission_proof"
             },
             "minContains": 1
           }
@@ -4524,7 +4524,7 @@
           "additionalProperties": false
         }
       ],
-      "description": "Closed typed locator union. State witnesses use a SealRef plus inline typed Merkle proof; grant/event roles use the exact provenance EventId. Signer-resolution evidence is carried exactly once by each producer/principal_server proof's required signer_resolution_evidence_ref and signer_resolution_evidence_digest, never as a SemanticRef. Unknown critical roles fail closed."
+      "description": "Closed typed locator union. State witnesses use a SealRef plus inline typed Merkle proof; grant/event roles use the exact provenance EventId. Signer-resolution evidence is carried exactly once by each producer/station proof's required signer_resolution_evidence_ref and signer_resolution_evidence_digest, never as a SemanticRef. Unknown critical roles fail closed."
     },
     "semantic_ref_merkle_proof": {
       "type": "object",
@@ -4638,9 +4638,9 @@
       },
       "additionalProperties": false
     },
-    "principal_server_admission_proof": {
+    "station_admission_proof": {
       "type": "object",
-      "description": "Origin Principal Server admission proof over canonical_json({context:'ak.principal_server_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,producer_signer_resolution_evidence_digest?,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). The optional producer pair freezes the original producer evidence root when that signer regime has portable evidence; Native Agent federation requires it. The unprefixed signer pair continues to bind the Principal Server proof's own service signer evidence.",
+      "description": "Origin Station admission proof over canonical_json({context:'ak.station_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,producer_signer_resolution_evidence_digest?,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). The optional producer pair freezes the original producer evidence root when that signer regime has portable evidence; Native Agent federation requires it. The unprefixed signer pair continues to bind the Station proof's own service signer evidence.",
       "required": [
         "kind",
         "verification_method",
@@ -4655,11 +4655,11 @@
       ],
       "properties": {
         "kind": {
-          "const": "principal_server_admission"
+          "const": "station_admission"
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Principal Server verification method whose controller projects to the principal_server_id inside the Event signer account or hosted-principal ActorId. A directly authoring service proof instead projects to that service ActorId's service_id."
+          "description": "Station verification method whose controller projects to the station_id inside the Event signer account or hosted-principal ActorId. A directly authoring service proof instead projects to that service ActorId's service_id."
         },
         "event_digest": {
           "$ref": "#/$defs/digest"
@@ -4692,7 +4692,7 @@
         "signer_resolution_evidence_digest": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Must equal the digest encoded by signer_resolution_evidence_ref and resolve to the exact Principal Server verification method used by this proof."
+          "description": "Must equal the digest encoded by signer_resolution_evidence_ref and resolve to the exact Station verification method used by this proof."
         },
         "accepted_at": {
           "$ref": "#/$defs/canonical_event_timestamp"
@@ -4745,7 +4745,7 @@
           "enum": [
             "detached_jws"
           ],
-          "description": "Actor, device or service signature over the registered producer-proof transcript. When the Event has no principal_server_admission proof, signer_resolution_evidence_ref and signer_resolution_evidence_digest are required and included. When a valid admission proof exists, both fields are forbidden and that proof's producer_signing_key is the historical producer-key truth."
+          "description": "Actor, device or service signature over the registered producer-proof transcript. When the Event has no station_admission proof, signer_resolution_evidence_ref and signer_resolution_evidence_digest are required and included. When a valid admission proof exists, both fields are forbidden and that proof's producer_signing_key is the historical producer-key truth."
         },
         "verification_method": {
           "type": "string",
@@ -4760,7 +4760,7 @@
         },
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Required only for the direct/DID-root/native producer regime without principal_server_admission; forbidden otherwise."
+          "description": "Required only for the direct/DID-root/native producer regime without station_admission; forbidden otherwise."
         },
         "signer_resolution_evidence_digest": {
           "type": "string",
@@ -4796,10 +4796,10 @@
         }
       },
       "additionalProperties": false,
-      "description": "Producer Event proof. The signer maps to the complete executed_by when present or actor_id otherwise. Its event_digest covers canonical producer Event bytes including that complete identity and excluding proofs, unsigned and reducer-stamped actor_kind. The event-level proof-regime validator enforces exactly one branch: a valid principal_server_admission proof means producer signer evidence fields are absent and the admission-bound producer_signing_key verifies this proof; without such admission both signer evidence fields are present and resolve to this exact verification_method."
+      "description": "Producer Event proof. The signer maps to the complete executed_by when present or actor_id otherwise. Its event_digest covers canonical producer Event bytes including that complete identity and excluding proofs, unsigned and reducer-stamped actor_kind. The event-level proof-regime validator enforces exactly one branch: a valid station_admission proof means producer signer evidence fields are absent and the admission-bound producer_signing_key verifies this proof; without such admission both signer evidence fields are present and resolve to this exact verification_method."
     },
     "event_proof": {
-      "description": "Closed Event proof union. Callers submit producer_event_proof only; the origin Principal Server may append one principal_server_admission proof after successful local admission.",
+      "description": "Closed Event proof union. Callers submit producer_event_proof only; the origin Station may append one station_admission proof after successful local admission.",
       "properties": {
         "event_digest": {
           "$ref": "#/$defs/digest"
@@ -4810,7 +4810,7 @@
           "$ref": "#/$defs/producer_event_proof"
         },
         {
-          "$ref": "#/$defs/principal_server_admission_proof"
+          "$ref": "#/$defs/station_admission_proof"
         }
       ],
       "required": [

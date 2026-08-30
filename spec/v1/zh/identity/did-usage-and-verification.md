@@ -102,7 +102,7 @@ authority verifier 必须从登记的 registration/genesis、resolution record�
 carrier 取得 required `did` / `verification_method`，经 active adapter 验证并投影后与 expected core
 逐字比较。孤立 `did_core_id` 没有 route evidence，**不得**触发 resolver；adapter 不登记 `expand` 或
 `core_to_did`，即使 `did:web` / `did:key` 的字符串看似可逆也不得绕过 carrier 猜测 DID。Identity
-resolution 需要已知 `(principal_id, principal_server_id)` account pair；service resolution 需要 bootstrap
+resolution 需要已知 `(principal_id, station_id)` account pair；service resolution 需要 bootstrap
 携带的 `current_record_url` 或已验证的 same-core route。未登记的 route source 一律 fail closed。
 
 ### 2.4 TSP VID 不是 DID alias
@@ -125,7 +125,7 @@ Document 解析、history 验证或网络请求：
 - 已认证 session 中由同一 accepted device / agent key epoch 签署的普通 Event 提交；
 - replay、backfill、snapshot 重放或历史查询已经携带并命中 pinned auth-state / historical
   verification binding 的材料；
-- 从完整 AccountId/ActorId 派生目标 Principal Server identity，并使用 fresh service-resolution route cache；
+- 从完整 AccountId/ActorId 派生目标 Station identity，并使用 fresh service-resolution route cache；
 - 展示 verification badge 的缓存状态。UI 可以显示 `verified` / `stale` / `unknown`，但显示路径
   不能升级成 authority path。
 

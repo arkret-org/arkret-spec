@@ -30,11 +30,11 @@ Arkret 的顶层架构要同时满足四件事：
 
 ## 2. 总体模型
 
-Arkret 采用 **Principal Server + signed Event + identity registry + client-side projection** 的分层模型。
+Arkret 采用 **Station + signed Event + identity registry + client-side projection** 的分层模型。
 
-`Principal Server` 是 principal 自己控制或通过 DID / Realm policy 明确委托的服务入口。它可以同机承载 Events API、sync、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。搜索、inbox、notification 和 View projection 默认是客户端或 SDK 的派生能力；若某部署额外提供受托搜索服务，该服务仍是可选扩展，不是协议核心真相源。
+`Station` 是 principal 自己控制或通过 DID / Realm policy 明确委托的服务入口。它可以同机承载 Events API、sync、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。搜索、inbox、notification 和 View projection 默认是客户端或 SDK 的派生能力；若某部署额外提供受托搜索服务，该服务仍是可选扩展，不是协议核心真相源。
 
-Arkret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
+Arkret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Station 之间的同步与联邦完成。
 
 协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Circle、Strand、Space、Message 等标准对象；Circle（`ak:circle:`）是 Realm 内的子事件边界（见 §2.0 容器选型），看板与列容器是独立的 Space（`ak:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
 
@@ -73,7 +73,7 @@ Arkret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Stra
 Organization principal 可以：
 
 - 签发组织成员资格、组织角色、handle 绑定等 credential
-- 控制 Principal Server、Applet、Realtime Media Server 等 service DID
+- 控制 Station、Applet、Realtime Media Services 等 service DID
 - 作为 Realm owner、policy issuer、trusted issuer 或 capability issuer
 - 托管多个 Realm，或与其他组织共同治理同一个 Realm
 
@@ -97,33 +97,33 @@ Arkret 记录的是 **协作 Event**——授权状态、协作事实、E2EE han
 Event chain 可以由以下形态承载：
 
 - 用户设备上的本地 append-only log。
-- Principal Server 内置的 Event Store Service 与 `/_arkret/self/events/*` API。
+- Station 内置的 Event Store Service 与 `/_arkret/self/events/*` API。
 - 多个受控 storage replica 保存的只读副本。
-- Principal Server 在 DID Document 中声明的服务 endpoint。
+- Station 在 DID Document 中声明的服务 endpoint。
 
 Event 的实际存储形态由实现决定：可以是数据库表、对象存储中的 Event blob、文件系统 append-only log、Merkle log、content-addressed block store，或这些形式的组合。协议只要求它能稳定输出 canonical Event bytes、hash、签名、frontier、cursor 和 proof material。
 
-Event 的权威来自 actor/device/service 对 Event 的签名、DID 控制链、`actor_seq` 路径递增约束、`prev_refs` 因果链和 `event_id` 幂等性，而不是来自托管它的 Principal Server。Principal Server 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
+Event 的权威来自 actor/device/service 对 Event 的签名、DID 控制链、`actor_seq` 路径递增约束、`prev_refs` 因果链和 `event_id` 幂等性，而不是来自托管它的 Station。Station 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
 
-### 2.3 Principal Server
+### 2.3 Station
 
-Principal Server 是 principal 的受控服务边界。它负责承载或代理：
+Station 是 principal 的受控服务边界。它负责承载或代理：
 
 - Event 的提交、读取、回填与复制
 - Realm 范围的增量同步、回补与订阅
 - blob、push、policy、device message 等辅助服务
-- 与其他 Principal Server 的 federation transaction
+- 与其他 Station 的 federation transaction
 
-Principal Server 不是身份本身，也不能替 principal 伪造 Event，**更不是协议的唯一真相源**：共享状态的真相来自 signed Event 与 per-actor event chain（见 §2.2、§6.2），Principal Server 可拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。它的权威来自 DID Document、service delegation、Realm policy、capability 和签名事件。
+Station 不是身份本身，也不能替 principal 伪造 Event，**更不是协议的唯一真相源**：共享状态的真相来自 signed Event 与 per-actor event chain（见 §2.2、§6.2），Station 可拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。它的权威来自 DID Document、service delegation、Realm policy、capability 和签名事件。
 
 明文规则：
 
 - 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Realm policy 明确委托的第三方服务。
-- 如果 Realm 声明了 shared notary / Principal Server sync surface，该服务必须是 Realm policy 中显式列出的受信 Principal Server 或组织服务 DID。
+- 如果 Realm 声明了 shared notary / Station sync surface，该服务必须是 Realm policy 中显式列出的受信 Station 或组织服务 DID。
 - 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Realm policy 明确委托。
-- Realm member identity 由完整 ActorId 决定；目标 Principal Server 从其 account/hosted-principal 分支派生，endpoint 另走标准 service resolution。DID Document 不补齐账号身份或 membership route。
+- Realm member identity 由完整 ActorId 决定；目标 Station 从其 account/hosted-principal 分支派生，endpoint 另走标准 service resolution。DID Document 不补齐账号身份或 membership route。
 - 私有正文、附件预览、全文索引、通知摘要、embedding 与可逆派生摘要的受托服务可见边界，由 [`sync/service-surface.md` §5.4](../sync/service-surface.md) 的 `plaintext_visible_services` 权威规则定义；本节只记录该边界属于 Realm policy，而不重复条目 schema 与授权事件。
-- 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
+- 接收方 Station 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
 - public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_access` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ak.realm.preview_policy` 或等价 export policy 约束；若 Realm 未声明 `preview_policy`，缺省 MUST fail closed（不暴露任何 history snippet / export），MUST NOT 因 `history_access=all_history_for_current_members` 而自动放行。`preview_policy` 取值与缺省规则的权威源见 [`governance/history-visibility.md`](../governance/history-visibility.md)。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
@@ -146,7 +146,7 @@ Blob 地址可以多源，校验应基于内容哈希而不是单一 URL。
 
 ### 2.6 Authz / Policy 角色
 
-Authz / Policy 是一组逻辑职责，不是独立的 service role 专名。Principal Server 根据 accepted capability 与 policy state 执行本地 precheck 和 reducer 校验；授权服务面以 [`sync/service-surface.md` §2.5](../sync/service-surface.md) 与 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md) 为准。
+Authz / Policy 是一组逻辑职责，不是独立的 service role 专名。Station 根据 accepted capability 与 policy state 执行本地 precheck 和 reducer 校验；授权服务面以 [`sync/service-surface.md` §2.5](../sync/service-surface.md) 与 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md) 为准。
 
 这些职责包括：
 
@@ -166,11 +166,11 @@ Arkret 的 client 不只包括 GUI 应用，也包括：
 
 协议必须把 agent 当作一等参与者，而不是 UI 里的“插件”。
 
-### 2.8 Principal Server 部署形态
+### 2.8 Station 部署形态
 
 Arkret 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：每个 `ServiceDescribe` 只描述一个逻辑角色；共享 public binding 的多个角色必须通过 `GET /_arkret/describe?service_kind=<registered-id>` 分别返回 role-scoped describe，使 service DID、`service_kind`、capability、Realm policy、plaintext visibility、`supported_operation_bundles` 和 endpoint 契约仍可逐角色验证。
 
-面向用户和运维文档时，也应直接使用 **Principal Server**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
+面向用户和运维文档时，也应直接使用 **Station**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
 
 部署 profile 与服务角色契约的权威定义：
 
@@ -180,10 +180,10 @@ Arkret 的协议文档按“服务角色”定义能力；实际落地时可以�
 
 本节只保留无法机器化的信任边界叙述、最小拓扑示意和 identity resolver 的部署常识；任何"哪种规模需要哪些服务"的列举请直接读上面三处源。
 
-最小个人或小团队部署至少自建两个服务角色：**Principal Server** 与 **Account Authority（Auth Server）**。二者 MAY 合并到同一进程 / 域名 / 节点（见 §2.8），但各自的 service DID 与安全边界仍必须可区分。
+最小个人或小团队部署至少自建两个服务角色：**Station** 与 **Account Authority（Auth Server）**。二者 MAY 合并到同一进程 / 域名 / 节点（见 §2.8），但各自的 service DID 与安全边界仍必须可区分。
 
 ```text
-Principal Server                 Account Authority (Auth Server)
+Station                 Account Authority (Auth Server)
 ├─ principal endpoint            ├─ 账户注册 / 恢复
 ├─ event storage                 ├─ 设备 enroll / device pairing
 ├─ sync / federation endpoint    ├─ session grant 签发 / 刷新 / 撤销
@@ -192,9 +192,9 @@ Principal Server                 Account Authority (Auth Server)
 └─ basic app view / inbox
 ```
 
-Account Authority 为什么**不**属于「可外挂的公共基础设施」：账户注册与恢复、设备 enroll、claim attestation 以及无域名用户的 DID 历史链（`did.jsonl`）托管都落在这一角色上——它掌握账户生死与身份连续性。把它委托给共享 / 他方 Auth Server，等于把这些控制权交给对方，与 Arkret 的自我主权前提冲突。因此 `personal_node` / `small_team` 的默认姿态是自建 Account Authority（SHOULD）；确需委托共享 Auth Server 时，MUST 在 `service-describe`（`auth_metadata`）中显式声明该委托，使继承来的信任依赖（对账户恢复、设备 enroll、DID 连续性的控制权）可审计——逃生舱，非默认。此姿态与 [`sync/service-surface.md` §2.5](../sync/service-surface.md) 中 Account Authority「个人部署通常与 Principal Server 同 origin」一致。两个服务各自的 service DID 如何在启动时自动获得（无需人工 mint / 手贴 DID）、以及 config 值如何降级为 fail-closed pin，见 [`identity/identity-did.md` §3.7](../identity/identity-did.md)。
+Account Authority 为什么**不**属于「可外挂的公共基础设施」：账户注册与恢复、设备 enroll、claim attestation 以及无域名用户的 DID 历史链（`did.jsonl`）托管都落在这一角色上——它掌握账户生死与身份连续性。把它委托给共享 / 他方 Auth Server，等于把这些控制权交给对方，与 Arkret 的自我主权前提冲突。因此 `personal_node` / `small_team` 的默认姿态是自建 Account Authority（SHOULD）；确需委托共享 Auth Server 时，MUST 在 `service-describe`（`auth_metadata`）中显式声明该委托，使继承来的信任依赖（对账户恢复、设备 enroll、DID 连续性的控制权）可审计——逃生舱，非默认。此姿态与 [`sync/service-surface.md` §2.5](../sync/service-surface.md) 中 Account Authority「个人部署通常与 Station 同 origin」一致。两个服务各自的 service DID 如何在启动时自动获得（无需人工 mint / 手贴 DID）、以及 config 值如何降级为 fail-closed pin，见 [`identity/identity-did.md` §3.7](../identity/identity-did.md)。
 
-默认仍可使用、且属于低主权风险的公共基础设施（读侧 / 传输侧）：Identity Resolution Infrastructure（DID 解析，只读）、Directory Server、Push Gateway、TURN / Media Relay。普通用户不应被要求单独部署这些或 Moderation Server；搜索、inbox、notification 和 View projection 默认在客户端本地派生。只有身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 场景才应把这些读侧 / 传输侧基础设施也收回自建。
+默认仍可使用、且属于低主权风险的公共基础设施（读侧 / 传输侧）：Identity Resolution Infrastructure（DID 解析，只读）、Directory Service、Push Gateway、TURN / Media Relay。普通用户不应被要求单独部署这些或 Moderation Service；搜索、inbox、notification 和 View projection 默认在客户端本地派生。只有身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 场景才应把这些读侧 / 传输侧基础设施也收回自建。
 
 Identity 部署常识（无法在 deployment profile 表中表达）：
 
@@ -240,7 +240,7 @@ flowchart TB
 规范要点（_informative_）：
 
 - Presentation 永远消费 Projection 的输出，不持有真相副本；Projection 永远是派生层，可重算。
-- Confidentiality 是包裹层，决定 Distribution / Write / Projection 各自能看到什么；Principal Server sync surface 不解密正文也能继续转发。
+- Confidentiality 是包裹层，决定 Distribution / Write / Projection 各自能看到什么；Station sync surface 不解密正文也能继续转发。
 - Portability 在 export / import 时把多个平面的状态打包并重放，是协议平面而不是部署细节。
 
 ### 3.1 Identity Plane
@@ -298,7 +298,7 @@ Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可
 - 可见性与密文负载区分
 - 内容加密 envelope
 - key distribution / rotation
-- 让 Principal Server sync surface 在不解密正文时也能继续转发
+- 让 Station sync surface 在不解密正文时也能继续转发
 - 决定 Distribution / Write / Projection 各平面分别能看到什么（与图 3-1 的"包裹"关系一致）：Projection 只能投影本端已授权解密的内容，Confidentiality 同样约束 Projection 层的可见边界，而不仅是 Distribution 转发层
 
 ### 3.7 Portability Plane
@@ -308,7 +308,7 @@ Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可
 - export / import
 - snapshot + Event replay
 - service replacement
-- 多 Principal Server / 受托 search service 迁移
+- 多 Station / 受托 search service 迁移
 
 ## 4. 部署拓扑
 
@@ -338,9 +338,9 @@ flowchart LR
         ER["Events API / Event Store"]
     end
 
-    subgraph "Principal Server / Principal Server sync surfaces"
-        PS1["Principal Server A"]
-        PS2["Principal Server B"]
+    subgraph "Station / Station sync surfaces"
+        PS1["Station A"]
+        PS2["Station B"]
     end
 
     subgraph "Directory Services"
@@ -378,7 +378,7 @@ flowchart LR
 规范要点（_informative_）：
 
 - DID / Registry / Witness 负责身份解析和控制链证明。
-- Actor Event Chain 是主体发布日志，Principal Server 提供受控同步、托管和联邦入口。
+- Actor Event Chain 是主体发布日志，Station 提供受控同步、托管和联邦入口。
 - Search / View projection 默认在客户端本地派生；Directory 是受授权的发现层，不能替代签名事件和 reducer。
 - Blob、Authz、Push 是服务平面，可与其他角色同机部署，也可分离部署。
 
@@ -388,7 +388,7 @@ flowchart LR
 
 - identity registry
 - events
-- Principal Server sync surface
+- Station sync surface
 - blob
 
 适合：
@@ -401,9 +401,9 @@ flowchart LR
 
 常见模式是：
 
-- 每个组织维护自己的受控 Principal Server / Event store
-- 每个组织或可信运营方运行自己的 Principal Server
-- 参与方 Principal Server 通过 federation transaction 交换 Realm 相关 Event
+- 每个组织维护自己的受控 Station / Event store
+- 每个组织或可信运营方运行自己的 Station
+- 参与方 Station 通过 federation transaction 交换 Realm 相关 Event
 - 各参与方客户端基于自身授权范围生成本地视图，或显式使用受托 search / projection 扩展
 - Realm policy 明确列出共同治理的 organization DID、trusted issuer 和 service DID
 
@@ -416,7 +416,7 @@ flowchart LR
 - user/organization DID 作为 authority
 - agent DID 拥有受限 capability
 - agent 的结果和审计摘要写成 agent 签名 Event
-- agent 的 Principal Server 将这些 Event 同步到 Collaboration Realm（参见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）
+- agent 的 Station 将这些 Event 同步到 Collaboration Realm（参见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）
 - 客户端或受托 projection 扩展生成 human review queue
 
 ### 4.4 Sovereign / High-Assurance 拓扑
@@ -433,7 +433,7 @@ Sovereign deployment 不排斥跨组织协作。组织 MAY 创建 **External Col
 - 使用 `join_rule=restricted` 或 `knock_restricted`。
 - 通过 Organization DID、external organization DID、claim / VC 和 admin approval 验证外部主体。
 - 使用 E2EE，并只向批准设备发送 MLS Welcome。
-- 使用独立 Principal Server / directory / blob enclave，避免外部主体获得主网络目录或服务拓扑。
+- 使用独立 Station / directory / blob enclave，避免外部主体获得主网络目录或服务拓扑。
 - 对 Applet、Agent handoff、media recording、export、bulk download 默认 deny，按 capability 显式授权。
 
 详细规则见 [`sync/sovereign-deployment.md`](../sync/sovereign-deployment.md)。
@@ -466,17 +466,17 @@ Event chain 能证明：
 
 Event chain 不能单方面定义共享 realm 的最终当前态。
 
-### 6.2 Principal Server 可提供同步，但不应重写历史
+### 6.2 Station 可提供同步，但不应重写历史
 
-Principal Server 可以：
+Station 可以：
 
 - 缓存
 - 排序
 - 去重
 - 按 cursor 订阅输出
-- 与其他 Principal Server 交换 federation transaction
+- 与其他 Station 交换 federation transaction
 
-Principal Server 不可以：
+Station 不可以：
 
 - 伪造 actor Event
 - 静默删除仍然有效的历史 Event
@@ -537,7 +537,7 @@ Arkret v1 固定以下方向：
 
 - signed Event Envelope 和 per-actor event chain 是 actor 发布基线
 - identity registry / witness 是 DID 文档的解析与写入层
-- Principal Server / Principal Server sync surface 是受控同步与联邦层
+- Station / Station sync surface 是受控同步与联邦层
 - search / View projection 默认是客户端本地派生体验；受托搜索服务只能作为可选扩展
 - blob 是独立内容层
 - capability 是独立决策层
@@ -547,12 +547,12 @@ Arkret v1 固定以下方向：
 
 ## 9. 可落地性要求
 
-Arkret v1 不允许实现用单一聚合服务隐藏已声明的 Principal Server / Directory / Blob / Media / Applet 等协议边界。任何声称支持 `ak.profile.principal_server.v1` 或 `ak.profile.full_client.v1` 的实现 MUST 满足以下要求：
+Arkret v1 不允许实现用单一聚合服务隐藏已声明的 Station / Directory / Blob / Media / Applet 等协议边界。任何声称支持 `ak.profile.station.v1` 或 `ak.profile.full_client.v1` 的实现 MUST 满足以下要求：
 
 - Event digest、event-batch receipt digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `conformance-vectors.md` 执行。
 - Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。
 - Search / View projection 若对外暴露可互操作语义，按 `query-schema.md`、`views.md` 和 `service-surface.md` 执行；结果必须能追溯到 signed Event、reducer profile 和 causal frontier。
 - Capability cache 只能作为优化。缓存命中必须绑定 causal frontier、grant / revoke / claim 状态和 policy version；上下文缺失、过期或发生分叉时 MUST fail closed 或重新执行完整 authz。
-- 多 Principal Server 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Realm policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
-- 加密 envelope、device / key server、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`device-lifecycle.md`、`key-management.md` 与 `media-and-blob.md` 执行。
+- 多 Station 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Realm policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
+- 加密 envelope、Station device/key surface、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`device-lifecycle.md`、`key-management.md` 与 `media-and-blob.md` 执行。
 - Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端 MUST NOT 仅信任外部 projection 或 search dump。

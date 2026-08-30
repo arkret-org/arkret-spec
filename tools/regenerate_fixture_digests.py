@@ -37,6 +37,74 @@ def iter_dict_nodes(value: Any) -> Iterable[dict[str, Any]]:
             yield from iter_dict_nodes(child)
 
 
+def replace(node: dict[str, Any], key: str, value: Any) -> int:
+    if node.get(key) == value:
+        return 0
+    node[key] = value
+    return 1
+
+
+def update_direct_conversation_vectors(data: dict[str, Any]) -> int:
+    """Refresh dependent Direct Conversation digests as one closed KAT set."""
+
+    vectors = {
+        vector.get("vector_id"): vector
+        for vector in data.get("vectors", [])
+        if isinstance(vector, dict)
+    }
+    pair = vectors.get("ak.vector.direct_conversation.pair_key.v1")
+    binding = vectors.get("ak.vector.direct_conversation.binding_digest.v1")
+    if not isinstance(pair, dict) or not isinstance(binding, dict):
+        return 0
+    pair_digest = pair.get("expected_digest")
+    binding_input = binding.get("input")
+    domain = binding.get("domain_separator_utf8")
+    if not isinstance(pair_digest, str) or not isinstance(binding_input, dict) or not isinstance(domain, str):
+        return 0
+
+    updates = replace(binding_input, "pair_key", pair_digest)
+    canonical = canonical_json(binding_input)
+    binding_digest = "sha256:" + hashlib.sha256((domain + canonical).encode("utf-8")).hexdigest()
+    updates += replace(binding, "expected_canonical_bytes_utf8", canonical)
+    updates += replace(binding, "digest_input_hex", (domain + canonical).encode("utf-8").hex())
+    updates += replace(binding, "expected_digest", binding_digest)
+
+    for case in binding.get("normalization_cases", []):
+        if not isinstance(case, dict):
+            continue
+        payload = case.get("payload")
+        if isinstance(payload, dict):
+            updates += replace(payload, "pair_key", pair_digest)
+        updates += replace(case, "expected_digest", binding_digest)
+
+    for case in binding.get("mutation_cases", []):
+        if not isinstance(case, dict):
+            continue
+        if case.get("name") == "omit_domain_separator":
+            bare = canonical.encode("utf-8")
+            updates += replace(case, "digest_input_hex", bare.hex())
+            updates += replace(case, "expected_digest", "sha256:" + hashlib.sha256(bare).hexdigest())
+            continue
+        mutation_input = case.get("input")
+        mutation_domain = case.get("domain_separator_utf8")
+        if isinstance(mutation_input, dict) and isinstance(mutation_domain, str):
+            updates += replace(mutation_input, "pair_key", pair_digest)
+            mutation_canonical = canonical_json(mutation_input)
+            updates += replace(case, "expected_canonical_bytes_utf8", mutation_canonical)
+            if "digest_input_hex" in case:
+                updates += replace(
+                    case,
+                    "digest_input_hex",
+                    (mutation_domain + mutation_canonical).encode("utf-8").hex(),
+                )
+            updates += replace(
+                case,
+                "expected_digest",
+                "sha256:" + hashlib.sha256((mutation_domain + mutation_canonical).encode("utf-8")).hexdigest(),
+            )
+    return updates
+
+
 def update_file(path: Path) -> int:
     data = json.loads(path.read_text(encoding="utf-8"))
     updates = 0
@@ -63,6 +131,8 @@ def update_file(path: Path) -> int:
                 if node["digest_input_hex"] != expected_hex:
                     node["digest_input_hex"] = expected_hex
                     updates += 1
+    if path.name == "encoding-fixture.json" and isinstance(data, dict):
+        updates += update_direct_conversation_vectors(data)
     if updates:
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return updates

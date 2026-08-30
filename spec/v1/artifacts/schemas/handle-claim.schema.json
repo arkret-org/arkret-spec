@@ -35,7 +35,7 @@
     },
     "subject_account_id": {
       "$ref": "./common-ids.schema.json#/$defs/account_id",
-      "description": "Exact account selected by this account handle. Both canonical components are proof-bound; a resolver MUST NOT infer or replace principal_server_id."
+      "description": "Exact account selected by this account handle. Both canonical components are proof-bound; a resolver MUST NOT infer or replace station_id."
     },
     "issuer_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",

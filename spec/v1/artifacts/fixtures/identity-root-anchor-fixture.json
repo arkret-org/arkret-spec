@@ -124,7 +124,7 @@
       "input": {
         "receipt_scope_principal_id_matches": true,
         "receipt_scope_account_authority_pair_matches_payload": false,
-        "substituted_field": "principal_server_id"
+        "substituted_field": "station_id"
       },
       "expected": {
         "decision": "reject",

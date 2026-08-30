@@ -1327,7 +1327,7 @@
     },
     "applet_registration_payload": {
       "type": "object",
-      "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot / Ghost Actor namespace). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / authorized registry-authz service. The formal Event is signed by that installing administrator and admitted by the target Principal Server; payload.proof is the exact controller-signed package proof and is not an Event proof.",
+      "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot / Ghost Actor namespace). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / authorized registry-authz service. The formal Event is signed by that installing administrator and admitted by the target Station; payload.proof is the exact controller-signed package proof and is not an Event proof.",
       "required": [
         "applet_id",
         "service_id",
@@ -1456,7 +1456,7 @@
         },
         "proof": {
           "$ref": "applet-package.schema.json#/$defs/detached_proof",
-          "description": "Exact controller-DID detached package proof copied from the accepted Applet package. payload_digest binds the canonical package, while the enclosing formal registration Event has its own Event proof and Principal Server admission proof."
+          "description": "Exact controller-DID detached package proof copied from the accepted Applet package. payload_digest binds the canonical package, while the enclosing formal registration Event has its own Event proof and Station admission proof."
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
@@ -3036,7 +3036,7 @@
       "required": [
         "grant"
       ],
-      "description": "Canonical ak.capability.grant genesis payload. Both top-level grant_id and grant.id are forbidden because the durable GrantId is derived by retyping this Event's event_id. authority_depth and authority_root_refs are reducer-derived and forbidden in this closed authoring shape. issuer_id and a concrete subject are already exact ActorIds; no parallel principal-server sidecar is permitted. The Event envelope proof is the sole durable issuer signature.",
+      "description": "Canonical ak.capability.grant genesis payload. Both top-level grant_id and grant.id are forbidden because the durable GrantId is derived by retyping this Event's event_id. authority_depth and authority_root_refs are reducer-derived and forbidden in this closed authoring shape. issuer_id and a concrete subject are already exact ActorIds; no parallel station sidecar is permitted. The Event envelope proof is the sole durable issuer signature.",
       "properties": {
         "grant": {
           "type": "object",
@@ -4134,7 +4134,7 @@
       ]
     },
     "device_push_route_payload": {
-      "description": "Closed account-private push-route write. Active routes and revoked tombstones are mutually exclusive whole-value shapes and both carry the single server-revision CAS precondition. The account identity is one atomic AccountId; its Principal Server is never repeated as a delivery field.",
+      "description": "Closed account-private push-route write. Active routes and revoked tombstones are mutually exclusive whole-value shapes and both carry the single server-revision CAS precondition. The account identity is one atomic AccountId; its Station is never repeated as a delivery field.",
       "oneOf": [
         {
           "$ref": "#/$defs/device_push_route_active_shape"
@@ -4227,10 +4227,10 @@
     },
     "device_reanchor_payload": {
       "type": "object",
-      "description": "Closed account-local PCR recovery payload. The account authority is selected by principal_id plus principal_server_id and one monotonic local device-generation CAS. PCR realm/frontier identifiers remain local recovery state and are not an external principal identity selector.",
+      "description": "Closed account-local PCR recovery payload. The account authority is selected by principal_id plus station_id and one monotonic local device-generation CAS. PCR realm/frontier identifiers remain local recovery state and are not an external principal identity selector.",
       "required": [
         "principal_id",
-        "principal_server_id",
+        "station_id",
         "recovery_authority_kind",
         "recovery_policy_id",
         "recovery_policy_version",
@@ -4244,7 +4244,7 @@
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "principal_server_id": {
+        "station_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "recovery_authority_kind": {
@@ -5169,7 +5169,7 @@
       "properties": {
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact directed invite account. The Invite id is derived from this Event's event_id and MUST NOT be carried in the genesis payload. Delivery resolves this AccountId's principal_server_id outside durable Realm state."
+          "description": "Exact directed invite account. The Invite id is derived from this Event's event_id and MUST NOT be carried in the genesis payload. Delivery resolves this AccountId's station_id outside durable Realm state."
         },
         "introduction_evidence_digest": {
           "$ref": "#/$defs/digest",
@@ -5389,7 +5389,7 @@
             "verification_method": {
               "type": "string",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-              "description": "Current verification method of subject_account_id.principal_id; the admission context separately binds the exact principal_server_id."
+              "description": "Current verification method of subject_account_id.principal_id; the admission context separately binds the exact station_id."
             },
             "signature_algorithm": {
               "type": "string",
@@ -7520,7 +7520,7 @@
         },
         "claim_envelope": {
           "type": "object",
-          "description": "Closed requester device, Native-Agent, or Realm-local pairwise signature binding the claimed KeyPackage to this Welcome, Realm, exact claim_request_id challenge and Welcome digest before decrypting the Welcome. Device/Agent signer authority is established by accepted authorization Events and their in-envelope Principal Server admission proofs; the pairwise signer is established by its exact did:key method and Realm-local actor. No signer-evidence sidecar is carried.",
+          "description": "Closed requester device, Native-Agent, or Realm-local pairwise signature binding the claimed KeyPackage to this Welcome, Realm, exact claim_request_id challenge and Welcome digest before decrypting the Welcome. Device/Agent signer authority is established by accepted authorization Events and their in-envelope Station admission proofs; the pairwise signer is established by its exact did:key method and Realm-local actor. No signer-evidence sidecar is carried.",
           "required": [
             "keypackage_ref",
             "keypackage_digest",
@@ -7706,7 +7706,7 @@
         },
         "claim_receipt": {
           "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt",
-          "description": "Destination-signed receipt used for both same-service and remote claims. The receiving destination Principal Server validates it against its durable claim ledger before accepting the Welcome."
+          "description": "Destination-signed receipt used for both same-service and remote claims. The receiving destination Station validates it against its durable claim ledger before accepting the Welcome."
         },
         "ciphertext": {
           "allOf": [
@@ -9780,7 +9780,7 @@
           "properties": {
             "controller_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id",
-              "description": "Exact ActorId of the successor that becomes the root controller. Its control proof MUST bind this complete identity; a bare principal DID or parallel Principal Server sidecar is insufficient."
+              "description": "Exact ActorId of the successor that becomes the root controller. Its control proof MUST bind this complete identity; a bare principal DID or parallel Station sidecar is insufficient."
             }
           },
           "additionalProperties": false,

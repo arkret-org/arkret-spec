@@ -83,7 +83,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 
 - `overview/protocol-layers.md`：Kernel、Collaboration Base 与 Extension 的稳定边界。
 - `overview/architecture.md`：架构、服务角色、部署与信任边界。
-- `overview/glossary.md`：Principal / Actor / Organization / Realm / Event / Principal Server 等术语。
+- `overview/glossary.md`：Principal / Actor / Organization / Realm / Event / Station 等术语。
 - `overview/current-model.md`：v1 统一对象模型的关键设计决定（Strand 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 - `models/overview.md`：对象总览、typed-id 一览、设计原则。
 
@@ -125,7 +125,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 ### 4.4 同步与真相模型
 
 - signed Event Envelope 是发布最小单位，actor event chain 是重放和可验证基础。
-- Principal Server / Principal Server sync surface 是同步基础设施，不是唯一真相源。
+- Station / Station sync surface 是同步基础设施，不是唯一真相源。
 - 搜索、inbox、notification、projection 默认由客户端或 SDK 派生。
 - 未加密私有正文不得发送到未授权第三方服务。
 - Event 写入具备幂等性；撤回通过 redaction 收敛，不等于全局物理删除。
@@ -165,7 +165,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 - 对象覆盖以 §1 的 canonical 对象清单为准：Realm / Circle / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
 - 字段级结构、必填性、枚举与约束
 - capability、delegation、claim 条件、policy 与 moderation policy
-- Event-first 发布、Principal Server 同步、客户端查询与投影
+- Event-first 发布、Station 同步、客户端查询与投影
 - MLS E2EE、设备验证、WebRTC、blob 与媒体
 - Applet、Agent 互通、Directory、Federation、Sovereign deployment
 

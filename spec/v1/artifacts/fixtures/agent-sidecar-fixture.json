@@ -79,7 +79,7 @@
         "one active authorized Agent device with matching evidence makes the Agent principal effective",
         "current controller device readiness is evaluated separately from effective_agent_ids",
         "desired membership removal stops delivery before the Remove Commit lands",
-        "the Principal Server creates a removal obligation but never fabricates an MLS Commit",
+        "the Station creates a removal obligation but never fabricates an MLS Commit",
         "the dedicated Sidecar view exposes a sorted non-empty authority frontier without creating Circle membership",
         "the controller persists signed Remove events and advances its post-commit snapshot only after accepted submission"
       ]

@@ -2408,8 +2408,7 @@ paths:
         schema:
           type: string
           enum:
-          - principal_server
-          - auth_server
+          - station
           - identity_registry
       - name: public_base_url
         in: query
@@ -3938,7 +3937,7 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: Replicate an authoritative AccountStatusRecord to a Principal Server.
+      summary: Replicate an authoritative AccountStatusRecord to a Station.
       description: |
         Accepts exactly one Account Authority-signed immutable record. The
         receiver verifies its identity, proof, binding tuple, strict sequence
@@ -4146,7 +4145,7 @@ paths:
         destinationTrustDomain: []
         contentDigest: []
       summary: Derive the current device binding and linearize an exact immutable device-bound action intent against origin revocation state.
-      description: The authenticated Account Authority supplies only selectors it can verify itself. The origin Principal Server derives the current authorization Event and PCR-local integer generation from its own durable device projection under the same serializable fence used for revoke acceptance, compares them with any expected binding in the request, and persists an exact-intent signed decision receipt. A validated request always returns HTTP 200 with a closed allow, revocation_pending, revoked, authority_mismatch or generation_mismatch receipt; 409 device_revocation_pending/device_revoked belongs only to the protected business operation. Only allow carries the derived binding, which is the sole source for the issued grant device_binding. An allow receipt is valid for at most 30 seconds and only for the exact issue/refresh intent bytes; introspection carries no receipt.
+      description: The authenticated Account Authority supplies only selectors it can verify itself. The origin Station derives the current authorization Event and PCR-local integer generation from its own durable device projection under the same serializable fence used for revoke acceptance, compares them with any expected binding in the request, and persists an exact-intent signed decision receipt. A validated request always returns HTTP 200 with a closed allow, revocation_pending, revoked, authority_mismatch or generation_mismatch receipt; 409 device_revocation_pending/device_revoked belongs only to the protected business operation. Only allow carries the derived binding, which is the sole source for the issued grant device_binding. An allow receipt is valid for at most 30 seconds and only for the exact issue/refresh intent bytes; introspection carries no receipt.
       requestBody:
         required: true
         content:
@@ -4411,10 +4410,10 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: Private Principal Server invite delivery.
+      summary: Private Station invite delivery.
       description: |
         Delivers a ak.invite.create event from the inviter-side Principal
-        Server to the invitee-side Principal Server. The recipient validates
+        Server to the invitee-side Station. The recipient validates
         the signed invite event, explicit invite_address, introduction_evidence,
         destination service DID, and subject-private invite_receive_policy
         before notifying, quarantining, or dropping internally.
@@ -4449,10 +4448,10 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: Private Principal Server Contact fact delivery.
+      summary: Private Station Contact fact delivery.
       description: |
         Delivers a signed ak.contact.* fact from the issuer-side Principal
-        Server to the target holder's Principal Server. Direct Conversation
+        Server to the target holder's Station. Direct Conversation
         bindings and Realm Events are forbidden. The recipient validates the signed fact event, the
         explicit contact_address, the destination service DID, and the holder's
         receive policy, then projects the original signed envelope into the
@@ -4878,10 +4877,10 @@ paths:
         handle-claim evidence or refs. This endpoint is distinct from
         ak.self.account.read.describe.v1, which describes service capabilities.
 
-        The authenticated session selects one exact (principal_id, principal_server_id)
+        The authenticated session selects one exact (principal_id, station_id)
         account authority pair. profile, when present, is the current accepted Actor
         Profile from that pair's single lifetime-local PCR lineage; the service MUST
-        NOT merge or select state from another Principal Server carrying the same core DID.
+        NOT merge or select state from another Station carrying the same core DID.
 
         The response MUST NOT use an unsigned bare handle as authoritative
         identity. When present, primary_handle_claim is a complete
@@ -5595,10 +5594,10 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Dispatch an already accepted invite through the inviter Principal Server.
+      summary: Dispatch an already accepted invite through the inviter Station.
       description: |
         Accepts an accepted invite Event id plus private delivery evidence from
-        the authenticated inviter. The Principal Server resolves its own stored
+        the authenticated inviter. The Station resolves its own stored
         canonical Event bytes and requires their author to be the session actor.
         Remote delivery constructs the peer body from those exact stored bytes;
         local delivery uses the same receive-policy path without re-authoring.
@@ -6740,7 +6739,7 @@ paths:
         Returns the account's Principal Control Realm id, genesis Event and
         receipt, current and bounded predecessor resolution Events, and the accepted
         Seal covering the current Event. Authorization is the current holder session
-        bound to the exact principal_authority. Recovery actors first complete the
+        bound to the exact account_id. Recovery actors first complete the
         existing recovery transaction and become the current holder; v1 has no second
         audit authorization path. A caller-declared intent is never authorization.
         Unknown account, wrong authority pair, unauthorized caller and unknown
@@ -7199,15 +7198,15 @@ paths:
       summary: Read the current public principal resolution projection.
       description: |
         Returns the account's current resolution projection, bounded adapter
-        method history evidence and the Principal Server projection attestation.
+        method history evidence and the Station projection attestation.
         It carries no Principal Control Realm id, genesis Event, genesis receipt,
         resolution Event or accepted Seal: that account-internal audit material
         is served only by ak.self.identity.read.resolution_audit.v1 under exact
         current-holder authorization, so this surface has no history selector.
         The response is discovery evidence, never an authorization result.
         A caller performing a sensitive operation MUST obtain a fresh response,
-        verify the exact (principal_id, principal_server_id) account authority,
-        verify the attestation proof under the current principal_server_id method
+        verify the exact (principal_id, station_id) account authority,
+        verify the attestation proof under the current station_id method
         history, resolve the returned did with the registered method adapter,
         and confirm project(did) equals principal_id. Callers are not required
         to persist another principal's resolution binding.
@@ -7225,11 +7224,11 @@ paths:
         schema:
           type: string
           pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-      - name: principal_server_id
+      - name: station_id
         in: query
         required: true
         description: >-
-          Principal Server that owns the account authority for this principal.
+          Station that owns the account authority for this principal.
           Together with principal_id this is the complete public selector.
         schema:
           type: string
@@ -7907,7 +7906,7 @@ paths:
       security: []
       responses:
         '200':
-          description: Account-aggregate Principal Server sync-surface metadata and limits
+          description: Account-aggregate Station sync-surface metadata and limits
           content:
             application/json:
               schema:
@@ -8566,7 +8565,7 @@ paths:
         public_metadata: false
         proof_in_body: true
         proof_field: authoring_request.proof
-        notes: The Applet service verifies the target Principal Server proof and the package-bound caller-signed administration Event set carried by the closed authoring request.
+        notes: The Applet service verifies the target Station proof and the package-bound caller-signed administration Event set carried by the closed authoring request.
       responses:
         '200':
           description: Exact service-authored managed actor creation bundle
@@ -8596,7 +8595,7 @@ paths:
         dpopProof: []
       responses:
         '200':
-          description: Principal Server signed Applet install authoring request
+          description: Station signed Applet install authoring request
           content:
             application/json:
               schema:
@@ -8647,7 +8646,7 @@ paths:
       summary: Issue the current signed Ghost managed-actor authoring request.
       description: >-
         The active Applet service supplies only the Realm, exact external tuple,
-        and optional display name. The Principal Server derives all current
+        and optional display name. The Station derives all current
         installation and hosting coordinates and durably supersedes any prior
         uncommitted generation for the same subject before returning exact bytes.
       security:
@@ -8670,7 +8669,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Exact persisted Principal Server-signed authoring request
+          description: Exact persisted Station-signed authoring request
           content:
             application/json:
               schema:
@@ -8689,7 +8688,7 @@ paths:
         Called by an installed bridge Applet (authenticating as its service DID)
         to provision, or idempotently re-validate, an Applet-managed Ghost Actor
         for one immutable `external_ref.{protocol,instance_id,external_id}` tuple.
-        The caller supplies the exact Principal Server-signed authoring request
+        The caller supplies the exact Station-signed authoring request
         and role-neutral Applet-authored managed-actor bundle. The server MUST
         validate their exact active registration, authority pair, grant, actor
         namespace and initial-resolution bindings, then commit all four Events
@@ -9489,7 +9488,7 @@ paths:
 
         Caller-supplied DID history is never accepted. Deployments that do not
         host the DID additionally require method-native witness or freshness
-        evidence, because co-locating the registry with the Principal Server
+        evidence, because co-locating the registry with the Station
         does not extend that trust to third-party DIDs.
 
         This operation reserves no principal and performs no PCR genesis; it
@@ -10021,7 +10020,7 @@ paths:
       - bearerAuth: []
       summary: Server-to-server session-grant introspection.
       description: |
-        RFC 7662-style introspection used by a Principal Server to validate a
+        RFC 7662-style introspection used by a Station to validate a
         presented session grant. The caller supplies the grant id or grant_jwt
         (plus an optional audience and optional S2S holder confirmation) and
         gets back whether the grant is active, a standardized status, and
@@ -10310,7 +10309,7 @@ paths:
         schema:
           type: string
           const: ak.self.agent.command.provision.v1
-      description: Managed personal Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires the authenticated controller account's controller_principal_server_id, validates the pair against the current session, then verifies caller-supplied did and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
+      description: Managed personal Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires the authenticated controller account's controller_station_id, validates the pair against the current session, then verifies caller-supplied did and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
       security:
       - sessionGrantAuth: []
         dpopProof: []

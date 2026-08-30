@@ -24,7 +24,7 @@ see_also:
 
 - identity registry 如何收发 DID 操作与 receipt
 - Events API 如何提交、读取、回填 signed Event
-- Principal Server 如何提供 account aggregate stream、snapshot 与 backfill 协调
+- Station 如何提供 account aggregate stream、snapshot 与 backfill 协调
 - search / View projection 的语义边界如何在客户端或显式受托服务中保持一致
 - directory 如何做 Realm / Organization / Actor 的授权搜索与精确解析
 - blob 如何上传与校验
@@ -43,7 +43,7 @@ see_also:
 
 DID Document SHOULD 只负责：
 
-- 声明 Principal Server、identity registry、events、Principal Server sync surface、blob、capability 服务入口
+- 声明 Station、identity registry、events、Station sync surface、blob、capability 服务入口
 - 声明服务 DID 或服务 endpoint
 
 它不应直接塞入：
@@ -55,7 +55,7 @@ DID Document SHOULD 只负责：
 ### 2.2 没有任何单一服务是唯一真相源
 
 - signed Event 是 actor 发布和协作事实真相源
-- Principal Server sync surface 是 Principal Server 上的受控同步入口
+- Station sync surface 是 Station 上的受控同步入口
 - search、inbox、notification 和 View projection 是派生体验，可以由客户端本地计算，也可以由显式受托服务计算
 - blob 是内容层
 
@@ -63,7 +63,7 @@ DID Document SHOULD 只负责：
 
 ### 2.3 接口必须天然支持幂等重试
 
-网络重试、离线回放、多 Principal Server 同步在去中心化系统中是常态。
+网络重试、离线回放、多 Station 同步在去中心化系统中是常态。
 
 因此写接口 MUST 支持：
 
@@ -82,52 +82,65 @@ DID Document SHOULD 只负责：
 
 否则客户端无法判断自己能否安全使用该服务。
 
-### 2.5 实际服务器与服务面组合
+### 2.5 核心角色、Station capability 与可选服务
 
-实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但每个 `ServiceDescribe` MUST 只描述一个逻辑角色，并明确该角色的 `service_kind`、`supported_operation_bundles`、认证方式、限制、plaintext visibility 和 profile；不得把多角色聚合成一个 compound `service_kind`，也不得把其它角色的 operation 或明文边界混入当前响应。多个角色共享同一 public binding 时，部署 MUST 为每个角色支持 `GET /_arkret/describe?service_kind=<registered-id>` 的 role-scoped 响应；查询值、响应 `service_kind` 和该角色的 DID/service binding 必须一致。查询省略规则和错误语义见 [`service-http-binding.md` §2.3](./service-http-binding.md)。
+`service_kind` 只回答“远端正在信任、授权或向谁披露数据”。候选实体只有在远端必须验证其独立 service DID / 签名、显式委托或 allowlist、识别独立明文 / 密钥 / 恢复 / 合规边界、直接发现其 base URL，或由它执行会产生不同 normative authority/state result 时，才可登记独立 `service_kind`。进程、数据库、团队、内部域名、私有 RPC、扩容单元、计算成本或未来部署设想均不足以产生 wire role。operation bundle 表达操作集合，feature / limit / transport binding 表达可选行为，本地进程拓扑不进入 wire contract。
 
-协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。登录与账号准入另有一个客户端可见的 **Account Authority** 角色：客户端从 Principal Server 的 `/_arkret/describe` 发现它，之后所有客户端可见的 `/_arkret/gate/account/*` 请求都只发往该 Account Authority。部署内部 S2S 子操作只可由 Account Authority 按对应 operation 契约调用，不能由客户端派生。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
+每个独立服务的 `ServiceDescribe` MUST 只描述一个已登记角色，并明确 `service_kind`、`supported_operation_bundles`、认证方式、限制、plaintext visibility 和 profile。多个独立角色共享 public binding 时，部署 MUST 为每个角色支持 `GET /_arkret/describe?service_kind=<registered-id>`；查询值、响应角色与 DID/service binding 必须一致。Station 内部组件不得借此发布 role-scoped Describe。查询省略规则和错误语义见 [`service-http-binding.md` §2.3](./service-http-binding.md)。
 
-常见组合如下。这里的"需要"表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建一个 Principal Server，其余基础设施可使用公共或托管服务。
+*Table 2-A. 核心 account flow 概念（normative）。*
 
-*Table 2-1. 服务角色能力视图（informative）。REST namespace 的 canonical 单一来源是 [service-http-binding.md §2.1](./service-http-binding.md)；本表不重复 path 清单。*
+| 概念 | 规范职责 |
+| --- | --- |
+| **Station** | 为一组明确 principal account 保存并处理实际业务数据、执行本地账号与 Event 准入，并作为这些账号参与 Arkret 网络、接收外部投递和发起对外通信的权威服务站点。Station 是 `service_kind=station` 的 wire role。 |
+| **Account Authority** | Station 对客户端发布的唯一账号准入逻辑入口，承载注册、session grant、恢复、配对与登出。它由 Station 的 `auth_metadata.account_authority` 发现，不是独立 `service_kind`、service DID 或公开 role profile。 |
+| **Authentication Method Provider** | Passkey、OIDC、SSO 等认证方法或标准 issuer。它 MAY 是外部 IdP，但认证结果只作为 Account Authority 的输入，不取得 Station、账号或 Event authority。 |
 
-| 实际服务器 | 普通部署建议 | 主要能力 |
-| --- | --- | --- |
-| Principal Server | 普通用户或组织自建的核心入口 | 用户/组织的受控入口、Event 提交/读取、account viewer / profile 自服务、client sync、联邦 transaction、invite locator / 私有 invite delivery、服务发现聚合、明文可见边界执行；其 describe MUST 发布 `auth_metadata.account_authority`。 |
-| Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
-| Account Authority | 个人部署通常与 Principal Server 同 origin；组织可由统一网关、Auth Server 或独立前置承载 | 账号准入、注册、session grant 签发 / 刷新 / 撤销 / 登出、device pairing、passkey/OIDC/SSO 结果换 grant、hard logout 内部编排。对客户端必须是单一 `gate_account_base_url`；内部 MAY 委托 Auth Server 与 Principal Server，并在 split Auth-side 时通过标准 `ak.gate.account.command.logout_auth_session.v1` S2S 子操作终结 Auth-side session。 |
-| Auth Server / method provider | 个人部署可内置；组织通常独立或接入 SSO / IdP | 认证仪式、浏览器登录上下文、passkey/OIDC/SSO、issuer / subject 校验；不得作为零散 `gate/account` operation 的客户端可见目标，除非它整体就是 Account Authority。 |
-| Sync / Federation Server | 普通用户通常内置在 Principal Server | client sync、subscription、backfill、snapshot head、跨域 transaction、invite delivery、重放和 destination 绑定校验。 |
-| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
-| Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
-| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
-| Authz | 可内置于 Principal Server，也可独立部署 | effective grants、invite 查询、capability precheck。 |
-| Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
-| Applet Server | 集成/桥接/自动化可选 | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
-| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、notary service 或 Applet Bridge 承载 | MIMI provider discovery、room binding、key material、submit message、consent、identifier query、abuse report、proxy download。 |
-| Agent Runtime Server | agent 场景可选但推荐 | agent 执行、tool 调用、A2A/ACP/MCP handoff；具体 service surface 由 `extensions/agent-*` 定义，通常通过 Events API 写回结果。 |
-| Realtime Media Server | 通话/会议可选 | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
-| Moderation / Compliance Server | 公共或组织部署建议独立 | report、审核队列或扩展审核入口、server ACL、policy list、appeal、legal hold / erasure workflow。 |
-| Archive / Recovery Service | history sharing、late key recovery 或组织恢复场景可选；高安全部署必须显式声明 | Archive Node、Key Recovery Service 或 Recovery Service。只能按 Realm policy、history visibility、T0 membership 和 capability 返回最小必要 epoch material / backup envelope / recovery proof；不得因持有归档副本自动获得明文读取权。 |
+Station 同时是业务数据所在地、`AccountId {principal_id, station_id}` 的账号归属边界和 inter-Station 通信主体。一个 Station MAY 服务多个不属于同一 Realm、组织、家庭或社群的 principal。它不是 relay、全网中心、DID 注册机构或可替换路由 anchor；运维层可迁移进程、数据库或副本，但不得把协议账号、权威历史或数据所有权改写到另一 `station_id`。账号与数据谱系的集中规则见 [`../identity/account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md)。
+
+*Table 2-B. Station 内置 capability / surface（normative）。这些项目均不产生额外 `service_kind`。*
+
+| capability / surface | Station 职责 |
+| --- | --- |
+| Account / Event | account aggregate、viewer/profile、自服务、Event ingest/read、准入与投影。 |
+| Client sync / federation / invite | subscription、cursor、snapshot、backfill、inter-Station transaction、invite locator / delivery、destination 与 replay gate。 |
+| Authorization | effective grant、invite 与 capability 判定；内部 PDP / Policy Engine 可拆进程，但不能成为 wire role。 |
+| Device / key | device authorization/revocation、active generation、OTK/fallback key、MLS KeyPackage claim、to-device queue 与 encrypted backup；所有裁决绑定 Station-local `AccountId`、PCR 与 durable gate。 |
+| Blob authority | account / Realm 对象 authorization、metadata、retention policy 与引用关系；默认 bytes surface MAY 与 Station 同部署。 |
+| Search | 私有 account / Realm 搜索；公共或授权发现属于 Directory Service。 |
+| Moderation | report intake、local queue、Station ACL 与普通 appeal orchestration。 |
+
+*Table 2-C. 按需出现的独立服务（informative）。只有满足本节保留判据且实际启用时才进入 discovery。*
+
+| 服务 / 基础设施 | 独立边界 |
+| --- | --- |
+| Identity Resolution Infrastructure / Identity Registry | DID document、method-native log、receipt、witness、watcher、OOBI 与 service endpoint discovery；只有独立可寻址或签名实现才登记角色。 |
+| Directory Service | 公共或组织目录、授权发现、anti-enumeration、takedown 与可见性边界。 |
+| Blob Service | 仅按 Station 绑定的 contract 执行 bytes storage/delivery，不取得账号、Realm、Event、metadata 或 retention authority。 |
+| Media Service / TURN / SFU | transform、delivery、ICE relay 或 selective forwarding；各自按实际 service DID、密钥、可见性与委托边界登记，不使用复合媒体角色。 |
+| Push Gateway | 外部投递与 APNs/FCM/厂商适配边界，不持有 Station 业务数据 authority。 |
+| Applet Service / Agent Runtime | 受注册授权的扩展服务或执行环境；按 capability 写回，不取得账号业务数据 authority。 |
+| Moderation Service | 仅限 Realm/组织显式委托且拥有独立 service DID/签名、plaintext visibility 或 legal-hold authority 的外部审核实体。 |
+| Archive Node / Key Recovery Service / Recovery Service | 按实际历史可见性、密钥持有和恢复 authority 分别授权，不得用含混总称赋予全部权限。 |
+| Notary / MIMI Provider Facade | 分别为独立密码学角色和互操作 facade；只在相应 Realm/profile 实际委托时出现。 |
 
 REST namespace 第一段路径（`self` / `gate` / `root` / `find` / `peer` / `open` / `edge`，见 [service-http-binding.md §2.1](./service-http-binding.md)）是 **trust-surface classifier（信任面分类器）**，编码"调用方↔服务"的攻击面类别，**不是授权结论**；实现 MUST NOT 把信任面段本身解释为授权通过、安全级别达标或明文可见许可。每个 operation 仍按自身契约执行 session / capability / DID proof / Realm policy / history visibility / rate limit 校验。
 
 #### 2.5.1 Account Authority 与认证方法发现
 
-Principal Server 的根级 `/_arkret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base_url`，客户端发起的 Arkret `/_arkret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。`ak.gate.account.command.logout_auth_session.v1` 是 Account Authority → Auth Server 的 S2S 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base_url` 派生。
+Station 的根级 `/_arkret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base_url`，客户端发起的 Arkret `/_arkret/gate/account/*` 请求都 MUST 从该 base 派生。客户端不得按 operation 猜测内部进程。部署 MAY 在认证 TCB 内使用网关、反代或独立 Auth Server 进程处理这些操作，但该组件是 deployment-private：不得拥有公开 `service_kind`、role profile、service registration、role-local Describe、federation identity 或 peer-discoverable endpoint。`ak.gate.account.command.logout_auth_session.v1` 是 Account Authority 内部终结认证 session 的 typed 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base_url` 派生。
 
 `auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Arkret 不定义 `/_arkret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Arkret 的桥是 Account Authority 的 `POST {gate_account_base_url}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
-Account Authority 内部分派不得改变 operation 的协议身份。尤其 `ak.gate.account.command.pair_agent_key.v1` 依赖 Principal Server 的 pairing record、Agent PCR Event acceptance 与 activation projection 时，split deployment MUST 将原始 typed request 委托到权威 Principal Server 的同一 `/_arkret/gate/account/agent-key-pair` binding，并保留 Event ID 幂等身份；不得把该职责改造成产品私有 `fanout` URL 或只入本地队列后向客户端报告成功。具体 commit 规则见 [`../identity/key-management.md` §3.6.1 / §3.6.2](../identity/key-management.md)。
+Account Authority 内部分派不得改变 operation 的协议身份。尤其 `ak.gate.account.command.pair_agent_key.v1` 依赖 Station 的 pairing record、Agent PCR Event acceptance 与 activation projection 时，split deployment MUST 将原始 typed request 委托到权威 Station 的同一 `/_arkret/gate/account/agent-key-pair` binding，并保留 Event ID 幂等身份；不得把该职责改造成产品私有 `fanout` URL 或只入本地队列后向客户端报告成功。具体 commit 规则见 [`../identity/key-management.md` §3.6.1 / §3.6.2](../identity/key-management.md)。
 
-本登录 / account flow 最多并存三类 origin：Principal Server（发现启动）、Account Authority（全部 `gate/account` Arkret 操作）和认证 method provider / issuer（标准认证协议）。完整 Arkret 客户端仍可按其它 spec 访问 Directory、Blob、Media、Push 等 service origin；这些不改变 account flow 的路由规则。
+本登录 / account flow 最多并存三类 origin：Station（发现启动与 wire role）、Station 发布的 Account Authority base（全部 `gate/account` Arkret 操作）和 Authentication Method Provider / issuer（标准认证协议）。前两者即使分 origin 也仍属于同一 Station wire role。完整客户端仍可按其它 spec 访问 Directory、Blob、Media、Push 等独立 service origin；这些不改变 account flow 路由。
 
 Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `deployment_profiles` 集合；本文不得另注册 profile id。下列形态仅是服务角色组合说明，实际部署 MUST 声明 canonical id（如 `ak.profile.personal_node.v1`、`ak.profile.organization.v1`、`ak.profile.high_security_organization.v1`、`ak.profile.sovereign_deployment.v1`）并按 profile registry 校验能力面：
 
-- 个人节点可把 Principal Server、Events API、Sync/Federation、Blob、Device/Key 与 Authz 合并到同一 trust domain，并使用公共 Directory、Push 或 TURN/Media 服务。
-- 组织节点通常把 Principal Server 与 Auth Server、Policy/Authz、Blob/Media、Directory、Push 等服务按规模和合规边界拆分。
-- 高安全或主权部署把 Principal、Identity Resolution、Auth、Directory、Policy/Authz、Events/Blob、Sync/Federation 与 Audit/Compliance 保持在受控 trust domain 内；公共 Directory、Push 或外部 federation ingress 只能作为显式授权的互联入口。
+- 个人节点通常部署一个 Station，并按需使用公共 Directory、Push 或 TURN/Media 服务。
+- 组织节点 MAY 把 Station 的认证、policy、sync/federation、device/key、Blob bytes 与 moderation worker 拆成内部进程；这些边界不进入 discovery。只有满足独立信任判据的 Directory、Blob、Media、Push 或 Moderation Service 才发布独立角色。
+- 高安全或主权部署把 Station 与 Identity Resolution、Directory、外部 Blob/Media、Push、Notary、Archive/Recovery 等已委托服务保持在受控 trust domain；公共服务或 federation ingress 只能作为显式授权的互联入口。
 - Applet、MIMI facade、Agent runtime、Moderation、Archive/Recovery 等角色是 service role / capability 组合，不是 deployment profile id；它们只能在已声明 profile 允许的 namespace、capability、Realm policy 与 service describe 范围内工作。
 
 ### 2.6 Service `did_core_id` 与首跳路由解析（normative）
@@ -205,16 +218,16 @@ GET /_arkret/describe
     "version_id": "3"
   },
   "trust_domain": "ak:trust_domain:did.webvh.alice.example",
-  "service_kind": "principal_server",
+  "service_kind": "station",
   "protocol_version": "1.0",
   "supported_profiles": [
-    "ak.profile.principal_server.v1"
+    "ak.profile.station.v1"
   ],
   "supported_operation_bundles": [
-    "ak.operation_bundle.principal_server.describe.v1",
-    "ak.operation_bundle.principal_server.http_core.v1",
-    "ak.operation_bundle.principal_server.tus_upload.v1",
-    "ak.operation_bundle.principal_server.websocket.v1"
+    "ak.operation_bundle.station.describe.v1",
+    "ak.operation_bundle.station.http_core.v1",
+    "ak.operation_bundle.station.tus_upload.v1",
+    "ak.operation_bundle.station.websocket.v1"
   ],
   "transport_bindings": [
     {
@@ -245,7 +258,7 @@ GET /_arkret/describe
       "consent_grant",
       "shared_realm",
       "handle_claim",
-      "same_principal_server",
+      "same_station",
       "explicit_address"
     ],
     "handle_claim_max_behavior": "quarantine",
@@ -317,7 +330,7 @@ GET /_arkret/describe
   },
   "claimed_profiles": [
     {
-      "profile_id": "ak.profile.principal_server.v1",
+      "profile_id": "ak.profile.station.v1",
       "claim_kind": "self_claimed",
       "claimed_at": "2026-05-02T00:00:00.000Z"
     }
@@ -339,7 +352,7 @@ GET /_arkret/describe
 }
 ```
 
-能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 先从 `supported_operation_bundles` 展开精确 operation/binding pair，再按 `transport_bindings` 的数组顺序选择可用 endpoint，并检查对应 `supported_features` / `limits`，不得探测猜测 endpoint。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `ak.operation_bundle.principal_server.tus_upload.v1`、`ak.feature.blob.resumable_upload.tus.v1` 与一条 `kind="tus"` 的 transport binding；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
+能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 先从 `supported_operation_bundles` 展开精确 operation/binding pair，再按 `transport_bindings` 的数组顺序选择可用 endpoint，并检查对应 `supported_features` / `limits`，不得探测猜测 endpoint。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `ak.operation_bundle.station.tus_upload.v1`、`ak.feature.blob.resumable_upload.tus.v1` 与一条 `kind="tus"` 的 transport binding；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
 
 本规范登记的标准 `supported_features` 还包括：`ak.feature.history_key_recovery.v1`（唯一 private exporter-history
 request/response-stream/S2S relay/RRK archive 合同）、`ak.feature.mls_exporter_aead.v1`（接受并同步
@@ -361,9 +374,9 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 
 服务类型命名规则：
 
-- service identity bootstrap 的 DID Document entry 唯一使用 `type="ArkretService"`，并以必填 `serviceKind` 取 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `valid_in` 含 `service_registration_key` 的值。`ArkretPrincipalServer` / `ArkretDirectory` 不是 alias，必须拒绝。Organization 与 managed-Agent 的 specialized DID service type 仅使用 [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json) 登记的独立 endpoint shape，不得替代 service bootstrap。
-- describe 响应的 `service_kind` 使用 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_kind`。Realm join candidate 的 `service_kind` 仅允许 `principal_server`，其路由来源只允许 signed invite 或当前 joined-joined-member ActorId routing projection（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
-- conformance profile 使用 `ak.profile.*` 标识，例如 `ak.profile.principal_server.v1`。
+- service identity bootstrap 的 DID Document entry 唯一使用 `type="ArkretService"`，并以必填 `serviceKind` 取 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `valid_in` 含 `service_registration_key` 的值。`ArkretStation` / `ArkretDirectory` 不是 alias，必须拒绝。Organization 与 managed-Agent 的 specialized DID service type 仅使用 [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json) 登记的独立 endpoint shape，不得替代 service bootstrap。
+- describe 响应的 `service_kind` 使用 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_kind`。Realm join candidate 的 `service_kind` 仅允许 `station`，其路由来源只允许 signed invite 或当前 joined-joined-member ActorId routing projection（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
+- conformance profile 使用 `ak.profile.*` 标识，例如 `ak.profile.station.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_kind 与 conformance profile 混用。
 
 ### 3.0 Describe response claim levels
@@ -423,7 +436,7 @@ operation/schema/fixture closure 时才可独立声明它，缺少其中任一 o
   item 对象是封闭的（`additionalProperties: false`），扩展键不能用作绕过路径。
 - `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
 - `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
-- `receive_policy_constraints` — Principal Server 可选的部署 / 管理员级接收策略上限。它约束 `ak.peer.invites.command.submit.v1` 与 `ak.peer.contacts.command.submit.v1` 对 `locator_ref`、`handle_claim`、`explicit_address` 等 introduction evidence 的处理；客户端 MUST 把它渲染为“服务器约束”，不得把它当作 subject 自愿公开。语义见 [`invite-addressing.md`](./invite-addressing.md) §5.2。
+- `receive_policy_constraints` — Station 可选的部署 / 管理员级接收策略上限。它约束 `ak.peer.invites.command.submit.v1` 与 `ak.peer.contacts.command.submit.v1` 对 `locator_ref`、`handle_claim`、`explicit_address` 等 introduction evidence 的处理；客户端 MUST 把它渲染为“服务器约束”，不得把它当作 subject 自愿公开。语义见 [`invite-addressing.md`](./invite-addressing.md) §5.2。
 
 实现 MUST 明确区分 endpoint 可达性、feature 实现、profile claim 与 conformance verification：
 
@@ -567,9 +580,9 @@ Arkret v1 要求：
 
 ## 4. Events API
 
-Events API 是 Principal Server 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Principal Server 直接暴露 `/_arkret/self/events/*`。
+Events API 是 Station 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Station 直接暴露 `/_arkret/self/events/*`。
 
-Arkret v1 不规定 Event 在服务端的物化形态——不要求集中式 record 仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event,但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` Event 因果依赖、`refs[role=authorized_by]` 所指不可变 grant record 及 `event_id` 幂等性。
+Arkret v1 不规定 Event 在服务端的物化形态——不要求集中式 record 仓库、提交日志或仓库命名接口。Station 可以托管、复制或索引 Event,但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` Event 因果依赖、`refs[role=authorized_by]` 所指不可变 grant record 及 `event_id` 幂等性。
 
 Events API 至少应提供以下语义：
 
@@ -657,7 +670,7 @@ Content-Type: application/json
 
 ## 5. Account Aggregate / Snapshot Surface
 
-Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.read.scan.v1` / `ak.self.events.stream.subscribe.v1`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 unread / notification counts 的视图；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入该聚合。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Principal Server sync surface。
+Account Aggregate / Snapshot Surface 是 Station 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.read.scan.v1` / `ak.self.events.stream.subscribe.v1`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Station 上聚合多 Realm frontier、to_device、account_data、device_lists 与 unread / notification counts 的视图；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入该聚合。客户端只应使用本 principal 控制/委托的 Station、对方 principal 控制/委托的 Station，或 Realm policy 明确列出的 shared notary / Station sync surface。
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
@@ -735,11 +748,11 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 如果 Realm 未启用 E2EE 或内容层加密：
 
 - 客户端 MUST NOT 将 message body、comment body、附件明文或可逆派生摘要提交给未授权第三方服务。
-- `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Realm policy 明确委托的 Principal Server。
+- `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Realm policy 明确委托的 Station。
 - Directory、Push Gateway、Blob preview、Policy preview，以及任何协议外 search / projection 服务，若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Realm policy 中声明为 `plaintext_visible_services`。
-- shared notary / Principal Server sync surface 若可见明文，必须在 Realm policy 中作为明文可见方列出。
+- shared notary / Station sync surface 若可见明文，必须在 Realm policy 中作为明文可见方列出。
 - `encryption_profile="none"` 只说明 content 未使用 E2EE；它不自动授权任意服务保存、索引、导出或生成可逆派生内容。只有 Realm 同时把内容声明为 public content（例如 `history_access=all_history_for_current_members` 且 preview / export policy 允许 public processing）时，服务才 MAY 按公开内容处理；否则仍按私有明文执行 `plaintext_visible_services` 检查。
-- 接收方 Principal Server 可以看到投递给该接收方的非加密内容；客户端和 Realm policy MUST 把这视为内容可见边界，而不是透明中继。
+- 接收方 Station 可以看到投递给该接收方的非加密内容；客户端和 Realm policy MUST 把这视为内容可见边界，而不是透明中继。
 - 非受信服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ## 6. Search / Projection Semantics
@@ -924,7 +937,7 @@ POST /_arkret/find/directory/resolve-agent-selector
 POST /_arkret/find/directory/list-handles-for-subject
 ```
 
-Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露组织账号或仅因共同 Realm 推断出的关系。`search-users` 只做候选发现；`resolve-handle` 在 claim、audience、requester policy 与 intent 验证通过后 MAY 返回 exact `account_id: AccountId` 与 signed claims。`resolve-agent-selector` 只做精确 agent compose-time 解析。`list-handles-for-subject` 列出当前 context 可见 claims。Directory 结果是寻址证据，不是 membership、Contact consent 或 delivery authorization；目标服务只从 AccountId/ActorId 内的 Principal Server identity 做标准 service resolution。语义边界回指 [`invite-addressing.md` §9](./invite-addressing.md)。
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露组织账号或仅因共同 Realm 推断出的关系。`search-users` 只做候选发现；`resolve-handle` 在 claim、audience、requester policy 与 intent 验证通过后 MAY 返回 exact `account_id: AccountId` 与 signed claims。`resolve-agent-selector` 只做精确 agent compose-time 解析。`list-handles-for-subject` 列出当前 context 可见 claims。Directory 结果是寻址证据，不是 membership、Contact consent 或 delivery authorization；目标服务只从 AccountId/ActorId 内的 Station identity 做标准 service resolution。语义边界回指 [`invite-addressing.md` §9](./invite-addressing.md)。
 
 ### 8.6 私密联系人发现
 
@@ -959,7 +972,7 @@ POST /_arkret/self/authz/check
 `check` 接口适合：
 
 - Events API 接收写入前预检查
-- Principal Server sync surface 分发前快速过滤
+- Station sync surface 分发前快速过滤
 - client 发送前本地 UX 提示
 
 ## 10.1 Personal Agent Surface
@@ -983,17 +996,17 @@ Arkret v1 的首次加入流程：
 
 1. 用户输入 handle、DID 或 Realm link
 2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 Realm link / invite / ActorId routing projection / locator / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `did_core_id` 的首跳 `did` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Principal Server / identity registry / events / account / snapshot / blob / authz 能力
+3. 从 Realm link / invite / ActorId routing projection / locator / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `did_core_id` 的首跳 `did` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Station / identity registry / events / account / snapshot / blob / authz 能力
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Principal Server sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。`authority_kind="witness_quorum"` 时，`authority_binding.witness_attestations[]` 是 v1 唯一的 quorum 证据载体：客户端 MUST 按 [`snapshot-schema.md` §5.1](../conformance/snapshot-schema.md) 逐行重算 `ak.snapshot_witness_attestation_proof.v1` canonical projection 验签，并只以 `created_at` 时点的 accepted Realm auth/policy state 判定授权 witness set、key validity、撤销新鲜度与 threshold（按 `witness_id` 去重）。不存在"等价 quorum proof"：缺失、未达阈值或使用任何未登记的替代载体时 MUST 以 `snapshot_authority_unverified` 拒绝，不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan.v1`，JSON content 携带 `before`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Station sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。`authority_kind="witness_quorum"` 时，`authority_binding.witness_attestations[]` 是 v1 唯一的 quorum 证据载体：客户端 MUST 按 [`snapshot-schema.md` §5.1](../conformance/snapshot-schema.md) 逐行重算 `ak.snapshot_witness_attestation_proof.v1` canonical projection 验签，并只以 `created_at` 时点的 accepted Realm auth/policy state 判定授权 witness set、key validity、撤销新鲜度与 threshold（按 `witness_id` 去重）。不存在"等价 quorum proof"：缺失、未达阈值或使用任何未登记的替代载体时 MUST 以 `snapshot_authority_unverified` 拒绝，不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan.v1`，JSON content 携带 `before`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read cursor、notification cursor 等个人状态
 
 ## 12. 新鲜度与多服务并存
 
-当多个 Principal Server 或受托 search / projection 扩展并存时，相关服务 SHOULD 公开：
+当多个 Station 或受托 search / projection 扩展并存时，相关服务 SHOULD 公开：
 
 - 当前 frontier
 - snapshot frontier
@@ -1027,7 +1040,7 @@ Arkret v1 的首次加入流程：
 
 如果 payload 已按 `policy.encryption_profile` 加密，则：
 
-- Events / Principal Server sync surface MAY 不解密正文
+- Events / Station sync surface MAY 不解密正文
 - 但仍 SHOULD 保留 hash、cursor、causal 与目标引用
 
 ## 14. 防滥用与配额机制 (Anti-Spam & Quota)
@@ -1036,17 +1049,17 @@ Arkret v1 的首次加入流程：
 
 ### 14.1 存储责任与 Blob Quota
 - **成本归属**：Realm 的整体数据大小、历史 Event 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Realm 的 `owner` 或负责托管的 `responsible_actor_id`。
-- **拒绝写入**：当 Blob 服务或 Principal Server 评估该 Realm 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的协议错误语义（例如 `quota_exceeded`、`payload_too_large` 或 profile 注册的付费/资源门槛错误），并拒收新写入的 Event 或大文件 Blob。HTTP status 映射属于 binding 层，见 [`api-conventions.md` §5.1](./api-conventions.md) 与 [`service-http-binding.md`](./service-http-binding.md)。
+- **拒绝写入**：当 Blob 服务或 Station 评估该 Realm 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的协议错误语义（例如 `quota_exceeded`、`payload_too_large` 或 profile 注册的付费/资源门槛错误），并拒收新写入的 Event 或大文件 Blob。HTTP status 映射属于 binding 层，见 [`api-conventions.md` §5.1](./api-conventions.md) 与 [`service-http-binding.md`](./service-http-binding.md)。
 
 ### 14.2 写频率控制 (Rate Limiting)
-- Events API 和 Principal Server sync surface 节点 SHOULD 基于 `actor_id` 与 `realm_id` 实施严格的并发和频率限制。
+- Events API 和 Station sync surface 节点 SHOULD 基于 `actor_id` 与 `realm_id` 实施严格的并发和频率限制。
 - 对于来自未验证或低信誉 DID 的恶意刷写（例如短时间内进行海量无效的 `message.create` 或反复触发高并发图重组），节点有权暂时熔断该 DID 的请求。
 
 ## 15. 设计决定
 
 Arkret v1 固定：
 
-- 定义最小 Principal Server / identity registry / events / account / snapshot / blob / authz 服务面
+- 定义最小 Station / identity registry / events / account / snapshot / blob / authz 服务面
 - v1 core 互操作 transport 锁定为 HTTP/JSON（见 [`transport-bindings.md` §1](./transport-bindings.md)）；gRPC / WebSocket / SSE / MQ / libp2p 等其他 binding 仅为 extension profile，本节列出的 operation 形态与字段以 HTTP/JSON 为唯一权威。其他 binding 必须语义等价但不构成 v1 core 一致性。
 - 写接口必须幂等
 - principal 与 service 的业务引用都使用 `did_core_id`；注册 / resolution 出示 `did`，service 首跳 URL 由签名 `ServiceResolutionRecord` 给出，describe 只做二跳确认

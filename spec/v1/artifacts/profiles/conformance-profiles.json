@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-30.4",
-  "generated_at": "2026-08-30T23:59:59+08:00",
+  "version": "2026-08-30.5",
+  "generated_at": "2026-08-31T00:10:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -401,8 +401,8 @@
     "ak.profile.agent_signer_evidence.v1",
     "ak.profile.e2ee_relaxed.v1",
     "ak.profile.enterprise_client.v1",
-    "ak.profile.principal_server_events_api.v1",
-    "ak.profile.principal_server.v1",
+    "ak.profile.station_events_api.v1",
+    "ak.profile.station.v1",
     "ak.profile.directory_service.v1",
     "ak.profile.federation_minimal.v1",
     "ak.profile.service_resolution_mirror.v1",
@@ -410,7 +410,6 @@
     "ak.profile.signal_message_stream.v1",
     "ak.profile.federation.high_assurance.v1",
     "ak.profile.identity_registry.v1",
-    "ak.profile.auth_server.v1",
     "ak.profile.blob_node.v1",
     "ak.profile.push_gateway.v1",
     "ak.profile.push_gateway.blind_wakeup.v1",
@@ -457,15 +456,14 @@
       "ak.profile.e2ee_client.v1",
       "ak.profile.agent_signer_evidence.v1",
       "ak.profile.enterprise_client.v1",
-      "ak.profile.principal_server_events_api.v1",
-      "ak.profile.principal_server.v1",
+      "ak.profile.station_events_api.v1",
+      "ak.profile.station.v1",
       "ak.profile.directory_service.v1",
       "ak.profile.federation_minimal.v1",
       "ak.profile.service_resolution_mirror.v1",
       "ak.profile.signal_peer_relay.v1",
       "ak.profile.federation.high_assurance.v1",
       "ak.profile.identity_registry.v1",
-      "ak.profile.auth_server.v1",
       "ak.profile.blob_node.v1",
       "ak.profile.push_gateway.v1",
       "ak.profile.push_gateway.blind_wakeup.v1",
@@ -575,8 +573,8 @@
     "ak.profile.e2ee_relaxed.v1": "client",
     "ak.profile.enterprise_client.v1": "client",
     "ak.profile.sovereign_client.v1": "client",
-    "ak.profile.principal_server_events_api.v1": "server",
-    "ak.profile.principal_server.v1": "server",
+    "ak.profile.station_events_api.v1": "server",
+    "ak.profile.station.v1": "server",
     "ak.profile.directory_service.v1": "directory",
     "ak.profile.federation_minimal.v1": "server",
     "ak.profile.service_resolution_mirror.v1": "server",
@@ -586,7 +584,6 @@
     "ak.profile.federation.rbsr.negentropy.v1": "server",
     "ak.profile.binding.websocket.v1": "interop",
     "ak.profile.identity_registry.v1": "directory",
-    "ak.profile.auth_server.v1": "server",
     "ak.profile.public_network_identity.v1": "directory",
     "ak.profile.organization_high_assurance_identity.v1": "directory",
     "ak.profile.key_transparency.v1": "directory",
@@ -1487,7 +1484,7 @@
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
         "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and third Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the stored receipt without advancing accepted_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit.",
-        "Cross-Principal-Server founding MUST NOT depend on the peer service: the founder creates the Realm and its one scope-derived MLS group and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage.",
+        "Cross-Station founding MUST NOT depend on the peer service: the founder creates the Realm and its one scope-derived MLS group and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage.",
         "The unit's Genesis Seal MUST cover all four Events, every required founding write of an ordinary Realm create, and the create-locked baseline projection of join_rule=closed, content_scheme=mls_exporter_aead_v1 and both e2ee_required floors together with the initial current history_access=since_join facet. Sealing any strict prefix and appending either membership Event or the Strand afterwards MUST be rejected, and a same-batch facet Event that repeats or overrides a baseline value MUST be rejected.",
         "Between the accepted founding unit and the first legal binding endorsement, pre-binding writes MUST cite authorization_ref=ak.authority.direct_conversation_bootstrap_participant.v1 with exactly one critical refs[] role=direct_conversation_founding_unit reference to the accepted ak.realm.create. The verifier recomputes the mutually exclusive phase from accepted facts; the producer MUST NOT declare it. Both phases retire permanently once the first legal endorsement is accepted.",
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; an encrypted Direct Conversation has one scope-derived group and one monotonic epoch lineage projected from accepted history.",
@@ -1769,7 +1766,7 @@
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer.",
         "A managed Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the public entry fixes only realm_id, controller_did, authorization_ref and the domain-separated requested_scope_digest. The complete scope MUST come from a controller-signed verifier/audience/challenge-bound private disclosure whose digest matches that commitment. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
         "Managed Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
-        "A managed Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md 6.0.1 forbids. The managed Agent PCR and its controller PCR MUST be hosted by the same Principal Server, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
+        "A managed Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md 6.0.1 forbids. The managed Agent PCR and its controller PCR MUST be hosted by the same Station, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
         "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked ak.component.identity.resolution.v1 cell, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision."
       ]
@@ -2569,7 +2566,7 @@
         "unsupported_optional": "omit optional profile or return unsupported_feature without leaking hidden resources"
       }
     },
-    "ak.profile.principal_server_events_api.v1": {
+    "ak.profile.station_events_api.v1": {
       "enforcement_phases": [
         "conformance",
         "startup_claim_guard"
@@ -2609,7 +2606,7 @@
         "unsupported_optional": "return unsupported_feature"
       }
     },
-    "ak.profile.principal_server.v1": {
+    "ak.profile.station.v1": {
       "enforcement_phases": [
         "conformance",
         "startup_claim_guard"
@@ -2667,6 +2664,31 @@
         },
         {
           "direction": "provide",
+          "operation_id": "ak.gate.account.command.issue_session_grant.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.revoke_session.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.account_status.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
           "operation_id": "ak.self.control_proposal_decisions.command.submit.v1",
           "binding_kind": "http_json"
         },
@@ -2677,7 +2699,7 @@
         }
       ],
       "inherits": [
-        "ak.profile.principal_server_events_api.v1",
+        "ak.profile.station_events_api.v1",
         "ak.profile.chat_mvp.v1",
         "ak.profile.kanban_mvp.v1"
       ],
@@ -2705,7 +2727,8 @@
         "ak.schema.capability.v1",
         "ak.schema.grant_constraint.v1",
         "ak.schema.device_revocation_state.v1",
-        "ak.schema.account_status_record.v1"
+        "ak.schema.account_status_record.v1",
+        "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -2714,7 +2737,8 @@
         "capability-fixture.json",
         "privacy-security-fixture.json",
         "security-closure-fixture.json",
-        "device-revocation-pending-fixture.json"
+        "device-revocation-pending-fixture.json",
+        "session-grant-issuance-fixture.json"
       ],
       "required_vectors": [
         "ak.vector.device.revocation_pending_state.v1"
@@ -2730,18 +2754,25 @@
           "supported_operation_bundles",
           "supported_profiles",
           "plaintext_visibility_classes",
-          "invite_claim_reducer_state_machine"
+          "invite_claim_reducer_state_machine",
+          "auth_metadata.account_authority",
+          "auth_metadata.methods",
+          "auth_metadata.did_binding_methods"
         ],
         "unsupported_optional": "omit optional operation or return unsupported_feature"
       },
       "additional_requirements": {
-        "invite_claim_reducer_authority_must": "ak.invite.claim MUST be decided by the destination Realm reducer, not by Auth Server, verification service, Principal Server transport ingress, or client projection caches.",
+        "invite_claim_reducer_authority_must": "ak.invite.claim MUST be decided by the destination Realm reducer, not by an internal authentication component, verification service, Station transport ingress, or client projection caches.",
         "invite_claim_token_commitment_must": "Reducer MUST match payload.token_commitment to the pending ak.invite.third_party invite and reject mismatch or already-claimed commitments with no membership proposal.",
         "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_id against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
         "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ak.invite.accept or an explicitly profiled equivalent path.",
         "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
-        "history_key_recovery_conditional_must": "A Principal Server that accepts or serves an mls_exporter_aead_v1 scope with history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and expose the complete registered self/peer Seal-proof, request, response, relay and RRK archive operation set. Partial legacy realm_key feature claims are forbidden."
+        "history_key_recovery_conditional_must": "A Station that accepts or serves an mls_exporter_aead_v1 scope with history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and expose the complete registered self/peer Seal-proof, request, response, relay and RRK archive operation set. Partial legacy realm_key feature claims are forbidden.",
+        "account_authority_surface_must": "The Station MUST publish exactly one auth_metadata.account_authority gate_account_base_url and expose all client-visible gate/account operations through that base. Any internal authentication process is deployment-private and MUST NOT publish a service kind, role-local Describe, service registration, federation identity, or peer-discoverable endpoint.",
+        "session_grant_issuer_ledger_must": "The Station Account Authority MUST be the sole durable authority for immutable SessionGrant issuance records and active, revoked, or superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, atomically persist issuance before response, provide durable exact replay for issue, refresh, and revoke, and use the same ledger for cascade and introspection.",
+        "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval, and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience, and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal, device, notary, or Event proof.",
+        "account_status_publication_must": "The Station Account Authority MUST atomically commit its account row, immutable AccountStatusRecord, audit, and outbox; genesis is status_seq=1 active and every successor is a current-head CAS. It exposes bounded ak.peer.account_status.read.resolve.v1 for authorized replica recovery and publishes exact record bytes through ak.peer.account_status.command.submit.v1 without maintaining a second status truth."
       }
     },
     "ak.profile.federation_minimal.v1": {
@@ -2970,7 +3001,7 @@
     },
     "ak.profile.signal_peer_relay.v1": {
       "role": "server",
-      "description": "Optional symmetric Principal Server profile for the encrypted Signal Extension single-hop peer relay. It does not imply durable Event federation and does not advertise any product signal kind.",
+      "description": "Optional symmetric Station profile for the encrypted Signal Extension single-hop peer relay. It does not imply durable Event federation and does not advertise any product signal kind.",
       "enforcement_phases": [
         "conformance",
         "startup_claim_guard"
@@ -3156,102 +3187,6 @@
           "registry_visibility"
         ],
         "unsupported_optional": "return unsupported_did_method"
-      }
-    },
-    "ak.profile.auth_server.v1": {
-      "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, and expose session-grant introspection / revocation. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ak.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
-      "enforcement_phases": [
-        "conformance",
-        "startup_claim_guard"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.server.read.describe.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.gate.account.command.issue_session_grant.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.gate.account.command.revoke_session.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.account_status.read.resolve.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [
-        "wire_scope:actor_private_event"
-      ],
-      "required_schemas": [
-        "ak.schema.service_describe.v1",
-        "ak.schema.handle_claim.v1",
-        "ak.schema.account_status_record.v1"
-      ],
-      "required_fixtures": [
-        "crypto-signature-fixture.json",
-        "privacy-security-fixture.json",
-        "session-grant-issuance-fixture.json"
-      ],
-      "optional_extensions": [
-        "ak.gate.account.command.issue_session_grant.v1",
-        "ak.gate.account.exchange.create_handoff.v1",
-        "ak.gate.account.command.issue_identity_binding_challenge.v1",
-        "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
-        "ak.gate.account.command.abandon_identity_creation.v1",
-        "ak.gate.account.command.register.v1",
-        "session_grant_introspection",
-        "session_grant_revocation",
-        "oidc",
-        "password_login",
-        "passkey",
-        "device_pairing",
-        "recovery_challenge",
-        "did_binding",
-        "claim_attestation",
-        "principal_server_delegation_targets"
-      ],
-      "feature_discovery": {
-        "required": [
-          "service_id",
-          "auth_metadata.account_authority",
-          "auth_metadata.methods",
-          "auth_metadata.did_binding_methods",
-          "transport_bindings",
-          "auth_metadata"
-        ],
-        "unsupported_optional": "omit optional operation or return unsupported_feature"
-      },
-      "additional_requirements": {
-        "session_grant_must_be_short_lived": "Auth Server MUST cap session_grant TTL well below the Realm policy review horizon (per device-lifecycle.md §5, typical ceiling is minutes-to-hours, not days).",
-        "audience_binding_must": "Every issued session_grant MUST carry an `audience` claim; auth servers MUST refuse to issue grants for audiences they have not been configured to serve.",
-        "session_grant_release_readiness_must": "Release readiness MUST cover ak.vector.auth.session_grant_audience_binding.v1, ak.vector.session_grant.accepted_device_possession.v1 and ak.vector.auth.session_grant_issuer_record.v1: returning-human issue verifies both AccountHandoff DPoP and accepted-device proof bindings; accepted-device key lookup, signature verification and current authorization are one linearization; human scope and TTL are issuer-fixed; suite-tagged issuer-record ID/JTI recomputation, canonical JWK, exact replay/conflict/terminal outcomes and DPoP binding are exercised; stranger audiences are rejected; soft_logged_out recovery uses full reauthentication followed by a fresh AccountHandoff or an explicit account-control action, never an ordinary refresh challenge; development_mode=true never advertises verified profiles.",
-        "session_grant_issuer_ledger_must": "Auth Server MUST be the sole durable authority for immutable SessionGrant issuance records and active/revoked/superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, including the credential-class-selected holder/bootstrap/recovery binding, atomically persist issuance before response, provide durable exact replay for issue, refresh and revoke, and use the same ledger for cascade and introspection. It MUST NOT author ak.session.grant or ak.session.grant.state Events or depend on a Principal Control Realm grant cell.",
-        "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal/device/notary Event proof.",
-        "session_grant_terminal_replay_must": "Exact replay of an expired recorded outcome returns session_grant_replay_expired; exact replay of a revoked or superseded recorded outcome returns session_grant_replay_terminal with grant_id and terminal state. Neither path returns success or issues a new grant. After replay-record retention expires, the same request identity fails closed as indeterminate.",
-        "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `interop_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
-        "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
-        "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",
-        "account_status_publication_must": "An Auth Server acting as Account Authority MUST atomically commit its account row, immutable AccountStatusRecord, audit and outbox; genesis is status_seq=1 active and every successor is a current-head CAS. It signs the closed record itself, exposes bounded ak.peer.account_status.read.resolve.v1 for authorized replica recovery, and publishes exact record bytes through ak.peer.account_status.command.submit.v1. It MUST NOT author a Realm Event, query PCR frontiers, depend on a holder Seal or maintain a second status truth.",
-        "provisional_identity_abandonment_must": "An Auth Server that offers provisional-identity abandonment MUST expose it as the two-step issue_identity_abandonment_challenge + abandon_identity_creation pair and MUST NOT reach the same effect from login, session resume, lease expiry, fence takeover or garbage collection. Both operations are authorized by the account handoff grant alone, because a never-accepted PCR leaves the holder without a principal and therefore without any principal-bound ak.session.grant; the confirmation MUST present a fresh handoff and MUST NOT reuse the grant that obtained the challenge. The challenge is single-use, at most 300 seconds, held in shared durable state, and pins account_subject, holder cnf.jkt, the abandoned principal_id and did_version_id, the identity-creation lease id and fence, and the closed consequence disclosure; expiry and prior consumption remain distinct terminal states. Consuming the challenge, recording the orphan-anchor tombstone / audit reservation, suppressing the reserved_identity_creation checkpoint on every holder-readable surface and releasing the lease MUST commit in one transaction with zero writes on any failure, and replaying the same request_id MUST return the same terminal outcome without a second tombstone. A PCR accepted between issuance and confirmation MUST fail with identity_creation_already_accepted and MUST NOT abandon anything. Re-authentication strength, risk checks, cooldown length, orphan-anchor discovery annotation, handle and namespace release and retention are deployment governance and are not conformance criteria."
       }
     },
     "ak.profile.public_network_identity.v1": {
@@ -3532,7 +3467,7 @@
       },
       "additional_requirements": {
         "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Realm id / name, Strand id / name, Message id, event id, device verification-method DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Realm stable correlation key.",
-        "pseudonym_scope_must": "push_target_id MUST be a pairwise pseudonym scoped to (recipient_id, principal, device, push_route); MUST NOT be reusable across Principal Server contexts.",
+        "pseudonym_scope_must": "push_target_id MUST be a pairwise pseudonym scoped to (recipient_id, principal, device, push_route); MUST NOT be reusable across Station contexts.",
         "default_claim_must": "Any implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile and MUST NOT advertise downgrade switches that disable blind wakeup."
       }
     },
@@ -4058,7 +3993,7 @@
       ],
       "inherits": [
         "ak.profile.agent_runtime.v1",
-        "ak.profile.auth_server.v1"
+        "ak.profile.station.v1"
       ],
       "required_event_kinds": [
         "ak.agent.key.authorize",
@@ -4480,7 +4415,7 @@
         }
       ],
       "inherits": [
-        "ak.profile.principal_server.v1",
+        "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
       "required_event_kinds": [
@@ -4929,7 +4864,7 @@
         }
       ],
       "inherits": [
-        "ak.profile.principal_server_events_api.v1"
+        "ak.profile.station_events_api.v1"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -4973,9 +4908,9 @@
       },
       "account_authority": {
         "requirement": "recommended_self_hosted",
-        "role_profile": "ak.profile.auth_server.v1",
+        "role_profile": "ak.profile.station.v1",
         "escape_hatch": "external_delegated_declared",
-        "note": "personal_node SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and DID resolution hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service did_core_id and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and resolution publication) is explicit and auditable. Service identity is obtained at startup via did self-bootstrap, projected to did_core_id, with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
+        "note": "personal_node MUST publish its Account Authority as the Station's single client-visible gate_account_base_url. Authentication handling MAY run in a separate private process or origin behind that entry, but it has no public service kind, service DID, service registration, role-local Describe, federation identity, or peer discovery surface. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/account-lifecycle.md."
       }
     },
     "ak.profile.small_team.v1": {
@@ -5001,7 +4936,7 @@
         }
       ],
       "inherits": [
-        "ak.profile.principal_server.v1",
+        "ak.profile.station.v1",
         "ak.profile.chat_mvp.v1",
         "ak.profile.kanban_mvp.v1"
       ],
@@ -5050,9 +4985,9 @@
       },
       "account_authority": {
         "requirement": "recommended_self_hosted",
-        "role_profile": "ak.profile.auth_server.v1",
+        "role_profile": "ak.profile.station.v1",
         "escape_hatch": "external_delegated_declared",
-        "note": "small_team SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and DID resolution hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service did_core_id and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and resolution publication) is explicit and auditable. Service identity is obtained at startup via did self-bootstrap, projected to did_core_id, with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
+        "note": "small_team MUST publish its Account Authority as the Station's single client-visible gate_account_base_url. Authentication handling MAY run in a separate private process or origin behind that entry, but it has no public service kind, service DID, service registration, role-local Describe, federation identity, or peer discovery surface. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/account-lifecycle.md."
       }
     },
     "ak.profile.organization.v1": {
@@ -5073,7 +5008,7 @@
         }
       ],
       "inherits": [
-        "ak.profile.principal_server.v1",
+        "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
       "required_event_kinds": [
@@ -6093,7 +6028,7 @@
         "circle_content_encryption_floor_must": "Circle.content_encryption_floor (allow_plaintext | e2ee_required) is optional and symmetric with Circle.metadata_encryption_floor: when omitted it inherits the parent Realm content_encryption_floor, and the effective floor = max(parent Realm content_encryption_floor, Circle content_encryption_floor). Reducer MUST reject a Circle floor below the effective floor and MUST reject content_encryption_floor=e2ee_required on an encryption_profile=none Circle (reason=circle_encryption_below_realm_floor). See zh/models/circle.md §7.",
         "encryption_floor_ratchet_must": "The effective content_encryption_floor and effective metadata encryption floor of any scope (Realm-default or Circle) are one-way ratchets: monotonically non-decreasing over time. A ak.realm.policy_bundle or ak.circle.update that lowers the effective content floor from e2ee_required to allow_plaintext MUST be rejected (reason=content_encryption_floor_downgrade); one that lowers the effective metadata floor MUST be rejected (reason=metadata_encryption_floor_downgrade). Tightening is always allowed. Vectors: ak.vector.e2ee.content_floor_downgrade_rejected.v1, ak.vector.e2ee.metadata_floor_downgrade_rejected.v1, ak.vector.circle.content_floor_below_realm_rejected.v1, ak.vector.e2ee.in_place_enable.v1.",
         "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ak.circle.member.state -> join when the target actor is not a `join` member of the parent Realm (reason=circle_member_must_be_realm_member).",
-        "scope_invariant_must": "The Principal Server sync surface MUST NOT deliver Events with scope_ref.kind=circle to actors not in that Circle's member frontier at the Event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
+        "scope_invariant_must": "The Station sync surface MUST NOT deliver Events with scope_ref.kind=circle to actors not in that Circle's member frontier at the Event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
       }
     },
     "ak.profile.personal_productivity.v1": {
@@ -6291,7 +6226,7 @@
       }
     },
     "ak.profile.calendar_notification_dispatch.v1": {
-      "description": "Principal Server profile for deriving notification_kind=schedule from calendar schedule changes, including the blind-wakeup path for encrypted schedules. Provider delivery stays governed by the Push Gateway profiles.",
+      "description": "Station profile for deriving notification_kind=schedule from calendar schedule changes, including the blind-wakeup path for encrypted schedules. Provider delivery stays governed by the Push Gateway profiles.",
       "enforcement_phases": [
         "conformance",
         "startup_claim_guard"

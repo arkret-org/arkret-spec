@@ -37,7 +37,7 @@ Accept: application/x-ndjson
 该端点对应 `ak.self.account.stream.subscribe.v1`，HTTP binding 返回 `application/x-ndjson` 的 `AccountSubscribeFrame` 有界响应。Initial sync 立即返回；带 `after` 的请求若已有可见 delta 也立即返回；否则服务端 MUST 等待数据或部署默认窗口（v1 默认 30 秒）到期，期间不得先发送空 `delta` / `catchup_complete` 使客户端误判本轮已完成。数据到达时返回 delta；窗口到期仍无数据时返回仅推进 cursor 的 `frontier`。`catchup=true` 时本轮数据 frame 后发送 `catchup_complete`，随后关闭本轮响应；客户端持久化 cursor 后立即发起下一轮长轮询。客户端 MUST 把 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists 与 notifications；不同于 `GET /_arkret/self/events/subscribe`（按 selector 的事件流订阅）、`QUERY /_arkret/self/events`（JSON content 携带 `before` / `after` 的双向历史读取）以及独立的加密 Signal rail。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
 
 Account subscribe 的服务边界是 authenticated session 绑定的 exact `AccountId`，即
-`(principal_server_id, principal_id)`。同一 `principal_id` 在不同 Principal Server 上形成不同账号；
+`(station_id, principal_id)`。同一 `principal_id` 在不同 Station 上形成不同账号；
 客户端必须为每个账号分别维护 session、cursor、to-device queue、push registration 与订阅序列。
 Realm timeline / notification delta 只进入其成员 `ActorId` 中 account 分支所指账号的流；不得按裸
 `principal_id` 合并，也不得从 DID Document 猜测另一账号。
@@ -323,7 +323,7 @@ Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权�
 1. 同一响应内的事件按 deterministic timeline projection order 排列。
 2. 若事件 B 通过 `prev_refs`、`refs[role="after"]`、`causal_refs` 或 payload 物化的 reply/reference edge（如 `replies_to`）直接依赖事件 A，且 A 在同一响应窗口中可见，则 A MUST 出现在 B 之前。
 3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 保留原始 Event Envelope 中客户端可见的完整 `prev_refs[]` 与 `refs[]` 条目；客户端把本地 store 未命中的 `prev_refs[]` 当作 Event backfill 目标，把未命中的 `refs[role=authorized_by]` 当作 grant-record / 对应 sealed control-history backfill 目标，并在补齐前 soft fail 或延迟渲染。`authorized_by` 的 `ak:grant:` id 不得被改写成承载 Event id alias。若某个依赖引用本身因权限不可见，服务端不得伪造占位引用；该事件按 `timeline.limited=true` / `preview_only=true` 或对应 `unauthorized` 诊断处理。
-4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Principal Server sync surface 到达顺序作为跨实现排序依据。
+4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Station sync surface 到达顺序作为跨实现排序依据。
 
 Canonical default timeline projection order（不输入 canonical state、授权判断或 winner 选择；请求未显式声明并协商其它 profile 排序时，服务器 MUST 使用本顺序）：
 
@@ -337,7 +337,7 @@ actor_seq ASC,
 event_id ASC
 ```
 
-各键的精确定义与缺边时行为均以 `encoding.md` §7.3 为准；Principal Server 同步面不得在本节另行扩展 `causal_depth` 边集或定义本地 tie-break。
+各键的精确定义与缺边时行为均以 `encoding.md` §7.3 为准；Station 同步面不得在本节另行扩展 `causal_depth` 边集或定义本地 tie-break。
 - `event_id` 是最终 tie-breaker。
 
 对于协议状态，客户端 MUST 使用 `event-auth-state-resolution.md` 的 CBA query basis 与 Lattice cell value 解释当前态，不得只取 timeline 中最后出现的同 kind Event。
@@ -394,7 +394,7 @@ event_id ASC
 成员展示信息由两类 source 合成：
 
 - `ak.member.identity.update`：Realm-scoped display/subject projection。它表达 `actor_id -> subject_id` 披露、display name、avatar 等 UI profile 信息；它不是 handle lifecycle 的权威源。
-- `ak.schema.handle_claim.v1`：handle 授权事实。handle 的分配、重分配、撤销和过期由 Principal Server / Organization / Directory issuer 签发的 claim 决定，用户 profile 或 MemberIdentity event 不能单方面声明 handle。
+- `ak.schema.handle_claim.v1`：handle 授权事实。handle 的分配、重分配、撤销和过期由 Station / Organization / Directory issuer 签发的 claim 决定，用户 profile 或 MemberIdentity event 不能单方面声明 handle。
 
 `ak.member.identity.update` 不是 `ak.profile.update` 的字段级 delta；它是 append-only 的 **segment replacement event**：新事件通过 `payload.replaces[]` 明确声明自己替代哪些旧身份事件。旧事件仍然保留在历史中，只是不再进入当前 display projection。管理员后期修改或新增用户 handle 时，不需要也不得伪造用户的 `ak.member.identity.update`；服务端和客户端通过刷新当前 handle-claim set 更新显示。
 
@@ -569,7 +569,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 存储模型、value 加密与跨设备并发写入契约的单一真源是 [`../models/account-data.md`](../models/account-data.md)：每个 key 是 server-versioned compare-and-set whole-value register，写入携带 `expected_revision`，领域 merge 规则在客户端明文上执行。
 
-`ak.account.invite_delivery` 与 `ak.account.invite_quarantine` 是 registry 声明的 `principal_server_cas` plaintext cell。它们的权威 revision/value 只由 account-data list/get 返回；CAS 被接受后的实时提示走本 sync frame 的 `to_device.messages[]`，使用受限 service sender 的 `ak.account_data.update`。它们不是 holder-authored Event，MUST NOT 出现在 `account_data.events[]`，也不得为了填充该 Event container 而合成 `ak.account_data.set`。
+`ak.account.invite_delivery` 与 `ak.account.invite_quarantine` 是 registry 声明的 `station_cas` plaintext cell。它们的权威 revision/value 只由 account-data list/get 返回；CAS 被接受后的实时提示走本 sync frame 的 `to_device.messages[]`，使用受限 service sender 的 `ak.account_data.update`。它们不是 holder-authored Event，MUST NOT 出现在 `account_data.events[]`，也不得为了填充该 Event container 而合成 `ak.account_data.set`。
 
 ## 10. To-Device Delivery
 
@@ -819,7 +819,7 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
 5. 如果仍无法解密，将事件标记为 `decryption_pending`，但保留排序位置和引用关系。
 6. 当 MLS epoch 补齐后，异步重试解密并更新 materialized view。
 
-服务器和 Principal Server sync surface 不需要解密正文，也不得因为无法解密而改变事件顺序或过滤事件。
+服务器和 Station sync surface 不需要解密正文，也不得因为无法解密而改变事件顺序或过滤事件。
 
 为降低大规模 E2EE 同步成本：
 

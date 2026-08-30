@@ -24,7 +24,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "content_digest": "sha256:...",
   "size_bytes": 1234,
   "media_type": "image/png",
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00Z",
   "encryption": null
 }

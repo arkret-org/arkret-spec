@@ -399,7 +399,7 @@
       "instance": {
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
-          "principal_server_id": "ak:did_core:webvh:z6mkpushrecipientservice"
+          "station_id": "ak:did_core:webvh:z6mkpushrecipientservice"
         },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
@@ -419,7 +419,7 @@
       "instance": {
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
-          "principal_server_id": "ak:did_core:webvh:z6mkpushrecipientservice"
+          "station_id": "ak:did_core:webvh:z6mkpushrecipientservice"
         },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
@@ -435,7 +435,7 @@
       "instance": {
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
-          "principal_server_id": "ak:did_core:webvh:z6mkpushrecipientservice"
+          "station_id": "ak:did_core:webvh:z6mkpushrecipientservice"
         },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
@@ -455,7 +455,7 @@
       "instance": {
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
-          "principal_server_id": "ak:did_core:webvh:z6mkpushrecipientservice"
+          "station_id": "ak:did_core:webvh:z6mkpushrecipientservice"
         },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",

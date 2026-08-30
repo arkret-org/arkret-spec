@@ -176,7 +176,7 @@
         },
         "account_id": {
           "$ref": "#/$defs/account_id",
-          "description": "Exact account authority pair frozen for the session lifetime. principal_server_id MUST equal the authenticated server serving this recovery session."
+          "description": "Exact account authority pair frozen for the session lifetime. station_id MUST equal the authenticated server serving this recovery session."
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id",
@@ -311,7 +311,7 @@
         },
         "account_id": {
           "$ref": "#/$defs/account_id",
-          "description": "Required exact authority selector. The receiving server MUST require principal_server_id to equal its own service DID and select the single lifetime PCR lineage by the complete pair; an unknown or mismatched pair fails closed."
+          "description": "Required exact authority selector. The receiving server MUST require station_id to equal its own service DID and select the single lifetime PCR lineage by the complete pair; an unknown or mismatched pair fails closed."
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"

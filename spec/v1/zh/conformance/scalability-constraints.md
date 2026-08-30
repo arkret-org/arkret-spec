@@ -246,7 +246,7 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | capability freshness `clock_skew_tolerance_ms` | 60,000 ms（60 秒，default） | 服务协商参数；用于 freshness 状态分级，不替代 §2 的协议级 `hard_future_skew_ms`。见 [`capabilities.md` §18.2](../authz/capabilities.md)。 |
 | high-risk capability `freshness_required_ms` / `freshness_hard_limit_ms` | 180,000 / 300,000 ms（3 / 5 分钟，default） | high-risk 默认值。`freshness_required_ms` MUST 严格大于 `2 * clock_skew_tolerance_ms`，且 MUST 小于或等于 `freshness_hard_limit_ms`；无效协商配置 MUST `schema_violation`。 |
 | medium-risk capability `freshness_required_ms` / `freshness_hard_limit_ms` | 300,000 / 600,000 ms（5 / 10 分钟，default） | medium-risk 默认值。必须满足与上一行相同的相对约束；超过 hard limit 后 MUST fail closed。 |
-| 高频路径 authz snapshot 最大重建延迟 | 5 秒（SHOULD，本地性能建议） | `chat_mvp`、`kanban_mvp`、`full_client` 和 `principal_server` 相关服务 SHOULD 满足。这是**本地性能 / SLA 建议**，非 wire interoperability bound——对端无法仅凭 wire object 核验本地重建是否 ≤5s，故不构成 §1 意义上的可互操作核验项。 |
+| 高频路径 authz snapshot 最大重建延迟 | 5 秒（SHOULD，本地性能建议） | `chat_mvp`、`kanban_mvp`、`full_client` 和 `station` 相关服务 SHOULD 满足。这是**本地性能 / SLA 建议**，非 wire interoperability bound——对端无法仅凭 wire object 核验本地重建是否 ≤5s，故不构成 §1 意义上的可互操作核验项。 |
 
 上述 cursor / selector / policy-array 边界由 active `ak.vector.scalability.cursor_selector_limits.v1` 在 `scalability-limits-fixture.json` 中执行。
 
@@ -282,7 +282,7 @@ projection / patch / profile 只能声明相同或更低的值，不得扩大它
 
 ### 4.1 Progressive CBA Backfill Profile
 
-实现声称支持 `full_client`、`e2ee_client` 或 `principal_server` profile 时，MUST 支持渐进式 CBA 恢复，而不是要求一次性拉完整历史：
+实现声称支持 `full_client`、`e2ee_client` 或 `station` profile 时，MUST 支持渐进式 CBA 恢复，而不是要求一次性拉完整历史：
 
 | 项 | v1 默认上限 / 建议 | 规则 |
 | --- | ---: | --- |
@@ -328,7 +328,7 @@ projection / patch / profile 只能声明相同或更低的值，不得扩大它
 | 单条 RSVP `entry.schedule_basis_refs` 数 | 128 | 与本表 `causal_refs` 上限同源：basis MUST 是 `causal_refs[]` 的子集，因此不可能更大。wire 上真的携带超过 128 项时由 schema `maxItems` 以 `schema_violation` 在 ingress 拒绝；authoring client 观察到的 schedule frontier 本身超过 128 时 MUST 以 `schedule_frontier_too_large` 在本地 fail closed，先经 schedule resolution 收敛；两种情形都不得截断 basis 或只列部分 head。见 [`../models/calendar-event.md` §8.1](../models/calendar-event.md)。 |
 | 单个 File Transfer `recipient_device_ids` 数 | 1,000 | 超过时 MUST reject 或拆分 transfer；每个 device key wrap 必须保持独立可验证。 |
 | 单个 call 的 effective roster 数 | 1,000 | 接受会使 `ak.component.call.roster.v1` effective OR-Set 超过上限的 join MUST reject（`schema_violation`）；每条 `ak.call.state` 只携带一个 `roster_delta`。见 [call-state.md](../crypto-media/call-state.md) §4.1。 |
-| `ring_timeout_ms` / `scheduled_start_grace_ms` / `connecting_timeout_ms` | 60,000 / 300,000 / 120,000 ms（默认且最大） | 见 [call-state.md](../crypto-media/call-state.md) §4.2；超时由 focus / token issuer / Principal Server 基于当前 accepted head 显式推进，不能由本地计时器直接改写 reducer。 |
+| `ring_timeout_ms` / `scheduled_start_grace_ms` / `connecting_timeout_ms` | 60,000 / 300,000 / 120,000 ms（默认且最大） | 见 [call-state.md](../crypto-media/call-state.md) §4.2；超时由 focus / token issuer / Station 基于当前 accepted head 显式推进，不能由本地计时器直接改写 reducer。 |
 | join policy 单个 `application_form` gate 的 `questions[]` 数 | 64 | 超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §3.3。 |
 | join 的 `gate_proofs[]` 数 | 16 | 与 join policy `gates` 1..16 上限对齐（含 runtime challenge proof）；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §4。 |
 
@@ -340,7 +340,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
-| 单 principal active device 数 | 100 | 超过时 Device / Key Server MAY require admin approval or device cleanup。 |
+| 单 principal active device 数 | 100 | 超过时 Station device/key surface MAY require admin approval or device cleanup。 |
 | 单个 Seal 的 `predecessor_refs[]` | 128 | 超过时接收方 MUST 以 `payload_too_large` 拒绝，不得截断或只验证前缀。开放 notary set 必须先合并 DAG frontier，再形成后继 Seal。 |
 | 单个 compaction Seal 的 `covered_event_digests[]` | 1,048,576 | 超过时接收方 MUST 以 `payload_too_large` 拒绝，不得接受不完整覆盖。更大状态必须使用已登记的分块 completeness proof / MLS Governance Proof，而不是生成无界单对象。 |
 | MLS Governance Proof exact response canonical bytes | 1 MiB（1,048,576 bytes） | 唯一近端 `group_security_frontier` profile 只携 small closed sparse witness 与 content-addressed Event/Seal descriptors；完整对象经 resolve 取得。每个 query 显式绑定完整 canonical `proof_base_basis`/`proof_target_basis` Seal 反链、`frontier_purpose` 及其 closed 字段和 `byte_limit`。`base == target` 合法；并发/不可达返回 `mls_governance_anchor_unreachable`，必需材料缺失返回 `frontier_unavailable`。完整响应超界返回 `mls_governance_proof_bounds_exceeded`；服务不分页、不截断 witness、不返回 cursor，调用方只能提供更接近且已独立验证的 base 或 fail closed。 |
@@ -370,7 +370,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | invite locator `ttl_seconds` | 60..3,600 seconds（默认 900） | 见 [invite-addressing.md](../sync/invite-addressing.md) §3.1；小于下限或超过硬上限 MUST `schema_violation`，部署 MAY 在此范围内缩短实际 TTL。 |
 | 单 principal 同时 active invite locator 数 | 16 | issue 若将 active 数增加到 17 MUST fail closed（`rate_limited` 或 `failed_precondition`），不得隐式撤销未指定 locator；expired、revoked、consumed record 不计入 active。rotate 在同一事务中以一换一，不得因边界值 16 被拒绝。 |
 | `ak.invite.third_party.expires_at` base-profile 硬上限 | 7 days | 见 [third-party-invites.md](../sync/third-party-invites.md) §6。超过 base-profile 上限的第三方 invite MUST reject 或要求声明扩展 profile + revalidation proof；高安全 / audited / enterprise Realm 的硬上限为 24 hours。 |
-| 第三方 invite `(invite_id, claim_nonce)` replay set TTL | `invite.expires_at + 24h`（下限） | 验证服务 / 接收 Principal Server sync surface MUST 至少保留到该窗口结束；窗口内重复 claim MUST 在 reducer 仲裁前拒绝。replay key SHOULD 以 HMAC / hash 存储，不得持久化明文 invite token。 |
+| 第三方 invite `(invite_id, claim_nonce)` replay set TTL | `invite.expires_at + 24h`（下限） | 验证服务 / 接收 Station sync surface MUST 至少保留到该窗口结束；窗口内重复 claim MUST 在 reducer 仲裁前拒绝。replay key SHOULD 以 HMAC / hash 存储，不得持久化明文 invite token。 |
 | expired invite token secret zeroize | 24h 内 | `expires_at <= now` 后，服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录；claim 路径返回 `expired_invite_token` 或等价不可枚举错误。 |
 | `contact_request_pending_ttl` | 默认且最大 14 days | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §3。双方分别从 accepted request 的 canonical `created_at` 计时；超窗的 accept/respond MUST fail closed，不得由本地配置放宽。 |
 | `identity_creation_lease` TTL | 默认且最大 15 minutes | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §2.1.2；超过时 Account Authority MUST refuse issuance。 |
@@ -381,7 +381,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | `erasure_propagation_window_ms` | 默认且最大 604,800,000 ms（7 days） | 见 [realm-and-space.md](../models/realm-and-space.md) §2.6.2。超窗未回执的 peer MUST 标 `timed_out`，issuing receipt 的 `fanout_status` MUST 为 `incomplete`。 |
 | `deactivation_propagation_window_ms` | 最大 600,000 ms（10 min） | 见 [federation.md](../sync/federation.md) §4.4.1。超窗 MUST 标 `deactivation_federation_incomplete`，并暂停受影响主体的新 onboard / grant / KeyPackage 路径。 |
 | `mls_deactivation_grace_ms` | 默认且最大 600,000 ms（10 min） | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §7.1。超窗未完成 MLS remove 的成员 MUST 标 `unverifiable_member`，并拒收其新 epoch 消息。 |
-| `call_empty_timeout_ms` | 默认且最大 120,000 ms | 见 [call-state.md](../crypto-media/call-state.md) §4.2。active media roster 持续为空达到该窗口时，focus / token issuer 或 P2P 承载 Principal Server MUST 推进 `active -> ended`；profile MAY 收紧，不得放宽。 |
+| `call_empty_timeout_ms` | 默认且最大 120,000 ms | 见 [call-state.md](../crypto-media/call-state.md) §4.2。active media roster 持续为空达到该窗口时，focus / token issuer 或 P2P 承载 Station MUST 推进 `active -> ended`；profile MAY 收紧，不得放宽。 |
 | key backup 每 principal 每 24h 下载上限 | 64（memory-hard profile 可声明 16–256） | 见 [key-management.md](../identity/key-management.md) §7.8。实现 MUST 在 `server/describe.limits` 或 profile 参数中公布实际上限；超限 MUST rate-limit / fail closed，并不得在日志或 telemetry 中泄露 plaintext keybag。 |
 | `push_target_id` rotation 周期 | 默认 ≤ 90 days | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5.6.1。客户端 SHOULD 在 push token 变化、设备恢复、out-of-band 重新登录或自定义 rotation 周期到达时轮换；高安全部署 SHOULD 声明更短周期。 |
 | 旧 / 新 `push_target_id` 可逆映射保留 | ≤ 24h，或单条未投递消息 TTL，取较短者 | 服务方只可在 rotation 时短暂保留映射以迁移未投递消息；超过窗口 MUST 物理删除旧 pseudonym 与索引材料，不得保留能把新旧映射回同一 device 的信息。 |

@@ -411,7 +411,7 @@
       "x-arkret-pcr-outward-event-kinds": [
         "ak.realm.create"
       ],
-      "description": "Account-Authority-to-Principal-Server relay. The outer service signature authenticates transport only; content authorization is exclusively the frozen registration evidence, the identity-root control proof and the two Event proofs. The Principal Server verifies registration_did_operation and registration_did_evidence without consulting current DID resolution.",
+      "description": "Account-Authority-to-Station relay. The outer service signature authenticates transport only; content authorization is exclusively the frozen registration evidence, the identity-root control proof and the two Event proofs. The Station verifies registration_did_operation and registration_did_evidence without consulting current DID resolution.",
       "required": [
         "account_authority_id",
         "principal_id",
@@ -436,7 +436,7 @@
         },
         "did": {
           "$ref": "./common-ids.schema.json#/$defs/human_principal_did",
-          "description": "Complete registration DID. The Principal Server independently validates method evidence and requires project(did)=principal_id before accepting genesis."
+          "description": "Complete registration DID. The Station independently validates method evidence and requires project(did)=principal_id before accepting genesis."
         },
         "pcr_realm_id": {
           "$ref": "#/$defs/realm_id"

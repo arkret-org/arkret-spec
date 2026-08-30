@@ -42,7 +42,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "strand_id": "ak:strand:...",
   "track_name": "discussion",
   "state": "active",
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00Z",
 
   "content": {

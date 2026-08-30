@@ -56,7 +56,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
     "soft_failed_digest": "sha256:...",
     "quarantined_digest": "sha256:..."
   },
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00Z",
   "authority_binding": {
     "authority_kind": "realm_policy_snapshot_issuer",
@@ -387,4 +387,4 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 }
 ```
 
-Principal Server sync surface 只按 outer signed Event 与已注册的最小 routing context 投递；不得从密文 envelope 要求或读取复制的 scope、kind、group、scheme、sender 或 plaintext content。
+Station sync surface 只按 outer signed Event 与已注册的最小 routing context 投递；不得从密文 envelope 要求或读取复制的 scope、kind、group、scheme、sender 或 plaintext content。

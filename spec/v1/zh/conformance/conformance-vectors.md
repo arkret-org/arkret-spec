@@ -8,7 +8,7 @@ updated: 2026-08-11
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
 
-`ak.vector.identity.principal_server_admission.v1` 覆盖 `AccountId` 终身单 account / 单 PCR genesis 唯一性：deactivation 后同一 Principal Server replacement account 仍拒绝；deployment policy 可拒绝 reactivation，policy allow 也必须在 completed PCR recovery closure 后只恢复原 account/PCR 并绑定更高 device generation；另一 Principal Server 完整 onboarding 是独立选择而非强制恢复路径。该向量还覆盖 Event 完整 `ActorId` 的 producer 签名、由实际 author ActorId 唯一导出的 origin service、producer proof 精确绑定、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `principal-server-admission-fixture.json` 的全部 semantic cases；任何以裸 principal/PCR identifier 比较外部 account equality、deactivation 后释放同 pair uniqueness、用 account auth/admin 绕过 PCR recovery、复活旧 generation 资源、接收服务重签或独立 signer-evidence sidecar 都不合格。
+`ak.vector.identity.station_admission.v1` 覆盖 `AccountId` 终身单 account / 单 PCR genesis 唯一性：deactivation 后同一 Station replacement account 仍拒绝；deployment policy 可拒绝 reactivation，policy allow 也必须在 completed PCR recovery closure 后只恢复原 account/PCR 并绑定更高 device generation；另一 Station 完整 onboarding 是独立选择而非强制恢复路径。该向量还覆盖 Event 完整 `ActorId` 的 producer 签名、由实际 author ActorId 唯一导出的 origin service、producer proof 精确绑定、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `station-admission-fixture.json` 的全部 semantic cases；任何以裸 principal/PCR identifier 比较外部 account equality、deactivation 后释放同 pair uniqueness、用 account auth/admin 绕过 PCR recovery、复活旧 generation 资源、接收服务重签或独立 signer-evidence sidecar 都不合格。
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
 2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
@@ -352,8 +352,8 @@ ak:event:AeagqTDqAC0uoitR-FS57_qbbmvN9B_FdRQPfZ4Vnb8b
   会造成不可解的自引用。
 - `event_id` 的 33 octets 为 `0x01`（sha256 suite code）拼接完整 32 字节 digest，再做无 padding base64url
   （[`encoding.md` §4](./encoding.md)）。
-- 实现 MUST NOT 把 transport envelope、HTTP header、Principal Server sync surface metadata、local receive time 放入 event digest。
-- 同一事件在不同 Events API 或 Principal Server sync surface 上 MUST 得到相同 digest。
+- 实现 MUST NOT 把 transport envelope、HTTP header、Station sync surface metadata、local receive time 放入 event digest。
+- 同一事件在不同 Events API 或 Station sync surface 上 MUST 得到相同 digest。
 
 ### 1.7 Vector: Event Batch Receipt Digest
 
@@ -668,7 +668,7 @@ content_aad = JCS(pre_encryption_header)
 
 Standard MLS 使用该 AAD 作为 RFC 9420 authenticated_data 且 wire 无 counter；exporter 才使用 per-sender K_content 与
 `I2OSP(counter,AEAD.Nn)`。向量必须覆盖修改 `version`/`content_type`、最终 producer verification method 与 seal 前冻结 method 不同、
-principal_server_admission proof 冒充 producer，以及 sender leaf 零/多匹配；全部在 decrypt/admission 前 fail closed。
+station_admission proof 冒充 producer，以及 sender leaf 零/多匹配；全部在 decrypt/admission 前 fail closed。
 
 机器向量同时覆盖 standard branch（counter absent）与 exporter branch（counter required），并对 outer scope/kind、derived
 group id、group-state scheme、epoch、sender domain、counter 与 routing context 各做单字段 mutation。Wire envelope 若复制
@@ -678,7 +678,7 @@ purpose/scheme/scope/kind/group id、standard 携 counter、exporter 缺 counter
 
 - digest 输入 MUST 为 `canonical_json(payload_metadata) || base64url_decode(ciphertext)`。
 - 实现 MUST NOT hash 明文 payload。
-- 实现 MUST NOT 省略路由和解密所需的 `payload_metadata` 字段，否则 Principal Server sync surface 无法安全去重和审计密文 envelope。
+- 实现 MUST NOT 省略路由和解密所需的 `payload_metadata` 字段，否则 Station sync surface 无法安全去重和审计密文 envelope。
 
 ### 1.12.1 Vector: 畸形二进制 Payload 拒绝（结构深度 / CBOR bounds）
 
@@ -704,7 +704,7 @@ ak.vector.encoding.reject_cbor_array_bounds.v1
 
 ### 1.13 覆盖矩阵
 
-| 向量 | Minimal Client | Full Client | E2EE Client | Events API | Principal Server |
+| 向量 | Minimal Client | Full Client | E2EE Client | Events API | Station |
 | --- | --- | --- | --- | --- | --- |
 | `ak.vector.encoding.canonical_json.basic.v1` | MUST | MUST | MUST | MUST | MUST |
 | `ak.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST |
@@ -1790,7 +1790,7 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
   },
   "state": "redacted",
   "state_changed_at": "2026-04-26T00:05:00.000Z",
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -1812,7 +1812,7 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
   },
   "state": "redacted",
   "state_changed_at": "2026-04-26T00:05:00.000Z",
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -1831,9 +1831,9 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
   },
   "state": "redacted",
   "state_changed_at": "2026-04-26T00:05:00.000Z",
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00.000Z",
-  "updated_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+  "updated_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "updated_at": "2026-04-26T00:05:00.000Z"
 }
 ```
@@ -2015,7 +2015,7 @@ ak.vector.snapshot.inclusion_challenge.v1
 ### 4.1 目标
 
 本文件将 capability 的链式授权、撤销回滚与审批约束固定为跨实现向量。
-适配对象（下列为 profile 短名，统一用下划线；canonical id 形如 `ak.profile.<短名>.v1`，见 [`conformance-profiles.md`](./conformance-profiles.md)）：`identity_registry`, `principal_server_events_api`, `e2ee_client`, `enterprise_client`, `agent_runtime`.
+适配对象（下列为 profile 短名，统一用下划线；canonical id 形如 `ak.profile.<短名>.v1`，见 [`conformance-profiles.md`](./conformance-profiles.md)）：`identity_registry`, `station_events_api`, `e2ee_client`, `enterprise_client`, `agent_runtime`.
 
 向量命名：
 
@@ -2420,8 +2420,8 @@ ak.vector.auth.sensitive_field_handling.v1
 - `ak.profile.kanban_mvp.v1`
 - `ak.profile.full_client.v1`
 - `ak.profile.e2ee_client.v1`
-- `ak.profile.principal_server_events_api.v1`
-- `ak.profile.principal_server.v1`
+- `ak.profile.station_events_api.v1`
+- `ak.profile.station.v1`
 
 ### 5.2 通用约定
 
@@ -2486,7 +2486,7 @@ ak.vector.auth.sensitive_field_handling.v1
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "kind": "board",
           "title": "Release Board",
-          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
           "created_at": "2026-04-26T00:00:00Z"
         }
       }
@@ -2505,7 +2505,7 @@ ak.vector.auth.sensitive_field_handling.v1
           "kind": "list",
           "title": "Todo",
           "rank": "U",
-          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
           "created_at": "2026-04-26T00:00:00Z"
         }
       }
@@ -2529,7 +2529,7 @@ ak.vector.auth.sensitive_field_handling.v1
             }
           },
           "stage": "planned",
-          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
           "created_at": "2026-04-26T00:00:00Z"
         },
         "initial_relations": [
@@ -2797,7 +2797,7 @@ Expected：
 
 - `ak.profile.kanban_mvp.v1`
 - `ak.profile.full_client.v1`
-- `ak.profile.principal_server.v1`
+- `ak.profile.station.v1`
 
 ### 6.2 Vector: Space Archive 然后 Restore（happy path）
 
@@ -2819,7 +2819,7 @@ Expected：
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "kind": "board",
           "title": "Release Board",
-          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
+          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
           "created_at": "2026-05-15T10:00:00Z"
         }
       }
@@ -3031,11 +3031,11 @@ Expected：
 
 ### 7.1 规范形式与相等性
 
-`AccountId` 是闭合对象 `{principal_id, principal_server_id}`，两个分量都 MUST 是 canonical
+`AccountId` 是闭合对象 `{principal_id, station_id}`，两个分量都 MUST 是 canonical
 `did_core_id`。用于比较、签名和 cell key 投影的 JCS canonical bytes 为：
 
 ```json
-{"principal_id":"ak:did_core:webvh:z6mkfixturealice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalservera"}
+{"principal_id":"ak:did_core:webvh:z6mkfixturealice","station_id":"ak:did_core:webvh:z6mkfixturestationa"}
 ```
 
 实现 MUST 接受成员输入顺序不同但 JCS bytes 相同的对象。缺少任一分量、增加未知成员、使用带参数、路径、查询或 fragment 的 DID、
@@ -3043,20 +3043,20 @@ handle、本地数据库键，或从请求上下文推断任一分量时，MUST 
 
 ### 7.2 同一 principal core 位于两个服务器
 
-给定相同 `principal_id` 与两个不同 `principal_server_id`，reducer MUST 派生两个不同账号身份与两个不同账号
+给定相同 `principal_id` 与两个不同 `station_id`，reducer MUST 派生两个不同账号身份与两个不同账号
 membership cell。一个 AccountId 的 join、leave、grant、MLS ownership 与邀请接受 MUST NOT 影响另一个。
 相等性 MUST 比较两个 typed 分量，不得比较原始 JSON 文本，也不得只比较 `principal_id`。
 
 ### 7.3 AccountId 单点变异失败
 
-从有效的 signed AccountId transcript 出发，分别改变 `principal_id`、改变 `principal_server_id`、删除任一成员、
+从有效的 signed AccountId transcript 出发，分别改变 `principal_id`、改变 `station_id`、删除任一成员、
 增加未知成员，或把任一分量换成非 canonical 表示。每个变异 MUST 在任何状态写入前因签名、schema 或 exact identity
 验证失败。resolver、DID Document、session audience 与接收服务 MUST NOT 补齐缺失分量。
 
 ### 7.4 ActorId 分支隔离
 
 账号成员使用 `{kind:"account",account_id:AccountId}`；托管 Agent/Ghost 使用
-`{kind:"hosted_principal",principal_id,principal_server_id}`；直接著写的 service 使用
+`{kind:"hosted_principal",principal_id,station_id}`；直接著写的 service 使用
 `{kind:"service",service_id}`。两个不同分支即使包含相同 DID Core 文本，其 ActorId 也不相等。discriminator MUST
 与已接受的 registration、Actor Profile 和 admission evidence 相符。
 ## 8. Handle Vectors
@@ -3064,13 +3064,13 @@ membership cell。一个 AccountId 的 join、leave、grant、MLS ownership 与�
 ### 8.1 目标
 
 验证 `@user:domain` / `user@domain` 只作为人类可读寻址输入；账号 handle claim 与 Directory resolve 输出必须绑定
-exact `AccountId`，不得输出裸 `principal_id` 后再由调用方猜测 Principal Server。
+exact `AccountId`，不得输出裸 `principal_id` 后再由调用方猜测 Station。
 
 ### 8.2 Exact AccountId 解析与邀请
 
-1. 解析有效 handle，获得签名覆盖的 `subject_account_id={principal_id,principal_server_id}`；
+1. 解析有效 handle，获得签名覆盖的 `subject_account_id={principal_id,station_id}`；
 2. 调用方验证 handle claim、issuer、Directory trust、expiry、audience 与 exact AccountId；
-3. 定向邀请把该值原样写入 `invitee_account_id`，投递服务由其中 `principal_server_id` 做 service resolution；
+3. 定向邀请把该值原样写入 `invitee_account_id`，投递服务由其中 `station_id` 做 service resolution；
 4. 只有同一个 exact AccountId 的 holder-authenticated accept 才能物化 membership。
 
 同 core、不同 server 的账号、只匹配裸 `principal_id` 的候选、过期 claim、错误 issuer、额外 JSON 成员、以及从
@@ -3195,7 +3195,7 @@ Expected：
 
 `vector_id`: `ak.vector.invite.claim_reducer_state_machine.v1`
 
-本向量固化 [`third-party-invites.md`](../sync/third-party-invites.md) §4.3 的 Realm reducer 权威要求。机器可执行样本位于 [`../../artifacts/fixtures/security-closure-fixture.json`](../../artifacts/fixtures/security-closure-fixture.json)；runner MUST 同时消费 prose 与 fixture，不得只依赖验证服务或 Principal Server sync surface 入站预检。
+本向量固化 [`third-party-invites.md`](../sync/third-party-invites.md) §4.3 的 Realm reducer 权威要求。机器可执行样本位于 [`../../artifacts/fixtures/security-closure-fixture.json`](../../artifacts/fixtures/security-closure-fixture.json)；runner MUST 同时消费 prose 与 fixture，不得只依赖验证服务或 Station sync surface 入站预检。
 
 Steps：
 
@@ -3414,7 +3414,7 @@ Expected：
 
 - 每个变异都 MUST 在 CAS 前失败，目标 KeyPackage 状态不变；participant 与 service 两层授权不可互相替代。
 - 已通过外层 service authentication 的所有 participant / target / policy 业务失败对 peer caller 均为同一 `claim_failed` 外观；响应不得带 `available_count`、逐设备 `failures[]` 或 last-resort record。外层 service signature 变异必须在读取 target 前返回 target-independent `unauthenticated` / `signature_invalid`。
-- Participant authorization 必须绑定 exact claim fields 与 stable `{source_id,destination_id}`；部署态 trust domain 只由 source Principal Server 经 verified ServiceResolution + Describe 得出并由外层 RFC 9421 headers 绑定，客户端不得猜测 URL/domain。
+- Participant authorization 必须绑定 exact claim fields 与 stable `{source_id,destination_id}`；部署态 trust domain 只由 source Station 经 verified ServiceResolution + Describe 得出并由外层 RFC 9421 headers 绑定，客户端不得猜测 URL/domain。
 - Direct Conversation request 必须同时绑定 pair key、Realm、main Strand 与 MLS group，且不得启用 last-resort。
 
 ### 10.3.4 Vector: Self Claim Authorization And Idempotency
@@ -3423,8 +3423,8 @@ Expected：
 
 Steps：
 
-1. requester 每次新尝试只生成一个至少 128-bit CSPRNG `claim_request_id`，并分别以 closed `device`、`native_agent` 与 `minimal_metadata_pairwise` requester authorization 提交 canonical claim；同一值同时作为 `Idempotency-Key`、durable ledger identity 与后续 `claim_envelope` canonical 签名 transcript 中从 exact `claim_receipt.claim_request_id` 派生的同名 challenge，不得生成第二个 `claim_nonce`，也不得在 envelope wire 中复制 `nonce`。authorization 签名覆盖 exact claim fields 与 `service_binding={source_id,destination_id}`。device/Agent 分支由 current accepted authorization Event / pairing 与 active generation 证明当前授权；pairwise 分支由 exact `ak:did_core:key:<mb>` + `did:key:<mb>#<mb>` key、Realm current membership 和 ActorId routing authority 证明。source Principal Server 在任何 remote call 前完成 durable admission，destination 只以同一请求执行唯一 CAS。authority 在 destination 接受后丢失响应。
-2. source Principal Server 先按同一 `claim_request_id + request_digest` 查询不确定结果；若为 `unknown` 才原样重发 command。再以同一 identity 修改 target / Realm / selector 得到另一 digest。
+1. requester 每次新尝试只生成一个至少 128-bit CSPRNG `claim_request_id`，并分别以 closed `device`、`native_agent` 与 `minimal_metadata_pairwise` requester authorization 提交 canonical claim；同一值同时作为 `Idempotency-Key`、durable ledger identity 与后续 `claim_envelope` canonical 签名 transcript 中从 exact `claim_receipt.claim_request_id` 派生的同名 challenge，不得生成第二个 `claim_nonce`，也不得在 envelope wire 中复制 `nonce`。authorization 签名覆盖 exact claim fields 与 `service_binding={source_id,destination_id}`。device/Agent 分支由 current accepted authorization Event / pairing 与 active generation 证明当前授权；pairwise 分支由 exact `ak:did_core:key:<mb>` + `did:key:<mb>#<mb>` key、Realm current membership 和 ActorId routing authority 证明。source Station 在任何 remote call 前完成 durable admission，destination 只以同一请求执行唯一 CAS。authority 在 destination 接受后丢失响应。
+2. source Station 先按同一 `claim_request_id + request_digest` 查询不确定结果；若为 `unknown` 才原样重发 command。再以同一 identity 修改 target / Realm / selector 得到另一 digest。
 3. 分别施加缺 authorization、混合/开放 branch、wrong service binding、wrong authorized Event/method、stale/future authorization、短 `claim_request_id`、额外旧 `claim_nonce`、未被 PCR 接受的设备、已 fence/revoke 的设备或 generation、Agent/service key 冒充普通设备、pairwise actor 与 method multibase 不一致、pairwise actor 不在 intended Realm、current delivery service 不等于 signed source、仅 bearer token、以及 authorization 有效但 target policy 不满足的单点变异。
 
 Expected：
@@ -3482,7 +3482,7 @@ Steps：
 1. Returning-human client 以 `Authorization: DPoP <account_handoff_grant>`、匹配 RFC 9449 DPoP 与闭合 `HumanSessionGrantRequest` 请求签发；请求中的 `audience` 与目标 resource server 不匹配。
 2. 攻击者篡改 accepted-device proof 绑定的 `request_id`、`account_subject`、`account_handoff_grant_digest`、principal、device、audience、holder JKT、verification method 或 session intent，或让 proof 窗口超过 300 秒。
 3. Client 尝试在 human body 中加入 `requested_scope`、客户端 challenge、`proof_kind`、`requested_ttl` 或 `expires_at`。
-4. Auth Server 在 `development_mode=true` 时尝试把 `ak.profile.auth_server.v1` 放入 `verified_profiles[]`。
+4. Station 的内部认证组件在 `development_mode=true` 时尝试把 `ak.profile.station.v1` 放入 `verified_profiles[]`。
 
 Expected：
 
@@ -3695,8 +3695,8 @@ Expected：
 Runner MUST 执行 `device-revocation-pending-fixture.json` 的全部 semantic cases，并至少覆盖：
 
 1. revoke 在 schema / proof / authority / exact current device+PCR generation / precondition / admission 与 mandatory canonical Ack 全部通过后，以单一事务持久化 accepted Event、Ack、derived record、pending index；无 Ack 零写入，不能套用 self-principal PCR Ack-less 例外。
-2. pending 时 base、E2EE 与 hardening profile 对 session issue/refresh、KeyPackage claim、to-device write、Event write、Principal Server admission-proof issuance 全部 fail closed 且零业务写；可区分本地主体操作使用 `device_revocation_pending`，KeyPackage anti-enumeration surface 保持 `claim_failed`，不得因 profile 改变 gate 结论。
-3. Account Authority 只可凭 `ak.peer.device_revocations.command.check.v1` 的 fresh signed exact-intent receipt 铸造/刷新 grant；origin 在同一事务从自身 durable projection 派生 selector、同一 durable order 线性化、receipt 最长30秒且不能由 cache/private RPC 替代。introspection 不承载可复用 receipt；origin Principal Server 对每个 protected self request 在本地事务读取 durable gate。
+2. pending 时 base、E2EE 与 hardening profile 对 session issue/refresh、KeyPackage claim、to-device write、Event write、Station admission-proof issuance 全部 fail closed 且零业务写；可区分本地主体操作使用 `device_revocation_pending`，KeyPackage anti-enumeration surface 保持 `claim_failed`，不得因 profile 改变 gate 结论。
+3. Account Authority 只可凭 `ak.peer.device_revocations.command.check.v1` 的 fresh signed exact-intent receipt 铸造/刷新 grant；origin 在同一事务从自身 durable projection 派生 selector、同一 durable order 线性化、receipt 最长30秒且不能由 cache/private RPC 替代。introspection 不承载可复用 receipt；origin Station 对每个 protected self request 在本地事务读取 durable gate。
    - returning human 使用 `returning_session_grant_issue`，不携 expected binding但强制 accepted-device proof；registration/recovery 使用 `session_grant_issue` 且禁带该 proof；两类 `allow` receipt 的 derived selectors 逐字成为 grant `device_binding`，客户端自报 Event/generation 无法进入。
    - expected binding 两字段必须同时出现或同时缺省，且只有两个 issue action 可缺省；refresh 必须携 predecessor binding。与 derived 值不等时 decision 为 `generation_mismatch`，receipt 不回携新 binding。
    - 无权 caller、非本服务账号、未知设备与他人设备统一返回同形 `authority_mismatch`，且 caller 授权校验先于任何 device-private 读取。
@@ -3848,7 +3848,7 @@ Expected：
 
 Steps:
 
-1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Principal Server + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `did` 调用 `ak.self.agent.command.provision.v1`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 managed Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
+1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Station + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `did` 调用 `ak.self.agent.command.provision.v1`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 managed Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
 2. Agent runtime 生成 key pair，取得 pairing verifier 签名的 presentation request/challenge；controller 生成符合 `ak.schema.agent_requested_scope_disclosure.v1`、绑定该 verifier/audience/challenge 且接收窗口不超过 300 秒的私有披露，与 key pair request 一起提交。controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
 4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 提交一个 controller-authored `ak.capability.grant` `EventInitialSubmission` 以附加更窄的 Realm-scoped grant。其 `event.payload.grant` 不含内层 proof，Event envelope proof 是唯一 durable issuer signature；另分别尝试提交 body-local proof、让服务端代签/合成 Event、含未 provision action及超出显式内容 resource ceiling 的变体。
@@ -3916,7 +3916,7 @@ Steps:
 3. 归档：客户端崩溃重启，从 durable intent 恢复同一 create bytes 与 DID keys；重放 commit 返回同一 `awaiting_pcr_genesis` 而不是第二条 provision。
 4. 在**另一次提交**中送出该 create；admission 反查 accepted provision 并接受，provision outcome 变成 `awaiting_did_binding`，Agent 仍不可见。
 5. Controller 用 entry 0 预承诺 key 签发连续 entry 1，新增 exact PCR service 四元组；entry 1 accepted 后重放 commit 才返回 `complete`。
-6. 变体 A：entry 0 已含 PCR service；变体 B：prepare 返回的 inception pin 与 entry 0 不符；变体 C：provision 与 create 同批提交；变体 D：create realm id 无 accepted provision 声明；变体 E：第二条 provision 声明同一 realm id；变体 F：服务端自选 realm id；变体 G：controller PCR 与 Agent PCR 分属不同 Principal Server；变体 H：entry 1 未使用预承诺 key或四元组不符；变体 I：create 携带一个结构合法、可投影到同一 Agent、但不等于 provisioning durable 保存值的 `initial_resolution`。
+6. 变体 A：entry 0 已含 PCR service；变体 B：prepare 返回的 inception pin 与 entry 0 不符；变体 C：provision 与 create 同批提交；变体 D：create realm id 无 accepted provision 声明；变体 E：第二条 provision 声明同一 realm id；变体 F：服务端自选 realm id；变体 G：controller PCR 与 Agent PCR 分属不同 Station；变体 H：entry 1 未使用预承诺 key或四元组不符；变体 I：create 携带一个结构合法、可投影到同一 Agent、但不等于 provisioning durable 保存值的 `initial_resolution`。
 
 Expected:
 
@@ -3990,7 +3990,7 @@ Expected:
   转为 sealed/accepted。memory 与 PostgreSQL adapter 必须产生相同结果。
 - Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；单一 provision Event及其 accountability/selector/realm-id-claim projections 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
 - `PCR_A` 逐字等于 controller 在第 1 步本地算出的值；genesis accepted 时 `ak.component.agent.status.v1` 从 `uninitialized` 迁到 `active`，且这是唯一能离开 `uninitialized` 的写入。`purpose != "managed_agent_control"` 的 create MUST NOT 触发该写入。
-- `PCR_A` 与 `PCR_C` MUST 由同一 Principal Server 承载；反查与 realm-id claim 唯一性都是本地判定。
+- `PCR_A` 与 `PCR_C` MUST 由同一 Station 承载；反查与 realm-id claim 唯一性都是本地判定。
 - 八个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id，也不得扩大 Agent 的内容权限。变体 F MUST 以 `event_id_digest_mismatch` 被拒（§6.0.1 B 类禁令），变体 G MUST 零写入拒绝，变体 H 的第二条 provision MUST 被 `cas_register` / `bottom=reject` claim cell 拒绝。
 
 ### 11.2.3 Vector: Managed Agent PCR History-only Backup
@@ -4183,7 +4183,7 @@ ineffective。客户端提交逐 key/grant revoke bundle、只清 UI cache、或
 
 runner MUST 执行 `agent-membership-cascade-fixture.json` 的全部 semantic cases，并至少构造以下真实签名路径：
 
-1. Agent join 绑定 controller exact `(principal_id, principal_server_id)` 与当前 controller join Event ID；controller leave/ban 或 rejoin 使旧 binding 立即 effective-invalid。
+1. Agent join 绑定 controller exact `(principal_id, station_id)` 与当前 controller join Event ID；controller leave/ban 或 rejoin 使旧 binding 立即 effective-invalid。
 2. self leave 的 `atomic_self_leave` 缺任一 Agent、增加额外 Agent、重复、换 Realm/pair/generation/signer 或把 leave 改成其它 membership 时，controller 和 Agent Events 全部零写入；完整集合一次性成功。
 3. 第三方 `emergency_terminal` 在 Agent cleanup 不可用时仍接受 terminal Event、durable 写 exact-set intent并返回 `terminal_applied_cleanup_pending`；Agent 从该 basis 起不能 author、取 capability、收 delivery、领 KeyPackage 或保留 MLS active membership。
 4. `emergency_cleanup` 只接受原 initiator 对同 intent 的完整签名集合；restart 后 exact replay 幂等，异内容冲突，overdue 不解封，服务端从不合成 Agent Event。
@@ -4347,7 +4347,7 @@ Expected:
 - 第 1 步任何不完整组合均保持 pending；desired membership、delivered Welcome 或 claimed KeyPackage 单独都不是 effective 证据。
 - 第 2 步 D 成为有效设备，A 进入 `effective_agent_ids`；同 principal 的其它设备不会自动拿到密钥。controller 当前 session device readiness 独立计算。
 - 第 3 步服务端立即停止 A 的寻址/投递并移除 effective access，且只产生 durable removal obligation；
-  不持有 MLS private state 的 Principal Server 不得伪造 Commit。新发送保持 fail closed。
+  不持有 MLS private state 的 Station 不得伪造 Commit。新发送保持 fail closed。
 - 第 4 步真实 Remove Commit 推进 epoch；旧 Welcome/consume 不能使已移除设备复活。
 
 ### 11.10.2 Vector: Hosted Multi-Track Projection and Private Echo
@@ -5400,7 +5400,7 @@ Expected：
 
 `vector_id`: `ak.vector.applet.managed_actor_authority.v1`
 
-Runner MUST 执行 [`applet-managed-actor-fixture.json`](../../artifacts/fixtures/applet-managed-actor-fixture.json) 的固定 Bot/Ghost 原子单元，验证 exact authority pair、receiving Principal Server、独立 method history/witness、verified DID namespace、provision/PCR initial-resolution 交叉绑定与零可见失败。Rotation 只改 PCR current cell 而保持 creation anchors；Applet/Ghost revoke 后，通过普通 Event submit 的 self-signed write 也必须 `applet_revoked`，但历史 resolution/audit 仍可读。
+Runner MUST 执行 [`applet-managed-actor-fixture.json`](../../artifacts/fixtures/applet-managed-actor-fixture.json) 的固定 Bot/Ghost 原子单元，验证 exact authority pair、receiving Station、独立 method history/witness、verified DID namespace、provision/PCR initial-resolution 交叉绑定与零可见失败。Rotation 只改 PCR current cell 而保持 creation anchors；Applet/Ghost revoke 后，通过普通 Event submit 的 self-signed write 也必须 `applet_revoked`，但历史 resolution/audit 仍可读。
 
 ### 19.3 Vector: Registration Epoch Transcript
 
@@ -6246,7 +6246,7 @@ Runner MUST 加载
 
 Runner MUST 加载
 [`fanout-route-miss-fixture.json`](../../artifacts/fixtures/fanout-route-miss-fixture.json) 并执行
-`ak.suite.fanout.route_miss.v1`。测试至少使用两个 Principal Server 与一个含多个 joined member 的 Realm，
+`ak.suite.fanout.route_miss.v1`。测试至少使用两个 Station 与一个含多个 joined member 的 Realm，
 覆盖缺 route、后补 verified route、进程重启、共享 service 的多 member witness、leave/ban/rebind、rejoin 与最终
 peer acceptance。仅对 schema 做枚举校验不构成通过：
 

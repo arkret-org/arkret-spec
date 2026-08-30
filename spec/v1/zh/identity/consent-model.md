@@ -268,7 +268,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 §3.1 缺省判定与 §6.1 step 2 提到的 **quarantine inbox** 是 default profile 下"无 active consent 的 invite"既不直接拒绝、也不直接放行的暂存区，其最小定义如下：
 
-- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder 的 Principal Server CAS account-data cell（key `ak.account.invite_quarantine`，plaintext value 符合 `ak.schema.invite_quarantine.v1`）。权威状态只在该 cell；实时提示经 account subscribe 的 `to_device.messages[]` rail 以 `ak.account_data.update` service-sender envelope 投递，离线补取/重建经 `ak.self.account_data.read.list.v1` 或 `ak.self.account_data.resource.get.v1`。该 CAS-only cell **不会**出现在 `delta.account_data.events[]`，也不得被合成为 authorless 或 service-authored `ak.account_data.set` Event。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。
+- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder 的 Station CAS account-data cell（key `ak.account.invite_quarantine`，plaintext value 符合 `ak.schema.invite_quarantine.v1`）。权威状态只在该 cell；实时提示经 account subscribe 的 `to_device.messages[]` rail 以 `ak.account_data.update` service-sender envelope 投递，离线补取/重建经 `ak.self.account_data.read.list.v1` 或 `ak.self.account_data.resource.get.v1`。该 CAS-only cell **不会**出现在 `delta.account_data.events[]`，也不得被合成为 authorless 或 service-authored `ak.account_data.set` Event。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。
 - **生命周期与 TTL**：暂存项停留在 `pending_review` 直到 holder 在 UI review;实现 SHOULD 为暂存项设置 deployment-policy 声明的 TTL（缺省建议 30 天）,超时后 MUST 按"丢弃"处理（等价 holder 未授权，不得自动转 grant）。
 - **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ak.consent.grant` Control Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Control Move 落入 consent cell,quarantine inbox 永远不是授权根。
 - **profile 边界**：quarantine inbox 仅在 default profile 生效;`require_explicit_consent` profile 下无 active grant 的 invite 直接 `failed_precondition` 拒绝(§6.1 step 2),不进入 quarantine inbox。
@@ -295,7 +295,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 对不以 Contact 为授权依据发起的WebRTC call、presence subscription或未来显式注册的一次性动作，发起方可preflight目标Consent，但接收侧仍须在fanout/响铃/presence/media token前重验holder-private current consent。缺active consent时fail closed/quarantine。该规则不授权创建或发送Contact-based DM。
 
-WebRTC `ak.call.signal{signal_kind=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Principal Server sync surface 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
+WebRTC `ak.call.signal{signal_kind=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Station sync surface 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 
 `ak.self.direct_conversation.read.resolve.v1`与§5.4的DM founding admission均不得查询Consent。普通分支只验证双方current directional Contact heads与source freshness；owned-Agent分支验证immutable controller/provision/runtime binding。无权主体统一opaque unavailable。其它基于Consent的一次性通信若未来需要，必须另行注册operation/profile，不得复用resolver或伪造Contact。
 

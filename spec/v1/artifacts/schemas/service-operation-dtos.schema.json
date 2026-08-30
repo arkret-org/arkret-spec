@@ -1264,7 +1264,7 @@
         "device_id": {
           "type": "string",
           "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Stable protocol endpoint identifier. REQUIRED for agent_key_proof and covered by request_canonical_digest; the Account Authority MUST persist and return the same value in the issued grant so Principal Servers can bind MLS KeyPackage ownership, Welcome routing, consume/revoke operations, refresh, and restart recovery to one endpoint. It MUST NOT be derived from a session or grant id."
+          "description": "Stable protocol endpoint identifier. REQUIRED for agent_key_proof and covered by request_canonical_digest; the Account Authority MUST persist and return the same value in the issued grant so Stations can bind MLS KeyPackage ownership, Welcome routing, consume/revoke operations, refresh, and restart recovery to one endpoint. It MUST NOT be derived from a session or grant id."
         },
         "focus_id": {
           "type": "string",
@@ -1804,7 +1804,7 @@
     },
     "DirectConversationFoundingUnitSubmission": {
       "type": "object",
-      "description": "Caller-authored Direct Conversation founding unit submitted to the founder's current Principal Server. The founder authors all four Events itself: realm_id is retype(events[0] Event ID) and main_strand_id is retype(events[2] Event ID), so no party can allocate either coordinate before the canonical preimage exists. The service never allocates, replaces or renegotiates an ID; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1.",
+      "description": "Caller-authored Direct Conversation founding unit submitted to the founder's current Station. The founder authors all four Events itself: realm_id is retype(events[0] Event ID) and main_strand_id is retype(events[2] Event ID), so no party can allocate either coordinate before the canonical preimage exists. The service never allocates, replaces or renegotiates an ID; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1.",
       "required": [
         "unit_kind",
         "idempotency_key",
@@ -3172,7 +3172,7 @@
     },
     "AgentMembershipCascadeFederationSubmission": {
       "type": "object",
-      "description": "Federation form of the registered Native Agent cascade unit. Every nested Event already carries its origin Principal Server admission proof; the destination replays the same exact-set and atomicity rules.",
+      "description": "Federation form of the registered Native Agent cascade unit. Every nested Event already carries its origin Station admission proof; the destination replays the same exact-set and atomicity rules.",
       "required": [
         "unit_kind",
         "cascade_mode",
@@ -3358,7 +3358,7 @@
     },
     "EventsSubmitFederationBatchRequestBody": {
       "type": "object",
-      "description": "Ordinary Realm-scoped federation service-to-service ak.peer.events.command.submit.v1 request body. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar.",
+      "description": "Ordinary Realm-scoped federation service-to-service ak.peer.events.command.submit.v1 request body. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar.",
       "required": [
         "service_binding_ref",
         "events"
@@ -5384,8 +5384,7 @@
         "serviceKind": {
           "type": "string",
           "enum": [
-            "principal_server",
-            "auth_server",
+            "station",
             "identity_registry"
           ]
         },
@@ -5478,8 +5477,7 @@
         "service_kind": {
           "type": "string",
           "enum": [
-            "principal_server",
-            "auth_server",
+            "station",
             "identity_registry"
           ]
         },
@@ -5729,7 +5727,7 @@
     },
     "SessionGrantDeviceBinding": {
       "type": "object",
-      "description": "Authorization state committed into a standard device grant. An Account Authority MUST populate it verbatim from the allow receipt of ak.peer.device_revocations.command.check.v1, which is the only source of the origin-derived authorization Event and generation; it MUST NOT be taken from client input, a local cache or a private lookup. Principal Servers compare it with the current active device generation on admission.",
+      "description": "Authorization state committed into a standard device grant. An Account Authority MUST populate it verbatim from the allow receipt of ak.peer.device_revocations.command.check.v1, which is the only source of the origin-derived authorization Event and generation; it MUST NOT be taken from client input, a local cache or a private lookup. Stations compare it with the current active device generation on admission.",
       "required": [
         "device_id",
         "authorization_event_id",
@@ -5767,7 +5765,7 @@
     "SessionGrantIntrospectGrant": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Non-secret grant metadata returned to the validating Principal Server. Never includes the grant JWT, refresh token, or session private key.",
+      "description": "Non-secret grant metadata returned to the validating Station. Never includes the grant JWT, refresh token, or session private key.",
       "required": [
         "id",
         "issuer_id",
@@ -5819,7 +5817,7 @@
         },
         "cnf_jkt": {
           "type": "string",
-          "description": "RFC 7638 JWK SHA-256 thumbprint of the holder (DPoP) key the grant is bound to (cnf.jkt); the Principal Server uses it to verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3). Server-to-server only."
+          "description": "RFC 7638 JWK SHA-256 thumbprint of the holder (DPoP) key the grant is bound to (cnf.jkt); the Station uses it to verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3). Server-to-server only."
         },
         "credential_class": {
           "$ref": "#/$defs/SessionGrantCredentialClass"
@@ -6001,7 +5999,7 @@
         },
         "proof_required": {
           "type": "boolean",
-          "description": "Whether an additional S2S holder proof is required to confirm the grant active for this introspection request. Default Principal Server grant+DPoP validation uses the request DPoP instead of this field."
+          "description": "Whether an additional S2S holder proof is required to confirm the grant active for this introspection request. Default Station grant+DPoP validation uses the request DPoP instead of this field."
         },
         "one_time_use_consumed": {
           "type": "boolean",
@@ -6063,7 +6061,7 @@
         "proof": {
           "type": "object",
           "additionalProperties": false,
-          "description": "Optional S2S holder confirmation signed by the session key bound into the grant. Principal Servers validating /_arkret/self/* grant+DPoP requests do not require a client-carried introspection proof; they verify the request DPoP locally against the returned cnf_jkt.",
+          "description": "Optional S2S holder confirmation signed by the session key bound into the grant. Stations validating /_arkret/self/* grant+DPoP requests do not require a client-carried introspection proof; they verify the request DPoP locally against the returned cnf_jkt.",
           "required": [
             "challenge",
             "proof_jwt"
@@ -6118,7 +6116,7 @@
         },
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Stable did_core_id of the Principal Server or resource service the grant is valid for. MUST equal the grant's bound audience. Mirrors SessionGrantRefreshOutcome.audience."
+          "description": "Stable did_core_id of the Station or resource service the grant is valid for. MUST equal the grant's bound audience. Mirrors SessionGrantRefreshOutcome.audience."
         },
         "granted_scope": {
           "type": "array",
@@ -6219,7 +6217,7 @@
     "AcceptedDevicePossessionProof": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Accepted-device Ed25519 possession proof shared by human SessionGrant issue and refresh. The signature covers utf8('ak.session_grant_accepted_device_possession_proof.v1\\n') followed by RFC 8785 JCS of this complete object with signature omitted. It is not a server challenge: freshness comes from the <=300 second signed window, the one-time account handoff or predecessor grant, the issuer request identity, and issuer-ledger exact replay. The origin Principal Server MUST verify this proof with the durable current accepted-device key in the same linearization that evaluates current authorization.",
+      "description": "Accepted-device Ed25519 possession proof shared by human SessionGrant issue and refresh. The signature covers utf8('ak.session_grant_accepted_device_possession_proof.v1\\n') followed by RFC 8785 JCS of this complete object with signature omitted. It is not a server challenge: freshness comes from the <=300 second signed window, the one-time account handoff or predecessor grant, the issuer request identity, and issuer-ledger exact replay. The origin Station MUST verify this proof with the durable current accepted-device key in the same linearization that evaluates current authorization.",
       "required": [
         "context",
         "purpose",

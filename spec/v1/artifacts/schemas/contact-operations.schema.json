@@ -374,7 +374,7 @@
             },
             "control_proposal_ack": {
               "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
-              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Station cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false
@@ -395,7 +395,7 @@
         },
         "recipient_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Stable Principal Server service did_core_id that hosts subject_id and accepts this delivery. Together with subject_id this is the complete Contact participant authority key."
+          "description": "Stable Station service did_core_id that hosts subject_id and accepts this delivery. Together with subject_id this is the complete Contact participant authority key."
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
@@ -406,7 +406,7 @@
           "description": "Optional transport-only hints for recovering the same recipient_id route during Contact delivery bootstrap. They are not part of the signed Contact Event, Contact projection, Realm member cell or authority state; they do not extend any token/receipt TTL or authorize delivery."
         },
         "recipient_kind": {
-          "const": "principal_server"
+          "const": "station"
         }
       },
       "additionalProperties": false
@@ -759,7 +759,7 @@
           ],
           "properties": {
             "kind": {
-              "const": "same_principal_server"
+              "const": "same_station"
             }
           },
           "additionalProperties": false
@@ -916,7 +916,7 @@
         },
         "peer_host_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Optional stable Principal Server service did_core_id hosting the peer. Omitted for same-Principal-Server contacts."
+          "description": "Optional stable Station service did_core_id hosting the peer. Omitted for same-Station contacts."
         },
         "peer_host_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
@@ -1388,11 +1388,11 @@
             },
             "previous_terminal_contact_round_id": {
               "$ref": "./principal-operations.schema.json#/$defs/digest",
-              "description": "Immediate previously accepted terminal Contact round for a recontact request. The Principal Server MUST require an exact local terminal-round match when present and MUST require it when a terminal predecessor exists."
+              "description": "Immediate previously accepted terminal Contact round for a recontact request. The Station MUST require an exact local terminal-round match when present and MUST require it when a terminal predecessor exists."
             },
             "continuity_evidence": {
               "$ref": "#/$defs/contact_continuity_evidence",
-              "description": "Portable mutually signed prefix checkpoint plus bounded tail. A caller supplies it when the current Principal Server cannot reconstruct the complete lineage locally; the service verifies it and persists the same checkpoint/tail instead of guessing or skipping a predecessor."
+              "description": "Portable mutually signed prefix checkpoint plus bounded tail. A caller supplies it when the current Station cannot reconstruct the complete lineage locally; the service verifies it and persists the same checkpoint/tail instead of guessing or skipping a predecessor."
             },
             "message": {
               "type": "string"
@@ -1441,7 +1441,7 @@
             },
             "control_proposal_ack": {
               "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
-              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Station cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false
@@ -1577,7 +1577,7 @@
             },
             "control_proposal_ack": {
               "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
-              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Station cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false
@@ -1777,7 +1777,7 @@
             },
             "control_proposal_ack": {
               "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
-              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Station cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false
@@ -1911,7 +1911,7 @@
             },
             "control_proposal_ack": {
               "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
-              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Station cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false

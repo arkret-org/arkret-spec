@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-08-30.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-30T23:30:00+08:00",
+  "generated_at": "2026-08-31T00:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -335,7 +335,7 @@
       "schema_id": "ak.schema.invite_delivery.v1",
       "file": "schemas/invite-delivery.schema.json",
       "status": "active",
-      "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Principal Server on the notify branch. See zh/sync/invite-addressing.md section 7.",
+      "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Station on the notify branch. See zh/sync/invite-addressing.md section 7.",
       "consumer_binding": {
         "kind": "account_data_plaintext",
         "selector": "account_data key ak.account.invite_delivery",
@@ -346,7 +346,7 @@
       "schema_id": "ak.schema.invite_quarantine.v1",
       "file": "schemas/invite-quarantine.schema.json",
       "status": "active",
-      "description": "Actor-private plaintext account-data cell value of ak.account.invite_quarantine, written only by the recipient Principal Server CAS materializer. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
+      "description": "Actor-private plaintext account-data cell value of ak.account.invite_quarantine, written only by the recipient Station CAS materializer. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
       "consumer_binding": {
         "kind": "account_data_plaintext",
         "selector": "account_data key ak.account.invite_quarantine",
@@ -392,7 +392,7 @@
       "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
       "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
       "status": "active",
-      "description": "Content-addressed historical signer-resolution evidence pinned for Event, Principal Server and AvailabilityReceipt signature verification."
+      "description": "Content-addressed historical signer-resolution evidence pinned for Event, Station and AvailabilityReceipt signature verification."
     },
     {
       "schema_id": "ak.schema.patch.v1",
@@ -834,7 +834,7 @@
       "schema_id": "ak.schema.realm_join_candidate.v1",
       "file": "schemas/realm-join-candidate.schema.json",
       "status": "active",
-      "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Principal Server during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
+      "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
     },
     {
       "schema_id": "ak.schema.grant_constraint.v1",
@@ -938,20 +938,20 @@
       "schema_id": "ak.schema.applet_install_plan.v1",
       "file": "schemas/applet-install-plan.schema.json",
       "status": "active",
-      "description": "Canonical Applet InstallPlan nested in the Principal Server-signed authoring request and recomputed by install commit before admission. plan_digest is calculated over this object with plan_digest omitted."
+      "description": "Canonical Applet InstallPlan nested in the Station-signed authoring request and recomputed by install commit before admission. plan_digest is calculated over this object with plan_digest omitted."
     },
     {
       "schema_id": "ak.schema.applet_install_authoring.v1",
       "file": "schemas/applet-install-authoring.schema.json",
       "status": "active",
-      "description": "Closed Principal Server preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
+      "description": "Closed Station preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
     },
     {
       "schema_id": "ak.schema.applet_ghost_authoring_request_basis.v1",
       "file": "schemas/applet-install-authoring.schema.json",
       "fragment": "#/$defs/ghost_authoring_request_basis",
       "status": "active",
-      "description": "Principal Server-derived Ghost basis binding the exact target server, active installation coordinates, Realm and external tuple.",
+      "description": "Station-derived Ghost basis binding the exact target server, active installation coordinates, Realm and external tuple.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "Ghost preview authoring_request.basis",
@@ -963,7 +963,7 @@
       "file": "schemas/applet-install-authoring.schema.json",
       "fragment": "#/$defs/install_authoring_request_basis",
       "status": "active",
-      "description": "Canonical unsigned basis frozen by the Principal Server preview and covered by the install authoring request signature.",
+      "description": "Canonical unsigned basis frozen by the Station preview and covered by the install authoring request signature.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "Applet install preview authoring_request.basis",
@@ -975,7 +975,7 @@
       "file": "schemas/applet-install-authoring.schema.json",
       "fragment": "#/$defs/authoring_request",
       "status": "active",
-      "description": "Principal Server-signed, expiry-bounded install_bot or provision_ghost managed-actor authoring request.",
+      "description": "Station-signed, expiry-bounded install_bot or provision_ghost managed-actor authoring request.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "Applet install or Ghost preview and unified managed-actor author request",

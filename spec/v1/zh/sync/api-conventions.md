@@ -21,7 +21,7 @@ Arkret 协议核心不强绑定 REST API；核心操作、消息 envelope 与 tr
 
 - identity registry
 - events
-- Principal Server sync surface
+- Station sync surface
 - blob
 - authz
 - push gateway
@@ -220,7 +220,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。Principal Server 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base_url` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session.v1`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
+认证与授权服务器可以分离。Station 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base_url` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session.v1`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
 
 ```json
 {
@@ -252,7 +252,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 - `sub`、email、username 或 OAuth client id MUST NOT 直接作为 `actor_id`、grant subject 或 event sender。
 - 登录成功后，Account Authority MUST 产生可验证的 `SessionGrantOutcome`，把 OAuth/OIDC / passkey / device proof 绑定到 DID principal / device。客户端可见登录凭据是 `ak.session.grant`，Principal 本地 session provisioning 是 Account Authority 内部步骤。该 credential 的 durable authority 是 Account Authority 的 issuer ledger，不是 Principal Control Realm Event/cell；issuer MUST NOT 为 SessionGrant 代签 principal Event。
-- Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 issuer-ledger session grant 状态；Principal Server 校验 grant 时通过 Account Authority / Auth-side 内省或等价可信本地状态 fail closed。verifier 还 MUST 从 JWT signed claims 按 [`../identity/key-management.md` §6.1](../identity/key-management.md) 重算 issuance preimage、suite-tagged ID 与 `jti`，并拒绝非 canonical public-JWK JCS、claim tamper 或 ID mismatch。
+- Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 issuer-ledger session grant 状态；Station 校验 grant 时通过 Account Authority / Auth-side 内省或等价可信本地状态 fail closed。verifier 还 MUST 从 JWT signed claims 按 [`../identity/key-management.md` §6.1](../identity/key-management.md) 重算 issuance preimage、suite-tagged ID 与 `jti`，并拒绝非 canonical public-JWK JCS、claim tamper 或 ID mismatch。
 - `methods[]` 只描述 service account 登录或恢复入口；它不改变 DID 控制权规则。密码、邮箱验证码、passkey 和 OIDC session 必须通过 `did_binding_methods` 绑定到 DID / device 后才能用于协议写入。
 - Account-first registration 的首设备 authority 来自 identity-root control transcript 与 founding device proof；service discovery 不发布设备 authority pin。Account Authority 只能 relay exact signed genesis unit并验证 receipt。
 - 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更，客户端不得静默沿用过期 issuer。
@@ -289,7 +289,7 @@ Replay window：PoP 出示**复用既有 replay window 机制**——签名时�
 
 ### 3.3 `/_arkret/self/*` 出示 grant + DPoP（normative，默认会话凭据路径）
 
-Account Authority 以 `ak.session.grant` 作为客户端唯一可见的会话凭据；Principal Server **不**为客户端铸发独立的本地 bearer，**不**存在第二个客户端可见的 Principal 本地凭据签发 endpoint。客户端对 `/_arkret/self/*` 的每次请求 MUST 直接出示该 grant，并叠加一份 sender-constrained 的 **DPoP（[RFC 9449](https://www.rfc-editor.org/rfc/rfc9449)）** 持有证明：
+Account Authority 以 `ak.session.grant` 作为客户端唯一可见的会话凭据；Station **不**为客户端铸发独立的本地 bearer，**不**存在第二个客户端可见的 Principal 本地凭据签发 endpoint。客户端对 `/_arkret/self/*` 的每次请求 MUST 直接出示该 grant，并叠加一份 sender-constrained 的 **DPoP（[RFC 9449](https://www.rfc-editor.org/rfc/rfc9449)）** 持有证明：
 
 ```http
 POST /_arkret/self/events
@@ -297,13 +297,13 @@ Authorization: DPoP <ak.session.grant>
 DPoP: <DPoP proof JWT>
 ```
 
-需要 fresh 高风险动作认证的操作（如用户自助擦除入口）不落在本面：它们 MUST 由 Account Authority 在 `/_arkret/gate/account/*` 直接受理。session grant introspection 刻意不投影 `auth_time` 或认证 proof kind，Principal Server MUST NOT 依据 introspection 或本地会话状态自行判定或近似认证新鲜度（见 [`../identity/account-lifecycle.md` §8.1 与 §10](../identity/account-lifecycle.md) 的认证新鲜度归属原则）。
+需要 fresh 高风险动作认证的操作（如用户自助擦除入口）不落在本面：它们 MUST 由 Account Authority 在 `/_arkret/gate/account/*` 直接受理。session grant introspection 刻意不投影 `auth_time` 或认证 proof kind，Station MUST NOT 依据 introspection 或本地会话状态自行判定或近似认证新鲜度（见 [`../identity/account-lifecycle.md` §8.1 与 §10](../identity/account-lifecycle.md) 的认证新鲜度归属原则）。
 
-Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失败即 `unauthenticated`，fail closed）：
+Station 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失败即 `unauthenticated`，fail closed）：
 
-- **DPoP 签名**:DPoP proof JWT MUST 用该 grant 的 grant-binding(DPoP)key 签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Principal Server 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
+- **DPoP 签名**:DPoP proof JWT MUST 用该 grant 的 grant-binding(DPoP)key 签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Station 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
 - **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment，再逐字比较经规范化的 scheme + authority + path。**外部 URI 重建**:`htu` 的 authority 是客户端看到的 gate origin。直连部署 MUST 使用请求自身的 scheme 与 authority；反向代理部署 MUST 使用静态配置的 public origin，或仅接受由受信最后一跳代理写入、并在入口清洗所有客户端同名 header 后得到的 `Forwarded` / `X-Forwarded-Host` / `X-Forwarded-Proto`。实现不得信任任意首跳转发值，也不得退化为 path-only 比对；无法可靠重建完整外部 URI 时 MUST 以 `unauthenticated` 拒绝 DPoP 出示。
-- **grant active**:grant MUST 经 session-grant 内省判定 issuer ledger 当前为 active(`ak.gate.account.command.introspect_session_grant.v1`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。本地 session/cache 只是有 freshness 上限的投影，MUST NOT 覆盖 issuer 返回的 revoked/superseded/expired 或成为第二真相源。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Principal Server MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
+- **grant active**:grant MUST 经 session-grant 内省判定 issuer ledger 当前为 active(`ak.gate.account.command.introspect_session_grant.v1`)。Station **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。本地 session/cache 只是有 freshness 上限的投影，MUST NOT 覆盖 issuer 返回的 revoked/superseded/expired 或成为第二真相源。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Station MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
 - **grant class/binding**：JWT 与内省必须使用
   `service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims` 的 typed
   `credential_class`，Arkret v1 固定为 `standard` 并必须携带 `holder_binding`。恢复完成入口在核验 replacement
@@ -312,29 +312,29 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
   `{kind="human_device",device_binding}`，并禁止全部 Agent runtime字段；Agent分支恰为
   `{kind="agent_runtime",agent_id,device_id,agent_key_authorization_ref,verification_method}`，并禁止
   `device_binding`。`agent_key_authorization_ref`就是唯一 authorization代次，必须 resolve为 current accepted
-  active authorization，不存在额外 `generation`字段或隐式数据库 generation轴。Principal Server 在每个
+  active authorization，不存在额外 `generation`字段或隐式数据库 generation轴。Station 在每个
   self-path admission 中必须同时重验 token subject、分支 binding ref、runtime device、current accepted Agent
   key authorization及 Agent/controller current lifecycle；仅匹配 kind、key digest、scope内 device字符串或
   service-private row均不得替代 signed binding。持 active authorized Agent key但尚无 session的 runtime可凭 PoP
   取得 standard Agent session，不能伪装 human device。
-- **audience**:grant 的 audience MUST 等于本 Principal Server 的 service DID。
+- **audience**:grant 的 audience MUST 等于本 Station 的 service DID。
 - **scope**：grant scope MUST 含当前 endpoint 对应的 operation scope；scope 只表达服务操作授权，MUST NOT
   使用旧 `session.bind` 哨兵或 device scope 代替 typed holder binding。
 - **principal / device 绑定**：grant 的 subject 与 typed `holder_binding` MUST 与请求 principal / device 一致；
   introspection 若同时返回顶层 device metadata，它也 MUST 与 signed holder binding 逐字一致。
 - **未过期**:grant 与 DPoP proof 均 MUST 未过期。
-- **DPoP 重放防护**:Principal Server MUST 按 DPoP `jti` + `iat` 新鲜度窗口拒绝重放(窗口量级与 §3.2 / `federation.md` §3.2 PoP 时效窗口同口径)。
+- **DPoP 重放防护**:Station MUST 按 DPoP `jti` + `iat` 新鲜度窗口拒绝重放(窗口量级与 §3.2 / `federation.md` §3.2 PoP 时效窗口同口径)。
 
 实现 MUST 通过 `ak.vector.session.dpop_target_uri_binding.v1`，证明跨 authority、跨 scheme、伪造转发头与 authority 不可重建场景均 fail closed，且不存在 path-only fallback。
 
 **DPoP 与 RFC 9421 PoP 是两层正交保障**。DPoP（RFC 9449）提供 per-request 认证 + sender-constraint，但**不绑定请求 body**——默认 profile 下 body 完整性依赖 TLS(与 Matrix 同口径)。§3.2 的 RFC 9421 PoP 则额外提供 body 完整性(覆盖 `content-digest`)。两层用**同一把** Ed25519 grant-binding(DPoP)key:该 key 的 RFC 7638 thumbprint 即 grant 的 `cnf.jkt`(DPoP 绑定),其公钥即 grant 委托的 `session_public_key`(9421 绑定),客户端无需为 DPoP 与 9421 各管理一把密钥。此 grant-binding key 是短期会话认证凭据，必须独立生成、独立存储并随 session 轮换；其私钥字节、公钥字节、JWK thumbprint 与 `kid` 都 MUST NOT 等于或复用签事件 / KeyPackage / MLS 的长期设备身份 key(`device_public_key_did`)。违反分离要求的请求 MUST 以 `unauthenticated` fail closed(见 [`../crypto-media/device-lifecycle.md` §3.3/§5.2](../crypto-media/device-lifecycle.md))。
 
 - **默认 profile**:self-path 的会话出示就是本节的 grant + DPoP;RFC 9421 PoP 可选叠加。
-- **高安全 profile**(`sovereign_deployment` / `high_security_organization`，见 §3.2 末段):对所有受保护的 `ak.self.*` operation，Principal Server **MUST** 在 grant + DPoP 之外**再要求** RFC 9421 PoP 出示；仅出示 grant + DPoP、缺 `Signature-Input` 的此类请求 MUST 被拒。此时 9421 校验的 `session_public_key` **MUST** 取自该 grant 的 session-grant 内省结果(grant + DPoP 会话为请求级、不落库为本地 bearer)，而非持久化 session 记录。
+- **高安全 profile**(`sovereign_deployment` / `high_security_organization`，见 §3.2 末段):对所有受保护的 `ak.self.*` operation，Station **MUST** 在 grant + DPoP 之外**再要求** RFC 9421 PoP 出示；仅出示 grant + DPoP、缺 `Signature-Input` 的此类请求 MUST 被拒。此时 9421 校验的 `session_public_key` **MUST** 取自该 grant 的 session-grant 内省结果(grant + DPoP 会话为请求级、不落库为本地 bearer)，而非持久化 session 记录。
 
 该模型对齐 Matrix [MSC3861](https://github.com/matrix-org/matrix-spec-proposals/pull/3861)（Auth Server 签发凭据 + Resource Server 内省）的方向，并在其上叠加 DPoP sender-constraining(比 Matrix 的裸 bearer 更强)。
 
-**其它仍合法的入站凭据**:除 grant + DPoP 外，Principal Server MAY 在 development mode 保留本地开发凭据回退；生产客户端默认且规范化的 self-path 出示路径是 grant + DPoP。Auth Server 的 OIDC/OAuth 结果 MUST 先进入 Account Authority 的 `SessionGrantOutcome`，不得作为 Principal Server 的 self-path 直接凭据。
+**其它仍合法的入站凭据**:除 grant + DPoP 外，Station MAY 在 development mode 保留本地开发凭据回退；生产客户端默认且规范化的 self-path 出示路径是 grant + DPoP。Auth Server 的 OIDC/OAuth 结果 MUST 先进入 Account Authority 的 `SessionGrantOutcome`，不得作为 Station 的 self-path 直接凭据。
 
 **SessionGrant operation replay（normative）**：issue 与 refresh 使用 proof/operation-specific 稳定 request
 identity 加 canonical intent digest。exact replay 在重新验证当前 holder/DPoP、method/target、issuer/audience

@@ -45,20 +45,16 @@
         "agent_runtime",
         "applet_service",
         "archive_node",
-        "auth_server",
-        "authz_service",
         "blob_node",
-        "device_key_service",
         "directory_service",
         "identity_registry",
         "key_recovery_service",
         "media_service",
         "moderation_service",
         "notary",
-        "principal_server",
+        "station",
         "push_gateway",
         "recovery_service",
-        "search_service",
         "sfu_service",
         "turn_service"
       ],
@@ -255,7 +251,7 @@
             },
             "secret_scope": {
               "const": "per_service",
-              "description": "The HMAC salt/pepper is unique to this service context and MUST NOT be shared across Principal Servers, organizations, or push routes."
+              "description": "The HMAC salt/pepper is unique to this service context and MUST NOT be shared across Stations, organizations, or push routes."
             },
             "salt_epoch_id": {
               "type": "string",
@@ -291,7 +287,7 @@
     },
     "receive_policy_constraints": {
       "$ref": "./invite-receive-policy.schema.json#/$defs/receive_policy_constraints",
-      "description": "Deployment/admin upper bound for subject-private invite/contact receive policies. Principal Servers SHOULD expose this in describe so clients can show which user reachability preferences are capped by server policy."
+      "description": "Deployment/admin upper bound for subject-private invite/contact receive policies. Stations SHOULD expose this in describe so clients can show which user reachability preferences are capped by server policy."
     },
     "rate_limit_policy_id": {
       "type": "string",
@@ -899,7 +895,7 @@
             "consent_grant",
             "shared_realm",
             "handle_claim",
-            "same_principal_server",
+            "same_station",
             "explicit_address"
           ]
           },
@@ -1069,7 +1065,7 @@
       "if": {
         "properties": {
           "service_kind": {
-            "const": "principal_server"
+            "const": "station"
           }
         },
         "required": [

@@ -91,9 +91,9 @@ Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不�
 
 ## 6. 联邦与路由
 
-跨域 join Event 只通过普通 Event 提交/转发面传输。`RealmJoinCandidate` 仅是 invitee Principal Server 可使用的有界转发提示，不产生 ingress authority；客户端不得直连候选服务绕过自己的 Principal Server。
+跨域 join Event 只通过普通 Event 提交/转发面传输。`RealmJoinCandidate` 仅是 invitee Station 可使用的有界转发提示，不产生 ingress authority；客户端不得直连候选服务绕过自己的 Station。
 
-接收方 MUST 独立验证 Realm、Event producer、origin Principal Server admission proof、candidate provenance、Join Policy、invite/capability 与 CBA basis。Directory/search projection、裸 URL、部署已知 peer 或 mirror 不得成为额外授权来源。
+接收方 MUST 独立验证 Realm、Event producer、origin Station admission proof、candidate provenance、Join Policy、invite/capability 与 CBA basis。Directory/search projection、裸 URL、部署已知 peer 或 mirror 不得成为额外授权来源。
 
 ## 7. 规范性引用
 

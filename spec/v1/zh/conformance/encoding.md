@@ -430,12 +430,12 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 Event proof 有三个语境，不得仅凭“是否已有 admission proof”把 caller submit 与 retained history 合并：
 
 1. caller 首次提交态只有一个 producer proof，且 MUST 省略 signer-evidence pair；origin 在本地解析并验证 producer key 后追加 admission proof，pair 不得临时写入再剥离，因为它属于 producer 签名字节；
-2. accepted / federation Event 含一个 producer proof与一个 `principal_server_admission` proof，producer proof MUST 省略 pair；历史 device/Agent producer key 由 admission 签入的 `producer_signing_key` 与 producer evidence pair 验证，Principal Server 自身历史 key由 admission 的 service signer evidence 验证；
+2. accepted / federation Event 含一个 producer proof与一个 `station_admission` proof，producer proof MUST 省略 pair；历史 device/Agent producer key 由 admission 签入的 `producer_signing_key` 与 producer evidence pair 验证，Station 自身历史 key由 admission 的 service signer evidence 验证；
 3. retained direct-history Event 没有 admission proof，producer proof MUST 同时携带 ref+digest，二者进入上述 binding object并解析为该 `verification_method` 的 exact 历史证据。
 
 `ak.schema.event.v1` 只对单个 envelope 可观察的闭合形状负责：admission 存在时机械禁止 producer pair；无 admission 时pair 允许成对出现或成对省略。`EventSubmitEnvelope` 的 producer-submission validator 与 direct-history replay validator MUST分别收紧第 1、3 项，任一调用面不得把基础 JSON Schema 的允许集误当成完整准入判据。
 
-Durable Realm Event 是可由多个合规 Realm host 保存和复验的原始事实，因此其 proof 不能绑定某一台 authoring Principal Server 的 service DID。会经 federation、backfill、snapshot recovery 或多 host replay 的 Event，其 `proof.domain` / `proof.audience` MUST 省略，或绑定一个由相关 profile 明确定义且对所有合法 receiver 恒定的 Realm 语义值；MUST NOT 写入当前提交端、来源端或目标端 Principal Server DID。HTTP 目的服务、trust domain、ActorId routing authority 与 replay 隔离由外层 RFC 9421 service signature 和 federation request binding 承担，不得通过改写原 Event proof 实现。接收方 MUST 对原 Event bytes 验签，MUST NOT 为本地 service DID 重签或补写 `domain` / `audience`。
+Durable Realm Event 是可由多个合规 Realm host 保存和复验的原始事实，因此其 proof 不能绑定某一台 authoring Station 的 service DID。会经 federation、backfill、snapshot recovery 或多 host replay 的 Event，其 `proof.domain` / `proof.audience` MUST 省略，或绑定一个由相关 profile 明确定义且对所有合法 receiver 恒定的 Realm 语义值；MUST NOT 写入当前提交端、来源端或目标端 Station DID。HTTP 目的服务、trust domain、ActorId routing authority 与 replay 隔离由外层 RFC 9421 service signature 和 federation request binding 承担，不得通过改写原 Event proof 实现。接收方 MUST 对原 Event bytes 验签，MUST NOT 为本地 service DID 重签或补写 `domain` / `audience`。
 
 `detached_jws` 的 payload segment MUST be empty in compact serialization, but the detached bytes being signed MUST be the canonical proof binding object:
 
@@ -462,7 +462,7 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 
 非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族 MUST 在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 登记唯一 context、binding fields、规范定义点与 schema；schema description 只可作镜像注解，不是常量真相源。MUST NOT 复用其它对象族（尤其 `ak.event_proof.v1`）的 context，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。用错误对象族 context 生成的签名即使密码学验签通过也 MUST 拒绝。
 
-AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / principal-server proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}`，令 `payload_digest=H(JCS(core))`；再签
+AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / station proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}`，令 `payload_digest=H(JCS(core))`；再签
 `JCS({context:"ak.availability_receipt_proof.v1",payload_digest,...core,verification_method,created_at})` 并得到完整
 `receipt={...core,signature}`；最后按需要计算 selector digest `H(JCS(receipt))`。Seal 只签入这个 full canonical digest，receipt wire 不回显它。
 任何实现若把 selector digest 写回 receipt preimage、从 digest 中排除 signature，或省略 signer evidence 绑定都必须拒绝。
@@ -829,9 +829,9 @@ Barrier cursor body 示例：
 
 Cursor 对客户端不透明，且 v1 core cursor 是 stateful handle。`h` 是 issuing service 本地表的引用，其他服务无法从 cursor body 恢复 stream positions 或 barrier target。
 
-当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B 收到 A 签发的 cursor 后 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；MUST NOT 猜测、解析或重放 A 的 handle。普通同服务请求中的未知、撤销或 cross-binding handle 仍按 §8.3.1 返回 `cursor_integrity_invalid`。
+当用户从 Station A 切换到 Station B 时（service replacement、portability 平面操作），B 收到 A 签发的 cursor 后 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；MUST NOT 猜测、解析或重放 A 的 handle。普通同服务请求中的未知、撤销或 cross-binding handle 仍按 §8.3.1 返回 `cursor_integrity_invalid`。
 
-未来 profile MAY 在 `ak.profile.principal_server.v1` 之上引入显式 cursor translation operation；该 operation 与 transport binding 不属于 v1 强制范围。
+未来 profile MAY 在 `ak.profile.station.v1` 之上引入显式 cursor translation operation；该 operation 与 transport binding 不属于 v1 强制范围。
 
 ### 8.5 测试向量入口
 
