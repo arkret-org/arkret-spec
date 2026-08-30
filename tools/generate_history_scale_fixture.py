@@ -426,11 +426,12 @@ def build_traversal_replay_kat() -> dict[str, Any]:
     """
     actor_did = "did:web:replay-kat.example"
     actor_id = "ak:did_core:web:replay-kat.example"
+    notary_actor_id = {"kind": "service", "service_id": actor_id}
     verification_method = actor_did + "#notary-key-1"
     historical_public_key_b64u = "0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc"
     current_public_key_b64u = "oJql9HpnWYAv-VX43C0qFKXJnSO-l_hkEn_5ODRVpPA"
     historical_descriptor = {
-        "actor_id": actor_id,
+        "actor_id": notary_actor_id,
         "verification_method": verification_method,
         "key_kind": "ed25519_raw32",
         "jose_algorithm": "Ed25519",
@@ -443,7 +444,7 @@ def build_traversal_replay_kat() -> dict[str, Any]:
         "frozen_public_key_digest": "sha256:1325b850c2871916eae203f0efc3c8987f64e5e3cdb27679e6d1fa97808357e6",
     }
     return {
-        "version": "2026-08-22",
+        "version": "2026-08-31",
         "digest_suite": "sha256",
         "topology": {
             "seal_count": 2,

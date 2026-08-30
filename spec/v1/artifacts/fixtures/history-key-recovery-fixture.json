@@ -1881,7 +1881,7 @@
     ]
   },
   "direct_traversal_replay_kat": {
-    "version": "2026-08-22",
+    "version": "2026-08-31",
     "digest_suite": "sha256",
     "topology": {
       "seal_count": 2,
@@ -1897,7 +1897,10 @@
       "historical_seed_b64u": "ERERERERERERERERERERERERERERERERERERERERERE",
       "current_seed_b64u": "IiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI",
       "historical_descriptor": {
-        "actor_id": "ak:did_core:web:replay-kat.example",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:web:replay-kat.example"
+        },
         "verification_method": "did:web:replay-kat.example#notary-key-1",
         "key_kind": "ed25519_raw32",
         "jose_algorithm": "Ed25519",
@@ -1905,7 +1908,10 @@
         "frozen_public_key_digest": "sha256:10ba682c8ad13513971e8b56881aab8bd702bb807796eca81932c735a94d6e6d"
       },
       "current_same_method_descriptor": {
-        "actor_id": "ak:did_core:web:replay-kat.example",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:web:replay-kat.example"
+        },
         "verification_method": "did:web:replay-kat.example#notary-key-1",
         "key_kind": "ed25519_raw32",
         "jose_algorithm": "Ed25519",
@@ -1921,7 +1927,10 @@
         "expected_replayed_seal_count": 2,
         "expected_committed_successor_count": 1,
         "expected_notary_projection": {
-          "actor_id": "ak:did_core:web:replay-kat.example",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:web:replay-kat.example"
+          },
           "verification_method": "did:web:replay-kat.example#notary-key-1",
           "key_kind": "ed25519_raw32",
           "jose_algorithm": "Ed25519",
