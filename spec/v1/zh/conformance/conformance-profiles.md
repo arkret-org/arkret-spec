@@ -322,13 +322,12 @@ SHOULD 支持：
 - raw DID document preservation
 - normalized principal view
 
-## 9a. Auth Server
+## 9a. Account Authority capability
 
 登录因子验证、短期会话授权与 session-grant 生命周期管理属于 `ak.profile.station.v1` 的 Account Authority capability。`coauth` 是可部署在 Station 认证 TCB 内的 reference component，但不声明公开 role profile、service kind、service registration 或 role-local Describe。
 
 MUST 支持：
 
-- service describe（`ak.server.read.describe.v1`）
 - `ak.gate.account.command.issue_session_grant.v1` / `/_arkret/gate/account/session-grants` 的规范化签发路径
 - `ak.gate.account.command.refresh_session_grant.v1`、`ak.gate.account.command.revoke_session.v1` 与
   `ak.gate.account.command.introspect_session_grant.v1`
@@ -346,14 +345,13 @@ SHOULD 支持：
 
 - `ak.gate.account.command.issue_session_grant.v1` 规范化 HTTP binding
 - 采用 account-first onboarding 时，完整实现 `ak.gate.account.exchange.create_handoff.v1` → `ak.gate.account.command.issue_identity_binding_challenge.v1` → `ak.gate.account.command.register.v1`；不得以私有 endpoint、普通 OAuth bearer 或进程内 challenge store 替代
-- 多 station delegation target 配置
 - DID binding / claim attestation
 
-Auth Server MUST NOT 声明 `ak.profile.identity_registry.v1`、`ak.profile.station.v1` 或 `ak.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `interop_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
+部署内部认证组件 MUST NOT 声明任何 Arkret role profile，也不得发布独立 service DID、service registration 或 role-local Describe。DID document / key-log 能力只能由 Station 委托给已登记 resolver，并通过 `interop_surfaces[]` 以 `delegated_resolver` 形式声明。
 
-Auth Server MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID 控制证明。Account-first inception binding 必须按 [`../identity/account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 验证由 entry 0 method-native control key 签发的 fresh proof；普通已发布 DID binding 与下游资源服务器仍 MUST 重新验证 DID control state（见 `guides/migrating-from-matrix.md`）。
+Station 的 Account Authority capability MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID 控制证明。Account-first inception binding 必须按 [`../identity/account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 验证由 entry 0 method-native control key 签发的 fresh proof；普通已发布 DID binding 与下游资源服务器仍 MUST 重新验证 DID control state（见 `guides/migrating-from-matrix.md`）。
 
-Auth Server 只可用 issuer key 签自己的 JWT、introspection/status 与 issuer receipt。它 MUST NOT 持有或
+部署内部认证组件只可用 issuer key 签自己的 JWT、introspection/status 与 issuer receipt。它 MUST NOT 持有或
 请求 principal/root/device/notary private key，MUST NOT author SessionGrant genesis/lifecycle Event、查询
 subject PCR authoring frontier 或依赖 grant Event/cell。客户端 DPoP
 签 holder/request proof；真正的 principal Event 必须由当前获授权客户端 signer 签署，S2S transport proof

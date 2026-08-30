@@ -180,19 +180,19 @@ Arkret 的协议文档按“服务角色”定义能力；实际落地时可以�
 
 本节只保留无法机器化的信任边界叙述、最小拓扑示意和 identity resolver 的部署常识；任何"哪种规模需要哪些服务"的列举请直接读上面三处源。
 
-最小个人或小团队部署至少自建两个服务角色：**Station** 与 **Account Authority（Auth Server）**。二者 MAY 合并到同一进程 / 域名 / 节点（见 §2.8），但各自的 service DID 与安全边界仍必须可区分。
+最小个人或小团队部署只要求一个公开业务数据角色：**Station**。Account Authority 是 Station 对客户端发布的账号准入 capability/surface，不是第二个 service role，也没有独立 `service_kind`、service DID、service registration 或 role-local Describe。实现 MAY 在 Station 认证 TCB 内拆分认证进程、数据库或私有 RPC，但这些拓扑对客户端、peer Station、Directory 与 Realm policy 透明。
 
 ```text
-Station                 Account Authority (Auth Server)
-├─ principal endpoint            ├─ 账户注册 / 恢复
-├─ event storage                 ├─ 设备 enroll / device pairing
-├─ sync / federation endpoint    ├─ session grant 签发 / 刷新 / 撤销
-├─ local policy                  ├─ 无域名用户 did.jsonl 托管
-├─ blob storage                  └─ claim attestation
+Station
+├─ principal endpoint / event storage
+├─ sync / federation endpoint
+├─ local policy / blob surface
+├─ Account Authority：注册 / 恢复 / session grant
+├─ device enroll / pairing / claim attestation
 └─ basic app view / inbox
 ```
 
-Account Authority 为什么**不**属于「可外挂的公共基础设施」：账户注册与恢复、设备 enroll、claim attestation 以及无域名用户的 DID 历史链（`did.jsonl`）托管都落在这一角色上——它掌握账户生死与身份连续性。把它委托给共享 / 他方 Auth Server，等于把这些控制权交给对方，与 Arkret 的自我主权前提冲突。因此 `personal_node` / `small_team` 的默认姿态是自建 Account Authority（SHOULD）；确需委托共享 Auth Server 时，MUST 在 `service-describe`（`auth_metadata`）中显式声明该委托，使继承来的信任依赖（对账户恢复、设备 enroll、DID 连续性的控制权）可审计——逃生舱，非默认。此姿态与 [`sync/service-surface.md` §2.5](../sync/service-surface.md) 中 Account Authority「个人部署通常与 Station 同 origin」一致。两个服务各自的 service DID 如何在启动时自动获得（无需人工 mint / 手贴 DID）、以及 config 值如何降级为 fail-closed pin，见 [`identity/identity-did.md` §3.7](../identity/identity-did.md)。
+Account Authority 为什么**不能**成为可外挂的公开角色：账户注册与恢复、device enroll、claim attestation 与 session lifecycle 都必须和 exact Station-local `AccountId`、设备状态及 durable issuer ledger 共同裁决。Station 可在认证 TCB 内调用独立进程或外部标准 Authentication Method Provider，但 Arkret 客户端只从 Station 根级 Describe 的 `auth_metadata.account_authority.gate_account_base_url` 发现唯一入口；认证方法 provider 的 issuer/discovery metadata 不产生第二个 Arkret 服务身份。
 
 默认仍可使用、且属于低主权风险的公共基础设施（读侧 / 传输侧）：Identity Resolution Infrastructure（DID 解析，只读）、Directory Service、Push Gateway、TURN / Media Relay。普通用户不应被要求单独部署这些或 Moderation Service；搜索、inbox、notification 和 View projection 默认在客户端本地派生。只有身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 场景才应把这些读侧 / 传输侧基础设施也收回自建。
 
@@ -200,7 +200,7 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 
 - v1 human anchor 闭集为 `did:webvh`、`did:web` 与 `did:key`，默认/MTI 与默认 service DID method 均为 `did:webvh`。`did:web` human anchor 冻结注册时 DNS/WebPKI evidence，`did:key` human anchor 不可变；显式 ephemeral pairwise `did:key` 是另一角色，才受无账号/PCR/设备目录约束。service 可显式使用 no-history `did:web`。deployment profile 只能收紧集合。`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。cache-only 的完整阈值与 TTL 耗尽后的 fail-closed 不变量只由 [`identity/identity-did.md` §3.4](../identity/identity-did.md) 定义。
 - 服务 DID 默认使用 `did:webvh`（可审计控制历史）；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，且 MUST 在 describe / resolver evidence 中声明无历史信任强度（权威源见 [`identity/identity-did.md` §3](../identity/identity-did.md)）。测试 / bootstrap 可使用 `did:key` 自描述密钥材料；它只有在 minimal-metadata Realm 的显式 profile 下才是短期 pairwise actor。设备自身没有 DID；KERI 等可作为辅助 root / trust binding（interop extension profile）；AT Protocol interop 部署额外挂 `did:plc` adapter（interop extension profile）。
-- Auth Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
+- Station 的内部认证组件与 Identity Resolution Infrastructure 不必同源部署：前者只验证登录因子并向 Account Authority capability 提供认证结果，identity resolver 返回或验证 DID 控制密钥、key state、method history / KERI log 和服务委托；Station policy 再完成账号绑定与授权判定。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，MUST NOT 因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 
 某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /_arkret/describe`、`supported_operation_bundles`、conformance profile 和 Realm policy 共同声明。

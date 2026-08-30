@@ -675,7 +675,7 @@ MUST 逐字返回该 DID 的 **method-native** 日志条目：
 服务端 MUST NOT 合成该 method 并不具备的条目、序号或哈希链——那不会凭空产生它没有的安全性，
 只会把"此 method 无可验证历史"这一事实包装得看不出来。
 
-## 5. Resolver、Auth Server 与组织授权
+## 5. Resolver、Station Account Authority 与组织授权
 
 ### 5.0 Key transparency 与 IETF KEYTRANS 的边界
 
@@ -686,29 +686,29 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 | 层次 | 负责什么 | 不负责什么 |
 | --- | --- | --- |
 | Identity Resolution Infrastructure | 验证 `did`，投影 `did_core_id`，并解析 DID Document、key state、method history、service delegation、witness evidence 或 method-specific proof。 | 不决定用户是否能登录某个组织，也不授予 Realm / Event 数据访问权。 |
-| Auth Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 principal `did_core_id` / device。 | 不改变 DID 控制权；不替代 method-native control proof；不决定所有组织授权。 |
+| Station Account Authority | 作为 Station capability 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把登录绑定到 exact `AccountId {principal_id, station_id}` / device。 | 不是独立 Arkret service role；不改变 DID 控制权；不替代 method-native control proof；不决定所有组织授权。 |
 | Organization / Policy / Authz | 判断某个 principal `did_core_id`、device、credential 或 capability 是否可以访问组织数据、Realm、Event、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
 
-一个组织 MAY 自建 Auth Server；v1 principal 创建仍受封闭 method/profile 集约束。典型流程是：
+一个组织 MAY 在自建 Station 的认证 TCB 内部署独立认证组件；该组件对协议参与者透明，v1 principal 创建仍受封闭 method/profile 集约束。典型流程是：
 
 1. 用户提交 registry 允许的长期 human principal（`did:webvh`、`did:web` 或 `did:key`）、handle、邀请链接或组织账号；Realm-local pairwise `did:key` profile 与长期 `did:key` human anchor 是不同角色合同，不能混用。interop method 只作为外部 claim。
-2. 组织 Auth Server 按本地 trust policy 与 adapter 选择 resolver：`did:webvh` 验证完整 history/witness，`did:web` 冻结 DNS/WebPKI current-document bootstrap evidence，`did:key` 验证 deterministic local expansion evidence；高安全部署可以收紧为 `did:webvh`，但不得增加 registry 外 method。
-3. Auth Server 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
+2. Station Account Authority 按本地 trust policy 与 adapter 选择 resolver：`did:webvh` 验证完整 history/witness，`did:web` 冻结 DNS/WebPKI current-document bootstrap evidence，`did:key` 验证 deterministic local expansion evidence；高安全部署可以收紧为 `did:webvh`，但不得增加 registry 外 method。
+3. Station Account Authority 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
-5. Auth Server 只签发 session grant / device binding；组织 Policy / Authz 再基于 DID、credential、membership、invite、capability 和 Realm policy 决定可访问的数据范围。
+5. Station Account Authority 只签发 session grant / device binding；Station policy 再基于 DID、credential、membership、invite、capability 和 Realm policy 决定可访问的数据范围。
 
 ### 5.1 组织账号绑定的 identity control proof
 
-当用户用一个已有身份注册、认领或绑定组织 service account 时，Auth Server MUST 要求提交 `did`，验证调用方当前控制该 DID，并确认 adapter 投影出的 `did_core_id` 与请求中的 `principal_id` 相等。仅提交 `did_core_id`、handle、邮箱验证码、OIDC subject 或组织用户名不足以建立绑定。
+当用户用一个已有身份注册、认领或绑定 Station-local account 时，Station Account Authority MUST 要求提交 `did`，验证调用方当前控制该 DID，并确认 adapter 投影出的 `did_core_id` 与请求中 `account_id.principal_id` 相等、`account_id.station_id` 与当前 Station 相等。仅提交 `did_core_id`、handle、邮箱验证码、OIDC subject 或组织用户名不足以建立绑定。
 
 推荐的 identity control proof 是 challenge-response：
 
 1. 用户提交待绑定的 `did`；若接口同时携带 `principal_id`，两者 MUST 满足 `project(did) == principal_id`。
-2. Auth Server 通过已登记 method adapter 解析 DID Document，并按本地 trust policy 校验 method、history、witness / directory evidence、deactivation 状态和可接受的 trust domain。
-3. Auth Server 生成一次性 challenge。challenge MUST 绑定用途、目标服务、origin / audience、过期时间和随机 nonce。
+2. Station Account Authority 通过已登记 method adapter 解析 DID Document，并按本地 trust policy 校验 method、history、witness / directory evidence、deactivation 状态和可接受的 trust domain。
+3. Station Account Authority 生成一次性 challenge。challenge MUST 绑定用途、目标 Station、origin / audience、过期时间和随机 nonce。
 4. 客户端使用该 DID 当前有效的 `authentication` verification method、已授权 device key，或被有效 session / device grant 覆盖的临时 key 签名 challenge。
-5. Auth Server 验证签名、verification method 当前有效性、challenge 未过期且未使用过。
-6. 验证通过后，Auth Server MAY 创建或更新 `service_account -> principal_id` 绑定，并签发短期 `ak.session.grant` 或登记 device binding。
+5. Station Account Authority 验证签名、verification method 当前有效性、challenge 未过期且未使用过。
+6. 验证通过后，Station MAY 创建 exact `AccountId {principal_id, station_id}`，并签发短期 `ak.session.grant` 或登记 device binding；不得创建可脱离 `station_id` 的泛化 service-account identity。
 
 签名 payload SHOULD 使用结构化 canonical JSON，至少包含：
 
@@ -718,25 +718,25 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
   "principal_id": "ak:did_core:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH",
   "did": "did:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "audience": "ak:did_core:webvh:zA5MZ8QSzW1MFABBM2ubUPuPY",
-  "origin": "https://auth.acme.example",
+  "origin": "https://station.acme.example",
   "challenge": "base64url-random",
   "issued_at": "2026-04-26T00:00:00Z",
   "expires_at": "2026-04-26T00:05:00Z"
 }
 ```
 
-**device 绑定策略（normative）**：上述 challenge / 签名 payload 在 multi-device principal（principal 控制 ≥1 个授权 device key）下 MUST 额外携带并签名覆盖 `device_id`,绑定到发起绑定 / 恢复请求的具体 device,使该 challenge-response proof 不能被同 principal 的其它设备复用完成绑定 / 恢复（与 [`account-lifecycle.md` §4](./account-lifecycle.md) soft-logout 恢复的 `device_id` 必填要求一致）。仅当 principal 在 control stream 中**无任何未撤销 device record**（不持有任何当前有效的 device-bound key，proof 由 account auth key / passkey / recovery key 签署）时方可省略 `device_id`。Auth Server MUST 依据该 principal control stream 中 device record 的当前状态（存在 ≥1 条未撤销 device record 即豁免不成立）判定豁免，**MUST NOT** 仅凭本次 proof 的签名 key 类型判定——否则持有未撤销 device-bound key 的 multi-device principal 可用 passkey / account-auth-key 签 proof 伪造"无 device key"假象，绕过同 principal 其它设备复用 proof 的窗口。豁免不成立时不得对 device-bound 路径接受缺 `device_id` 的 proof。
+**device 绑定策略（normative）**：上述 challenge / 签名 payload 在 multi-device principal（principal 控制 ≥1 个授权 device key）下 MUST 额外携带并签名覆盖 `device_id`,绑定到发起绑定 / 恢复请求的具体 device,使该 challenge-response proof 不能被同 principal 的其它设备复用完成绑定 / 恢复（与 [`account-lifecycle.md` §4](./account-lifecycle.md) soft-logout 恢复的 `device_id` 必填要求一致）。仅当 principal 在 control stream 中**无任何未撤销 device record**（不持有任何当前有效的 device-bound key，proof 由 account auth key / passkey / recovery key 签署）时方可省略 `device_id`。Station Account Authority MUST 依据该 principal control stream 中 device record 的当前状态（存在 ≥1 条未撤销 device record 即豁免不成立）判定豁免，**MUST NOT** 仅凭本次 proof 的签名 key 类型判定——否则持有未撤销 device-bound key 的 multi-device principal 可用 passkey / account-auth-key 签 proof 伪造"无 device key"假象，绕过同 principal 其它设备复用 proof 的窗口。豁免不成立时不得对 device-bound 路径接受缺 `device_id` 的 proof。
 
-该豁免判定 MUST 基于 **fresh PCR control-stream frontier**。control stream 不可达、frontier stale 或 device 投影 freshness 为 `unknown` 时，Auth Server MUST 保守按“存在 device record”处理。DID resolver degraded 与此 PCR frontier 判定正交：soft logout、account recovery 和普通 device 路径不得因 DID outage 额外失败；只有显式选择 DID-root factor 的分支才读取 current DID freshness。
+该豁免判定 MUST 基于 **fresh PCR control-stream frontier**。control stream 不可达、frontier stale 或 device 投影 freshness 为 `unknown` 时，Station Account Authority MUST 保守按“存在 device record”处理。DID resolver degraded 与此 PCR frontier 判定正交：soft logout、account recovery 和普通 device 路径不得因 DID outage 额外失败；只有显式选择 DID-root factor 的分支才读取 current DID freshness。
 
-Auth Server 在以下情况下 MUST NOT 接受 identity control proof：
+Station Account Authority 在以下情况下 MUST NOT 接受 identity control proof：
 
 - `did` 在组织 trust policy 下无法解析，或其 adapter projection 不等于 `principal_id`
 - 验证方法当前未被授权用于身份认证或所声明的 device/session 路径
 - 签名未覆盖完整的 challenge payload
 - challenge 已过期、已使用、audience 不匹配或 origin 不匹配
-- `issued_at` 相对 Auth Server 时钟的偏移（双向）超过 skew 容忍（SHOULD ≤ 300s），或 `expires_at - issued_at` 超过最大新鲜度窗口（窗口上界 MUST ≤ 300s）——否则签发方可任意拉宽重放窗口
-- `issued_at` 晚于 Auth Server 当前时钟加 skew 容忍（即 proof 自称在未来签发）——此情况 MUST 拒绝，防止签发方把整个 `[issued_at, expires_at]` 窗口推到未来以延长可重放区间
+- `issued_at` 相对 Station Account Authority 时钟的偏移（双向）超过 skew 容忍（SHOULD ≤ 300s），或 `expires_at - issued_at` 超过最大新鲜度窗口（窗口上界 MUST ≤ 300s）——否则签发方可任意拉宽重放窗口
+- `issued_at` 晚于 Station Account Authority 当前时钟加 skew 容忍（即 proof 自称在未来签发）——此情况 MUST 拒绝，防止签发方把整个 `[issued_at, expires_at]` 窗口推到未来以延长可重放区间
 - DID 已停用或 method history 无效
 
 对应 replay vector 固定该边界：同一 challenge 第二次使用、跨 audience/origin 重放、`expires_at - issued_at > 300s`，以及 `issued_at` 超出接收端 skew 窗口的 proof 都必须 fail closed；服务端不得只靠签名正确性接受 proof。
