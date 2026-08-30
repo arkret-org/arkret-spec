@@ -184,7 +184,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 顶层 `delta` 与 per-Realm entry 都是 closed DTO（`additionalProperties:false`）；上表及 `account-subscribe-frame.schema.json` 给出 v1 全部 canonical 承载位置，实现不得自行另设字段或外层分桶。新增 stream class 必须先登记并更新 schema/profile；`receipts` / `applet` / `blob_status` 不在顶层 `delta` 另立独立 bucket。
 
-`device_lists` 的 wire 形态固定为 `{changed: did[], left: did[]}`。两个数组都必须存在、去重；元素是 principal DID，不是 `device_id`：`changed` 表示该 principal 的权威 device list 已变化，`left` 表示该 principal 已离开调用方可见范围。客户端收到 `changed` 后必须重新查询对应 principal 的 device list；收到 `left` 后必须删除其缓存设备信任投影。
+`device_lists` 的 wire 形态固定为 `{changed: ActorId[], left: ActorId[]}`。两个数组都 MUST 存在，并按完整 ActorId 去重；元素不是裸 principal DID 或 `device_id`。`changed` 表示该完整 Actor 的权威 device list 已变化，客户端 MUST 通过该 ActorId 携带的 Station 路由重新查询对应设备投影；`left` 表示该完整 Actor 已离开调用方可见范围，客户端 MUST 只删除该 Actor 的缓存设备信任投影。同 DID 在其他 Station 的 Actor 不得被合并、误刷新或一并删除。此跨 Realm 的可见性 delta 不等同于 Station-local `to_device` 消息发送请求中的 principal map key（见 `crypto-media/device-lifecycle.md` 的 `ak.self.device_messages.command.send.v1` 边界）。
 
 `notifications` 和高频 actor-private `read_cursor` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。加密 `ak.receipt.read` 不在本流中，服务端不得解密或对其做语义合并。客户端不得要求服务返回每一次中间 private read-cursor 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
 
