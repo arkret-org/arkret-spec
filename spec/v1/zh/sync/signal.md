@@ -29,6 +29,13 @@ Signal 始终是短 TTL encrypted-only transport，不是 Event、history respon
 `ak.signal_proof.v1` 并覆盖移除 proof 后的完整 envelope digest。普通/Agent/minimal sender 的 identity 与 current
 authorization 按各自 profile 验证。
 
+`sender_actor_id` 是完整 `ActorId`。`verification_method` 的 bare DID 经已登记 adapter
+投影后 MUST 等于其 signing principal 分量（`account` 分支的 `account_id.principal_id`，
+`hosted_principal` 分支的 `principal_id`），fragment MUST 等于 `sender_device_id`。
+该 DID 投影不能证明 Station 分量；设备信任锚与 current accepted authorization 必须独立绑定
+完整 `(sender_actor_id, sender_device_id)`，不得用入口 Station、session audience 或裸 principal
+补造另一账号的授权。完整 ActorId 同时进入 envelope proof 和 AAD。
+
 Signal 的 raw key 必须 per verified sender 派生；exporter scope 可用本 epoch history secret，standard MLS 使用
 同 epoch、不可交付的 `ak.signal-root-v1` exporter root。两者都以 exact active Leaf BasicCredential identity 作为
 `ak.signal-v1` context。Nonce 使用该 `(group,epoch,sender)` 域的 durable full-width counter：
@@ -87,7 +94,7 @@ MUST NOT 按字段名手工解析。新增 profile 只能新增登记行，不�
   上限；把 plaintext 定成 48 KiB 会让单个 `ciphertext` 字符串（65,558 characters）就超过 envelope 上限，
   使该组合永远不可满足；
 - relay 每次只允许一个 destination peer hop，不得形成 signal mesh 转发链；
-- receiver 在 proof/AAD/AEAD/plaintext schema 全部通过后，按 `(sender_device_id, canonical
+- receiver 在 proof/AAD/AEAD/plaintext schema 全部通过后，按 `(sender_actor_id, sender_device_id, canonical
   scope_ref)` 维护 `payload_sequence` high-water；新值 MUST 严格大于旧值，但任意正向 gap
   （例如 `7 -> 1024`）MUST 接受。`N+1` 先到后，迟到的 `N` 是
   `signal_payload_sequence_stale`，不是“缺少 catch-up”。
@@ -96,11 +103,16 @@ MUST NOT 按字段名手工解析。新增 profile 只能新增登记行，不�
 - sequence 位于密文内，server 只按完整 `envelope_digest` 做短期 replay suppression，不解密、
   不读取 high-water，也不把 digest 升级成业务 ID。
 
-sender MUST 使用 durable per-`(sender_device_id, canonical scope_ref)` `u64` allocator。允许先原子
+sender MUST 使用 durable per-`(sender_actor_id, sender_device_id, canonical scope_ref)` `u64` allocator。允许先原子
 预留 block；durable `next_unreserved` MUST 在返回 block 首值前提交。crash、reservation 尾部、
 加密失败、admission 失败或 submit 结果不确定均可永久 burn sequence 并形成 gap，MUST NOT
 回退或复用。多进程 / 多 tab MUST 共享原子 store/CAS 或单写 owner；process-local counter 不合规。
 UUIDv7、wall clock、`sent_at`、随机 salt 或 AEAD nonce counter 均不得替代该公共 sequence。
+
+上述 `sender_actor_id` 使用完整 ActorId 的 JCS 值。持久 namespace 已按完整 AccountId 隔离的
+account sender MAY 在该 namespace 内仅存 device/scope 子键，但 MUST 校验 namespace 与待发送
+ActorId 一致。同 principal/device 在不同 Station 下的账号具有独立序列域；设备标识碰撞或复用
+不得使一个已验证账号压制另一个账号的合法序列。
 
 部署 MAY 收紧 TTL/byte/rate 上限，但能力广告必须给出实际值。
 
@@ -126,7 +138,8 @@ conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖�
 1. 设备在 current directory 为 active、授权晚于 `seal_ref`：设备授权检查通过；
 2. 设备在 `seal_ref` 时曾 active、当前已 revoked / fenced / conflicted：拒绝；
 3. fragment 看似为 device id，但 `verification_method` 的 bare DID 经 adapter 投影不等于
-   `sender_actor_id`，或 fragment 不等于 `sender_device_id`：拒绝；
+   `sender_actor_id` 的 signing principal 分量，或 fragment 不等于 `sender_device_id`，或
+   current directory 信任锚属于同 principal 的另一 Station：拒绝；
 4. current directory key 或 Tier-2 / service-attested 信任锚缺失：拒绝；
 5. 设备 current active 但 sender 在 Realm `seal_ref` 下无 scope 发送资格或缺
    `signal_class` action：拒绝。

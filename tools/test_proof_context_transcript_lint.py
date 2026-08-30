@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint import proof_context_transcripts, runner
 from tools.artifact_lint.core import Lint
+from tools import regenerate_proof_context_transcript_fixture as generator
 
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
@@ -39,6 +40,25 @@ REQUIRED_AUDIENCE_FAMILY = "directory_resolve_handle_request"
 
 
 class ProofContextTranscriptLintTest(unittest.TestCase):
+    def test_actor_reference_keeps_the_complete_identity(self) -> None:
+        value = generator.body_value(
+            "actor_id",
+            {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
+            generator.SchemaIndex(),
+            "signal-envelope.schema.json",
+        )
+        self.assertEqual(value["kind"], "account")
+        self.assertEqual(value["account_id"], generator.VALUE_TABLE["account_id"])
+
+    def test_signal_transcript_binds_the_complete_actor(self) -> None:
+        document = generator.build_document()
+        case = self._case(document, "signal_envelope")
+        self.assertEqual(case["unsigned_object"]["sender_actor_id"]["kind"], "account")
+        self.assertEqual(
+            case["binding_object"]["sender_actor_id"],
+            case["unsigned_object"]["sender_actor_id"],
+        )
+
     def _run_with_mutations(self, mutations: dict[Path, object]) -> list[str]:
         original_load_json = proof_context_transcripts.load_json
         targets: dict[Path, object] = {}

@@ -11,6 +11,7 @@
   ],
   "allocator": {
     "domain": [
+      "sender_actor_id",
       "sender_device_id",
       "canonical_scope_ref"
     ],

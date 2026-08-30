@@ -239,7 +239,13 @@ VALUE_TABLE: dict[str, Any] = {
     "scope": "employment",
     "scopes": ["ak.self.account.read.describe.v1", "ak.self.events.read.scan.v1"],
     "security_class": "high_assurance",
-    "sender_actor_id": "ak:did_core:webvh:z6mkfixture",
+    "sender_actor_id": {
+        "kind": "account",
+        "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestation",
+        },
+    },
     "sender_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
     "service_id": "ak:did_core:webvh:z6mkTarget",
     "service_kind": "station",
@@ -349,6 +355,10 @@ def body_value(name: str, schema: Any, index: SchemaIndex, file_name: str, depth
             return []
         reference = schema.get("$ref")
         if isinstance(reference, str) and depth < 2:
+            if reference.endswith("common-ids.schema.json#/$defs/actor_id"):
+                return VALUE_TABLE["sender_actor_id"]
+            if reference.endswith("common-ids.schema.json#/$defs/account_id"):
+                return VALUE_TABLE["account_id"]
             target = reference if not reference.startswith("#") else f"{file_name}{reference}"
             target_file, target_node = index.node(target.removeprefix("./"))
             if target_node is not None:
