@@ -72,12 +72,12 @@
       },
       "expected": {
         "jcs_utf8": "{\"also_known_as\":[\"acct:alice@example.com\"],\"assertion_methods\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"authentication\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"capability_delegations\":[],\"capability_invocations\":[],\"contexts\":[\"https://www.w3.org/ns/did/v1\"],\"controller_dids\":[],\"did\":\"did:web:alice.example\",\"extensions\":[],\"key_agreements\":[],\"metadata\":{\"primary_handle\":\"alice:example.com\"},\"services\":[{\"endpoint\":\"https://ps.alice.example/\",\"extensions\":[{\"name\":\"serviceKind\",\"value\":\"station\"}],\"protocol_names\":[\"ArkretService\"],\"uri\":\"did:web:alice.example#station\"}],\"verification_methods\":[{\"controller_did\":\"did:web:alice.example\",\"extensions\":[],\"public_key_material\":{\"publicKeyMultibase\":\"z6MkfixtureAlicePublicKey1111111111111111111\"},\"verification_method\":\"did:web:alice.example#key-1\",\"verification_method_suite\":\"Multikey\"}]}",
-        "document_digest": "sha256:b57c4d71d80930c8e8484a08a5d319c84b4abf0fd15278d48e01af2fe3005b81"
+        "document_digest": "sha256:10b3e107d51b7428103becb9345faf5c250f89832aac173657b16fb3dc0328ee"
       },
       "assertions": [
         "re-serializing the same document with any other raw JSON property order MUST produce the same digest",
-        "removing also_known_as MUST change the digest to sha256:8e3390661d2794427d953d8cdae54385dbe5977d28abfb72f546e94af7913305",
-        "removing both also_known_as and metadata.primary_handle MUST change the digest to sha256:db64bc2a75eaf3346eaf2776300663715e5ae9c57ff22dc251c0af32b1e34358",
+        "removing also_known_as MUST change the digest to sha256:41a9952f2759044d26d640dba9c54b4d7702de30bc4ca5621a56667495e1fb58",
+        "removing both also_known_as and metadata.primary_handle MUST change the digest to sha256:acbe292d7600ba1e26ca284e5f408795aae4ac3dc6247e4a4e312ae6ada5b251",
         "duplicate or conflicting property, verification-method id, service id, metadata key, relationship or extension name MUST fail before digesting",
         "a raw resolver response digest MUST NOT be carried in document_digest; raw bytes use raw_document_digest"
       ]
@@ -89,12 +89,12 @@
         "evidence_receipt": {
           "kind": "ak.did.binding_evidence.v1",
           "method": "web",
-          "document_digest": "sha256:b57c4d71d80930c8e8484a08a5d319c84b4abf0fd15278d48e01af2fe3005b81",
+          "document_digest": "sha256:10b3e107d51b7428103becb9345faf5c250f89832aac173657b16fb3dc0328ee",
           "method_proofs": []
         }
       },
       "expected": {
-        "evidence_digest": "sha256:a40c4bc1eb53ad7e57d218665e16149024f58f1a98cd3c877ebd39795b53dc6b"
+        "evidence_digest": "sha256:55003f477fa53c76d287be809acbda93b3880eee267d9f784119379c0191368d"
       },
       "assertions": [
         "a proofless method degrades to an empty method_proofs array, never to an implementation-invented placeholder object",
