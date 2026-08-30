@@ -401,7 +401,7 @@ Wire 上 MUST 表达为 active `ak.schema.relation.v1` 对象，且满足：
 
 - `relation_kind = "assigned_to"`
 - `from_ref = <strand_id>`
-- `to_ref = <actor DID>`
+- `to_ref = <完整 ActorId object>`
 
 UI MAY 把该关系显示为 "Assignee" / "Assignees"。`unassigned` 只表示当前 Strand 没有任何 visible active `assigned_to` edge；它是本地显示文案，MUST NOT 作为字符串写入 Strand、Relation 或 projection canonical state。
 
@@ -411,7 +411,7 @@ UI MAY 把该关系显示为 "Assignee" / "Assignees"。`unassigned` 只表示�
 
 Strand `metadata.fields` 中的 `assignee` / `assignees` / `assigned_to` / `assigned_actor_ids` 路径是 forbidden-wire reserved names，MUST `schema_violation`。`ak.strand.update` 直接 patch 这些路径、patch 其子路径，或 patch 父 map `metadata.fields` / `metadata` 且 `value` 中包含这些 key，均 MUST `schema_violation`。这些名字会与 `assigned_to` Relation 和 projection 字段形成双源；字段式 assignment 不是 profile extension 点。Profile 如需 assignment-specific metadata（例如分配原因、轮值班次、分派来源）应写在对应 Relation 的 `fields` 中，或声明独立 RelationProfile。
 
-Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor_ids: did[]`，并在需要编辑 assignment 的客户端上提供 `assigned_to_relations: [{ relation_id, actor_id }]`。`assigned_actor_ids` 只来自当前可见 active `assigned_to` Relation 的 `to_ref` 集合；`assigned_to_relations[].relation_id` 是 tombstone 旧 assignment edge 的目标 id，`actor_id` MUST 等于该 Relation 的 `to_ref`。二者均不得从 Strand metadata 读出，也不得扩大访问权。对 Circle-scoped Strand，assignment Relation 的可见性不得宽于 Strand effective scope；非该 scope 成员不得通过 `assigned_actor_ids`、`assigned_to_relations`、计数、排序空洞或 timing 推断隐藏 assignment。
+Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor_ids: ActorId[]`，并在需要编辑 assignment 的客户端上提供 `assigned_to_relations: [{ relation_id, actor_id }]`。`assigned_actor_ids` 只来自当前可见 active `assigned_to` Relation 的 `to_ref` 集合；`assigned_to_relations[].relation_id` 是 tombstone 旧 assignment edge 的目标 id，`actor_id` MUST 等于该 Relation 的 `to_ref`。二者均不得从 Strand metadata 读出，也不得扩大访问权。对 Circle-scoped Strand，assignment Relation 的可见性不得宽于 Strand effective scope；非该 scope 成员不得通过 `assigned_actor_ids`、`assigned_to_relations`、计数、排序空洞或 timing 推断隐藏 assignment。
 
 ## 8. Watch 与通知订阅
 

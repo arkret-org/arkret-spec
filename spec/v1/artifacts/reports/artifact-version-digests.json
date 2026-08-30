@@ -147,9 +147,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 31,
+      "version": 32,
       "generated_at": null,
-      "content_digest": "sha256:06f9a77375bb946894023104781bb81ca46ff497e63aa19b919d020f3d3c6bf4"
+      "content_digest": "sha256:ec5b80248be676b7c81dca159a1f119138d78fd95d8fa47120ea3b33fd1fe821"
     },
     {
       "path": "spec/v1/artifacts/registry/history-key-canonical-binding-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-08-30.18",
+      "version": "2026-08-30.19",
       "generated_at": null,
-      "content_digest": "sha256:329be6870c4bc8fbbf2a50b4923de05bc01343681d4679451af26ed6155e82b4"
+      "content_digest": "sha256:aca18e9b0c4a490b6b9de2ef9e237d303cc0b28c5c46a8630f5a3d174c4f0d20"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -315,9 +315,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",
-      "version": "2026-08-15.1",
+      "version": "2026-08-31.1",
       "generated_at": null,
-      "content_digest": "sha256:8acd9b58f489dfcc042eeb3addee79cf9c64be08cd02db8e5bcae9305e43c42b"
+      "content_digest": "sha256:9fd02be52dac36a506a22c34846e3a0c0b19ec5a3a39a4ab753a0696b6d81375"
     },
     {
       "path": "spec/v1/artifacts/registry/request-material-supply-exemption-registry.json",

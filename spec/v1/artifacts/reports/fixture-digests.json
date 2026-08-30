@@ -90,7 +90,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "3f3cc725e503c1c1be0787528d4814d489df7de3b7355aa0058bd67e6afa89f4"
+      "sha256": "2bfd886c1cc35b2a6a461b74d32f2b76279dc2931616ac1d1b88dad6c8130668"
     },
     {
       "path": "spec/v1/artifacts/fixtures/contact-round-kat.json",
@@ -154,7 +154,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "7f9e42a2828f6be3170f3e4b11848d41bb8bbd8a5815a756941c324c2fc7f375"
+      "sha256": "71eb543d922e311ae6dc8e1a347f4a0f1698677863b5e19ded36a1e81b6f9d20"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",

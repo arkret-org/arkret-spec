@@ -104,7 +104,7 @@ updated: 2026-07-02
 {
   "kind": "assigned_to",
   "direction": "out",
-  "target_ref": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example"
+  "target_ref": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","station_id":"ak:did_core:web:alice-station.example"}}
 }
 ```
 
@@ -120,8 +120,8 @@ Relation Query 字段：
 
 - `kind`: REQUIRED，关系类型，例如 `contains`、`belongs_to`、`assigned_to`、`promoted_from_discussion`。
 - `direction`: REQUIRED，`out` / `in` / `both`。
-- `source_ref`: OPTIONAL，限制 relation 起点对象、Actor 或 Realm。
-- `target_ref`: OPTIONAL，限制 relation 终点对象、Actor 或 Realm。
+- `source_ref`: OPTIONAL，限制 relation 起点；使用与 Relation 相同的 typed object-reference string 或完整 ActorId object。
+- `target_ref`: OPTIONAL，限制 relation 终点；使用相同 `RelationEndpoint` union。Actor 匹配 MUST 包含 Station，不能只按 DID 匹配。`source_actor_id` / `source_realm_id` / `target_actor_id` / `target_realm_id` 不再是并行 wire 字段；所有端点只由 `source_ref` / `target_ref` 表达。
 - `source_type`: OPTIONAL，限制起点类型，例如 `strand`、`actor`、`realm`。业务分类应通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph type 表达；不要把 `card` / `room` 当作 canonical source type。
 - `target_type`: OPTIONAL，限制终点类型。
 - `depth`: OPTIONAL，关系展开深度；跨 Realm 规则见 `views.md` Lazy Link。

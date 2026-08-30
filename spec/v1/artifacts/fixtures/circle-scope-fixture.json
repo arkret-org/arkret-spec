@@ -337,7 +337,7 @@
           },
           "relation_kind": "assigned_to",
           "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
-          "to_ref": "did:web:example.com:alice",
+          "to_ref": {"kind":"account","account_id":{"principal_id":"ak:did_core:web:alice.example.com","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
           "created_by": {
             "kind": "account",
             "account_id": {

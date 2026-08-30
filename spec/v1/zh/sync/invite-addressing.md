@@ -68,7 +68,7 @@ invite/locator 的权威首跳仍是必填 current `service_resolution`；它不
 
 `consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.grant` 在被邀请方(`invite_address.subject_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
-`handle_claim` evidence 的接收方验证：`handle_claim.handle == evidence.handle`，`handle_claim.subject_account_id == invite_address.account_id`，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，且 issuer / Directory / visibility / audience 满足 subject policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
+`InviteAddress` 的收件 AccountId 唯一派生为 `{principal_id: invite_address.subject_id, station_id: invite_address.recipient_id}`；地址本身不携带并行 `account_id` 字段。`handle_claim` evidence 的接收方验证：`handle_claim.handle == evidence.handle`，`handle_claim.subject_account_id` MUST 精确等于该完整派生 pair，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，且 issuer / Directory / visibility / audience 满足 subject policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
 
 ## 3. 在线 Principal Locator
 
@@ -293,7 +293,7 @@ effective_receive_policy =
 
 Rules:
 
-- `payload.invitee` MUST equal `invite_address.subject_id`.
+- `payload.invitee_id` MUST 精确等于 `{principal_id: invite_address.subject_id, station_id: invite_address.recipient_id}`，不得只比较 principal。
 - `payload.invite_delivery_target.recipient_id` MUST equal `invite_address.recipient_id`.
 - `payload.invite_delivery_target.service_resolution` MUST 与 `invite_address.service_resolution` 逐字节相等；接收方仍须独立验证其指向或内联的 signed record，不得把 carrier 当作授权。
 - `payload.invite_delivery_target.recipient_kind` MAY appear; if present, it MUST be `station`.
@@ -342,10 +342,10 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 2. 验证 `Destination-Service-ID == invite_address.recipient_id`。
 3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 等于 `recipient_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
 4. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
-5. 验证 `invite_event.payload.invitee == invite_address.subject_id`。
+5. 验证 `invite_event.payload.invitee_id` 精确等于由 `invite_address.subject_id + invite_address.recipient_id` 派生的完整 AccountId。
 6. 验证 `invite_event.payload.invite_delivery_target.recipient_id == invite_address.recipient_id`，且两处 `service_resolution` 逐字节相等。
    可选 `route_assistance` 只存在于 delivery transport；不得要求它写入或匹配 durable invite Event，也不得把它当作本步骤的授权证据。
-7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定 `invite_address.account_id`、issuer / Directory trust、domain allowlist、expiry 与 audience。失败时降级为低信任 `explicit_address`，不得直接通知或物化 membership。
+7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定由 `invite_address.subject_id + invite_address.recipient_id` 派生的完整 AccountId、issuer / Directory trust、domain allowlist、expiry 与 audience。失败时降级为低信任 `explicit_address`，不得直接通知或物化 membership。
 8. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `denied_principal_services`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
 9. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `denied_subjects` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与“限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny”落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
 

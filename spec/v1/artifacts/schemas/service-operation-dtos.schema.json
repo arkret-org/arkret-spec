@@ -5006,9 +5006,9 @@
         "assigned_actor_ids": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
-          "description": "Derived current assignee actor core_ids from visible active Relation(relation_kind=assigned_to, from_ref=strand_id). Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata."
+          "description": "Derived current full ActorIds from visible active Relation(relation_kind=assigned_to, from_ref=strand_id), preserving Station identity. Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata."
         },
         "assigned_to_relations": {
           "type": "array",

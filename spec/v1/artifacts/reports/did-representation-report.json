@@ -6619,16 +6619,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/ProjectionStrandRow/properties/assigned_actor_ids",
-      "property_name": "assigned_actor_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/RealmSealFrontierView/properties/observation_coordinate/properties/service_id",
       "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-15.1",
+  "version": "2026-08-31.1",
   "source_of_truth": true,
   "description": "Canonical machine index of the v1 standard relation_kind vocabulary. This registry is the machine source for the kind list, default cardinality class, truth-source class, and writability; detailed dedupe keys, scope rules, and conflict semantics remain normative in zh/models/relation.md sections 3-6.",
   "registry_rules": [
@@ -78,7 +78,7 @@
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
       "weak_semantic": true,
-      "notes": "Canonical direction Strand -> DID; full-tuple dedupe, not per-actor single value. Single-owner semantics require a RelationProfile tightening (max_to_per_from=1)."
+      "notes": "Canonical direction Strand -> structured ActorId; full-tuple dedupe preserves Station identity, not per-principal single value. Single-owner semantics require a RelationProfile tightening (max_to_per_from=1)."
     },
     {
       "canonical_id": "references",
@@ -125,7 +125,7 @@
       "truth_source_class": "derived_projection",
       "weak_semantic": false,
       "write_path": "ak.strand.watch.set",
-      "notes": "Derived from cell ak.component.strand.watch.v1; direct Relation writes MUST schema_violation. from_ref MUST be a DID, to_ref a Strand (or profiled watchable)."
+      "notes": "Derived from cell ak.component.strand.watch.v1; direct Relation writes MUST schema_violation. from_ref MUST be a structured full ActorId, to_ref a Strand (or profiled watchable)."
     },
     {
       "canonical_id": "confidential_discussion_of",

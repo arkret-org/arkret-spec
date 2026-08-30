@@ -37,10 +37,10 @@
       "description": "Relation semantic. The standard kind vocabulary (kind list, cardinality class, truth-source class, weak_semantic flag) is machine-indexed in artifacts/registry/relation-kind-registry.json; detailed dedupe/scope/conflict semantics in models/relation.md §3-§6. Cross-Realm constraint: structural relations 'contains' and 'belongs_to' MUST NOT cross Realm (resolved from_ref and to_ref MUST share the same realm_id); weak_semantic=true kinds per the registry MAY cross Realm subject to two-sided authorization. Stays a free string so extension profiles can add kinds; unregistered kinds are opaque edges (unknown_relation_kind), never container/visibility semantics."
     },
     "from_ref": {
-      "$ref": "#/$defs/object_ref"
+      "$ref": "#/$defs/relation_endpoint"
     },
     "to_ref": {
-      "$ref": "#/$defs/object_ref"
+      "$ref": "#/$defs/relation_endpoint"
     },
     "rank": {
       "$ref": "#/$defs/rank",
@@ -82,6 +82,17 @@
   },
   "allOf": [
     {
+      "if": {"properties": {"relation_kind": {"const": "assigned_to"}}, "required": ["relation_kind"]},
+      "then": {"properties": {
+        "from_ref": {"type":"string", "pattern":"^ak:strand:[A-Za-z0-9_-]{44}$"},
+        "to_ref": {"$ref": "./common-ids.schema.json#/$defs/actor_id"}
+      }}
+    },
+    {
+      "if": {"properties": {"relation_kind": {"const": "watches"}}, "required": ["relation_kind"]},
+      "then": {"properties": {"from_ref": {"$ref": "./common-ids.schema.json#/$defs/actor_id"}}}
+    },
+    {
       "if": {
         "properties": {
           "state": {
@@ -105,8 +116,15 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:(realm|space|actor_profile|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|ak:(blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:.+)$",
-      "description": "Typed canonical reference. Allowed kinds: realm, space, actor_profile, strand, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref (active digest suites per artifacts/registry/digest-suite-registry.json; v1: sha256 / blake3), or DID. Space is a valid Relation endpoint (board/list containers, e.g. board --contains--> list). The blob ref suite set is aligned with blob.schema.json and notification.schema.json so any content-addressed blob ref accepted in those schemas is also accepted as a Relation endpoint."
+      "pattern": "^((?:ak:(realm|space|actor_profile|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|ak:(blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64})$",
+      "description": "Typed canonical object reference. Allowed kinds: realm, space, actor_profile, strand, message, morph, relation, event, view, blob metadata ID and content-addressed blob ref (sha256 / blake3). Actor endpoints use the structured ActorId branch of relation_endpoint, never a DID or serialized JSON string."
+    },
+    "relation_endpoint": {
+      "oneOf": [
+        {"$ref": "#/$defs/object_ref"},
+        {"$ref": "./common-ids.schema.json#/$defs/actor_id"}
+      ],
+      "description": "A typed object-reference string or a structured full ActorId. Equality and deduplication preserve the complete ActorId including Station; relation profiles name this branch actor."
     },
     "rank": {
       "$ref": "./event-envelope.schema.json#/$defs/rank"
