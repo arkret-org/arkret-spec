@@ -293,7 +293,7 @@ effective_receive_policy =
 
 Rules:
 
-- `payload.invitee_id` MUST 精确等于 `{principal_id: invite_address.subject_id, station_id: invite_address.recipient_id}`，不得只比较 principal。
+- `payload.invitee_account_id` MUST 精确等于 `{principal_id: invite_address.subject_id, station_id: invite_address.recipient_id}`，不得只比较 principal。
 - `payload.invite_delivery_target.recipient_id` MUST equal `invite_address.recipient_id`.
 - `payload.invite_delivery_target.service_resolution` MUST 与 `invite_address.service_resolution` 逐字节相等；接收方仍须独立验证其指向或内联的 signed record，不得把 carrier 当作授权。
 - `payload.invite_delivery_target.recipient_kind` MAY appear; if present, it MUST be `station`.
@@ -342,7 +342,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 2. 验证 `Destination-Service-ID == invite_address.recipient_id`。
 3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 等于 `recipient_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
 4. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
-5. 验证 `invite_event.payload.invitee_id` 精确等于由 `invite_address.subject_id + invite_address.recipient_id` 派生的完整 AccountId。
+5. 验证 `invite_event.payload.invitee_account_id` 精确等于由 `invite_address.subject_id + invite_address.recipient_id` 派生的完整 AccountId。
 6. 验证 `invite_event.payload.invite_delivery_target.recipient_id == invite_address.recipient_id`，且两处 `service_resolution` 逐字节相等。
    可选 `route_assistance` 只存在于 delivery transport；不得要求它写入或匹配 durable invite Event，也不得把它当作本步骤的授权证据。
 7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定由 `invite_address.subject_id + invite_address.recipient_id` 派生的完整 AccountId、issuer / Directory trust、domain allowlist、expiry 与 audience。失败时降级为低信任 `explicit_address`，不得直接通知或物化 membership。
