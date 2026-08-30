@@ -53,7 +53,13 @@ def query(base: dict[str, Any], target: dict[str, Any], *, genesis: bool) -> dic
         "local_mls_leaves": [
             {
                 "leaf_index": 0,
-                "principal_id": "ak:did_core:webvh:z6mkfixturealice:alice.example",
+                "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixturealice:alice.example",
+                        "station_id": "ak:did_core:web:station.example",
+                    },
+                },
                 "credential_ref": "did:webvh:z6mkfixturealice:alice.example#device-1",
             }
         ],

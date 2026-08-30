@@ -493,12 +493,14 @@ Content-Type: application/json
 | `Idempotency-Key` | header | `string` | required | 发送方生成的幂等键，长度 1..128；服务端 MUST 以 `(sender, Idempotency-Key)` 去重，重复键但 body canonical hash 不同 MUST 拒绝。 |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal 与发送设备。 |
 | `messages` | body | `object` | required | 收件人 principal 到 device 消息的映射。 |
-| `messages.{principal_id}` | body | `object` | required | 目标 principal DID。 |
+| `messages.{principal_id}` | body | `object` | required | map key MUST 是 `did_core_id`（`ak:did_core:<method>:<core>`），不是 bare DID、AccountId 或 ActorId JSON。 |
 | `messages.{principal_id}.{device_id}` | body | `object` | required | 目标设备消息；`{device_id}` MUST 是完整 `id:device` wire key。 |
 | `messages.{principal_id}.{device_id}.device_message_id` | body | `id:device_message` | required | 发送方分配的稳定逻辑消息 ID；服务端 MUST 原样复制到 `DeviceMessageEnvelope.device_message_id`。 |
 | `messages.{principal_id}.{device_id}.kind` | body | `string` | required | to-device 消息 kind，例如 `ak.key.verification.request`。 |
 | `messages.{principal_id}.{device_id}.expires_at` | body | `datetime` | required | 队列过期时间；服务端物化 envelope 后必须复制到 `DeviceMessageEnvelope.expires_at`。 |
 | `messages.{principal_id}.{device_id}.content` | body | `object` | required | 消息内容；私密内容 SHOULD 端到端加密。 |
+
+**Station-local 边界（normative）**：本 `ak.self.device_messages.command.send.v1` 请求在认证绑定的被调用 Station 内寻址；`principal_id` 与该 Station 组成目标本地 AccountId，设备 MUST 来自该账号当前已接受的 device projection。队列、发送方幂等键、投递结果与接收 cursor MUST 同时受该 Station-local account 边界约束，同 DID 在另一 Station 的设备或消息不能被合并或命中。body 不承载远端 Station 路由，接收方 MUST NOT 从 principal DID、DID Document 或当前 handle 猜测跨 Station 目标；非本地可投递设备按 `unknown_devices` 处理。该有边界的 principal map 不替代 Event / membership / Relation 的完整 ActorId，也不得把 ActorId JSON 编成 map key。`delivered` / `unknown_devices` 使用同一 `did_core_id -> device_id` key grammar。
 
 响应字段：
 
@@ -519,7 +521,7 @@ Content-Type: application/json
 ```json
 {
   "messages": {
-    "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
+    "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR": {
       "ak:device:01964137-0000-7000-8000-000000000000": {
         "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000000",
         "kind": "ak.key.verification.request",
@@ -545,7 +547,7 @@ Content-Type: application/json
 ```json
 {
   "messages": {
-    "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
+    "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR": {
       "ak:device:01964136-8000-7000-8000-000000000000": {
         "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000001",
         "kind": "ak.key.verification.request",

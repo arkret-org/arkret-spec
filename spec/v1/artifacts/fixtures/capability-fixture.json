@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.capability.v1"
   },
   "profile": "ak.vector_group.capability.v1",
-  "version": "2026-08-25",
+  "version": "2026-08-31.1",
   "covers_vectors": [
     "ak.vector.realm.authority_root_bootstrap.v1"
   ],
@@ -14,8 +14,17 @@
       "grants": [
         {
           "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-          "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
-          "subject": "ak:did_core:webvh:z6mkfixture",
+          "issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixtureownerexample",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
+          "subject": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixture"
+          },
           "actions": [
             "ak.strand.read",
             "ak.strand.update"
@@ -53,8 +62,17 @@
       "grants": [
         {
           "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-          "issuer": "did:webvh:z6mkfixtureownerexample:owner.example",
-          "subject": "did:webvh:z6mkfixture:alice.example",
+          "issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixtureownerexample",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
+          "subject": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixture"
+          },
           "actions": [
             "ak.strand.read",
             "ak.strand.update"
@@ -213,7 +231,10 @@
           "hlc": "01970e589d21-0001-a13f9c2e",
           "payload": {
             "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-            "subject": "did:webvh:z6mkfixture:alice.example",
+            "subject": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixture"
+            },
             "actions": [
               "ak.strand.update"
             ],
@@ -270,7 +291,10 @@
           "hlc": "01970e589d30-0001-a13f9c2e",
           "payload": {
             "grant_id": "ak:grant:AZOPSAky4gYL2mgGD0o24oPsP0f4scwywm__lX9tPcmr",
-            "subject": "did:webvh:z6mkfixture:alice.example",
+            "subject": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixture"
+            },
             "actions": [
               "ak.strand.update"
             ],
@@ -335,7 +359,10 @@
           "hlc": "01970e589d34-0001-a13f9c2e",
           "payload": {
             "grant_id": "ak:grant:AQr8SkXTdNxCRoVrl3QuCIPKqZhXressgOiRs5XhtVIl",
-            "subject": "did:webvh:z6mkfixture:alice.example",
+            "subject": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixture"
+            },
             "actions": [
               "ak.strand.update"
             ],
@@ -361,7 +388,10 @@
           "hlc": "01970e589d36-0001-a13f9c2e",
           "payload": {
             "grant_id": "ak:grant:AQr8SkXTdNxCRoVrl3QuCIPKqZhXressgOiRs5XhtVIl",
-            "subject": "did:webvh:z6mkfixture:alice.example",
+            "subject": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixture"
+            },
             "actions": [
               "ak.strand.update"
             ],
@@ -406,8 +436,18 @@
       "vector_id": "ak.vector.capability.approval_constraint.v1",
       "grant": {
         "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-        "issuer": "did:webvh:z6mkfixtureownerexample:owner.example",
-        "subject": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "issuer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixtureownerexample",
+            "station_id": "ak:did_core:web:capability-fixture-station.example"
+          }
+        },
+        "subject": {
+          "kind": "hosted_principal",
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+          "station_id": "ak:did_core:web:agent-fixture-station.example"
+        },
         "actions": [
           "ak.agent.action_request"
         ],
@@ -455,7 +495,10 @@
       "base": {
         "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
         "root_event_id": "ak:event:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
-        "subject": "ak:did_core:webvh:z6mkfixturerootadminexamplecom",
+        "subject": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixturerootadminexamplecom"
+        },
         "actions": [
           "ak.realm.admin"
         ]
@@ -505,7 +548,10 @@
                 "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
               }
             ],
-            "subject": "ak:did_core:webvh:z6mkfixtureopsexamplecom",
+            "subject": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixtureopsexamplecom"
+            },
             "resources": [
               {
                 "kind": "realm",
@@ -564,7 +610,10 @@
                 "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ"
               }
             ],
-            "subject": "ak:did_core:webvh:z6mkfixtureinternexamplecom",
+            "subject": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixtureinternexamplecom"
+            },
             "resources": [
               {
                 "kind": "realm",
@@ -964,7 +1013,10 @@
           "created_at": "2026-04-26T00:00:00.000Z",
           "payload": {
             "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-            "subject": "did:webvh:z6mkfixturealiceexamplecom:alice.example.com",
+            "subject": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplecom"
+            },
             "actions": [
               "ak.message.create"
             ]
@@ -1026,7 +1078,10 @@
       "grants": [
         {
           "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-          "subject": "did:webvh:z6mkfixturealiceexamplecom:alice.example.com",
+          "subject": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplecom"
+          },
           "actions": [
             "ak.strand.update"
           ]
@@ -1039,7 +1094,13 @@
               "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_"
             }
           ],
-          "subject": "did:webvh:z6mkfixturebobexamplecom:bob.example.com",
+          "subject": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexamplecom",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
           "actions": [
             "ak.strand.update"
           ]
@@ -1104,7 +1165,10 @@
             ]
           },
           "grant": {
-            "subject": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+            "subject": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturebridgeexample"
+            },
             "actions": [
               "ak.applet.ghost.provision"
             ],
@@ -1262,15 +1326,33 @@
       "root": {
         "realm_id": "ak:realm:AQpyF2T0bDz8a7SNAM5QdzbniqdGx7oJSb-7ohqeJ1Ui",
         "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
-        "controller_id": "ak:did_core:web:alice.example",
+        "controller_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:capability-fixture-station.example"
+          }
+        },
         "controller_epoch": 0,
         "authority_generation": 4
       },
       "grants": [
         {
           "grant_id": "ak:grant:AU1wDKJQYVPODpjV13UccDcovawzVnBCaoL8ykZbcXbB",
-          "issuer": "did:web:alice.example",
-          "subject": "did:web:bob.example",
+          "issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
+          "subject": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:bob.example",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
           "issuer_authority_refs": [
             {
               "kind": "realm_root",
@@ -1283,8 +1365,20 @@
         },
         {
           "grant_id": "ak:grant:Ae3D5M17ZeAdqfJrOl-ClL0vhTHFQXZBKcdSm_EhMKln",
-          "issuer": "did:web:bob.example",
-          "subject": "did:web:carol.example",
+          "issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:bob.example",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
+          "subject": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:carol.example",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
           "issuer_authority_refs": [
             {
               "kind": "grant",
@@ -1297,13 +1391,25 @@
         {
           "name": "controller_transfer_preserves_chain",
           "author_supplied_patch": {
-            "controller_id": "ak:did_core:web:bob.example"
+            "controller_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:capability-fixture-station.example"
+              }
+            }
           },
           "registered_increment_members": [
             "controller_epoch"
           ],
           "next_root": {
-            "controller_id": "ak:did_core:web:bob.example",
+            "controller_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:capability-fixture-station.example"
+              }
+            },
             "controller_epoch": 1,
             "authority_generation": 4
           },
@@ -1325,7 +1431,13 @@
             "authority_generation"
           ],
           "next_root": {
-            "controller_id": "ak:did_core:web:alice.example",
+            "controller_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:capability-fixture-station.example"
+              }
+            },
             "controller_epoch": 0,
             "authority_generation": 5
           },
@@ -1360,7 +1472,13 @@
         {
           "name": "transfer_missing_acceptance_rejected",
           "next_root": {
-            "controller_id": "ak:did_core:web:bob.example",
+            "controller_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:capability-fixture-station.example"
+              }
+            },
             "controller_epoch": 1,
             "authority_generation": 4
           },
@@ -1404,7 +1522,13 @@
         },
         {
           "name": "new_controller_can_revoke_old_controller_grant",
-          "actor": "did:web:bob.example",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:bob.example",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
           "target_grant_realm_id": "ak:realm:AQpyF2T0bDz8a7SNAM5QdzbniqdGx7oJSb-7ohqeJ1Ui",
           "actor_is_target_realm_current_controller": true,
           "expected": {
@@ -1413,7 +1537,13 @@
         },
         {
           "name": "old_controller_loses_root_authority_after_transfer",
-          "actor": "did:web:alice.example",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
           "actor_is_target_realm_current_controller": false,
           "actor_has_independent_grant": false,
           "expected": {
@@ -1464,8 +1594,20 @@
       "cases": [
         {
           "name": "subject_relinquishes_without_revoke_capability",
-          "actor": "did:web:bob.example",
-          "target_subject": "did:web:bob.example",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:bob.example",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
+          "target_subject": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:bob.example",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
           "has_revoke_capability": false,
           "expected": {
             "accepted": true
@@ -1473,8 +1615,20 @@
         },
         {
           "name": "non_subject_relinquish_rejected",
-          "actor": "did:web:mallory.example",
-          "target_subject": "did:web:bob.example",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:bob.example",
+              "station_id": "ak:did_core:web:other-capability-fixture-station.example"
+            }
+          },
+          "target_subject": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:bob.example",
+              "station_id": "ak:did_core:web:capability-fixture-station.example"
+            }
+          },
           "expected": {
             "accepted": false,
             "reason_code": "grant_relinquish_not_subject"

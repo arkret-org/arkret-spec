@@ -46,7 +46,7 @@ Matrix Application Service 是成熟的桥接机制，适合让 homeserver 与�
 
 Arkret Applet 的差异不是简单“更强”，而是粒度不同：
 
-- Applet registration 是签名声明，可由 Realm owner、Organization、registry 或 authz service 接受。
+- Applet registration 是签名声明，注册材料可由 Realm owner、Organization 或 registry 验证；正式 Realm Event 的准入与 capability 判定由 Station 负责。
 - Applet 不因 namespace 自动获得权限；写入授权仍由 capability 表达。
 - 同一个 Applet 可以被不同 Realm 用不同 capability、不同可见性、不同对象范围启用。
 - 不同用户或组织可以在自己控制的 Realm 中启用不同 Applet，并受 Realm policy 和授权约束（规范见 [`extensions/applet-integration.md`](../extensions/applet-integration.md)）。

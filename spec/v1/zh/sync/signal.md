@@ -58,7 +58,7 @@ Signal rail 的路由与去重前提：
 | 字段 | 约束 |
 | --- | --- |
 | `kind` | `const`，取该 profile 的 payload kind（如 `ak.receipt.read`）。它是解密后的唯一 payload 判别式；外层不得出现同义 selector。 |
-| `payload_sequence` | 非负 `u64`，按 `(sender_device_id, canonical scope_ref)` **严格单调递增但不要求连续**；§2 receiver high-water 的候选值。profile 自己的产品序列（call 的 `seq`、message stream 的 `seq`）与它相互独立，不得互相替代。 |
+| `payload_sequence` | 非负 `u64`，按 `(sender_actor_id, sender_device_id, canonical scope_ref)` **严格单调递增但不要求连续**；§2 receiver high-water 的候选值。profile 自己的产品序列（call 的 `seq`、message stream 的 `seq`）与它相互独立，不得互相替代。 |
 
 Realm scope、sender device 与发送时间由外层已签名 envelope 承载，plaintext MUST NOT 重复
 `realm_id`、`sender_device_id` 与 `sent_at`（或等价的 `created_at`）；需要它们时接收方直接从
@@ -274,7 +274,7 @@ uncertain_outcome.strategy = drop_unconfirmed
 request MUST NOT 携带 `Idempotency-Key`。response 丢失、timeout 或连接中断后 source MUST NOT
 自动重放 request；Signal 的恢复依靠下一个自足 frame或产品级 timeout/renegotiation。destination
 可用完整 envelope digest 做有界短期 replay suppression；recipient 解密后仍按
-`(sender_device_id, scope_ref, payload_sequence)` 去重。任何 dedupe 命中都不得绕过 peer
+`(sender_actor_id, sender_device_id, canonical scope_ref, payload_sequence)` 去重。任何 dedupe 命中都不得绕过 peer
 签名窗口与 producer proof 验证。
 
 ### 4.5 顺序、资源隔离与能力发现
@@ -344,7 +344,7 @@ Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密�
 
 ### 7.2 帧与资源常数
 
-每个 decrypted payload 都携带通用 `payload_sequence`，供 §2 的 sender-device/scope replay
+每个 decrypted payload 都携带通用 `payload_sequence`，供 §2 的完整 Actor/device/scope replay
 处理；它与每条 stream 自己从 0 严格递增的 `seq` 相互独立。`frame_kind` 是 closed 三值：
 
 - `keyframe`：携带截至当前的完整 `text`、固定 `format=plain|markdown` 与 `truncated`；

@@ -1609,10 +1609,8 @@ components:
         assigned_actor_ids:
           type: array
           items:
-            type: string
-            pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-            maxLength: 512
-          description: Derived current assignee actor core_ids from visible active Relation(relation_kind=assigned_to, from_ref=strand_id). Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata.
+            $ref: ../schemas/common-ids.schema.json#/$defs/actor_id
+          description: Derived current full ActorIds from visible active Relation(relation_kind=assigned_to, from_ref=strand_id), preserving Station identity. Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata.
         assigned_to_relations:
           type: array
           items:

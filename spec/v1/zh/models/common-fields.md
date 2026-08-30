@@ -382,7 +382,7 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 
 | 类型 | wire 形态 | 用途 |
 | --- | --- | --- |
-| `did_core_id` | `ak:did_core:<method>:<core>` | Event、principal / service reference、membership、capability、业务数据库关联与相等判断。 |
+| `did_core_id` | `ak:did_core:<method>:<core>` | 密码学 principal / service reference 与 DID-core 相等判断；Event actor、membership、Relation Actor endpoint 与账号级 capability 使用完整 ActorId / AccountId，不得据此丢弃 Station。 |
 | `did` | 标准 bare DID，例如 `did:webvh:<scid>:<host>` | 注册、DID resolution、method-native operation、DID Document / history 验证。 |
 
 `did ≅ did_core_id + method-specific resolution` 只是 adapter 语义，不是字符串拼接格式。只有已登记 DID method adapter 可以从 `did` 投影 `did_core_id`；普通业务代码 MUST NOT 自行拆解或反向构造。一个 `did` 投影到的 `did_core_id` 必须唯一。DID URL 不属于 `did`：`verification_method` 等 DID URL 必须在验证 `did` 后由相同 adapter 处理，禁止把 fragment 直接拼到 `did_core_id`。实现 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须由 adapter 解析 DID URL，并验证其 base `did` 到目标 `did_core_id` 的唯一投影关系。

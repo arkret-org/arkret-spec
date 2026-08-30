@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.4",
+  "version": "2026-08-31.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T17:00:01+08:00",
+  "generated_at": "2026-08-31T18:00:01+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -13743,7 +13743,7 @@
         "http": "GET /_arkret/self/authz/effective-grants",
         "grpc": "SelfAuthz/GetEffectiveGrants",
         "mq": "self.authz.grants.query.effective",
-        "notes": "Query parameters are realm_id, subject_account_id and optional at. subject_account_id is the exact AccountId; no local-service, bearer-service, DID-document or inferred-routing fallback is allowed.",
+        "notes": "Query parameters are realm_id, optional subject_actor_id and optional at. subject_actor_id is a percent-encoded canonical JSON ActorId, including Account and HostedPrincipal branches. Omission selects the authenticated credential's exact ActorId. Reject legacy subject, subject_station_id and subject_account_id aliases; no principal-only, local-service, bearer-service, DID-document or inferred-routing fallback is allowed.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList"
@@ -13753,6 +13753,7 @@
         "http": "GET /_arkret/self/authz/invites",
         "grpc": "SelfAuthz/GetInvites",
         "mq": "self.authz.invites.query.list",
+        "notes": "Optional query realm_id and cursor. Explicit subject and subject_station_id MUST be paired did_core_id values identifying an exact AccountId. Omitting both selects only the authenticated credential's exact AccountId. Handles, principal-only requests and inferred Station fallbacks are forbidden; self authorization compares the entire AccountId.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/authz-operations.schema.json#/$defs/authz_invite_list"
@@ -13915,7 +13916,7 @@
         "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
         "grpc": "SelfCircle/MemberRemove",
         "mq": "self.circle.member.resource.delete",
-        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through ordinary Event admission. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed head_eq guard; payload.circle_id and payload.actor_id MUST equal the two path identifiers, and event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
+        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through ordinary Event admission. Path actor_id is one percent-encoded canonical JSON ActorId segment, not a bare principal DID. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed head_eq guard; payload.circle_id MUST equal its path identifier and payload.actor_id MUST equal the entire decoded path ActorId, including Station and branch. event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -15223,8 +15224,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-31.1",
-    "generated_at": "2026-08-31T04:30:00+08:00",
+    "version": "2026-08-31.5",
+    "generated_at": "2026-08-31T18:00:01+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

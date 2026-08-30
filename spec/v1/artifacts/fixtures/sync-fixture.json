@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.sync.core.v1"
   },
   "profile": "ak.vector_group.sync.v1",
-  "version": "2026-07-30",
+  "version": "2026-08-31",
   "schema_validation_cases": [
     {
       "name": "device_message_envelope_with_message_id_valid",
@@ -88,12 +88,15 @@
         "kind": "realm_actor",
         "realm_id": "ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
         "actor_id": {
-          "kind": "service",
-          "service_id": "ak:did_core:web:alice.example"
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
         },
         "next_actor_seq": 0,
         "frontier_event_ids": [],
-        "frontier_digest": "sha256:5e859d398cbda1eb78f6a4836e0ff5c2feb345b325d9d710183589264d01bec5"
+        "frontier_digest": "sha256:943ff299208a78567e2dfeb4c3fc22d51ba75e52e02be3cebf31dd753f6187ae"
       }
     },
     {
@@ -104,15 +107,18 @@
         "kind": "realm_actor",
         "realm_id": "ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
         "actor_id": {
-          "kind": "service",
-          "service_id": "ak:did_core:web:alice.example"
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
         },
         "next_actor_seq": 43,
         "frontier_event_ids": [
           "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
           "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe"
         ],
-        "frontier_digest": "sha256:74ed4adca3a3448eef744d447cbaeacb7c371c98ff2409e90ce357edc83dd84b"
+        "frontier_digest": "sha256:99d56e542d9b45ea99e607b0bf5481070d6ee2cd532b3d7354768e92f48e2808"
       }
     },
     {
@@ -143,7 +149,7 @@
         },
         "next_actor_seq": 1,
         "frontier_event_ids": [],
-        "frontier_digest": "sha256:4e14285bf450dff49220316ffa2ef2258c2be1a389e09aae86d26a797d894233"
+        "frontier_digest": "sha256:b7f809febc010d09395e32891785c6d174805d31c5cb7d3df1531849c2db1a73"
       }
     }
   ],
@@ -1181,7 +1187,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1191,7 +1197,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
-              "payload_digest": "sha256:3d4d0dbc6317fe753b4b072193e081053610fe3872e14a2392799b3f856c8c76",
+              "payload_digest": "sha256:069066b85592f2622acacf47aa2880e1fc1f0ecc29957aeac785630415ac77c2",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1221,7 +1227,13 @@
         "root": "sha256:3712b0de544873450e9f546f4cdbba233b71b15e37ad427a8c1f2da02d7f5630",
         "covered_event_count": 20
       },
-      "issuer": "ak:did_core:webvh:z6mkfixture",
+      "issuer": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        }
+      },
       "authority_kind": "witness_quorum",
       "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "auth_frontier": [
@@ -1229,7 +1241,7 @@
       ],
       "snapshot_created_at": "2026-04-26T00:00:00.000Z"
     },
-    "expected_digest": "sha256:6898fe5b58cb90bab677a549094e31d5079703b6b11475d38230f6bcfb622adb",
+    "expected_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
     "cases": [
       {
         "name": "valid_quorum_accepted",
@@ -1239,7 +1251,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1249,7 +1261,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
-              "payload_digest": "sha256:3d4d0dbc6317fe753b4b072193e081053610fe3872e14a2392799b3f856c8c76",
+              "payload_digest": "sha256:069066b85592f2622acacf47aa2880e1fc1f0ecc29957aeac785630415ac77c2",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1271,7 +1283,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1281,7 +1293,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-2",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1299,7 +1311,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1309,7 +1321,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessd:witness-d.example#snapshot-witness-1",
-              "payload_digest": "sha256:f79921bfdb208794cc9c462a96a9e41201c51ad4dab54b230fa69881a96ea4b8",
+              "payload_digest": "sha256:7b63d015b61dc0193d2f56ad41a5e881cd076dabbd31a2fe6430ada826bb9141",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1326,7 +1338,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1336,7 +1348,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessc:witness-c.example#snapshot-witness-1",
-              "payload_digest": "sha256:71f9918f7aa8be8a2602ba371696cdd9e7dec925e04ac9a59a211d14dcd477e9",
+              "payload_digest": "sha256:fd2e835b5102e2775c5c2b805654d940e29ba842091dd9d2e7b1f9524b66c180",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1354,7 +1366,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1387,7 +1399,13 @@
             "root": "sha256:3712b0de544873450e9f546f4cdbba233b71b15e37ad427a8c1f2da02d7f5630",
             "covered_event_count": 20
           },
-          "issuer": "ak:did_core:webvh:z6mkfixture",
+          "issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
           "authority_kind": "witness_quorum",
           "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_frontier": [
@@ -1395,7 +1413,7 @@
           ],
           "snapshot_created_at": "2026-04-26T00:00:00.000Z"
         },
-        "expected_digest": "sha256:90f9688a7b15832e5ed1bacf031210624feeebc2ef9dbeffe85e769441037c34",
+        "expected_digest": "sha256:08fc2aa7473e4d25e6fc23096d1bdc6a27383c21f4fefe88ac302d5951d522fb",
         "expected_error": "signature_invalid",
         "note": "reusing the manifest context yields a different transcript digest and MUST be rejected even when the JWS verifies"
       },
@@ -1423,7 +1441,13 @@
             "root": "sha256:3712b0de544873450e9f546f4cdbba233b71b15e37ad427a8c1f2da02d7f5630",
             "covered_event_count": 20
           },
-          "issuer": "ak:did_core:webvh:z6mkfixture",
+          "issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
           "authority_kind": "witness_quorum",
           "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_frontier": [
@@ -1431,7 +1455,7 @@
           ],
           "snapshot_created_at": "2026-04-26T00:00:00.000Z"
         },
-        "expected_digest": "sha256:dbfa98c69869f1a73b069673a2eafeb1ac5160b8b37caec021c0875df7393ea3",
+        "expected_digest": "sha256:e99bf7dd566f28177aa2ee902759142d583000eb72a430b4ccb1395e7f58902e",
         "expected_error": "signature_invalid"
       },
       {
@@ -1481,7 +1505,13 @@
         "cursor": "ak:cursor:fixture",
         "device_lists": {
           "changed_ids": [
-            "ak:did_core:webvh:z6mkfixture"
+            {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            }
           ],
           "left_ids": []
         }
@@ -1517,7 +1547,17 @@
                     "kind": "account",
                     "account_id": {
                       "principal_id": "ak:did_core:webvh:z6mkfixture",
-                      "station_id": "ak:did_core:web:ps.example"
+                      "station_id": "ak:did_core:webvh:z6mkfixtureotherstationexample"
+                    }
+                  },
+                  "display_name": "Alice at another Station"
+                },
+                {
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixture",
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
                     }
                   },
                   "display_name": "Alice"
@@ -1544,6 +1584,50 @@
       }
     },
     {
+      "name": "window_start_principal_keyed_profile_map_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "state_at_window_start": {
+              "actor_profiles": {
+                "ak:did_core:webvh:z6mkfixture": {
+                  "display_name": "Alice"
+                }
+              },
+              "realm_metadata": {},
+              "e2ee_epoch": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "window_start_profile_without_actor_id_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "state_at_window_start": {
+              "actor_profiles": [
+                {
+                  "display_name": "Alice"
+                }
+              ],
+              "realm_metadata": {},
+              "e2ee_epoch": null
+            }
+          }
+        }
+      }
+    },
+    {
       "name": "negative_unread_count_rejected",
       "schema_ref": "schemas/account-subscribe-frame.schema.json",
       "expect_valid": false,
@@ -1564,8 +1648,8 @@
     "vector_id": "ak.vector.actor_frontier.realm_scoped.v1",
     "transcript_label_utf8_nul": "ak-realm-actor-frontier-v1\u0000",
     "digest_algorithm": "sha256",
-    "canonical_json": "{\"actor_id\":\"ak:did_core:web:alice.example\",\"frontier_event_ids\":[\"ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\",\"ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\"}",
-    "expected_digest": "sha256:74ed4adca3a3448eef744d447cbaeacb7c371c98ff2409e90ce357edc83dd84b"
+    "canonical_json": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:web:alice.example\",\"station_id\":\"ak:did_core:web:station.example\"},\"kind\":\"account\"},\"frontier_event_ids\":[\"ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\",\"ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\"}",
+    "expected_digest": "sha256:99d56e542d9b45ea99e607b0bf5481070d6ee2cd532b3d7354768e92f48e2808"
   },
   "e2ee_decryption_pending": {
     "event_id": "ak:event:AY4rjZ5eX4tirzUMKIQZ0K26SIcvduWsg-p90KQ2PMVZ",

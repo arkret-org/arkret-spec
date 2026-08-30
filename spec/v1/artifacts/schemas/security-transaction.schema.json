@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/security-transaction.schema.json",
   "title": "Arkret Security Transaction",
-  "description": "Closed durable RecoveryTransaction and SecurityRotationTransaction resource. The prepared plan is the sole canonical intent source; accepted outputs form a durable ordered prefix.",
+  "description": "Closed Station-local durable RecoveryTransaction and SecurityRotationTransaction resource. The prepared plan is the sole canonical intent source; accepted outputs form a durable ordered prefix. principal_id and coordinator_id identify AccountId {principal_id, station_id: coordinator_id}; every prepared Event and backup ActorId must equal this account actor, including its Station identity.",
   "type": "object",
   "required": [
     "transaction_id",
@@ -31,7 +31,8 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "coordinator_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Service core identity of the executing Station, not an arbitrary external coordinator. Process separation is deployment-private and creates no public coordinator role."
     },
     "expires_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"

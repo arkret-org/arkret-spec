@@ -448,26 +448,6 @@
       ]
     },
     {
-      "schema_path": "account-subscribe-frame.schema.json#/$defs/device_list_changes/properties/changed_ids",
-      "property_name": "changed_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "account-subscribe-frame.schema.json#/$defs/device_list_changes/properties/left_ids",
-      "property_name": "left_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "account-subscribe-frame.schema.json#/$defs/ordered_log_sibling_diagnostic/properties/issuer_id",
       "property_name": "issuer_id",
       "semantic_category": "responsibility_identity_material",
@@ -3189,16 +3169,6 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/mls_proposal_payload/properties/target_principal_id",
-      "property_name": "target_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_envelope/properties/requester_agent_id",
       "property_name": "requester_agent_id",
       "semantic_category": "responsibility_identity_material",
@@ -5119,16 +5089,6 @@
       ]
     },
     {
-      "schema_path": "mls-governance-proof-bundle.schema.json#/$defs/mls_security_frontier_leaf/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "moderation-evidence.schema.json#/$defs/evidence_package/properties/encrypted_to_kid",
       "property_name": "encrypted_to_kid",
       "semantic_category": "responsibility_identity_material",
@@ -6501,16 +6461,6 @@
     {
       "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRevokeRequestBody/properties/organization_id",
       "property_name": "organization_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/ProjectionStrandRow/properties/assigned_actor_ids",
-      "property_name": "assigned_actor_ids",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

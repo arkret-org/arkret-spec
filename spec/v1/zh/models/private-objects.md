@@ -112,7 +112,7 @@ Schema id: `ak.schema.notification.v1`
 当一个 accepted `ak.relation.create` 满足下列条件时，notification dispatcher MUST 为被分配 actor 派生 `notification_kind=assignment`：
 
 - `relation_kind="assigned_to"`。
-- `from_ref` 是 active Strand id，`to_ref` 是 actor DID。
+- `from_ref` 是 active Strand id，`to_ref` 是完整 ActorId object。
 - Relation create 不是现有 active `(realm_id, relation_kind, from_ref, to_ref)` assignment tuple 的 no-op 重放；同一 `(actor_id, source_event_id, notification_kind=assignment)` 最多生成一个 notification。
 - 接收 actor 对该 Strand 的 effective Realm / Circle scope 有读取权，且未被 `level=muted`、blocklist、DND 或 push rule 覆盖抑制。
 

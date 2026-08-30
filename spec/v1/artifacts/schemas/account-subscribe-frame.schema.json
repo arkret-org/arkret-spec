@@ -232,7 +232,7 @@
         "changed_ids": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
           "uniqueItems": true,
           "maxItems": 10000
@@ -240,7 +240,7 @@
         "left_ids": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
           "uniqueItems": true,
           "maxItems": 10000
@@ -524,7 +524,7 @@
             },
             "additionalProperties": false
           },
-          "description": "Projection entries keyed by exact ActorId. Entries MUST be sorted by unsigned UTF-8 bytes of RFC 8785 JCS(actor_id), and duplicate ActorIds MUST be rejected even if display fields differ. A bare-DID object key is not a wire identity."
+          "description": "Window-start profile rows keyed semantically by the complete ActorId. Entries MUST be sorted by unsigned UTF-8 bytes of RFC 8785 JCS(actor_id), and duplicate ActorIds MUST be rejected even if display fields differ. A principal DID alone is not a key: accounts on distinct Stations remain distinct rows with their own display projections."
         },
         "realm_metadata": {
           "type": "object",

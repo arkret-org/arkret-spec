@@ -2305,6 +2305,36 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
 
 
 
+def check_actor_frontier_digest_fixture(lint: Lint, path: Path, data: dict[str, Any]) -> None:
+    """Pin the specialized Actor frontier KAT and each schema-case transcript."""
+    domain = "ak-realm-actor-frontier-v1\0"
+    fields = {"kind", "realm_id", "actor_id", "next_actor_seq", "frontier_event_ids"}
+    vector = data.get("actor_frontier_digest")
+    if not isinstance(vector, dict):
+        lint.fail(path, "missing actor_frontier_digest KAT")
+        return
+    if vector.get("transcript_label_utf8_nul") != domain:
+        lint.fail(path, "Actor frontier transcript label mismatch")
+    canonical = vector.get("canonical_json")
+    try:
+        body = json.loads(canonical) if isinstance(canonical, str) else None
+    except json.JSONDecodeError:
+        body = None
+    if not isinstance(body, dict) or set(body) != fields or not isinstance(body.get("actor_id"), dict):
+        lint.fail(path, "Actor frontier KAT must bind the complete ActorId and exact transcript fields")
+    elif canonical != canonical_json(body):
+        lint.fail(path, "Actor frontier KAT canonical_json is not canonical")
+    elif vector.get("expected_digest") != sha256_text(domain + canonical):
+        lint.fail(path, "Actor frontier KAT digest mismatch")
+    for case in data.get("schema_validation_cases", []):
+        body = case.get("instance") if isinstance(case, dict) else None
+        if not isinstance(body, dict) or body.get("kind") != "realm_actor" or not fields <= body.keys():
+            continue
+        expected = sha256_text(domain + canonical_json({key: body[key] for key in fields}))
+        if body.get("frontier_digest") != expected:
+            lint.fail(path, f"Actor frontier schema case {case.get('name')!r} digest mismatch")
+
+
 def check_canonical_digest_fixtures(lint: Lint) -> None:
     """T4-1: canonical-JSON recompute guard.
 
@@ -2350,6 +2380,8 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
         data = load_json(lint, fixture_path)
         if data is None:
             continue
+        if fixture_path.name == "sync-fixture.json" and isinstance(data, dict):
+            check_actor_frontier_digest_fixture(lint, fixture_path, data)
 
         for case in iter_dict_nodes(data):
             for input_key, digest_key in shapes:

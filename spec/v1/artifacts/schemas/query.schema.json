@@ -153,22 +153,10 @@
           ]
         },
         "source_ref": {
-          "$ref": "./relation.schema.json#/$defs/object_ref"
-        },
-        "source_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "source_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          "$ref": "./relation.schema.json#/$defs/relation_endpoint"
         },
         "target_ref": {
-          "$ref": "./relation.schema.json#/$defs/object_ref"
-        },
-        "target_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "target_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          "$ref": "./relation.schema.json#/$defs/relation_endpoint"
         },
         "depth": {
           "type": "integer",
@@ -176,50 +164,6 @@
           "maximum": 32
         }
       },
-      "allOf": [
-        {
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "source_ref",
-                  "source_actor_id"
-                ]
-              },
-              {
-                "required": [
-                  "source_ref",
-                  "source_realm_id"
-                ]
-              },
-              {
-                "required": [
-                  "source_actor_id",
-                  "source_realm_id"
-                ]
-              },
-              {
-                "required": [
-                  "target_ref",
-                  "target_actor_id"
-                ]
-              },
-              {
-                "required": [
-                  "target_ref",
-                  "target_realm_id"
-                ]
-              },
-              {
-                "required": [
-                  "target_actor_id",
-                  "target_realm_id"
-                ]
-              }
-            ]
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "query_request_body": {

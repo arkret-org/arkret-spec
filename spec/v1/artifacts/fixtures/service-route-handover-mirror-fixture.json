@@ -549,7 +549,7 @@
       }
     },
     {
-      "name": "same_core_route_refresh_does_not_rebind_new_core_does",
+      "name": "same_core_route_refresh_preserves_account_new_core_requires_new_membership",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_cache_entry",
       "inputs": {
         "account_station_id": "ak:did_core:webvh:z6mkTarget",

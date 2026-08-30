@@ -1,6 +1,6 @@
 {
   "suite": "event_kind_payload_coverage_fixture",
-  "version": "2026-08-09",
+  "version": "2026-08-31",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
@@ -242,6 +242,163 @@
       "instance": {
         "report_id": "ak:report:ATAqsVFFwxiA6K_flXOCz1_jv_uczcCC90q5dqT7DLm3",
         "target_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
+      }
+    },
+    {
+      "name": "relation_assignment_station_a_actor_endpoint_valid",
+      "schema_ref": "schemas/relation.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.relation.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "relation_kind": "assigned_to",
+        "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "to_ref": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example",
+            "station_id": "ak:did_core:web:station-a.example"
+          }
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example",
+            "station_id": "ak:did_core:web:station-a.example"
+          }
+        },
+        "created_at": "2026-08-31T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "relation_assignment_same_principal_station_b_endpoint_valid",
+      "schema_ref": "schemas/relation.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.relation.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "relation_kind": "assigned_to",
+        "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "to_ref": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example",
+            "station_id": "ak:did_core:web:station-b.example"
+          }
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example",
+            "station_id": "ak:did_core:web:station-a.example"
+          }
+        },
+        "created_at": "2026-08-31T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "relation_assignment_legacy_did_endpoint_rejected",
+      "schema_ref": "schemas/relation.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.relation.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "relation_kind": "assigned_to",
+        "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "to_ref": "did:web:assignee.example",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example",
+            "station_id": "ak:did_core:web:station-a.example"
+          }
+        },
+        "created_at": "2026-08-31T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:to_ref"
+    },
+    {
+      "name": "relation_assignment_stringified_actor_endpoint_rejected",
+      "schema_ref": "schemas/relation.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.relation.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "relation_kind": "assigned_to",
+        "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "to_ref": "{\"kind\":\"account\",\"account_id\":{\"principal_id\":\"ak:did_core:web:assignee.example\",\"station_id\":\"ak:did_core:web:station-a.example\"}}",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example",
+            "station_id": "ak:did_core:web:station-a.example"
+          }
+        },
+        "created_at": "2026-08-31T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:to_ref"
+    },
+    {
+      "name": "relation_assignment_profile_object_is_not_actor_rejected",
+      "schema_ref": "schemas/relation.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.relation.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "relation_kind": "assigned_to",
+        "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "to_ref": "ak:actor_profile:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example",
+            "station_id": "ak:did_core:web:station-a.example"
+          }
+        },
+        "created_at": "2026-08-31T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:to_ref"
+    },
+    {
+      "name": "relation_assignment_missing_station_rejected",
+      "schema_ref": "schemas/relation.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.relation.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "relation_kind": "assigned_to",
+        "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "to_ref": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example"
+          }
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example",
+            "station_id": "ak:did_core:web:station-a.example"
+          }
+        },
+        "created_at": "2026-08-31T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:to_ref"
+    },
+    {
+      "name": "relation_query_accepts_structured_actor_endpoint",
+      "schema_ref": "schemas/query.schema.json#/$defs/relation_query",
+      "expect_valid": true,
+      "instance": {
+        "kind": "assigned_to",
+        "direction": "out",
+        "target_ref": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:assignee.example",
+            "station_id": "ak:did_core:web:station-b.example"
+          }
+        }
       }
     }
   ],

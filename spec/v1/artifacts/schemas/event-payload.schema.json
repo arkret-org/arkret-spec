@@ -1327,7 +1327,7 @@
     },
     "applet_registration_payload": {
       "type": "object",
-      "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot / Ghost Actor namespace). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / authorized registry-authz service. The formal Event is signed by that installing administrator and admitted by the target Station; payload.proof is the exact controller-signed package proof and is not an Event proof.",
+      "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot / Ghost Actor namespace). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / Realm-policy-authorized administrator actor and checked by the Station authorization capability. The formal Event is signed by that installing administrator and admitted by the target Station; payload.proof is the exact controller-signed package proof and is not an Event proof.",
       "required": [
         "applet_id",
         "service_id",
@@ -7184,8 +7184,9 @@
           "$ref": "#/$defs/digest",
           "description": "SHA-256 digest of the decoded proposal_bytes_b64 bytes. Receivers MUST verify it before admitting the Proposal to an MLS proposal store."
         },
-        "target_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "target_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Complete accepted target membership identity, including its Station. The endpoint signing principal alone is not membership authority."
         },
         "target_authorization_incarnation": {
           "$ref": "#/$defs/history_authorization_incarnation",
@@ -7210,7 +7211,7 @@
           },
           "then": {
             "required": [
-              "target_principal_id",
+              "target_actor_id",
               "target_authorization_incarnation"
             ]
           },

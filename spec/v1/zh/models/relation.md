@@ -14,9 +14,9 @@ updated: 2026-07-02
 
 `relation`（`ak:relation:`）是 Arkret 协作图的**一等关系对象**。跨对象语义 MUST 使用 Relation 表达，而不是藏在对象字段里。
 
-Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`strand`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ak:<kind>:` typed ID，或一个 DID。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
+Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`strand`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ak:<kind>:` typed ID，或完整的结构化 ActorId。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 ActorId object（包含 Station 归属），而不是裸 DID、Actor Profile ID 或把 ActorId JSON 编码成字符串（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
 
-> **端点 kind 子集与其它"可引用 kind 子集"字段的关系（informative）**：Relation 端点允许的 kind 集合与 Notification `source_ref`（[`private-objects.md` §3.2](./private-objects.md)）、Read Cursor `read_scope`（[`private-objects.md` §2.2](./private-objects.md)）各自不同；差异由各自语义决定（Relation 端点 = 可连边的图节点，故含 `realm` / `event` / DID；Notification = 可被通知指向的内容对象；Read Cursor = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验字段形状，同时以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability` 作为 typed-id kind 子集的机读真相源；Relation 端点对应 `relation_endpoint` 类别。Actor DID 端点不属于 typed-id kind，仍由 DID grammar 与 `common-fields.md` §4.1 约束。
+> **端点 kind 子集与其它"可引用 kind 子集"字段的关系（informative）**：Relation 端点允许的 kind 集合与 Notification `source_ref`（[`private-objects.md` §3.2](./private-objects.md)）、Read Cursor `read_scope`（[`private-objects.md` §2.2](./private-objects.md)）各自不同；差异由各自语义决定（Relation 端点 = 可连边的图节点，故含 `realm` / `event` / ActorId；Notification = 可被通知指向的内容对象；Read Cursor = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验字段形状，同时以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability` 作为 typed-id kind 子集的机读真相源；Relation 端点对应 `relation_endpoint` 类别。ActorId 端点不属于 typed-id kind，由 `common-ids.schema.json#/$defs/actor_id` 与 `common-fields.md` §4.1 约束。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
@@ -36,8 +36,8 @@ Schema id: `ak.schema.relation.v1`
 | `scope_circle_id` | no | `id:circle` | 通用 scope 派生与校验以 [`circle.md` §6](./circle.md) 为唯一权威；`confidential_discussion_of` 按 §3.1 MUST 指向 private Strand 的 Circle。Sidecar context mapping 使用原生 `ak.component.sidecar.context.v1`，不是 Relation。 | 该 Relation 事实的 Circle 作用域。 |
 | `effective_scope` | no | `object` | 通用只读 projection 规则以 [`circle.md` §6](./circle.md) 为唯一权威；结构关系 MUST NOT 宽于参与端点中最窄的作用域。 | 派生的有效作用域。 |
 | `relation_kind` | yes | `string` | 标准值见 §3。 | 关系语义。 |
-| `from_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 起点对象/Actor/Realm 引用。 |
-| `to_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |
+| `from_ref` | yes | `RelationEndpoint` | MUST 是合法 typed object-reference string 或完整 ActorId object。 | 起点对象/Actor/Realm 引用。 |
+| `to_ref` | yes | `RelationEndpoint` | MUST 是合法 typed object-reference string 或完整 ActorId object。 | 终点对象/Actor/Realm 引用。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。**与 Space.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> strand`）的稳定 rank。 |
 | `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
 | `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；若操作提供原因，原因保存在对应 `ak.relation.tombstone` / `ak.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
@@ -59,6 +59,8 @@ Schema id: `ak.schema.relation.v1`
 ```
 
 Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询层或 schema 派生。
+
+**Actor 端点与去重（normative）**：`assigned_to` 的目标与 `watches` 的来源是完整协作 ActorId，而不是全局密码学 principal。两个 account Actor 即使 `principal_id` 相同，只要 `station_id` 不同，就是不同端点；授权、去重、基数、查询过滤、通知匹配与 tombstone 目标 MUST 保持该区别。端点相等按解析后的类型和值判断；需要持久化 tuple key 时 MUST 对完整结构采用 canonical JSON，不得只取 signing principal，也不得把 JSON 文本重新写入 endpoint string。既有对象引用仍是 typed ID string。`RelationQuery.source_ref` / `target_ref` 使用同一个 `RelationEndpoint` union。
 
 最小示例：
 
@@ -106,8 +108,8 @@ confidential_discussion_of
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
 | `depends_on`, `blocks` | `many_to_many` | 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重；循环检测由 workflow/profile 规则决定。 |
 | `mentions`, `references`, `derived_from`, `attached_to`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；多条语义不同的边必须用 `fields.role`、不同 `relation_kind` 或 profile 声明的 multi-edge key 区分。其中语义性较强的 `summarized_from`(摘要 → 来源)与 `promoted_from_discussion`(正式对象 → 来源 discussion)在 v1 不在本表硬编码 from_kind→to_kind 约束，其 from/to 类型 MUST 由 Realm schema / RelationProfile 显式声明(见 [§5](#5-relationprofile))；未声明 profile 时按通用弱语义引用边处理。 |
-| `assigned_to` | `many_to_many` | Canonical 方向为 `Strand -> DID`（`from_ref=<strand_id>`, `to_ref=<actor DID>`）。默认 `many_to_many`，按完整 tuple `(realm_id, relation_kind, from_ref, to_ref)` 去重(同一 (Strand, Actor) 对至多一条 active edge，即同一 Actor 不重复分配)；一个 Strand MAY 同时分配给多个 Actor。**这是按完整 tuple 去重，不是 per-actor 单值约束。** 需要单负责人语义时，Realm schema/profile MUST 声明 `max_to_per_from=1` 或单独 owner relation——[§5](#5-relationprofile) 的 `many_to_one` 示例即此单负责人 profile 收紧示例，非默认基数。Strand object / `metadata.fields` 不得携带 `assignee` / `assignees` / `assigned_to` 字段作为替代真源；见 [strand-and-message.md §7.1](./strand-and-message.md#71-assignment--assignee-投影)。 |
-| `watches`：`actor (did) -> strand` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Strand（或 profile 声明的 watchable 对象）。**Truth source 是 cas_register cell `ak.component.strand.watch.v1`，写入路径是 `ak.strand.watch.set` durable event，不是 `ak.relation.create`**——直接 `ak.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ak.strand.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [strand-and-message.md §8](./strand-and-message.md)。 |
+| `assigned_to` | `many_to_many` | Canonical 方向为 `Strand -> ActorId`（`from_ref=<strand_id>`, `to_ref=<ActorId object>`）。默认 `many_to_many`，按完整 tuple `(realm_id, relation_kind, from_ref, to_ref)` 去重(同一 (Strand, Actor) 对至多一条 active edge，即同一 Actor 不重复分配)；一个 Strand MAY 同时分配给多个 Actor。**这是按完整 tuple 去重，不是 per-actor 单值约束。** 需要单负责人语义时，Realm schema/profile MUST 声明 `max_to_per_from=1` 或单独 owner relation——[§5](#5-relationprofile) 的 `many_to_one` 示例即此单负责人 profile 收紧示例，非默认基数。Strand object / `metadata.fields` 不得携带 `assignee` / `assignees` / `assigned_to` 字段作为替代真源；见 [strand-and-message.md §7.1](./strand-and-message.md#71-assignment--assignee-投影)。 |
+| `watches`：`ActorId -> strand` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是完整 ActorId object，`to_ref` MUST 指向 Strand（或 profile 声明的 watchable 对象）。**Truth source 是 cas_register cell `ak.component.strand.watch.v1`，写入路径是 `ak.strand.watch.set` durable event，不是 `ak.relation.create`**——直接 `ak.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ak.strand.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [strand-and-message.md §8](./strand-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 | `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Strand，`to_ref` MUST 是其 public seal Strand。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Strand 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Strand 回到 public seal，而 non-member 不能从 public seal 侧枚举该边。**实现 MUST NOT 在目标公开 Strand 写 target-side reverse relation**。 |
 
@@ -185,7 +187,7 @@ Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收�
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `relation_kind` | yes | `string` | 被声明的 relation kind。 |
-| `from_kind` | no | `string` | 起点类型约束，例如 `realm`、`space:board`、`space:list`、`strand`、`message`、`morph:*` 或 `did`。 |
+| `from_kind` | no | `string` | 起点类型约束，例如 `realm`、`space:board`、`space:list`、`strand`、`message`、`morph:*` 或 `actor`（完整 ActorId 分支）。 |
 | `to_kind` | no | `string` | 终点类型约束。 |
 | `relation_scope` | no | `enum(realm, space, board)` | 基数和去重作用域；默认 `realm`。`space` 表示在某 Space 内、`board` 是 `kind=board` Space 的简写。**没有 `global` scope**：Relation reducer 是 Realm-local 的，跨 Realm 的基数 / 去重没有可求值的状态，登记它只会产生不可强制的 MUST。**scope 解析失败处置（normative）**：当 `relation_scope ∈ {space, board}` 但 reducer 无法解析参与端点所属的 board/space 用作去重 / 基数 key 的 `board_space_id`（端点不隶属任何 board/space，或所属 board/space 已 `tombstoned`），reducer MUST `failed_precondition`（`reason=relation_scope_unresolved`）——MUST NOT 静默降级为 `realm` scope 去重、MUST NOT 跳过基数约束。producer 需重试时应改用可解析的 scope 或显式 `realm` scope 重新提交。 |
 | `cardinality` | yes | `enum(one_to_one, one_to_many, many_to_one, many_to_many)` | `one_to_many` 表示同一 `from_ref` 可有多个 `to_ref`，但同一 `to_ref` 在 scope 内最多一个 active `from_ref`。 |
@@ -200,7 +202,7 @@ Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收�
 {
   "relation_kind": "assigned_to",
   "from_kind": "strand",
-  "to_kind": "did",
+  "to_kind": "actor",
   "relation_scope": "realm",
   "cardinality": "many_to_one",
   "max_to_per_from": 1,

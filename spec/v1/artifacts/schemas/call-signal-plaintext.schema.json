@@ -20,7 +20,7 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 18446744073709551615,
-      "description": "Strictly increasing but non-contiguous u64 within (sender_device_id, canonical scope_ref); arbitrary forward gaps are accepted. It is independent of seq, the per-call anti-rollback sequence monotonic over (realm_id, call_id, actor_id, device_id)."
+      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref); arbitrary forward gaps are accepted. The complete ActorId is part of the sequence domain. It is independent of seq, the per-call anti-rollback sequence monotonic over (realm_id, call_id, actor_id, device_id)."
     },
     "call_id": {
       "type": "string",

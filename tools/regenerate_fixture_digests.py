@@ -105,6 +105,51 @@ def update_direct_conversation_vectors(data: dict[str, Any]) -> int:
     return updates
 
 
+def update_snapshot_witness_quorum(data: dict[str, Any]) -> int:
+    """Bind every witness proof to the complete Actor issuer projection."""
+    fixture = data.get("snapshot_witness_quorum")
+    if not isinstance(fixture, dict):
+        return 0
+    canonical_input = fixture.get("canonical_input")
+    if not isinstance(canonical_input, dict):
+        return 0
+    updates = 0
+    for node in iter_dict_nodes(fixture):
+        witness_id = node.get("witness_id")
+        proof = node.get("proof")
+        if not isinstance(witness_id, str) or not isinstance(proof, dict):
+            continue
+        transcript = {**canonical_input, "witness_id": witness_id}
+        digest = "sha256:" + hashlib.sha256(canonical_json(transcript).encode("utf-8")).hexdigest()
+        updates += replace(proof, "payload_digest", digest)
+    return updates
+
+
+def update_actor_frontier_vectors(data: dict[str, Any]) -> int:
+    """Refresh the domain-separated Actor frontier transcript and schema cases."""
+    domain = "ak-realm-actor-frontier-v1\0"
+    fields = {"kind", "realm_id", "actor_id", "next_actor_seq", "frontier_event_ids"}
+    updates = 0
+    vector = data.get("actor_frontier_digest")
+    if isinstance(vector, dict) and isinstance(vector.get("canonical_json"), str):
+        canonical = canonical_json(json.loads(vector["canonical_json"]))
+        updates += replace(vector, "canonical_json", canonical)
+        updates += replace(vector, "transcript_label_utf8_nul", domain)
+        updates += replace(
+            vector, "expected_digest",
+            "sha256:" + hashlib.sha256((domain + canonical).encode("utf-8")).hexdigest(),
+        )
+    for node in iter_dict_nodes(data):
+        if node.get("kind") != "realm_actor" or "frontier_digest" not in node or not fields <= node.keys():
+            continue
+        canonical = canonical_json({key: node[key] for key in fields})
+        updates += replace(
+            node, "frontier_digest",
+            "sha256:" + hashlib.sha256((domain + canonical).encode("utf-8")).hexdigest(),
+        )
+    return updates
+
+
 def update_file(path: Path) -> int:
     data = json.loads(path.read_text(encoding="utf-8"))
     updates = 0
@@ -133,6 +178,9 @@ def update_file(path: Path) -> int:
                     updates += 1
     if path.name == "encoding-fixture.json" and isinstance(data, dict):
         updates += update_direct_conversation_vectors(data)
+    if path.name == "sync-fixture.json" and isinstance(data, dict):
+        updates += update_snapshot_witness_quorum(data)
+        updates += update_actor_frontier_vectors(data)
     if updates:
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return updates

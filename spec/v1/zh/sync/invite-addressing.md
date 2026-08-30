@@ -68,7 +68,7 @@ invite/locator 的权威首跳仍是必填 current `service_resolution`；它不
 
 `consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.grant` 在被邀请方(`invite_address.account_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
-`handle_claim` evidence 的接收方验证：`handle_claim.handle == evidence.handle`，`handle_claim.subject_account_id == invite_address.account_id`，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，且 issuer / Directory / visibility / audience 满足 subject policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
+`InviteAddress` 的收件 AccountId 唯一派生为 `{principal_id: invite_address.subject_id, station_id: invite_address.recipient_id}`；地址本身不携带并行 `account_id` 字段。`handle_claim` evidence 的接收方验证：`handle_claim.handle == evidence.handle`，`handle_claim.subject_account_id` MUST 精确等于该完整派生 pair，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，且 issuer / Directory / visibility / audience 满足 subject policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
 
 ## 3. 在线 Principal Locator
 
@@ -295,7 +295,7 @@ effective_receive_policy =
 
 规则：
 
-- `payload.invitee_account_id` MUST 与 `invite_address.account_id` 完整相等。
+- `payload.invitee_account_id` MUST 与 `invite_address.account_id` 完整相等，不得只比较 principal。
 - destination service 只从 `invitee_account_id.station_id` 派生；service resolution 与 route assistance 只在私有 transport carrier 中出现，MUST NOT 要求 durable Event 镜像它们。
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
 - 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel` 的 `invite_cancel_payload`：`invite_id`、与持久化目标完整相等的 `invitee_account_id`、`target_state` 及该 schema 允许的诊断字段。invitee 本人拒绝写入 `rejected`；inviter 或获授权管理 actor 撤销写入 `revoked`。reducer MUST 从 Invite 前态确认 exact invitee，第三方/token placeholder 或缺少 invitee 的前态 MUST 以 `failed_precondition` / `invite_kind_requires_revoke` 原子拒绝；不得信任请求补出的身份。Invite lifecycle 与对应 ActorId member cell 的 `invite -> leave` MUST 同事务推进。

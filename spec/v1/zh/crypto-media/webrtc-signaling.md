@@ -272,7 +272,7 @@ proof context 固定为 `ak.signal_proof.v1`。
 解密后的 plaintext 顶层必须通过 [`call-signal-plaintext.schema.json`](../../artifacts/schemas/call-signal-plaintext.schema.json)（`ak.schema.call_signal_plaintext.v1`），闭合字段为 `kind=ak.call.signal`、
 `payload_sequence`、`call_id`、`signal_kind`、`seq` 与 `data`。`payload_sequence` 是
 [`../sync/signal.md` §1.1](../sync/signal.md) 对全部 plaintext profile 强制的通用字段，按
-sender device 与 signed scope 单调，服务于 §2 的 `(sender_device_id, scope_ref,
+完整 sender Actor、device 与 signed scope 单调，服务于 §2 的 `(sender_actor_id, sender_device_id, canonical scope_ref,
 payload_sequence)` 去重；它与本节按 `(realm_id, call_id, actor_id, device_id)` 防回滚的
 `seq` 相互独立，任一方 MUST NOT 替代另一方。允许的 `signal_kind` 为 `invite` / `answer` /
 `candidate` / `reject` / `hangup` / `renegotiate` / `mute_state` / `media_state` /
