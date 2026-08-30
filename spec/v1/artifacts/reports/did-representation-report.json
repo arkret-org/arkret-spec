@@ -1879,26 +1879,6 @@
       ]
     },
     {
-      "schema_path": "contact-operations.schema.json#/$defs/contact_agent_projection/properties/agent_id",
-      "property_name": "agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "contact-operations.schema.json#/$defs/contact_agent_projection/properties/controller_id",
-      "property_name": "controller_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "contact-operations.schema.json#/$defs/contact_current_proof/properties/issuer_id",
       "property_name": "issuer_id",
       "semantic_category": "responsibility_identity_material",
@@ -1921,36 +1901,6 @@
     {
       "schema_path": "contact-operations.schema.json#/$defs/contact_list_row/properties/peer_host_id",
       "property_name": "peer_host_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "contact-operations.schema.json#/$defs/contact_peer/oneOf/0/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "contact-operations.schema.json#/$defs/contact_peer/oneOf/1/properties/agent_id",
-      "property_name": "agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "contact-operations.schema.json#/$defs/contact_peer/oneOf/1/properties/controller_id",
-      "property_name": "controller_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

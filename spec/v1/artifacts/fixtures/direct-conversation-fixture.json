@@ -185,7 +185,10 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
         },
         "state": "accepted",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -218,7 +221,10 @@
         "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B1",
         "peer": {
           "kind": "human",
-          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
         },
         "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
         "version": 2,
@@ -237,7 +243,10 @@
         "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B2",
         "peer": {
           "kind": "human",
-          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
         },
         "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
         "version": 2,
@@ -257,7 +266,10 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
         },
         "state": "accepted",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -284,7 +296,10 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
         },
         "state": "tombstoned",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -310,7 +325,10 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
         },
         "state": "pending_incoming",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -318,11 +336,17 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+              }
             },
             "peer": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixture"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              }
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -357,7 +381,10 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
         },
         "state": "pending_incoming",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -365,11 +392,17 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+              }
             },
             "peer": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixture"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              }
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -401,7 +434,10 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
         },
         "state": "pending_incoming",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -422,7 +458,10 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
         },
         "state": "accepted",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -430,11 +469,17 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+              }
             },
             "peer": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixture"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              }
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -479,11 +524,17 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+              }
             },
             "peer": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixture"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              }
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -517,11 +568,17 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+              }
             },
             "peer": {
               "kind": "human",
-              "principal_id": "ak:did_core:webvh:z6mkfixture"
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              }
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",

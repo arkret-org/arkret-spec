@@ -414,15 +414,15 @@
     "contact_agent_projection": {
       "type": "object",
       "required": [
-        "agent_id",
-        "controller_id"
+        "actor_id",
+        "controller_account_id"
       ],
       "properties": {
-        "agent_id": {
-          "$ref": "#/$defs/did_core_id"
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "display_name": {
           "type": "string",
@@ -1454,14 +1454,14 @@
           "type": "object",
           "required": [
             "kind",
-            "principal_id"
+            "account_id"
           ],
           "properties": {
             "kind": {
               "const": "human"
             },
-            "principal_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
             }
           },
           "additionalProperties": false
@@ -1470,18 +1470,18 @@
           "type": "object",
           "required": [
             "kind",
-            "agent_id",
-            "controller_id"
+            "actor_id",
+            "controller_account_id"
           ],
           "properties": {
             "kind": {
               "const": "agent"
             },
-            "agent_id": {
-              "$ref": "#/$defs/did_core_id"
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
             },
-            "controller_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "controller_account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
             }
           },
           "additionalProperties": false

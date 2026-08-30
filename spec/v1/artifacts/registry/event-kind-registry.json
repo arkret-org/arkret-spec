@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.1",
+  "version": "2026-08-31.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T14:00:00+08:00",
+  "generated_at": "2026-08-31T16:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -4370,16 +4370,8 @@
             "kind": "composite",
             "components": [
               {
-                "kind": "select",
-                "selector": "payload.peer.kind",
-                "branches": {
-                  "human": {
-                    "field": "payload.peer.principal_id"
-                  },
-                  "agent": {
-                    "field": "payload.peer.agent_id"
-                  }
-                }
+                "kind": "canonical_json",
+                "field": "payload.peer"
               }
             ]
           },
@@ -4419,16 +4411,8 @@
             "kind": "composite",
             "components": [
               {
-                "kind": "select",
-                "selector": "payload.peer.kind",
-                "branches": {
-                  "human": {
-                    "field": "payload.peer.principal_id"
-                  },
-                  "agent": {
-                    "field": "payload.peer.agent_id"
-                  }
-                }
+                "kind": "canonical_json",
+                "field": "payload.peer"
               }
             ]
           },
@@ -4468,16 +4452,8 @@
             "kind": "composite",
             "components": [
               {
-                "kind": "select",
-                "selector": "payload.peer.kind",
-                "branches": {
-                  "human": {
-                    "field": "payload.peer.principal_id"
-                  },
-                  "agent": {
-                    "field": "payload.peer.agent_id"
-                  }
-                }
+                "kind": "canonical_json",
+                "field": "payload.peer"
               }
             ]
           },
@@ -4516,16 +4492,8 @@
             "kind": "composite",
             "components": [
               {
-                "kind": "select",
-                "selector": "payload.peer.kind",
-                "branches": {
-                  "human": {
-                    "field": "payload.peer.principal_id"
-                  },
-                  "agent": {
-                    "field": "payload.peer.agent_id"
-                  }
-                }
+                "kind": "canonical_json",
+                "field": "payload.peer"
               }
             ]
           },
@@ -4564,16 +4532,8 @@
             "kind": "composite",
             "components": [
               {
-                "kind": "select",
-                "selector": "payload.peer.kind",
-                "branches": {
-                  "human": {
-                    "field": "payload.peer.principal_id"
-                  },
-                  "agent": {
-                    "field": "payload.peer.agent_id"
-                  }
-                }
+                "kind": "canonical_json",
+                "field": "payload.peer"
               }
             ]
           },

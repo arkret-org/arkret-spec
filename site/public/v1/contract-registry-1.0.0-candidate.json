@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.1",
+  "version": "2026-08-31.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T14:00:00+08:00",
+  "generated_at": "2026-08-31T16:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -1740,16 +1740,8 @@
               "kind": "composite",
               "components": [
                 {
-                  "kind": "select",
-                  "selector": "payload.peer.kind",
-                  "branches": {
-                    "human": {
-                      "field": "payload.peer.principal_id"
-                    },
-                    "agent": {
-                      "field": "payload.peer.agent_id"
-                    }
-                  }
+                  "kind": "canonical_json",
+                  "field": "payload.peer"
                 }
               ]
             },
@@ -1778,16 +1770,8 @@
               "kind": "composite",
               "components": [
                 {
-                  "kind": "select",
-                  "selector": "payload.peer.kind",
-                  "branches": {
-                    "human": {
-                      "field": "payload.peer.principal_id"
-                    },
-                    "agent": {
-                      "field": "payload.peer.agent_id"
-                    }
-                  }
+                  "kind": "canonical_json",
+                  "field": "payload.peer"
                 }
               ]
             },
@@ -1816,16 +1800,8 @@
               "kind": "composite",
               "components": [
                 {
-                  "kind": "select",
-                  "selector": "payload.peer.kind",
-                  "branches": {
-                    "human": {
-                      "field": "payload.peer.principal_id"
-                    },
-                    "agent": {
-                      "field": "payload.peer.agent_id"
-                    }
-                  }
+                  "kind": "canonical_json",
+                  "field": "payload.peer"
                 }
               ]
             },
@@ -1854,16 +1830,8 @@
               "kind": "composite",
               "components": [
                 {
-                  "kind": "select",
-                  "selector": "payload.peer.kind",
-                  "branches": {
-                    "human": {
-                      "field": "payload.peer.principal_id"
-                    },
-                    "agent": {
-                      "field": "payload.peer.agent_id"
-                    }
-                  }
+                  "kind": "canonical_json",
+                  "field": "payload.peer"
                 }
               ]
             },
@@ -1892,16 +1860,8 @@
               "kind": "composite",
               "components": [
                 {
-                  "kind": "select",
-                  "selector": "payload.peer.kind",
-                  "branches": {
-                    "human": {
-                      "field": "payload.peer.principal_id"
-                    },
-                    "agent": {
-                      "field": "payload.peer.agent_id"
-                    }
-                  }
+                  "kind": "canonical_json",
+                  "field": "payload.peer"
                 }
               ]
             },
