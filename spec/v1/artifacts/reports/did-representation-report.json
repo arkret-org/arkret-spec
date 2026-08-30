@@ -3249,16 +3249,6 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/mls_proposal_payload/properties/target_principal_id",
-      "property_name": "target_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_envelope/properties/requester_agent_id",
       "property_name": "requester_agent_id",
       "semantic_category": "responsibility_identity_material",
@@ -5236,16 +5226,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "mls-governance-proof-bundle.schema.json#/$defs/mls_security_frontier_leaf/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {

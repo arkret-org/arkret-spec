@@ -202,7 +202,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
-      "sha256": "fd2394a177aca5239a12e74d12fa533a2f156b50a8444d20567bb402871fc9bf"
+      "sha256": "f9d0ea1247875ac015f1daefabe6b65b29e42a1769744f7671203ea3418b8e80"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-transparency-fixture.json",
@@ -234,7 +234,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
-      "sha256": "05d7dbb612b84e336e80da956a30d0be3e7c711a80c0dca29b9a885dbceb8aed"
+      "sha256": "ea9180edda02f2321bdb57a5a747ac34cecac5975e0909411b79594595822675"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",

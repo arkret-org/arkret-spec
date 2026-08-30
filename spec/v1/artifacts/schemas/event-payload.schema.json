@@ -7194,8 +7194,9 @@
           "$ref": "#/$defs/digest",
           "description": "SHA-256 digest of the decoded proposal_bytes_b64 bytes. Receivers MUST verify it before admitting the Proposal to an MLS proposal store."
         },
-        "target_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "target_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Complete accepted target membership identity, including its Station. The endpoint signing principal alone is not membership authority."
         },
         "target_authorization_incarnation": {
           "$ref": "#/$defs/history_authorization_incarnation",
@@ -7220,7 +7221,7 @@
           },
           "then": {
             "required": [
-              "target_principal_id",
+              "target_actor_id",
               "target_authorization_incarnation"
             ]
           },

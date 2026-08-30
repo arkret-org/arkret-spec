@@ -66,7 +66,7 @@ RRK archive。仅 exporter scope 可进入这三条路径。Sidecar 保持现有
 
 `join_activation(principal, scope)` 是当前 membership incarnation 从 non-active 转为 active 的 winning
 membership Event 及 accepted activation Seal。MLS-backed scope 的 `ak.mls.proposal{proposal_type=add}` MUST
-把 `target_principal_id + target_authorization_incarnation` 逐字绑定到该 exact winning Realm incarnation；endpoint
+把完整 `target_actor_id: ActorId + target_authorization_incarnation` 逐字绑定到该 exact winning Realm incarnation；endpoint
 identity只从完整 RFC 9420 Add/KeyPackage的 signed Leaf取得，不重复携 `target_device_id`。Circle Add 则同时绑定
 parent-Realm 与 Circle incarnation。消费该 Add 的 winning Commit 的 `next_epoch` 是该 incarnation 唯一的
 `join_epoch`。非 Add proposal 禁带该字段；实现不得按本地 `received_at`、`joined_at` 或当前最新 epoch 猜测。

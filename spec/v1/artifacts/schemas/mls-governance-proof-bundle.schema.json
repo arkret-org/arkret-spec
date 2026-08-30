@@ -13,10 +13,10 @@
     "epoch": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
     "mls_security_frontier_leaf": {
       "type": "object",
-      "required": ["leaf_index", "principal_id", "credential_ref"],
+      "required": ["leaf_index", "actor_id", "credential_ref"],
       "properties": {
         "leaf_index": {"type": "integer", "minimum": 0, "maximum": 4294967295},
-        "principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id", "description": "Full accepted membership ActorId. Same signing principal at different Stations identifies distinct leaves and authorization; never infer Station from a current local session."},
         "credential_ref": {"type": "string", "minLength": 1, "maxLength": 2048}
       },
       "additionalProperties": false
