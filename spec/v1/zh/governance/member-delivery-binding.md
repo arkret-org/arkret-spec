@@ -29,7 +29,7 @@ see_also:
 3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`unroutable_membership_allowed=true`）。
 4. `delivery_binding.recipient_id` MUST 是稳定 service `did_core_id`。服务准入 MUST 满足：该 `did_core_id` 出现在 Realm policy 的 `allowed_recipient_services` 集合内，或该 policy 显式声明哨兵 `["*"]`（unrestricted），或该 `did_core_id` 被 `required_endorsers` 中至少一个治理 `did_core_id` 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。`required_endorsers` 非空时，该背书要求独立生效：即使命中 allowlist 或 `["*"]` 哨兵，`service_acceptance_ref` 仍 MUST 被其中至少一个治理主体背书。**`allowed_recipient_services` 为空集 `[]` 时 = 拒绝（fail-closed，见 §4 字段表）**：既未命中 allowlist、又未声明 `["*"]` 哨兵、又无 `required_endorsers` 背书时，reducer MUST 拒绝该 routable join（`delivery_binding_policy_mismatch`），不得把空集解释为"不限"放行。
 5. `delivery_binding.service_resolution` MUST 携带 inline `ServiceResolutionRecord`，或携带 `{current_record_url, pinned_record_digest?}`。`current_record_url` 指向 `ak.open.service.read.resolution.v1`（`GET /_arkret/open/services/{service_id}/resolution`）；可选 digest 只钉住首次看到的那一版完整 `{record,proof}`，后续新版本必须独立验签。物化前 MUST 验证 record 签名和 `issued_at <= refresh_after < expires_at`、method-native history、`record.service_id == recipient_id`、`project(record.did) == recipient_id`、`record.service_kind == recipient_kind`、canonical `base_url` endpoint 绑定与 route-binding digest。引用未取得、被 pinned 的初始版 digest 不匹配或记录已过期时不得将该 binding 物化为 routable。
-6. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
+6. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
 7. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "keypackages"]`。
 
 上述准则同样适用于把 member cell 从 `invite` 原子推进到 `join` 的
@@ -58,7 +58,7 @@ MUST 同时携带 `delivery_binding`；reducer 在同一 Control Move 内验证�
 | `binding_source` | 谁负责填 | 何时使用 | 补充必填 |
 | --- | --- | --- | --- |
 | `explicit` | 邀请方 / 管理员客户端 | 用户显式选择目标服务 | `service_acceptance_ref` |
-| `did_document_default` | 客户端 DID resolver | Realm policy 允许 fallback，未匹配其它来源 | `did_document_digest` |
+| `did_document_default` | 客户端 DID resolver | Realm policy 允许 fallback，未匹配其它来源 | `document_digest` |
 | `invite` | 邀请方 builder | 邀请 token 已携带 binding | `service_acceptance_ref` |
 | `join_policy` | reducer 由 Join Policy 推导 | Join Policy 的 gate / role 决定目标服务 | `policy_event_ref` |
 | `organization_policy` | 组织治理目录 | invitee 是 Org 员工，组织 policy 指定目标 | `service_acceptance_ref` + `policy_event_ref` |
@@ -81,7 +81,7 @@ MUST 同时携带 `delivery_binding`；reducer 在同一 Control Move 内验证�
 4. 若可选解析结果携带 `MemberDeliveryBindingCandidate` 或 `member_delivery_binding`，验证其 handle claim / presentation 绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_id`、`service_resolution`、issuer、`issued_at`、`expires_at`、撤销状态与 `audience`。claim `audience` MUST 等于目标 `realm_id` 或邀请方 service `did_core_id` 之一；不一致 MUST 视作未授权 claim。
 5. 将有效 delivery evidence 物化为 `payload.delivery_binding` 时，按 Realm `ak.realm.delivery_binding_policy` 选择 `binding_source`：
    - 多个来源同时可用时，reducer MUST 按固定优先级选择唯一 binding：`explicit` > `organization_policy` > `invite` > `join_policy` > `realm_policy` > `did_document_default`。
-   - schema MUST 先校验该 `binding_source` 的 conditional required evidence 字段；缺少 `service_acceptance_ref` / `policy_event_ref` / `did_document_digest` 等 source-specific 必填字段时，接收方 MUST 以 `schema_violation` 拒绝，reducer 不进入来源选择或 policy validation。字段齐备后，若 evidence 引用不可解析、签名无效、scope 不覆盖目标 Realm，reducer MUST 拒绝并返回 `delivery_binding_invalid`；若该来源不在 `allowed_binding_sources` 内；或 `recipient_id` 既不在 `allowed_recipient_services` 内、也未被 `["*"]` 哨兵覆盖、且无 `required_endorsers` 背书；或 `required_endorsers` 非空但 `service_acceptance_ref` 未被其中任一治理 DID 背书，reducer MUST 拒绝并返回 `delivery_binding_policy_mismatch`。上述失败均 MUST NOT 降级尝试较低优先级来源。
+   - schema MUST 先校验该 `binding_source` 的 conditional required evidence 字段；缺少 `service_acceptance_ref` / `policy_event_ref` / `document_digest` 等 source-specific 必填字段时，接收方 MUST 以 `schema_violation` 拒绝，reducer 不进入来源选择或 policy validation。字段齐备后，若 evidence 引用不可解析、签名无效、scope 不覆盖目标 Realm，reducer MUST 拒绝并返回 `delivery_binding_invalid`；若该来源不在 `allowed_binding_sources` 内；或 `recipient_id` 既不在 `allowed_recipient_services` 内、也未被 `["*"]` 哨兵覆盖、且无 `required_endorsers` 背书；或 `required_endorsers` 非空但 `service_acceptance_ref` 未被其中任一治理 DID 背书，reducer MUST 拒绝并返回 `delivery_binding_policy_mismatch`。上述失败均 MUST NOT 降级尝试较低优先级来源。
    - invite locator / invite delivery 已携带并通过接收服务背书的 binding 使用 `invite`，并携带 `service_acceptance_ref`；
    - Realm join policy 推导的 binding 使用 `join_policy`，并携带 `policy_event_ref`；
    - 组织目录 / 员工名录背书的地址使用 `organization_policy`，并携带 `service_acceptance_ref` + `policy_event_ref`；
@@ -99,7 +99,7 @@ Realm history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Co
 
 creator membership 是 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) bootstrap registry 的最后一个 required slot：由 creator 提交唯一的 `ak.member.state{membership="join"}` Event，执行 `leave -> join` 并同时物化 delivery binding。`ak.realm.create` reducer 不隐式写 membership，也不存在随后 `join -> join` 的第二种 wire 形态。该 binding MUST 使用本节已有来源之一，并携带对应真实证据：
 
-- `did_document_default`：必须携带 `did_document_digest`，且 Realm policy 显式允许 DID Document fallback；
+- `did_document_default`：必须携带 `document_digest`，且 Realm policy 显式允许 DID Document fallback；
 - `explicit` / `organization_policy`：必须携带真实 `service_acceptance_ref`（以及 `organization_policy` 的 `policy_event_ref`）；
 - `join_policy` / `realm_policy`：必须携带真实 `policy_event_ref`。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.14",
+  "version": "2026-08-30.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T22:30:00+08:00",
+  "generated_at": "2026-08-30T08:31:05+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -18949,6 +18949,7 @@
       "algorithm": "sha256:lowercase_hex(SHA-256(RFC8785_JCS(normalized_document)))",
       "raw_bytes_field": "raw_document_digest",
       "forbidden_synonyms": [
+        "did_document_digest",
         "did_document_snapshot_digest"
       ]
     },

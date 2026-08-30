@@ -3791,6 +3791,31 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     normalized_ref = document_contract.get("normalized_document_schema_ref") if isinstance(document_contract, dict) else None
     if normalized_ref != "schemas/did-binding-contracts.schema.json#/$defs/normalized_did_document":
         lint.fail(document_contract_path, "normalized_document_schema_ref must have one canonical owner")
+    digest_owner = document_contract.get("document_digest_owner") if isinstance(document_contract, dict) else None
+    expected_forbidden_digest_names = {
+        "did_document_digest",
+        "did_document_snapshot_digest",
+    }
+    if not isinstance(digest_owner, dict):
+        lint.fail(document_contract_path, "document_digest_owner must be an object")
+    else:
+        if digest_owner.get("field") != "document_digest":
+            lint.fail(document_contract_path, "document_digest_owner.field must be document_digest")
+        if digest_owner.get("raw_bytes_field") != "raw_document_digest":
+            lint.fail(
+                document_contract_path,
+                "document_digest_owner.raw_bytes_field must be raw_document_digest",
+            )
+        forbidden_digest_names = digest_owner.get("forbidden_synonyms")
+        if (
+            not isinstance(forbidden_digest_names, list)
+            or any(not isinstance(name, str) for name in forbidden_digest_names)
+            or set(forbidden_digest_names) != expected_forbidden_digest_names
+        ):
+            lint.fail(
+                document_contract_path,
+                "document_digest_owner.forbidden_synonyms must close every retired DID-document digest field name",
+            )
     registered_types = {
         row.get("type")
         for row in document_contract.get("arkret_service_types", [])
@@ -3808,9 +3833,82 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             document_contract_path,
             f"Arkret DID service type closure mismatch: expected {sorted(expected_types)!r}, got {sorted(registered_types)!r}",
         )
-    for forbidden_type in ("ArkretPrincipalServer", "ArkretDirectory"):
+    rejected_service_types = ("ArkretPrincipalServer", "ArkretDirectory")
+    for forbidden_type in rejected_service_types:
         if forbidden_type in registered_types:
             lint.fail(document_contract_path, f"legacy service type {forbidden_type} must not be registered")
+
+    # A rejected DID service type is only allowed to be *named by the rule that
+    # rejects it*. Anywhere else in the artifact tree — a fixture value, an error
+    # description, a schema enum — it reads as a second, dual-read spelling of
+    # `ArkretService` + `serviceKind`, which is exactly what the closure forbids.
+    rejection_rule_paths = {
+        "contract-registry.json": "$.did_document_contract_registry.registry_rules[3]",
+        "did-document-contract-registry.json": "$.registry_rules[3]",
+    }
+    for artifact_path in all_json_files():
+        document = load_json(lint, artifact_path)
+        if document is None:
+            continue
+        allowed_rule_prefix = rejection_rule_paths.get(artifact_path.name)
+        for json_path, value, key in walk_json(document):
+            candidates = []
+            if isinstance(key, str):
+                candidates.append((f"{json_path} (property name)", key, False))
+            if isinstance(value, str):
+                candidates.append((json_path, value, True))
+            for candidate_path, candidate, is_value in candidates:
+                hit = next(
+                    (name for name in rejected_service_types if name in candidate),
+                    None,
+                )
+                if hit is None:
+                    continue
+                if (
+                    is_value
+                    and allowed_rule_prefix is not None
+                    and json_path == allowed_rule_prefix
+                ):
+                    continue
+                lint.fail(
+                    artifact_path,
+                    f"{candidate_path} names rejected DID service type {hit}; use "
+                    "ArkretService plus serviceKind (or the registered specialized type)",
+                )
+
+    forbidden_digest_owner_paths = {
+        "contract-registry.json": "$.did_document_contract_registry.document_digest_owner.forbidden_synonyms[",
+        "did-document-contract-registry.json": "$.document_digest_owner.forbidden_synonyms[",
+    }
+    for artifact_path in all_json_files():
+        document = load_json(lint, artifact_path)
+        if document is None:
+            continue
+        allowed_owner_prefix = forbidden_digest_owner_paths.get(artifact_path.name)
+        for json_path, value, key in walk_json(document):
+            candidates = []
+            if isinstance(key, str):
+                candidates.append((f"{json_path} (property name)", key, False))
+            if isinstance(value, str):
+                candidates.append((json_path, value, True))
+            for candidate_path, candidate, is_value in candidates:
+                hit = next(
+                    (name for name in expected_forbidden_digest_names if name in candidate),
+                    None,
+                )
+                if hit is None:
+                    continue
+                if (
+                    is_value
+                    and allowed_owner_prefix is not None
+                    and json_path.startswith(allowed_owner_prefix)
+                ):
+                    continue
+                lint.fail(
+                    artifact_path,
+                    f"{candidate_path} names forbidden DID-document digest field {hit}; "
+                    "use document_digest or raw_document_digest according to the registered preimage",
+                )
 
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):

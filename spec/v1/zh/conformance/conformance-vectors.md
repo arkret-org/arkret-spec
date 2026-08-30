@@ -3098,14 +3098,14 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `did_document_d
     "binding_source": "did_document_default",
     "delivery_modes": ["events", "sync", "to_device", "push", "keypackages"],
     "resolved_at": "2026-05-19T10:00:00Z",
-    "did_document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
+    "document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
   }
 }
 ```
 
 期望：
-- reducer 接受 join Control Move（`did_document_digest` 与 `resolved_at` 满足 conditional required）。
-- 同形 Move 缺少 `did_document_digest` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
+- reducer 接受 join Control Move（`document_digest` 与 `resolved_at` 满足 conditional required）。
+- 同形 Move 缺少 `document_digest` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
 - 同形 Control Move 在 Realm policy `did_document_default_allowed=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
 - 一旦该 join 被接受，sender **不得**在后续投递时 re-resolve DID Document——即使 DID Document 已更新指向新服务，仍按 cell 内 `delivery_binding` 投递，直到一次合法 rebind。
 
@@ -3174,7 +3174,7 @@ Expected:
 | 字段 / 行为 | §7.2 explicit | §7.3 did_document_default | §7.4 unroutable | §7.5 rebind+revoke |
 | --- | --- | --- | --- | --- |
 | Conditional required (`service_acceptance_ref`) | ✓ | — | — | ✓ |
-| Conditional required (`did_document_digest`) | — | ✓ | — | — |
+| Conditional required (`document_digest`) | — | ✓ | — | — |
 | Policy `did_document_default_allowed=false` 拒绝 | — | ✓ | — | — |
 | Policy `unroutable_membership_allowed=false` 拒绝 | — | — | ✓ | — |
 | 投递路径 ≡ binding，无 DID Document fallback | ✓ | ✓ | ✓ (skip) | ✓ |

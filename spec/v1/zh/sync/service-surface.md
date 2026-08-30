@@ -105,7 +105,7 @@ DID Document SHOULD 只负责：
 | Authz | 可内置于 Principal Server，也可独立部署 | effective grants、invite 查询、capability precheck。 |
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
 | Applet Server | 集成/桥接/自动化可选 | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
-| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、notary service 或 Applet Bridge 承载 | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
+| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、notary service 或 Applet Bridge 承载 | MIMI provider discovery、room binding、key material、submit message、consent、identifier query、abuse report、proxy download。 |
 | Agent Runtime Server | agent 场景可选但推荐 | agent 执行、tool 调用、A2A/ACP/MCP handoff；具体 service surface 由 `extensions/agent-*` 定义，通常通过 Events API 写回结果。 |
 | Realtime Media Server | 通话/会议可选 | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
 | Moderation / Compliance Server | 公共或组织部署建议独立 | report、审核队列或扩展审核入口、server ACL、policy list、appeal、legal hold / erasure workflow。 |

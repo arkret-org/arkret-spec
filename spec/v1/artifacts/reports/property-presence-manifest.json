@@ -3437,7 +3437,7 @@
         "/allOf/0/oneOf/2/properties/method_version_evidence/properties/method": "optional",
         "/properties/accepted_signing_keys": "required",
         "/properties/did": "required",
-        "/properties/did_document_digest": "required",
+        "/properties/document_digest": "required",
         "/properties/method_version_evidence": "required"
       }
     },
@@ -6730,7 +6730,7 @@
         "/$defs/member_delivery_binding/properties/binding_scope": "required",
         "/$defs/member_delivery_binding/properties/binding_source": "required",
         "/$defs/member_delivery_binding/properties/delivery_modes": "required",
-        "/$defs/member_delivery_binding/properties/did_document_digest": "optional",
+        "/$defs/member_delivery_binding/properties/document_digest": "optional",
         "/$defs/member_delivery_binding/properties/expires_at": "optional",
         "/$defs/member_delivery_binding/properties/holder_proof_ref": "optional",
         "/$defs/member_delivery_binding/properties/policy_event_ref": "optional",
@@ -7505,7 +7505,7 @@
         "/$defs/device_list_update_payload/properties/left_ids",
         "/$defs/device_reanchor_payload/properties/did_root_evidence_digest",
         "/$defs/invite_accept_payload/properties/delivery_binding",
-        "/$defs/member_delivery_binding/properties/did_document_digest",
+        "/$defs/member_delivery_binding/properties/document_digest",
         "/$defs/member_delivery_binding/properties/policy_event_ref",
         "/$defs/member_delivery_binding/properties/service_acceptance_ref",
         "/$defs/membership_payload/properties/actor_id",

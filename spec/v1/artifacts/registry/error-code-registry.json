@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.5",
-  "generated_at": "2026-08-29T22:45:00+08:00",
+  "version": "2026-08-30.1",
+  "generated_at": "2026-08-30T09:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1570,7 +1570,7 @@
       "code": "delivery_binding_unresolvable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_id after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md §5.1.4.",
+      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_id after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretService serviceKind=principal_server entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/member-delivery-binding.md §5.",
       "type_uri": "https://arkret.org/problems/delivery_binding_unresolvable",
       "title": "Delivery binding unresolvable"
     },

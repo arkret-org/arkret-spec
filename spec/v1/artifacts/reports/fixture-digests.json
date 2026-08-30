@@ -230,7 +230,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
-      "sha256": "13661b6280283d65f77bf6d16f56db2b3e7a12e1c76213d96177b01588955d8a"
+      "sha256": "730fa205647ee815455fd5cf9fd2a16b3c782200dd73249e559b90f1085d7961"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",

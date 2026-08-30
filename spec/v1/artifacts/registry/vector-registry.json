@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.5",
+  "version": "2026-08-30.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T22:30:00+08:00",
+  "generated_at": "2026-08-30T09:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4212,7 +4212,7 @@
       "applies_to_profiles": [
         "ak.profile.mimi_interop.v1"
       ],
-      "description": "Every identifiers PSI query carries a per-request RFC 9421 provider-source signature. Missing or invalid signatures fail before PSI evaluation; group-info and provider-directory reads do not inherit this profile.",
+      "description": "Every identifiers PSI query carries a per-request RFC 9421 provider-source signature. Missing or invalid signatures fail before PSI evaluation; the provider-directory read does not inherit this profile.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
         "spec/v1/zh/extensions/mimi-interop.md"

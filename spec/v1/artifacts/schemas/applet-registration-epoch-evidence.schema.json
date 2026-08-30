@@ -5,13 +5,13 @@
   "type": "object",
   "required": [
     "did",
-    "did_document_digest",
+    "document_digest",
     "method_version_evidence",
     "accepted_signing_keys"
   ],
   "properties": {
     "did": { "$ref": "./common-ids.schema.json#/$defs/did" },
-    "did_document_digest": { "$ref": "./account-operations.schema.json#/$defs/sha256_digest" },
+    "document_digest": { "$ref": "./account-operations.schema.json#/$defs/sha256_digest" },
     "method_version_evidence": {
       "$ref": "./applet-registration-epoch-transcript.schema.json#/$defs/did_method_version"
     },

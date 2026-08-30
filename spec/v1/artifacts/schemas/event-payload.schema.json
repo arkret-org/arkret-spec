@@ -5669,7 +5669,7 @@
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
           "description": "Signed first-hop ServiceResolutionRecord inline or by digest-bound reference. Senders validate it and MAY maintain an implementation-local TTL route cache; the cache is not protocol authority."
         },
-        "did_document_digest": {
+        "document_digest": {
           "$ref": "#/$defs/digest",
           "description": "Canonical hash of invitee's DID Document at resolved_at. Required when binding_source = did_document_default."
         },
@@ -5709,7 +5709,7 @@
           },
           "then": {
             "required": [
-              "did_document_digest"
+              "document_digest"
             ]
           }
         },

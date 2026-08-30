@@ -84,7 +84,7 @@
           "did_document_default_allowed": true
         },
         "did_document_service": {
-          "service_kind": "ArkretPrincipalServer",
+          "service_kind": "principal_server",
           "recipient_id": "ak:did_core:webvh:z6mkfixturepersonalaliceexample",
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
@@ -113,14 +113,14 @@
               "current_record_url": "https://personal.alice.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturepersonalaliceexample/resolution"
             },
             "resolved_at": "2026-05-19T10:00:00.000Z",
-            "did_document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
+            "document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
           }
         }
       },
       "expected": {
         "outcome": "accepted",
         "delivery_route": "did:webvh:z6mkfixturepersonalaliceexample:personal.alice.example",
-        "missing_did_document_digest_reason_code": "schema_violation",
+        "missing_document_digest_reason_code": "schema_violation",
         "policy_disallow_reason_code": "delivery_binding_policy_mismatch",
         "must_not_runtime_fallback_to_did_document": true
       }

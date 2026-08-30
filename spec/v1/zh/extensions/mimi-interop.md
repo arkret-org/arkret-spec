@@ -335,7 +335,7 @@ HTTP Message Signature profile（仅适用于上述逐条登记的 provider-to-p
 signature profile 的 MIMI operation 上；`read.identifiers` 必须挂载，`read.provider_directory` 必须不挂载。
 operation id 与 error mapping 的双向闭包是机器判据。
 负向 conformance vector 为 `ak.vector.mimi.identifier_query_source_signature.v1`：缺失/无效来源签名
-必须在 PSI 求值前拒绝，并断言另外两个 read operation 不继承该 profile。
+必须在 PSI 求值前拒绝，并断言 `ak.open.mimi.read.provider_directory.v1` 不继承该 profile。
 
 Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret DataEvent、Control Move 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
 
