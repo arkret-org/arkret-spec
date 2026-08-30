@@ -1272,6 +1272,13 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                                                 part,
                                                 event_kind=kind,
                                             )
+                                        elif part.get("kind") == "canonical_json":
+                                            lint_subject_field_path(
+                                                lint,
+                                                event_path,
+                                                f"{part_ref}.field",
+                                                part.get("field"),
+                                            )
                                         else:
                                             lint_select_component(
                                                 lint,

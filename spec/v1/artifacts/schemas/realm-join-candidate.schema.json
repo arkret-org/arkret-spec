@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-join-candidate.schema.json",
   "title": "Arkret Realm Join Candidate",
-  "description": "Time-bounded routing hint used by the invitee's Principal Server to forward Realm join, invite-accept, knock, or restricted-join material to an existing joined member's Principal Server. Clients submit only to their own Principal Server. This object is not membership authorization and is distinct from the invitee's post-join member_delivery_binding.",
+  "description": "Time-bounded transport hint used by the invitee's Principal Server to forward Realm join, invite-accept, knock, or restricted-join material to an existing joined member's Principal Server. Clients submit only to their own Principal Server. This object is neither membership identity nor authorization and cannot select or change an AccountId.",
   "type": "object",
   "required": [
     "realm_id",
@@ -44,7 +44,7 @@
       "enum": [
         "joined_member_principal_server"
       ],
-      "description": "The only v1 forwarding role: a Principal Server selected from a current joined-member delivery binding. This is a bounded route hint, not an authorization grant."
+      "description": "The only v1 forwarding role: the Principal Server component of a current joined account member. This is a bounded route hint, not an authorization grant."
     },
     "endpoint_url": {
       "type": "string",
@@ -99,9 +99,9 @@
       "type": "string",
       "enum": [
         "invite_hint",
-        "member_delivery_binding"
+        "joined_member_account"
       ],
-      "description": "Bounded route provenance. Only a signed invite or a current joined-member delivery binding may produce a candidate; neither source grants admission authority."
+      "description": "Bounded route provenance. Only a signed invite or a current joined AccountId plus verified membership may produce a candidate; neither source grants admission authority."
     },
     "source_refs": {
       "type": "array",
@@ -109,7 +109,7 @@
         "$ref": "#/$defs/event_id"
       },
       "uniqueItems": true,
-      "description": "Signed invite or current joined-member delivery-binding Events that justify this candidate."
+      "description": "Signed invite or current joined-member Events that justify this candidate."
     },
     "frontier_ref": {
       "type": "string",
@@ -134,7 +134,7 @@
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "Optional proof set whose payload_digest binds the complete candidate, including seal_basis, digest_algorithm, encryption_profile, realm_id, service_id, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside the signed invite or current joined-member delivery-binding evidence from which it was derived."
+      "description": "Optional proof set whose payload_digest binds the complete candidate, including seal_basis, digest_algorithm, encryption_profile, realm_id, service_id, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside the signed invite or current joined-member ActorId evidence from which its routing service was projected."
     }
   },
   "additionalProperties": false,

@@ -11,7 +11,7 @@
   "required": [
     "schema",
     "handle",
-    "subject_id",
+    "subject_account_id",
     "issuer_id",
     "binding_state",
     "created_at",
@@ -31,11 +31,11 @@
         "$ref": "string-profiles.schema.json#/$defs/acct_uri"
       },
       "uniqueItems": true,
-      "description": "Interop aliases such as RFC 7565 acct:. Aliases are never canonical; verifiers MUST normalize to handle before cache lookup, proof comparison, or delivery_binding construction."
+      "description": "Interop aliases such as RFC 7565 acct:. Aliases are never canonical; verifiers MUST normalize to handle before cache lookup, proof comparison, or account selection."
     },
-    "subject_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Stable holder/principal did_core_id for a user/principal handle; it is not a server-local account_id, administrative identifier, service identity, or generic resource id."
+    "subject_account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id",
+      "description": "Exact account selected by this account handle. Both canonical components are proof-bound; a resolver MUST NOT infer or replace principal_server_id."
     },
     "issuer_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -73,7 +73,7 @@
     },
     "audience": {
       "type": "string",
-      "description": "Audience binding for the claim. For handle claims used to build a Realm delivery_binding, audience is the target Realm ID, the inviting service DID, or another verifier domain the proofs explicitly bind to. Verifier MUST reject claims whose audience does not match the current invocation context."
+      "description": "Audience binding for the claim. For handle claims used to address an invite, audience is the target Realm ID, the inviting service DID, or another verifier domain the proofs explicitly bind to. Verifier MUST reject claims whose audience does not match the current invocation context."
     },
     "challenge": {
       "type": "string"
@@ -82,60 +82,6 @@
       "type": "object",
       "additionalProperties": true,
       "description": "Optional claim_scope such as organization_id, realm_id, purpose, or allowed operations."
-    },
-    "member_delivery_binding": {
-      "type": "object",
-      "description": "Single source for the Principal Server service DID and delivery parameters this handle claim offers to the membership builder. Top-level delivery shortcuts are forbidden; use member_delivery_binding.recipient_id, member_delivery_binding.service_acceptance_ref, and member_delivery_binding.policy_event_ref.",
-      "required": [
-        "recipient_id",
-        "service_resolution",
-        "binding_source"
-      ],
-      "properties": {
-        "recipient_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "service_resolution": {
-          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-          "description": "Signed first-hop resolution material for recipient_id."
-        },
-        "recipient_kind": {
-          "const": "principal_server"
-        },
-        "binding_source": {
-          "type": "string",
-          "enum": [
-            "explicit",
-            "join_policy",
-            "organization_policy",
-            "realm_policy"
-          ]
-        },
-        "delivery_modes": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "events",
-              "sync",
-              "to_device",
-              "push",
-              "keypackages"
-            ]
-          },
-          "uniqueItems": true,
-          "minItems": 1
-        },
-        "service_acceptance_ref": {
-          "type": "string",
-          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-        },
-        "policy_event_ref": {
-          "type": "string",
-          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-        }
-      },
-      "additionalProperties": false
     },
     "claims": {
       "type": "array",
@@ -169,25 +115,6 @@
     }
   },
   "unevaluatedProperties": true,
-  "not": {
-    "anyOf": [
-      {
-        "required": [
-          "recipient_id"
-        ]
-      },
-      {
-        "required": [
-          "service_acceptance_ref"
-        ]
-      },
-      {
-        "required": [
-          "policy_event_ref"
-        ]
-      }
-    ]
-  },
   "allOf": [
     {
       "if": {
@@ -221,20 +148,6 @@
             "minContains": 1
           }
         }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "member_delivery_binding"
-        ]
-      },
-      "then": {
-        "required": [
-          "handle",
-          "audience",
-          "expires_at"
-        ]
       }
     }
   ]

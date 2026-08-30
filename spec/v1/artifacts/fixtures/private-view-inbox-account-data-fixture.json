@@ -62,7 +62,13 @@
                 "mode": "none"
               }
             },
-            "created_by": "ak:did_core:webvh:z6mkfixturealice",
+            "created_by": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+              }
+            },
             "created_at": "2026-07-29T00:00:00.000Z",
             "layout": {
               "columns": 3
@@ -118,7 +124,13 @@
               "mode": "none"
             }
           },
-          "created_by": "ak:did_core:webvh:z6mkfixturealice",
+          "created_by": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            }
+          },
           "created_at": "2026-07-29T00:00:00.000Z",
           "accepted": true
         },

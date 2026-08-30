@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/member-identity.schema.json",
   "title": "Arkret Member Identity",
-  "description": "Realm-scoped, actor-scoped full member_identity segment. It is carried by ak.member.identity.update in plaintext or inside encrypted-envelope.schema.json. Replacement events that name segment=member_identity MUST carry this complete object. This object discloses subject_id and display_profile for Realm UI projection; handle lifecycle is intentionally excluded and is governed only by ak.schema.handle_claim.v1 issuer claims. Mention / reply / quote / actor attribution MUST use subject_id (the principal DID), never a handle string.",
+  "description": "Realm-scoped, actor-scoped full member_identity segment. It is carried by ak.member.identity.update in plaintext or inside encrypted-envelope.schema.json. Replacement events that name segment=member_identity MUST carry this complete object. This object discloses subject_actor_id and display_profile for Realm UI projection; handle lifecycle is intentionally excluded and is governed only by ak.schema.handle_claim.v1 issuer claims. Mention / reply / quote / actor attribution MUST use the exact ActorId, never a handle string or a bare principal DID.",
   "type": "object",
   "required": [
     "schema",
     "realm_id",
     "actor_id",
-    "subject_id",
+    "subject_actor_id",
     "display_profile",
     "asserted_at",
     "proof"
@@ -21,12 +21,12 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "$ref": "./common-ids.schema.json#/$defs/actor_id",
       "description": "Effective member actor did_core_id in this Realm. MAY represent a Realm-scoped pairwise identity."
     },
-    "subject_id": {
-      "$ref": "#/$defs/did_core_id",
-      "description": "Principal DID or disclosed holder DID represented by actor_id for display purposes. Authorization and audit continue to use the Event actor and member state."
+    "subject_actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/actor_id",
+      "description": "Exact durable subject represented by a Realm-scoped or pairwise actor. Account and hosted-principal subjects retain their principal-server component; authorization and audit continue to use the Event actor and member state."
     },
     "display_profile": {
       "type": "object",
@@ -83,9 +83,6 @@
     }
   },
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },

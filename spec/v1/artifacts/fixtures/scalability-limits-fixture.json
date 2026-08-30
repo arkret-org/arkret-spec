@@ -528,7 +528,10 @@
       },
       "input": {
         "event_kind": "ak.circle.member.state",
-        "target_actor_id": "ak:did_core:webvh:z6mkfixture",
+        "target_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
         "target_circle_encryption_mode": "mls"
       },
       "expected": {
@@ -577,7 +580,10 @@
       },
       "input": {
         "event_kind": "ak.circle.member.state",
-        "target_actor_id": "ak:did_core:webvh:z6mkfixture",
+        "target_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
         "target_circle_encryption_mode": "mls"
       },
       "expected": {

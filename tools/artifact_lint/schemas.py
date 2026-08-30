@@ -2039,6 +2039,26 @@ def check_composite_subject_terminal_types(
                 continue
             subject_kind = subject.get("kind")
             subject_ref = f"{kind} cell_writes[{write_index}].cell_subject"
+            if subject_kind == "canonical_json":
+                source = subject.get("field")
+                if not isinstance(source, str) or not source.startswith("payload."):
+                    lint.fail(
+                        event_registry_path,
+                        f"{subject_ref} canonical_json subject must name one payload field",
+                    )
+                    continue
+                resolved, resolved_types = resolved_terminal_types(kind, source)
+                if not resolved:
+                    lint.fail(
+                        event_registry_path,
+                        f"{subject_ref} endpoint {source!r} has no schema endpoint",
+                    )
+                elif resolved_types != {"object"}:
+                    lint.fail(
+                        event_registry_path,
+                        f"{subject_ref} canonical_json endpoint {source!r} must be a closed object, got {sorted(resolved_types) or ['untyped']}",
+                    )
+                continue
             if subject_kind == "coalesce":
                 fields = subject.get("fields")
                 resolved_any = False
@@ -2082,6 +2102,29 @@ def check_composite_subject_terminal_types(
                     source = component.get("field")
                     if isinstance(source, str) and source.startswith("payload."):
                         validate_string_set_schema(kind, source, component_ref)
+                    continue
+                if (
+                    isinstance(component, dict)
+                    and component.get("kind") == "canonical_json"
+                ):
+                    source = component.get("field")
+                    if not isinstance(source, str) or not source.startswith("payload."):
+                        lint.fail(
+                            event_registry_path,
+                            f"{component_ref} canonical_json component must name one payload field",
+                        )
+                        continue
+                    resolved, resolved_types = resolved_terminal_types(kind, source)
+                    if not resolved:
+                        lint.fail(
+                            event_registry_path,
+                            f"{component_ref} endpoint {source!r} has no schema endpoint",
+                        )
+                    elif resolved_types != {"object"}:
+                        lint.fail(
+                            event_registry_path,
+                            f"{component_ref} canonical_json endpoint {source!r} must be a closed object, got {sorted(resolved_types) or ['untyped']}",
+                        )
                     continue
                 selector = (
                     component.get("selector")

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.13",
+  "version": "2026-08-30.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T21:42:00+08:00",
+  "generated_at": "2026-08-31T00:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -14,7 +14,7 @@
     "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
     "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
     "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=managed_agent_control Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
-    "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds actor_id, exact PrincipalAuthorityKey, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Native Agent or human PCR admission.",
+    "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds the exact hosted-principal ActorId, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Native Agent or human PCR admission.",
     "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
     "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(did)=actor_id; current DID state after registration is irrelevant.",
     "pcr_recovery": "Admitted only for ak.device.reanchor under the account-local lineage's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching account-local lineage and policy cannot enter this class.",
@@ -93,7 +93,7 @@
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
     "lifecycle_modality applies to physical object lifecycle writes, identified mechanically by an fsm_contract whose axis is object_lifecycle, plus explicitly registered reversible Realm lifecycle facets. Every active event kind that writes such a family MUST declare lifecycle_modality. Use reversible for a reversible facet or either member of an archive/restore pair, and terminal for an irreversible transition. Workflow, membership, status, audit, key-material and OR-Set revocation axes are excluded. Reducers and SDKs MUST read this field and MUST NOT infer modality from event-kind spelling.",
-    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
+    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a canonical_json descriptor for a closed structured identifier (key bytes are its RFC 8785 JCS bytes), a coalesce descriptor, or a composite descriptor whose structured components use the same canonical_json descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
     "Every lattice=fsm cell write MUST resolve by cell_family to exactly one fsm_contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
     "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBA fields, reducer_input, or shared cell_contracts.",
     "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 and ak.component.realm.reducer_profile.v1 are canonically defined in zh/authz/event-auth-state-resolution.md; their genesis values come from ak.realm.create, and subsequent writes use ak.realm.notary and ak.realm.upgrade respectively.",
@@ -1017,34 +1017,6 @@
       "concurrency_class": "security_barrier"
     },
     {
-      "event_kind": "ak.realm.delivery_binding_policy",
-      "category": "realm",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ak.member.state{membership=join}.delivery_binding (see governance/member-delivery-binding.md §4).",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_delivery_binding_policy_payload",
-      "id_source": "not_an_object_id",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.realm.delivery_binding_policy.v1",
-          "cell_subject": null,
-          "lattice": "cas_register",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "security_barrier"
-    },
-    {
       "event_kind": "ak.realm.asset_privacy_policy",
       "category": "realm",
       "status": "active",
@@ -1629,7 +1601,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle membership state. Uses the same membership_state enum as ak.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+      "payload": "Circle materialized membership state. Uses the same membership_state enum as ak.member.state (join/knock/leave/ban), scoped to a Circle. Invite remains a separate pending workflow. Reducer MUST first validate the complete member_id is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
@@ -1640,7 +1612,10 @@
           "cell_subject": {
             "components": [
               "payload.circle_id",
-              "payload.actor_id"
+              {
+                "field": "payload.member_id",
+                "kind": "canonical_json"
+              }
             ],
             "kind": "composite"
           },
@@ -2324,8 +2299,8 @@
         {
           "cell_family": "ak.component.member.state.v1",
           "cell_subject": {
-            "field": "payload.actor_id",
-            "kind": "did"
+            "field": "payload.member_id",
+            "kind": "canonical_json"
           },
           "lattice": "fsm",
           "bottom": "reject",
@@ -2358,7 +2333,10 @@
           "cell_subject": {
             "components": [
               "payload.realm_id",
-              "payload.actor_id",
+              {
+                "field": "payload.member_id",
+                "kind": "canonical_json"
+              },
               "payload.segment"
             ],
             "kind": "composite"
@@ -2711,7 +2689,7 @@
               {
                 "name": "watcher_actor_id",
                 "field": "payload.watcher_actor_id",
-                "kind": "did"
+                "kind": "canonical_json"
               }
             ],
             "kind": "tuple"
@@ -2755,7 +2733,7 @@
               {
                 "name": "watcher_actor_id",
                 "field": "payload.watcher_actor_id",
-                "kind": "did"
+                "kind": "canonical_json"
               }
             ],
             "kind": "tuple"
@@ -4216,10 +4194,6 @@
           },
           "derived_members": [
             {
-              "name": "issuer_principal_server_id",
-              "derivation": "capability_issuer_principal_server_id"
-            },
-            {
               "name": "authority_depth",
               "derivation": "capability_authority_depth"
             },
@@ -4927,7 +4901,7 @@
               {
                 "name": "actor_id",
                 "field": "payload.actor_id",
-                "kind": "did"
+                "kind": "canonical_json"
               },
               {
                 "name": "backup_kind",
@@ -4956,7 +4930,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Server-revision-CAS active binding or revoked tombstone for a (recipient_id, principal, device, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_id context.",
+      "payload": "Server-revision-CAS active binding or revoked tombstone for an (account_id, device_id, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on account_id.principal_server_id only; MUST NOT be replicated to another Principal Server.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "id_source": "not_an_object_id"
     },
@@ -6106,25 +6080,6 @@
               "const": "pending"
             }
           }
-        },
-        {
-          "cell_family": "ak.component.member.state.v1",
-          "cell_subject": {
-            "kind": "did",
-            "field": "payload.invitee_id"
-          },
-          "lattice": "fsm",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "transition_to",
-            "to": {
-              "const": "invite"
-            }
-          },
-          "condition": {
-            "kind": "field_present",
-            "field": "payload.invitee_id"
-          }
         }
       ],
       "concurrency_class": "security_barrier"
@@ -6156,25 +6111,6 @@
               "field": "payload.target_state"
             }
           }
-        },
-        {
-          "cell_family": "ak.component.member.state.v1",
-          "cell_subject": {
-            "kind": "did",
-            "field": "payload.invitee_id"
-          },
-          "lattice": "fsm",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "transition_to",
-            "to": {
-              "const": "leave"
-            }
-          },
-          "condition": {
-            "kind": "field_present",
-            "field": "payload.invitee_id"
-          }
         }
       ],
       "concurrency_class": "security_barrier",
@@ -6186,7 +6122,7 @@
           },
           "predicate": {
             "kind": "stored_field_present",
-            "field": "invitee_id"
+            "field": "invitee_account_id"
           },
           "failure": {
             "code": "failed_precondition",
@@ -6200,8 +6136,8 @@
           },
           "predicate": {
             "kind": "stored_field_equals_payload",
-            "field": "invitee_id",
-            "payload_field": "payload.invitee_id"
+            "field": "invitee_account_id",
+            "payload_field": "payload.invitee_account_id"
           },
           "failure": {
             "code": "failed_precondition",
@@ -6341,7 +6277,10 @@
             "kind": "composite",
             "components": [
               "payload.invite_id",
-              "payload.subject_id"
+              {
+                "field": "payload.subject_account_id",
+                "kind": "canonical_json"
+              }
             ]
           },
           "lattice": "or_set",
@@ -6385,25 +6324,6 @@
             "to": {
               "field": "payload.target_state"
             }
-          }
-        },
-        {
-          "cell_family": "ak.component.member.state.v1",
-          "cell_subject": {
-            "kind": "did",
-            "field": "payload.invitee_id"
-          },
-          "lattice": "fsm",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "transition_to",
-            "to": {
-              "const": "leave"
-            }
-          },
-          "condition": {
-            "kind": "field_present",
-            "field": "payload.invitee_id"
           }
         }
       ],
@@ -6481,7 +6401,7 @@
         "registration_ref resolves to the exact active registration whose service_id and applet_id match",
         "applet_authority_ref resolves to an active scope-matching grant; actor_role=ghost additionally requires action ak.applet.ghost.provision",
         "the separately submitted applet_managed_control genesis derives its Realm id from its own Event id and carries exactly one critical provision ref, avoiding a provision/genesis hash cycle",
-        "the exact PrincipalAuthorityKey is unused and initial_resolution projects to actor_id"
+        "the exact hosted-principal ActorId is unused and initial_resolution projects to the actor principal"
       ],
       "plane": "control",
       "sealed": true,
@@ -6489,11 +6409,8 @@
         {
           "cell_family": "ak.component.applet.managed_actor_provision.v1",
           "cell_subject": {
-            "components": [
-              "payload.actor_id",
-              "payload.actor_principal_server_id"
-            ],
-            "kind": "composite"
+            "field": "payload.actor_id",
+            "kind": "canonical_json"
           },
           "lattice": "cas_register",
           "bottom": "reject",
@@ -6850,7 +6767,10 @@
             "kind": "composite",
             "components": [
               "payload.call_id",
-              "payload.mute_override.actor_id",
+              {
+                "field": "payload.mute_override.actor_id",
+                "kind": "canonical_json"
+              },
               "payload.mute_override.device_id"
             ]
           },
@@ -7150,7 +7070,6 @@
   "fsm_templates": {
     "ak.fsm.membership.v1": {
       "states": [
-        "invite",
         "join",
         "knock",
         "leave",
@@ -7163,10 +7082,6 @@
       "allowed_transitions": [
         [
           "leave",
-          "invite"
-        ],
-        [
-          "leave",
           "knock"
         ],
         [
@@ -7174,18 +7089,6 @@
           "join"
         ],
         [
-          "invite",
-          "join"
-        ],
-        [
-          "invite",
-          "leave"
-        ],
-        [
-          "knock",
-          "invite"
-        ],
-        [
           "knock",
           "join"
         ],
@@ -7202,10 +7105,6 @@
           "ban"
         ],
         [
-          "invite",
-          "ban"
-        ],
-        [
           "knock",
           "ban"
         ],
@@ -7216,30 +7115,10 @@
         [
           "ban",
           "leave"
-        ],
-        [
-          "ban",
-          "invite"
         ]
       ],
-      "conditional_transitions": [
-        {
-          "when": {
-            "parameter": "delivery_binding_rebind",
-            "const": true
-          },
-          "transition": [
-            "join",
-            "join"
-          ]
-        }
-      ],
-      "parameter_schema": {
-        "delivery_binding_rebind": {
-          "value_shape": "boolean",
-          "required": true
-        }
-      }
+      "conditional_transitions": [],
+      "parameter_schema": {}
     }
   },
   "fsm_contracts": {
@@ -7591,9 +7470,7 @@
     "ak.component.circle.member.v1": {
       "axis": "membership",
       "template": "ak.fsm.membership.v1",
-      "instance_parameters": {
-        "delivery_binding_rebind": false
-      }
+      "instance_parameters": {}
     },
     "ak.component.invite.lifecycle.v1": {
       "axis": "workflow",
@@ -7711,9 +7588,7 @@
     "ak.component.member.state.v1": {
       "axis": "membership",
       "template": "ak.fsm.membership.v1",
-      "instance_parameters": {
-        "delivery_binding_rebind": true
-      }
+      "instance_parameters": {}
     },
     "ak.component.mls.keypackage.v1": {
       "axis": "key_material",
@@ -8118,8 +7993,7 @@
         "cell_subject": {
           "kind": "composite",
           "components": [
-            "payload.recipient_id",
-            "payload.principal_id",
+            "payload.account_id",
             "payload.device_id",
             "payload.push_route"
           ]

@@ -1532,15 +1532,11 @@
     "keypackages_revoke_request_body": {
       "type": "object",
       "required": [
-        "owner_account_id",
         "keypackage_refs",
         "device_id",
         "signature"
       ],
       "properties": {
-        "owner_account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
-        },
         "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
         },

@@ -70,9 +70,9 @@ Schema id: `ak.schema.strand.v1`
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | 枚举、唯一写入路径、reserved-name guard 与 reducer 硬约束以 [common-fields.md §5.3](./common-fields.md) 为唯一权威。普通业务 Strand SHOULD 填写；DM 主 Strand MAY 省略或选填合法值。Strand 的人类解释写入 discussion Message 并 `references` stage event。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：仅当 `stage` 存在且实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；MUST NOT 在缺少 `stage` 时单独出现；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
-| `created_by` | yes | `did_core_id` |  | 创建者。 |
+| `created_by` | yes | `ActorId` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `did_core_id` |  | 最近更新者。 |
+| `updated_by` | no | `ActorId` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
 ### 3.1 最小示例
@@ -112,7 +112,7 @@ Schema id: `ak.schema.strand.v1`
   "scope_circle_id": "ak:circle:ARXbvtRVuDBYaF4WF9z-UaI6zlszC0W60gTZIVJDcvFR",
   "state": "active",
   "stage": "in_progress",
-  "created_by": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -599,9 +599,9 @@ Schema id: `ak.schema.message.v1`
 | `edited_at` | no | `timestamp` | 取 §9.5.1 默认展示 revision 对应 revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。**仅为展示派生时间戳**；并发 revision 没有 canonical winner，全部 heads 都保留。 | 默认展示 revision 的编辑时间。 |
 | `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `ak.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
 | `attachments` | no | `array` | 最多 32 项；item 形态按 profile 声明，通常通过 Relation `attached_to` 表达。 | 附件 hint。 |
-| `created_by` | yes | `did_core_id` |  | 发送者。 |
+| `created_by` | yes | `ActorId` |  | 发送者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `did_core_id` | 由最近一次 revise / redact 等 materialized update 的 Event actor 派生。 | 最近更新者。 |
+| `updated_by` | no | `ActorId` | 由最近一次 revise / redact 等 materialized update 的 Event actor 派生。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 | `effective_scope` | materialized | `EffectiveScope` | 只读投影，MUST 等于签名 `Event.scope_ref`；actor 的 content payload 不重复携带，accepted 后 immutable。 | Message 的实际可见与授权边界。 |
 
@@ -622,7 +622,7 @@ Schema id: `ak.schema.message.v1`
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "strand_id": "ak:strand:AVK8GYTWvWfnkNjO2MMRJaNYukVBNiB0s6v8tdxK1nmu",
   "track_name": "discussion",
-  "created_by": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "content": {
     "kind": "ak.content.text",
     "body": "@bob 请确认这个 item 的 legal 风险。",
@@ -657,7 +657,7 @@ Schema id: `ak.schema.message.v1`
           "discussion": { "is_primary": true }
         },
         "stage": "in_progress",
-        "created_by": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+        "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
         "created_at": "2026-04-26T00:00:00Z"
       }
     }

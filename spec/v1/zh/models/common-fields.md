@@ -137,8 +137,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 | 类别 | 值形态与类型来源 | 允许的字段名形态 | 可否作为 identity / authorization key |
 | --- | --- | --- | --- |
 | `typed_object_id` <!-- identifier_category: typed_object_id --> | `ak:<kind>:<payload>`，其中 kind 或 special form 已登记于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；schema 以指向 `common-ids.schema.json` 的 `$ref` 或等价 anchored pattern 声明 | 对象自身使用 `id`；引用他者使用 `<kind>_id` / `<role>_<kind>_id` / `expected_<role>_<kind>_id`（详见 §2.1.1） | 是。它是协议对象主键，可直接作为授权主体、去重键与签名 transcript 中的身份 |
-| `responsibility_identity_material` <!-- identifier_category: responsibility_identity_material --> | Arkret 从 DID 派生的稳定身份，或注册、resolution、method evidence 中使用的 W3C DID / DID URL；具体表示由下方正交 profile 表决定 | 稳定主体使用 `_id`；DID 使用 `did` / `<role>_did(s)`；DID URL key selector 使用 `verification_method` / `<role>_verification_method` | 仅 `did_core_id` 可以。DID 必须先经 adapter 投影并绑定 expected core；DID URL 只选择 key |
-| `service_local_account_identifier` <!-- identifier_category: service_local_account_identifier --> | Principal Server 在自身边界内铸造并持久化的账号键；`account_id`、`service_account_id` 与 `owner_account_id` 共用 `common-ids.schema.json#/$defs/service_account_id` terminal（1..255 字符，拒绝 `ak:` 与 `did:` 词法空间） | 保留按职责区分的三个完整字段名；不得改写为 principal identity 名称 | 只能在同一 owning Principal Server 的 account 隔离、查找和生命周期判定中使用；不是跨服务全局身份，也不是 DID / DID URL |
+| `responsibility_identity_material` <!-- identifier_category: responsibility_identity_material --> | Arkret 的 `did_core_id`、由两个 core 组成的 closed `AccountId`、以 discriminator 封闭的 `ActorId`，或注册、resolution、method evidence 中使用的 W3C DID / DID URL；DID 的具体表示由下方正交 profile 表决定 | 稳定主体使用 `_id`；DID 使用 `did` / `<role>_did(s)`；DID URL key selector 使用 `verification_method` / `<role>_verification_method` | `did_core_id`、AccountId 与 ActorId 可以。DID 必须先经 adapter 投影并绑定 expected core；DID URL 只选择 key |
 | `registry_catalog_symbol` <!-- identifier_category: registry_catalog_symbol --> | 命名某个 registry 条目的符号，canonical 形态通常是 `ak.<symbol-path>`；schema 以 anchored `^ak\.` pattern、`const` 或该 registry 的闭合枚举声明 | 保留各 registry 的 canonical 字段名，例如 `operation_id`、`profile_id`、`schema_id`；新增 catalog 字段 SHOULD 使用 registry 自有名或 `*_symbol` | 否。它命名目录条目而不是对象实例，MUST NOT 作为授权主体或对象主键使用 |
 | `opaque_correlation` <!-- identifier_category: opaque_correlation --> | 有界 opaque 字符串（MUST 由 `pattern` 或 `maxLength` 限定上界），由某一方铸造用于关联一次请求、挑战、传输、租约或 transcript 位置；MUST NOT 复用 typed-ID 词法空间，即值 MUST NOT 以 `ak:` 开头 | 保留领域既有名，例如 `request_id`、`challenge_id`、`transaction_id`、`<noun>_round_id`、`*_handle` | 否。它只承载关联语义，MUST NOT 单独决定授权、身份归属或 envelope 去重 |
 | `transport_idempotency_key` <!-- identifier_category: transport_idempotency_key --> | 传输层重复提交坐标，有界 opaque 字符串；不指向任何协议对象，也不进入对象身份 | MUST 使用 `idempotency_key`，MUST NOT 使用 `_id` 后缀，MUST NOT 复用 typed-ID 词法空间 | 否。只用于同一请求的重复提交判定，MUST NOT 进入身份、授权或因果判定 |
@@ -221,7 +220,7 @@ expected_<role>_<kind>_id
 
 <!-- rule_id: NC-IDROLE-001 --> **角色 + 表示后缀（normative）**：Arkret-owned identifier 字段默认使用完整语义角色加表示后缀：稳定责任主体为 `<role>_id`，W3C DID 为 `<role>_did`，generic URI identity/reference 为 `<role>_uri`，HTTP(S)/WS(S) network locator 为 `<role>_url`，key selector 为 `<role>_kid`。`issuer`、`subject`、`audience`、`inviter`、`invitee` 等裸角色名没有 crypto / governance 例外；裸名通常只允许完整对象或 schema 明确闭合的 discriminated union，并且例外必须按精确 schema path 登记。`service`、`human`、`organization`、`agent` 是与字段词法正交的 `required_subject_class` 约束，MUST NOT 插入角色与表示后缀之间。因而 service-only 的稳定责任主体仍写作 `issuer_id`、`recipient_id`、`source_id`、`destination_id`、`verifier_id`，由 schema / operation contract 声明它必须属于 service class。
 
-唯一的词类级裸名规则是已登记的 provenance/byline 角色：`<past-participle>_by` 整体是完整角色词，而不是“角色 + 被遗漏的 identifier 后缀”。`created_by`、`updated_by`、`executed_by`、`generated_by` 等登记字段永远保持裸名，MUST NOT 改成 `*_by_id`、`*_by_did` 或 `*_by_verification_method`；其值仍须按该字段的真实职责精确登记为 `did_core_id`、W3C `did`、DID URL，或词法互斥的闭合 identifier union。字段名绝不为了保留裸 byline 而降级为 `string`，类型也绝不为了统一而强制成 `did_core_id`。该规则不构成任意裸角色白名单：只有 `tools/identifier-role-suffix-registry.json#registered_provenance_byline_fields` 中登记的精确字段名可使用此形态；新增词必须证明它表达 durable provenance/byline、声明 terminal profile，并通过 mutation gate。查询或索引函数中的 `get_by_id` / `*_by_id` 局部变量不属于 wire 字段命名合同。
+唯一的词类级裸名规则是已登记的 provenance/byline 角色：`<past-participle>_by` 整体是完整角色词，而不是“角色 + 被遗漏的 identifier 后缀”。`created_by`、`updated_by`、`executed_by`、`generated_by` 等登记字段永远保持裸名，MUST NOT 改成 `*_by_id`、`*_by_did` 或 `*_by_verification_method`；其值仍须按该字段的真实职责精确登记为 `ActorId`、W3C `did`、DID URL，或其它词法互斥的闭合 identifier union。字段名绝不为了保留裸 byline 而降级为 `string`，类型也绝不为了统一而强制成裸 `did_core_id`。该规则不构成任意裸角色白名单：只有 `tools/identifier-role-suffix-registry.json#registered_provenance_byline_fields` 中登记的精确字段名可使用此形态；新增词必须证明它表达 durable provenance/byline、声明 terminal profile，并通过 mutation gate。查询或索引函数中的 `get_by_id` / `*_by_id` 局部变量不属于 wire 字段命名合同。
 
 URI/URL 与上述 identifier profile **正交**。可通过 HTTP(S) 解引用或通过 WS(S) 连接的网络 locator 使用 `_url`；通用 URI identity/reference、`geo:` / `mimi:` 等非网络 scheme、以及 OAuth/OIDC 等外部标准拥有的精确 URI 词法使用 `_uri`。Web Origin 是完整协议角色，使用裸 `origin`。当前闭合网络 locator 集合为 `arkret_base_url`、`base_url`、`candidate_base_url`、`candidate_record_url`、`connect_url`、`current_record_url`、`endpoint_url`、`gate_account_base_url`、`inclusion_proof_url`、`openid_configuration_url`、`public_base_url`、`push_gateway_url`、`retrieval_url`、`source_url`、`webhook_url`，以及 `BlobPresignOutcome.url`；当前 URI identity/reference 集合为 `acct_uri`、`gate_audience_uri`、`geo_uri`、`issuer_uri`、`mimi_room_uri`、`mimi_uri`、`provider_uri`、`redirect_uri` 和完整 generic `uri`。DID 专名 `did_url` / `verification_method` 不进入此集合。rate-limit policy 的 `endpoint` 是闭合 selector（absolute service path 或 absolute HTTP(S) URL），不是纯 locator 字段，保持裸名。所有 `_url` schema terminal MUST 明确收紧到登记的 HTTP(S)/WS(S) scheme；`format: uri` 本身既不能证明它是网络 URL，也不能决定字段后缀。
 
@@ -258,9 +257,9 @@ Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`�
 | `id` | yes | `id:*` | typed ID 前缀决定对象种类（`ak:strand:` 即 strand 对象，依此类推）。 | 对象稳定 ID；前缀就是 type，不再单独写 `type` 字段。 |
 | `schema` | yes | `string` | SHOULD 是 `ak.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
 | `realm_id` | conditional | `id:realm` | Realm 外对象可省略。 | 所属 Realm。 |
-| `created_by` | conditional | `did_core_id` | 系统派生对象可由 `derived_from` 替代。 | 创建主体（创建该对象的 Event 的 `actor_id`）。 |
+| `created_by` | conditional | `ActorId` | 系统派生对象可由 `derived_from` 替代。 | 创建主体（创建该对象的 Event 的完整 `actor_id`）。 |
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
-| `updated_by` | no | `did_core_id` | 更新时 SHOULD 设置。 | 最近更新主体。 |
+| `updated_by` | no | `ActorId` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST be no earlier than `created_at`。 | 最近更新时间。 |
 | `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation / View）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值。权威值为 `max(Event.created_at, first_covering_sealed_at)`；`first_covering_sealed_at` 是覆盖该 Move 的全部 accepted Seal 中 `sealed_at` 的最小值，data-plane Event 或尚未被 Seal 覆盖时只取 `created_at`。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
 | `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Strand / Morph，详见 §5.3）；二者在通用 schema 中均可省略，具体 profile MAY 收紧为必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Strand 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
@@ -399,26 +398,33 @@ DID 当作身份锚点、仅在封闭触发条件下验证 DID 控制权”的�
 本节不复制总表，避免字段新增后出现两份不一致清单。
 
 仅作为内容、容器、投影或关系事实存在的对象，不需要也不得发明独立 DID；它们通过 typed ID
-被引用，通过 `created_by` / `updated_by` 等字段关联到主体 `did_core_id`。字段里出现DID 只声明
+被引用，通过 `created_by` / `updated_by` 等字段关联到完整 ActorId。字段里出现 DID 只声明
 value category，不会自动触发 DID Document 解析或在线验证。
 
 ### 4.2 主体引用字段
 
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
-| `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor `did_core_id`（`actor_kind` 决定它是 user / agent / service 等）；普通业务按身份锚点使用，验证边界见 §4.1 的引用。 |
-| `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 actor `did_core_id`；字段名必须说明角色，避免回退到模糊的 `actor_did`。 |
+| `actor_id` | Event Envelope、membership 与通用 actor-scoped 状态 | 完整 ActorId closed union；account 分支携带 exact AccountId，hosted principal 分支携带 `principal_id + principal_server_id`，service 分支携带 `service_id`。不得用并列 `actor_kind` 或裸 DID 补足语义。 |
+| `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 ActorId；字段名说明角色，值形态仍使用同一个 closed union。若专属 schema 明确只允许某一 DID-core 角色，必须使用该专属角色名而不是泛化 `actor_id`。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal `did_core_id`；稳定权限主体引用。 |
-| `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing principal 语义。 |
+| `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的完整 ActorId，由 reducer 从 Event `actor_id` 原样派生；不得只保存其中的 principal DID。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing actor 语义。 |
 | `issuer_id` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim、SessionGrant | 签发授权、receipt、claim 或 credential 的主体 `did_core_id`；必须持有签发权限。 |
 | `subject` | Capability Grant | 唯一登记的 closed polymorphic subject：principal `did_core_id` 或带 discriminator 的 condition selector。裸名表示整个闭合 union，不是稳定 ID 的别名。 |
-| `subject_id` | Handle / Agent Selector Claim、Mention reference、invite / delivery binding candidate、SessionGrant | 必须是具体 principal `did_core_id` 的 subject。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject_id`。 |
+| `subject_account_id` | Handle claim 与账号寻址 | 必须是 exact AccountId；不得降级为裸 principal DID。Agent Selector / Mention 等非账号 subject 使用各自登记的 typed identity 字段。 |
 | `controller_subject_id` | Agent Selector Claim、事件 mention metadata | 拥有 controller-scoped agent selector namespace 的 controller principal `did_core_id`。 |
-| `inviter_id` / `invitee_id` | Invite | 邀请方 / 被邀请方 `did_core_id`。 |
+| `inviter_account_id` / `invitee_account_id` | Account-addressed Invite | 邀请方 / 被邀请方 exact AccountId；通用 membership target 使用 ActorId。 |
 | `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal `did_core_id`（每个条目须有对应 active `ak.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
 | `agent_id` / `audit_actor_id` | Agent key payload、Audit release evidence | agent / audit release service 作为协议责任主体时使用 `did_core_id`；承载运行或托管服务身份时另用 `service_id`。 |
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
+
+ActorId 的服务路由投影是封闭且无状态的：account 分支取
+`account_id.principal_server_id`，hosted-principal 分支取 `principal_server_id`，service 分支取
+`service_id`。任何需要按托管服务分桶、去重或解析 endpoint 的协议都 MUST 使用这个投影；不得再保存
+member-specific route object、route source、fallback 或 rebind 状态。路由刷新只更新对应 service
+DID core 的 `ServiceResolutionRecord`，不改变 ActorId；service DID core 变化会形成不同 ActorId，必须通过
+正常 membership / invitation transition 处理。
 
 主体字段新增策略：
 
@@ -470,37 +476,26 @@ Realm/Circle/Strand governance 与 Account Authority 当前 controller selection
 session scope、membership 和 lifecycle 是并列的独立 admission 条件，不复制进 participation record；详见
 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。
 
-### 4.5 参数化 membership FSM（normative）
+### 4.5 Membership FSM（normative）
 
-Realm 与 Circle membership 共用本节唯一的状态图。`initial_state=leave`，wire 枚举固定为 `invite / join / knock / leave / ban`；不存在 `none`。实例参数 `delivery_binding_rebind` 仅控制 `join -> join`：Realm 为 `true`，Circle 为 `false`。除该参数化边外，任何未列边与任何 same-state transition 均非法，MUST `failed_precondition`（`reason=invalid_membership_transition`）。
+Realm 与 Circle 的 materialized membership 共用唯一状态集 `join / knock / leave / ban`，`initial_state=leave`；
+不存在 `none` 或 `invite`。Invite 是独立 pending workflow，只有 exact target ActorId 的有效 acceptance 才把 membership
+从 `leave` 推进到 `join`。same-state transition 一律非法；endpoint、transport 或 Principal Server 变化不得伪装成
+`join -> join`。
 
-下表的 **wire event kind** 列给出承载该边的 Event kind（Realm scope）。每条边都 MUST 由已登记 kind 的 canonical reducer contract 明确派生；未登记的“reducer 隐式推进”不是合法边。
+| from | to | wire event kind | guard / writer |
+| --- | --- | --- | --- |
+| `leave` | `knock` | scope membership state | target ActorId 自著，且 join rule 允许 |
+| `leave` | `join` | `ak.member.state` 或 exact invite acceptance | target ActorId 自著 / bootstrap creator，或 exact target invite acceptance |
+| `knock` | `join` | scope membership state | 已授权 reviewer/admin |
+| `knock` | `leave` | scope membership state | target ActorId 或已授权 reviewer/admin |
+| `join` | `leave` | scope membership state | target ActorId 或已授权管理员 |
+| `leave` / `knock` / `join` | `ban` | scope membership state | 已授权管理员 |
+| `ban` | `leave` | scope membership state | 已授权管理员；self-service fail closed |
 
-| from | to | wire event kind（Realm） | Realm guard / writer | Circle guard / writer |
-| --- | --- | --- | --- | --- |
-| `leave` | `invite` | `ak.invite.create`（directed 分支，条件性 `member.state` projection） | `ak.realm.admin` | `ak.circle.member.manage` |
-| `leave` | `knock` | `ak.member.state` | target actor，且 Join Rule / Join Policy 允许 | target actor，且 `join_rule=knock` |
-| `leave` | `join` | `ak.member.state`（Realm bootstrap 的 creator slot 同样走本 kind，见 [`realm-and-space.md` §2.7](realm-and-space.md)；`ak.realm.create` 自身不承载 membership 边） | target actor 通过 public/restricted gate，或 `ak.realm.admin`；Native Personal Agent carve-out 见 Realm 文档 | target actor 仅当 `join_rule=public`，否则 `ak.circle.member.manage` |
-| `invite` | `join` | `ak.invite.accept` | target actor 或 `ak.realm.admin` | target actor（`ak.circle.member.add`）或 `ak.circle.member.manage` |
-| `invite` | `leave` | `ak.invite.cancel` / `ak.invite.revoke`（条件性 `member.state` projection） | target actor、inviter 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
-| `knock` | `invite` | `ak.invite.create`（reviewer 批准后签发定向 invite） | `ak.realm.admin` | `ak.circle.member.manage` |
-| `knock` | `join` | `ak.member.state` | `ak.realm.admin` | `ak.circle.member.manage` |
-| `knock` | `leave` | `ak.member.state` | target actor、reviewer 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
-| `join` | `join` | `ak.member.state` | 仅当 `delivery_binding_rebind=true`：target actor 或 rebind-authorized service，且只更新 delivery binding / membership metadata | 不可用（`delivery_binding_rebind=false`） |
-| `join` | `leave` | `ak.member.state` | target actor 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
-| `leave` / `invite` / `knock` / `join` | `ban` | `ak.member.state` | `ak.realm.admin` | `ak.circle.member.manage` |
-| `ban` | `leave` / `invite` | `ak.member.state`（→`leave`）/ `ak.invite.create`（→`invite`） | `ak.realm.admin` | `ak.circle.member.manage`；self-service fail closed |
-
-实现 MUST 以 `(scope_kind, delivery_binding_rebind)` 选择 FSM 实例，再按上表对应 scope 列求值 writer/guard，不得分别硬编码两套 transition graph。Bare knock / invite 的本地计时器不产生隐式边；任何过期清理仍须由该 scope 对应列授权的 writer 显式提交 `leave`。
-
-**`default_join_rule=closed` 下的可用分支（normative）**：Realm scope 下 `default_join_rule=closed` 只关闭 **applicant-initiated 入口**——`leave -> knock` 与 applicant 自助的 `leave -> join` MUST 被拒绝。上表 `leave -> join` / `invite -> join` / `knock -> join` 三行的 **authorized-writer 分支仍然可用**（`ak.realm.admin`、Native Personal Agent controller carve-out、Realm bootstrap batch 内 creator 写入的初始成员）；封闭豁免列表见 [`../governance/join-policy.md` §4](../governance/join-policy.md)。所有分支仍 MUST 通过 Join Policy 的 A 轴 `principal_admission` 与 B 轴 `cooldown`。
-
-**Realm `invite` 态与 Invite 对象的原子绑定（normative）**：Realm scope 下 `member.state=invite` 与一条 live 定向 Invite 对象（[`governance-objects.md` §5](governance-objects.md)）**一一对应**，二者的转换 MUST 在同一 Control Move 内原子完成：
-
-- 进入 `invite` 只能由 `ak.invite.create` 的定向分支承担（它同时写 `ak.component.invite.lifecycle.v1` 与 `ak.component.member.state.v1`）；
-- 离开 `invite` 到 `leave` 只能由把该 Invite 推进到终态的 `ak.invite.cancel` / `ak.invite.revoke` 承担；离开到 `join` 只能由 `ak.invite.accept` 承担。**MUST NOT** 用裸 `ak.member.state` 单独改写处于 `invite` 的 Realm member cell——那会留下 invite 对象与成员态不一致的悬挂状态。
-- 因此 Realm scope 的 `invite -> ban` MUST 先（或在同一 batch 内）由 `ak.invite.revoke` 把该 Invite 推进终态，使 ban 边实际以 `leave -> ban` 求值。对处于 `invite` 的 Realm member cell 直接提交 `ak.member.state{ban}` MUST `failed_precondition`（`reason=invalid_membership_transition`）。Circle scope 无 Invite 对象，`invite -> ban` 照常由 `ak.circle.member.state` 承担。
-
+任何未列边 MUST `failed_precondition`（`reason=invalid_membership_transition`）。Bare knock/invite 的本地计时器不产生
+隐式边；过期清理必须由对应 workflow 或显式 membership Event 完成。账号分支的 target equality 使用完整 AccountId，
+其它 Actor 分支使用完整 ActorId；不得回退到裸 DID。
 ## 5. State 枚举对齐
 
 `state`、`stage`、`status`、`runtime_status` 和 `binding_state` 分属不同状态轴，不是同一字段的别名：
@@ -760,9 +755,9 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
   "id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
   "schema": "ak.schema.strand.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "created_by": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00Z",
-  "updated_by": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
+  "updated_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "updated_at": "2026-04-26T00:00:00Z"
 }
 ```

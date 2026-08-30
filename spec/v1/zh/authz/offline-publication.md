@@ -161,7 +161,7 @@ current session/lifecycle/policy gate只能控制当前交付、展示与新副�
 
 普通 Event publication 只有三条互斥 authority lane；选择结果属于已验证 request context，绝不序列化为第四套 submission sidecar：
 
-1. **online self**：唯一 carrier 是 sender-constrained verified session grant + typed introspection holder/device binding。request context 从 `subject + audience` 构造 exact `PrincipalAuthorityKey`，并携 `SessionGrantDeviceBinding {device_id, authorization_event_id, model_generation_ref}` selector；它必须与 producer-signed Event 的 `(actor_id/executed_by, principal_server_id, proof.verification_method)` 机械交集，再从本地 accepted PCR/device evidence 重放。`EventInitialSubmission` 不增加 publication-authority member。
+1. **online self**：唯一 carrier 是 sender-constrained verified session grant + typed introspection holder/device binding。request context 从 `subject + audience` 构造 exact `AccountId`，并携 `SessionGrantDeviceBinding {device_id, authorization_event_id, model_generation_ref}` selector；它必须与 producer-signed Event 的 exact actual-author `ActorId` 及 `proof.verification_method` 机械交集，再从本地 accepted PCR/device evidence 重放。`EventInitialSubmission` 不增加 publication-authority member，也不得携平行 server sidecar。
 2. **offline/delayed ingress**：唯一 carrier 是 `AuthorizationLease`，且服务在 lease 窗口内成功签收后产生 `IngressReceipt`。online request context 不能代替 lease，lease 也不能塞入 online authority context。
 3. **peer federation**：peer authority 只来自 Event envelope 内已验证的 origin `principal_server_admission` proof。若 peer 转发最初 offline ingress 的 lease/receipt，它们只证明 origin 的历史签收窗口，不替代也不扩展 origin admission proof。
 

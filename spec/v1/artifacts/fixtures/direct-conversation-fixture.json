@@ -96,10 +96,22 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
+        "pair_key": "sha256:6f1258db8be6e78557cd951cbff6dffb83f5a0db09f2397b7f55988925b39f17",
         "unordered_participant_ids": [
-          "ak:did_core:webvh:z6mkfixture",
-          "ak:did_core:webvh:z6mkfixturebobexample"
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixturebobprincipalserverexample"
+            }
+          }
         ],
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
@@ -123,7 +135,7 @@
       "instance": {
         "state": "found",
         "coordinates": {
-          "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
+          "pair_key": "sha256:6f1258db8be6e78557cd951cbff6dffb83f5a0db09f2397b7f55988925b39f17",
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
           "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc"
@@ -141,7 +153,7 @@
       "instance": {
         "state": "suspended",
         "coordinates": {
-          "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
+          "pair_key": "sha256:6f1258db8be6e78557cd951cbff6dffb83f5a0db09f2397b7f55988925b39f17",
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
           "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc"
@@ -542,8 +554,11 @@
           "ak:event:AS_LTHQu5UtXbAIUOgUFzEY5nFJzI1cgPvxODB_NnHSR"
         ],
         "receipt": {
-          "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
-          "founder_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "pair_key": "sha256:6f1258db8be6e78557cd951cbff6dffb83f5a0db09f2397b7f55988925b39f17",
+          "founder_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -580,8 +595,11 @@
           "ak:event:AS_LTHQu5UtXbAIUOgUFzEY5nFJzI1cgPvxODB_NnHSR"
         ],
         "receipt": {
-          "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
-          "founder_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "pair_key": "sha256:6f1258db8be6e78557cd951cbff6dffb83f5a0db09f2397b7f55988925b39f17",
+          "founder_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -684,7 +702,6 @@
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "realm_policy_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "membership_frontier": [],
-          "delivery_binding_frontier": [],
           "destination_kind": "principal_server"
         },
         "events": [

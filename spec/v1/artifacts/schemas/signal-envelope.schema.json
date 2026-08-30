@@ -24,7 +24,7 @@
       "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
     },
     "sender_actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "sender_device_id": {
       "$ref": "./common-ids.schema.json#/$defs/device_id"

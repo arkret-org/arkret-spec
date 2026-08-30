@@ -32,7 +32,6 @@
         "applet_id",
         "service_id",
         "actor_id",
-        "actor_principal_server_id",
         "actor_role",
         "initial_resolution",
         "method_history_evidence",
@@ -50,11 +49,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "actor_principal_server_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Principal Server half of the actor's immutable PrincipalAuthorityKey; all PCR lineage and runtime current-resolution lookup uses the exact (actor_id, actor_principal_server_id) pair."
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "actor_role": {
           "type": "string",

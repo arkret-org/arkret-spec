@@ -442,27 +442,14 @@
     },
     "principal_resolution_audit_request": {
       "type": "object",
-      "description": "Authorized request for account-internal resolution audit evidence. Authorization is the current holder session bound to the exact principal_authority. Recovery actors first finish the existing recovery transaction and become the current holder; v1 does not create a second audit authorization path. Caller-declared intent is never authorization. Unknown account, wrong authority pair and unauthorized caller are externally indistinguishable and share the anti-enumeration outcome.",
+      "description": "Authorized request for account-internal resolution audit evidence. Authorization is the current holder session bound to the exact AccountId. Recovery actors first finish the existing recovery transaction and become the current holder; v1 does not create a second audit authorization path. Caller-declared intent is never authorization. Unknown account, wrong AccountId and unauthorized caller are externally indistinguishable and share the anti-enumeration outcome.",
       "required": [
-        "principal_authority"
+        "account_id"
       ],
       "properties": {
-        "principal_authority": {
-          "type": "object",
-          "required": [
-            "principal_id",
-            "principal_server_id"
-          ],
-          "properties": {
-            "principal_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            "principal_server_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-              "description": "MUST equal the serving Principal Server DID. A different value is an unknown account, not a referral."
-            }
-          },
-          "additionalProperties": false
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "principal_server_id MUST equal the serving Principal Server DID. A different value is an unknown account, not a referral."
         },
         "history_depth": {
           "type": "integer",
@@ -1044,7 +1031,7 @@
     },
     "service_resolution_resolve_request": {
       "type": "object",
-      "description": "Realm-scoped anti-enumeration query for target-signed successor material. requester authority comes from the authenticated peer service and current Realm relationship. target_id must already be visible to requester through an effective joined-member delivery binding or explicit service delegation. Unknown, unauthorized, invisible and not-held outcomes are externally indistinguishable.",
+      "description": "Realm-scoped anti-enumeration query for target-signed successor material. requester authority comes from the authenticated peer service and current Realm relationship. target_id must already be visible to requester through an effective joined-member ActorId routing projection or explicit service delegation. Unknown, unauthorized, invisible and not-held outcomes are externally indistinguishable.",
       "required": [
         "realm_id",
         "target_id",

@@ -12,22 +12,6 @@
     }
   ],
   "$defs": {
-    "principal_authority_key": {
-      "type": "object",
-      "required": [
-        "principal_id",
-        "principal_server_id"
-      ],
-      "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "principal_server_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
-      },
-      "additionalProperties": false
-    },
     "membership_lifecycle_cause": {
       "type": "string",
       "enum": [
@@ -38,12 +22,12 @@
     "agent_controller_membership_binding": {
       "type": "object",
       "required": [
-        "controller_authority",
+        "controller_account_id",
         "controller_membership_generation_ref"
       ],
       "properties": {
-        "controller_authority": {
-          "$ref": "#/$defs/principal_authority_key"
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "controller_membership_generation_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
@@ -61,9 +45,9 @@
       "required": [
         "schema",
         "realm_id",
-        "controller_authority",
+        "controller_account_id",
         "controller_membership_generation_ref",
-        "initiator_authority",
+        "initiator_actor_id",
         "controller_terminal_event_id",
         "expected_agent_ids",
         "cleanup_intent_digest",
@@ -77,14 +61,14 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "controller_authority": {
-          "$ref": "#/$defs/principal_authority_key"
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "controller_membership_generation_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
-        "initiator_authority": {
-          "$ref": "#/$defs/principal_authority_key"
+        "initiator_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "controller_terminal_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"

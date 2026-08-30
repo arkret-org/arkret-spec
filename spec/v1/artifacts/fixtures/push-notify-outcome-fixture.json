@@ -216,7 +216,7 @@
       "name": "unregistered_reason_code_is_invalid",
       "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
       "expect_valid": false,
-      "first_expected_error": "$.reason_code: 'push_key_expired' is not one of ['push_target_unknown', 'push_payload_too_large', 'unsupported_profile', 'delivery_binding_stale', 'push_token_unknown', 'push_token_invalid', 'push_gateway_unreachable', 'rate_limited']",
+      "first_expected_error": "$.reason_code: 'push_key_expired' is not one of ['push_target_unknown', 'push_payload_too_large', 'unsupported_profile', 'push_token_unknown', 'push_token_invalid', 'push_gateway_unreachable', 'rate_limited']",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "notes": "reason_code is a closed enum whose members are all registered in error-code-registry.json. A free-form string would let each gateway invent its own failure vocabulary.",
@@ -397,8 +397,10 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "expect_valid": true,
       "instance": {
-        "recipient_id": "ak:did_core:webvh:z6mkpushrecipientservice",
-        "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+          "principal_server_id": "ak:did_core:webvh:z6mkpushrecipientservice"
+        },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
         "expected_revision": 0,
@@ -415,8 +417,10 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "expect_valid": true,
       "instance": {
-        "recipient_id": "ak:did_core:webvh:z6mkpushrecipientservice",
-        "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+          "principal_server_id": "ak:did_core:webvh:z6mkpushrecipientservice"
+        },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
         "expected_revision": 2,
@@ -429,8 +433,10 @@
       "expect_valid": false,
       "first_expected_error": "contains:not valid under any",
       "instance": {
-        "recipient_id": "ak:did_core:webvh:z6mkpushrecipientservice",
-        "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+          "principal_server_id": "ak:did_core:webvh:z6mkpushrecipientservice"
+        },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
         "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
@@ -447,8 +453,10 @@
       "expect_valid": false,
       "first_expected_error": "contains:not valid under any",
       "instance": {
-        "recipient_id": "ak:did_core:webvh:z6mkpushrecipientservice",
-        "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+          "principal_server_id": "ak:did_core:webvh:z6mkpushrecipientservice"
+        },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
         "expected_revision": 2,

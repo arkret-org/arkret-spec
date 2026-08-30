@@ -34,7 +34,10 @@
           "keypackage_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "claim_id": "pairwise-claim-1",
-          "requester_actor_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "requester_actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE"
+          },
           "requester_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
           "welcome_digest": "sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
           "created_at": "2026-08-24T00:01:00.000Z",
@@ -57,7 +60,9 @@
             "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
             "mls_group_id": "fixture-group",
             "claim_purpose": "realm_membership",
-            "required_capabilities": ["ak.content.v1"],
+            "required_capabilities": [
+              "ak.content.v1"
+            ],
             "expires_at": "2026-08-24T00:05:00.000Z",
             "target_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE"
           },

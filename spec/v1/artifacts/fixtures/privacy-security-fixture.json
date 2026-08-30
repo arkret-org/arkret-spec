@@ -130,7 +130,7 @@
           "subject",
           "issuer",
           "binding_state",
-          "member_delivery_binding",
+          "account_id",
           "audience",
           "claim_digest"
         ]
@@ -852,7 +852,10 @@
       "name": "minimal_metadata_author_credential_is_the_only_author_trust_anchor",
       "runner": "cotest::conformance::privacy_security::run_minimal_metadata_author_credential_vector",
       "base": {
-        "actor_id": "ak:did_core:key:z6MkpairwiseAlice",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:key:z6MkpairwiseAlice"
+        },
         "transport_session_actor": "ak:did_core:webvh:z6mkfixtureAlice",
         "realm_declares_minimal_metadata_profile": true,
         "pairwise_actor_current_member": true,

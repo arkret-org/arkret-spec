@@ -36,26 +36,18 @@ Accept: application/x-ndjson
 
 该端点对应 `ak.self.account.stream.subscribe.v1`，HTTP binding 返回 `application/x-ndjson` 的 `AccountSubscribeFrame` 有界响应。Initial sync 立即返回；带 `after` 的请求若已有可见 delta 也立即返回；否则服务端 MUST 等待数据或部署默认窗口（v1 默认 30 秒）到期，期间不得先发送空 `delta` / `catchup_complete` 使客户端误判本轮已完成。数据到达时返回 delta；窗口到期仍无数据时返回仅推进 cursor 的 `frontier`。`catchup=true` 时本轮数据 frame 后发送 `catchup_complete`，随后关闭本轮响应；客户端持久化 cursor 后立即发起下一轮长轮询。客户端 MUST 把 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists 与 notifications；不同于 `GET /_arkret/self/events/subscribe`（按 selector 的事件流订阅）、`QUERY /_arkret/self/events`（JSON content 携带 `before` / `after` 的双向历史读取）以及独立的加密 Signal rail。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
 
-Account subscribe 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration,并对每个上下文建立独立的 `/_arkret/self/account/subscribe` 长轮询序列。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_id` 指向的服务上;DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/_arkret/self/account/subscribe` 流。
+Account subscribe 的服务边界是 authenticated session 绑定的 exact `AccountId`，即
+`(principal_server_id, principal_id)`。同一 `principal_id` 在不同 Principal Server 上形成不同账号；
+客户端必须为每个账号分别维护 session、cursor、to-device queue、push registration 与订阅序列。
+Realm timeline / notification delta 只进入其成员 `ActorId` 中 account 分支所指账号的流；不得按裸
+`principal_id` 合并，也不得从 DID Document 猜测另一账号。
 
-### 2.1 Delivery Binding UX 指引（SHOULD）
+### 2.1 多账号上下文 UX 指引（SHOULD）
 
-`delivery_binding` 由 schema 强制存在并显式化，但**用户感知**应保持轻量。客户端 UI SHOULD：
-
-1. **默认不暴露 `delivery_binding` 字段**。普通邀请 / 成员添加 / 加入 Realm 流程中，UI **不展示** `recipient_id` 选择控件，除非：
-   - 邀请方处于多 Principal Server 登录上下文且没有可推断的默认值（fall back to `explicit`，要求用户选择）；
-   - Realm policy 强制 `binding_source ∈ {explicit}` 且邀请方未在该上下文登录（提示用户切换上下文或退出邀请）；
-   - 用户主动进入"高级 / 投递设置"面板查看 / 修改。
-2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_id` 不属于该 actor DID Document 默认 `type="ArkretService", serviceKind="principal_server"` entry 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
-3. **邀请 strand 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
-   - 默认使用 [`invite-addressing.md`](./invite-addressing.md) 的 online principal locator 或显式 `subject_id + recipient_id` 输入；locator/ref 成功后 UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
-   - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，只有在 Directory / Organization 明确支持可选 handle invite/member_add profile 且调用方具备披露授权时，才 MAY 调用 `ak.find.directory.read.resolve_handle.v1(intent="member_add" | "invite")` 获取可验证 candidate；失败时 MUST 回到 locator/address 模式，不得本地合成 remote service DID；
-   - 邀请方在 Org-A 内部 Realm 中邀请 → 默认 invitee 也走 Org-A binding（如果 Org-A organization registry 把 invitee 列为成员）；
-   - 邀请方在个人 Realm 中邀请 → 默认 invitee DID Document `did_document_default`（若 Realm policy 允许）；
-   - 多上下文 invitee + 无明确默认 → 提示用户在已知上下文中选择，**不要静默选择**。
-4. **跨上下文切换感知**。客户端在同一 UI 中聚合显示多 Principal Server 的 timeline 时 SHOULD 显式区分上下文（如标签栏 / 子账号面板），避免把工作 / 个人事件混合渲染。聚合通知（badge count / push）按上下文分桶；不允许跨上下文合并未读数。
-
-这些是 SHOULD，不构成 wire 互操作的硬约束；但符合 `ak.profile.full_client.v1` / `ak.profile.e2ee_client.v1` 的实现 SHOULD 在 UX self-check 中覆盖。
+客户端在同一 UI 中聚合多个 AccountId 的 timeline 时 SHOULD 显式区分账号上下文（例如
+`Alice @ Acme`、`Alice @ Personal`）。展示可以使用组织 endorsement 的名称或图标代替 raw DID，
+但内部选择与比较必须保留完整 AccountId。通知与未读数按 AccountId 分桶；不允许因
+`principal_id` 相同而合并两个账号。
 
 请求参数(query string,无 body):
 
@@ -388,7 +380,7 @@ event_id ASC
 
 ### 8.1 Member Roster, Identity Projection, and Handle Claims
 
-`state.events` 中的 `ak.member.state` 是成员资格的权威真相源；它由 reducer 决策，携带完整 `actor_id`、`membership`、`delivery_binding`、proof refs 等字段。客户端按 seal view + Lattice cell value 解释这些事件。
+`state.events` 中的 `ak.member.state` 是成员资格的权威真相源；它由 reducer 决策，携带完整 `member_id: ActorId`、`membership` 与 proof refs。客户端按 seal view + Lattice cell value 解释这些事件；路由服务直接从 ActorId 投影，不读取平行 binding 状态。
 
 为给客户端列表视图（成员侧栏、participant 标识、@mention 自动补全初始集）提供一份轻量 roster，服务端 MAY 在每个 Realm 响应里附带 `member_roster.entries[]` 字段。`member_roster.entries[]` 是 `ak.member.state` cell、当前 effective `ak.member.identity.update` set 和当前可见 handle-claim set 的派生 hint，不参与 state hash / frontier 计算，也不替代逐事件验证。`member_roster.entries[]` MUST NOT 把 display name 或裸 handle 字符串直接作为 roster 字段回填；若返回 handle，MUST 作为完整签名 `ak.schema.handle_claim.v1` evidence 或其 digest/ref 返回。
 

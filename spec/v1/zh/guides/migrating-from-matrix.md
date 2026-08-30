@@ -141,10 +141,10 @@ Matrix 导入只能生成显式迁移 evidence，不能把旧的跨设备信任�
 
 Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标识符，没有跨设备 / 跨通道 / 跨 Realm 的不可链接性规范。Arkret 在 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.6 引入 `push_target_id`：
 
-- per `(recipient_id, principal, device, push_route)` 伪名；熵下限和高安全部署参数见 `device-lifecycle.md` §5.6.1。
+- per `(account_id, device_id, push_route)` 伪名；熵下限和高安全部署参数见 `device-lifecycle.md` §5.6.1。
 - 伪名派生不使用公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码作为可观察输入。
-- 同一 principal 在不同 `recipient_id`、两台设备或同一 device 的两条 push_route 上得到不可链接的 `push_target_id`。
-- gateway / vendor 不保存可逆映射；被 member delivery binding 授权的 Principal Server sync surface 在本服务上下文内持有运行时索引。
+- 同一 principal 在不同 Principal Server、两台设备或同一 device 的两条 push_route 上得到不可链接的 `push_target_id`。
+- gateway / vendor 不保存可逆映射；被 joined-member ActorId routing projection 授权的 Principal Server sync surface 在本服务上下文内持有运行时索引。
 - 推送 payload 以加密 envelope 或等价 ephemeral encrypted blob 表达，gateway / vendor 不持有解密语义。
 
 #### 4.5.7 Arkret 新增的密钥类别

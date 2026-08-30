@@ -25,10 +25,14 @@
       "instance": {
         "value": {
           "discoverability": "listed",
-          "directory_ids": ["ak:did_core:webvh:z6mkdirectoryfixture"],
+          "directory_ids": [
+            "ak:did_core:webvh:z6mkdirectoryfixture"
+          ],
           "anti_enumeration": {
             "member_count_mode": "bucketed",
-            "member_count_hysteresis": {"ratio": 0.15},
+            "member_count_hysteresis": {
+              "ratio": 0.15
+            },
             "member_count_min_residence_ms": 300000
           }
         }
@@ -42,7 +46,12 @@
       "instance": {
         "value": {
           "discoverability": "listed",
-          "preview": {"mode": "directory_card", "fields": ["title"]}
+          "preview": {
+            "mode": "directory_card",
+            "fields": [
+              "title"
+            ]
+          }
         }
       }
     },
@@ -76,13 +85,23 @@
       "expect_valid": true,
       "instance": {
         "value": {
-          "schema_refs": ["ak.schema.message.v1"],
+          "schema_refs": [
+            "ak.schema.message.v1"
+          ],
           "morph_kind_profiles": {
             "task": {
-              "allowed_facets": ["assignable"],
-              "writable_fields": ["title"],
-              "required_schema_refs": ["ak.schema.message.v1"],
-              "required_capability_actions": ["ak.morph.update"]
+              "allowed_facets": [
+                "assignable"
+              ],
+              "writable_fields": [
+                "title"
+              ],
+              "required_schema_refs": [
+                "ak.schema.message.v1"
+              ],
+              "required_capability_actions": [
+                "ak.morph.update"
+              ]
             }
           }
         }
@@ -95,8 +114,14 @@
       "first_expected_error": "contains:allow_all_fields",
       "instance": {
         "value": {
-          "schema_refs": ["ak.schema.message.v1"],
-          "morph_kind_profiles": {"task": {"allow_all_fields": true}}
+          "schema_refs": [
+            "ak.schema.message.v1"
+          ],
+          "morph_kind_profiles": {
+            "task": {
+              "allow_all_fields": true
+            }
+          }
         }
       }
     },
@@ -105,7 +130,9 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload",
       "expect_valid": true,
       "instance": {
-        "value": {"policy_id": "ak:policy:01991e10-0000-7000-8000-000000000000"}
+        "value": {
+          "policy_id": "ak:policy:01991e10-0000-7000-8000-000000000000"
+        }
       }
     },
     {
@@ -126,11 +153,16 @@
       "expect_valid": true,
       "instance": {
         "policy_revision": 1,
-        "handle_issuer_policies": [{
-          "issuer_id": "ak:did_core:webvh:z6mkissuerfixture",
-          "authorized_handle_domains": ["example.com", "*.corp.example.com"],
-          "issuer_class": "domain_authority"
-        }]
+        "handle_issuer_policies": [
+          {
+            "issuer_id": "ak:did_core:webvh:z6mkissuerfixture",
+            "authorized_handle_domains": [
+              "example.com",
+              "*.corp.example.com"
+            ],
+            "issuer_class": "domain_authority"
+          }
+        ]
       }
     },
     {
@@ -140,7 +172,9 @@
       "first_expected_error": "contains:handle_issuer_policies",
       "instance": {
         "policy_revision": 1,
-        "handle_issuer_policies": ["ak:did_core:webvh:z6mkissuerfixture"]
+        "handle_issuer_policies": [
+          "ak:did_core:webvh:z6mkissuerfixture"
+        ]
       }
     },
     {
@@ -162,7 +196,9 @@
       "expect_valid": false,
       "first_expected_error": "contains:anonymous_max",
       "instance": {
-        "disclosure_max": {"anonymous_max": "opaque"}
+        "disclosure_max": {
+          "anonymous_max": "opaque"
+        }
       }
     },
     {

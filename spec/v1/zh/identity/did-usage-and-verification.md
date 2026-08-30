@@ -125,7 +125,7 @@ Document 解析、history 验证或网络请求：
 - 已认证 session 中由同一 accepted device / agent key epoch 签署的普通 Event 提交；
 - replay、backfill、snapshot 重放或历史查询已经携带并命中 pinned auth-state / historical
   verification binding 的材料；
-- 使用已物化的 `member_delivery_binding.service_resolution` 或 fresh route cache 路由到已经验证并被 Realm policy 接受的 service `did_core_id`；
+- 从完整 AccountId/ActorId 派生目标 Principal Server identity，并使用 fresh service-resolution route cache；
 - 展示 verification badge 的缓存状态。UI 可以显示 `verified` / `stale` / `unknown`，但显示路径
   不能升级成 authority path。
 
@@ -151,7 +151,7 @@ DID freshness 是正交维度；高风险只要求其**实际授权根**新鲜�
 
 下列操作对 human principal **不创建 DID authority call**：普通或高风险 Event 写入、device
 authorize/revoke、PCR-policy recovery、capability grant/revoke、MLS commit、membership/join/invite、
-session 恢复、账号删除/擦除、Contact 与既有 delivery binding 使用。它们必须验证 fresh PCR、device、
+session 恢复、账号删除/擦除、Contact 与既有 AccountId / ActorId 使用。它们必须验证 fresh PCR、device、
 recovery policy、capability、MLS、account 或 service authority；DID host 不可达不得改变这些状态。
 
 出现新的 human device generation 或 `verification_method` 不自动触发 current DID 验证。device key
@@ -361,7 +361,7 @@ witness 级失效触发（witness 被撤销、witness 组织归属被合并判�
 - Event ingress MUST 对每个签名做密码学验证，但 SHOULD 从 Event 所引用的 Seal / auth-state、
   device authorization、agent signer evidence 或 pinned historical binding 取得 key。只有缺少
   该绑定且 §4 允许建立新信任时才进入 DID 权威验证；否则 fail closed。
-- Service endpoint 发现与 DID 控制权验证是两件事。已接受的 `member_delivery_binding` 携带
+- Service endpoint 发现与 DID 控制权验证是两件事。完整 AccountId/ActorId 固定目标服务身份，service resolution 携带
   `ServiceResolutionRecord` / current-record ref；验证 record 后得到 `base_url`，再以 `ServiceDescribe`
   作第二跳确认。发现到一个新 endpoint 不会自动证明 service identity 控制权，反过来也不要求每次
   HTTP 请求都重新解析 method history；fresh route cache 是允许的实现优化。

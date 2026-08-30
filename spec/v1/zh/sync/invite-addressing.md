@@ -8,7 +8,6 @@ see_also:
   - service-http-binding.md
   - third-party-invites.md
   - ../identity/identity-handles.md
-  - ../governance/member-delivery-binding.md
 ---
 
 ## 0. 规范语言
@@ -48,7 +47,7 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle.v1(int
 
 invite/locator 的权威首跳仍是必填 current `service_resolution`；它不得只携 future notice 或 mirror hint。schema MAY 允许一个可选、transport-only 的 `route_assistance`：其中 `handover_notice` 最多一份，必须是该 `recipient_id` 的完整 target-signed active `ServiceRouteHandoverNotice`；`mirror_hints[]` 最多四项，每项只含 mirror service `did_core_id` 及其独立 `service_resolution_carrier`，不得含 mirror 自签的 target URL。该对象不进入 `ak.invite.create` 的授权语义，不替代 `invite_delivery_target`，接收方 MAY 忽略。
 
-使用 `route_assistance` 时仍必须执行 [`service-surface.md` §2.6](./service-surface.md) 与 [`federation.md` §6.4](./federation.md)：notice 只能在 basis/time window 匹配时引导取得正式 successor；mirror hint 只有在 requester/target 的 Realm-scoped 授权独立成立时才能查询。该有界 hint 是 v1 唯一的 mirror bootstrap 来源；它不授予权限、不进入 owner handover 的必要通知集合，也不得被通用 resolver 持久化成部署级 mirror 列表。invite/locator token 的到期时间不能延长 record、notice 或 mirror carrier 的有效期，notice 或 mirror 也不能延长 token；任一组成部分到期都按自己的边界 fail closed。为避免披露 Realm topology，producer 只能列出 signed invite 与 inviter 当前 member delivery binding 已向 invitee Principal Server 授权的有界路由提示，不得附完整成员列表。
+使用 `route_assistance` 时仍必须执行 [`service-surface.md` §2.6](./service-surface.md) 与 [`federation.md` §6.4](./federation.md)：notice 只能在 basis/time window 匹配时引导取得正式 successor；mirror hint 只有在 requester/target 的 Realm-scoped 授权独立成立时才能查询。该有界 hint 是 v1 唯一的 mirror bootstrap 来源；它不授予权限、不进入 owner handover 的必要通知集合，也不得被通用 resolver 持久化成部署级 mirror 列表。invite/locator token 的到期时间不能延长 record、notice 或 mirror carrier 的有效期，notice 或 mirror 也不能延长 token；任一组成部分到期都按自己的边界 fail closed。为避免披露 Realm topology，producer 只能列出 signed invite 与 inviter 当前 joined-member ActorId routing projection 已向 invitee Principal Server 授权的有界路由提示，不得附完整成员列表。
 
 ## 2. Introduction Evidence
 
@@ -69,7 +68,7 @@ invite/locator 的权威首跳仍是必填 current `service_resolution`；它不
 
 `consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.grant` 在被邀请方(`invite_address.subject_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
-`handle_claim` evidence 的接收方验证: `handle_claim.handle == evidence.handle`，`handle_claim.subject == invite_address.subject_id`，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，issuer / Directory / visibility / audience 满足 subject policy 与部署约束。若 handle claim 携带 `member_delivery_binding`，还 MUST 校验 `handle_claim.member_delivery_binding.recipient_id == invite_address.recipient_id`；若 evidence 携带 `member_delivery_binding_candidate`，还 MUST 校验 `candidate.subject_id == invite_address.subject_id`、`candidate.handle == evidence.handle`、`candidate.member_delivery_binding.recipient_id == invite_address.recipient_id`、`candidate.intent == "invite"`、`audience` 匹配当前邀请上下文且 proof 有效。任何校验失败 MUST 降级按 `explicit_address` 处理，MUST NOT 因为 handle 字符串可解析就通知用户。
+`handle_claim` evidence 的接收方验证：`handle_claim.handle == evidence.handle`，`handle_claim.subject_account_id == invite_address.account_id`，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，且 issuer / Directory / visibility / audience 满足 subject policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
 
 ## 3. 在线 Principal Locator
 
@@ -165,7 +164,7 @@ token 要求：
 5. `proofs[]` MUST 至少包含 `recipient_service_acceptance`；高安全 / audited / enterprise 部署 SHOULD 同时要求 `subject_locator_authorization`。
 6. verifier MUST 验证 `service_resolution` 得到当前 signed `ServiceResolutionRecord`，确认 `record.service_id == recipient_id`、`project(record.did) == recipient_id`、freshness 与 endpoint binding；若缺少 `subject_locator_authorization`，还 MUST 通过 account binding 或 service delegation 证明该 service `did_core_id` 有权代表 `subject_id` 发布 locator。
 
-`principal_locator` 不是 membership grant、不是 invite accept proof、不是 `member_delivery_binding`。它只证明“可以把这次邀请投递给这个 Principal Server 处理”。
+`principal_locator` 不是 membership grant，也不是 invite accept proof。它只证明该 exact AccountId 与 Principal Server service resolution 的寻址关系。
 
 ## 5. 接收策略
 
@@ -346,7 +345,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
 5. 验证 `invite_event.payload.invitee == invite_address.subject_id`。
 6. 验证 `invite_event.payload.invite_delivery_target.recipient_id == invite_address.recipient_id`，且两处 `service_resolution` 逐字节相等。
    可选 `route_assistance` 只存在于 delivery transport；不得要求它写入或匹配 durable invite Event，也不得把它当作本步骤的授权证据。
-7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。对 `consent_grant` evidence,MUST 按 §2 校验 `consent_grant_ref` 是被邀请方给 inviter 的 active `invite` / `any` grant dot；校验失败 MUST 降级为低信任 `explicit_address` 处理。对 `handle_claim` evidence,MUST 按 §2 校验 handle claim、issuer / Directory trust、domain allowlist、expiry、audience、handle claim 自带的 `member_delivery_binding`（若存在）和可选 `member_delivery_binding_candidate`；校验失败 MUST 降级为低信任 `explicit_address` 处理。
+7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定 `invite_address.account_id`、issuer / Directory trust、domain allowlist、expiry 与 audience。失败时降级为低信任 `explicit_address`，不得直接通知或物化 membership。
 8. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `denied_principal_services`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
 9. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `denied_subjects` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与“限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny”落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
 
@@ -418,7 +417,7 @@ base clients MUST NOT require `resolve_handle(intent="invite" | "member_add")` t
 
 ## 9. Handle 与 Mention 边界
 
-`ak.find.directory.read.resolve_handle.v1(intent="contact_request" | "invite" | "member_add")` 是可选 Directory 能力，不是 base first-contact / invite / member-add 的安全关键路径。Directory 即使返回 `member_delivery_binding` 或旧式 `MemberDeliveryBindingCandidate`，也只能作为可验证 builder evidence 或 `handle_claim` introduction evidence；reducer 仍 MUST 按 Join Policy 与 [`member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化。
+`ak.find.directory.read.resolve_handle.v1(intent="contact_request" | "invite" | "member_add")` 是可选 Directory 能力，不是 base first-contact / invite / member-add 的安全关键路径。Directory 只可返回逐字绑定 exact AccountId 的可验证 handle claim；reducer 仍 MUST 按 Join Policy 验证 target holder acceptance，不能把解析成功当作 membership。
 
 Realm 内 mention 不依赖公网 handle resolve。客户端在用户输入 `@alice:acme.example` 时 MUST 先从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 中解析到 `subject_id`。发送 Message 前必须持久化 DID-sealed mention reference；handle 字符串只能作为 audit / search metadata。
 

@@ -215,7 +215,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "reducer_profile": "ak.reducer.core.v1",
       "security_class": "high_assurance",
       "title": "External Collaboration",
-      "created_by": "ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL",
+      "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
       "trust_domain": "ak:trust_domain:did.webvh.defense.example",
       "owning_organization_ids": [
         "ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL"

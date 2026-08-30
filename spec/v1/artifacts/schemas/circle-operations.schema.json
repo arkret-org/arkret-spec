@@ -27,8 +27,8 @@
     }
   ],
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    "actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "event_id": {
       "$ref": "./account-operations.schema.json#/$defs/event_id"
@@ -161,19 +161,19 @@
         "member_ids": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did_core_id"
+            "$ref": "#/$defs/actor_id"
           },
           "uniqueItems": true,
-          "description": "Active Circle member DIDs (strict subset of parent Realm.members). Empty after tombstone."
+          "description": "Active Circle member ActorIds (strict subset of parent Realm.members). Empty after tombstone."
         },
         "created_by": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
         },
         "updated_by": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
@@ -425,7 +425,7 @@
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "membership": {
           "$ref": "./event-payload.schema.json#/$defs/membership_state"

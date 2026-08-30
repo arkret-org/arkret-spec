@@ -8,7 +8,7 @@ updated: 2026-08-11
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
 
-`ak.vector.identity.principal_server_admission.v1` 覆盖 account authority pair 终身单 account / 单 PCR genesis 唯一性：deactivation 后同一 Principal Server replacement account 仍拒绝；deployment policy 可拒绝 reactivation，policy allow 也必须在 completed PCR recovery closure 后只恢复原 account/PCR 并绑定更高 device generation；另一 Principal Server 完整 onboarding 是独立选择而非强制恢复路径。该向量还覆盖 Event 顶层 `principal_server_id`、producer proof 精确绑定、origin-only admission、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `principal-server-admission-fixture.json` 的全部 semantic cases；任何以 PCR identifier 比较外部 principal equality、deactivation 后释放同 pair uniqueness、用 account auth/admin 绕过 PCR recovery、复活旧 generation 资源、接收服务重签或独立 signer-evidence sidecar 都不合格。
+`ak.vector.identity.principal_server_admission.v1` 覆盖 `AccountId` 终身单 account / 单 PCR genesis 唯一性：deactivation 后同一 Principal Server replacement account 仍拒绝；deployment policy 可拒绝 reactivation，policy allow 也必须在 completed PCR recovery closure 后只恢复原 account/PCR 并绑定更高 device generation；另一 Principal Server 完整 onboarding 是独立选择而非强制恢复路径。该向量还覆盖 Event 完整 `ActorId` 的 producer 签名、由实际 author ActorId 唯一导出的 origin service、producer proof 精确绑定、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `principal-server-admission-fixture.json` 的全部 semantic cases；任何以裸 principal/PCR identifier 比较外部 account equality、deactivation 后释放同 pair uniqueness、用 account auth/admin 绕过 PCR recovery、复活旧 generation 资源、接收服务重签或独立 signer-evidence sidecar 都不合格。
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
 2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
@@ -16,7 +16,7 @@ updated: 2026-08-11
 4. Capability（authority chain、revoke、approval）
 5. Sync（client sync、pagination、snapshot、MLS epoch backfill）
 6. Space Lifecycle
-7. Member Delivery Binding
+7. AccountId 身份
 8. Handle
 9. Security Closure
 10. Service Closure
@@ -1790,7 +1790,7 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
   },
   "state": "redacted",
   "state_changed_at": "2026-04-26T00:05:00.000Z",
-  "created_by": "ak:did_core:webvh:z6mkfixture",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -1812,7 +1812,7 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
   },
   "state": "redacted",
   "state_changed_at": "2026-04-26T00:05:00.000Z",
-  "created_by": "ak:did_core:webvh:z6mkfixture",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -1831,9 +1831,9 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
   },
   "state": "redacted",
   "state_changed_at": "2026-04-26T00:05:00.000Z",
-  "created_by": "ak:did_core:webvh:z6mkfixture",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00.000Z",
-  "updated_by": "ak:did_core:webvh:z6mkfixture",
+  "updated_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixture","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "updated_at": "2026-04-26T00:05:00.000Z"
 }
 ```
@@ -2486,7 +2486,7 @@ ak.vector.auth.sensitive_field_handling.v1
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "kind": "board",
           "title": "Release Board",
-          "created_by": "ak:did_core:webvh:z6mkfixtureAlice",
+          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
           "created_at": "2026-04-26T00:00:00Z"
         }
       }
@@ -2505,7 +2505,7 @@ ak.vector.auth.sensitive_field_handling.v1
           "kind": "list",
           "title": "Todo",
           "rank": "U",
-          "created_by": "ak:did_core:webvh:z6mkfixtureAlice",
+          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
           "created_at": "2026-04-26T00:00:00Z"
         }
       }
@@ -2529,7 +2529,7 @@ ak.vector.auth.sensitive_field_handling.v1
             }
           },
           "stage": "planned",
-          "created_by": "ak:did_core:webvh:z6mkfixtureAlice",
+          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
           "created_at": "2026-04-26T00:00:00Z"
         },
         "initial_relations": [
@@ -2819,7 +2819,7 @@ Expected：
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "kind": "board",
           "title": "Release Board",
-          "created_by": "ak:did_core:webvh:z6mkfixtureAlice",
+          "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
           "created_at": "2026-05-15T10:00:00Z"
         }
       }
@@ -3027,270 +3027,55 @@ Expected：
 - 客户端正确路径：先 `ak.space.restore`，update 通过后再决定是否 `ak.space.archive`。
 - 该向量对 Strand / Morph `*.update` 等价同形。
 
-## 7. Member Delivery Binding Vectors
+## 7. AccountId 身份向量
 
-### 7.1 目标
+### 7.1 规范形式与相等性
 
-验证 `ak.member.state{membership="join"}` 的 `delivery_binding` payload 是 Realm-scoped event 投递的唯一权威路由源：
-- schema-level conditional required 字段强制执行；
-- DID Document service entry **不构成** fallback；
-- 路由失败时 sender fail-closed（quarantine + retry，不退回 DID Document）；
-- rebind 通过 causal frontier handover；
-- 撤销后投递立即停止。
-
-下列向量假设 Realm `ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ`、actor `ak:did_core:webvh:01HV...` 已存在；具体 id 仅作占位。本节是 normative vector description；机器可执行 fixture 位于 [`../../artifacts/fixtures/membership-delivery-binding-fixture.json`](../../artifacts/fixtures/membership-delivery-binding-fixture.json)，runner MUST 同时消费该 fixture 与本文 prose，不得再依赖未落地的目录约定。
-
-### 7.2 Vector: `explicit` Binding 接受
-
-`vector_id`: `ak.vector.membership.delivery_binding.explicit.v1`
-
-Input — `ak.member.state{membership="join"}` Control Move payload：
+`AccountId` 是闭合对象 `{principal_id, principal_server_id}`，两个分量都 MUST 是 canonical
+`did_core_id`。用于比较、签名和 cell key 投影的 JCS canonical bytes 为：
 
 ```json
-{
-  "realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
-  "actor_id": "ak:did_core:webvh:01HV...",
-  "membership": "join",
-  "delivery_status": "routable",
-  "delivery_binding": {
-    "recipient_id": "ak:did_core:webvh:z6mkfixturePrincipal",
-    "service_resolution": {
-      "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturePrincipal/resolution"
-    },
-    "recipient_kind": "principal_server",
-    "binding_scope": "realm",
-    "binding_source": "explicit",
-    "delivery_modes": ["events", "sync", "to_device", "push", "keypackages"],
-    "resolved_at": "2026-05-19T10:00:00Z",
-    "service_acceptance_ref": "ak:event:AX8dnXKxevlgfFVveXrrOv2EsH17lfDMuGWDWryItfd6"
-  },
-  "gate_proofs": [ "..." ]
-}
+{"principal_id":"ak:did_core:webvh:z6mkfixturealice","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalservera"}
 ```
 
-预设：Realm policy `ak.realm.delivery_binding_policy` 声明 `allowed_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `ak:did_core:webvh:z6mkfixturePrincipal`、`required_endorsers` 含 `ak:did_core:webvh:z6mkfixtureAcme`，`service_acceptance_ref` 引用的 Event 由该 recipient service `did_core_id` 签发且 scope 覆盖该 Realm，并由 `required_endorsers` 中的组织 `did_core_id` 背书。
+实现 MUST 接受成员输入顺序不同但 JCS bytes 相同的对象。缺少任一分量、增加未知成员、使用带参数、路径、查询或 fragment 的 DID、
+handle、本地数据库键，或从请求上下文推断任一分量时，MUST 拒绝。
 
-期望：
-- reducer 接受 join Control Move；写入成员 cell。
-- 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/keypackages MUST 走 binding 中 `ak:did_core:webvh:z6mkfixturePrincipal` 对应的已验证 `service_resolution` route，**禁止**触发 DID Document service entry resolution。
+### 7.2 同一 principal core 位于两个服务器
 
-### 7.3 Vector: `did_document_default` Fallback 物化
+给定相同 `principal_id` 与两个不同 `principal_server_id`，reducer MUST 派生两个不同账号身份与两个不同账号
+membership cell。一个 AccountId 的 join、leave、grant、MLS ownership 与邀请接受 MUST NOT 影响另一个。
+相等性 MUST 比较两个 typed 分量，不得比较原始 JSON 文本，也不得只比较 `principal_id`。
 
-`vector_id`: `ak.vector.membership.delivery_binding.did_document_default.v1`
+### 7.3 AccountId 单点变异失败
 
-Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `did_document_default_allowed=true`，其余字段未限制；Alice DID Document service `type="ArkretService", serviceKind="principal_server"` 指向 `did:webvh:z6mkfixture:personal.alice.example`，canonical hash `sha256:abc...`。
+从有效的 signed AccountId transcript 出发，分别改变 `principal_id`、改变 `principal_server_id`、删除任一成员、
+增加未知成员，或把任一分量换成非 canonical 表示。每个变异 MUST 在任何状态写入前因签名、schema 或 exact identity
+验证失败。resolver、DID Document、session audience 与接收服务 MUST NOT 补齐缺失分量。
 
-客户端构造 join Control Move 时 MUST 先解析 DID Document 并物化进 binding：
+### 7.4 ActorId 分支隔离
 
-```json
-{
-  "realm_id": "ak:realm:...",
-  "actor_id": "ak:did_core:webvh:01HV...",
-  "membership": "join",
-  "delivery_status": "routable",
-  "delivery_binding": {
-    "recipient_id": "ak:did_core:webvh:z6mkfixturePersonal",
-    "service_resolution": {
-      "current_record_url": "https://personal.alice.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturePersonal/resolution"
-    },
-    "recipient_kind": "principal_server",
-    "binding_scope": "realm",
-    "binding_source": "did_document_default",
-    "delivery_modes": ["events", "sync", "to_device", "push", "keypackages"],
-    "resolved_at": "2026-05-19T10:00:00Z",
-    "document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
-  }
-}
-```
-
-期望：
-- reducer 接受 join Control Move（`document_digest` 与 `resolved_at` 满足 conditional required）。
-- 同形 Move 缺少 `document_digest` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
-- 同形 Control Move 在 Realm policy `did_document_default_allowed=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
-- 一旦该 join 被接受，sender **不得**在后续投递时 re-resolve DID Document——即使 DID Document 已更新指向新服务，仍按 cell 内 `delivery_binding` 投递，直到一次合法 rebind。
-
-### 7.4 Vector: `unroutable` 成员
-
-`vector_id`: `ak.vector.membership.delivery_binding.unroutable.v1`
-
-Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `unroutable_membership_allowed=true`。Alice join Control Move 携带：
-
-```json
-{
-  "realm_id": "ak:realm:...",
-  "actor_id": "ak:did_core:webvh:01HV...",
-  "membership": "join",
-  "delivery_status": "unroutable"
-}
-```
-
-注意 `delivery_binding` 字段**缺失**，但 schema conditional `delivery_status=unroutable` 时不要求 binding。
-
-期望：
-- reducer 接受。
-- 任何 sender 计算"该 Realm S 应投递给 Alice"的目标集合时 MUST 跳过该成员；不得用 DID Document 推导 fallback。
-- 客户端对该成员的本地视图：只展示在 reducer state 与本地索引中，但不向其推送通知 / sync / push / to_device。
-- 同形 Control Move 在 Realm policy `unroutable_membership_allowed=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
-
-### 7.5 Vector: Rebind Handover + 撤销后停止投递
-
-`vector_id`: `ak.vector.membership.delivery_binding.handover.v1`
-
-序列：
-
-1. **Initial join**（`F0`）：Alice join with personal service `recipient_id=ak:did_core:webvh:z6mkfixturePersonal` 及匹配的 `service_resolution`，accepted。
-2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 按该 verified route 投递。
-3. **Rebind**（`F1`）：Alice 提交同状态 `ak.member.state{membership="join"}` self-transition，新 binding 指向组织 Principal Server 的 service `did_core_id` 与新 `service_resolution`，签名按 `rebind_authorization` 规则。Control Move accepted。
-4. **Post-rebind events**：sender 投递 `E3, E4` 时观察 `service_binding_ref.delivery_binding_frontier`：
-   - sender frontier ≥ `F1` → 按新 binding 的 service `did_core_id` 与 verified route 投递；
-   - sender frontier 仍 `< F1` 且投到旧 route → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_id=<new did_core_id> + handover_frontier=F1`；sender MUST 取得并验证新 binding carrier 后切换重试，**不得**回退到 DID Document。
-   - sender frontier ≥ `F1` 但仍投到旧 → 旧服务 reject `delivery_binding_handed_over`。
-5. **Grace 结束**：旧服务停止接受新 Realm S event；本地 to-device 队列、push registration、MLS group share state 进入 destruction。
-6. **撤销**：Alice 离职，Org-A 治理 key 提交 `ak.member.state{membership="leave"}` 或 `ak.capability.revoke`。`F2` 之后 sender MUST NOT 继续向新 binding route 投递该 Realm 的内容；MUST NOT 转而退回旧 personal route（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
-
-期望：
-- 整个序列中 sender 解析投递目标 MUST 完全依赖 effective member cell 的 `delivery_binding`，DID Document service entry 永远不被 query。
-- `delivery_binding_frontier` 字段在所有 service-to-service push 中均存在；sender 端落后 frontier 收到 stale signal 后 MUST 切换、不重投。
-- 撤销后 sender 试图继续投递 MUST 收到已登记的 `not_member`（membership 已撤销）或 `capability_denied`（投递 capability 已撤销）；MUST NOT 构造任何 "fallback to DID Document" 路径。
-
-### 7.5.1 Vector: Policy Mismatch 拒绝
-
-`vector_id`: `ak.vector.membership.delivery_binding.policy_mismatch.v1`
-
-Steps:
-
-1. Realm policy 不允许 `binding_source=explicit`，但 join Control Move 携带 explicit `delivery_binding`。
-2. Realm policy 声明 `allowed_recipient_services`，但 `delivery_binding.recipient_id` 不在集合内且没有满足 `required_endorsers` 的 proof。
-3. Realm policy 声明非空 `required_endorsers`，但 `service_acceptance_ref` 未被其中任一治理 DID 背书，即使 `recipient_id` 命中 `allowed_recipient_services` 或 `["*"]` 哨兵也一样。
-4. Realm policy 不允许 `unroutable_membership_allowed`，但 join Control Move 携带 `delivery_status="unroutable"`。
-
-Expected:
-
-- 每个 case MUST `failed_precondition`，`reason=delivery_binding_policy_mismatch`。
-- reducer MUST NOT fallback 到 DID Document，也不得接受成员后再把 delivery 状态标为 best-effort。
-
-### 7.6 覆盖矩阵
-
-| 字段 / 行为 | §7.2 explicit | §7.3 did_document_default | §7.4 unroutable | §7.5 rebind+revoke |
-| --- | --- | --- | --- | --- |
-| Conditional required (`service_acceptance_ref`) | ✓ | — | — | ✓ |
-| Conditional required (`document_digest`) | — | ✓ | — | — |
-| Policy `did_document_default_allowed=false` 拒绝 | — | ✓ | — | — |
-| Policy `unroutable_membership_allowed=false` 拒绝 | — | — | ✓ | — |
-| 投递路径 ≡ binding，无 DID Document fallback | ✓ | ✓ | ✓ (skip) | ✓ |
-| Rebind handover frontier 切换 | — | — | — | ✓ |
-| 撤销后停止投递且无 fallback | — | — | — | ✓ |
-
+账号成员使用 `{kind:"account",account_id:AccountId}`；托管 Agent/Ghost 使用
+`{kind:"hosted_principal",principal_id,principal_server_id}`；直接著写的 service 使用
+`{kind:"service",service_id}`。两个不同分支即使包含相同 DID Core 文本，其 ActorId 也不相等。discriminator MUST
+与已接受的 registration、Actor Profile 和 admission evidence 相符。
 ## 8. Handle Vectors
 
 ### 8.1 目标
 
-验证 `@user:domain` / `user@domain` 这类人类可读地址只作为寻址输入，最终必须解析为 DID 与 Realm-scoped delivery binding。
+验证 `@user:domain` / `user@domain` 只作为人类可读寻址输入；账号 handle claim 与 Directory resolve 输出必须绑定
+exact `AccountId`，不得输出裸 `principal_id` 后再由调用方猜测 Principal Server。
 
-### 8.2 Vector: 组织 Handle 构造成 Join
+### 8.2 Exact AccountId 解析与邀请
 
-Input — 邀请方在 Acme 组织 Realm 中添加 `@alice:acme.example`。客户端调用：
+1. 解析有效 handle，获得签名覆盖的 `subject_account_id={principal_id,principal_server_id}`；
+2. 调用方验证 handle claim、issuer、Directory trust、expiry、audience 与 exact AccountId；
+3. 定向邀请把该值原样写入 `invitee_account_id`，投递服务由其中 `principal_server_id` 做 service resolution；
+4. 只有同一个 exact AccountId 的 holder-authenticated accept 才能物化 membership。
 
-```json
-{
-  "handle": "@alice:acme.example",
-  "intent": "member_add",
-  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "requester": "ak:did_core:webvh:z6mkfixtureBob",
-  "proof_challenge": "ak.challenge-001"
-}
-```
-
-Directory 返回 verified handle claim：
-
-```json
-{
-  "principal_id": "ak:did_core:webvh:z2dmjA1ice",
-  "subject": "ak:did_core:webvh:z2dmjA1ice",
-  "handle": "alice:acme.example",
-  "handle_aliases": [
-    "acct:alice@acme.example"
-  ],
-  "verified": true,
-  "audience": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "claims": [
-    {
-      "claim_kind": "organization_handle",
-      "handle": "alice:acme.example",
-      "handle_aliases": [
-        "acct:alice@acme.example"
-      ],
-      "subject": "ak:did_core:webvh:z2dmjA1ice",
-      "issuer": "ak:did_core:webvh:z6mkfixtureAcme",
-      "binding_state": "verified",
-      "audience": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-      "member_delivery_binding": {
-        "recipient_id": "ak:did_core:webvh:z6mkfixturePrincipal",
-        "service_resolution": {
-          "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturePrincipal/resolution"
-        },
-        "recipient_kind": "principal_server",
-        "binding_source": "organization_policy",
-        "delivery_modes": [
-          "events",
-          "sync",
-          "to_device",
-          "push",
-          "keypackages"
-        ],
-        "service_acceptance_ref": "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
-        "policy_event_ref": "ak:event:AYqLR5FWUtAxcyq2GwRsmHAf_zMFkYrFScSs4ouycARM"
-      },
-      "created_at": "2026-05-19T00:00:00Z",
-      "expires_at": "2026-08-19T00:00:00Z",
-      "proofs": [
-        {
-          "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
-          "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "created_at": "2026-05-19T00:00:00Z",
-          "audience": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-          "jws": "aaa.bbb.ccc"
-        }
-      ]
-    }
-  ],
-  "member_delivery_binding": {
-    "recipient_id": "ak:did_core:webvh:z6mkfixturePrincipal",
-    "service_resolution": {
-      "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturePrincipal/resolution"
-    },
-    "recipient_kind": "principal_server",
-    "binding_source": "organization_policy",
-    "delivery_modes": [
-      "events",
-      "sync",
-      "to_device",
-      "push",
-      "keypackages"
-    ],
-    "service_acceptance_ref": "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
-    "policy_event_ref": "ak:event:AYqLR5FWUtAxcyq2GwRsmHAf_zMFkYrFScSs4ouycARM"
-  },
-  "expires_at": "2026-08-19T00:00:00Z"
-}
-```
-
-Expected join Control Move:
-
-- `payload.actor_id = ak:did_core:webvh:z2dmjA1ice`。
-- `payload.delivery_binding.recipient_id = ak:did_core:webvh:z6mkfixturePrincipal`，并携带匹配的 `service_resolution` carrier。
-- `payload.delivery_binding.binding_source = organization_policy`。
-- `payload.delivery_binding.service_acceptance_ref` 与 `policy_event_ref` 来自 verified claim / policy。
-- Control Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Realm history。
-
-Negative cases：
-
-- Directory 返回 `verified=false` 或 challenge / audience 不匹配 → builder MUST NOT 构造 handle-based join。
-- 返回 `subject != did` → client MUST reject `handle_subject_mismatch`。
-- 返回 `member_delivery_binding.recipient_id` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_policy_mismatch`。
-- 返回无 `member_delivery_binding.recipient_id` → 只能作为 DID lookup；除非 Realm policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。
-
+同 core、不同 server 的账号、只匹配裸 `principal_id` 的候选、过期 claim、错误 issuer、额外 JSON 成员、以及从
+DID Document 或当前服务补出的 server 分量均 MUST 被拒绝。Handle claim 与 Directory 输出只提供寻址证据，不能替
+目标账号接受邀请，也不能直接写 membership。
 ## 9. Security Closure Vectors
 
 本节收拢跨章节引用的安全闭环向量。每个 `vector_id` 均为规范性引用目标；结构化覆盖位于 [`../../artifacts/fixtures/security-closure-fixture.json`](../../artifacts/fixtures/security-closure-fixture.json)，`tools/artifact_lint` 会校验该 fixture 覆盖本节要求的 security closure vector set，并校验每个 step 暴露可由实现测试消费的 `runner.given_state` / `operation` / `transcript` / `expected_state_transition` / `expected_external_response` / `expected_audit_reason` 字段。实现不得把这些 ID 当成仅供说明的标签。
@@ -3638,7 +3423,7 @@ Expected：
 
 Steps：
 
-1. requester 每次新尝试只生成一个至少 128-bit CSPRNG `claim_request_id`，并分别以 closed `device`、`native_agent` 与 `minimal_metadata_pairwise` requester authorization 提交 canonical claim；同一值同时作为 `Idempotency-Key`、durable ledger identity 与后续 `claim_envelope` canonical 签名 transcript 中从 exact `claim_receipt.claim_request_id` 派生的同名 challenge，不得生成第二个 `claim_nonce`，也不得在 envelope wire 中复制 `nonce`。authorization 签名覆盖 exact claim fields 与 `service_binding={source_id,destination_id}`。device/Agent 分支由 current accepted authorization Event / pairing 与 active generation 证明当前授权；pairwise 分支由 exact `ak:did_core:key:<mb>` + `did:key:<mb>#<mb>` key 和 Realm current membership/delivery binding 证明。source Principal Server 在任何 remote call 前完成 durable admission，destination 只以同一请求执行唯一 CAS。authority 在 destination 接受后丢失响应。
+1. requester 每次新尝试只生成一个至少 128-bit CSPRNG `claim_request_id`，并分别以 closed `device`、`native_agent` 与 `minimal_metadata_pairwise` requester authorization 提交 canonical claim；同一值同时作为 `Idempotency-Key`、durable ledger identity 与后续 `claim_envelope` canonical 签名 transcript 中从 exact `claim_receipt.claim_request_id` 派生的同名 challenge，不得生成第二个 `claim_nonce`，也不得在 envelope wire 中复制 `nonce`。authorization 签名覆盖 exact claim fields 与 `service_binding={source_id,destination_id}`。device/Agent 分支由 current accepted authorization Event / pairing 与 active generation 证明当前授权；pairwise 分支由 exact `ak:did_core:key:<mb>` + `did:key:<mb>#<mb>` key、Realm current membership 和 ActorId routing authority 证明。source Principal Server 在任何 remote call 前完成 durable admission，destination 只以同一请求执行唯一 CAS。authority 在 destination 接受后丢失响应。
 2. source Principal Server 先按同一 `claim_request_id + request_digest` 查询不确定结果；若为 `unknown` 才原样重发 command。再以同一 identity 修改 target / Realm / selector 得到另一 digest。
 3. 分别施加缺 authorization、混合/开放 branch、wrong service binding、wrong authorized Event/method、stale/future authorization、短 `claim_request_id`、额外旧 `claim_nonce`、未被 PCR 接受的设备、已 fence/revoke 的设备或 generation、Agent/service key 冒充普通设备、pairwise actor 与 method multibase 不一致、pairwise actor 不在 intended Realm、current delivery service 不等于 signed source、仅 bearer token、以及 authorization 有效但 target policy 不满足的单点变异。
 
@@ -3646,7 +3431,7 @@ Expected：
 
 - 正例必须按 `ak.keypackage-claim-authorization-v1` transcript 重建并验证 participant authorization；KeyPackage `published -> claimed` CAS、`(source_id, claim_request_id, request_digest)` ledger 与签名 receipt/outcome 只有一个线性化点，CAS 次数恰为 1。
 - 相同 identity/digest 的重试或 query 返回原 outcome，不得再次选择 KeyPackage；冲突 digest 在 inventory lookup 前以统一 `claim_failed` fail closed，内部 reason 为 `duplicate_conflict`。
-- 所有 proof/schema/freshness/authority 变异都在读取 target inventory 或改变状态前失败；proof 不替代 sender-constrained transport authentication、当前 revoke/lifecycle 或 Realm delivery-binding 检查、target policy 或后续 MLS claim envelope。pairwise actor 不得被要求创建 account/device，也不得由 transport session actor 推断。
+- 所有 proof/schema/freshness/authority 变异都在读取 target inventory 或改变状态前失败；proof 不替代 sender-constrained transport authentication、当前 revoke/lifecycle、完整 target ActorId 检查、target policy 或后续 MLS claim envelope。pairwise actor 不得被要求创建 account/device，也不得由 transport session actor 推断。
 - 首次到达的过期请求绝不创建 claim；已有 terminal ledger 只能向当前仍被授权的同一 requester/session binding 返回原 outcome。同一 `claim_request_id` 的 exact replay 返回 byte-identical 原 outcome，payload drift 冲突；新的 claim 尝试必须生成新的 `claim_request_id`，任何重放都不能创建第二次 claim。
 
 ### 10.3.5 Vector: Minimal-metadata Pairwise KeyPackage Full Lifecycle
@@ -3655,8 +3440,8 @@ Expected：
 
 Steps：
 
-1. Realm-local actor `A=ak:did_core:key:<mb>` 以 exact `M=did:key:<mb>#<mb>` 发布 KeyPackage；transport session 只承担访问与限流，不要求 session actor 等于 A。服务端验证 A/M、current Realm membership 与本服务 delivery binding，并逐条验证 MLS Leaf BasicCredential 和 signature key。
-2. requester 以 `minimal_metadata_pairwise` authorization 领取 exact A/M KeyPackage；source 与 destination 分别验证 requester/target current delivery binding，destination CAS 后签发 claim receipt。
+1. Realm-local hosted-principal ActorId 中的 `principal_id=A=ak:did_core:key:<mb>` 以 exact `M=did:key:<mb>#<mb>` 发布 KeyPackage；transport session 只承担访问与限流，不要求 session actor 等于 A。服务端验证完整 ActorId、A/M、current Realm membership 与 routing-service projection，并逐条验证 MLS Leaf BasicCredential 和 signature key。
+2. requester 以 `minimal_metadata_pairwise` authorization 领取 exact A/M KeyPackage；source 与 destination 分别验证 requester/target current ActorId routing authority，destination CAS 后签发 claim receipt。
 3. sender 提交 closed pairwise `ak.mls.welcome`，claim record、claim receipt、claim envelope 与 top-level recipient 逐字绑定 A/M/Realm/KeyPackage；recipient 用 M 接受并签发 durable receipt。
 4. A/M 以 single-claim consume request 原子消费，服务返回首次签发的 signed consume receipt；同一 canonical request 重放必须返回 byte-identical receipt。
 
@@ -6260,7 +6045,7 @@ Runner MUST 覆盖：
 
 1. 原 producer-signed encrypted `SignalEnvelope` 经一个 source → destination peer hop 后，ciphertext、proof 与 envelope digest identity 不变；
 2. `signals[]` 127/128/129、canonical request body 1 MiB−1/1 MiB/1 MiB+1、HTTP Message Signature `expires-created` 4,999/5,000/5,001 ms；
-3. request `realm_id` 与任一 envelope/scope Realm 不一致、第二 peer hop、source 不托管 sender、destination 不在 active member delivery binding、producer proof/Seal/TTL/AAD 无效；
+3. request `realm_id` 与任一 envelope/scope Realm 不一致、第二 peer hop、source 不托管 sender、destination 不在 active joined-member ActorId routing projection、producer proof/Seal/TTL/AAD 无效；
 4. 有 eligible local recipient 与无 eligible local recipient 的已认证合法 request 都返回逐字相同 `{"accepted":true}`，且无 count/per-item outcome；
 5. response 丢失时 source 不自动重放，不携带 `Idempotency-Key`，按 `drop_unconfirmed` 丢弃不确定结果；
 6. peer/live/local rails 重复、乱序或丢失不写 durable Event、不推进 actor sequence / Realm frontier，consumer 依靠下一自足 signal 或产品级 timeout/renegotiation 恢复；
@@ -6450,7 +6235,7 @@ Runner MUST 加载
     expiry；任一边界到达即 hard miss。`now == cache_expires_at` 或 `now == expires_at` 均不得继续路由，
     不得丢弃 signed expiry、以新本地 TTL 延长它、跳过 describe 或把 future notice candidate 当 current route。
 11. same-core 的 DID / URL successor 只推进 route floor 与 cache，不写 Realm member rebind；candidate
-   改为新 core 必须由新的 delivery binding / rebind 授权，不能被 notice、mirror 或 cache 接受。
+   改为新 core 必须由新的 ActorId change 授权，不能被 notice、mirror 或 cache 接受。
 12. 1:1 双方计划同时迁移时，只有 A durable ack B 的 exact notice 且 B durable ack A 的 exact notice 后，
     才可报告 cross-ack preannouncement complete 并按共同 cutover/grace 关闭旧入口；任一 ack 缺失、仅内存、
     digest 不一致或响应不确定时必须保留旧入口或其它已确认恢复面。
@@ -6471,13 +6256,13 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
    `service_unavailable`，不得漏 target，也不得泄露 service topology。
 3. `pending_route` 与 `pending_delivery` 跨重启、cache eviction 和尝试阈值保留；阈值只触发 operator alert，
    authority 仍有效时不得 dead-letter。
-4. route 恢复后必须先复校验 frozen exact member、membership Event ref、delivery-binding frontier 与 service。
+4. route 恢复后必须先复校验 frozen exact member、membership Event ref、membership ActorId frontier 与 service。
    至少一个 witness 仍成立才可按原 idempotency key 发送并推进 delivered。
 5. 全部 witness 失效时必须在网络发送前 terminal CAS 为 `cancelled_authority_lost`；后来相同 member/service 的
    新 join/rebind 不能复活旧 intent。
 6. 长期离线 target 不阻塞同 Realm 后续合法 Event；每个 Event 冻结自己的 authority generation 和独立 intent。
 7. `ak.self.events.read.delivery_status.v1` 对可见 Event 返回按 opaque target_id 排序的完整 target set；service_id
-   只在 caller 当前可读对应 member delivery-binding 时出现。unknown 与不可见 Event 统一 `not_found`，query
+   只在 caller 当前可读对应 joined-member ActorId routing projection 时出现。unknown 与不可见 Event 统一 `not_found`，query
    不得触发 route lookup、retry 或状态转换。
 8. submit outcome 保留的 `pending_delivery_count` 必须精确等于 pending_route 与 pending_delivery rows 数；read outcome 由完整 `targets[]` 现算该 count。两者的 aggregate state 均由 count 唯一派生：零为 complete，非零为 pending，wire 不重复携带 state。
 

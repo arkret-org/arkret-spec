@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-30.1",
+  "version": "2026-08-30.4",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-30T18:00:00+08:00",
+  "generated_at": "2026-08-30T23:59:59+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -87,7 +87,6 @@
         "push_target_unknown",
         "push_payload_too_large",
         "unsupported_profile",
-        "delivery_binding_stale",
         "push_token_unknown",
         "push_token_invalid"
       ],
@@ -716,9 +715,7 @@
         "realm_frozen",
         "quarantine",
         "membership_compensation_conflict",
-        "peer_stale",
-        "delivery_binding_stale",
-        "delivery_binding_handed_over"
+        "peer_stale"
       ],
       "description": "Federated Event submission uses only registered Event kinds. membership_compensation_conflict rejects an invalid, changed, expired or consumed compensation carrier without writing or deleting a newer membership incarnation. Direct Conversations have one scope-derived MLS group and ordinary same-group Commit repair; no dedicated repair carrier or candidate-fanout error exists."
     },
@@ -896,7 +893,7 @@
       "operation_id": "ak.peer.signal.command.relay.v1",
       "http_alias": "POST /_arkret/peer/signal",
       "operation_specific": [],
-      "description": "Optional encrypted-only single-hop Signal peer relay. Only outer peer authentication, trust-domain/destination-endpoint checks, cross-Realm batches and malformed/oversized requests use the universal minimally disclosing failure surface. Per-item unknown Realm/scope/sender, producer-proof, current member delivery-binding, TTL, action-gate, visibility, duplication and recipient failures are silently dropped behind the opaque accepted=true request outcome."
+      "description": "Optional encrypted-only single-hop Signal peer relay. Only outer peer authentication, trust-domain/destination-endpoint checks, cross-Realm batches and malformed/oversized requests use the universal minimally disclosing failure surface. Per-item unknown Realm/scope/sender, producer-proof, current joined-member ActorId routing authority, TTL, action-gate, visibility, duplication and recipient failures are silently dropped behind the opaque accepted=true request outcome."
     },
     {
       "operation_id": "ak.root.identity.command.submit_did_operation.v1",
@@ -1293,7 +1290,7 @@
         "applet_namespace_mismatch",
         "applet_registration_unauthorized"
       ],
-      "description": "Ghost Actor provisioning atomically accepts (or idempotently re-confirms) the caller-signed fixed four-Event unit: ak.applet.managed_actor.provision, the applet_managed_control PCR ak.realm.create genesis, ak.identity.accountability_grant, and ak.profile.create. The unit freezes the exact actor PrincipalAuthorityKey, registration/grant authority, initial resolution, PCR lineage, accountability, and external principal tuple. The server never signs for the Applet service or Ghost. It fails closed on invalid proofs/frontiers, a caller service DID that does not match the active applet registration, a realm outside effective scope (applet_registration_unauthorized), or a ghost_actor_id outside the registered actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
+      "description": "Ghost Actor provisioning atomically accepts (or idempotently re-confirms) the caller-signed fixed four-Event unit: ak.applet.managed_actor.provision, the applet_managed_control PCR ak.realm.create genesis, ak.identity.accountability_grant, and ak.profile.create. The unit freezes the exact hosted-principal ActorId, registration/grant authority, initial resolution, PCR lineage, accountability, and external principal tuple. The server never signs for the Applet service or Ghost. It fails closed on invalid proofs/frontiers, a caller service DID that does not match the active applet registration, a realm outside effective scope (applet_registration_unauthorized), or a ghost_actor_id outside the registered actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
     },
     {
       "operation_id": "ak.self.applet.install.command.preview.v1",
@@ -1329,7 +1326,7 @@
       "operation_id": "ak.self.authz.grants.read.effective.v1",
       "http_alias": "GET /_arkret/self/authz/effective-grants",
       "operation_specific": [],
-      "description": "Missing or malformed realm_id, subject or subject_principal_server_id uses universal param_invalid; unknown or unauthorized exact authority pairs remain non-enumerable."
+      "description": "Missing or malformed realm_id or subject_actor_id uses universal param_invalid; unknown or unauthorized exact actors remain non-enumerable."
     },
     {
       "operation_id": "ak.self.authz.invites.read.list.v1",
@@ -1628,7 +1625,7 @@
       "operation_specific": [
         "not_found"
       ],
-      "description": "Unknown and caller-invisible Events share the same not_found response. Target service identifiers are omitted unless the caller can currently read a contributing member delivery-binding."
+      "description": "Unknown and caller-invisible Events share the same not_found response. Target service identifiers are omitted unless the caller can currently read a contributing joined-member ActorId."
     },
     {
       "operation_id": "ak.self.events.read.describe.v1",

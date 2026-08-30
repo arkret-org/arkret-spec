@@ -10,8 +10,11 @@
     "ak.vector.applet.managed_actor_authority.v1"
   ],
   "authority_pair": {
-    "actor_id": "ak:did_core:webvh:z6mkfixtureghost",
-    "actor_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver"
+    "actor_id": {
+      "kind": "hosted_principal",
+      "principal_id": "ak:did_core:webvh:z6mkfixtureghost",
+      "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver"
+    }
   },
   "fixed_bot_unit_order": [
     "ak.applet.registration",
@@ -60,7 +63,7 @@
     },
     {
       "name": "remote_principal_server_claim",
-      "mutation": "actor_principal_server_id != receiving_principal_server_id",
+      "mutation": "actor_id.principal_server_id != receiving_principal_server_id",
       "expect": "applet_managed_actor_provision_invalid"
     },
     {
@@ -141,7 +144,7 @@
     },
     {
       "name": "rotation_wrong_authority_pair",
-      "mutation": "same actor_id but actor_principal_server_id selects a different lineage",
+      "mutation": "same actor_id.principal_id but actor_id.principal_server_id selects a different lineage",
       "expect": "applet_managed_actor_authority_mismatch"
     },
     {

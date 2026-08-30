@@ -34,6 +34,7 @@ MAX_REQUEST_EPOCHS = 65_536
 
 SERVICE_DID = "did:key:z6MkfixtureService"
 SERVICE_CORE = "ak:did_core:key:z6MkfixtureService"
+SERVICE_ACTOR = {"kind": "service", "service_id": SERVICE_CORE}
 SERVICE_METHOD = SERVICE_DID + "#key-1"
 EXPIRES = "2026-08-28T00:00:00.000Z"
 
@@ -164,8 +165,27 @@ def build_signer_evidence(schemas: SchemaSet) -> dict[str, Any]:
     history_head = "did-key-head-fixture"
     version_id = "did-key-v1"
     normalized_document = {
-        "id": SERVICE_DID,
-        "verificationMethod": [{"id": SERVICE_METHOD, "controller": SERVICE_DID}],
+        "did": SERVICE_DID,
+        "contexts": ["https://www.w3.org/ns/did/v1"],
+        "controller_dids": [],
+        "also_known_as": [],
+        "verification_methods": [
+            {
+                "verification_method": SERVICE_METHOD,
+                "controller_did": SERVICE_DID,
+                "verification_method_suite": "Multikey",
+                "public_key_material": {"publicKeyMultibase": "z6MkfixtureService"},
+                "extensions": [],
+            }
+        ],
+        "authentication": [{"verification_method": SERVICE_METHOD}],
+        "assertion_methods": [{"verification_method": SERVICE_METHOD}],
+        "key_agreements": [],
+        "capability_invocations": [],
+        "capability_delegations": [],
+        "services": [],
+        "metadata": {},
+        "extensions": [],
     }
     record = {
         "record": {
@@ -548,7 +568,7 @@ def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
         "request_id": "ak:history_request:019c0000-0000-7000-8000-000000000001",
         "kind": "ak.history_key.request",
         "effective_scope": {"kind": "realm", "realm_id": REALM},
-        "requester_actor_id": SERVICE_CORE,
+        "requester_actor_id": SERVICE_ACTOR,
         "requester_sender_domain": SERVICE_DID,
         "requester_authorization_incarnation": intent["authorization_incarnation"],
         "trusted_history_base_basis": case["trusted_history_base_basis"],
@@ -702,7 +722,7 @@ def build_source_agent_observation_digest_kat(schemas: SchemaSet) -> dict[str, A
     preimage = {
         "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000001",
         "effective_scope": {"kind": "realm", "realm_id": REALM},
-        "source_actor_id": SERVICE_CORE,
+        "source_actor_id": SERVICE_ACTOR,
         "source_sender_domain": "history.example",
         "request_digest": digest_marker(0x41),
         "request_receipt_digest": digest_marker(0x42),
@@ -778,7 +798,7 @@ def build_response_stream_kat(schemas: SchemaSet) -> dict[str, Any]:
     signing_input = {
         "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000301",
         "effective_scope": {"kind": "realm", "realm_id": REALM},
-        "source_actor_id": SERVICE_CORE,
+        "source_actor_id": SERVICE_ACTOR,
         "source_sender_domain": SERVICE_DID,
         "source_signer_evidence_ref": "ak:signer_evidence:" + signer_digest,
         "source_signer_evidence_digest": signer_digest,
@@ -953,11 +973,17 @@ def build_rrk_registration_rotation_kat(
         event.update({
             "event_id": event_id(label),
             "kind": kind,
-            "actor_id": register_tuple["holder_principal_id"],
-            "principal_server_id": register_tuple["holder_id"],
+            "actor_id": {
+                "kind": "account",
+                "account_id": {
+                    "principal_id": register_tuple["holder_principal_id"],
+                    "principal_server_id": register_tuple["holder_id"],
+                },
+            },
             "actor_seq": actor_seq,
             "payload": payload,
         })
+        event.pop("principal_server_id", None)
         event["proofs"][0]["verification_method"] = register_tuple["holder_signing_ref"]
         event["proofs"][0]["event_digest"] = sha256(jcs({k: v for k, v in event.items() if k != "proofs"}))
         return event
@@ -1203,8 +1229,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "kind": "ak.mls.commit",
         "realm_id": REALM,
         "scope_ref": effective_scope,
-        "actor_id": source_core,
-        "principal_server_id": source_core,
+        "actor_id": {"kind": "service", "service_id": source_core},
         "actor_seq": 7,
         "created_at": replicated_at,
         "prev_refs": [container_payload["base_epoch_ref"]],
@@ -1218,7 +1243,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
     event_binding = {
         "context": "ak.event_proof.v1",
         "event_digest": container_event_digest,
-        "actor_id": source_core,
+        "actor_id": container_event_core["actor_id"],
         "verification_method": source_method,
         "signer_resolution_evidence_ref": "ak:signer_evidence:" + source_evidence_digest,
         "signer_resolution_evidence_digest": source_evidence_digest,

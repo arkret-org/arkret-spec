@@ -20,7 +20,10 @@
         "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "controller_id": "ak:did_core:webvh:z6mkfixture",
         "base_url": "https://applet.example/cx",
-        "bot_actor_id": "ak:did_core:webvh:z6mkfixturebotexample",
+        "bot_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixturebotexample"
+        },
         "protocols": [
           "ak.applet.v1",
           "slack"

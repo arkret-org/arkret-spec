@@ -12,7 +12,6 @@
     "id",
     "schema",
     "issuer_id",
-    "issuer_principal_server_id",
     "subject",
     "actions",
     "resources",
@@ -31,16 +30,13 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "issuer_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
-    "issuer_principal_server_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Required reducer-derived issuer authority selector. For ak.capability.grant it is copied byte-for-byte from the accepted carrier Event.principal_server_id after verifying grant.issuer equals the Event author; producers MUST NOT author this field in event.payload.grant. Together with issuer it is the complete issuer authority key used by delegated-grant replay and liveness checks."
+      "$ref": "./common-ids.schema.json#/$defs/actor_id",
+      "description": "Exact issuing actor. Its closed ActorId shape already contains the account or hosted-principal routing authority when one exists; no parallel principal-server sidecar is permitted."
     },
     "subject": {
       "oneOf": [
         {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         {
           "type": "object",
@@ -59,10 +55,6 @@
           "additionalProperties": true
         }
       ]
-    },
-    "subject_principal_server_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Required when subject is a principal did_core_id. Together with subject it is the complete external account-authority key; PCR ids, receipt digests and frontier state are not grant identity selectors."
     },
     "actions": {
       "type": "array",
@@ -93,7 +85,7 @@
       "description": "Grant issuance time — carries the 'creation time' semantics for a Capability Grant in place of the generic created_at (models/common-fields.md §3.2). Retention / audit / ordering queries MUST use issued_at / expires_at / revoked_at rather than falling back to created_at."
     },
     "updated_by": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "$ref": "./common-ids.schema.json#/$defs/actor_id",
       "description": "Reducer-derived actor that produced the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."
     },
     "updated_at": {
@@ -101,7 +93,7 @@
       "description": "Reducer-derived timestamp for the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."
     },
     "revoked_by": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "revoked_at": {
       "$ref": "#/$defs/timestamp"
@@ -249,23 +241,6 @@
             }
           }
         }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "subject": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "subject"
-        ]
-      },
-      "then": {
-        "required": [
-          "subject_principal_server_id"
-        ]
       }
     }
   ],

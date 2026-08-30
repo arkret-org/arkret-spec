@@ -202,8 +202,8 @@ Signature profile。带 body 的 request MUST 携带并签名覆盖 `Content-Dig
 
 source 对每个 envelope MUST 先完成与 local `send` 相同的 schema、device proof（§1 设备
 授权域：current accepted directory）、signed `scope_ref`、`seal_ref`（Realm / scope 授权域）、
-`signal_class`、TTL 与 MLS/AAD admission，再按当前 accepted member
-delivery binding 计算 destination service 集。source 只向至少托管一个 scope 内 active member
+`signal_class`、TTL 与 MLS/AAD admission，再按当前 accepted joined-member ActorId 的封闭路由投影
+计算 destination service 集。source 只向至少托管一个 scope 内 active member
 的 service 发一份 request；request 不携带 member、principal、device 或精确产品 target 列表。
 一个 Realm 的多个 destination 由 source 分别直发，不能串成 relay chain。
 
@@ -213,8 +213,8 @@ destination 在任何 local fanout 前 MUST：
    canonical body digest 与 5 秒窗口；
 2. 要求所有 `signals[].realm_id == request.realm_id` 且
    `signals[].scope_ref.realm_id == request.realm_id`；
-3. 验证 `Source-Service-ID` 是每个 sender actor/device 在当前 accepted member delivery
-   binding 下的直接托管 service；不成立的 item 进入下述静默丢弃路径。这同时阻止
+3. 验证 `Source-Service-ID` 等于每个 sender ActorId 的 routing-service projection；不成立的 item
+   进入下述静默丢弃路径。这同时阻止
    destination 把收到的 signal 再转发第三 peer；
 4. 重新验证完整 `SignalEnvelope` schema、producer device proof（每一跳都按**自己的**
    current accepted device directory 重新执行 §1 设备授权域校验；signed `scope/basis` 只是
@@ -230,7 +230,7 @@ source 与 destination MUST NOT 改写 `sent_at` / `expires_at`、ciphertext、A
 空白/成员顺序无需保留，但重新 canonicalize 后的完整 envelope digest identity MUST 不变。
 
 schema-valid request 内的单个 signal 因 Realm/scope/sender 未知、producer proof 或 current
-member delivery binding 不成立、过期、重复、sender 已离开、`signal_class` action gate
+joined-member ActorId routing projection 不成立、过期、重复、sender 已离开、`signal_class` action gate
 不通过、scope 不可见、本地无 eligible recipient 或本地 rail/policy 不接管而失败时，
 destination 静默丢弃并 MAY 写 audit-only reason；不得向 source 返回 per-item 结果。只有外层
 peer HTTP Message Signature / trust-domain / destination-endpoint 认证失败、跨 Realm batch 或

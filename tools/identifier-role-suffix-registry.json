@@ -49,11 +49,6 @@
       "reason": "reference to the registered service_acceptance protocol event role"
     },
     {
-      "field": "service_account_id",
-      "role_stem": "service_account",
-      "reason": "identifier of the registered external service-account role"
-    },
-    {
       "field": "service_binding",
       "role_stem": "service_binding",
       "reason": "complete registered federation service-binding object role"
@@ -147,8 +142,8 @@
   "registered_provenance_byline_fields": [
     {"field": "approved_by", "terminal_categories": ["did_core_id"], "reason": "complete approval provenance role"},
     {"field": "changed_by", "terminal_categories": ["did_core_id"], "reason": "complete change provenance role"},
-    {"field": "created_by", "terminal_categories": ["did_core_id"], "reason": "complete creation byline role"},
-    {"field": "executed_by", "terminal_categories": ["did_core_id"], "reason": "complete delegated-execution provenance role"},
+    {"field": "created_by", "terminal_categories": ["did_core_id", "composite_identifier"], "reason": "complete creation byline role"},
+    {"field": "executed_by", "terminal_categories": ["did_core_id", "composite_identifier"], "reason": "complete delegated-execution provenance role"},
     {"field": "generated_by", "terminal_categories": ["did_core_id"], "reason": "complete generation provenance role"},
     {"field": "produced_by", "terminal_categories": ["did_core_id"], "reason": "complete production provenance role"},
     {"field": "received_by", "terminal_categories": ["did_core_id"], "reason": "complete receipt provenance role"},
@@ -156,8 +151,8 @@
     {"field": "requested_by", "terminal_categories": ["did_core_id"], "reason": "complete request provenance role"},
     {"field": "resolved_by", "terminal_categories": ["did_core_id"], "reason": "complete resolution provenance role"},
     {"field": "restored_by", "terminal_categories": ["did_core_id"], "reason": "complete restoration provenance role"},
-    {"field": "revoked_by", "terminal_categories": ["did_core_id"], "reason": "complete revocation provenance role; the separately registered device-revoke union may name a device or stable principal"},
-    {"field": "updated_by", "terminal_categories": ["did_core_id"], "reason": "complete update byline role"}
+    {"field": "revoked_by", "terminal_categories": ["did_core_id", "composite_identifier"], "reason": "complete revocation provenance role; generic protocol provenance uses ActorId while cryptographic controller records may retain did_core_id"},
+    {"field": "updated_by", "terminal_categories": ["did_core_id", "composite_identifier"], "reason": "complete update byline role"}
   ],
   "registered_network_locator_fields": [
     {"field": "arkret_base_url", "schemes": ["http", "https"], "reason": "dereferenceable Arkret service base locator"},
@@ -200,7 +195,7 @@
   "generic_grammars": [
     {
       "category": "primary_or_responsibility_id",
-      "terminal_categories": ["did_core_id", "typed_object_id"],
+      "terminal_categories": ["did_core_id", "typed_object_id", "composite_identifier"],
       "exact_names": ["id"],
       "suffixes": ["_id", "_ids"]
     },
@@ -251,14 +246,14 @@
     {
       "file": "capability-grant.schema.json",
       "pointer": "/properties/subject",
-      "terminal_categories": ["did_core_id"],
-      "reason": "closed condition-selector union: did_core_id or discriminator-bearing condition object"
+      "terminal_categories": ["composite_identifier"],
+      "reason": "closed condition-selector union: exact ActorId or discriminator-bearing condition object"
     },
     {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/capability_grant_payload/properties/grant/properties/subject",
-      "terminal_categories": ["did_core_id"],
-      "reason": "exact projection of CapabilityGrant.subject closed condition-selector union"
+      "terminal_categories": ["composite_identifier"],
+      "reason": "exact projection of CapabilityGrant.subject closed ActorId-or-condition union"
     },
     {
       "file": "common-ids.schema.json",

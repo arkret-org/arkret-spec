@@ -53,7 +53,7 @@
     },
     {
       "name": "route_recovery_delivers_idempotently",
-      "given": "a durable pending_route intent and unchanged exact frozen member delivery authority",
+      "given": "a durable pending_route intent and unchanged exact frozen joined-member ActorId routing authority",
       "action": "install a valid current service route and run the dispatcher",
       "expected": "delivered",
       "invariants": [
@@ -65,13 +65,13 @@
     },
     {
       "name": "authority_loss_cancels_before_send_and_rejoin_does_not_revive",
-      "given": "all frozen exact member or delivery-binding witnesses for a pending target have left, been banned or rebound",
+      "given": "all frozen exact joined-member ActorId witnesses for a pending target have left, been banned or been replaced by a different ActorId",
       "action": "make a route available, run the dispatcher, then join the same member or service again under a new Event frontier",
       "expected": "cancelled_authority_lost",
       "invariants": [
         "no network request is sent after authority loss",
         "the old intent becomes terminal cancelled_authority_lost",
-        "a new membership Event or delivery-binding frontier never revives the old intent",
+        "a new membership Event or ActorId routing projection never revives the old intent",
         "only later locally accepted Events may create new targets"
       ]
     },
@@ -88,12 +88,12 @@
     },
     {
       "name": "authorized_status_read_is_complete_and_topology_redacted",
-      "given": "a caller can read the Event but can read only one of two contributing member delivery-bindings",
+      "given": "a caller can read the Event but can read only one of two contributing joined-member ActorIds",
       "action": "QUERY ak.self.events.read.delivery_status.v1",
       "expected": "full_opaque_target_set",
       "invariants": [
         "all targets are returned sorted by unique stable target_id",
-        "service_id is present only on targets backed by a delivery-binding visible to the caller",
+        "service_id is present only on targets backed by a joined-member ActorId visible to the caller",
         "unknown and Event-invisible selectors both return not_found",
         "the read performs no route resolution, retry or state transition"
       ]

@@ -416,7 +416,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "handle": {
           "$ref": "#/$defs/handle"
@@ -881,8 +881,8 @@
         "handle": {
           "$ref": "#/$defs/handle"
         },
-        "principal_id": {
-          "$ref": "#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -902,9 +902,6 @@
         },
         "verified": {
           "type": "boolean"
-        },
-        "member_delivery_binding": {
-          "$ref": "./handle-claim.schema.json#/properties/member_delivery_binding"
         }
       },
       "additionalProperties": false
@@ -942,8 +939,8 @@
         "handle": {
           "$ref": "#/$defs/handle"
         },
-        "expected_principal_id": {
-          "$ref": "#/$defs/did_core_id"
+        "expected_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "proof_challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -976,17 +973,13 @@
     "directory_handle_resolution_outcome": {
       "type": "object",
       "required": [
-        "principal_id",
-        "subject_id",
+        "account_id",
         "handle",
         "verified"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "subject_id": {
-          "$ref": "#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "handle": {
           "$ref": "#/$defs/handle"
@@ -999,9 +992,6 @@
           "items": {
             "$ref": "./handle-claim.schema.json"
           }
-        },
-        "member_delivery_binding": {
-          "$ref": "./handle-claim.schema.json#/properties/member_delivery_binding"
         },
         "source_refs": {
           "$ref": "#/$defs/source_refs"
@@ -1030,7 +1020,7 @@
           "$ref": "#/$defs/agent_slug"
         },
         "expected_actor_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "proof_challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -1096,11 +1086,11 @@
       "description": "List currently visible handle claims for a subject. The service MUST apply the same visibility, audience, requester proof, rate-limit, and indistinguishable-denial rules as resolve_handle; absence of a returned handle is not proof the subject has none.",
       "x-arkret-proof-context": "ak.directory_list_handles_for_subject_request_proof.v1",
       "required": [
-        "subject_id"
+        "account_id"
       ],
       "properties": {
-        "subject_id": {
-          "$ref": "#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

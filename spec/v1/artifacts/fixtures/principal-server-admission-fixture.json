@@ -77,17 +77,17 @@
       ]
     },
     {
-      "name": "principal_server_id_is_producer_signed",
+      "name": "account_actor_origin_is_producer_signed",
       "given": "a producer proof validates the canonical Event",
-      "action": "rewrite principal_server_id after signing",
+      "action": "rewrite actor_id.account_id.principal_server_id after signing",
       "expected": "reject",
       "reason_code": "signature_invalid"
     },
     {
       "name": "delegated_author_uses_executor_account",
       "given": "executed_by is present",
-      "action": "select the Event principal_server_id",
-      "expected": "match_executed_by_account_authority",
+      "action": "derive the Event origin service",
+      "expected": "route_from_exact_executed_by_actor_id",
       "invariants": [
         "actor_id remains the business principal of record",
         "authorization_ref proves executor authority"
@@ -95,11 +95,11 @@
     },
     {
       "name": "wrong_origin_service_cannot_admit",
-      "given": "a valid producer Event names Principal Server A",
+      "given": "a valid producer Event author ActorId routes to Principal Server A",
       "action": "Principal Server B appends an admission proof",
       "expected": "reject",
       "invariants": [
-        "admission verification_method controller must project to Event principal_server_id"
+        "admission verification_method controller must project to the origin service derived from the exact author ActorId"
       ]
     },
     {

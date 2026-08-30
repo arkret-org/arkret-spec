@@ -46,7 +46,6 @@
         "official_badge",
         "realm_admin",
         "notary_control",
-        "delivery_binding_policy",
         "durability_policy",
         "moderation_policy",
         "retention_policy",

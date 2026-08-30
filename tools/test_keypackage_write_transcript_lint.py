@@ -60,16 +60,23 @@ class KeyPackageWriteTranscriptLintTest(unittest.TestCase):
         lint_artifacts.check_keypackage_write_transcript_fixture(lint)
         self.assertEqual(lint.errors, [])
 
-    def test_did_in_core_owner_field_fails_schema(self) -> None:
+    def test_removed_owner_field_fails_schema(self) -> None:
         def mutate(fixture):
             case = self._case(fixture, "revoke_with_reason")
-            case["unsigned_request"]["owner_account_id"] = (
-                "did:webvh:z6mkfixtureagentexample:agent.example"
-            )
+            case["unsigned_request"]["owner_account_id"] = {
+                "principal_id": "ak:did_core:did:webvh:z6mkfixtureagentexample:agent.example",
+                "principal_server_id": "ak:did_core:did:webvh:z6mkfixtureps:ps.example",
+            }
             self._resign(fixture, case)
 
         errors = self._lint_mutation(mutate)
-        self.assertTrue(any("owner_account_id" in error and "does not match" in error for error in errors), errors)
+        self.assertTrue(
+            any(
+                "owner_account_id" in error and "Additional properties" in error
+                for error in errors
+            ),
+            errors,
+        )
         self.assertFalse(any("canonical_jcs" in error or "does not verify" in error for error in errors), errors)
 
     def test_did_in_nested_recipient_core_field_fails_schema(self) -> None:

@@ -17,7 +17,6 @@
     "opaque_correlation",
     "registry_catalog_symbol",
     "responsibility_identity_material",
-    "service_local_account_identifier",
     "transport_idempotency_key",
     "typed_object_id",
     "unregistered_object_identifier"
@@ -27,7 +26,7 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 652,
+    "responsibility_identity_material": 645,
     "typed_object_id": 911,
     "registry_catalog_symbol": 19
   },
@@ -40,14 +39,6 @@
       "occurrences": 1,
       "example_path": "service-operation-dtos.schema.json#/$defs/ControlGovernanceHealth/properties/retained_faults/items/properties/accepted_seal_id",
       "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
-    },
-    {
-      "name": "account_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!(?:ak|did):)\"]]",
-      "category": "service_local_account_identifier",
-      "occurrences": 6,
-      "example_path": "account-operations.schema.json#/$defs/account_status_record/properties/account_id",
-      "reason": "Durable service-local account key scoped by its owning Principal Server; it is deliberately outside both the Arkret typed-ID and DID namespaces."
     },
     {
       "name": "action_id",
@@ -586,14 +577,6 @@
       "reason": "Registry catalog symbol naming a registered entry, not an instance of a protocol object."
     },
     {
-      "name": "owner_account_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!(?:ak|did):)\"]]",
-      "category": "service_local_account_identifier",
-      "occurrences": 4,
-      "example_path": "keypackage-operations.schema.json#/$defs/keypackages_revoke_request_body/properties/owner_account_id",
-      "reason": "The owning service-local account key for a KeyPackage command; it is not the principal DidCoreId."
-    },
-    {
       "name": "organization_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
       "category": "responsibility_identity_material",
@@ -681,14 +664,6 @@
       "example_path": "service-describe.schema.json#/properties/rate_limit_policy_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
-    },
-    {
-      "name": "realm_id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/realm_delivery_binding_policy_payload/properties/realm_id",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
     },
     {
       "name": "recording_id",
@@ -828,14 +803,6 @@
       "occurrences": 2,
       "example_path": "device-message.schema.json#/$defs/secret_request_content/properties/secret_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
-      "name": "service_account_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!(?:ak|did):)\"]]",
-      "category": "service_local_account_identifier",
-      "occurrences": 4,
-      "example_path": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/properties/service_account_id",
-      "reason": "Durable service-local account key carried in introspection metadata; it is scoped by the owning Principal Server."
     },
     {
       "name": "session_id",
@@ -1014,14 +981,6 @@
       "occurrences": 1,
       "example_path": "view.schema.json#/$defs/dashboard_config/properties/widgets/items/properties/widget_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
-    },
-    {
-      "name": "allowed_recipient_ids",
-      "terminal_signature": "[[\"const\", \"*\"], [\"pattern\", \"^ak:did_core:[a-z0-9]+:[^\\\\s/?#]+$\"]]",
-      "category": "responsibility_identity_material",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/realm_delivery_binding_policy_payload/properties/allowed_recipient_ids",
-      "reason": "Closed DID-core-or-wildcard policy selector; the non-wildcard branch carries responsibility identity material."
     },
     {
       "name": "cell_id",

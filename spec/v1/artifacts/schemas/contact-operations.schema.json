@@ -54,15 +54,15 @@
     "blob_ref": {
       "$ref": "./agent-operations.schema.json#/$defs/blob_ref"
     },
-    "principal_authority_key": {
-      "$ref": "./agent-membership-cascade.schema.json#/$defs/principal_authority_key"
+    "actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "bilateral_continuity_checkpoint_core": {
       "type": "object",
       "description": "Domain-neutral, root-anchored commitment to one contiguous prefix of a bilateral lineage. Sequence is monotonic; same sequence with a different checkpoint digest is a fork, never a winner election.",
       "required": [
         "context",
-        "participants",
+        "participant_ids",
         "root_basis",
         "covered_through_contact_round_id",
         "prefix_accumulator_root",
@@ -73,15 +73,15 @@
         "context": {
           "const": "ak.contact.round.continuity.v1"
         },
-        "participants": {
+        "participant_ids": {
           "type": "array",
           "minItems": 2,
           "maxItems": 2,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/principal_authority_key"
+            "$ref": "#/$defs/actor_id"
           },
-          "description": "The two exact (principal_id, principal_server_id) authority keys, sorted by canonical tuple bytes."
+          "description": "The two exact ActorIds, sorted by RFC 8785 canonical bytes."
         },
         "root_basis": {
           "allOf": [
@@ -148,12 +148,12 @@
     "bilateral_continuity_checkpoint_signature": {
       "type": "object",
       "required": [
-        "signer",
+        "signer_id",
         "signature"
       ],
       "properties": {
-        "signer": {
-          "$ref": "#/$defs/principal_authority_key"
+        "signer_id": {
+            "$ref": "#/$defs/actor_id"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -457,7 +457,7 @@
             "sorted_pair_member_ids": {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/did_core_id"
+                "$ref": "#/$defs/actor_id"
               },
               "minItems": 2,
               "maxItems": 2,
@@ -486,7 +486,7 @@
             "sorted_pair_member_ids": {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/did_core_id"
+                "$ref": "#/$defs/actor_id"
               },
               "minItems": 2,
               "maxItems": 2,

@@ -338,7 +338,13 @@
           "relation_kind": "assigned_to",
           "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
           "to_ref": "did:web:example.com:alice",
-          "created_by": "ak:did_core:web:example.com",
+          "created_by": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:example.com",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            }
+          },
           "created_at": "2026-08-18T00:00:00.000Z"
         }
       },

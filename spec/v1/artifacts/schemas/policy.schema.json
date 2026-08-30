@@ -66,22 +66,19 @@
       "$ref": "#/$defs/timestamp"
     },
     "created_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
     }
   },
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },

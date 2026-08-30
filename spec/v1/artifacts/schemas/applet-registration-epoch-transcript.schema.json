@@ -43,9 +43,6 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "did": {
       "$ref": "./common-ids.schema.json#/$defs/did"
     },
@@ -104,7 +101,7 @@
           "pattern": "^https://"
         },
         "bot_actor_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "protocols": {
           "$ref": "#/$defs/string_set"

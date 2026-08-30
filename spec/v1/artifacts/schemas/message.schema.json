@@ -190,13 +190,13 @@
       "description": "Required when state=redacted; references the accepted ak.message.redact Event id that produced this state. A cross-object ak.redaction can never be the source: its payload class excludes Message targets, so this reference is single-valued and unambiguous (models/common-fields.md 5.1 Message exemption). MUST be absent for other states."
     },
     "created_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did_core_id",
+      "$ref": "./common-ids.schema.json#/$defs/actor_id",
       "description": "Reducer-derived actor that produced the most recent materialized message update, such as ak.message.revise or ak.message.redact."
     },
     "updated_at": {
@@ -283,7 +283,7 @@
               "pattern": "^ak:(message|event):[A-Za-z0-9_-]{44}$"
             },
             "sender_actor_id": {
-              "$ref": "#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
             },
             "excerpt": {
               "type": "string"
@@ -539,9 +539,6 @@
         ]
       },
       "additionalProperties": true
-    },
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

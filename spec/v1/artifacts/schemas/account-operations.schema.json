@@ -111,7 +111,7 @@
     },
     "account_subject": {
       "$ref": "#/$defs/sha256_digest",
-      "description": "Deployment-local, non-reversible stable account subject: SHA-256 over utf8('ak.account-subject.v1\\n') followed by RFC 8785 JCS of {account_authority_id, service_account_id}. It binds one authenticated service account into the identity-root transcript without disclosing the raw local account id."
+      "description": "Deployment-local, non-reversible authentication subject: SHA-256 over utf8('ak.account-subject.v1\\n') followed by RFC 8785 JCS of the issuer identity and issuer-local authentication row key. It is confined to the private Account Authority boundary, is always issuer-scoped, and is never an AccountId or resource-owner selector."
     },
     "dpop_jkt": {
       "type": "string",
@@ -1712,7 +1712,6 @@
         "account_status_record_id",
         "account_authority_id",
         "account_id",
-        "principal_authority",
         "principal_control_realm_id",
         "binding_version",
         "status_seq",
@@ -1732,23 +1731,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
-        },
-        "principal_authority": {
-          "type": "object",
-          "required": [
-            "principal_id",
-            "principal_server_id"
-          ],
-          "properties": {
-            "principal_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            "principal_server_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            }
-          },
-          "additionalProperties": false
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1898,7 +1881,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "status_seq": {
           "type": "integer",
@@ -1942,7 +1925,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "from_status_seq": {
           "type": "integer",
@@ -1970,7 +1953,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "records": {
           "type": "array",
@@ -2018,7 +2001,7 @@
           "minimum": 1
         },
         "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "current_account_status_record_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"

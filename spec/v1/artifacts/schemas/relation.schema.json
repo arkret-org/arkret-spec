@@ -68,13 +68,13 @@
       "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding ak.relation.tombstone / redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "created_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
@@ -110,9 +110,6 @@
     },
     "rank": {
       "$ref": "./event-envelope.schema.json#/$defs/rank"
-    },
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

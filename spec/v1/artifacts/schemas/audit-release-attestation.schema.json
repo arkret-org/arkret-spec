@@ -31,7 +31,7 @@
       "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_digest values across Realms do not make evidence portable."
     },
     "audit_actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "$ref": "./common-ids.schema.json#/$defs/actor_id",
       "description": "Stable did_core_id of the audit release service / applet actor whose controlled output path this evidence attests. MUST match the approved_recipient_audit_actor_id derived from the accepted ak.audit.session.authorize record, or the service actor accepted by the active ak.audit.applet_binding."
     },
     "service_id": {

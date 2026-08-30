@@ -152,7 +152,10 @@
         "plane": "data",
         "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
-          "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixture"
+          },
           "key_id": "device-1",
           "key_epoch": 1
         },
@@ -254,7 +257,10 @@
           "plane": "data",
           "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_context": {
-            "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+            },
             "key_id": "device-1",
             "key_epoch": 1
           }
@@ -886,7 +892,10 @@
         "plane": "data",
         "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
-          "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixture"
+          },
           "key_id": "device-1",
           "key_epoch": 1
         }
@@ -1002,7 +1011,10 @@
     {
       "name": "actor_chain_realm_scope",
       "description": "Actor sequence and sibling detection are scoped to (realm_id, actor_id); equal actor_seq values in different Realms do not create a fork.",
-      "actor_id": "ak:did_core:webvh:z6mkfixture",
+      "actor_id": {
+        "kind": "service",
+        "service_id": "ak:did_core:webvh:z6mkfixture"
+      },
       "cases": [
         {
           "name": "same_actor_and_seq_across_realms",
@@ -1109,21 +1121,12 @@
               ]
             },
             {
-              "event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-              "realm_id": "ak:realm:Ae28wXbm9Juy5sS43CvX0rcRddRFOUfUhkTSPZ05VMSr",
-              "kind": "ak.realm.delivery_binding_policy",
-              "actor_seq": 6,
-              "prev_refs": [
-                "ak:event:AS_LTHQu5UtXbAIUOgUFzEY5nFJzI1cgPvxODB_NnHSR"
-              ]
-            },
-            {
               "event_id": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
               "realm_id": "ak:realm:Ae28wXbm9Juy5sS43CvX0rcRddRFOUfUhkTSPZ05VMSr",
               "kind": "ak.member.state",
-              "actor_seq": 7,
+              "actor_seq": 6,
               "prev_refs": [
-                "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g"
+                "ak:event:AS_LTHQu5UtXbAIUOgUFzEY5nFJzI1cgPvxODB_NnHSR"
               ]
             }
           ],

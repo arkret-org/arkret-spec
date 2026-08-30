@@ -126,9 +126,9 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `graph` | conditional | `GraphConfig` | `kind="graph"` 时 MUST 设置。 | 图/树遍历配置。 |
 | `document` | conditional | `DocumentConfig` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
 | `dashboard` | conditional | `DashboardConfig` | `kind="composite"` 时 MUST 设置。命名说明：`composite` 是 response family（§2.2 五大 kind 之一），其 v1 唯一 typed config 是 `DashboardConfig`，故配置字段名取 `dashboard`（与 §4 表中 composite 的唯一 renderer `dashboard` 对齐）；composite 的非 dashboard 形态须由 profile-defined `custom` renderer 承载，v1 core 不再为 composite 引入第二个 typed config 字段。 | 仪表盘 widget 配置。 |
-| `created_by` | yes | `did_core_id` |  | 创建者。 |
+| `created_by` | yes | `ActorId` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `did_core_id` |  | 最近更新者。 |
+| `updated_by` | no | `ActorId` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 **共享 View 终态（normative）**：共享 View 的协议级移除复用 `ak.view.update`：owner 或持有 `ak.view.update` capability 的 actor 提交 patch `set.state="tombstoned"`。Reducer MUST 以 accepted update 的 canonical lifecycle timestamp 写 `state_changed_at`；actor MUST NOT 自报该字段。`tombstoned` 是 terminal：后续任何 update / reconcile 或尝试恢复 `active` MUST `failed_precondition`，`reason_code="view_already_terminal"`。Query / projection MUST 默认排除 tombstoned View；审计或显式 `include_terminal=true` 查询 MAY 返回保留定义的 stub。Private View 可由 owner-private account-data 删除，但一旦以 shared View 发布，移除必须走上述 durable update，不能仅做带外删除。 该接受面与 `state_changed_at` 的拒绝面由 `ak.vector.view.terminal_state_patch.v1` 固化。
@@ -210,7 +210,7 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
   "id": "ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem",
   "schema": "ak.schema.view.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "created_by": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00Z",
   "kind": "collection",
   "state": "active",

@@ -546,19 +546,6 @@ class IdentifierClassificationTest(MutationHarness):
         lint = run_check(check_identifier_value_categories)
         self.assertEqual(lint.errors, [])
 
-    def test_owner_account_id_cannot_regress_to_did_core_id(self) -> None:
-        def mutate(document):
-            document["$defs"]["keypackages_revoke_request_body"]["properties"][
-                "owner_account_id"
-            ] = {"$ref": "./common-ids.schema.json#/$defs/did_core_id"}
-
-        errors = self.lint_with_file(
-            SCHEMA_DIR / "keypackage-operations.schema.json",
-            mutate,
-            check=check_identifier_value_categories,
-        )
-        self.assertTrue(any("owner_account_id" in error for error in errors), errors)
-
     def test_dropping_a_row_fails(self) -> None:
         def mutate(document):
             document["classifications"] = document["classifications"][1:]

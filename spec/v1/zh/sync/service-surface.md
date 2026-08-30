@@ -184,7 +184,7 @@ ServiceRouteHandoverNotice {
 
 若迁移同时改变 `did:webvh` 的域名或路径，route handover 与 DID portability 是两条必须按顺序组合的证明链：初始 WebVH 日志必须已启用 portability；owner 在旧 DID/control state 仍有效时签发并分发 notice；candidate host 上必须发布保留同一 SCID、包含从 inception 起完整历史的合法 successor DID log，并按 WebVH 规则在新 DID Document 的 `alsoKnownAs` 引用旧 DID；随后才签发 `record_sequence + 1` 的正式 `ServiceResolutionRecord`，其中 `did`、`method_history_head`、`current_record_url` 与 `base_url` 全部绑定新位置，且 `previous_record_digest` 连续。WebVH `nextKeyHashes` 只预承诺未来更新 key，不表达切换时间、candidate endpoint 或 Arkret 通知范围，MUST NOT 替代 `ServiceRouteHandoverNotice`。same-SCID 迁移保持同一 service core，按本节刷新 route；新建不同 SCID/core 则是 service identity 变更，必须走 member/service rebind，不能伪装成 URL 刷新。
 
-高频投递实现 MAY 另存 `ServiceRouteCache[service did_core_id] -> {service_kind, did, method_history_head, record_sequence, record_digest, base_url, describe_digest, current_record_url, verified_at, refresh_after, expires_at, cache_expires_at}` 的本地 TTL cache。这里 `expires_at` 是 target-signed record 的硬到期时间，`cache_expires_at` 是实现选择的本地缓存到期时间且 MUST `<= expires_at`；二者不得合并、互相延长或只保存本地 TTL 而丢弃 signed expiry。该 cache 是可丢失、可重建的性能优化；它的存储引擎、淘汰算法和后台刷新属于实现层，但绝不能代替前段 durable anti-rollback ledger。`refresh_after` 到达时 SHOULD 通过 `current_record_url` 异步刷新；`cache_expires_at` 或 signed `expires_at` 任一到达、binding / Realm policy 变化、method head 不一致、route-binding digest 改变、签名/授权失效或安全敏感操作时 MUST 取得并验证最新 record。同一 `did_core_id` 下的 resolution / URL 刷新只更新 durable route floor 与本地 cache，不改变 Realm 授权，不需要 member rebind；service `did_core_id` 改变才必须通过新 delivery binding / rebind 重新授权。同一未失效 binding 的普通请求 MAY 复用 cache，不得每次在线 resolve DID。
+高频投递实现 MAY 另存 `ServiceRouteCache[service did_core_id] -> {service_kind, did, method_history_head, record_sequence, record_digest, base_url, describe_digest, current_record_url, verified_at, refresh_after, expires_at, cache_expires_at}` 的本地 TTL cache。这里 `expires_at` 是 target-signed record 的硬到期时间，`cache_expires_at` 是实现选择的本地缓存到期时间且 MUST `<= expires_at`；二者不得合并、互相延长或只保存本地 TTL 而丢弃 signed expiry。该 cache 是可丢失、可重建的性能优化；它的存储引擎、淘汰算法和后台刷新属于实现层，但绝不能代替前段 durable anti-rollback ledger。`refresh_after` 到达时 SHOULD 通过 `current_record_url` 异步刷新；`cache_expires_at` 或 signed `expires_at` 任一到达、binding / Realm policy 变化、method head 不一致、route-binding digest 改变、签名/授权失效或安全敏感操作时 MUST 取得并验证最新 record。同一 `did_core_id` 下的 resolution / URL 刷新只更新 durable route floor 与本地 cache，不改变 Realm 授权，不需要 member rebind；service `did_core_id` 改变才必须通过新 ActorId change 重新授权。同一未失效 binding 的普通请求 MAY 复用 cache，不得每次在线 resolve DID。
 
 ## 3. 通用服务描述接口
 
@@ -362,7 +362,7 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 服务类型命名规则：
 
 - service identity bootstrap 的 DID Document entry 唯一使用 `type="ArkretService"`，并以必填 `serviceKind` 取 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `valid_in` 含 `service_registration_key` 的值。`ArkretPrincipalServer` / `ArkretDirectory` 不是 alias，必须拒绝。Organization 与 managed-Agent 的 specialized DID service type 仅使用 [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json) 登记的独立 endpoint shape，不得替代 service bootstrap。
-- describe 响应的 `service_kind` 使用 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_kind`。Realm join candidate 的 `service_kind` 仅允许 `principal_server`，其路由来源只允许 signed invite 或当前 joined-member delivery binding（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
+- describe 响应的 `service_kind` 使用 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_kind`。Realm join candidate 的 `service_kind` 仅允许 `principal_server`，其路由来源只允许 signed invite 或当前 joined-joined-member ActorId routing projection（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
 - conformance profile 使用 `ak.profile.*` 标识，例如 `ak.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_kind 与 conformance profile 混用。
 
@@ -662,7 +662,7 @@ Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视�
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
 - `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ak.self.account.read.viewer.v1`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段；请求无 authority selector，跨 PCR lineage 只有唯一 accepted Profile 时才返回 `profile`，歧义时省略而不隐式选择 current PCR。
-- `POST /_arkret/self/account/profile`：当前账号 holder-signed Profile Event 提交（`ak.self.account.command.update_profile.v1`）。closed body 只携 `profile_event: EventInitialSubmission`；Event `realm_id` 选择 pair 内本地 PCR lineage，`actor_id` 与 `principal_server_id` 必须匹配 session account pair。无 accepted Profile 时接受 ID 从 Event 派生的 `ak.profile.create`，已有 Profile 时接受 target_ref 命中的 `ak.profile.update`。update patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；Event `preconditions` 为空，并发只使用 update payload 可选 `expected_state_digest`。
+- `POST /_arkret/self/account/profile`：当前账号 holder-signed Profile Event 提交（`ak.self.account.command.update_profile.v1`）。closed body 只携 `profile_event: EventInitialSubmission`；Event `realm_id` 选择该账号的本地 PCR lineage，`actor_id` 必须是与 session exact `AccountId` 逐字段相等的 account ActorId。无 accepted Profile 时接受 ID 从 Event 派生的 `ak.profile.create`，已有 Profile 时接受 target_ref 命中的 `ak.profile.update`。update patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；Event `preconditions` 为空，并发只使用 update payload 可选 `expected_state_digest`。
 - `GET /_arkret/self/account/subscribe`：客户端账号视角聚合同步（`ak.self.account.stream.subscribe.v1`），见 `client-sync.md`。
 - `GET /_arkret/self/account/describe`：account aggregate service describe（`ak.self.account.read.describe.v1`）。
 - `POST /_arkret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ak.self.account.command.revoke_cursor.v1`）。
@@ -924,7 +924,7 @@ POST /_arkret/find/directory/resolve-agent-selector
 POST /_arkret/find/directory/list-handles-for-subject
 ```
 
-Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / contact request / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 intent 验证通过时披露。`resolve-agent-selector` 只做精确 `@<controller-handle>/<agent_slug>` compose-time 解析；成功时返回 agent DID 与当前可见 `ak.schema.agent_selector_claim.v1`，未授权、不可见、不存在、revoked / expired / ambiguous 时 MUST 使用与不存在不可区分的失败。`list-handles-for-subject` 用于已知 subject DID 时列出当前 context 可见 signed handle claims；它必须执行同样的 disclosure、issuer trust、audience 和 requester policy 过滤。Directory 返回的 `member_delivery_binding.recipient_id` 只可作为 contact address / handle evidence / join builder 输入，不能替代 `receive_policy_constraints`、Realm `delivery_binding` 或 grant 校验。该字段是 **builder evidence，不是 delivery 授权**：它**不是** member-level delivery 的权威路由来源（权威来源是 effective `ak.member.state.delivery_binding`），reducer MUST 按 [`../governance/member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化 effective delivery binding，不得把 Directory 披露的该字段直接当作投递目标授权。语义边界回指 [`invite-addressing.md` §9](./invite-addressing.md)。
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露组织账号或仅因共同 Realm 推断出的关系。`search-users` 只做候选发现；`resolve-handle` 在 claim、audience、requester policy 与 intent 验证通过后 MAY 返回 exact `account_id: AccountId` 与 signed claims。`resolve-agent-selector` 只做精确 agent compose-time 解析。`list-handles-for-subject` 列出当前 context 可见 claims。Directory 结果是寻址证据，不是 membership、Contact consent 或 delivery authorization；目标服务只从 AccountId/ActorId 内的 Principal Server identity 做标准 service resolution。语义边界回指 [`invite-addressing.md` §9](./invite-addressing.md)。
 
 ### 8.6 私密联系人发现
 
@@ -945,7 +945,7 @@ MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../ex
 至少建议提供：
 
 ```text
-GET /_arkret/self/authz/effective-grants?realm_id=<id>&subject=<did_core_id>&subject_principal_server_id=<did_core_id>&at=<timestamp?>
+GET /_arkret/self/authz/effective-grants?realm_id=<id>&subject_actor_id=<percent-encoded-JCS-ActorId>&at=<timestamp?>
 ```
 
 ```text
@@ -983,7 +983,7 @@ Arkret v1 的首次加入流程：
 
 1. 用户输入 handle、DID 或 Realm link
 2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 Realm link / invite / locator / delivery binding / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `did_core_id` 的首跳 `did` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Principal Server / identity registry / events / account / snapshot / blob / authz 能力
+3. 从 Realm link / invite / ActorId routing projection / locator / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `did_core_id` 的首跳 `did` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Principal Server / identity registry / events / account / snapshot / blob / authz 能力
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
 6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Principal Server sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。`authority_kind="witness_quorum"` 时，`authority_binding.witness_attestations[]` 是 v1 唯一的 quorum 证据载体：客户端 MUST 按 [`snapshot-schema.md` §5.1](../conformance/snapshot-schema.md) 逐行重算 `ak.snapshot_witness_attestation_proof.v1` canonical projection 验签，并只以 `created_at` 时点的 accepted Realm auth/policy state 判定授权 witness set、key validity、撤销新鲜度与 threshold（按 `witness_id` 去重）。不存在"等价 quorum proof"：缺失、未达阈值或使用任何未登记的替代载体时 MUST 以 `snapshot_authority_unverified` 拒绝，不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan.v1`，JSON content 携带 `before`）进行原始 Event 历史回放。

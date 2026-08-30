@@ -309,7 +309,7 @@
     },
     "availability_policy": {
       "type": "object",
-      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Eligible holders are derived only from canonical recipient_id values in effective routable joined-member delivery bindings frozen at the predecessor view. The policy never creates an out-of-membership replication target. Absent means {min_holders:1,applies_to:['seal_include'],minimum_retention_ms:86400000}.",
+      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Eligible holders are derived only from routing service IDs projected from effective joined-member ActorIds frozen at the predecessor view. The policy never creates an out-of-membership replication target. Absent means {min_holders:1,applies_to:['seal_include'],minimum_retention_ms:86400000}.",
       "required": [
         "min_holders",
         "applies_to"
@@ -466,13 +466,13 @@
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "created_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
@@ -937,7 +937,7 @@
           ],
           "properties": {
             "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
             },
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -971,7 +971,7 @@
           ],
           "properties": {
             "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
             },
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"

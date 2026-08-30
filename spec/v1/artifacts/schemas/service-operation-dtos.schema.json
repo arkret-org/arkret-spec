@@ -686,7 +686,7 @@
           "const": "actor_aggregate"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "frontiers": {
           "type": "array",
@@ -953,7 +953,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
           "description": "Subject did_core_id whose authorization is being checked."
         },
         "action": {
@@ -1169,7 +1169,7 @@
               "maxLength": 64
             },
             "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
             },
             "device_id": {
               "type": "string",
@@ -1259,7 +1259,7 @@
           "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "device_id": {
           "type": "string",
@@ -1911,8 +1911,7 @@
       "required": [
         "discovery_event",
         "source_refs",
-        "as_of",
-        "principal_server_id"
+        "as_of"
       ],
       "properties": {
         "discovery_event": {
@@ -1950,9 +1949,6 @@
         },
         "as_of": {
           "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "principal_server_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "ttl_seconds": {
           "type": "integer",
@@ -2019,14 +2015,14 @@
     },
     "MembershipCompensationDelegationCore": {
       "type": "object",
-      "description": "Digest-free canonical core signed by the actual author of the accepted join. The exact join_event_id is the membership incarnation identifier and must still be the current membership head when compensation writes. The registered evaluator additionally checks the closed leave/remove action branch against join authorship; JSON Schema cannot compare join_actor_id and subject_id values.",
+      "description": "Digest-free canonical core signed by the actual author of the accepted join. The exact join_event_id is the membership incarnation identifier and must still be the current membership head when compensation writes. The registered evaluator additionally checks the closed leave/remove action branch against join authorship; JSON Schema cannot compare join_actor_id and member_id values.",
       "required": [
         "authority",
         "admission_id",
         "join_event_id",
         "join_event_digest",
         "membership_cell_id",
-        "subject_id",
+        "member_id",
         "join_actor_id",
         "verification_method",
         "executor_id",
@@ -2065,14 +2061,14 @@
             }
           ]
         },
-        "subject_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "member_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "join_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "executed_by": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "authorization_ref": {
           "$ref": "./event-envelope.schema.json#/properties/authorization_ref",
@@ -2082,7 +2078,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
         "executor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "executor_proof_key_kid": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -2599,7 +2595,7 @@
       "description": "QUERY content for ak.self.events.read.describe.v1.",
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "realm_id": {
           "$ref": "#/$defs/RealmId"
@@ -2702,7 +2698,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "realm_id": {
           "$ref": "#/$defs/RealmId"
@@ -2720,7 +2716,7 @@
           "$ref": "#/$defs/RealmId"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
           "description": "Optional actor scope for policy-check authorization, policy, and membership roots. Generic federation probes omit it."
         }
       },
@@ -3418,7 +3414,7 @@
     },
     "EventDeliveryTargetStatus": {
       "type": "object",
-      "description": "Authorized projection of one frozen Realm fanout target. target_id is opaque and stable. service_id is present only when the caller can currently read at least one exact member delivery-binding that contributed the target.",
+      "description": "Authorized projection of one frozen Realm fanout target. target_id is opaque and stable. service_id is present only when the caller can currently read at least one exact joined-member ActorId that contributed the target.",
       "required": [
         "target_id",
         "status"
@@ -3741,7 +3737,6 @@
         "realm_id",
         "realm_policy_digest",
         "membership_frontier",
-        "delivery_binding_frontier",
         "destination_kind"
       ],
       "properties": {
@@ -3758,17 +3753,6 @@
             "type": "string",
             "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           }
-        },
-        "delivery_binding_frontier": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-          }
-        },
-        "delivery_binding_diagnostics": {
-          "type": "object",
-          "additionalProperties": true
         },
         "destination_kind": {
           "type": "string",
@@ -4606,7 +4590,7 @@
           "$ref": "#/$defs/RealmId"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
           "description": "Optional actor scope for policy-check authorization, policy, and membership roots. Generic federation probes omit it."
         }
       },
@@ -4719,7 +4703,7 @@
           "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         }
       },
       "description": "Read-model edge backing a Strand assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref."
@@ -4800,7 +4784,7 @@
         "created_by": {
           "oneOf": [
             {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
             },
             {
               "type": "null"
@@ -4898,7 +4882,7 @@
         "created_by": {
           "oneOf": [
             {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
             },
             {
               "type": "null"
@@ -5036,7 +5020,7 @@
         "created_by": {
           "oneOf": [
             {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
             },
             {
               "type": "null"
@@ -5049,7 +5033,7 @@
         "updated_by": {
           "oneOf": [
             {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
             },
             {
               "type": "null"
@@ -5084,7 +5068,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "next_actor_seq": {
           "type": "integer",
@@ -5787,8 +5771,7 @@
       "required": [
         "id",
         "issuer_id",
-        "subject_id",
-        "service_account_id",
+        "account_id",
         "audience_id",
         "scopes",
         "expires_at",
@@ -5805,11 +5788,8 @@
         "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "subject_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "service_account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -6104,8 +6084,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "principal_id",
-        "service_account_id",
+        "account_id",
         "session_grant",
         "expires_at",
         "session_grant_id",
@@ -6113,12 +6092,9 @@
         "audience_id"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "service_account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id",
-          "description": "Exact service-local account bound to this grant. Clients persist it with the opaque grant and use it for account-scoped resources; it is never reconstructed from principal_id."
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact protocol account bound to this grant. Both components are signed; clients and resource services MUST NOT reconstruct either component from local state."
         },
         "device_id": {
           "type": "string",
@@ -6191,7 +6167,7 @@
       "additionalProperties": false,
       "required": [
         "session_grant_id",
-        "service_account_id",
+        "account_id",
         "grant_jwt",
         "session_public_key",
         "expires_at",
@@ -6204,9 +6180,9 @@
         "session_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
-        "service_account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id",
-          "description": "Exact service-local account inherited unchanged from the predecessor grant."
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact AccountId inherited unchanged from the predecessor grant."
         },
         "grant_jwt": {
           "type": "string",
@@ -6705,8 +6681,7 @@
         "jti",
         "issuer_id",
         "issuance_nonce",
-        "subject_id",
-        "service_account_id",
+        "account_id",
         "session_public_key",
         "audience_id",
         "scopes",
@@ -6732,12 +6707,9 @@
           "pattern": "^[A-Za-z0-9_-]{43}$",
           "description": "Canonical unpadded Base64URL encoding of the issuer-generated 256-bit issuance nonce. Exact replay reuses the same nonce, issuance preimage, grant ID and JWT."
         },
-        "subject_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "service_account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id",
-          "description": "Exact service-local account bound into this signed grant and its derived session_grant_id."
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact AccountId bound into this signed grant and its derived session_grant_id."
         },
         "session_public_key": {
           "type": "string",
@@ -6895,7 +6867,7 @@
           }
         },
         "created_by": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
           "description": "Stable Arkret identity of the snapshot issuer; bound by the manifest signature transcript."
         },
         "created_at": {

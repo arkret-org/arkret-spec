@@ -130,7 +130,10 @@ VALUE_TABLE: dict[str, Any] = {
     "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222",
     "accepted_at": "2026-08-08T00:00:00.000Z",
     "account_authority_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
-    "account_id": "acct_123",
+    "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
+    },
     "account_subject": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
     "actor_id": "ak:did_core:webvh:z6mkfixture",
     "agent_id": "ak:did_core:webvh:z6mkagent",

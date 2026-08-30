@@ -156,7 +156,7 @@
           "$ref": "./relation.schema.json#/$defs/object_ref"
         },
         "source_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "source_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -165,7 +165,7 @@
           "$ref": "./relation.schema.json#/$defs/object_ref"
         },
         "target_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "target_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

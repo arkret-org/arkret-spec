@@ -157,13 +157,15 @@ Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`
 
 `ak.schema.applet_managed_actor_provision.v1` 以
 [`applet-managed-actor.schema.json`](../../artifacts/schemas/applet-managed-actor.schema.json) 为唯一闭合
-wire schema。payload 必须携 `actor_id` 与 `actor_principal_server_id` 的完整 authority pair、闭合
+wire schema。payload 必须携完整 `actor_id: ActorId`；Applet managed actor 使用
+`hosted_principal` 分支，`principal_id` 与 `principal_server_id` 封闭在同一对象内。payload 还必须携闭合
 `actor_role=bot|ghost`、`initial_resolution`、v1 唯一合法的完整 WebVH
 `method_history_evidence`、immutable `registration_ref` 与 `applet_authority_ref`。did:web snapshot 与
 did:key expansion 不能为长期可轮换的高风险 managed authority 提供所需 history/version pinning，均非法。Ghost 还必须携
 `external_ref`，Bot 禁止携该字段。contract registry 的 provision cell subject 是 pair 的复合键，不能仅按
 core id 做 CAS。Package/registration/Ghost durable record 只保存 accepted provision Event 与 PCR genesis
-anchor；current resolution ref 不属于这些对象。
+anchor；current resolution ref 不属于这些对象。provision cell subject 是 `JCS(actor_id)`，不得以裸
+`principal_id` 或平行 server sidecar 建立第二套 CAS 键。
 
 ## 1b. Applet Install Operation Objects
 

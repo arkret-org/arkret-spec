@@ -22,12 +22,16 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
       "expect_valid": true,
       "instance": {
-        "actor_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+        "member_id": {
+          "kind": "hosted_principal",
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+        },
         "membership": "leave",
         "reason": "controller membership ended",
         "membership_cause": "controller_membership_ended",
         "agent_controller_binding": {
-          "controller_authority": {
+          "controller_account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixture",
             "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
           },

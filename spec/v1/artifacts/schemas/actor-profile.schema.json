@@ -92,7 +92,7 @@
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"

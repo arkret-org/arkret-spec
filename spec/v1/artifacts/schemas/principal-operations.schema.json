@@ -180,16 +180,12 @@
         {
           "type": "object",
           "required": [
-            "owner_account_id",
             "keypackage_ref",
             "expected_state",
             "action",
             "idempotency_key"
           ],
           "properties": {
-            "owner_account_id": {
-              "$ref": "./common-ids.schema.json#/$defs/service_account_id"
-            },
             "keypackage_ref": {
               "$ref": "#/$defs/opaque_id"
             },
@@ -208,7 +204,6 @@
         {
           "type": "object",
           "required": [
-            "owner_account_id",
             "keypackage_ref",
             "expected_state",
             "claim_id",
@@ -216,9 +211,6 @@
             "idempotency_key"
           ],
           "properties": {
-            "owner_account_id": {
-              "$ref": "./common-ids.schema.json#/$defs/service_account_id"
-            },
             "keypackage_ref": {
               "$ref": "#/$defs/opaque_id"
             },
@@ -247,15 +239,11 @@
         {
           "type": "object",
           "required": [
-            "owner_account_id",
             "keypackage_ref",
             "expected_state",
             "action"
           ],
           "properties": {
-            "owner_account_id": {
-              "$ref": "./common-ids.schema.json#/$defs/service_account_id"
-            },
             "keypackage_ref": {
               "$ref": "#/$defs/opaque_id"
             },

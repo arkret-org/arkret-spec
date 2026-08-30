@@ -270,15 +270,15 @@ Request create 返回成功前，release service 必须冻结并完整验证 req
 Control Move 及 registered replay dependencies。remote member source 只走普通 authenticated Realm/federation 治理可见性；request replica 只证明请求/receipt bytes、authorization 与 TTL，不承诺 cut 且不扩张治理可见性。仅 RRK pending archive replica 可用 `pending_archive_replica_digest` 取得 peer retained-cut 窄访问。caller 不得自报 allowed ref 数组；服务从 retained intent/cut 机械判定。普通 timeline visibility 与
 TraversalAccess 互斥，unknown/unauthorized/out-of-cut 同形。旧 evidence-page read operation 与 descriptor-access branch 均不存在。
 
-Request create 时 requester 当前 delivery binding/authenticated Principal Server 是该 request response stream 唯一 `release_id`。Request
-receipt、sealed capability context 与 response stream 都冻结该 service DID、binding/resolution refs 和 route digest；后续 retry 或路由变化
-不得替换。固定 service DID 是该 request 的唯一 release authority；chunk 首次入队时仍必须确认 receipt 中的 delivery binding
-仍指向该 DID。同一 DID 的 ServiceResolution successor 允许成为新 route；只有 delivery binding 改绑另一 service DID 时
+Request create 时 requester authenticated AccountId 的 `principal_server_id` 是该 request response stream 唯一 `release_id`。Request
+receipt、sealed capability context 与 response stream 都冻结 exact AccountId、该 service DID、resolution refs 和 route digest；后续 retry 或路由变化
+不得替换。固定 service DID 是该 request 的唯一 release authority；chunk 首次入队时仍必须确认 receipt 的 exact AccountId
+未变。同一 DID 的 ServiceResolution successor 允许成为新 route；请求若改用另一 AccountId 或另一 service DID则
 fail closed 并由 requester 创建新 request；已经 accepted 的小型 `HistoryKeyResponseSendReceipt`
 仍由旧 idempotency ledger 保留并 byte-identical retry 到 expiry；recipient response stream 的完整 record 则在有效 high-water ack
 事务中 GC。v1 不迁移 response stream/idempotency ledger。Release service 通过
 `ak.peer.history_key_requests.command.replicate.v1` 把 byte-identical request+receipt 私有 fanout 到 closed destinations：current member
-delivery-binding services，或其 archive tuple 与 requested ranges 相交的 exact RRK holder service。Destination authorization/TTL/idempotency
+ActorId routing services，或其 archive tuple 与 requested ranges 相交的 exact RRK holder service。Destination authorization/TTL/idempotency
 受 S2S proof 覆盖；destination 只在本地 scope-private
 request 投影，不生成 Event 或 DeviceMessage。Create 事务必须先 durable 写入 initial target set 与 fanout outbox；重启从 outbox 重放，
 TTL 内 membership/service-binding 变化由 durable reconciliation 增加当前合法 target 并使失权 target 的 list gate 立即失效，不能因

@@ -34,7 +34,7 @@ def common(kind: str) -> dict[str, object]:
     return {
         "schema": "ak.identity.recovery_proof.v1",
         "kind": kind,
-        "principal_authority": {
+        "account_id": {
             "principal_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
             "principal_server_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
         },

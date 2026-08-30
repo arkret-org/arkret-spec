@@ -368,7 +368,7 @@ Snapshot 后续恢复流程：
 
 ## 11. 首次加入 Realm
 
-**加入提交目标（normative）**：跨域加入时客户端唯一提交目标是自己的 Principal Server。后者完成本地 admission 后，才可使用 `ak.find.directory.read.resolve_realm.v1` / `ak.find.directory.read.resolve_target.v1` / signed invite metadata 中由 signed invite 或当前 joined-member delivery binding 裁剪的 `join_candidates[]` 作为 federation forwarding hints（见 [`federation.md` §5.0](./federation.md)）。客户端不得直投 candidate；所有重试 MUST 绑定同一 canonical `realm_id`。
+**加入提交目标（normative）**：跨域加入时客户端唯一提交目标是自己的 Principal Server。后者完成本地 admission 后，才可使用 `ak.find.directory.read.resolve_realm.v1` / `ak.find.directory.read.resolve_target.v1` / signed invite metadata 中由 signed invite 或当前 joined-joined-member ActorId routing projection 裁剪的 `join_candidates[]` 作为 federation forwarding hints（见 [`federation.md` §5.0](./federation.md)）。客户端不得直投 candidate；所有重试 MUST 绑定同一 canonical `realm_id`。
 
 推荐流程：
 

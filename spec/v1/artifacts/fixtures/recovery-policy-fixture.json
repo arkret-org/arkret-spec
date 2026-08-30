@@ -23,7 +23,13 @@
             "kind": "realm",
             "realm_id": "ak:realm:AXtxKIJQOEbsj64qEDHyTFTAvWbj5-6ahXYDh50NuJQM"
           },
-          "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+            }
+          },
           "actor_seq": 3,
           "created_at": "2026-07-29T02:00:00.000Z",
           "prev_refs": [],
@@ -63,8 +69,7 @@
               "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
               "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
-          ],
-          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          ]
         },
         "authorization_lease": {
           "authorization_lease_id": "ak:authorization_lease:019a8200-0000-7000-8000-000000000005",
@@ -73,7 +78,10 @@
               "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
             ]
           },
-          "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixture"
+          },
           "device_id": "ak:device:019a8200-0000-7000-8000-000000000004",
           "scope_ref": {
             "kind": "realm",

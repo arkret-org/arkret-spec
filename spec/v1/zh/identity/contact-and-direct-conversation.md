@@ -290,14 +290,14 @@ B 内容展示，使 holder 的 respond 绑定到他从未看过的 request。
 
 ### 5.1 pair identity
 
-同 trust domain 下两个 stable subject DID 按 unsigned UTF-8 bytes 排序为 `[p0, p1]`。`pair_key` **MUST** 在任何 Realm 存在前即可计算，因此固定使用 SHA-256 与 RFC 8785 JCS，**MUST NOT** 读取任何 Realm 自报的 digest suite：
+同 trust domain 下两个 exact `ActorId` 先分别序列化为 RFC 8785 JCS，再按 unsigned JCS bytes 排序为 `[p0, p1]`。`pair_key` **MUST** 在任何 Realm 存在前即可计算，因此固定使用 SHA-256 与 RFC 8785 JCS，**MUST NOT** 读取任何 Realm 自报的 digest suite：
 
 ```text
 pair_key = sha256(UTF8("ak.direct-conversation.pair-key.v1\n") ||
                   JCS({"trust_domain_id": <id>, "participants": [p0, p1]}))
 ```
 
-handle、display name、设备 ID、Principal Server endpoint、Realm ID、Strand ID 与 Contact Event ID **MUST NOT** 进入前像。双方 **MUST** 从 Event 中的 exact participants 与 trust domain 重算 `pair_key`，**MUST NOT** 采信 caller 自报值。实现 **MUST** 执行 [`ak.vector.direct_conversation.pair_key.v1`](../../artifacts/registry/vector-registry.json) 的逐字节 KAT；无 domain separator 或把 `trust_domain_id` 改名为 `trust_domain` 的旧前像均不是 v1 `pair_key`。
+handle、display name、设备 ID、endpoint、Realm ID、Strand ID 与 Contact Event ID **MUST NOT** 进入前像。裸 `principal_id`、裸 DID 与 unresolved pairwise DID 也不是参与者身份；账号参与者必须使用内含 `principal_server_id` 的完整 `AccountId` 分支。双方 **MUST** 从 Event 中的 exact participants 与 trust domain 重算 `pair_key`，**MUST NOT** 采信 caller 自报值。实现 **MUST** 执行 [`ak.vector.direct_conversation.pair_key.v1`](../../artifacts/registry/vector-registry.json) 的逐字节 KAT；无 domain separator 或把 `trust_domain_id` 改名为 `trust_domain` 的旧前像均不是 v1 `pair_key`。
 
 ### 5.2 founder 派生（normative）
 
@@ -383,7 +383,7 @@ founding_unit_digest = H("ak.direct-conversation.founding-unit.v1",
 
 founder 的 current Principal Server **MUST** 以本地唯一约束保证同一 `(founder_id, trust_domain_id, pair_key)` 至多一组 founding unit 被 accepted。self admission **MUST** 在同一事务内完成：确认该 pair 尚无 accepted DM Realm、CAS 占用 slot、按 §5.4 与 §6 完整验证四条 Event、round 与派生坐标、零项或四项原子接受、签发 `DirectConversationFoundingAcceptanceReceipt`、写入 peer-delivery outbox。acceptance **只固定 caller 已派生的坐标**，**MUST NOT** 分配、替换或重新协商任一 ID；receipt 是该事务的输出，**MUST NOT** 循环要求 caller 预先携带。
 
-receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/root Contact round 与 evidence digest；controller↔Agent 为完整 provision Event ref 与 controller binding digest）、issuer service ID、`accepted_at` 与 proof。provision digest 必须从 suite-tagged full-digest `agent_provision_ref` 解码，wire **MUST NOT** 另带 `agent_provision_digest`。receipt 的存在本身即证明本地唯一 slot 与 founding unit 在同一事务内提交，不重复布尔回声。四条 accepted Event 自身的 `principal_server_id` 与 admission proofs 是 founder 账号 authority 的唯一 carrier。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
+receipt **MUST** 绑定 `pair_key`、完整 `founder_id: ActorId`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/root Contact round 与 evidence digest；controller↔Agent 为完整 provision Event ref 与 controller binding digest）、issuer service ID、`accepted_at` 与 proof。provision digest 必须从 suite-tagged full-digest `agent_provision_ref` 解码，wire **MUST NOT** 另带 `agent_provision_digest`。receipt 的存在本身即证明本地唯一 slot 与 founding unit 在同一事务内提交，不重复布尔回声。四条 accepted Event 的 exact author `ActorId` 与 admission proofs 是 founder authority 的唯一 carrier；不得再加 Event server sidecar。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
 
 
 `proof` 的签名 transcript 是唯一封闭前像，按 §2 的 `H` 固定为：
@@ -399,7 +399,7 @@ founding_receipt_transcript = H("ak.direct-conversation.founding-receipt.v1",
 transcript 与同一签名输入。
 
 carrier 是 `ak.self.events.command.submit.v1` request union 中显式登记的 discriminated branch
-`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好四条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 `founding_authority_evidence` 与 `idempotency_key`，并在 response union `SelfEventsSubmitOutcome` 中返回 `DirectConversationFoundingAcceptanceOutcome`。每条 Event 的 `principal_server_id` 必须等于接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支或让服务端代签 producer Event；`ak.self.direct_conversation.read.resolve.v1` 继续 query-only，**MUST NOT** 承载 create。
+`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好四条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 `founding_authority_evidence` 与 `idempotency_key`，并在 response union `SelfEventsSubmitOutcome` 中返回 `DirectConversationFoundingAcceptanceOutcome`。每条 Event 的实际 author `ActorId` 必须路由到接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支或让服务端代签 producer Event；`ak.self.direct_conversation.read.resolve.v1` 继续 query-only，**MUST NOT** 承载 create。
 
 幂等与 crash/restart 语义 **MUST** 如下封闭：
 
@@ -412,7 +412,7 @@ carrier 是 `ak.self.events.command.submit.v1` request union 中显式登记的 
 
 ### 5.6 联邦例外
 
-Realm 尚不存在时无法取得普通 member federation authority，因此 Direct Conversation founding exception 只允许 Contact round 中 founder 的 `(principal_id, principal_server_id)` 向 invitee 自己的 Principal Server 投递该 atomic unit、source acceptance receipt 与 bounded founding-authority dependencies。接收方必须验证 transport source、四条 Event 的 `principal_server_id`、producer proof 与 origin admission proof 一致，并要求目标 pair 命中本地 Contact round；不得要求或比较 PCR id/genesis receipt。
+Realm 尚不存在时无法取得普通 member federation authority，因此 Direct Conversation founding exception 只允许 Contact round 中完整 founder `ActorId` 所路由的服务向 invitee 自己的 Principal Server 投递该 atomic unit、source acceptance receipt 与 bounded founding-authority dependencies。接收方必须验证 transport source、四条 Event actual author 的 route、producer proof 与 origin admission proof 一致，并要求目标 pair 命中本地 Contact round；不得要求或比较 PCR id/genesis receipt。
 
 该例外的 carrier **MUST** 是 `ak.peer.events.command.submit.v1` request union 中显式登记的 discriminated
 branch `DirectConversationFoundingFederationSubmission`（discriminator
@@ -570,7 +570,7 @@ canonical DM Realm **MUST** 拒绝 `ak.realm.destroy` 与任何 `ak.realm.tombst
 
 `ak.direct_conversation.bound` **MUST NOT** 承担阻止第二个 Realm 的职责——唯一性来自 §5.4 的 admission。它是 coordinates 与首次 exact-pair group state 的 participant 可见凭证，wire payload 绑定 `pair_key`、`participants_unordered[2]`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 `authorization_basis` 与 `initial_exact_pair_group_state_ref`。`binding_digest` 是下述内容的 receiver-derived semantic digest，**不是 wire 字段**。
 
-receiver 先必须验证 payload 的每个字段与 accepted founding unit、唯一 main Strand、canonical authorization basis 及该 pair 唯一 group 的 exact-pair winning state 一致，再构造以下唯一 closed object。`p0/p1` 是 `participants_unordered` 中两个 canonical stable subject DID 按 unsigned UTF-8 bytes 升序排列的结果；`e0/e1` 是 `authorization_basis.event_refs` 中两个 accepted Event ref 按同一顺序排列的结果。排序只用于此派生对象，**MUST NOT** 改写已签名 Event bytes。
+receiver 先必须验证 payload 的每个字段与 accepted founding unit、唯一 main Strand、canonical authorization basis 及该 pair 唯一 group 的 exact-pair winning state 一致，再构造以下唯一 closed object。`p0/p1` 是 `participants_unordered` 中两个 exact `ActorId` 按 unsigned RFC 8785 JCS bytes 升序排列的结果；`e0/e1` 是 `authorization_basis.event_refs` 中两个 accepted Event ref 按 unsigned UTF-8 bytes 排序的结果。排序只用于此派生对象，**MUST NOT** 改写已签名 Event bytes。
 
 ```text
 binding_object = {
@@ -622,7 +622,7 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 
 #### 9.1.1 `creation_required` 的 authoring material（normative）
 
-`DirectConversationFoundingUnitSubmission` 必填 `founding_authority_evidence`；它由服务端从 Contact round 证据投影并由 caller 原样回传。Event origin authority 已由四条 Event 顶层 `principal_server_id` 与服务端追加的 admission proofs 表达。若 resolver 只回一个无 material 的
+`DirectConversationFoundingUnitSubmission` 必填 `founding_authority_evidence`；它由服务端从 Contact round 证据投影并由 caller 原样回传。Event origin authority 已由四条 Event 的完整 actual-author `ActorId` 及服务端追加的 admission proofs 表达。若 resolver 只回一个无 material 的
 `creation_required`，则 founder 在协议层不可能构造该 unit——这正是
 [`service-http-binding.md` §2.2.2](../sync/service-http-binding.md) 供给闭合律禁止的形态。
 因此：
@@ -656,7 +656,7 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 
 #### 9.1.2 Origin authority 供给（normative）
 
-Direct Conversation founding 不建立独立 principal↔service binding object。resolver 只返回可验证的 `founding_authority_evidence`；caller author 的每条 Event 已签入 `principal_server_id`，接收服务完成本地 pair/device admission 后追加 proof。任何缺少该 pair、proof 不匹配或服务非 Event origin 的情况返回 `temporarily_unavailable` 或 fail closed，不得现场代 principal 签名。
+Direct Conversation founding 不建立独立 principal↔service binding object。resolver 只返回可验证的 `founding_authority_evidence`；caller author 的每条 Event 已签入完整 `ActorId`，接收服务按该 ActorId 路由完成本地 pair/device admission 后追加 proof。任何缺少该 pair、proof 不匹配或服务非 Event origin 的情况返回 `temporarily_unavailable` 或 fail closed，不得现场代 principal 签名。
 
 
 **send blocker 的权威边界（normative）。** wire 上的封闭枚举 `direct_conversation_send_blocker`（[`direct-conversation-operations.schema.json`](../../artifacts/schemas/direct-conversation-operations.schema.json)）**MUST** 只承载 server-verifiable blocker：服务端 **MUST** 能从它有权读取的 accepted authoritative state 证明该值，**MUST NOT** 猜测、解密或把客户端自报当作 authority。因此 `personal_blocked` 与 `history_key_unavailable` **MUST NOT** 出现在该枚举中——`ak.account.blocklist` 是 holder-private account data，经不可信服务同步时只以对 holder 设备加密的形式存在；某条历史 MLS secret 是否已安装是端侧私有密钥状态。任何让服务端权威判定这两者的做法都要么拆掉那条加密不变量，要么把未认证声明当成事实。服务端返回这两个值 **MUST** 直接构成 `schema_violation`，客户端 **MUST** 拒绝，**MUST NOT** 以"容忍未知 blocker 字符串"的方式接受。

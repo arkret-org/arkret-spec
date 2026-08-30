@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 30,
+  "version": 31,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -386,18 +386,6 @@
       "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
-      "id": "allow_did_document_default",
-      "context": "all_arkret_owned_wire_contexts",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "did_document_default_allowed",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
-    },
-    {
       "id": "allow_e2ee_join",
       "context": "all_arkret_owned_wire_contexts",
       "since_revision": "2026-07-26",
@@ -547,18 +535,6 @@
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
       "replacement": "udp_allowed",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
-    },
-    {
-      "id": "allow_unroutable_membership",
-      "context": "all_arkret_owned_wire_contexts",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "unroutable_membership_allowed",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -1008,30 +984,6 @@
         "negative_test"
       ],
       "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
-    },
-    {
-      "id": "delivery_binding_hint",
-      "context": "member_delivery_binding_candidate",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "member_delivery_binding",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Candidate payload carries the concrete member_delivery_binding builder object."
-    },
-    {
-      "id": "delivery_binding_policy",
-      "context": "space_payload",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "ak.realm.delivery_binding_policy",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Delivery binding policy is Realm-scoped. Space payloads MUST NOT carry delivery_binding_policy."
     },
     {
       "id": "denied_morph_types",
@@ -2187,30 +2139,6 @@
       "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
-      "id": "policy_ref",
-      "context": "handle_claim_top_level",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "member_delivery_binding.policy_event_ref",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Handle claim delivery binding policy references are single-sourced inside member_delivery_binding."
-    },
-    {
-      "id": "policy_ref#member_delivery_binding",
-      "context": "member_delivery_binding",
-      "since_revision": "2026-05-25",
-      "rejection_level": "hard_reject",
-      "replacement": "policy_event_ref",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "member_delivery_binding references the policy revision Event that authorized a delivery binding, not a Policy object. The field therefore carries explicit event-reference semantics as policy_event_ref."
-    },
-    {
       "id": "policy_type",
       "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
       "since_revision": "2026-07-26",
@@ -2341,18 +2269,6 @@
         "negative_test"
       ],
       "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
-    },
-    {
-      "id": "recipient_id",
-      "context": "handle_claim_top_level",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "member_delivery_binding.recipient_id",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Handle claim delivery routing is single-sourced inside member_delivery_binding."
     },
     {
       "id": "recipient_service_type",
@@ -2774,18 +2690,6 @@
         "negative_test"
       ],
       "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
-    },
-    {
-      "id": "service_acceptance_ref",
-      "context": "handle_claim_top_level",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "member_delivery_binding.service_acceptance_ref",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Handle claim delivery binding evidence is single-sourced inside member_delivery_binding."
     },
     {
       "id": "service_type",

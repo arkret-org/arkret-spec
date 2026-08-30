@@ -243,8 +243,7 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
   "schema": "ak.schema.account_status_record.v1",
   "account_status_record_id": "ak:account_status_record:Aaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
   "account_authority_id": "ak:did_core:webvh:zGtABZixoZZ3m4cFx3E65LCmg",
-  "account_id": "acct_123",
-  "principal_authority": {
+  "account_id": {
     "principal_id": "ak:did_core:webvh:z6mkfixture",
     "principal_server_id": "ak:did_core:webvh:zPrincipalServer"
   },
@@ -296,7 +295,7 @@ Account Authority 向 Principal Server 复制状态的唯一写 operation 是 `a
 - HTTP 必须使用 RFC 9421 Message Signature，覆盖 method、target URI、authority、`Content-Digest`、Source/Destination service DID、Source/Destination trust domain 与 `Idempotency-Key`。Outer signature 只认证 transport caller，不替代 Account Authority record proof。
 - receiver 遇 gap 或需要 freshness observation 时使用 `ak.peer.account_status.read.resolve.v1`（`POST /_arkret/peer/account-status/resolve`）向 Account Authority 取得最多 128 条从 `from_status_seq` 开始的原始连续 records。响应按 `status_seq` 升序；`has_more=true` 时给出 `next_status_seq`。未知、无关系或无权 caller 必须在读取 ledger 前以 operation 注册的 non-enumerating outcome 拒绝。
 
-首个接收 Principal Server 从自身已持久化的 account session/device/KeyPackage/to-device/push-route、principal locator 与 Realm delivery-binding 状态确定**实际受影响 Principal Server 集合**，建立有界 durable outbox，并对每个目标复用上述 operation 的 receipted fanout 分支。集合只包含已经持有或即将持有该 account/principal 状态的服务；不得把 `account_id` 广播给无关 federation peer。每个目标按 `(account_authority_id,account_id,destination_id,account_status_record_id)` 去重；ack 后移出 outbox，失败按 bounded exponential backoff 重试。Outbox 必须有按 account/record/target 的唯一键、每 account 最大目标数 256、每目标最大一条未完成状态更新；不得跳过 predecessor、`deactivated` 或 `erasure_pending` 屏障，目标缺 gap 时先 resolve/补齐再提交后继。
+首个接收 Principal Server 从自身已持久化的 account session/device/KeyPackage/to-device/push-route、principal locator，以及引用该 exact AccountId 的 Realm membership 确定**实际受影响 Principal Server 集合**，建立有界 durable outbox，并对每个目标复用上述 operation 的 receipted fanout 分支。集合只包含已经持有或即将持有该账号状态的服务；不得按相同 `principal_id` 扩大广播给无关 federation peer。每个目标按 `(account_authority_id,account_id,destination_id,account_status_record_id)` 去重；ack 后移出 outbox，失败按 bounded exponential backoff 重试。Outbox 必须有按 account/record/target 的唯一键、每 account 最大目标数 256、每目标最大一条未完成状态更新；不得跳过 predecessor、`deactivated` 或 `erasure_pending` 屏障，目标缺 gap 时先 resolve/补齐再提交后继。
 
 上述 genesis/CAS、record identity/proof、gap/stale/duplicate/fork、幂等冲突与 fanout incomplete/complete 转换由 conformance vector `ak.vector.account_status.issuer_ledger.v1` 闭合。
 
@@ -396,20 +395,20 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
 ### 7.1 Deactivation Fanout（normative）
 
-为关闭"deactivation 后仍有未撤销路径继续投递或被授权"的窗口，**deactivation accepted 进入 frontier 的同一事务边界内** MUST 对 `owner_account_id == deactivated.account_id` 的资源触发下列 fanout。授权、设备、KeyPackage、push 与队列存储 MUST 保存该 owner 绑定；无法证明 owner 的记录 MUST fail closed 并进入人工恢复队列，不能按相同 `principal_id` 扩大到其它 service account：
+为关闭"deactivation 后仍有未撤销路径继续投递或被授权"的窗口，**deactivation accepted 进入 frontier 的同一事务边界内** MUST 对 exact `deactivated.account_id` 所属资源触发下列 fanout。本地存储先把该 `AccountId` 解析为 `account_pk` 并只按此外键关联；跨服务存储必须保留完整 canonical `AccountId`。无法证明 owner 的记录 MUST fail closed 并进入人工恢复队列，不能按相同 `principal_id` 扩大到另一账号：
 
 | 域 | Fanout 动作 | 触发什么 event |
 | --- | --- | --- |
 | **Session grant** | 撤销全部 `ak.session.grant`（含 applet delegated session）；后续 session-grant introspection MUST 返回 `inactive`。 | 服务端撤销表 + 可选 `ak.audit.accessed` |
 | **Device grant** | 全部 `ak.device.*` 标 `revoked`；后续 `ak.self.events.command.submit.v1` 用 revoked device 签名 MUST `actor_signature_revoked`。 | reducer 状态转换 |
 | **Applet delegation** | 撤销所有 `ak.applet.registration` 持有的 delegated device；applet 服务后续调用 MUST `delegation_revoked`。 | reducer 状态转换 |
-| **KeyPackage** | 按精确 `owner_account_id` 逐行 read/CAS到终态：`published+unused → retired`；`claimed+unconsumed → revoked`并保留原 claim ID；`consumed`保持 immutable。CAS stale必须重读并继续，直到写入目标终态或确认已处同一终态；stale conflict不得计作完成。任何 terminal不得复活或二次 claim。 | reducer + KeyPackage store 失效 |
-| **Push route** | 撤销 `ak.device.push_route`；push gateway MUST 停止向该 principal 的注册 endpoint 投递。 | reducer + push gateway 缓存失效 |
-| **To-device queue** | 服务端 to-device 队列 drop 所有 `recipient_principal_id == deactivated_principal` 的 pending message；后续投递 MUST `recipient_unavailable`。 | server-side queue 状态 |
+| **KeyPackage** | 由认证 `AccountId` 解析本地 `account_pk`，按该本地外键逐行 read/CAS 到终态：`published+unused → retired`；`claimed+unconsumed → revoked`并保留原 claim ID；`consumed`保持 immutable。KeyPackage wire object 不携 owner ID。CAS stale 必须重读并继续，直到写入目标终态或确认已处同一终态；stale conflict 不得计作完成。任何 terminal 不得复活或二次 claim。 | reducer + KeyPackage store 失效 |
+| **Push route** | 撤销 exact `AccountId` 下的全部 `ak.device.push_route`；push gateway MUST 停止向这些注册 endpoint 投递。 | reducer + push gateway 缓存失效 |
+| **To-device queue** | 服务端 to-device 队列 drop 所有目标 `AccountId == deactivated_account_id` 的 pending message；后续投递 MUST `recipient_unavailable`。 | server-side queue 状态 |
 | **Identity link cache** | 客户端与服务端可见缓存 MUST eager invalidate 所有 `(*, pairwise_did → deactivated_principal)` 映射；不得等待 7d TTL 或 MLS epoch 推进。 | `ak.identity_link` cache invalidation |
-| **Capability cache** | 所有 cached `ak.capability.grant` decision 引用该 principal 作为 subject 或 issuer 的 MUST eager invalidate；下次 capability check 走完整判定。 | cache invalidation |
+| **Capability cache** | 所有 cached `ak.capability.grant` decision 以该完整 `AccountId` / account ActorId 作为 subject 或 issuer 的 MUST eager invalidate；下次 capability check 走完整判定。 | cache invalidation |
 
-**写屏障（write barrier）**：`deactivated` accepted 进入当前 account status frontier 后，任何通过该 `account_id` 的 session、device 或 account binding 发起，或以该 account 作为 owner 的新 `ak.session.grant`、`ak.device.authorize`、KeyPackage publish / claim、agent / applet delegation、capability grant / delegation、push route、to-device enqueue 和 Realm membership delivery-binding 写入 MUST `failed_precondition`，`reason_code="account_deactivated"`。该屏障按 `account_id` 的 status frontier 生效，不得被较新的 HLC、不同 device、未完成 federation ack 或尚未失效的本地 cache 绕过。§3 的合法 reactivation 只在 completed PCR recovery 已接受新 device generation、Account Authority 已提交 exact `deactivated → active` successor 后解除该 account 的新写 gate；旧 fanout 资源仍保持 terminal，所有新 session/device/KeyPackage 必须绑定 replacement authorization Event 与新 current generation。同一 Principal Server 不得借此创建第二 `account_id` 或第二 PCR genesis。已经在屏障前 accepted 的历史 Event 不被改写；尚处 pending / quarantine / soft-fail 的写入 MUST 在恢复前重新检查 current status、exact device authorization 与 generation fence。
+**写屏障（write barrier）**：`deactivated` accepted 进入当前 account status frontier 后，任何通过该 `account_id` 的 session、device 或 account binding 发起，或以该 account 作为 owner 的新 `ak.session.grant`、`ak.device.authorize`、KeyPackage publish / claim、agent / applet delegation、capability grant / delegation、push route、to-device enqueue，以及以 `{kind:"account",account_id:<该账号>}` 为 target 的 Realm membership 写入 MUST `failed_precondition`，`reason_code="account_deactivated"`。该屏障按完整 AccountId 的 status frontier 生效，不得被较新的 HLC、不同 device、未完成 federation ack、相同 `principal_id` 的其它账号或尚未失效的本地 cache 绕过。§3 的合法 reactivation 只在 completed PCR recovery 已接受新 device generation、Account Authority 已提交 exact `deactivated → active` successor 后解除该 account 的新写 gate；旧 fanout 资源仍保持 terminal，所有新 session/device/KeyPackage 必须绑定 replacement authorization Event 与新 current generation。同一 Principal Server 不得借此为同一 pair 创建第二本地 account row 或第二 PCR genesis。已经在屏障前 accepted 的历史 Event 不被改写；尚处 pending / quarantine / soft-fail 的写入 MUST 在恢复前重新检查 current status、exact device authorization 与 generation fence。
 
 约束：
 
@@ -423,7 +422,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 - **Push route 行的完成判据（normative）**：push gateway 是独立主体，push route 行的完成判据是 push gateway 侧停止投递。当 gateway 独立持有注册 endpoint / 投递状态时，Principal Server MUST 通过已登记的内部通道通知 gateway 并取得处理结果；Principal Server 的本地存储 purge 不构成该行的完成。未取得 gateway 处理结果时该行按未完成计，适用下文 `deactivation_partial` 的标记与重试语义。
 - **MLS Remove**：若 Realm policy 决定 deactivate → leave，对应 MLS group MUST 在 grace window（默认 `mls_deactivation_grace_ms = 600,000 ms`）内 emit `ak.mls.commit` Remove；超时未 commit 则该 Realm 的成员客户端 MUST 在 verified timeline 中把该 principal 标 `unverifiable_member`，不再接受其新 epoch 消息。
 - Fanout 失败的 partial state：如果某条 fanout 因网络 / 服务不可达失败，server `account_status` MUST 标 `deactivation_partial` 并继续重试；客户端 UI MUST 显式标记 "停用未完成" 而不是显示已停用。
-- **跨 Principal Server 传播**：若该 principal 曾在其它 Principal Server 上持有 device / KeyPackage / to-device / push-route 状态，或通过 Realm membership delivery binding 使用过 peer 服务，首个接收 Principal Server MUST 按 §3.1 的 durable affected-service index 与 `ak.peer.account_status.command.submit.v1` receipted fanout 分支主动推送原始 `AccountStatusRecord` 及其专用 `account_status_receipts[]`；不得塞入通用 Realm federation batch，不得广播给无关 peer。每个 destination 返回的 `accepted | duplicate` 才构成 ack。未在 `deactivation_propagation_window_ms` 内得到全部 ack 时，本地 `propagation_state` 转为 `incomplete`，服务侧投影 flag `deactivation_federation_incomplete=true`，并暂停新 Realm onboard、新 session/device grant 与新 KeyPackage 发布；该 flag 是可变的 outbox/projection 状态，MUST NOT 回写或重签 immutable record。后续全部 ack 到达后将 flag 清零并保留审计记录。
+- **跨 Principal Server 传播**：若该 principal 曾在其它 Principal Server 上持有 device / KeyPackage / to-device / push-route 状态，或通过 Realm membership ActorId routing projection 使用过 peer 服务，首个接收 Principal Server MUST 按 §3.1 的 durable affected-service index 与 `ak.peer.account_status.command.submit.v1` receipted fanout 分支主动推送原始 `AccountStatusRecord` 及其专用 `account_status_receipts[]`；不得塞入通用 Realm federation batch，不得广播给无关 peer。每个 destination 返回的 `accepted | duplicate` 才构成 ack。未在 `deactivation_propagation_window_ms` 内得到全部 ack 时，本地 `propagation_state` 转为 `incomplete`，服务侧投影 flag `deactivation_federation_incomplete=true`，并暂停新 Realm onboard、新 session/device grant 与新 KeyPackage 发布；该 flag 是可变的 outbox/projection 状态，MUST NOT 回写或重签 immutable record。后续全部 ack 到达后将 flag 清零并保留审计记录。
 
 ## 8. Erasure
 

@@ -121,7 +121,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event，**�
 - 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Realm policy 明确委托的第三方服务。
 - 如果 Realm 声明了 shared notary / Principal Server sync surface，该服务必须是 Realm policy 中显式列出的受信 Principal Server 或组织服务 DID。
 - 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Realm policy 明确委托。
-- Realm 内成员投递目标与 DID Document fallback 的规范规则只由 [`governance/member-delivery-binding.md`](../governance/member-delivery-binding.md) 定义；本架构导览不重复字段级接受条件。
+- Realm member identity 由完整 ActorId 决定；目标 Principal Server 从其 account/hosted-principal 分支派生，endpoint 另走标准 service resolution。DID Document 不补齐账号身份或 membership route。
 - 私有正文、附件预览、全文索引、通知摘要、embedding 与可逆派生摘要的受托服务可见边界，由 [`sync/service-surface.md` §5.4](../sync/service-surface.md) 的 `plaintext_visible_services` 权威规则定义；本节只记录该边界属于 Realm policy，而不重复条目 schema 与授权事件。
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
 - public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_access` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ak.realm.preview_policy` 或等价 export policy 约束；若 Realm 未声明 `preview_policy`，缺省 MUST fail closed（不暴露任何 history snippet / export），MUST NOT 因 `history_access=all_history_for_current_members` 而自动放行。`preview_policy` 取值与缺省规则的权威源见 [`governance/history-visibility.md`](../governance/history-visibility.md)。

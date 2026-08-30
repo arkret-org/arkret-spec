@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-08-30.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-30T09:00:00+08:00",
+  "generated_at": "2026-08-30T23:59:59+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -439,7 +439,7 @@
       "applies_to_fixtures": [
         "applet-managed-actor-fixture.json"
       ],
-      "description": "Applet-managed Bot/Ghost creation uses an exact PrincipalAuthorityKey, independently verified method evidence, immutable provision/PCR anchors, fixed atomic units, DID namespace matching, ordinary PCR rotation and a generic registration/grant/revoke write fence.",
+      "description": "Applet-managed Bot/Ghost creation uses an exact hosted-principal ActorId, independently verified method evidence, immutable provision/PCR anchors, fixed atomic units, DID namespace matching, ordinary PCR rotation and a generic registration/grant/revoke write fence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
       ]
@@ -1092,7 +1092,7 @@
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "Capability materialization copies issuer_principal_server_id exactly from the accepted carrier Event, derives maximum depth plus canonical sorted and deduplicated root identities, and requires each parent subject authority pair to equal the child issuer pair. Producer-supplied derived members and same-DID cross-Principal-Server replay are rejected; missing parents remain dependency-pending and independent reducers produce the same state-root input.",
+      "description": "Capability materialization preserves exact issuer and concrete-subject ActorIds, derives maximum depth plus canonical sorted and deduplicated root identities, and requires each parent subject ActorId to equal the child issuer ActorId in full. Producer-supplied derived members and same-DID cross-Principal-Server replay are rejected; missing parents remain dependency-pending and independent reducers produce the same state-root input.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
@@ -1947,7 +1947,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "Canonical direct-conversation pair_key KAT over sorted stable subject DIDs and the Realm trust domain, including order-independence and unresolved-pairwise-DID rejection rules.",
+      "description": "Canonical direct-conversation pair_key KAT over exact ActorIds sorted by RFC 8785 JCS bytes and the Realm trust domain, including order-independence and bare-principal/unresolved-pairwise-DID rejection rules.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -3423,7 +3423,7 @@
       "applies_to_fixtures": [
         "principal-server-admission-fixture.json"
       ],
-      "description": "Lifetime authority-pair uniqueness including deactivation tombstones and cross-Principal-Server replacement, signed Event principal_server_id, exact producer-proof binding, origin-only admission and replica preservation.",
+      "description": "Lifetime AccountId uniqueness including deactivation tombstones and cross-Principal-Server replacement, signed exact Event ActorId, route-derived origin-only admission, exact producer-proof binding and replica preservation.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/principal-server-admission-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -4094,66 +4094,6 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.membership.delivery_binding.did_document_default.v1",
-      "status": "active",
-      "domain": "membership",
-      "applies_to_fixtures": [
-        "membership-delivery-binding-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.membership.delivery_binding.explicit.v1",
-      "status": "active",
-      "domain": "membership",
-      "applies_to_fixtures": [
-        "membership-delivery-binding-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.membership.delivery_binding.handover.v1",
-      "status": "active",
-      "domain": "membership",
-      "applies_to_fixtures": [
-        "membership-delivery-binding-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.membership.delivery_binding.policy_mismatch.v1",
-      "status": "active",
-      "domain": "membership",
-      "applies_to_fixtures": [
-        "membership-delivery-binding-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.membership.delivery_binding.unroutable.v1",
-      "status": "active",
-      "domain": "membership",
-      "applies_to_fixtures": [
-        "membership-delivery-binding-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -5349,24 +5289,9 @@
       "vector_id": "ak.vector.proof_context.transcript.key_backup_delete_authority.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.key_backup_delete_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.member_delivery_binding_candidate_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.key_backup_delete_proof.v1: digest input deletes `proof`; canonical binding bytes and detached JWS are fixed, and replay under another registered proof context is rejected.",
       "covers_proof_contexts": [
         "ak.key_backup_delete_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.member_delivery_binding_candidate.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.member_delivery_binding_candidate_proof.v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi_identifier_query_outcome_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.member_delivery_binding_candidate_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -6476,7 +6401,7 @@
       "applies_to_fixtures": [
         "service-route-handover-mirror-fixture.json"
       ],
-      "description": "FLOW-GAP-015 closure for target-signed planned service-route handover and Realm-scoped mirror recovery: exact current basis and time ordering, cancellation continuity, no notice-authorized business traffic, same-core formal successor validation, durable publish acknowledgement and replay conflict, bounded visibility-blinded resolve, fork quarantine, durable anti-rollback floor with replaceable TTL cache, delivery-binding rebind boundary, and bilateral cross-ack cutover.",
+      "description": "FLOW-GAP-015 closure for target-signed planned endpoint handover and Realm-scoped mirror recovery within one unchanged service DID: exact current basis and time ordering, cancellation continuity, no notice-authorized business traffic, same-core formal successor validation, durable publish acknowledgement and replay conflict, bounded visibility-blinded resolve, fork quarantine, durable anti-rollback floor with replaceable TTL cache, and bilateral cross-ack cutover. A change of the ActorId-projected service DID is an identity change and is outside this route-handover flow.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

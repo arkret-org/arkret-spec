@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.3",
+  "version": "2026-08-30.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T18:45:00+08:00",
+  "generated_at": "2026-08-30T23:59:59+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -68,7 +68,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:5430fc645794560da2263f4a30805d0cdabe6e216075a6a3041cb88670d90d22",
+      "section_digest": "sha256:51f422e7a17e106aec60c9839139b778e8266323501d9e7815b776b12f93a711",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another. Section 6.0.2 fixes one construction for every registered proof context: the unsigned projection deletes the proof carrier member rather than nulling it and never defaults an absent optional, an absent optional binding field is omitted rather than written as null, audience is a single string or a duplicate-free array with the single-value form mandatory for one audience, and the context constant is a binding object member rather than a JWS header parameter, so a signature valid under one object family's context MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -214,7 +214,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:c8fe58621b2c0f58b74de05fdff7b04f3af9cb724e81dbaebfb70614833d7d26",
+      "section_digest": "sha256:b4d591b7555b17c6be9a261a3eee0283bffe2bb455a5b3832d874e6363ecffcb",
       "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. Ordinary Collaboration bootstrap uses the ordered machine-registry facet closure with an explicit final creator membership and no implicit creator membership. The mutually exclusive Direct Conversation branch is exactly create, explicit peer membership, one basis-free main ak.strand.create, then explicit founder membership with head_eq null. Batch admission MUST reject both no-basis shapes anywhere else.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -250,8 +250,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:9135f16aadb5a21a4ec6d8f9698db4008a0146a01b54385ccd96e53f17c39a9a",
-      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. The reducer derives issuer_principal_server_id from the accepted carrier Event, and a grant ref supplies issuer authority only when its complete subject authority pair equals the child issuer pair; cycles, inactive refs and same-DID cross-Principal-Server replay MUST fail closed rather than widen the effective permission set.",
+      "section_digest": "sha256:d9b37a71d0efa49e0601e39e60cc3ea997d1ef67a8be73b25d784bcb879d2901",
+      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Principal-Server replay MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.capability.authority_chain.v1",
@@ -298,7 +298,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:8e735b899f64f5b648de2bee2bc1099adc268c0ec83e25ff82364bf6740d3c4f",
+      "section_digest": "sha256:3ad98aa7c0afca1d993e9b125f8d058c93d50f881bcb5459940e1a0871e11e00",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -344,7 +344,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:dd89cab19da3cf50f47d172ed2a4bf47b8df491142017cd9a39f579090dd471c",
+      "section_digest": "sha256:6db583113735a183de9df9a9ab29fb520642003e55a9a7d4a84573d82277d3e1",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -389,20 +389,6 @@
       "evidence_refs": [
         "ak.vector.sync.to_device_message_idempotency.v1",
         "ak.vector.sync.delivery_ack.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-026",
-      "status": "active",
-      "category": "distributed_write",
-      "source_anchor": "spec/v1/zh/governance/member-delivery-binding.md#5-路由不可降级normative",
-      "section_digest": "sha256:ad5cf19269704efce3c0063001130fa7bc4aeced4ce7295ce83565f11b7356ea",
-      "requirement": "Member delivery binding never silently downgrades: a stale binding frontier, an expired handover grace window or an unresolvable binding MUST fail closed instead of routing to the previous service.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.membership.delivery_binding.handover.v1",
-        "ak.vector.membership.delivery_binding.unroutable.v1",
-        "ak.vector.membership.delivery_binding.policy_mismatch.v1"
       ]
     },
     {

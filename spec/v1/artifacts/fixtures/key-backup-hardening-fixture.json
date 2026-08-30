@@ -155,7 +155,10 @@
       },
       "envelope": {
         "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000200",
-        "actor_id": "ak:did_core:webvh:z6mkfixture",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
         "backup_kind": "secret_storage",
         "series_id": "ak:backup_series:0196419b-0000-7000-8000-000000000300",
         "series_seq": 4,

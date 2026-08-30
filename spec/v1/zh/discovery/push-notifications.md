@@ -30,8 +30,8 @@ updated: 2026-07-02
 Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操作安全基线**：声明 `ak.profile.push_gateway.v1` 的实现 MUST 同时声明 `ak.profile.push_gateway.blind_wakeup.v1` 并在所有 provider 出向通知上强制其约束。可见通知字段只在显式声明 `ak.profile.push_gateway.visible_notification.v1` 且满足 Realm policy + 设备 opt-in + UI 明示三项前置时才允许，且仍受最小化约束（见 [`conformance/conformance-profiles.md` §11](../conformance/conformance-profiles.md)）。Matrix 兼容部署使用 `ak.profile.push_gateway.matrix_passthrough.v1`，**MUST NOT** 与默认 v1 隐私基线在同一 `(recipient_id, device)` 元组上混用。
 
 在 E2EE 场景下，Principal Server sync surface 无法读取消息正文。推送通知的默认行为是**脱敏唤醒 (Blind Wakeup)**：
-- 推送上游（APNs / FCM / Push Gateway）只携带 **per-(recipient_id, principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Realm id、event id、device verification-method DID URL 或任何其它跨 Realm 稳定标识。设备自身没有 DID。具体规则见 [`crypto-media/device-lifecycle.md` §5.6 Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。同一 DID 在个人 Principal Server 与组织 Principal Server 上的推送注册必须不可链接。
-- `push_target_id` 派生 MUST 使用接收服务私有 secret salt / pepper：`tag = HMAC-SHA256(service_push_secret[salt_epoch_id], canonical_json({recipient_id, principal_id, device_id, push_route_id, salt_epoch_id}))`，并把完整 32-octet `tag` 编码为 `ak:pseudonym:push:<canonical unpadded Base64URL(tag)>`。不得截断 HMAC，不得输出 raw Base64URL 或其它长度。接收方 MUST 解码恰好 32 octets 并执行 canonical 重编码校验；唯一 schema 是 `common-ids.schema.json#/$defs/push_target_id`。`service_push_secret` 原值绝不能上 wire；`ak.server.read.describe.v1.privacy_derivation.push_target_id_derivation` 只发布 `derivation_profile`、`salt_epoch_id`、`salt_rotation_seconds` 和输入绑定元数据，供客户端和 conformance 工具确认不同 Principal Server / 组织 / push route 不会复用同一可链接命名空间。
+- 推送上游（APNs / FCM / Push Gateway）只携带 **per-(account_id, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 AccountId、principal DID、sender DID、Realm id、event id、device verification-method DID URL 或任何其它跨 Realm 稳定标识。设备自身没有 DID。具体规则见 [`crypto-media/device-lifecycle.md` §5.6 Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。同一 principal 在两个 Principal Server 上的推送注册必须不可链接。
+- `push_target_id` 派生 MUST 使用接收服务私有 secret salt / pepper：`tag = HMAC-SHA256(service_push_secret[salt_epoch_id], canonical_json({account_id, device_id, push_route_id, salt_epoch_id}))`，并把完整 32-octet `tag` 编码为 `ak:pseudonym:push:<canonical unpadded Base64URL(tag)>`。`account_id` 必须来自认证 session 并使用 closed JSON 的 JCS bytes，不从当前 HTTP 服务隐式补齐。不得截断 HMAC，不得输出 raw Base64URL 或其它长度。接收方 MUST 解码恰好 32 octets 并执行 canonical 重编码校验；唯一 schema 是 `common-ids.schema.json#/$defs/push_target_id`。`service_push_secret` 原值绝不能上 wire；`ak.server.read.describe.v1.privacy_derivation.push_target_id_derivation` 只发布 `derivation_profile`、`salt_epoch_id`、`salt_rotation_seconds` 和输入绑定元数据，供客户端和 conformance 工具确认不同 Principal Server / 组织 / push route 不会复用同一可链接命名空间。
 - 客户端被唤醒后自行从 Principal Server sync surface 拉取并解密实际内容；本地通知文案在客户端解密后生成。
 - **`push_hint` 即使在 `plaintext_visible_services` 下也 MUST 受白名单约束**：受信通知服务 MAY 附加 `push_hint` 字段，其封闭枚举的**权威定义在 §5.1**（取值 `new_message` / `incoming_call` / `mention_self`，或哨兵值 `l10n_key`——后者为「形态选择器」，实际本地化键由独立字段 `push_hint_l10n_key` 承载，由客户端在解密后渲染）；本节及 §4.5 一律交叉引用 §5.1，不另列重复枚举。`push_hint` 与 `wakeup_kind` 是**两个独立字段**：`wakeup_kind`（封闭枚举 `message` / `mention` / `assignment` / `schedule` / `reaction` / `call_invite` / `reminder` / `scheduled_send` / `expiry_invalidation`，后三者为 Phase-P2 生产力唤醒类别，同为粗粒度、不带 Realm / sender 信息）是独立的粗粒度唤醒类别字段，**不是** `push_hint` 的子内容，二者 MUST NOT 互相替代或嵌套。`push_hint` **MUST NOT** 携带：正文（任何形态）、sender DID 或 handle、principal_id、Realm id / 名称 / 头像、Strand id / 名称、Space id / 名称、Message id、reaction emoji 实际值、附件文件名、badge / 未读绝对计数明文（计数走 `notification.counts`，且按 §5.1 / §6.2 最小化约束）、stable correlation key、IP / geolocation。`plaintext_visible_services` 是"允许接收明文"的授权而非"放行 metadata"的授权——push gateway 即使被授权也不得变成跨 Realm 行为追踪点。违反此约束的推送实现 MUST 在 conformance lint 中标记为不合规。
 
@@ -84,7 +84,7 @@ POST /_arkret/edge/push/register-device
 | `app_id` | string | SHOULD | 应用的包名 / Bundle ID |
 | `display_name` | string | MAY | 用户可读设备名 |
 
-Push registration 的作用域是接收该请求的 Principal Server sync surface / Principal Server service DID。客户端在个人 Principal Server 与组织 Principal Server 上同时登录同一 DID 时，MUST 分别注册互不相关的 push route / `push_target_id`；服务端不得把一个上下文中的 push token 或伪名复制到另一个上下文。实现若在请求中扩展携带 `recipient_id`，其值 MUST 与目标服务的 `ak.server.read.describe.v1.service_id` 一致。
+Push registration 的作用域是认证 session 的完整 `AccountId`。客户端以同一 principal 在两个 Principal Server 登录时，MUST 分别注册互不相关的 push route / `push_target_id`；服务端不得把一个账号的 push token 或伪名复制到另一个账号。self-service 注册请求不重复携带 `account_id`、`principal_id` 或 `recipient_id`，服务端必须从 session grant 取得 exact `AccountId`，并要求当前服务 DID 等于 `account_id.principal_server_id`。
 
 响应字段：
 
@@ -349,7 +349,7 @@ POST /_arkret/edge/push/notify
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `notification` | object | required | 推送通知对象。 |
-| `notification.push_target_id` | `PushTargetId` | required | per-(recipient_id, principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5.6](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device verification-method DID URL、handle 或可跨 Realm / Principal Server 上下文关联的稳定 ID。 |
+| `notification.push_target_id` | `PushTargetId` | required | per-(account_id, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5.6](../crypto-media/device-lifecycle.md)）。MUST NOT 是 AccountId、principal DID、device verification-method DID URL、handle 或可跨 Realm / Principal Server 上下文关联的稳定 ID。 |
 | `notification.wakeup_kind` | string | required | 粗粒度唤醒类别，封闭枚举 `message` / `mention` / `assignment` / `schedule` / `reaction` / `call_invite` / `reminder` / `scheduled_send` / `expiry_invalidation`（与 §2.2 一致；后三者为 Phase-P2 生产力唤醒）；只是粗粒度提示，不带 Realm / sender 信息。 |
 | `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示形态选择器，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或哨兵值 `l10n_key`。**`l10n_key` 是「形态选择器」而非字面展示 token**：当 `push_hint == "l10n_key"` 时，实际本地化键 MUST 由独立字段 `push_hint_l10n_key` 承载（不得把 l10n key 直接塞进 `push_hint` 值）。不得包含正文、sender DID / handle、Realm id / 名称、Strand / Message id、reaction 实际值或 stable correlation key。 |
 | `notification.push_hint_l10n_key` | string | conditional | 仅当 `push_hint == "l10n_key"` 时出现且 MUST 提供；承载实际本地化键 token（如 `push.new_message`），由客户端在解密后用于本地渲染。MUST NOT 携带正文或任何识别性 metadata。 |
@@ -365,7 +365,6 @@ POST /_arkret/edge/push/notify
 | `notification.route_tokens` | object | optional（routing-stripped） | gateway-internal opaque token 集合，blind 与 visible 通知共有。第三方 Push Gateway 只可把 token 用作路由、去重、熔断和等值比较输入；token 由接收 Sync / Principal Service 生成，并绑定 `recipient_id`、Push Gateway service DID、用途、scope 与 salt epoch。其下所有字段 **MUST 在出 provider 前 strip，MUST NOT 转发给 provider**。 |
 | `notification.route_tokens.realm_route_token` | string | optional（routing-stripped） | Realm 级路由 / 去重 / 熔断 token；不得是 Realm id 或可逆 Realm id 编码。 |
 | `notification.route_tokens.scope_route_token` | string | optional（routing-stripped） | effective Realm / Circle scope 的 opaque token；不得携带 Circle id、`effective_scope` 对象或其它可识别 scope 原文。 |
-| `notification.route_tokens.delivery_binding_frontier_token` | string | optional（routing-stripped） | federation hop 来源 notify 的 stale-route 检测 token；不得携带 raw Realm frontier。 |
 | `notification.event_id` | id:event | visible-only required | profile-gated Event id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
 | `notification.realm_id` | id:realm | visible-only required | profile-gated Realm id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
 | `notification.sender_actor_id` | did_core_id | visible-only required | profile-gated 发送者 actor 的稳定业务身份。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
@@ -482,7 +481,6 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 | `push_target_unknown` | target（展开到全部 device） | terminal；停止对该 target 的 notify。 |
 | `push_payload_too_large` | target（展开到全部 device） | terminal；缩减 payload 后才可重试。 |
 | `unsupported_profile` | device | terminal；该设备未 opt-in 所请求的通知 profile，改用 blind 形态。 |
-| `delivery_binding_stale` | device | terminal；接收方 delivery-binding frontier 已推进，route 过期，需重新解析。 |
 | `push_token_unknown` | device | terminal；**SHOULD 移除该设备注册**。 |
 | `push_token_invalid` | device | terminal；**SHOULD 移除该设备注册**。 |
 | `push_gateway_unreachable` | device | **caller-retryable**，按 `retry_after_ms` 重试。 |

@@ -99,6 +99,6 @@ Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不�
 
 - Realm 与 policy bundle：[`../models/realm-and-space.md`](../models/realm-and-space.md)
 - Event admission：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)
-- Member delivery binding：[`./member-delivery-binding.md`](./member-delivery-binding.md)
+- AccountId / ActorId identity：[`../models/common-fields.md`](../models/common-fields.md) 与 [`../identity/account-lifecycle.md`](../identity/account-lifecycle.md)
 - Federation：[`../sync/federation.md`](../sync/federation.md)
 - 机器 schema：[`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json)

@@ -279,7 +279,7 @@
           "type": "boolean"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -387,7 +387,7 @@
           "type": "boolean"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "external_ref": {
           "$ref": "#/$defs/external_ref"

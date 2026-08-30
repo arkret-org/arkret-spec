@@ -23,9 +23,9 @@ Arkret 的权限模型采用 capability 思路，而不是只依赖成员关系�
 
 ## 2. 基本原则
 
-### 2.1 授权主体 SHOULD 是稳定 principal
+### 2.1 授权主体 MUST 使用完整 ActorId
 
-grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
+grant 的 `issuer_id` 与具体主体分支的 `subject` MUST 使用闭合 `ActorId`。账号主体使用 `{kind:"account", account_id:{principal_id, principal_server_id}}`；托管 principal 与 service 分别使用对应的 ActorId 分支。裸 `did_core_id` 不足以标识账号，也不得再附加平行的 `*_principal_server_id` sidecar。
 
 Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主体主键。
 
@@ -41,12 +41,13 @@ Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主�
 
 操作是否合法 MUST 由该时点有效 grant 集决定。
 
-### 2.4 DID 是主体，Claim 是条件
+### 2.4 ActorId 是业务主体，Claim 是条件
 
 权限模型分三层：
 
 ```txt
-Identity: DID
+Business identity: ActorId
+Cryptographic principal: did_core_id
 Human-readable binding: Handle
 Authorization condition: Claim / Attestation
 ```
@@ -65,10 +66,8 @@ ID 语义：
   "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
   "schema": "ak.schema.capability.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "issuer_id": "ak:did_core:webvh:z6qRDFWgaBgTY3UGDLivJztno",
-  "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureissuerprincipalserver",
-  "subject": "ak:did_core:webvh:z8NNMm8UHw7JcDSuuZd34UisF",
-  "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
+  "issuer_id": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6qRDFWgaBgTY3UGDLivJztno","principal_server_id":"ak:did_core:webvh:z6mkfixtureissuerprincipalserver"}},
+  "subject": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z8NNMm8UHw7JcDSuuZd34UisF","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserver"}},
   "issuer_authority_refs": [
     {
       "kind": "realm_root",
@@ -117,11 +116,11 @@ ID 语义：
 
 ### 3.0.1 单一 durable signature（normative）
 
-`ak.capability.grant` 的 `event.payload.grant` 是无 `id`、无 `issuer_principal_server_id`、无 `authority_depth`、无 `authority_root_refs`、无内层 proof 的 closed authoring body；这些 reducer-derived 字段若由 producer 自填，schema MUST 拒绝。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖 actor、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 cell subject 和投影 `grant.id`，并把承载 Event 的 `principal_server_id` **逐字复制**为投影 `grant.issuer_principal_server_id`；不得通过 issuer DID 查找、当前路由、默认服务或接收方本地身份补值。该 Event 的 actor MUST 等于 `grant.issuer`，且本 kind MUST NOT 使用 `executed_by`，因此完整 issuer authority key 恒为 `(grant.issuer, grant.issuer_principal_server_id) == (Event.actor_id, Event.principal_server_id)`。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
+`ak.capability.grant` 的 `event.payload.grant` 是无 `id`、无 `authority_depth`、无 `authority_root_refs`、无内层 proof 的 closed authoring body；这些 reducer-derived 字段若由 producer 自填，schema MUST 拒绝。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖完整 `ActorId`、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 cell subject 和投影 `grant.id`。该 Event 的 `actor_id` MUST 逐字段等于 `grant.issuer_id`，且本 kind MUST NOT 使用 `executed_by`。账号与托管 principal 的 server 归属已经封闭在 ActorId 内，reducer 不再复制或派生 `issuer_principal_server_id`，也不得接受 `subject_principal_server_id`。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
 
 ### 3.1 条件化 Grant
 
-Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
+Grant 的 `subject` 可以是具体 ActorId，也可以是条件选择器。
 
 条件化 grant MUST 明确 claim issuer、claim type、有效状态和适用资源范围。节点 MUST NOT 仅凭 handle 字符串后缀、邮箱域名或显示名判断条件成立。
 
@@ -651,7 +650,7 @@ v1 只有**一种** grant 形态。每条 grant 用 `issuer_authority_refs[]` �
 | | root controller 直发 | 普通 principal 再授予 |
 | --- | --- | --- |
 | ref | `{kind:"realm_root", realm_id, cell_ref, controller_epoch_at_issuance, authority_generation}` | 一个或多个 `{kind:"grant", grant_id}` |
-| issuer 证明 | 签发 Seal basis 下 root cell 的 `controller_id == issuer`，且物化 issuer pair 来自承载 Event | 每条 ref 的 `(subject, subject_principal_server_id) == (issuer, issuer_principal_server_id)` |
+| issuer 证明 | 签发 Seal basis 下 root cell 的 `controller_id == issuer_id`，且 `issuer_id == Event.actor_id` | 每条 ref 的具体 `subject == child.issuer_id`（完整 ActorId 相等） |
 | 持续有效性 | root 存在、Realm 未终止且 `authority_generation` 与 ref 相同；controller transfer 不影响 | 该 ref grant 当前 active |
 | 上界 | root owner ceiling ∩ Realm policy | union(ref grants) ∩ Realm policy |
 
@@ -661,15 +660,14 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 
 没有普通 `authority_control` constraint 的 grant 不具备再授权能力，MUST NOT 被任何 child grant 引用为 ref。若某条 ref 的普通 `authority_control` constraint 声明 `authority_regrant_allowed=false`（字段缺省同样为 false），则以它为 ref 的 child grant MUST 在 wire 上显式携带普通 `authority_control` 与 `max_authority_depth=0`，且 child 的 `authority_regrant_allowed` 必须为 false（字段省略按 false 求值）；该 terminal child MUST NOT 再被任何 grant 引用为 ref。省略 carrier、声明正深度或重新开启 regrant 时 reducer MUST 以 `failed_precondition` reason=`authority_regrant_denied` 拒绝。`constraint_subkind=applet_authority` 不构成普通再授权控制。
 
-**求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 必须保持 active，且其完整 subject authority pair 必须逐字等于 child 的完整 issuer authority pair；只有 DID 相等而 `subject_principal_server_id != issuer_principal_server_id` 时 MUST 视为未提供 issuer authority，并以 `failed_precondition`、reason=`grant_exceeds_issuer_authority` fail closed。该比较只读取已物化字段，不得按 DID 二次查询或把当前路由服务替换成签发时 selector；因此离线 replay、迁移和联邦重放不会把同一 DID 的另一 Principal Server 实例串成授权链。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 cell 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
+**求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 必须保持 active，且其具体 `subject` 必须与 child 的 `issuer_id` 做完整 ActorId 相等比较；只比较 `signing_principal_id` 或裸 DID MUST 视为未提供 issuer authority，并以 `failed_precondition`、reason=`grant_exceeds_issuer_authority` fail closed。该比较只读取已物化 ActorId，不得按 DID 二次查询或把当前路由服务替换进身份；因此离线 replay、迁移和联邦重放不会把同一 DID 的另一 Principal Server 实例串成授权链。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 cell 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
 
-**接受后物化字段（normative）**：reducer MUST 物化下列三个字段；它们都不属于 producer 的 closed authoring body，因此不可由作者谎报：
+**接受后物化字段（normative）**：reducer MUST 物化下列两个字段；它们都不属于 producer 的 closed authoring body，因此不可由作者谎报：
 
-- `issuer_principal_server_id`：对 `ak.capability.grant` 逐字复制 accepted carrier Event 的 `principal_server_id`；与 payload 的 `issuer` 组成完整签发者 authority key。`ak.capability.derived` 必须保留 source grant 已物化的该字段，不能替换成 reducer 或接收服务身份。
 - `authority_depth`：`realm_root` ref 深度为 0，grant 自身为 `max(refs.authority_depth) + 1`。root controller 直发为 1，成员再授予为 2。取签发时静态值，撤销不重算——撤销只改有效性、不改历史结构；实际链深可能小于记录值，对 `max_authority_depth` 判定是偏严方向。
 - `authority_root_refs[]`：direct `realm_root` refs 并上 `union(grant_refs.authority_root_refs)`。它**不是单值**——多亲与 `ak.capability.derived` 的跨 Realm 继承都可能追溯到不同 root / generation。去重键为 `(realm_id, cell_ref, authority_generation)`，MUST 按 unsigned-byte lexicographic 排序；`controller_epoch_at_issuance` 属每条 grant 的 issuance audit，不进入 root identity 去重键。
 
-三者 MUST 登记进 `ak.capability.grant` 的 `cell_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `cell_contracts`），派生名分别为 `capability_issuer_principal_server_id`、`capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则。未登记的 reducer 顺带写入 MUST NOT 进入 `state_root`（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
+二者 MUST 登记进 `ak.capability.grant` 的 `cell_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `cell_contracts`），派生名分别为 `capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则。未登记的 reducer 顺带写入 MUST NOT 进入 `state_root`（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
 
 审计因此退化为单字段过滤（"权限扩散了几跳、根在哪里"），不需要递归 join，也不会因为各实现自行递归重建而在联邦对端得到不一致的视图。
 

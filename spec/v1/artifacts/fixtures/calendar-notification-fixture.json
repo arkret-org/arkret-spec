@@ -62,9 +62,9 @@
         "verified_profiles": [],
         "interop_surfaces": [],
         "development_mode": false,
-          "supported_operation_bundles": [
-            "ak.operation_bundle.principal_server.describe.v1",
-            "ak.operation_bundle.principal_server.http_core.v1"
+        "supported_operation_bundles": [
+          "ak.operation_bundle.principal_server.describe.v1",
+          "ak.operation_bundle.principal_server.http_core.v1"
         ],
         "transport_bindings": [
           {

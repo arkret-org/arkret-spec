@@ -30,7 +30,10 @@
         }
       ],
       "request": {
-        "actor_id": "ak:did_core:webvh:z6mkfixture",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
         "action": "ak.strand.update",
         "resource": {
           "kind": "strand",
@@ -66,7 +69,10 @@
         }
       ],
       "request": {
-        "actor_id": "ak:did_core:webvh:z6mkfixture",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
         "action": "ak.message.create",
         "resource": {
           "kind": "strand",
@@ -85,7 +91,10 @@
       "vector_id": "ak.vector.capability.membership_is_not_baseline.v1",
       "memberships": [
         {
-          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturememberexample"
+          },
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "membership": "join"
         }
@@ -94,7 +103,10 @@
       "requests": [
         {
           "label": "message_create",
-          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturememberexample"
+          },
           "action": "ak.message.create",
           "resource": {
             "kind": "strand",
@@ -108,7 +120,10 @@
         },
         {
           "label": "pin_add",
-          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturememberexample"
+          },
           "action": "ak.pin.add",
           "resource": {
             "kind": "strand",
@@ -122,7 +137,10 @@
         },
         {
           "label": "rsvp_set",
-          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturememberexample"
+          },
           "action": "ak.rsvp.set",
           "resource": {
             "kind": "strand",
@@ -136,7 +154,10 @@
         },
         {
           "label": "policy_manage",
-          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturememberexample"
+          },
           "action": "ak.policy.manage",
           "resource": {
             "kind": "realm",
@@ -149,7 +170,10 @@
         },
         {
           "label": "relation_create",
-          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturememberexample"
+          },
           "action": "ak.relation.create",
           "resource": {
             "kind": "relation",
@@ -163,7 +187,10 @@
         },
         {
           "label": "morph_create",
-          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturememberexample"
+          },
           "action": "ak.morph.create",
           "resource": {
             "kind": "morph",
@@ -434,7 +461,10 @@
         ]
       },
       "action_query": {
-        "actor_id": "ak:did_core:webvh:z6mkfixtureinternexamplecom",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixtureinternexamplecom"
+        },
         "action": "ak.invite.create",
         "resource": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
         "request_time": "2026-04-26T01:00:00.000Z",
@@ -463,7 +493,10 @@
             "kind": "realm",
             "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE"
           },
-          "actor_id": "ak:did_core:webvh:z6mkfixturerootadminexamplecom",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturerootadminexamplecom"
+          },
           "payload": {
             "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
             "issuer_authority_refs": [
@@ -519,7 +552,10 @@
             "kind": "realm",
             "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE"
           },
-          "actor_id": "ak:did_core:webvh:z6mkfixtureopsexamplecom",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixtureopsexamplecom"
+          },
           "payload": {
             "grant_id": "ak:grant:AfRvTwL9UUVlA868BCCvPbdzYVW8u3JC2w3JgU_Fixho",
             "issuer_authority_refs": [
@@ -617,7 +653,10 @@
                   "effect": "allow",
                   "evaluation_class": "grant_local",
                   "applet_id": "ak:applet:01970000-0000-7000-8000-0000000000aa",
-                  "executed_by": "ak:did_core:webvh:z6mkfixturebridgeexample",
+                  "executed_by": {
+                    "kind": "service",
+                    "service_id": "ak:did_core:webvh:z6mkfixturebridgeexample"
+                  },
                   "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                 }
               ]
@@ -944,14 +983,20 @@
           "kind": "ak.member.state",
           "created_at": "2026-04-26T00:00:02.000Z",
           "payload": {
-            "actor_id": "ak:did_core:webvh:z6mkfixturealiceexamplecom",
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplecom"
+            },
             "membership": "leave"
           }
         },
         {
           "event_id": "ak:event:Afv1yWZ8P95DkVvSjRmG15U-fD6yyypjxGbutLtCoxBH",
           "kind": "ak.message.create",
-          "actor_id": "ak:did_core:webvh:z6mkfixturealiceexamplecom",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplecom"
+          },
           "created_at": "2026-04-26T00:00:03.000Z",
           "payload": {
             "strand_id": "ak:strand:Ae9FKI-adZOvEof5zBY1v2PJYeqAmPAKj9s4TgyujhGW",
@@ -1068,7 +1113,10 @@
                 "constraint_kind": "authority_control",
                 "constraint_subkind": "applet_authority",
                 "applet_id": "ak:applet:01964120-1000-7000-8000-000000000000",
-                "executed_by": "ak:did_core:webvh:z6mkfixturebridgeexample",
+                "executed_by": {
+                  "kind": "service",
+                  "service_id": "ak:did_core:webvh:z6mkfixturebridgeexample"
+                },
                 "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
               }
             ],
@@ -1517,18 +1565,34 @@
       "name": "authority_audit_materialization",
       "vector_id": "ak.vector.capability.authority_audit.v1",
       "carrier_event": {
-        "actor_id": "ak:did_core:webvh:z6mkfixturedelegator",
-        "principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver"
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturedelegator",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver"
+          }
+        }
       },
       "producer_grant_body": {
-        "issuer": "ak:did_core:webvh:z6mkfixturedelegator",
+        "issuer_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturedelegator",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver"
+          }
+        },
         "derived_members_present": []
       },
       "parents": [
         {
           "grant_id": "ak:grant:AYEtFD1m0Ap8KjsNdVF9wdwXaMIrNNrCRU0yd0qInS2Y",
-          "subject": "ak:did_core:webvh:z6mkfixturedelegator",
-          "subject_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
+          "subject": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturedelegator",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver"
+            }
+          },
           "authority_depth": 1,
           "authority_root_refs": [
             {
@@ -1547,8 +1611,13 @@
         },
         {
           "grant_id": "ak:grant:AS4qbz-uJg1uUEqcOlw2otaXPiG-2l-SwxAh9-fRnzYo",
-          "subject": "ak:did_core:webvh:z6mkfixturedelegator",
-          "subject_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
+          "subject": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturedelegator",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver"
+            }
+          },
           "authority_depth": 3,
           "authority_root_refs": [
             {
@@ -1571,7 +1640,6 @@
         }
       ],
       "expected": {
-        "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
         "authority_depth": 4,
         "authority_root_refs": [
           {
@@ -1587,27 +1655,47 @@
             "authority_generation": 7
           }
         ],
-        "producer_cannot_supply_issuer_principal_server_id": true,
+        "producer_cannot_supply_identity_sidecars": true,
         "independent_state_roots_equal": true,
         "missing_parent_outcome": "dependency_pending"
       },
       "authority_pair_cases": [
         {
-          "name": "exact_parent_subject_pair_matches_child_issuer_pair",
-          "parent_subject": "ak:did_core:webvh:z6mkfixturedelegator",
-          "parent_subject_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
-          "child_issuer": "ak:did_core:webvh:z6mkfixturedelegator",
-          "child_event_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
+          "name": "exact_parent_subject_actor_matches_child_issuer_actor",
+          "parent_subject": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturedelegator",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver"
+            }
+          },
+          "child_issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturedelegator",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver"
+            }
+          },
           "expected": {
             "accepted": true
           }
         },
         {
           "name": "same_did_different_principal_server_cannot_replay_parent_authority",
-          "parent_subject": "ak:did_core:webvh:z6mkfixturedelegator",
-          "parent_subject_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
-          "child_issuer": "ak:did_core:webvh:z6mkfixturedelegator",
-          "child_event_principal_server_id": "ak:did_core:webvh:z6mkfixtureotherserver",
+          "parent_subject": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturedelegator",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver"
+            }
+          },
+          "child_issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturedelegator",
+              "principal_server_id": "ak:did_core:webvh:z6mkfixtureotherserver"
+            }
+          },
           "expected": {
             "accepted": false,
             "reason": "grant_exceeds_issuer_authority"
@@ -1649,7 +1737,10 @@
       "cases": [
         {
           "name": "peer_message_allowed_without_grant",
-          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "action": "ak.message.create",
           "ordinary_grants": [],
           "expected": {
@@ -1659,7 +1750,10 @@
         },
         {
           "name": "root_generation_reset_does_not_revoke_source",
-          "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixture"
+          },
           "action": "ak.mls.commit",
           "authority_generation_before": 0,
           "authority_generation_after": 1,
@@ -1671,7 +1765,10 @@
         {
           "name": "membership_alone_never_selects_source",
           "override_immutable_binding_present": false,
-          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "action": "ak.message.create",
           "expected": {
             "decision": "deny",
@@ -1680,7 +1777,10 @@
         },
         {
           "name": "source_cannot_issue_child_grant",
-          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "action": "ak.capability.grant",
           "expected": {
             "decision": "deny",
@@ -1714,7 +1814,10 @@
       "cases": [
         {
           "name": "self_rejoin_matches_rejoin_action",
-          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
@@ -1735,7 +1838,10 @@
         },
         {
           "name": "rejoin_on_behalf_of_the_other_participant_denied",
-          "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixture"
+          },
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
@@ -1752,7 +1858,10 @@
         },
         {
           "name": "repair_cannot_carry_a_first_join",
-          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
@@ -1769,7 +1878,10 @@
         },
         {
           "name": "repair_cannot_admit_a_third_participant",
-          "actor_id": "ak:did_core:webvh:z6mkfixturecarolexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturecarolexample"
+          },
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
@@ -1786,7 +1898,10 @@
         },
         {
           "name": "leave_own_is_not_in_the_repair_allowlist",
-          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.leave.own",
@@ -1804,7 +1919,10 @@
         },
         {
           "name": "rejoin_own_cannot_run_the_transition_backwards",
-          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
@@ -1821,7 +1939,10 @@
         },
         {
           "name": "daily_self_leave_still_uses_participant_authority",
-          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+          },
           "presented_authority_source": "ak.authority.direct_conversation_participant.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.leave.own",

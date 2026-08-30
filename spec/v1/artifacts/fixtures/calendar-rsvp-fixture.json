@@ -73,7 +73,13 @@
             "is_primary": true
           }
         },
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -100,7 +106,13 @@
             "is_primary": true
           }
         },
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -133,7 +145,13 @@
             "is_primary": true
           }
         },
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -157,7 +175,13 @@
             "is_primary": true
           }
         },
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -183,7 +207,13 @@
             "is_primary": true
           }
         },
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -582,12 +612,18 @@
         "status": "confirmed",
         "attendees": [
           {
-            "actor_id": "ak:did_core:webvh:z6mkfixture",
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixture"
+            },
             "role": "organizer",
             "display_name_snapshot": "Alice"
           },
           {
-            "actor_id": "ak:did_core:webvh:z6mkfixturebobexample"
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+            }
           }
         ]
       }
@@ -608,11 +644,17 @@
         "status": "confirmed",
         "attendees": [
           {
-            "actor_id": "ak:did_core:webvh:z6mkfixture",
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixture"
+            },
             "role": "organizer"
           },
           {
-            "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+            },
             "role": "organizer"
           }
         ]

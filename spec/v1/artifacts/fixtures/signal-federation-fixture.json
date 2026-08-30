@@ -59,7 +59,7 @@
             "unknown_realm_or_scope",
             "unknown_sender",
             "invalid_producer_proof",
-            "source_not_current_member_delivery_binding",
+            "source_not_current_member_account_host",
             "signal_class_action_denied",
             "expired_or_duplicate_signal"
           ],

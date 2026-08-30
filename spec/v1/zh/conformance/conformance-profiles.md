@@ -145,7 +145,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 - MUST 支持 `ak.self.signal.command.send.v1`、`ak.self.signal.stream.subscribe.v1` 与 `ak.peer.signal.command.relay.v1`；
 - MUST 支持 `ak.schema.signal_envelope.v1`、`ak.schema.signal_relay.v1` 与 `signal-federation-fixture.json`；
-- MUST 使用 federation peer HTTP Message Signature、current member delivery binding、producer device proof、signed `scope_ref`、`seal_ref`、三值 `signal_class`、TTL 与 MLS/AAD binding；
+- MUST 使用 federation peer HTTP Message Signature、current joined-member ActorId routing projection、producer device proof、signed `scope_ref`、`seal_ref`、三值 `signal_class`、TTL 与 MLS/AAD binding；
 - MUST 原样转发 producer envelope，不重签、不改写、不解密重加密，不从 destination 再转发第三 peer；
 - request-level 成功只返回 `{"accepted":true}`，不得暴露 recipient/binding/capability/count/per-item outcome；
 - operation MUST 是 `idempotency_mechanism=none`、`retry_safe=false`、`uncertain_outcome.strategy=drop_unconfirmed`，不得携带 `Idempotency-Key`；

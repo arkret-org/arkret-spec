@@ -64,7 +64,8 @@
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "founder_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Exact founder ActorId. A bare principal DID is insufficient because the same principal hosted by two Principal Servers denotes two distinct account authorities."
         },
         "realm_id": {
           "$ref": "./principal-operations.schema.json#/$defs/realm_id"

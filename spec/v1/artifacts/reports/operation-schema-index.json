@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.3",
+  "version": "2026-08-30.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-30T18:00:00+08:00",
+  "generated_at": "2026-08-31T00:00:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -266,8 +266,7 @@
           "push_key",
           "platform",
           "app_id",
-          "display_name",
-          "recipient_id"
+          "display_name"
         ],
         "closed": true
       },
@@ -311,14 +310,12 @@
         "required": [
           "discovery_event",
           "source_refs",
-          "as_of",
-          "principal_server_id"
+          "as_of"
         ],
         "properties": [
           "discovery_event",
           "source_refs",
           "as_of",
-          "principal_server_id",
           "ttl_seconds",
           "supersedes_announce_id"
         ],
@@ -483,10 +480,10 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
         "schema_kind": "object",
         "required": [
-          "subject_id"
+          "account_id"
         ],
         "properties": [
-          "subject_id",
+          "account_id",
           "realm_id",
           "intent",
           "requester_id",
@@ -717,7 +714,7 @@
         ],
         "properties": [
           "handle",
-          "expected_principal_id",
+          "expected_account_id",
           "proof_challenge",
           "claim_presentations",
           "intent",
@@ -732,18 +729,15 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome",
         "schema_kind": "object",
         "required": [
-          "principal_id",
-          "subject_id",
+          "account_id",
           "handle",
           "verified"
         ],
         "properties": [
-          "principal_id",
-          "subject_id",
+          "account_id",
           "handle",
           "verified",
           "claims",
-          "member_delivery_binding",
           "source_refs",
           "expires_at"
         ],
@@ -1419,8 +1413,7 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
         "schema_kind": "object",
         "required": [
-          "principal_id",
-          "service_account_id",
+          "account_id",
           "session_grant",
           "expires_at",
           "session_grant_id",
@@ -1428,8 +1421,7 @@
           "audience_id"
         ],
         "properties": [
-          "principal_id",
-          "service_account_id",
+          "account_id",
           "device_id",
           "session_grant",
           "expires_at",
@@ -1721,7 +1713,7 @@
         "schema_kind": "object",
         "required": [
           "session_grant_id",
-          "service_account_id",
+          "account_id",
           "grant_jwt",
           "session_public_key",
           "expires_at",
@@ -1732,7 +1724,7 @@
         ],
         "properties": [
           "session_grant_id",
-          "service_account_id",
+          "account_id",
           "grant_jwt",
           "session_public_key",
           "expires_at",
@@ -2183,8 +2175,7 @@
         "schema_kind": "object",
         "required": [
           "schema",
-          "subject_id",
-          "recipient_id",
+          "account_id",
           "service_resolution",
           "issued_at",
           "expires_at",
@@ -2193,15 +2184,12 @@
         ],
         "properties": [
           "schema",
-          "subject_id",
-          "recipient_id",
+          "account_id",
           "service_resolution",
           "route_assistance",
-          "recipient_kind",
           "issued_at",
           "expires_at",
           "locator_ref_digest",
-          "delivery_modes",
           "display_hint",
           "proofs"
         ],
@@ -3074,14 +3062,14 @@
         "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body",
         "schema_kind": "object",
         "required": [
-          "principal_authority",
+          "account_id",
           "device_id",
           "action_class",
           "intent_digest",
           "requested_at"
         ],
         "properties": [
-          "principal_authority",
+          "account_id",
           "device_id",
           "expected_device_authorize_event_id",
           "expected_device_generation_ref",
@@ -4136,13 +4124,13 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "principal_authority",
+          "account_id",
           "requesting_device_id",
           "trust_domain"
         ],
         "properties": [
           "request_id",
-          "principal_authority",
+          "account_id",
           "requesting_device_id",
           "trust_domain",
           "expected_recovery_policy_ref"
@@ -4158,7 +4146,7 @@
           "recovery_session_id",
           "session_grant_id",
           "session_grant_cnf_jkt",
-          "principal_authority",
+          "account_id",
           "requesting_device_id",
           "trust_domain",
           "policy_id",
@@ -4182,7 +4170,7 @@
           "recovery_session_id",
           "session_grant_id",
           "session_grant_cnf_jkt",
-          "principal_authority",
+          "account_id",
           "requesting_device_id",
           "trust_domain",
           "policy_id",
@@ -4249,7 +4237,7 @@
           "recovery_session_id",
           "session_grant_id",
           "session_grant_cnf_jkt",
-          "principal_authority",
+          "account_id",
           "requesting_device_id",
           "trust_domain",
           "policy_id",
@@ -4273,7 +4261,7 @@
           "recovery_session_id",
           "session_grant_id",
           "session_grant_cnf_jkt",
-          "principal_authority",
+          "account_id",
           "requesting_device_id",
           "trust_domain",
           "policy_id",
@@ -5405,7 +5393,6 @@
           "registration_event_ref",
           "registration_epoch",
           "bot_actor_id",
-          "bot_actor_principal_server_id",
           "bot_actor_provision_ref",
           "bot_principal_control_realm_id",
           "capability_grant_refs",
@@ -5420,7 +5407,6 @@
           "registration_event_ref",
           "registration_epoch",
           "bot_actor_id",
-          "bot_actor_principal_server_id",
           "bot_actor_provision_ref",
           "bot_principal_control_realm_id",
           "capability_grant_refs",
@@ -5527,7 +5513,6 @@
         "schema_kind": "object",
         "required": [
           "ghost_actor_id",
-          "actor_principal_server_id",
           "managed_actor_provision_ref",
           "principal_control_realm_id",
           "profile_event_ref",
@@ -5536,7 +5521,6 @@
         ],
         "properties": [
           "ghost_actor_id",
-          "actor_principal_server_id",
           "managed_actor_provision_ref",
           "principal_control_realm_id",
           "profile_event_ref",
@@ -7687,10 +7671,10 @@
         "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request",
         "schema_kind": "object",
         "required": [
-          "principal_authority"
+          "account_id"
         ],
         "properties": [
-          "principal_authority",
+          "account_id",
           "history_depth",
           "after_resolution_event_ref"
         ],
@@ -8304,13 +8288,11 @@
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_request_body",
         "schema_kind": "object",
         "required": [
-          "owner_account_id",
           "keypackage_refs",
           "device_id",
           "signature"
         ],
         "properties": [
-          "owner_account_id",
           "keypackage_refs",
           "device_id",
           "signature",

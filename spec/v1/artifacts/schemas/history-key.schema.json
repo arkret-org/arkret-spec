@@ -198,7 +198,7 @@
               "required": ["backup_series_id", "producer_actor_id"],
               "properties": {
                 "backup_series_id": {"type": "string", "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
-                "producer_actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"}
+                "producer_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"}
               },
               "additionalProperties": false,
               "description": "Stable backup series/producer quota identity. Individual backup envelopes are retrieval coordinates only."
@@ -422,7 +422,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "account_status_record_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
@@ -726,7 +726,7 @@
           "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
         },
         "requester_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "requester_sender_domain": {
           "type": "string",
@@ -1207,17 +1207,21 @@
               "type": "object",
               "required": [
                 "kind",
-                "delivery_binding_ref",
-                "delivery_binding_digest"
+                "member_id",
+                "membership_ref",
+                "membership_digest"
               ],
               "properties": {
                 "kind": {
-                  "const": "member_delivery_binding"
+                  "const": "member"
                 },
-                "delivery_binding_ref": {
+                "member_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                },
+                "membership_ref": {
                   "$ref": "./common-ids.schema.json#/$defs/event_id"
                 },
-                "delivery_binding_digest": {
+                "membership_digest": {
                   "$ref": "#/$defs/digest"
                 }
               },
@@ -1261,7 +1265,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private S2S immutable request fanout from the release service to either one exact current member delivery-binding service or an exact RRK holder service whose archive tuple intersects requested ranges. destination_authorization is a closed union and must name destination_id."
+      "description": "Private S2S immutable request fanout from the release service to either the Principal Server selected by one exact current member identity and membership Event, or an exact RRK holder service whose archive tuple intersects requested ranges. destination_authorization is a closed union and must name destination_id."
     },
     "history_key_request_replica_outcome": {
       "type": "object",
@@ -1319,17 +1323,21 @@
           "type": "object",
           "required": [
             "kind",
-            "binding_ref",
-            "binding_digest"
+            "member_id",
+            "membership_ref",
+            "membership_digest"
           ],
           "properties": {
             "kind": {
-              "const": "member_delivery_binding"
+              "const": "member"
             },
-            "binding_ref": {
+            "member_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            "membership_ref": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
             },
-            "binding_digest": {
+            "membership_digest": {
               "$ref": "#/$defs/digest"
             }
           },
@@ -1388,7 +1396,7 @@
           "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
         },
         "source_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "source_sender_domain": {
           "type": "string",
@@ -1445,7 +1453,7 @@
               "source_authority_locator": {
                 "properties": {
                   "kind": {
-                    "const": "member_delivery_binding"
+                    "const": "member"
                   }
                 },
                 "required": [
@@ -1485,7 +1493,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "The source's authenticated local Principal Server verifies current source account/device, Agent, minimal membership/delivery binding or RRK holder authority and signs this private relay receipt. The first accepted self send atomically stores the exact relay envelope/outbox keyed by (response_id,source_record_digest); relayed_at and proof are never regenerated on retry/restart, and the first accepted outcome is durably backfilled. Exact retry returns those byte-identical bytes without a duplicate status. For RRK the source proof uses current_holder_signing_ref; historical archive holder_signing_ref is provenance only."
+      "description": "The source's authenticated local Principal Server verifies current source AccountId/device, hosted ActorId, exact membership Event or RRK holder authority and signs this private relay receipt. The first accepted self send atomically stores the exact relay envelope/outbox keyed by (response_id,source_record_digest); relayed_at and proof are never regenerated on retry/restart, and the first accepted outcome is durably backfilled. Exact retry returns those byte-identical bytes without a duplicate status. For RRK the source proof uses current_holder_signing_ref; historical archive holder_signing_ref is provenance only."
     },
     "history_key_source_relay": {
       "type": "object",
@@ -1502,7 +1510,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private S2S immutable source record carrier to request_receipt.release_id. The destination verifies the relay service against the source's current delivery/authority binding before it performs the final T1 linearization and creates HistoryReleaseAttestation."
+      "description": "Private S2S immutable source record carrier to request_receipt.release_id. The destination verifies the relay service against the source ActorId and current membership or RRK authority before it performs the final T1 linearization and creates HistoryReleaseAttestation."
     },
     "history_response_manifest": {
       "type": "object",
@@ -1631,7 +1639,7 @@
       "properties": {
         "response_id": {"$ref": "#/$defs/history_response_id"},
         "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
-        "source_actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "source_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
         "source_sender_domain": {"type": "string", "minLength": 1, "maxLength": 512},
         "request_digest": {"$ref": "#/$defs/digest"},
         "request_receipt_digest": {"$ref": "#/$defs/digest"},
@@ -1668,7 +1676,7 @@
           "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
         },
         "source_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "source_sender_domain": {
           "type": "string",
@@ -1733,7 +1741,7 @@
         "epoch": {"type": "integer", "minimum": 0},
         "leaf_index": {"type": "integer", "minimum": 0},
         "pairwise_actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-        "source_actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "source_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
         "verification_method": {"type": "string", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"},
         "response_signing_public_key_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
         "response_signing_public_key_digest": {"$ref": "#/$defs/digest"},
@@ -1829,7 +1837,7 @@
           "description": "The exact continuous chunk range; byte-for-byte equal to the matching already admitted manifest descriptor. Its authorization is reconstructed from the receipt-bound direct Seal traversal and current monotone history-access state, not from a page or selection field."
         },
         "recipient_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "recipient_sender_domain": {
           "type": "string",
@@ -1843,7 +1851,7 @@
           "$ref": "#/$defs/author_profile"
         },
         "source_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "source_sender_domain": {
           "type": "string",

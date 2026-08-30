@@ -183,13 +183,13 @@
       "description": "Reducer-derived timestamp of the most recent stage transition. MUST NOT appear without stage. MUST be ignored when present on wire; reducer overwrites with the triggering ak.strand.stage.set event's created_at. Same-value self-transitions (stage value unchanged) MUST NOT update this field."
     },
     "created_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
@@ -694,9 +694,6 @@
         ]
       },
       "additionalProperties": false
-    },
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

@@ -119,16 +119,15 @@
       "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
       "domain": "ak.self.keys.keypackages.command.revoke.v1\n",
       "unsigned_request": {
-        "owner_account_id": "account-fixture-1",
         "keypackage_refs": [
           "sha256:1111111111111111111111111111111111111111111111111111111111111111"
         ],
         "device_id": "ak:device:01964137-0000-7000-8000-00000000000d",
         "reason": "authorization_superseded"
       },
-      "canonical_jcs": "{\"device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"keypackage_refs\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"owner_account_id\":\"account-fixture-1\",\"reason\":\"authorization_superseded\"}",
-      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLmNvbW1hbmQucmV2b2tlLnYxCnsiZGV2aWNlX2lkIjoiYWs6ZGV2aWNlOjAxOTY0MTM3LTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwZCIsImtleXBhY2thZ2VfcmVmcyI6WyJzaGEyNTY6MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJdLCJvd25lcl9hY2NvdW50X2lkIjoiYWNjb3VudC1maXh0dXJlLTEiLCJyZWFzb24iOiJhdXRob3JpemF0aW9uX3N1cGVyc2VkZWQifQ",
-      "signature": "mh-7xHOs3S46f2h2ZHFudGielwAYgWHNIDdnPIu965u1t0OV1kbEAz0oiEZj03xQb3nNzrZQ1TtOfnPscC7PCg"
+      "canonical_jcs": "{\"device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"keypackage_refs\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"reason\":\"authorization_superseded\"}",
+      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLmNvbW1hbmQucmV2b2tlLnYxCnsiZGV2aWNlX2lkIjoiYWs6ZGV2aWNlOjAxOTY0MTM3LTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwZCIsImtleXBhY2thZ2VfcmVmcyI6WyJzaGEyNTY6MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJdLCJyZWFzb24iOiJhdXRob3JpemF0aW9uX3N1cGVyc2VkZWQifQ",
+      "signature": "MSNSXkOn8sYj6vDzAR5gLB_wYstyPNSCgHHKhnJO5qt-ZiYHIlL_ErLtBiv8n81Cn7asi4OCTzKK0wVej-pTAQ"
     }
   ],
   "negative_cases": [

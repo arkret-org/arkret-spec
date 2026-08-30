@@ -224,7 +224,7 @@ HTTPS 落地链接中，`strand` / `m` / 尤其 `tok` **MUST** 放在 URL **frag
 - `preview` token 校验通过时，响应 MUST 只包含 effective `ak.realm.preview_policy` 允许的 `realm_preview` / `object_preview` / stripped `history_preview` 字段。除非 caller 另行满足 join routing disclosure gate，响应 MUST 省略 `join_candidates[]`。
 - alias 解析失败、alias 与 token 绑定的 `realm_id` 不一致、或无法取得 canonical `realm_id` 时，均返回统一 `not_found`。
 
-客户端解析流程：解析 `address` → 取 path 末段确定 `target_kind` → 用 realm path 段解析 canonical `realm_id` → 若有 `token`，按 §4.2 校验 target descriptor → 在 Realm 内按 access gate 定位 strand / message → 渲染成本地 UI URL。若随后要 join / invite-accept / knock，客户端只向自己的 Principal Server 提交；可披露的 `join_candidates[]` 仅供该 Principal Server 按 signed invite / 当前 joined-member delivery binding 转发。
+客户端解析流程：解析 `address` → 取 path 末段确定 `target_kind` → 用 realm path 段解析 canonical `realm_id` → 若有 `token`，按 §4.2 校验 target descriptor → 在 Realm 内按 access gate 定位 strand / message → 渲染成本地 UI URL。若随后要 join / invite-accept / knock，客户端只向自己的 Principal Server 提交；可披露的 `join_candidates[]` 仅供该 Principal Server 按 signed invite / 当前 joined-joined-member ActorId routing projection 转发。
 
 ## 7. 规范性引用
 

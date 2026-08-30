@@ -33,9 +33,6 @@
       "membership_frontier": [
         "ak:event:AdxKl-xLUTrlSY_4g_1Fd8-dG5GhLSaMBGSgfzopgvI8"
       ],
-      "delivery_binding_frontier": [
-        "ak:event:Ad8o1Z5dxBRyRnjhZlo8lI5ItWLW9yi79MlZtGsn7WcQ"
-      ],
       "destination_kind": "principal_server"
     }
   },

@@ -90,7 +90,7 @@ Schema id: `ak.schema.realm.v1`
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md)）。 |
 | `notary` | yes | closed union | Genesis notary control cell 初值；`kind=single_signer|threshold|open_set|mixed` 是唯一 profile discriminator。每个 slot 是冻结的 signer descriptor（actor did_core_id、DID URL、exact key bytes/digest、JOSE alg）；不存在并行 `notary_profile` 字段。 | 当前与历史 Seal 签发规则。 |
-| `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["seal_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor accepted joined membership 的 routable `delivery_binding.recipient_id` 去重派生。 | bytes availability receipt 门槛。 |
+| `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["seal_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor accepted joined membership 的 ActorId routing-service projection 去重派生。 | bytes availability receipt 门槛。 |
 | `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省时不得采信 range-completeness / transparency witness attestation。 | completeness / transparency witness policy。 |
 | `revocation_freshness_window_ms` | no | `integer` | 默认 24h；用于 DataEvent `seal_ref` 和 Control Move `seal_basis` 的历史 basis 宽限判定，精确表示旧 basis Seal 与后继撤销 Seal 的 notary-committed Seal distance 上限，不随 Event 签发、首次投递、接收或回放时间老化。高风险写入的 effective 值固定为 0。 | CBA 撤销 Seal-distance grace 上限。 |
 | `recovery_witness_freshness_window_ms` | no | `integer` | 默认 24h，最大 7d；按签名覆盖的 `Seal.sealed_at` DAG 时间差计算。 | conflict-recovery witness freshness 上限。 |
@@ -98,9 +98,9 @@ Schema id: `ak.schema.realm.v1`
 | `bottom_escalation_after_ms` | no | `integer` | cell `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
 | `cell_lattices` | no | `array<CellLattice>` | `CellLattice` 结构（cell family / lattice / bottom 等）定义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Realm-specific 扩展 cell family。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
-| `created_by` | yes | `did_core_id` | 必须是 create event 授权主体。 | 创建 Principal。 |
+| `created_by` | yes | `ActorId` | 必须是 create event 授权主体。 | 创建 Actor。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `did_core_id` |  | 最近更新者。 |
+| `updated_by` | no | `ActorId` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
 #### 2.3.A 字段 carrier inventory（normative）
@@ -118,7 +118,7 @@ Schema id: `ak.schema.realm.v1`
 | bundle 组件集合（本节 §2.2，含 `federation_policy`、freshness / proposal / compaction / authority-lifetime / bottom-escalation 时窗与 `cell_lattices`） | `ak.realm.policy_bundle`。整个 bundle 每次按 `policy_revision` 完整重述；这些字段不得回落到 create 或 generic patch。 |
 | alias | `ak.realm.alias`。 |
 | plaintext-visible services | `ak.realm.plaintext_visible_services`。 |
-| delivery binding policy | `ak.realm.delivery_binding_policy`。 |
+| Principal Server admission policy | 直接约束 member AccountId/hosted-principal ActorId 中的 `principal_server_id`；不复制成员级 route evidence。 |
 | verified organization relationship | `ak.realm.organization`。 |
 | lifecycle、其它已有专用 facet | 对应 registered event/cell。 |
 | `id`、`created_by`、`created_at`、`updated_by`、`updated_at` 与其它 query-only 字段 | 分别由 Realm identity、signed envelope 与 reducer history 派生，不由 producer 在 Realm object 中重复写入。 |
@@ -147,7 +147,7 @@ v1 不定义 monolithic `ak.realm.update` 或 `ak.component.realm.metadata.v1`�
 
 - `relationship="owner"` 或 `control_scopes` 包含 `official_badge` 只表示组织背书该 Realm 的身份归属；不自动授予组织管理员 capability。
 - 组织能否管理成员、policy、retention、moderation 或明文可见服务，仍由 `ak.realm.admin` capability、Realm policy facet、service binding 或对应控制事件决定。
-- 组织作为 notary、notary controller、RRK 接收方或 delivery binding authority，必须分别由 `notary` / notary control move、`durability_policy`、`ak.realm.delivery_binding_policy` 等字段和事件明确表示；不得从 `owning_organization_ids` 或 `ak.realm.organization` 自动继承。
+- 组织作为 notary、notary controller 或 RRK 接收方，必须分别由 `notary` / notary control move、`durability_policy` 等字段和事件明确表示；不得从 `owning_organization_ids` 或 `ak.realm.organization` 自动继承。组织关系本身也不能替账号选择 Principal Server。
 - Realm admin 单方面把某个稳定 Organization principal id 写入 `owning_organization_ids`，如果没有对应 active `ak.realm.organization` 组织侧证明，接收方 MUST 把它视为未验证声明。
 
 被授权读取 Realm 的客户端通过 self-surface 操作 `ak.self.realm_organization.read.list.v1`（`GET /_arkret/self/realms/{realm_id}/organizations`，response schema `schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list`）取回该 Realm 的 `ak.realm.organization` 关系投影（active / revoked / expired，latest-per-`(organization_id, relationship)`，由 reducer 派生 `lifecycle_phase`）以及无验证语句的 `declared_organization_hint_ids`。客户端 MUST 仅在 `lifecycle_phase=verified_active` 时显示官方 / 治理 / 背书状态，并 MUST 把 `declared_organization_hint_ids` 渲染为未验证声明。public discovery 路径（Directory Service 的 `ak.find.directory.read.resolve_realm.v1` / `resolve_organization`）受 anti-enumeration 约束，不替代成员 / admin 侧的本操作。
@@ -180,7 +180,7 @@ threshold 或 custody topology。每个 exporter Realm/Circle 独立 opt in，Ci
   "notary": {
     "kind": "single_signer",
     "signer": {
-      "actor_id": "ak:did_core:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h",
+      "actor_id": {"kind":"service","service_id":"ak:did_core:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h"},
       "verification_method": "did:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h:acme.example#notary-1",
       "key_kind": "ed25519_raw32",
       "jose_algorithm": "Ed25519",
@@ -188,7 +188,7 @@ threshold 或 custody topology。每个 exporter Realm/Circle 独立 opt in，Ci
       "frozen_public_key_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
     }
   },
-  "created_by": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -325,7 +325,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 
 Realm bootstrap event set 以 create 开始。创建时没有 accepted Seal，因此下列两个**互斥封闭分支**内的 Event MAY 免 `seal_basis`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 使用同一句，两处 MUST 保持逐条一致）：
 
-- 普通 Collaboration 分支：`ak.realm.create`；同批同 actor 的 initial facets，顺序唯一由 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 登记：required `profile → policy_bundle → join_rule → history_access → discovery`，可选 `alias`，条件 `plaintext_visible_services`，required `delivery_binding_policy`，最后 required creator `member.state{join}`。不得在实现中维护第二套顺序常量；
+- 普通 Collaboration 分支：`ak.realm.create`；同批同 actor 的 initial facets，顺序唯一由 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 登记：required `profile → policy_bundle → join_rule → history_access → discovery`，可选 `alias`，条件 `plaintext_visible_services`，最后 required creator `member.state{join}`。不得在实现中维护第二套顺序常量；
 - 1:1 Direct Conversation 分支：恰好 `ak.realm.create → peer ak.member.state{join} → main ak.strand.create → founder ak.member.state{join}` 四条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影；末槽显式写 founder membership 并携 `head_eq null`。`ak.strand.create` 平时是携 `seal_ref + auth_context` 的 DataEvent；但该 exact unit 的 Genesis Seal 同时覆盖四条，Strand 无法引用尚不存在的 Seal，因此在且仅在该 unit 内免 basis。
 
 不在该列表内的 Control Move 一律要求 `seal_basis`。Human PCR 只允许上文 root create + founding authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR genesis。批次结束后所有普通 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带 basis。
@@ -420,11 +420,11 @@ Realm 有两个终态 event，语义不同：
 
 ### 2.7 Realm Membership FSM（normative）
 
-`ak.member.state` 写入 `ak.component.member.state.v1:<actor_id>`，lattice 为 `fsm`、`bottom=reject`。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-参数化-membership-fsmnormative) 的共享 membership FSM，实例参数为 `scope_kind=realm`、`delivery_binding_rebind=true`；writer/guard 以该表 Realm 列为准。普通 Collaboration bootstrap 的创建者 membership 仅由 §2.5 原子 unit 最后一条独立 `ak.member.state{membership="join"}` 建立；该 slot 是对应 member cell 的 genesis write，MUST 携带 `head_eq null` 并进入 genesis Seal。`ak.realm.create` 自身 MUST NOT 隐式写入 membership，receiver 也不得在仅收到 create 时预置本地成员。完整 unit 接受后，服务端 MAY 从该显式 slot 建立可重建 read index。`join -> join` 仅用于已经处于 `join` 的成员迁移 delivery binding / membership metadata，不得用于 bootstrap 初始加入，也不得借此改变 join gate 结果。
+`ak.member.state` 以完整 `payload.member_id: ActorId` 写入 `ak.component.member.state.v1`，lattice 为 `fsm`、`bottom=reject`；账号分支的相等性包含 AccountId 两个分量。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM。普通 Collaboration bootstrap 的创建者 membership 仅由 §2.5 原子 unit 最后一条独立 `ak.member.state{membership="join"}` 建立；该 slot 是对应 member cell 的 genesis write，MUST 携带 `head_eq null` 并进入 genesis Seal。`ak.realm.create` 自身 MUST NOT 隐式写入 membership，receiver 也不得在仅收到 create 时预置本地成员。完整 unit 接受后，服务端 MAY 从该显式 slot 建立可重建 read index。same-state transition 非法；endpoint 刷新不写 membership，更换 Principal Server 则是 old Actor leave + new Actor invite/accept/join。
 
 `invite` 与 base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member cell。超时清理必须由上表列出的 authorized writer 提交显式 `leave`；receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
 
-共享表未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join / delivery-binding reason。`join -> invite`、`ban -> join`、`invite -> knock`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
+共享表未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 
 上表 `leave -> join` 另有一个封闭的 Native Personal Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm native-agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受；payload 的 `agent_controller_binding` MUST 钉住 controller exact authority pair 与建立当前 `join` 的 Event ID。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。
 
@@ -553,9 +553,9 @@ Schema id: `ak.schema.space.v1`
 | `avatar_blob_ref` | no | `id:blob` |  | Space 图标。 |
 | `state` | no | `enum(active, archived, tombstoned)` | 默认 `active`。 | Space 生命周期状态。 |
 | `state_changed_at` | no | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `created_by` | yes | `did_core_id` |  | 创建者。 |
+| `created_by` | yes | `ActorId` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `did_core_id` |  | 最近更新者。 |
+| `updated_by` | no | `ActorId` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器子类型的对象：`board`、`list`、`folder` 等都在 Space.kind 表达。Realm 不按 kind 分裂安全边界；Strand 的业务分类也不放顶层 kind，必须通过 schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 表达。View.kind 是投影响应族，不表示协作容器类型。
@@ -644,7 +644,7 @@ Project Space：
   "default_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "kind": "project",
   "title": "Website Redesign",
-  "created_by": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -660,7 +660,7 @@ Confidential sibling Space：
   "parent_space_id": "ak:space:AUwbeCUMZI_GuEADljowhvFwzl6wIkaSiCDhu2oaOqTg",
   "kind": "project",
   "title": "Pricing Strategy",
-  "created_by": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```

@@ -216,7 +216,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "install_actor_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "applet_id": {
           "$ref": "./common-ids.schema.json#/$defs/applet_id"

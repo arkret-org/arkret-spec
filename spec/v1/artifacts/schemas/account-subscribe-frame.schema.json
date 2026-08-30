@@ -644,7 +644,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "membership": {
           "type": "string",
@@ -654,9 +654,9 @@
             "knock"
           ]
         },
-        "subject_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Optional disclosed principal / holder did_core_id for this member. Omit when subject disclosure is only available inside encrypted MemberIdentity or not authorized for the caller. Required whenever handle claim evidence or digest hints are included."
+        "subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Optional exact account identity disclosed for this member. Omit when subject disclosure is only available inside encrypted MemberIdentity or not authorized for the caller. Required whenever handle claim evidence or digest hints are included."
         },
         "identity_event_ids": {
           "type": "array",
@@ -702,16 +702,16 @@
       },
       "dependentRequired": {
         "identity_events": [
-          "subject_id"
+          "subject_account_id"
         ],
         "handle_claim_digests": [
-          "subject_id"
+          "subject_account_id"
         ],
         "handle_claims": [
-          "subject_id"
+          "subject_account_id"
         ],
         "handle_claims_limited": [
-          "subject_id"
+          "subject_account_id"
         ]
       },
       "additionalProperties": false

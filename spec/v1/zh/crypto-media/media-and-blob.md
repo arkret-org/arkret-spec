@@ -24,7 +24,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "content_digest": "sha256:...",
   "size_bytes": 1234,
   "media_type": "image/png",
-  "created_by": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "created_at": "2026-04-26T00:00:00Z",
   "encryption": null
 }
@@ -40,9 +40,9 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `content_digest` | `digest` | required | 服务端计算的内容 digest，wire 形态为 `<algo>:<lowercase_hex>`。 |
 | `size_bytes` | `int` | required | 字节大小。 |
 | `media_type` | `string` | optional | 上传声明或服务端校正后的 MIME。缺省为 `application/octet-stream`。 |
-| `created_by` | `did_core_id` | required | 上传 Actor 或 service 的稳定 Arkret 身份。 |
+| `created_by` | `ActorId` | required | 上传 Actor 或 service 的完整 Arkret 身份。 |
 | `created_at` | `datetime` | required | 服务端接收时间。 |
-| `updated_by` | `did_core_id` | optional | 最近更新 Blob metadata 的 Actor 或 service 的稳定 Arkret 身份。 |
+| `updated_by` | `ActorId` | optional | 最近更新 Blob metadata 的 Actor 或 service 的完整 Arkret 身份。 |
 | `updated_at` | `datetime` | optional | 最近更新时间。 |
 | `filename` | `string` | optional | 用户提供或服务生成的文件名；不得用于路径拼接。 |
 | `encryption` | `object/null` | required | 加密附件元数据或 `null`。 |

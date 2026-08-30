@@ -221,7 +221,14 @@ def main() -> None:
         for field in ("event_without_proofs", "event_with_proof"):
             event = vector.get(field)
             if isinstance(event, dict) and "actor_id" in event:
-                event["principal_server_id"] = "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+                event["actor_id"] = {
+                    "kind": "account",
+                    "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample",
+                    },
+                }
+                event.pop("principal_server_id", None)
     vectors = {vector["name"]: vector for vector in data["vectors"]}
     ed = vectors["ak.vector.encoding.crypto.ed25519_detached_jws.v1"]
     es = vectors["ak.vector.encoding.crypto.es256_detached_jws.v1"]

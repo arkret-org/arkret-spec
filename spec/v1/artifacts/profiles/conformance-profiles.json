@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-30.1",
-  "generated_at": "2026-08-30T18:00:00+08:00",
+  "version": "2026-08-30.4",
+  "generated_at": "2026-08-30T23:59:59+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1027,7 +1027,6 @@
         "ak.schema.blob.v1"
       ],
       "required_fixtures": [
-        "membership-delivery-binding-fixture.json",
         "privacy-security-fixture.json",
         "push-rule-core-fixture.json",
         "realm-organization-fixture.json",
@@ -1483,7 +1482,7 @@
         "schema_refs MUST contain ak.profile.direct_conversation_realm.v1 and fields.collaboration_role MUST equal direct_conversation; either marker without the other is schema_violation.",
         "content_encryption_floor and metadata_encryption_floor MUST both equal e2ee_required.",
         "The ak.realm.create Event requirements.schema MUST contain ak.profile.direct_conversation_realm.v1 and requirements.critical_extensions MUST contain fail_closed=true id ak.feature.direct_conversation_realm_role.v1 for payload scope.",
-        "Exactly the two stable subject DIDs in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
+        "Exactly the two ActorIds in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
         "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
         "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and third Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
@@ -3010,7 +3009,7 @@
       "optional_extensions": [],
       "prose_requirement_coverage": [
         {
-          "requirement": "single-hop peer authentication, current member delivery binding and unchanged producer envelope",
+          "requirement": "single-hop peer authentication, current joined-member ActorId routing authority and unchanged producer envelope",
           "coverage": [
             "ak.peer.signal.command.relay.v1",
             "signal-federation-fixture.json"

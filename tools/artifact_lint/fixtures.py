@@ -2069,7 +2069,7 @@ def check_snapshot_merkle_fixture(lint: Lint) -> None:
         ordered = sorted(
             entries,
             key=lambda row: (
-                row["actor_id"].encode("utf-8"),
+                canonical_json(row["actor_id"]).encode("utf-8"),
                 row["actor_seq"],
                 row["event_id"].encode("utf-8"),
             ),
@@ -2443,6 +2443,16 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
             fixture_path,
             "direct-conversation pair_key input must be exactly {participants, trust_domain_id}",
         )
+    elif (
+        not isinstance(pair_input.get("participants"), list)
+        or len(pair_input["participants"]) != 2
+        or not all(isinstance(value, dict) for value in pair_input["participants"])
+        or len({canonical_json(value) for value in pair_input["participants"]}) != 2
+        or pair_input["participants"] != sorted(
+            pair_input["participants"], key=lambda value: canonical_json(value).encode("utf-8")
+        )
+    ):
+        lint.fail(fixture_path, "direct-conversation pair_key participants must be two distinct ActorIds sorted by JCS bytes")
 
     expected_binding_domain = "ak.direct-conversation.binding-digest.v1\n"
     if binding.get("domain_separator_utf8") != expected_binding_domain:
@@ -2477,8 +2487,8 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
         if (
             not isinstance(participants, list)
             or len(participants) != 2
-            or not all(isinstance(value, str) for value in participants)
-            or len(set(participants)) != 2
+            or not all(isinstance(value, dict) for value in participants)
+            or len({canonical_json(value) for value in participants}) != 2
             or not isinstance(basis, dict)
             or set(basis) != {"kind", "event_refs"}
             or not isinstance(basis.get("kind"), str)
@@ -2495,7 +2505,9 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
             return None
         return {
             "pair_key": payload["pair_key"],
-            "unordered_participant_ids": sorted(participants, key=lambda value: value.encode("utf-8")),
+            "unordered_participant_ids": sorted(
+                participants, key=lambda value: canonical_json(value).encode("utf-8")
+            ),
             "realm_id": payload["realm_id"],
             "main_strand_id": payload["main_strand_id"],
             "founding_unit_digest": payload["founding_unit_digest"],

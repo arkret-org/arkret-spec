@@ -224,7 +224,10 @@ class SessionGrantKatTests(unittest.TestCase):
                 "id": claims["jti"],
                 "issuer": claims["issuer"],
                 "subject": claims["subject"],
-                "service_account_id": "service-account-fixture",
+                "account_id": {
+                    "principal_id": "did:webvh:z6mkfixture:alice.example",
+                    "principal_server_id": "did:webvh:z6mkfixture:principal.example",
+                },
                 "audience": claims["audience"],
                 "scopes": claims["scopes"],
                 "expires_at": claims["expires_at"],

@@ -26,7 +26,13 @@
         },
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
@@ -56,7 +62,13 @@
         },
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
@@ -81,7 +93,13 @@
         },
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
@@ -111,7 +129,13 @@
         },
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
@@ -131,9 +155,21 @@
         },
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z",
-        "updated_by": "ak:did_core:webvh:z6mkfixture",
+        "updated_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "updated_at": "2026-04-26T00:05:00.000Z"
       }
     },
@@ -161,7 +197,13 @@
         },
         "state": "archived",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
@@ -185,7 +227,13 @@
         },
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
@@ -214,7 +262,13 @@
         },
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
@@ -233,9 +287,21 @@
         "morph_kind": "customer_risk",
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z",
-        "updated_by": "ak:did_core:webvh:z6mkfixture",
+        "updated_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "updated_at": "2026-04-26T00:05:00.000Z"
       }
     },
@@ -258,7 +324,13 @@
         },
         "state": "archived",
         "state_changed_at": "2026-04-26T00:05:00.000Z",
-        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          }
+        },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
@@ -362,8 +434,14 @@
           "kind": "realm",
           "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v"
         },
-        "actor_id": "ak:did_core:webvh:z6mkfixture",
-        "sender_actor_id": "ak:did_core:webvh:z6mkfixture",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "sender_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
         "created_at": "2026-04-26T00:00:00.000Z",
         "payload": {
           "strand_id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
@@ -418,7 +496,10 @@
           "kind": "realm",
           "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v"
         },
-        "actor_id": "ak:did_core:webvh:z6mkfixture",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
         "created_at": "2026-04-26T00:00:00.000Z",
         "redacted_because": {
           "code": "retention_pruning",
@@ -469,8 +550,14 @@
           "kind": "realm",
           "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v"
         },
-        "actor_id": "ak:did_core:webvh:z6mkfixture",
-        "sender_actor_id": "ak:did_core:webvh:z6mkfixture",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "sender_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
         "created_at": "2026-04-26T00:00:00.000Z",
         "payload": {
           "strand_id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
@@ -551,7 +638,10 @@
           "kind": "realm",
           "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v"
         },
-        "actor_id": "ak:did_core:webvh:z6mkfixture",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
         "created_at": "2026-04-26T00:00:00.000Z",
         "redacted_because": {
           "code": "hard_erasure",

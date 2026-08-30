@@ -20,7 +20,7 @@ updated: 2026-07-02
 
 由于外部的邮箱或手机号无法自己生成非对称密钥对和 DID，邀请流程 MUST 借助一个**身份验证服务 (Identity Verification Service)** 来充当代理。
 
-这个代理服务通常是发起邀请的用户所在的 Principal Server、组织控制的 Identity Verification Service，或 Realm policy 明确允许的第三方验证服务。服务 DID、用途、过期时间和可见性 MUST 写入 invite metadata 或 Realm policy。该验证服务 DID 只负责 3PID claim；Bob 后续只向自己的 Principal Server 提交 invite-accept，后者才可按 signed invite / 当前 joined-member delivery binding 使用有界 `join_candidates[]` 转发，二者不得混用。
+这个代理服务通常是发起邀请的用户所在的 Principal Server、组织控制的 Identity Verification Service，或 Realm policy 明确允许的第三方验证服务。服务 DID、用途、过期时间和可见性 MUST 写入 invite metadata 或 Realm policy。该验证服务 DID 只负责 3PID claim；Bob 后续只向自己的 Principal Server 提交 invite-accept，后者才可按 signed invite / 当前 joined-joined-member ActorId routing projection 使用有界 `join_candidates[]` 转发，二者不得混用。
 
 ### 2.1 验证服务威胁假设（normative）
 
@@ -118,13 +118,19 @@ Bob 的客户端将 `invite_token`、自己的 `did_core_id`、用于独立验�
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_claim_payload
 {
   "invite_id": "ak:invite:AfVi-FmTYttG2uQeB67y7GdHhOrWGxBe0QaDAOwYnK01",
-  "subject_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
+  "subject_account_id": {
+    "principal_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
+    "principal_server_id": "ak:did_core:webvh:z6mkPrincipalServer"
+  },
   "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
   "binding_proof": {
     "verification_id": "ak:did_core:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt",
     "verification_method": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
-    "subject_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
+    "subject_account_id": {
+      "principal_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
+      "principal_server_id": "ak:did_core:webvh:z6mkPrincipalServer"
+    },
     "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "audience": "arkret.invite.claim",
     "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
@@ -142,7 +148,7 @@ Bob 的客户端将 `invite_token`、自己的 `did_core_id`、用于独立验�
 
 `binding_proof.signature` 的签名输入 MUST 使用域分隔 transcript：
 
-`utf8("ak.invite.claim.binding_proof.v1\n") || canonical_json({audience:"arkret.invite.claim", binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_id})`
+`utf8("ak.invite.claim.binding_proof.v1\n") || canonical_json({audience:"arkret.invite.claim", binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_account_id, token_commitment, verification_id})`
 
 其中 `unsigned_binding_proof` 是去掉 `signature` 字段后的 `binding_proof` object；`verification_id` 等于 `binding_proof.verification_id`；`invite_digest` 是 reducer 当前 pending invite cell 的 canonical digest，计算对象为 `canonical_json({invite_id, realm_id, expires_at, third_party_invite})` 后取 `sha256:<hex>`，其中 `third_party_invite` MUST 使用该 invite cell 内的当前字段值。Reducer MUST 用 invite cell 记录的 `verification_public_key` / `verification_method` 校验该签名；只验证 `binding_proof` 裸 object、或不绑定 `invite_id` / `token_commitment` / `invite_digest` / `claim_nonce` 的证明 MUST reject。
 
@@ -158,11 +164,11 @@ Reducer 处理 `ak.invite.claim` 时 MUST 按下列顺序 fail closed；所有�
    - 若该 claim 已被 Seal 覆盖，同一判定 MUST 得到相同结果；receiver MUST NOT 因为重放 / backfill 发生在更晚的本地时刻而改判。这是 `apply_seal` 与 `J(L)` "不依赖本地时钟、对同一依赖集合为纯函数" 硬约束的直接推论（[`../authz/event-auth-state-resolution.md` §6.3](../authz/event-auth-state-resolution.md)）。
    - **被拒绝的 claim MUST NOT 产生任何共享 projected write（normative）**：它不写 invite cell、不写 membership proposal、不推进任何 lattice。invite 的 `pending -> expired` 是**独立的、已登记的、可签名且可被 Seal 覆盖的 Control Move**（由授权 writer 提交的 `ak.invite.revoke`，携带 `reason_code` 表达 `expired`，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)），MUST NOT 由被拒 claim 的处理路径顺带写出——那样的 transition 没有独立 accepted Event / event digest，无法被另一 receiver 从 canonical history 重放，等于把 receiver-local timer 提升成共享真相源。
    - reducer 在读到 invite cell 已处于 `expired` 或任一终态时，按 step 1 的终态规则拒绝。token material / lookup pepper 的 zeroize 规则见 §6.1；zeroize 是**服务端本地清理义务**，不是共享 cell 状态，MUST NOT 反过来充当 invite state 的真源。
-3. 验证 `binding_proof` 必须由该 invite 记录中的 `verification_public_key` 签署，签名输入 MUST 是 §4.2 定义的 `ak.invite.claim.binding_proof.v1` transcript，并绑定 `subject_id`、`realm_id`、audience、过期时间、claim nonce、`invite_id`、`token_commitment` 与 invite cell digest；`binding_proof.subject_id`、`binding_proof.realm_id`、`binding_proof.claim_nonce` 与 payload 顶层字段不一致时 MUST reject。
+3. 验证 `binding_proof` 必须由该 invite 记录中的 `verification_public_key` 签署，签名输入 MUST 是 §4.2 定义的 `ak.invite.claim.binding_proof.v1` transcript，并绑定 `subject_account_id`、`realm_id`、audience、过期时间、claim nonce、`invite_id`、`token_commitment` 与 invite cell digest；`binding_proof.subject_account_id`、`binding_proof.realm_id`、`binding_proof.claim_nonce` 与 payload 顶层字段不一致时 MUST reject。
 4. 从 claim CBA basis 的当前 accepted `ak.component.realm.policy_bundle.v1` cell 读取 `allowed_third_party_invite_verification_ids`，复校验 `binding_proof.verification_id` 在该集合中；字段缺失或空数组都是 deny-all。Invite 创建时绑定的 DID 也必须与 binding proof 一致，但 invite metadata 不能把一个当前已移除的 DID重新授权。该复校验必须在 reducer 内执行；不能因为验证服务、Auth Server、接收 Principal Server sync surface 或历史 invite metadata 已经校验过而跳过。不在授权集内的 `verification_id` MUST reject，且不得因后续 `subject_proof` 有效而放行。**该复校验 MUST 绑定 revocation freshness（normative）**：reducer 判定该集合所依据的 bundle cell Seal basis MUST 在目标 Realm 的 `revocation_freshness_window_ms` 内仍新鲜；不得用陈旧 basis 把一个**可能已被撤销**的 `verification_id` 当作仍在授权集内放行。由于验证服务的妥协等价于该 3PID 邀请被完全控制（§2.1），3PID claim 属高风险写入：当 reducer 无法在窗口内确认 bundle basis 新鲜时，MUST fail closed——拒绝该 claim 或 quarantine 待 backfill 到足够新鲜的控制面 basis 后重判，MUST NOT 在 freshness 未知时接受 claim。
-5. 验证 `subject_proof` 来自 `subject_id` 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("ak.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"arkret.invite.claim", verification_id, binding_proof_digest})`，其中 `verification_id` 等于 `binding_proof.verification_id`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_id` / `binding_proof_digest` 的 subject proof MUST reject；`verification_id` 与 `binding_proof.verification_id` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
+5. 验证 `subject_proof` 来自 `subject_account_id` 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("ak.invite.claim.subject_proof.v1\n") || canonical_json({subject_account_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"arkret.invite.claim", verification_id, binding_proof_digest})`，其中 `verification_id` 等于 `binding_proof.verification_id`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_id` / `binding_proof_digest` 的 subject proof MUST reject；`verification_id` 与 `binding_proof.verification_id` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
 6. 在 reducer state 中检查 `(invite_id, claim_nonce)` 与 `token_commitment` 两类一次性约束：同一 `(invite_id, claim_nonce)` 的重复 claim、或同一 `token_commitment` 已有 accepted claim projection，均 MUST 以 `duplicate_conflict` 拒绝。v1 base wire 中 `third_party_invite.max_claims` MUST 恒为 `1`；任何大于 `1` 或缺失后被解释为多用 token 的写入 MUST `schema_violation` / `duplicate_conflict` fail closed。该检查必须与 invite cell 的 `pending -> claimed` transition 原子提交，不能依赖入站服务的幂等表作为唯一保护。
-7. 验证通过后，reducer MUST 原子投影 claim writes：invite cell `pending -> claimed`，记录 `claimed_by=subject_id`、`claim_event_ref`、`claim_nonce_digest`、`token_commitment`、`verification_id` 与 `claimed_at` 等派生投影字段；随后该占位符邀请正式转变为针对 `subject_id` 的标准 `ak.invite.create` 或等价 membership proposal。`ak.invite.claim` 本身不直接绕过 Realm join policy 写入 `ak.member.state{membership="join"}`；最终 join 仍由 `subject_id` 通过 `ak.invite.accept` 或 profile 声明的等价 membership proposal 路径完成，reducer MUST 校验 accept/proposal 引用的是这次 accepted claim Event。
+7. 验证通过后，reducer MUST 原子投影 claim writes：invite cell `pending -> claimed`，记录 `claimed_by=subject_account_id`、`claim_event_ref`、`claim_nonce_digest`、`token_commitment`、`verification_id` 与 `claimed_at` 等派生投影字段；随后该占位符邀请正式转变为针对 `subject_account_id` 的标准 `ak.invite.create` 或等价 membership proposal。`ak.invite.claim` 本身不直接绕过 Realm join policy 写入 `ak.member.state{membership="join"}`；最终 join 仍由 `subject_account_id` 通过 `ak.invite.accept` 或 profile 声明的等价 membership proposal 路径完成，reducer MUST 校验 accept/proposal 引用的是这次 accepted claim Event。
 
 验证服务 / 接收 Principal Server sync surface SHOULD 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`，用于在进入 reducer 仲裁前降低重放成本；该服务侧 set 不是状态真源。任一 nonce 一旦被 reducer 作为 accepted 或 rejected claim 观察到，后续携带同一 `(invite_id, claim_nonce)` 的 claim Event MUST 被 reducer 拒绝，即使前一次 claim 未成为 invite cell winner。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。
 
@@ -184,7 +190,7 @@ Reducer 处理 `ak.invite.claim` 时 MUST 按下列顺序 fail closed；所有�
 - 验证服务 MUST 对 token claim 做限速、IP / device 风险控制和重放检测；失败响应不得泄露 token 是否存在、Realm 是否存在或 3PID 是否被邀请。
 - Event 中不得出现明文 3PID、未加盐 3PID hash、token 原文、短信验证码或邮件验证码。需要审计时只能保存加密审计记录、salt id、token commitment、发送时间和服务签名。
 - `token_salt` MUST 按邀请或批次高熵生成，不能使用全局常量 salt。低熵 3PID 的承诺必须加入服务私有 pepper 或改用不公开的 lookup table，防止离线字典爆破。
-- claim 成功后，外部 3PID 与 `subject_id` 的绑定默认只在邀请上下文内有效；不得自动发布为全局 handle、联系人或组织成员资格。
+- claim 成功后，外部 3PID 与 `subject_account_id` 的绑定默认只在邀请上下文内有效；不得自动发布为全局 handle、联系人或组织成员资格。
 
 ### 6.1 失败 / 异常清理状态机（normative）
 
@@ -204,9 +210,9 @@ Reducer 处理 `ak.invite.claim` 时 MUST 按下列顺序 fail closed；所有�
 
 - 一旦验证服务消费了某 token 并签发了 `binding_proof`，该 token MUST 被验证服务视为**已用尽**，即使后续未观察到对应 `ak.invite.claim` 在 Realm 落地为 `claimed`。验证服务 MUST NOT 对同一 token 重新签发第二份指向不同 / 相同 subject 的 `binding_proof`。
 - 因此 claim 在 reducer 侧未落地（被拒 / quarantine / 投递丢失）时，该 invite 不能仅靠重发原 token 恢复；与 §6.1 状态机一致，邀请者 MUST 通过重发**新 `invite_id` + 新 token + 新 commitment** 来重试（等同于 §6.1 `send_failed` / `revoked` 后的重发路径），不得复用已消费 token。
-- 验证服务 MAY 为该已消费 token 保留一个**可恢复窗口**（仅用于把同一份已签发 `binding_proof` 幂等重投递给 Realm，例如网络瞬断后的重试），但该窗口 MUST 绑定同一 `(invite_id, claim_nonce, subject_id, binding_proof_digest)`，不得用于把 token 重新绑定到其它 subject；窗口耗尽后 MUST 按上一条要求邀请者重发新 invite。
+- 验证服务 MAY 为该已消费 token 保留一个**可恢复窗口**（仅用于把同一份已签发 `binding_proof` 幂等重投递给 Realm，例如网络瞬断后的重试），但该窗口 MUST 绑定同一 `(invite_id, claim_nonce, subject_account_id, binding_proof_digest)`，不得用于把 token 重新绑定到其它 subject；窗口耗尽后 MUST 按上一条要求邀请者重发新 invite。
 
-> **Conformance vector（normative）**：上述"已消费 token 不得重绑到其他 subject"是防邀请重定向的关键安全不变量，由具名 conformance vector `ak.vector.invite.consumed_token_resubject_rejected.v1` 覆盖（登记于 `artifacts/registry/vector-registry.json`，向量数据见 `artifacts/fixtures/security-closure-fixture.json`），断言风格与既有 `ak.vector.invite.oob_code_entropy.v1`（§3）、`ak.vector.invite.failure_indistinguishable.v1`（§6.1）邀请向量对齐。该向量的意图：验证服务对**同一已消费 token**收到指向**不同 `subject_id`** 的第二次签发请求时 MUST 拒绝（不签发第二份 `binding_proof`）；仅当请求绑定同一 `(invite_id, claim_nonce, subject_id, binding_proof_digest)` 时才允许在可恢复窗口内幂等重投递同一份既有 `binding_proof`。向量同时断言：reducer 侧对承载已消费 token 重绑到不同 subject 的 `ak.invite.claim` Event MUST 以 `duplicate_conflict` 拒绝。
+> **Conformance vector（normative）**：上述"已消费 token 不得重绑到其他 subject"是防邀请重定向的关键安全不变量，由具名 conformance vector `ak.vector.invite.consumed_token_resubject_rejected.v1` 覆盖（登记于 `artifacts/registry/vector-registry.json`，向量数据见 `artifacts/fixtures/security-closure-fixture.json`），断言风格与既有 `ak.vector.invite.oob_code_entropy.v1`（§3）、`ak.vector.invite.failure_indistinguishable.v1`（§6.1）邀请向量对齐。该向量的意图：验证服务对**同一已消费 token**收到指向**不同 `subject_account_id`** 的第二次签发请求时 MUST 拒绝（不签发第二份 `binding_proof`）；仅当请求绑定同一 `(invite_id, claim_nonce, subject_account_id, binding_proof_digest)` 时才允许在可恢复窗口内幂等重投递同一份既有 `binding_proof`。向量同时断言：reducer 侧对承载已消费 token 重绑到不同 subject 的 `ak.invite.claim` Event MUST 以 `duplicate_conflict` 拒绝。
 
 Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可以先进入 `claimed` / joined projection，但该成员对加密正文的客户端状态 MUST 走 [`client-sync.md` §15](./client-sync.md) 的 `decryption_pending` / timeout / recovery 机制；不得把 Welcome 缺失解释为 claim 回滚。KeyPackage 耗尽、过期或与 required capabilities 不匹配不得通过 claim 响应泄露远端库存状态；目标 endpoint 的客户端只按本地 inventory ledger 与已观测的 claim/Welcome 生命周期执行 single-flight bounded refill，新的 Welcome 到达后再按普通 MLS governance binding 校验恢复。
 

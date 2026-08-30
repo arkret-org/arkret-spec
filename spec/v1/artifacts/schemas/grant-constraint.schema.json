@@ -502,7 +502,7 @@
       "description": "authority_control(constraint_subkind=applet_authority) binding to the accepted Applet registration."
     },
     "executed_by": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "$ref": "./common-ids.schema.json#/$defs/actor_id",
       "description": "authority_control(constraint_subkind=applet_authority) binding to the concrete Applet service, bot, or provisioned ghost actor did_core_id that may execute the grant. Its proof verification_method remains a DID URL and MUST project to this value through the registered method adapter."
     },
     "registration_epoch": {

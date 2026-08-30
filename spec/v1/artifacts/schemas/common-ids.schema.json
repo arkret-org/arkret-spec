@@ -57,12 +57,81 @@
       "pattern": "^ak:account_status_record:[A-Za-z0-9_-]{44}$",
       "description": "Account Authority issuer-ledger record identity derived from the complete closed unsigned AccountStatusRecord core."
     },
-    "service_account_id": {
-      "type": "string",
-      "pattern": "^(?!(?:ak|did):)",
-      "minLength": 1,
-      "maxLength": 255,
-      "description": "Durable service-local account key. It is scoped by the owning Principal Server and is neither an Arkret typed identifier nor a DID or DID URL. account_id, service_account_id, and owner_account_id share this terminal profile."
+    "account_id": {
+      "type": "object",
+      "x-arkret-composite-identifier": true,
+      "description": "Complete protocol account identity. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key.",
+      "required": [
+        "principal_id",
+        "principal_server_id"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "principal_server_id": {
+          "$ref": "#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "actor_id": {
+      "x-arkret-composite-identifier": true,
+      "description": "Complete protocol identity for an Event author or Realm member. The discriminator is validated against accepted registration, Actor Profile and admission evidence; it never authorizes itself. No variant is equal to another variant and no comparison may fall back to a bare principal_id.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "account_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "account"
+            },
+            "account_id": {
+              "$ref": "#/$defs/account_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "principal_id",
+            "principal_server_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "hosted_principal"
+            },
+            "principal_id": {
+              "$ref": "#/$defs/did_core_id"
+            },
+            "principal_server_id": {
+              "$ref": "#/$defs/did_core_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "service_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "service"
+            },
+            "service_id": {
+              "$ref": "#/$defs/did_core_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "web_origin": {
       "type": "string",

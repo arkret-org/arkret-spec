@@ -219,14 +219,20 @@
             {
               "witness_id": "ak:did_core:webvh:z6mkfixturewitnessaexample",
               "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
-              "actor_id": "ak:did_core:webvh:z6mkfixture",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixture"
+              },
               "actor_seq": 7,
               "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
             },
             {
               "witness_id": "ak:did_core:webvh:z6mkfixturewitnessbexample",
               "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
-              "actor_id": "ak:did_core:webvh:z6mkfixture",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixture"
+              },
               "actor_seq": 7,
               "event_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }

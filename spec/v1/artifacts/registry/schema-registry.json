@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.3",
+  "version": "2026-08-30.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T22:30:00+08:00",
+  "generated_at": "2026-08-30T23:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -831,16 +831,10 @@
       "description": "Directory response listing currently visible handle claims for a disclosed subject DID."
     },
     {
-      "schema_id": "ak.schema.member_delivery_binding_candidate.v1",
-      "file": "schemas/member-delivery-binding-candidate.schema.json",
-      "status": "active",
-      "description": "Builder-side candidate object for Handle resolution intent=member_add | invite (identity-handles.md §3.7); produces a Realm-scoped member_delivery_binding only after Join Policy re-validation."
-    },
-    {
       "schema_id": "ak.schema.realm_join_candidate.v1",
       "file": "schemas/realm-join-candidate.schema.json",
       "status": "active",
-      "description": "Time-bounded routing hint returned by Realm discovery / resolve paths for selecting a qualified service to receive join, invite-accept, knock, or restricted-join submissions. Not an authorization grant and not a member_delivery_binding."
+      "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Principal Server during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
     },
     {
       "schema_id": "ak.schema.grant_constraint.v1",
@@ -1348,17 +1342,6 @@
       "file": "schemas/common-ids.schema.json",
       "status": "active",
       "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
-    },
-    {
-      "schema_id": "ak.schema.delivery_binding_stale.v1",
-      "file": "schemas/delivery-binding-stale.schema.json",
-      "status": "active",
-      "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_id, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "delivery_binding_stale federation response body",
-        "normative_ref": "zh/sync/federation.md#4.1"
-      }
     },
     {
       "schema_id": "ak.schema.query.v1",

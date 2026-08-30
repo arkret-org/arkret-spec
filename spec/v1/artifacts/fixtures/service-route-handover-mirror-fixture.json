@@ -10,8 +10,7 @@
   "source_refs": [
     "spec/v1/artifacts/schemas/identity-resolution.schema.json",
     "spec/v1/zh/sync/service-surface.md",
-    "spec/v1/zh/sync/service-http-binding.md",
-    "spec/v1/zh/governance/member-delivery-binding.md"
+    "spec/v1/zh/sync/service-http-binding.md"
   ],
   "description": "Executable schema and semantic closure for FLOW-GAP-015. Placeholder proofs and digests exercise closed wire shape and evaluator decisions; they are not cryptographic known-answer vectors.",
   "runner": {
@@ -429,8 +428,7 @@
           262145
         ],
         "visibility_sources": [
-          "effective_member_delivery_binding",
-          "joined member delivery bindings",
+          "joined_member_account",
           "explicit_service_delegation"
         ],
         "gate_blinded_states": [
@@ -554,16 +552,16 @@
       "name": "same_core_route_refresh_does_not_rebind_new_core_does",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_cache_entry",
       "inputs": {
-        "member_recipient_id": "ak:did_core:webvh:z6mkTarget",
+        "account_principal_server_id": "ak:did_core:webvh:z6mkTarget",
         "same_core_successor_service_id": "ak:did_core:webvh:z6mkTarget",
         "new_core_candidate_service_id": "ak:did_core:webvh:z6mkReplacement"
       },
       "semantic_outcome": "same_core_accept_new_core_reject",
-      "expected_reason_code": "delivery_binding_stale",
+      "expected_reason_code": "service_route_notice_conflict",
       "expected_effects": {
-        "same_core_member_rebind_written": false,
+        "same_core_membership_write": false,
         "new_core_route_cache_accepted": false,
-        "new_core_member_rebind_required": true
+        "new_core_account_membership_required": true
       }
     },
     {

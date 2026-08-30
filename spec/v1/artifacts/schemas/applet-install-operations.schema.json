@@ -39,9 +39,6 @@
     }
   ],
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "applet_id": {
       "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
@@ -133,7 +130,6 @@
       "description": "Immutable anchors of the one existing Bot authority winner for this applet and target Principal Server. The receiver recomputes every field from accepted local state.",
       "required": [
         "actor_id",
-        "actor_principal_server_id",
         "managed_actor_provision_ref",
         "pcr_genesis_ref",
         "accountability_grant_ref",
@@ -142,10 +138,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "actor_principal_server_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "managed_actor_provision_ref": {
           "$ref": "#/$defs/event_ref"
@@ -160,7 +153,7 @@
           "$ref": "#/$defs/event_ref"
         },
         "initial_package_bot_actor_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         }
       },
       "additionalProperties": false
@@ -193,7 +186,6 @@
         "registration_event_ref",
         "registration_epoch",
         "bot_actor_id",
-        "bot_actor_principal_server_id",
         "bot_actor_provision_ref",
         "bot_principal_control_realm_id",
         "capability_grant_refs",
@@ -223,10 +215,7 @@
           "$ref": "#/$defs/digest"
         },
         "bot_actor_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "bot_actor_principal_server_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "bot_actor_provision_ref": {
           "$ref": "#/$defs/event_ref"
@@ -519,7 +508,7 @@
           "const": "ak.member.state"
         },
         "member_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "membership": {
           "type": "string",

@@ -7,7 +7,7 @@
     "id",
     "schema",
     "realm_id",
-    "inviter_id",
+    "inviter_account_id",
     "state",
     "expires_at",
     "created_at"
@@ -23,15 +23,11 @@
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "inviter_id": {
-      "$ref": "#/$defs/did_core_id"
+    "inviter_account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
     },
-    "invitee_id": {
-      "$ref": "#/$defs/did_core_id"
-    },
-    "invite_delivery_target": {
-      "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_target",
-      "description": "Public durable target for private invite delivery. invitee is the subject; this object carries only the recipient Principal Server service DID."
+    "invitee_account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
     },
     "introduction_evidence_digest": {
       "$ref": "#/$defs/digest",
@@ -69,7 +65,7 @@
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did_core_id",
+      "$ref": "./common-ids.schema.json#/$defs/actor_id",
       "description": "Reducer-derived actor that produced the most recent invite state update."
     },
     "updated_at": {
@@ -80,7 +76,7 @@
     {
       "if": {
         "required": [
-          "invitee_id"
+          "invitee_account_id"
         ],
         "not": {
           "required": [
@@ -90,7 +86,6 @@
       },
       "then": {
         "required": [
-          "invite_delivery_target",
           "introduction_evidence_digest"
         ]
       }

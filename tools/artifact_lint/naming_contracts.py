@@ -591,6 +591,8 @@ def resolve_terminal_constraints(
         out: set[tuple[str, str]] = set()
         if not isinstance(node, dict):
             return out
+        if node.get("x-arkret-composite-identifier") is True:
+            return {("composite_identifier", "closed_object")}
         ref = node.get("$ref")
         if isinstance(ref, str):
             target, separator, fragment = ref.partition("#")
@@ -702,6 +704,8 @@ def _role_terminal_contract(
             # URI syntax does not decide URL-vs-URI field spelling.  Network
             # locators and generic URI identities are registered separately.
             categories.add(("uri", None))
+        elif kind == "composite_identifier" and value == "closed_object":
+            categories.add(("composite_identifier", "_ids" if plural else "_id"))
     # JSON Schema commonly combines a broad URI format with a narrower DID or
     # DID-URL lexical pattern. The pattern owns the representation category in
     # that case; format remains decisive only when no narrower identifier
@@ -1674,6 +1678,9 @@ def derive_category(
                 categories.add("registry_catalog_symbol")
                 continue
             return None
+        if kind == "composite_identifier" and value == "closed_object":
+            categories.add("responsibility_identity_material")
+            continue
         return None
     if len(categories) == 1:
         return next(iter(categories))

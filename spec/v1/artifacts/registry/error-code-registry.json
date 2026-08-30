@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-30.2",
-  "generated_at": "2026-08-30T18:00:00+08:00",
+  "version": "2026-08-30.5",
+  "generated_at": "2026-08-30T23:59:59+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1549,30 +1549,6 @@
       "description": "TURN REST-style ephemeral credential is past its TTL; client MUST request a fresh credential. See zh/crypto-media/webrtc-signaling.md §4.1.",
       "type_uri": "https://arkret.org/problems/turn_credential_expired",
       "title": "Turn credential expired"
-    },
-    {
-      "code": "delivery_binding_stale",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_id and handover_frontier so the sender can retry at the current service. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
-      "type_uri": "https://arkret.org/problems/delivery_binding_stale",
-      "title": "Delivery binding stale"
-    },
-    {
-      "code": "delivery_binding_handed_over",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "Federation sender continued using a previous recipient_id after the handover grace window expired; sender MUST resolve the current binding and retry there.",
-      "type_uri": "https://arkret.org/problems/delivery_binding_handed_over",
-      "title": "Delivery binding handed over"
-    },
-    {
-      "code": "delivery_binding_unresolvable",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_id after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretService serviceKind=principal_server entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/member-delivery-binding.md §5.",
-      "type_uri": "https://arkret.org/problems/delivery_binding_unresolvable",
-      "title": "Delivery binding unresolvable"
     },
     {
       "code": "historical_only",
@@ -3241,46 +3217,6 @@
       "description": "An applet/service call used a delegated device session that the deactivation/lock fanout revoked (ak.applet.registration delegated devices). The call MUST fail closed. See zh/identity/account-lifecycle.md §7.1."
     },
     {
-      "code": "delivery_binding_handover_proof_invalid",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "A federation delivery-binding handover response carried a proof that does not verify against the Realm Event graph, handover_frontier, actor_id, new_recipient_id, or effective delivery binding policy. Sender MUST stop redirection and MUST NOT fall back to DID Document routing. See zh/sync/federation.md §4.1."
-    },
-    {
-      "code": "delivery_binding_handover_rate_limited",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "Sender has already accepted the maximum number of successful delivery-binding handovers for the same target principal and Realm in the configured rolling window. It MUST enter operator diagnostic instead of following another handover. See zh/sync/federation.md §4.1."
-    },
-    {
-      "code": "delivery_binding_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision",
-        "state_resolution"
-      ],
-      "description": "A member join / invite / delivery-binding candidate passed schema validation but failed cryptographic or semantic evidence validation before membership acceptance: signature invalid, subject / service DID mismatch, expired candidate, unresolved issuer, missing or invalid referenced service-acceptance / policy evidence, or evidence whose scope does not cover the Realm. Pure schema-level omissions and shape failures, including missing delivery_binding for a routable member, missing source-conditional binding fields, or missing / empty delivery_modes, remain schema_violation and MUST be rejected before reducer policy validation. Reducers MUST reject the Move fail-closed rather than partially accepting membership. Realm policy allowlist, source-priority, endorsement, or allow_unroutable failures use delivery_binding_policy_mismatch instead. See zh/governance/member-delivery-binding.md §2 and zh/identity/identity-handles.md §3.7."
-    },
-    {
-      "code": "delivery_binding_policy_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision",
-        "state_resolution"
-      ],
-      "description": "The resolved member delivery binding source, recipient_id, endorsement set, unroutable-membership status, or selected source priority conflicts with the Realm delivery_binding_policy allowlist / priority rules. Reducers MUST NOT fall through to a lower-priority binding source after this mismatch. See zh/governance/member-delivery-binding.md §2 and §3.1."
-    },
-    {
-      "code": "delivery_binding_stale",
-      "applies_to": [
-        "push_notify_outcome"
-      ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the receiver's delivery-binding frontier has advanced past the route this notify was built against. Terminal for this attempt; the caller MUST re-resolve the route rather than retry the same one. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
-    },
-    {
       "code": "delivery_target_unreachable",
       "applies_to": [
         "event_envelope",
@@ -3447,7 +3383,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An invite or join attempted to add a principal that is not one of the two stable subject DIDs in the immutable Direct Conversation binding. Group-chat expansion requires a new ordinary Collaboration Realm."
+      "description": "An invite or join attempted to add an ActorId that is not one of the two exact ActorIds in the immutable Direct Conversation binding. Group-chat expansion requires a new ordinary Collaboration Realm."
     },
     {
       "code": "direct_download_disallowed_presign_forbidden",
@@ -3739,7 +3675,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A restricted handle whose subject DID is NOT controlled by the issuer was presented as binding_state=verified without a holder-acceptance proof (a proof in proofs[] signed by a verification method of the subject DID covering (handle, subject, audience, claim_scope)). Verifiers MUST treat it as at most issuer-attested (below verified): it MUST NOT enter the verified candidate set, be displayed as verified, or drive grant conditions / roster strong attribution / delivery binding. This closes issuer-unilateral impersonation within the issuer's audience. See zh/identity/identity-handles.md §6."
+      "description": "A restricted handle whose subject account is NOT controlled by the issuer was presented as binding_state=verified without a holder-acceptance proof (a proof in proofs[] signed by a verification method of subject_account_id.principal_id covering the exact account tuple, handle, audience and claim_scope). Verifiers MUST treat it as at most issuer-attested (below verified): it MUST NOT enter the verified candidate set, be displayed as verified, or drive grant conditions, roster strong attribution or AccountId targeting. This closes issuer-unilateral impersonation within the issuer's audience. See zh/identity/identity-handles.md §6."
     },
     {
       "code": "handle_homograph_forbidden",
@@ -3755,7 +3691,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "Handle resolution returned a subject DID that does not match the expected applicant / member / invite subject. Clients and reducers MUST reject the candidate before building delivery_binding or join material. See zh/identity/identity-handles.md §3.7 and zh/conformance/conformance-vectors.md §8."
+      "description": "Handle resolution returned an AccountId that does not match the expected applicant, member, or invitee account. Clients and reducers MUST reject the candidate before building invite or join material. See zh/identity/identity-handles.md §3.7 and zh/conformance/conformance-vectors.md §8."
     },
     {
       "code": "harassment",
@@ -4623,7 +4559,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "The account status frontier contains a deactivation for the principal acting as actor, subject, issuer, recipient, or device owner. New device/session grants, KeyPackage operations, capability delegation, delivery binding writes, push routes, and to-device enqueue MUST fail closed. See zh/identity/account-lifecycle.md §7.1 and zh/sync/federation.md §4.4.1."
+      "description": "The account status frontier contains a deactivation for the exact AccountId acting as actor, subject, issuer, recipient, or device owner. New device/session grants, KeyPackage operations, capability delegation, membership writes targeting that account, push routes, and to-device enqueue MUST fail closed. See zh/identity/account-lifecycle.md §7.1 and zh/sync/federation.md §4.4.1."
     },
     {
       "code": "private_attachment",

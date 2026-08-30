@@ -45,7 +45,7 @@ updated: 2026-07-03
     "organization": "Acme Corp"
   },
   "created_at": "2026-04-26T00:00:00Z",
-  "updated_by": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+  "updated_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR","principal_server_id":"ak:did_core:webvh:z6mkfixtureprincipalserverexample"}},
   "updated_at": "2026-04-26T00:01:00Z"
 }
 ```
@@ -69,7 +69,7 @@ updated: 2026-07-03
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
 | `profile_fields` | object | 可选 | 个人简介的 canonical 落点是 `profile_fields.bio`；此外可承载代词、时区、locale、状态消息与组织自定义展示字段。`bio` 与 `status_message` 各 MUST ≤ 256 字符（Unicode code point 计），并受 §3.3 相同的 NFC / 控制字符约束。`avatar_url` 不是协议字段；头像必须先保存为 Blob，再写入顶层 `avatar_blob_ref`。 |
 | `created_at` | timestamp | MUST | 创建时间。 |
-| `updated_by` | did_core_id | 可选 | 最近更新者；由 profile update Event actor 派生。 |
+| `updated_by` | ActorId | 可选 | 最近更新者；由 profile update Event actor 派生。 |
 | `updated_at` | timestamp | 可选 | 最近更新时间。 |
 
 ### 2.3 Profile 创建与更新
@@ -355,7 +355,7 @@ POST /_arkret/find/directory/search-users
 Presence / mention 语义补充：
 
 - mention autocomplete SHOULD 在 body 中携带 `realm_id` 与 `intent="mention"`，使 Directory 能按共同 Realm / directory policy 裁剪结果。
-- 普通 mention autocomplete MUST NOT 请求或依赖 `member_delivery_binding`；只有 contact request / invite / member-add 流程可按 directory §9 的 `intent ∈ {contact_request, invite, member_add}` 规则请求投递上下文。
+- 普通 mention autocomplete MUST NOT 请求或依赖完整账号身份；只有 contact request / invite / member-add 流程可按 directory §9 的 disclosure 规则请求 exact AccountId。
 - `results[].membership` 若返回，只是与 `realm_id` 相关的展示 hint，不得作为授权、加入资格或投递绑定依据。
 
 响应示例（非完整 schema）：
@@ -384,7 +384,7 @@ Presence / mention 语义补充：
 - 默认搜索当前 Realm 的成员
 - 可选扩展到同一组织域下的所有已知用户
 - MUST NOT 跨域搜索未授权的外部用户
-- `search-users` 是候选发现接口，不是身份解析接口；需要得到 `subject` DID 或 `member_delivery_binding` 时，客户端 MUST 调用 `resolve-handle` 并满足其 claim / audience / requester policy。
+- `search-users` 是候选发现接口，不是身份解析接口；需要得到 exact AccountId 时，客户端 MUST 调用 `resolve-handle` 并满足其 claim / audience / requester policy。
 
 ## 5. v1 规则
 

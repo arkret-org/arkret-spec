@@ -134,7 +134,7 @@ see_also:
 | --- | --- |
 | `identity/identity-did.md` | DID、human anchor 的 `did:webvh` / `did:web` / `did:key` 闭集（`did:webvh` 为 MTI/default）、独立的 ephemeral pairwise `did:key` 角色、service 默认 `did:webvh` 与显式 no-history `did:web`、`did:webvh` outage 的 cache-only degraded mode、DID Document、Organization ownership。 |
 | `identity/did-usage-and-verification.md` | DID / DID URL 字段总表、非 DID identifier 对照、普通身份锚点使用与少量 DID 权威验证触发条件、verified binding 缓存和失效边界。 |
-| `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation、`MemberDeliveryBindingCandidate`（§3.7）。 |
+| `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation 与 exact AccountId disclosure。 |
 | `identity/consent-model.md` | 用户同意、披露边界、撤回语义和跨服务 consent proof。 |
 | `identity/contact-and-direct-conversation.md` | 联系人请求 / 接受 / 拒绝 / tombstone、双方方向性 Contact authority、private contact discovery 边界、direct conversation resolver、DM Realm 与 DM 主 Strand 形态。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
@@ -184,7 +184,6 @@ see_also:
 | `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |
 | `authz/event-auth-state-resolution.md` | Move、Seal、Lattice、bottom diagnostics、auth refs、membership、policy cells、history sharing 与 E2EE covered Seals。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
-| `governance/member-delivery-binding.md` | 成员 effective delivery binding：接受准则、`binding_source`、`ak.realm.delivery_binding_policy`、路由不可降级、rebind 过渡、单 binding + 多设备策略与隐私边界（与 join gate 正交）。 |
 | `governance/history-visibility.md` | `since_join` / `all_history_for_current_members` 二态、当前成员 gate、private history-key request/response stream/relay 与 organization-recovery archive。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则；物理位于 `security/` 安全分析专项目录。 |

@@ -57,7 +57,7 @@
       "description": "Stable ID of the Realm operator's ultimate controlling organization at this receipt frontier. Verifiers MUST derive and verify it from the Realm service/operator DID control chain; it is not a self-attested label. For federation_witness_attested, every witness controlling_organization_id MUST be distinct from this value and from any organization under the same ultimate controller."
     },
     "audit_actor_id": {
-      "$ref": "#/$defs/did_core_id"
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "frontier": {
       "type": "object",

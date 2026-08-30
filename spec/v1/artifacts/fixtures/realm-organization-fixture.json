@@ -107,7 +107,10 @@
           "issuer_role": "governance_service",
           "verification_method": "did:webvh:z6mkfixturegovacmeexample:gov.acme.example#gov-signing-key-1",
           "delegation_ref": "did:webvh:z6mkfixtureacmeexample:acme.example/delegations/governance-service-1",
-          "executed_by": "ak:did_core:webvh:z6mkfixtureadminacmeexample",
+          "executed_by": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixtureadminacmeexample"
+          },
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
