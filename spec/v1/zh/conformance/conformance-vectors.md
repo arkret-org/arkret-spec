@@ -6256,8 +6256,10 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
    `service_unavailable`，不得漏 target，也不得泄露 service topology。
 3. `pending_route` 与 `pending_delivery` 跨重启、cache eviction 和尝试阈值保留；阈值只触发 operator alert，
    authority 仍有效时不得 dead-letter。
-4. route 恢复后必须先复校验 frozen exact member、membership Event ref、membership ActorId frontier 与 service。
-   至少一个 witness 仍成立才可按原 idempotency key 发送并推进 delivered。
+4. route 恢复后 MUST 在同一 accepted view 中逐个复校验完整 frozen witness
+   `(realm_id, member_id: ActorId, membership_event_ref)`：同一 ActorId 仍 effective joined、exact Event ref 仍匹配，且
+   该 ActorId 的 route 等于冻结 target service。tuple 内全部条件同时成立、tuple 间至少一个成立才可按原 idempotency key
+   发送并推进 delivered；不得把 service projection 当成独立 witness，也不得跨 tuple 拼接条件。
 5. 全部 witness 失效时必须在网络发送前 terminal CAS 为 `cancelled_authority_lost`；后来相同 member/service 的
    新 join/rebind 不能复活旧 intent。
 6. 长期离线 target 不阻塞同 Realm 后续合法 Event；每个 Event 冻结自己的 authority generation 和独立 intent。
@@ -6265,6 +6267,10 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
    只在 caller 当前可读对应 joined-member ActorId routing projection 时出现。unknown 与不可见 Event 统一 `not_found`，query
    不得触发 route lookup、retry 或状态转换。
 8. submit outcome 保留的 `pending_delivery_count` 必须精确等于 pending_route 与 pending_delivery rows 数；read outcome 由完整 `targets[]` 现算该 count。两者的 aggregate state 均由 count 唯一派生：零为 complete，非零为 pending，wire 不重复携带 state。
+9. 全部成员已经退出，但旧 ActorId 仍纯函数投影到同一 service 且 endpoint 可达时，MUST 取消旧 intent 且零网络发送。
+   两个 witness 分别只满足 membership 与 Event-ref 条件时也 MUST 拒绝，不能合并为一个有效 witness。
+10. 同一 service DID 的 verified endpoint 更新 MUST 保留原 intent/幂等键并在复校验后发送；新 Station 的 AccountId 或
+    新 membership Event MUST NOT 改写旧 target、重定向旧 intent 或令已取消 intent 复活。
 
 ## 37. Agent Event admission receipt handoff closure vector
 

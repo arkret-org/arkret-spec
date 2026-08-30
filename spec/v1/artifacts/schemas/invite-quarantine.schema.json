@@ -50,10 +50,9 @@
       "required": [
         "entry_digest",
         "status",
-        "subject_id",
+        "account_id",
         "source_peer_principal_id",
         "source_id",
-        "recipient_id",
         "consent_scope",
         "introduction_kind",
         "effective_kind",
@@ -72,18 +71,15 @@
         "status": {
           "const": "pending_review"
         },
-        "subject_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Holder of this account-data cell."
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact holder of this account-data cell and recipient of the quarantined invite. The sole CAS writer is account_id.station_id; another account with the same principal core is a different holder."
         },
         "source_peer_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Requester/inviter principal used by consent review and revoke invalidation."
         },
         "source_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "recipient_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "consent_scope": {

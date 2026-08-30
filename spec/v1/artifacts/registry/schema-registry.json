@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.2",
+  "version": "2026-08-31.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T00:10:00+08:00",
+  "generated_at": "2026-08-31T04:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -323,7 +323,7 @@
       "schema_id": "ak.schema.principal_locator.v1",
       "file": "schemas/principal-locator.schema.json",
       "status": "active",
-      "description": "Signed online invite locator asserting subject_id and recipient_id for private invite delivery."
+      "description": "Signed online invite locator asserting an exact AccountId for private invite delivery."
     },
     {
       "schema_id": "ak.schema.invite_delivery_request.v1",

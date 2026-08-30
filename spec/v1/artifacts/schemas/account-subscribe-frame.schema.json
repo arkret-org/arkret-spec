@@ -502,24 +502,29 @@
       ],
       "properties": {
         "actor_profiles": {
-          "type": "object",
-          "patternProperties": {
-            "^ak:did_core:[a-z0-9]+:[^\\s/?#]+$": {
-              "type": "object",
-              "properties": {
-                "display_name": {
-                  "$ref": "string-profiles.schema.json#/$defs/display_text_256"
-                },
-                "avatar_blob_ref": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 2048
-                }
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "actor_id"
+            ],
+            "properties": {
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
               },
-              "additionalProperties": false
-            }
+              "display_name": {
+                "$ref": "string-profiles.schema.json#/$defs/display_text_256"
+              },
+              "avatar_blob_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              }
+            },
+            "additionalProperties": false
           },
-          "additionalProperties": false
+          "description": "Projection entries keyed by exact ActorId. Entries MUST be sorted by unsigned UTF-8 bytes of RFC 8785 JCS(actor_id), and duplicate ActorIds MUST be rejected even if display fields differ. A bare-DID object key is not a wire identity."
         },
         "realm_metadata": {
           "type": "object",
@@ -589,7 +594,7 @@
         "hero_ids": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
           "uniqueItems": true,
           "maxItems": 20

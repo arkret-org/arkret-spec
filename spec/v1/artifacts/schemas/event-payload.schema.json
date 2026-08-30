@@ -4227,10 +4227,9 @@
     },
     "device_reanchor_payload": {
       "type": "object",
-      "description": "Closed account-local PCR recovery payload. The account authority is selected by principal_id plus station_id and one monotonic local device-generation CAS. PCR realm/frontier identifiers remain local recovery state and are not an external principal identity selector.",
+      "description": "Closed account-local PCR recovery payload. The account authority is selected by the exact AccountId and one monotonic local device-generation CAS. PCR realm/frontier identifiers remain local recovery state and are not an external principal identity selector.",
       "required": [
-        "principal_id",
-        "station_id",
+        "account_id",
         "recovery_authority_kind",
         "recovery_policy_id",
         "recovery_policy_version",
@@ -4241,11 +4240,8 @@
         "replacement_authorize_payload_digest"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "station_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "recovery_authority_kind": {
           "type": "string",
@@ -5645,12 +5641,6 @@
             "type": "object"
           },
           "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join. maxItems aligns with the gates 1..16 bound in join_policy_component; see zh/conformance/scalability-constraints.md."
-        },
-        "via_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did_core_id"
-          }
         },
         "reason": {
           "type": "string",

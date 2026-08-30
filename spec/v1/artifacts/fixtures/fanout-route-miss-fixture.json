@@ -57,7 +57,7 @@
       "action": "install a valid current service route and run the dispatcher",
       "expected": "delivered",
       "invariants": [
-        "the dispatcher rechecks authority before network send",
+        "the dispatcher rechecks each complete realm_id, member ActorId and membership Event-ref tuple in one accepted view before network send",
         "the intent advances through pending_delivery to delivered",
         "retries use the original idempotency key and create no second target",
         "delivery status targets contain no pending row, so clients derive count 0 and complete state"
@@ -82,8 +82,41 @@
       "expected": "delivery_obligation_remains",
       "invariants": [
         "there is one target and one outbox intent for the service",
-        "authority is retained because at least one frozen witness still matches",
+        "authority is retained because at least one complete frozen member tuple satisfies every membership, Event-ref and target-service condition",
         "cancellation occurs only after every frozen witness is invalid"
+      ]
+    },
+    {
+      "name": "unchanged_route_projection_cannot_preserve_lost_membership_authority",
+      "given": "every frozen member tuple is no longer effective joined, but each immutable ActorId still projects to the frozen service and that service has a reachable verified endpoint",
+      "action": "run the dispatcher after route recovery",
+      "expected": "cancelled_authority_lost",
+      "invariants": [
+        "the service projection and reachable route are not independent authorization witnesses",
+        "no network request is sent",
+        "the old target identity and idempotency key are not redirected to a new AccountId"
+      ]
+    },
+    {
+      "name": "partial_conditions_from_different_member_witnesses_cannot_be_combined",
+      "given": "two frozen member tuples share a service; one ActorId is joined only under a new membership Event and the other frozen membership Event belongs to an ActorId that is no longer joined",
+      "action": "run the dispatcher in that accepted view",
+      "expected": "cancelled_authority_lost",
+      "invariants": [
+        "each witness is checked as one complete realm_id, member ActorId and membership Event-ref tuple",
+        "AND applies within one tuple and OR applies only across fully valid tuples",
+        "no network request is sent and rejoin does not revive the old intent"
+      ]
+    },
+    {
+      "name": "same_service_endpoint_update_preserves_frozen_authority_and_idempotency",
+      "given": "a complete frozen member tuple remains current and the same target service DID publishes a verified successor route with a different endpoint",
+      "action": "refresh the route and run the dispatcher",
+      "expected": "delivered",
+      "invariants": [
+        "only the transport endpoint changes",
+        "the frozen target service, member tuples, target_id and idempotency key remain unchanged",
+        "the dispatcher validates the complete tuple before sending to the verified successor endpoint"
       ]
     },
     {

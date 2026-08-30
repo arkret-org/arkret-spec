@@ -3160,12 +3160,15 @@ paths:
         explode: true
       - name: actor_ids
         in: query
-        description: Filter by Actor DIDs. UNION within, intersection with `realm_ids[]`.
+        description: Repeated actor_ids values, each the percent-encoded RFC 8785 JCS serialization of one closed ActorId. Decode and validate against common-ids actor_id before authorization; bare DID values are forbidden. UNION within, intersection with realm_ids. Exact identity includes Station; duplicate ActorIds are rejected.
         schema:
           type: array
           items:
-            $ref: '../schemas/common-ids.schema.json#/$defs/did_core_id'
+            type: string
+            minLength: 1
           minItems: 1
+          maxItems: 256
+          uniqueItems: true
         style: form
         explode: true
       - name: after

@@ -1511,11 +1511,18 @@
         "realms": {
           "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
             "state_at_window_start": {
-              "actor_profiles": {
-                "ak:did_core:webvh:z6mkfixture": {
+              "actor_profiles": [
+                {
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixture",
+                      "station_id": "ak:did_core:web:ps.example"
+                    }
+                  },
                   "display_name": "Alice"
                 }
-              },
+              ],
               "realm_metadata": {
                 "title": "Example",
                 "join_rule": "invite"

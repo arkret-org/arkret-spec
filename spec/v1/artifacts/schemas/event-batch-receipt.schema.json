@@ -204,8 +204,7 @@
       "description": "Durable acceptance evidence for an account-local PCR-policy re-anchor unit. The authority pair plus monotonic device generation selects the create-once lineage maintained by the Station.",
       "required": [
         "kind",
-        "principal_id",
-        "station_id",
+        "account_id",
         "realm_id",
         "previous_device_generation",
         "new_device_generation"
@@ -214,12 +213,9 @@
         "kind": {
           "const": "device_reanchor_unit"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "station_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Account authority Station; together with principal_id it must equal the covered re-anchor Event authority pair."
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact AccountId of the covered re-anchor Event. Both components MUST match the payload and the accepting Station MUST equal account_id.station_id."
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

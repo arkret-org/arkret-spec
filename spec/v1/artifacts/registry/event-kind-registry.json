@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.3",
+  "version": "2026-08-31.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T17:00:00+08:00",
+  "generated_at": "2026-08-31T17:00:01+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -4768,8 +4768,8 @@
         {
           "cell_family": "ak.component.device.reanchor.v1",
           "cell_subject": {
-            "field": "payload.principal_id",
-            "kind": "did"
+            "field": "payload.account_id",
+            "kind": "canonical_json"
           },
           "lattice": "ordered_log",
           "bottom": "reject",
@@ -6029,7 +6029,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite create. Directed v1 genesis payloads omit invite/invite_id and carry invitee plus invite_delivery_target, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event.",
+      "payload": "Invite create. Directed v1 genesis payloads carry the exact invitee_account_id, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Delivery resolves invitee_account_id.station_id outside durable Realm state. Raw locator tokens, route material and invite_receive_policy state MUST NOT enter the durable Realm event.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_create_payload",
       "id_source": "event_derived",
       "id_kind": "invite",

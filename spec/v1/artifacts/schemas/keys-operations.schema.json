@@ -48,9 +48,6 @@
     }
   ],
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "device_id": {
       "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
@@ -119,14 +116,26 @@
         "$ref": "#/$defs/algorithm_key_records"
       }
     },
-    "principal_device_key_records": {
-      "type": "object",
-      "propertyNames": {
-        "$ref": "#/$defs/did_core_id"
+    "account_device_key_entries": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "device_keys"
+        ],
+        "properties": {
+          "account_id": {
+            "$ref": "./common-ids.schema.json#/$defs/account_id"
+          },
+          "device_keys": {
+            "$ref": "#/$defs/device_key_records"
+          }
+        },
+        "additionalProperties": false
       },
-      "additionalProperties": {
-        "$ref": "#/$defs/device_key_records"
-      }
+      "description": "One entry per exact AccountId. Entries MUST be sorted by unsigned UTF-8 bytes of RFC 8785 JCS(account_id); duplicate AccountIds MUST be rejected even when values differ."
     },
     "did_key": {
       "type": "string",
@@ -155,21 +164,32 @@
       },
       "additionalProperties": false
     },
-    "principal_device_generation_states": {
-      "type": "object",
-      "propertyNames": {
-        "$ref": "#/$defs/did_core_id"
+    "account_device_generation_entries": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "generation_state"
+        ],
+        "properties": {
+          "account_id": {
+            "$ref": "./common-ids.schema.json#/$defs/account_id"
+          },
+          "generation_state": {
+            "$ref": "#/$defs/device_generation_state"
+          }
+        },
+        "additionalProperties": false
       },
-      "additionalProperties": {
-        "$ref": "#/$defs/device_generation_state"
-      }
+      "description": "Current device-generation fence for each exact AccountId. Entries MUST be sorted by RFC 8785 JCS AccountId bytes with no duplicate account identity."
     },
     "device_projection_attestation_core": {
       "type": "object",
       "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the cross-principal keys/query surface: the row carries no PCR genesis receipt, no device authorization chain and no accepted Seal, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
       "required": [
-        "principal_id",
-        "station_id",
+        "account_id",
         "device_id",
         "device_signing_key_did",
         "hpke_key",
@@ -180,12 +200,9 @@
         "expires_at"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "station_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Origin Station of the account. The proof controller MUST project exactly onto this value; an attestation that verifies under any other key is not evidence about this device."
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact account owning the device projection. The proof controller MUST project exactly onto account_id.station_id; an attestation that verifies under any other Station key is not evidence about this account."
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -255,7 +272,7 @@
         },
         "device_projection_attestation": {
           "$ref": "#/$defs/device_projection_attestation",
-          "description": "Origin-Station signature over the authoritative device projection. Consumers read device_signing_key, hpke_key, device_status, device_authorize_event_id and authorized_generation_ref from the verified attestation. A row whose attestation is missing or whose controller does not project onto station_id MUST NOT be used for E2EE, Signal verification or a KeyPackage claim."
+          "description": "Origin-Station signature over the authoritative device projection. Consumers read device_signing_key_did, hpke_key, device_status, device_authorize_event_id and authorized_generation_ref from the verified attestation. Its account_id and device_id MUST match the enclosing result group and device key; its signer MUST project onto account_id.station_id."
         }
       },
       "additionalProperties": false
@@ -269,14 +286,26 @@
         "$ref": "#/$defs/query_device_record"
       }
     },
-    "query_principal_device_keys": {
-      "type": "object",
-      "propertyNames": {
-        "$ref": "#/$defs/did_core_id"
+    "query_account_device_entries": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "device_keys"
+        ],
+        "properties": {
+          "account_id": {
+            "$ref": "./common-ids.schema.json#/$defs/account_id"
+          },
+          "device_keys": {
+            "$ref": "#/$defs/query_device_keys"
+          }
+        },
+        "additionalProperties": false
       },
-      "additionalProperties": {
-        "$ref": "#/$defs/query_device_keys"
-      }
+      "description": "One device-key result group per exact AccountId. Each signed device projection MUST match this account_id and its enclosing device_id key. Entries MUST be sorted by RFC 8785 JCS AccountId bytes with no duplicate account identity."
     },
     "device_algorithm_map": {
       "type": "object",
@@ -287,28 +316,52 @@
         "$ref": "#/$defs/non_empty_string"
       }
     },
-    "principal_device_algorithm_map": {
-      "type": "object",
-      "propertyNames": {
-        "$ref": "#/$defs/did_core_id"
-      },
-      "additionalProperties": {
-        "$ref": "#/$defs/device_algorithm_map"
-      }
-    },
-    "query_device_map": {
-      "type": "object",
-      "propertyNames": {
-        "$ref": "#/$defs/did_core_id"
-      },
-      "additionalProperties": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/device_id"
+    "account_device_algorithm_entries": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "device_algorithms"
+        ],
+        "properties": {
+          "account_id": {
+            "$ref": "./common-ids.schema.json#/$defs/account_id"
+          },
+          "device_algorithms": {
+            "$ref": "#/$defs/device_algorithm_map"
+          }
         },
-        "minItems": 1,
-        "uniqueItems": true
-      }
+        "additionalProperties": false
+      },
+      "description": "One claim target group per exact AccountId. Entries MUST be sorted by RFC 8785 JCS AccountId bytes with no duplicate account identity."
+    },
+    "query_account_device_selectors": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "device_ids"
+        ],
+        "properties": {
+          "account_id": {
+            "$ref": "./common-ids.schema.json#/$defs/account_id"
+          },
+          "device_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/device_id"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Explicit account/device selectors sorted by unsigned UTF-8 bytes of RFC 8785 JCS(account_id). Neither AccountId component may be inferred from the target service, caller session or another entry. Duplicate AccountIds MUST be rejected; use one entry containing all selected device_ids for that account."
     },
     "key_record": {
       "type": "object",
@@ -358,8 +411,8 @@
         "reason_code"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -529,7 +582,7 @@
       ],
       "properties": {
         "device_keys": {
-          "$ref": "#/$defs/query_device_map"
+          "$ref": "#/$defs/query_account_device_selectors"
         },
         "timeout_ms": {
           "type": "integer",
@@ -551,7 +604,7 @@
       ],
       "properties": {
         "device_keys": {
-          "$ref": "#/$defs/query_principal_device_keys"
+          "$ref": "#/$defs/query_account_device_entries"
         },
         "failures": {
           "type": "array",
@@ -560,8 +613,8 @@
           }
         },
         "device_generations": {
-          "$ref": "#/$defs/principal_device_generation_states",
-          "description": "Current identity-root generation fence by principal. Fenced/conflicted principals or mismatched device generations expose no usable signing/HPKE/prekey material."
+          "$ref": "#/$defs/account_device_generation_entries",
+          "description": "Current identity-root generation fence by exact AccountId. Fenced/conflicted accounts or mismatched device generations expose no usable signing/HPKE/prekey material."
         }
       },
       "additionalProperties": false
@@ -573,7 +626,7 @@
       ],
       "properties": {
         "one_time_keys": {
-          "$ref": "#/$defs/principal_device_algorithm_map"
+          "$ref": "#/$defs/account_device_algorithm_entries"
         }
       },
       "additionalProperties": false
@@ -585,7 +638,7 @@
       ],
       "properties": {
         "one_time_keys": {
-          "$ref": "#/$defs/principal_device_key_records"
+          "$ref": "#/$defs/account_device_key_entries"
         },
         "failures": {
           "type": "array",

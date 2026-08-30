@@ -166,7 +166,7 @@ VALUE_TABLE: dict[str, Any] = {
     "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
     "device_key_algorithm": "Ed25519",
     "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
-    "device_signing_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+    "device_signing_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
     "device_status": "authorized",
     "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
     "did_version_id": "1-fixturegenesis",

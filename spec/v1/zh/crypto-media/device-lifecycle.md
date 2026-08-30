@@ -697,38 +697,40 @@ POST /_arkret/self/keys/claim
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `device_keys` | body | `object` | required | principal DID 到 device ID 列表的映射。 |
+| `device_keys` | body | `array` | required | closed `{account_id: AccountId, device_ids: device_id[]}` entries；按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId 拒绝。 |
 | `timeout_ms` | body | `int` | optional | 查询等待上限。 |
 
-服务端在处理 `keys/query` 时 MUST 先认证 requester，并且 MUST 仅在 requester 与被查询 `principal_id` 之间存在当前有效的授权关系时返回目录记录：至少同属一个 requester 可见且 requester 仍为 `join` 的 Realm，或存在当前 call/session/contact profile 明确定义的共享上下文。否则 MUST 使用与不存在不可区分的失败形态（省略该 `(principal_id, device_id)` 记录或写入 `failures` 的非枚举性失败），不得让任意已登录用户枚举其它 principal 的设备存在性 / 吊销状态。
+服务端在处理 `keys/query` 时 MUST 先认证 requester，并且 MUST 仅在 requester AccountId 与被查询 `account_id` 之间存在当前有效的授权关系时返回目录记录：至少同属一个 requester 可见且 requester 仍为 `join` 的 Realm，或存在当前 call/session/contact profile 明确定义的共享上下文。否则 MUST 使用与不存在不可区分的失败形态（省略该 `(account_id, device_id)` 记录或写入 `failures` 的非枚举性失败），不得让任意已登录用户枚举其它 principal 的设备存在性 / 吊销状态。
 
-响应字段：`device_keys: object` required；`failures: array` optional；`device_generations: object` optional（principal → current identity-root generation fence，§8.2 第 3 条的输入）。`device_keys` 的每个 `(principal_id, device_id)` 记录为 `query_device_record`：prekey bundle 收在 `algorithms`（算法名 → key_record）子字段下；同级只携带 `trust_algorithms` 与 origin Station 的 `device_projection_attestation`（见下方 §8.2）。设备公钥、状态与 authorization/generation 坐标只从验签后的 attestation 读取，不在 row 重复。schema 见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json) 的 `$defs/query_device_record`。
+响应字段：`device_keys: array` required，每项 `{account_id, device_keys}`，内层 `device_keys` 为 device ID → `query_device_record`；`failures: array` optional，账号级失败用 exact `account_id`；`device_generations: array` optional，每项 `{account_id, generation_state}`（§8.2 第 3 条的输入）。两个外层数组按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId MUST 拒绝，同 core 不同 Station 不得合并。每个 `(account_id, device_id)` 的 `query_device_record`：prekey bundle 收在 `algorithms`（算法名 → key_record）子字段下；同级只携带 `trust_algorithms` 与 origin Station 的 `device_projection_attestation`（见下方 §8.2）。设备公钥、状态与 authorization/generation 坐标只从验签后的 attestation 读取，不在 row 重复。schema 见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json) 的 `$defs/query_device_record`。
+
+`POST /_arkret/self/keys/claim` 的 `one_time_keys` 请求为 closed `{account_id, device_algorithms}` entries，内层 `device_algorithms` 是 device ID 到算法名的映射；响应同名字段为 `{account_id, device_keys}` entries，内层为 device ID 到算法/key_record 的映射。外层均按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId MUST 拒绝；one-time key 的原子消费、授权、失败与重试定位都绑定 exact `(account_id, device_id)`，不得把同 core 不同 Station 合并。scalar device ID / algorithm map 不承载复合账号身份，继续保留。
 
 #### 8.2 设备验签公钥目录（normative）
 
-`keys/query` 是**跨 principal** 的关系门控面。它的 device row MUST 恰以 `algorithms`、`trust_algorithms` 与 `device_projection_attestation` 为权威成员；`device_signing_key`、`hpke_key`、`device_status`、`device_authorize_event_id`、`authorized_generation_ref` 只存在于已签 attestation 中。`principal_id` 与 `device_id` **由 `device_keys` 映射的键定位**，不是 row 字段，MUST NOT 作为冗余字段重复出现。设备 row 不得回显 DID Document 的设备或 service authority。
+`keys/query` 是**跨账号** 的关系门控面。它的 device row MUST 恰以 `algorithms`、`trust_algorithms` 与 `device_projection_attestation` 为权威成员；`device_signing_key_did`、`hpke_key`、`device_status`、`device_authorize_event_id`、`authorized_generation_ref` 只存在于已签 attestation 中。`account_id` 由外层 entry 定位，`device_id` 由内层 map key 定位，不是 device row 的镜像字段，MUST NOT 作为冗余字段重复出现。设备 row 不得回显 DID Document 的设备或 service authority。
 
-`device_projection_attestation` 是 **origin Station 对 exact device projection 的签名断言**，覆盖 `(principal_id, station_id, device_id, device_signing_key, hpke_key, device_authorize_event_id, authorized_generation_ref, device_status, attested_at, expires_at)`，proof context 为 `ak.device_projection_attestation_proof.v1`（见 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)）。它是本面唯一的验证载体：PCR genesis receipt、device authorization chain 与 accepted Seal **MUST NOT** 出现在本面，它们是 origin Station 的内部账号治理材料，只经 `ak.self.identity.read.resolution_audit.v1` 在 holder / recovery 授权下披露。
+`device_projection_attestation` 是 **origin Station 对 exact device projection 的签名断言**，覆盖 `(account_id, device_id, device_signing_key_did, hpke_key, device_authorize_event_id, authorized_generation_ref, device_status, attested_at, expires_at)`，proof context 为 `ak.device_projection_attestation_proof.v1`（见 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)）。它是本面唯一的验证载体：PCR genesis receipt、device authorization chain 与 accepted Seal **MUST NOT** 出现在本面，它们是 origin Station 的内部账号治理材料，只经 `ak.self.identity.read.resolution_audit.v1` 在 holder / recovery 授权下披露。
 
 receiver MUST 验证：
 
-1. attestation proof 的 controller 投影后**精确等于** `station_id`，且该 key 在其当前已验证 method history 下具备 assertion 能力；`proof.created_at` 逐字等于 `attestation.attested_at`，当前时刻早于 `expires_at`；
-2. 外层 `(principal_id, device_id)` map key 与 attestation 的同名字段逐字一致；consumer 仅从验签后的 attestation 取得 `device_signing_key`、`hpke_key`、`device_authorize_event_id`、`authorized_generation_ref` 与 `device_status`；
-3. attestation 的 `authorized_generation_ref` 等于同一响应 `device_generations` 中该 principal 的 `current_device_generation_ref`，且 `device_generation_status = active`；
+1. attestation proof 的 controller 投影后**精确等于** `attestation.account_id.station_id`，且该 key 在其当前已验证 method history 下具备 assertion 能力；`proof.created_at` 逐字等于 `attestation.attested_at`，当前时刻早于 `expires_at`；
+2. 外层 entry 的 exact `account_id` 与内层 `device_id` map key 必须分别与已签 attestation 同名字段一致；consumer 仅从验签后的 attestation 取得 `device_signing_key_did`、`hpke_key`、`device_authorize_event_id`、`authorized_generation_ref` 与 `device_status`；
+3. attestation 的 `authorized_generation_ref` 等于同一响应 `device_generations` 中 exact 同一 AccountId 的 `generation_state` 内的 `current_device_generation_ref`，且 `device_generation_status = active`；
 4. attestation 的 `device_status = active`。
 
-任一条不成立时 MUST NOT 把该 row 用于 E2EE / Signal 验签或 KeyPackage claim。反枚举失败形态不变：requester 与目标 principal 之间没有当前有效授权关系时，MUST 省略该 `(principal_id, device_id)` 记录或写入非枚举性 `failures`；revoked、fenced 或 conflicted 的设备同样按此处理，MUST NOT 降级成一条缺字段的 row。
+任一条不成立时 MUST NOT 把该 row 用于 E2EE / Signal 验签或 KeyPackage claim。反枚举失败形态不变：requester 与目标 AccountId 之间没有当前有效授权关系时，MUST 省略该 `(account_id, device_id)` 记录或写入非枚举性 `failures`；revoked、fenced 或 conflicted 的设备同样按此处理，MUST NOT 降级成一条缺字段的 row。
 
 普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `did` 的 DID URL；receiver 取 bare `did` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
 
 #### 8.3 客户端独立验证（normative）
 
-客户端不能把服务端裸 `device_signing_key` 断言当作 Tier-2 信任。Tier-2 信任只有两个来源：
+客户端不能把服务端裸 `device_signing_key_did` 断言当作 Tier-2 信任。Tier-2 信任只有两个来源：
 
 1. §8.2 的 origin Station `device_projection_attestation`——它把「这就是该账号当前接受的设备投影」变成一条可独立验签的断言；
 2. 用户侧 `ak.key.verification.*` 带外验证。
 
-客户端 **MUST NOT** 被要求从 identity-root anchored PCR genesis 重放 device authorization chain：跨 principal 面按定义拿不到那份材料，要求重放会把账号内部治理日志变成对任意有关系第三方的外露面。验证只需要在 attestation 或 generation 更新时完成；普通消息热路径可使用按 `(principal_id, station_id, device_id, authorized_generation_ref, attested_at)` 缓存的 verified projection，不需要在线解析 DID。缓存 MUST NOT 越过 `expires_at`。
+客户端 **MUST NOT** 被要求从 identity-root anchored PCR genesis 重放 device authorization chain：跨 principal 面按定义拿不到那份材料，要求重放会把账号内部治理日志变成对任意有关系第三方的外露面。验证只需要在 attestation 或 generation 更新时完成；普通消息热路径可使用按 `(account_id, device_id, authorized_generation_ref, attested_at)` 缓存的 verified projection，不需要在线解析 DID。缓存 MUST NOT 越过 `expires_at`。
 
 ## 9. MLS KeyPackage Claim API
 
@@ -1356,13 +1358,13 @@ Ack 必须携 `high_water_cursor` 与按顺序 record digest 的
 全设备丢失时，账号重新登录不能替代 PCR recovery proof。基础路径由丢失前已进入 accepted Seal 的
 recovery policy 授权，并提交两条 Event：
 
-1. policy-authorized `ak.device.reanchor` 绑定 policy/version/session、`principal_id`、`station_id`、replacement
+1. policy-authorized `ak.device.reanchor` 绑定 policy/version/session、exact `account_id`、replacement
    authorize payload digest 与 monotonic PCR generation CAS；
 2. replacement device 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，
    `prev_refs` 只指向 re-anchor Event。
 
 两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。该 scope 的封闭字段集恰为
-`{kind, principal_id, station_id, realm_id, previous_device_generation, new_device_generation}`：它与 `ak.device.reanchor` payload 选择同一个本地 account authority pair，每个同名字段 MUST 与被覆盖 payload 逐字节相等，任一不等以 `device_reanchor_authority_mismatch` fail closed。re-anchor 与 replacement-authorize digest 分别从 `events[]` 中唯一对应 kind 的 typed `event_id` 解码，scope 不重复携带。scope MUST NOT 携带 `did_version_id`、
+`{kind, account_id, realm_id, previous_device_generation, new_device_generation}`：它与 `ak.device.reanchor` payload 选择同一个 exact AccountId，每个同名字段 MUST 与被覆盖 payload 逐字节相等，任一不等以 `device_reanchor_authority_mismatch` fail closed。re-anchor 与 replacement-authorize digest 分别从 `events[]` 中唯一对应 kind 的 typed `event_id` 解码，scope 不重复携带。scope MUST NOT 携带 `did_version_id`、
 `registry_head` 或任何 DID publication 字段，接收方也 MUST NOT 由 generation ref 反向合成它们。接受后
 generation fence 使旧 generation 全部失效。`current_device_generation_ref` 是 PCR-local monotonic ref，
 MUST NOT 使用或等于 DID `versionId`；resolution cell 不随基础恢复推进。

@@ -162,7 +162,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
-      "sha256": "1090dbccfbe420da59cca080347f2dc5ef6b7e357b61f7fff19041c2e918c1e6"
+      "sha256": "7a58cefcb0e852bcb84b4221e34fd7b74c43f348c427bf54f7954db0a296cf48"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
@@ -282,7 +282,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "489dc8a9d1ab985820596b913790de1310f5af32b7d04e15a447ef0014e89516"
+      "sha256": "a128214327d47f82c85b8333fa40e0adc76df5d8cc8fab086dcc738b18d6bac1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -330,7 +330,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "0ca09c91bdbac697e0826318c7312ffe95d2bf847bb57e1621a1e85f04c56713"
+      "sha256": "379ccf00f2830f65cc45090828f31dbaf9c4c8dea0f653e0d922b23a5a38d74f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -394,7 +394,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "ed1fd4df070c0769bb8c8e6536c218c54eaaf5914ab8971f701243b9ad508e54"
+      "sha256": "06bdd38f54767f911d607286f9471dbd11cd05203821b03aa921d4b6e1ed4427"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

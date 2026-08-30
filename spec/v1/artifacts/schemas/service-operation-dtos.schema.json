@@ -2952,10 +2952,12 @@
         "actor_ids": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
           "minItems": 1,
-          "description": "Filter by Actor DIDs. UNION within, intersection with `realm_ids[]`."
+          "maxItems": 256,
+          "uniqueItems": true,
+          "description": "Filter by exact structured ActorIds. UNION within, intersection with `realm_ids[]`. Neither AccountId component may be inferred or discarded."
         },
         "before": {
           "$ref": "#/$defs/Cursor",

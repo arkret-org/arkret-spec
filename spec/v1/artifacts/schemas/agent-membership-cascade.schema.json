@@ -78,9 +78,9 @@
           "maxItems": 256,
           "uniqueItems": true,
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
-          "description": "Lexicographically sorted exact set of active controlled Agents frozen from terminal pre-state."
+          "description": "Exact set of active controlled Agent ActorIds frozen from terminal pre-state, sorted by unsigned UTF-8 bytes of each RFC 8785 JCS ActorId. Every element MUST identify a Native Personal Agent in that pre-state; a bare principal DID or a different Station is not the same member."
         },
         "cleanup_intent_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest",
