@@ -26,7 +26,7 @@
     },
     "realms": {
       "type": "object",
-      "description": "Per-Realm map on `delta` frames. Keys are `ak:realm:*`; values are that Realm's aggregate timeline/state/account-data entry. Membership lifecycle (`join` / `invite` / `knock` / `leave`) is carried by the events inside the Realm entry.",
+      "description": "Per-Realm map on `delta` frames. Keys are `ak:realm:*`; values are that Realm's aggregate timeline/state/account-data entry. Membership state (`join` / `knock` / `leave` / `ban`) is carried by the events inside the Realm entry; pending Invite lifecycle remains a caller-private inbox projection and is not membership.",
       "patternProperties": {
         "^ak:realm:[A-Za-z0-9_-]{44}$": {
           "$ref": "#/$defs/realm_sync_entry"
@@ -589,7 +589,8 @@
         },
         "invited_member_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Count of caller-private pending Invite inbox entries associated with this Realm. This is not derived from ak.member.state, does not imply membership, and MUST NOT create roster rows."
         },
         "hero_ids": {
           "type": "array",
@@ -655,9 +656,9 @@
           "type": "string",
           "enum": [
             "join",
-            "invite",
             "knock"
-          ]
+          ],
+          "description": "Effective membership rows visible in the roster. Invite lifecycle records are not membership and MUST NOT appear here."
         },
         "subject_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",

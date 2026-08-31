@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-31.1",
+  "version": "2026-09-01.1",
   "source_of_truth": true,
   "description": "Canonical registry of all normative MLS-Exporter and MLS ExpandWithLabel domain-separation labels in Arkret v1. Each label is a wire-breaking security parameter: implementations MUST use the exact label string, primitive, and Context field shape, and MUST NOT migrate or reuse keys across distinct labels without a new profile. MLS-Exporter entries MUST NOT derive with an empty Context; an ExpandWithLabel entry follows its registered context_encoding, including an explicitly registered empty context. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [
@@ -106,10 +106,10 @@
         "call_id",
         "focus_id",
         "epoch_id",
-        "participant_identity",
+        "participant_id",
         "device_id"
       ],
-      "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of the context_fields object {realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}; empty or epoch-only Context MUST fail closed",
+      "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of the context_fields object {realm_id, call_id, focus_id, epoch_id, participant_id, device_id}; empty or epoch-only Context MUST fail closed",
       "output_bytes": 32,
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"

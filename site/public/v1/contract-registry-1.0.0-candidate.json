@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.8",
+  "version": "2026-09-01.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T18:30:02+08:00",
+  "generated_at": "2026-09-01T06:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -13893,7 +13893,7 @@
         "http": "POST /_arkret/self/circles/{circle_id}/members",
         "grpc": "SelfCircle/MemberAdd",
         "mq": "self.circle.member.command.add",
-        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through ordinary Event admission; payload.circle_id MUST equal the path circle_id. Moving another actor to join requires ak.circle.member.manage narrowed to this Circle, evaluated against projected grants rather than asserted by the request, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule. The service MUST NOT co-sign, rebuild or synthesize the Event, nor add a capability verdict to the closed payload.",
+        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through ordinary Event admission; payload.circle_id MUST equal the path circle_id and the complete target ActorId is payload.member_id. Moving another actor to join requires ak.circle.member.manage narrowed to this Circle, evaluated against projected grants rather than asserted by the request, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule. The service MUST NOT co-sign, rebuild or synthesize the Event, nor add a capability verdict to the closed payload.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13916,7 +13916,7 @@
         "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
         "grpc": "SelfCircle/MemberRemove",
         "mq": "self.circle.member.resource.delete",
-        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through ordinary Event admission. Path actor_id is one percent-encoded canonical JSON ActorId segment, not a bare principal DID. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed head_eq guard; payload.circle_id MUST equal its path identifier and payload.actor_id MUST equal the entire decoded path ActorId, including Station and branch. event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
+        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through ordinary Event admission. Path actor_id is one percent-encoded canonical JSON ActorId segment, not a bare principal DID; it is a route selector and does not rename the Event field. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed head_eq guard; payload.circle_id MUST equal its path identifier and payload.member_id MUST equal the entire decoded path ActorId, including Station and branch. event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -14380,7 +14380,7 @@
         "http": "POST /_arkret/self/seals/mls-governance-proof",
         "grpc": "SelfSeals/MlsGovernanceProof",
         "mq": "self.seals.read.mls_governance_proof",
-        "notes": "Near-current stateless group_security_frontier query only. The caller binds exact proof_base_basis and proof_target_basis antichains plus the closed frontier selector. Bulk or old history uses receipt-bound direct accepted-Seal traversal through standard Event/Seal/dependency resolve.",
+        "notes": "Near-current stateless group_security_frontier query only. The caller binds exact proof_base_basis and proof_target_basis antichains plus the closed frontier selector. A pre-Genesis 0 -> 0 query MUST carry proposed_group_genesis_binding; it enters query digest/cache identity and every-and-only cell selection but is not accepted authority. Once Genesis exists the field is forbidden and the immutable accepted binding is used. Bulk or old history uses receipt-bound direct accepted-Seal traversal through standard Event/Seal/dependency resolve.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 1048576,
         "success_shape_kind": "typed_response",
@@ -15157,7 +15157,7 @@
         "http": "POST /_arkret/peer/seals/mls-governance-proof",
         "grpc": "PeerSeals/MlsGovernanceProof",
         "mq": "peer.seals.read.mls_governance_proof",
-        "notes": "Near-current S2S group_security_frontier query only. It binds exact base/target Seal antichains and the closed selector; bulk or old history uses receipt/replica-bound direct Seal traversal through standard Event, Seal and governance-dependency resolve.",
+        "notes": "Near-current S2S group_security_frontier query only. It binds exact base/target Seal antichains and the closed selector. A pre-Genesis 0 -> 0 request carries proposed_group_genesis_binding in its digest/cache identity; accepted-state requests forbid it and use the winning immutable Genesis binding. Bulk or old history uses receipt/replica-bound direct Seal traversal through standard Event, Seal and governance-dependency resolve.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 1048576,
         "success_shape_kind": "typed_response",
@@ -16705,6 +16705,24 @@
         "event_mapping_kind": "scope_suffix_variant"
       },
       {
+        "action": "ak.applet.bridge_error",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "applet_id",
+          "registration_epoch"
+        ],
+        "required_evaluator_checks": [
+          "active_applet_registration_exact"
+        ],
+        "target_event_kinds": [
+          "ak.applet.bridge_error"
+        ],
+        "profile": "ak.profile.applet_bridge.v1",
+        "event_mapping_kind": "same_name",
+        "notes": "Authorizes a service-actor signed bridge error Event only for the exact active Applet installation, registration epoch and granted scope. The Event still carries applet_id and a real authorization_ref; service signature is provenance, not authority."
+      },
+      {
         "action": "ak.applet.ghost.provision",
         "category": "management",
         "risk_tier": "high",
@@ -16997,7 +17015,7 @@
           "ak.circle.member.state"
         ],
         "profile": null,
-        "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed.",
+        "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.member_id == envelope.actor_id using the complete ActorId and transition legality. Self-unbanning MUST fail closed.",
         "event_mapping_kind": "scope_suffix_variant"
       },
       {
@@ -17028,7 +17046,7 @@
           "ak.circle.member.state"
         ],
         "profile": null,
-        "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id.",
+        "notes": "Invite / remove others. Held by Circle admin. payload.member_id != envelope.actor_id using the complete ActorId.",
         "event_mapping_kind": "scope_suffix_variant"
       },
       {

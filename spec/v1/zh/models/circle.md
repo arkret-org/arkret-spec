@@ -82,7 +82,7 @@ closed union 见 [`history-visibility.md`](../governance/history-visibility.md) 
 | `ak.circle.archive` | yes | object_lifecycle_payload | active → archived。 |
 | `ak.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `ak.circle.tombstone` | yes | object_lifecycle_payload | terminal；触发 §8 cascade。 |
-| `ak.circle.member.state` | yes | `{circle_id, actor_id, membership: invite\|join\|knock\|leave\|ban, ...}` | 与 `ak.member.state` 复用同一 `membership_state` 枚举(`invite / join / knock / leave / ban`)，仅 scope 限定到 Circle；二者 wire 取值完全一致，不存在独立词形。reducer 先校验 actor 已是父 Realm `join` 成员；`knock` 仅在 `join_rule=knock` 下允许(见 §9.1)。 |
+| `ak.circle.member.state` | yes | `{circle_id, member_id, membership: join\|knock\|leave\|ban, ...}` | 与 `ak.member.state` 复用同一 `membership_state` 四态枚举(`join / knock / leave / ban`)，仅 scope 限定到 Circle；Invite 是独立 pending workflow，不是 membership state。reducer 先校验完整 `member_id: ActorId` 已是父 Realm `join` 成员；`knock` 仅在 `join_rule=knock` 下允许(见 §9.1)。 |
 | `ak.circle.seal_commit` | no | `{circle_id, sub_seal_head_digest, epoch}` | reducer-derived:Circle sub-seal 按 profile cadence 周期性向 Realm Seal 提交不透明 commitment(§9)，由服务端 / seal service 发出，actor 不直接提交。 |
 
 **Cell 归属与 subject 语义（normative）**：
@@ -235,8 +235,8 @@ Capability actions:
 | --- | --- | --- | --- |
 | `ak.circle.create` | medium | `ak.circle.create` | 创建 Circle。**默认不**在普通成员 bundle 中(防止 Circle 滥用稀释 UX)。 |
 | `ak.circle.manage` | medium | `ak.circle.update`, `ak.circle.archive`, `ak.circle.restore`, `ak.circle.tombstone` | 管理已存在 Circle。 |
-| `ak.circle.member.add` | low | `ak.circle.member.state`(payload.actor_id == envelope.actor_id，且 transition 合法) | 用户接受邀请、加入 `join_rule=public` 的 Circle 或自助退出；不得自助解除 ban。 |
-| `ak.circle.member.manage` | medium | `ak.circle.member.state`(actor_id != envelope.actor_id) | 邀请/移除他人；Circle admin 持有。 |
+| `ak.circle.member.add` | low | `ak.circle.member.state`(`payload.member_id == envelope.actor_id`，且 transition 合法) | 用户接受邀请、加入 `join_rule=public` 的 Circle 或自助退出；不得自助解除 ban。 |
+| `ak.circle.member.manage` | medium | `ak.circle.member.state`(`payload.member_id != envelope.actor_id`) | 邀请/移除他人；Circle admin 持有。 |
 | `ak.circle.member.add.others` | high | 同上 + 强制带 `ak.audit.accessed` 配对(与 `ak.strand.watch.set.others` 同模式) | 跨成员代写(罕用)，审计配对。 |
 | `ak.circle.audit` | high | 空(read-only)，配对 `ak.audit.accessed` | 不属于 Circle 的 Realm admin 读取 Circle 元数据 / activity rollup 的审计权。 |
 

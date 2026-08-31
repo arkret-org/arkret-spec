@@ -819,7 +819,7 @@ Expected：`expected_multibase` / `expected_principal_id_key` MUST byte-for-byte
 
 `ak.vector.scalability.mls_governance_proof_bounds.v1` 由 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的生成式矩阵固化 [`scalability-constraints.md` §6](./scalability-constraints.md) 与 `mls-governance-proof-bundle.schema.json`。Runner MUST 对唯一近端 `group_security_frontier` outcome 的 1 MiB canonical exact-response 上限、closed Merkle path 64 siblings 与 registry 声明的 typed collection 上限生成 `limit-1 / limit / limit+1`。`limit+1` 必须在 materializer 或 verifier 对应边界 fail closed，且不得截断 witness、按声明 cardinality 预分配或把已接收前缀标为完整。
 
-同一 vector 还 MUST 覆盖 stateless exact query：`profile=group_security_frontier`、scope/group、调用方本机已验证 current/pending group state 的 every-and-only、按 `leaf_index` 严格递增排列的 `local_mls_leaves[]`、完整 canonical `proof_base_basis`/`proof_target_basis` Seal 反链、`frontier_purpose` 及其 closed 字段和 `byte_limit` 全部进入 canonical query；空 leaves、重复 leaf index、重复 credential、伪造 principal 以及任何 result-set/cursor/continuation 或 epoch-range profile 字段都必须拒绝。`base == target` 零过渡与 base 为 target ancestor 都是正例；已证明并发/不可达必须返回 `mls_governance_anchor_unreachable`，必需 Seal/Event/witness 缺失导致无法判定时必须返回 `frontier_unavailable`，两者均不得等待、选 common descendant 或替换 basis。响应只携 exact `query_digest` 而不重复完整 leaves，且必须完整覆盖该 purpose 的 registered frontier projection；超界返回 `mls_governance_proof_bounds_exceeded`，不得截断或拆 cell。相同 query 与相同 accepted material 必须生成相同 canonical 响应和 `page_digest = SHA-256(UTF8("ak.mls-governance-proof-page-v1") || 0x00 || UTF8(query_digest) || 0x00 || JCS(page_body))`。Prefix witness 还必须覆盖空 prefix、左右 state edge、neighbor inclusion、缺 entry、错 leaf index 与多余 sibling。该近端响应不是 `ak:snapshot`，不含 Snapshot manifest/chunks 或 bootstrap authority；批量/旧历史只走 receipt-bound direct accepted-Seal traversal 与标准 Event/Seal/dependency resolve。
+同一 vector 还 MUST 覆盖 stateless exact query：`profile=group_security_frontier`、scope/group、调用方本机已验证 current/pending group state 的 every-and-only、按 `leaf_index` 严格递增排列的 `local_mls_leaves[]`、完整 canonical `proof_base_basis`/`proof_target_basis` Seal 反链、`frontier_purpose` 及其 closed 字段和 `byte_limit` 全部进入 canonical query；空 leaves、重复 leaf index、重复 credential、伪造 principal 以及任何 result-set/cursor/continuation 或 epoch-range profile 字段都必须拒绝。pre-Genesis 0→0 必须携 `proposed_group_genesis_binding`，并分别覆盖 `mls_rfc9420`、exporter+none、exporter+organization recovery；不同 proposal 必须产生不同 query digest/cache entry 与 every-and-only cell set。缺 proposal 返回 `mls_genesis_binding_proposal_required`；proposal/真正 Genesis mismatch、并发 Genesis 输家、accepted 后仍携 proposal均返回 `mls_genesis_binding_proposal_mismatch` 且零写入；accepted 0→0 refresh 必须无 proposal并读取 immutable winner，伪造 `base_group_state_ref` 拒绝。`base == target` 零过渡与 base 为 target ancestor 都是正例；已证明并发/不可达必须返回 `mls_governance_anchor_unreachable`，必需 Seal/Event/witness 缺失导致无法判定时必须返回 `frontier_unavailable`，两者均不得等待、选 common descendant 或替换 basis。响应只携 exact `query_digest` 而不重复完整 leaves，且必须完整覆盖该 purpose 的 registered frontier projection；超界返回 `mls_governance_proof_bounds_exceeded`，不得截断或拆 cell。相同 query 与相同 accepted material 必须生成相同 canonical 响应和 `page_digest = SHA-256(UTF8("ak.mls-governance-proof-page-v1") || 0x00 || UTF8(query_digest) || 0x00 || JCS(page_body))`。Prefix witness 还必须覆盖空 prefix、左右 state edge、neighbor inclusion、缺 entry、错 leaf index 与多余 sibling。该近端响应不是 `ak:snapshot`，不含 Snapshot manifest/chunks 或 bootstrap authority；批量/旧历史只走 receipt-bound direct accepted-Seal traversal 与标准 Event/Seal/dependency resolve。
 
 ## 2. CBA · Lattice Vectors
 
@@ -4623,7 +4623,7 @@ Expected:
 Steps:
 
 1. Client POST `/_arkret/self/rtc/token` with the minimum required fields `(realm_id, call_id, actor_id, device_id, focus_id)`。
-2. Issuer 返回 200 with `backend_token` / `participant_identity` / `participant_binding` / `expires_at`。
+2. Issuer 返回 200 with `backend_token` / `participant_id` / `participant_binding` / `expires_at`。
 
 Expected:
 
@@ -4683,20 +4683,20 @@ Steps:
 Expected:
 
 - Client MUST 拒绝该 key 并报 `e2ee_key_source_unauthorised`。
-- 唯一合法 key 来源是 MLS-Exporter（label `ak.rtc-frame-key/v1`, length=19 bytes, Context=`canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`, KDF.Nh=32 bytes），其中 `participant_identity` / `device_id` 取自已验证的 call roster participant value 与 `participant_binding`。
-- 负向覆盖：以下派生 MUST 同样 fail closed 报 `e2ee_key_source_unauthorised`——(a) `Context=""`（空 Context）；(b) 缺少 sender 字段（`participant_identity` / `device_id`）；(c) 仅绑定 `epoch_id` 而不含完整 sender-bound Context。
+- 唯一合法 key 来源是 MLS-Exporter（label `ak.rtc-frame-key/v1`, length=19 bytes, Context=`canonical_json({realm_id, call_id, focus_id, epoch_id, participant_id, device_id})`, KDF.Nh=32 bytes），其中 `participant_id` / `device_id` 取自已验证的 call roster participant value 与 `participant_binding`。
+- 负向覆盖：以下派生 MUST 同样 fail closed 报 `e2ee_key_source_unauthorised`——(a) `Context=""`（空 Context）；(b) 缺少 sender 字段（`participant_id` / `device_id`）；(c) 仅绑定 `epoch_id` 而不含完整 sender-bound Context。
 
 ### 12.8 Participant Identity — Cross-Check
 
-`vector_id`: `ak.vector.media_binding.participant_identity_unrecognised.v1`
+`vector_id`: `ak.vector.media_binding.participant_id_unrecognised.v1`
 
 Steps:
 
-1. Backend signal `ParticipantConnected` with `participant_identity=ak:rtc_participant:<unknown>`，无对应 call roster effective OR-Set 项。
+1. Backend signal `ParticipantConnected` with `participant_id=ak:rtc_participant:<unknown>`，无对应 call roster effective OR-Set 项。
 
 Expected:
 
-- Client MUST 拒绝为该 participant 建立媒体流（不收音、不订阅 video），报 `participant_identity_unrecognised`。
+- Client MUST 拒绝为该 participant 建立媒体流（不收音、不订阅 video），报 `participant_id_unrecognised`。
 
 ### 12.9 Recording Artifact — Via Arkret Blob Pipeline
 
@@ -4736,7 +4736,7 @@ Steps:
 1. Producer 构造一个 schema 合法的 `ak.call.state` 事件（payload 通过 `call_state_payload` typed schema），其 `roster_delta.op="join"` 且 `roster_delta.participant.participant_binding` 含全部必填字段。
 2. 依次构造四个变体，每个仅破坏 §11.1 reducer 校验中的一项：
    - (a) `participant_binding.issuer_kid` 解析到的 service DID 不在当前 epoch `ak.realm.media_service.service_id`；
-   - (b) `participant_binding` 的 `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity` 中某一项与该 participant entry 不一致；
+   - (b) `participant_binding` 的 `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_id` 中某一项与该 participant entry 不一致；
    - (c) `participant_binding.expires_at` ≤ 事件 `created_at`（已过期 binding）；
    - (d) `participant_binding.sig` 验签失败。
 3. 各变体分别提交 reducer。

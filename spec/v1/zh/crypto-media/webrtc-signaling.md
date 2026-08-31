@@ -94,7 +94,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 ```
 
 - `action` MUST 为 `kick` / `ban` / `end_for_all` 之一。强制静音走 §6.1 的 `mute_state{by=moderator}`，不复用本信令，但同样 MUST 由 `ak.call.moderate` 授权并落目标 leg 的 `mute_override`。
-- `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_identity`。kick 不阻止该 actor 重新发起 join。
+- `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_id`。kick 不阻止该 actor 重新发起 join。
 - `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时，token issuer MUST 拒绝 `call_participant_removed`。
 - `end_for_all`:对全体结束通话。它由 `ak.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条携带 `ak.call.state.state_transition.to="ended"` 的 durable event；收到的客户端 MUST 全部挂断。
 - kick / ban MUST 以 `ak.call.state.moderation_delta.op="remove_participant"` 留痕(其 `removal` 为 `{ actor_id, device_id?, action, removed_by, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `ak.component.call.moderation.v1` effective OR-Set 的 ban 集合内，违反 `call_participant_removed`。
@@ -543,7 +543,7 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 | `session_focus_already_committed` | 已提交的 call `session_focus` 不可在同一生命周期内改写。 |
 | `call_state_terminal` | `ak.call.state` 不能从 `ended` / `missed` / `failed` / `cancelled` 终态转出。 |
 
-媒体服务绑定相关错误码（`unknown_focus_type`、`focus_mismatch`、`token_issuer_unauthorised`、`participant_binding_invalid`、`participant_identity_unrecognised`、`e2ee_key_source_unauthorised`、`recording_artifact_pipeline_bypassed`、`media_service_foci_required`、`media_service_binding_uncovered`、`focus_unavailable_for_client`、`media_plaintext_service_not_authorised`、`mls_governance_binding_stale` 等）见 [`media-service-binding.md`](./media-service-binding.md) 与 `error-code-registry.json`。
+媒体服务绑定相关错误码（`unknown_focus_type`、`focus_mismatch`、`token_issuer_unauthorised`、`participant_binding_invalid`、`participant_id_unrecognised`、`e2ee_key_source_unauthorised`、`recording_artifact_pipeline_bypassed`、`media_service_foci_required`、`media_service_binding_uncovered`、`focus_unavailable_for_client`、`media_plaintext_service_not_authorised`、`mls_governance_binding_stale` 等）见 [`media-service-binding.md`](./media-service-binding.md) 与 `error-code-registry.json`。
 
 ## 12. 与 Matrix Call 的关系
 

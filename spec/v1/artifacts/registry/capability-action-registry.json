@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.6",
+  "version": "2026-08-31.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T18:00:02+08:00",
+  "generated_at": "2026-08-31T18:30:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -140,6 +140,24 @@
       ],
       "profile": "ak.profile.agent_sidecar.v1",
       "event_mapping_kind": "scope_suffix_variant"
+    },
+    {
+      "action": "ak.applet.bridge_error",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "applet_id",
+        "registration_epoch"
+      ],
+      "required_evaluator_checks": [
+        "active_applet_registration_exact"
+      ],
+      "target_event_kinds": [
+        "ak.applet.bridge_error"
+      ],
+      "profile": "ak.profile.applet_bridge.v1",
+      "event_mapping_kind": "same_name",
+      "notes": "Authorizes a service-actor signed bridge error Event only for the exact active Applet installation, registration epoch and granted scope. The Event still carries applet_id and a real authorization_ref; service signature is provenance, not authority."
     },
     {
       "action": "ak.applet.ghost.provision",
@@ -434,7 +452,7 @@
         "ak.circle.member.state"
       ],
       "profile": null,
-      "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed.",
+      "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.member_id == envelope.actor_id using the complete ActorId and transition legality. Self-unbanning MUST fail closed.",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
@@ -465,7 +483,7 @@
         "ak.circle.member.state"
       ],
       "profile": null,
-      "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id.",
+      "notes": "Invite / remove others. Held by Circle admin. payload.member_id != envelope.actor_id using the complete ActorId.",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {

@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9815,
+    "total_properties": 9821,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2699,
+      "optional": 2703,
       "optional_defaulted": 67,
-      "required": 6731,
+      "required": 6733,
       "required_nullable": 117,
       "tristate": 201
     },
@@ -3921,8 +3921,8 @@
         "/$defs/circle_member_request_body/properties/member_event": "required",
         "/$defs/circle_member_request_body/properties/member_event/allOf/1/properties/event": "required_nullable",
         "/$defs/circle_member_request_body/properties/member_event/allOf/1/properties/event/properties/kind": "required",
-        "/$defs/circle_membership_outcome/properties/actor_id": "required",
         "/$defs/circle_membership_outcome/properties/circle_id": "required",
+        "/$defs/circle_membership_outcome/properties/member_id": "required",
         "/$defs/circle_membership_outcome/properties/membership": "required",
         "/$defs/circle_scope_rotate_outcome/properties/circle_id": "required",
         "/$defs/circle_scope_rotate_outcome/properties/mls_group_id": "optional",
@@ -9690,14 +9690,17 @@
         "/$defs/group_security_frontier_outcome/properties/query_digest": "required",
         "/$defs/group_security_frontier_request/allOf/1/oneOf/0/properties/next_epoch": "optional",
         "/$defs/group_security_frontier_request/allOf/1/oneOf/0/properties/previous_epoch": "optional",
-        "/$defs/group_security_frontier_request/allOf/1/oneOf/1/not/properties/next_epoch": "required",
-        "/$defs/group_security_frontier_request/allOf/1/oneOf/1/not/properties/previous_epoch": "required",
+        "/$defs/group_security_frontier_request/allOf/1/oneOf/1/properties/next_epoch": "optional",
+        "/$defs/group_security_frontier_request/allOf/1/oneOf/1/properties/previous_epoch": "optional",
+        "/$defs/group_security_frontier_request/allOf/1/oneOf/2/allOf/0/not/properties/next_epoch": "required",
+        "/$defs/group_security_frontier_request/allOf/1/oneOf/2/allOf/0/not/properties/previous_epoch": "required",
         "/$defs/group_security_frontier_request/allOf/1/properties/base_group_state_ref": "optional",
         "/$defs/group_security_frontier_request/allOf/1/properties/binding_profile": "required",
         "/$defs/group_security_frontier_request/allOf/1/properties/frontier_purpose": "required",
         "/$defs/group_security_frontier_request/allOf/1/properties/next_epoch": "required",
         "/$defs/group_security_frontier_request/allOf/1/properties/previous_epoch": "required",
         "/$defs/group_security_frontier_request/allOf/1/properties/profile": "optional",
+        "/$defs/group_security_frontier_request/allOf/1/properties/proposed_group_genesis_binding": "optional",
         "/$defs/merkle_membership_witness/oneOf/0/properties/proof_kind": "optional",
         "/$defs/merkle_membership_witness/oneOf/0/properties/root_field": "optional",
         "/$defs/merkle_membership_witness/oneOf/1/properties/proof_kind": "optional",
@@ -9721,6 +9724,9 @@
         "/$defs/proof_request_common/properties/profile": "required",
         "/$defs/proof_request_common/properties/proof_base_basis": "required",
         "/$defs/proof_request_common/properties/proof_target_basis": "required",
+        "/$defs/proposed_group_genesis_binding/allOf/0/if/properties/content_scheme": "required",
+        "/$defs/proposed_group_genesis_binding/properties/content_scheme": "required",
+        "/$defs/proposed_group_genesis_binding/properties/durability_policy": "optional",
         "/$defs/typed_proof_material/properties/event_ids": "required",
         "/$defs/typed_proof_material/properties/seal_descriptors": "required",
         "/$defs/typed_proof_material/properties/seal_descriptors/items/properties/seal_ref": "required",
@@ -9730,7 +9736,9 @@
       },
       "conditionally_required": [
         "/$defs/frontier_boundary/properties/entry",
-        "/$defs/group_security_frontier_request/allOf/1/properties/base_group_state_ref"
+        "/$defs/group_security_frontier_request/allOf/1/properties/base_group_state_ref",
+        "/$defs/group_security_frontier_request/allOf/1/properties/proposed_group_genesis_binding",
+        "/$defs/proposed_group_genesis_binding/properties/durability_policy"
       ]
     },
     "moderation-appeal.schema.json": {

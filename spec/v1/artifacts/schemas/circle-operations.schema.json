@@ -362,7 +362,7 @@
     },
     "circle_member_delete_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.circle.member.state leave Event and nothing else. The path circle_id and actor_id MUST respectively equal member_event.event.payload.circle_id and payload.actor_id; member_event.event.realm_id MUST equal the path Circle's parent Realm. The service submits the exact signed Event through ordinary Event admission and MUST NOT rebuild it or synthesize a leave Event.",
+      "description": "Carries the caller-signed ak.circle.member.state leave Event and nothing else. The path circle_id and actor_id MUST respectively equal member_event.event.payload.circle_id and payload.member_id; member_event.event.realm_id MUST equal the path Circle's parent Realm. The path name actor_id is a route selector only; the canonical Event payload identity field is member_id. The service submits the exact signed Event through ordinary Event admission and MUST NOT rebuild it or synthesize a leave Event.",
       "required": [
         "member_event"
       ],
@@ -390,7 +390,7 @@
                       },
                       "required": [
                         "circle_id",
-                        "actor_id",
+                        "member_id",
                         "membership",
                         "expected_membership"
                       ]
@@ -417,14 +417,14 @@
       "type": "object",
       "required": [
         "circle_id",
-        "actor_id",
+        "member_id",
         "membership"
       ],
       "properties": {
         "circle_id": {
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
-        "actor_id": {
+        "member_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "membership": {

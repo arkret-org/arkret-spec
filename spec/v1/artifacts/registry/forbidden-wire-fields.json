@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 34,
+  "version": 35,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -2124,6 +2124,18 @@
         "negative_test"
       ],
       "notes": "Generic detached-JWS proofs over current non-Event canonical payloads (Seal signature, identity-link, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix. Cross-core DID continuity proofs are not a current v1 proof family."
+    },
+    {
+      "id": "participant_identity",
+      "context": "media_response_backend_token_roster_binding_sfu_answer_exporter_context_error_code_or_vector_id",
+      "since_revision": "2026-09-01",
+      "rejection_level": "hard_reject",
+      "replacement": "participant_id",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Media participant wire objects, signature transcripts and ak.rtc-frame-key/v1 exporter Context use participant_id. The retired participant_identity spelling is not an alias; accepting it would change canonical JSON/signature or exporter bytes. The old participant_identity_unrecognised error and vector identifiers are retired with the same clean break."
     },
     {
       "id": "permitted_introduction_kinds",

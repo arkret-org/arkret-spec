@@ -195,6 +195,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
     "ak.realm.discover",
     "ak.object.read",
     "ak.strand.create",
+    "ak.applet.bridge_error",
     "ak.morph.create",
     "ak.message.create",
     "ak.relation.create"
@@ -400,6 +401,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
     ],
     "actions": [
       "ak.strand.create",
+      "ak.applet.bridge_error",
       "ak.morph.create",
       "ak.message.create",
       "ak.relation.create"
@@ -728,14 +730,15 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
 - `actor_id`
 - `applet_id`
 - `external_ref`，若来自外部网络
-- `authorization_ref`，但仅 §8 下述 service-actor 自署且部署未铸造 registration grant ref
-  的例外 MAY 省略
+- `authorization_ref`
 - `proofs[]`
 
 `authorization_ref` 的取值按事件签署主体区分：
 
 - **Delegated-ghost / masquerading 事件**（`actor_id` 为 ghost / bot / delegated native actor，即 Applet 代表已授权 actor 署名的常见情形）：`authorization_ref` MUST 指向覆盖该 Event action / resource 的 active `ak.capability.grant`（见 [§9.1](#91-ghost-actor-provisioningakselfappletghostcommandprovisionv1normative) 与 [§11](#11-masquerading-与-delegated-agent)）；`ak.identity.accountability_grant` 只证明责任归属，MUST NOT 被解释为 action authorization。
-- **Service-actor 自署事件**（`actor_id` 为 Applet 自身的 service DID，如 portal strand 创建、`ak.applet.bridge_error` 审计等运维 / 审计事件，非委托 ghost）：此类事件不存在委托关系，`authorization_ref` MUST 指向该 Applet 的 registration grant（[§4](#4-applet-registration) Applet Registration 安装授权）而非某个 ghost 的 accountability_grant；若部署未为 Applet registration 铸造独立的 grant ref，service-actor 自署事件 MAY 省略 `authorization_ref`（签名的 `applet_id` 与 service-ID `actor_id` 已承载 provenance）。两类事件的 `applet_id` 均 MUST 携带。
+- **Service-actor 自署事件**（`actor_id` 为 Applet 自身的 service DID，如 portal strand 创建、`ak.applet.bridge_error` 审计等运维 / 审计事件，非委托 ghost）：此类事件不存在委托关系，`authorization_ref` MUST 指向该 Applet 的 active registration/capability grant（[§4](#4-applet-registration) Applet Registration 安装授权）而非某个 ghost 的 accountability_grant。签名只证明来源，不能替代对 exact installation、registration epoch、action 与 resource 的授权；只要 Event 携带 `applet_id`，无论 actor variant 都不得省略 `authorization_ref`。两类事件的 `applet_id` 均 MUST 携带。
+
+§4b 的合规安装必须为该 Applet 铸造一个或多个与 `(applet_id, effective_scope, registration_epoch)` 绑定的 active grant。安装若未产生覆盖待写 action/resource 的真实 grant，就尚未形成可写入状态，Applet MUST NOT 发送携 `applet_id` 的 Event。需要创建 portal Strand 的 grant 必须覆盖 `ak.strand.create`；需要写入 bridge 审计错误的 grant 必须覆盖 `ak.applet.bridge_error`。不得使用 sentinel ref、静态占位 grant、service 签名或隐式部署特权代替。grant 被 revoke 后，新的 portal Strand 创建与新的 `ak.applet.bridge_error` 都 MUST fail closed；撤销事实由撤销动作及部署侧安全审计记录，不要求已失去授权的 Applet 再写 Realm 审计 Event。
 
 示例：
 

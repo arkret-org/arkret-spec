@@ -2282,7 +2282,7 @@
           }
         },
         "participant_id": {
-          "$ref": "#/$defs/rtc_participant_identity",
+          "$ref": "#/$defs/rtc_participant_id",
           "description": "Required for sfu/mcu roster joins; MUST be absent for a direct p2p/mesh leg."
         },
         "participant_binding": {
@@ -8432,7 +8432,7 @@
     },
     "participant_binding": {
       "type": "object",
-      "description": "Token issuer's signed commitment over (realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at) for a media participant. See crypto-media/media-service-binding.md §3 and crypto-media/call-state.md §4.1. v1 uses the single scheme ak.media.participant_binding.v1.",
+      "description": "Token issuer's signed commitment over (realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at) for a media participant. See crypto-media/media-service-binding.md §3 and crypto-media/call-state.md §4.1. v1 uses the single scheme ak.media.participant_binding.v1.",
       "required": [
         "scheme",
         "realm_id",
@@ -8475,7 +8475,7 @@
           "$ref": "#/$defs/device_id"
         },
         "participant_id": {
-          "$ref": "#/$defs/rtc_participant_identity"
+          "$ref": "#/$defs/rtc_participant_id"
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
@@ -10255,7 +10255,7 @@
       },
       "additionalProperties": false
     },
-    "rtc_participant_identity": {
+    "rtc_participant_id": {
       "type": "string",
       "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },

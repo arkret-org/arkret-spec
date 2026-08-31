@@ -63,7 +63,7 @@ Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不�
 | --- | --- | --- |
 | `claim_required` | `required_claims[]` | 验证调用方提交的 VC / claim presentation |
 | `challenge_response` | `provider_did`、`challenge_kinds[]`、`max_proof_age` | 验证 CAPTCHA、PoW、attested-human 或 OIDC challenge 的签名结果 |
-| `parent_membership` | `membership_source_realm_ids[]`、`require_min_membership` | 验证调用方已在声明的来源 Realm 具有最低成员状态 |
+| `parent_membership` | `membership_source_realm_ids[]`、`require_min_membership="join"` | 验证调用方已在声明的来源 Realm 具有 accepted `join` 成员状态；待处理 Invite 与 `knock` 均不满足该 gate |
 | `principal_admission` | DID method、principal allowlist 或 denylist selector 至少一个 | 在其它 gate 前执行的硬准入门；deny 优先 |
 | `cooldown` | `min_interval_since_leave` | 最近一次由成员本人签署的主动 leave 未过窗口时拒绝 |
 

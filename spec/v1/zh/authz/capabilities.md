@@ -424,8 +424,8 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.invite.third_party`（签发 3PID 邀请，target=`ak.invite.third_party`）
 - `ak.invite.claim`
 - `ak.invite.revoke`
-- `ak.member.leave.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_realm.v1`；scope_suffix_variant，target=`ak.member.state`；只允许 `actor_id == payload.actor_id` 的 `join → leave`，不得 leave/ban 对方或执行 join）
-- `ak.member.rejoin.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_repair.v1`；scope_suffix_variant，target=`ak.member.state`；Direct Conversation exact-pair self-rejoin 专用，只允许 `actor_id == payload.actor_id` 的 `leave → join`，不得承载首次 join、第三 participant 或代对方 join，也不得取得 grant/policy/admin/Strand/binding 变更权）
+- `ak.member.leave.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_realm.v1`；scope_suffix_variant，target=`ak.member.state`；只允许 `actor_id == payload.member_id`（完整 ActorId）的 `join → leave`，不得 leave/ban 对方或执行 join）
+- `ak.member.rejoin.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_repair.v1`；scope_suffix_variant，target=`ak.member.state`；Direct Conversation exact-pair self-rejoin 专用，只允许 `actor_id == payload.member_id`（完整 ActorId）的 `leave → join`，不得承载首次 join、第三 participant 或代对方 join，也不得取得 grant/policy/admin/Strand/binding 变更权）
 - `ak.approval.vote`
 - `ak.moderation.decision`（写入 sealed moderation state cell；详见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）
 - `ak.moderation.decision.lift`（解除已 sealed 的 moderation 决策）

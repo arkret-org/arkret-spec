@@ -34,7 +34,7 @@ sidebar:
   "payload": {
     "call_id": "ak:call:...",
     "focus_id": "fra-1",
-    "participant_identity": "ak:rtc_participant:...",
+    "participant_id": "ak:rtc_participant:...",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
     "media": {
@@ -66,7 +66,7 @@ issuer key 的签名在另一条验证路径下被重解释。SFU 在每次 SDP 
 - `kid` 出现在当前 `ak.realm.media_service.service_id` 锚定的 DID 列表中（与 [`../media-service-binding.md` §3](../media-service-binding.md) issuer DID 锚定一致）；
 - `call_id` / `focus_id` 与 SFU 当前 session 一致；
 - `expires_at` 未过期；
-- `participant_identity` 唯一性（同 call、同 focus 内不复用）。
+- `participant_id` 唯一性（同 call、同 focus 内不复用）。
 
 ## 3. Connect Handshake
 
@@ -88,7 +88,7 @@ SFU response：
 
 ```json
 {
-  "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+  "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "transport": "webrtc",
   "offer": {
     "type": "offer",
@@ -105,19 +105,19 @@ SFU response：
 `assertionMethod` key 生成。**signing_input（normative）**：
 
 ```text
-"ak.media.sfu_answer.v1" || 0x00 || canonical_json({call_id, focus_id, participant_identity, realm_id, sdp})
+"ak.media.sfu_answer.v1" || 0x00 || canonical_json({call_id, focus_id, participant_id, realm_id, sdp})
 ```
 
 `sdp` 取该响应 `offer.sdp`（或 `answer.sdp`，取决于该轮协商方向）的逐字节原值；其余四项取该轮
 handshake 的对应值。客户端 MUST 用同一 signing_input 验签，并 MUST 确认 `kid` 落在当前
 `ak.realm.media_service.service_id` 锚定的 DID 列表内。
 
-SFU MUST 在 response 中回显 token exchange 阶段已 issued 的同一 `participant_identity`；如果 SFU 派生了新的 internal participant id（如 RTP SSRC 或 LiveKit-style 短 ID），它 MUST 自己内部映射，不出 SFU API 边界。
+SFU MUST 在 response 中回显 token exchange 阶段已 issued 的同一 `participant_id`；如果 SFU 派生了新的 internal participant id（如 RTP SSRC 或 LiveKit-style 短 ID），它 MUST 自己内部映射，不出 SFU API 边界。
 
 客户端 MUST：
 
 1. 验证 `sfu_signature` 的 `kid` 与 token issuer 同 DID 集合（不必同 key，但同 service）；
-2. 验证 `participant_identity` 与 §2 token 响应中的值一致；不一致 → `participant_identity_unrecognised` 并断连。
+2. 验证 `participant_id` 与 §2 token 响应中的值一致；不一致 → `participant_id_unrecognised` 并断连。
 
 ## 4. SDP 协商
 
@@ -161,7 +161,7 @@ Arkret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascad
 
 实现声明 `ak.profile.media_service_binding.arkret_native.v1` 时，至少通过：
 
-- 上游 `ak.profile.media_service_binding.v1` 的全部 `ak.vector.media_binding.*` vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact / recording_exporter_label）。数量与命名以 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json) 为准，本节不复述计数。
+- 上游 `ak.profile.media_service_binding.v1` 的全部 `ak.vector.media_binding.*` vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_id / recording_artifact / recording_exporter_label）。数量与命名以 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json) 为准，本节不复述计数。
 - arkret_native-specific：实现自由附加，但 wire 不得引入 v1 周期内 unregistered 字段。
 
 具体向量编排见 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json)。

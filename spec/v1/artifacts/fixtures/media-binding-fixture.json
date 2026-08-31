@@ -14,7 +14,7 @@
     "ak.vector.media_binding.participant_binding_required.v1",
     "ak.vector.media_binding.unknown_type_fail_closed.v1",
     "ak.vector.media_binding.e2ee_key_source.v1",
-    "ak.vector.media_binding.participant_identity_unrecognised.v1",
+    "ak.vector.media_binding.participant_id_unrecognised.v1",
     "ak.vector.media_binding.recording_artifact_via_arkret_blob.v1",
     "ak.vector.media_binding.recording_exporter_label.v1"
   ],
@@ -87,12 +87,12 @@
       ]
     },
     {
-      "name": "participant_identity_unrecognised",
-      "vector_id": "ak.vector.media_binding.participant_identity_unrecognised.v1",
-      "runner": "cotest::conformance::media_binding::run_participant_identity_unrecognised_vector",
+      "name": "participant_id_unrecognised",
+      "vector_id": "ak.vector.media_binding.participant_id_unrecognised.v1",
+      "runner": "cotest::conformance::media_binding::run_participant_id_unrecognised_vector",
       "assertions": [
         "backend-signalled participant identities must match the effective ak.component.call.roster.v1 OR-Set",
-        "unknown rtc_participant identities fail closed with participant_identity_unrecognised"
+        "unknown rtc_participant identities fail closed with participant_id_unrecognised"
       ]
     },
     {

@@ -105,7 +105,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
         "foci_preferred": ["fra-1", "us-east-1"],
-        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
           "scheme": "ak.media.participant_binding.v1",
           "realm_id": "ak:realm:...",
@@ -113,7 +113,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
           "focus_id": "fra-1",
           "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:05:00Z",
           "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
@@ -156,15 +156,15 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 - `roster_delta`：`op=join` 时 effect 固定为 `add(tag=dot,value=participant)`（`dot` 为本 write 的 canonical OR-Set dot，定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2）；`op=leave` 时固定为 `remove(tag=observed_dot)`，并携带与 observed add value 一致的 `actor_id/device_id`。未知、跨 call 或身份不匹配的 tag MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
 - `roster_delta.participant` 的 durable 身份最小化：除 Realm policy 明确要求实名审计且已披露外，`actor_id` MUST 使用 call-scoped pairwise DID，`device_id` MUST 使用仅在该 call 内稳定的 typed device alias。`joined_at` 若写入 durable event MUST 向下取整到 5 分钟 bucket。
 - `roster_delta.participant.foci_preferred`：客户端本地 focus 偏好列表；后加入者不得改变已 committed `session_focus`。
-- `roster_delta.participant.participant_identity`：来自 token exchange 响应的 SFU-local handle，scope 限 `(call_id, focus_id, sfu_did)`。
-- `roster_delta.participant.participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺。reducer **MUST** 验证：
+- `roster_delta.participant.participant_id`：来自 token exchange 响应的 SFU-local handle，scope 限 `(call_id, focus_id, sfu_did)`。
+- `roster_delta.participant.participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at)` 的签名承诺。reducer **MUST** 验证：
   1. `issuer_kid` 解析到的 service DID 出现在当前 epoch `ak.realm.media_service.service_id`；
-  2. binding `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity` 与 participant entry 一致；
+  2. binding `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_id` 与 participant entry 一致；
   3. `expires_at` > event `created_at`（不接受已过期 binding）；
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。
 - **P2P / mesh roster 分支**：当当前 `focus.mode ∈ {p2p, mesh}` 且尚无
-  `session_focus` 时，roster join MUST 省略 `participant_identity` 与
+  `session_focus` 时，roster join MUST 省略 `participant_id` 与
   `participant_binding`；participant identity 由 signed answer proof 中的
   `(call_id, actor_id, device_id)` 组成，admission service 验证 answer 后接受 durable join。
   当 `focus.mode ∈ {sfu, mcu}` 或已 committed `session_focus` 时，上述两个字段反而都 MUST

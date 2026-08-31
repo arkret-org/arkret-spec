@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.1",
-  "generated_at": "2026-08-29T00:00:00+08:00",
+  "version": "2026-09-01.1",
+  "generated_at": "2026-09-01T00:00:00+08:00",
   "source_of_truth": true,
   "profile_id": "ak.security_frontier.v1",
   "description": "Closed machine contract for the accepted state that changes current or historical MLS key access. Producers never choose frontier members. Verifiers project these inputs from one accepted Seal view and the RFC 9420 group state, then compare the resulting digest with the governance binding.",
@@ -23,7 +23,7 @@
       ],
       "ordering": "Sort by UTF-8 bytes of cell_family, then canonical JCS bytes of cell_subject, then projected_value_digest; reject duplicates."
     },
-    "digest_rule": "security_frontier_digest = sha256(JCS({profile_id,effective_scope,group_genesis_binding,cell_entries,mls_leaf_set_digest})). group_genesis_binding is exactly {content_scheme,durability_policy?} from the verified accepted Genesis/group state. accepted Seal ids, ordinary Event seal_ref values and producer-supplied Event lists are not digest members."
+    "digest_rule": "security_frontier_digest = sha256(JCS({profile_id,effective_scope,group_genesis_binding,cell_entries,mls_leaf_set_digest})). group_genesis_binding is exactly {content_scheme,durability_policy?} from the verified accepted Genesis/group state, or from proposed_group_genesis_binding in the unique pre-Genesis 0 -> 0 query branch when no accepted Genesis exists. The proposal is part of the canonical query digest/cache identity and Genesis admission later requires byte-identical binding; it is never accepted authority. accepted Seal ids, ordinary Event seal_ref values and producer-supplied Event lists are not digest members."
   },
   "cell_rules": [
     {
@@ -91,7 +91,7 @@
         "metadata_encryption_floor",
         "media_service_decrypts"
       ],
-      "include_when": "Only the mutable encryption floors and media-service plaintext recipient toggle are projected. content_scheme and durability_policy are create-locked and come from the exact accepted group Genesis/group state, never this cell."
+      "include_when": "Only the mutable encryption floors and media-service plaintext recipient toggle are projected. content_scheme and durability_policy are create-locked and come from the exact accepted group Genesis/group state, or the unique pre-Genesis proposal branch, never this cell."
     },
     {
       "cell_family": "ak.component.realm.organization_recovery_key.v1",
@@ -141,7 +141,7 @@
   ],
   "unknown_input_behavior": "fail_closed",
   "group_genesis_rules": {
-    "source": "Resolve the exact accepted MLS Genesis and the winning group_state_ref named by the Event or candidate transition; verify the immutable scope-derived mls_group_id and Genesis activation Seal before projection.",
+    "source": "For a pre-Genesis 0 -> 0 query with no accepted Genesis, require proposed_group_genesis_binding and bind it into the query digest, cache key and every-and-only cell selection. Otherwise resolve the exact accepted MLS Genesis and winning group_state_ref; accepted-state queries forbid a proposal. Verify the immutable scope-derived mls_group_id and Genesis activation Seal before accepted-state projection.",
     "required_fields": [
       "effective_scope",
       "mls_group_id",
@@ -153,7 +153,7 @@
       ],
       "mls_rfc9420": []
     },
-    "immutability": "content_scheme and durability_policy are frozen at Genesis. A later Event, policy bundle, Commit extension or group-state material that changes either value is failed_precondition and does not produce a new frontier.",
-    "frontier_projection": "The verified immutable pair is a required security-frontier input in addition to cell_entries and mls_leaf_set_digest; it is never read from ak.component.realm.policy_bundle.v1."
+    "immutability": "content_scheme and durability_policy are frozen at Genesis. Genesis admission MUST require its signed governance binding to equal the proposal that produced the pre-Genesis proof byte-for-byte; proposal mismatch, including a concurrent losing Genesis, fails with mls_genesis_binding_proposal_mismatch. A later Event, policy bundle, Commit extension or group-state material that changes either value is failed_precondition and does not produce a new frontier.",
+    "frontier_projection": "The accepted immutable pair, or the unique pre-Genesis proposed pair, is a required security-frontier input in addition to cell_entries and mls_leaf_set_digest; it is never read from ak.component.realm.policy_bundle.v1. Missing a proposal before Genesis fails with mls_genesis_binding_proposal_required."
   }
 }

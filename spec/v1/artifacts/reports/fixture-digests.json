@@ -226,7 +226,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
-      "sha256": "2ff45a21eedff668b6d404da255b1b6710040bd989ec19587966ec36e7c87a4a"
+      "sha256": "2dffb438ae285e1405d96999d6473c3b04d5733f1a0865702baa3a52c003ee38"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",

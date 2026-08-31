@@ -26,10 +26,10 @@ sidebar:
 | LiveKit claim | Arkret 字段映射 | 约束 |
 | --- | --- | --- |
 | `iss` | LiveKit API Key | issuer 标识；MUST 与 Realm 声明的 LiveKit deployment 一致 |
-| `sub` | `participant_identity` | LiveKit participant identity；MUST 与响应顶层 `participant_identity` 一致 |
+| `sub` | `participant_id` | LiveKit participant identity；MUST 与响应顶层 `participant_id` 一致 |
 | `nbf` / `iat` | token 签发时刻 | — |
 | `exp` | `expires_at` Unix epoch | MUST ≤ 600s after `iat`（media-service-binding §3 TTL 上限） |
-| `name` | optional display label | MUST NOT 携带可关联 actor 身份信息（与 [`../media-service-binding.md` §3](../media-service-binding.md) pairwise pseudonym 对齐）；推荐留空或使用 `participant_identity` |
+| `name` | optional display label | MUST NOT 携带可关联 actor 身份信息（与 [`../media-service-binding.md` §3](../media-service-binding.md) pairwise pseudonym 对齐）；推荐留空或使用 `participant_id` |
 | `video.room` | `backend_room_id` | MUST 是 issuer 从 `(realm_id, call_id, focus_id)` 派生的稳定后端 room handle；MUST 与请求的 `call_id` 唯一绑定，但 MUST NOT 等于 raw `call_id` 或暴露 raw Realm/call id（建议 `ak_call_<sha256(realm_id \|\| 0x00 \|\| call_id \|\| 0x00 \|\| focus_id)>` 的短截断形式） |
 | `video.roomJoin` | `true` | join 权限 |
 | `video.canPublish` | `desired_media.audio ∨ video ∨ screen` | issuer 按 capability 派生 |
@@ -49,16 +49,16 @@ Issuer MUST NOT 注入：
 
 约束：
 
-- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../media-service-binding.md` §7](../media-service-binding.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `ak.component.call.roster.v1` effective OR-Set 中找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_identity_unrecognised`。
+- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../media-service-binding.md` §7](../media-service-binding.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `ak.component.call.roster.v1` effective OR-Set 中找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_id_unrecognised`。
 - 客户端 MUST NOT 信任 LiveKit SDK 透传的 `participant.name`、`metadata` 或其它字段作为 actor 身份判定来源；唯一权威来源是 `ak.component.call.roster.v1` effective OR-Set + `participant_binding`。
 
 ## 4. E2EE Key Injection
 
 LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 frame-level E2EE。Arkret-LiveKit binding 的 key 注入按 [`../media-service-binding.md` §8.1](../media-service-binding.md) 通用契约：
 
-1. 客户端 binding adapter 从 Arkret MLS exporter 为每个 sender 派生 `key_bytes`（label `"ak.rtc-frame-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`，`KDF.Nh=32`）。
+1. 客户端 binding adapter 从 Arkret MLS exporter 为每个 sender 派生 `key_bytes`（label `"ak.rtc-frame-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_id, device_id})`，`KDF.Nh=32`）。
 2. 调 LiveKit SDK 的 `Room.setE2EEEnabled(true)` 并通过 `keyProvider` 注入 `key_bytes`。
-3. MLS epoch 或 participant set 变化 → 调 `keyProvider.setKey(keyBytes, keyIndex=<sender-bound-key-index>)` 触发 LiveKit SFrame ratchet。`keyIndex` MUST 是当前 active `(epoch_id, participant_identity)` 集合内无冲突的 adapter-local 映射；MUST NOT 仅用 `epoch_id % 256`。
+3. MLS epoch 或 participant set 变化 → 调 `keyProvider.setKey(keyBytes, keyIndex=<sender-bound-key-index>)` 触发 LiveKit SFrame ratchet。`keyIndex` MUST 是当前 active `(epoch_id, participant_id)` 集合内无冲突的 adapter-local 映射；MUST NOT 仅用 `epoch_id % 256`。
 4. backend SDK 若试图通过 LiveKit Cloud 的 internal key distribution（如 LiveKit Cloud E2EE Token Service）注入 key，客户端 MUST 拒绝，错误码 `e2ee_key_source_unauthorised`。
 
 `media_service_decrypts=true` 时（少数合规部署）：客户端按 [`../media-service-binding.md` §8.2](../media-service-binding.md) 完成三层校验，且 MUST 通过 Arkret-controlled keying path 把 `key_bytes` 提交给 LiveKit decryption oracle；不得使用 LiveKit Cloud 自动 key escrow。
@@ -100,7 +100,7 @@ LiveKit Cloud SFU mesh 是 backend-internal 概念；Arkret 通过 `foci[].casca
 
 ## 9. Participant Identity 验证
 
-按 §3 / [`../media-service-binding.md` §7](../media-service-binding.md)。LiveKit `Participant.identity` 即 Arkret `participant_identity`，由 token issuer 在 media-service-binding §3 响应里给出，并已被 `participant_binding` 签名覆盖。客户端 MUST 在 connect / track-published 事件上完整校验该 binding；MUST NOT 信任 LiveKit `Participant.metadata` 字段中可能携带的任何身份字符串。
+按 §3 / [`../media-service-binding.md` §7](../media-service-binding.md)。LiveKit `Participant.identity` 即 Arkret `participant_id`，由 token issuer 在 media-service-binding §3 响应里给出，并已被 `participant_binding` 签名覆盖。客户端 MUST 在 connect / track-published 事件上完整校验该 binding；MUST NOT 信任 LiveKit `Participant.metadata` 字段中可能携带的任何身份字符串。
 
 ## 10. Conformance Vectors
 

@@ -11,6 +11,23 @@
     "digest": {"$ref": "./event-envelope.schema.json#/$defs/digest"},
     "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
     "epoch": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+    "proposed_group_genesis_binding": {
+      "type": "object",
+      "description": "Caller-proposed immutable Genesis binding, required only for the unique pre-Genesis 0 -> 0 branch. It enters the canonical query digest and cache identity and selects every-and-only frontier cells. It is not accepted authority; Genesis admission later requires the signed Genesis binding to match it exactly.",
+      "required": ["content_scheme"],
+      "properties": {
+        "content_scheme": {"enum": ["mls_rfc9420", "mls_exporter_aead_v1"]},
+        "durability_policy": {"enum": ["none", "organization_recovery_key"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"content_scheme": {"const": "mls_exporter_aead_v1"}}, "required": ["content_scheme"]},
+          "then": {"required": ["durability_policy"]},
+          "else": {"not": {"required": ["durability_policy"]}}
+        }
+      ],
+      "additionalProperties": false
+    },
     "mls_security_frontier_leaf": {
       "type": "object",
       "required": ["leaf_index", "actor_id", "credential_ref"],
@@ -45,21 +62,28 @@
             "profile": {"const": "group_security_frontier"},
             "frontier_purpose": {"const": "group_binding"},
             "base_group_state_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id", "description": "Required only for a successor transition and byte-identical to the already accepted winning Genesis/Commit Event for previous_epoch. It never names the transition being authored. Genesis (0 -> 0) has no prior MLS group-state Event, so this field is forbidden there; this avoids an EventId/governance-binding authoring cycle."},
+            "proposed_group_genesis_binding": {"$ref": "#/$defs/proposed_group_genesis_binding", "description": "Present exactly for a pre-Genesis 0 -> 0 query with no accepted Genesis. Once an accepted Genesis exists, even a 0 -> 0 refresh forbids this field and derives the immutable binding from accepted state."},
             "previous_epoch": {"$ref": "#/$defs/epoch"},
             "next_epoch": {"$ref": "#/$defs/epoch"},
             "binding_profile": {"const": "ak.security_frontier.v1"}
           },
           "oneOf": [
             {
+              "required": ["proposed_group_genesis_binding"],
               "properties": {"previous_epoch": {"const": 0}, "next_epoch": {"const": 0}},
               "not": {"required": ["base_group_state_ref"]}
             },
             {
+              "properties": {"previous_epoch": {"const": 0}, "next_epoch": {"const": 0}},
+              "not": {"anyOf": [{"required": ["base_group_state_ref"]}, {"required": ["proposed_group_genesis_binding"]}]}
+            },
+            {
               "required": ["base_group_state_ref"],
-              "not": {
+              "not": {"required": ["proposed_group_genesis_binding"]},
+              "allOf": [{"not": {
                 "properties": {"previous_epoch": {"const": 0}, "next_epoch": {"const": 0}},
                 "required": ["previous_epoch", "next_epoch"]
-              }
+              }}]
             }
           ]
         }

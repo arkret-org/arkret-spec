@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-31.5",
-  "generated_at": "2026-08-31T18:40:04+08:00",
+  "version": "2026-09-01.1",
+  "generated_at": "2026-09-01T00:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1013,6 +1013,22 @@
       "description": "The requested Realm-scoped actor frontier has accepted actor_seq u64::MAX, so no valid next_actor_seq exists. Producers MUST NOT wrap, reset, or author another Event for that chain.",
       "type_uri": "https://arkret.org/problems/frontier_sequence_exhausted",
       "title": "Frontier sequence exhausted"
+    },
+    {
+      "code": "mls_genesis_binding_proposal_required",
+      "http_status": 422,
+      "scope": "endpoint",
+      "description": "A 0 -> 0 group_security_frontier query targets a scope/group with no accepted MLS Genesis but omits proposed_group_genesis_binding. The service MUST NOT default content_scheme or durability_policy. The caller must resubmit the exact proposed immutable binding; the failed request produces no proof and no cache entry.",
+      "type_uri": "https://arkret.org/problems/mls_genesis_binding_proposal_required",
+      "title": "MLS genesis binding proposal required"
+    },
+    {
+      "code": "mls_genesis_binding_proposal_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The proposed_group_genesis_binding differs from the signed Genesis binding, from the winning concurrently accepted Genesis binding, or is supplied after an accepted Genesis already exists. The losing caller MUST discard the proposal-bound proof, re-query without a proposal against the winning immutable binding, and MUST NOT reuse the old query/cache entry.",
+      "type_uri": "https://arkret.org/problems/mls_genesis_binding_proposal_mismatch",
+      "title": "MLS genesis binding proposal mismatch"
     },
     {
       "code": "mls_governance_anchor_unreachable",
@@ -4395,14 +4411,14 @@
         "event_envelope",
         "service_call"
       ],
-      "description": "A `ak.call.state` participant's `participant_binding` failed one of: (a) issuer_kid resolution against current `ak.realm.media_service.service_id`; (b) field consistency with the participant entry (`realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity`); (c) `expires_at` freshness vs event `created_at`; (d) signature verification. Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md §4.1."
+      "description": "A `ak.call.state` participant's `participant_binding` failed one of: (a) issuer_kid resolution against current `ak.realm.media_service.service_id`; (b) field consistency with the participant entry (`realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_id`); (c) `expires_at` freshness vs event `created_at`; (d) signature verification. Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md §4.1."
     },
     {
-      "code": "participant_identity_unrecognised",
+      "code": "participant_id_unrecognised",
       "applies_to": [
         "service_call"
       ],
-      "description": "Backend (LiveKit / SFU / etc.) signalled `ParticipantConnected` with a `participant_identity` that has no matching value in the accepted call roster effective OR-Set (or matches a value whose `participant_binding` fails verification). Client MUST refuse to establish media streams for that participant — this closes the attack where a compromised backend tries to inject unauthorized participants into the conference. See zh/crypto-media/media-service-binding.md §7."
+      "description": "Backend (LiveKit / SFU / etc.) signalled `ParticipantConnected` with a `participant_id` that has no matching value in the accepted call roster effective OR-Set (or matches a value whose `participant_binding` fails verification). Client MUST refuse to establish media streams for that participant — this closes the attack where a compromised backend tries to inject unauthorized participants into the conference. See zh/crypto-media/media-service-binding.md §7."
     },
     {
       "code": "patch_atomic_conflict",

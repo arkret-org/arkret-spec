@@ -119,7 +119,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "unauthorized"}
 ```
 
-`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`member_roster.entries[]`），`leave` / `ban` 不进入 roster（见 §8.1 roster `member_roster.entries[]` 定义）。`state`、`state_after`、Realm-scoped `account_data` 以及顶层 `account_data` 使用事件容器形状:
+`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `knock` 进入 roster（`member_roster.entries[]`），`leave` / `ban` 不进入 roster（见 §8.1 roster `member_roster.entries[]` 定义）。Invite 是独立 pending workflow，只能从调用方私有 Invite inbox / delivery projection 展示，不得推造 membership cell 或 roster row。`state`、`state_after`、Realm-scoped `account_data` 以及顶层 `account_data` 使用事件容器形状:
 
 ```json
 {
@@ -211,7 +211,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 客户端对historical evidence的cache key MUST包含上述三元组；同一key出现不同receipt、admission evidence digest或snapshot digest必须quarantine。current evidence只能在其observation时窗内供完全相同的请求使用，任何字段不同都必须重新查询，不能覆盖、续期或替代另一challenge。evidence缺失或证明过期只产生 `verification_pending` / `agent_signer_evidence_stale`，不得降级为device directory或ordinary MLS leaf-only Verified。backfill与live sync使用完全相同DTO和validator。
 
-`realms` 不按 membership 做外层分桶；它始终以 `ak:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `ak.member.state` projection，取值可为 `join`、`invite`、`knock`、`leave` 或 `ban`（完整枚举见 §2 首次定义），不得把这些值提升为 `realms` 的外层 key。
+`realms` 不按 membership 做外层分桶；它始终以 `ak:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `ak.member.state` projection，取值可为 `join`、`knock`、`leave` 或 `ban`（完整枚举见 §2 首次定义），不得把这些值提升为 `realms` 的外层 key。待处理 Invite 只来自调用方私有 Invite inbox，不是该字段的第五种取值。
 
 每个 Realm 响应：
 
@@ -233,7 +233,6 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
   "account_data": {"events": []},
   "summary": {
     "joined_member_count": 12,
-    "invited_member_count": 1,
     "heroes": ["did:webvh:..."]
   },
   "member_roster": {
@@ -443,8 +442,8 @@ event_id ASC
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `actor_id` | `DidCoreId` | MUST | 等于当前 effective `ak.member.state` cell subject / `payload.actor_id`。高隐私 Realm 中 MAY 是从 Realm-scoped pairwise DID 投影出的稳定 `did_core_id`；作为**长期 membership key** 的 pairwise DID MUST 由 `did:webvh` 派生（可持久解析 / 轮换 / 撤销）或在部署 `method_policy` 中显式豁免，MUST NOT 使用被标为 `ephemeral_only` 的 `did:key`（见 [`sovereign-deployment.md` §3.1](./sovereign-deployment.md)）。真实 principal 的披露由当前 effective `ak.member.identity.update` events 决定。 |
-| `membership` | enum | MUST | 当前 effective membership，取 `join` / `invite` / `knock`。leave / ban 不进入 roster。 |
+| `actor_id` | `ActorId` | MUST | 等于当前 effective `ak.member.state` cell subject / `payload.member_id`，按完整 Actor（包括 AccountId 的 principal 与 Station 分量）比较，不能降格为裸 DID。高隐私 Realm 中 principal 分量 MAY 使用 Realm-scoped pairwise DID；作为**长期 membership key** 的 pairwise DID MUST 由 `did:webvh` 派生（可持久解析 / 轮换 / 撤销）或在部署 `method_policy` 中显式豁免，MUST NOT 使用被标为 `ephemeral_only` 的 `did:key`（见 [`sovereign-deployment.md` §3.1](./sovereign-deployment.md)）。真实 principal 的披露由当前 effective `ak.member.identity.update` events 决定。 |
+| `membership` | enum | MUST | 当前 effective membership，取 `join` / `knock`。leave / ban 不进入 roster；Invite 不产生 roster entry。 |
 | `subject_id` | `DidCoreId` | MAY | handle claim 的 `subject` 对应的 holder / principal 稳定 `did_core_id`，不是裸 DID，也不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal / holder `did_core_id` 时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略，由客户端解密后再走 `ak.find.directory.read.list_handles_for_subject.v1`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
 | `identity_event_ids` | event id array | MAY | 当前 effective `ak.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` 或 `state.events`。 |
 | `handle_claim_digests` | hash array | MAY | 当前对调用方可见且可用于该 Realm context 的 effective handle claims 的 canonical digest 集合。每个 digest 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 的 `claim_digest(c)` 定义计算。该字段是跨上下文稳定标识，MUST NOT 在 `subject_id` 未披露时返回。 |
@@ -741,7 +740,7 @@ Accept: application/x-ndjson
 
 也就是不带 `after`,并显式请求 `catchup=true`。服务器 MUST 先发送至少一个 `delta` frame 作为账号 baseline,再发送 `catchup_complete` 并结束本轮响应；客户端随后使用该 cursor 发起有界长轮询。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` SHOULD：
 
-- 返回用户当前 joined/invited/knocked Realms 的摘要。
+- 返回用户当前 joined/knocked Realms 的 membership 摘要；另可从既有私有 Invite inbox / delivery CAS→private fanout 返回待处理邀请展示，但不得把它编码为 Realm membership 或 roster row。
 - 对活跃 Realm 返回有限 timeline。
 - 返回足够 `required_state` 让客户端首屏可渲染。
 - 返回 device list delta 的完整 baseline。

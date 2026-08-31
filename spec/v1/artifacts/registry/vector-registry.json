@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.1",
+  "version": "2026-09-01.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-01T10:30:00+08:00",
+  "generated_at": "2026-09-01T10:31:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4004,7 +4004,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.media_binding.participant_identity_unrecognised.v1",
+      "vector_id": "ak.vector.media_binding.participant_id_unrecognised.v1",
       "status": "active",
       "domain": "media_binding",
       "applies_to_profiles": [
