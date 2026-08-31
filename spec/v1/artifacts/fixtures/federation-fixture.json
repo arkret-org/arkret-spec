@@ -385,7 +385,7 @@
       },
       "cases": [
         {
-          "case": "accepted_native_agent_event",
+          "case": "accepted_agent_event",
           "expected": "outcome_returns_one_receiver_signed_receipt_for_that_event"
         },
         {
@@ -393,7 +393,7 @@
           "expected": "outcome_carries_no_receipt_for_that_event"
         },
         {
-          "case": "rejected_quarantined_or_dependency_missing_native_agent_event",
+          "case": "rejected_quarantined_or_dependency_missing_agent_event",
           "expected": "no_receipt_signed_and_none_returned"
         },
         {

@@ -215,7 +215,7 @@ VALUE_TABLE: dict[str, Any] = {
     "proof_purpose": "governance_authorization",
     "provider_id": "ak:did_core:webvh:z6mkfixturestationexample",
     "publisher_id": "ak:did_core:webvh:z6mkfixturepublisherexample",
-    "purpose": "managed_agent_control",
+    "purpose": "agent_control",
     "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "reason": "schema_violation",
     "receiver_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",

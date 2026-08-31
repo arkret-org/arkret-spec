@@ -1060,7 +1060,7 @@
         },
         "subject_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Native personal agent principal DID selected by (controller_subject, agent_slug)."
+          "description": "Agent principal DID selected by (controller_subject, agent_slug)."
         },
         "agent_slug": {
           "$ref": "#/$defs/agent_slug"

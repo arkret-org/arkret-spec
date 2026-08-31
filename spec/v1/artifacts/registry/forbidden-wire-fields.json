@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 33,
+  "version": 34,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -102,24 +102,24 @@
       "context": "actor_profile.actor_kind",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "actor_kind=integration or actor_kind=agent plus Applet provenance",
+      "replacement": "actor_kind=integration for an external account/integration mirror or actor_kind=bot for an external bot mirror, plus Applet provenance",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "Ghost/native distinction is carried by Applet provenance and accountability, not by an expanded actor_kind enum."
+      "notes": "Ghost Actor is provenance rather than an actor_kind. Agent is reserved for controller-provisioned Agents; Applet-managed automation uses bot."
     },
     {
       "id": "actor_kind=agent_native",
       "context": "actor_profile.actor_kind",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "actor_kind=agent plus native agent provisioning state",
+      "replacement": "actor_kind=agent",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "Native personal agent is represented by actor_kind=agent and the current provisioning/accountability state machine, not by an expanded actor_kind enum."
+      "notes": "Agent is the canonical concept and is represented by actor_kind=agent plus the Agent provisioning/accountability state machine; native is not a separate Agent subtype."
     },
     {
       "id": "actor_kind=device",
@@ -138,12 +138,12 @@
       "context": "actor_profile.actor_kind",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "actor_kind=integration or actor_kind=agent plus Applet provenance",
+      "replacement": "actor_kind=integration for an external account/integration mirror or actor_kind=bot for an external bot mirror, plus Applet provenance",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "Ghost Actor is not a wire actor_kind enum value. External account mirrors should use integration; Applet-managed AI / automation actors may use agent."
+      "notes": "Ghost Actor is not a wire actor_kind enum value. External account/integration mirrors use integration; external bot mirrors and Applet-managed automation use bot; they MUST NOT use agent."
     },
     {
       "id": "agent_did",

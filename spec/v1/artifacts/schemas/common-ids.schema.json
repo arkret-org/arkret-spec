@@ -60,7 +60,7 @@
     "account_id": {
       "type": "object",
       "x-arkret-composite-identifier": true,
-      "description": "Complete protocol identity for a principal at one Station, including human, native Agent, Applet-managed Ghost and integration accounts. It does not imply a human login, provisioning workflow, credential class or authorization. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key.",
+      "description": "Complete protocol identity for a principal at one Station, including human, Agent, Applet-managed Ghost and integration accounts. It does not imply a human login, provisioning workflow, credential class or authorization. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key.",
       "required": [
         "principal_id",
         "station_id"
@@ -151,11 +151,11 @@
       "maxLength": 2048,
       "description": "Canonical bare DID for a v1 human principal anchor. The method set is derived from role_requirements.human_principal_anchor; capability checks for relocation, DID-root recovery and ongoing governance are separate."
     },
-    "managed_agent_did": {
+    "agent_did": {
       "type": "string",
       "pattern": "^did:webvh:[^\\s:/?#]+:[^\\s/?#]+$",
       "maxLength": 2048,
-      "description": "Canonical bare did:webvh identity of a durable managed Agent. Its accepted bootstrap history is controller-authored and must contain a continuous inception followed by the create-locked PCR binding update."
+      "description": "Canonical bare did:webvh identity of a durable Agent. Its accepted bootstrap history is controller-authored and must contain a continuous inception followed by the create-locked PCR binding update."
     },
     "applet_id": {
       "type": "string",

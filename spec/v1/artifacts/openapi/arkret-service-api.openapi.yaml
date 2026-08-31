@@ -6710,7 +6710,7 @@ paths:
         contentDigest: []
       responses:
         '200':
-          description: Portable Native Agent signer evidence query result
+          description: Portable Agent signer evidence query result
           content:
             application/json:
               schema:
@@ -7388,7 +7388,7 @@ paths:
         proof_in_body: true
       summary: Submit an agent runtime key request for controller approval.
       description: |
-        Runtime-to-controller pending approval request for native personal-agent
+        Runtime-to-controller pending approval request for Agent-agent
         key pairing. The runtime proves possession of the local key and the
         short pairing code; the controller still must approve by signing
         ak.agent.key.authorize and submitting agent_key_pair_request_body. The
@@ -10066,7 +10066,7 @@ paths:
         public_metadata: false
         holder_proof: false
         notes: Authenticated S2S only. The receiver independently verifies the request's current signed ServiceResolutionRecord, method evidence and normalized DID Document before using its active assertion key for RFC 9421. Bearer does not replace the signature. The verified source service must equal request.agent_authority_id and service_id in the controller current AcceptedAtServiceBinding.
-      summary: Issue the Account Authority controller lifecycle gate used in Native Agent signer evidence.
+      summary: Issue the Account Authority controller lifecycle gate used in Agent signer evidence.
       description: |
         The Account Authority reads its own current account binding/status
         projection and signs one privacy-minimal controller lifecycle snapshot
@@ -10242,7 +10242,7 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.pair_agent_key
-      description: Native personal agent runtime key pairing. Admission validates current controller/Agent authority, the fresh pairing handle, the verifier/audience/challenge-bound private requested_scope disclosure, proof-of-possession and the accepted control frontier. Backup availability and history-only MLS material are neither inputs nor readiness gates. The operation validates verification_method ↔ agent_id consistency and writes one ak.agent.key.authorize on approval. Agent runtime private keys are locally generated and never uploaded or restored.
+      description: Agent runtime key pairing. Admission validates current controller/Agent authority, the fresh pairing handle, the verifier/audience/challenge-bound private requested_scope disclosure, proof-of-possession and the accepted control frontier. Backup availability and history-only MLS material are neither inputs nor readiness gates. The operation validates verification_method ↔ agent_id consistency and writes one ak.agent.key.authorize on approval. Agent runtime private keys are locally generated and never uploaded or restored.
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -10289,7 +10289,7 @@ paths:
         schema:
           type: string
           const: ak.self.agent.read.list.v1
-      description: List native personal agents visible to the authenticated controller.
+      description: List Agents visible to the authenticated controller.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10310,7 +10310,7 @@ paths:
         schema:
           type: string
           const: ak.self.agent.command.provision.v1
-      description: Managed personal Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires the authenticated controller account's controller_station_id, validates the pair against the current session, then verifies caller-supplied did and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
+      description: Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires the authenticated controller account's controller_station_id, validates the pair against the current session, then verifies caller-supplied did and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10330,7 +10330,7 @@ paths:
   /_arkret/self/agents/{agent_id}:
     get:
       operationId: ak.self.agent.resource.get
-      description: Read one native personal agent projection.
+      description: Read one Agent projection.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10390,7 +10390,7 @@ paths:
   /_arkret/self/agents/{agent_id}/pause:
     post:
       operationId: ak.self.agent.command.pause
-      description: Pause a native personal agent and reject new agent sessions.
+      description: Pause an Agent and reject new agent sessions.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10423,7 +10423,7 @@ paths:
   /_arkret/self/agents/{agent_id}/resume:
     post:
       operationId: ak.self.agent.command.resume
-      description: Resume a paused native personal agent after freshness and sidecar disclosure checks.
+      description: Resume a paused Agent after freshness and sidecar disclosure checks.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10456,7 +10456,7 @@ paths:
   /_arkret/self/agents/{agent_id}/deactivate:
     post:
       operationId: ak.self.agent.command.deactivate
-      description: Terminally deactivate a native personal agent with one controller-authorized lifecycle Event. Once accepted, the parent lifecycle AND gate makes every subordinate key, session, pairing handle, capability grant, KeyPackage, presence and future submission ineffective; client-authored revoke bundles are forbidden and asynchronous cleanup is not a success prerequisite.
+      description: Terminally deactivate an Agent with one controller-authorized lifecycle Event. Once accepted, the parent lifecycle AND gate makes every subordinate key, session, pairing handle, capability grant, KeyPackage, presence and future submission ineffective; client-authored revoke bundles are forbidden and asynchronous cleanup is not a success prerequisite.
       security:
       - sessionGrantAuth: []
         dpopProof: []

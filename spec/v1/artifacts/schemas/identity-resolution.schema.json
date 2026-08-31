@@ -310,7 +310,7 @@
                     "purpose": {
                       "enum": [
                         "principal_control",
-                        "managed_agent_control",
+                        "agent_control",
                         "applet_managed_control"
                       ]
                     },

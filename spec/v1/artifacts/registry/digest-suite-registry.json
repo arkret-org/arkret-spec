@@ -1,5 +1,6 @@
 {
-  "version": "2026-08-18",
+  "version": "2026-08-31",
+  "generated_at": "2026-08-31T18:30:01+08:00",
   "source_of_truth": true,
   "description": "Canonical digest suite vocabulary for v1 typed digest values. A digest suite is the registered tuple (canonicalization, hash_algorithm). The suite canonical_id is the wire prefix in `<suite>:<lowercase_hex>` typed digest values and the value space of the Realm `digest_algorithm` field.",
   "suite_id_grammar": "suite_id = hash_id | canonicalization_id '.' hash_id ; each segment matches [a-z0-9_]+ ; at most one dot. In the v1 canonical grammar, a bare hash_id denotes canonicalization=json_jcs.",
@@ -16,7 +17,7 @@
     "Every suite row has an explicit immutable uint4 wire_code in 0x1..0xF. wire_code MUST NOT be derived from array position, canonical_id ordering, canonicalization name, or hash name; a retired code remains permanently assigned and MUST NOT be reused.",
     "wire_code 0x0 is permanently invalid. Unassigned or status=reserved codes MUST fail closed when carried by an Event ID. Values 0x10..0xFF are not digest-suite codes: they have a non-zero Event reserved nibble and are permanently invalid as Event headers.",
     "A suite MUST NOT be activated for the v1 Event-ID format unless digest_length_bytes is exactly 32. The 33-octet Event-ID body is a zero high nibble plus the uint4 wire_code followed by all 32 digest octets; shorter or longer digests MUST NOT be padded, folded, rehashed, or silently truncated into this format.",
-    "Realm IDs use the same low-nibble suite position and the reserved-zero high nibble defined by zh/conformance/encoding.md section 4.1. Every Realm ID, including Principal Control Realm and managed Agent PCR, is retyped from its genesis Event token: the reserved high nibble MUST be 0 on both tokens and the low-nibble suite code carries over unchanged. Header 0x11 is permanently invalid."
+    "Realm IDs use the same low-nibble suite position and the reserved-zero high nibble defined by zh/conformance/encoding.md section 4.1. Every Realm ID, including Principal Control Realm and Agent PCR, is retyped from its genesis Event token: the reserved high nibble MUST be 0 on both tokens and the low-nibble suite code carries over unchanged. Header 0x11 is permanently invalid."
   ],
   "hash_strength_order": {
     "order": [

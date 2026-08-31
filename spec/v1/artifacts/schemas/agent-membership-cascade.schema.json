@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-membership-cascade.schema.json",
-  "title": "Arkret Native Agent Membership Cascade",
-  "description": "Closed binding and durable cleanup state for Native Personal Agent Realm membership. Effective membership is the AND of the Agent member cell, the exact controller membership generation, Agent lifecycle and provision/accountability validity. Canonical Agent leave transitions are always caller-signed; a service never synthesizes them.",
+  "title": "Arkret Agent Membership Cascade",
+  "description": "Closed binding and durable cleanup state for Agent Realm membership. Effective membership is the AND of the Agent member cell, the exact controller membership generation, Agent lifecycle and provision/accountability validity. Canonical Agent leave transitions are always caller-signed; a service never synthesizes them.",
   "oneOf": [
     {
       "$ref": "#/$defs/agent_controller_membership_binding"
@@ -80,7 +80,7 @@
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
-          "description": "Exact set of active controlled Agent ActorIds frozen from terminal pre-state, sorted by unsigned UTF-8 bytes of each RFC 8785 JCS ActorId. Every element MUST identify a Native Personal Agent in that pre-state; a bare principal DID or a different Station is not the same member."
+          "description": "Exact set of active controlled Agent ActorIds frozen from terminal pre-state, sorted by unsigned UTF-8 bytes of each RFC 8785 JCS ActorId. Every element MUST identify an Agent in that pre-state; a bare principal DID or a different Station is not the same member."
         },
         "cleanup_intent_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest",

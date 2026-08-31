@@ -94,7 +94,7 @@ Schema id: `ak.schema.notification.v1`
 - `notification_kind=message` 表示普通 `ak.message.create` 在接收者 effective watch / push rule 允许普通消息提醒时产生的 inbox / push 提醒；默认 `mentions_only` 不得为非定向普通消息产生该类型。当同一 source event 对同一 actor 同时命中 `mention`、`reply`、`assignment` 等更具体原因时，dispatcher MUST NOT 额外产生重复的 `message` notification。
 - `notification_kind=assignment` 表示当前 actor 被新增为某 Strand 的 `assigned_to` target；它不是普通 message 的别名。
 - `notification_kind=schedule` 表示该 actor 需要知晓的 Strand due date 或 Calendar schedule 变更；它覆盖 `metadata.fields.due_at` 与 [`calendar-event.md`](./calendar-event.md) §2 schedule fields。
-- `notification_kind=applet` / `agent` / `policy` / `moderation` 等扩展类型分别沿用对应 Applet、native agent、policy 与 moderation 业务对象的可见性边界；参见 [`../extensions/applet-integration.md`](../extensions/applet-integration.md) 与 [`../governance/content-moderation.md`](../governance/content-moderation.md)。
+- `notification_kind=applet` / `agent` / `policy` / `moderation` 等扩展类型分别沿用对应 Applet、Agent、policy 与 moderation 业务对象的可见性边界；参见 [`../extensions/applet-integration.md`](../extensions/applet-integration.md) 与 [`../governance/content-moderation.md`](../governance/content-moderation.md)。
 
 ### 3.4 Mention notification 派生
 

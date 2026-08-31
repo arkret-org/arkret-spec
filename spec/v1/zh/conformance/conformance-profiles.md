@@ -633,12 +633,12 @@ SHOULD 支持：
 - deterministic replay metadata
 - tool call audit envelope
 
-### 18.1 Personal Agent Provisioning
+### 18.1 Agent Provisioning
 
-`ak.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ak.profile.agent_runtime.v1`。
+`ak.profile.agent_provisioning.v1` 注册 controller-面的 Agent management surface,扩展 `ak.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_arkret/self/agents` (`ak.self.agent.command.provision.v1`) 使用闭合的两段 DID bootstrap。controller 先可恢复地保存 WebVH update key，签署并发布不含 PCR binding 的 entry 0；prepare 接收 caller-supplied `did`，验证其 accepted entry 0 与 managed-controller delegation，创建 private durable reservation 并返回 exact `initial_resolution`、controller PCR、delegation、scope digest 及 service-signed opaque `allocation_handle`，但**不**生成 Agent DID/私钥、分配 Agent PCR id 或发布 canonical Event/cell。controller 把该承诺写入本地冻结的 managed Agent PCR `ak.realm.create`，自算 `event_id` 并取 `principal_control_realm_id = retype(event_id)`，由唯一 controller-signed `ak.agent.provision` 前向声明。commit 只接受 byte-identical reserved bytes，并在一个 reducer transaction 原子派生四个分别闭合且最小的 provision/accountability/selector/realm-id-claim cells；第二条声明同一 realm id 的 provision 必须拒绝。commit 返回 `awaiting_pcr_genesis`。genesis 必须另一次提交；两条 create admission 路径都必须把其 `initial_resolution` 与 provisioning durable 保存值逐字段比较，再反查 controller PCR 中声明了 `retype(create.event_id)` 的 accepted provision。genesis accepted 后只推进到 `awaiting_did_binding`，Agent、pairing 及 list/get 仍不可见。controller 随后以 entry 0 预承诺 key 签署连续 entry 1，加入 exact create-locked `ArkretPrincipalControlRealm.serviceEndpoint`；只有 entry 1 accepted 后才条件写 Agent active 状态、创建 pairing handle 并返回 `complete`。provision 不物化 Realm grant；Station 不得生成 Agent PCR MLS private state。放弃未提交 genesis 的 reservation 必须走显式 abandonment operation，不得靠过期或垃圾回收静默释放。
+- `POST /_arkret/self/agents` (`ak.self.agent.command.provision.v1`) 使用闭合的两段 DID bootstrap。controller 先可恢复地保存 WebVH update key，签署并发布不含 PCR binding 的 entry 0；prepare 接收 caller-supplied `did`，验证其 accepted entry 0 与 managed-controller delegation，创建 private durable reservation 并返回 exact `initial_resolution`、controller PCR、delegation、scope digest 及 service-signed opaque `allocation_handle`，但**不**生成 Agent DID/私钥、分配 Agent PCR id 或发布 canonical Event/cell。controller 把该承诺写入本地冻结的 Agent PCR `ak.realm.create`，自算 `event_id` 并取 `principal_control_realm_id = retype(event_id)`，由唯一 controller-signed `ak.agent.provision` 前向声明。commit 只接受 byte-identical reserved bytes，并在一个 reducer transaction 原子派生四个分别闭合且最小的 provision/accountability/selector/realm-id-claim cells；第二条声明同一 realm id 的 provision 必须拒绝。commit 返回 `awaiting_pcr_genesis`。genesis 必须另一次提交；两条 create admission 路径都必须把其 `initial_resolution` 与 provisioning durable 保存值逐字段比较，再反查 controller PCR 中声明了 `retype(create.event_id)` 的 accepted provision。genesis accepted 后只推进到 `awaiting_did_binding`，Agent、pairing 及 list/get 仍不可见。controller 随后以 entry 0 预承诺 key 签署连续 entry 1，加入 exact create-locked `ArkretPrincipalControlRealm.serviceEndpoint`；只有 entry 1 accepted 后才条件写 Agent active 状态、创建 pairing handle 并返回 `complete`。provision 不物化 Realm grant；Station 不得生成 Agent PCR MLS private state。放弃未提交 genesis 的 reservation 必须走显式 abandonment operation，不得靠过期或垃圾回收静默释放。
 - controller-owned `backup_kind=mls_history` 只可保存 exporter history-secret ranges；不得保存 Agent PCR active MLS state、leaf signer、ratchet、proposal、sender counter 或 pending Welcome。fresh endpoint 必须通过标准 KeyPackage/Add/Welcome 重新加入唯一 derived group，backup 状态不得投影成 pairing readiness。
 - `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key.v1`) 校验 current controller/Agent authority、pairing handle、requested-scope disclosure、proof-of-possession 与 accepted control frontier，不得以 history-only backup 为前置。agent 已有 active key 时(runtime replacement re-pairing)以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization。
 - Agent 通用 list/get projection 恰好暴露 lifecycle、readiness、presence 三轴；generic readiness 只含主体级 durable blockers，例如 `runtime_key_missing`、`pairing_open`，不得出现 `session_missing`、backup 状态、KP 库存、target Realm grant/membership 或 MLS blocker。`key_state` 只承载 key/handle/authorization，不得重复产品状态或备份状态。pairing poll 的 closed `runtime_state` 仅返回该 handle 的 pairing mode、expiry 和当前步骤所需 refs，不披露其它 Agent/handle/requested scope/grant/PCR history/session。SDK 必须区分 controller、pairing-handle runtime、authorized-key/no-session runtime、authenticated runtime 四种角色；authorized-key/no-session runtime 凭 active authorization 与 PoP 申请 session，不依赖 controller 在线或 generic list/get
@@ -646,13 +646,13 @@ MUST 支持:
 - `POST /_arkret/self/agents/{agent_id}/renew-pairing` (`ak.self.agent.command.renew_pairing.v1`) 对 bootstrap 状态重开 pairing，或对已持有 active authorized key 且 lifecycle 为 `active | paused` 的 agent 执行 runtime replacement；`active` 无需先 pause，怀疑旧 key 失陷时 SHOULD 先 pause(见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
 - Agent management surface 中 list/get 是 read-only；renew-pairing 只轮换 profile-local pairing artifact，不写 durable Event；pause/resume/deactivate 各写一个 lifecycle Event，其中 deactivate 的 accepted terminal parent gate 直接使全部 child authority ineffective，不接受客户端 revoke bundle；grant attach/detach 分别写 Realm-scoped capability grant/revoke Event
 - Longevity-safe 授权链:`ak.agent.key.authorize`、`ak.identity.accountability_grant` 与非 registry-required 的 agent capability grant 的 `expires_at` 均可缺省(revocation-governed);实现 MUST NOT 因缺省 `expires_at` 拒绝这些对象
-- Agent provision request 与 list/get projection 使用必填固有字段 `slug`；native personal agent selector claim `ak.schema.agent_selector_claim.v1` 与 Actor Profile 投影 hint 使用外部引用字段 `agent_slug`，并支持 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_id` 的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
+- Agent provision request 与 list/get projection 使用必填固有字段 `slug`；Agent selector claim `ak.schema.agent_selector_claim.v1` 与 Actor Profile 投影 hint 使用外部引用字段 `agent_slug`，并支持 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_id` 的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
 - Draft-only family:`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_approve` / `ak.agent.action_reject`,materialize 为 controller-owned `ak.agent.draft.v1` encrypted account-data
 - Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - `display_name`与`avatar_blob_ref`不得进入 provision Event或三个 projection；provision完成后只可用既有 `ak.profile.update` 独立 Event，固定 `actor_id=agent_id`、`executed_by=controller_id`与 accepted controller delegation。该独立 operation失败不得回滚 provision complete
-- Controller deactivate / suspend 时,accountable native agents 的 active sessions revocation 链失效
+- Controller deactivate / suspend 时,accountable Agents 的 active sessions revocation 链失效
 - Sidecar exposure 披露：激活新 Agent 前 UI MUST 显式披露其在完成 access/MLS reconciliation 后将获得现有 Sidecar 未来内容访问权（联动 `ak.profile.agent_sidecar.v1`）
 
 MUST NOT:
@@ -665,7 +665,7 @@ MUST NOT:
 
 ### 18.2 Agent Auth
 
-`ak.profile.agent_auth.v1` 注册 agent runtime 的 authentication surface,与 `ak.profile.personal_agent_provisioning.v1` 解耦。
+`ak.profile.agent_auth.v1` 注册 agent runtime 的 authentication surface,与 `ak.profile.agent_provisioning.v1` 解耦。
 
 MUST 支持:
 - 复用 `POST /_arkret/gate/account/session-grants` 通过 `proof.proof_kind="agent_key_proof"` 分支
@@ -674,7 +674,7 @@ MUST 支持:
 - key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段；agent proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
 - Replay table 覆盖 proof `expires_at` 后的 grace window
 - Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
-- 声明可交互 Realm / Direct Conversation chat runtime 时，provision/key/session 三层服务面 scope 必须覆盖 `../../artifacts/registry/agent-runtime-scope-registry.json` 的 `interactive_chat.mandatory_operations`，包括互不替代的 Event frontier 与 Seal frontier；Direct Conversation/E2EE 分支还必须覆盖 `e2ee.mandatory_operations` 的 KeyPackage upload。延迟/离线发布和在线 presence 分别叠加 registry 中对应 feature operation。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。三层缺项依次使用 `agent_provision_scope_migration_required`、`agent_key_scope_reauthorization_required`、`agent_session_scope_refresh_required`，不得由 re-pairing 或 session issuance 静默扩大上层 ceiling。
+- capability 只能由 accepted immutable provision `requested_scope.actions[]` 按 registry 的 exact-any `activation_operations` 选择；key/session、内容 action、runtime attestation、grant/participation 与产品 preset 都不得重新选择或取消。interactive 的五项 activation 任一出现即要求三层覆盖完整 `interactive_chat.mandatory_operations`，包括互不替代的 Event frontier 与 Seal frontier；KeyPackage upload/consume/revoke 任一出现即要求三层覆盖 `e2ee.mandatory_operations` 的 KeyPackage upload。延迟/离线发布和在线 presence 分别叠加 registry 中对应 feature operation。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。三层按 provision→key→session 的最高缺失层依次使用 `agent_provision_scope_migration_required`、`agent_key_scope_reauthorization_required`、`agent_session_scope_refresh_required`；server 不得自动补 operation，也不得由 re-pairing 或 session issuance 静默扩大上层 ceiling。
 - 在线 Agent presence 必须遵守 [`profiles-presence.md` §3.3](../discovery/profiles-presence.md) 的短 TTL 刷新合同：30 秒 session ceiling 下 SHOULD 每 20–25 秒发送新的加密 `ak.presence`，持久化递增 sequence 与 MLS nonce，无法在 expiry 前安全提交时自然降级为 offline；进程 / stream keepalive 不构成 presence
 - Structured human approval request 返回统一错误信封：`error.code=claim_required`，`error.details={reason_code: human_approval_required, approval_request_id}`；details 必须通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，且不得向 agent runtime 展示 CAPTCHA / OTP。实现必须通过 `ak.vector.agent_auth.human_approval_required.v1`
 
@@ -692,7 +692,7 @@ MUST 支持:
 - Canonical constraint vocabulary:`allowed_tracks` / `allowed_strand_ids` / `allowed_data_labels` / `allowed_endpoints` / `rate_limit` / `approval_required` / `controller_approval_required` / `accountability_required`
 - Reply-as-agent 与 act-on-behalf wire(`actor_id` / `executed_by` / `authorization_ref`)与双重署名渲染
 - act-on-behalf 默认 fresh approval 粒度 `(action, target_strand)` + 短期 temporal window
-- Realm policy 必须能分别控制 native personal agent 与 Applet / Ghost Actor
+- Realm policy 必须分别控制 Agent、Bot 与 Applet/Ghost provenance；Bot 或 Ghost Actor 不得使用 `actor_kind="agent"`
 
 MUST NOT:
 - 让 agent 自动继承 controller 在 Realm 内的最大权限
@@ -701,7 +701,7 @@ MUST NOT:
 ### 18.4 Agent Sidecar
 
 `ak.profile.agent_sidecar.v1` 注册独立 `ak.schema.agent_sidecar.v1` 对象、native Sidecar scope 与
-controller-owned private AI workspace 行为。它依赖 personal agent provisioning、auth 与 MLS profiles，
+controller-owned private AI workspace 行为。它依赖 Agent provisioning、auth 与 MLS profiles，
 不继承 Circle conformance。
 
 MUST 支持：
@@ -734,7 +734,7 @@ MUST NOT：
 
 ### 18.5 Agent Participation Policy
 
-`ak.profile.agent_participation_policy.v1` 注册 native personal agent 的分层 participation ceiling 与 controller selection 面。它继承 `ak.profile.personal_agent_provisioning.v1`。
+`ak.profile.agent_participation_policy.v1` 注册 Agent 的分层 participation ceiling 与 controller selection 面。它继承 `ak.profile.agent_provisioning.v1`。
 
 MUST 支持:
 - `ak.self.agent.participation.resource.replace.v1` 与 `ak.self.agent.participation.resource.get.v1`。selection 是 controller

@@ -551,7 +551,7 @@
           "count_composition": {
             "ordinary_active_circles": 1000
           },
-          "counting_rule": "The realm's active-Circle count MUST be materialized by building 1000 ordinary Circles, NOT from a pre-summed scalar. Native Agent Sidecars are not Circle objects and do not consume this limit. A conforming reducer counts 1000 and rejects the next ak.circle.create."
+          "counting_rule": "The realm's active-Circle count MUST be materialized by building 1000 ordinary Circles, NOT from a pre-summed scalar. Agent Sidecars are not Circle objects and do not consume this limit. A conforming reducer counts 1000 and rejects the next ak.circle.create."
         }
       },
       "input": {
@@ -575,7 +575,7 @@
           "count_composition": {
             "ordinary_mls_circle_memberships": 256
           },
-          "counting_rule": "The actor's MLS-backed Circle-membership count MUST be materialized as 256 ordinary MLS Circle memberships, NOT from a pre-summed scalar. Native Agent Sidecar participation is ownership-derived and is not Circle membership. A conforming reducer rejects the next Circle membership."
+          "counting_rule": "The actor's MLS-backed Circle-membership count MUST be materialized as 256 ordinary MLS Circle memberships, NOT from a pre-summed scalar. Agent Sidecar participation is ownership-derived and is not Circle membership. A conforming reducer rejects the next Circle membership."
         }
       },
       "input": {

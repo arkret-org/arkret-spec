@@ -203,13 +203,13 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
         managed_pcr.get("realm_purpose"),
         managed_pcr.get("expected", {}).get("realm_id_source"),
     ) != (
-        "managed_agent",
-        "managed_agent_control",
+        "agent",
+        "agent_control",
         "derived_from_event_id",
     ):
         lint.fail(
             path,
-            "managed Agent PCR vector must assert realm_id derivation from its "
+            "Agent PCR vector must assert realm_id derivation from its "
             "ak.realm.create event_id",
         )
     elif managed_pcr.get("derived_realm_id", "").removeprefix(
@@ -217,7 +217,7 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
     ) != managed_pcr.get("derived_event_id", "").removeprefix("ak:event:"):
         lint.fail(
             path,
-            "managed Agent PCR vector realm_id and event_id tokens must be byte-identical",
+            "Agent PCR vector realm_id and event_id tokens must be byte-identical",
         )
 
     single_bit_case = next(

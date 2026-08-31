@@ -147,7 +147,7 @@ DID freshness 是正交维度；高风险只要求其**实际授权根**新鲜�
 | `current_external_claim` | 当前外部身份 badge/claim、当前 DID delegation/controller 声明 | 最新 method state、current controller/delegation、deactivation 与调用点 policy | 调用点登记的 current profile。失败只使该 claim stale/unavailable。 |
 | `method_successor` | `ak.identity.resolution.update`、webvh relocation、DID rotation/deactivation publication | 从 PCR accepted resolution head 到候选 head 的 method-native successor、same-core projection、current PCR author 与 CAS | 同步刷新或 fail closed；PCR author 与 method successor 缺一不可。 |
 | `optional_did_root_recovery` | 账号的 accepted recovery policy 明确启用了 DID-root factor，且该 factor 正在被使用 | policy opt-in、current DID root/history、pre-rotation、recovery session、PCR generation CAS | 同步刷新或 fail closed；未启用时 current root proof 必须拒绝。 |
-| `ongoing_governance` | organization、managed Agent 或 service 的角色合同明确把 DID controller/delegation/key state 定为持续 authority | 角色、purpose、current delegation/key、history、policy 与 audience | 由具体 operation/action 登记；不得外推到 human PCR。 |
+| `ongoing_governance` | organization、Agent 或 service 的角色合同明确把 DID controller/delegation/key state 定为持续 authority | 角色、purpose、current delegation/key、history、policy 与 audience | 由具体 operation/action 登记；不得外推到 human PCR。 |
 
 下列操作对 human principal **不创建 DID authority call**：普通或高风险 Event 写入、device
 authorize/revoke、PCR-policy recovery、capability grant/revoke、MLS commit、membership/join/invite、

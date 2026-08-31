@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-21.1",
+  "version": "2026-08-31.1",
   "source_of_truth": true,
   "description": "Canonical registry of all normative MLS-Exporter and MLS ExpandWithLabel domain-separation labels in Arkret v1. Each label is a wire-breaking security parameter: implementations MUST use the exact label string, primitive, and Context field shape, and MUST NOT migrate or reuse keys across distinct labels without a new profile. MLS-Exporter entries MUST NOT derive with an empty Context; an ExpandWithLabel entry follows its registered context_encoding, including an explicitly registered empty context. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [
@@ -25,7 +25,7 @@
       "purpose": "Per-verified-sender exporter content AEAD key",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10",
       "context_fields": ["sender_domain"],
-      "context_encoding": "exact active LeafNode BasicCredential identity bytes; ordinary DeviceId UTF-8, Native Agent ActorId UTF-8, or Realm-global minimal endpoint-incarnation pairwise ActorId UTF-8",
+      "context_encoding": "exact active LeafNode BasicCredential identity bytes; ordinary DeviceId UTF-8, Agent ActorId UTF-8, or Realm-global minimal endpoint-incarnation pairwise ActorId UTF-8",
       "output_bytes": "AEAD.Nk",
       "applies_to_profiles": [],
       "applies_to_content_schemes": ["mls_exporter_aead_v1"],

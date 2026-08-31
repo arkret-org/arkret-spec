@@ -824,7 +824,7 @@
         },
         "public_key_digest": {
           "$ref": "#/$defs/digest",
-          "description": "SHA-256 of the decoded 32-byte Ed25519 public key behind verification_method, computed with agent_signing_public_key_digest. Native Agent authorization always commits this raw-key digest; it is distinct from the private runtime-request PublicKey DTO digest."
+          "description": "SHA-256 of the decoded 32-byte Ed25519 public key behind verification_method, computed with agent_signing_public_key_digest. Agent authorization always commits this raw-key digest; it is distinct from the private runtime-request PublicKey DTO digest."
         },
         "signing_key_binding_digest": {
           "$ref": "#/$defs/digest",
@@ -1256,7 +1256,7 @@
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug",
-      "description": "Controller-scoped native personal agent selector slug used by @<controller-handle>/<agent_slug>. Not a global handle or authorization subject."
+      "description": "Controller-scoped Agent selector slug used by @<controller-handle>/<agent_slug>. Not a global handle or authorization subject."
     },
     "applet_bridge_error_payload": {
       "type": "object",
@@ -4275,7 +4275,7 @@
     },
     "direct_conversation_authorization_basis": {
       "type": "object",
-      "description": "Canonical authorization basis for creating a Direct Conversation. accepted_contact carries exactly the accepted contact request/accept refs. managed_agent_controller carries exactly two unique accepted Event refs: the controller-authored ak.agent.provision Event, whose payload already binds the Agent, controller, delegation, accountability and selector facts, and the current active ak.agent.key.authorize Event.",
+      "description": "Canonical authorization basis for creating a Direct Conversation. accepted_contact carries exactly the accepted contact request/accept refs. agent_controller carries exactly two unique accepted Event refs: the controller-authored ak.agent.provision Event, whose payload already binds the Agent, controller, delegation, accountability and selector facts, and the current active ak.agent.key.authorize Event.",
       "required": [
         "kind",
         "event_refs"
@@ -4285,7 +4285,7 @@
           "type": "string",
           "enum": [
             "accepted_contact",
-            "managed_agent_controller"
+            "agent_controller"
           ]
         },
         "event_refs": {
@@ -4322,7 +4322,7 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "managed_agent_controller"
+                "const": "agent_controller"
               }
             },
             "required": [
@@ -5545,7 +5545,7 @@
         },
         "agent_controller_binding": {
           "$ref": "./agent-membership-cascade.schema.json#/$defs/agent_controller_membership_binding",
-          "description": "Required by semantic admission for every Native Personal Agent join and every controller-membership-ended cleanup. Non-Agent membership MUST reject it."
+          "description": "Required by semantic admission for every Agent join and every controller-membership-ended cleanup. Non-Agent membership MUST reject it."
         },
         "invite_ref": {
           "oneOf": [
@@ -5623,7 +5623,7 @@
         },
         "subject_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Authoritative mention target principal DID. For native personal agent selectors this is the agent principal DID, not the controller DID."
+          "description": "Authoritative mention target principal DID. For Agent selectors this is the agent principal DID, not the controller DID."
         },
         "display_name_at_time": {
           "type": "string"
@@ -5771,7 +5771,7 @@
         },
         "agent_context": {
           "type": "object",
-          "description": "Auditable authorization context required when a native Agent authors the message.",
+          "description": "Auditable authorization context required when an Agent authors the message.",
           "required": [
             "agent_id",
             "operator_or_controller",
@@ -7288,7 +7288,7 @@
         },
         "claim_ref": {
           "type": "object",
-          "description": "KeyPackage claim binding validated before Welcome decryption. Exactly one trust branch is present: PCR-authorized device, independently authorized Native Agent runtime, or Realm-local minimal-metadata pairwise did:key endpoint.",
+          "description": "KeyPackage claim binding validated before Welcome decryption. Exactly one trust branch is present: PCR-authorized device, independently authorized Agent runtime, or Realm-local minimal-metadata pairwise did:key endpoint.",
           "required": [
             "claim_id",
             "keypackage_ref",
@@ -7390,7 +7390,7 @@
             },
             "agent_key_authorize_event_id": {
               "$ref": "#/$defs/non_empty_string",
-              "description": "Accepted active ak.agent.key.authorize Event for the claimed Native Agent runtime key."
+              "description": "Accepted active ak.agent.key.authorize Event for the claimed Agent runtime key."
             },
             "pairwise_actor_id": {
               "type": "string",
@@ -7404,7 +7404,7 @@
         },
         "claim_envelope": {
           "type": "object",
-          "description": "Closed requester device, Native-Agent, or Realm-local pairwise signature binding the claimed KeyPackage to this Welcome, Realm, exact claim_request_id challenge and Welcome digest before decrypting the Welcome. Device/Agent signer authority is established by accepted authorization Events and their in-envelope Station admission proofs; the pairwise signer is established by its exact did:key method and Realm-local actor. No signer-evidence sidecar is carried.",
+          "description": "Closed requester device, Agent, or Realm-local pairwise signature binding the claimed KeyPackage to this Welcome, Realm, exact claim_request_id challenge and Welcome digest before decrypting the Welcome. Device/Agent signer authority is established by accepted authorization Events and their in-envelope Station admission proofs; the pairwise signer is established by its exact did:key method and Realm-local actor. No signer-evidence sidecar is carried.",
           "required": [
             "keypackage_ref",
             "keypackage_digest",
@@ -9222,7 +9222,7 @@
     },
     "realm_create_payload": {
       "type": "object",
-      "description": "Minimal identity and security-root payload for ak.realm.create. User-visible, mutable, policy and reducer-derived Realm state is carried only by registered bootstrap facets. Every genesis, including Principal Control Realm and managed Agent PCR, requires a canonical 32-octet genesis_salt.",
+      "description": "Minimal identity and security-root payload for ak.realm.create. User-visible, mutable, policy and reducer-derived Realm state is carried only by registered bootstrap facets. Every genesis, including Principal Control Realm and Agent PCR, requires a canonical 32-octet genesis_salt.",
       "required": [
         "object"
       ],

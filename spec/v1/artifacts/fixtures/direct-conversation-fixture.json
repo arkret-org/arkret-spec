@@ -62,12 +62,12 @@
       "instance": "ak.authority.direct_conversation_participant.v1"
     },
     {
-      "name": "managed_agent_basis_uses_single_provision_and_runtime_key_refs",
+      "name": "agent_basis_uses_single_provision_and_runtime_key_refs",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_authorization_basis",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "kind": "managed_agent_controller",
+        "kind": "agent_controller",
         "event_refs": [
           "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
           "ak:event:AYfTCWV0E89xVyBGDdUxp2r9d3MQJAcRVbZC9QZPVXYK"
@@ -75,14 +75,14 @@
       }
     },
     {
-      "name": "managed_agent_basis_rejects_retired_three_ref_provisioning_chain",
+      "name": "agent_basis_rejects_retired_three_ref_provisioning_chain",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_authorization_basis",
       "expect_valid": false,
       "first_expected_error": "contains:is too long",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "kind": "managed_agent_controller",
+        "kind": "agent_controller",
         "event_refs": [
           "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
           "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",

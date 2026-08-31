@@ -833,8 +833,9 @@ def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -
         lint.fail(path, f"layers must equal the closed three-layer migration map: {expected_layers}")
 
     capability_sets = data.get("capability_sets") or {}
-    interactive = set((capability_sets.get("interactive_chat") or {}).get("mandatory_operations") or [])
-    e2ee = set((capability_sets.get("e2ee") or {}).get("mandatory_operations") or [])
+    if set(capability_sets) != {"interactive_chat", "e2ee"}:
+        lint.fail(path, "capability_sets must contain exactly interactive_chat and e2ee")
+    expected_selection_rule = "any_activation_operation_present_in_immutable_provision_actions"
     expected_interactive = {
         "ak.self.events.stream.subscribe.v1",
         "ak.self.events.read.scan.v1",
@@ -843,13 +844,48 @@ def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -
         "ak.self.events.command.submit.v1",
     }
     expected_e2ee = {"ak.self.keys.keypackages.upload.create.v1"}
+    expected_activation = {
+        "interactive_chat": expected_interactive,
+        "e2ee": {
+            "ak.self.keys.keypackages.upload.create.v1",
+            "ak.self.keys.keypackages.command.consume.v1",
+            "ak.self.keys.keypackages.command.revoke.v1",
+        },
+    }
+    interactive = set((capability_sets.get("interactive_chat") or {}).get("mandatory_operations") or [])
+    e2ee = set((capability_sets.get("e2ee") or {}).get("mandatory_operations") or [])
     if interactive != expected_interactive:
         lint.fail(path, f"interactive_chat mandatory operations drift: {sorted(interactive)}")
     if e2ee != expected_e2ee:
         lint.fail(path, f"e2ee mandatory operations drift: {sorted(e2ee)}")
-    for operation_id in sorted(interactive | e2ee):
+    activation_operations: set[str] = set()
+    for capability_name, expected_operations in expected_activation.items():
+        rule = capability_sets.get(capability_name) or {}
+        if rule.get("selection_rule") != expected_selection_rule:
+            lint.fail(path, f"{capability_name} must use the closed exact-any selection rule")
+        observed = rule.get("activation_operations") or []
+        if len(observed) != len(set(observed)):
+            lint.fail(path, f"{capability_name} repeats an activation operation")
+        observed_set = set(observed)
+        if observed_set != expected_operations:
+            lint.fail(path, f"{capability_name} activation operations drift: {sorted(observed_set)}")
+        mandatory = set(rule.get("mandatory_operations") or [])
+        if not mandatory <= observed_set:
+            lint.fail(
+                path,
+                f"{capability_name} mandatory operations are not activation operations: "
+                f"{sorted(mandatory - observed_set)}",
+            )
+        activation_operations.update(observed_set)
+
+    feature_operations = {
+        operation_id
+        for values in (data.get("feature_additions") or {}).values()
+        for operation_id in (values if isinstance(values, list) else [])
+    }
+    for operation_id in sorted(activation_operations | interactive | e2ee | feature_operations):
         if operation_id not in known["operation_ids"]:
-            lint.fail(path, f"unknown mandatory operation: {operation_id}")
+            lint.fail(path, f"unknown Agent runtime scope operation: {operation_id}")
 
     profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
     profiles = load_json(lint, profiles_path) or {}
@@ -869,9 +905,36 @@ def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -
         for row in (requirements.get("ak.profile.agent_runtime.v1") or {}).get("operation_requirements", [])
         if isinstance(row, dict)
     }
-    required_runtime = interactive | expected_e2ee
+    required_runtime = activation_operations
     if not required_runtime <= runtime_endpoints:
-        lint.fail(profiles_path, f"agent_runtime missing mandatory operations: {sorted(required_runtime - runtime_endpoints)}")
+        lint.fail(profiles_path, f"agent_runtime missing activation operations: {sorted(required_runtime - runtime_endpoints)}")
+
+    mapping_path = ARTIFACTS / "registry" / "operations-error-mapping.json"
+    mapping = load_json(lint, mapping_path) or {}
+    mapped_reasons = {
+        row.get("operation_id"): set(row.get("operation_specific") or [])
+        for row in mapping.get("operations", [])
+        if isinstance(row, dict)
+    }
+    layer_reasons = set(expected_layers.values())
+    expected_by_operation = {
+        "ak.self.agent.command.provision.v1": {
+            "agent_provision_scope_migration_required",
+        },
+        "ak.gate.account.command.pair_agent_key.v1": {
+            "agent_provision_scope_migration_required",
+            "agent_key_scope_reauthorization_required",
+        },
+        "ak.gate.account.command.issue_session_grant.v1": layer_reasons,
+    }
+    for operation_id, expected_reasons in expected_by_operation.items():
+        observed_reasons = mapped_reasons.get(operation_id, set()) & layer_reasons
+        if observed_reasons != expected_reasons:
+            lint.fail(
+                mapping_path,
+                f"{operation_id} Agent runtime diagnosis reasons drift: "
+                f"expected={sorted(expected_reasons)} observed={sorted(observed_reasons)}",
+            )
 
 
 def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -1187,7 +1250,7 @@ def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
     fixture_path = ARTIFACTS / "fixtures" / "keypackage-lifecycle-fixture.json"
     fixture = load_json(lint, fixture_path)
     rows = fixture.get("unsigned_selector_transcripts", []) if isinstance(fixture, dict) else []
-    expected_branches = {"device", "native_agent", "minimal_metadata_pairwise"}
+    expected_branches = {"device", "agent", "minimal_metadata_pairwise"}
     seen_branches: set[str] = set()
     selector_fields = {
         "target_device_ids",
@@ -1209,7 +1272,7 @@ def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
         present = set(unsigned_request) & selector_fields
         required_by_branch = {
             "device": {"target_device_ids"},
-            "native_agent": {
+            "agent": {
                 "target_agent_id",
                 "target_agent_verification_method",
                 "target_agent_key_authorize_event_id",
@@ -1225,7 +1288,7 @@ def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
         if row.get("request_digest") != digest:
             lint.fail(fixture_path, f"unsigned_selector_transcripts[{index}].request_digest drifted")
     if seen_branches != expected_branches:
-        lint.fail(fixture_path, "unsigned selector transcripts must cover device, native_agent, and minimal_metadata_pairwise exactly")
+        lint.fail(fixture_path, "unsigned selector transcripts must cover device, agent, and minimal_metadata_pairwise exactly")
 
 
 def check_sdk_conformance_contract(lint: Lint) -> None:
@@ -2178,9 +2241,9 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
 
     discriminator_conditions = {
         "Any Event carrying did_inception": ("then", "principal_control"),
-        "A managed_agent_control Realm create without did_inception": (
+        "A agent_control Realm create without did_inception": (
             "if",
-            "managed_agent_control",
+            "agent_control",
         ),
     }
     schema_nodes = [node for _json_path, node, _key in walk_json(data) if isinstance(node, dict)]
@@ -2188,7 +2251,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     realm_identity_comment = (
         "zh/models/realm-and-space.md section 2.5.0: ak.realm.create MUST omit "
         "realm_id and use the realm_genesis scope. Every Realm, including "
-        "Collaboration, Direct Conversation, human PCR, and managed Agent PCR, derives "
+        "Collaboration, Direct Conversation, human PCR, and Agent PCR, derives "
         "realm_id = retype(event_id, \"realm\") from this create Event. The uniform "
         "omission leaves one receiver-derived genesis form and avoids the digest cycle. "
         "Every other kind MUST carry realm_id."
@@ -2210,13 +2273,13 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
         lint.fail(
             path,
             "Realm genesis identity comment must use the uniform event-derived formula "
-            "for human and managed Agent PCRs",
+            "for human and Agent PCRs",
         )
 
     expected_realm_genesis_description = (
         "Genesis scope for ak.realm.create only. It carries no realm_id because the "
         "receiver derives every Realm id, including Collaboration, Direct Conversation, "
-        "human PCR, and managed Agent PCR, as retype(event_id, \"realm\") from this "
+        "human PCR, and Agent PCR, as retype(event_id, \"realm\") from this "
         "create Event (zh/models/realm-and-space.md section 2.5.0). The uniform omission "
         "also prevents the digest cycle."
     )
@@ -2237,7 +2300,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
         lint.fail(
             path,
             "scope_ref.realm_genesis description must use the uniform event-derived "
-            "formula for human and managed Agent PCRs",
+            "formula for human and Agent PCRs",
         )
 
     for comment_prefix, (branch_name, expected_purpose) in discriminator_conditions.items():
@@ -2268,7 +2331,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
         if isinstance(realm_genesis, dict)
         else []
     )
-    for purpose in ("principal_control", "managed_agent_control"):
+    for purpose in ("principal_control", "agent_control"):
         if purpose not in purpose_values:
             lint.fail(
                 realm_genesis_path,
@@ -3844,7 +3907,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     boundaries = evidence_boundary_doc.get("boundaries", []) if isinstance(evidence_boundary_doc, dict) else []
     expected_boundary_ids = {
         "human_or_organization_pcr_genesis",
-        "managed_agent_pcr_genesis",
+        "agent_pcr_genesis",
         "applet_ghost_pcr_genesis",
         "principal_resolution_record",
         "service_resolution_record",

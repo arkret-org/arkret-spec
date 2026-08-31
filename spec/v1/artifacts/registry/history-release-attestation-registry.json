@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-30.4",
+  "version": "2026-08-31.1",
   "source_of_truth": true,
   "schema_ref": "schemas/history-key.schema.json#/$defs/history_release_attestation",
   "wire_registry_binding": "HistoryReleaseAttestation.verifier_profile_id is ak.history_release_predicates.v1. The enclosing HistoryKeyResponseRecord.service_proof covers the complete attestation. An unsupported verifier profile is rejected only for the affected object and is never translated to an authorization failure.",
@@ -76,7 +76,7 @@
         "exact canonical DeviceId has a current PCR device authorize Event not superseded by revoke or reanchor generation"
       ]
     },
-    "native_agent": {
+    "agent": {
       "required_slots": [
         "recipient_agent_control_evidence"
       ],
@@ -125,7 +125,7 @@
             "relay destination, source record digest, request receipt, source identity/profile/incarnation and expiry match exactly"
           ]
         },
-        "native_agent": {
+        "agent": {
           "required_source_relay_facts": [
             "exact Agent lifecycle, signing key and registered control/evidence chain are current"
           ],
@@ -167,7 +167,7 @@
       "AccountStatusRecord active",
       "PCR exact DeviceId authorize/revoke/reanchor"
     ],
-    "native_agent": [
+    "agent": [
       "scope membership/tombstone/history_access",
       "Agent lifecycle",
       "Agent signing key",

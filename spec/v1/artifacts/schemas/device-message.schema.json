@@ -24,15 +24,15 @@
     },
     "sender_principal_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "Sender Principal DID. Intentionally NOT named sender_actor_id: device messages are out-of-band per-device transport envelopes that travel principal-to-principal outside any Realm context, so the Realm-scoped Actor identity used by message.schema.json / event-payload.schema.json does not apply here. For a device sender, pair it with sender_device_id and verify that pair against the accepted PCR device projection; for a Native Agent sender it equals sender_agent_id and the signer is anchored by sender_agent_verification_method plus sender_agent_key_authorize_event_id. For the restricted Station service branch it MUST equal recipient_principal_id: the holder remains the message principal while sender_id identifies the internal materializer."
+      "description": "Sender Principal DID. Intentionally NOT named sender_actor_id: device messages are out-of-band per-device transport envelopes that travel principal-to-principal outside any Realm context, so the Realm-scoped Actor identity used by message.schema.json / event-payload.schema.json does not apply here. For a device sender, pair it with sender_device_id and verify that pair against the accepted PCR device projection; for an Agent sender it equals sender_agent_id and the signer is anchored by sender_agent_verification_method plus sender_agent_key_authorize_event_id. For the restricted Station service branch it MUST equal recipient_principal_id: the holder remains the message principal while sender_id identifies the internal materializer."
     },
     "sender_device_id": {
       "$ref": "#/$defs/device_id",
-      "description": "Authoring human device. Exactly one sender endpoint branch is present: this field, the complete sender_agent_* triple, or sender_id. A Native Agent runtime has no device identity and MUST NOT be disguised as an ak:device (crypto-media/device-lifecycle.md section 9.0.1); the restricted Station materializer likewise has a service identity rather than a fake device. Receivers use the selected endpoint field in the device-message deduplication key."
+      "description": "Authoring human device. Exactly one sender endpoint branch is present: this field, the complete sender_agent_* triple, or sender_id. An Agent runtime has no device identity and MUST NOT be disguised as an ak:device (crypto-media/device-lifecycle.md section 9.0.1); the restricted Station materializer likewise has a service identity rather than a fake device. Receivers use the selected endpoint field in the device-message deduplication key."
     },
     "sender_agent_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "Native Agent principal that authored this message. Present exactly when the sender is an Agent runtime, together with sender_agent_verification_method and sender_agent_key_authorize_event_id. It equals sender_principal_id; carrying it explicitly is what makes the endpoint branch decidable from the envelope alone, matching the consume / claim_envelope XORs of crypto-media/device-lifecycle.md section 9.0.1."
+      "description": "Agent principal that authored this message. Present exactly when the sender is an Agent runtime, together with sender_agent_verification_method and sender_agent_key_authorize_event_id. It equals sender_principal_id; carrying it explicitly is what makes the endpoint branch decidable from the envelope alone, matching the consume / claim_envelope XORs of crypto-media/device-lifecycle.md section 9.0.1."
     },
     "sender_agent_verification_method": {
       "$ref": "./common-ids.schema.json#/$defs/did_url",

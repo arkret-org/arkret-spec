@@ -254,7 +254,7 @@ base 不可验证或 target 存在并发未纳入 leaf 时，create 零写失败
 incarnation refs。Circle reactivation/Add 必须因果覆盖该 parent incarnation，join epoch 只取 Circle 独立 group 内的显式 Add
 activation；禁止跨 Realm/Circle group epoch 取最大值。Request retry 必须保留原 trusted basis 及其本地 verification material，不能只保存裸 ID。
 `ordinary_human` endpoint 分支签入 exact `requester_device_id`、accepted `requester_device_authorize_event_id`
-与 PCR-local monotonic `requester_device_generation_ref`；`native_agent` 分支签入 exact Agent id、runtime verification
+与 PCR-local monotonic `requester_device_generation_ref`；`agent` 分支签入 exact Agent id、runtime verification
 method 与 `requester_agent_key_authorize_event_id`；`minimal_metadata` 分支不得携 principal/device locator。Create 与每个
 chunk 首次入队 T1 都重新解析同一签名 locator 并与 current Account/PCR/Agent authority 逐字比较，禁止从当前 session、proof
 fragment 或服务私有“默认设备”替换。
@@ -293,7 +293,7 @@ v1 依赖诚实 service、短 TTL 和 exact durable retry，恶意/延迟 peer �
 重生成。最终首次 accepted 的小型 send receipt 耐久回填同一 row，client exact retry 返回原 bytes；transport 不另签 duplicate
 variant，同 response_id 异 digest 为永久冲突。
 
-Native Agent authority locator 逐字为
+Agent authority locator 逐字为
 `{agent_id, verification_method, agent_key_authorize_event_id, active_lifecycle_event_id, control_basis, agent_signer_evidence_digest, observed_at, expires_at}`；
 其中 `control_basis` 是完整 accepted PCR Seal antichain，`agent_signer_evidence_digest = SHA-256(JCS(complete current AgentSignerEvidence))`。
 不得退化为 singular control Seal、含糊的 control/evidence Event ref 或未定义 digest。RRK source locator 内联完整
@@ -336,7 +336,7 @@ Receiver 必须先 durable 取得并验证 manifest。Receiver 安装前必须�
 join/incarnation、current monotone history-access ratchet 及 request/receipt/attestation 绑定。RRK archive 使用 archive-lifetime traversal profile，不伪造 recipient。Source 不生成、
 不签名也不携带 T1 authorization basis。Source proof 对 exact request/ranges/content 归因。`history_response_signing_input` 必须同时携带
 `source_signer_evidence_ref` 与 `source_signer_evidence_digest`，两者逐字绑定 closed source-signer evidence union 的同一份对象：
-ordinary human、Native Agent 与 organization-recovery holder 使用 `AuthenticatedSignerResolutionEvidence`，minimal-metadata 使用
+ordinary human、Agent 与 organization-recovery holder 使用 `AuthenticatedSignerResolutionEvidence`，minimal-metadata 使用
 `MinimalMetadataMlsLeafSignerEvidence`。Evidence 必须授权 `source_actor_id`、`source_proof.verification_method` 与
 `source_proof.created_at`。Release service admission 必须完整验证 authenticated branch 及其递归 attester evidence closure；对于只有 receiver
 持有 verified local MLS tree 的 minimal-metadata branch，release service 只验证 content address、closed shape、source relay binding 并原样 pin，
@@ -344,7 +344,7 @@ ordinary human、Native Agent 与 organization-recovery holder 使用 `Authentic
 receiver 使用 `request_receipt` history traversal access 从标准
 governance-dependency resolve surface 按 digest 分页取得。不得查询 current DID document 代替历史 evidence，也不得把最多 1 MiB 的
 evidence bytes 重复内联到每个 manifest/chunk。
-Native Agent 使用 CurrentAdmission branch 时，`current_observation.request_digest` 必须等于：
+Agent 使用 CurrentAdmission branch 时，`current_observation.request_digest` 必须等于：
 
 ```text
 history_source_agent_observation_digest = H(
@@ -356,8 +356,8 @@ history_source_agent_observation_digest = H(
 该独立 digest 域固定其 history response send 用途，并打破 evidence content digest 与 observation request digest 之间的自引用；
 `source_proof` 仍覆盖包含两项 evidence 坐标的完整 signing input。`current_observation.operation_id` 仍是本次操作的
 `ak:operation:<uuidv7>`，不得把 HTTP service operation id 填进 `ProtocolOperationId`。
-Ordinary human、Native Agent 与 organization-recovery holder source 使用 `AuthenticatedSignerResolutionEvidence`；其中 ordinary human 与
-organization-recovery holder 的 root evidence 必须是 Principal branch，Native Agent 的 root evidence 必须是 NativeAgent branch；Service branch
+Ordinary human、Agent 与 organization-recovery holder source 使用 `AuthenticatedSignerResolutionEvidence`；其中 ordinary human 与
+organization-recovery holder 的 root evidence 必须是 Principal branch，Agent 的 root evidence 必须是 Agent branch；Service branch
 只能作为递归 attester leaf，不得作为 source root。Minimal-metadata source 不得冒充
 Principal，而必须使用 `MinimalMetadataMlsLeafSignerEvidence`。后者绑定 effective scope、canonical MLS group id、epoch、leaf index、
 pairwise/source actor、verification method、独立 Ed25519 response-signing public key/digest、端到端加密取得的 IdentityLink canonical bytes/digest、
@@ -649,7 +649,7 @@ release attestation 复核，唯一 continuous released range 中的每个 epoch
 
 ## 9. Conformance
 
-Vectors MUST 覆盖 closed union、Realm/Circle 独立 group、ordinary/Native Agent/minimal sender、join/rejoin、
+Vectors MUST 覆盖 closed union、Realm/Circle 独立 group、ordinary human/Agent/minimal sender、join/rejoin、
 endpoint replacement、history_access 单向收紧与禁止放宽、response-stream duplicate/reject/ack、多候选投毒、
 RRK rotation、traversal target 不支配 base/current、隐藏 predecessor、secret-chain 负例和 26,298 epoch/Nh=32 packed-size 算例。
 至少两个独立 runner MUST 从原始输入重算 exporter、KDF、nonce、AAD、AEAD、HPKE、RRK 和 routing tag，

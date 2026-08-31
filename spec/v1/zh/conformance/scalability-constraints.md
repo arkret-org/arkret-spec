@@ -52,7 +52,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 同一 `(realm_id, actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的 sibling fork 累计数 | 64 | 超过时该 Realm 中该高度全部 sibling MUST 进入与单桶 over-fork 相同的 quarantine / repair 终局；producer 不得通过变换 `prev_refs` 子集绕过单桶上限。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。Morph `facets` map 与 `labels` 数组（[common-fields.md](../models/common-fields.md) §3.1）计入同一对象 256 KiB budget，不另设独立条数上限；见 [morph.md](../models/morph.md) §2。 |
 | handle / realm alias localpart | 128 Unicode code points | 上限 inclusive；validator MUST 在 prepared 形态上复核 code-point 数。 |
-| native personal Agent selector `slug` | 64 Unicode code points | 上限 inclusive；validator MUST 在 prepared 形态上复核 code-point 数。 |
+| Agent Agent selector `slug` | 64 Unicode code points | 上限 inclusive；validator MUST 在 prepared 形态上复核 code-point 数。 |
 | Realm / Space / Circle `title`、actor `display_name` | 256 Unicode code points | canonical object、request、response 与 projection MUST 复用相同字段定义，不得以无上限 `non_empty_string` 放宽。 |
 | Strand / Morph `title` | 512 Unicode code points | canonical object、request、response 与 projection MUST 复用相同字段定义。grapheme cluster 计数只能用于 UI guidance，不能替代 wire acceptance。 |
 | 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Realm 引用必须按 Lazy Link 截断（Lazy Link 定义见 [glossary.md](../overview/glossary.md) "Lazy Link"）。 |

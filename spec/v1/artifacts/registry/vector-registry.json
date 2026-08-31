@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.7",
+  "version": "2026-08-31.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T00:20:01+08:00",
+  "generated_at": "2026-08-31T18:40:07+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -187,7 +187,7 @@
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ],
-      "description": "Controller-owned recovery_public_key backup of exporter history-secret ranges for a managed Agent PCR, exact public/plaintext identity-tuple binding, no pairing readiness gate, and prohibition on portable active MLS state, Agent runtime private-key backup or per-Agent human mnemonic."
+      "description": "Controller-owned recovery_public_key backup of exporter history-secret ranges for an Agent PCR, exact public/plaintext identity-tuple binding, no pairing readiness gate, and prohibition on portable active MLS state, Agent runtime private-key backup or per-Agent human mnemonic."
     },
     {
       "vector_id": "ak.vector.agent.managed_pcr_separation.v1",
@@ -201,7 +201,7 @@
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ],
-      "description": "Managed-agent DID-to-PCR binding, controller delegated authoring attribution, control-fact placement, and rejection of non-PCR Realms at either principal control id."
+      "description": "Agent DID-to-PCR binding, controller delegated authoring attribution, control-fact placement, and rejection of non-PCR Realms at either principal control id."
     },
     {
       "vector_id": "ak.vector.agent.membership_cascade.v1",
@@ -210,7 +210,7 @@
       "applies_to_fixtures": [
         "agent-membership-cascade-fixture.json"
       ],
-      "description": "Native Agent effective membership is bound to the exact controller authority pair and join Event generation; self leave is one complete atomic cascade, while third-party terminal removal freezes a durable exact-set cleanup intent without delaying immediate authority loss or synthesizing Agent Events.",
+      "description": "Agent effective membership is bound to the exact controller authority pair and join Event generation; self leave is one complete atomic cascade, while third-party terminal removal freezes a durable exact-set cleanup intent without delaying immediate authority loss or synthesizing Agent Events.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json"
@@ -241,7 +241,7 @@
         "spec/v1/zh/crypto-media/encryption-and-audit.md",
         "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json"
       ],
-      "description": "Native Agent MLS KeyPackages bind exclusively to the current accepted ak.agent.key.authorize Event and its runtime signing key, never to a controller delegated-device authorization; stale, mixed, cross-principal, revoked, superseded, expired, or key-mismatched bindings fail closed."
+      "description": "Agent MLS KeyPackages bind exclusively to the current accepted ak.agent.key.authorize Event and its runtime signing key, never to a controller delegated-device authorization; stale, mixed, cross-principal, revoked, superseded, expired, or key-mismatched bindings fail closed."
     },
     {
       "vector_id": "ak.vector.agent.pairing_expiry.v1",
@@ -319,7 +319,7 @@
       "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
       "status": "active",
       "domain": "agent",
-      "description": "Managed Agent bootstrap is constructed in one acyclic order: controller-signed PCR-independent DID entry 0 -> exact initial_resolution -> frozen genesis create -> realm_id=retype(event_id) -> accepted provision -> accepted PCR -> controller-signed create-locked DID entry 1. Covers awaiting_pcr_genesis and awaiting_did_binding invisibility, exact durable commitment comparison, activation only after entry 1, and rejection of same-batch submission, undeclared genesis, duplicate claim, service-chosen realm id, cross-server split or wrong DID update key/tuple.",
+      "description": "Agent bootstrap is constructed in one acyclic order: controller-signed PCR-independent DID entry 0 -> exact initial_resolution -> frozen genesis create -> realm_id=retype(event_id) -> accepted provision -> accepted PCR -> controller-signed create-locked DID entry 1. Covers awaiting_pcr_genesis and awaiting_did_binding invisibility, exact durable commitment comparison, activation only after entry 1, and rejection of same-batch submission, undeclared genesis, duplicate claim, service-chosen realm id, cross-server split or wrong DID update key/tuple.",
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
@@ -357,7 +357,7 @@
       "vector_id": "ak.vector.agent.requested_scope_privacy.v1",
       "status": "active",
       "domain": "agent",
-      "description": "The public managed-Agent DID history contains only the requested_scope commitment digest; complete scope disclosure is controller-signed, verifier/audience/challenge-bound, short-window private evidence, and public-copy, mismatch, stale, wrong-audience, and replay variants fail closed.",
+      "description": "The public Agent DID history contains only the requested_scope commitment digest; complete scope disclosure is controller-signed, verifier/audience/challenge-bound, short-window private evidence, and public-copy, mismatch, stale, wrong-audience, and replay variants fail closed.",
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
@@ -2999,7 +2999,7 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "Every accepted or byte-identical duplicate Native Agent Event in a peer submission returns exactly one receiver-signed admission receipt written in the same acceptance transaction, rejected, quarantined and dependency-missing items return none, exact duplicates replay the first stored bytes, and the source durable outbox only completes the handoff after the receipt set matches the producer-evidence-pair Events one to one and the materialization obligation is committed atomically.",
+      "description": "Every accepted or byte-identical duplicate Agent Event in a peer submission returns exactly one receiver-signed admission receipt written in the same acceptance transaction, rejected, quarantined and dependency-missing items return none, exact duplicates replay the first stored bytes, and the source durable outbox only completes the handoff after the receipt set matches the producer-evidence-pair Events one to one and the materialization obligation is committed atomically.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -3222,7 +3222,7 @@
         "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ],
-      "description": "Ordinary, Native Agent and minimal sender domains bind history-secret KDF, derived nonce, reconstructed AAD, HPKE chunk context and replay rejection. Received bytes globally deduplicate by (scope,group,epoch,candidate_digest). CandidateOriginAttribution separates stable response-sender/RRK-holder-key/backup-series-producer origin_quota_domain from retrieval-only origin_ref, with immutable 30-day TTL and 4-per-candidate/64-per-quota-domain/256-total caps. EventCandidateBinding contains no origin, is independently capped at 256 per epoch for 30 days, and never pins bytes or promotes an epoch winner. Two-tier eviction uses immutable material_received_sequence then candidate_digest, including success-bound material as the second tier."
+      "description": "Ordinary, Agent and minimal sender domains bind history-secret KDF, derived nonce, reconstructed AAD, HPKE chunk context and replay rejection. Received bytes globally deduplicate by (scope,group,epoch,candidate_digest). CandidateOriginAttribution separates stable response-sender/RRK-holder-key/backup-series-producer origin_quota_domain from retrieval-only origin_ref, with immutable 30-day TTL and 4-per-candidate/64-per-quota-domain/256-total caps. EventCandidateBinding contains no origin, is independently capped at 256 per epoch for 30 days, and never pins bytes or promotes an epoch winner. Two-tier eviction uses immutable material_received_sequence then candidate_digest, including success-bound material as the second tier."
     },
     {
       "vector_id": "ak.vector.hpke.p256_aes256gcm_base.v1",
@@ -3819,7 +3819,7 @@
         "keypackage-lifecycle-fixture.json",
         "keypackage-pairwise-welcome-fixture.json"
       ],
-      "description": "Realm-local minimal-metadata pairwise endpoint completes publish, exact claim, Welcome, recipient durable receipt and singular consume without an Account, Device, Native Agent or transport-session identity carrier; every stage binds the exact did:key method, current joined Realm delivery authority and intended Realm, and all mixed branches fail closed.",
+      "description": "Realm-local minimal-metadata pairwise endpoint completes publish, exact claim, Welcome, recipient durable receipt and singular consume without an Account, Device, Agent or transport-session identity carrier; every stage binds the exact did:key method, current joined Realm delivery authority and intended Realm, and all mixed branches fail closed.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
@@ -3859,7 +3859,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Self and peer KeyPackage claim share one closed device|native_agent|minimal_metadata_pairwise requester authorization bound to exact claim fields and stable source/destination service DIDs. The source service admits current durable requester authority before local CAS or durable remote relay; uncertain remote outcomes are queried by the original claim id and request digest before any exact resend. The destination-authority ledger atomically binds request digest, KeyPackage CAS and signed receipt; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
+      "description": "Self and peer KeyPackage claim share one closed device|agent|minimal_metadata_pairwise requester authorization bound to exact claim fields and stable source/destination service DIDs. The source service admits current durable requester authority before local CAS or durable remote relay; uncertain remote outcomes are queried by the original claim id and request digest before any exact resend. The destination-authority ledger atomically binds request digest, KeyPackage CAS and signed receipt; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -4483,7 +4483,7 @@
       "applies_to_fixtures": [
         "content-bound-event-id-fixture.json"
       ],
-      "description": "Realm ids, including Principal Control Realm and managed Agent PCR, are event-derived: header 0x01 (reserved-zero nibble + sha256) retyped from the genesis ak.realm.create Event token, byte-identical to that Event's token. Any non-zero high nibble is rejected as realm_id_not_event_derived. The 44-character token preserves all 256 digest bits; UUID Realm IDs are invalid.",
+      "description": "Realm ids, including Principal Control Realm and Agent PCR, are event-derived: header 0x01 (reserved-zero nibble + sha256) retyped from the genesis ak.realm.create Event token, byte-identical to that Event's token. Any non-zero high nibble is rejected as realm_id_not_event_derived. The 44-character token preserves all 256 digest bits; UUID Realm IDs are invalid.",
       "source_refs": [
         "spec/v1/zh/models/realm-and-space.md",
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"

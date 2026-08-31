@@ -91,7 +91,7 @@ submitted、pending、receipt、transparency entry、availability receipt、snap
    `controller_id` / `controller_epoch` / `authority_generation`
    由 create envelope 的 `actor_id` 与冻结 profile 规则确定性派生。
 
-普通 Collaboration 的 policy bundle、join rule、history access、discovery、alias/plaintext/delivery 与 creator membership 是同一 bootstrap registry 中按序签名的显式 facet。`direct_conversation`、`principal_control`、`managed_agent_control` 不携该普通 history facet；create reducer 分别按 `payload.object.purpose` 命中的注册条件原子写入 `ak.component.realm.history_access.v1: null -> since_join`。另有 `initial_resolution` 与 managed-Agent status 条件写。缺槽、错序、漏写或条件路径不闭合时整个 unit MUST 原子拒绝。
+普通 Collaboration 的 policy bundle、join rule、history access、discovery、alias/plaintext/delivery 与 creator membership 是同一 bootstrap registry 中按序签名的显式 facet。`direct_conversation`、`principal_control`、`agent_control` 不携该普通 history facet；create reducer 分别按 `payload.object.purpose` 命中的注册条件原子写入 `ak.component.realm.history_access.v1: null -> since_join`。另有 `initial_resolution` 与 Agent status 条件写。缺槽、错序、漏写或条件路径不闭合时整个 unit MUST 原子拒绝。
 
 对 MLS-backed scope，首 Seal 还 MUST 声明将由后续 `ak.mls.genesis` 建立 epoch-0 binding 的
 bootstrap requirement；epoch-0 binding 本身由首个覆盖 `ak.mls.genesis` 的 Seal 验证。
@@ -115,7 +115,7 @@ defer_count, authority_set_ref, authority_acks[]
 ```
 
 **闭合 genesis 的 ingress authority**：普通路径中的 `authority_set_ref` 来自已经生效的
-Realm authority set。ordinary Realm 与 managed Agent PCR 的登记闭合 genesis Event 虽然免
+Realm authority set。ordinary Realm 与 Agent PCR 的登记闭合 genesis Event 虽然免
 `seal_basis`，仍是 Control Move，因而在 durable proposal ingress 时 **MUST 各自具有 Control
 Proposal Ack**；`AnchorUnit` transport context 只证明无 basis 单元的闭合形态，不得据此让这两类
 durable ingress 省略 receipt。receipt、canonical Event、pending Control index 与 wakeup MUST
@@ -127,7 +127,7 @@ human self-principal PCR 的 `[ak.realm.create, ak.device.authorize]` genesis un
 例外：它不是向外部 authority 提交的 proposal。create 的 identity-root commitment、founding device
 对 exact authorize payload/Event 的 possession proof 与整单元原子验证已经闭合内容授权；因此该 unit
 **MUST NOT** 携 AuthorizationLease 或 Control Proposal Ack，但两条 canonical Event、pending Control
-index 与首 Seal obligation 仍必须原子建立。不得把此例外扩大到 ordinary Realm、managed Agent PCR、
+index 与首 Seal obligation 仍必须原子建立。不得把此例外扩大到 ordinary Realm、Agent PCR、
 organization PCR 或 re-anchor/recovery。
 这里的 identity-root / founding-device “proof”均指各 Event 的唯一 producer proof。首次 admission
 落库后，两条 canonical Event 可各自按 federation 规则追加一个已验证的
@@ -139,7 +139,7 @@ identity-root / founding-device authority。不得把 admission proof 误计为�
 验证前提，但允许以下两个互斥且可独立验证的 ingress authority 来源：
 
 1. 若 founding signer authority 可从单元外的已接受证据与候选 genesis 完整确定，则该 signer
-   MAY 直接签 receipt。managed Agent PCR 的唯一此类路径是：从候选 signed create 重算 founding
+   MAY 直接签 receipt。Agent PCR 的唯一此类路径是：从候选 signed create 重算 founding
    `NotaryValue` / `authority_set_ref`，再以 accepted Agent DID delegation 验证当前 controller
    device；receipt signer 是 controller device，不能伪装成 Agent key。候选 create、Agent DID、
    controller DID、Realm 与 `authorization_ref` 任一不闭合即 fail closed。
@@ -170,7 +170,7 @@ proposal。此类 Move **MUST** 省略独立 Control Proposal Ack，admitting se
 canonical Event 与无 Ack 的 pending Control row，并只在同一 current device（或随后合法替代 authority）
 签署的 accepted successor Seal 覆盖该 digest 后 materialize effect。duplicate 必须回放首次 admission，
 不得补签 Ack 或推进期限。任一 profile、principal、device method、accepted generation 或 Seal basis不匹配
-都必须 fail closed，且不得使用本例外。managed Agent controller delegation、organization governance、
+都必须 fail closed，且不得使用本例外。Agent controller delegation、organization governance、
 ordinary Realm、re-anchor/recovery 与任意 threshold/mixed notary 继续走上文的显式 Ack/quorum 轨道。
 首次 admission 后的 canonical Event 会按 federation 规则追加且仅追加一个已验证的
 `station_admission` proof；Ack-less authority 重验必须只选择唯一 producer proof，并忽略该

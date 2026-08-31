@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.5",
+  "version": "2026-08-31.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T18:00:01+08:00",
+  "generated_at": "2026-08-31T18:30:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -13,12 +13,12 @@
     "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed.",
     "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
     "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
-    "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=managed_agent_control Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
-    "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds the exact account ActorId, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Native Agent or human PCR admission.",
+    "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=agent_control Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
+    "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds the exact account ActorId, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Agent or human PCR admission.",
     "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
     "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(did)=actor_id; current DID state after registration is irrelevant.",
     "pcr_recovery": "Admitted only for ak.device.reanchor under the account-local lineage's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching account-local lineage and policy cannot enter this class.",
-    "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact round. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_contact_round and with the managed-Agent PCR agent_provision role.",
+    "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact round. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_contact_round and with the Agent PCR agent_provision role.",
     "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_contact_round pointing to the portable Contact round evidence bundle and its continuity chain to the pair's root Contact round. The verifier derives founder from the root Contact round (normal branch: the sorted_pair_member_ids entry that is not the request_event_ref issuer_id, i.e. the responder; glare branch: the requests[0] issuer_id), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_member_ids and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at Contact round validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
     "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
     "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed."
@@ -137,7 +137,7 @@
         {
           "when": {
             "payload_path": "object.purpose",
-            "const": "managed_agent_control",
+            "const": "agent_control",
             "top_level_fields_present": [
               "executed_by",
               "authorization_ref"
@@ -295,7 +295,7 @@
           "condition": {
             "kind": "field_equals",
             "field": "payload.object.purpose",
-            "const": "managed_agent_control"
+            "const": "agent_control"
           },
           "effect_projection": {
             "kind": "transition",
@@ -441,7 +441,7 @@
           "condition": {
             "kind": "field_equals",
             "field": "payload.object.purpose",
-            "const": "managed_agent_control"
+            "const": "agent_control"
           },
           "effect_projection": {
             "kind": "transition",
@@ -2295,7 +2295,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "capability_gated",
-      "payload": "Realm membership state. Native Personal Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event: self leave uses the registered atomic agent_membership_cascade unit; third-party emergency removal freezes a durable exact-set cleanup intent and the original initiator later signs the complete Agent leave set.",
+      "payload": "Realm membership state. Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event: self leave uses the registered atomic agent_membership_cascade unit; third-party emergency removal freezes a durable exact-set cleanup intent and the original initiator later signs the complete Agent leave set.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
@@ -3917,7 +3917,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared managed Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared managed Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
+      "payload": "Controller-authored Agent Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
       "payload_schema_ref": "schemas/agent-provision.schema.json",
       "id_source": "reference",
       "plane": "control",
@@ -4001,7 +4001,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one native personal agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
+      "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one Agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
       "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
       "id_source": "not_an_object_id",
       "plane": "control",

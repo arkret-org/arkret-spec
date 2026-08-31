@@ -81,6 +81,7 @@
         "organization",
         "team",
         "agent",
+        "bot",
         "service",
         "integration"
       ],
@@ -3017,7 +3018,7 @@
       }
     },
     {
-      "$comment": "A managed_agent_control Realm create without did_inception is syntactically reserved for delegated managed-principal genesis. Requiring the delegation pair prevents a self-principal caller from falling through to ordinary realm.create capability admission; the delegated_pcr_genesis verifier performs the actor/DID/service/realm comparisons that JSON Schema cannot express.",
+      "$comment": "A agent_control Realm create without did_inception is syntactically reserved for delegated managed-principal genesis. Requiring the delegation pair prevents a self-principal caller from falling through to ordinary realm.create capability admission; the delegated_pcr_genesis verifier performs the actor/DID/service/realm comparisons that JSON Schema cannot express.",
       "if": {
         "properties": {
           "kind": {
@@ -3030,7 +3031,7 @@
                 "type": "object",
                 "properties": {
                   "purpose": {
-                    "const": "managed_agent_control"
+                    "const": "agent_control"
                   }
                 },
                 "required": [
@@ -4093,7 +4094,7 @@
       }
     },
     {
-      "$comment": "zh/models/realm-and-space.md section 2.5.0: ak.realm.create MUST omit realm_id and use the realm_genesis scope. Every Realm, including Collaboration, Direct Conversation, human PCR, and managed Agent PCR, derives realm_id = retype(event_id, \"realm\") from this create Event. The uniform omission leaves one receiver-derived genesis form and avoids the digest cycle. Every other kind MUST carry realm_id.",
+      "$comment": "zh/models/realm-and-space.md section 2.5.0: ak.realm.create MUST omit realm_id and use the realm_genesis scope. Every Realm, including Collaboration, Direct Conversation, human PCR, and Agent PCR, derives realm_id = retype(event_id, \"realm\") from this create Event. The uniform omission leaves one receiver-derived genesis form and avoids the digest cycle. Every other kind MUST carry realm_id.",
       "if": {
         "required": [
           "kind"
@@ -4275,7 +4276,7 @@
             }
           },
           "additionalProperties": false,
-          "description": "Genesis scope for ak.realm.create only. It carries no realm_id because the receiver derives every Realm id, including Collaboration, Direct Conversation, human PCR, and managed Agent PCR, as retype(event_id, \"realm\") from this create Event (zh/models/realm-and-space.md section 2.5.0). The uniform omission also prevents the digest cycle."
+          "description": "Genesis scope for ak.realm.create only. It carries no realm_id because the receiver derives every Realm id, including Collaboration, Direct Conversation, human PCR, and Agent PCR, as retype(event_id, \"realm\") from this create Event (zh/models/realm-and-space.md section 2.5.0). The uniform omission also prevents the digest cycle."
         }
       ]
     },
@@ -4640,7 +4641,7 @@
     },
     "station_admission_proof": {
       "type": "object",
-      "description": "Origin Station admission proof over canonical_json({context:'ak.station_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,producer_signer_resolution_evidence_digest?,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). The optional producer pair freezes the original producer evidence root when that signer regime has portable evidence; Native Agent federation requires it. The unprefixed signer pair continues to bind the Station proof's own service signer evidence.",
+      "description": "Origin Station admission proof over canonical_json({context:'ak.station_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,producer_signer_resolution_evidence_digest?,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). The optional producer pair freezes the original producer evidence root when that signer regime has portable evidence; Agent federation requires it. The unprefixed signer pair continues to bind the Station proof's own service signer evidence.",
       "required": [
         "kind",
         "verification_method",
@@ -4684,7 +4685,7 @@
         "producer_signer_resolution_evidence_digest": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Must be present as a matching pair with producer_signer_resolution_evidence_ref. Native Agent admission requires the pair and it resolves to the exact frozen CurrentAdmission root."
+          "description": "Must be present as a matching pair with producer_signer_resolution_evidence_ref. Agent admission requires the pair and it resolves to the exact frozen CurrentAdmission root."
         },
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"

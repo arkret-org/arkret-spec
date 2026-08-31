@@ -456,14 +456,14 @@ DID core 的 `ServiceResolutionRecord`，不改变 ActorId；service DID core �
 | `holder` | 叙述性角色名词 | [`consent-model.md` §2.1](../identity/consent-model.md)；[`client-preferences.md`](../discovery/client-preferences.md)；[glossary `Consent`](../overview/glossary.md) | consent / blocklist / recovery share / pairwise 假名等 holder-private 状态的归属主体。具体 action 的写权限以 capability registry 为准；`ak.consent.grant` / `ak.consent.revoke` 要求 holder actor 与认证 holder 本身是 Principal Control Realm 当前 authority-root controller，不接受独立 managed-behalf 或 controller / agent 委派。承载该主体 `did_core_id` 的字段按 §2.1.1 使用 `holder_id`（`ak.account.blocklist`、`ak.account_data.set`、availability receipt）或 `holder_principal_id`（consent、identity disclosure receipt）；**不得**改用 `owner` 一类未登记的近义词。 |
 | `notary` | 叙述性角色名词 | [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)；[glossary `Seal` / `Notary Cell`](../overview/glossary.md)；[`capabilities.md`](../authz/capabilities.md) | Seal ordering authority：对 Move frontier 签名承诺的主体；由 `notary_cell`（`cas_register + bottom=reject`）授权，冲突时触发 Realm-wide Seal pause。 |
 | `witness` | 叙述性角色名词 | [glossary `Witness`](../overview/glossary.md)；[`federation.md`](../sync/federation.md)；[`operations-sync.md`](../sync/operations-sync.md)；[`identity-did.md`](../identity/identity-did.md) | 对 frontier、range completeness、DID key-log 头部或 handover frontier 签发 attestation / receipt 的受信背书主体；不替代 Event 自身签名、Seal finality 或 reducer 验证。 |
-| `controller` | 叙述性角色名词 | [`identity-did.md`](../identity/identity-did.md)（DID controller proof）；[`actor.md` §3.3](./actor.md)（Native Personal Agent controller） | DID 控制主体（method history 中以 controller proof 证明控制权），或受 holder / principal 显式授权代为写入 / provision 的控制方。 |
+| `controller` | 叙述性角色名词 | [`identity-did.md`](../identity/identity-did.md)（DID controller proof）；[`actor.md` §3.3](./actor.md)（Agent controller） | DID 控制主体（method history 中以 controller proof 证明控制权），或受 holder / principal 显式授权代为写入 / provision 的控制方。 |
 | `owner_id` | id 字段（§4.2） | [`realm-read-operations.schema.json`](../../artifacts/schemas/realm-read-operations.schema.json)（`realm_lifecycle_view`）；[`realm-and-space.md`](./realm-and-space.md)（organization `relationship="owner"`） | Realm lifecycle projection 中该 Realm 归属主体的 `did_core_id`。与 organization statement 的 `relationship="owner"` 同一归属语义，但后者是关系枚举值而不是主体字段。**不得**用 `owner_id` 表达 holder-private 状态的归属主体——那一族使用 `holder`（见本表 `holder` 行）；也不得写成裸 `owner`。 |
 | `publisher_id` | id 字段（§4.2） | [`extension-manifest.md`](../extensions/extension-manifest.md)；[`extension-manifest.schema.json`](../../artifacts/schemas/extension-manifest.schema.json) | 对 Extension Manifest 的 canonical digest 与完整声明负责并签发 publisher proof 的主体 DID；不得用裸 `publisher` 或 transport service identity 替代。 |
 
 ### 4.4 `agent_participation` wire 形态（normative）
 
 Realm、Circle、Strand 的 `agent_participation` policy component 使用
-`{native_agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf}}`；
+`{agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf}}`；
 controller-private selection 直接使用同一个五位 inner object。五个 boolean 全部 required，两个 object 都 closed；
 任一位缺失或出现未知位均 `schema_violation`，不得默认补齐。外层 axis 为其它 actor family 保留，不同
 family 使用独立 sibling key。

@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-30.1",
+  "version": "2026-08-31.1",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-08-30T23:30:00+08:00",
+  "generated_at": "2026-08-31T18:10:00+08:00",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
@@ -84,7 +84,7 @@
     "ak.profile.notary.threshold.v1",
     "ak.profile.organization_high_assurance_identity.v1",
     "ak.profile.organization.v1",
-    "ak.profile.personal_agent_provisioning.v1",
+    "ak.profile.agent_provisioning.v1",
     "ak.profile.personal_node.v1",
     "ak.profile.personal_productivity.v1",
     "ak.profile.pinned_items.v1",
@@ -130,12 +130,12 @@
     },
     {
       "from": "ak.profile.agent_participation_policy.v1",
-      "to": "ak.profile.personal_agent_provisioning.v1",
+      "to": "ak.profile.agent_provisioning.v1",
       "kind": "inherits"
     },
     {
       "from": "ak.profile.agent_sidecar.v1",
-      "to": "ak.profile.personal_agent_provisioning.v1",
+      "to": "ak.profile.agent_provisioning.v1",
       "kind": "inherits"
     },
     {
@@ -294,7 +294,7 @@
       "kind": "inherits"
     },
     {
-      "from": "ak.profile.personal_agent_provisioning.v1",
+      "from": "ak.profile.agent_provisioning.v1",
       "to": "ak.profile.agent_runtime.v1",
       "kind": "inherits"
     },

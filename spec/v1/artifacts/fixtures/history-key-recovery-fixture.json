@@ -1129,9 +1129,9 @@
           }
         },
         {
-          "profile": "native_agent",
+          "profile": "agent",
           "endpoint": {
-            "kind": "native_agent",
+            "kind": "agent",
             "requester_agent_id": "ak:did_core:key:z6MkfixtureService",
             "requester_agent_verification_method": "did:key:z6MkfixtureService#key-1",
             "requester_agent_key_authorize_event_id": "ak:event:AblBwcOzpalf0YZW7kxPD121SOXTiD6yF1HDslTM5dWQ"

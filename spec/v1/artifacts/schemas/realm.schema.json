@@ -100,13 +100,13 @@
     },
     "fields": {
       "type": "object",
-      "description": "Product/profile fields. Security-relevant discriminators such as purpose in {principal_control, managed_agent_control} and collaboration_role=direct_conversation are schema constrained below; other product fields remain extension-defined.",
+      "description": "Product/profile fields. Security-relevant discriminators such as purpose in {principal_control, agent_control} and collaboration_role=direct_conversation are schema constrained below; other product fields remain extension-defined.",
       "properties": {
         "purpose": {
           "type": "string",
           "enum": [
             "principal_control",
-            "managed_agent_control",
+            "agent_control",
             "applet_managed_control"
           ]
         },
@@ -279,12 +279,12 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "Realm five-bit native Agent participation ceiling. It may only tighten the target-service safety ceiling and is itself the parent of Circle and Strand ceilings.",
+      "description": "Realm five-bit Agent participation ceiling. It may only tighten the target-service safety ceiling and is itself the parent of Circle and Strand ceilings.",
       "required": [
-        "native_agent"
+        "agent"
       ],
       "properties": {
-        "native_agent": {
+        "agent": {
           "$ref": "./principal-operations.schema.json#/$defs/participation_bits"
         }
       },
@@ -599,7 +599,7 @@
       }
     },
     {
-      "$comment": "Principal-control and managed-Agent-control Realms share the ak.profile.principal_control_realm.v1 materialized guard. fields.purpose and schema_refs must appear together, the Realm MUST be MLS-backed, history_access MUST be permanently pinned to since_join, and both encryption floors MUST be pinned to e2ee_required (key-management §4.1 / §5.0.1, realm-and-space §2.8.1). There is no plaintext-floor PCR in v1.",
+      "$comment": "Principal-control and Agent-control Realms share the ak.profile.principal_control_realm.v1 materialized guard. fields.purpose and schema_refs must appear together, the Realm MUST be MLS-backed, history_access MUST be permanently pinned to since_join, and both encryption floors MUST be pinned to e2ee_required (key-management §4.1 / §5.0.1, realm-and-space §2.8.1). There is no plaintext-floor PCR in v1.",
       "if": {
         "properties": {
           "fields": {
@@ -607,7 +607,7 @@
               "purpose": {
                 "enum": [
                   "principal_control",
-                  "managed_agent_control",
+                  "agent_control",
                   "applet_managed_control"
                 ]
               }
@@ -653,7 +653,7 @@
       }
     },
     {
-      "$comment": "The inverse guard prevents a profile-tagged Realm from omitting the machine-readable principal-control or managed-Agent-control purpose discriminator, and pins history_access and both encryption floors symmetrically with the forward guard.",
+      "$comment": "The inverse guard prevents a profile-tagged Realm from omitting the machine-readable principal-control or Agent-control purpose discriminator, and pins history_access and both encryption floors symmetrically with the forward guard.",
       "if": {
         "properties": {
           "schema_refs": {
@@ -696,7 +696,7 @@
               "purpose": {
                 "enum": [
                   "principal_control",
-                  "managed_agent_control",
+                  "agent_control",
                   "applet_managed_control"
                 ]
               }

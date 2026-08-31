@@ -29,7 +29,7 @@
   "cases": [
     {
       "name": "query_success_returns_cas_frozen_authenticated_root",
-      "success_item_kind": "native_agent",
+      "success_item_kind": "agent",
       "contains_complete_agent_signer_evidence": true,
       "contains_four_recursive_evidence_pairs": true,
       "issuer_atomically_persists_root_and_recursive_dependencies": true,
@@ -320,7 +320,7 @@
     {
       "name": "agent_genesis_active_requires_accepted_provision_declaration",
       "provenance.kind": "delegated_pcr_genesis",
-      "genesis_realm_purpose": "managed_agent_control",
+      "genesis_realm_purpose": "agent_control",
       "accepted_provision_declares_genesis_derived_realm_id": true,
       "expected": "verified"
     },

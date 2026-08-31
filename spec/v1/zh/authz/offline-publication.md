@@ -45,7 +45,7 @@ authorization。verifier MUST 从 accepted CBA basis
 不能把 medium/high action 降为 low，也不能跨 scope 使用。
 
 三个已注册的 closed genesis family（ordinary Realm founding unit、self-principal PCR
-bootstrap unit 与 accepted controller delegation 精确绑定的 managed Agent PCR create）
+bootstrap unit 与 accepted controller delegation 精确绑定的 Agent PCR create）
 没有先验 Seal。ordinary Realm founding unit 的 wire 必需项是 bootstrap registry 的完整有序闭包。
 其中 create 只投影 genesis intent、create 审计日志、founding notary、reducer profile 与 founding authority root
 cell（`ak.component.realm.authority_root.v1`）五项；profile、policy 与 creator membership 都由独立签名 facet 承担
@@ -165,7 +165,7 @@ current session/lifecycle/policy gate只能控制当前交付、展示与新副�
 2. **offline/delayed ingress**：唯一 carrier 是 `AuthorizationLease`，且服务在 lease 窗口内成功签收后产生 `IngressReceipt`。online request context 不能代替 lease，lease 也不能塞入 online authority context。
 3. **peer federation**：peer authority 只来自 Event envelope 内已验证的 origin `station_admission` proof。若 peer 转发最初 offline ingress 的 lease/receipt，它们只证明 origin 的历史签收窗口，不替代也不扩展 origin admission proof。
 
-managed Agent online Event 复用 controller session 的同一 online context，并额外交集 Agent 当前 delegated runtime binding 与 portable signer evidence；不得伪造 human device authority。三条 lane 不得启发式 fallback，也不得从裸 Event core、当前 DID、最新 PCR 或全局 device row猜测 authority。
+Agent online Event 复用 controller session 的同一 online context，并额外交集 Agent 当前 delegated runtime binding 与 portable signer evidence；不得伪造 human device authority。三条 lane 不得启发式 fallback，也不得从裸 Event core、当前 DID、最新 PCR 或全局 device row猜测 authority。
 
 ### 2.1 提交与重传封装
 

@@ -374,7 +374,7 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 
 服务类型命名规则：
 
-- service identity bootstrap 的 DID Document entry 唯一使用 `type="ArkretService"`，并以必填 `serviceKind` 取 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `valid_in` 含 `service_registration_key` 的值。`ArkretStation` / `ArkretDirectory` 不是 alias，必须拒绝。Organization 与 managed-Agent 的 specialized DID service type 仅使用 [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json) 登记的独立 endpoint shape，不得替代 service bootstrap。
+- service identity bootstrap 的 DID Document entry 唯一使用 `type="ArkretService"`，并以必填 `serviceKind` 取 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `valid_in` 含 `service_registration_key` 的值。`ArkretStation` / `ArkretDirectory` 不是 alias，必须拒绝。Organization 与 Agent 的 specialized DID service type 仅使用 [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json) 登记的独立 endpoint shape，不得替代 service bootstrap。
 - describe 响应的 `service_kind` 使用 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_kind`。Realm join candidate 的 `service_kind` 仅允许 `station`，其路由来源只允许 signed invite 或当前 joined-joined-member ActorId routing projection（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
 - conformance profile 使用 `ak.profile.*` 标识，例如 `ak.profile.station.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_kind 与 conformance profile 混用。
@@ -979,16 +979,16 @@ POST /_arkret/self/authz/check
 - Station sync surface 分发前快速过滤
 - client 发送前本地 UX 提示
 
-## 10.1 Personal Agent Surface
+## 10.1 Agent Surface
 
-Native personal agent 的 management、pairing、session grant 与 Sidecar operations 属于 self / gate trust surface 上的语义操作；canonical HTTP path、request/response schema 与 binding completeness index 由 [`service-http-binding.md` §2.4.1](./service-http-binding.md) 维护，本文只声明语义边界。实现 MUST 使用 operation catalog 中登记的 `ak.self.agent.*`、`ak.gate.account.*` 与 `ak.self.agent.sidecar.*` 操作名，不得从本节散文推导额外路径、profile id 或快捷授权。
+Agent 的 management、pairing、session grant 与 Sidecar operations 属于 self / gate trust surface 上的语义操作；canonical HTTP path、request/response schema 与 binding completeness index 由 [`service-http-binding.md` §2.4.1](./service-http-binding.md) 维护，本文只声明语义边界。实现 MUST 使用 operation catalog 中登记的 `ak.self.agent.*`、`ak.gate.account.*` 与 `ak.self.agent.sidecar.*` 操作名，不得从本节散文推导额外路径、profile id 或快捷授权。
 
 约束:
 
 - 本 surface 不引入 custom URI scheme(`arkret://` 等);所有 deep-link 由客户端用 deployment 已知的 `arkret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
 - `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `ak:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
 - `{agent_id}` 是 DID,在 URL path 中 MUST 按 RFC 3986 percent-encoding。
-- `ak.self.agent.command.provision.v1` MUST 接收非空 `slug`；`slug` 是 Agent 自身的固有字段，因此 provision request 与 list/get projection 均使用裸名 `slug`。controller 签署的唯一 `ak.agent.provision` Event 在一次 reducer transaction 中派生当前 selector projection，其中引用 Agent selector 的字段使用 `agent_slug=slug`；服务端不得另造 `ak.agent.selector_claim` Event。controller E2EE client MAY 在随后由其本地生成并加密提交的 Agent Actor Profile 中写入 `agent_slug` 作为投影 hint；服务端不得代写该 Agent PCR Profile。`agent_slug` 只用于 `@<controller-handle>/<agent_slug>` 输入别名到 agent principal DID 的 compose-time 解析；服务端 MUST 拒绝或 fail closed 处理同一 verified controller 下 active native agent 的 selector claim 冲突。
+- `ak.self.agent.command.provision.v1` MUST 接收非空 `slug`；`slug` 是 Agent 自身的固有字段，因此 provision request 与 list/get projection 均使用裸名 `slug`。controller 签署的唯一 `ak.agent.provision` Event 在一次 reducer transaction 中派生当前 selector projection，其中引用 Agent selector 的字段使用 `agent_slug=slug`；服务端不得另造 `ak.agent.selector_claim` Event。controller E2EE client MAY 在随后由其本地生成并加密提交的 Agent Actor Profile 中写入 `agent_slug` 作为投影 hint；服务端不得代写该 Agent PCR Profile。`agent_slug` 只用于 `@<controller-handle>/<agent_slug>` 输入别名到 agent principal DID 的 compose-time 解析；服务端 MUST 拒绝或 fail closed 处理同一 verified controller 下 active Agent 的 selector claim 冲突。
 - participation replace/get 都是 controller-only。replace body 固定为 `{target_scope,selection,expected_version}`，GET 与 replace outcome 的 entry 固定为 `{target_scope,selection,version,next_replace_input:{expected_version}}`，且 `next_replace_input.expected_version=version`。Account Authority 只校验 controller、closed scope/五位 shape 与 CAS version；selection 可以表达希望开启但当前 policy/capability 尚不允许的位，因为它本身不产生权限。
 - `ak.gate.account.command.issue_session_grant.v1` 为 agent runtime 签发 session 时，若 scope request 覆盖 participation-aware scope，`scope_details.participation[]` MUST 使用与 `agent_participation_entry` 同构的 `{target_scope,selection,version,next_replace_input:{expected_version}}` 条目，且 `next_replace_input.expected_version=version`。runtime 可据此避免无效动作；target 仍必须在动作时读取当前 deployment/Realm/Circle/Strand policy，并独立校验 capability、session scope、membership 与 lifecycle，不得信任 session 中携带的预计算 ceiling/effective。
 

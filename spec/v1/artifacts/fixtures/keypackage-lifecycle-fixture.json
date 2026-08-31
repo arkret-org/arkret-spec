@@ -341,7 +341,7 @@
       "request_digest": "sha256:9baa91343b43ac49426d1b9fb93f4f1045f2f5ebc9844174f4ee5c3f190505f7"
     },
     {
-      "branch": "native_agent",
+      "branch": "agent",
       "unsigned_request": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
         "target_principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
@@ -778,7 +778,7 @@
         "pairwise upload binds one did:key actor and verification method to a Realm-local RFC 9420 BasicCredential and LeafNode signature key",
         "pairwise claim uses an exact target endpoint selector and a separately signed requester authorization without creating an Account or Device",
         "Welcome claim_ref, recipient endpoint, durable receipt and current Realm delivery affinity remain one exact pairwise authority",
-        "consume derives all authority and coordinates from the required durable receipt and rejects Device or Native Agent branch mixtures"
+        "consume derives all authority and coordinates from the required durable receipt and rejects Device or Agent branch mixtures"
       ]
     },
     {

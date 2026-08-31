@@ -344,7 +344,7 @@
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
       "input": {
         "event_kind": "ak.realm.create",
-        "realm_purpose": "managed_agent_control",
+        "realm_purpose": "agent_control",
         "did_inception_ref_count": 0,
         "agent_provision_ref_count": 0,
         "actor_kind": "agent",
@@ -359,11 +359,11 @@
       }
     },
     {
-      "name": "reject_managed_agent_pcr_genesis_without_accepted_provision_declaration",
+      "name": "reject_agent_pcr_genesis_without_accepted_provision_declaration",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
       "input": {
         "event_kind": "ak.realm.create",
-        "realm_purpose": "managed_agent_control",
+        "realm_purpose": "agent_control",
         "did_inception_ref_count": 0,
         "agent_provision_ref_count": 0,
         "actor_kind": "agent",

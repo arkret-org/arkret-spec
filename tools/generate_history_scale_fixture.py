@@ -589,9 +589,9 @@ def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
             },
         },
         {
-            "profile": "native_agent",
+            "profile": "agent",
             "endpoint": {
-                "kind": "native_agent",
+                "kind": "agent",
                 "requester_agent_id": SERVICE_CORE,
                 "requester_agent_verification_method": SERVICE_METHOD,
                 "requester_agent_key_authorize_event_id": event_id("requester-agent-authorize"),

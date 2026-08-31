@@ -199,7 +199,7 @@
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "agent_signer_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -245,17 +245,6 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "native_agent_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",

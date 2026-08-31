@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-operations.schema.json",
   "title": "Arkret Account Pairing and Agent Operation DTOs",
-  "description": "Closed request and response DTOs for account pairing and native personal agent management operations.",
+  "description": "Closed request and response DTOs for account pairing and Agent management operations.",
   "oneOf": [
     {
       "$ref": "#/$defs/account_device_pair_request_body"
@@ -127,7 +127,7 @@
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug",
-      "description": "Required controller-scoped native personal agent selector slug. Used only as the right-hand component of @<controller-handle>/<agent_slug>; not a global handle or authorization subject. Provisioning services MUST issue or update a ak.schema.agent_selector_claim.v1."
+      "description": "Required controller-scoped Agent selector slug. Used only as the right-hand component of @<controller-handle>/<agent_slug>; not a global handle or authorization subject. Provisioning services MUST issue or update a ak.schema.agent_selector_claim.v1."
     },
     "base64url": {
       "type": "string",
@@ -155,7 +155,7 @@
     },
     "agent_runtime_key_possession_proof": {
       "type": "object",
-      "description": "Closed Ed25519 proof that the submitter controls the proposed native Agent runtime key and possesses the authoritative pairing secret. Canonical transcript, equality, freshness, and final-commit re-verification rules are defined in key-management.md section 3.6.2.",
+      "description": "Closed Ed25519 proof that the submitter controls the proposed Agent runtime key and possesses the authoritative pairing secret. Canonical transcript, equality, freshness, and final-commit re-verification rules are defined in key-management.md section 3.6.2.",
       "required": [
         "kind",
         "verification_method",
@@ -213,7 +213,7 @@
       "description": "Canonical PublicKey DTO. Defined once in public-key.schema.json so device, agent and account surfaces share one definition."
     },
     "agent_runtime_public_key": {
-      "description": "Closed v1 Native Agent runtime signing-key profile. Ed25519 is the fully-specified JOSE algorithm identifier from RFC 9864; polymorphic algorithm identifiers are rejected.",
+      "description": "Closed v1 Agent runtime signing-key profile. Ed25519 is the fully-specified JOSE algorithm identifier from RFC 9864; polymorphic algorithm identifiers are rejected.",
       "type": "object",
       "required": [
         "kty",
@@ -719,7 +719,7 @@
             "awaiting_accepted_frontier",
             "active"
           ],
-          "description": "Two-phase pairing result. awaiting_accepted_frontier means the exact authorization Event is durable but is not yet authorization state; the controller MUST close it into a managed Agent-PCR Seal and retry the identical idempotent request. active means portable signer evidence can be built from an accepted Seal and only then may the runtime be treated as authorized."
+          "description": "Two-phase pairing result. awaiting_accepted_frontier means the exact authorization Event is durable but is not yet authorization state; the controller MUST close it into an Agent-PCR Seal and retry the identical idempotent request. active means portable signer evidence can be built from an accepted Seal and only then may the runtime be treated as authorized."
         },
         "authorize_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -732,7 +732,7 @@
     },
     "agent_runtime_approval_request_body": {
       "type": "object",
-      "description": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ak.agent.key.authorize and submitting agent_key_pair_request_body. The service computes ak.agent.runtime_key_binding.v1 from agent_id, pairing_request_id, verification_method, public-key digest and attestation digest. One open pairing_request_id has at most one pending stable binding: same-binding retry is idempotent and refreshes the full request while retaining approval/notification ids; a different binding fails with HTTP 409 agent_runtime_request_conflict without replacement.",
+      "description": "Runtime-to-controller pending approval request for Agent-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ak.agent.key.authorize and submitting agent_key_pair_request_body. The service computes ak.agent.runtime_key_binding.v1 from agent_id, pairing_request_id, verification_method, public-key digest and attestation digest. One open pairing_request_id has at most one pending stable binding: same-binding retry is idempotent and refreshes the full request while retaining approval/notification ids; a different binding fails with HTTP 409 agent_runtime_request_conflict without replacement.",
       "required": [
         "pairing_code",
         "pairing_request_id",
@@ -897,7 +897,7 @@
     },
     "agent_provision_request_body": {
       "type": "object",
-      "description": "Controller-authored managed-Agent bootstrap. Before prepare, the controller publishes a signed, PCR-independent did:webvh inception whose document contains the managed-controller delegation but no ArkretPrincipalControlRealm service. prepare receives that did, verifies the accepted inception and returns its exact initial_resolution plus an opaque allocation. The controller freezes the managed-Agent PCR genesis with that commitment, derives principal_control_realm_id, and commits one ak.agent.provision Event. After PCR acceptance, the controller publishes the pre-rotation-authorized DID update containing the create-locked Realm binding. The service exposes the Agent and pairing handle only after that update is accepted.",
+      "description": "Controller-authored Agent bootstrap. Before prepare, the controller publishes a signed, PCR-independent did:webvh inception whose document contains the managed-controller delegation but no ArkretPrincipalControlRealm service. prepare receives that did, verifies the accepted inception and returns its exact initial_resolution plus an opaque allocation. The controller freezes the Agent PCR genesis with that commitment, derives principal_control_realm_id, and commits one ak.agent.provision Event. After PCR acceptance, the controller publishes the pre-rotation-authorized DID update containing the create-locked Realm binding. The service exposes the Agent and pairing handle only after that update is accepted.",
       "required": [
         "phase",
         "operation_id",
@@ -923,12 +923,12 @@
           "$ref": "#/$defs/did_core_id"
         },
         "did": {
-          "$ref": "./common-ids.schema.json#/$defs/managed_agent_did",
+          "$ref": "./common-ids.schema.json#/$defs/agent_did",
           "description": "Controller-authored Agent did:webvh whose accepted inception is independent of the future PCR Realm id."
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Agent PCR realm id the controller derived as retype(event_id) of the managed Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md 6.0.1 exemption on the payload field."
+          "description": "Agent PCR realm id the controller derived as retype(event_id) of the Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md 6.0.1 exemption on the payload field."
         },
         "slug": {
           "$ref": "#/$defs/agent_slug"
@@ -1034,16 +1034,16 @@
           "$ref": "#/$defs/did_core_id"
         },
         "did": {
-          "$ref": "./common-ids.schema.json#/$defs/managed_agent_did",
-          "description": "Complete Agent DID whose registered adapter projection is agent_id; managed-Agent PCR genesis initial_resolution MUST commit this value and its verified method head."
+          "$ref": "./common-ids.schema.json#/$defs/agent_did",
+          "description": "Complete Agent DID whose registered adapter projection is agent_id; Agent PCR genesis initial_resolution MUST commit this value and its verified method head."
         },
         "initial_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment",
-          "description": "Exact verified accepted inception position. It is immutable across all provisioning outcomes and is copied byte-for-byte into managed-Agent PCR genesis."
+          "description": "Exact verified accepted inception position. It is immutable across all provisioning outcomes and is copied byte-for-byte into Agent PCR genesis."
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Agent PCR realm id the controller derived locally as retype(event_id) of the managed Agent PCR genesis it froze, and declared in the provision payload. Until that genesis is accepted this is a claim, not a live Realm."
+          "description": "Agent PCR realm id the controller derived locally as retype(event_id) of the Agent PCR genesis it froze, and declared in the provision payload. Until that genesis is accepted this is a claim, not a live Realm."
         },
         "controller_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -1264,7 +1264,7 @@
     },
     "agent_pairing_bootstrap": {
       "type": "object",
-      "description": "One-time bootstrap material handed to a personal agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
+      "description": "One-time bootstrap material handed to an Agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
       "required": [
         "arkret_base_url",
         "service_id",

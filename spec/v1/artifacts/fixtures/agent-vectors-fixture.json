@@ -1,5 +1,5 @@
 {
-  "profile": "ak.profile.personal_agent_provisioning.v1",
+  "profile": "ak.profile.agent_provisioning.v1",
   "version": "2026-08-11",
   "suite": "agent_vectors",
   "runner": {
@@ -391,7 +391,7 @@
       "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_pcr_genesis_declaration_vector",
       "frozen_genesis": {
-        "purpose": "managed_agent_control",
+        "purpose": "agent_control",
         "kat_case_ref": "content-bound-event-id-fixture.json#agent_provision_forward_declaration_is_constructible",
         "derived_event_id": "ak:event:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
         "derived_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-"
@@ -410,13 +410,13 @@
         "retype of the accepted genesis event_id equals the declared principal_control_realm_id byte for byte",
         "the whole sequence derives without event_id_digest_mismatch, which is the constructibility proof for the named encoding.md 6.0.1 class C exemption",
         "accepting the genesis returns awaiting_did_binding and keeps the Agent invisible; only accepting controller-signed continuous DID entry 1 moves ak.component.agent.status.v1 from uninitialized to active, publishes the pairing handle and returns status=complete",
-        "an ak.realm.create whose purpose is not managed_agent_control triggers neither the agent-status write nor the reverse look-up"
+        "an ak.realm.create whose purpose is not agent_control triggers neither the agent-status write nor the reverse look-up"
       ]
     },
     {
       "name": "agent_pcr_genesis_same_batch_rejected",
       "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
-      "submission": "ak.agent.provision and its declared managed_agent_control ak.realm.create in one ordered submit batch",
+      "submission": "ak.agent.provision and its declared agent_control ak.realm.create in one ordered submit batch",
       "expected": {
         "outcome": "rejected",
         "error": "event_id_digest_mismatch",
@@ -427,7 +427,7 @@
     {
       "name": "agent_pcr_genesis_without_declaration_rejected",
       "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
-      "submission": "managed_agent_control ak.realm.create whose retyped event_id no accepted ak.agent.provision declares",
+      "submission": "agent_control ak.realm.create whose retyped event_id no accepted ak.agent.provision declares",
       "expected": {
         "outcome": "rejected",
         "error": "failed_precondition",
@@ -619,7 +619,7 @@
         "pairing admission is identical whether the history-only backup is available or missing",
         "fresh endpoints enter the unique derived group only through a standard KeyPackage Add and Welcome",
         "Agent runtime private keys, leaf signers, sender counters, ratchets, proposals and pending Welcomes are never backed up or cloned, and replacement always generates a fresh local key",
-        "a Native Personal Agent has no independent human-facing mnemonic; controller recovery can decrypt covered history but does not restore active membership or bypass current delegation and capability checks"
+        "an Agent has no independent human-facing mnemonic; controller recovery can decrypt covered history but does not restore active membership or bypass current delegation and capability checks"
       ]
     },
     {

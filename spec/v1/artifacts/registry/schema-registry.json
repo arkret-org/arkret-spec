@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.1",
+  "version": "2026-08-31.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T04:30:00+08:00",
+  "generated_at": "2026-08-31T18:32:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -57,37 +57,37 @@
       "schema_id": "ak.schema.agent_membership_cascade.v1",
       "file": "schemas/agent-membership-cascade.schema.json",
       "status": "active",
-      "description": "Closed Native Personal Agent controller-membership binding and durable exact-set emergency cleanup state."
+      "description": "Closed Agent controller-membership binding and durable exact-set emergency cleanup state."
     },
     {
       "schema_id": "ak.schema.agent_provision.v1",
       "file": "schemas/agent-provision.schema.json",
       "status": "active",
-      "description": "Single controller-authored native personal Agent provisioning payload with atomic accountability and selector projections."
+      "description": "Single controller-authored Agent Agent provisioning payload with atomic accountability and selector projections."
     },
     {
       "schema_id": "ak.schema.agent_selector_claim.v1",
       "file": "schemas/agent-selector-claim.schema.json",
       "status": "active",
-      "description": "Signed controller-scoped native personal agent selector claim for @<controller-handle>/<agent_slug> resolution."
+      "description": "Signed controller-scoped Agent selector claim for @<controller-handle>/<agent_slug> resolution."
     },
     {
       "schema_id": "ak.schema.agent_requested_scope_disclosure.v1",
       "file": "schemas/agent-requested-scope-disclosure.schema.json",
       "status": "active",
-      "description": "Controller-signed, verifier-bound private disclosure of a managed Agent's immutable requested_scope; the public Agent DID carries only its commitment digest."
+      "description": "Controller-signed, verifier-bound private disclosure of an Agent's immutable requested_scope; the public Agent DID carries only its commitment digest."
     },
     {
       "schema_id": "ak.schema.agent_signing_key_binding.v1",
       "file": "schemas/agent-signing-key-binding.schema.json",
       "status": "active",
-      "description": "Controller-signed minimal public binding from a Native Agent verification method to raw Ed25519 key material and one accepted Agent key authorization."
+      "description": "Controller-signed minimal public binding from an Agent verification method to raw Ed25519 key material and one accepted Agent key authorization."
     },
     {
       "schema_id": "ak.schema.agent_signer_evidence.v1",
       "file": "schemas/agent-signer-evidence.schema.json",
       "status": "active",
-      "description": "Portable Native Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
+      "description": "Portable Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
     },
     {
       "schema_id": "ak.schema.controller_account_gate_attestation.v1",
@@ -101,7 +101,7 @@
       "file": "schemas/agent-signer-evidence-operations.schema.json",
       "fragment": "#/$defs/controller_account_gate_attestation_issue_request",
       "status": "active",
-      "description": "Authenticated S2S request from a Native Agent PCR authority for the controller Account Authority lifecycle gate needed to assemble signer evidence."
+      "description": "Authenticated S2S request from an Agent PCR authority for the controller Account Authority lifecycle gate needed to assemble signer evidence."
     },
     {
       "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
@@ -115,7 +115,7 @@
       "file": "schemas/agent-signer-evidence.schema.json",
       "fragment": "#/$defs/event_admission_receipt",
       "status": "active",
-      "description": "Destination-signed immutable receipt for the exact Native Agent signer evidence used when one Event was accepted."
+      "description": "Destination-signed immutable receipt for the exact Agent signer evidence used when one Event was accepted."
     },
     {
       "schema_id": "ak.schema.agent_signer_evidence_query_request.v1",
@@ -1099,14 +1099,14 @@
       "schema_id": "ak.schema.agent_operations.v1",
       "file": "schemas/agent-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for account pairing and native personal agent management operations."
+      "description": "Closed request/response DTO bundle for account pairing and Agent management operations."
     },
     {
       "schema_id": "ak.schema.agent_pairing_bootstrap.v1",
       "file": "schemas/agent-operations.schema.json",
       "fragment": "#/$defs/agent_pairing_bootstrap",
       "status": "active",
-      "description": "One-time bootstrap DTO for personal agent runtime pairing. Resolves to the sub-schema at file + fragment (agent-operations.schema.json#/$defs/agent_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.agent_operations.v1 maps to."
+      "description": "One-time bootstrap DTO for Agent runtime pairing. Resolves to the sub-schema at file + fragment (agent-operations.schema.json#/$defs/agent_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.agent_operations.v1 maps to."
     },
     {
       "schema_id": "ak.schema.device_pairing_operations.v1",

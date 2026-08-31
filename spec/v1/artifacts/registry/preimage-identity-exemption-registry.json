@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-08-31.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-30T23:30:00+08:00",
+  "generated_at": "2026-08-31T18:30:05+08:00",
   "description": "Closed named-exemption registry for zh/conformance/encoding.md 6.0.1. That section forbids any field inside the event_digest preimage from committing to an Event identity. Class A (the enclosing Event's own event_id/event_digest and their retype results) and class B (a not-yet-formed sibling of the same atomic unit or ordered submit batch) are unconditional: they have no fixed point and this registry MUST NOT carry a row for them. Only class C, a one-way forward declaration naming a later Event from another submission whose canonical bytes the author already froze locally, is registerable, and only with the compensating admission checks recorded here. Every active row MUST also appear in the 6.0.1 closed list table; the prose table and this registry are bound in both directions.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.preimage_identity\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -61,20 +61,20 @@
         "field": "principal_control_realm_id"
       },
       "commitment_direction": "later_submission_target",
-      "one_way_rationale": "The controller freezes the managed Agent PCR ak.realm.create envelope locally, computes its event_id, and only then authors the provision Event that declares realm_id = retype(event_id). The genesis preimage contains no provision identity, no provision reference and no provision digest, so the dependency runs in exactly one direction and both Events remain constructible.",
+      "one_way_rationale": "The controller freezes the Agent PCR ak.realm.create envelope locally, computes its event_id, and only then authors the provision Event that declares realm_id = retype(event_id). The genesis preimage contains no provision identity, no provision reference and no provision digest, so the dependency runs in exactly one direction and both Events remain constructible.",
       "target_fixed_when": "controller_freezes_the_genesis_envelope_before_authoring_the_provision_event",
       "admission_compensating_checks": [
         "the genesis ak.realm.create MUST be submitted separately from the provision Event; the same atomic unit or ordered submit batch is the forbidden class B shape and MUST be rejected",
         "genesis admission MUST reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id); no match means zero writes",
         "the controller PCR carries a cas_register, bottom=reject cell keyed by payload.principal_control_realm_id, so two provision Events MUST NOT declare the same realm id",
-        "the managed Agent PCR and its controller PCR MUST be hosted by the same Station, because the reverse look-up is a local projection query"
+        "the Agent PCR and its controller PCR MUST be hosted by the same Station, because the reverse look-up is a local projection query"
       ],
       "absent_target_semantics": "The declared Realm simply never comes into existence. The provision fact stays accepted and the operation stays at awaiting_pcr_genesis: no DID service entry, pairing handle or list/get visibility is published, and the Agent never reaches lifecycle active. The controller releases the slug and this realm id claim through the explicit agent provisioning abandonment operation pair; nothing expires the claim implicitly.",
       "conformance_vector_ids": [
         "ak.vector.agent.provision.v1",
         "ak.vector.event_id.content_bound.v1"
       ],
-      "spec_anchor": "spec/v1/zh/identity/key-management.md#363-managed-agent-pcr-genesis-的构造顺序normative"
+      "spec_anchor": "spec/v1/zh/identity/key-management.md#363-agent-pcr-genesis-的构造顺序normative"
     }
   ]
 }

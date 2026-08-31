@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-signer-evidence-operations.schema.json",
   "title": "Arkret Agent Signer Evidence Operations",
-  "description": "Authenticated, anti-enumeration operation shapes for producing and resolving portable Native Agent signer evidence.",
+  "description": "Authenticated, anti-enumeration operation shapes for producing and resolving portable Agent signer evidence.",
   "$defs": {
     "controller_account_gate_attestation_issue_request": {
       "type": "object",
@@ -23,7 +23,7 @@
         },
         "agent_authority_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Native Agent PCR authority service assembling signer evidence. It MUST equal both the authenticated S2S caller and service_id in the controller principal's current AcceptedAtServiceBinding."
+          "description": "Agent PCR authority service assembling signer evidence. It MUST equal both the authenticated S2S caller and service_id in the controller principal's current AcceptedAtServiceBinding."
         },
         "agent_authority_resolution": {
           "$ref": "#/$defs/authenticated_service_resolution",
@@ -171,7 +171,7 @@
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/native_agent_signer_evidence"
+            "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence"
           }
         },
         "failures": {
@@ -184,7 +184,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Each success item is the complete content-addressed Native Agent signer-resolution root, including exact AgentSignerEvidence and all four recursive ref/digest pairs. Before returning success, the issuer atomically stores the byte-exact root and every recursively referenced dependency in the governance-dependency CAS. Clients never construct this wrapper from a bare AgentSignerEvidence."
+      "description": "Each success item is the complete content-addressed Agent signer-resolution root, including exact AgentSignerEvidence and all four recursive ref/digest pairs. Before returning success, the issuer atomically stores the byte-exact root and every recursively referenced dependency in the governance-dependency CAS. Clients never construct this wrapper from a bare AgentSignerEvidence."
     },
     "query_failure": {
       "type": "object",

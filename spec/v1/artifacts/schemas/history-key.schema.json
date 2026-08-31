@@ -93,7 +93,7 @@
     "author_profile": {
       "enum": [
         "ordinary_human",
-        "native_agent",
+        "agent",
         "minimal_metadata"
       ]
     },
@@ -275,7 +275,7 @@
             "requester_agent_key_authorize_event_id"
           ],
           "properties": {
-            "kind": {"const": "native_agent"},
+            "kind": {"const": "agent"},
             "requester_agent_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
             "requester_agent_verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
             "requester_agent_key_authorize_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
@@ -291,7 +291,7 @@
           "additionalProperties": false
         }
       ],
-      "description": "Requester-signed exact endpoint authorization locator. The release service re-resolves this same current PCR device or Native Agent authorization at create and every first chunk enqueue; it never substitutes the current session endpoint. Minimal-metadata uses only its Realm-local pairwise endpoint actor and therefore carries no principal/device locator."
+      "description": "Requester-signed exact endpoint authorization locator. The release service re-resolves this same current PCR device or Agent authorization at create and every first chunk enqueue; it never substitutes the current session endpoint. Minimal-metadata uses only its Realm-local pairwise endpoint actor and therefore carries no principal/device locator."
     },
     "archive_authorization_tuple": {
       "type": "object",
@@ -786,13 +786,13 @@
         },
         {
           "if": {
-            "properties": {"requester_author_profile": {"const": "native_agent"}},
+            "properties": {"requester_author_profile": {"const": "agent"}},
             "required": ["requester_author_profile"]
           },
           "then": {
             "properties": {
               "requester_endpoint_authorization": {
-                "properties": {"kind": {"const": "native_agent"}},
+                "properties": {"kind": {"const": "agent"}},
                 "required": ["kind"]
               }
             }
@@ -1652,7 +1652,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed non-wire canonical input for history_source_agent_observation_digest. It intentionally excludes source_signer_evidence_ref and source_signer_evidence_digest so a Native Agent can obtain CurrentAdmission evidence before authoring the complete signed response."
+      "description": "Closed non-wire canonical input for history_source_agent_observation_digest. It intentionally excludes source_signer_evidence_ref and source_signer_evidence_digest so an Agent can obtain CurrentAdmission evidence before authoring the complete signed response."
     },
     "history_key_response_signing_input": {
       "type": "object",
@@ -1914,7 +1914,7 @@
           "if": {
             "properties": {
               "recipient_author_profile": {
-                "const": "native_agent"
+                "const": "agent"
               }
             },
             "required": [

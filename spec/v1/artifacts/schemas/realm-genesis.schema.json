@@ -25,7 +25,7 @@
         "collaboration",
         "direct_conversation",
         "principal_control",
-        "managed_agent_control",
+        "agent_control",
         "applet_managed_control"
       ]
     },
@@ -36,11 +36,11 @@
     },
     "founding_device_descriptor": {
       "$ref": "#/$defs/founding_device_descriptor",
-      "description": "Human Principal Control Realm genesis only. The identity root commits to the exact founding device material and the canonical founding authorize payload digest. The enclosing pcr_genesis_unit requires it; managed Agent PCR genesis MUST omit it."
+      "description": "Human Principal Control Realm genesis only. The identity root commits to the exact founding device material and the canonical founding authorize payload digest. The enclosing pcr_genesis_unit requires it; Agent PCR genesis MUST omit it."
     },
     "initial_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment",
-      "description": "Root-committed initial did and DID method history position for a Principal Control Realm or managed Agent control Realm. The admitting service MUST verify that project(did) equals the genesis actor_id before accepting the closed genesis unit."
+      "description": "Root-committed initial did and DID method history position for a Principal Control Realm or Agent control Realm. The admitting service MUST verify that project(did) equals the genesis actor_id before accepting the closed genesis unit."
     },
     "trust_domain": {
       "$ref": "./realm.schema.json#/$defs/trust_domain"
@@ -88,7 +88,7 @@
           ]
         }
       },
-      "description": "founding_device_descriptor is exclusive to human Principal Control Realm genesis. managed_agent_control, collaboration and direct_conversation genesis MUST omit it. genesis_salt is required for every purpose since PCR genesis is event-derived like any other Realm."
+      "description": "founding_device_descriptor is exclusive to human Principal Control Realm genesis. agent_control, collaboration and direct_conversation genesis MUST omit it. genesis_salt is required for every purpose since PCR genesis is event-derived like any other Realm."
     },
     {
       "if": {
@@ -96,7 +96,7 @@
           "purpose": {
             "enum": [
               "principal_control",
-              "managed_agent_control",
+              "agent_control",
               "applet_managed_control"
             ]
           }
@@ -147,7 +147,7 @@
       "if": {
         "properties": {
           "purpose": {
-            "const": "managed_agent_control"
+            "const": "agent_control"
           }
         },
         "required": [
@@ -159,13 +159,13 @@
           "initial_resolution": {
             "properties": {
               "did": {
-                "$ref": "./common-ids.schema.json#/$defs/managed_agent_did"
+                "$ref": "./common-ids.schema.json#/$defs/agent_did"
               }
             }
           }
         }
       },
-      "description": "Managed Agent PCR genesis commits the already accepted did:webvh inception head. The later PCR service binding update is continuous from this head and does not participate in the create Event preimage."
+      "description": "Agent PCR genesis commits the already accepted did:webvh inception head. The later PCR service binding update is continuous from this head and does not participate in the create Event preimage."
     },
     {
       "if": {
@@ -196,7 +196,7 @@
   "$defs": {
     "founding_device_descriptor": {
       "type": "object",
-      "description": "Closed founding-device commitment embedded in the root-signed human Principal Control Realm genesis payload and required by pcr_genesis_unit. It is not an independent signed object. Managed Agent PCR creation omits this human-device descriptor.",
+      "description": "Closed founding-device commitment embedded in the root-signed human Principal Control Realm genesis payload and required by pcr_genesis_unit. It is not an independent signed object. Agent PCR creation omits this human-device descriptor.",
       "required": [
         "descriptor_version",
         "device_id",

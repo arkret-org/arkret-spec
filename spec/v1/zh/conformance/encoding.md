@@ -84,7 +84,7 @@ v1 的 machine-readable profile 与版本钉定见 [`string-profile-registry.jso
 
 | Profile | 适用字段 | preparation / 验证 | 比较与授权语义 |
 | --- | --- | --- | --- |
-| `arkret_human_identifier` | handle / realm alias localpart、native personal Agent selector `slug` | RFC 8265 `UsernameCaseMapped` enforcement（width mapping、Unicode lowercase、NFC）后排除 Arkret 结构分隔符；长度按 prepared Unicode code point 限制 | prepared code point sequence 精确相等；可建立唯一索引 |
+| `arkret_human_identifier` | handle / realm alias localpart、Agent Agent selector `slug` | RFC 8265 `UsernameCaseMapped` enforcement（width mapping、Unicode lowercase、NFC）后排除 Arkret 结构分隔符；长度按 prepared Unicode code point 限制 | prepared code point sequence 精确相等；可建立唯一索引 |
 | `arkret_single_line_display_text` | `title`、`display_name`、`label` | NFC；允许多语言、emoji、数学符号和混合脚本；拒绝 CR/LF、C0/C1、BOM、bidi embedding / override / isolate；不得仅为空白 | 永不用于主体相等、授权、ACL 或签名者判定 |
 | `arkret_short_text` | `summary`、短 `description` | NFC；允许 LF 换行；拒绝 CR、其它 C0/C1、BOM 与 bidi embedding / override；字段 schema 决定 code-point 上限 | 非权威全文 |
 | `arkret_content_text` | message / content / body | NFC；允许正常 bidi 与 emoji 序列；拒绝 BOM 与非文本控制字符；renderer 负责转义和方向隔离 | 内容；不参与 identifier 比较 |
@@ -313,7 +313,7 @@ hash、同步 cursor、联邦消息或审计引用中。canonical Realm 表 MUST
 `realm_id` 解析为同一身份。实现不得以本地 `pk` 替代首次接触重算、跨库导入、重放或冲突判断。
 
 Realm 的高 nibble 固定为零，既不编码身份派生类别，也不编码 `direct_conversation`、organization、
-managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile 判定，不能占用 identity header。
+Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile 判定，不能占用 identity header。
 
 本节的 conformance 入口是 `ak.vector.event_id.content_bound.v1`（机读 fixture 见 [`content-bound-event-id-fixture.json`](../../artifacts/fixtures/content-bound-event-id-fixture.json)）：它固定 SHA-256 / BLAKE3 bytes、canonical Base64URL、suite mismatch、unknown/reserved code、错误完整 digest、padding与长度负例。
 
@@ -345,7 +345,7 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
     | `kind` = `composite` / `tuple` | 复合 subject，按 §9.5 取 `base64url_nopad(sha256(canonical_json(components_array)))`；产出只含 base64url 字符，不再经过本表。 |
 
     `uri` 必须编码 `%` 本身，否则 `…/rooms/a%2Fb` 与 `…/rooms/a/b` 会折叠到同一 subject——那是两个不同的对象，等于给外部 provider 一条构造别名、劫持或阻断他人 cell 的路径。这也是 `uri` 不能沿用 `did` 约定的原因。该变换在已归一化的 canonical URI 上是单射且可逆的；产出 subject MUST NOT 再次编码或解码。`uri` subject 的正反例由 `ak.vector.encoding.cell_subject_uri.v1` 唯一闭合。
-  - **Null subject（per-Realm / per-envelope 单例 cell，normative）**：registry 中 `cell_subject` 声明为 JSON `null` 的 cell family，其 canonical wire subject 段固定为字面 ASCII 四字符 `null`，即 `ak:cell:<component>:null`。选定字面 `null` 而非空串或省略末段，是因为 `ak:cell:<component>:` 的空末段无法与“末段被截断”区分，而截断形态本身必须拒绝。这类 cell 由 Event envelope 的 `realm_id` 定位（Realm-scoped 单例）；实现 MUST NOT 把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `managed_agent_principal_control` 等 [`../models/realm-and-space.md` §2.8.3](../models/realm-and-space.md) 的 prose 层术语）或任何 payload 派生值写进该 subject 段，也 MUST NOT 从 payload 重复字段派生第二个 cell key。任何偏离字面 `null` 的写法 MUST 拒绝（`schema_violation`）——subject 既进入 `state_root` leaf preimage、又是 leaf 的排序键（[`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)），编码分歧会直接导致跨实现 `rejected_seal`。若某个 family 确实需要区分同一 Realm 内的多个实例，它 MUST 在 registry 中声明非 null 的 `cell_subject`，而不是把区分值塞进 null subject 段。
+  - **Null subject（per-Realm / per-envelope 单例 cell，normative）**：registry 中 `cell_subject` 声明为 JSON `null` 的 cell family，其 canonical wire subject 段固定为字面 ASCII 四字符 `null`，即 `ak:cell:<component>:null`。选定字面 `null` 而非空串或省略末段，是因为 `ak:cell:<component>:` 的空末段无法与“末段被截断”区分，而截断形态本身必须拒绝。这类 cell 由 Event envelope 的 `realm_id` 定位（Realm-scoped 单例）；实现 MUST NOT 把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `agent_principal_control` 等 [`../models/realm-and-space.md` §2.8.3](../models/realm-and-space.md) 的 prose 层术语）或任何 payload 派生值写进该 subject 段，也 MUST NOT 从 payload 重复字段派生第二个 cell key。任何偏离字面 `null` 的写法 MUST 拒绝（`schema_violation`）——subject 既进入 `state_root` leaf preimage、又是 leaf 的排序键（[`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)），编码分歧会直接导致跨实现 `rejected_seal`。若某个 family 确实需要区分同一 Realm 内的多个实例，它 MUST 在 registry 中声明非 null 的 `cell_subject`，而不是把区分值塞进 null subject 段。
 - `ak:mls:<profile>:<profile_id>`、`ak:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
 - `ak:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUID object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
 
@@ -524,7 +524,7 @@ registry 有 active 行，registry 的每一条 active 行也必须出现在清�
 | `exemption_id` | 类别 | 主体 | 承诺方向 |
 | --- | --- | --- | --- |
 | `ak.exemption.preimage_identity.realm_genesis.v1` | 省略（不构成承诺） | `ak.realm.create` 的 `envelope.realm_id`、`envelope.scope_ref` 与 `payload.object.id` | 不承诺；三者一律省略，receiver 按 §4.0 从 `event_id` 前向派生 |
-| `ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1` | C 类前向声明 | `ak.agent.provision` payload 的 `principal_control_realm_id` | 单向：provision 承诺**另一次提交**的 managed Agent PCR genesis 的 `retype(event_id)`；该 genesis 的原像不含 provision 的任何标识 |
+| `ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1` | C 类前向声明 | `ak.agent.provision` payload 的 `principal_control_realm_id` | 单向：provision 承诺**另一次提交**的 Agent PCR genesis 的 `retype(event_id)`；该 genesis 的原像不含 provision 的任何标识 |
 
 第一行就是上面 `ak.realm.create` 的 `realm_genesis` 例外，形态是**省略**而不是承诺，因此不受 C 类
 补偿要求约束；它进入登记表只是为了让「本节的例外集合」有唯一机器可读来源。第二行的完整时序、

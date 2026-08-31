@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.6",
+  "version": "2026-08-31.8",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T18:00:02+08:00",
+  "generated_at": "2026-08-31T18:30:02+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -354,12 +354,12 @@
       "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed.",
       "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
       "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
-      "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=managed_agent_control Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
-      "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds the exact account ActorId, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Native Agent or human PCR admission.",
+      "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=agent_control Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
+      "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds the exact account ActorId, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Agent or human PCR admission.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
       "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(did)=actor_id; current DID state after registration is irrelevant.",
       "pcr_recovery": "Admitted only for ak.device.reanchor under the account-local lineage's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching account-local lineage and policy cannot enter this class.",
-      "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact round. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_contact_round and with the managed-Agent PCR agent_provision role.",
+      "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact round. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_contact_round and with the Agent PCR agent_provision role.",
       "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_contact_round pointing to the portable Contact round evidence bundle and its continuity chain to the pair's root Contact round. The verifier derives founder from the root Contact round (normal branch: the sorted_pair_member_ids entry that is not the request_event_ref issuer_id, i.e. the responder; glare branch: the requests[0] issuer_id), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_member_ids and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at Contact round validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
       "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
       "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed."
@@ -3914,7 +3914,7 @@
             "condition": {
               "kind": "field_equals",
               "field": "payload.object.purpose",
-              "const": "managed_agent_control"
+              "const": "agent_control"
             },
             "effect_projection": {
               "kind": "transition",
@@ -4060,7 +4060,7 @@
             "condition": {
               "kind": "field_equals",
               "field": "payload.object.purpose",
-              "const": "managed_agent_control"
+              "const": "agent_control"
             },
             "effect_projection": {
               "kind": "transition",
@@ -5524,7 +5524,7 @@
           {
             "when": {
               "payload_path": "object.purpose",
-              "const": "managed_agent_control",
+              "const": "agent_control",
               "top_level_fields_present": [
                 "executed_by",
                 "authorization_ref"
@@ -6240,7 +6240,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "capability_gated",
-        "payload": "Realm membership state. Native Personal Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event: self leave uses the registered atomic agent_membership_cascade unit; third-party emergency removal freezes a durable exact-set cleanup intent and the original initiator later signs the complete Agent leave set.",
+        "payload": "Realm membership state. Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event: self leave uses the registered atomic agent_membership_cascade unit; third-party emergency removal freezes a durable exact-set cleanup intent and the original initiator later signs the complete Agent leave set.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
         "id_source": "not_an_object_id"
       },
@@ -6786,7 +6786,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared managed Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared managed Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
+        "payload": "Controller-authored Agent Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
         "payload_schema_ref": "schemas/agent-provision.schema.json",
         "id_source": "reference"
       },
@@ -6798,7 +6798,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one native personal agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
+        "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one Agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
         "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
         "id_source": "not_an_object_id"
       },
@@ -8757,37 +8757,37 @@
         "schema_id": "ak.schema.agent_membership_cascade.v1",
         "file": "schemas/agent-membership-cascade.schema.json",
         "status": "active",
-        "description": "Closed Native Personal Agent controller-membership binding and durable exact-set emergency cleanup state."
+        "description": "Closed Agent controller-membership binding and durable exact-set emergency cleanup state."
       },
       {
         "schema_id": "ak.schema.agent_provision.v1",
         "file": "schemas/agent-provision.schema.json",
         "status": "active",
-        "description": "Single controller-authored native personal Agent provisioning payload with atomic accountability and selector projections."
+        "description": "Single controller-authored Agent Agent provisioning payload with atomic accountability and selector projections."
       },
       {
         "schema_id": "ak.schema.agent_selector_claim.v1",
         "file": "schemas/agent-selector-claim.schema.json",
         "status": "active",
-        "description": "Signed controller-scoped native personal agent selector claim for @<controller-handle>/<agent_slug> resolution."
+        "description": "Signed controller-scoped Agent selector claim for @<controller-handle>/<agent_slug> resolution."
       },
       {
         "schema_id": "ak.schema.agent_requested_scope_disclosure.v1",
         "file": "schemas/agent-requested-scope-disclosure.schema.json",
         "status": "active",
-        "description": "Controller-signed, verifier-bound private disclosure of a managed Agent's immutable requested_scope; the public Agent DID carries only its commitment digest."
+        "description": "Controller-signed, verifier-bound private disclosure of an Agent's immutable requested_scope; the public Agent DID carries only its commitment digest."
       },
       {
         "schema_id": "ak.schema.agent_signing_key_binding.v1",
         "file": "schemas/agent-signing-key-binding.schema.json",
         "status": "active",
-        "description": "Controller-signed minimal public binding from a Native Agent verification method to raw Ed25519 key material and one accepted Agent key authorization."
+        "description": "Controller-signed minimal public binding from an Agent verification method to raw Ed25519 key material and one accepted Agent key authorization."
       },
       {
         "schema_id": "ak.schema.agent_signer_evidence.v1",
         "file": "schemas/agent-signer-evidence.schema.json",
         "status": "active",
-        "description": "Portable Native Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
+        "description": "Portable Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
       },
       {
         "schema_id": "ak.schema.controller_account_gate_attestation.v1",
@@ -8801,7 +8801,7 @@
         "file": "schemas/agent-signer-evidence-operations.schema.json",
         "fragment": "#/$defs/controller_account_gate_attestation_issue_request",
         "status": "active",
-        "description": "Authenticated S2S request from a Native Agent PCR authority for the controller Account Authority lifecycle gate needed to assemble signer evidence."
+        "description": "Authenticated S2S request from an Agent PCR authority for the controller Account Authority lifecycle gate needed to assemble signer evidence."
       },
       {
         "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
@@ -8815,7 +8815,7 @@
         "file": "schemas/agent-signer-evidence.schema.json",
         "fragment": "#/$defs/event_admission_receipt",
         "status": "active",
-        "description": "Destination-signed immutable receipt for the exact Native Agent signer evidence used when one Event was accepted."
+        "description": "Destination-signed immutable receipt for the exact Agent signer evidence used when one Event was accepted."
       },
       {
         "schema_id": "ak.schema.agent_signer_evidence_query_request.v1",
@@ -9799,14 +9799,14 @@
         "schema_id": "ak.schema.agent_operations.v1",
         "file": "schemas/agent-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for account pairing and native personal agent management operations."
+        "description": "Closed request/response DTO bundle for account pairing and Agent management operations."
       },
       {
         "schema_id": "ak.schema.agent_pairing_bootstrap.v1",
         "file": "schemas/agent-operations.schema.json",
         "fragment": "#/$defs/agent_pairing_bootstrap",
         "status": "active",
-        "description": "One-time bootstrap DTO for personal agent runtime pairing. Resolves to the sub-schema at file + fragment (agent-operations.schema.json#/$defs/agent_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.agent_operations.v1 maps to."
+        "description": "One-time bootstrap DTO for Agent runtime pairing. Resolves to the sub-schema at file + fragment (agent-operations.schema.json#/$defs/agent_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.agent_operations.v1 maps to."
       },
       {
         "schema_id": "ak.schema.device_pairing_operations.v1",
@@ -10123,8 +10123,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-31.1",
-    "generated_at": "2026-08-31T04:30:00+08:00"
+    "version": "2026-08-31.3",
+    "generated_at": "2026-08-31T18:32:02+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -11969,7 +11969,7 @@
         },
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/controller-gate-attestations",
-        "notes": "Account Authority S2S producer operation for Native Agent signer evidence. The request carries agent_authority_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(did), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Station is the Agent PCR authority under the managed-Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
+        "notes": "Account Authority S2S producer operation for Agent signer evidence. The request carries agent_authority_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(did), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Station is the Agent PCR authority under the Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -12150,7 +12150,7 @@
         "http": "POST /_arkret/gate/account/agent-key-pair",
         "grpc": "GateAccount/AgentKeyPair",
         "mq": "gate.account.command.pair_agent_key",
-        "notes": "Final native Agent runtime-key authorization. The closed Ed25519 possession proof MUST be byte-identical to the current persisted runtime request and still fresh; the authority rebuilds its server-record-bound transcript, stable runtime binding and ak.agent.key_pairing_request_binding.v1 (including current proof digest) before accepting the controller-signed authorize Event. A stale prompt or any body/record/evidence mismatch fails closed without consuming the pairing handle.",
+        "notes": "Final Agent runtime-key authorization. The closed Ed25519 possession proof MUST be byte-identical to the current persisted runtime request and still fresh; the authority rebuilds its server-record-bound transcript, stable runtime binding and ak.agent.key_pairing_request_binding.v1 (including current proof digest) before accepting the controller-signed authorize Event. A stale prompt or any body/record/evidence mismatch fails closed without consuming the pairing handle.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -12323,7 +12323,7 @@
         "http": "POST /_arkret/open/agent-pairing/runtime-key-requests",
         "grpc": "OpenAgentPairing/SubmitRuntimeKeyRequest",
         "mq": "open.agent_pairing.command.submit_runtime_key_request",
-        "notes": "Runtime-to-controller pending approval request for native personal-agent key pairing. The closed Ed25519 proof binds the local key to the authoritative pairing handle, at-least-128-bit pairing secret, authority service DID, stable runtime binding and no-more-than-five-minute window; the controller still must approve by signing ak.agent.key.authorize bound to the current proof digest. Pairing secret and proof MUST be sent in the JSON body, never in URL path or query string. One open pairing_request_id has at most one pending stable ak.agent.runtime_key_binding.v1 digest: same-binding retries retain approval/notification ids and atomically replace the current freshness proof, while a different binding fails with HTTP 409 agent_runtime_request_conflict without replacement.",
+        "notes": "Runtime-to-controller pending approval request for Agent-agent key pairing. The closed Ed25519 proof binds the local key to the authoritative pairing handle, at-least-128-bit pairing secret, authority service DID, stable runtime binding and no-more-than-five-minute window; the controller still must approve by signing ak.agent.key.authorize bound to the current proof digest. Pairing secret and proof MUST be sent in the JSON body, never in URL path or query string. One open pairing_request_id has at most one pending stable ak.agent.runtime_key_binding.v1 digest: same-binding retries retain approval/notification ids and atomically replace the current freshness proof, while a different binding fails with HTTP 409 agent_runtime_request_conflict without replacement.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -14665,7 +14665,7 @@
         "http": "POST /_arkret/self/keys/keypackages/claim",
         "grpc": "SelfKeys/KeyPackagesClaim",
         "mq": "self.keys.keypackages.command.claim",
-        "notes": "Session-authenticated entry to the canonical KeyPackage claim carrier. The participant supplies the same closed device|native_agent requester_authorization and stable service_binding with source/destination service DIDs used by peer claim; deployment trust domains are absent from participant-authored bytes and are bound only by the Station's verified resolution plus outer RFC 9421 headers. The local Station verifies the current durable requester authorization and exact current joined-member ActorId routing projection; local source=destination uses the same destination-authority CAS, while remote targets are durably relayed without rewriting the participant-signed body. Uncertain outcomes are queried by the original claim_request_id and request digest before any exact resend.",
+        "notes": "Session-authenticated entry to the canonical KeyPackage claim carrier. The participant supplies the same closed device|agent requester_authorization and stable service_binding with source/destination service DIDs used by peer claim; deployment trust domains are absent from participant-authored bytes and are bound only by the Station's verified resolution plus outer RFC 9421 headers. The local Station verifies the current durable requester authorization and exact current joined-member ActorId routing projection; local source=destination uses the same destination-authority CAS, while remote targets are durably relayed without rewriting the participant-signed body. Uncertain outcomes are queried by the original claim_request_id and request digest before any exact resend.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -15224,8 +15224,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-31.6",
-    "generated_at": "2026-08-31T18:00:02+08:00",
+    "version": "2026-08-31.8",
+    "generated_at": "2026-08-31T18:32:02+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -16595,7 +16595,7 @@
         "target_event_kinds": [
           "ak.agent.action_approve"
         ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "event_mapping_kind": "same_name"
       },
       {
@@ -16606,7 +16606,7 @@
         "target_event_kinds": [
           "ak.agent.action_reject"
         ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "event_mapping_kind": "same_name"
       },
       {
@@ -16617,7 +16617,7 @@
         "target_event_kinds": [
           "ak.agent.action_request"
         ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "event_mapping_kind": "same_name"
       },
       {
@@ -16628,7 +16628,7 @@
         "target_event_kinds": [
           "ak.agent.draft.propose"
         ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "event_mapping_kind": "same_name"
       },
       {
@@ -16661,7 +16661,7 @@
         "target_event_kinds": [
           "ak.agent.selector_claim"
         ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "event_mapping_kind": "same_name"
       },
       {
@@ -18317,7 +18317,7 @@
         "target_event_kinds": [
           "ak.self.agent.deactivate"
         ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "event_mapping_kind": "operation_verb"
       },
       {
@@ -18328,7 +18328,7 @@
         "target_event_kinds": [
           "ak.self.agent.pause"
         ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "event_mapping_kind": "operation_verb"
       },
       {
@@ -18339,7 +18339,7 @@
         "target_event_kinds": [
           "ak.agent.provision"
         ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "migration_group": "ak._0008_agent_provisioning",
         "event_mapping_kind": "aggregate_admin"
       },
@@ -18349,7 +18349,7 @@
         "risk_tier": "high",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "migration_group": "ak._0008_agent_provisioning",
         "event_mapping_kind": "non_event_surface"
       },
@@ -18361,7 +18361,7 @@
         "target_event_kinds": [
           "ak.self.agent.resume"
         ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "profile": "ak.profile.agent_provisioning.v1",
         "event_mapping_kind": "operation_verb"
       },
       {
@@ -18906,7 +18906,7 @@
       "Every W3C DID Document member normatively consumed by Arkret MUST appear in known_members and MUST survive projection into normalized_document_schema_ref",
       "Unknown extension members are retained losslessly in sorted extension rows; duplicate or conflicting properties, ids, relationship entries, metadata keys or extension names fail closed before digesting",
       "ArkretService plus serviceKind is the only service-identity bootstrap shape. ArkretStation and ArkretDirectory are not registered aliases and MUST be rejected as Arkret service types",
-      "Specialized organization and managed-Agent service types remain distinct from service bootstrap and use only their registered endpoint shapes"
+      "Specialized organization and Agent service types remain distinct from service bootstrap and use only their registered endpoint shapes"
     ],
     "normalized_document_schema_ref": "schemas/did-binding-contracts.schema.json#/$defs/normalized_did_document",
     "document_digest_owner": {
@@ -18925,7 +18925,7 @@
         "subjects": [
           "human",
           "organization",
-          "managed_agent",
+          "agent",
           "service"
         ],
         "normative_consumer": "public_handle_reverse_binding",
@@ -18938,7 +18938,7 @@
         "subjects": [
           "human",
           "organization",
-          "managed_agent"
+          "agent"
         ],
         "normative_consumer": "primary_handle_selection",
         "reverse_binding": true,
@@ -18950,7 +18950,7 @@
         "subjects": [
           "human",
           "organization",
-          "managed_agent",
+          "agent",
           "service"
         ],
         "normative_consumer": "registered_arkret_service_entries",
@@ -18963,7 +18963,7 @@
         "type": "ArkretService",
         "subjects": [
           "service",
-          "managed_agent"
+          "agent"
         ],
         "service_endpoint_shape": "absolute_http_or_https_url",
         "required_extension_members": [
@@ -18997,7 +18997,7 @@
       {
         "type": "ArkretManagedPrincipalController",
         "subjects": [
-          "managed_agent"
+          "agent"
         ],
         "service_endpoint_shape": "closed_object:{controller_did:did,authorization_ref:did_url,purposes:string[]}",
         "required_extension_members": [],
@@ -19007,7 +19007,7 @@
       {
         "type": "ArkretPrincipalControlRealm",
         "subjects": [
-          "managed_agent"
+          "agent"
         ],
         "service_endpoint_shape": "closed_object:{realm_id,controller_did,authorization_ref,requested_scope_digest}",
         "required_extension_members": [],
@@ -19035,7 +19035,7 @@
         "route_evidence": "registration_control_evidence"
       },
       {
-        "boundary_id": "managed_agent_pcr_genesis",
+        "boundary_id": "agent_pcr_genesis",
         "responsibility": "registration_genesis",
         "schema_ref": "schemas/event-envelope.schema.json",
         "did_path": "payload.object.initial_resolution.did",
@@ -19156,7 +19156,7 @@
         "scope_kind": "realm_genesis",
         "allowed_purposes": [
           "principal_control",
-          "managed_agent_control",
+          "agent_control",
           "applet_managed_control"
         ],
         "principal_rule": "event.actor_id == project(payload.object.initial_resolution.did)",
@@ -19202,7 +19202,7 @@
         "checks": [
           "principal_genesis_event.kind == ak.realm.create and principal_genesis_event is resolution head 0",
           "principal_genesis_event.actor_id == principal_id",
-          "principal_genesis_event.payload.object.purpose is principal_control, managed_agent_control or applet_managed_control",
+          "principal_genesis_event.payload.object.purpose is principal_control, agent_control or applet_managed_control",
           "project(principal_genesis_event.payload.object.initial_resolution.did) == principal_id",
           "derive_identity_control_realm(principal_genesis_event) == principal_control_realm_id",
           "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",

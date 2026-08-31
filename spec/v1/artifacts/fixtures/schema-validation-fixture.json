@@ -864,13 +864,13 @@
       }
     },
     {
-      "name": "managed_agent_realm_genesis_founding_descriptor_rejected",
+      "name": "agent_realm_genesis_founding_descriptor_rejected",
       "schema_ref": "schemas/realm-genesis.schema.json",
       "expect_valid": false,
       "first_expected_error": "contains:should not be valid under",
       "instance": {
         "schema": "ak.schema.realm_genesis.v1",
-        "purpose": "managed_agent_control",
+        "purpose": "agent_control",
         "initial_resolution": {
           "did": "did:webvh:z6mkfixtureagentexample:agent.example",
           "method_history_head": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -1596,7 +1596,7 @@
         "id": "ak:realm:Ackn6XwfibyTE7ICaywg9PWnxfo1GNhZ7d3MUzYHTsPU",
         "schema": "ak.schema.realm.v1",
         "reducer_profile": "ak.reducer.core.v1",
-        "title": "Managed Agent Principal Control Realm",
+        "title": "Agent Principal Control Realm",
         "created_by": {
           "kind": "account",
           "account_id": {
@@ -1629,7 +1629,7 @@
           }
         },
         "fields": {
-          "purpose": "managed_agent_control"
+          "purpose": "agent_control"
         },
         "content_encryption_floor": "e2ee_required",
         "metadata_encryption_floor": "e2ee_required",
@@ -1941,7 +1941,7 @@
         "payload": {
           "object": {
             "schema": "ak.schema.realm_genesis.v1",
-            "purpose": "managed_agent_control",
+            "purpose": "agent_control",
             "initial_resolution": {
               "did": "did:webvh:z6mkfixtureagentexample:agent.example",
               "method_history_head": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -3914,7 +3914,7 @@
           "combinator": "all"
         },
         "agent_participation": {
-          "native_agent": {
+          "agent": {
             "reply_message": true,
             "reaction_add": true,
             "reaction_remove": true,

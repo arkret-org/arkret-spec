@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.3",
+  "version": "2026-08-31.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-30T18:00:00+08:00",
+  "generated_at": "2026-08-31T18:00:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -32,7 +32,7 @@
       "target_event_kinds": [
         "ak.agent.action_approve"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
@@ -43,7 +43,7 @@
       "target_event_kinds": [
         "ak.agent.action_reject"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
@@ -54,7 +54,7 @@
       "target_event_kinds": [
         "ak.agent.action_request"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
@@ -65,7 +65,7 @@
       "target_event_kinds": [
         "ak.agent.draft.propose"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
@@ -98,7 +98,7 @@
       "target_event_kinds": [
         "ak.agent.selector_claim"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
@@ -1754,7 +1754,7 @@
       "target_event_kinds": [
         "ak.self.agent.deactivate"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "event_mapping_kind": "operation_verb"
     },
     {
@@ -1765,7 +1765,7 @@
       "target_event_kinds": [
         "ak.self.agent.pause"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "event_mapping_kind": "operation_verb"
     },
     {
@@ -1776,7 +1776,7 @@
       "target_event_kinds": [
         "ak.agent.provision"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "migration_group": "ak._0008_agent_provisioning",
       "event_mapping_kind": "aggregate_admin"
     },
@@ -1786,7 +1786,7 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "migration_group": "ak._0008_agent_provisioning",
       "event_mapping_kind": "non_event_surface"
     },
@@ -1798,7 +1798,7 @@
       "target_event_kinds": [
         "ak.self.agent.resume"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.agent_provisioning.v1",
       "event_mapping_kind": "operation_verb"
     },
     {

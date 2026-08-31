@@ -584,7 +584,7 @@
       "representation_profile": "did",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:managed_agent_did"
+        "ref:agent_did"
       ]
     },
     {
@@ -614,7 +614,7 @@
       "representation_profile": "did",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:managed_agent_did"
+        "ref:agent_did"
       ]
     },
     {
@@ -1588,7 +1588,7 @@
       ]
     },
     {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/native_agent_signer_evidence/properties/signer_id",
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence/properties/signer_id",
       "property_name": "signer_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
@@ -1598,7 +1598,7 @@
       ]
     },
     {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/native_agent_signer_evidence/properties/verification_method",
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",
@@ -5305,7 +5305,7 @@
       "representation_profile": "did",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:managed_agent_did"
+        "ref:agent_did"
       ]
     },
     {

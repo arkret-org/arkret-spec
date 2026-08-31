@@ -22,11 +22,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "b34ce50fcfc0cfe856ea91fdffcba64b6141b9a5f29f765d8a527698f806afe5"
+      "sha256": "19e6da7cae9bf09a76a12c7a48531cd551300e29e56b2fb42fff6eeef964a69b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "bbe5cc45720a83fb0b7e832ebabcae5be422e3df0ee1a336d9e01a6275aa0e8b"
+      "sha256": "6c06e0c69d49d681baa4b4cca7fb51bc0cdf1ca7e47783f906208dbcc41c6f41"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "6ece496cadd4fbd869ace4b6805d214f44273d8262069f066b1b8d78381b1e95"
+      "sha256": "8805f54c61180deb1633e407cbed454dd8e6d8a0f7cc3d768282f39722dedd96"
     },
     {
       "path": "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json",
@@ -130,7 +130,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "b70fb82c440cbd3568e59d4208ec5024857ad1bb4af3fe6140d4cefda26288cc"
+      "sha256": "9d798a61d1e3a4d1759c06b667928312d7abf731c8cce04fe10ecb088aaea851"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -166,7 +166,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "ad82d8d449eabd2076f14ba504f73146850f3de221acdd8f1c3235aa9ccbedc0"
+      "sha256": "b51b140801eea346632c28c179223d4a1c1384eef6fddbef16f303299160892f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -182,7 +182,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "2a698ed40d0a199eba75cb892924accdd65d1df0215867b44653877b7950b122"
+      "sha256": "cb6d8623478f53c2e12245f85138a99409aec3323d7277cfdd4a253d4b805742"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -194,11 +194,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json",
-      "sha256": "b34a211bcbfaa7229382d4c05e7335a6ac0991d66f38def31e6a5d03858a7c83"
+      "sha256": "696dd51c0c72a3ac9368f5a398a38102b2041ccf215ef9090c249119981b6c31"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "3692a44164bdda5405e8d23962fdf04a032e3f51b39a48e7da11e04f81d26454"
+      "sha256": "cbb7254f76764362b1b41f3936dabe243eb1babb95146ea17cae29d632464590"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
@@ -210,7 +210,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "9ce6cb4a41ccc784a10e390615858c1243459100d3b30a73db9091d22b0c3f25"
+      "sha256": "53c49bc4d0e537f4e7a8270c155e07e02e9bd7b91a2501689d0ebfa1a2991782"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-pairwise-welcome-fixture.json",
@@ -238,7 +238,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
-      "sha256": "1cc838c53d6177a6d2045148adde7308fce0163796af8615c68723f565ef421f"
+      "sha256": "a6e2fe673016df1406447dc8bba603014f99fa8d1bfe97f7b46df999be7e4c47"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
@@ -322,7 +322,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "4697492d942c3cce84f36277628e6b1f7265a2bdfb9c7588269501e6276309be"
+      "sha256": "caf053d040613b9171a1c60d1fba25b96cc09c0426fe1bb8bacdbfd3a5cb7a7d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-definition-validator-kat.json",
@@ -330,7 +330,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "1ae194b76a21bb683f9d19f88cded5bdd3f9199a8563704fa8ece66b887ade54"
+      "sha256": "100f18f96de354c998d85ddd46e93e8c9fb5b253b343816e5ee520c1131b6b53"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

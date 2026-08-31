@@ -288,11 +288,11 @@
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Native-Agent KeyPackage branch only. MUST equal principal_id and the current AgentSignerEvidence agent identity. It is never encoded as an ak:device identifier."
+          "description": "Agent KeyPackage branch only. MUST equal principal_id and the current AgentSignerEvidence agent identity. It is never encoded as an ak:device identifier."
         },
         "agent_verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Native-Agent runtime method that signed the exact KeyPackage; MUST match agent_key_authorize_event_id and the KeyPackage signature byte for byte."
+          "description": "Agent runtime method that signed the exact KeyPackage; MUST match agent_key_authorize_event_id and the KeyPackage signature byte for byte."
         },
         "pairwise_verification_method": {
           "type": "string",
@@ -309,7 +309,7 @@
         },
         "agent_key_authorize_event_id": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Accepted active ak.agent.key.authorize Event that binds a Native Agent runtime verification method to this KeyPackage. Mutually exclusive with device_authorize_event_id."
+          "description": "Accepted active ak.agent.key.authorize Event that binds an Agent runtime verification method to this KeyPackage. Mutually exclusive with device_authorize_event_id."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -330,7 +330,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed KeyPackage claim record. Human-device, Native-Agent, and Realm-local minimal-metadata pairwise branches are an exact XOR. In the pairwise branch principal_id is the Realm-local actor projected from the exact did:key method; no account, Device, PCR, Agent evidence, or mirrored actor field is carried."
+      "description": "Closed KeyPackage claim record. Human-device, Agent, and Realm-local minimal-metadata pairwise branches are an exact XOR. In the pairwise branch principal_id is the Realm-local actor projected from the exact did:key method; no account, Device, PCR, Agent evidence, or mirrored actor field is carried."
     },
     "keypackages_upload_request_body": {
       "type": "object",
@@ -398,7 +398,7 @@
         },
         "endpoint_signature": {
           "$ref": "#/$defs/signature",
-        "description": "Required authoritative batch signature over the complete typed upload request with only this top-level signature omitted, using the ak.self.keys.keypackages.upload.create.v1 domain. The selected human device, Native Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
+        "description": "Required authoritative batch signature over the complete typed upload request with only this top-level signature omitted, using the ak.self.keys.keypackages.upload.create.v1 domain. The selected human device, Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -443,7 +443,7 @@
       "additionalProperties": false
     },
     "requester_authorization": {
-      "description": "Closed human-device, Native-Agent, or Realm-local minimal-metadata pairwise detached authorization by the requesting participant. The pairwise branch signs with the exact did:key method projected by requester and carries no account-local authorization Event.",
+      "description": "Closed human-device, Agent, or Realm-local minimal-metadata pairwise detached authorization by the requesting participant. The pairwise branch signs with the exact did:key method projected by requester and carries no account-local authorization Event.",
       "oneOf": [
         {
           "type": "object",
@@ -489,7 +489,7 @@
           ],
           "properties": {
             "kind": {
-              "const": "native_agent"
+              "const": "agent"
             },
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -599,15 +599,15 @@
         },
         "target_agent_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Native-Agent exact-target branch only. MUST equal target_principal_id and the Agent identity in the returned claim record and current AgentSignerEvidence."
+          "description": "Agent exact-target branch only. MUST equal target_principal_id and the Agent identity in the returned claim record and current AgentSignerEvidence."
         },
         "target_agent_verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Native-Agent exact-target branch current runtime verification method."
+          "description": "Agent exact-target branch current runtime verification method."
         },
         "target_agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "description": "Native-Agent exact-target branch current accepted ak.agent.key.authorize Event."
+          "description": "Agent exact-target branch current accepted ak.agent.key.authorize Event."
         },
         "target_pairwise_verification_method": {
           "type": "string",
@@ -813,15 +813,15 @@
         },
         "target_agent_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Native-Agent exact-target branch only. MUST equal target_principal_id and the Agent identity in the returned claim record and current AgentSignerEvidence."
+          "description": "Agent exact-target branch only. MUST equal target_principal_id and the Agent identity in the returned claim record and current AgentSignerEvidence."
         },
         "target_agent_verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Native-Agent exact-target branch current runtime verification method."
+          "description": "Agent exact-target branch current runtime verification method."
         },
         "target_agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "description": "Native-Agent exact-target branch current accepted ak.agent.key.authorize Event."
+          "description": "Agent exact-target branch current accepted ak.agent.key.authorize Event."
         },
         "target_pairwise_verification_method": {
           "type": "string",
@@ -1454,7 +1454,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome. Closed XOR: human device, Native Agent, or Realm-local minimal-metadata pairwise did:key. In the pairwise branch recipient_principal_id is the pairwise actor and no account, Device, or Agent evidence appears."
+      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome. Closed XOR: human device, Agent, or Realm-local minimal-metadata pairwise did:key. In the pairwise branch recipient_principal_id is the pairwise actor and no account, Device, or Agent evidence appears."
     },
     "keypackage_consume_receipt": {
       "type": "object",
@@ -1508,7 +1508,7 @@
         },
         "recipient_durable_receipt": {
           "$ref": "#/$defs/recipient_mls_durable_receipt",
-          "description": "Sole consume authority and coordinate carrier. Its closed device, Native-Agent, or minimal-metadata pairwise signer branch authorizes the command and binds the owner, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service."
+          "description": "Sole consume authority and coordinate carrier. Its closed device, Agent, or minimal-metadata pairwise signer branch authorizes the command and binds the owner, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service."
         },
         "signature": {
           "$ref": "#/$defs/signature",

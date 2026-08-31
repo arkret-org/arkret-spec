@@ -60,10 +60,10 @@ updated: 2026-07-03
 | `schema` | string | MUST | `ak.schema.actor_profile.v1`。 |
 | `realm_id` | id:realm | 可选 | Profile state 所属的 principal control Realm 或 profile materialization scope。存在时 MUST 与承载该 profile create/update 的 principal control Realm 或授权 materialization scope 一致；不得被当作协作 Realm membership 或读取权限。 |
 | `principal_id` | did_core_id | MUST | Actor / Principal 的稳定业务身份。 |
-| `actor_kind` | enum | MUST | `user`、`organization`、`team`、`agent`、`service` 或 `integration`（不含 `device`：设备非 actor 主体，见 [`../models/actor.md` §2](../models/actor.md)）。 |
+| `actor_kind` | enum | MUST | `user`、`organization`、`team`、`agent`、`bot`、`service` 或 `integration`；`agent` 只表示 Agent，Applet automation 使用 `bot`（不含 `device`：设备非 actor 主体，见 [`../models/actor.md` §2](../models/actor.md)）。 |
 | `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
 | `handle` | string | 可选 | 本地或目录展示 handle。经 Directory / projection 披露时同受 §5 handle 披露 gate 约束（不得旁路 handle 搜索披露限制）。 |
-| `agent_slug` | string | 可选 | native personal agent 的 controller-scoped selector projection。必须由当前有效 `ak.schema.agent_selector_claim.v1` 支撑；只与 controller handle 组合为 `@<controller-handle>/<agent_slug>` 输入别名；不是全局 handle 或公开目录发现键。 |
+| `agent_slug` | string | 可选 | Agent 的 controller-scoped selector projection。必须由当前有效 `ak.schema.agent_selector_claim.v1` 支撑；只与 controller handle 组合为 `@<controller-handle>/<agent_slug>` 输入别名；不是全局 handle 或公开目录发现键。 |
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
 | `status` | enum | 可选 | `active`、`suspended`、`deactivated` 或 `deleted`。 |
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
@@ -257,7 +257,7 @@ timestamp 或对齐 Unix epoch UTC、duration 不小于 PT60S 的 ISO 8601 inter
 
 Station sync surface 不得解密、聚合或投影 presence 内容。
 
-**持续在线刷新（normative）。** 声明自己当前可达并选择广播 presence 的发送端（包括前台客户端、后台常驻客户端与 native Agent runtime）MUST 在上一条 `ak.presence` 的 effective expiry 之前发送同一 scope 的后继信号；每个后继信号 MUST 使用严格递增的 `(sender_actor_id, sender_device_id, canonical scope_ref)` `payload_sequence`、新的 Signal nonce，并重新绑定发送时的 accepted `seal_ref` / MLS epoch。对 v1 `session` class 的 30 秒上限，实现 SHOULD 使用 20–25 秒的刷新周期，并 MUST 为调度、网络抖动与 session refresh 预留至少 5 秒余量；不得把进程健康检查、WebSocket / account stream keepalive 或最后一次 durable Message 当作 presence 刷新。运行时一旦不能取得当前授权、accepted Seal、可持久化的 MLS Signal nonce state，或不能在 expiry 前完成加密提交，MUST 停止宣称 online；接收端继续按上面的 TTL 规则自然聚合为 `offline`，不得延长旧信号。
+**持续在线刷新（normative）。** 声明自己当前可达并选择广播 presence 的发送端（包括前台客户端、后台常驻客户端与 Agent runtime）MUST 在上一条 `ak.presence` 的 effective expiry 之前发送同一 scope 的后继信号；每个后继信号 MUST 使用严格递增的 `(sender_actor_id, sender_device_id, canonical scope_ref)` `payload_sequence`、新的 Signal nonce，并重新绑定发送时的 accepted `seal_ref` / MLS epoch。对 v1 `session` class 的 30 秒上限，实现 SHOULD 使用 20–25 秒的刷新周期，并 MUST 为调度、网络抖动与 session refresh 预留至少 5 秒余量；不得把进程健康检查、WebSocket / account stream keepalive 或最后一次 durable Message 当作 presence 刷新。运行时一旦不能取得当前授权、accepted Seal、可持久化的 MLS Signal nonce state，或不能在 expiry 前完成加密提交，MUST 停止宣称 online；接收端继续按上面的 TTL 规则自然聚合为 `offline`，不得延长旧信号。
 
 刷新生命周期 MUST 与该 runtime 的可达生命周期一致：启动并完成 session、scope 与 MLS readiness 后 SHOULD 立即首发；正常运行期间按上述周期刷新；pause / deactivate / unbind、授权或 session 无法恢复、网络断开且不能提交、进程关闭时停止刷新。发送端 MAY 在可用且不会拖延关闭时发送显式 `state="offline"`，但接收端不得依赖该 best-effort 信号，TTL expiry 始终是权威离线边界。对同时接入 durable Event 流的 Agent，presence 发送失败不得阻塞或伪造 Message 接收/回复成功；两条链路必须分别暴露可诊断状态。
 

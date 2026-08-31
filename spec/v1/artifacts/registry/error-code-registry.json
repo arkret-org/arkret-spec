@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-31.1",
-  "generated_at": "2026-08-31T01:00:00+08:00",
+  "version": "2026-08-31.4",
+  "generated_at": "2026-08-31T18:40:03+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -62,7 +62,7 @@
       "code": "agent_signer_evidence_missing",
       "http_status": 404,
       "scope": "both",
-      "description": "Portable Native Agent signer evidence is unavailable for the authorized shared context. For callers without that context this response is indistinguishable from an unknown Agent or method. Consumers remain Unresolved and MUST NOT fall back to device directory or an ordinary-Realm MLS leaf.",
+      "description": "Portable Agent signer evidence is unavailable for the authorized shared context. For callers without that context this response is indistinguishable from an unknown Agent or method. Consumers remain Unresolved and MUST NOT fall back to device directory or an ordinary-Realm MLS leaf.",
       "type_uri": "https://arkret.org/problems/agent_signer_evidence_missing",
       "title": "Agent signer evidence missing"
     },
@@ -142,7 +142,7 @@
       "code": "controller_signed_event_required",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "A managed-Agent operation that must preserve controller authorship omitted the required controller-signed durable Event proof. The service MUST NOT synthesize, service-sign, or directly project the missing controller fact. The controller must author and submit the exact closed Event required by the operation. See zh/identity/key-management.md §3.6.1 Lifecycle.",
+      "description": "An Agent operation that must preserve controller authorship omitted the required controller-signed durable Event proof. The service MUST NOT synthesize, service-sign, or directly project the missing controller fact. The controller must author and submit the exact closed Event required by the operation. See zh/identity/key-management.md §3.6.1 Lifecycle.",
       "type_uri": "https://arkret.org/problems/controller_signed_event_required",
       "title": "Controller signed event required"
     },
@@ -2441,7 +2441,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A personal Agent Realm grant contains an action or resource not covered by the Agent's immutable provision requested_scope, or attempts to omit or relax a mandatory provision constraint. Grant attach and reducer admission MUST fail closed with failed_precondition; Realm membership, policy, participation, pairing or key authorization cannot restore authority omitted at provision time. See zh/authz/capabilities.md section 9.1 and zh/identity/key-management.md section 3.6.1."
+      "description": "A Agent Realm grant contains an action or resource not covered by the Agent's immutable provision requested_scope, or attempts to omit or relax a mandatory provision constraint. Grant attach and reducer admission MUST fail closed with failed_precondition; Realm membership, policy, participation, pairing or key authorization cannot restore authority omitted at provision time. See zh/authz/capabilities.md section 9.1 and zh/identity/key-management.md section 3.6.1."
     },
     {
       "code": "agent_grant_expiry_required",
@@ -2504,7 +2504,7 @@
         "pcr_genesis",
         "event_envelope"
       ],
-      "description": "A managed_agent_control ak.realm.create was submitted without an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). The genesis carries no ref to its provision, so this reverse look-up is the whole binding: no match MUST fail closed with zero writes, and the receiver MUST NOT materialize the Realm, the agent-status transition or any partial projection. See zh/identity/key-management.md §3.6.3."
+      "description": "A agent_control ak.realm.create was submitted without an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). The genesis carries no ref to its provision, so this reverse look-up is the whole binding: no match MUST fail closed with zero writes, and the receiver MUST NOT materialize the Realm, the agent-status transition or any partial projection. See zh/identity/key-management.md §3.6.3."
     },
     {
       "code": "agent_provision_scope_migration_required",
@@ -2519,7 +2519,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "A native personal agent attempted to author ak.message.create in a scope where current controller selection and current target policy do not both enable reply_message. See zh/authz/capabilities.md §5.4 and zh/models/private-objects.md §4.1."
+      "description": "An Agent attempted to author ak.message.create in a scope where current controller selection and current target policy do not both enable reply_message. See zh/authz/capabilities.md §5.4 and zh/models/private-objects.md §4.1."
     },
     {
       "code": "agent_requested_scope_commitment_invalid",

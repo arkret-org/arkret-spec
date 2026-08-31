@@ -20,7 +20,7 @@ updated: 2026-08-11
 8. Handle
 9. Security Closure
 10. Service Closure
-11. Personal Agent & Sidecar
+11. Agent & Sidecar
 12. Media Service Binding
 13. History Visibility / Preview / History Sharing
 14. Encryption Floor Ratchet
@@ -2352,7 +2352,7 @@ ak.vector.capability.membership_is_not_baseline.v1
 ak.vector.realm.authority_root_bootstrap.v1
 ```
 
-本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条无条件 registered cell write，其中 authority-root 写入是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0}`；另有五条 registered condition row：`initial_resolution`、`managed_agent_control` 的 Agent status，以及由 `payload.object.purpose` 互斥选择的 `direct_conversation|principal_control|managed_agent_control` history-access `null→since_join` 初始化。每个命中的条件写入都必须包含。
+本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条无条件 registered cell write，其中 authority-root 写入是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0}`；另有五条 registered condition row：`initial_resolution`、`agent_control` 的 Agent status，以及由 `payload.object.purpose` 互斥选择的 `direct_conversation|principal_control|agent_control` history-access `null→since_join` 初始化。每个命中的条件写入都必须包含。
 
 正例：五条无条件 registered write 与条件命中的已登记 write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。
 
@@ -3425,7 +3425,7 @@ Expected：
 
 Steps：
 
-1. requester 每次新尝试只生成一个至少 128-bit CSPRNG `claim_request_id`，并分别以 closed `device`、`native_agent` 与 `minimal_metadata_pairwise` requester authorization 提交 canonical claim；同一值同时作为 `Idempotency-Key`、durable ledger identity 与后续 `claim_envelope` canonical 签名 transcript 中从 exact `claim_receipt.claim_request_id` 派生的同名 challenge，不得生成第二个 `claim_nonce`，也不得在 envelope wire 中复制 `nonce`。authorization 签名覆盖 exact claim fields 与 `service_binding={source_id,destination_id}`。device/Agent 分支由 current accepted authorization Event / pairing 与 active generation 证明当前授权；pairwise 分支由 exact `ak:did_core:key:<mb>` + `did:key:<mb>#<mb>` key、Realm current membership 和 ActorId routing authority 证明。source Station 在任何 remote call 前完成 durable admission，destination 只以同一请求执行唯一 CAS。authority 在 destination 接受后丢失响应。
+1. requester 每次新尝试只生成一个至少 128-bit CSPRNG `claim_request_id`，并分别以 closed `device`、`agent` 与 `minimal_metadata_pairwise` requester authorization 提交 canonical claim；同一值同时作为 `Idempotency-Key`、durable ledger identity 与后续 `claim_envelope` canonical 签名 transcript 中从 exact `claim_receipt.claim_request_id` 派生的同名 challenge，不得生成第二个 `claim_nonce`，也不得在 envelope wire 中复制 `nonce`。authorization 签名覆盖 exact claim fields 与 `service_binding={source_id,destination_id}`。device/Agent 分支由 current accepted authorization Event / pairing 与 active generation 证明当前授权；pairwise 分支由 exact `ak:did_core:key:<mb>` + `did:key:<mb>#<mb>` key、Realm current membership 和 ActorId routing authority 证明。source Station 在任何 remote call 前完成 durable admission，destination 只以同一请求执行唯一 CAS。authority 在 destination 接受后丢失响应。
 2. source Station 先按同一 `claim_request_id + request_digest` 查询不确定结果；若为 `unknown` 才原样重发 command。再以同一 identity 修改 target / Realm / selector 得到另一 digest。
 3. 分别施加缺 authorization、混合/开放 branch、wrong service binding、wrong authorized Event/method、stale/future authorization、短 `claim_request_id`、额外旧 `claim_nonce`、未被 PCR 接受的设备、已 fence/revoke 的设备或 generation、Agent/service key 冒充普通设备、pairwise actor 与 method multibase 不一致、pairwise actor 不在 intended Realm、current delivery service 不等于 signed source、仅 bearer token、以及 authorization 有效但 target policy 不满足的单点变异。
 
@@ -3449,7 +3449,7 @@ Steps：
 
 Expected：
 
-- 全链不得创建或要求 account、Device、PCR 或 Native-Agent authorization；真实 transport identity 不得进入 pairwise durable Event。
+- 全链不得创建或要求 account、Device、PCR 或 Agent authorization；真实 transport identity 不得进入 pairwise durable Event。
 - 对 A/M multibase 不一致、wrong Realm、wrong current delivery service、混入 device/Agent 字段、Leaf credential/key 属于另一 endpoint、claim/Welcome/receipt 坐标交叉拼接、membership leave/revoke 后或使用不同 ActorId 继续 publish/claim/Welcome/consume 的每个单点变异都必须在状态改变前 fail closed。
 - source/destination relay 必须验证 service receipt controller、durable claim ledger 与 exact request digest；普通本地 Welcome 不得绕过同一 ledger admission。
 - consume request 和 outcome 采用 singular claim 模型；exact replay 返回原 receipt，任何 request 或 nested durable receipt 漂移均为 conflict。
@@ -3842,7 +3842,7 @@ Expected：
 - 变体 B：服务端 MUST 忽略该参数，响应不含 `range_completeness` 字段且不报错；客户端把范围视为未 attest。
 - 变体 C：客户端 MUST NOT 用 `single_source` attestation 解除 high-assurance Realm 的 completeness 关注；按未 attest 处理或继续等待 quorum attestation。
 
-## 11. Personal Agent & Sidecar Vectors
+## 11. Agent & Sidecar Vectors
 
 ### 11.1 Vector: Provisioning + Pairing + Global Scope Ceiling
 
@@ -3850,7 +3850,7 @@ Expected：
 
 Steps:
 
-1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Station + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `did` 调用 `ak.self.agent.command.provision.v1`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 managed Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
+1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Station + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `did` 调用 `ak.self.agent.command.provision.v1`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
 2. Agent runtime 生成 key pair，取得 pairing verifier 签名的 presentation request/challenge；controller 生成符合 `ak.schema.agent_requested_scope_disclosure.v1`、绑定该 verifier/audience/challenge 且接收窗口不超过 300 秒的私有披露，与 key pair request 一起提交。controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
 4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 提交一个 controller-authored `ak.capability.grant` `EventInitialSubmission` 以附加更窄的 Realm-scoped grant。其 `event.payload.grant` 不含内层 proof，Event envelope proof 是唯一 durable issuer signature；另分别尝试提交 body-local proof、让服务端代签/合成 Event、含未 provision action及超出显式内容 resource ceiling 的变体。
@@ -3888,7 +3888,7 @@ Expected:
 Preconditions:
 
 - Alice 拥有 verified handle claim `alice:acme.example`，`subject=AliceDID`。
-- Alice 拥有 active native personal agent `AgentS`，其 Actor Profile `actor_kind="agent"`、`agent_slug="summary"`、`principal_id=AgentSDID`，且有 active `ak.identity.accountability_grant{issuer=AliceDID, subject=AgentSDID}`。
+- Alice 拥有 active Agent `AgentS`，其 Actor Profile `actor_kind="agent"`、`agent_slug="summary"`、`principal_id=AgentSDID`，且有 active `ak.identity.accountability_grant{issuer=AliceDID, subject=AgentSDID}`。
 - Alice 或授权 issuer 签发 current `ak.schema.agent_selector_claim.v1{controller_subject=AliceDID, agent_slug="summary", subject=AgentSDID, binding_state="verified", visibility="restricted", audience=<RealmR>}`。
 - 同一 Realm 中 Bob 可见 Alice 的 handle claim、AgentS 的 Actor Profile、selector claim 与 accountability evidence。
 
@@ -3914,7 +3914,7 @@ Expected:
 Steps:
 
 1. Controller 在安全存储中持久化 WebVH binding update key，发布不含 PCR service 的 Agent inception entry 0；服务端 accepted 后 prepare 返回逐字匹配的 `initial_resolution`。
-2. Controller 本地组装含该承诺的 managed Agent PCR `ak.realm.create` 完整 canonical bytes，自算 `event_id`，取 `realm_id = retype(event_id, "realm")`；commit 提交声明该值的 `ak.agent.provision`，返回 `status=awaiting_pcr_genesis`。
+2. Controller 本地组装含该承诺的 Agent PCR `ak.realm.create` 完整 canonical bytes，自算 `event_id`，取 `realm_id = retype(event_id, "realm")`；commit 提交声明该值的 `ak.agent.provision`，返回 `status=awaiting_pcr_genesis`。
 3. 归档：客户端崩溃重启，从 durable intent 恢复同一 create bytes 与 DID keys；重放 commit 返回同一 `awaiting_pcr_genesis` 而不是第二条 provision。
 4. 在**另一次提交**中送出该 create；admission 反查 accepted provision 并接受，provision outcome 变成 `awaiting_did_binding`，Agent 仍不可见。
 5. Controller 用 entry 0 预承诺 key 签发连续 entry 1，新增 exact PCR service 四元组；entry 1 accepted 后重放 commit 才返回 `complete`。
@@ -3926,7 +3926,7 @@ Expected:
 - 第 1 至 5 步依赖图严格为 `entry0 -> initial_resolution -> create -> realm_id -> entry1`，全程不产生 `event_id_digest_mismatch`；这就是可构造性证明。
 - 第 4 步只进入 `awaiting_did_binding`；第 5 步 accepted 后才把 `ak.component.agent.status.v1` 从 `uninitialized` 迁到 `active`、发布 pairing handle 并变为 `complete`。此前 list/get MUST 不返回该 Agent。
 - 变体 A、B、H MUST 在相应 DID/prepare admission fail closed；变体 I MUST 在普通 Event policy 与 delegated envelope 两条 create admission 路径都零写入拒绝，不能因其自身格式正确而接受；变体 C MUST 以 `event_id_digest_mismatch` 拒绝；变体 D MUST 以 `agent_pcr_genesis_declaration_missing` 零写入拒绝；变体 E MUST 以 `agent_pcr_genesis_declaration_conflict` 零写入拒绝且不改动既有 claim；变体 F、G MUST fail closed。
-- `purpose != "managed_agent_control"` 的 `ak.realm.create` MUST NOT 触发 agent-status 写入，也不做该反查。
+- `purpose != "agent_control"` 的 `ak.realm.create` MUST NOT 触发 agent-status 写入，也不做该反查。
 
 ### 11.2 Vector: Pairing Expiry Auto-Revoke
 
@@ -3964,13 +3964,13 @@ Expected:
 - 第 5 步服务端必须从当前持久化 request 与 pairing record 重算 stable binding、PoP transcript/digest/signature 和 `ak.agent.key_pairing_request_binding.v1`；只有 controller 签名绑定当前值时审批成功，并在 durable authorize accepted 后发 `remove(reason=approved)`。全部单点变异都必须在状态改变前 fail closed。
 - 所有 notification delta 与 provider-visible blind push 中均不得出现 pairing code、public key、PoP、attestation、display name 或 slug。
 
-### 11.2.2 Vector: Managed Agent PCR 分离
+### 11.2.2 Vector: Agent PCR 分离
 
 `vector_id`: `ak.vector.agent.managed_pcr_separation.v1`
 
 Steps:
 
-1. Controller DID `C`（已有 `PCR_C`）为 Agent DID `A` 走 provision prepare：分配 `A` 与 allocation，只固定 immutable `requested_scope` 的域分离 digest，完整 scope 由 controller-private disclosure 出示。controller 随后**本地冻结** `purpose="managed_agent_control"`、携带 `genesis_salt`、不携带 `founding_device_descriptor` 的 `PCR_A` genesis create 的完整 canonical bytes，自算 `event_id`，取 `PCR_A = retype(event_id, "realm")`；此时 create 尚未提交。
+1. Controller DID `C`（已有 `PCR_C`）为 Agent DID `A` 走 provision prepare：分配 `A` 与 allocation，只固定 immutable `requested_scope` 的域分离 digest，完整 scope 由 controller-private disclosure 出示。controller 随后**本地冻结** `purpose="agent_control"`、携带 `genesis_salt`、不携带 `founding_device_descriptor` 的 `PCR_A` genesis create 的完整 canonical bytes，自算 `event_id`，取 `PCR_A = retype(event_id, "realm")`；此时 create 尚未提交。
 2. Provisioning 的单一 `ak.agent.provision` Event 写入 `PCR_C`，其 `principal_control_realm_id` 前向声明上一步算出的 `PCR_A`（[`./encoding.md` §6.0.1](./encoding.md) 具名 C 类例外），并原子投影 provisioning、accountability、selector 与 realm-id claim facts；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、写入对应受治理 Realm 的 `ak.capability.grant` Event 产生；CapabilityGrantBody 无内层签名，唯一 durable issuer signature 是 Event envelope proof。operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。此时 outcome 停在 `status=awaiting_pcr_genesis`，DID service entry、pairing handle 与 list/get 可见性一律尚未发布。
 3. Controller 在**另一次提交**中送出该 genesis create（MUST NOT 与第 2 步同批）：对 basis-free candidate create 重算 founding
    `NotaryValue` / `authority_set_ref`，由 `C` 的当前 device 为 exact Event digest 签 proposal
@@ -3985,23 +3985,23 @@ Steps:
 Expected:
 
 - `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry 的 PCR/controller/authorization/digest 四元组，再验证 controller-signed private disclosure 后使用 scope；不得验证实现私有派生算法或信任服务本地 scope row。
-- `PCR_A.created_by == PCR_A.notary == A`，`purpose="managed_agent_control"`，profile/history/encryption floor 全部满足 PCR invariant；`founding_device_descriptor` 出现必须 fail closed，缺少 `genesis_salt` 同样必须 fail closed。
+- `PCR_A.created_by == PCR_A.notary == A`，`purpose="agent_control"`，profile/history/encryption floor 全部满足 PCR invariant；`founding_device_descriptor` 出现必须 fail closed，缺少 `genesis_salt` 同样必须 fail closed。
 - Controller 写 Agent PCR 时 `actor_id=A`、`executed_by=C`，proof method 属于 C，delegation 覆盖目标 kind；不得伪造 A 签名。
 - basis-free create 仍必须返回并持久化 controller-device Control Proposal Ack；首 Seal 提交前 pending
   index 必须存在同一 digest，提交后该 digest、Seal lineage 与 registered effects 必须在同一事务
   转为 sealed/accepted。memory 与 PostgreSQL adapter 必须产生相同结果。
 - Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；单一 provision Event及其 accountability/selector/realm-id-claim projections 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
-- `PCR_A` 逐字等于 controller 在第 1 步本地算出的值；genesis accepted 时 `ak.component.agent.status.v1` 从 `uninitialized` 迁到 `active`，且这是唯一能离开 `uninitialized` 的写入。`purpose != "managed_agent_control"` 的 create MUST NOT 触发该写入。
+- `PCR_A` 逐字等于 controller 在第 1 步本地算出的值；genesis accepted 时 `ak.component.agent.status.v1` 从 `uninitialized` 迁到 `active`，且这是唯一能离开 `uninitialized` 的写入。`purpose != "agent_control"` 的 create MUST NOT 触发该写入。
 - `PCR_A` 与 `PCR_C` MUST 由同一 Station 承载；反查与 realm-id claim 唯一性都是本地判定。
 - 八个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id，也不得扩大 Agent 的内容权限。变体 F MUST 以 `event_id_digest_mismatch` 被拒（§6.0.1 B 类禁令），变体 G MUST 零写入拒绝，变体 H 的第二条 provision MUST 被 `cas_register` / `bottom=reject` claim cell 拒绝。
 
-### 11.2.3 Vector: Managed Agent PCR History-only Backup
+### 11.2.3 Vector: Agent PCR History-only Backup
 
 `vector_id`: `ak.vector.agent.managed_pcr_history_backup.v1`
 
 Preconditions:
 
-- Controller `C` 有 current accepted recovery policy `RP_C` 与 recovery public key；managed Agent `A` 的 DID service binding 指向 `PCR_A`，delegation purpose 覆盖 `principal_control_realm_bootstrap`、agent-control authoring 与 `principal_control_realm_recovery`。
+- Controller `C` 有 current accepted recovery policy `RP_C` 与 recovery public key；Agent `A` 的 DID service binding 指向 `PCR_A`，delegation purpose 覆盖 `principal_control_realm_bootstrap`、agent-control authoring 与 `principal_control_realm_recovery`。
 - `ak.self.agent.command.provision.v1` 已完成；`PCR_A` 使用 exporter content scheme，并已有可备份的连续 history-secret range；尚无 runtime key authorization。
 
 Steps:
@@ -4019,7 +4019,7 @@ Expected:
 - 步骤 3 的两个 pairing outcome 除幂等坐标外逐字同构；backup availability 不得进入 request、response、readiness blocker、error code 或 admission branch。
 - 步骤 4 不恢复或克隆旧 runtime private key；K2 由新 runtime 本地生成，旧 authorization 由单一 authorize Event 的精确 `supersedes[]` 原子替换。
 - 步骤 5 只允许标准 Add/Welcome；history secret 只解密其覆盖的历史正文，不恢复当前成员身份或发送能力。
-- 步骤 6 全部 fail closed。Native Personal Agent 不拥有独立面向用户 Recovery Key；controller 的 Recovery Key 解锁 controller-owned history envelope，不直接确定性派生 Agent/runtime/MLS active private key。
+- 步骤 6 全部 fail closed。Agent 不拥有独立面向用户 Recovery Key；controller 的 Recovery Key 解锁 controller-owned history envelope，不直接确定性派生 Agent/runtime/MLS active private key。
 
 ### 11.2.4 Vector: Runtime Replacement Re-pairing Supersede
 
@@ -4069,13 +4069,13 @@ Expected:
 - 第 5 步 MUST 在同一 Control Move 中 observe-remove 全部已观察 authorize dots 并 add 一个 replacement dot；接受后该 cell 只有一个 active authorize dot，新边界生效。
 - 变体 A join 后的 effective authorization MUST 对 scope / audience 取交集、对 `expires_at` 取最早有限值（缺省按 `+infinity`）；MUST NOT 按到达顺序选 winner。
 
-### 11.2.6 Vector: Native Agent KeyPackage Authorization Binding
+### 11.2.6 Vector: Agent KeyPackage Authorization Binding
 
 `vector_id`: `ak.vector.agent.mls_keypackage_authorization.v1`
 
 Preconditions:
 
-- Native Agent `A` 已完成 pairing；当前 active accepted `ak.agent.key.authorize` Event 为 `E1`，其 `verification_method=K1`，runtime 持有 K1 私钥与独立 MLS endpoint id `D1`。
+- Agent `A` 已完成 pairing；当前 active accepted `ak.agent.key.authorize` Event 为 `E1`，其 `verification_method=K1`，runtime 持有 K1 私钥与独立 MLS endpoint id `D1`。
 - `A` 不是 controller 的 delegated device，且不存在 `(A,D1)` 的 `ak.device.authorize`。
 
 Steps:
@@ -4179,7 +4179,7 @@ ineffective。客户端提交逐 key/grant revoke bundle、只清 UI cache、或
 `agent_projection` 增加 `runtime_state`、或 generic `key_state` 增加 `status` / `runtime_state` 的 schema case
 必须失败；pairing poll outcome 仍必须要求其 operation-local `runtime_state`，证明不是删除 diagnostic enum。
 
-#### 11.4.1 Vector: Controller Membership → Native Agent Cascade
+#### 11.4.1 Vector: Controller Membership → Agent Cascade
 
 `vector_id`: `ak.vector.agent.membership_cascade.v1`
 
@@ -4207,7 +4207,7 @@ Expected:
 - 第 3 步 MUST 校验 `executed_by` ↔ proof key 一致、`authorization_ref` 覆盖 `ak.message.create` + Strand F + 未过期；通过则接受。
 - Reducer 写入 `actor_kind="agent"` projection(注意是 reducer-stamped,actor 提交侧不携带)。
 - 第 4 步 MUST fail closed(`reason=approval_already_consumed`)。
-- 客户端渲染 "Controller via Agent" 双重署名；不显示为纯 controller 行为。
+- 客户端渲染 "Controller vian Agent" 双重署名；不显示为纯 controller 行为。
 
 ### 11.6 Vector: Relation Reference Projection Indistinguishability
 
@@ -4469,7 +4469,7 @@ Steps:
 
 1. Circle `C`(父级为 `R`)写入完整五位 policy，并把 `accept_third_party_mention` 收紧为 `false`。
 2. Strand `F`(`scope_circle_id=C`)写入与 Circle 相同的完整五位 policy。
-3. 变体 A：Circle `C` 尝试写入 `act_on_behalf:true`(放宽父 Realm `native_agent.act_on_behalf=false`)。
+3. 变体 A：Circle `C` 尝试写入 `act_on_behalf:true`(放宽父 Realm `agent.act_on_behalf=false`)。
 4. 变体 B：Strand `F` 尝试写入 `accept_third_party_mention:true`(放宽父 Circle `C` 的 `false`)。
 
 Expected:
@@ -4486,7 +4486,7 @@ Expected:
 
 Preconditions:
 
-- Realm `R` 的 current native-agent policy 允许 `reply_message/reaction_add`，拒绝 `reaction_remove/act_on_behalf`。Agent `A` 为 controller `Alice` 的 active native personal agent，并持有 `ak.message.create` 与 `ak.reaction.add` 的普通 capability。
+- Realm `R` 的 current agent policy 允许 `reply_message/reaction_add`，拒绝 `reaction_remove/act_on_behalf`。Agent `A` 为 controller `Alice` 的 active Agent，并持有 `ak.message.create` 与 `ak.reaction.add` 的普通 capability。
 
 Steps:
 
@@ -4552,7 +4552,7 @@ Expected:
 
 Preconditions:
 
-- Agent `A` 为 controller `Alice` 的 active native personal agent，有权读取 Strand `F`。`F` 的 effective `accept_third_party_mention=false`。
+- Agent `A` 为 controller `Alice` 的 active Agent，有权读取 Strand `F`。`F` 的 effective `accept_third_party_mention=false`。
 
 Steps:
 
@@ -5589,7 +5589,7 @@ Steps:
 
 Expected:
 
-- create Event 的 reducer 输出 MUST 恰好含五条无条件写入：`ak.component.realm.genesis.v1:null`（`set`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）、`ak.component.realm.reducer_profile.v1:null`（`set`）、`ak.component.realm.authority_root.v1:null`（`set`，controller 由 envelope `actor_id` 派生）；另有五条 registered condition row：`initial_resolution`、`managed_agent_control` Agent status、以及由 `payload.object.purpose` 互斥命中的 `direct_conversation|principal_control|managed_agent_control` history-access `null→since_join`。少一条、漏掉命中的条件写入、命中多个 purpose history row，或出现这五条注册条件之外的 create 写入，都表示 registry/vector drift，门禁 MUST 失败。
+- create Event 的 reducer 输出 MUST 恰好含五条无条件写入：`ak.component.realm.genesis.v1:null`（`set`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）、`ak.component.realm.reducer_profile.v1:null`（`set`）、`ak.component.realm.authority_root.v1:null`（`set`，controller 由 envelope `actor_id` 派生）；另有五条 registered condition row：`initial_resolution`、`agent_control` Agent status、以及由 `payload.object.purpose` 互斥命中的 `direct_conversation|principal_control|agent_control` history-access `null→since_join`。少一条、漏掉命中的条件写入、命中多个 purpose history row，或出现这五条注册条件之外的 create 写入，都表示 registry/vector drift，门禁 MUST 失败。
 - 两个实现的 genesis `state_root` MUST 逐字节相同（KAT）。
 - creator membership 必须来自 bootstrap unit 末尾的显式 `ak.member.state{join}`，其 cell MUST 有 inclusion proof；create reducer 自行隐式写 membership 视为额外未登记投影。
 - `ak.component.realm.genesis.v1`、`ak.component.realm.profile.v1` 与所有 required bootstrap facet MUST 在 genesis Seal 即出现在 leaf 集合中；事后补写视为不合规（负例）。
@@ -5608,7 +5608,7 @@ Expected:
 
 - 每个 `cell_subject: null` family 的 wire subject 段 MUST 逐字节等于字面 ASCII `null`。
 - 两个实现 MUST 得到逐字节相同的 leaf 序列与 `state_root`。
-- 负例：把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `managed_agent_principal_control`）或任何 payload 派生值写进 subject 段；空末段（`ak:cell:<family>:`）；这些形态 MUST `schema_violation`。
+- 负例：把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `agent_principal_control`）或任何 payload 派生值写进 subject 段；空末段（`ak:cell:<family>:`）；这些形态 MUST `schema_violation`。
 
 ### 23.4 Invite 与 membership cell 的原子绑定
 
@@ -6286,7 +6286,7 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 
 Runner MUST 覆盖：
 
-1. `ak.peer.events.command.submit.v1` 的成功 outcome MUST 为 `accepted[] ∪ duplicate[]` 中每个 Native Agent Event
+1. `ak.peer.events.command.submit.v1` 的成功 outcome MUST 为 `accepted[] ∪ duplicate[]` 中每个 Agent Event
    返回恰好一个 receiver-signed `agent_event_admission_receipts[]` 项；非 Agent Event 不产生 receipt；
    `rejected[]`、`quarantine[]` 与 dependency-missing 项 MUST NOT 签发或返回 receipt；self submit outcome 不带该字段。
 2. receipt MUST 与 Event durable acceptance 在同一事务写入。receipt 写入失败 MUST 使该 Event 的接受整体回滚，
@@ -6298,7 +6298,7 @@ Runner MUST 覆盖：
    或更换 signing method 均不合格。相同去重键但 Event canonical bytes、digest 或 receipt intent 不同 MUST
    `duplicate_conflict`，零 receipt 且零覆盖。
 5. source durable outbox 收到 2xx 后 MUST 先校验 response transport authentication 与 outcome schema，再要求
-   receipt 集合与 `accepted[] ∪ duplicate[]` 中带 origin producer evidence pair 的 Native Agent Event 精确一一对应：
+   receipt 集合与 `accepted[] ∪ duplicate[]` 中带 origin producer evidence pair 的 Agent Event 精确一一对应：
    少一个、多一个、receipt proof 不可解析、`receiver_id` 不匹配，或 receipt 承诺的
    `producer_signer_resolution_evidence_ref/digest` 与 origin 冻结的 pair 不一致，MUST NOT 把该 Event/receiver 的
    历史证据交接标为完成。
@@ -6361,7 +6361,7 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
 - `ak.vector.history_key.frontier_traversal_split.v1`：near-current `group_security_frontier` 的 bounded stateless 完整响应，与
   bulk/old-history receipt-bound direct Seal traversal 严格分型；覆盖 `trusted_history_base_basis`、独立 anti-rollback
   `trusted_current_basis`、target dominance、完整 predecessor cut、registered dependency resolve、current ratchet/join floor、per-item RRK traversal 及 self/peer visibility 边界；
-- `ak.vector.history_key.sender_crypto.v1`：ordinary/Native Agent/minimal sender domain、history-secret KDF、nonce、
+- `ak.vector.history_key.sender_crypto.v1`：ordinary human/Agent/minimal sender domain、history-secret KDF、nonce、
   reconstructed AAD、HPKE chunk context、multi-candidate store 与 replay ledger。Received/RRK secret 永远是 candidate，AEAD success
   只建立 exact Event→candidate digest binding，不得 epoch-level promote/淘汰其它 candidate；fake secret+fake ciphertext 只能影响恶意作者
   自己签名的 Event。Runner 还必须覆盖按 `(scope,group,epoch,candidate_digest)` 全局 material 去重、与 bytes 分离的 typed

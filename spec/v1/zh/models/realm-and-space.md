@@ -209,20 +209,20 @@ receiver 派生：realm_id = retype(event_id, "realm")
 
 违反 MUST `schema_violation`，`reason_code=realm_id_not_event_derived`。
 
-每一个 Realm——Collaboration、Direct Conversation、human PCR 与 managed Agent PCR——的 closed genesis object MUST 使用 `schema="ak.schema.realm_genesis.v1"`，并携带：`purpose`、`genesis_salt`、`trust_domain`、`schema_refs`、`reducer_profile`、`digest_algorithm`、`security_class`、`encryption_profile`、`notary`。其中：
+每一个 Realm——Collaboration、Direct Conversation、human PCR 与 Agent PCR——的 closed genesis object MUST 使用 `schema="ak.schema.realm_genesis.v1"`，并携带：`purpose`、`genesis_salt`、`trust_domain`、`schema_refs`、`reducer_profile`、`digest_algorithm`、`security_class`、`encryption_profile`、`notary`。其中：
 
 ```text
 genesis_salt = base64url_no_pad(CSPRNG(32 octets))
 ```
 
-canonical wire 恰为 43 chars，禁止 padding、非 URL-safe alphabet、31/33 bytes、时间/HLC/UUID/计数器或可预测 PRNG。每个新 create intent 只生成一次并先与 intent 持久化；prepare、签名、HTTP retry、receipt 查询与 crash recovery 必须复用同一 salt 以及首次持久化的 exact signed unit。salt 不是 replay nonce、授权、新鲜度、排序或 winner 输入。**PCR 与 managed Agent PCR 同样 MUST 携带 `genesis_salt`**：收敛为 event-derived 后它们不再是例外分支。salt 在此的作用是 (i) 消除例外、(ii) 使 PCR 地址不可由 DID 预先推算、(iii) 强制 durable intent 纪律——崩溃后重建 create 会得到不同 `event_id`，复用同一 salt 与首次持久化的 exact signed unit 才能避免产生第二个 PCR；该纪律与账号维度唯一约束互为正反面。
+canonical wire 恰为 43 chars，禁止 padding、非 URL-safe alphabet、31/33 bytes、时间/HLC/UUID/计数器或可预测 PRNG。每个新 create intent 只生成一次并先与 intent 持久化；prepare、签名、HTTP retry、receipt 查询与 crash recovery 必须复用同一 salt 以及首次持久化的 exact signed unit。salt 不是 replay nonce、授权、新鲜度、排序或 winner 输入。**PCR 与 Agent PCR 同样 MUST 携带 `genesis_salt`**：收敛为 event-derived 后它们不再是例外分支。salt 在此的作用是 (i) 消除例外、(ii) 使 PCR 地址不可由 DID 预先推算、(iii) 强制 durable intent 纪律——崩溃后重建 create 会得到不同 `event_id`，复用同一 salt 与首次持久化的 exact signed unit 才能避免产生第二个 PCR；该纪律与账号维度唯一约束互为正反面。
 
 **为什么必须省略而不是"携带并校验相等"（normative rationale）**：`event_digest` 的 preimage 只排除 `proofs` / `unsigned` / `actor_kind` / `event_id`（[`../conformance/encoding.md` §6](../conformance/encoding.md)），`realm_id` 与 `scope_ref` **仍在 preimage 内**。而 §4.0 的 `event_id` 由该 digest 决定，`realm_id` 又要等于 `retype(event_id)`——于是 `realm_id` 成为 digest 的函数，却又是 digest 的输入，**定义即循环，没有不动点可解**。唯一出路是把它移出 preimage，即从 envelope 省略；`scope_ref` 同理，故 genesis 使用不含 `realm_id` 的 `realm_genesis` 形态。这与 Matrix room v12 把 `room_id` 从 create event 移除的理由完全相同。
 
 Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在 payload，且按 [`common-fields.md` §6.0](./common-fields.md) 一律省略。
 
-**Principal Control Realm 与 managed Agent PCR 适用本节通则（normative）**：
-**全部 Realm——含 human PCR 与 managed Agent PCR——一律按 §2.5.0 从各自 genesis Event 派生
+**Principal Control Realm 与 Agent PCR 适用本节通则（normative）**：
+**全部 Realm——含 human PCR 与 Agent PCR——一律按 §2.5.0 从各自 genesis Event 派生
 `realm_id`**，使用同一个 33-octet / 44-character Realm token wire form，不使用 UUID。
 
 理由：PCR 的作用域是「某个 DID 在**当前 Station** 上的账号」，同一 DID 在不同 Principal
@@ -241,7 +241,7 @@ v1 Realm 算法固定为 `digest_suite=0x1`（SHA-256），因此 v1 唯一合�
 
 PCR 的**身份锚**与其 `realm_id` 是两件事：realm id 按上述通则由 genesis Event 派生，而该 PCR 属于哪个 principal 由 create 携带的唯一 critical root anchor ref 决定（见 [`../identity/key-management.md` §5.0.1](../identity/key-management.md)）。远端 verifier 需要判定"某 Seal 是否属于该 principal 的 PCR"时，MUST 以已签名的 `pcr_genesis_unit` receipt 中承诺的 `realm_id` 为准，MUST NOT 从 principal DID 自行重算。
 
-因此 `ak:realm:` 始终只有一种物理形态：`ak:realm:<44-char-token>`，解码后恰为 33 octets。所有 Realm（含 human PCR 与 managed Agent PCR）都重类型其 create Event 的 token（header `0x0S`）。它不是 producer 自选。
+因此 `ak:realm:` 始终只有一种物理形态：`ak:realm:<44-char-token>`，解码后恰为 33 octets。所有 Realm（含 human PCR 与 Agent PCR）都重类型其 create Event 的 token（header `0x0S`）。它不是 producer 自选。
 
 **Realm id 不编码 Realm 类别。** header 只说明 token 布局与 digest suite，收敛后已无可分配的类别空间；
 Realm **是什么**由签名 create payload 的 `purpose` 表达。新增 `purpose` 取值不改变 id 形态，
@@ -260,7 +260,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 
 1. 先定位该 Realm 的 `ak.realm.create` 并取得其完整 canonical bytes；
 2. 对所有分支重算并校验 `event_id`；
-3. 对**所有** `purpose` 校验 `retype(event_id) == realm_id`，且 `genesis_salt` 为 canonical Base64URL-no-pad 的 32 octets；`purpose="principal_control"` 走 `did_root_anchor` 分支时另需校验 create 携带的唯一 critical `did_inception` root anchor ref，走 organization-governed `delegated_pcr_genesis` 分支时改验 `executed_by` / `authorization_ref` 的 governance delegation（该分支 MUST 不含 `did_inception`，两分支因此结构互斥）；`purpose="managed_agent_control"` 时 create **不携带任何 anchor ref**，改为反查 controller PCR 中是否已存在 accepted 的 `ak.agent.provision` 声明了 `retype(本 create 的 event_id)`，无匹配 MUST 零写入拒绝（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）；
+3. 对**所有** `purpose` 校验 `retype(event_id) == realm_id`，且 `genesis_salt` 为 canonical Base64URL-no-pad 的 32 octets；`purpose="principal_control"` 走 `did_root_anchor` 分支时另需校验 create 携带的唯一 critical `did_inception` root anchor ref，走 organization-governed `delegated_pcr_genesis` 分支时改验 `executed_by` / `authorization_ref` 的 governance delegation（该分支 MUST 不含 `did_inception`，两分支因此结构互斥）；`purpose="agent_control"` 时 create **不携带任何 anchor ref**，改为反查 controller PCR 中是否已存在 accepted 的 `ak.agent.provision` 声明了 `retype(本 create 的 event_id)`，无匹配 MUST 零写入拒绝（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）；
 4. 取得并验证完整 ordered genesis unit 与其 genesis Seal/state commitment；identity 或 genesis closure 任一未完成前 MUST NOT 接受该 Realm 的后续 Event、Seal 或 effective Realm projection；
 5. 把该 genesis 与完整初始 facet commitment 持久化为该 `realm_id` 的永久本地绑定；
 6. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。
@@ -281,7 +281,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 
 `ak.realm.create` 是 Realm 生命周期的 genesis event，只建立 Realm identity/security core、create log、notary、reducer profile 与终身稳定的 authority root。显示内容、policy 与 membership 都由同一原子 bootstrap unit 中各自的 registered facet Event 建立。
 
-**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条通过 `ak.peer.principal_genesis.command.submit.v1` 原子接受，均免 `seal_basis`；descriptor 与 authorize payload 必须逐字段/digest 相等。Managed Agent PCR 的 controller-authorized 分支 MUST 使用 `purpose="managed_agent_control"`，且不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
+**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条通过 `ak.peer.principal_genesis.command.submit.v1` 原子接受，均免 `seal_basis`；descriptor 与 authorize payload 必须逐字段/digest 相等。Agent PCR 的 controller-authorized 分支 MUST 使用 `purpose="agent_control"`，且不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
 
 以下五项是所有 purpose 共有的无条件 registered writes；另有五条 registered condition row。任何实现不得由 create 顺带写 profile 或 member 状态；Agent lifecycle 与三个互斥 purpose 的 history-access 初始化仅限下述已登记条件写入。完整集合及条件以机读 registry 为准。
 
@@ -306,10 +306,10 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
    `(realm_id, cell_ref)` 是该 Realm **终身稳定的 authority root identity**；`controller_id` 只是当前控制者，`controller_epoch` 只随 root controller 轮换递增，`authority_generation` 只随整代授权重置递增。owner/admin coverage 由 Realm 的冻结 `reducer_profile` 解释器决定，不进入该 cell。author 不得自行提供 `controller_id` / `controller_epoch` / `authority_generation`，也不得携带该三字段之外的成员；出现额外 author-supplied 字段时 MUST 原子拒绝（`failed_precondition`，`reason="realm_authority_root_conflict"`）。
 
 6. **条件写入 `ak.component.identity.resolution.v1` singleton**：仅当 `payload.object.initial_resolution` 存在时，投影其完整已登记 resolution commitment。
-7. **条件写入 `ak.component.agent.status.v1` cell**：仅当 `payload.object.purpose == "managed_agent_control"` 时，把 `envelope.actor_id` 对应 Agent 从 `uninitialized` 推进到 `active`。
+7. **条件写入 `ak.component.agent.status.v1` cell**：仅当 `payload.object.purpose == "agent_control"` 时，把 `envelope.actor_id` 对应 Agent 从 `uninitialized` 推进到 `active`。
 8. **条件写入 `ak.component.realm.history_access.v1` FSM cell**：仅当 `payload.object.purpose == "direct_conversation"` 时，原子执行 `null -> since_join`。
 9. **条件写入同一 history-access FSM cell**：仅当 `payload.object.purpose == "principal_control"` 时，原子执行 `null -> since_join`。
-10. **条件写入同一 history-access FSM cell**：仅当 `payload.object.purpose == "managed_agent_control"` 时，原子执行 `null -> since_join`。
+10. **条件写入同一 history-access FSM cell**：仅当 `payload.object.purpose == "agent_control"` 时，原子执行 `null -> since_join`。
 
 以上五条无条件写入加五条条件 row 构成 create 的完整 projection；第 8 至 10 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 一起进入 genesis Seal/state commitment。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
 
@@ -426,7 +426,7 @@ Realm 有两个终态 event，语义不同：
 
 共享表未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 
-上表 `leave -> join` 另有一个封闭的 Native Personal Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm native-agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受；payload 的 `agent_controller_binding` MUST 钉住 controller exact authority pair 与建立当前 `join` 的 Event ID。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。
+上表 `leave -> join` 另有一个封闭的 Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受；payload 的 `agent_controller_binding` MUST 钉住 controller exact authority pair 与建立当前 `join` 的 Event ID。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。
 
 controller terminal transition 不再隐式改写 Agent canonical member cell。effective Agent membership 从 accepted member/controller/provision facts确定性派生；controller 不再处于 binding 所指 generation 的 active `join` 时，Agent 在同一 control view 立即无效。canonical cleanup 只接受 [`actor.md` §3.3](./actor.md) 定义的签名 cascade unit：self leave 为 controller transition + exact Agent leave set 的原子 batch；第三方紧急 ban/remove 为 terminal Event + durable exact-set cleanup intent，后续 complete-set batch 一次性写入 Agent leave。已为 `ban` 的 Agent 保持 `ban`，不得被 cleanup 降级；controller rejoin 的新 Event ID 不复活旧 Agent binding。
 
@@ -446,7 +446,7 @@ Realm（ak.schema.realm.v1，schema 层统一）
 
 - 与 principal DID **1:1 绑定**，由 `principal_control_realm_id` 标识，由 DID method 的 inception 证据钉死（参见 [`identity/key-management.md` §4.1 与 §5.0](../identity/key-management.md)）。
 - Genesis discriminator 与 effective projection MUST：
-  - human / organization PCR create genesis `purpose = "principal_control"`；managed Agent PCR create genesis `purpose = "managed_agent_control"`
+  - human / organization PCR create genesis `purpose = "principal_control"`；Agent PCR create genesis `purpose = "agent_control"`
   - `schema_refs` 包含 `ak.profile.principal_control_realm.v1`
   - `encryption_profile = "mls_rfc9420"`；PCR 在 v1 中不允许 `none` 或 `external`，schema / reducer MUST fail closed。
   - effective `content_encryption_floor = "e2ee_required"` 且 `metadata_encryption_floor = "e2ee_required"`。v1 不存在"明文地板的 PCR"：两条 floor 由 PCR profile baseline 固定，不是 genesis object 的 producer 字段。
@@ -454,10 +454,10 @@ Realm（ak.schema.realm.v1，schema 层统一）
   - genesis `security_class = "high_assurance"`；effective `federation_policy ∈ {closed, restricted, quarantine}` 来自 profile/policy projection。
   - effective `history_access = "since_join"`。Standard-MLS PCR 不提供可交付 history secret；新 endpoint 从自己的 initial Add/Welcome admission 起读取密文，durable device-list / normalized principal view 提供必要控制 baseline，不恢复 foreign active MLS state。
 - 事件类型由 `ak.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 identity resolution / device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Strand / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。allowlist 是**闭合**的：正文要求写入 PCR 的每个 kind MUST 出现在其中，反之亦然；`ak.identity.resolution.update`（[`../identity/identity-did.md` §4.2](../identity/identity-did.md)）与 `ak.contact.scope.update`（[`../identity/contact-and-direct-conversation.md` §3](../identity/contact-and-direct-conversation.md)）同属该 allowlist。
-- Native Personal Agent 作为独立 principal 使用自己的 PCR，不得复用 controller PCR id。Agent DID 与 PCR id 的绑定、controller delegation、`actor_id` / `executed_by` authoring 和 agent/controller 控制事实落点以 [`identity/key-management.md` §4.1](../identity/key-management.md) 为权威；realm id 本身按 §2.5.0 通则从 genesis Event 派生，**实现私有的 deterministic id 派生不是验证证据**。Profile allowlist 虽包含 Agent PCR 与 controller PCR 两组 agent-control kind，reducer 必须按 `agent_control_event_placement` 再做落点约束，不能把 allowlist 并集解释成跨 principal 通用写权限。
+- Agent 作为独立 principal 使用自己的 PCR，不得复用 controller PCR id。Agent DID 与 PCR id 的绑定、controller delegation、`actor_id` / `executed_by` authoring 和 agent/controller 控制事实落点以 [`identity/key-management.md` §4.1](../identity/key-management.md) 为权威；realm id 本身按 §2.5.0 通则从 genesis Event 派生，**实现私有的 deterministic id 派生不是验证证据**。Profile allowlist 虽包含 Agent PCR 与 controller PCR 两组 agent-control kind，reducer 必须按 `agent_control_event_placement` 再做落点约束，不能把 allowlist 并集解释成跨 principal 通用写权限。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
 - "私有"语义由 **用途 + event-kind allowlist + 外露注册表** 共同锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
-- **Availability holder 的 PCR 特例是 create-locked，不是隐式 membership**：human、managed Agent 与 Applet-managed PCR genesis 都明确不写 `ak.component.member.state.v1`，因此首个及后续 successor Seal 的 eligible holder 只从 predecessor closure 中唯一 accepted create 的、已由 Station admission proof 与 historical signer evidence 完整验证的 `station_id` 派生。该 frozen service DID 是 PCR 对 §8 AvailabilityReceipt 的唯一 holder carrier；不得把 authority-root controller、notary signer、current account row 或 session 当成 holder，也不得为满足默认 quorum 给 PCR 合成 member state。
+- **Availability holder 的 PCR 特例是 create-locked，不是隐式 membership**：human、Agent 与 Applet-managed PCR genesis 都明确不写 `ak.component.member.state.v1`，因此首个及后续 successor Seal 的 eligible holder 只从 predecessor closure 中唯一 accepted create 的、已由 Station admission proof 与 historical signer evidence 完整验证的 `station_id` 派生。该 frozen service DID 是 PCR 对 §8 AvailabilityReceipt 的唯一 holder carrier；不得把 authority-root controller、notary signer、current account row 或 session 当成 holder，也不得为满足默认 quorum 给 PCR 合成 member state。
 - **外露方向同样闭合（normative）**：`realm_event_kind_policy.allowed_event_kinds` 只锁"能写什么"。允许写入的 kind 中，有一部分必须离开该 Realm 才能让协议成立——远端做设备信任重放、Seal 归属判定、Contact 验证闭环与 KeyPackage claim 都需要它们。**这些外露路径 MUST 逐条登记在 [`pcr-exposure-registry.json`](../../artifacts/registry/pcr-exposure-registry.json)**，其 `event_kinds[]` 集合 MUST 与本 allowlist 逐字相等。每条 `exposures[]` 声明 carrier 形态（`exact_event` / `derived_field` / `receipt` / `seal` / `did_service_entry`）、surface、`operation_id` 与方向、exact `schema_ref` 与 JSON Pointer、`authorization_policy_id`，以及适用时的 `anti_enumeration_policy_id`。`exposures[]` 为空即 **PCR-private**：该 kind MUST NOT 经任何 `ak.open.*` / `ak.peer.*` / 跨 principal `ak.self.*` 面或公开 DID Document entry 到达域外。conformance vector `ak.vector.identity.pcr_outward_exposure_registry.v1` 覆盖 registry 正反向闭合与各授权分支的反枚举等价性。
 - **`public` 是显式策略值，不是缺省**：缺少 `authorization_policy_id` MUST NOT 被解释为公开。新增任何承载 PCR 派生字段的对外面而未在该注册表登记，release gate MUST 红；把某个 carrier 悄悄扩大到第二个仍标记 private 的 kind 同样 MUST 红。
 - **历史读取无平行 policy（normative）**：PCR 只有 current `history_access=since_join`，不存在 profile-fixed key-sharing baseline、公开 share Event 或 archive/recovery-service source。PCR 的 standard MLS profile 不进入 history-key delivery、history backup 或 RRK archive；控制基线由 durable device-list / normalized principal view 提供。

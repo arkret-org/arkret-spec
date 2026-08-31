@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-30.6",
+  "version": "2026-08-31.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T00:10:01+08:00",
+  "generated_at": "2026-08-31T18:30:05+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -217,7 +217,7 @@
         "not_found",
         "limit_exceeded"
       ],
-      "description": "Exact native personal agent selector resolution: Directory resolves controller_handle to a controller DID and verifies the visible ak.schema.agent_selector_claim.v1 (controller_subject, agent_slug) -> subject binding, proof, and accountability grant. Failure, unauthorized, not-visible, revoked / expired / ambiguous, missing controller, or hidden agent all collapse into a single not_found surface indistinguishable from nonexistence (zh/discovery/discovery-directory.md §9); the op never returns selector candidates."
+      "description": "Exact Agent selector resolution: Directory resolves controller_handle to a controller DID and verifies the visible ak.schema.agent_selector_claim.v1 (controller_subject, agent_slug) -> subject binding, proof, and accountability grant. Failure, unauthorized, not-visible, revoked / expired / ambiguous, missing controller, or hidden agent all collapse into a single not_found surface indistinguishable from nonexistence (zh/discovery/discovery-directory.md §9); the op never returns selector candidates."
     },
     {
       "operation_id": "ak.find.directory.read.resolve_handle.v1",
@@ -399,7 +399,7 @@
         "agent_provision_scope_migration_required",
         "agent_key_scope_reauthorization_required"
       ],
-      "description": "Native personal agent runtime key pairing. Admission verifies current controller/Agent authority, the pairing handle, requested-scope disclosure, proof-of-possession and accepted control frontier; backup availability is neither an input nor a gate. Pairing into an already-deactivated agent principal is terminal. Runtime replacement uses one controller-signed ak.agent.key.authorize with an exact supersedes[] set to atomically replace every prior active authorization dot and record reason=superseded_by_repairing; the service does not synthesize ak.agent.key.revoke Events."
+      "description": "Agent runtime key pairing. Admission verifies current controller/Agent authority, the pairing handle, requested-scope disclosure, proof-of-possession and accepted control frontier; backup availability is neither an input nor a gate. Pairing into an already-deactivated agent principal is terminal. Runtime replacement uses one controller-signed ak.agent.key.authorize with an exact supersedes[] set to atomically replace every prior active authorization dot and record reason=superseded_by_repairing; the service does not synthesize ak.agent.key.revoke Events."
     },
     {
       "operation_id": "ak.gate.account.command.pair_device.v1",
@@ -1173,7 +1173,7 @@
         "agent_requested_scope_commitment_invalid",
         "agent_provision_scope_migration_required"
       ],
-      "description": "Provision a native personal Agent principal. The controller first publishes a PCR-independent managed Agent DID inception. prepare verifies its caller-supplied did and returns the exact accepted initial_resolution plus an allocation without generating a DID/private key or choosing a PCR id. commit accepts exactly one controller-signed ak.agent.provision Event that forward-declares the realm id derived from the locally frozen genesis create, atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance advances to awaiting_did_binding; only the controller-signed continuous DID entry 1 with the exact create-locked binding advances to complete and exposes pairing/list/get. requested_scope is a ceiling, not a grant; the service never generates Agent DID/PCR/MLS private state."
+      "description": "Provision an Agent principal. The controller first publishes a PCR-independent Agent DID inception. prepare verifies its caller-supplied did and returns the exact accepted initial_resolution plus an allocation without generating a DID/private key or choosing a PCR id. commit accepts exactly one controller-signed ak.agent.provision Event that forward-declares the realm id derived from the locally frozen genesis create, atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance advances to awaiting_did_binding; only the controller-signed continuous DID entry 1 with the exact create-locked binding advances to complete and exposes pairing/list/get. requested_scope is a ceiling, not a grant; the service never generates Agent DID/PCR/MLS private state."
     },
     {
       "operation_id": "ak.self.agent.command.renew_pairing.v1",

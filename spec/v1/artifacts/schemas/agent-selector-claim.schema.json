@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-selector-claim.schema.json",
   "title": "Arkret Agent Selector Claim",
-  "description": "Signed claim binding a controller-scoped native personal agent selector slug to an agent principal DID. It powers @<controller-handle>/<agent_slug> compose-time resolution without making the agent carry a public handle.",
+  "description": "Signed claim binding a controller-scoped Agent selector slug to an agent principal DID. It powers @<controller-handle>/<agent_slug> compose-time resolution without making the agent carry a public handle.",
   "type": "object",
   "required": [
     "schema",
@@ -29,7 +29,7 @@
     },
     "subject_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "Native personal agent principal DID selected by (controller_subject, agent_slug)."
+      "description": "Agent principal DID selected by (controller_subject, agent_slug)."
     },
     "issuer_id": {
       "$ref": "#/$defs/did_core_id",

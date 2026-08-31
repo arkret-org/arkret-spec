@@ -21,7 +21,7 @@
       "maxLength": 64,
       "pattern": "^[^\\s:@/#?\\\\]+$",
       "format": "arkret-agent-slug",
-      "description": "Canonical controller-scoped native personal Agent selector slug. Maximum 64 Unicode code points in prepared form."
+      "description": "Canonical controller-scoped Agent Agent selector slug. Maximum 64 Unicode code points in prepared form."
     },
     "canonical_domain": {
       "type": "string",

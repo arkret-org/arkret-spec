@@ -60,7 +60,7 @@ Schema id: `ak.schema.strand.v1`
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | scope 派生、CBA 基线校验、`Event.scope_ref` 对照、只读 projection 与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 整个 Strand 的 effective scope（含所有 track）。未设置时 Strand 落在 Realm-default scope；设置时整个 Strand落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。 |
 | `schema_refs` | no | `array<string>` | 出现时至少 1 项且唯一，每项形如 `ak.schema.<name>.v1`。容器 self-schema `ak.schema.strand.v1` MUST NOT 出现在此（同 [`morph.md` §4](./morph.md)）。**该 pattern 比 Realm / Morph 的同名字段更严格是有意的**：Realm genesis 的 `schema_refs` 仅额外允许封闭 allowlist 内、create-locked 的结构角色判别式（见 [`realm-and-space.md` §2.3.A](./realm-and-space.md#23a-字段-carrier-inventorynormative)），并不是通用 conformance / policy profile 激活面；Strand 的激活轴则 MUST 只接受 schema id——否则 profile id 会再次变成对象激活 token，正是本字段要消除的歧义。与 Morph 不同，本字段可选：没有 profile 子树的普通讨论 Strand MUST 整体省略，而不是填占位 schema id。**双向共现（normative）**：每个被列出的 profile schema 与其在 `metadata.fields` 下的命名空间子树 MUST 在 post-patch 对象上同时出现或同时不出现，任一方向缺失均 `schema_violation`（Calendar 用 `reason=calendar_activation_mismatch`）。因此 ref 与子树可增可减，但只能整体成对增减。该规则对每一对已登记的 `(schema id, metadata.fields 命名空间)` 生效，并 MUST 在 `strand.schema.json` 中逐对以 `if/then` 机器强制；v1 只登记一对：`ak.schema.calendar_event.v1` ↔ `metadata.fields.calendar`。新增 Strand profile 子树时 MUST 在同一处补齐该对的双向分支，MUST NOT 只写正文。写入端 MUST 同时在 Event `requirements.schema[]` 绑定同一 schema id，replay 用该绑定而不是对象当前值（见 [`event-and-patch.md` §2.7](./event-and-patch.md)）。 | `metadata.fields` 下 profile 子树的权威 schema 集合，也是唯一的 profile 激活轴。`metadata.fields.profile` / `profile_refs` 等替代形态 MUST 被拒绝。 |
-| `agent_participation` | no | `object{native_agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf:boolean}}` | component省略时继承有效Circle/Realm父级；一旦出现五位全部required且closed，只能逐位收紧，unknown/stale/fork全deny。旧三位/`reply`别名拒绝。第三方mention gate见§9.4.5。 | native personal agent在Strand scope内的治理上限。 |
+| `agent_participation` | no | `object{agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf:boolean}}` | component省略时继承有效Circle/Realm父级；一旦出现五位全部required且closed，只能逐位收紧，unknown/stale/fork全deny。旧三位/`reply`别名拒绝。第三方mention gate见§9.4.5。 | Agent在Strand scope内的治理上限。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Strand metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Strand metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
 | `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)；与 `encrypted_content` 二选一。 | Strand 自身的正文，即 UI 的 **Description**。它不属于 synthesis / discussion 任一 track。 |
@@ -702,13 +702,13 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 
 客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 MUST 从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 解析为 DID，并在结构化 mention 节点中以 `subject_id` 为权威字段保存解析结果。Realm message mention **MUST NOT** 自动调用外部 `ak.find.directory.read.resolve_handle.v1(intent="mention")` 来发现未知主体；已知 `subject_id` 的当前 handle 展示 MAY 使用 roster 内联 claim 或 `ak.find.directory.read.list_handles_for_subject.v1`。handle 字符串本身**不**作为权威字段进入 mention 节点；MAY 携带 §3.8.1 定义的 audit / fallback metadata（`handle_at_time` / `display_name_at_time` / `controller_subject_id` / `controller_handle_at_time` / `agent_slug_at_time` / `mention_text_original`）。授权、通知路由、audit attribution 一律按 `subject_id` 处理。
 
-Native personal agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agent mention selector：
+Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agent mention selector：
 
 ```text
 @<controller-handle>/<agent_slug>
 ```
 
-例如 `@alice:acme.example/summary`。该 token 是**输入别名**，不是 handle 子路径；`<controller-handle>` 按上段 handle 规则解析为 controller `subject_id`，`<agent_slug>` 必须匹配 [`actor.md` §3.2](./actor.md) 的 `agent_slug` 规则。发送前客户端 MUST 验证一个当前可见的 `ak.schema.agent_selector_claim.v1`，其 `controller_subject` 等于左侧 controller `subject_id`，`agent_slug` 等于 token 右侧，`subject` 是唯一 active native personal agent DID，`binding_state="verified"`，`visibility` / `audience` / `claim_scope` 覆盖当前 requester 与 Realm intent，且 proof 由 controller 或 controller 授权 issuer 签发。客户端还 MUST 验证该 agent 的 Actor Profile `actor_kind="agent"`，并存在已验证 `ak.identity.accountability_grant` 证明该 agent 的 controller / accountable principal 等于 `controller_subject`。解析结果 MUST 写成普通结构化 mention 节点，`subject_id` 为 **agent principal DID**。解析不到、解析出多个 current valid selector claims、controller handle 未披露、selector claim 不可见、accountability grant 未验证或 agent profile 不可见时，客户端 MUST fail closed：不得构造 mention 节点，可要求用户从 picker 选择或把输入保留为普通文本。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
+例如 `@alice:acme.example/summary`。该 token 是**输入别名**，不是 handle 子路径；`<controller-handle>` 按上段 handle 规则解析为 controller `subject_id`，`<agent_slug>` 必须匹配 [`actor.md` §3.2](./actor.md) 的 `agent_slug` 规则。发送前客户端 MUST 验证一个当前可见的 `ak.schema.agent_selector_claim.v1`，其 `controller_subject` 等于左侧 controller `subject_id`，`agent_slug` 等于 token 右侧，`subject` 是唯一 active Agent DID，`binding_state="verified"`，`visibility` / `audience` / `claim_scope` 覆盖当前 requester 与 Realm intent，且 proof 由 controller 或 controller 授权 issuer 签发。客户端还 MUST 验证该 agent 的 Actor Profile `actor_kind="agent"`，并存在已验证 `ak.identity.accountability_grant` 证明该 agent 的 controller / accountable principal 等于 `controller_subject`。解析结果 MUST 写成普通结构化 mention 节点，`subject_id` 为 **agent principal DID**。解析不到、解析出多个 current valid selector claims、controller handle 未披露、selector claim 不可见、accountability grant 未验证或 agent profile 不可见时，客户端 MUST fail closed：不得构造 mention 节点，可要求用户从 picker 选择或把输入保留为普通文本。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
 
 任何支持跨 roster / Directory / bridge 的 selector resolve surface 都 MUST 复用 Directory 的反枚举姿态：只有当请求者已与该 agent 共享一个可见 scope、或 selector claim `visibility="public"` / 当前 `audience` 明确授权该 requester 与 `intent="mention"` 时，才可返回 agent DID 或 selector claim。未授权、slug 不存在、controller 不存在、agent 不可见、claim expired / revoked / ambiguous 等情况 MUST 使用不可区分的失败形态（例如统一 `not_found` / 空结果 / opaque denial），不得泄露"该 controller 是否拥有某 slug 的 agent"。
 
@@ -725,7 +725,7 @@ Native personal agent 不要求拥有公开 handle。客户端 MAY 支持 contro
 }
 ```
 
-Native personal agent selector 解析后的 mention 节点示例：
+Agent selector 解析后的 mention 节点示例：
 
 ```json
 {
@@ -803,9 +803,9 @@ Audience expansion 的结果只用于 receiver-side notification / inbox / local
 
 Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接受消息但把 audience mention 降级为普通文本 / 不通知，或按 Realm policy 拒绝整条 message event；无论选择哪种模式，都 MUST 在 Realm policy 中声明并对同一 scope 内所有成员一致执行。若选择拒绝整条 event，错误语义 SHOULD 使用 `failed_precondition`、`rate_limited` 或 `quota_exceeded` 中的既有 code，不得发明只对发送者可见、对接收者造成状态分叉的本地结果。
 
-#### 9.4.5 Native agent 第三方 mention 投递 gate
+#### 9.4.5 Agent 第三方 mention 投递 gate
 
-当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **native personal agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm），并以当前 `controller selection ∩ deployment/Realm/Circle/Strand governance policy` 求出 participation gate。`accept_third_party_mention` 只决定是否允许第三方触发投递；requested scope、key scope、Realm capability、membership/history 与 E2EE access 仍是独立前置条件，任一缺失都拒绝投递：
+当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **Agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm），并以当前 `controller selection ∩ deployment/Realm/Circle/Strand governance policy` 求出 participation gate。`accept_third_party_mention` 只决定是否允许第三方触发投递；requested scope、key scope、Realm capability、membership/history 与 E2EE access 仍是独立前置条件，任一缺失都拒绝投递：
 
 - mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。
 - mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ak.self.events.stream.subscribe.v1` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。

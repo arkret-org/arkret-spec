@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-08-31.1",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -55,7 +55,7 @@
       "domain": "ak.history-source-agent-observation-v1",
       "preimage_schema_ref": "schemas/history-key.schema.json#/$defs/history_source_agent_observation_input",
       "preimage": "the complete closed HistoryKeyResponseSigningInput with source_signer_evidence_ref and source_signer_evidence_digest removed",
-      "rule": "Native Agent CurrentAdmission current_observation.request_digest equals this digest. The exclusion breaks the signer-evidence content-address cycle while source_proof still signs the complete HistoryKeyResponseSigningInput including both evidence coordinates."
+      "rule": "Agent CurrentAdmission current_observation.request_digest equals this digest. The exclusion breaks the signer-evidence content-address cycle while source_proof still signs the complete HistoryKeyResponseSigningInput including both evidence coordinates."
     },
     "manifest_admission_digest": {
       "domain": "ak.history-manifest-admission-v1",

@@ -26,7 +26,7 @@ Contact 与 holder-private 备注、Realm 内 `ak.relation.*`、非 Contact Cons
 互不替代。Contact-based create/send **MUST** 只读取双方各自签发的 directional Contact lineage；
 `ak.consent.*` 只服务不以 Contact 为授权依据的路径，**MUST NOT** 为 Contact 或 Personal DM 补授权。
 
-Contact wire 中的 `peer` **MUST** 是 closed discriminated XOR：human、Native Personal Agent 与其它已登记
+Contact wire 中的 `peer` **MUST** 是 closed discriminated XOR：human、Agent 与其它已登记
 principal kind 分支分别携带该分支的完整 stable subject/binding 字段；裸 `peer_id`、未知 kind、分支字段混用
 或仅靠显示 handle 推断主体均 **MUST** fail closed。Contact Event 的 signer **MUST** 是 holder-authorized
 long-term signer，且只能是 active human device、active Agent runtime，或 controller 依据 accepted narrow
@@ -74,7 +74,7 @@ operation/idempotency，但两phase的canonical bytes与幂等记录彼此独立
 `{holder}#{device_id}` method 签名；该 device method 同时是 current `single_signer(holder actor_id)` authority，因此这是
 authority-authored Move，不得再要求一份独立 Control Proposal Ack，也不得因 Station 不持有
 holder 私钥而返回 `quorum_unreachable`。commit 仍须把 Event 写入 pending Control index；只有后继
-device-signed accepted Seal 覆盖该 digest 后 Contact effect 才 materialize。managed Agent delegation、
+device-signed accepted Seal 覆盖该 digest 后 Contact effect 才 materialize。Agent delegation、
 organization governance、ordinary Realm 与 recovery/re-anchor 不使用此例外。
 
 request prepare 是 holder-local authoring：它 **MUST** 从 holder PCR 的 current actor frontier 与 accepted Seal
@@ -342,7 +342,7 @@ checkpoint issuance 复用现有 Contact 机器面而不再建立一套三阶段
 | `direct_conversation_contact_round` | `direct_conversation_genesis` | human↔human、Agent↔第三方 |
 | `direct_conversation_agent_provision` | `direct_conversation_agent_genesis` | controller↔自己的 owned Agent |
 
-两个 role **MUST** exact XOR。managed-Agent PCR genesis 只按 `payload.object.purpose="managed_agent_control"` 选择 `delegated_pcr_genesis`，并在准入时反查 accepted `ak.agent.provision` 的前向声明（见 [`./key-management.md` §3.6.3](./key-management.md)）；它没有 ref role 判别，因此这里的两个 DM role **MUST NOT** 与之混用。DM variants、PCR variants 与 ordinary Realm 的 `when` 条件 **MUST** 结构互斥；零命中或多命中 **MUST** `schema_violation`，**MUST NOT** 按 registry 顺序取第一条。
+两个 role **MUST** exact XOR。Agent PCR genesis 只按 `payload.object.purpose="agent_control"` 选择 `delegated_pcr_genesis`，并在准入时反查 accepted `ak.agent.provision` 的前向声明（见 [`./key-management.md` §3.6.3](./key-management.md)）；它没有 ref role 判别，因此这里的两个 DM role **MUST NOT** 与之混用。DM variants、PCR variants 与 ordinary Realm 的 `when` 条件 **MUST** 结构互斥；零命中或多命中 **MUST** `schema_violation`，**MUST NOT** 按 registry 顺序取第一条。
 
 `direct_conversation_genesis` **MUST** 逐项验证，任一不符整组零写入：
 
@@ -713,7 +713,7 @@ Conformance **MUST** 覆盖：
 - 同对象 token 不同 Genesis 继续走 `object_identity_conflict`，**MUST NOT** 与 pair materialization conflict 合并为一个 selector；
 - 终态：`destroy` 与任意 `tombstone` 拒绝；合法 archive/freeze 及其反向操作沿普通路径生效且坐标不变；违规 terminal 后 slot 保持关闭且 resolver `suspended`；
 - binding：逐字节 KAT 覆盖固定 domain、closed `binding_object`、participants / authorization refs 换序归一、`created_at` 与 Event author/proof 排除，任一语义字段改变必须产生不同 digest；双方并发同 semantic endorsement 得到两个 core OR-Set dot 且不 `⊥`；同 actor 重复在领域视图只计一个；不同 semantic digest 在 effect projection 前拒绝；current Contact/service refresh 不改 binding digest；
-- owned Agent：controller↔own-Agent 只携 `direct_conversation_agent_provision` 时命中 DM variant；改用 `purpose="managed_agent_control"`（那是 PCR genesis 分支，见 [`./key-management.md` §3.6.3](./key-management.md)）、同时携两个 DM roles 或 DM/PCR variants 多命中均零写入拒绝；Agent↔第三方分别覆盖 founder=Agent 与 founder=other；
+- owned Agent：controller↔own-Agent 只携 `direct_conversation_agent_provision` 时命中 DM variant；改用 `purpose="agent_control"`（那是 PCR genesis 分支，见 [`./key-management.md` §3.6.3](./key-management.md)）、同时携两个 DM roles 或 DM/PCR variants 多命中均零写入拒绝；Agent↔第三方分别覆盖 founder=Agent 与 founder=other；
 - 隐私：非 participant 对任意阶段的 pair 查询与不存在逐字相同。
 
 synthetic glare accepted Event、跨双方 CAS、server next-action、successor Realm/Strand、timeout takeover、minimum-token 归一、server-allocated founding ID、reserved/materializing draft、min-service-DID coordinator 与 view-dependent effect digest **MUST** 由负例拒绝。

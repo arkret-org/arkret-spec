@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-signer-evidence.schema.json",
   "title": "Arkret Agent Signer Evidence",
-  "description": "Closed portable evidence for one Native Agent signer. Current admission and historical Event verification are structurally disjoint. Historical validity is fixed by a destination-signed admission receipt; it is never reconstructed from a later current snapshot.",
+  "description": "Closed portable evidence for one Agent signer. Current admission and historical Event verification are structurally disjoint. Historical validity is fixed by a destination-signed admission receipt; it is never reconstructed from a later current snapshot.",
   "oneOf": [
     {
       "$ref": "#/$defs/current_admission_evidence"
@@ -1056,7 +1056,7 @@
         },
         "realm_create_event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref",
-          "description": "Accepted managed Agent PCR genesis ak.realm.create that materialized the first active status. This evidence object is assembled after both Events are accepted and never enters either digest preimage."
+          "description": "Accepted Agent PCR genesis ak.realm.create that materialized the first active status. This evidence object is assembled after both Events are accepted and never enters either digest preimage."
         },
         "agent_provision_event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref",

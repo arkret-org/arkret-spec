@@ -89,10 +89,10 @@
       "type": "object",
       "description": "Optional wrapped five-bit Agent ceiling. When present every bit is explicit and may only tighten the parent Realm ceiling.",
       "required": [
-        "native_agent"
+        "agent"
       ],
       "properties": {
-        "native_agent": {
+        "agent": {
           "$ref": "./principal-operations.schema.json#/$defs/participation_bits"
         }
       },

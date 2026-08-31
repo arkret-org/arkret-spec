@@ -16,7 +16,7 @@ DID_NAMES = {
     "did": "did",
     "webvh_did": "did",
     "human_principal_did": "did",
-    "managed_agent_did": "did",
+    "agent_did": "did",
     "applet_managed_actor_did": "did",
     "ephemeral_pairwise_principal_did": "did",
     "did_key_did": "did",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-08-31.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-30T23:30:00+08:00",
+  "generated_at": "2026-08-31T18:30:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -22,7 +22,7 @@
       "route_evidence": "registration_control_evidence"
     },
     {
-      "boundary_id": "managed_agent_pcr_genesis",
+      "boundary_id": "agent_pcr_genesis",
       "responsibility": "registration_genesis",
       "schema_ref": "schemas/event-envelope.schema.json",
       "did_path": "payload.object.initial_resolution.did",

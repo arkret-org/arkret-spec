@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-signing-key-binding.schema.json",
   "title": "Arkret Agent Signing Key Binding",
-  "description": "Controller-authored minimal public binding between one Native Agent signing verification method, its raw Ed25519 key, and the accepted ak.agent.key.authorize Event. The authorize Event payload commits the digest of this object's binding core before agent_key_authorize_event_id and controller_proof are appended; those two fields are materialized only after the Event identity is known, avoiding self-reference. Private pairing, scope, PoP, attestation, and capability material MUST NOT appear in this object.",
+  "description": "Controller-authored minimal public binding between one Agent signing verification method, its raw Ed25519 key, and the accepted ak.agent.key.authorize Event. The authorize Event payload commits the digest of this object's binding core before agent_key_authorize_event_id and controller_proof are appended; those two fields are materialized only after the Event identity is known, avoiding self-reference. Private pairing, scope, PoP, attestation, and capability material MUST NOT appear in this object.",
   "type": "object",
   "required": [
     "schema",

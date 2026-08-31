@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.4",
+  "version": "2026-08-31.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-30T23:30:00+08:00",
+  "generated_at": "2026-08-31T18:30:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -35,7 +35,7 @@
       "scope_kind": "realm_genesis",
       "allowed_purposes": [
         "principal_control",
-        "managed_agent_control",
+        "agent_control",
         "applet_managed_control"
       ],
       "principal_rule": "event.actor_id == project(payload.object.initial_resolution.did)",
@@ -81,7 +81,7 @@
       "checks": [
         "principal_genesis_event.kind == ak.realm.create and principal_genesis_event is resolution head 0",
         "principal_genesis_event.actor_id == principal_id",
-        "principal_genesis_event.payload.object.purpose is principal_control, managed_agent_control or applet_managed_control",
+        "principal_genesis_event.payload.object.purpose is principal_control, agent_control or applet_managed_control",
         "project(principal_genesis_event.payload.object.initial_resolution.did) == principal_id",
         "derive_identity_control_realm(principal_genesis_event) == principal_control_realm_id",
         "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",

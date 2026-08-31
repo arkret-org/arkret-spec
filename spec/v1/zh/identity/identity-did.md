@@ -112,7 +112,7 @@ DID Document SHOULD 只承载：
 
 DID Document MUST NOT 被用作跨组织身份画像。邮箱、跨组织 handle、第三方账号和隐私敏感属性应通过 claim / presentation 按需证明。
 
-Managed Agent 的完整 `requested_scope`（包括 resource selector 与 mandatory constraint）属于隐私敏感授权意图，MUST NOT 写入当前 DID Document 或可解析的 DID version history。`ArkretPrincipalControlRealm.serviceEndpoint` 只保留域分离 `requested_scope_digest`；需要执行 ceiling 子集判定的 verifier 按 [`key-management.md` §4.1](./key-management.md) 取得 controller-signed 私有披露。
+Agent 的完整 `requested_scope`（包括 resource selector 与 mandatory constraint）属于隐私敏感授权意图，MUST NOT 写入当前 DID Document 或可解析的 DID version history。`ArkretPrincipalControlRealm.serviceEndpoint` 只保留域分离 `requested_scope_digest`；需要执行 ceiling 子集判定的 verifier 按 [`key-management.md` §4.1](./key-management.md) 取得 controller-signed 私有披露。
 
 `metadata.primary_handle` 是 v1 唯一允许的 Arkret DID Document metadata 槽位：它 MAY 出现在 holder 自己控制的 DID Document 中，值 MUST 是 canonical handle 字符串或缺省。该字段只是 holder 的 primary handle 偏好指针，不是 handle claim、身份画像或可枚举 handle 列表；verifier MUST 按 [`identity-handles.md` §3.2.1](./identity-handles.md) 先验证 signed handle claim set，且仅当该值命中 verified candidates 时才可把它作为 holder-flagged 输入。
 
@@ -164,7 +164,7 @@ flowchart TB
 
     Q1 -- "human principal" --> PRINCIPAL["did:webvh default / MTI<br/>did:web 或 did:key 可作注册锚"]
 
-    Q1 -- "organization / managed Agent" --> GOVERNED["按 ongoing DID governance 角色合同"]
+    Q1 -- "organization / Agent" --> GOVERNED["按 ongoing DID governance 角色合同"]
 
     Q1 -- "Realm-local ephemeral pairwise actor" --> KEY["did:key<br/>必须声明 ephemeral pairwise profile<br/>exact MLS LeafNode 是唯一 authority<br/>无账号 / PCR / 设备目录"]
 
@@ -212,7 +212,7 @@ Arkret v1 core conformance 要求如下：
   - `did:webvh:1.0` 的 method parameter registry 是 closed：只允许 `method`、`scid`、`updateKeys`、`nextKeyHashes`、`witness`、`watchers`、`portable`。构造器与 verifier MUST 消费 `did-method-adapter-registry.json` 的同一 `parameter_allowlist` 与 `parameter_consumption`；任何其他 member（特别是 `governance`）必须在 proof、hash 与持久化之前以 `param_invalid` 拒绝。`portable` 缺失或 false 时，host-and-path 变化 MUST 以 `did_method_successor_invalid` 拒绝；只有 predecessor 的 effective `portable=true` 才能授权后继 relocation，在 relocation entry 自身首次设 true 不授权本次搬迁。`watchers` 由 method parser 验证并保留，但 v1 明确接受而不消费：它不得影响 authorization、admission、controller 选择、witness quorum、freshness、routing 或 policy。组织治理只存在于 typed DID Document `arkret_governance` / `ArkretGovernanceService` overlay，不得写入 method-native parameters，也不得与 witness quorum 混同。
   - `did:key` MAY 作为不可变 human identity anchor；其账号、PCR、device 与 recovery 生命周期完全由 PCR 承担。method update、relocation 与 DID-root recovery MUST `unsupported_feature`。它也可用于显式 ephemeral pairwise profile，但两种角色合同不得混用。
   - `did:web` MAY 作为不可迁移 human identity anchor，前提是注册时 DNS/WebPKI bootstrap trust evidence 被 durable 固定，并且所有业务关系绑定 create-once account authority pair；它不提供 method-native history、relocation 或 DID-root recovery，也不是 `did:webvh` outage fallback。
-- `did:webvh` 的 history/pre-rotation 只开启 relocation 与可选 DID-root recovery 能力；它们不是 human anchor 的统一准入门槛。organization、managed Agent 与 service 是否要求持续 DID governance 由各自角色合同决定。
+- `did:webvh` 的 history/pre-rotation 只开启 relocation 与可选 DID-root recovery 能力；它们不是 human anchor 的统一准入门槛。organization、Agent 与 service 是否要求持续 DID governance 由各自角色合同决定。
 - AT Protocol interop（`did:plc`）、wallet binding（`did:pkh`）、KERI 等 method 可以由 extension 解析为外部 claim；要进入 human anchor 或其它角色集合，必须先在 adapter registry 登记对应能力与 bootstrap trust，而不能由 implementation-local policy 增加。
 - 实现 MUST NOT 将任何外部 DID Document 重写为 Arkret 私有 DID method。
 
@@ -898,10 +898,10 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 | `type` | 适用 DID 主体 | 用途 | 引用规范 |
 | --- | --- | --- | --- |
 | `ArkretGovernanceService` | Organization | 组织治理 endpoint | 本节示例 |
-| `ArkretService` + `serviceKind="station"` | Principal / Organization / managed Agent | service bootstrap / discoverable Station hint（非强制投递入口） | §3.7 / `ServiceDidEndpoint` |
+| `ArkretService` + `serviceKind="station"` | Principal / Organization / Agent | service bootstrap / discoverable Station hint（非强制投递入口） | §3.7 / `ServiceDidEndpoint` |
 | `ArkretRealmHistoryRecoveryKey` | Organization / Principal | 指定该主体的离线 Realm 历史恢复公钥（RRK），供 Realm `durability_policy` 引用 | §8.3 |
-| `ArkretManagedPrincipalController` | managed Agent | entry 0 中 create-locked controller delegation | `key-management.md` §4.1 |
-| `ArkretPrincipalControlRealm` | managed Agent | entry 1 中 create-locked PCR 四元组反向指针 | `key-management.md` §4.1 |
+| `ArkretManagedPrincipalController` | Agent | entry 0 中 create-locked controller delegation | `key-management.md` §4.1 |
+| `ArkretPrincipalControlRealm` | Agent | entry 1 中 create-locked PCR 四元组反向指针 | `key-management.md` §4.1 |
 
 本表的机器真相源是
 [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json)。

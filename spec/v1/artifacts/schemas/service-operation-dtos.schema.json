@@ -2755,12 +2755,12 @@
         "receipts": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/ManagedAgentPcrSealHeadReceipt"
+            "$ref": "#/$defs/AgentPcrSealHeadReceipt"
           }
         }
       },
       "additionalProperties": false,
-      "description": "Self Seal discovery result. Managed Agent PCR successor-authoring receipts live here, never on the Event frontier surface."
+      "description": "Self Seal discovery result. Agent PCR successor-authoring receipts live here, never on the Event frontier surface."
     },
     "PeerSealFrontierState": {
       "type": "object",
@@ -3100,7 +3100,7 @@
     },
     "AgentMembershipCascadeSubmission": {
       "type": "object",
-      "description": "Registered atomic/split Native Agent membership cascade unit. The receiver derives the exact Agent set from the controller terminal Event pre-state; the request cannot choose that set by omission or addition.",
+      "description": "Registered atomic/split Agent membership cascade unit. The receiver derives the exact Agent set from the controller terminal Event pre-state; the request cannot choose that set by omission or addition.",
       "required": [
         "unit_kind",
         "cascade_mode",
@@ -3194,7 +3194,7 @@
     },
     "AgentMembershipCascadeFederationSubmission": {
       "type": "object",
-      "description": "Federation form of the registered Native Agent cascade unit. Every nested Event already carries its origin Station admission proof; the destination replays the same exact-set and atomicity rules.",
+      "description": "Federation form of the registered Agent cascade unit. Every nested Event already carries its origin Station admission proof; the destination replays the same exact-set and atomicity rules.",
       "required": [
         "unit_kind",
         "cascade_mode",
@@ -3549,7 +3549,7 @@
           "items": {
             "$ref": "./agent-signer-evidence.schema.json#/$defs/event_admission_receipt"
           },
-          "description": "Receiver-signed receipts for every accepted or byte-identical duplicate Native Agent Event in a peer submission. Self submit outcomes omit this field. Rejected, quarantined and dependency-missing Events MUST NOT receive one."
+          "description": "Receiver-signed receipts for every accepted or byte-identical duplicate Agent Event in a peer submission. Self submit outcomes omit this field. Rejected, quarantined and dependency-missing Events MUST NOT receive one."
         },
         "duplicate": {
           "type": "array",
@@ -3997,16 +3997,16 @@
       },
       "additionalProperties": false
     },
-    "ManagedAgentPcrSealHeadReceipt": {
+    "AgentPcrSealHeadReceipt": {
       "type": "object",
-      "description": "Accepted controller-device-signed managed Agent PCR Seal head returned when accepted Events are ahead of Seal coverage. The service relays this exact Seal and MUST NOT synthesize or sign it.",
+      "description": "Accepted controller-device-signed Agent PCR Seal head returned when accepted Events are ahead of Seal coverage. The service relays this exact Seal and MUST NOT synthesize or sign it.",
       "required": [
         "kind",
         "seal"
       ],
       "properties": {
         "kind": {
-          "const": "ak.managed_agent_pcr.seal_head.v1"
+          "const": "ak.agent_pcr.seal_head.v1"
         },
         "seal": {
           "$ref": "./seal.schema.json"

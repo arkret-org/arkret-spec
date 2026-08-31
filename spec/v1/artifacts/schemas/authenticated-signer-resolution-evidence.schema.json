@@ -6,7 +6,7 @@
   "oneOf": [
     {"$ref": "#/$defs/service_signer_evidence"},
     {"$ref": "#/$defs/principal_signer_evidence"},
-    {"$ref": "#/$defs/native_agent_signer_evidence"}
+    {"$ref": "#/$defs/agent_signer_evidence"}
   ],
   "$defs": {
     "signer_evidence_ref": {
@@ -68,11 +68,11 @@
       "additionalProperties": false,
       "description": "attester_signer_evidence_ref/digest resolves to a service-kind leaf that historically verifies the Station projection attestation. Current route or DID expiry is not a retrospective validity input."
     },
-    "native_agent_signer_evidence": {
+    "agent_signer_evidence": {
       "type": "object",
       "required": ["kind", "signer_id", "verification_method", "agent_signer_evidence", "attester_signer_evidence_ref", "attester_signer_evidence_digest", "controller_signer_evidence_ref", "controller_signer_evidence_digest", "account_authority_signer_evidence_ref", "account_authority_signer_evidence_digest", "receiver_signer_evidence_ref", "receiver_signer_evidence_digest"],
       "properties": {
-        "kind": {"const": "native_agent"},
+        "kind": {"const": "agent"},
         "signer_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
         "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
         "agent_signer_evidence": {"$ref": "./agent-signer-evidence.schema.json"},

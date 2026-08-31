@@ -315,7 +315,7 @@ Signature: sig1=:base64...:
 
 Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 profile。接收方对每个 Event 独立读取其 CBA governance basis 中的 `ak.component.realm.reducer_profile.v1` cell：DataEvent 使用 `seal_ref` 认证的 joined control state，Control Move 使用 `seal_basis` 的 frozen predecessor `J(L)`。缺少求值依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`；settled profile 本地未实现时返回 `unsupported_profile`。
 
-每个 federation Event 必须原样携带 origin `station_admission` proof。接收方重算 canonical Event digest、exact producer proof digest、producer JWS 与 admission JWS，并要求 admission service 等于 Event `actor_id` 的 routing-service projection；Native Agent Event 还必须带 admission proof 已签入的 `producer_signer_resolution_evidence_ref/digest` pair。receiver 只复制并绑定这组 content-addressed selector，不接收内联 device/PCR/Agent signer evidence sidecar，也不得由 receiver 或 relay 重签 origin proof。
+每个 federation Event 必须原样携带 origin `station_admission` proof。接收方重算 canonical Event digest、exact producer proof digest、producer JWS 与 admission JWS，并要求 admission service 等于 Event `actor_id` 的 routing-service projection；Agent Event 还必须带 admission proof 已签入的 `producer_signer_resolution_evidence_ref/digest` pair。receiver 只复制并绑定这组 content-addressed selector，不接收内联 device/PCR/Agent signer evidence sidecar，也不得由 receiver 或 relay 重签 origin proof。
 
 ### 4.1.0 推送时序
 
@@ -334,7 +334,7 @@ sequenceDiagram
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier)
     Alpha->>Beta: POST /_arkret/peer/events (ak.peer.events.command.submit.v1)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest + receiver-computed canonical body digest<br>service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. 从 CBA basis 读取 reducer-profile cell<br>7. Lattice / Seal
-    Beta-->>Alpha: 200 + accepted / duplicate / rejected / quarantine<br>+ Native Agent admission receipts
+    Beta-->>Alpha: 200 + accepted / duplicate / rejected / quarantine<br>+ Agent admission receipts
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
 ```
 
@@ -351,7 +351,7 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
 - 幂等以 `(Source-Service-ID, Destination-Service-ID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 在 `duplicate[]` 中确认（幂等 no-op）而非报错，内容不一致 MUST 以 `duplicate_conflict`（409）拒绝（参见 §4.3）。
 - 批次级重放检测使用 receiver 从已验证 exact body bytes 计算的 canonical digest 与签名覆盖的 `Idempotency-Key`；不引入额外 path 事务 ID。
 - `quarantine[]` 是 `EventsSubmitOutcome` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`。非协议 adapter 的本地展示行为不改变 wire outcome。
-- receiver 对每个 `accepted[] ∪ duplicate[]` 内的 Native Agent Event MUST 返回一个
+- receiver 对每个 `accepted[] ∪ duplicate[]` 内的 Agent Event MUST 返回一个
   `agent_event_admission_receipts[]` 项。receipt 与 Event durable acceptance 在同一事务写入；exact duplicate 返回
   第一次保存的 byte-identical receipt。rejected、quarantine 与 dependency-missing 项不得签发 receipt。
 - source durable outbox 必须先验证 receipt 的 Event/Realm/Agent/method、origin producer evidence pair、receiver service、
@@ -783,7 +783,7 @@ push 见 §4.1，pull / backfill 与成员视图见 §4.2，operation 行见
 
 ### 7.5 Agent Event federation
 
-managed/native Agent Event 与其它普通 Event 使用相同 in-envelope Station admission proof。receiver 不接收 Agent signer evidence bundle；origin Station 在 admission 前验证 controller/runtime branch 与当前本地状态。
+managed/Agent Event 与其它普通 Event 使用相同 in-envelope Station admission proof。receiver 不接收 Agent signer evidence bundle；origin Station 在 admission 前验证 controller/runtime branch 与当前本地状态。
 
 
 ## 8. 安全考量
