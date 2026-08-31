@@ -2675,7 +2675,7 @@
             "type": "integer",
             "minimum": 0
           },
-          "description": "Per-actor sequence upper bounds returned to an authorized federation peer."
+          "description": "Per-actor sequence upper bounds returned to an authorized federation peer. Each property name is the UTF-8 JCS JSON string of a complete closed ActorId object; bare principal IDs, noncanonical encodings, retired branches, and duplicate property names are forbidden. Accounts at different Stations remain distinct entries."
         },
         "witness_receipts": {
           "type": "array",

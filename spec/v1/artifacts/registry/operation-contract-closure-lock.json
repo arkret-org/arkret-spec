@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-30.22",
+  "version": "2026-08-30.23",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -296,7 +296,7 @@
     },
     {
       "operation_id": "ak.peer.events.read.frontier.v1",
-      "sha256": "sha256:85cd1e4fe136c745c98ad96fc8de5ea114ac7aa92db0ab1cb8799926cedef86e"
+      "sha256": "sha256:fd8b2dfdfc55839fb2bc4a63e7ceaeb7e0e45e84bf6b7d27a124f2985cf328da"
     },
     {
       "operation_id": "ak.peer.events.read.resolve.v1",

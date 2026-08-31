@@ -470,8 +470,8 @@ Probe 响应 payload：
   "policy_frontier_root": "sha256:...",
   "membership_frontier_root": "sha256:...",
   "actor_seq_upper_bounds": {
-    "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR": 144,
-    "ak:did_core:webvh:zARwgBSVhdiZNBCvbrVoYd8zG": 87
+    "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR\",\"station_id\":\"ak:did_core:web:station-a.example\"},\"kind\":\"account\"}": 144,
+    "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR\",\"station_id\":\"ak:did_core:web:station-b.example\"},\"kind\":\"account\"}": 87
   },
   "witness_receipts": [],
   "observed_at": "2026-05-18T08:30:00Z",
@@ -484,7 +484,8 @@ Probe 响应 payload：
 
 - `heads[]` 是当前 accepted frontier 的稳定 event hash；接收方比较两端 heads 集合发现差异。
 - `max_hlc` 是 issuer 在 frontier 处观察到的最大 HLC；用于检测时钟严重偏移。
-- `frontier_root` 是 canonical Merkle root over `(heads[] ∪ sorted(actor_seq_upper_bounds))`，使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 族（`leaf = H(0x00 || leaf_data)`，`node = H(0x01 || left || right)`，空集合 root 同 §6.2.2），不得使用 snapshot Merkle 族。leaf 集合由两类 typed leaf 组成并按 `leaf_sort_key` 的 canonical UTF-8 byte order 升序排列：`heads` leaf 的 `leaf_data = canonical_json({"type":"head","event_digest":<digest>})`，`leaf_sort_key = "head:" + <digest>`；`actor_seq_upper_bounds` leaf 的 `leaf_data = canonical_json({"type":"actor_seq_upper_bound","actor_id":<did_core_id>,"actor_seq_upper_bound":<integer>})`，`leaf_sort_key = "actor:" + <actor_id>`。
+- `actor_seq_upper_bounds` 保持 JSON object 外形；每个 property name MUST 是完整 closed `ActorId` 对象的 UTF-8 JCS JSON 字符串，而不是裸 principal DID、Actor 的显示名称或仅 `AccountId`。接收方 MUST 解析并验证完整 Actor，要求 property name 逐字等于该 Actor 的 canonical JSON，并拒绝非规范编码、旧分支和重复 property name。同 principal、不同 Station 的 Account Actor MUST 保持两个独立条目；不得按 principal 去重或补入本机 Station。
+- `frontier_root` 是 canonical Merkle root over `(heads[] ∪ sorted(actor_seq_upper_bounds))`，使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 族（`leaf = H(0x00 || leaf_data)`，`node = H(0x01 || left || right)`，空集合 root 同 §6.2.2），不得使用 snapshot Merkle 族。leaf 集合由两类 typed leaf 组成并按 `leaf_sort_key` 的 canonical UTF-8 byte order 升序排列：`heads` leaf 的 `leaf_data = canonical_json({"type":"head","event_digest":<digest>})`，`leaf_sort_key = "head:" + <digest>`；`actor_seq_upper_bounds` leaf 的 `leaf_data = canonical_json({"type":"actor_seq_upper_bound","actor_id":<完整 ActorId 对象>,"actor_seq_upper_bound":<integer>})`，`leaf_sort_key = "actor:" + canonical_json(<完整 ActorId 对象>)`。leaf 中的 `actor_id` 是对象，而不是再次编码为 JSON 字符串。
 - `actor_id` 省略时，响应不得伪造 actor-scoped root；`auth_state_root`、`policy_frontier_root`、`membership_frontier_root` 均省略。携带 `actor_id` 时三者必须同时出现：分别承诺 issuer-local authorization state、Realm policy filtered state root 与该 actor 的 membership/role filtered state root，不得以 `frontier_root` 复制填充。
 - `signature` 必须覆盖 `frontier_root`、三个可选 actor-scoped root（省略时按 JSON null 进入 transcript）以及 `(realm_id, issuer, observed_at)`，使任一承诺都不能脱离签名独立替换。
 - `actor_seq_upper_bounds` 是 issuer 视角每个 federation-visible actor 的 `actor_seq` 上界，用于检测 *per-actor* 缺口（silent fork 常表现为某 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进）。Issuer MUST 按 probing peer 的投递 / 服务范围裁剪该 map：只返回该 peer 依据 Realm policy、joined-member ActorId routing projection 或 federation role 有 need-to-know 的 actor 子集；不得把与该 peer 无投递或审计职责的其它组织 / 其它服务范围 actor DID 和 seq 上界暴露给该 peer。高隐私 Realm MAY 先只返回聚合 `frontier_root`，在发现差异后再用 per-actor challenge / backfill 展开最小必要子集。
