@@ -3966,7 +3966,7 @@ Expected:
 
 ### 11.2.2 Vector: Agent PCR 分离
 
-`vector_id`: `ak.vector.agent.managed_pcr_separation.v1`
+`vector_id`: `ak.vector.agent.pcr_separation.v1`
 
 Steps:
 
@@ -3997,7 +3997,7 @@ Expected:
 
 ### 11.2.3 Vector: Agent PCR History-only Backup
 
-`vector_id`: `ak.vector.agent.managed_pcr_history_backup.v1`
+`vector_id`: `ak.vector.agent.pcr_history_backup.v1`
 
 Preconditions:
 

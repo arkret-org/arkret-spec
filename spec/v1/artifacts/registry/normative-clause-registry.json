@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.6",
+  "version": "2026-08-31.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T18:40:04+08:00",
+  "generated_at": "2026-08-31T18:50:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -224,7 +224,7 @@
         "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1",
         "ak.vector.identity.root_anchor_exclusivity.v1",
         "ak.vector.identity.device_reanchor.v1",
-        "ak.vector.agent.managed_pcr_separation.v1"
+        "ak.vector.agent.pcr_separation.v1"
       ]
     },
     {
@@ -446,7 +446,7 @@
       "requirement": "An accepted ordinary-Realm or Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.agent.managed_pcr_separation.v1"
+        "ak.vector.agent.pcr_separation.v1"
       ]
     },
     {

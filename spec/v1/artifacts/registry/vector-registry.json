@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.3",
+  "version": "2026-08-31.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T18:40:07+08:00",
+  "generated_at": "2026-08-31T18:50:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -176,7 +176,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.agent.managed_pcr_history_backup.v1",
+      "vector_id": "ak.vector.agent.pcr_history_backup.v1",
       "status": "active",
       "domain": "agent",
       "applies_to_fixtures": [
@@ -190,7 +190,7 @@
       "description": "Controller-owned recovery_public_key backup of exporter history-secret ranges for an Agent PCR, exact public/plaintext identity-tuple binding, no pairing readiness gate, and prohibition on portable active MLS state, Agent runtime private-key backup or per-Agent human mnemonic."
     },
     {
-      "vector_id": "ak.vector.agent.managed_pcr_separation.v1",
+      "vector_id": "ak.vector.agent.pcr_separation.v1",
       "status": "active",
       "domain": "agent",
       "applies_to_fixtures": [

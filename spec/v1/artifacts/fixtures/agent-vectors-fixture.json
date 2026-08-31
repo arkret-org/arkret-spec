@@ -12,8 +12,8 @@
     "ak.vector.agent.requested_scope_privacy.v1",
     "ak.vector.agent.pairing_expiry.v1",
     "ak.vector.agent.runtime_key_binding.v1",
-    "ak.vector.agent.managed_pcr_separation.v1",
-    "ak.vector.agent.managed_pcr_history_backup.v1",
+    "ak.vector.agent.pcr_separation.v1",
+    "ak.vector.agent.pcr_history_backup.v1",
     "ak.vector.agent.repairing_supersede.v1",
     "ak.vector.agent.longevity_no_expiry.v1",
     "ak.vector.agent.controller_lifecycle.v1",
@@ -579,9 +579,9 @@
       ]
     },
     {
-      "name": "agent_managed_pcr_separation",
-      "vector_id": "ak.vector.agent.managed_pcr_separation.v1",
-      "runner": "cotest::conformance::agent_vectors::run_agent_managed_pcr_separation_vector",
+      "name": "agent_pcr_separation",
+      "vector_id": "ak.vector.agent.pcr_separation.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_pcr_separation_vector",
       "assertions": [
         "agent DID document has one ArkretPrincipalControlRealm service entry binding a non-controller PCR id",
         "agent PCR genesis created_by and notary equal the agent DID and both encryption floors are e2ee_required",
@@ -609,9 +609,9 @@
       ]
     },
     {
-      "name": "agent_managed_pcr_history_backup",
-      "vector_id": "ak.vector.agent.managed_pcr_history_backup.v1",
-      "runner": "cotest::conformance::agent_vectors::run_agent_managed_pcr_history_backup_vector",
+      "name": "agent_pcr_history_backup",
+      "vector_id": "ak.vector.agent.pcr_history_backup.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_pcr_history_backup_vector",
       "assertions": [
         "provision returns the Agent PCR binding and pairing material without a backup-readiness field and never pre-authorizes a runtime key",
         "the controller E2EE client, never the server, generates Agent PCR MLS private state",

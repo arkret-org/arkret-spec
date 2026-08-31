@@ -661,7 +661,7 @@ MUST NOT:
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`arkret://` 等)
 - 把 `agent_slug` 当作 grant subject、actor attribution、membership key、delivery key、Directory search key 或 audit attribution source
-- 让服务端生成/托管 Agent PCR MLS private state，跨 actor 读取 Agent backup，以 `single_point_of_failure` 绕过 managed-PCR recovery gate，或备份/克隆 Agent runtime private key
+- 让服务端生成/托管 Agent PCR MLS private state，跨 actor 读取 Agent backup，以 `single_point_of_failure` 绕过 Agent PCR recovery gate，或备份/克隆 Agent runtime private key
 
 ### 18.2 Agent Auth
 
