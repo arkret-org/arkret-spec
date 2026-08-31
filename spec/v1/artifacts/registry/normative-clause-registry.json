@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.9",
+  "version": "2026-09-01.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T23:20:28+08:00",
+  "generated_at": "2026-09-01T05:29:01+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -232,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:f705c91aebc95c503554ef42ea39d50fe8cc0b3e9b2517a0e81672bbe8fa5d7f",
+      "section_digest": "sha256:46a0b2705fbc911f28ea45e3763793fb785a12ce5d61a9721b761b17d4672da8",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest. Availability admission is authorized only by the joined predecessor state: genesis has no such authority, commits no AvailabilityReceipt, and materializes policy only for successor Seals.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -279,7 +279,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:e737c54e7a7edcf3aa84c19f55798d3ff552bd7dbb824c4e7e889965d6ef9545",
+      "section_digest": "sha256:52681cffae2a0e14a597ee1c9d59ab84533348e38a6600f5ffc9d9a26902a6da",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
       "testability_grade": "vector",
       "evidence_refs": [

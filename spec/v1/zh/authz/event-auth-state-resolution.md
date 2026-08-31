@@ -494,7 +494,7 @@ KeyView {
 
 每个 Realm 恰有一个 protocol-singleton cell `ak:cell:ak.component.realm.reducer_profile.v1:null`，value 是 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 中 active `ak.reducer.*` profile ID，lattice=`cas_register`、bottom=`reject`、plane=`control`。
 
-Genesis value 由 `ak.realm.create` 的注册 reducer projection 从 `payload.object.reducer_profile` 写入；后继值只能由 `ak.realm.upgrade` 写入同一 cell。Upgrade payload 只携带 `target_reducer_profile`，并且 Event 的 `preconditions[]` 必须包含 `{op:"head_eq", cell:"ak:cell:ak.component.realm.reducer_profile.v1:null", value:<source-profile>}`。Target 未注册时返回 `unsupported_profile`；registry 没有 source→target `upgrade_edges` 时返回 `failed_precondition`；cell 为 `⊥` 时按 §9.1.1 返回 `failed_bottom`、reason=`cell_in_bottom_state`。
+Genesis value 由 `ak.realm.create` 的注册 reducer projection 从 `payload.object.reducer_profile` 写入；后继值只能由 `ak.realm.upgrade` 写入同一 cell。Upgrade payload 只携带 `target_reducer_profile`，并且 Event 的 `preconditions[]` 必须包含 `{cell_id:"ak:cell:ak.component.realm.reducer_profile.v1:null", predicate:{op:"head_eq", value:<source-profile>}}`。Target 未注册时返回 `unsupported_profile`；registry 没有 source→target `upgrade_edges` 时返回 `failed_precondition`；cell 为 `⊥` 时按 §9.1.1 返回 `failed_bottom`、reason=`cell_in_bottom_state`。
 
 Profile view 必须逐 Event 求值：DataEvent 使用 `seal_ref` 认证的 joined control state；Control Move 使用 `seal_basis` 指定的 frozen predecessor `J(L)`。`ak.realm.upgrade` 自身由 source profile 解释；只有 governance basis 已包含该 accepted upgrade 的后继才由 target profile 解释。与 upgrade 并发且 basis 不含它的 Event 仍使用 source profile。实现不得读取本地 latest profile、软件默认值、接收顺序或 Event 自报字段。
 
@@ -792,7 +792,7 @@ AvailabilityReceipt {
 
 本节是 Control Move `preconditions[]` 中 `Predicate` 与 core lattice join 规则的散文权威；schema 只给字段形状，不能替代本节的求值语义。
 
-- **`head_eq`**：谓词形态为 `{kind:"head_eq", cell:"ak:cell:...", value:<json>}`。Reducer MUST 在该 Move 的 `seal_basis` 治理 view 下读取目标 cell 的 settled value，并按 canonical JSON whole-value compare 与 `value` 比较；二者 bit-exact 相等时通过。cell 缺失时 settled value 为 `null`，因此省略业务字段与显式缺省不得被当作匹配。若目标 cell 在该 basis 下为 `⊥`，`head_eq` MUST fail closed（failure status `failed_bottom`，`reason=cell_in_bottom_state`，见 §13）。
+- **`head_eq`**：完整 `preconditions[]` 条目的 wire 形态为 `{cell_id:"ak:cell:...", predicate:{op:"head_eq", value:<json>}}`。Reducer MUST 在该 Move 的 `seal_basis` 治理 view 下读取目标 cell 的 settled value，并按 canonical JSON whole-value compare 与 `predicate.value` 比较；二者 bit-exact 相等时通过。cell 缺失时 settled value 为 `null`，因此省略业务字段与显式缺省不得被当作匹配。若目标 cell 在该 basis 下为 `⊥`，`head_eq` MUST fail closed（failure status `failed_bottom`，`reason=cell_in_bottom_state`，见 §13）。
 - **`cas_register`**：set write 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带命中本 cell 的 `head_eq` precondition；DataEvent 若声明使用 CAS 语义，MUST 通过 causal refs 与领域 lattice 规则表达同等约束。缺失 CAS basis 时 receiver MUST 以 `failed_precondition` 拒绝该 write，并按多 cell 原子性拒绝整个 reducer input，不得实现无条件覆盖。
 
   **projected write 携带前驱（normative）**：`cas_register` 的注册 `set` effect 投影为 lattice
