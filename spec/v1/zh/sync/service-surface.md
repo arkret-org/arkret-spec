@@ -686,7 +686,7 @@ Account Aggregate / Snapshot Surface 是 Station 提供的 **账号视角聚合*
 事件流读取统一在：
 
 - `QUERY /_arkret/self/events` + JSON content（`ak.self.events.read.scan.v1`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
-- `GET /_arkret/self/events/subscribe?realms=...&catchup=...`（`ak.self.events.stream.subscribe.v1`，可从 `after=` 追赶到当前 frontier，并支持多 realm 一次订阅）
+- `GET /_arkret/self/events/subscribe?realm_ids=...&catchup=...`（`ak.self.events.stream.subscribe.v1`，可从 `after=` 追赶到当前 frontier，并支持重复 `realm_ids` / `actor_ids` selector）
 
 实现不得把账号聚合 (`/_arkret/self/account/subscribe`) 和裸事件读 (`/_arkret/self/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
 

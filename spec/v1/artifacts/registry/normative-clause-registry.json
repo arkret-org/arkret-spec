@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.8",
+  "version": "2026-08-31.9",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T18:54:00+08:00",
+  "generated_at": "2026-08-31T23:20:28+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -344,8 +344,8 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:3279f1b0a982dd256bb9c084f6dcf3936e18355cdaa5fc152fb71ef979637fcf",
-      "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
+      "section_digest": "sha256:c0ed22aeb59eddbd4de145cde8bd6d7752f01f29d97a97f951dab1be1e6e316c",
+      "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the claimed lifecycle transition is atomic with its subject-bound membership proposal; only invite acceptance writes member state.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.invite.claim_reducer_state_machine.v1",

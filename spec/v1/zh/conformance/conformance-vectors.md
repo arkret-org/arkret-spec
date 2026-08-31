@@ -5610,7 +5610,7 @@ Expected:
 - 两个实现 MUST 得到逐字节相同的 leaf 序列与 `state_root`。
 - 负例：把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `agent_principal_control`）或任何 payload 派生值写进 subject 段；空末段（`ak:cell:<family>:`）；这些形态 MUST `schema_violation`。
 
-### 23.4 Invite 与 membership cell 的原子绑定
+### 23.4 Invite lifecycle 与 acceptance membership 的精确写集
 
 `vector_id`: `ak.vector.invite.membership_transition_atomicity.v1`
 
@@ -5618,16 +5618,16 @@ Steps:
 
 1. `default_join_rule=invite` 的 Realm 上走完整 create 到 accept 链路。
 2. 分别执行 cancel（invitee 拒绝）、revoke、以及以 `reason_code` 表达 expired 的 revoke。
+3. 对照 `ak.fsm.membership.v1` 与 event kind registry 检查每类 Move 的精确 cell write family。
 
 Expected:
 
-- 正例：`member.state` 依次经过 `leave -> invite -> join`；`ak.invite.create` 与 `ak.invite.accept` 各自在同一 Control Move 内同时写 `invite.lifecycle` 与 `member.state`。
-- 负例：invitee 在没有 `invite` 前态时提交 `ak.invite.accept` MUST `failed_precondition` / `invalid_membership_transition`（防止实现私自放宽 `leave -> join`）。
-- 负例：`ak.invite.cancel{rejected}` 之后 `member.state` MUST 回到 `leave`，且该主体在 `history_access=since_join` Realm 中不再具备 invite-frontier 读取与 key share 资格。
-- 负例：以 expired 为 `reason_code` 的 revoke 之后同上。
-- 负例：定向 invite 的 cancel / revoke 缺失 `payload.invitee`，或其值与 invite cell 记录不等，MUST `reducer_projection_failed`。
-- 正例：3PID 分支（`third_party_invite`，无 `invitee`）的 `ak.invite.create` MUST NOT 投影 `member.state` write（防止过度补写）。
-- 负例：对处于 `invite` 的 Realm member cell 直接提交裸 `ak.member.state{ban}` MUST `invalid_membership_transition`。
+- 正例：create 只写 `invite.lifecycle: null -> pending`，目标 member 保持 `leave`；accept 在同一 Control Move 原子写 `invite.lifecycle -> accepted` 与 member `leave -> join`。
+- 负例：没有 `pending` / `claimed` invite 前态、actor 不是 exact invitee，或 member 前态不是 `leave` 的 accept MUST fail closed 且零写。
+- 正例：cancel / revoke / expired revoke 只写 `invite.lifecycle`；member cell 保持逐字节不变，不得合成 `leave` write。
+- 负例：direct invite cancel 缺失 `payload.invitee_account_id`，或其值与 invite cell 记录不等，MUST `reducer_projection_failed`；token / 3PID invite 的 cancel MUST `invite_kind_requires_revoke`。
+- 正例：3PID create / revoke 不投影 `member.state`；claim 只产生 subject-bound membership proposal，后续 accept 才写 member `leave -> join`。
+- 正例：membership FSM 状态集不含 `invite`，且 direct `leave -> ban` 按 membership FSM 独立合法；实现不得创造 invite member prestate 或要求先合成一次 `leave`。
 
 ### 23.5 Call state 正交轴各自成 cell
 

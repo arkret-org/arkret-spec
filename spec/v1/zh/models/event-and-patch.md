@@ -424,11 +424,11 @@ barrier 串行化。实现不得按 Event kind 名称猜测类别。
 
 任一失败时必须原样返回该 requirement 登记的 `failure.code` / `failure.reason_code`，整个
 Move 不得产生任何 cell write。实现不能用请求另传的同名字段替代持久化前态。当前
-`ak.invite.cancel` 先要求目标 Invite 已有 `invitee`，把该 kind 封闭在普通定向邀请；再要求
-它与签名 `payload.invitee` 相等，保证 Invite lifecycle 与 member state 两条投影原子参与。
+`ak.invite.cancel` 先要求目标 Invite 已有 `invitee_account_id`，把该 kind 封闭在普通定向邀请；再要求
+它与签名 `payload.invitee_account_id` 相等，保证请求不能把第三方/token invite 冒充为普通定向邀请。
 第三方/token invite 必须使用 `ak.invite.revoke`。
 
-`ak.mls.genesis` / `ak.mls.commit` 的三目标合约固定为 MLS epoch、key schedule 与 covered-seals；`ak.invite.accept` 固定为 invite lifecycle 与 member state；`ak.invite.claim` 固定为 invite lifecycle 与 subject-bound membership proposal。generic/message redaction 写入单调 `ak.component.object.redaction.v1` fact；对象的 effective terminal/redacted 状态由该 fact 与对象 lifecycle cell 联合派生，不允许用到达顺序选择是否清除内容。闭包与正负路径由 `ak.vector.event_kind.cell_contract_closure.v1` 固定。
+`ak.mls.genesis` / `ak.mls.commit` 的三目标合约固定为 MLS epoch、key schedule 与 covered-seals；`ak.invite.accept` 固定为 invite lifecycle 与 member state；`ak.invite.claim` 固定为 invite lifecycle 与 subject-bound membership proposal。`ak.invite.create` / `ak.invite.cancel` / `ak.invite.revoke` 只写 invite lifecycle。generic/message redaction 写入单调 `ak.component.object.redaction.v1` fact；对象的 effective terminal/redacted 状态由该 fact 与对象 lifecycle cell 联合派生，不允许用到达顺序选择是否清除内容。闭包与正负路径由 `ak.vector.event_kind.cell_contract_closure.v1` 固定。
 
 ### 2.5 Create 类 Event 的跨字段语义校验
 

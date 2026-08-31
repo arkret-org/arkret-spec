@@ -298,8 +298,8 @@ effective_receive_policy =
 - `payload.invitee_account_id` MUST 与 `invite_address.account_id` 完整相等，不得只比较 principal。
 - destination service 只从 `invitee_account_id.station_id` 派生；service resolution 与 route assistance 只在私有 transport carrier 中出现，MUST NOT 要求 durable Event 镜像它们。
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
-- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel` 的 `invite_cancel_payload`：`invite_id`、与持久化目标完整相等的 `invitee_account_id`、`target_state` 及该 schema 允许的诊断字段。invitee 本人拒绝写入 `rejected`；inviter 或获授权管理 actor 撤销写入 `revoked`。reducer MUST 从 Invite 前态确认 exact invitee，第三方/token placeholder 或缺少 invitee 的前态 MUST 以 `failed_precondition` / `invite_kind_requires_revoke` 原子拒绝；不得信任请求补出的身份。Invite lifecycle 与对应 ActorId member cell 的 `invite -> leave` MUST 同事务推进。
-- `ak.invite.revoke` 使用独立 `invite_revoke_payload`。指向定向 invite 时 `invitee_account_id` MUST 匹配前态；指向尚未绑定账号的 3PID placeholder 时 MUST NOT 携带该字段或写 member cell。完整终态规则见 [`governance-objects.md` §5.3](../models/governance-objects.md)。
+- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel` 的 `invite_cancel_payload`：`invite_id`、与持久化目标完整相等的 `invitee_account_id`、`target_state` 及该 schema 允许的诊断字段。invitee 本人拒绝写入 `rejected`；inviter 或获授权管理 actor 撤销写入 `revoked`。reducer MUST 从 Invite 前态确认 exact invitee，第三方/token placeholder 或缺少 invitee 的前态 MUST 以 `failed_precondition` / `invite_kind_requires_revoke` 原子拒绝；不得信任请求补出的身份。该 Move 只推进 Invite lifecycle，不写 `member.state`。
+- `ak.invite.revoke` 使用独立 `invite_revoke_payload`，只推进 Invite lifecycle；指向尚未绑定账号的 3PID placeholder 时 MUST NOT 携带 `invitee_account_id`。取消或撤销不会合成 membership `leave` 写入。完整终态规则见 [`governance-objects.md` §5.3](../models/governance-objects.md)。
 
 ## 7. 私有 Invite Delivery
 
