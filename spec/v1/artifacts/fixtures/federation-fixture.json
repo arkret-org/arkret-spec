@@ -499,6 +499,26 @@
           "expected": "validated_union_via_existing_scan_resolve_submit_surfaces_then_success_and_reset"
         },
         {
+          "case": "scan_discovers_a_missing_control_event_without_publication_sidecars",
+          "expected": "resolve_the_event_id_to_event_federation_submission_before_admission"
+        },
+        {
+          "case": "resolve_returns_the_first_accepted_control_ack_compensation_and_delayed_publication_evidence",
+          "expected": "byte_identical_evidence_replays_through_the_same_federation_admission_as_push"
+        },
+        {
+          "case": "ack_required_control_resolve_has_no_control_proposal_ack",
+          "expected": "fail_closed_without_receiver_minting_and_without_counting_raw_root_mismatch_as_peer_failure"
+        },
+        {
+          "case": "ackless_human_self_principal_control_resolve_carries_stable_admission_evidence",
+          "expected": "accept_only_after_source_station_producer_device_authorize_generation_and_seal_basis_replay"
+        },
+        {
+          "case": "resolve_carrier_contains_both_control_ack_and_ackless_admission_evidence",
+          "expected": "schema_violation_before_admission"
+        },
+        {
           "case": "challenge_or_backfill_network_failure",
           "expected": "ordinary_failure_counts_toward_three_consecutive_failures"
         },

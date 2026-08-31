@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 370,
+  "audited_occurrence_count": 371,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1069,6 +1069,17 @@
         "attestation"
       ],
       "reason": "References either an executable proof artifact or an externally issued test attestation."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "ackless_self_principal_admission_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "commitment"
+      ],
+      "reason": "Carries stable producer-device and accepted device-authorization references plus the signed Seal-basis commitment for replaying the one Ack-less human self-principal PCR admission class."
     },
     {
       "file": "service-operation-dtos.schema.json",

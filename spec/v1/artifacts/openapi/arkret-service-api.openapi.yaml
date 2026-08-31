@@ -4295,7 +4295,7 @@ paths:
               $ref: '#/components/schemas/PeerEventsResolveRequestBody'
       responses:
         '200':
-          description: Resolved Events and CBA proof bundles visible to the authenticated federation peer
+          description: Resolved Event federation submissions and retained publication evidence visible to the authenticated federation peer
           content:
             application/json:
               schema:

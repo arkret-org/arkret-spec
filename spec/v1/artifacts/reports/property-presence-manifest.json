@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9810,
+    "total_properties": 9815,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2697,
+      "optional": 2698,
       "optional_defaulted": 67,
-      "required": 6728,
+      "required": 6732,
       "required_nullable": 117,
       "tristate": 201
     },
@@ -203,8 +203,8 @@
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeSubmission/allOf/0/else/properties/agent_transitions",
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeSubmission/allOf/0/then/properties/agent_transitions",
     "service-operation-dtos.schema.json/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages",
-    "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/1/else/properties/ingress_receipts",
-    "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/1/then/properties/ingress_receipts",
+    "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/2/else/properties/ingress_receipts",
+    "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/2/then/properties/ingress_receipts",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/0/properties/missing_event_ids",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/1/properties/missing_event_digests",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/2/properties/missing_seal_refs",
@@ -1419,8 +1419,8 @@
       "shape": "/$defs/EventFederationSubmission",
       "instance_path": "/ingress_receipts",
       "occurrences": [
-        "/$defs/EventFederationSubmission/allOf/1/else/properties/ingress_receipts",
-        "/$defs/EventFederationSubmission/allOf/1/then/properties/ingress_receipts"
+        "/$defs/EventFederationSubmission/allOf/2/else/properties/ingress_receipts",
+        "/$defs/EventFederationSubmission/allOf/2/then/properties/ingress_receipts"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -11849,6 +11849,10 @@
         "/$defs/AccountCursorRevokeRequestBody/properties/reason_code": "required",
         "/$defs/AccountCursorRevokeRequestBody/properties/revoke_scope": "optional_defaulted",
         "/$defs/AccountLogoutOutcome/properties/revoked": "required",
+        "/$defs/AcklessSelfPrincipalAdmissionEvidence/properties/device_authorize_event_id": "required",
+        "/$defs/AcklessSelfPrincipalAdmissionEvidence/properties/device_generation_ref": "required",
+        "/$defs/AcklessSelfPrincipalAdmissionEvidence/properties/device_id": "required",
+        "/$defs/AcklessSelfPrincipalAdmissionEvidence/properties/seal_basis_digest": "required",
         "/$defs/ActorAggregateFrontierView/properties/actor_id": "required",
         "/$defs/ActorAggregateFrontierView/properties/frontiers": "required",
         "/$defs/ActorAggregateFrontierView/properties/kind": "required",
@@ -12095,8 +12099,9 @@
         "/$defs/EventDeliveryTargetStatus/properties/service_id": "optional",
         "/$defs/EventDeliveryTargetStatus/properties/status": "required",
         "/$defs/EventDeliveryTargetStatus/properties/target_id": "required",
-        "/$defs/EventFederationSubmission/allOf/1/else/properties/ingress_receipts": "tristate",
-        "/$defs/EventFederationSubmission/allOf/1/then/properties/ingress_receipts": "tristate",
+        "/$defs/EventFederationSubmission/allOf/2/else/properties/ingress_receipts": "tristate",
+        "/$defs/EventFederationSubmission/allOf/2/then/properties/ingress_receipts": "tristate",
+        "/$defs/EventFederationSubmission/properties/ackless_self_principal_admission_evidence": "optional",
         "/$defs/EventFederationSubmission/properties/authorization_lease": "optional",
         "/$defs/EventFederationSubmission/properties/control_proposal_ack": "optional",
         "/$defs/EventFederationSubmission/properties/event": "required",

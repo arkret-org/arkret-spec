@@ -2327,6 +2327,32 @@
         }
       }
     },
+    "AcklessSelfPrincipalAdmissionEvidence": {
+      "type": "object",
+      "description": "Stable first-admission references for the one Ack-less authority-authored human self-principal PCR Control class. The receiver recomputes every field from the signed Event and accepted dependencies; this object is replay evidence, not a new authority signature.",
+      "required": [
+        "device_id",
+        "device_authorize_event_id",
+        "device_generation_ref",
+        "seal_basis_digest"
+      ],
+      "properties": {
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "device_authorize_event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "device_generation_ref": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "seal_basis_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
+    },
     "EventFederationSubmission": {
       "type": "object",
       "description": "Event publication transported between peers. Online federation carries an empty ingress_receipts array and no authorization_lease; explicit delayed/offline federation carries its lease and one or more lease-bound receipts. A membership-compensation Event carries the exact accepted transport-only evidence from self admission. The receiving peer independently revalidates the Event, current admission, optional delayed evidence, compensation evidence and CBA closure.",
@@ -2354,6 +2380,10 @@
           "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
           "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for DataEvents."
         },
+        "ackless_self_principal_admission_evidence": {
+          "$ref": "#/$defs/AcklessSelfPrincipalAdmissionEvidence",
+          "description": "Present only for an Ack-less authority-authored human self-principal PCR Control Move. Mutually exclusive with control_proposal_ack."
+        },
         "membership_compensation_evidence": {
           "$ref": "#/$defs/MembershipCompensationSubmissionEvidence"
         }
@@ -2361,6 +2391,14 @@
       "allOf": [
         {
           "$ref": "#/$defs/MembershipCompensationCarrierPresence"
+        },
+        {
+          "not": {
+            "required": [
+              "control_proposal_ack",
+              "ackless_self_principal_admission_evidence"
+            ]
+          }
         },
         {
           "if": {
@@ -4620,7 +4658,7 @@
     },
     "PeerEventsResolveOutcome": {
       "type": "object",
-      "description": "Read-only federation Event dependency response. Every Event selector is fully accounted for by a matching Event or same-type missing bucket. Event proof signer evidence is resolved through the typed governance-dependency surface; Control-Move effectiveness is checked through the separate Seal frontier/resolve closure. This response never duplicates CBA proof bundles or covering/first-activation Seal evidence.",
+      "description": "Read-only federation Event dependency response. Every Event selector is fully accounted for by a matching EventFederationSubmission or same-type missing bucket. The submission carries the byte-identical publication evidence retained at first acceptance, so a puller can run the same federation admission as push without minting or reconstructing authority evidence. Event proof signer evidence is resolved through the typed governance-dependency surface; Control-Move effectiveness is checked through the separate Seal frontier/resolve closure. This response never duplicates CBA proof bundles or covering/first-activation Seal evidence.",
       "required": [
         "events",
         "missing_event_ids",
@@ -4632,7 +4670,7 @@
           "maxItems": 1024,
           "uniqueItems": true,
           "items": {
-            "$ref": "./event-envelope.schema.json"
+            "$ref": "#/$defs/EventFederationSubmission"
           }
         },
         "missing_event_ids": {
@@ -4684,7 +4722,9 @@
         },
         "include_payload": {
           "type": "boolean",
-          "default": true
+          "const": true,
+          "default": true,
+          "description": "When present this value is true. Federation dependency resolution returns the complete accepted Event because its retained publication evidence binds the canonical Event digest."
         },
         "max_response_bytes": {
           "type": "integer",
