@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.5",
+  "version": "2026-08-31.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T18:00:01+08:00",
+  "generated_at": "2026-08-31T18:00:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2667,7 +2667,7 @@
       "http": "GET /_arkret/self/authz/effective-grants",
       "grpc": "SelfAuthz/GetEffectiveGrants",
       "mq": "self.authz.grants.query.effective",
-      "notes": "Query parameters are realm_id, optional subject_actor_id and optional at. subject_actor_id is a percent-encoded canonical JSON ActorId, including Account and HostedPrincipal branches. Omission selects the authenticated credential's exact ActorId. Reject legacy subject, subject_station_id and subject_account_id aliases; no principal-only, local-service, bearer-service, DID-document or inferred-routing fallback is allowed.",
+      "notes": "Query parameters are realm_id, optional subject_actor_id and optional at. subject_actor_id is a percent-encoded canonical JSON ActorId, including Account and Service branches. Omission selects the authenticated credential's exact ActorId. Reject legacy subject, subject_station_id and subject_account_id aliases; no principal-only, local-service, bearer-service, DID-document or inferred-routing fallback is allowed.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList"

@@ -34,7 +34,7 @@
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
-      "description": "Complete identity of the principal whose Realm/cell state the Event mutates and to whom the durable fact is attributed. Account and hosted-principal variants carry their Station namespace inside actor_id; a service variant carries the directly authoring service identity. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
+      "description": "Complete identity of the principal whose Realm/cell state the Event mutates and to whom the durable fact is attributed. Account variants carry their Station namespace inside actor_id; a service variant carries the directly authoring service identity. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
     },
     "executed_by": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
@@ -191,7 +191,7 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Producer proofs sign canonical Event bytes, including the complete actor_id and executed_by when present. After local admission, the origin Station named by the account or hosted-principal signer variant appends at most one station_admission proof that binds the exact producer proof it verified; a directly authoring service is its own service identity. proofs and unsigned remain excluded from event_digest; federation and backfill preserve the accepted Event byte-for-byte.",
+      "description": "Producer proofs sign canonical Event bytes, including the complete actor_id and executed_by when present. After local admission, the origin Station named by the account signer variant appends at most one station_admission proof that binds the exact producer proof it verified; a directly authoring service is its own service identity. proofs and unsigned remain excluded from event_digest; federation and backfill preserve the accepted Event byte-for-byte.",
       "items": {
         "$ref": "#/$defs/event_proof"
       },
@@ -4659,7 +4659,7 @@
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Station verification method whose controller projects to the station_id inside the Event signer account or hosted-principal ActorId. A directly authoring service proof instead projects to that service ActorId's service_id."
+          "description": "Station verification method whose controller projects to the station_id inside the Event signer account ActorId. A directly authoring service proof instead projects to that service ActorId's service_id."
         },
         "event_digest": {
           "$ref": "#/$defs/digest"

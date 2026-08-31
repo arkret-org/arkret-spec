@@ -530,7 +530,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 账号型 principal 的完整外部 authority key 只有 `(principal_id, station_id)`。前者回答“是谁”，后者回答“哪个 Station 对该账号、设备和恢复状态负责”。同一 `principal_id` 在不同 Station 上形成不同账号；单个 Station 上同一 pair **MUST** 终身 create-once，只能对应一条 PCR lineage。注销、hard erasure 或停用后 **MUST** 保留最小 uniqueness tombstone，恢复只能沿原 lineage；换服务必须形成新的 pair。PCR Realm、genesis receipt、entry digest 与 frontier 可以作为账号内部审计和恢复状态，但 **MUST NOT** 参与外部 principal equality、membership、Contact、grant、普通 Event 或 cache/query identity。
 
-普通 Event 先定义 `author_id = executed_by ?? actor_id`，再以封闭路由函数导出唯一 origin service：`account -> account_id.station_id`、`hosted_principal -> station_id`、`service -> service_id`。`actor_id` 仍是业务事实归属者，delegated execution 的授权由 `authorization_ref` 另行证明。Event **MUST NOT** 再携带顶层 `station_id` 或任何平行 server sidecar；否则同一归属已在 `ActorId` 中表达两次，并会产生不一致分支。
+普通 Event 先定义 `author_id = executed_by ?? actor_id`，再以封闭路由函数导出唯一 origin service：`account -> account_id.station_id`、`service -> service_id`。`actor_id` 仍是业务事实归属者，delegated execution 的授权由 `authorization_ref` 另行证明。Event **MUST NOT** 再携带顶层 `station_id` 或任何平行 server sidecar；否则同一归属已在 `ActorId` 中表达两次，并会产生不一致分支。
 
 普通 caller-signed Event 的首次准入 **MUST** 只发生在上述路由函数导出的 origin service。caller submit 只能携带 producer proof；origin Station 完成 schema、producer proof、完整 author ActorId、设备 generation/PCR 或相应 author branch 状态检查后，在同一 `proofs[]` 追加且只追加一个：
 

@@ -444,9 +444,11 @@
           }
         },
         "subject": {
-          "kind": "hosted_principal",
-          "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-          "station_id": "ak:did_core:web:agent-fixture-station.example"
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+            "station_id": "ak:did_core:web:agent-fixture-station.example"
+          }
         },
         "actions": [
           "ak.agent.action_request"

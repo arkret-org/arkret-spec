@@ -249,7 +249,7 @@
     },
     "created_by": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
-      "description": "Complete ActorId of the snapshot issuer (account, hosted principal, service, Realm notary, or federation witness). The signature transcript binds this identity; its DID URL verification_method is independently validated against the selected ActorId branch."
+      "description": "Complete ActorId of the snapshot issuer (account, service, Realm notary, or federation witness). The signature transcript binds this identity; its DID URL verification_method is independently validated against the selected ActorId branch."
     },
     "created_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",

@@ -961,7 +961,7 @@ MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../ex
 GET /_arkret/self/authz/effective-grants?realm_id=<id>&subject_actor_id=<percent-encoded-JCS-ActorId>&at=<timestamp?>
 ```
 
-`subject_actor_id` 保留完整 Actor 分支与 Station，包括 Account 与 HostedPrincipal；省略时仅取已认证 credential 的完整 Actor。旧 `subject`、`subject_station_id`、`subject_account_id` query 参数 MUST 拒绝，不得重建或猜测远端 Actor。
+`subject_actor_id` 保留完整 Actor 分支与 Station，包括 Account 与 Service；省略时仅取已认证 credential 的完整 Actor。旧 `subject`、`subject_station_id`、`subject_account_id` query 参数 MUST 拒绝，不得重建或猜测远端 Actor。
 
 ```text
 GET /_arkret/self/authz/invites?realm_id=<id>&subject=<did_core_id>&subject_station_id=<did_core_id>

@@ -51,7 +51,7 @@ see_also:
 | Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
 | Handle | 人类可读地址 | 面向用户的可读入口，统一 canonical handle `user:domain`。账号解析结果在授权披露时是 exact AccountId；handle 不是协议主体、membership grant 或授权主键。 |
 | AccountId | 完整账号身份 | Closed canonical JSON `{principal_id, station_id}`；两个 canonical DID Core ID 分量共同决定账号，相等性不得退化为裸 `principal_id`。 |
-| ActorId | 完整 Actor 身份 | Closed union：account 分支携 AccountId，hosted-principal 分支携 principal/server pair，service 分支携 `service_id`；不同分支永不相等。 |
+| ActorId | 完整 Actor 身份 | Closed union：account 分支携 AccountId（包括人类、Agent、Ghost 与 integration），service 分支携 `service_id`；不同分支永不相等。 |
 | Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Realm history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |

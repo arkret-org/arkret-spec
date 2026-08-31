@@ -33,6 +33,11 @@ Actor 类型（`actor_kind`）：
 
 Actor MAY 有对应的 `actor_profile` 对象，便于在协作图中被 mention、assign 或展示。
 
+所有 Station 承载 Actor 的完整身份统一为 `ActorId.account{account_id:{principal_id,station_id}}`，
+包括 user、Agent、Ghost、organization/team 账号与 integration。服务以自身身份直接行动时使用
+`ActorId.service{service_id}`。`actor_kind`、controller、provisioning、credential 与 lifecycle 是独立的
+已验证事实，不得成为同一 principal/station pair 的另一身份分支，也不得仅因 account 分支授予权限。
+
 Accountable actor MUST 记录责任关系，但 accountability 不等于 capability。
 
 ## 3. Actor Profile

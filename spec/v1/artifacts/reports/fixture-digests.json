@@ -6,7 +6,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json",
-      "sha256": "9d94d3825d2ac5e9d000c1610636c54bb008025f5f76135475c074ccf71b29ef"
+      "sha256": "cc22a577ba514a27a5f6c8f9caea26550aaaac8161705c14f48eecd2623db0a0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json",
@@ -30,7 +30,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
-      "sha256": "87090dea2b509ddeab2a204f1d7d3f503510203ae05595c815cfca782e221b95"
+      "sha256": "81e745da0b7224ceb58a81772f3338563b86aa95b359a5d2e960baa966334686"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -82,7 +82,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "00cd717735ee76c7ca0acfd9bb519853e9ca756be80bb25f196a22b107f739eb"
+      "sha256": "76da3631ca2ab0373c3b8854557b824abee61d75620bcd5d3f5fb2943e49fd03"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -330,7 +330,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "77f1fd938afa2b783c97902da2eee1969e13aee3ee0c2c3cc30afc3ae4aba816"
+      "sha256": "1ae194b76a21bb683f9d19f88cded5bdd3f9199a8563704fa8ece66b887ade54"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

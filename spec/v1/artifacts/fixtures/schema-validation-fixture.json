@@ -647,9 +647,11 @@
         "controller_terminal_event_id": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
         "expected_agent_ids": [
           {
-            "kind": "hosted_principal",
-            "principal_id": "ak:did_core:webvh:z6mkagent",
-            "station_id": "ak:did_core:web:ps.example"
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkagent",
+              "station_id": "ak:did_core:web:ps.example"
+            }
           }
         ],
         "cleanup_intent_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -5002,16 +5004,19 @@
             "admission_id": "membership-admission-1",
             "join_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
             "membership_cell_id": "membership-cell-1",
-            "member_id": {"kind":"service","service_id":"ak:did_core:webvh:z6mkfixturesubject"},
+            "member_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturesubject"
+            },
             "join_actor_id": {
               "kind": "service",
               "service_id": "ak:did_core:webvh:z6mkfixturesubject"
             },
             "verification_method": "did:webvh:z6mkfixturesubject:example.com#key-1",
-              "executor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:z6mkfixtureexecutor"
-              },
+            "executor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixtureexecutor"
+            },
             "executor_proof_key_kid": "did:webvh:z6mkfixtureexecutor:example.com#key-1",
             "resource_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
             "action": "ak.member.compensate.leave",
@@ -5136,6 +5141,89 @@
         },
         "membership_compensation_evidence": {}
       }
+    },
+    {
+      "name": "unified_account_actor_valid",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/actor_id",
+      "expect_valid": true,
+      "instance": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:zAgentIdentity",
+          "station_id": "ak:did_core:web:station.example"
+        }
+      }
+    },
+    {
+      "name": "unified_service_actor_valid",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/actor_id",
+      "expect_valid": true,
+      "instance": {
+        "kind": "service",
+        "service_id": "ak:did_core:webvh:zAgentIdentity"
+      }
+    },
+    {
+      "name": "removed_actor_variant_rejected",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/actor_id",
+      "expect_valid": false,
+      "instance": {
+        "kind": "hosted_principal",
+        "principal_id": "ak:did_core:webvh:zAgentIdentity",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "flattened_account_actor_rejected",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/actor_id",
+      "expect_valid": false,
+      "instance": {
+        "kind": "account",
+        "principal_id": "ak:did_core:webvh:zAgentIdentity",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "account_actor_missing_station_rejected",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/actor_id",
+      "expect_valid": false,
+      "instance": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:zAgentIdentity"
+        }
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "account_actor_extra_classification_rejected",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/actor_id",
+      "expect_valid": false,
+      "instance": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:zAgentIdentity",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "actor_kind": "agent"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "account_actor_extra_route_rejected",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/actor_id",
+      "expect_valid": false,
+      "instance": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:zAgentIdentity",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
     }
   ]
 }

@@ -60,7 +60,7 @@
     "account_id": {
       "type": "object",
       "x-arkret-composite-identifier": true,
-      "description": "Complete protocol account identity. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key.",
+      "description": "Complete protocol identity for a principal at one Station, including human, native Agent, Applet-managed Ghost and integration accounts. It does not imply a human login, provisioning workflow, credential class or authorization. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key.",
       "required": [
         "principal_id",
         "station_id"
@@ -77,7 +77,7 @@
     },
     "actor_id": {
       "x-arkret-composite-identifier": true,
-      "description": "Complete protocol identity for an Event author or Realm member. The discriminator is validated against accepted registration, Actor Profile and admission evidence; it never authorizes itself. No variant is equal to another variant and no comparison may fall back to a bare principal_id.",
+      "description": "Complete protocol identity for an Event author or Realm member: account carries the exact AccountId for every Station-hosted principal; service identifies a service acting as itself. The discriminator is validated against accepted registration and admission evidence; it never authorizes itself. Account and service are distinct, and no comparison may fall back to a bare principal_id. Agent and integration classification, provisioning, controller binding and credential authorization are independently verified facts, not identity variants.",
       "oneOf": [
         {
           "type": "object",
@@ -91,26 +91,6 @@
             },
             "account_id": {
               "$ref": "#/$defs/account_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "principal_id",
-            "station_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "hosted_principal"
-            },
-            "principal_id": {
-              "$ref": "#/$defs/did_core_id"
-            },
-            "station_id": {
-              "$ref": "#/$defs/did_core_id"
             }
           },
           "additionalProperties": false
@@ -199,18 +179,30 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "value"],
+          "required": [
+            "kind",
+            "value"
+          ],
           "properties": {
-            "kind": { "const": "did" },
-            "value": { "$ref": "#/$defs/did" }
+            "kind": {
+              "const": "did"
+            },
+            "value": {
+              "$ref": "#/$defs/did"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "value"],
+          "required": [
+            "kind",
+            "value"
+          ],
           "properties": {
-            "kind": { "const": "keri_aid" },
+            "kind": {
+              "const": "keri_aid"
+            },
             "value": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{44,128}$",
@@ -221,9 +213,14 @@
         },
         {
           "type": "object",
-          "required": ["kind", "value"],
+          "required": [
+            "kind",
+            "value"
+          ],
           "properties": {
-            "kind": { "const": "urn" },
+            "kind": {
+              "const": "urn"
+            },
             "value": {
               "type": "string",
               "pattern": "^urn:[a-z0-9][a-z0-9-]{0,31}:[^\\s?#]+$",
@@ -234,9 +231,14 @@
         },
         {
           "type": "object",
-          "required": ["kind", "value"],
+          "required": [
+            "kind",
+            "value"
+          ],
           "properties": {
-            "kind": { "const": "x509" },
+            "kind": {
+              "const": "x509"
+            },
             "value": {
               "type": "string",
               "pattern": "^urn:x509:sha256:[0-9a-f]{64}$"

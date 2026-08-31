@@ -145,7 +145,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "The DID URL bare DID component MUST project through its registered adapter to the signing principal component of sender_actor_id (account_id.principal_id for account, principal_id for hosted_principal), and its fragment MUST equal sender_device_id; constructing it by appending to did_core_id is forbidden. This projection does not establish the Station component or authorize a device: the verifier MUST resolve the authoritative verify key for the complete (sender_actor_id, sender_device_id) from its own current accepted device directory, which is a state domain seal_ref does not select (zh/sync/signal.md section 1)."
+          "description": "The DID URL bare DID component MUST project through its registered adapter to the signing principal component of sender_actor_id (account_id.principal_id for account), and its fragment MUST equal sender_device_id; constructing it by appending to did_core_id is forbidden. This projection does not establish the Station component or authorize a device: the verifier MUST resolve the authoritative verify key for the complete (sender_actor_id, sender_device_id) from its own current accepted device directory, which is a state domain seal_ref does not select (zh/sync/signal.md section 1)."
         },
         "envelope_digest": {
           "$ref": "#/$defs/digest"

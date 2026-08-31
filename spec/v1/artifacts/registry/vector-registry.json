@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.6",
+  "version": "2026-08-30.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T00:20:00+08:00",
+  "generated_at": "2026-08-31T00:20:01+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -439,7 +439,7 @@
       "applies_to_fixtures": [
         "applet-managed-actor-fixture.json"
       ],
-      "description": "Applet-managed Bot/Ghost creation uses an exact hosted-principal ActorId, independently verified method evidence, immutable provision/PCR anchors, fixed atomic units, DID namespace matching, ordinary PCR rotation and a generic registration/grant/revoke write fence.",
+      "description": "Applet-managed Bot/Ghost creation uses an exact account ActorId, independently verified method evidence, immutable provision/PCR anchors, fixed atomic units, DID namespace matching, ordinary PCR rotation and a generic registration/grant/revoke write fence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
       ]

@@ -11,9 +11,11 @@
   ],
   "authority_pair": {
     "actor_id": {
-      "kind": "hosted_principal",
-      "principal_id": "ak:did_core:webvh:z6mkfixtureghost",
-      "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      "kind": "account",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixtureghost",
+        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      }
     }
   },
   "fixed_bot_unit_order": [

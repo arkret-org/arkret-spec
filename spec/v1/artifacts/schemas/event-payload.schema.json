@@ -5625,7 +5625,7 @@
         },
         "member_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id",
-          "description": "Exact member identity. Account members use the AccountId-bearing account variant; non-account hosted principals and directly authoring services use their explicit ActorId variants."
+          "description": "Exact member identity. All Station-hosted principals, including human, Agent, Ghost and integration actors, use the AccountId-bearing account variant; directly authoring services use the service variant."
         },
         "membership": {
           "$ref": "#/$defs/membership_state"

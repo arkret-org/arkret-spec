@@ -131,7 +131,7 @@ Handle 解析结果（无论来自 Directory、Station、Organization claim 还�
 
 `subject_account_id` 使用 claim / credential 领域的角色名，但其类型是 canonical `AccountId`，不是裸 DID、Realm `ActorId`、Station 内部账号行号、组织人事 identifier、service DID 或资源 ID。非账号 handle 必须使用独立 schema，不得隐式扩展本字段。
 
-本节不使用通用 `ActorId` 绑定账号 handle：ActorId 可表达账号、hosted principal 或 service 等参与者；账号也可以在加入任何 Realm 前获得 handle claim。claim 绑定 exact AccountId，Realm 内由当前 effective MemberIdentity 或授权 roster disclosure 建立 `ActorId -> AccountId` 的显示投影，不能只比较 principal core。
+本节不使用通用 `ActorId` 绑定账号 handle：ActorId 可表达账号或 service 等参与者；账号也可以在加入任何 Realm 前获得 handle claim。claim 绑定 exact AccountId，Realm 内由当前 effective MemberIdentity 或授权 roster disclosure 建立 `ActorId -> AccountId` 的显示投影，不能只比较 principal core。
 
 Handle claim 用于 Realm 邀请（`intent ∈ {invite, member_add}`）时，`audience` MUST 绑定目标 Realm ID 或邀请方 service DID；claim 由 Organization 或 Directory 签发时，`vouching_id` 条件必填。它仍只产生 pending invite，不直接产生 membership。
 
@@ -498,7 +498,7 @@ holder DID Document: subject_account_id → handle   (列入 alsoKnownAs，holde
 
 | 机制 | 权威字段 / 路径 |
 | --- | --- |
-| Realm 内投递目标服务 | member `ActorId` 的 account/hosted-principal 分支内 `station_id` |
+| Realm 内投递目标服务 | member `ActorId` 的 `account_id.station_id` |
 | Realm 邀请 / Join Policy | exact `AccountId` + target holder acceptance；handle claim 只提供 issuer/audience 受限的寻址证据 |
 | Actor / 签名归因、审计 | Event envelope 的完整 canonical `ActorId`；签名 key 的 DID/DID URL 独立验证 |
 | endpoint 搬迁、域名变更 | 同一 service DID 的已验证 ServiceResolutionRecord；账号 Station 分量变化是另一 AccountId，不是原账号 route 更新 |

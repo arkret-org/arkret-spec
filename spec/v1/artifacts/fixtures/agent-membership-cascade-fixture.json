@@ -23,9 +23,11 @@
       "expect_valid": true,
       "instance": {
         "member_id": {
-          "kind": "hosted_principal",
-          "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
         },
         "membership": "leave",
         "reason": "controller membership ended",

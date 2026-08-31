@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9818,
+    "total_properties": 9815,
     "total_schema_documents": 163,
     "by_presence_class": {
       "optional": 2699,
       "optional_defaulted": 67,
-      "required": 6732,
+      "required": 6729,
       "required_nullable": 117,
       "tristate": 203
     },
@@ -4029,10 +4029,7 @@
         "/$defs/actor_id/oneOf/0/properties/account_id": "required",
         "/$defs/actor_id/oneOf/0/properties/kind": "required",
         "/$defs/actor_id/oneOf/1/properties/kind": "required",
-        "/$defs/actor_id/oneOf/1/properties/principal_id": "required",
-        "/$defs/actor_id/oneOf/1/properties/station_id": "required",
-        "/$defs/actor_id/oneOf/2/properties/kind": "required",
-        "/$defs/actor_id/oneOf/2/properties/service_id": "required",
+        "/$defs/actor_id/oneOf/1/properties/service_id": "required",
         "/$defs/tsp_vid/oneOf/0/properties/kind": "required",
         "/$defs/tsp_vid/oneOf/0/properties/value": "required",
         "/$defs/tsp_vid/oneOf/1/properties/kind": "required",

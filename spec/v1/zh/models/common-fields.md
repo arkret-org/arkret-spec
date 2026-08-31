@@ -405,13 +405,13 @@ value category，不会自动触发 DID Document 解析或在线验证。
 
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
-| `actor_id` | Event Envelope、membership 与通用 actor-scoped 状态 | 完整 ActorId closed union；account 分支携带 exact AccountId，hosted principal 分支携带 `principal_id + station_id`，service 分支携带 `service_id`。不得用并列 `actor_kind` 或裸 DID 补足语义。 |
+| `actor_id` | Event Envelope、membership 与通用 actor-scoped 状态 | 完整 ActorId closed union；account 分支携带 exact AccountId（包括人类、Agent、Ghost 与 integration），service 分支携带 `service_id`。不得用并列 `actor_kind` 或裸 DID 补足语义。 |
 | `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 ActorId；字段名说明角色，值形态仍使用同一个 closed union。若专属 schema 明确只允许某一 DID-core 角色，必须使用该专属角色名而不是泛化 `actor_id`。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal `did_core_id`；稳定权限主体引用。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的完整 ActorId，由 reducer 从 Event `actor_id` 原样派生；不得只保存其中的 principal DID。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing actor 语义。 |
 | `issuer_id` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim、SessionGrant | 签发授权、receipt、claim 或 credential 的主体 `did_core_id`；必须持有签发权限。 |
 | `subject` | Capability Grant | 唯一登记的 closed polymorphic subject：principal `did_core_id` 或带 discriminator 的 condition selector。裸名表示整个闭合 union，不是稳定 ID 的别名。 |
-| `subject_account_id` | Handle claim 与账号寻址 | 必须是 exact AccountId；不得降级为裸 principal DID。Agent Selector / Mention 等非账号 subject 使用各自登记的 typed identity 字段。 |
+| `subject_account_id` | Handle claim 与账号寻址 | 必须是 exact AccountId；不得降级为裸 principal DID。Agent Selector / Mention 中的 Principal 级引用使用各自登记的 typed identity 字段，不构成另一种账号身份。 |
 | `controller_subject_id` | Agent Selector Claim、事件 mention metadata | 拥有 controller-scoped agent selector namespace 的 controller principal `did_core_id`。 |
 | `inviter_account_id` / `invitee_account_id` | Account-addressed Invite | 邀请方 / 被邀请方 exact AccountId；通用 membership target 使用 ActorId。 |
 | `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal `did_core_id`（每个条目须有对应 active `ak.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
@@ -420,7 +420,7 @@ value category，不会自动触发 DID Document 解析或在线验证。
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
 
 ActorId 的服务路由投影是封闭且无状态的：account 分支取
-`account_id.station_id`，hosted-principal 分支取 `station_id`，service 分支取
+`account_id.station_id`，service 分支取
 `service_id`。任何需要按托管服务分桶、去重或解析 endpoint 的协议都 MUST 使用这个投影；不得再保存
 member-specific route object、route source、fallback 或 rebind 状态。路由刷新只更新对应 service
 DID core 的 `ServiceResolutionRecord`，不改变 ActorId；service DID core 变化会形成不同 ActorId，必须通过

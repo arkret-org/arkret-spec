@@ -118,7 +118,7 @@ Schema id: `ak.schema.realm.v1`
 | bundle 组件集合（本节 §2.2，含 `federation_policy`、freshness / proposal / compaction / authority-lifetime / bottom-escalation 时窗与 `cell_lattices`） | `ak.realm.policy_bundle`。整个 bundle 每次按 `policy_revision` 完整重述；这些字段不得回落到 create 或 generic patch。 |
 | alias | `ak.realm.alias`。 |
 | plaintext-visible services | `ak.realm.plaintext_visible_services`。 |
-| Station admission policy | 直接约束 member AccountId/hosted-principal ActorId 中的 `station_id`；不复制成员级 route evidence。 |
+| Station admission policy | 直接约束 member AccountId 中的 `station_id`；不复制成员级 route evidence。 |
 | verified organization relationship | `ak.realm.organization`。 |
 | lifecycle、其它已有专用 facet | 对应 registered event/cell。 |
 | `id`、`created_by`、`created_at`、`updated_by`、`updated_at` 与其它 query-only 字段 | 分别由 Realm identity、signed envelope 与 reducer history 派生，不由 producer 在 Realm object 中重复写入。 |

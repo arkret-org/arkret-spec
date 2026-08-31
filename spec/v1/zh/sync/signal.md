@@ -30,8 +30,7 @@ Signal 始终是短 TTL encrypted-only transport，不是 Event、history respon
 authorization 按各自 profile 验证。
 
 `sender_actor_id` 是完整 `ActorId`。`verification_method` 的 bare DID 经已登记 adapter
-投影后 MUST 等于其 signing principal 分量（`account` 分支的 `account_id.principal_id`，
-`hosted_principal` 分支的 `principal_id`），fragment MUST 等于 `sender_device_id`。
+投影后 MUST 等于其 signing principal 分量（`account` 分支的 `account_id.principal_id`），fragment MUST 等于 `sender_device_id`。
 该 DID 投影不能证明 Station 分量；设备信任锚与 current accepted authorization 必须独立绑定
 完整 `(sender_actor_id, sender_device_id)`，不得用入口 Station、session audience 或裸 principal
 补造另一账号的授权。完整 ActorId 同时进入 envelope proof 和 AAD。

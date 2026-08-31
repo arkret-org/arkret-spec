@@ -1739,27 +1739,7 @@
       ]
     },
     {
-      "schema_path": "common-ids.schema.json#/$defs/actor_id/oneOf/1/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "common-ids.schema.json#/$defs/actor_id/oneOf/1/properties/station_id",
-      "property_name": "station_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "common-ids.schema.json#/$defs/actor_id/oneOf/2/properties/service_id",
+      "schema_path": "common-ids.schema.json#/$defs/actor_id/oneOf/1/properties/service_id",
       "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",

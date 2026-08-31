@@ -16,6 +16,13 @@ Arkret 身份由稳定 principal `did_core_id` 表示，并由当前 `did` 提�
 
 ## 2. 分层
 
+`AccountId={principal_id,station_id}` 是所有 Station 承载主体的统一身份，包括人类、Native Personal Agent、
+Applet-managed Ghost 与 integration。`ActorId` 只允许 `account`（内嵌完整 AccountId）与 `service`
+（服务自身直接行动）两个分支。AccountId 不代表人类登录资格、数据库账号行或特定 provisioning 流程，
+也不授予权限；人类账号生命周期、Agent controller/lifecycle/runtime credential、Applet registration/grant
+与最小元数据 pairwise profile 的授权规则仍按各自已验证状态独立执行。仅持有 account 身份不得进入
+人类登录、恢复或 Agent runtime 专用操作。不同主体类别不得为相同 principal/station 对生成另一身份。
+
 | 层 | 示例 | 生命周期控制者 |
 | --- | --- | --- |
 | Principal identity anchor | `did_core_id`（稳定）+ registration-time `did` evidence | 注册时 DID control proof；注册后不产生业务 authority |

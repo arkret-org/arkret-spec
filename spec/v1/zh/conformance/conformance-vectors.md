@@ -3055,10 +3055,12 @@ membership cell。一个 AccountId 的 join、leave、grant、MLS ownership 与�
 
 ### 7.4 ActorId 分支隔离
 
-账号成员使用 `{kind:"account",account_id:AccountId}`；托管 Agent/Ghost 使用
-`{kind:"hosted_principal",principal_id,station_id}`；直接著写的 service 使用
-`{kind:"service",service_id}`。两个不同分支即使包含相同 DID Core 文本，其 ActorId 也不相等。discriminator MUST
-与已接受的 registration、Actor Profile 和 admission evidence 相符。
+所有 Station 承载主体（人类、Agent、Ghost、integration）使用
+`{kind:"account",account_id:{principal_id,station_id}}`；直接著写的 service 使用
+`{kind:"service",service_id}`。同一 AccountId 不因主体分类或凭证类别产生第二种身份；Account 与 Service
+即使包含相同 DID Core 文本也不相等。未知 discriminator、扁平 principal/station 对象、缺失分量与
+未知字段 MUST 拒绝。discriminator MUST 与已接受的 registration / admission evidence 相符；
+Agent 的 provisioning、controller、lifecycle 与 runtime key 授权必须单独验证，不得由 account 分支推断。
 ## 8. Handle Vectors
 
 ### 8.1 目标
@@ -3440,7 +3442,7 @@ Expected：
 
 Steps：
 
-1. Realm-local hosted-principal ActorId 中的 `principal_id=A=ak:did_core:key:<mb>` 以 exact `M=did:key:<mb>#<mb>` 发布 KeyPackage；transport session 只承担访问与限流，不要求 session actor 等于 A。服务端验证完整 ActorId、A/M、current Realm membership 与 routing-service projection，并逐条验证 MLS Leaf BasicCredential 和 signature key。
+1. Realm-local account ActorId 中的 `account_id.principal_id=A=ak:did_core:key:<mb>` 以 exact `M=did:key:<mb>#<mb>` 发布 KeyPackage；transport session 只承担访问与限流，不要求 session actor 等于 A。服务端验证完整 ActorId、A/M、current Realm membership 与 routing-service projection，并逐条验证 MLS Leaf BasicCredential 和 signature key。
 2. requester 以 `minimal_metadata_pairwise` authorization 领取 exact A/M KeyPackage；source 与 destination 分别验证 requester/target current ActorId routing authority，destination CAS 后签发 claim receipt。
 3. sender 提交 closed pairwise `ak.mls.welcome`，claim record、claim receipt、claim envelope 与 top-level recipient 逐字绑定 A/M/Realm/KeyPackage；recipient 用 M 接受并签发 durable receipt。
 4. A/M 以 single-claim consume request 原子消费，服务返回首次签发的 signed consume receipt；同一 canonical request 重放必须返回 byte-identical receipt。

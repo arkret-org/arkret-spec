@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.5",
+  "version": "2026-08-31.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T18:00:01+08:00",
+  "generated_at": "2026-08-31T18:00:02+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -355,7 +355,7 @@
       "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
       "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
       "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=managed_agent_control Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
-      "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds the exact hosted-principal ActorId, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Native Agent or human PCR admission.",
+      "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds the exact account ActorId, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Native Agent or human PCR admission.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
       "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(did)=actor_id; current DID state after registration is irrelevant.",
       "pcr_recovery": "Admitted only for ak.device.reanchor under the account-local lineage's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching account-local lineage and policy cannot enter this class.",
@@ -7593,7 +7593,7 @@
           "registration_ref resolves to the exact active registration whose service_id and applet_id match",
           "applet_authority_ref resolves to an active scope-matching grant; actor_role=ghost additionally requires action ak.applet.ghost.provision",
           "the separately submitted applet_managed_control genesis derives its Realm id from its own Event id and carries exactly one critical provision ref, avoiding a provision/genesis hash cycle",
-          "the exact hosted-principal ActorId is unused and initial_resolution projects to the actor principal"
+          "the exact account ActorId is unused and initial_resolution projects to the actor principal"
         ]
       },
       {
@@ -13743,7 +13743,7 @@
         "http": "GET /_arkret/self/authz/effective-grants",
         "grpc": "SelfAuthz/GetEffectiveGrants",
         "mq": "self.authz.grants.query.effective",
-        "notes": "Query parameters are realm_id, optional subject_actor_id and optional at. subject_actor_id is a percent-encoded canonical JSON ActorId, including Account and HostedPrincipal branches. Omission selects the authenticated credential's exact ActorId. Reject legacy subject, subject_station_id and subject_account_id aliases; no principal-only, local-service, bearer-service, DID-document or inferred-routing fallback is allowed.",
+        "notes": "Query parameters are realm_id, optional subject_actor_id and optional at. subject_actor_id is a percent-encoded canonical JSON ActorId, including Account and Service branches. Omission selects the authenticated credential's exact ActorId. Reject legacy subject, subject_station_id and subject_account_id aliases; no principal-only, local-service, bearer-service, DID-document or inferred-routing fallback is allowed.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList"
@@ -15224,8 +15224,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-31.5",
-    "generated_at": "2026-08-31T18:00:01+08:00",
+    "version": "2026-08-31.6",
+    "generated_at": "2026-08-31T18:00:02+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -15277,92 +15277,197 @@
       {
         "operation_bundle_id": "ak.operation_bundle.agent_runtime.describe.v1",
         "service_kind": "agent_runtime",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.applet_service.describe.v1",
         "service_kind": "applet_service",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.archive_node.describe.v1",
         "service_kind": "archive_node",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.blob_node.describe.v1",
         "service_kind": "blob_node",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.directory_service.describe.v1",
         "service_kind": "directory_service",
-        "deployment_evidence": ["ak.deployment_prototype.teabay_directory_service.v1"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "ak.deployment_prototype.teabay_directory_service.v1"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.identity_registry.describe.v1",
         "service_kind": "identity_registry",
-        "deployment_evidence": ["ak.deployment_prototype.soland_identity_registry.v1"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "ak.deployment_prototype.soland_identity_registry.v1"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.key_recovery_service.describe.v1",
         "service_kind": "key_recovery_service",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.media_service.describe.v1",
         "service_kind": "media_service",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.moderation_service.describe.v1",
         "service_kind": "moderation_service",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.notary.describe.v1",
         "service_kind": "notary",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.station.describe.v1",
         "service_kind": "station",
-        "deployment_evidence": ["ak.deployment_prototype.soland_station.v1"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "ak.deployment_prototype.soland_station.v1"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.push_gateway.describe.v1",
         "service_kind": "push_gateway",
-        "deployment_evidence": ["ak.deployment_prototype.floria_push_gateway.v1"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "ak.deployment_prototype.floria_push_gateway.v1"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.recovery_service.describe.v1",
         "service_kind": "recovery_service",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.sfu_service.describe.v1",
         "service_kind": "sfu_service",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.turn_service.describe.v1",
         "service_kind": "turn_service",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+        "deployment_evidence": [
+          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.station.account_authority.v1",
@@ -15549,24 +15654,78 @@
           "ak.deployment_prototype.soland_identity_registry.v1"
         ],
         "members": [
-          {"operation_id": "ak.root.identity.command.submit_did_operation.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.document.resource.get.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.log.read.list.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.organization_registration.command.ensure.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.organization_registration.command.prepare.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.organization_registration.command.refresh.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.organization_registration.command.revoke.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.organization_registration.resource.get.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.read.resolve.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.receipts.read.list.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.recovery_policy.command.publish.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.recovery_policy.resource.get.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.recovery_session.command.create.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.recovery_session.command.submit_proof.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.recovery_session.resource.get.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.registry.read.describe.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.service_registration.command.ensure.v1", "binding_kind": "http_json"},
-          {"operation_id": "ak.root.identity.service_registration.resource.get.v1", "binding_kind": "http_json"}
+          {
+            "operation_id": "ak.root.identity.command.submit_did_operation.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.document.resource.get.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.log.read.list.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.organization_registration.command.ensure.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.organization_registration.command.prepare.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.organization_registration.command.refresh.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.organization_registration.command.revoke.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.organization_registration.resource.get.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.read.resolve.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.receipts.read.list.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.recovery_policy.command.publish.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.recovery_policy.resource.get.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.recovery_session.command.create.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.recovery_session.command.submit_proof.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.recovery_session.resource.get.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.registry.read.describe.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.service_registration.command.ensure.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.root.identity.service_registration.resource.get.v1",
+            "binding_kind": "http_json"
+          }
         ]
       },
       {
@@ -18995,10 +19154,10 @@
         "event_kind": "ak.realm.create",
         "head_index": 0,
         "scope_kind": "realm_genesis",
-      "allowed_purposes": [
-        "principal_control",
-        "managed_agent_control",
-        "applet_managed_control"
+        "allowed_purposes": [
+          "principal_control",
+          "managed_agent_control",
+          "applet_managed_control"
         ],
         "principal_rule": "event.actor_id == project(payload.object.initial_resolution.did)",
         "realm_rule": "derive_identity_control_realm(event) == evidence.principal_control_realm_id",
@@ -19043,7 +19202,7 @@
         "checks": [
           "principal_genesis_event.kind == ak.realm.create and principal_genesis_event is resolution head 0",
           "principal_genesis_event.actor_id == principal_id",
-        "principal_genesis_event.payload.object.purpose is principal_control, managed_agent_control or applet_managed_control",
+          "principal_genesis_event.payload.object.purpose is principal_control, managed_agent_control or applet_managed_control",
           "project(principal_genesis_event.payload.object.initial_resolution.did) == principal_id",
           "derive_identity_control_realm(principal_genesis_event) == principal_control_realm_id",
           "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",
@@ -19077,28 +19236,28 @@
         "network_resolved_document": true,
         "history_evidence_kind": "native",
         "method_evidence_kind": "webvh_log",
-      "parameter_allowlist": [
+        "parameter_allowlist": [
           "method",
           "scid",
           "updateKeys",
           "nextKeyHashes",
           "witness",
           "watchers",
-        "portable"
-      ],
-      "parameter_consumption": {
-        "portable": {
-          "wire_type": "boolean",
-          "default_when_absent": false,
-          "relocation_rule": "A successor whose canonical host-and-path differs from the accepted predecessor is valid only when the predecessor's effective portable value is true and every method-native successor check succeeds. Missing or false rejects relocation; setting portable=true only in the relocating successor cannot authorize that same relocation.",
-          "failure": "did_method_successor_invalid"
+          "portable"
+        ],
+        "parameter_consumption": {
+          "portable": {
+            "wire_type": "boolean",
+            "default_when_absent": false,
+            "relocation_rule": "A successor whose canonical host-and-path differs from the accepted predecessor is valid only when the predecessor's effective portable value is true and every method-native successor check succeeds. Missing or false rejects relocation; setting portable=true only in the relocating successor cannot authorize that same relocation.",
+            "failure": "did_method_successor_invalid"
+          },
+          "watchers": {
+            "wire_type": "method_native_value",
+            "v1_consumption": "accepted_but_not_consumed",
+            "rule": "The adapter validates and retains watchers as method-native canonical data, but v1 never uses it for authorization, admission, controller selection, witness quorum, freshness, routing or policy. Unknown shape still fails under the method parser; presence, absence or contents cannot grant authority."
+          }
         },
-        "watchers": {
-          "wire_type": "method_native_value",
-          "v1_consumption": "accepted_but_not_consumed",
-          "rule": "The adapter validates and retains watchers as method-native canonical data, but v1 never uses it for authorization, admission, controller selection, witness quorum, freshness, routing or policy. Unknown shape still fails under the method parser; presence, absence or contents cannot grant authority."
-        }
-      },
         "unknown_parameter_failure": "param_invalid",
         "governance_parameter_registered": false,
         "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of the verified current did:webvh log entry>",

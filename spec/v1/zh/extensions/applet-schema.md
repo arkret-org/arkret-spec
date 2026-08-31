@@ -158,7 +158,7 @@ Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`
 `ak.schema.applet_managed_actor_provision.v1` 以
 [`applet-managed-actor.schema.json`](../../artifacts/schemas/applet-managed-actor.schema.json) 为唯一闭合
 wire schema。payload 必须携完整 `actor_id: ActorId`；Applet managed actor 使用
-`hosted_principal` 分支，`principal_id` 与 `station_id` 封闭在同一对象内。payload 还必须携闭合
+`account` 分支，`principal_id` 与 `station_id` 封闭在其 `account_id` 对象内。payload 还必须携闭合
 `actor_role=bot|ghost`、`initial_resolution`、v1 唯一合法的完整 WebVH
 `method_history_evidence`、immutable `registration_ref` 与 `applet_authority_ref`。did:web snapshot 与
 did:key expansion 不能为长期可轮换的高风险 managed authority 提供所需 history/version pinning，均非法。Ghost 还必须携

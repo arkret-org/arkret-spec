@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-30.5",
+  "version": "2026-08-30.6",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T00:10:00+08:00",
+  "generated_at": "2026-08-31T00:10:01+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -580,7 +580,8 @@
       "operation_specific": [
         "http_signature_required",
         "http_signature_invalid",
-        "signature_window_invalid",        "mimi_e2ee_boundary_unmarked"
+        "signature_window_invalid",
+        "mimi_e2ee_boundary_unmarked"
       ],
       "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason. Rejects an E2EE MIMI plaintext projection without transcript_binding or an explicit e2ee_downgrade marker with HTTP 400 mimi_e2ee_boundary_unmarked."
     },
@@ -590,7 +591,8 @@
       "operation_specific": [
         "http_signature_required",
         "http_signature_invalid",
-        "signature_window_invalid",        "not_found"
+        "signature_window_invalid",
+        "not_found"
       ],
       "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason. Unknown, expired, source-mismatched and holder-invisible private correlations deliberately share the same not_found shape."
     },
@@ -600,7 +602,8 @@
       "operation_specific": [
         "http_signature_required",
         "http_signature_invalid",
-        "signature_window_invalid",        "mimi_room_binding_event_invalid"
+        "signature_window_invalid",
+        "mimi_room_binding_event_invalid"
       ],
       "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason. Missing, unexpected, kind-inconsistent and binding-mismatched room_binding_event inputs share one pre-admission failure envelope; the exact reason is audit-only."
     },
@@ -859,7 +862,13 @@
     {
       "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
       "http_alias": "POST /_arkret/peer/seals/governance-dependencies",
-      "operation_specific": ["not_found", "limit_exceeded", "frontier_unavailable", "state_mismatch", "signature_invalid"],
+      "operation_specific": [
+        "not_found",
+        "limit_exceeded",
+        "frontier_unavailable",
+        "state_mismatch",
+        "signature_invalid"
+      ],
       "description": "Unknown, unauthorized, outside-cut and missing selectors are same-shape. Any complete-response bounds failure returns no partial items or cursor."
     },
     {
@@ -1290,7 +1299,7 @@
         "applet_namespace_mismatch",
         "applet_registration_unauthorized"
       ],
-      "description": "Ghost Actor provisioning atomically accepts (or idempotently re-confirms) the caller-signed fixed four-Event unit: ak.applet.managed_actor.provision, the applet_managed_control PCR ak.realm.create genesis, ak.identity.accountability_grant, and ak.profile.create. The unit freezes the exact hosted-principal ActorId, registration/grant authority, initial resolution, PCR lineage, accountability, and external principal tuple. The server never signs for the Applet service or Ghost. It fails closed on invalid proofs/frontiers, a caller service DID that does not match the active applet registration, a realm outside effective scope (applet_registration_unauthorized), or a ghost_actor_id outside the registered actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
+      "description": "Ghost Actor provisioning atomically accepts (or idempotently re-confirms) the caller-signed fixed four-Event unit: ak.applet.managed_actor.provision, the applet_managed_control PCR ak.realm.create genesis, ak.identity.accountability_grant, and ak.profile.create. The unit freezes the exact account ActorId, registration/grant authority, initial resolution, PCR lineage, accountability, and external principal tuple. The server never signs for the Applet service or Ghost. It fails closed on invalid proofs/frontiers, a caller service DID that does not match the active applet registration, a realm outside effective scope (applet_registration_unauthorized), or a ghost_actor_id outside the registered actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
     },
     {
       "operation_id": "ak.self.applet.install.command.preview.v1",
@@ -2024,7 +2033,13 @@
     {
       "operation_id": "ak.self.seals.read.governance_dependencies.v1",
       "http_alias": "POST /_arkret/self/seals/governance-dependencies",
-      "operation_specific": ["not_found", "limit_exceeded", "frontier_unavailable", "state_mismatch", "signature_invalid"],
+      "operation_specific": [
+        "not_found",
+        "limit_exceeded",
+        "frontier_unavailable",
+        "state_mismatch",
+        "signature_invalid"
+      ],
       "description": "Unknown, unauthorized, outside-cut and missing selectors are same-shape. Any complete-response bounds failure returns no partial items or cursor."
     },
     {
