@@ -14,7 +14,9 @@ from tools.artifact_lint import core, schemas
 SCHEMA_DIR = ROOT / "spec" / "v1" / "artifacts" / "schemas"
 SCHEMA_NAMES = (
     "contact-operations.schema.json",
+    "event-payload.schema.json",
     "direct-conversation-operations.schema.json",
+    "mls-governance-proof-bundle.schema.json",
     "service-operation-dtos.schema.json",
 )
 
@@ -96,6 +98,24 @@ class ContactEventIdDigestMirrorLintTest(unittest.TestCase):
 
         errors = self._lint("service-operation-dtos.schema.json", mutate)
         self.assertTrue(any("agent_provision_digest must be derived" in error for error in errors), errors)
+
+    def test_group_state_digest_mirror_reintroduction_fails(self) -> None:
+        def mutate(schema) -> None:
+            branch = schema["$defs"]["direct_conversation_resolve_outcome"]["oneOf"][4]
+            branch["properties"]["group_state_digest"] = {
+                "$ref": "./principal-operations.schema.json#/$defs/digest"
+            }
+
+        errors = self._lint("direct-conversation-operations.schema.json", mutate)
+        self.assertTrue(any("group_state_digest must be derived" in error for error in errors), errors)
+
+    def test_seal_digest_mirror_reintroduction_fails(self) -> None:
+        def mutate(schema) -> None:
+            item = schema["$defs"]["typed_proof_material"]["properties"]["seal_descriptors"]["items"]
+            item["properties"]["seal_digest"] = {"$ref": "#/$defs/digest"}
+
+        errors = self._lint("mls-governance-proof-bundle.schema.json", mutate)
+        self.assertTrue(any("seal_digest must be derived" in error for error in errors), errors)
 
 
 if __name__ == "__main__":

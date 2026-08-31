@@ -1819,7 +1819,6 @@
         "service_id",
         "release_mode",
         "seal_ref",
-        "seal_digest",
         "approver_actor_id",
         "notice_ref",
         "purpose_kind",
@@ -1868,9 +1867,6 @@
         },
         "seal_ref": {
           "$ref": "./seal.schema.json#/$defs/seal_ref"
-        },
-        "seal_digest": {
-          "$ref": "#/$defs/digest"
         },
         "approver_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"

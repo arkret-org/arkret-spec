@@ -527,7 +527,7 @@
         "introduction_kind": "explicit_address",
         "effective_kind": "explicit_address",
         "trust_tier": "low",
-        "invite_event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "invite_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "idempotency_key_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "received_at": "2026-08-31T00:00:00.000Z",
@@ -551,7 +551,7 @@
         "introduction_kind": "explicit_address",
         "effective_kind": "explicit_address",
         "trust_tier": "low",
-        "invite_event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "invite_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "idempotency_key_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "received_at": "2026-08-31T00:00:00.000Z",
@@ -742,7 +742,6 @@
           "ak:event:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
         ],
         "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "seal_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "approver_actor_id": {
           "kind": "service",
           "service_id": "ak:did_core:webvh:z6mkfixtureapprover"
@@ -782,7 +781,6 @@
         "target_refs": [
           "ak:event:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
         ],
-        "seal_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "approver_actor_id": {
           "kind": "service",
           "service_id": "ak:did_core:webvh:z6mkfixtureapprover"
@@ -5003,7 +5001,6 @@
             "authority": "ak.authority.membership_compensation.v1",
             "admission_id": "membership-admission-1",
             "join_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "join_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
             "membership_cell_id": "membership-cell-1",
             "member_id": {"kind":"service","service_id":"ak:did_core:webvh:z6mkfixturesubject"},
             "join_actor_id": {
@@ -5030,7 +5027,6 @@
         "join_accepted_proof": {
           "admission_id": "membership-admission-1",
           "join_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-          "join_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "accepted_at": "2026-08-30T01:00:00.000Z",
           "issuer_id": "ak:did_core:webvh:z6mkfixtureissuer",
           "signature": {

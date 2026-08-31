@@ -615,8 +615,8 @@ binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 
 
 求值优先级固定：依赖不足以验证 current round 或 founder 时 `temporarily_unavailable`；无 Realm 时区分 `creation_blocked | creation_required | awaiting_founder`；有 Realm 后 identity/materialization/terminal/notary 冲突优先 `suspended`；否则无 binding 为 `provisional`；最后才在 binding、unique group state 与 daily gates 齐备时 `found`。`retry_after` 只是调度提示，**MUST NOT** 产生 fallback authority。
 
-resolver 对已存在的 unique group winning state **MUST** 同时返回 `group_state_ref` 与 `group_state_digest`，或同时省略。
-`found` 必有该二元组；`provisional`/`suspended` 在 winning state 已存在时也不得隐藏。客户端不得从最大 epoch、局部 MLS snapshot 或坐标猜 digest。
+resolver 对已存在的 unique group winning state **MUST** 返回完整 `group_state_ref`，不存在 winning state 时省略。该 ref 是 winning Genesis/Commit 的完整 Event ID，suite 与全部 Event digest bytes 均从 ref 无损恢复，MUST NOT 再返回 sibling `group_state_digest`。
+`found` 必有该 ref；`provisional`/`suspended` 在 winning state 已存在时也不得隐藏。客户端不得从最大 epoch、局部 MLS snapshot 或坐标猜 Event ID。
 
 existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库存、grant/policy freshness 或 MLS reconcile 而被隐藏。
 

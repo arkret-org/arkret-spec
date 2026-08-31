@@ -6864,7 +6864,6 @@
           "retry_after_ms",
           "coordinates",
           "group_state_ref",
-          "group_state_digest",
           "send_blockers"
         ],
         "closed": true,
@@ -6917,8 +6916,7 @@
             "properties": [
               "state",
               "coordinates",
-              "group_state_ref",
-              "group_state_digest"
+              "group_state_ref"
             ],
             "closed": true
           },
@@ -6929,14 +6927,12 @@
               "state",
               "coordinates",
               "group_state_ref",
-              "group_state_digest",
               "send_blockers"
             ],
             "properties": [
               "state",
               "coordinates",
               "group_state_ref",
-              "group_state_digest",
               "send_blockers"
             ],
             "closed": true
@@ -6953,8 +6949,7 @@
               "state",
               "coordinates",
               "blockers",
-              "group_state_ref",
-              "group_state_digest"
+              "group_state_ref"
             ],
             "closed": true
           },

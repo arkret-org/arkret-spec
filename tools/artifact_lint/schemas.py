@@ -3006,11 +3006,21 @@ EVENT_ID_DIGEST_MIRROR_REMOVALS = (
     ("contact-operations.schema.json", ("$defs", "peer_contact_mirror_receipt"), "signed_event_ref", "signed_event_digest"),
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_founding_acceptance_receipt", "properties", "authorization_core", "oneOf", 1), "agent_provision_ref", "agent_provision_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "DirectConversationFoundingAuthorityEvidence", "oneOf", 1), "agent_provision_ref", "agent_provision_digest"),
+    ("device-revocation-state.schema.json", ("$defs", "common_record"), "proposal_event_id", "proposal_digest"),
+    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 3), "group_state_ref", "group_state_digest"),
+    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 4), "group_state_ref", "group_state_digest"),
+    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 5), "group_state_ref", "group_state_digest"),
+    ("event-payload.schema.json", ("$defs", "audit_release_payload"), "seal_ref", "seal_digest"),
+    ("invite-quarantine.schema.json", ("$defs", "quarantine_entry"), "invite_event_id", "invite_event_digest"),
+    ("mls-governance-proof-bundle.schema.json", ("$defs", "typed_proof_material", "properties", "seal_descriptors", "items"), "seal_ref", "seal_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationDelegationCore"), "join_event_id", "join_event_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MembershipJoinAcceptedProof"), "join_event_id", "join_event_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "ReferenceLockedEventStub"), "event_id", "event_digest"),
 )
 
 
 def check_event_id_digest_mirror_removals(lint: Lint) -> None:
-    """Complete Event IDs are the sole wire source for their encoded digest."""
+    """Complete content-addressed IDs are the sole wire source for their encoded digest."""
     schema_dir = ARTIFACTS / "schemas"
     for file_name, path, id_field, digest_field in EVENT_ID_DIGEST_MIRROR_REMOVALS:
         schema_path = schema_dir / file_name

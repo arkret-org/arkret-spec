@@ -108,10 +108,9 @@
           "uniqueItems": true,
           "items": {
             "type": "object",
-            "required": ["seal_ref", "seal_digest"],
+            "required": ["seal_ref"],
             "properties": {
-              "seal_ref": {"$ref": "./event-envelope.schema.json#/$defs/seal_ref"},
-              "seal_digest": {"$ref": "#/$defs/digest"}
+              "seal_ref": {"$ref": "./event-envelope.schema.json#/$defs/seal_ref"}
             },
             "additionalProperties": false
           }

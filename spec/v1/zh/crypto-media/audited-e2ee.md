@@ -161,7 +161,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 | `release_mode` | yes | `targeted_evidence_release` 或 `sealed_epoch_key_release`。 |
 | `sealed_epoch_range` | conditional | release 覆盖 epoch 时必填；不得包含当前 active epoch。 |
 | `target_refs` | conditional | target-based release 时必填。 |
-| `seal_ref` / `seal_digest` | yes | release 所依赖的 accepted history Seal；`seal_ref` 的 canonical wire 形态只能是 `ak:seal:<suite>:<hex>`，不得使用 EventId。 |
+| `seal_ref` | yes | release 所依赖的 accepted history Seal；canonical wire 形态只能是 `ak:seal:<suite>:<hex>`，不得使用 EventId。suite 与完整 digest 已由 ref 无损携带，不得再复制 `seal_digest`。 |
 | `approver_actor_id` | yes | 授权者。 |
 | `notice_ref` | yes | 对应 `ak.audit.session.notice`。 |
 | `purpose_kind` / `legal_basis_ref` | yes | 目的与依据。 |

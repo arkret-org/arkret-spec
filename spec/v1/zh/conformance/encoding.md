@@ -274,6 +274,8 @@ producer 顺序固定为：完成除 `event_id` / `proofs` 外的字段；计算
 
 Event ID 保留底层 256-bit digest 的指定目标与碰撞安全强度；额外 header octet 承载固定为零的 reserved nibble 与 suite nibble，不增加同一 suite 的 hash 强度。canonical store、proof / receipt / Seal coverage、raw replay 与所有 Event 引用 MUST 使用完整 Event ID，且可从 ID 无损恢复 suite code 与全部 digest bytes。
 
+**Event 引用唯一表示（normative）**：除 enclosing Event 的 producer / admission proof 有意保留 `proof.event_digest` 作为 conformance / test 交叉验证、early-validation 与 canonicalization diagnostics入口外，任何 wire carrier、read projection、receipt、delegation、selector 或 proof 若已经携带某一 Event 的完整 `event_id` / `*_event_id` / `*_event_ref`，MUST NOT 再携带该 Event 的 sibling full digest。consumer 需要算法名或 digest bytes 时 MUST 严格解析完整 Event ID 并无损恢复，不得接受 caller 另报的 mirror。若某 privacy 分支不能披露 Event ID，也不得用可逆的 suite-tagged full Event digest 冒充更低披露级别；应省略两者，或由 owning contract 直接携带完整 Event ID。`proof.event_digest` 理论上可由 Event 重算；v1明确选择保留它，但该选择不构成其它 carrier 复制 Event digest 的豁免。
+
 派生对象 ID 的规则见 [`../models/common-fields.md`](../models/common-fields.md)；Realm token header 见 §4.1；`event_id` 的携带与重算义务见 §6。
 
 ### 4.1 264-bit Realm ID（normative）
@@ -317,7 +319,7 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
 
 `event_id` 不是 producer 自由分配的值，也不含可解析时间段。它携带 suite code 与完整 256-bit digest；`proof.event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`，§6）提供同一 digest 的算法名 wire 表示并受 proof 绑定。
 
-`event_id` 作为必填字段出现在 wire 上；它是完整身份，且任何 receiver 都能从 canonical bytes 独立重算。`proof.event_digest` 与它的 digest 部分是有意的、可校验的冗余：可在昂贵的 DID / 密钥解析之前做内容完整性预检，并在跨实现 canonical JSON 分歧时直接定位到 canonicalization。
+`event_id` 作为必填字段出现在 wire 上；它是完整身份，且任何 receiver 都能从 canonical bytes 独立重算。`proof.event_digest` 与它的 digest 部分是理论上可删除、但v1为conformance / test交叉验证、early-validation与诊断明确保留的冗余：可在昂贵的 DID / 密钥解析之前做内容完整性预检，并在跨实现 canonical JSON 分歧时直接定位到 canonicalization。
 
 **receiver MUST 重算 `event_id` 并与携带值比对；比对通过之前 MUST NOT 将其用于任何有副作用的用途**——接受、去重命中、索引写入、路由确认、幂等成功、授权判断一律不行。不一致 MUST 返回 `event_id_digest_mismatch`，MUST NOT 退化为 `proof_invalid` 或 `schema_violation`。接收方 MAY 用未验证 ID 定位候选 bytes，但不得据此改变任何 accepted 状态。
 
@@ -330,7 +332,7 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
 - `ak:did_core:<method>:<core>` 是 DID method adapter 产出的稳定 `did_core_id`，不是 Arkret 私有 DID method，也不是可直接交给 DID resolver 的DID。`<method>` 与 `<core>` 必须按 registry / adapter 校验；编码层不得截断、拆分后重新拼接或从中推导 endpoint。
 - `ak:cursor:<base64url>` 是 opaque token，不是 typed UUID object ID。
 - `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
-- `ak:seal:<digest-suite>:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。`<digest-suite>` 与 `ak:blob:<digest-suite>:<digest>` 取同一值空间：MUST 是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 active 行，且 MUST 等于该 Realm 声明的 `digest_algorithm`；Seal id 是 critical field，前缀不属于 active 行时 MUST 以 `unsupported_digest_algorithm` fail closed（[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。
+- `ak:seal:<digest-suite>:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。`<digest-suite>` 与 `ak:blob:<digest-suite>:<digest>` 取同一值空间：MUST 是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 active 行，且 MUST 等于该 Realm 声明的 `digest_algorithm`；Seal id 是 critical field，前缀不属于 active 行时 MUST 以 `unsupported_digest_algorithm` fail closed（[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。完整 `seal_ref` 已无损携带 suite 与全部 digest bytes，任何同一 carrier 中的 sibling `seal_digest` 都是禁止的 wire 镜像；consumer MUST 从 ref 解析。
 - `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；`component` MUST 是从 cell-component registry 取得并原样嵌入的完整 `ak.component.<family-path>.v<n>` family 标识符，`subject` 是 cell 的 subject key）。因此标准实例形如 `ak:cell:ak.component.strand.position.v1:<subject>`；`ak:cell:component.*`、`ak:cell:<裸 family>`、任何非 `ak.component.*.v<n>` family、截断/非十六进制 percent escape 或任何未完整携带 `ak.component.*.v<n>` 的形态 MUST 拒绝。
   - **Subject 嵌入编码按 registry subject kind 分派（normative，封闭表）**：subject 的 wire 形态由 `contract-registry.json` 的 `cell_writes[].cell_subject` 唯一决定。下表覆盖该字段的**全部**合法形态；实现 MUST NOT 让两行同时适用于同一字段，也 MUST NOT 按字段内容猜测规则。
 

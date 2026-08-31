@@ -96,7 +96,6 @@
         "target_device_authorize_event_id",
         "target_device_generation_ref",
         "proposal_event_id",
-        "proposal_digest",
         "accepted_at",
         "acceptance_seq",
         "control_proposal_ack"
@@ -119,10 +118,8 @@
           "$ref": "#/$defs/device_generation_ref"
         },
         "proposal_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "proposal_digest": {
-          "$ref": "#/$defs/digest"
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "The complete accepted revoke proposal Event identifier and the sole wire source of that Event digest. Consumers recover the digest from this identifier when validating the embedded Ack or a terminal decision; this record MUST NOT duplicate it as a sibling field."
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp",
@@ -264,7 +261,7 @@
             },
             "terminal_decision": {
               "$ref": "./control-proposal-decision.schema.json#/$defs/signed_reject",
-              "description": "The only transition that clears this proposal's pending gate. Its proposal_digest and proposal_ack_digest MUST match this record, and its verified authority set MUST be the Ack authority set."
+              "description": "The only transition that clears this proposal's pending gate. Its proposal_digest MUST equal the digest recovered from proposal_event_id, its proposal_ack_digest MUST match the embedded Ack, and its verified authority set MUST be the Ack authority set."
             }
           }
         }

@@ -2027,7 +2027,6 @@
         "authority",
         "admission_id",
         "join_event_id",
-        "join_event_digest",
         "membership_cell_id",
         "member_id",
         "join_actor_id",
@@ -2054,9 +2053,6 @@
         },
         "join_event_id": {
           "$ref": "#/$defs/EventId"
-        },
-        "join_event_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "membership_cell_id": {
           "allOf": [
@@ -2144,7 +2140,6 @@
       "required": [
         "admission_id",
         "join_event_id",
-        "join_event_digest",
         "accepted_at",
         "issuer_id",
         "signature"
@@ -2162,9 +2157,6 @@
         },
         "join_event_id": {
           "$ref": "#/$defs/EventId"
-        },
-        "join_event_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -5271,11 +5263,6 @@
         "realm_id": {
           "$ref": "#/$defs/RealmId",
           "description": "The source Realm boundary visible to the caller. Target Realm identifiers hidden by reference-disclosure policy MUST NOT appear."
-        },
-        "event_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-          "description": "Optional source-event commitment when the source event is known but its payload is locked."
         },
         "reason_code": {
           "type": "string",

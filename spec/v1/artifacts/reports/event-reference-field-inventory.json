@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "digest_copy_or_commitment": 21,
+    "digest_copy_or_commitment": 17,
     "complete_event_id": 168,
     "external_event_namespace": 1
   },
@@ -758,12 +758,6 @@
     },
     {
       "schema": "invite-quarantine.schema.json",
-      "json_pointer": "/$defs/quarantine_entry/properties/invite_event_digest",
-      "field": "invite_event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "invite-quarantine.schema.json",
       "json_pointer": "/$defs/quarantine_entry/properties/invite_event_id",
       "field": "invite_event_id",
       "classification": "complete_event_id"
@@ -1052,21 +1046,9 @@
     },
     {
       "schema": "service-operation-dtos.schema.json",
-      "json_pointer": "/$defs/MembershipCompensationDelegationCore/properties/join_event_digest",
-      "field": "join_event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "service-operation-dtos.schema.json",
       "json_pointer": "/$defs/MembershipCompensationDelegationCore/properties/join_event_id",
       "field": "join_event_id",
       "classification": "complete_event_id"
-    },
-    {
-      "schema": "service-operation-dtos.schema.json",
-      "json_pointer": "/$defs/MembershipJoinAcceptedProof/properties/join_event_digest",
-      "field": "join_event_digest",
-      "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "service-operation-dtos.schema.json",
@@ -1121,12 +1103,6 @@
       "json_pointer": "/$defs/RedactedEventView/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
-    },
-    {
-      "schema": "service-operation-dtos.schema.json",
-      "json_pointer": "/$defs/ReferenceLockedEventStub/properties/event_digest",
-      "field": "event_digest",
-      "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "service-operation-dtos.schema.json",

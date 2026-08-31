@@ -57,7 +57,7 @@
         "introduction_kind",
         "effective_kind",
         "trust_tier",
-        "invite_event_digest",
+        "invite_event_id",
         "request_digest",
         "idempotency_key_digest",
         "received_at",
@@ -102,10 +102,7 @@
         },
         "invite_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "description": "Optional accepted invite Event identity when present in the delivery carrier."
-        },
-        "invite_event_digest": {
-          "$ref": "#/$defs/digest"
+          "description": "Accepted invite Event identity. Its suite-tagged token is the sole wire source for the complete Event digest."
         },
         "request_digest": {
           "$ref": "#/$defs/digest"

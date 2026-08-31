@@ -221,20 +221,9 @@
               "$ref": "#/$defs/direct_conversation_coordinates"
             },
             "group_state_ref": {
-              "$ref": "./principal-operations.schema.json#/$defs/event_id"
-            },
-            "group_state_digest": {
-              "$ref": "./principal-operations.schema.json#/$defs/digest",
-              "description": "Digest of the unique derived MLS group's exact current winning Genesis/Commit state. The ref and digest are supplied or omitted as one pair."
+              "$ref": "./principal-operations.schema.json#/$defs/event_id",
+              "description": "Complete Event identity of the unique derived MLS group's exact current winning Genesis/Commit state. Consumers recover the suite and full Event digest from this ID."
             }
-          },
-          "dependentRequired": {
-            "group_state_ref": [
-              "group_state_digest"
-            ],
-            "group_state_digest": [
-              "group_state_ref"
-            ]
           },
           "additionalProperties": false
         },
@@ -243,7 +232,6 @@
             "state",
             "coordinates",
             "group_state_ref",
-            "group_state_digest",
             "send_blockers"
           ],
           "properties": {
@@ -254,11 +242,8 @@
               "$ref": "#/$defs/direct_conversation_coordinates"
             },
             "group_state_ref": {
-              "$ref": "./principal-operations.schema.json#/$defs/event_id"
-            },
-            "group_state_digest": {
-              "$ref": "./principal-operations.schema.json#/$defs/digest",
-              "description": "Digest of the exact current winning group-state Event, not a second group selector."
+              "$ref": "./principal-operations.schema.json#/$defs/event_id",
+              "description": "Complete Event identity of the exact current winning group-state Event."
             },
             "send_blockers": {
               "type": "array",
@@ -292,20 +277,9 @@
               "uniqueItems": true
             },
             "group_state_ref": {
-              "$ref": "./principal-operations.schema.json#/$defs/event_id"
-            },
-            "group_state_digest": {
-              "$ref": "./principal-operations.schema.json#/$defs/digest",
-              "description": "Present with group_state_ref whenever the unique derived group has an accepted current state."
+              "$ref": "./principal-operations.schema.json#/$defs/event_id",
+              "description": "Present whenever the unique derived group has an accepted current state."
             }
-          },
-          "dependentRequired": {
-            "group_state_ref": [
-              "group_state_digest"
-            ],
-            "group_state_digest": [
-              "group_state_ref"
-            ]
           },
           "additionalProperties": false
         },

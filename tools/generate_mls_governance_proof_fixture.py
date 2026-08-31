@@ -37,10 +37,6 @@ def seal(byte: int) -> str:
     return "ak:seal:sha256:" + f"{byte:02x}" * 32
 
 
-def seal_digest(byte: int) -> str:
-    return "sha256:" + f"{byte:02x}" * 32
-
-
 def basis(*refs: str) -> dict[str, Any]:
     return {"leaves": sorted(refs)}
 
@@ -134,10 +130,7 @@ def body(refs: list[str], target_refs: list[str], edges: list[tuple[str, str]]) 
             encoding="utf-8"
         )
     )
-    descriptors = [
-        {"seal_ref": ref, "seal_digest": seal_digest(index + 16)}
-        for index, ref in enumerate(sorted(refs))
-    ]
+    descriptors = [{"seal_ref": ref} for ref in sorted(refs)]
     predecessor_edges = [
         {"seal_ref": child, "predecessor_seal_ref": parent}
         for child, parent in sorted(edges)

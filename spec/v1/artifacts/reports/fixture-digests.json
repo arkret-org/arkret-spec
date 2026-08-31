@@ -114,7 +114,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/device-revocation-pending-fixture.json",
-      "sha256": "c82668c371e3f89952ab3ea6fdf19a665a0c8564cd032e931acc7ab3979e0587"
+      "sha256": "3ceddd10a4e8ebea8c39e96f8fd199adaec648ba5abeab38c133805ba0b01fe4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
@@ -130,7 +130,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "f51357d4bcecaefbae25bed45223568ba8fbdee3ced8d04caac7446b5a2e723c"
+      "sha256": "b70fb82c440cbd3568e59d4208ec5024857ad1bb4af3fe6140d4cefda26288cc"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -234,7 +234,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
-      "sha256": "ea9180edda02f2321bdb57a5a747ac34cecac5975e0909411b79594595822675"
+      "sha256": "f47a014ab6428346690de80d1fa0da70d97271037bdd2be14b107187919801f2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
@@ -330,7 +330,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "379ccf00f2830f65cc45090828f31dbaf9c4c8dea0f653e0d922b23a5a38d74f"
+      "sha256": "77f1fd938afa2b783c97902da2eee1969e13aee3ee0c2c3cc30afc3ae4aba816"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

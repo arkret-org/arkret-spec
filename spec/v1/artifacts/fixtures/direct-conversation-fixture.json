@@ -141,8 +141,7 @@
           "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc"
         },
         "send_blockers": [],
-        "group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
-        "group_state_digest": "sha256:abababababababababababababababababababababababababababababababab"
+        "group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
       }
     },
     {
@@ -161,8 +160,7 @@
         "blockers": [
           "contact_scope_stale"
         ],
-        "group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
-        "group_state_digest": "sha256:abababababababababababababababababababababababababababababababab"
+        "group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
       }
     },
     {

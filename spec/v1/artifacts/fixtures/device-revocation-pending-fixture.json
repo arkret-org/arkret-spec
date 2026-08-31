@@ -137,13 +137,13 @@
     },
     {
       "name": "multiple_distinct_proposals_are_independent",
-      "given": "two different accepted proposal digests target the same device and generation",
+      "given": "two different accepted proposal Event IDs target the same device and generation",
       "action": "validly signed-reject only the first proposal",
       "expected": "revocation_pending",
       "invariants": [
         "the first record becomes revocation_rejected",
         "the second pending record remains and all five action classes stay blocked",
-        "account device summary returns all surviving pending records in canonical acceptance_seq then proposal_digest order"
+        "account device summary returns all surviving pending records in canonical acceptance_seq then proposal_event_id order"
       ]
     },
     {
@@ -177,7 +177,7 @@
       "invariants": [
         "only allow carries target_device_authorize_event_id and target_device_generation_ref and every other decision rejects their presence",
         "allow and mismatch carry neither blocker nor Seal",
-        "pending carries the lexicographically smallest pending blocker and no Seal while revoked carries the covering Seal of the smallest acceptance_seq then proposal_digest revoked record and no blocker",
+        "pending carries the lexicographically smallest pending blocker and no Seal while revoked carries the covering Seal of the smallest acceptance_seq then proposal_event_id revoked record and no blocker",
         "payload_digest equals sha256 JCS of the complete receipt with proof omitted",
         "proof context is ak.device_revocation_gate_decision_proof.v1 and the method equals receipt method its controller projects to the exact Station and proof created_at equals linearized_at"
       ]
