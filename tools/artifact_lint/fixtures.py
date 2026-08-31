@@ -2307,6 +2307,8 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
 
 def check_actor_frontier_digest_fixture(lint: Lint, path: Path, data: dict[str, Any]) -> None:
     """Pin the specialized Actor frontier KAT and each schema-case transcript."""
+    from .frontier_reduction import check_frontier_reduction_fixture
+    check_frontier_reduction_fixture(lint, path, data)
     domain = "ak-realm-actor-frontier-v1\0"
     fields = {"kind", "realm_id", "actor_id", "next_actor_seq", "frontier_event_ids"}
     vector = data.get("actor_frontier_digest")

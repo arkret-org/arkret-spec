@@ -1661,5 +1661,188 @@
     ],
     "expected_projection_state": "decryption_pending",
     "must_not_drop_timeline_entry": true
+  },
+  "frontier_reduction_cases": [
+    {
+      "name": "equal_root",
+      "previous_failures": 2,
+      "failure": false,
+      "confirmed_evidence": false,
+      "expected": {
+        "status": "healthy",
+        "failures": 0,
+        "quarantine": false,
+        "complete": false
+      }
+    },
+    {
+      "name": "no_common_obligation",
+      "previous_failures": 2,
+      "failure": false,
+      "confirmed_evidence": false,
+      "expected": {
+        "status": "healthy",
+        "failures": 0,
+        "quarantine": false,
+        "complete": false
+      }
+    },
+    {
+      "name": "required_actor_omitted",
+      "previous_failures": 2,
+      "failure": true,
+      "confirmed_evidence": false,
+      "expected": {
+        "status": "peer_stale",
+        "failures": 3,
+        "quarantine": false,
+        "complete": false
+      }
+    },
+    {
+      "name": "permanent_scope_difference",
+      "previous_failures": 2,
+      "failure": false,
+      "confirmed_evidence": false,
+      "expected": {
+        "status": "healthy",
+        "failures": 0,
+        "quarantine": false,
+        "complete": false
+      }
+    },
+    {
+      "name": "legal_sibling_union",
+      "previous_failures": 2,
+      "failure": false,
+      "confirmed_evidence": false,
+      "expected": {
+        "status": "healthy",
+        "failures": 0,
+        "quarantine": false,
+        "complete": false
+      }
+    },
+    {
+      "name": "local_outbox_ahead",
+      "previous_failures": 2,
+      "failure": false,
+      "confirmed_evidence": false,
+      "expected": {
+        "status": "healthy",
+        "failures": 0,
+        "quarantine": false,
+        "complete": false
+      }
+    },
+    {
+      "name": "remote_backfill_ahead",
+      "previous_failures": 2,
+      "failure": false,
+      "confirmed_evidence": false,
+      "expected": {
+        "status": "healthy",
+        "failures": 0,
+        "quarantine": false,
+        "complete": false
+      }
+    },
+    {
+      "name": "network_failure",
+      "previous_failures": 2,
+      "failure": true,
+      "confirmed_evidence": false,
+      "expected": {
+        "status": "peer_stale",
+        "failures": 3,
+        "quarantine": false,
+        "complete": false
+      }
+    },
+    {
+      "name": "first_over_fork",
+      "previous_failures": 2,
+      "failure": false,
+      "confirmed_evidence": true,
+      "expected": {
+        "status": "peer_stale",
+        "failures": 0,
+        "quarantine": true,
+        "complete": false
+      }
+    },
+    {
+      "name": "first_non_joinable",
+      "previous_failures": 2,
+      "failure": false,
+      "confirmed_evidence": true,
+      "expected": {
+        "status": "peer_stale",
+        "failures": 0,
+        "quarantine": true,
+        "complete": false
+      }
+    },
+    {
+      "name": "first_full_hash_collision",
+      "previous_failures": 2,
+      "failure": false,
+      "confirmed_evidence": true,
+      "expected": {
+        "status": "peer_stale",
+        "failures": 0,
+        "quarantine": true,
+        "complete": false
+      }
+    }
+  ],
+  "frontier_event_evidence": {
+    "forged_carried_id": {
+      "preimages": [
+        "{\"value\":1}",
+        "{\"value\":2}"
+      ],
+      "carried_ids": [
+        "ak:event:AUggj5Qo1kY0vY4o_zRb8Oq2DVPBj6L72wubwehN8rX2",
+        "ak:event:AUggj5Qo1kY0vY4o_zRb8Oq2DVPBj6L72wubwehN8rX2"
+      ],
+      "expected": {
+        "reason": "event_id_digest_mismatch",
+        "quarantine": false
+      }
+    },
+    "injected_full_hash_collision": {
+      "preimages": [
+        "{\"value\":1}",
+        "{\"value\":2}"
+      ],
+      "carried_ids": [
+        "ak:event:AUggj5Qo1kY0vY4o_zRb8Oq2DVPBj6L72wubwehN8rX2",
+        "ak:event:AUggj5Qo1kY0vY4o_zRb8Oq2DVPBj6L72wubwehN8rX2"
+      ],
+      "injected_digest_hex": "48208f9428d64634bd8e28ff345bf0eab60d53c18fa2fbdb0b9bc1e84df2b5f6",
+      "real_hash_collision_claimed": false,
+      "expected": {
+        "reason": "witness_disagreement",
+        "quarantine": true
+      }
+    },
+    "invalid_collision_proof": {
+      "preimages": [
+        "{\"value\":1}",
+        "{\"value\":2}"
+      ],
+      "carried_ids": [
+        "ak:event:AUggj5Qo1kY0vY4o_zRb8Oq2DVPBj6L72wubwehN8rX2",
+        "ak:event:AUggj5Qo1kY0vY4o_zRb8Oq2DVPBj6L72wubwehN8rX2"
+      ],
+      "injected_digest_hex": "48208f9428d64634bd8e28ff345bf0eab60d53c18fa2fbdb0b9bc1e84df2b5f6",
+      "real_hash_collision_claimed": false,
+      "prerequisites": false,
+      "expected": {
+        "reason": "invalid_proof",
+        "quarantine": false
+      }
+    }
   }
 }

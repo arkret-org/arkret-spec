@@ -1079,10 +1079,13 @@ submission 必须引用同一定义，不得复制 shape。
 
 - 相同 digest-preimage canonical bytes 的重复提交 MUST 返回首次 outcome，不得补签 Ack，也不得以新时间重签。
 - 只有 excluded 字段不同不构成 hash collision，但接收方仍 MUST 按各字段合同验证这些字段。
-- 同一 `event_id` 对应不同 digest-preimage canonical bytes 时，接收方 MUST 先于 actor CAS 作出判定，原子隔离整组 Event 并返回 `witness_disagreement`（见 [`operations-sync.md` §12](./operations-sync.md)）；不得退化为 `duplicate_conflict`、`causal_conflict` 或 `state_mismatch`。
+- 每个 Event MUST 按 encoding §4.0 重算 canonical digest 与完整 Event ID，再用于接受、去重命中、索引写入、sibling 集归约和冲突判断等有副作用用途；未验证 carried ID MAY 仅用于无副作用的候选 bytes 定位。carried ID 不等于重算 ID 时 MUST 以 `event_id_digest_mismatch` 拒绝该输入，MUST NOT quarantine 本地同 carried ID Event，MUST NOT 报 `duplicate_conflict` 或 `witness_disagreement`。
+- confirmed collision evidence 的唯一条件是：两个 byte-distinct canonical Event preimage 均通过完整结构、suite 与 proof 前置检查，并独立重算为同一完整 suite-tagged `event_id`（full-hash collision evidence）。此时 MUST 先于 actor CAS 按 [`operations-sync.md` §12](./operations-sync.md) 原子隔离整组 Event 并报 `witness_disagreement`，不以到达顺序选择 canonical 版本；不得退化为 `duplicate_conflict`、`causal_conflict` 或 `state_mismatch`。该两分法同样适用于 federation frontier challenge/backfill。
 - 成功响应中的 `cursor` 是 barrier-purpose cursor，用于 read-your-writes。
 
 #### 3.1.4 Ordinary actor-chain CAS（normative）
+
+本节的 `cas_conflict` 是 origin 初次 publication 的 authoring CAS；不适用于已通过 origin Station admission 验证的 federation replication。后者的历史 sibling 即使低于本地 actor upper bound，仍 MUST 按 federation §4.5.1 验证并取合法 union，且 MUST NOT 倒退既有 actor frontier。此例外不跳过 Event ID、proof、capability、前驱、sibling 上限或领域不可 join 验证，不赋予未验证输入任何 admission authority。
 
 普通 actor-chain 写入不存在独立 `expected_frontier`。当相同 `event_id` 尚未 accepted、认证/授权/Realm 可见性已通过，且 receiver 的 accepted `(realm_id, actor_id)` 最高 sequence 严格大于该 signed Event 的 `actor_seq` 时，返回 `409 cas_conflict`；closed `error.details` 为 `{accepted:false,current_frontier:<RealmActorFrontierView>}`。只有该明确结果允许 host 以新 `event_id` semantic re-author。超时、连接中断或任何结果不明确的失败只能重放完全相同的 canonical body、proof 与 idempotency key。DataEvent 的 data-plane guard / Lattice join 失败或 Control Move 的 precondition 失败，按对应 reducer 语义返回 `failed_precondition`、`failed_plane` 或 `failed_bottom`，不得把这类失败旁路成 `cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、seal 或 predecessor commit 才承认其 canonical history 地位。
 

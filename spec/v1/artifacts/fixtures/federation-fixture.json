@@ -188,11 +188,22 @@
     {
       "name": "fork_quarantine",
       "input": {
-        "event_id": "ak:event:AVK8GYTWvWfnkNjO2MMRJaNYukVBNiB0s6v8tdxK1nmu",
-        "alpha_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "beta_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        "preimages": [
+          "{\"value\":1}",
+          "{\"value\":2}"
+        ],
+        "carried_ids": [
+          "ak:event:AUggj5Qo1kY0vY4o_zRb8Oq2DVPBj6L72wubwehN8rX2",
+          "ak:event:AUggj5Qo1kY0vY4o_zRb8Oq2DVPBj6L72wubwehN8rX2"
+        ],
+        "injected_digest_hex": "48208f9428d64634bd8e28ff345bf0eab60d53c18fa2fbdb0b9bc1e84df2b5f6",
+        "real_hash_collision_claimed": false,
+        "expected": {
+          "reason": "witness_disagreement",
+          "quarantine": true
+        }
       },
-      "expected": "divergent_realm_history_quarantined"
+      "expected": "confirmed_full_hash_collision_quarantined"
     },
     {
       "name": "seal_prerequisite_closure",
