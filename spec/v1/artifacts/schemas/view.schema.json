@@ -584,6 +584,11 @@
     "collection_grouping": {
       "type": "object",
       "description": "Grouping / lane / time-bucket / matrix configuration; mirrors models/views.md §3.3. Conditional required-ness is enforced per mode.",
+      "propertyNames": {
+        "not": {
+          "enum": ["selection_policy", "page_size", "wip_limit_enforcement"]
+        }
+      },
       "required": [
         "mode"
       ],
@@ -717,6 +722,11 @@
     },
     "collection_config": {
       "type": "object",
+      "propertyNames": {
+        "not": {
+          "enum": ["selection_policy", "page_size", "wip_limit_enforcement"]
+        }
+      },
       "required": [
         "item_order_by",
         "grouping"

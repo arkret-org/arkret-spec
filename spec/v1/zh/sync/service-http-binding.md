@@ -1206,6 +1206,25 @@ predecessor 的 every covered Event digest 在该 actor history 中逐一复现�
 history 签发 successor Seal。managed Agent 分支的 controller binding 授权仍按本节上方规则独立验证；actor-only
 读取本身不授予 controller 任何新的 notary authority。
 
+##### 3.3.1.2 Canonical candidate set 与 materialization（normative）
+
+本 operation 的唯一候选来源是服务已 accepted 的 canonical durable Event log。`realm_ids[]` 按完整 Event 的
+resolved Realm 身份选取（`ak.realm.create` 的 Realm 从其 Event ID retype），不得以是否存在 materialized
+projection row 决定 Event 是否存在；control / anchor / redaction Event 与其它已 accepted Event 使用同一候选规则。
+ephemeral、account-data 与 to-device 不属于该集合。`actor_ids[]` 的交集和授权边界仍按 §3.3.1.1，不因此扩大。
+
+Realm scan MUST 先按现行 membership frontier、history visibility、Circle/Sidecar scope 与 E2EE epoch policy
+形成可见集合，再按 §3.3.3 的 canonical 顺序应用排他边界与分页。删改、retention 或 erasure 只决定结果采用完整
+Event 还是已登记的 `RedactedEventView`，不得删除仍可见的历史位置，也不得改写 payload 后保留原 Event ID / proofs
+冒充 canonical Event。projection MAY 用作授权索引或删改视图输入，MUST NOT 充当候选集合的第二真源。
+
+projection 缺行时服务 MUST 直接从 canonical Event 构造结果；若当前授权/删改索引不足以安全完成该构造，MUST
+整页 fail closed。projection 有行而 canonical 无行、索引身份或 materialization digest 不一致、无法确定最终 causal
+order 等内部完整性失败，MUST 返回通用 `internal_error`（HTTP 500），MUST NOT 返回成功截短页、续页 cursor 或
+`has_more=false` 冒充完整。服务恢复一致性后客户端可重试同一请求。cursor 域是该授权后的 canonical 集合，不是
+projection offset；有效 token 指向集合外或已不可用的位置时按既有 cursor 错误规则拒绝，MUST NOT 退回第一页。
+可选 range completeness attestation 增加独立完整性证据，不改变上述基础集合语义。
+
 #### 3.3.2 边界参数 `before` / `after`（v1 wire 形态）
 
 | 参数 | 类型 | 必填 | 语义 |

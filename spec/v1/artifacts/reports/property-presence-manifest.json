@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9804,
+    "total_properties": 9803,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2698,
+      "optional": 2697,
       "optional_defaulted": 67,
       "required": 6721,
       "required_nullable": 117,
@@ -7549,7 +7549,6 @@
         "/$defs/encryption/properties/nonce_prefix": "optional",
         "/$defs/encryption/properties/scheme": "required",
         "/$defs/encryption/properties/segment_bytes": "optional",
-        "/$defs/encryption/properties/segment_count": "optional",
         "/$defs/encryption_aad/properties/created_at": "required",
         "/$defs/encryption_aad/properties/origin_device_id": "required",
         "/$defs/encryption_aad/properties/purpose": "required",
@@ -7594,8 +7593,7 @@
       "conditionally_required": [
         "/$defs/encryption/properties/nonce",
         "/$defs/encryption/properties/nonce_prefix",
-        "/$defs/encryption/properties/segment_bytes",
-        "/$defs/encryption/properties/segment_count"
+        "/$defs/encryption/properties/segment_bytes"
       ]
     },
     "grant-constraint.schema.json": {

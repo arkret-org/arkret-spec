@@ -177,6 +177,11 @@ E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`
 
 ### 3.3 Streaming Chunked AEAD（`ak.blob.stream_aead.v1`，normative）
 
+本节的 `key_ref`、MLS epoch 派生与 §3.3.3 AAD 字段表属于 `encrypted_attachment` 合同。holder-private
+file-transfer 复用本节的段长、段数、nonce、末段与密文拼接算法；它不携 MLS `key_ref`，fresh content key 与
+逐段 AAD 的唯一合同在 [file-transfer.md §4](../models/file-transfer.md#4-加密与-key-delivery)。两种上下文不得
+混用 AAD，也不得为了套用 attachment 模型给 file-transfer record 添加未登记字段。
+
 本节定义分块流式 AEAD scheme。其构造采用业界已生产化的 STREAM（OAE2，online authenticated encryption）形态，使接收方能在收到每个 segment 时增量验证并安全释放对应明文段，同时保留顶层单值整体完整性语义。
 
 #### 3.3.1 Segment 切分

@@ -238,20 +238,17 @@
           ]
         },
         "nonce": {
-          "$ref": "#/$defs/base64url"
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{32}$"
         },
         "nonce_prefix": {
-          "$ref": "#/$defs/base64url"
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{25}[AQgw]$"
         },
         "segment_bytes": {
           "type": "integer",
           "minimum": 1024,
           "maximum": 8388608
-        },
-        "segment_count": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 1048576
         },
         "aad": {
           "$ref": "#/$defs/encryption_aad"
@@ -289,11 +286,6 @@
                 "required": [
                   "segment_bytes"
                 ]
-              },
-              {
-                "required": [
-                  "segment_count"
-                ]
               }
             ]
           }
@@ -307,8 +299,7 @@
           },
           "required": [
             "nonce_prefix",
-            "segment_bytes",
-            "segment_count"
+            "segment_bytes"
           ],
           "not": {
             "required": [

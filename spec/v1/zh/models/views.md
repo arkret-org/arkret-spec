@@ -184,7 +184,7 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
 
 **排序通道唯一（normative）**：View 只有两条排序通道，且互不重叠——`query.order_by` 决定**取哪些对象、按什么顺序取**，`collection.item_order_by` 决定 collection 内 item 的**展示稳定序**。v1 **没有**顶层 `sort`：它与 `query.order_by` 形态完全同构、作用面重叠，却没有定义优先级，两者同时出现时结果未定义。需要改排序的实现 MUST 改这两个字段之一。
 
-`selection_policy` 与 `page_size` 是终端/用户私有 presentation 偏好，不是 canonical `CollectionConfig` 字段；客户端 MUST 存入 actor-private account data 或仅保存在本地。Producer 不得把这两个键写入共享 View；closed schema 将其拒绝为 `schema_violation`。
+`selection_policy` 与 `page_size` 是终端/用户私有 presentation 偏好，不是 canonical `CollectionConfig` 字段；客户端 MUST 存入独立的 actor-private account data 偏好或仅保存在本地。`CollectionConfig` 与 `CollectionGrouping` 保留开放配置扩展，但通过 `propertyNames` 明确禁止 `selection_policy`、`page_size` 与 `wip_limit_enforcement` 三个键；这些键在任一配置对象的直接成员位置出现时 MUST 返回 `schema_violation`，不得因值为 `null`、`false` 或名称位于开放扩展区而放行。create object、materialized View 与 update 后的完整 View MUST 应用同一校验；私有 View 使用同一 schema 时也不得把独立偏好混入这两个配置对象。合法自定义配置扩展保持可用，不把开放配置整体收紧为 closed object。
 
 ### 3.4 `CollectionGrouping`
 

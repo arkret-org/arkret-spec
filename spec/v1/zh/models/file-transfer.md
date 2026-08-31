@@ -76,7 +76,7 @@ Producer MUST NOT 写入任何明文文件 digest / hash 字段（例如 `plaint
 
 文件传输默认是服务端不可读内容。Producer MUST 对每个 transfer 生成 fresh content key，并使用 `ak.aead.xchacha20_poly1305.v1` 加密文件明文。除非 profile 后续显式定义可证明安全的 key-reuse 形态，content key MUST NOT 在多个 transfer 间复用。
 
-大文件 SHOULD 使用分块流式 AEAD 形态（`ak.blob.stream_aead.v1`，见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3），使接收设备能边下边验、内存有界，并在收到合法末段并通过整体 `ciphertext_digest` 校验前不把文件视为完整。选用该形态时，transfer record 的 `encryption` descriptor 按该 scheme 携带 `nonce_prefix` / `segment_bytes` / `segment_count`（而非整文件形态的单 `nonce`）；`ak.file_transfer.key.v1` 只投递 content-key envelope，不回声这些 record 字段。小文件与缩略图 MAY 继续使用整文件形态（`ak.blob.whole_file_aead.v1`）。无论形态如何，`content_digest` 仍是 Blob 密文字节摘要的唯一字段。
+大文件 SHOULD 使用分块流式 AEAD 形态（`ak.blob.stream_aead.v1`，见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3），使接收设备能边下边验、内存有界，并在收到合法末段并通过整体 `content_digest` 校验前不把文件视为完整。选用该形态时，transfer record 的 `encryption` descriptor 只携带 `nonce_prefix` / `segment_bytes`（而非整文件形态的单 `nonce`），MUST NOT 携带 `segment_count`。双方 MUST 从已认证 record 令 `S=plaintext_size_bytes`、`B=encryption.segment_bytes`，唯一派生 `N=max(1,ceil(S/B))`；`1024 <= B <= 8388608` 且 `1 <= N <= 1048576`，必须在分配下载计划、派生密钥或处理密文前校验。空文件恰有一个携末段 flag 的空明文段，不得从 `blob_size_bytes` 或收到的密文长度反推段数。`ak.file_transfer.key.v1` 只投递 content-key envelope，不回声这些 record 字段。小文件与缩略图 MAY 继续使用整文件形态（`ak.blob.whole_file_aead.v1`）。无论形态如何，`content_digest` 仍是 Blob 密文字节摘要的唯一字段。
 
 AEAD AAD MUST 至少绑定：
 
@@ -85,6 +85,8 @@ AEAD AAD MUST 至少绑定：
 - `transfer_id`
 - `origin_device_id`
 - `created_at`
+
+整文件 AAD 是 `encryption.aad` 的 RFC 8785 JCS bytes。stream 文件传输使用同一个 nonce/段序/末段算法，但密钥来自本节的 fresh content key，而不是 MLS `key_ref`。其逐段 AAD MUST 恰为 RFC 8785 JCS 对象 `{schema,purpose,transfer_id,origin_device_id,created_at,scheme,nonce_prefix,segment_index,last_segment_flag,segment_count,media_type,size_bytes}`：前五项取经本 record 逐字段相等校验的 `encryption.aad`，`scheme` 固定为 `ak.blob.stream_aead.v1`，`nonce_prefix` 取 descriptor，`segment_index` 为当前段的零基序号，`last_segment_flag` 为整数 `0` 或 `1`，`segment_count=N`，`size_bytes=S`，`media_type` 取 record。`segment_count` 只存在于本地重建的 AAD；MUST NOT 给 record 或 key message 增加该字段，也不得虚构 MLS `key_ref` 或 `epoch`。XChaCha20-Poly1305 的 `nonce_prefix` 解码后恰为 19 bytes，单 nonce 为 24 bytes；两者均为 canonical Base64URL-no-pad。密文为按序拼接的 N 段（每段包含 16-byte tag），接收方 MUST 校验每段 tag、精确末段、总明文长度和完整密文 digest，截断、额外字节及重排均拒绝。
 
 AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = digest(ciphertext)` 与 `ciphertext = AEAD(plaintext, aad(blob_ref))` 形成循环定义。Receiver MUST 在解密前校验 `blob_ref` 与 `content_digest` 均和实际下载字节一致；不一致 MUST 拒绝、丢弃已下载字节、不得渲染或写入持久缓存。`content_digest` 是 Blob 密文字节摘要的唯一字段，record 不得再嵌套第二个 ciphertext digest 副本。
 
