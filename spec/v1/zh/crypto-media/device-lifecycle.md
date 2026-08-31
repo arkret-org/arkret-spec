@@ -381,7 +381,9 @@ genesis / recovery 时候选设备自己 author 整个封闭 unit，因此签名
 
 设备 trust state 仅由 accepted PCR evidence 决定：registration-anchor genesis、accepted-device authorize、PCR-policy re-anchor、revoke/list update 与 accepted Seal/frontier。DID resolver 不提供设备目录或 generation basis。
 
-远端 receiver 必须取得 `principal_genesis_receipt + authorization_chain + accepted_seal + current_device_projection + range_completeness_evidence`。`authorization_chain` 在此不是只挑成功授权 hop，而是从 genesis 到 current Seal、足以重放目标 projection 的完整相关 PCR control history，包含 authorize/revoke/reanchor/list moves；range-completeness attestation 必须证明该区间没有被 source 隐藏 reducer input。Receiver 自行重放并要求 target status=`active`、`authorized_generation_ref == current_device_generation_ref`、generation status=`active`，再与 current projection逐字段比较。外层 source 对“未撤销”的断言不构成 authority。只有 Event payload、proof 与 evidence 的 principal/device/key/generation/frontier 全部一致时才是 `verified`；缺失、gap、witness disagreement 或 stale evidence保持 `unresolved`，不得 TOFU。
+负责建立或复核 **账号内部 PCR projection** 的 origin Station，以及经 holder / recovery 授权读取该账号治理材料的 verifier，必须取得 `principal_genesis_receipt + authorization_chain + accepted_seal + current_device_projection + range_completeness_evidence`。`authorization_chain` 在此不是只挑成功授权 hop，而是从 genesis 到 current Seal、足以重放目标 projection 的完整相关 PCR control history，包含 authorize/revoke/reanchor/list moves；range-completeness attestation 必须证明该区间没有被 source 隐藏 reducer input。该 verifier 自行重放并要求 target status=`active`、`authorized_generation_ref == current_device_generation_ref`、generation status=`active`，再与 current projection逐字段比较。外层 source 对“未撤销”的裸断言不构成该内部 projection 的 authority。只有 Event payload、proof 与 evidence 的 principal/device/key/generation/frontier 全部一致时才是 `verified`；缺失、gap、witness disagreement 或 stale evidence保持 `unresolved`，不得 TOFU。
+
+上述 PCR 重放要求 **不适用于跨账号 recipient 或普通 peer transport ingress**。跨账号设备信任遵守 §8.2 / §8.3：只通过既有关系门控 `keys/query` 的 origin Station signed `device_projection_attestation` 和用户侧验证建立，MUST NOT 在该面披露或要求完整 PCR history。Signal source Station 验证自己托管的 exact account-device current authority；destination 只执行 [`sync/signal.md` §3/§4.3](../sync/signal.md) 的 peer transport admission，不重新认证远端设备；recipient 独立验证 current device trust、producer signature 与 MLS binding。peer HTTP 签名不替代 recipient 的设备信任，destination 缺少远端 PCR 或设备目录也不构成拒绝合法 relay 的理由。
 
 ### 5.6 Privacy-Preserving Push
 
@@ -713,6 +715,8 @@ POST /_arkret/self/keys/claim
 `keys/query` 是**跨账号** 的关系门控面。它的 device row MUST 恰以 `algorithms`、`trust_algorithms` 与 `device_projection_attestation` 为权威成员；`device_signing_key_did`、`hpke_key`、`device_status`、`device_authorize_event_id`、`authorized_generation_ref` 只存在于已签 attestation 中。`account_id` 由外层 entry 定位，`device_id` 由内层 map key 定位，不是 device row 的镜像字段，MUST NOT 作为冗余字段重复出现。设备 row 不得回显 DID Document 的设备或 service authority。
 
 `device_projection_attestation` 是 **origin Station 对 exact device projection 的签名断言**，覆盖 `(account_id, device_id, device_signing_key_did, hpke_key, device_authorize_event_id, authorized_generation_ref, device_status, attested_at, expires_at)`，proof context 为 `ak.device_projection_attestation_proof.v1`（见 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)）。它是本面唯一的验证载体：PCR genesis receipt、device authorization chain 与 accepted Seal **MUST NOT** 出现在本面，它们是 origin Station 的内部账号治理材料，只经 `ak.self.identity.read.resolution_audit.v1` 在 holder / recovery 授权下披露。
+
+origin Station MUST 在签发时从该 exact account-device 的 current accepted `ak.device.authorize` 验证授权有效期：当前时刻 `now >= not_before`，且原授权 `expires_at` 非空时 `now < expires_at`；仅有缓存的 `active` 标记不能替代这项检查。缺少对应 accepted 授权 Event、时间材料无法验证、授权尚未生效或已经到期时，MUST NOT 签发可用 row。证明的 `attested_at` 表示本次当前投影检查的时刻，证明 `expires_at` MUST 晚于 `attested_at`，且 MUST NOT 晚于原授权非空的 `expires_at`；实现自定的短 TTL 只能进一步收紧此上界，不能延长原设备授权。没有有效剩余窗口时，按下述非枚举失败形态省略 row，不得通过重签证明、刷新缓存或依赖后台过期扫描延续授权。
 
 receiver MUST 验证：
 

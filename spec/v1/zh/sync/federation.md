@@ -207,10 +207,14 @@ encrypted-only、单跳、best-effort Signal Extension surface。它承载
 endpoint、canonical body digest、HTTP Message Signature 与最小披露错误；该 operation 另外把
 `expires-created` 收紧为 5 秒，禁止 `Idempotency-Key`，不确定结果固定
 `drop_unconfirmed`。source 必须是每个 sender actor/device 的 current joined-member ActorId routing projection；
-destination 只按 outer `scope_ref` 计算本地 eligible devices，精确产品 kind/target 位于 ciphertext，
+source 执行 exact account-device current authorization 与 producer signature 检查；destination 验证
+已认证 source/body、sender routing projection、proof transcript/digest、scope/Seal/current membership、
+class/TTL 与外层 MLS basis，不查询远端设备目录、不执行 producer signature 验签，也不维护 MLS
+public-tree tracker。recipient 在展示前独立完成 current device trust、producer signature 与 MLS/AEAD
+绑定。destination 只按 outer `scope_ref` 计算本地 eligible devices，精确产品 kind/target 位于 ciphertext，
 不得按 kind 广告、路由或返回结果。
 
-schema-valid、已认证 request 即使 Realm/scope/sender 未知、producer proof 或 current joined-member
+schema-valid、已认证 request 即使 Realm/scope/sender 未知、proof transcript/digest 或 current joined-member
 ActorId routing authority 不成立，或所有 signal 都过期、重复、不可见、policy-denied、没有 local
 recipient，也只返回 opaque `{"accepted":true}`；只有外层 peer auth、跨 Realm batch 及
 body/schema/count/byte 失败才拒绝。完整 batch、签名窗口、重复/乱序、资源隔离与 conformance

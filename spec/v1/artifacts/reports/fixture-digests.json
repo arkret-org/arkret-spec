@@ -370,7 +370,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
-      "sha256": "d03a0d62b2b895904a8306bc16a79379d2693073afde54e38d605fc1f27f605f"
+      "sha256": "72ae6965bf6d60bf3a6133f2841751be2990eec937bc16b05610092c3decb3c3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",

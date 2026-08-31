@@ -4685,6 +4685,13 @@ paths:
         This operation never creates a durable Event, receipt, Seal, actor_seq
         or Realm frontier update, and the destination cannot forward a received
         envelope to a third peer.
+        Source authenticates current exact-account device authority and the
+        producer signature. Destination authenticates peer source/body, sender
+        routing, proof transcript/digest and outer scope/MLS admission without
+        a remote device directory or producer signature verification. Recipient
+        independently verifies device trust, producer signature and MLS/AEAD
+        binding before display or effects. A schema-valid invalid item is
+        silently dropped; malformed request schema is rejected as a whole.
       requestBody:
         required: true
         content:

@@ -6047,11 +6047,14 @@ Runner MUST 覆盖：
 
 1. 原 producer-signed encrypted `SignalEnvelope` 经一个 source → destination peer hop 后，ciphertext、proof 与 envelope digest identity 不变；
 2. `signals[]` 127/128/129、canonical request body 1 MiB−1/1 MiB/1 MiB+1、HTTP Message Signature `expires-created` 4,999/5,000/5,001 ms；
-3. request `realm_id` 与任一 envelope/scope Realm 不一致、第二 peer hop、source 不托管 sender、destination 不在 active joined-member ActorId routing projection、producer proof/Seal/TTL/AAD 无效；
+3. request `realm_id` 与任一 envelope/scope Realm 不一致、closed proof schema 不合法按 request-level reject；第二 peer hop、source 不托管 sender、destination 不在 active joined-member ActorId routing projection、proof transcript/digest、Seal/TTL/AAD 无效按 opaque item drop；
 4. 有 eligible local recipient 与无 eligible local recipient 的已认证合法 request 都返回逐字相同 `{"accepted":true}`，且无 count/per-item outcome；
 5. response 丢失时 source 不自动重放，不携带 `Idempotency-Key`，按 `drop_unconfirmed` 丢弃不确定结果；
 6. peer/live/local rails 重复、乱序或丢失不写 durable Event、不推进 actor sequence / Realm frontier，consumer 依靠下一自足 signal 或产品级 timeout/renegotiation 恢复；
-7. source/destination 改写、重签、解密重加密 envelope，以及 destination 再转发第三 peer，全部 fail closed。
+7. source/destination 改写、重签、解密重加密 envelope，以及 destination 再转发第三 peer，全部 fail closed；
+8. destination 没有远端设备目录（包括本机恰有同 principal/device 的另一 Station 账号）仍按 peer / outer admission 转交；不得查询或借用该目录；
+9. 恶意 source 提交结构正确但无效的 producer signature，destination 可 relay、recipient 必须独立拒绝；不得用 AEAD 成功代替认证；
+10. source 短队列期间撤销设备、退群、收紧 action 或过期，出站前 fresh admission 必须阻止发送。
 
 ## 27. Signal Message streaming closure vector
 
@@ -6169,14 +6172,16 @@ endpoint / cipher suite / content profile / room policy、proof controller 与 `
 
 `vector_id`: `ak.vector.signal.device_authorization_domain.v1`
 
-规则正文见 [`../sync/signal.md` §1 / §3](../sync/signal.md)。Runner MUST 覆盖 §3 conformance
-清单的五个 case：授权晚于 `seal_ref` 但 current active 的设备通过设备授权关；`seal_ref` 时
-active 但当前 revoked / fenced / conflicted 的设备被拒；`verification_method` 的 bare DID
-经 method adapter 投影不等于 `sender_actor_id`，或 fragment 不等于 `sender_device_id` 时被拒；
-current directory key 或 Tier-2 /
-service-attested 信任锚缺失被拒；设备 current active 但 sender 无 Realm `seal_ref` 下 scope
-资格或 `signal_class` action 被拒。另 MUST 断言 `expires_at` 已过期的 envelope 在 local
-ingress 被 `param_invalid` 拒绝。
+规则正文见 [`../sync/signal.md` §1 / §3](../sync/signal.md)。Runner MUST 覆盖 §3 的完整
+role-aware conformance 清单：source/recipient 接受晚于 `seal_ref` 但 current active 的设备授权，
+拒绝 current revoked/fenced/conflicted、错误 principal/fragment/Station、缺失或过期的信任材料，
+以及 active leaf 的 key/authorization binding 不一致；即使 leaf 尚未 Remove 或 AEAD 成功也不能
+放宽。recipient 只能从 §8.2/§8.3 的既有设备信任路径取证，不要求完整远端 PCR。
+destination 缺少远端目录不阻止合法 relay，但 peer source/body、routing、proof transcript/digest、
+Realm/scope/current membership/action/TTL/MLS outer basis 仍需通过。结构正确的伪 producer signature
+只在 source/recipient 验签失败；恶意 source 不能借合法 HTTP 签名使 recipient 接受它。
+另 MUST 断言 source 出站 fresh admission、Agent/minimal 禁止 synthetic device，以及过期
+envelope 在 local ingress 被 `param_invalid` 拒绝、peer item 被 opaque 丢弃。
 
 ## 34. Active Event payload carrier closure
 

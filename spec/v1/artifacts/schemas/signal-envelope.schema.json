@@ -110,7 +110,7 @@
         "ciphertext": {
           "type": "string",
           "minLength": 22,
-          "maxLength": 65558,
+          "maxLength": 62827,
           "pattern": "^[A-Za-z0-9_-]+$"
         },
         "aad_digest": {
@@ -130,7 +130,7 @@
     },
     "signal_proof": {
       "type": "object",
-      "description": "Detached device proof over canonical_json({context:'ak.signal_proof.v1', envelope_digest, sender_actor_id, sender_device_id, verification_method, created_at, domain?, audience?}). envelope_digest hashes the complete SignalEnvelope with proof removed; created_at MUST equal the outer sent_at.",
+      "description": "Detached device proof over canonical_json({context:'ak.signal_proof.v1', envelope_digest, sender_actor_id, sender_device_id, verification_method, created_at, domain?, audience?}). envelope_digest hashes the complete SignalEnvelope with proof removed; created_at MUST equal the outer sent_at. Source and recipient authenticate current exact-account device authority and verify this producer signature. Peer destination validates closed proof/transcript structure and recomputed digest, not the producer signature or remote device authority; recipient must independently authenticate before display or effects (zh/sync/signal.md section 3).",
       "required": [
         "kind",
         "verification_method",
@@ -145,7 +145,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "The DID URL bare DID component MUST project through its registered adapter to the signing principal component of sender_actor_id (account_id.principal_id for account), and its fragment MUST equal sender_device_id; constructing it by appending to did_core_id is forbidden. This projection does not establish the Station component or authorize a device: the verifier MUST resolve the authoritative verify key for the complete (sender_actor_id, sender_device_id) from its own current accepted device directory, which is a state domain seal_ref does not select (zh/sync/signal.md section 1)."
+          "description": "The DID URL bare DID component MUST project through its registered adapter to the signing principal component of sender_actor_id (account_id.principal_id for account), and its fragment MUST equal sender_device_id; constructing it by appending to did_core_id is forbidden. This projection does not establish the Station component or authorize a device. Source and recipient independently bind current authority and verify key to the complete (sender_actor_id, sender_device_id); seal_ref selects only Realm/scope authority. Destination validates the projection and proof transcript but MUST NOT query remote device authority or verify the producer signature as a relay prerequisite. Agent and minimal-metadata endpoints MUST NOT synthesize device identities to fit this carrier (zh/sync/signal.md sections 1 and 3)."
         },
         "envelope_digest": {
           "$ref": "#/$defs/digest"

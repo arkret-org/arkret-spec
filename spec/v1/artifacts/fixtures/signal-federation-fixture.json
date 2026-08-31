@@ -58,7 +58,7 @@
             "no_eligible_local_recipient",
             "unknown_realm_or_scope",
             "unknown_sender",
-            "invalid_producer_proof",
+            "invalid_proof_transcript_digest",
             "source_not_current_member_account_host",
             "signal_class_action_denied",
             "expired_or_duplicate_signal"
@@ -99,7 +99,7 @@
       }
     },
     {
-      "name": "reject_second_peer_hop",
+      "name": "silently_drop_second_peer_hop",
       "vector_id": "ak.vector.signal.peer_relay.v1",
       "input": {
         "generator": {
@@ -109,8 +109,10 @@
         }
       },
       "expected": {
-        "decision": "reject_request",
-        "error_code": "capability_denied",
+        "decision": "silently_drop_item",
+        "response": {
+          "accepted": true
+        },
         "signals_dispatched": 0
       }
     },
@@ -202,11 +204,160 @@
       "name": "device_authorization_domain",
       "vector_id": "ak.vector.signal.device_authorization_domain.v1",
       "assertions": [
-        "seal_ref selects Realm and scope authorization only; device authorization uses the verifier's current accepted device directory",
+        "seal_ref selects Realm and scope authorization only; source and recipient authenticate current exact-account device authority independently",
         "the verification_method bare DID projects to the signing principal component of sender_actor_id and its fragment equals sender_device_id; current authorization independently binds the complete ActorId including Station",
-        "missing current directory key, trust anchor, scope eligibility, or signal-class action fails closed",
-        "currently revoked, fenced, or conflicted devices are rejected even if they were active at seal_ref"
+        "missing current directory key or trust anchor fails closed at source and recipient, not at a destination performing only authenticated peer and outer-envelope admission",
+        "destination must not query a remote device directory, use a same-principal local account, verify producer signatures, replay remote PCR, or maintain an MLS public tree as a relay prerequisite",
+        "currently revoked, fenced, or conflicted devices are rejected by source and recipient even if active at seal_ref and the MLS leaf has not yet been removed",
+        "recipient requires current exact-account device key and authorization Event to match the active MLS leaf transition binding; successful AEAD does not establish sender identity",
+        "queued source dispatch revalidates current device authority, membership, scope, class action, TTL and MLS outer basis",
+        "Agent and minimal-metadata endpoints cannot synthesize DeviceId or borrow a controller device to fit the current Signal carrier"
       ]
+    },
+    {
+      "name": "destination_without_remote_directory_relays",
+      "vector_id": "ak.vector.signal.device_authorization_domain.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_role_admission",
+          "role": "destination",
+          "peer_auth_valid": true,
+          "source_hosts_sender": true,
+          "outer_admission_valid": true,
+          "remote_device_directory_present": false,
+          "local_same_principal_device_other_station_present": true,
+          "eligible_local_recipient": true
+        }
+      },
+      "expected": {
+        "decision": "relay_unchanged",
+        "remote_directory_queries": 0,
+        "producer_signature_verifications": 0,
+        "response": {
+          "accepted": true
+        }
+      }
+    },
+    {
+      "name": "forged_signature_requires_recipient_authentication",
+      "vector_id": "ak.vector.signal.device_authorization_domain.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_role_admission",
+          "peer_auth_valid": true,
+          "source_hosts_sender": true,
+          "outer_admission_valid": true,
+          "producer_signature_well_formed": true,
+          "producer_signature_valid": false,
+          "aead_valid": true
+        }
+      },
+      "expected": {
+        "honest_source_decision": "reject",
+        "malicious_source_destination_decision": "relay_unchanged",
+        "recipient_decision": "reject_before_display_or_effects",
+        "recipient_high_water_advanced": false
+      }
+    },
+    {
+      "name": "revoked_device_with_unremoved_leaf",
+      "vector_id": "ak.vector.signal.device_authorization_domain.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_role_admission",
+          "known_device_revoked": true,
+          "leaf_still_active": true,
+          "producer_signature_valid": true,
+          "aead_valid": true,
+          "ttl_valid": true
+        }
+      },
+      "expected": {
+        "source_decision": "reject",
+        "recipient_decision": "reject_before_display_or_effects",
+        "recipient_high_water_advanced": false
+      }
+    },
+    {
+      "name": "source_revalidates_queued_authority",
+      "vector_id": "ak.vector.signal.device_authorization_domain.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_role_admission_mutations",
+          "role": "source",
+          "local_ingress_passed": true,
+          "changes_before_dispatch": [
+            "device_revoked",
+            "device_generation_fenced",
+            "sender_left_scope",
+            "class_action_removed",
+            "envelope_expired",
+            "mls_basis_no_longer_current"
+          ]
+        }
+      },
+      "expected": {
+        "decision": "drop_before_outbound_dispatch",
+        "signals_dispatched": 0
+      }
+    },
+    {
+      "name": "peer_schema_and_item_failure_boundary",
+      "vector_id": "ak.vector.signal.peer_relay.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_role_admission_mutations",
+          "role": "destination",
+          "request_rejections": [
+            "missing_proof",
+            "proof_schema_shape_invalid",
+            "cross_realm_batch",
+            "invalid_peer_signature"
+          ],
+          "opaque_item_drops": [
+            "proof_envelope_digest_mismatch",
+            "proof_created_at_mismatch",
+            "aad_digest_mismatch",
+            "source_sender_routing_mismatch",
+            "expired_envelope",
+            "mls_state_not_current_winner"
+          ]
+        }
+      },
+      "expected": {
+        "request_failure_signals_dispatched": 0,
+        "item_failure_response": {
+          "accepted": true
+        },
+        "item_failure_signals_dispatched": 0,
+        "per_item_results_exposed": false
+      }
+    },
+    {
+      "name": "recipient_exact_account_and_mls_binding",
+      "vector_id": "ak.vector.signal.device_authorization_domain.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_role_admission_mutations",
+          "role": "recipient",
+          "mutations": [
+            "same_principal_device_other_station",
+            "missing_current_device_trust",
+            "expired_device_attestation",
+            "device_generation_mismatch",
+            "leaf_signature_key_mismatch",
+            "leaf_authorization_event_mismatch",
+            "scope_group_mismatch",
+            "mls_state_not_current_winner",
+            "synthetic_agent_or_pairwise_device"
+          ]
+        }
+      },
+      "expected": {
+        "decision": "reject_before_display_or_effects",
+        "recipient_high_water_advanced": false,
+        "aead_success_cannot_override_rejection": true
+      }
     }
   ]
 }

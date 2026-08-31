@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-31.3",
-  "generated_at": "2026-08-31T18:30:01+08:00",
+  "version": "2026-08-31.4",
+  "generated_at": "2026-08-31T22:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3040,7 +3040,7 @@
       "optional_extensions": [],
       "prose_requirement_coverage": [
         {
-          "requirement": "single-hop peer authentication, current joined-member ActorId routing authority and unchanged producer envelope",
+          "requirement": "source current exact-account device authentication, destination peer/outer admission without remote device verification, recipient independent producer authentication, single-hop current joined-member ActorId routing and unchanged envelope",
           "coverage": [
             "ak.peer.signal.command.relay.v1",
             "signal-federation-fixture.json"
@@ -3072,6 +3072,9 @@
       },
       "additional_requirements": {
         "encrypted_only_must": "Every relayed item MUST be ak.schema.signal_envelope.v1; plaintext or unencrypted ephemeral inputs fail closed with signal_plaintext_forbidden.",
+        "source_authority_must": "Source MUST authenticate exact-account current device authority and producer signature at local ingress and freshly before queued outbound dispatch, together with current scope/membership/action/TTL and MLS basis.",
+        "destination_admission_must": "Destination MUST authenticate peer source/body, sender routing projection, closed proof transcript/digest and outer scope/Seal/current membership/action/TTL/MLS basis; it MUST NOT require a remote device directory, producer signature verification, remote PCR replay or an MLS public-tree tracker to relay.",
+        "recipient_authentication_must": "Relay acceptance is not device authentication. Recipient MUST independently verify current exact-account device trust, producer signature, winning MLS state and active-leaf actor/device/key/authorization binding, AAD/AEAD, plaintext schema and replay before display or effects; known revoked authority fails even before leaf Remove.",
         "single_hop_must": "A destination MUST NOT relay a peer-received SignalEnvelope to a third service. The original sender-side service performs one direct request per eligible destination service.",
         "no_kind_advertisement_must": "Describe MUST advertise only this profile and operation support; exact product signal kind and target remain encrypted and MUST NOT appear in supported-kinds or routing metadata.",
         "opaque_outcome_must": "A valid authenticated request returns only {accepted:true}; no recipient, binding, capability, count or per-item outcome is exposed.",

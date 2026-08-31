@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-31.35",
-  "generated_at": "2026-08-31T21:07:38+08:00",
+  "version": "2026-08-31.36",
+  "generated_at": "2026-08-31T22:47:14+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -17,7 +17,7 @@
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
-      "sha256": "sha256:9f57ab79d94c7e7954e85300fb72d5998b43e2d4d5e021457f4c1e2b506fccce"
+      "sha256": "sha256:2b315371656a2ef20edbc2ce38af38a523950ca3ae85a46ea5b2f2fa73286be2"
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -365,7 +365,7 @@
     },
     {
       "operation_id": "ak.peer.signal.command.relay.v1",
-      "sha256": "sha256:8cb3993818419c9e6541c0cac1ba9049fa385a4872232c9bf63e43c44d9aad0b"
+      "sha256": "sha256:af91ebfef29462e2cac6152ee617f0dc96275f3d97742b0a713ca65ef6678978"
     },
     {
       "operation_id": "ak.root.identity.command.submit_did_operation.v1",
@@ -913,11 +913,11 @@
     },
     {
       "operation_id": "ak.self.signal.command.send.v1",
-      "sha256": "sha256:60741b5772399d6a8dac29a0eb0f206c9205b4b99146c21fef1ba76352341b63"
+      "sha256": "sha256:7a685bb20ccff2efb7b6bcf3869aded06c96e03a171f0c8fc240f2183a5b43eb"
     },
     {
       "operation_id": "ak.self.signal.stream.subscribe.v1",
-      "sha256": "sha256:a0b425e18fba54f51c43c2e032a185f3268078e2635b2fb9493fb8d7ef2dc487"
+      "sha256": "sha256:7cc23b2f965f67fab8c62600119989934f23b95cf31de918afb3c1fa43e264fe"
     },
     {
       "operation_id": "ak.self.snapshot.read.manifest_head.v1",
