@@ -424,8 +424,12 @@
           "expected": "nonconformant_receipt_replay"
         },
         {
-          "case": "same_event_id_with_different_canonical_bytes",
-          "expected": "duplicate_conflict_with_zero_receipt_and_zero_overwrite"
+          "case": "carried_event_id_does_not_match_current_canonical_bytes",
+          "expected": "event_id_digest_mismatch_with_zero_receipt_and_zero_side_effect"
+        },
+        {
+          "case": "two_distinct_canonical_preimages_artificially_injected_with_the_same_recomputed_complete_event_id",
+          "expected": "witness_disagreement_quarantines_affected_scope_with_zero_receipt"
         },
         {
           "case": "receipt_set_matches_producer_evidence_pair_events_one_to_one",
@@ -454,6 +458,65 @@
         {
           "case": "response_transport_authentication_or_outcome_schema_invalid",
           "expected": "outcome_discarded_before_any_receipt_consumption"
+        }
+      ]
+    },
+    {
+      "name": "frontier_mismatch_reduction_terminal_states",
+      "input": {
+        "comparison_key": [
+          "realm_id",
+          "actor_id",
+          "actor_seq"
+        ],
+        "sibling_tuple": [
+          "event_id",
+          "event_digest",
+          "prev_frontier_digest"
+        ],
+        "actor_intersection_uses_complete_actor_id": true,
+        "validate_before_side_effects": true
+      },
+      "cases": [
+        {
+          "case": "equal_frontier_roots",
+          "expected": "success_and_reset_consecutive_failures_without_challenge"
+        },
+        {
+          "case": "different_roots_with_policy_legitimate_empty_actor_intersection",
+          "expected": "success_and_reset_consecutive_failures_without_global_root_convergence"
+        },
+        {
+          "case": "peer_omits_actor_required_by_current_verified_disclosure_policy",
+          "expected": "ordinary_required_disclosure_failure_not_fork_evidence"
+        },
+        {
+          "case": "different_roots_from_permanent_legal_replication_scope_difference",
+          "expected": "success_after_intersection_reduction_without_global_root_convergence"
+        },
+        {
+          "case": "peers_hold_different_legal_sibling_subsets_within_limits",
+          "expected": "validated_union_via_existing_scan_resolve_submit_surfaces_then_success_and_reset"
+        },
+        {
+          "case": "challenge_or_backfill_network_failure",
+          "expected": "ordinary_failure_counts_toward_three_consecutive_failures"
+        },
+        {
+          "case": "carried_event_id_does_not_match_recomputed_complete_event_id",
+          "expected": "event_id_digest_mismatch_rejected_before_dedup_index_route_auth_or_quarantine"
+        },
+        {
+          "case": "two_distinct_canonical_preimages_artificially_recompute_to_the_same_complete_event_id",
+          "expected": "first_confirmation_quarantines_affected_scope_and_sets_peer_stale"
+        },
+        {
+          "case": "validated_sibling_bucket_exceeds_registered_limit",
+          "expected": "first_confirmation_quarantines_affected_scope_and_sets_peer_stale"
+        },
+        {
+          "case": "local_or_remote_snapshot_changes_during_reduction",
+          "expected": "bounded_retry_without_cross_snapshot_conflict_decision"
         }
       ]
     },

@@ -169,7 +169,7 @@ sidebar:
 | 恶意载荷 | 是 | blob/mime/hash 扫描、危险标签隔离、`quarantine` 与人工复核。 |
 | 枚举探测 | 是 | 目录/join/probe 接口统一 `not_found`/`forbidden` 时序与时延。 |
 | 队列耗尽 | 是 | `quota_exceeded`、`rate_limited` 与短时限批量写保护。 |
-| 重放 | 是 | `request_id` 与 canonical hash 绑定；`event_id` 重复且内容不同 reject；`duplicate_conflict`。 |
+| 重放 | 是 | `request_id` 与 canonical hash 绑定，异内容复用返回 `duplicate_conflict`；Event 先重算 content-addressed `event_id`，carried ID 不匹配以 `event_id_digest_mismatch` 拒绝，真正 full-hash collision 以 `witness_disagreement` 隔离。 |
 | 配置误用 | 是 | 变更审计、最小默认权限、fail-closed。 |
 | 拓扑污染 | 是 | service list 与发现结果签名可验证，目录/Realm 官方背书需双重签名。 |
 | 解析污染 | **部分** | resolver trust domain pinning、method adapter 证据核验、SCID 自证与 entry hash chain、freshness profile 的同步刷新或 fail closed。**默认 `did:webvh` 部署对 hosting 方 split-view 与历史截断不构成完整缓解**——witness 在 base v1 可选、consistency proof 仅高保障 profile 要求，见 §2.1a 的两条 residual risk。 |
