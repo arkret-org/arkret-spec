@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-08-30.27",
+      "version": "2026-08-30.28",
       "generated_at": null,
-      "content_digest": "sha256:f7850060737f50dc639d26bcad9a84fe4d46d85d4cea18a7863c758cc90d7d97"
+      "content_digest": "sha256:7ba70037bafc36381aaa604669929fd830e3e073e91b934140323f80caceecdf"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -279,9 +279,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-08-31.1",
-      "generated_at": "2026-08-31T04:30:00+08:00",
-      "content_digest": "sha256:a145bc0e3728c542d71c6cadcf8adf99b20e4690ad64defe0a16cb2b3fbf4a32"
+      "version": "2026-08-31.2",
+      "generated_at": "2026-08-31T15:04:00+08:00",
+      "content_digest": "sha256:6f708432485de740645b7184abebca6aef43788d8f1ed92b3aaea9e02ba0d6c2"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",

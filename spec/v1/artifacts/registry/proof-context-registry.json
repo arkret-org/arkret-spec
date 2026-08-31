@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.1",
+  "version": "2026-08-31.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T04:30:00+08:00",
+  "generated_at": "2026-08-31T15:04:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1434,11 +1434,18 @@
       "object_family": "events_frontier_signature",
       "primitive": "detached_signature",
       "binding_fields": [
+        "domain",
         "frontier_root",
+        "auth_state_root",
+        "policy_frontier_root",
+        "membership_frontier_root",
         "realm_id",
-        "issuer",
+        "issuer_id",
+        "max_hlc",
         "observed_at"
-      ]
+      ],
+      "defined_in": "zh/sync/federation.md",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState/properties/signature"
     },
     {
       "domain": "ak.federation.verify_actor.signature.v1",

@@ -2617,6 +2617,15 @@
     },
     "EventsFrontierFederationPeerState": {
       "type": "object",
+      "dependentRequired": {
+        "auth_state_root": ["policy_frontier_root", "membership_frontier_root"],
+        "policy_frontier_root": ["auth_state_root", "membership_frontier_root"],
+        "membership_frontier_root": ["auth_state_root", "policy_frontier_root"]
+      },
+      "x-arkret-signature-transcript": [
+        "domain", "frontier_root", "auth_state_root", "policy_frontier_root",
+        "membership_frontier_root", "realm_id", "issuer_id", "max_hlc", "observed_at"
+      ],
       "description": "Federation peer ak.peer.events.read.frontier.v1 response. Requires S2S signed trust-domain headers.",
       "required": [
         "realm_id",
@@ -2684,7 +2693,19 @@
         },
         "signature": {
           "type": "object",
-          "description": "Service signature over the peer frontier response."
+          "description": "Closed detached-JWS envelope over the exact federation.md section 4.5.1 transcript, rebuilt from the outer response. Optional roots and max_hlc enter as null. Metadata mirrors MUST equal the rebuilt transcript and never override it.",
+          "x-arkret-signature-domain": "ak.events.frontier.signature.v1",
+          "required": ["typ", "scheme", "verification_method", "payload_digest", "created_at", "jws", "signed_payload"],
+          "properties": {
+            "typ": {"const": "ak.events.frontier.signature.v1"},
+            "scheme": {"const": "ed25519-detached-jws"},
+            "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
+            "payload_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+            "created_at": {"$ref": "./time.schema.json#/$defs/timestamp"},
+            "jws": {"type": "string", "minLength": 1},
+            "signed_payload": {"type": "object", "description": "MUST equal the exact nine-field canonical transcript reconstructed from this response; absent optional values are explicit null here."}
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

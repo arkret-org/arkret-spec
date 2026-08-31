@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9803,
+    "total_properties": 9810,
     "total_schema_documents": 163,
     "by_presence_class": {
       "optional": 2697,
       "optional_defaulted": 67,
-      "required": 6721,
+      "required": 6728,
       "required_nullable": 117,
       "tristate": 201
     },
@@ -12130,6 +12130,13 @@
         "/$defs/EventsFrontierFederationPeerState/properties/policy_frontier_root": "optional",
         "/$defs/EventsFrontierFederationPeerState/properties/realm_id": "required",
         "/$defs/EventsFrontierFederationPeerState/properties/signature": "required",
+        "/$defs/EventsFrontierFederationPeerState/properties/signature/properties/created_at": "required",
+        "/$defs/EventsFrontierFederationPeerState/properties/signature/properties/jws": "required",
+        "/$defs/EventsFrontierFederationPeerState/properties/signature/properties/payload_digest": "required",
+        "/$defs/EventsFrontierFederationPeerState/properties/signature/properties/scheme": "required",
+        "/$defs/EventsFrontierFederationPeerState/properties/signature/properties/signed_payload": "required",
+        "/$defs/EventsFrontierFederationPeerState/properties/signature/properties/typ": "required",
+        "/$defs/EventsFrontierFederationPeerState/properties/signature/properties/verification_method": "required",
         "/$defs/EventsFrontierFederationPeerState/properties/witness_receipts": "optional",
         "/$defs/EventsFrontierRequestBody/properties/actor_id": "required",
         "/$defs/EventsFrontierRequestBody/properties/realm_id": "optional",

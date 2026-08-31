@@ -189,6 +189,7 @@ from .proof_context_transcripts import (
 )
 
 from .franking_transcript import check_franking_proof_transcript
+from .frontier_transcript import check_frontier_transcript
 
 from .recovery_transcripts import (
     check_recovery_transcript_closure,
@@ -427,6 +428,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "franking_proof_transcript",
                 lambda: check_franking_proof_transcript(lint),
+            ),
+            (
+                "frontier_transcript",
+                lambda: check_frontier_transcript(lint),
             ),
             (
                 "recovery_transcripts",
