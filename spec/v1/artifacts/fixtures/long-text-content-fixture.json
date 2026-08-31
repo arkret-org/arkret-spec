@@ -144,8 +144,14 @@
             "blob_ref_digest_mismatch",
             "blob_metadata_digest_mismatch",
             "media_type_has_charset",
-            "format_media_type_mismatch",
-            "declared_size_mismatch"
+            "declared_size_mismatch",
+            "media_type_missing",
+            "media_type_unknown",
+            "legacy_format"
+          ],
+          "media_types": [
+            "text/plain",
+            "text/markdown"
           ]
         }
       },
@@ -169,14 +175,23 @@
             "non_stream_algorithm",
             "ciphertext_digest_mismatch",
             "stored_segment_reordered",
-            "last_segment_truncated"
+            "last_segment_truncated",
+            "media_type_missing",
+            "media_type_unknown",
+            "legacy_format",
+            "media_type_has_charset",
+            "root_media_type"
+          ],
+          "media_types": [
+            "text/plain",
+            "text/markdown"
           ]
         }
       },
       "expected": {
         "scheme": "ak.blob.stream_aead.v1",
         "algorithm_suffix": "_stream",
-        "segment_count_rule": "ceil(size_bytes/segment_bytes)",
+        "segment_count_rule": "max(1,ceil(size_bytes/segment_bytes))",
         "complete_only_after_all_segment_tags_and_digest_verify": true,
         "invalid_mutations_rejected": true
       }

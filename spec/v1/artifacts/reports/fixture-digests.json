@@ -222,7 +222,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
-      "sha256": "06806f6c37f10b25e9bfd621a28f6db3a22c6a15019b7346b66f34a0202642bd"
+      "sha256": "817164e7eb88e5575b7b481241b35d13759ad1669f02912f2bcad8efcad5a4bf"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",

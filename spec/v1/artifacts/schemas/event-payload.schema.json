@@ -3712,7 +3712,6 @@
           "type": "object",
           "required": [
             "kind",
-            "format",
             "body",
             "body_kind",
             "blob_ref",
@@ -3722,14 +3721,6 @@
           "properties": {
             "kind": {
               "const": "ak.content.long_text"
-            },
-            "format": {
-              "type": "string",
-              "enum": [
-                "plain",
-                "markdown"
-              ],
-              "description": "Closed set for long text. prosemirror_json is forbidden here; structured rich text needs its own Content Block."
             },
             "body": {
               "type": "string",
@@ -3763,56 +3754,15 @@
                 "text/plain",
                 "text/markdown"
               ],
-              "description": "MUST match format. No parameters: charset is fixed to UTF-8 by this kind."
+              "description": "Full-body media type and sole rendering discriminator. No parameters: charset is fixed to UTF-8 by this kind."
             }
           },
-          "additionalProperties": false,
-          "allOf": [
-            {
-              "if": {
-                "properties": {
-                  "format": {
-                    "const": "plain"
-                  }
-                },
-                "required": [
-                  "format"
-                ]
-              },
-              "then": {
-                "properties": {
-                  "media_type": {
-                    "const": "text/plain"
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "format": {
-                    "const": "markdown"
-                  }
-                },
-                "required": [
-                  "format"
-                ]
-              },
-              "then": {
-                "properties": {
-                  "media_type": {
-                    "const": "text/markdown"
-                  }
-                }
-              }
-            }
-          ]
+          "additionalProperties": false
         },
         {
           "type": "object",
           "required": [
             "kind",
-            "format",
             "body",
             "body_kind",
             "attachment"
@@ -3820,14 +3770,6 @@
           "properties": {
             "kind": {
               "const": "ak.content.long_text"
-            },
-            "format": {
-              "type": "string",
-              "enum": [
-                "plain",
-                "markdown"
-              ],
-              "description": "Closed set for long text. prosemirror_json is forbidden here; structured rich text needs its own Content Block."
             },
             "body": {
               "type": "string",
@@ -3873,7 +3815,6 @@
                     "scheme",
                     "nonce_prefix",
                     "segment_bytes",
-                    "segment_count",
                     "size_bytes"
                   ],
                   "properties": {
@@ -3892,60 +3833,16 @@
                     "size_bytes": {
                       "type": "integer",
                       "minimum": 0,
-                      "description": "Normalized full UTF-8 plaintext body bytes; encrypted_attachment.size_bytes is the plaintext count that segment_count = ceil(size_bytes / segment_bytes) is derived from (zh/crypto-media/media-and-blob.md section 3.1 / 3.3.1). The >256 KiB rule and the narrow Event-overflow exception are normative validator rules, not a schema minimum."
+                      "description": "Normalized full UTF-8 plaintext body bytes. The segment count is derived as max(1, ceil(size_bytes / segment_bytes)) and never carried on wire. The >256 KiB rule and narrow Event-overflow exception are normative validator rules."
+                    },
+                    "media_type": {
+                      "type": "string",
+                      "enum": [
+                        "text/plain",
+                        "text/markdown"
+                      ],
+                      "description": "Full-body media type and sole rendering discriminator. No parameters: charset is fixed to UTF-8 by this kind."
                     }
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "format": {
-                    "const": "plain"
-                  }
-                },
-                "required": [
-                  "format"
-                ]
-              },
-              "then": {
-                "properties": {
-                  "attachment": {
-                    "properties": {
-                      "media_type": {
-                        "const": "text/plain"
-                      }
-                    },
-                    "required": [
-                      "media_type"
-                    ]
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "format": {
-                    "const": "markdown"
-                  }
-                },
-                "required": [
-                  "format"
-                ]
-              },
-              "then": {
-                "properties": {
-                  "attachment": {
-                    "properties": {
-                      "media_type": {
-                        "const": "text/markdown"
-                      }
-                    },
-                    "required": [
-                      "media_type"
-                    ]
                   }
                 }
               }

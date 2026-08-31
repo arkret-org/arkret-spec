@@ -69,9 +69,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/classification-field-registry.json",
-      "version": "2026-08-29.1",
+      "version": "2026-08-31",
       "generated_at": null,
-      "content_digest": "sha256:d977d4f560ce402e83d6d8b7b9f56a1daf856f26f9f130602771284ec03718cb"
+      "content_digest": "sha256:5042487bbc6d84ecbb645af93a43a197baebccc48d8ec350967342ef5636deae"
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-08-30.25",
+      "version": "2026-08-30.26",
       "generated_at": null,
-      "content_digest": "sha256:77393a60ef99679e4491e9425478325ddf4ee2de5511189ebc063cadca3029d0"
+      "content_digest": "sha256:75fe404ad2fddf07c764baeaeacee0610028fd8ea75d3cb836913c3cf7914934"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",

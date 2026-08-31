@@ -6017,7 +6017,7 @@ Expected:
 
 Runner MUST 生成 256 KiB−1、256 KiB、256 KiB+1 的规范化源正文，以及 4 KiB−1、4 KiB、4 KiB+1 的 fallback；每组都必须包含多字节 Unicode scalar 落在边界附近的用例。测量对象是规范化后的 UTF-8 bytes，不是 code point、JSON escaped bytes、ciphertext 或压缩长度。正文超过 256 KiB 时只允许 `ak.content.long_text`；较小正文只有在完整 Event 否则超过 1 MiB 时才能使用 long text，该例外必须由完整 Event size validator 证明。
 
-plaintext descriptor 还 MUST 覆盖 hash-only `blob_ref`、Blob metadata digest、下载正文重算 digest、声明 size 与 `format ↔ media_type` 一致；UUID ref、带 charset 参数 media type、任一 digest/size 不一致都必须拒绝。
+plaintext descriptor 还 MUST 覆盖 hash-only `blob_ref`、Blob metadata digest、下载正文重算 digest、声明 size 与闭集 `media_type`（`text/plain` / `text/markdown`）；UUID ref、缺失/未知/带参数的 media type、遗留 `format`、任一 digest/size 不一致都必须拒绝。
 
 ### 25.2 规范化、line count 与 fallback
 
@@ -6029,7 +6029,7 @@ Runner MUST 覆盖 empty、末尾有/无 LF、多行、CRLF、bare CR、BOM、TA
 
 `vector_id`: `ak.vector.content.long_text_e2ee.v1`
 
-Runner MUST 验证 `scheme=ak.blob.stream_aead.v1`、`alg` 为 `_stream` 算法、hash-addressed ciphertext Blob、从 `size_bytes/segment_bytes` 派生段数、逐段 tag、顺序、末段与完整 ciphertext digest。whole-file AEAD、重排、截断、派生边界越界或任一 digest 不符必须 fail closed；全部段验证前不得把正文标记为完整。
+Runner MUST 验证 `scheme=ak.blob.stream_aead.v1`、`alg` 为 `_stream` 算法、hash-addressed ciphertext Blob、从 `size_bytes/segment_bytes` 派生段数、逐段 tag、顺序、末段与完整 ciphertext digest。whole-file AEAD、重排、截断、派生边界越界或任一 digest 不符必须 fail closed；全部段验证前不得把正文标记为完整。E2EE descriptor MUST 仅从 `attachment.media_type` 选择正文类型；两种合法媒体类型都必须有正例，缺失/未知/带参数的媒体类型、根级 `media_type` 或 `format` 都必须拒绝。
 
 ### 25.4 生命周期闭包
 

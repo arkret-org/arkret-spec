@@ -15,16 +15,16 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9815,
+    "total_properties": 9804,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2699,
+      "optional": 2698,
       "optional_defaulted": 67,
-      "required": 6729,
+      "required": 6721,
       "required_nullable": 117,
-      "tristate": 203
+      "tristate": 201
     },
-    "tristate_occurrences": 203,
+    "tristate_occurrences": 201,
     "tristate_audit_targets": 144,
     "tristate_sdk_dispositions": {
       "absent_null_equivalent": 135,
@@ -99,8 +99,6 @@
     "event-payload.schema.json/$defs/content_block/allOf/2/then/properties/body",
     "event-payload.schema.json/$defs/content_block_long_text/oneOf/1/allOf/0/properties/attachment",
     "event-payload.schema.json/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
-    "event-payload.schema.json/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
-    "event-payload.schema.json/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment",
     "event-payload.schema.json/$defs/device_authorize_payload/properties/expires_at",
     "event-payload.schema.json/$defs/device_push_route_active_shape/properties/expires_at",
     "event-payload.schema.json/$defs/direct_conversation_authorization_basis/allOf/0/then/properties/event_refs",
@@ -641,9 +639,7 @@
       "instance_path": "/attachment",
       "occurrences": [
         "/$defs/content_block_long_text/oneOf/1/allOf/0/properties/attachment",
-        "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
-        "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
-        "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
+        "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -6449,14 +6445,9 @@
         "/$defs/content_block/properties/reply_context/properties/excerpt": "optional",
         "/$defs/content_block/properties/reply_context/properties/message_ref": "optional",
         "/$defs/content_block/properties/reply_context/properties/sender_actor_id": "optional",
-        "/$defs/content_block_long_text/oneOf/0/allOf/0/if/properties/format": "required",
-        "/$defs/content_block_long_text/oneOf/0/allOf/0/then/properties/media_type": "optional",
-        "/$defs/content_block_long_text/oneOf/0/allOf/1/if/properties/format": "required",
-        "/$defs/content_block_long_text/oneOf/0/allOf/1/then/properties/media_type": "optional",
         "/$defs/content_block_long_text/oneOf/0/properties/blob_ref": "required",
         "/$defs/content_block_long_text/oneOf/0/properties/body": "required",
         "/$defs/content_block_long_text/oneOf/0/properties/body_kind": "required",
-        "/$defs/content_block_long_text/oneOf/0/properties/format": "required",
         "/$defs/content_block_long_text/oneOf/0/properties/kind": "required",
         "/$defs/content_block_long_text/oneOf/0/properties/line_count": "optional",
         "/$defs/content_block_long_text/oneOf/0/properties/media_type": "required",
@@ -6466,17 +6457,11 @@
         "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment": "tristate",
         "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment/properties/blob_ref": "optional",
         "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment/properties/encryption_algorithm": "optional",
+        "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment/properties/media_type": "optional",
         "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment/properties/size_bytes": "required",
-        "/$defs/content_block_long_text/oneOf/1/allOf/2/if/properties/format": "required",
-        "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment": "tristate",
-        "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment/properties/media_type": "required",
-        "/$defs/content_block_long_text/oneOf/1/allOf/3/if/properties/format": "required",
-        "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment": "tristate",
-        "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment/properties/media_type": "required",
         "/$defs/content_block_long_text/oneOf/1/properties/attachment": "required",
         "/$defs/content_block_long_text/oneOf/1/properties/body": "required",
         "/$defs/content_block_long_text/oneOf/1/properties/body_kind": "required",
-        "/$defs/content_block_long_text/oneOf/1/properties/format": "required",
         "/$defs/content_block_long_text/oneOf/1/properties/kind": "required",
         "/$defs/content_block_long_text/oneOf/1/properties/line_count": "optional",
         "/$defs/cross_object_redaction_payload/properties/preserve": "optional",
@@ -7422,7 +7407,6 @@
         "/$defs/call_state_payload/properties/transcript_transition",
         "/$defs/call_state_payload/properties/transcript_transition/properties/result",
         "/$defs/capability_revoke_payload/properties/grant_ref",
-        "/$defs/content_block/properties/format",
         "/$defs/content_block/properties/parts",
         "/$defs/device_list_update_payload/properties/changed_ids",
         "/$defs/device_list_update_payload/properties/device_list_digest",
@@ -9469,7 +9453,6 @@
         "/properties/updated_by": "optional"
       },
       "conditionally_required": [
-        "/$defs/content_block/properties/format",
         "/$defs/content_block/properties/parts",
         "/properties/content",
         "/properties/encrypted_content",
@@ -9909,7 +9892,6 @@
         "/properties/updated_by": "optional"
       },
       "conditionally_required": [
-        "/$defs/content_block/properties/format",
         "/$defs/content_block/properties/parts",
         "/properties/stage",
         "/properties/state_changed_at"

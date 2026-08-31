@@ -126,7 +126,6 @@ final 不同不构成 Content schema 错误。
 ```json
 {
   "kind": "ak.content.long_text",
-  "format": "markdown",
   "body": "前 4 KiB 内的可独立展示前缀……",
   "body_kind": "prefix",
   "blob_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -139,15 +138,14 @@ final 不同不构成 Content schema 错误。
 | 字段 | 类型 | 必需 | 规则 |
 |------|------|------|------|
 | `kind` | const | MUST | `ak.content.long_text` |
-| `format` | enum | MUST | 闭集 `plain` \| `markdown`；本 kind MUST NOT 使用 `prosemirror_json`（结构化富文本应有独立 Content Block/schema） |
 | `body` | string | MUST | fallback，≤ **4 KiB UTF-8 bytes（4,096）** |
 | `body_kind` | enum | MUST | 闭集 `prefix` \| `summary` |
 | `blob_ref` | hash blob ref | MUST | 完整 UTF-8 正文字节的内容地址，形如 `ak:blob:(sha256\|blake3):<64 hex>` |
 | `size_bytes` | uint64 | MUST | §4.1.2 规范化后完整 UTF-8 正文字节数 |
 | `line_count` | uint64 | MAY | 按 §4.1.2 计算 |
-| `media_type` | enum | MUST | `text/plain` 对应 `format=plain`，`text/markdown` 对应 `format=markdown` |
+| `media_type` | enum | MUST | 闭集 `text/plain` \| `text/markdown`；完整正文的唯一媒体类型及渲染判别字段 |
 
-shape MUST 是 `additionalProperties=false` 的闭合对象。
+shape MUST 是 `additionalProperties=false` 的闭合对象，MUST NOT 携带 `format`。完整正文只允许 `text/plain` 或 `text/markdown`；结构化富文本应使用独立 Content Block/schema。
 
 `blob_ref` 本身就是完整 plaintext 字节的 digest commitment，因此本 kind **不**再增加重复的 `content_digest`。接收端 MUST 把 `blob_ref=ak:blob:<suite>:<hex>` 拆成 `<suite>:<hex>`，要求它与 Blob metadata 的 `content_digest` 相等，并对下载的规范化正文重算；三者任一不等即 `digest_mismatch`。UUID 形态 Blob ref 不具备该性质，故在本 Content Block 中 MUST NOT 使用；`media_type` MUST NOT 携带 `; charset=utf-8` 等参数（charset 由本 kind 固定为 UTF-8）。
 
@@ -158,7 +156,6 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
 ```json
 {
   "kind": "ak.content.long_text",
-  "format": "plain",
   "body": "已认证 fallback",
   "body_kind": "summary",
   "line_count": 12000,
@@ -170,13 +167,11 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
       "algorithm": "MLS",
       "group_state_ref": "ak:event:AckEwH4jJdfBphZALp-M3ga3R1KDhI2KpvVb8MZiOMbW"
     },
-    "epoch": 42,
     "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "size_bytes": 700000,
     "media_type": "text/plain",
     "nonce_prefix": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
     "segment_bytes": 262144,
-    "segment_count": 3,
     "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream"
   }
 }
@@ -184,11 +179,11 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
 
 规则：
 
-- 完整正文的明文字节数由 `attachment.size_bytes` 承载（[`../crypto-media/media-and-blob.md` §3.1](../crypto-media/media-and-blob.md)：`encrypted_attachment.size_bytes` 是**明文**字节数，与 `segment_count == ceil(size_bytes / segment_bytes)` 同源）。本 kind MUST NOT 再定义 `plaintext_size_bytes` 之类的第二个明文尺寸字段；
+- 完整正文的明文字节数由 `attachment.size_bytes` 承载（[`../crypto-media/media-and-blob.md` §3.1](../crypto-media/media-and-blob.md)：`encrypted_attachment.size_bytes` 是**明文**字节数，段数由 `N=max(1,ceil(size_bytes/segment_bytes))` 本地派生）。本 kind MUST NOT 再定义 `plaintext_size_bytes` 之类的第二个明文尺寸字段；
 - `attachment.scheme` MUST 是 `ak.blob.stream_aead.v1`，`attachment.alg` MUST 是对应的 `_stream` 算法。E2EE long text MUST NOT 使用 whole-file AEAD——强制 streaming 是为了让超过分界的正文能边下边验且内存有界，不作为同一语义的第二种可选形态；
 - `attachment.blob_ref` MUST 是 hash-addressed，且其中的 `<suite>:<hex>` MUST 同时等于 `attachment.ciphertext_digest` 与 Blob metadata `content_digest`；三者都承诺按 `segment_index` 顺序拼接、每段包含 AEAD tag 的完整 stored ciphertext bytes；
-- `attachment.media_type` MUST 与 `format` 一致；
-- `segment_count` MUST 等于 `ceil(attachment.size_bytes / attachment.segment_bytes)`，并与实际收到的 segment 数一致（[`../crypto-media/media-and-blob.md` §3.3.1](../crypto-media/media-and-blob.md)）；接收端 MUST NOT 从 stored ciphertext 长度反推明文长度；
+- `attachment.media_type` MUST 是 `text/plain` 或 `text/markdown`，MUST NOT 携带参数，charset 固定为 UTF-8；它是完整正文的唯一媒体类型及渲染判别字段，并继续按通用附件规则进入逐段 AAD。根级 MUST NOT 携带 `format` 或 `media_type`，MUST NOT 从 Blob 服务 metadata 或 HTTP Content-Type 推断正文渲染类型；
+- 接收端 MUST 本地派生 `N=max(1,ceil(attachment.size_bytes/attachment.segment_bytes))`，并验证实际 segment 数与 `N` 一致；attachment MUST NOT 携带 `segment_count` 或 `epoch`，epoch 从 `key_ref.group_state_ref` 指向的已验证 group state 派生（[`../crypto-media/media-and-blob.md` §3.3.1](../crypto-media/media-and-blob.md)）；接收端 MUST NOT 从 stored ciphertext 长度反推明文长度；
 - 完整 `ciphertext_digest`、逐段 AEAD、末段与顺序全部验证通过前，接收端 MUST NOT 把正文标成完整；
 - fallback `body` 已在 Message encrypted payload 内认证，Blob 服务 MUST NOT 改写。
 
@@ -200,7 +195,7 @@ Blob 解码后的正文 MUST：
 - 保留原始 Unicode scalar sequence，MUST NOT 做 NFC/NFKC 改写；
 - 行结束统一使用 LF（U+000A）；producer MUST 在计算 digest、size 与 line count **之前**把 CRLF/CR 规范化为 LF；
 - 除 LF、TAB 外 MUST NOT 含 C0 控制字符与 DEL；
-- `format=markdown` 按不可信输入消毒，MUST NOT 执行 raw HTML/script。
+- Markdown 按不可信输入消毒，MUST NOT 执行 raw HTML/script。短文本由 `format=markdown` 选择；long-text 完整正文由明文根级 `media_type=text/markdown` 或 E2EE `attachment.media_type=text/markdown` 选择。
 
 `size_bytes`（plaintext 形态）与 `attachment.size_bytes`（E2EE 形态）都是上述规范化后完整 UTF-8 字节长度。fallback `body` 自身 MUST 满足相同的 UTF-8、LF、BOM、控制字符与 markdown 消毒规则；producer MUST 先规范化完整正文，再从该结果生成 prefix 或 summary，MUST NOT 对两者采用不同的换行 / Unicode 处理。
 
