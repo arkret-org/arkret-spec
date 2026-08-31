@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.5",
+  "version": "2026-09-01.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T22:00:00+08:00",
+  "generated_at": "2026-09-01T10:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -176,34 +176,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.agent.pcr_history_backup.v1",
-      "status": "active",
-      "domain": "agent",
-      "applies_to_fixtures": [
-        "agent-vectors-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/identity/key-management.md",
-        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ],
-      "description": "Controller-owned recovery_public_key backup of exporter history-secret ranges for an Agent PCR, exact public/plaintext identity-tuple binding, no pairing readiness gate, and prohibition on portable active MLS state, Agent runtime private-key backup or per-Agent human mnemonic."
-    },
-    {
-      "vector_id": "ak.vector.agent.pcr_separation.v1",
-      "status": "active",
-      "domain": "agent",
-      "applies_to_fixtures": [
-        "agent-vectors-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/identity/key-management.md",
-        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ],
-      "description": "Agent DID-to-PCR binding, controller delegated authoring attribution, control-fact placement, and rejection of non-PCR Realms at either principal control id."
-    },
-    {
       "vector_id": "ak.vector.agent.membership_cascade.v1",
       "status": "active",
       "domain": "agent",
@@ -327,6 +299,34 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.agent.pcr_history_backup.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ],
+      "description": "Controller-owned recovery_public_key backup of exporter history-secret ranges for an Agent PCR, exact public/plaintext identity-tuple binding, no pairing readiness gate, and prohibition on portable active MLS state, Agent runtime private-key backup or per-Agent human mnemonic."
+    },
+    {
+      "vector_id": "ak.vector.agent.pcr_separation.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ],
+      "description": "Agent DID-to-PCR binding, controller delegated authoring attribution, control-fact placement, and rejection of non-PCR Realms at either principal control id."
     },
     {
       "vector_id": "ak.vector.agent.provision.v1",

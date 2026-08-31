@@ -282,7 +282,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "9174f557595ff3cb624cebd9c074436c4d3d40eb4c3ea70ccc1cba8681a7da82"
+      "sha256": "2e22e207c11a11a5332b4a46f58c7ff09ea07e55a9ee083069273d9b1fa56752"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -370,7 +370,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
-      "sha256": "72ae6965bf6d60bf3a6133f2841751be2990eec937bc16b05610092c3decb3c3"
+      "sha256": "b53d02d94838d04a7782d4321a6d5f08c81e632c47691db6921ecb5101a5b0d1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
@@ -378,7 +378,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-sequence-high-water-fixture.json",
-      "sha256": "0191fcb8ba48846cd609997ccb0afbad4b55681676e88afccdff4b47bb8d5ef5"
+      "sha256": "9a9332ecc228c864184dac1c3dc7e3daf72bd7b01a61561046c426213b4455bd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",

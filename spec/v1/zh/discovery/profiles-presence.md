@@ -248,7 +248,8 @@ U+000A 外的 C0/C1 control。`last_active_at` 默认省略；policy 允许时�
 timestamp 或对齐 Unix epoch UTC、duration 不小于 PT60S 的 ISO 8601 interval bucket。接收方
 独立验证 bucket 边界、fixed-duration 与 policy 粒度，畸形值 fail closed。
 
-同一 actor 多设备 presence 的确定性聚合由接收端完成：
+同一 actor 的 verified endpoint presence 由接收端确定性聚合：ordinary 可有多个设备；Agent
+只接受唯一 current runtime key。已知 runtime replacement 后旧 key 的记录立即退出聚合，不等待 TTL：
 
 1. 只考虑外层与 plaintext TTL 都未过期且 sequence 未回退的信号；
 2. `state` 优先级为 `dnd > online > idle`，没有有效信号即 `offline`；
@@ -257,7 +258,7 @@ timestamp 或对齐 Unix epoch UTC、duration 不小于 PT60S 的 ISO 8601 inter
 
 Station sync surface 不得解密、聚合或投影 presence 内容。
 
-**持续在线刷新（normative）。** 声明自己当前可达并选择广播 presence 的发送端（包括前台客户端、后台常驻客户端与 Agent runtime）MUST 在上一条 `ak.presence` 的 effective expiry 之前发送同一 scope 的后继信号；每个后继信号 MUST 使用严格递增的 `(sender_actor_id, sender_device_id, canonical scope_ref)` `payload_sequence`、新的 Signal nonce，并重新绑定发送时的 accepted `seal_ref` / MLS epoch。对 v1 `session` class 的 30 秒上限，实现 SHOULD 使用 20–25 秒的刷新周期，并 MUST 为调度、网络抖动与 session refresh 预留至少 5 秒余量；不得把进程健康检查、WebSocket / account stream keepalive 或最后一次 durable Message 当作 presence 刷新。运行时一旦不能取得当前授权、accepted Seal、可持久化的 MLS Signal nonce state，或不能在 expiry 前完成加密提交，MUST 停止宣称 online；接收端继续按上面的 TTL 规则自然聚合为 `offline`，不得延长旧信号。
+**持续在线刷新（normative）。** 声明自己当前可达并选择广播 presence 的发送端（包括前台客户端、后台常驻客户端与 Agent runtime）MUST 在上一条 `ak.presence` 的 effective expiry 之前发送同一 scope 的后继信号；每个后继信号 MUST 使用 [`signal.md` §2](../sync/signal.md) 对相应 verified endpoint 规定的严格递增 `payload_sequence`、新的 Signal nonce，并重新绑定发送时的 accepted `seal_ref` / MLS epoch。对 v1 `session` class 的 30 秒上限，实现 SHOULD 使用 20–25 秒的刷新周期，并 MUST 为调度、网络抖动与 session refresh 预留至少 5 秒余量；不得把进程健康检查、WebSocket / account stream keepalive 或最后一次 durable Message 当作 presence 刷新。运行时一旦不能取得当前授权、accepted Seal、可持久化的 MLS Signal nonce state，或不能在 expiry 前完成加密提交，MUST 停止宣称 online；接收端继续按上面的 TTL 规则自然聚合为 `offline`，不得延长旧信号。
 
 刷新生命周期 MUST 与该 runtime 的可达生命周期一致：启动并完成 session、scope 与 MLS readiness 后 SHOULD 立即首发；正常运行期间按上述周期刷新；pause / deactivate / unbind、授权或 session 无法恢复、网络断开且不能提交、进程关闭时停止刷新。发送端 MAY 在可用且不会拖延关闭时发送显式 `state="offline"`，但接收端不得依赖该 best-effort 信号，TTL expiry 始终是权威离线边界。对同时接入 durable Event 流的 Agent，presence 发送失败不得阻塞或伪造 Message 接收/回复成功；两条链路必须分别暴露可诊断状态。
 

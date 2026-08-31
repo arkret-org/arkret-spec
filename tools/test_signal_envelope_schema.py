@@ -86,12 +86,18 @@ class SignalEnvelopeSchemaTest(unittest.TestCase):
         for value in (None, {}, {**envelope["proof"], "device_evidence": {}}):
             self.assertFalse(self.validator.is_valid({**envelope, "proof": value}))
 
-    def test_no_remote_authority_sidecar_or_new_sender_carrier(self):
+    def test_closed_ordinary_and_agent_sender_branches(self):
         envelope = self.envelope()
         for member in ("device_projection_attestation", "authorization_chain", "sender_agent_id"):
             self.assertFalse(self.validator.is_valid({**envelope, member: {}}))
-        del envelope["sender_device_id"]
-        self.assertFalse(self.validator.is_valid(envelope))
+        agent = copy.deepcopy(envelope)
+        del agent["sender_device_id"]
+        agent["proof"]["verification_method"] = "did:webvh:z6mkfixture:agent.example#runtime-key"
+        self.validator.validate(agent)
+        for invalid in (None, "", "agent"):
+            mutated = copy.deepcopy(agent)
+            mutated["sender_device_id"] = invalid
+            self.assertFalse(self.validator.is_valid(mutated))
 
     def test_schema_acceptance_does_not_assert_signature_authenticity(self):
         envelope = self.envelope()

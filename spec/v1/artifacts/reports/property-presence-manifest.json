@@ -18,9 +18,9 @@
     "total_properties": 9815,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2698,
+      "optional": 2699,
       "optional_defaulted": 67,
-      "required": 6732,
+      "required": 6731,
       "required_nullable": 117,
       "tristate": 201
     },
@@ -12736,10 +12736,13 @@
         "/properties/scope_ref": "required",
         "/properties/seal_ref": "required",
         "/properties/sender_actor_id": "required",
-        "/properties/sender_device_id": "required",
+        "/properties/sender_device_id": "optional",
         "/properties/sent_at": "required",
         "/properties/signal_class": "required"
-      }
+      },
+      "conditionally_required": [
+        "/properties/sender_device_id"
+      ]
     },
     "signal-message-stream.schema.json": {
       "schema_ids": [

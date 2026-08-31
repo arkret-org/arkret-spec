@@ -211,8 +211,57 @@
         "currently revoked, fenced, or conflicted devices are rejected by source and recipient even if active at seal_ref and the MLS leaf has not yet been removed",
         "recipient requires current exact-account device key and authorization Event to match the active MLS leaf transition binding; successful AEAD does not establish sender identity",
         "queued source dispatch revalidates current device authority, membership, scope, class action, TTL and MLS outer basis",
-        "Agent and minimal-metadata endpoints cannot synthesize DeviceId or borrow a controller device to fit the current Signal carrier"
+        "Agent uses the absent-sender_device_id branch only after accepted Agent classification and current key/lifecycle/controller authority verification; minimal-metadata endpoints cannot use it",
+        "Agent sequence high-water is keyed by the verified raw signing-key digest; same-key reauthorization continues the sequence while an accepted new-key runtime replacement starts a new domain"
       ]
+    },
+    {
+      "name": "agent_sender_branch",
+      "vector_id": "ak.vector.signal.device_authorization_domain.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_agent_sender_admission",
+          "sender_device_id_present": false,
+          "accepted_agent_classification": true,
+          "current_agent_key": true,
+          "lifecycle_active": true,
+          "controller_account_active": true,
+          "controller_membership_generation_current": true,
+          "unique_active_leaf": true,
+          "leaf_actor_method_key_authorization_match": true
+        }
+      },
+      "expected": {
+        "source_decision": "accept",
+        "recipient_decision": "accept_after_aead_and_product_checks"
+      }
+    },
+    {
+      "name": "agent_sender_branch_mutations",
+      "vector_id": "ak.vector.signal.device_authorization_domain.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_agent_sender_mutations",
+          "mutations": [
+            "ordinary_account_without_sender_device_id",
+            "agent_with_sender_device_id",
+            "agent_with_controller_device_id",
+            "agent_key_revoked_or_superseded",
+            "agent_lifecycle_paused_or_deactivated",
+            "controller_membership_generation_ended",
+            "same_principal_other_station",
+            "stale_agent_leaf",
+            "leaf_authorization_ref_mismatch",
+            "concurrent_different_agent_keys",
+            "pairwise_actor_without_sender_device_id"
+          ]
+        }
+      },
+      "expected": {
+        "source_decision": "reject",
+        "recipient_decision": "reject_before_display_or_high_water",
+        "destination_does_not_resolve_remote_agent_authority": true
+      }
     },
     {
       "name": "destination_without_remote_directory_relays",

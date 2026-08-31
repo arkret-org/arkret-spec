@@ -10,9 +10,14 @@
     "ak.vector.signal.sequence_high_water.v1"
   ],
   "allocator": {
-    "domain": [
+    "ordinary_domain": [
       "sender_actor_id",
       "sender_device_id",
+      "canonical_scope_ref"
+    ],
+    "agent_domain": [
+      "sender_actor_id",
+      "verified_agent_signing_public_key_digest",
       "canonical_scope_ref"
     ],
     "value_type": "u64",
@@ -62,6 +67,24 @@
           257
         ],
         "same_device": true
+      },
+      {
+        "name": "same_key_reauthorization_continues_sequence",
+        "same_public_key_digest": true,
+        "authorize_event_changed": true,
+        "before": 4096,
+        "after": 4097,
+        "reset_forbidden": true
+      },
+      {
+        "name": "accepted_runtime_replacement_starts_new_key_domain",
+        "same_actor": true,
+        "different_public_key_digest": true,
+        "old_key_authorization_current": false,
+        "new_key_authorization_current": true,
+        "old_domain_high_water": 4096,
+        "new_domain_first": 0,
+        "old_runtime_rejected_before_high_water": true
       }
     ]
   },

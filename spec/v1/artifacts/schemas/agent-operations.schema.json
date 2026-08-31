@@ -1207,7 +1207,7 @@
     },
     "agent_renew_pairing_request_body": {
       "type": "object",
-      "description": "Re-open bootstrap pairing or replace an agent runtime. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. An Agent with no active accepted runtime-key authorization re-opens bootstrap pairing; an Agent holding an active authorized key (lifecycle active or paused) performs runtime replacement re-pairing. Lifecycle intent, existing keys and grants stay untouched until the new controller-signed authorization with an exact supersedes set is accepted atomically, and completion preserves lifecycle intent. deactivated rejects.",
+      "description": "Re-open bootstrap pairing or replace an agent runtime. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. An Agent with no active accepted runtime-key authorization re-opens bootstrap pairing; an Agent holding an active authorized key (lifecycle active or paused) performs runtime replacement re-pairing with a different raw Ed25519 signing key. Reusing the replaced key is rejected; same-key reauthorization is not pairing. Lifecycle intent, existing keys and grants stay untouched until the new controller-signed authorization with an exact supersedes set is accepted atomically, and completion preserves lifecycle intent. deactivated rejects.",
       "properties": {
         "pairing_ttl_ms": {
           "type": "integer",

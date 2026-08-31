@@ -8,7 +8,6 @@
     "realm_id",
     "scope_ref",
     "sender_actor_id",
-    "sender_device_id",
     "seal_ref",
     "signal_class",
     "sent_at",
@@ -27,7 +26,8 @@
       "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "sender_device_id": {
-      "$ref": "./common-ids.schema.json#/$defs/device_id"
+      "$ref": "./common-ids.schema.json#/$defs/device_id",
+      "description": "Closed sender discriminator: required exactly for an ordinary account-device sender and absent exactly for an Agent sender. null and sentinels are forbidden. Absence only selects the candidate Agent branch; source and recipient still verify accepted Agent classification and current runtime authority."
     },
     "seal_ref": {
       "type": "string",
@@ -124,13 +124,27 @@
     }
   },
   "additionalProperties": false,
+  "oneOf": [
+    {
+      "required": [
+        "sender_device_id"
+      ]
+    },
+    {
+      "not": {
+        "required": [
+          "sender_device_id"
+        ]
+      }
+    }
+  ],
   "$defs": {
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "signal_proof": {
       "type": "object",
-      "description": "Detached device proof over canonical_json({context:'ak.signal_proof.v1', envelope_digest, sender_actor_id, sender_device_id, verification_method, created_at, domain?, audience?}). envelope_digest hashes the complete SignalEnvelope with proof removed; created_at MUST equal the outer sent_at. Source and recipient authenticate current exact-account device authority and verify this producer signature. Peer destination validates closed proof/transcript structure and recomputed digest, not the producer signature or remote device authority; recipient must independently authenticate before display or effects (zh/sync/signal.md section 3).",
+      "description": "Detached sender proof over canonical_json({context:'ak.signal_proof.v1', envelope_digest, sender_actor_id, sender_device_id?, verification_method, created_at, domain?, audience?}). sender_device_id exists only for the ordinary branch and is omitted for Agent. envelope_digest hashes the complete SignalEnvelope with proof removed; created_at MUST equal the outer sent_at. Source and recipient authenticate current endpoint authority and verify this producer signature. Peer destination validates closed proof/transcript structure and recomputed digest, not the producer signature or remote authority; recipient must independently authenticate before display or effects (zh/sync/signal.md section 3).",
       "required": [
         "kind",
         "verification_method",
@@ -145,7 +159,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "The DID URL bare DID component MUST project through its registered adapter to the signing principal component of sender_actor_id (account_id.principal_id for account), and its fragment MUST equal sender_device_id; constructing it by appending to did_core_id is forbidden. This projection does not establish the Station component or authorize a device. Source and recipient independently bind current authority and verify key to the complete (sender_actor_id, sender_device_id); seal_ref selects only Realm/scope authority. Destination validates the projection and proof transcript but MUST NOT query remote device authority or verify the producer signature as a relay prerequisite. Agent and minimal-metadata endpoints MUST NOT synthesize device identities to fit this carrier (zh/sync/signal.md sections 1 and 3)."
+          "description": "The DID URL bare DID component MUST project through its registered adapter to the signing principal component of sender_actor_id (account_id.principal_id for account). Ordinary requires fragment == sender_device_id. Agent requires the complete method byte-identical to the current accepted Agent signing-key binding and forbids sender_device_id. Constructing a method by appending to did_core_id is forbidden. The projection does not establish Station, Agent classification, or authority. Source and recipient independently bind current exact endpoint authority; destination validates projection and transcript structure but does not query remote authority or verify the producer signature as a relay prerequisite. Minimal-metadata endpoints cannot use either branch."
         },
         "envelope_digest": {
           "$ref": "#/$defs/digest"

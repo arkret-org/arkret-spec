@@ -20,24 +20,28 @@ encrypted envelope、一条 send/subscribe live rail 与一个可选单跳 peer 
 
 ```text
 SignalEnvelope {
-  realm_id, scope_ref, sender_actor_id, sender_device_id, seal_ref,
+  realm_id, scope_ref, sender_actor_id, sender_device_id?, seal_ref,
   signal_class, sent_at, expires_at, encrypted_payload, proof
 }
 ```
 
 Signal 始终是短 TTL encrypted-only transport，不是 Event、history response 或 durable object。Sender proof 使用
-`ak.signal_proof.v1` 并覆盖移除 proof 后的完整 envelope digest。当前 closed carrier 必须携带
-`sender_device_id: DeviceId`，因此本节的可执行发送者身份是 ordinary account-device。
-Agent runtime 与 minimal-metadata pairwise endpoint 没有可直接套用的 device carrier，MUST NOT
-合成 DeviceId、借用 controller device 或公开真实账号来发送 Signal；不具备匹配 carrier 的
-endpoint/scope MUST NOT 广告 Signal 可用。本节不新增 endpoint、profile 或 sender wire 分支。
+`ak.signal_proof.v1` 并覆盖移除 proof 后的完整 envelope digest。sender 是 closed XOR：ordinary
+account-device MUST 携带 `sender_device_id: DeviceId`；Agent MUST 省略该字段，且 `null`/空值非法。
+字段存在性只选择候选分支，不能证明 actor 是 Agent；source 与 recipient MUST 从 accepted principal
+classification 和 current authority 独立确认。minimal-metadata pairwise endpoint 没有 Signal carrier，
+MUST NOT 冒入 Agent 分支。两分支均不得合成 DeviceId、借用 controller device 或 ordinary
+directory；不具备匹配 carrier/authority 的 endpoint/scope MUST NOT 广告 Signal 可用。本节不新增
+endpoint、profile、版本或 runtime-epoch 字段。
 
-`sender_actor_id` 是完整 `ActorId`。`verification_method` 的 bare DID 经已登记 adapter
-投影后 MUST 等于其 signing principal 分量（`account` 分支的 `account_id.principal_id`），fragment MUST 等于 `sender_device_id`。
-该 DID 投影不能证明 Station 分量；source 与 recipient 的设备信任锚和 current accepted authorization 必须独立绑定
-完整 `(sender_actor_id, sender_device_id)`，不得用入口 Station、session audience 或裸 principal
-补造另一账号的授权。完整 ActorId 同时进入 envelope proof 和 AAD。destination 的 peer transport
-admission 不解析远端设备目录、不验 producer signature；这不改变 recipient 的独立验证义务（§3）。
+`sender_actor_id` 是完整 `ActorId`。`verification_method` 的 bare DID 经已登记 adapter 投影后 MUST
+等于其 signing principal 分量（account 分支的 `account_id.principal_id`）。ordinary 分支的 fragment
+MUST 等于 `sender_device_id`；Agent 分支的完整 method MUST 逐字等于 current accepted
+`ak.agent.key.authorize` signing-key binding。DID 投影不能证明 Station 分量、Agent classification 或
+authorization；source 与 recipient 必须独立绑定完整 ActorId 与 endpoint authority，不得用入口
+Station、session audience 或裸 principal 补造另一账号。完整 ActorId 和实际存在的 sender endpoint
+字段同时进入 proof 与 AAD。destination 的 peer transport admission 不解析远端 authority、不验
+producer signature；这不改变 recipient 的独立验证义务（§3）。
 
 Signal 的 raw key 必须 per verified sender 派生；exporter scope 可用本 epoch history secret，standard MLS 使用
 同 epoch、不可交付的 `ak.signal-root-v1` exporter root。两者都以 exact active Leaf BasicCredential identity 作为
@@ -61,11 +65,11 @@ Signal rail 的路由与去重前提：
 | 字段 | 约束 |
 | --- | --- |
 | `kind` | `const`，取该 profile 的 payload kind（如 `ak.receipt.read`）。它是解密后的唯一 payload 判别式；外层不得出现同义 selector。 |
-| `payload_sequence` | 非负 `u64`，按 `(sender_actor_id, sender_device_id, canonical scope_ref)` **严格单调递增但不要求连续**；§2 receiver high-water 的候选值。profile 自己的产品序列（call 的 `seq`、message stream 的 `seq`）与它相互独立，不得互相替代。 |
+| `payload_sequence` | 非负 `u64`，按 verified sender endpoint 与 canonical scope（ordinary=`(sender_actor_id,sender_device_id,scope)`；Agent=`(sender_actor_id,agent_signing_public_key_digest,scope)`）**严格单调递增但不要求连续**；§2 receiver high-water 的候选值。profile 自己的产品序列与它相互独立。 |
 
-Realm scope、sender device 与发送时间由外层已签名 envelope 承载，plaintext MUST NOT 重复
-`realm_id`、`sender_device_id` 与 `sent_at`（或等价的 `created_at`）；需要它们时接收方直接从
-envelope 取值。profile 需要在密文内表达读者 / 发布者身份时使用 `actor_id`，接收方 MUST 校验
+Realm scope、sender endpoint 与发送时间由外层已签名 envelope 和 verified authority 承载，
+plaintext MUST NOT 重复 `realm_id`、`sender_device_id`、Agent key digest 与 `sent_at`（或等价的
+`created_at`）；需要它们时接收方从 envelope 和已验证 authority 取值。profile 需要在密文内表达读者 / 发布者身份时使用 `actor_id`，接收方 MUST 校验
 它逐字等于外层 `sender_actor_id`（`ak.receipt.read` 与 `ak.presence` 属此类）。plaintext TTL
 字段（`ttl_ms`）只能收紧、不得放宽外层 `expires_at`。
 
@@ -97,8 +101,8 @@ MUST NOT 按字段名手工解析。新增 profile 只能新增登记行，不�
   上限；把 plaintext 定成 48 KiB 会让单个 `ciphertext` 字符串（65,558 characters）就超过 envelope 上限，
   使该组合永远不可满足；
 - relay 每次只允许一个 destination peer hop，不得形成 signal mesh 转发链；
-- receiver 在 proof/AAD/AEAD/plaintext schema 全部通过后，按 `(sender_actor_id, sender_device_id, canonical
-  scope_ref)` 维护 `payload_sequence` high-water；新值 MUST 严格大于旧值，但任意正向 gap
+- receiver 在 current authority、proof/AAD/AEAD/plaintext schema 全部通过后，按上述两分支的
+  verified endpoint domain 维护 `payload_sequence` high-water；新值 MUST 严格大于旧值，但任意正向 gap
   （例如 `7 -> 1024`）MUST 接受。`N+1` 先到后，迟到的 `N` 是
   `signal_payload_sequence_stale`，不是“缺少 catch-up”。
 - exact same envelope digest 的重投是 `signal_exact_envelope_replay`；使用新 nonce/ciphertext
@@ -106,11 +110,25 @@ MUST NOT 按字段名手工解析。新增 profile 只能新增登记行，不�
 - sequence 位于密文内，server 只按完整 `envelope_digest` 做短期 replay suppression，不解密、
   不读取 high-water，也不把 digest 升级成业务 ID。
 
-sender MUST 使用 durable per-`(sender_actor_id, sender_device_id, canonical scope_ref)` `u64` allocator。允许先原子
+sender MUST 使用 durable per-verified-endpoint/scope `u64` allocator。ordinary 域不变；Agent 域使用
+完整 ActorId、SDK 对 current binding 32-byte raw Ed25519 key 计算的唯一
+`agent_signing_public_key_digest` 与 canonical scope。允许先原子
 预留 block；durable `next_unreserved` MUST 在返回 block 首值前提交。crash、reservation 尾部、
 加密失败、admission 失败或 submit 结果不确定均可永久 burn sequence 并形成 gap，MUST NOT
 回退或复用。多进程 / 多 tab MUST 共享原子 store/CAS 或单写 owner；process-local counter 不合规。
 UUIDv7、wall clock、`sent_at`、随机 salt 或 AEAD nonce counter 均不得替代该公共 sequence。
+
+Agent 正式首次配对、runtime replacement 和丢失 allocator 后的恢复配对 MUST 使用新签名 key；
+replacement admission MUST 至少拒绝与被替换 runtime 相同的 raw key。同 key re-authorization、session
+refresh、pause/resume、MLS epoch 更新、普通重启和保留 allocator 的部署迁移都不创建新 sequence
+domain。仅持私钥但无法证明 allocator 未回退时 MUST 停止发送并走 new-key replacement，不得猜测、
+读取某个 recipient high-water、改 method 后清零或 wrap `u64`。新 authorization accepted 且目标
+scope 的新 MLS transition 就绪后，新 key domain MAY 从 0 开始；旧 key 随 current authorization
+失效，即使给出更大 sequence 也必须在推进 high-water 前拒绝。多个不同 raw key 的 authorization
+并发存活时不得选“较新”key，Signal fail closed 直到 controller 收敛。
+
+sequence domain 与 AEAD nonce domain 独立：新 signing key 或 sequence 清零不允许在旧
+`(group,epoch,sender_domain)` 下重用 nonce；必须完成 accepted MLS transition 并按实际新加密域持久预留。
 
 上述 `sender_actor_id` 使用完整 ActorId 的 JCS 值。持久 namespace 已按完整 AccountId 隔离的
 account sender MAY 在该 namespace 内仅存 device/scope 子键，但 MUST 校验 namespace 与待发送
@@ -174,7 +192,7 @@ conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖�
 6. 恶意 source 以有效 peer 签名提交结构正确但 producer signature 伪造的 envelope：destination
    可转交，recipient MUST 验签拒绝，即使密文能解开；proof digest/AAD 或 sender routing 不匹配则在 destination 丢弃；
 7. source 入队后发生撤销、退群、action 收紧或过期：出站 fresh admission 拒绝，不发送旧 item；
-8. Agent/minimal 无匹配 sender carrier：不得合成 device 或借用 ordinary 目录、不得误广告可用。
+8. Agent current authority、active unique leaf 与 method/key/authorization binding 全部匹配时可用 Agent sender 分支；ordinary 省略 device、Agent 携 device/controller device、paused/deactivated、key revoke/supersede/expire/conflict、controller membership generation ended、旧 leaf 或 pairwise 冒入均拒绝。
 
 Service Describe 的服务级 operation 广告仅表示 transport surface 存在，不表示每个 scope
 可用。实现只有在同时提供 scope-aware profile/limit descriptor，并能在目标 scope 验证
@@ -314,7 +332,7 @@ uncertain_outcome.strategy = drop_unconfirmed
 request MUST NOT 携带 `Idempotency-Key`。response 丢失、timeout 或连接中断后 source MUST NOT
 自动重放 request；Signal 的恢复依靠下一个自足 frame或产品级 timeout/renegotiation。destination
 可用完整 envelope digest 做有界短期 replay suppression；recipient 解密后仍按
-`(sender_actor_id, sender_device_id, canonical scope_ref, payload_sequence)` 去重。任何 dedupe 命中都不得绕过 peer
+verified sender endpoint domain 与 `payload_sequence` 去重。任何 dedupe 命中都不得绕过 peer
 签名窗口与该角色的 §3 admission；source/recipient 不得借 dedupe 跳过 producer 验签，
 destination 不得借 dedupe 跳过 peer authentication 和 proof transcript/digest 检查。
 
@@ -385,7 +403,7 @@ Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密�
 
 ### 7.2 帧与资源常数
 
-每个 decrypted payload 都携带通用 `payload_sequence`，供 §2 的完整 Actor/device/scope replay
+每个 decrypted payload 都携带通用 `payload_sequence`，供 §2 的完整 Actor/verified endpoint/scope replay
 处理；它与每条 stream 自己从 0 严格递增的 `seq` 相互独立。`frame_kind` 是 closed 三值：
 
 - `keyframe`：携带截至当前的完整 `text`、固定 `format=plain|markdown` 与 `truncated`；
@@ -401,10 +419,10 @@ Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密�
 | --- | ---: |
 | 累积 plaintext preview | 16 KiB UTF-8 |
 | 单 stream producer 发送率 | 5 frames/s |
-| 单 device 并发发送 stream | 8 |
+| 单 verified sender endpoint 并发发送 stream | 8 |
 | 单 stream 生命周期 | 10 min |
 | consumer stalled 标记 | 30 s |
-| 单 device 同时展示 stream | 8 |
+| 单 verified sender endpoint 同时展示 stream | 8 |
 
 16 KiB 是 §2 的 46 KiB Signal plaintext / 64 KiB canonical envelope 总上限之内的 profile
 子上限。conformance 必须覆盖 16,384 个 ASCII quote/backslash 的最坏 JSON 转义 keyframe；
@@ -427,7 +445,7 @@ abort 之前仍 MUST 每 15 seconds 以内重复同一正文的自足 keyframe�
 
 ### 7.4 attempt 与 consumer 状态机
 
-receiver 对同一 `(sender_actor_id, sender_device_id, message_id)`：
+receiver 对同一 `(sender_actor_id, verified sender endpoint domain, message_id)`：
 
 1. 没有活动 preview，或收到更大 `attempt` 时，只有 `seq=0` keyframe 能激活/替换；更大
    attempt 的 delta/abort 在该 keyframe 前忽略，已见更大 attempt 后的较小 attempt 永远忽略；
@@ -451,8 +469,11 @@ receiver 只有在以下条件全部成立时才把 durable final 绑定并替�
 1. Event kind 为 `ak.message.create`，其 schema、proof、authorization 与 reducer 全部通过；
 2. payload 不携带 `message_id`，物化 `Message.id` 等于把 `Event.event_id` 的完整33-octet token
    重类型为 `ak:message:`，且与 preview `message_id` 相等；
-3. final Event 不含 `executed_by`；preview 的 `sender_actor_id == Event.actor_id`，且
-   `sender_device_id` 等于从 final proof 的已验证 `verification_method` 解析并授权的设备；
+3. final Event 不含 `executed_by`；preview 的 `sender_actor_id == Event.actor_id`。ordinary preview
+   的 `sender_device_id` 等于 final proof 的已验证设备；Agent preview 与 final 的合法 signer evidence
+   必须得到同一个 raw-key digest。same-key re-authorization 可改变 authorize Event ref，但两侧仍须
+   分别通过 current/historical authority；正式换 key 不得继承旧 preview/attempt，必须使用新
+   Event/Message identity；
 4. preview/final 的 Realm、由 `scope_ref` 确定的 security scope、Strand 与 discussion track
    全部相等。
 

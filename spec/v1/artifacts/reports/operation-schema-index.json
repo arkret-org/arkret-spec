@@ -8930,32 +8930,28 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/signal-envelope.schema.json",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "scope_ref",
-          "sender_actor_id",
-          "sender_device_id",
-          "seal_ref",
-          "signal_class",
-          "sent_at",
-          "expires_at",
-          "encrypted_payload",
-          "proof"
-        ],
-        "properties": [
-          "realm_id",
-          "scope_ref",
-          "sender_actor_id",
-          "sender_device_id",
-          "seal_ref",
-          "signal_class",
-          "sent_at",
-          "expires_at",
-          "encrypted_payload",
-          "proof"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/signal-envelope.schema.json",
+            "schema_kind": null,
+            "required": [
+              "sender_device_id"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/signal-envelope.schema.json",
+            "schema_kind": null,
+            "required": [],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome",
