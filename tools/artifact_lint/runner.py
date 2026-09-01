@@ -365,7 +365,7 @@ def main(argv: list[str] | None = None) -> int:
             ("trust_domain_constraints", lambda: check_trust_domain_constraints(lint)),
             ("did_boundary_allowlist", lambda: check_did_boundary_allowlist(lint)),
             (
-                "stable_identity_core_ids",
+                "stable_identity_ids",
                 lambda: check_stable_identity_fields_use_core_id(lint),
             ),
         ],

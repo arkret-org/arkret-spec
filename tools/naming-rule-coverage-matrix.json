@@ -672,7 +672,7 @@
         ]
       },
       "entry_points": [
-        "stable_identity_core_ids",
+        "stable_identity_ids",
         "did_boundary_allowlist"
       ],
       "tests": [

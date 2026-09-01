@@ -74,14 +74,14 @@ required material 都必须 schema reject，不能由 reducer 猜默认值。
 `principal_admission` 的 identity predicate 只允许以下 closed 字段：
 `allowed_account_ids/denied_account_ids: AccountId[]`、
 `allowed_actor_ids/denied_actor_ids: ActorId[]`、
-`allowed_principal_core_ids/denied_principal_core_ids: DidCoreId[]` 与正交的
-`allowed_did_methods[]`。至少一个字段必须出现；旧 `allowed_principal_ids/denied_principal_ids` 是 forbidden wire。
+`allowed_principal_ids/denied_principal_ids: DidCoreId[]` 与正交的
+`allowed_did_methods[]`。至少一个字段必须出现。
 predicate 适用角色由同一 admission basis 中已接受的 subject classification 决定，不能由 list 命中反推：
 
 - `*_account_ids` 只对 `subject_class=human` 的 exact AccountId 求值；
 - `*_actor_ids` 只对 `subject_class=agent|service` 的 exact ActorId 求值；Agent 即使 ActorId 使用 account 分支也仍只走
   actor predicate，不能同时走 account predicate；
-- `*_principal_core_ids` 对所有 subject class 求值，但只用于 policy 明确声明“同一密码学主体跨账号”的场景，比较
+- `*_principal_ids` 对所有 subject class 求值，但只用于 policy 明确声明“同一密码学主体跨账号”的场景，比较
   Actor 的 principal 分量；它不能补全 Station，也不能把两个 Account/Actor 合并为同一成员；
 - `allowed_did_methods` 对该 Actor principal 的 evidence-time 已接受 DID method 求值，current resolver 或 transport DID
   不能替代。

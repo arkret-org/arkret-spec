@@ -5490,7 +5490,7 @@
                     "$ref": "./common-ids.schema.json#/$defs/actor_id"
                   }
                 },
-                "allowed_principal_core_ids": {
+                "allowed_principal_ids": {
                   "type": "array",
                   "maxItems": 256,
                   "uniqueItems": true,
@@ -5498,7 +5498,7 @@
                     "$ref": "#/$defs/did_core_id"
                   }
                 },
-                "denied_principal_core_ids": {
+                "denied_principal_ids": {
                   "type": "array",
                   "maxItems": 256,
                   "uniqueItems": true,
@@ -5513,8 +5513,8 @@
                 {"required": ["denied_account_ids"]},
                 {"required": ["allowed_actor_ids"]},
                 {"required": ["denied_actor_ids"]},
-                {"required": ["allowed_principal_core_ids"]},
-                {"required": ["denied_principal_core_ids"]}
+                {"required": ["allowed_principal_ids"]},
+                {"required": ["denied_principal_ids"]}
               ]
             }
           ],

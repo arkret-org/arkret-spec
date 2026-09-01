@@ -2969,8 +2969,8 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/join_policy_gate/oneOf/3/allOf/1/properties/allowed_principal_core_ids",
-      "property_name": "allowed_principal_core_ids",
+      "schema_path": "event-payload.schema.json#/$defs/join_policy_gate/oneOf/3/allOf/1/properties/allowed_principal_ids",
+      "property_name": "allowed_principal_ids",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -2979,8 +2979,8 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/join_policy_gate/oneOf/3/allOf/1/properties/denied_principal_core_ids",
-      "property_name": "denied_principal_core_ids",
+      "schema_path": "event-payload.schema.json#/$defs/join_policy_gate/oneOf/3/allOf/1/properties/denied_principal_ids",
+      "property_name": "denied_principal_ids",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
