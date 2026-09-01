@@ -20,8 +20,7 @@
       "name": "public_resolution_returns_attested_projection_only",
       "operation_id": "ak.open.identity.read.resolution.v1",
       "expected_required_fields": [
-        "principal_id",
-        "station_id",
+        "account_id",
         "resolution_projection",
         "method_history_evidence",
         "projection_attestation"

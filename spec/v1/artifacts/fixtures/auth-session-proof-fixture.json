@@ -18,18 +18,50 @@
       "name": "session_grant_audience_binding",
       "vector_id": "ak.vector.auth.session_grant_audience_binding.v1",
       "kind": "session_grant_request_binding",
-      "request_id": "ak:request:0196419b-0000-7000-8000-000000000002",
-      "principal_id": "ak:did_core:webvh:z6mkfixture",
-      "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+      "operation_id": "ak.gate.account.command.issue_session_grant.v1",
       "target_audience": "ak:did_core:webvh:z6mkfixtureserviceexample",
       "mismatched_audience": "ak:did_core:webvh:z6mkfixtureotherexample",
-      "account_subject": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
-      "account_handoff_grant_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
-      "holder_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      "session_intent_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-      "verification_method": "did:webvh:z6mkfixture:alice.example#device-key-1",
-      "issued_at": "2026-08-20T00:00:00.000Z",
-      "expires_at": "2026-08-20T00:05:00.000Z",
+      "request": {
+        "request_id": "ak:request:0196419b-0000-7000-8000-000000000002",
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+        "audience_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
+        "accepted_device_possession_proof": {
+          "context": "ak.session_grant_accepted_device_possession_proof.v1",
+          "purpose": "session_grant_issue",
+          "request_id": "ak:request:0196419b-0000-7000-8000-000000000002",
+          "account_subject": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "account_handoff_grant_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixtureserviceexample"
+          },
+          "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+          "audience_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
+          "holder_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "session_intent_digest": "sha256:18e0cba6c55ae669b721c5f97ce62d72b40aa15fd3b918dadddb878ab1aa00d4",
+          "issued_at": "2026-08-20T00:00:00.000Z",
+          "expires_at": "2026-08-20T00:05:00.000Z",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#device-key-1",
+          "signature": "WlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWg"
+        }
+      },
+      "request_digest_bindings": [
+        {
+          "name": "human_session_intent",
+          "target_pointer": "/accepted_device_possession_proof/session_intent_digest",
+          "input": {
+            "operation": "issue_session_grant",
+            "request_id": "ak:request:0196419b-0000-7000-8000-000000000002",
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+            "audience_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
+            "holder_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
+          "expected_canonical_bytes_utf8": "{\"audience_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000001\",\"holder_jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"operation\":\"issue_session_grant\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"request_id\":\"ak:request:0196419b-0000-7000-8000-000000000002\"}",
+          "expected_digest": "sha256:18e0cba6c55ae669b721c5f97ce62d72b40aa15fd3b918dadddb878ab1aa00d4"
+        }
+      ],
       "server_max_ttl_seconds": 900,
       "attempted_verified_profiles": [
         "ak.profile.station.v1"
@@ -42,7 +74,7 @@
       },
       "assertions": [
         "the AccountHandoff DPoP proof binds the holder to this exact issue endpoint and account_handoff_grant",
-        "the accepted-device proof binds request_id, account_subject, account_handoff_grant_digest, principal_id, device_id, audience, holder_jkt, verification_method, session intent, and a window no longer than 300 seconds",
+        "the accepted-device proof binds request_id, account_subject, account_handoff_grant_digest, the complete account_id, device_id, audience, holder_jkt, verification_method, session intent, and a window no longer than 300 seconds",
         "the origin verifies the accepted-device signature with the durable current accepted-device key in the same current-authorization linearization",
         "human scope and lifetime are issuer-fixed and are not request fields",
         "development_mode=true must not advertise ak.profile.station.v1 in verified_profiles"

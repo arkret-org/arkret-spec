@@ -35,11 +35,14 @@ from .core import (
     hashlib,
     json,
     load_json,
+    load_schema_document,
     markdown_files,
     markdown_section_digest,
     raw_artifact_files,
     re,
     read_text,
+    resolve_artifact_schema_ref,
+    resolve_json_pointer,
     unicodedata,
     urllib,
     walk_json,
@@ -1639,10 +1642,23 @@ def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]
 
 def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
     fixture_dir = ARTIFACTS / "fixtures"
+    registry_path = ARTIFACTS / "registry" / "contract-registry.json"
+    registry = load_json(lint, registry_path)
+    operation_rows = (
+        registry.get("operation_registry", {}).get("operations", [])
+        if isinstance(registry, dict)
+        else []
+    )
+    operation_contracts = {
+        row["operation_id"]: row
+        for row in operation_rows
+        if isinstance(row, dict) and isinstance(row.get("operation_id"), str)
+    }
     for path in sorted(fixture_dir.glob("*.json")):
         data = load_json(lint, path)
         if data is None:
             continue
+        check_fixture_operation_contracts(lint, path, data, operation_contracts)
         if path.name == "arkret-private-kdf-fixture.json" and isinstance(data, dict):
             check_private_kdf_full_width_nonce(lint, path, data)
             check_private_kdf_exporter_aead(lint, path, data)
@@ -1713,6 +1729,141 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
                         lint.fail(path, f"{json_path} references unregistered typed ID kind: ak:{kind}:")
                     continue
                 check_typed_id_token(lint, path, json_path, kind, match.group(2), known)
+
+
+def check_fixture_operation_contracts(
+    lint: Lint,
+    path: Path,
+    data: Any,
+    operation_contracts: dict[str, dict[str, Any]],
+) -> None:
+    """Bind positive fixture request/response claims to registered schemas.
+
+    A case opts in by carrying an ``operation_id`` together with either a
+    concrete ``request`` or ``expected_required_fields``. The operation
+    registry selects the owning request/response schema, so a fixture cannot
+    silently pin a stale parallel contract.
+    """
+
+    if not isinstance(data, dict):
+        return
+    machine_contracts = data.get("machine_contracts")
+    declared_contracts = (
+        set(machine_contracts)
+        if isinstance(machine_contracts, list)
+        and all(isinstance(value, str) for value in machine_contracts)
+        else set()
+    )
+    cases = data.get("cases")
+    if not isinstance(cases, list):
+        return
+
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            continue
+        operation_id = case.get("operation_id")
+        has_request = "request" in case
+        has_required_fields = "expected_required_fields" in case
+        if not has_request and not has_required_fields:
+            continue
+        label = f"cases[{index}]"
+        if not isinstance(operation_id, str):
+            continue
+        operation = operation_contracts.get(operation_id)
+        if operation is None:
+            lint.fail(path, f"{label} references unregistered operation_id {operation_id}")
+            continue
+
+        if has_request:
+            request_schema_ref = operation.get("request_schema_ref")
+            if not isinstance(request_schema_ref, str):
+                lint.fail(path, f"{label} operation has no request_schema_ref: {operation_id}")
+            else:
+                check_json_instance_against_schema(
+                    lint,
+                    path,
+                    f"{label}.request",
+                    request_schema_ref,
+                    case.get("request"),
+                )
+            bindings = case.get("request_digest_bindings", [])
+            if not isinstance(bindings, list):
+                lint.fail(path, f"{label}.request_digest_bindings must be an array")
+            else:
+                for binding_index, binding in enumerate(bindings):
+                    binding_label = f"{label}.request_digest_bindings[{binding_index}]"
+                    if not isinstance(binding, dict):
+                        lint.fail(path, f"{binding_label} must be an object")
+                        continue
+                    target_pointer = binding.get("target_pointer")
+                    expected_digest = binding.get("expected_digest")
+                    input_value = binding.get("input")
+                    if (
+                        not isinstance(target_pointer, str)
+                        or not target_pointer.startswith("/")
+                        or not isinstance(expected_digest, str)
+                        or input_value is None
+                    ):
+                        lint.fail(
+                            path,
+                            f"{binding_label} requires target_pointer, input and expected_digest",
+                        )
+                        continue
+                    recomputed_digest = sha256_text(canonical_json(input_value))
+                    if expected_digest != recomputed_digest:
+                        lint.fail(
+                            path,
+                            f"{binding_label}.expected_digest does not hash its canonical input",
+                        )
+                    try:
+                        target_digest = resolve_json_pointer(
+                            case.get("request"),
+                            "#" + target_pointer,
+                        )
+                    except (KeyError, TypeError, ValueError) as exc:
+                        lint.fail(path, f"{binding_label}.target_pointer cannot be resolved: {exc}")
+                        continue
+                    if target_digest != expected_digest:
+                        lint.fail(
+                            path,
+                            f"{binding_label} target digest does not equal expected_digest",
+                        )
+
+        if not has_required_fields:
+            continue
+        response_schema_ref = operation.get("response_schema_ref")
+        if not isinstance(response_schema_ref, str):
+            lint.fail(path, f"{label} operation has no response_schema_ref: {operation_id}")
+            continue
+        if declared_contracts and response_schema_ref not in declared_contracts:
+            lint.fail(
+                path,
+                f"{label} response schema {response_schema_ref} is absent from machine_contracts",
+            )
+        schema_path = resolve_artifact_schema_ref(lint, path, response_schema_ref)
+        if schema_path is None:
+            continue
+        fragment = "#" + response_schema_ref.split("#", 1)[1] if "#" in response_schema_ref else "#"
+        try:
+            schema = resolve_json_pointer(load_schema_document(lint, schema_path), fragment)
+        except (KeyError, TypeError, ValueError) as exc:
+            lint.fail(path, f"{label} response schema cannot be resolved: {exc}")
+            continue
+        if not isinstance(schema, dict) or schema.get("type") != "object":
+            lint.fail(path, f"{label} response schema is not an object")
+            continue
+        if schema.get("additionalProperties") is not False:
+            lint.fail(path, f"{label} response schema is not closed")
+        expected = case.get("expected_required_fields")
+        required = schema.get("required")
+        if not isinstance(expected, list) or not all(isinstance(field, str) for field in expected):
+            lint.fail(path, f"{label}.expected_required_fields must be a string array")
+        elif expected != required:
+            lint.fail(
+                path,
+                f"{label}.expected_required_fields must exactly equal {response_schema_ref} required: "
+                f"expected {required!r}, got {expected!r}",
+            )
 
 
 def check_declared_schema_fixture_instances(lint: Lint) -> None:
