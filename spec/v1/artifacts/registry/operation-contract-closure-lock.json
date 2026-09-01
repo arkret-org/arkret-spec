@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-01.6",
-  "generated_at": "2026-09-01T16:35:45+08:00",
+  "version": "2026-09-01.7",
+  "generated_at": "2026-09-01T20:42:37+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -25,7 +25,7 @@
     },
     {
       "operation_id": "ak.edge.applet.read.describe.v1",
-      "sha256": "sha256:7c0065905ac1849df0ff069f83f9a1e75de01b7f44c83d839f3e3eefdd9cc67e"
+      "sha256": "sha256:a0c8208ad8c82158b295da6a2f2614e29a1484d98ff4d76788b02efeaf2da580"
     },
     {
       "operation_id": "ak.edge.applet.read.ping.v1",
@@ -73,7 +73,7 @@
     },
     {
       "operation_id": "ak.find.directory.read.describe.v1",
-      "sha256": "sha256:569fa80b35f1b5f08ecfa93bc9468ef82ee79099579f4a17b758c9239a8abc74"
+      "sha256": "sha256:3a684e209d2751665e430a7e3ec55e5d819bc6c895af5a24d3f869acc27e0cbd"
     },
     {
       "operation_id": "ak.find.directory.read.list_handles_for_subject.v1",
@@ -433,7 +433,7 @@
     },
     {
       "operation_id": "ak.root.identity.registry.read.describe.v1",
-      "sha256": "sha256:6055b839bec303e555621763aeb2bea997a67b5f0b4a099d38497082854234d4"
+      "sha256": "sha256:48f48e12c5c211e5d956a8fdf1c243c3e8c5549c0be6cb4fb79e8271b8fe9061"
     },
     {
       "operation_id": "ak.root.identity.service_registration.command.ensure.v1",
@@ -453,7 +453,7 @@
     },
     {
       "operation_id": "ak.self.account.read.describe.v1",
-      "sha256": "sha256:db557c4854e5b9c8794a8ca69b13fe3ee4d0783ec8375f9ce778fbaa9f4cc519"
+      "sha256": "sha256:d43adaae8652475bf07c2544c88c2a094587ae2c986693f5145247ee1b84e8f8"
     },
     {
       "operation_id": "ak.self.account.read.viewer.v1",
@@ -709,7 +709,7 @@
     },
     {
       "operation_id": "ak.self.events.read.describe.v1",
-      "sha256": "sha256:58c19e5a5e3243c3bd7185c6987fa59364f42955ee6edaed3f065e6a631b41a1"
+      "sha256": "sha256:05ab910ea4a25c58a2a5ad921bd5c498e6a528effd66ca1f1e5bd7d02b87c852"
     },
     {
       "operation_id": "ak.self.events.read.frontier.v1",
@@ -941,7 +941,7 @@
     },
     {
       "operation_id": "ak.server.read.describe.v1",
-      "sha256": "sha256:bf17d41ef73c71b38ca9949d0cf9941bfd4450a0b29e9f57c9a2daa2e524bea2"
+      "sha256": "sha256:b34eb3987d9017afb16ed0a535e6d44a00a7b34ceff0c8055c6e90e840c3d837"
     }
   ]
 }

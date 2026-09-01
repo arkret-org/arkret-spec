@@ -101,7 +101,13 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
     "roster_delta": {
       "op": "join",
       "participant": {
-        "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
         "foci_preferred": ["fra-1", "us-east-1"],
@@ -111,7 +117,13 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
           "realm_id": "ak:realm:...",
           "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
           "focus_id": "fra-1",
-          "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-04-26T00:00:00Z",

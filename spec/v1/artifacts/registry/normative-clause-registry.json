@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.3",
+  "version": "2026-09-01.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-01T12:16:00+08:00",
+  "generated_at": "2026-09-01T20:52:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -329,7 +329,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:c2a9324d9d148f0fde4572ec87555ca5f8a13f9daa7c15b4d590a69648557586",
+      "section_digest": "sha256:6fd905adf14075dbaea8ecc25be0a0a5720f41930f3b2d823f321edef7500aed",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
       "testability_grade": "vector",
       "evidence_refs": [

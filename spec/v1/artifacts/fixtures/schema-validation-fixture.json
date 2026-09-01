@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-08-29.3",
+  "version": "2026-09-01.1",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -1083,6 +1083,128 @@
         }
       ],
       "expect_valid": true
+    },
+    {
+      "name": "service_describe_auth_metadata_nested_x_extensions_valid",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/auth_metadata/x_vendor_metadata",
+          "value": "safe-to-ignore"
+        },
+        {
+          "op": "replace",
+          "path": "/auth_metadata/account_authority",
+          "value": {
+            "origin": "https://alice.example.net",
+            "gate_account_base_url": "https://alice.example.net/_arkret/gate/account",
+            "x_vendor_metadata": true
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/auth_metadata/methods",
+          "value": [
+            {
+              "method": "oidc",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_url": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "example_client",
+              "grant_exchange": {
+                "kind": "account_handoff",
+                "x_vendor_metadata": 1
+              },
+              "x_vendor_metadata": {
+                "label": "safe-to-ignore"
+              }
+            }
+          ]
+        }
+      ],
+      "expect_valid": true
+    },
+    {
+      "name": "service_describe_auth_metadata_mode_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/auth_metadata/mode",
+          "value": "development"
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:'mode' does not match any of the regexes"
+    },
+    {
+      "name": "service_describe_auth_metadata_read_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/auth_metadata/read",
+          "value": "legacy"
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:'read' does not match any of the regexes"
+    },
+    {
+      "name": "service_describe_auth_method_mode_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/auth_metadata/methods",
+          "value": [
+            {
+              "method": "oidc",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_url": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "example_client",
+              "grant_exchange": {
+                "kind": "account_handoff"
+              },
+              "mode": "development"
+            }
+          ]
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:'mode' does not match any of the regexes"
+    },
+    {
+      "name": "service_describe_registry_mode_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/registry_mode",
+          "value": "public"
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:'registry_mode' does not match any of the regexes"
+    },
+    {
+      "name": "service_describe_supported_receipts_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/supported_receipts",
+          "value": []
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:'supported_receipts' does not match any of the regexes"
     },
     {
       "name": "service_describe_invite_feature_without_field_rejected",
@@ -4422,6 +4544,60 @@
         },
         "expires_at": "2026-08-16T00:05:00.000Z"
       }
+    },
+    {
+      "name": "media_token_exchange_request_actor_id_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
+        "focus_id": "fra-1",
+        "capability_refs": [
+          "ak:grant:AUFBzmnhUmJ_VzOH2YJX1xVzwAsxVk_-5MZ_5wu41zCA"
+        ],
+        "desired_media": {
+          "audio": true,
+          "video": true,
+          "screen": false
+        }
+      }
+    },
+    {
+      "name": "media_token_exchange_request_bare_actor_id_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
+      "instance_from": "media_token_exchange_request_actor_id_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/actor_id",
+          "value": "ak:did_core:webvh:z6mkfixture"
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "media_token_exchange_outcome_bare_actor_id_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
+      "instance_from": "media_livekit_opaque_token_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/participant_binding/actor_id",
+          "value": "ak:did_core:webvh:z6mkfixture"
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas"
     },
     {
       "name": "media_arkret_native_typed_token_valid",

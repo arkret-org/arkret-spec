@@ -101,21 +101,33 @@ sidebar:
 POST {token_endpoint}
 Authorization: <device proof | bearer>
 Content-Type: application/json
+```
 
+请求 body（与 `CallMediaTokenExchangeRequestBody` 共用同一机读合同）：
+
+```json schema=schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody
 {
-  "realm_id": "ak:realm:...",
-  "call_id": "ak:call:...",
-  "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "device_id": "ak:device:...",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+  "actor_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+    }
+  },
+  "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
   "focus_id": "fra-1",
-  "capability_refs": ["ak:grant:..."],
+  "capability_refs": [
+    "ak:grant:AUFBzmnhUmJ_VzOH2YJX1xVzwAsxVk_-5MZ_5wu41zCA"
+  ],
   "desired_media": { "audio": true, "video": true, "screen": false }
 }
 ```
 
 响应（`scheme="ak.media.participant_binding.v1"` 是 v1 唯一 participant binding scheme）：
 
-```json
+```json schema=schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome
 {
   "focus_id": "fra-1",
   "backend_kind": "livekit",
@@ -124,18 +136,24 @@ Content-Type: application/json
   "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "participant_binding": {
     "scheme": "ak.media.participant_binding.v1",
-    "realm_id": "ak:realm:...",
-    "call_id": "ak:call:...",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+    "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
     "focus_id": "fra-1",
-    "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-    "device_id": "ak:device:...",
+    "actor_id": {
+      "kind": "account",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+      }
+    },
+    "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
     "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-    "issued_at": "2026-05-27T12:29:56Z",
-    "expires_at": "2026-05-27T12:34:56Z",
-    "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
-    "sig": "base64url..."
+    "issued_at": "2026-05-27T12:29:56.000Z",
+    "expires_at": "2026-05-27T12:34:56.000Z",
+    "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
+    "sig": "AA"
   },
-  "expires_at": "2026-05-27T12:34:56Z"
+  "expires_at": "2026-05-27T12:34:56.000Z"
 }
 ```
 

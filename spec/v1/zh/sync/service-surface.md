@@ -389,7 +389,9 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 
 `service_id` MUST 是该逻辑角色的 `did_core_id`，`service_resolution` MUST 投影当前 `did` 与 method history position。这个投影只用于将已选定 endpoint 与首跳 `ServiceResolutionRecord` 交叉确认，不能让 describe 变成 resolver，也不能单独创建 service 授权。
 
-顶层 `x_*` 只允许承载可安全忽略的展示、日志或厂商 metadata。对任意合法 Describe 删除全部顶层 `x_*` 后，
+`ServiceDescribe` 顶层以及 schema 明示允许扩展的嵌套对象（当前为 `auth_metadata` 子树与
+`plaintext_visibility`）中的 `x_*`，只允许承载可安全忽略的展示、日志或厂商 metadata。对任意合法 Describe
+递归删除这些槽位中的全部 `x_*` 后，
 operation/transport 可用集合、feature 可用集合、profile claim、认证、授权、route、payload/contract 选择与错误分类 MUST
 完全不变；因此 `x_*` MUST NOT 承载 endpoint、operation、transport、schema selector、认证要求、授权约束、协议 limit 或
 跨实现行为选择。需要影响这些结果的第一方字段必须先登记为 closed schema 字段；`invite_addressing` 即按此规则登记，且与
