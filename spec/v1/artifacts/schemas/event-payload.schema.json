@@ -633,7 +633,7 @@
     },
     "agent_deactivate_payload": {
       "type": "object",
-      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. At the accepted Seal covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
+      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. The lifecycle cell is addressed only by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; payload.agent_id merely cross-binds that ActorId's signing principal and never addresses the cell. At the accepted Seal covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
       "required": [
         "agent_id",
         "controller_id",
@@ -1164,7 +1164,7 @@
     },
     "agent_pause_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.pause. The status cell is keyed by agent_id and moves from active to paused. Authorization is evaluated against the Control Move envelope seal_basis; the reducer accepts the transition only under the accepted current control frontier.",
+      "description": "Payload for ak.self.agent.pause. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; payload.agent_id only cross-binds the ActorId signing principal and never addresses the cell. Authorization is evaluated against the Control Move envelope seal_basis; the reducer accepts the transition only under the accepted current control frontier.",
       "required": [
         "agent_id",
         "controller_id",
@@ -1196,7 +1196,7 @@
     },
     "agent_resume_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.resume. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
+      "description": "Payload for ak.self.agent.resume. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; payload.agent_id only cross-binds the ActorId signing principal and never addresses the cell. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
       "required": [
         "agent_id",
         "controller_id",
