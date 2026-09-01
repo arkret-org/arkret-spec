@@ -783,14 +783,84 @@
       "resolution_cases": [
         {
           "name": "resolution_names_winner_by_digest_only",
+          "event_kind": "ak.fork.resolution",
           "fork_resolution_identifies_winner_by": "event_digest",
           "expected": "reject",
           "reason_code": "witness_disagreement"
         },
         {
           "name": "resolution_names_winner_by_canonical_bytes",
+          "event_kind": "ak.fork.resolution",
           "fork_resolution_identifies_winner_by": "canonical_bytes",
-          "expected": "accept"
+          "payload": {
+            "subject": {
+              "kind": "event_id_collision",
+              "event_id": "ak:event:AUl7i16DNG_PX5V_-ud5fDx65PwcMpaj4uSW2K4C0Ev9",
+              "variants": [
+                { "canonical_event_bytes_b64u": "dmFyaWFudC1h" },
+                { "canonical_event_bytes_b64u": "dmFyaWFudC1i" }
+              ]
+            },
+            "verdict": {
+              "kind": "canonical_winner",
+              "canonical_event_bytes_b64u": "dmFyaWFudC1h"
+            }
+          },
+          "critical_ref_roles": ["recovery_capability", "attestation"],
+          "expected": "accept_and_project_exact_scope"
+        },
+        {
+          "name": "resolution_voids_complete_sibling_bucket",
+          "event_kind": "ak.fork.resolution",
+          "payload": {
+            "subject": {
+              "kind": "event_sibling_bucket",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:web:fixture-actor.example"
+              },
+              "actor_seq": 7,
+              "prev_frontier_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "sibling_event_digests": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+                "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+              ]
+            },
+            "verdict": { "kind": "void_all" }
+          },
+          "critical_ref_roles": ["recovery_capability", "state_witness"],
+          "expected": "accept_and_project_exact_scope"
+        },
+        {
+          "name": "resolution_scope_mismatch_does_not_clear",
+          "event_kind": "ak.fork.resolution",
+          "resolution_scope_matches_original_evidence": false,
+          "expected": "accepted_cell_but_no_peer_state_transition"
+        },
+        {
+          "name": "resolution_missing_recovery_capability",
+          "event_kind": "ak.fork.resolution",
+          "critical_ref_roles": ["attestation"],
+          "expected": "reject",
+          "reason_code": "recovery_capability_not_sealed"
+        },
+        {
+          "name": "resolution_idempotent_replay",
+          "event_kind": "ak.fork.resolution",
+          "replay_count": 2,
+          "expected_store_transitions": 1
+        },
+        {
+          "name": "witness_disagreement_single_source_does_not_clear",
+          "witness_count": 1,
+          "expected": "retain_confirmed_evidence"
+        },
+        {
+          "name": "witness_disagreement_same_scope_quorum_reagrees",
+          "witness_count": 2,
+          "same_complete_scope": true,
+          "same_payload": true,
+          "expected": "clear_exact_witness_scope"
         },
         {
           "name": "cross_suite_discriminator_is_diagnostic_only",

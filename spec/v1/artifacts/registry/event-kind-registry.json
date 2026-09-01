@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.3",
+  "version": "2026-09-02.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-01T15:20:00+08:00",
+  "generated_at": "2026-09-02T10:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2181,6 +2181,56 @@
         }
       ],
       "concurrency_class": "merge_safe"
+    },
+    {
+      "event_kind": "ak.fork.resolution",
+      "category": "state",
+      "status": "active",
+      "verb_form": "not_applicable",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Authorized event sibling-bucket or full-hash collision resolution. The recovery Seal covers this Control Move in delta; the typed payload identifies the original evidence scope and either one canonical winner or void_all. Authorization is carried only by critical recovery_capability and witness refs.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/fork_resolution_payload",
+      "admission": "capability_gated",
+      "id_source": "not_an_object_id",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.fork_resolution.v1",
+          "cell_subject": {
+            "kind": "canonical_json",
+            "field": "payload.subject"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "projected_value": true
+            }
+          },
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "subject",
+                "field": "payload.subject"
+              },
+              {
+                "name": "verdict",
+                "field": "payload.verdict"
+              },
+              {
+                "name": "resolution_event_digest",
+                "derivation": "event_digest_from_event_id"
+              }
+            ]
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.conflict.recovery",

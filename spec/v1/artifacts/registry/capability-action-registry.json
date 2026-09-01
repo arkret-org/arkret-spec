@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.8",
+  "version": "2026-09-02.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T18:30:02+08:00",
+  "generated_at": "2026-09-02T10:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1346,6 +1346,7 @@
         "ak.conflict.recovery",
         "ak.container.move_item",
         "ak.container.rebalance",
+        "ak.fork.resolution",
         "ak.invite.cancel",
         "ak.invite.claim",
         "ak.invite.create",
@@ -1459,6 +1460,7 @@
         "ak.container.move_item",
         "ak.container.rebalance",
         "ak.event.read",
+        "ak.fork.resolution",
         "ak.invite.cancel",
         "ak.invite.claim",
         "ak.invite.create",
@@ -1995,6 +1997,17 @@
       ],
       "target_event_kinds": [
         "ak.space.update"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.fork.resolution",
+      "category": "general",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.fork.resolution"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"

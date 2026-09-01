@@ -550,7 +550,7 @@ Probe 响应 payload：
   - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Realm frontier（继续 quarantine，不让 silent fork 永久化），直到 fork resolution 或重新对齐；
   - **MUST** 通过 §8.6 威胁映射要求的 alarm 通道（operator dashboard / audit log / pager hook）暴露该状态；
   - **MAY** 拒绝向该 peer fanout 新 Event。
-- 普通失败造成的 `peer_stale` 在一次成功 exchange 后 MUST 解除；已确认 fork evidence 造成的 `peer_stale` MUST NOT 仅因 root 相等或普通 exchange 成功解除。fork resolution 成功后 **MUST** 解除 `peer_stale` 标记。成功条件 MUST 对准最初的证据范围：full-hash collision 的整组变体已按 operations-sync §12 由 authorized fork resolution 归一或全部作废；over-fork 或领域特定冲突桶已由 authorized resolution 归一，且该 peer 对争议 `(realm_id, actor_id, actor_seq)` 的 canonical sibling 集与 resolution 一致；或同一完整 scope 的 quorum witness attestation 已重新形成一致 payload。由于合法 partial replication 下全局 `heads[]` 可永久不同，**MUST NOT** 要求 scope 不同 peer 的全部 heads 重合作为解除条件。
+- 普通失败造成的 `peer_stale` 在一次成功 exchange 后 MUST 解除；已确认 fork evidence 造成的 `peer_stale` MUST NOT 仅因 root 相等或普通 exchange 成功解除。fork resolution 成功后 **MUST** 解除 `peer_stale` 标记。成功条件 MUST 对准最初的证据范围：full-hash collision 的整组变体已由 accepted recovery Seal 覆盖的 `ak.fork.resolution` Move 按 canonical bytes 归一或 `void_all`；over-fork 或领域特定冲突桶已由该 Move 的 `ak.component.fork_resolution.v1` cell 投影归一，且该 peer 对争议 `(realm_id, actor_id, actor_seq)` 的 canonical sibling 集与 resolution 一致；或同一完整 scope 的 `ak.attestation.range_completeness` quorum witness 已重新形成一致 payload。实现只能从上述 accepted cell 投影或 verified quorum 投影生成 resolution record，并原子解除匹配的 original evidence scope；其它 unresolved evidence 与普通失败窗口不变。由于合法 partial replication 下全局 `heads[]` 可永久不同，**MUST NOT** 要求 scope 不同 peer 的全部 heads 重合作为解除条件。
 
 启用 high-assurance profile 但实现未实现上述 fail-state 等同于不满足 profile 声明，**MUST NOT** 在 ServiceDescribe profile 声明中声明 `ak.profile.federation.high_assurance.v1`。
 

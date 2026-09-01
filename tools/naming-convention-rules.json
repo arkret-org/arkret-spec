@@ -190,6 +190,13 @@
           "reason": "mimi_room_update_request_body projects RFC 9420 GroupContext verbatim; its siblings mls_group_id and epoch are GroupContext names as well, so renaming only the transcript field would break the projection.",
           "anchor": "spec/v1/artifacts/schemas/mimi-operations.schema.json",
           "external_anchor": "RFC 9420 section 8.2 GroupContext confirmed_transcript_hash"
+        },
+        {
+          "id": "did-webvh-next-key-hashes",
+          "basis": "external_literal",
+          "reason": "ServiceWebvhInceptionParameters mirrors the did:webvh method parameter object byte-for-byte because the field is part of the externally defined DID log hash chain.",
+          "anchor": "spec/v1/artifacts/schemas/service-operation-dtos.schema.json",
+          "external_anchor": "did:webvh v1.0 DID method parameters nextKeyHashes"
         }
       ],
       "enforcement": "predicate+registry",
@@ -212,6 +219,15 @@
           "basis": "external_literal",
           "reason": "RFC 9420 GroupContext field projected verbatim into the MIMI interop surface.",
           "external_anchor": "RFC 9420 section 8.2 GroupContext confirmed_transcript_hash"
+        },
+        {
+          "id": "did-webvh-next-key-hashes",
+          "file": "service-operation-dtos.schema.json",
+          "pointer": "/$defs/ServiceWebvhInceptionParameters/properties/nextKeyHashes",
+          "name": "nextKeyHashes",
+          "basis": "external_literal",
+          "reason": "did:webvh method parameter retained verbatim inside the annotated external-literal parameter object.",
+          "external_anchor": "did:webvh v1.0 DID method parameters nextKeyHashes"
         }
       ]
     },

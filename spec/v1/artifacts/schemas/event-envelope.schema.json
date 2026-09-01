@@ -4055,6 +4055,25 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "ak.fork.resolution"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/fork_resolution_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "ak.conflict.recovery"
           }
         },

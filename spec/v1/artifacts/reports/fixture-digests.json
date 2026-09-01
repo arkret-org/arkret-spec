@@ -86,7 +86,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "f7da90eb2f0a2382aeb05806b8fe4322f2c5af954f16366ac46a11688a60b0c6"
+      "sha256": "6e51d98d383ffdc6b25313f888a0df960041c12a9219ca0e4945c0d7f32aaea0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -290,7 +290,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "4085848181b71722bafdd5a4e3f9429fac2f4a7c43f79bdbc4a6cda1979294c0"
+      "sha256": "bbde0979649606de39ccc232d4a9506813f08dbd094a095bfd13829a4659d285"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

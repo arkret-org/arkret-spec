@@ -2319,8 +2319,8 @@
       ]
     },
     {
-      "schema_path": "directory-operations.schema.json#/$defs/proof/properties/audience_id",
-      "property_name": "audience_id",
+      "schema_path": "directory-operations.schema.json#/$defs/proof/properties/audience",
+      "property_name": "audience",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -5769,8 +5769,8 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof/allOf/1/properties/audience_id",
-      "property_name": "audience_id",
+      "schema_path": "service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof/allOf/1/properties/audience",
+      "property_name": "audience",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

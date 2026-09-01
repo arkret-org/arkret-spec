@@ -10840,6 +10840,217 @@
       },
       "additionalProperties": false
     },
+    "fork_resolution_event_sibling_bucket_subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id",
+        "actor_seq",
+        "sibling_event_digests"
+      ],
+      "properties": {
+        "kind": {
+          "const": "event_sibling_bucket"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "actor_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "prev_frontier_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "sibling_event_digests": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/digest"
+          },
+          "description": "Complete bytewise-ascending set of verified sibling Event digests in the original evidence scope."
+        }
+      },
+      "additionalProperties": false
+    },
+    "fork_resolution_event_id_collision_subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "event_id",
+        "variants"
+      ],
+      "properties": {
+        "kind": {
+          "const": "event_id_collision"
+        },
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "variants": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "canonical_event_bytes_b64u"
+            ],
+            "properties": {
+              "canonical_event_bytes_b64u": {
+                "$ref": "#/$defs/base64url",
+                "description": "Canonical unpadded base64url of the complete canonical Event preimage bytes. Digest-only collision variants are invalid."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "fork_resolution_sibling_winner_verdict": {
+      "type": "object",
+      "required": [
+        "kind",
+        "event_digest"
+      ],
+      "properties": {
+        "kind": {
+          "const": "canonical_winner"
+        },
+        "event_digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fork_resolution_collision_winner_verdict": {
+      "type": "object",
+      "required": [
+        "kind",
+        "canonical_event_bytes_b64u"
+      ],
+      "properties": {
+        "kind": {
+          "const": "canonical_winner"
+        },
+        "canonical_event_bytes_b64u": {
+          "$ref": "#/$defs/base64url"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fork_resolution_void_all_verdict": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "void_all"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fork_resolution_payload": {
+      "description": "Authorized fork-resolution Control Move. The Event Realm is the evidence Realm; recovery_capability and witness authorization are critical refs, never mirrored payload authority.",
+      "type": "object",
+      "required": [
+        "subject",
+        "verdict"
+      ],
+      "properties": {
+        "subject": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/fork_resolution_event_sibling_bucket_subject"
+            },
+            {
+              "$ref": "#/$defs/fork_resolution_event_id_collision_subject"
+            }
+          ]
+        },
+        "verdict": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/fork_resolution_sibling_winner_verdict"
+            },
+            {
+              "$ref": "#/$defs/fork_resolution_collision_winner_verdict"
+            },
+            {
+              "$ref": "#/$defs/fork_resolution_void_all_verdict"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "subject": {
+                "properties": {
+                  "kind": {
+                    "const": "event_sibling_bucket"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "verdict": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/fork_resolution_sibling_winner_verdict"
+                  },
+                  {
+                    "$ref": "#/$defs/fork_resolution_void_all_verdict"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subject": {
+                "properties": {
+                  "kind": {
+                    "const": "event_id_collision"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "verdict": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/fork_resolution_collision_winner_verdict"
+                  },
+                  {
+                    "$ref": "#/$defs/fork_resolution_void_all_verdict"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
     "state_conflict_recovery_payload": {
       "type": "object",
       "description": "Control cell bottom recovery. zh/authz/event-auth-state-resolution.md section 9.5 resolves a bottom=reject cell that has joined to Bottom back to a single legal value. The authorization and the pre-conflict anchor are not payload fields: they are refs[] entries with role=recovery_capability and role=state_witness.",
