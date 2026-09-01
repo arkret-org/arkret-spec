@@ -212,15 +212,6 @@
           "basis": "external_literal",
           "reason": "RFC 9420 GroupContext field projected verbatim into the MIMI interop surface.",
           "external_anchor": "RFC 9420 section 8.2 GroupContext confirmed_transcript_hash"
-        },
-        {
-          "id": "did-webvh-inception-next-key-hashes",
-          "file": "service-operation-dtos.schema.json",
-          "pointer": "/$defs/ServiceWebvhInceptionParameters/properties/nextKeyHashes",
-          "name": "nextKeyHashes",
-          "basis": "external_literal",
-          "reason": "DID WebVH inception parameters are hashed and verified verbatim, including the external nextKeyHashes member.",
-          "external_anchor": "DID WebVH specification nextKeyHashes parameter"
         }
       ]
     },

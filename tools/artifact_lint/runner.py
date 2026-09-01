@@ -198,6 +198,8 @@ from .recovery_transcripts import (
 
 from .schema_roots import check_schema_root_reachability
 
+from .constructability import check_schema_constructability
+
 from .psi_class_b import check_psi_class_b_artifact_closure
 
 
@@ -311,6 +313,7 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_foundational_schema_dependency_direction(lint),
             ),
             ("schema_root_reachability", lambda: check_schema_root_reachability(lint)),
+            ("schema_constructability", lambda: check_schema_constructability(lint)),
             (
                 "registered_context_schema_duplicates",
                 lambda: check_registered_context_schema_duplicates(lint),

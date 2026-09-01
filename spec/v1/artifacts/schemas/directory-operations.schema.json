@@ -109,10 +109,10 @@
     "proof": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
       "required": [
-        "audience_id"
+        "audience"
       ],
       "properties": {
-        "audience_id": {
+        "audience": {
           "$ref": "#/$defs/did_core_id"
         }
       },

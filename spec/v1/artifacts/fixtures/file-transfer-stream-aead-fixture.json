@@ -1,0 +1,80 @@
+{
+  "profile": "ak.profile.file_transfer.v1",
+  "version": "2026-09-01",
+  "suite": "file_transfer_stream_aead",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.file_transfer.stream_aead.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.file_transfer.stream_aead_byte_exact.v1",
+    "ak.vector.file_transfer.range_binding_rejected.v1",
+    "ak.vector.file_transfer.overall_digest_rejected.v1"
+  ],
+  "source_refs": [
+    "spec/v1/zh/models/file-transfer.md",
+    "spec/v1/zh/crypto-media/media-and-blob.md",
+    "spec/v1/artifacts/schemas/file-transfer.schema.json"
+  ],
+  "vectors": [
+    {
+      "vector_id": "ak.vector.file_transfer.stream_aead_byte_exact.v1",
+      "assertions": [
+        "the file-transfer AAD is the exact JCS transcript from the authenticated record and is not an MLS attachment transcript",
+        "each XChaCha20-Poly1305 nonce is nonce_prefix || u32_be(segment_index) || last_segment_flag",
+        "SDK and independent AEAD consumers reproduce every ciphertext byte and recover the exact plaintext"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.file_transfer.range_binding_rejected.v1",
+      "assertions": [
+        "each authenticated record segment maps to one exact inclusive Range and Content-Range",
+        "wrong start, end, total, unit, truncation, and segment tampering are rejected"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.file_transfer.overall_digest_rejected.v1",
+      "assertions": [
+        "the SHA-256 digest covers the complete concatenated ciphertext in segment order",
+        "a valid set of segment tags is not committed when the authenticated overall digest differs"
+      ]
+    }
+  ],
+  "kat": {
+    "plaintext": {
+      "generator": "byte_index_modulo",
+      "length": 1025,
+      "modulus": 251
+    },
+    "content_key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+    "record_json": "{\"kind\":\"file_transfer\",\"transfer_id\":\"0123456789abcdefghijkl\",\"blob_ref\":\"ak:blob:sha256:0a864a277e1ab492e45fb633188b9a934afd51804b7ac22279bea9f117bc95f8\",\"content_digest\":\"sha256:0a864a277e1ab492e45fb633188b9a934afd51804b7ac22279bea9f117bc95f8\",\"blob_size_bytes\":1057,\"media_type\":\"application/octet-stream\",\"filename\":\"kat.bin\",\"plaintext_size_bytes\":1025,\"access\":{\"visibility\":\"actor_private\"},\"encryption\":{\"scheme\":\"ak.blob.stream_aead.v1\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"nonce_prefix\":\"oKGio6SlpqeoqaqrrK2ur7Cxsg\",\"segment_bytes\":1024,\"aad\":{\"schema\":\"ak.schema.file_transfer.v1\",\"purpose\":\"file_transfer\",\"transfer_id\":\"0123456789abcdefghijkl\",\"origin_device_id\":\"ak:device:01904100-0000-7000-8000-000000000001\",\"created_at\":\"2026-08-31T00:00:00.000Z\"},\"key_delivery\":{\"method\":\"account_data_wrapped_key\",\"content_key\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\"}},\"origin_device_id\":\"ak:device:01904100-0000-7000-8000-000000000001\",\"created_at\":\"2026-08-31T00:00:00.000Z\",\"updated_hlc\":\"01970e589d21-0004-a13f9c2e\",\"retention_expires_at\":\"2026-09-07T00:00:00.000Z\",\"status\":\"available\"}",
+    "ciphertext_b64u": "0mzuYjI4vSrh7lgTuC0THaO-FvkMskD132qs9jiFt8qAT6U16j3Fbnd6OQe8NBLKj4g9SriuXg70p8AdYa7ZiE5-KhX5n33clPugrGP0V0fEs9dQR027E2mBB5n-SnGFrfm1ULgrljyE4WJoVn4yuvL-qsIH9wS5VlLMb18D1n5e5R-qT2_0b2fZMYUgyDb1h08XRjeNao6q3_6LrBK_bMHVUvVYM3tys3KnqxxNdkIe_kvsAZF-dvSLgL80GgTI5Io8XdioXF0neC15tOGXgKWzHxBl1o-aZRHQLonshPA6H0yleCPbRGmWVmmsDy8RQl29MxIGSnU_lCkJN_ghsX2r83G5vrgOFCQ3RPCUh1s9FjRyjRhfnQ7FaoePv5pnaah_WDlO5SCJ0mRKvujS0pp9QP-KpvIoB85PS49N_9hh0pY5eF3fPYD0gv38aCjGybrzsgSj6E_BLDTzc3FaDHQ0iJyQREcJnZ1hEgsj2_IZQTJ0YPaVUBwagp45O1Tb20jQ4CM4suaG8vOyuaKXvikwf-8vHGdZIN5z8Y5_MxeYa5-U7JZ5c8vlPtrNG3owyNTZZw4d630UqFpQUoVdjt4zrFRcn9YKQMHdHZYPG4qHY0SUaZQmTEAfRR1fhK13veBSpX5K7pAOIs4tDMn-YWRulvG7-6yvo13cwFTES3G7-t6RGYqbnckwvRpUeoYJQ-cg9H94amcYHambzJTEdFZxrFV4qGLtZEjPHLa4xaGZzIvBKUetBNUouvtvbsvpRy8qmIRWxwpUbuqz5U8ibnHx3eH1l-7Byo0P676jkbHQZ2aGu4_eS8r3253nRm7PskUd7F_aVdtBEUIbrVi2hbjZIEG_5iNHtoswwE-onxx_aQF7X3oIUgsTNXeVn-TdvdPAk2bAsozG48n_WCgqSPh8_2OlKiO71xIAqR1R43NNlt1fkuF-VCSiDnKnC5RxhIYuY6yBfrEIm0y_67BiBoqg2jyHNM9PsNma_wQm27XzD7FpOAbmqHlRbEJULGftSjSeaV2UHwAKFA5GUZyTOw9DKVw7-aYnJAJdIvbR_Z8Da8ba3ru6KwLnErxeXmBZkX062FYr5_EUG_K9qTkpcNhJT2Zm4AiLAuEWPxlxuOz-sTd-UIpQ-i8aZUwaAR866x2BW_U8aZ3WDBzhXcZi602QO9V1RzYvX7yWq8yJmAP6cqkQUtCqqEDCoqAzWPP3fxEeiFyQGJ5vGZh_qrtzK4-z8fhrl_Aa4vjOICQj6Jwt1YuQnr3S6Va6quBXBeeIH9CmbuHE8Gs19dNmuQ3UcCVO-FI9rjox51RSiI8EBsPCRS9Kb87QOfGGFCe340-AyS69Hmh_eFVykhdPmbTKr1NAxgNLnG3LFI9dmzWwhKeZvZCBakGticzXnfEfmnnw6A",
+    "segments": [
+      {
+        "index": 0,
+        "last_segment_flag": 0,
+        "nonce_b64u": "oKGio6SlpqeoqaqrrK2ur7CxsgAAAAAA",
+        "aad_utf8": "{\"created_at\":\"2026-08-31T00:00:00.000Z\",\"last_segment_flag\":0,\"media_type\":\"application/octet-stream\",\"nonce_prefix\":\"oKGio6SlpqeoqaqrrK2ur7Cxsg\",\"origin_device_id\":\"ak:device:01904100-0000-7000-8000-000000000001\",\"purpose\":\"file_transfer\",\"schema\":\"ak.schema.file_transfer.v1\",\"scheme\":\"ak.blob.stream_aead.v1\",\"segment_count\":2,\"segment_index\":0,\"size_bytes\":1025,\"transfer_id\":\"0123456789abcdefghijkl\"}",
+        "ciphertext_b64u": "0mzuYjI4vSrh7lgTuC0THaO-FvkMskD132qs9jiFt8qAT6U16j3Fbnd6OQe8NBLKj4g9SriuXg70p8AdYa7ZiE5-KhX5n33clPugrGP0V0fEs9dQR027E2mBB5n-SnGFrfm1ULgrljyE4WJoVn4yuvL-qsIH9wS5VlLMb18D1n5e5R-qT2_0b2fZMYUgyDb1h08XRjeNao6q3_6LrBK_bMHVUvVYM3tys3KnqxxNdkIe_kvsAZF-dvSLgL80GgTI5Io8XdioXF0neC15tOGXgKWzHxBl1o-aZRHQLonshPA6H0yleCPbRGmWVmmsDy8RQl29MxIGSnU_lCkJN_ghsX2r83G5vrgOFCQ3RPCUh1s9FjRyjRhfnQ7FaoePv5pnaah_WDlO5SCJ0mRKvujS0pp9QP-KpvIoB85PS49N_9hh0pY5eF3fPYD0gv38aCjGybrzsgSj6E_BLDTzc3FaDHQ0iJyQREcJnZ1hEgsj2_IZQTJ0YPaVUBwagp45O1Tb20jQ4CM4suaG8vOyuaKXvikwf-8vHGdZIN5z8Y5_MxeYa5-U7JZ5c8vlPtrNG3owyNTZZw4d630UqFpQUoVdjt4zrFRcn9YKQMHdHZYPG4qHY0SUaZQmTEAfRR1fhK13veBSpX5K7pAOIs4tDMn-YWRulvG7-6yvo13cwFTES3G7-t6RGYqbnckwvRpUeoYJQ-cg9H94amcYHambzJTEdFZxrFV4qGLtZEjPHLa4xaGZzIvBKUetBNUouvtvbsvpRy8qmIRWxwpUbuqz5U8ibnHx3eH1l-7Byo0P676jkbHQZ2aGu4_eS8r3253nRm7PskUd7F_aVdtBEUIbrVi2hbjZIEG_5iNHtoswwE-onxx_aQF7X3oIUgsTNXeVn-TdvdPAk2bAsozG48n_WCgqSPh8_2OlKiO71xIAqR1R43NNlt1fkuF-VCSiDnKnC5RxhIYuY6yBfrEIm0y_67BiBoqg2jyHNM9PsNma_wQm27XzD7FpOAbmqHlRbEJULGftSjSeaV2UHwAKFA5GUZyTOw9DKVw7-aYnJAJdIvbR_Z8Da8ba3ru6KwLnErxeXmBZkX062FYr5_EUG_K9qTkpcNhJT2Zm4AiLAuEWPxlxuOz-sTd-UIpQ-i8aZUwaAR866x2BW_U8aZ3WDBzhXcZi602QO9V1RzYvX7yWq8yJmAP6cqkQUtCqqEDCoqAzWPP3fxEeiFyQGJ5vGZh_qrtzK4-z8fhrl_Aa4vjOICQj6Jwt1YuQnr3S6Va6quBXBeeIH9CmbuHE8Gs19dNmuQ3UcCVO-FI9rjox51RSiI8EBsPCRS9Kb87QOfGGFCe340-AyS69Hmh_eFVykhdPmbTKr1NAxgNLnG3LFI9dmzWwhKc",
+        "range": "bytes=0-1039",
+        "content_range": "bytes 0-1039/1057"
+      },
+      {
+        "index": 1,
+        "last_segment_flag": 1,
+        "nonce_b64u": "oKGio6SlpqeoqaqrrK2ur7CxsgAAAAEB",
+        "aad_utf8": "{\"created_at\":\"2026-08-31T00:00:00.000Z\",\"last_segment_flag\":1,\"media_type\":\"application/octet-stream\",\"nonce_prefix\":\"oKGio6SlpqeoqaqrrK2ur7Cxsg\",\"origin_device_id\":\"ak:device:01904100-0000-7000-8000-000000000001\",\"purpose\":\"file_transfer\",\"schema\":\"ak.schema.file_transfer.v1\",\"scheme\":\"ak.blob.stream_aead.v1\",\"segment_count\":2,\"segment_index\":1,\"size_bytes\":1025,\"transfer_id\":\"0123456789abcdefghijkl\"}",
+        "ciphertext_b64u": "mb2QgWpBrYnM153xH5p58Og",
+        "range": "bytes=1040-1056",
+        "content_range": "bytes 1040-1056/1057"
+      }
+    ],
+    "invalid_content_ranges": [
+      "bytes 0-1040/1057",
+      "bytes 0-1039/1058",
+      "bytes 1-1039/1057",
+      "items 0-1039/1057"
+    ],
+    "invalid_overall_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}

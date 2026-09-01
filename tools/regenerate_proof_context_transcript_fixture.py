@@ -536,7 +536,6 @@ def build_case(
             for name in required_binding + present_optional:
                 if (
                     name in PROOF_SIDE_FIELDS
-                    or (family == "directory_governance_request" and name == "audience_id")
                     or name in SELF_DIGEST_FIELDS
                     or name in body
                     or (family == "ingress_receipt" and name == "authority_set_ref")

@@ -1266,6 +1266,14 @@ def run_long_text_schema_test() -> int:
     return result.returncode
 
 
+def run_schema_constructability_test() -> int:
+    result = subprocess.run(
+        [sys.executable, "-m", "unittest", "tools.test_schema_constructability_lint"],
+        cwd=ROOT,
+    )
+    return result.returncode
+
+
 def run_openapi_operation_selector(mode: str) -> int:
     result = subprocess.run(
         [sys.executable, str(OPENAPI_OPERATION_SELECTOR_SCRIPT), mode], cwd=ROOT
@@ -1334,6 +1342,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         lambda: run_operation_string_classification("check"),
         run_operation_string_classification_test,
         run_long_text_schema_test,
+        run_schema_constructability_test,
         run_fixture_digest_check,
         run_session_grant_kat_check,
         run_contact_round_kat_check,

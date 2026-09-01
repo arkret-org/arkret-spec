@@ -356,6 +356,22 @@
         "composite_identifier"
       ],
       "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
+    },
+    {
+      "file": "directory-operations.schema.json",
+      "pointer": "/$defs/proof/properties/audience",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "audience is the externally standardized detached-proof audience member narrowed to one Directory service DidCoreId; the object-family contract and proof context intentionally retain the registered proof spelling"
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "pointer": "/$defs/DirectoryGovernanceProof/allOf/1/properties/audience",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "audience is the externally standardized detached-proof audience member narrowed to one Directory service DidCoreId; the object-family contract and proof context intentionally retain the registered proof spelling"
     }
   ]
 }

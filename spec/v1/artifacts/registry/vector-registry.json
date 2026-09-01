@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.3",
+  "version": "2026-09-01.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-01T12:16:00+08:00",
+  "generated_at": "2026-09-01T19:45:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3094,6 +3094,42 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.file_transfer.overall_digest_rejected.v1",
+      "status": "active",
+      "domain": "file_transfer",
+      "applies_to_fixtures": [
+        "file-transfer-stream-aead-fixture.json"
+      ],
+      "description": "File-transfer stream receivers recompute content_digest over the complete concatenated ciphertext in segment order and do not commit output when the authenticated overall digest differs, even when each individual segment tag is valid.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/file-transfer-stream-aead-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.file_transfer.range_binding_rejected.v1",
+      "status": "active",
+      "domain": "file_transfer",
+      "applies_to_fixtures": [
+        "file-transfer-stream-aead-fixture.json"
+      ],
+      "description": "Each authenticated file-transfer stream segment maps to one exact inclusive ciphertext Range and Content-Range; wrong unit, start, end, total, segment length, tampering, or truncation fails closed.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/file-transfer-stream-aead-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.file_transfer.stream_aead_byte_exact.v1",
+      "status": "active",
+      "domain": "file_transfer",
+      "applies_to_fixtures": [
+        "file-transfer-stream-aead-fixture.json"
+      ],
+      "description": "Byte-exact file-transfer stream AEAD KAT pins the authenticated record-derived segment count, nonce, file-transfer-specific JCS AAD, XChaCha20-Poly1305 ciphertext, short final segment, and exact plaintext recovery without introducing MLS attachment fields.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/file-transfer-stream-aead-fixture.json"
       ]
     },
     {

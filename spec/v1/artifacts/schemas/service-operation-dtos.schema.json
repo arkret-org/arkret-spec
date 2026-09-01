@@ -1889,11 +1889,11 @@
         {
           "type": "object",
           "required": [
-            "audience_id",
+            "audience",
             "proof_purpose"
           ],
           "properties": {
-            "audience_id": {
+            "audience": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             },
             "proof_purpose": {

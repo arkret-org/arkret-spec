@@ -169,6 +169,10 @@
       "sha256": "84a101bc3c2c6c9e616bc32d0479ed34de4e7cde72694deb4668cd7d23f7a6bd"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/file-transfer-stream-aead-fixture.json",
+      "sha256": "dae1d182686465e3e52c830d6d4dbb09cc698c211b6f41aeb0fcf69af5c77a5c"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
       "sha256": "6f24e396c3402d77c05e97e24ecca9b7dc5d52b7748d3ebcd918241785f0a5b4"
     },
@@ -334,7 +338,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "b09208dc2b32c35cd86fc94940764fccdfae5478968b11cd52f2e8c25adb5221"
+      "sha256": "ad036b5f19feba35f40343d97fb82fa48ca2e0f540b263b578e4214c04176ba3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

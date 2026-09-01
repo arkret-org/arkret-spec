@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-01.7",
-  "generated_at": "2026-09-01T20:42:37+08:00",
+  "version": "2026-09-01.8",
+  "generated_at": "2026-09-01T15:42:40+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -65,7 +65,7 @@
     },
     {
       "operation_id": "ak.find.directory.command.withdraw.v1",
-      "sha256": "sha256:2bcb2b542d81969422cdc22db28f057169d8ecdf0a495e016a97f67b5207b032"
+      "sha256": "sha256:00032883f19007e59964bb2c8fce6c08a4334c89bbfdd4372f0f96cba1f360ff"
     },
     {
       "operation_id": "ak.find.directory.push.command.register.v1",
@@ -77,7 +77,7 @@
     },
     {
       "operation_id": "ak.find.directory.read.list_handles_for_subject.v1",
-      "sha256": "sha256:38a1364e1bf0ae970ea3355832a585ae617914610a146d4667678fe580d146a4"
+      "sha256": "sha256:25a1604731bad8cfff93afb6e250f7b1646132fa9d2162d9414ee8f0b6dba0a7"
     },
     {
       "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
@@ -85,15 +85,15 @@
     },
     {
       "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",
-      "sha256": "sha256:9fd3f0e449b843269c7480ca41c32b4d30461329320da58022585201ab72bf70"
+      "sha256": "sha256:4350aa251d055de6958dfb0f45910018fb9b1d6d89d2baee456e3419c85ac567"
     },
     {
       "operation_id": "ak.find.directory.read.resolve_handle.v1",
-      "sha256": "sha256:290e07d2610c2d3c79db0ac78959581ec80e1d55dfabce5c9c00d8154232e8ed"
+      "sha256": "sha256:119bb83726da327a12d199f472f196ea51055e3525d23a1284454feeef8f1b45"
     },
     {
       "operation_id": "ak.find.directory.read.resolve_organization.v1",
-      "sha256": "sha256:3878c174d878535bfacb7d5bab8e87899dce1d1f8faf7f511bf54847f209ed6d"
+      "sha256": "sha256:0b7e7649cdcd81951e5a08e4ce09c3f75424ab23df3bc1cd0c63a15e23501f1c"
     },
     {
       "operation_id": "ak.find.directory.read.resolve_realm.v1",
@@ -101,7 +101,7 @@
     },
     {
       "operation_id": "ak.find.directory.read.resolve_target.v1",
-      "sha256": "sha256:14f9f5784ebe34eb36eb22930be45414282508389fe7ab15824680f7bec5d0e1"
+      "sha256": "sha256:ecc9e1d2ecb1339a92f5ed4235317fbb3c4fea7563eab38945f5f3dd90c6af26"
     },
     {
       "operation_id": "ak.find.directory.read.search_actors.v1",

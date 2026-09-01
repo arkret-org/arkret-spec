@@ -5395,6 +5395,209 @@
         "station_id": "ak:did_core:web:station.example"
       },
       "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "service_describe_auth_metadata_nested_x_extensions_valid",
+      "schema_ref": "schemas/service-describe.schema.json#/properties/auth_metadata",
+      "expect_valid": true,
+      "instance": {
+        "account_authority": {
+          "origin": "https://auth.example",
+          "gate_account_base_url": "https://auth.example/_arkret/gate/account",
+          "x_display_note": "safe to ignore"
+        },
+        "methods": [
+          {
+            "method": "oidc",
+            "issuer_uri": "https://auth.example",
+            "openid_configuration_url": "https://auth.example/.well-known/openid-configuration",
+            "grant_exchange": {
+              "kind": "account_handoff",
+              "x_display_note": true
+            },
+            "x_display_note": 7
+          }
+        ],
+        "x_display_note": {
+          "label": "safe to ignore"
+        }
+      }
+    },
+    {
+      "name": "service_describe_auth_metadata_mode_rejected",
+      "schema_ref": "schemas/service-describe.schema.json#/properties/auth_metadata",
+      "expect_valid": false,
+      "first_expected_error": "contains:'mode' does not match any of the regexes",
+      "instance": {
+        "mode": "legacy"
+      }
+    },
+    {
+      "name": "service_describe_auth_metadata_read_rejected",
+      "schema_ref": "schemas/service-describe.schema.json#/properties/auth_metadata",
+      "expect_valid": false,
+      "first_expected_error": "contains:'read' does not match any of the regexes",
+      "instance": {
+        "read": "legacy"
+      }
+    },
+    {
+      "name": "service_describe_auth_method_bare_mode_rejected",
+      "schema_ref": "schemas/service-describe.schema.json#/$defs/auth_method",
+      "expect_valid": false,
+      "first_expected_error": "contains:'mode' does not match any of the regexes",
+      "instance": {
+        "method": "passkey",
+        "grant_exchange": {
+          "kind": "account_handoff"
+        },
+        "mode": "legacy"
+      }
+    },
+    {
+      "name": "service_describe_auth_grant_exchange_bare_mode_rejected",
+      "schema_ref": "schemas/service-describe.schema.json#/$defs/auth_grant_exchange",
+      "expect_valid": false,
+      "first_expected_error": "contains:'mode' does not match any of the regexes",
+      "instance": {
+        "kind": "account_handoff",
+        "mode": "legacy"
+      }
+    },
+    {
+      "name": "service_describe_closed_root_baseline_valid",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "service_id": "ak:did_core:webvh:z6mkfixture",
+        "service_resolution": {
+          "did": "did:webvh:z6mkfixture:station.example",
+          "method_history_head": "head-1",
+          "version_id": "version-1"
+        },
+        "trust_domain": "ak:trust_domain:example.net",
+        "service_kind": "station",
+        "protocol_version": "1.0",
+        "supported_profiles": [],
+        "supported_features": [],
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://auth.example",
+            "gate_account_base_url": "https://auth.example/_arkret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "passkey",
+              "grant_exchange": {
+                "kind": "account_handoff"
+              }
+            }
+          ]
+        },
+        "limits": {},
+        "plaintext_visibility": {},
+        "claimed_profiles": [],
+        "verified_profiles": [],
+        "interop_surfaces": [],
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.station.describe.v1"
+        ],
+        "transport_bindings": [],
+        "rate_limit_policy": {}
+      }
+    },
+    {
+      "name": "service_describe_top_level_registry_mode_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:'registry_mode' does not match any of the regexes",
+      "instance": {
+        "service_id": "ak:did_core:webvh:z6mkfixture",
+        "service_resolution": {
+          "did": "did:webvh:z6mkfixture:station.example",
+          "method_history_head": "head-1",
+          "version_id": "version-1"
+        },
+        "trust_domain": "ak:trust_domain:example.net",
+        "service_kind": "station",
+        "protocol_version": "1.0",
+        "supported_profiles": [],
+        "supported_features": [],
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://auth.example",
+            "gate_account_base_url": "https://auth.example/_arkret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "passkey",
+              "grant_exchange": {
+                "kind": "account_handoff"
+              }
+            }
+          ]
+        },
+        "limits": {},
+        "plaintext_visibility": {},
+        "claimed_profiles": [],
+        "verified_profiles": [],
+        "interop_surfaces": [],
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.station.describe.v1"
+        ],
+        "transport_bindings": [],
+        "rate_limit_policy": {},
+        "registry_mode": "primary"
+      }
+    },
+    {
+      "name": "service_describe_top_level_supported_receipts_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:'supported_receipts' does not match any of the regexes",
+      "instance": {
+        "service_id": "ak:did_core:webvh:z6mkfixture",
+        "service_resolution": {
+          "did": "did:webvh:z6mkfixture:station.example",
+          "method_history_head": "head-1",
+          "version_id": "version-1"
+        },
+        "trust_domain": "ak:trust_domain:example.net",
+        "service_kind": "station",
+        "protocol_version": "1.0",
+        "supported_profiles": [],
+        "supported_features": [],
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://auth.example",
+            "gate_account_base_url": "https://auth.example/_arkret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "passkey",
+              "grant_exchange": {
+                "kind": "account_handoff"
+              }
+            }
+          ]
+        },
+        "limits": {},
+        "plaintext_visibility": {},
+        "claimed_profiles": [],
+        "verified_profiles": [],
+        "interop_surfaces": [],
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.station.describe.v1"
+        ],
+        "transport_bindings": [],
+        "rate_limit_policy": {},
+        "supported_receipts": [
+          "legacy"
+        ]
+      }
     }
   ]
 }

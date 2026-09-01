@@ -369,7 +369,7 @@
         "verification_method",
         "created_at",
         "proof_purpose",
-        "audience_id"
+        "audience"
       ],
       "defined_in": "zh/discovery/discovery-directory.md#871-governance-proof-wire-形态与绑定normative",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof"
