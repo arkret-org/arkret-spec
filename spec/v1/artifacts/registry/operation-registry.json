@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.2",
+  "version": "2026-09-01.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-01T12:16:00+08:00",
+  "generated_at": "2026-09-01T15:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4842,6 +4842,23 @@
         },
         {
           "operation_id": "ak.self.applet.revoke.command.preview.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.current_signer_evidence.v1",
+      "service_kind": "station",
+      "deployment_evidence": [
+        "ak.deployment_prototype.soland_station.v1#current_signer_evidence"
+      ],
+      "members": [
+        {
+          "operation_id": "ak.peer.current_signer_evidence.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.current_signer_evidence.read.resolve.v1",
           "binding_kind": "http_json"
         }
       ]

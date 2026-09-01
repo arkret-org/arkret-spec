@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.16",
+  "version": "2026-08-29.17",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -107,6 +107,10 @@
     {
       "operation_bundle_id": "ak.operation_bundle.station.applet_install.v1",
       "sha256": "sha256:fa2ec018cbcfeb1b0ca35bc8d0284e9ea8c447193a103cdb20c3436c2e81321a"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.current_signer_evidence.v1",
+      "sha256": "sha256:6779c200fef666a041660ff627cf3dc9785d4b728af62064022c34740e881259"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.describe.v1",
