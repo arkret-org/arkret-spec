@@ -2,153 +2,229 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/handle-claim.schema.json",
   "$defs": {
-    "timestamp": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    }
-  },
-  "title": "Arkret Handle Claim",
-  "type": "object",
-  "required": [
-    "schema",
-    "handle",
-    "subject_account_id",
-    "issuer_id",
-    "binding_state",
-    "created_at",
-    "proofs"
-  ],
-  "properties": {
-    "schema": {
-      "const": "ak.schema.handle_claim.v1",
-      "description": "Canonical schema discriminator. Aligned with schema-registry.json; lets validators / contract-registry consumers disambiguate this claim from other DID-bearing envelopes."
-    },
-    "handle": {
-      "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
-    },
-    "handle_aliases": {
-      "type": "array",
-      "items": {
-        "$ref": "string-profiles.schema.json#/$defs/acct_uri"
-      },
-      "uniqueItems": true,
-      "description": "Interop aliases such as RFC 7565 acct:. Aliases are never canonical; verifiers MUST normalize to handle before cache lookup, proof comparison, or account selection."
-    },
-    "subject_account_id": {
-      "$ref": "./common-ids.schema.json#/$defs/account_id",
-      "description": "Exact account selected by this account handle. Both canonical components are proof-bound; a resolver MUST NOT infer or replace station_id."
-    },
-    "issuer_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Stable did_core_id of the handle authority. Bare hostnames are discovery inputs, never proof issuers; proof verification resolves a DID URL separately and requires its registered adapter projection to equal this issuer."
-    },
-    "vouching_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Optional service-only vouching role that signed, served, or vouched for this handle claim when distinct from issuer_id. The service subject-class requirement is validated independently of the field name."
-    },
-    "binding_state": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "verified",
-        "revoked",
-        "expired"
+    "timestamp": { "$ref": "./time.schema.json#/$defs/timestamp" },
+    "nullable_timestamp": {
+      "oneOf": [
+        { "$ref": "#/$defs/timestamp" },
+        { "type": "null" }
       ]
     },
-    "claim_kind": {
-      "type": "string",
-      "description": "Protocol-level kind of holder/principal handle claim. v1 intentionally does not allow the earlier draft service_handle value: service-readable names or resource labels need their own service/resource schema, while organization-assigned user/principal handles use organization_handle.",
-      "enum": [
-        "handle_binding",
-        "organization_handle"
+    "nullable_digest": {
+      "oneOf": [
+        { "$ref": "./event-envelope.schema.json#/$defs/digest" },
+        { "type": "null" }
       ]
     },
-    "visibility": {
-      "type": "string",
-      "enum": [
-        "public",
-        "restricted",
-        "private"
-      ],
-      "description": "Default disclosure boundary for this handle claim."
-    },
-    "audience": {
-      "type": "string",
-      "description": "Audience binding for the claim. For handle claims used to address an invite, audience is the target Realm ID, the inviting service DID, or another verifier domain the proofs explicitly bind to. Verifier MUST reject claims whose audience does not match the current invocation context."
-    },
-    "challenge": {
-      "type": "string"
-    },
-    "claim_scope": {
-      "type": "object",
-      "additionalProperties": true,
-      "description": "Optional claim_scope such as organization_id, realm_id, purpose, or allowed operations."
-    },
-    "claims": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "expires_at": {
-      "$ref": "#/$defs/timestamp"
-    },
-    "created_at": {
-      "$ref": "#/$defs/timestamp"
-    },
-    "verified_at": {
-      "$ref": "#/$defs/timestamp"
-    },
-    "source_refs": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-      },
-      "uniqueItems": true
-    },
-    "proofs": {
-      "type": "array",
-      "items": {
-        "$ref": "./event-envelope.schema.json#/$defs/proof"
-      },
-      "minItems": 1
-    }
-  },
-  "unevaluatedProperties": true,
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "binding_state": {
-            "const": "verified"
-          }
+    "claim_variant": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": { "kind": { "const": "handle_binding" } },
+          "additionalProperties": false
         },
-        "required": [
-          "binding_state"
-        ]
-      },
-      "then": {
-        "required": [
-          "handle",
-          "expires_at"
-        ],
-        "properties": {
-          "proofs": {
-            "contains": {
-              "type": "object",
-              "properties": {
-                "proof_purpose": {
-                  "const": "holder_acceptance"
+        {
+          "type": "object",
+          "required": ["kind", "organization_id"],
+          "properties": {
+            "kind": { "const": "organization_handle" },
+            "organization_id": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "handle_claim_core": {
+      "type": "object",
+      "required": [
+        "schema", "handle", "handle_aliases", "subject_account_id", "issuer_id",
+        "claim", "visibility", "audience", "issued_at", "expires_at", "source_refs", "proofs"
+      ],
+      "properties": {
+        "schema": { "const": "ak.schema.handle_claim_core.v1" },
+        "handle": { "$ref": "string-profiles.schema.json#/$defs/canonical_handle" },
+        "handle_aliases": {
+          "type": "array",
+          "items": { "$ref": "string-profiles.schema.json#/$defs/acct_uri" },
+          "uniqueItems": true
+        },
+        "subject_account_id": { "$ref": "./common-ids.schema.json#/$defs/account_id" },
+        "issuer_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
+        "claim": { "$ref": "#/$defs/claim_variant" },
+        "visibility": {
+          "type": "string",
+          "enum": ["public", "restricted", "private"]
+        },
+        "audience": {
+          "oneOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ]
+        },
+        "issued_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": { "$ref": "#/$defs/nullable_timestamp" },
+        "source_refs": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^ak:event:[A-Za-z0-9_-]{44}$" },
+          "uniqueItems": true
+        },
+        "proofs": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "allOf": [
+                { "$ref": "./event-envelope.schema.json#/$defs/proof" },
+                {
+                  "required": ["domain", "proof_purpose"],
+                  "properties": {
+                    "domain": { "const": "ak.handle_claim_proof.v1" },
+                    "proof_purpose": { "const": "issuer_attestation" }
+                  }
                 }
-              },
-              "required": [
-                "proof_purpose"
               ]
             },
-            "minContains": 1
-          }
+            {
+              "allOf": [
+                { "$ref": "./event-envelope.schema.json#/$defs/proof" },
+                {
+                  "required": ["domain", "proof_purpose"],
+                  "properties": {
+                    "domain": { "const": "ak.handle_claim_proof.v1" },
+                    "proof_purpose": { "const": "holder_acceptance" }
+                  }
+                }
+              ]
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
         }
-      }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "visibility": { "const": "public" } },
+            "required": ["visibility"]
+          },
+          "then": { "properties": { "audience": { "type": "null" } } },
+          "else": { "properties": { "audience": { "type": "string", "minLength": 1 } } }
+        }
+      ]
+    },
+    "revoker": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["role", "issuer_id"],
+          "properties": {
+            "role": { "const": "issuer" },
+            "issuer_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["role", "subject_account_id"],
+          "properties": {
+            "role": { "const": "holder" },
+            "subject_account_id": { "$ref": "./common-ids.schema.json#/$defs/account_id" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "handle_claim_revocation": {
+      "type": "object",
+      "required": ["schema", "claim_digest", "revoked_at", "revoker", "proof"],
+      "properties": {
+        "schema": { "const": "ak.schema.handle_claim_revocation.v1" },
+        "claim_digest": { "$ref": "./event-envelope.schema.json#/$defs/digest" },
+        "revoked_at": { "$ref": "#/$defs/timestamp" },
+        "revoker": { "$ref": "#/$defs/revoker" },
+        "proof": {
+          "allOf": [
+            { "$ref": "./event-envelope.schema.json#/$defs/proof" },
+            {
+              "required": ["domain", "proof_purpose"],
+              "properties": {
+                "domain": { "const": "ak.handle_claim_revocation.v1" },
+                "proof_purpose": { "const": "revocation_authorization" }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "handle_claim_status_view": {
+      "type": "object",
+      "required": [
+        "schema", "claim", "claim_digest", "status", "as_of", "verifier_id",
+        "verified_at", "revocation", "revocation_digest", "fresh_until", "status_proof"
+      ],
+      "properties": {
+        "schema": { "const": "ak.schema.handle_claim.v1" },
+        "claim": { "$ref": "#/$defs/handle_claim_core" },
+        "claim_digest": { "$ref": "./event-envelope.schema.json#/$defs/digest" },
+        "status": { "type": "string", "enum": ["pending", "verified", "revoked"] },
+        "as_of": { "$ref": "#/$defs/timestamp" },
+        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
+        "verified_at": { "$ref": "#/$defs/nullable_timestamp" },
+        "revocation": {
+          "oneOf": [
+            { "$ref": "#/$defs/handle_claim_revocation" },
+            { "type": "null" }
+          ]
+        },
+        "revocation_digest": { "$ref": "#/$defs/nullable_digest" },
+        "fresh_until": { "$ref": "#/$defs/timestamp" },
+        "status_proof": {
+          "allOf": [
+            { "$ref": "./event-envelope.schema.json#/$defs/proof" },
+            {
+              "required": ["domain", "proof_purpose"],
+              "properties": {
+                "domain": { "const": "ak.handle_claim_status.v1" },
+                "proof_purpose": { "const": "status_attestation" }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "verified" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "verified_at": { "$ref": "#/$defs/timestamp" },
+              "revocation": { "type": "null" },
+              "revocation_digest": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "revoked" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "revocation": { "$ref": "#/$defs/handle_claim_revocation" },
+              "revocation_digest": { "$ref": "./event-envelope.schema.json#/$defs/digest" }
+            }
+          },
+          "else": {
+            "properties": {
+              "revocation": { "type": "null" },
+              "revocation_digest": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "pending" } }, "required": ["status"] },
+          "then": { "properties": { "verified_at": { "type": "null" } } }
+        }
+      ]
     }
-  ]
+  },
+  "$ref": "#/$defs/handle_claim_status_view"
 }

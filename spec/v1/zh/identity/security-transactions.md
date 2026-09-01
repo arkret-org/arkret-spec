@@ -19,7 +19,7 @@ Arkret v1 只定义两个 Station 内安全事务：`RecoveryTransaction` 与
 SecurityTransaction {
   transaction_id,
   kind,
-  principal_id,
+  account_id,
   coordinator_id,
   expires_at,
   created_at,
@@ -38,11 +38,11 @@ phase/state。客户端是否需要设备签名必须由 `terminal_result` 缺�
 `steps(kind)[accepted_steps.length]` 为 client-attested step 纯函数计算，禁止把该 readiness 再序列化或
 持久化为协议状态。
 
-`principal_id` 与 `coordinator_id` 唯一确定执行事务的 Station-local `AccountId`：
-`{principal_id, station_id: coordinator_id}`。`coordinator_id` MUST 是该 Station 的 service core identity，
+顶层 `account_id` 唯一确定事务拥有者；`coordinator_id` 独立表示执行该事务的 Station service role，
+且 MUST 逐字等于 `account_id.station_id`。`coordinator_id` MUST 是该 Station 的 service core identity，
 不得指向任意外部协调者。部署可以把步骤执行拆为多个进程，但不得由此产生独立的公开 coordinator role。
 事务中的 Event 与备份对象的完整 `ActorId` MUST 等于该 `AccountId` 对应的 account actor；只比较
-`principal_id` 不足以验证归属，同一主体在另一 Station 的 Event、备份、PCR、设备与 session 均不得混入。
+只比较 `account_id.principal_id` 不足以验证归属，同一主体在另一 Station 的 Event、备份、PCR、设备与 session 均不得混入。
 
 `prepared_plan` 是按 kind/model 判别的 closed typed public plan，也是 intent 与 reserved material 的唯一
 canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 的 reserved binding view 由
@@ -138,9 +138,11 @@ private key，不生成、更改或代签 Event。
 
 coordinator 在 terminal receipt 接受与完成 ledger 同一原子提交中生成
 `ak.schema.recovery_completion_attestation.v1`。其 Ed25519 签名输入固定为
-`RFC8785_JCS({schema, transaction_id, transaction_request_digest, prepared_plan_digest, principal_id,
-coordinator_id, recovery_session_id, terminal_receipt_id, terminal_receipt_digest,
+`RFC8785_JCS({schema, transaction_id, transaction_request_digest, prepared_plan_digest, account_id,
+recovery_session_id, terminal_receipt_id, terminal_receipt_digest,
 replacement_device_id, device_authorization_event_id, result_model_generation_ref, completed_at})`，wire 上不携字段名清单。
+其中 `account_id.station_id` 必须等于签发 attestation 的 coordinator；transaction 资源与 attestation
+均携同一完整 `account_id`，`coordinator_id` 只承担独立 service role，不得再由两者拼装账号。
 Event digest 必须由 suite-bearing `device_authorization_event_id` 解码；修改该 ID 会同时修改派生 digest 并使签名失败。
 
 DID method operation 的发布继续使用 `POST /_arkret/root/identity/submit-did-operation`，但它不是

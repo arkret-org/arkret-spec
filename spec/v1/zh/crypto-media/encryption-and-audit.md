@@ -474,10 +474,10 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 ### 2.7 Minimal-Metadata E2EE Realm
 
 Minimal-metadata 的 author/authorization subject 是 Realm-local pairwise endpoint actor。每个
-`(Realm, endpoint incarnation)` MUST 使用唯一 canonical `ak:did_core:key:<canonical-multibase-id>` ActorId 与 signature key；同一 Realm 的不同 endpoint
+`(Realm, endpoint incarnation)` MUST 使用唯一 canonical `ak:did_core:key:<canonical-multibase-id>` principal 分量与 signature key；完整 endpoint identity 仍是含该 principal 与其 Station 分量的 account `ActorId`。同一 Realm 的不同 endpoint
 不得复用，同一 endpoint MAY 在该 Realm-default group 与该 Realm 的 Circles 中复用。它在 Event actor、exact active
 Leaf BasicCredential identity、Event `actor_id`、content KDF/counter sender domain 与 history request sender
-domain 中必须是该 canonical did_core_id 的同一组 UTF-8 bytes。proof `verification_method` 是完整 did:key DID URL；其 controller/base 必须经 registered adapter 投影到该 did_core_id，且其 key 必须等于 exact leaf signature key。
+domain 中用于密码学分域的 principal 必须是该 canonical did_core_id 的同一组 UTF-8 bytes；需要参与者身份的字段必须携完整 ActorId。proof `verification_method` 是完整 did:key DID URL；其 controller/base 必须经 registered adapter 投影到该 ActorId 的 principal 分量，完整 Account/Station 另由 accepted membership 与 authorization evidence 验证，且其 key 必须等于 exact leaf signature key。
 
 服务端只按 pairwise actor 执行 membership/current gate/join floor/remove/rejoin，不得查询目录或 transport session
 推断真实 principal/device 聚合。持有 encrypted `identity_link` 的成员可在本地聚合并批量移除已知 actors；协议不声称

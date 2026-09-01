@@ -6,8 +6,7 @@
   "required": [
     "device_message_id",
     "kind",
-    "sender_principal_id",
-    "recipient_principal_id",
+    "recipient_account_id",
     "recipient_device_id",
     "sent_at",
     "expires_at",
@@ -16,23 +15,23 @@
   "properties": {
     "device_message_id": {
       "$ref": "#/$defs/device_message_id",
-      "description": "Sender-assigned stable identity of one logical to-device message. Queue services MUST preserve it byte-for-byte across retries and redelivery. Receivers deduplicate by (sender_principal_id, sender endpoint id, device_message_id), where the endpoint id is sender_device_id, sender_agent_id, or sender_id according to the closed sender branch."
+      "description": "Sender-assigned stable identity of one logical to-device message. Queue services MUST preserve it byte-for-byte across retries and redelivery. Receivers deduplicate by the exact closed sender identity and device_message_id: (sender_account_id, sender_device_id, device_message_id), (sender_agent_id, device_message_id), or (sender_id, device_message_id)."
     },
     "kind": {
       "type": "string",
       "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
     },
-    "sender_principal_id": {
-      "$ref": "#/$defs/did_core_id",
-      "description": "Sender Principal DID. Intentionally NOT named sender_actor_id: device messages are out-of-band per-device transport envelopes that travel principal-to-principal outside any Realm context, so the Realm-scoped Actor identity used by message.schema.json / event-payload.schema.json does not apply here. For a device sender, pair it with sender_device_id and verify that pair against the accepted PCR device projection; for an Agent sender it equals sender_agent_id and the signer is anchored by sender_agent_verification_method plus sender_agent_key_authorize_event_id. For the restricted Station service branch it MUST equal recipient_principal_id: the holder remains the message principal while sender_id identifies the internal materializer."
+    "sender_account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id",
+      "description": "Exact cross-Station sender AccountId for the human-device branch. It is paired with sender_device_id and verified against that exact Account's accepted PCR device projection; it is forbidden in Agent and Station branches."
     },
     "sender_device_id": {
       "$ref": "#/$defs/device_id",
-      "description": "Authoring human device. Exactly one sender endpoint branch is present: this field, the complete sender_agent_* triple, or sender_id. An Agent runtime has no device identity and MUST NOT be disguised as an ak:device (crypto-media/device-lifecycle.md section 9.0.1); the restricted Station materializer likewise has a service identity rather than a fake device. Receivers use the selected endpoint field in the device-message deduplication key."
+      "description": "Authoring human device. Exactly one sender endpoint branch is present: sender_account_id plus this field, the complete sender_agent_* triple, or sender_id. An Agent runtime has no device identity and MUST NOT be disguised as an ak:device; the restricted Station materializer likewise has a service identity rather than a fake device."
     },
     "sender_agent_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "Agent principal that authored this message. Present exactly when the sender is an Agent runtime, together with sender_agent_verification_method and sender_agent_key_authorize_event_id. It equals sender_principal_id; carrying it explicitly is what makes the endpoint branch decidable from the envelope alone, matching the consume / claim_envelope XORs of crypto-media/device-lifecycle.md section 9.0.1."
+      "description": "Agent principal that authored this message. Present exactly when the sender is an Agent runtime, together with sender_agent_verification_method and sender_agent_key_authorize_event_id. It is the sole Agent identity carrier."
     },
     "sender_agent_verification_method": {
       "$ref": "./common-ids.schema.json#/$defs/did_url",
@@ -44,11 +43,11 @@
     },
     "sender_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "Station service identity that internally materialized an actor-private update for the holder. This branch is restricted to actor_private_update_kind, sender_principal_id MUST equal recipient_principal_id, and the service id MUST equal the Station identity bound to the recipient's current authenticated self/to-device surface. It is not a bearer delegation and cannot be submitted through ak.self.device_messages.command.send.v1."
+      "description": "Station service identity that internally materialized an actor-private update for the holder. This branch is restricted to actor_private_update_kind, and sender_id MUST equal recipient_account_id.station_id and the Station identity bound to the recipient's current authenticated self/to-device surface. It is not a bearer delegation and cannot be submitted through ak.self.device_messages.command.send.v1."
     },
-    "recipient_principal_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Recipient Principal DID. Same naming rationale as sender_principal_id — device messages are not Realm-scoped, so Actor identity is not used. Pair with recipient_device_id for targeted device delivery."
+    "recipient_account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id",
+      "description": "Exact cross-Station recipient AccountId. Pair with recipient_device_id for targeted delivery; the envelope MUST be rejected when either AccountId component or the device differs from the authenticated queue binding."
     },
     "recipient_device_id": {
       "$ref": "#/$defs/device_id"
@@ -70,10 +69,11 @@
   "additionalProperties": false,
   "allOf": [
     {
-      "$comment": "Closed sender endpoint XOR: sender_device_id alone, the complete sender_agent_* triple alone, or sender_id alone. Half-filled and mixed branches are rejected.",
+      "$comment": "Closed sender endpoint XOR: sender_account_id plus sender_device_id, the complete sender_agent_* triple, or sender_id. Half-filled and mixed branches are rejected.",
       "oneOf": [
         {
           "required": [
+            "sender_account_id",
             "sender_device_id"
           ],
           "not": {
@@ -111,6 +111,11 @@
             "anyOf": [
               {
                 "required": [
+                  "sender_account_id"
+                ]
+              },
+              {
+                "required": [
                   "sender_device_id"
                 ]
               },
@@ -128,6 +133,11 @@
           ],
           "not": {
             "anyOf": [
+              {
+                "required": [
+                  "sender_account_id"
+                ]
+              },
               {
                 "required": [
                   "sender_device_id"
@@ -154,7 +164,7 @@
       ]
     },
     {
-      "$comment": "Only the recipient Station's internal materializer may use the service branch, and only for the closed actor-private update kind set. Principal equality and authenticated service binding are semantic checks described by the normative prose.",
+      "$comment": "Only the recipient Station's internal materializer may use the service branch, and only for the closed actor-private update kind set. sender_id equality with recipient_account_id.station_id and authenticated service binding are semantic checks described by the normative prose.",
       "if": {
         "required": [
           "sender_id"
@@ -499,7 +509,7 @@
         "ciphertext": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {device_message_id, kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at}; expires_at is the exact already-validated canonical Arkret UTC millisecond string from DeviceMessageEnvelope and MUST NOT be converted to a second epoch field. Freshness for server-assigned sent_at is bound by the sender-assigned device_message_id plus the one-time request_id authenticated inside the sealed plaintext and AAD."
+          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. For this human-device-only secret branch, the HPKE AAD is the RFC 8785 JCS canonical JSON of {device_message_id, kind, sender_account_id, sender_device_id, recipient_account_id, recipient_device_id, request_id, secret_id, expires_at}; both AccountId objects are covered in full. expires_at is the exact already-validated canonical Arkret UTC millisecond string from DeviceMessageEnvelope and MUST NOT be converted to a second epoch field. Freshness for server-assigned sent_at is bound by the sender-assigned device_message_id plus the one-time request_id authenticated inside the sealed plaintext and AAD."
         }
       },
       "additionalProperties": true

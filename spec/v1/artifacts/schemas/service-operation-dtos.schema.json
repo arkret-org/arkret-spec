@@ -245,9 +245,6 @@
       "$ref": "#/$defs/SessionGrantRefreshRequestBody"
     },
     {
-      "$ref": "#/$defs/SessionGrantRefreshOutcome"
-    },
-    {
       "$ref": "#/$defs/SessionGrantReplayProblem"
     }
   ],
@@ -1917,7 +1914,7 @@
       "additionalProperties": false,
       "required": [
         "discovery_event",
-        "source_refs",
+        "source_ref_access",
         "as_of"
       ],
       "properties": {
@@ -1947,12 +1944,9 @@
           ],
           "description": "The accepted ak.{kind}.discovery Event itself, delivered in its original signed form exactly as peer contact delivery carries the original ak.contact.* Event. resource_kind is derived from Event kind; resource_id is derived from the signed Event subject mapping. The Event's own proofs carry the resource governance signature, so no second signed copy of the same fact is defined (discovery-directory.md 8.3)."
         },
-        "source_refs": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/EventId"
-          }
+        "source_ref_access": {
+          "$ref": "#/$defs/DirectorySourceRefAccess",
+          "description": "Source-signed bounded authorization whose discovery_event_id and as_of equal this request and whose source_refs are the only announced frontier."
         },
         "as_of": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1966,6 +1960,57 @@
           "pattern": "^ak:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       }
+    },
+    "DirectorySourceRefAccess": {
+      "type": "object",
+      "description": "Short-lived source Station authorization for one authenticated Directory to resolve only the exact bounded source_refs of one current signed discovery announce. The source revalidates the current discovery Event, directory_ids opt-in and withdrawal/supersession state on every resolve. The proof is not a bearer token and cannot authorize scan, list or unrelated history.",
+      "required": [
+        "kind",
+        "source_id",
+        "directory_id",
+        "realm_id",
+        "discovery_event_id",
+        "source_refs",
+        "as_of",
+        "expires_at",
+        "proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "directory_announce"
+        },
+        "source_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "directory_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "discovery_event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/EventId"
+          }
+        },
+        "as_of": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof"
+        }
+      },
+      "additionalProperties": false
     },
     "DirectoryWithdrawOutcome": {
       "type": "object",
@@ -4736,7 +4781,17 @@
         "history_traversal_access": {
           "$ref": "./history-key.schema.json#/$defs/peer_history_traversal_access",
           "description": "Optional narrow direct-traversal access. event_ids/event_digests may select only Control Moves or registered apply_seal dependencies in the exact retained target-to-base cut; Seal refs remain on ak.peer.seals.read.resolve.v1. The authenticated peer and retained request/archive-replica basis are checked before lookup."
+        },
+        "directory_source_ref_access": {
+          "$ref": "#/$defs/DirectorySourceRefAccess",
+          "description": "Optional Directory first-ingest exact-ref authorization. It is mutually exclusive with history_traversal_access; event_ids must be a non-empty subset of its source_refs and event_digests must be absent."
         }
+      },
+      "not": {
+        "required": [
+          "history_traversal_access",
+          "directory_source_ref_access"
+        ]
       },
       "anyOf": [
         {
@@ -6144,7 +6199,8 @@
         "expires_at",
         "session_grant_id",
         "session_public_key",
-        "audience_id"
+        "audience_id",
+        "granted_scope"
       ],
       "properties": {
         "account_id": {
@@ -6164,16 +6220,16 @@
         },
         "session_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
-          "description": "Stable id of the issued session grant. Returned for every grant (human and agent) so the client can reference, refresh, introspect or revoke this exact grant without re-parsing the opaque session_grant. Mirrors SessionGrantRefreshOutcome.session_grant_id."
+          "description": "Stable id of the issued or rotated session grant. Returned for every grant so the client can reference, refresh, introspect or revoke this exact grant without re-parsing the opaque session_grant."
         },
         "session_public_key": {
           "type": "string",
           "format": "canonical-public-jwk-jcs",
-          "description": "JWK of the holder/session key the grant is bound to (the device holder key). The client needs this to perform RFC 9421 PoP and to derive the DPoP cnf.jkt for /_arkret/self/* requests (api-conventions.md §3.2 / §3.3); returning it at issue time avoids a mandatory introspect round-trip before the first self-path request. Equals the grant's bound session_public_key for both human and agent grants. Mirrors SessionGrantRefreshOutcome.session_public_key."
+          "description": "JWK of the holder/session key the grant is bound to (the device holder key). The client needs this to perform RFC 9421 PoP and to derive the DPoP cnf.jkt for /_arkret/self/* requests (api-conventions.md §3.2 / §3.3); returning it avoids a mandatory introspect round-trip before the first self-path request."
         },
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Stable did_core_id of the Station or resource service the grant is valid for. MUST equal the grant's bound audience. Mirrors SessionGrantRefreshOutcome.audience."
+          "description": "Stable did_core_id of the Station or resource service the grant is valid for. MUST equal the grant's bound audience."
         },
         "granted_scope": {
           "type": "array",
@@ -6181,93 +6237,9 @@
             "type": "string"
           }
         },
-        "scope_details": {
-          "type": "object",
-          "description": "`ak.profile.agent_auth.v1` overlay. Materialized narrow scope\nactually granted to the agent runtime session. Service-surface scope is the\nintersection of immutable provision requested_scope, accepted agent_key_scope,\nsession requested_scope and endpoint/resource policy; content actions are\nadditionally constrained by independent effective Realm capability grants,\nparticipation, membership, history visibility and E2EE policy. Provision\nmandatory constraints remain in force. Present iff the request was the\n`proof.proof_kind=\"agent_key_proof\"` branch; absent for human session grants.\n",
-          "additionalProperties": false,
-          "properties": {
-            "realm_ids": {
-              "type": "array",
-              "items": {
-                "$ref": "./common-ids.schema.json#/$defs/realm_id"
-              }
-            },
-            "strand_ids": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
-              }
-            },
-            "track_names": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "participation_entries": {
-              "type": "array",
-              "description": "`ak.profile.agent_participation_policy.v1` overlay (service-surface.md §10.1). Present when the agent session scope covers participation-aware scope. Each entry is isomorphic to agent_participation_entry ({target_scope, selection, version, next_replace_input:{expected_version}}), with next_replace_input.expected_version equal to version. The runtime uses it to avoid disabled actions; the target still evaluates current policy, capability and lifecycle at action time and does not trust a copied ceiling/effective value.",
-              "items": {
-                "$ref": "./agent-operations.schema.json#/$defs/agent_participation_entry"
-              }
-            }
-          }
-        }
-      }
-    },
-    "SessionGrantRefreshOutcome": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "session_grant_id",
-        "account_id",
-        "grant_jwt",
-        "session_public_key",
-        "expires_at",
-        "audience_id",
-        "scopes",
-        "dpop_jkt",
-        "previous_session_grant_id"
-      ],
-      "properties": {
-        "session_grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
-        },
-        "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact AccountId inherited unchanged from the predecessor grant."
-        },
-        "grant_jwt": {
-          "type": "string",
-          "description": "Rotated grant: same subject/scope/audience, cnf.jkt unchanged, fresh minutes-to-hours expiry."
-        },
-        "session_public_key": {
-          "type": "string",
-          "format": "canonical-public-jwk-jcs",
-          "description": "JWK the rotated grant is bound to (the device holder key)."
-        },
-        "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "audience_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Stable did_core_id of the resource service; unchanged from the predecessor grant."
-        },
-        "scopes": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "dpop_jkt": {
-          "type": "string",
-          "description": "RFC 7638 thumbprint of the holder key (equals the grant's cnf.jkt)."
-        },
         "previous_session_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
-          "description": "The predecessor grant, atomically superseded by this successor on success."
+          "description": "Present only on refresh. The predecessor grant atomically superseded by this successor."
         }
       }
     },
@@ -6278,7 +6250,7 @@
       "required": [
         "context",
         "purpose",
-        "principal_id",
+        "account_id",
         "device_id",
         "audience_id",
         "holder_jkt",
@@ -6314,8 +6286,9 @@
         "predecessor_session_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact account whose accepted device signs this proof. The verification method controller is projected only to account_id.principal_id; the accepted AccountHandoff or predecessor grant independently binds account_id.station_id."
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -6344,7 +6317,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the accepted device key; its fragment MUST identify device_id and its bare did MUST project to principal_id."
+          "description": "DID URL of the accepted device key; its fragment MUST identify device_id and its bare did MUST project to account_id.principal_id."
         },
         "signature": {
           "type": "string",

@@ -82,7 +82,14 @@ PROOF_SIDE_FIELDS = frozenset(
 # Binding members that carry the digest of the unsigned projection itself.
 SELF_DIGEST_FIELDS = ("payload_digest", "receipt_digest", "event_digest", "envelope_digest")
 
-PROOF_CARRIER_NAMES = ("proofs", "proof", "signature", "signatures", "governance_proof")
+PROOF_CARRIER_NAMES = (
+    "proofs",
+    "proof",
+    "status_proof",
+    "signature",
+    "signatures",
+    "governance_proof",
+)
 
 # Event envelopes drop four members, not one: encoding.md section 6 removes the
 # post-signature projections plus event_id, which is a function of the digest.
@@ -161,6 +168,8 @@ VALUE_TABLE: dict[str, Any] = {
     "created_at": "2026-05-02T00:00:00.000Z",
     "cutover_at": "2026-08-11T02:00:00.000Z",
     "decision": "reject",
+    "directory_id": "ak:did_core:web:directory.example",
+    "discovery_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
     "describe_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
     "device_authorize_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
     "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -197,6 +206,8 @@ VALUE_TABLE: dict[str, Any] = {
     "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
     "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
     "mimi": {"supported": True},
+    "mimi_room_uri": "mimi://provider.example/rooms/report-fixture",
+    "membership_event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
     "nonce": "cmVnaXN0cmF0aW9uLW5vbmNlLTAx",
     "not_before": "2026-04-26T00:00:00.000Z",
     "notice_revision": 0,
@@ -230,10 +241,37 @@ VALUE_TABLE: dict[str, Any] = {
     "refresh_after": "2026-08-11T02:00:00.000Z",
     "registration_receipt_id": "ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
     "registry_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+    "reporter_id": "ak:did_core:web:alice.example",
+    "report_event": {
+        "event": {
+            "event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+            "kind": "ak.self.moderation.report",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            },
+            "actor_id": {
+                "kind": "account",
+                "account_id": {
+                    "principal_id": "ak:did_core:web:alice.example",
+                    "station_id": "ak:did_core:web:station.example",
+                },
+            },
+            "actor_seq": 1,
+            "created_at": "2026-05-02T00:00:00.000Z",
+            "prev_refs": [],
+            "refs": [],
+            "requirements": {},
+            "payload": {},
+            "proofs": [],
+        }
+    },
     "request_id": "polreq_01",
     "resolution_event_ref": "did-webvh-entry-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
     "resource_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
     "room_binding_ref": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+    "room_binding_event_id": "ak:event:ASWGTju1AH5ri82iFC0b-lZTclyFRuOI8TagaYiq5ZD2",
     "schema": "ak.schema.event_batch_receipt.v1",
     "schema_profile_refs": ["ak.profile.core_event_store.v1"],
     "scope": "employment",
@@ -253,12 +291,16 @@ VALUE_TABLE: dict[str, Any] = {
     "snapshot_created_at": "2026-04-26T00:00:00.000Z",
     "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
     "source_id": "ak:did_core:webvh:z6mkfixturesourceexample",
+    "source_provider_id": "ak:did_core:web:provider.example",
+    "source_refs": ["ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM"],
     "state": "archived",
     "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
     "subject": "ak:did_core:webvh:z6mkfixture",
     "subject_id": "ak:did_core:webvh:z6mkfixture",
     "supported_profiles": ["ak.profile.calendar_notification_dispatch.v1"],
     "target": "opaque-bridge-target",
+    "target_ref": "mimi://provider.example/rooms/report-fixture/messages/1",
+    "as_of": "2026-05-02T00:00:00.000Z",
     "trust_domain": "ak:trust_domain:did.webvh.alice.example",
     "verification_key_multibase": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
     "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",

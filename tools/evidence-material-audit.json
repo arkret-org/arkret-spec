@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 371,
+  "audited_occurrence_count": 375,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -407,6 +407,65 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Names the authorized account-internal resolution audit evaluator contract; it does not carry an evidence instance."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "account_device_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries the origin-signed current device projection attestation together with its embedded verification proof."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "agent_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Carries the authenticated current Agent signer root and its bounded content-addressed dependency closure."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "authenticated_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Carries the registered composite Agent signer authority root selected for this exact current query."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "evidence_item",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed union of account-device projection material and the Agent signer-evidence closure."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "evidences",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Plural response collection whose items are the closed account-device or Agent current-evidence branches."
     },
     {
       "file": "did-binding-contracts.schema.json",
@@ -900,13 +959,6 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Names the closed locator-reference alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
-    },
-    {
-      "file": "invite-delivery-request.schema.json",
-      "key": "same_station_evidence",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Names the closed same-station alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
     },
     {
       "file": "invite-delivery-request.schema.json",

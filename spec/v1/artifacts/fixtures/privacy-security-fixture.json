@@ -20,6 +20,7 @@
     "ak.vector.directory.stale_result_rejection.v1",
     "ak.vector.directory.result_common_fields.v1",
     "ak.vector.directory.announce_bidirectional_opt_in.v1",
+    "ak.vector.directory.announce_source_ref_access_bounds.v1",
     "ak.vector.directory.announce_directory_not_authorized.v1",
     "ak.vector.directory.announce_bad_signature.v1",
     "ak.vector.directory.announce_signature_stale.v1",
@@ -439,6 +440,7 @@
         "ak.vector.directory.stale_result_rejection.v1",
         "ak.vector.directory.result_common_fields.v1",
         "ak.vector.directory.announce_bidirectional_opt_in.v1",
+        "ak.vector.directory.announce_source_ref_access_bounds.v1",
         "ak.vector.directory.announce_directory_not_authorized.v1",
         "ak.vector.directory.announce_bad_signature.v1",
         "ak.vector.directory.announce_signature_stale.v1",
@@ -462,10 +464,66 @@
         ],
         "resolve_target_hidden_targets_are_indistinguishable": true,
         "ingest_requires_resource_directory_opt_in": true,
+        "first_ingest_uses_authenticated_source_ref_access": true,
+        "source_ref_access_is_exact_announce_scoped": true,
         "ingest_rejects_bad_signature_and_stale_signature": true,
         "withdraw_and_takedown_have_blinded_external_responses": true,
         "psi_is_set_membership_only": true,
         "psi_denials_are_padded_and_timing_blinded": true
+      }
+    },
+    {
+      "vector_id": "ak.vector.directory.announce_source_ref_access_bounds.v1",
+      "name": "first_ingest_source_ref_access_is_current_exact_and_bounded",
+      "operation_id": "ak.find.directory.command.announce.v1",
+      "input": {
+        "authenticated_source_id": "ak:did_core:web:source.example",
+        "authenticated_directory_id": "ak:did_core:web:directory.example",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "discovery_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+        "source_refs": [
+          "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+          "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+        ],
+        "first_ingest_selector": [
+          "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM"
+        ],
+        "same_principal_distinct_actor_keys": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station-a.example"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station-b.example"
+            }
+          }
+        ]
+      },
+      "mutations": [
+        "wrong_authenticated_source",
+        "wrong_authenticated_directory",
+        "empty_source_refs",
+        "selector_outside_carrier",
+        "discovery_event_mismatch",
+        "carrier_reused_from_another_announce",
+        "expired_carrier",
+        "discovery_withdrawn",
+        "discovery_superseded"
+      ],
+      "expected": {
+        "baseline_result": "accept",
+        "baseline_first_ingest_peer_exact_resolve_calls": 1,
+        "baseline_resolved_selector_is_carrier_subset": true,
+        "mutation_result": "reject",
+        "mutation_index_writes": 0,
+        "mutation_peer_history_scan_calls": 0,
+        "actor_keys_remain_distinct": true
       }
     },
     {

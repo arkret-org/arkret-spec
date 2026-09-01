@@ -619,8 +619,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681",
-            "root_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681",
+            "current_contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec",
+            "root_contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "issuer_id": "ak:did_core:web:ps.example",
@@ -660,8 +660,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681",
-            "root_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681",
+            "current_contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec",
+            "root_contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "issuer_id": "ak:did_core:web:ps.example",

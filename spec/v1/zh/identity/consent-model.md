@@ -106,7 +106,7 @@ entry。该投影不是 Event wire 字段。
 字段语义：
 
 - `intent.consent_id`：consent cell subject。同一 holder 对同一 peer 的不同 consent_scope 用不同 consent_id。
-- `intent.peer`：counterparty DID 或 pairwise DID。
+- `intent.peer`：闭合 `consent_peer`。ordinary account、Agent 与 MIMI exact correlation 使用 `{kind:"actor",actor_id:ActorId}`，完整保留 Account Station 与 actor role；只有已接受 Realm-local pairwise binding 使用 `{kind:"pairwise_principal",principal_id:DidCoreId}`。不得把普通账号的 principal core 填入 pairwise 分支，也不得把同 core 异 Station / 异角色 Actor 当作同一 peer。
 - `intent.consent_scope`：详见 §4。
 - `not_before` / `expires_at`：时间窗口（可选）。窗口外 consent 不生效，相当于 implicit revoke（不需要单独的 revoke Control Move）。
 - `evidence_ref`：可选审计链——指向引发此 consent 的 claim disclosure / presentation response / invite proof Event。
@@ -117,7 +117,16 @@ Payload-only schema 示例：
 ```json schema=schemas/event-payload.schema.json#/$defs/consent_grant_payload
 {
   "consent_id": "ak:consent:019640ed-6000-7000-8000-000000000001",
-  "peer_id": "ak:did_core:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip",
+  "peer": {
+    "kind": "actor",
+    "actor_id": {
+      "kind": "account",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip",
+        "station_id": "ak:did_core:web:peer.example"
+      }
+    }
+  },
   "consent_scope": "invite",
   "not_before": "2026-05-07T00:00:00.000Z",
   "expires_at": "2026-12-31T00:00:00.000Z",
@@ -221,10 +230,10 @@ consent revoke 被 accepted Seal 覆盖后，下列下游缓存 MUST eager inval
 
 | 缓存 | 失效粒度 | 触发动作 |
 | --- | --- | --- |
-| Private contact discovery PSI 结果 / invite handoff cache | 按 `(holder_principal_id, peer_principal_id)` 失效，下次查询走完整 consent 重判 | 不返回 stale PSI match 或 invite handoff，防止 peer 看到已撤销的"可联系"指示。 |
-| MIMI consent check cache（interop 模块） | 按 `(holder_principal_id, peer_principal_id, scope)` 失效；`any` revoke 失效全部 scope | interop bridge 下次跨协议解析 MUST 重新校验。 |
-| Push / contact discovery 缓存（含 PSI 结果） | 按 `(holder_principal_id, peer_principal_id)` 失效；PSI 索引 MUST 在下次轮转时排除 revoked peer | 即使 cache TTL 未到，revoke 后下一次 contact sync MUST 反映新状态。 |
-| Invite admission gate cache（§6.1 invite 前置 gate） | 按 `(holder_principal_id, peer_principal_id, scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 在提交目标 Realm Control Move 前重判；旧 cache MUST NOT 让 facade / invite service 放行。 |
+| Private contact discovery PSI 结果 / invite handoff cache | 按 `(holder_account_id, JCS(peer))` 失效，下次查询走完整 consent 重判 | 不返回 stale PSI match 或 invite handoff，防止 peer 看到已撤销的"可联系"指示。 |
+| MIMI consent check cache（interop 模块） | 按 `(holder_account_id, JCS(peer.actor_id), scope)` 失效；`any` revoke 失效全部 scope | interop bridge 下次跨协议解析 MUST 重新校验；MIMI reporter authority 的 exact ActorId 必须逐字等于 `peer.actor_id`，同 core 异 Station或异角色不命中。 |
+| Push / contact discovery 缓存（含 PSI 结果） | 按 `(holder_account_id, JCS(peer))` 失效；PSI 索引 MUST 在下次轮转时排除 revoked peer | 即使 cache TTL 未到，revoke 后下一次 contact sync MUST 反映新状态。 |
+| Invite admission gate cache（§6.1 invite 前置 gate） | 按 `(holder_account_id, JCS(peer), scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 在提交目标 Realm Control Move 前重判；旧 cache MUST NOT 让 facade / invite service 放行。 |
 | In-flight invite 与 DM Realm | **不**追溯 — 已发出的 invite / 已创建的 DM Realm 不自动撤销（与 §3.3 撤销 Seal 覆盖前不追溯的规则一致）；如需撤销，单独发 `ak.invite.revoke` / member remove。 | 不自动级联撤销已生效邀请或 DM Realm。 |
 
 `consent_scope="any"` 被撤销后 cascade 失效规则：上面 5 类缓存中所有 consent_scope 的 entry 必须一起失效，包括 `invite`、`direct_message`、`voice_call`、`video_call`、`presence`。不允许实现把 `any` revoke 只清单一 scope。
@@ -240,7 +249,7 @@ Consent cell 是 or_set lattice（dot-based observed-remove，详见 [`event-aut
 - 一个`(consent_id,peer,concrete_scope)`的grant当前生效（即invite/非Contact action gate放行）当且仅当：
   - `active_dots(cell)` 中存在 ≥1 条 `value.intent == (consent_id, peer, concrete_scope)` **或** `value.intent == (consent_id, peer, "any")` 的 dot；
   - 当前时间 ∈ `[not_before, expires_at]`（窗口字段缺省视为 `(-∞, +∞)`）。
-- 不同consent ID是独立cell；查询`(holder,peer,scope)`时只有invite/非Contact action service遍历holder cells匹配。
+- 不同 consent ID 是独立 cell；查询 `(holder_account_id,JCS(peer),scope)` 时只有 invite / 非 Contact action service 遍历 holder cells 匹配，完整 identity tuple 任一分量不同都不命中。
 - 同一 CBA basis 内并发 grant 与 revoke 在 or_set join 后唯一确定（add dot 集合与 observed_dot_ids 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / admin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
 
 物化 `Consent` 对象由 holder client / admin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。Consent 没有 canonical-object schema：cell 的写入 payload 由 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `ak.consent.grant` / `ak.consent.revoke` 绑定，投影形态由 [`consent-operations.schema.json#/$defs/consent_cell_view`](../../artifacts/schemas/consent-operations.schema.json) 固定；本文只定义语义。
@@ -283,7 +292,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 #### 6.1.2 `ak.self.consent.command.request.v1`（normative）
 
-该 self-surface operation 只把 authenticated actor 的请求提交给上述 quarantine/anti-abuse pipeline；它**不**创建 consent grant dot、pending consent state 或 contact fact。peer principal 只取认证上下文，不由 request body 携带。
+该 self-surface operation 只把 authenticated actor 的请求提交给上述 quarantine/anti-abuse pipeline；它**不**创建 consent grant dot、pending consent state 或 contact fact。peer 的完整 ActorId 只取认证上下文，不由 request body 携带；body 的 `holder_account_id` 是跨 Station target，必须按完整 AccountId 参与路由、限速与 anti-enumeration key。
 
 服务端对 holder 不存在、holder policy deny、per-holder 限速、静默丢弃与成功进入 quarantine MUST 返回完全相同的 `consent_request_outcome {accepted_for_processing:true}`，并 SHOULD 做统一时序填充。响应 MUST NOT 包含 cell id、state、dots、expiry、request timestamp、account-existence flag 或可关联 queue id。写入 quarantine 时必须执行 §6.1.1 的总量/速率上限；`require_explicit_consent` profile 下请求被静默丢弃，仍返回相同 opaque outcome。
 

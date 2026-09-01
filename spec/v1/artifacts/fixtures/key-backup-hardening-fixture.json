@@ -148,7 +148,10 @@
       "kind": "unlock_proof_binding",
       "session": {
         "recovery_session_id": "ak:recovery_session:0196419b-0000-7000-8000-000000000100",
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixtureStation"
+        },
         "requesting_device_id": "ak:device:0196419b-0000-7000-8000-000000000002",
         "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "fresh_device_proof": true
@@ -179,7 +182,10 @@
       "proof": {
         "schema": "ak.schema.key_backup_unlock_proof.v1",
         "recovery_session_id": "ak:recovery_session:0196419b-0000-7000-8000-000000000100",
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixtureStation"
+        },
         "requesting_device_id": "ak:device:0196419b-0000-7000-8000-000000000002",
         "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000200",
         "backup_kind": "secret_storage",

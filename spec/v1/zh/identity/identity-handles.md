@@ -120,20 +120,81 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 ### 3.2 解析结果必含字段
 
-Handle 解析结果（无论来自 Directory、Station、Organization claim 还是 holder 自托管 well-known）MUST 至少包含 `handle`、`subject_account_id`、`issuer_id`、`binding_state`、`proofs` 与 `created_at`；`expires_at` 按 `binding_state` 条件必填；`handle_aliases[]` 为 **可选**（optional，与 §3.2.1 表及 §3.7.1 的 MAY 一致），不是必含字段：
+Handle 解析结果（无论来自 Directory、Station、Organization authority 还是 holder 自托管 well-known）MUST 是 closed `HandleClaimStatusView`：
 
-- `handle`：canonical `user:domain` handle（主形态）。
-- `handle_aliases[]`（可选 / optional）：互通别名，例如 `acct:`；不得参与 Arkret 内部权威比对。缺省时整字段 MAY 省略。
-- `subject_account_id`：被寻址 handle holder 的 exact `AccountId`（`principal_id + station_id`），两个分量均由 claim 绑定。
-- `issuer_id`：签发 handle claim 的 authority `did_core_id`；proof 的 DID URL verification method 必须投影到该值。详见 §3.4。
-- `proofs`：至少一条可验证签名，绑定 `handle`、`subject_account_id`、`issuer_id`、`created_at`。
-- `created_at` / `expires_at`：claim 时间边界；`expires_at` 在 `binding_state=verified` 时 MUST 出现。缺失 `expires_at` 的 claim MUST NOT 计为 `binding_state=verified`，不得进入 verified 候选集。
+```text
+HandleClaimStatusView {
+  schema: "ak.schema.handle_claim.v1",
+  claim: HandleClaimCore,
+  claim_digest,
+  status: pending | verified | revoked,
+  as_of,
+  verifier_id,
+  verified_at: timestamp | null,
+  revocation: HandleClaimRevocation | null,
+  revocation_digest: digest | null,
+  fresh_until,
+  status_proof
+}
+
+HandleClaimCore {
+  schema: "ak.schema.handle_claim_core.v1",
+  handle, handle_aliases[], subject_account_id, issuer_id,
+  claim: {kind:"handle_binding"} |
+         {kind:"organization_handle", organization_id},
+  visibility, audience: string | null,
+  issued_at, expires_at: timestamp | null, source_refs[],
+  proofs: [issuer_attestation, holder_acceptance]
+}
+```
+
+`HandleClaimCore` 是 immutable issuer/holder 共同签名对象；数组字段始终出现并按 UTF-8 bytewise 升序，nullable 字段始终出现，禁止 null/absent 双编码。`visibility=public` 时 `audience=null`；`restricted|private` 时 audience 为非空 exact invocation context。`claim.kind=organization_handle` 时 `organization_id` 必填；其它 claim/scope 扩展均 forbidden。`challenge` 属 request/presentation transcript，不进入 core；`vouching_id`、开放 `claim_scope`、`claims[]`、`binding_state` 与 core 内 `verified_at` 均 forbidden。
+
+core digest 固定为 `sha256(utf8("ak.handle_claim_proof.v1\n") || JCS(core_without_proofs))`，其中字段集合与 schema `handle_claim_core` property 集合逐字相同，仅移除 `proofs`；不得使用裸 JCS hash、数据库行或本地 DTO。`proofs[0]` 固定 `proof_purpose=issuer_attestation`，其 DID URL 在 `issued_at` 有效且 adapter projection 等于 `issuer_id`；`proofs[1]` 固定 `holder_acceptance`，其方法在 `issued_at` 属于 `subject_account_id.station_id` 的 accepted account-service authority。两条 proof 均令 `domain=ak.handle_claim_proof.v1`、`payload_digest=claim_digest`，并覆盖完整 AccountId；同 core 异 Station 不得复用 holder proof。
+
+status transcript 固定为以下顺序与 nullable 编码：
+
+```text
+status_preimage = {
+  claim_digest,
+  status,
+  as_of,
+  verifier_id,
+  verified_at,        // timestamp | null，字段不得省略
+  revocation_digest,  // digest | null，字段不得省略
+  fresh_until
+}
+status_digest = sha256(utf8("ak.handle_claim_status.v1\n") || JCS(status_preimage))
+```
+
+`status_proof` 必须令 `domain=ak.handle_claim_status.v1`、`proof_purpose=status_attestation`、`payload_digest=status_digest`；其 verification method 必须在 `as_of` 为 `verifier_id` 的 evidence-time accepted service authority。调用者、本地缓存或未签名 Directory row 不得自报 `verified`。verifier 只有在 core 两张 proof、exact AccountId、issuer/domain authority、audience 与当前 revocation floor 全部通过后才能签 `verified`。`verified_at` 对 verified 必须非 null 且 `claim.issued_at <= verified_at <= as_of`；pending 必须 null。`status=revoked` 必须携完整 `revocation` 且 `revocation_digest` 等于其下述 digest；其它 status 两者均必须 null。`expired` 不是 status 值：求值时只要 `claim.expires_at != null && claim.expires_at <= evaluation_time` 就 fail closed 为 expired，禁止重写 core/status。
+
+freshness 固定为 `as_of < fresh_until <= as_of + 300 seconds`，并且 core 有 expiry 时 `fresh_until <= claim.expires_at`。admission time 超过 `fresh_until` 必须在线取得新 status；不得以本地 TTL、HTTP cache age 或旧 status 回退延长。status 更新、issuer/holder key revocation、Directory trust/policy revision变化均使缓存立即失效。historical replay 只能使用 exact historical status carrier，不能把 current status 与 historical `as_of` 拼接。
+
+revocation carrier 与 transcript 固定为：
+
+```text
+HandleClaimRevocation {
+  schema: "ak.schema.handle_claim_revocation.v1",
+  claim_digest,
+  revoked_at,
+  revoker: {role:"issuer", issuer_id} |
+           {role:"holder", subject_account_id},
+  proof
+}
+revocation_preimage = {schema, claim_digest, revoked_at, revoker}
+revocation_digest = sha256(utf8("ak.handle_claim_revocation.v1\n") || JCS(revocation_preimage))
+```
+
+`proof` 必须令 `domain=ak.handle_claim_revocation.v1`、`proof_purpose=revocation_authorization`、`payload_digest=revocation_digest`。issuer 分支的 `issuer_id` 必须逐字等于 core issuer，且方法投影等于该 issuer；holder 分支 AccountId 必须逐字等于 core subject，且方法属于该 exact account 在 `revoked_at` 的 accepted authority。revoked status verifier 必须独立验证 carrier，不得仅因 issuer/holder HTTP 返回字符串 `revoked` 就生成状态。未知 revocation floor、digest 不等、未来 `revoked_at`、角色/id 错配或签名方法已在证据时点撤销均 fail closed。
+
+三类 detached JWS 共用唯一签名字节：`JCS({kind,verification_method,payload_digest,created_at,domain,audience,proof_purpose})`，字段集合固定且不含 `jws`。因此 proof role、domain、audience 与 payload digest 均受签名保护；实现不得只签 payload bytes 后让中间方替换 proof purpose。
 
 `subject_account_id` 使用 claim / credential 领域的角色名，但其类型是 canonical `AccountId`，不是裸 DID、Realm `ActorId`、Station 内部账号行号、组织人事 identifier、service DID 或资源 ID。非账号 handle 必须使用独立 schema，不得隐式扩展本字段。
 
 本节不使用通用 `ActorId` 绑定账号 handle：ActorId 可表达账号或 service 等参与者；账号也可以在加入任何 Realm 前获得 handle claim。claim 绑定 exact AccountId，Realm 内由当前 effective MemberIdentity 或授权 roster disclosure 建立 `ActorId -> AccountId` 的显示投影，不能只比较 principal core。
 
-Handle claim 用于 Realm 邀请（`intent ∈ {invite, member_add}`）时，`audience` MUST 绑定目标 Realm ID 或邀请方 service DID；claim 由 Organization 或 Directory 签发时，`vouching_id` 条件必填。它仍只产生 pending invite，不直接产生 membership。
+Handle claim 用于 Realm 邀请（`intent ∈ {invite, member_add}`）时，`claim.audience` MUST 绑定目标 Realm ID 或邀请方 service DID。Organization authority 的身份由 `claim.claim.organization_id` 与 issuer proof 唯一表达，不另加 vouching sidecar。它仍只产生 pending invite，不直接产生 membership。
 
 ### 3.2.1 Primary Handle Selection（normative）
 
@@ -147,7 +208,7 @@ Handle claim 用于 Realm 邀请（`intent ∈ {invite, member_add}`）时，`au
 (
   subject_account_id,
   context,                          // 当前 Realm ID / 邀请方 service DID / 解析 invocation
-  claim_set_snapshot,               // subject 在 as_of 的 handle_claim 集合(含 as_of 时刻 binding_state)
+  claim_set_snapshot,               // subject 在 as_of 的 signed status-view 集合
                                     // 详见下文"claim_set_snapshot 的 as-of 语义"
   policy_snapshot,                  // Realm policy 在 as_of 时刻的 handle_issuer_policy 顺序与 trust 级别
                                     // 详见下文"policy_snapshot 的 as-of 语义"
@@ -174,15 +235,12 @@ DID-document digest 字段。
 
 **`claim_set_snapshot` 的 as-of 语义**（normative）：
 
-`claim_set_snapshot` MUST 是 subject 在 `resolution_as_of` 时刻**当时可见**的 handle_claim 集合，**每个 claim 携带它在该时刻的 `binding_state` 与字段值**——不是查询执行时的"现在"集合。具体语义随用法分两支：
+`claim_set_snapshot` MUST 是 subject 在 `resolution_as_of` 时刻**当时可见**的 `HandleClaimStatusView` 集合，每个 view 的 signed `as_of/status/fresh_until` 必须覆盖该求值时点，而不是查询执行时的“现在”集合。具体语义随用法分两支：
 
 - **实时渲染**（real-time render，例如客户端展示当前 mention）：
-  `resolution_as_of` ≈ now，`claim_set_snapshot` 即客户端当前可见的 claim 集合及其当前 binding_state。这是默认情形。
+  `resolution_as_of` ≈ now，`claim_set_snapshot` 即客户端当前可见且 freshness 有效的 status-view 集合。这是默认情形。
 - **历史 replay / audit**（例如重建 "该消息发布时 mention 显示什么"）：
-  `resolution_as_of` 是过去某时刻；实现 MUST 构造 as-of snapshot，使 snapshot 中每个 claim 的 `binding_state` 反映 **`resolution_as_of` 时的状态**，**不**用当前的 binding_state。例如:
-  - 在 `resolution_as_of` 时是 `verified`、之后被 revoke 的 claim 在 snapshot 中 binding_state 仍是 `verified`（曾在 candidate 集合内）；
-  - 在 `resolution_as_of` 之后才签发的 claim **不**进 snapshot（Step 0 `created_at <= resolution_as_of` 已经独立把它过滤掉，as-of snapshot 是更强的双保险——connaissance 一致性 + 时间过滤）；
-  - 在 `resolution_as_of` 时是 `pending`、之后转为 `verified` 的 claim 在 snapshot 中 binding_state 是 `pending`(于是 Step 0 排除)。
+  `resolution_as_of` 是过去某时刻；实现 MUST 取覆盖该时点的 historical signed status view，禁止把 current status 改写 `as_of`。例如：该时点 verified、之后 revoked 的 core 使用历史 verified view；该时点之后才 `issued_at` 的 core 不进 snapshot；该时点 pending、之后 verified 的 core 使用历史 pending view。
 
 实现 SHOULD 通过保留 handle_claim event 的历史链（issuer / Directory 把每次 claim 状态变化作为 append-only event 持久化）支撑 as-of snapshot 重建；缺少历史的实现 MUST NOT 用"当前 snapshot + historical as_of"组合复算历史显示，那等价于把当前撤销状态错误回投到历史，违反 §6.1.3 历史归因要求。无法构造 as-of snapshot 时，replay MUST fail closed，不得静默退化为"当前 snapshot"。
 
@@ -199,10 +257,10 @@ DID-document digest 字段。
 
 **Step 0 — 候选集预过滤**（normative）：
 
-候选集 = `{ c | c ∈ claim_set_snapshot 且 c.subject_account_id == subject_account_id 且 c.binding_state == "verified" 且 c.created_at <= resolution_as_of 且 c.expires_at > resolution_as_of }`（`binding_state` 取 snapshot 中的 as-of 值），但 `verified` 只有在 §6 的 holder-acceptance 门禁已经通过后才成立。holder acceptance 必须满足下列二者之一：(a) `proofs[]` 至少包含一条 `proof_purpose="holder_acceptance"`，其 DID URL verification method 在 `resolution_as_of` 时有效，且 adapter 投影等于 `subject_account_id.principal_id`，且 proof 覆盖完整 `subject_account_id`；(b) 对公开 handle，按时点解析、并经 resolution carrier 绑定到 `subject_account_id.principal_id` 的 DID Document `alsoKnownAs` 明确列出同一 canonical `user:domain` handle，且 verifier 已完成 claim→exact AccountId、DID→subject_account_id.principal_id 与 document→handle 的验证。issuer-only 自述的 `binding_state="verified"`、或未通过这两个分支之一的 claim MUST 在本步骤前降级并排除。再施加：
+候选集 = `{ c | c ∈ claim_set_snapshot 且 c.claim.subject_account_id == subject_account_id 且 c.status == "verified" 且 c.claim.issued_at <= resolution_as_of 且 (c.claim.expires_at == null || c.claim.expires_at > resolution_as_of) 且 c.as_of <= resolution_as_of < c.fresh_until }`。每个候选还必须通过 core issuer+holder 两张 proof、status evidence 与当前 revocation floor；DID Document `alsoKnownAs` 只能加强 public discovery，不能替代 required holder proof。
 
-- **生效时间下界**：`c.created_at <= resolution_as_of` MUST 成立——即在求值时刻该 claim 已被签发；这保证 audit / replay 用历史 `as_of` 时未来才签发的 claim 不会回到候选集，也不会通过 most-recent 抢占展示。`created_at` 是 handle_claim 的签发时刻（见 §5 example），不使用 forbidden 同义别名 `valid_from` / `issued_at`（handle claim 自身命名沿用 `created_at`；候选 schema 内的 `issued_at` 是另一对象，不在此层）。
-- **失效时间上界**：`c.expires_at > resolution_as_of` MUST 成立——过期 claim 不参与展示选择。
+- **生效时间下界**：`c.claim.issued_at <= resolution_as_of` MUST 成立；未来才签发的 core 不得回投历史。
+- **失效时间上界**：`c.claim.expires_at == null || c.claim.expires_at > resolution_as_of` MUST 成立；过期从时间派生，不产生 `expired` status。
 - **issuer trust + domain-authority filter**：`policy_snapshot.handle_issuer_policy[]` 的每个 entry MUST 是 `{issuer, authorized_handle_domains, issuer_class}`，其中 `issuer_id` 是 did_core_id，`authorized_handle_domains[]` 是该 issuer 可签发的 canonical A-label 域（精确域或 `*.<domain>` 子域模式），`issuer_class ∈ {domain_authority, delegated_issuer, directory_mirror}`。该数组的唯一 wire carrier 是 closed `ak.realm.policy_bundle` 的 `handle_issuer_policy` 成员。丢弃 issuer 未列入 policy、handle 的 `<domain>` 不在该 entry 授权域、或授权链无法回溯到该域权威根的 claim。该步是**强制前置**；v1 不接受无域作用域的裸 issuer 字符串作为 Realm handle policy。
 - **audience scope filter**：丢弃 `c.audience` 存在且与当前 context 互斥（例如 audience 限定为另一 Realm 或另一 service DID）的 claim。`c.audience` 缺失视为"无 audience 限制"，保留在候选集。
 
@@ -210,58 +268,47 @@ DID-document digest 字段。
 
 1. **audience-matched**：`c.audience` 与当前调用上下文（target Realm ID 或邀请方 service DID）严格匹配。
 2. **holder-flagged**：`c.handle == holder_primary_handle_at_as_of`（holder 主权偏好，源自 DID Document `metadata.primary_handle`，已在确定性输入元组中物化为标量；算法不再重新读 DID Document）。`holder_primary_handle_at_as_of == null` 时此层为空集。
-3. **most-recent**：按 `c.created_at` 取最新者。
+3. **most-recent**：按 `c.claim.issued_at` 取最新者。
 
 **Step 2 — Tie-breaker**（确定性收敛）：若 Step 1 选定层内仍有多个候选，按以下顺序消歧：
 
 1. 同一 handle 域内按 `domain_authority`、`delegated_issuer`、`directory_mirror` 的顺序优先；只有 `issuer_class` 相同才比较 `c.issuer_id` 在 policy `handle_issuer_policy` 列表中的位置；
-2. `c.created_at` 较晚者；
+2. `c.claim.issued_at` 较晚者；
 3. `claim_digest(c)` 字典序较小者（见下方定义）。`claim_digest` 是 claim 自身的 canonical identifier，不依赖 `proofs[]` 数组顺序——避免 issuer 重新打包 proof 时 tie-breaker 抖动；
 4. 若 `claim_digest(c)` 仍同（极小概率：两份候选共享同一 canonical claim），取 `min(c.proofs[].payload_digest)` 字典序较小者作为最后保险。
 
 **`claim_digest(c)` 定义**（normative，本节）：
 
 ```
-claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
+claim_digest(c) = "sha256:" || hex( sha256( utf8("ak.handle_claim_proof.v1\n") || JCS(c.claim without proofs) ) )
 ```
 
 其中：
 
 - `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme；
-- `semantic_projection(c)` 是从 `ak.schema.handle_claim.v1` 对象 `c` 中**只保留以下规范语义字段**形成的子对象——其它任何字段(包括 `proofs`、`verified_at`、`challenge`、`additionalProperties` 通道引入的 server-attested hint、Directory 缓存元数据、verifier 本地标注等)**MUST 排除**：
+- digest 输入是 `c.claim: HandleClaimCore` 的完整 closed property 集合，仅移除 `proofs`。所有 nullable/数组字段仍出现，禁止调用方另选投影白名单：
 
   | 字段 | 来源 | 数组规范化 |
   | --- | --- | --- |
-  | `schema` | 必填 discriminator | — |
-  | `handle` | 必填，canonical `<localpart>:<domain>` | — |
-  | `handle_aliases` | 可选，`acct:` 互通别名 | MUST 按数组元素 lexicographic 排序后参与 canonicalization |
-  | `subject_account_id` | 必填，holder exact `AccountId` | — |
-  | `issuer_id` | 必填，签发 authority `did_core_id` | — |
-  | `vouching_id` | 可选，实际承担 vouching 角色的稳定 `did_core_id`；签名 key 由 proof 的 DID URL verification method 指定，且 validator 要求该主体为 service identity | — |
-  | `claim_kind` | 可选 | — |
-  | `visibility` | 可选 | — |
-  | `audience` | 可选，binding 受众 | — |
-  | `claim_scope` | 可选，scope object | — |
-  | `claims` | 可选，VC inner claims | **顺序是语义的一部分**——issuer 控制，中间方 reorder 会破坏原 proof，因此 digest 直接按 issuer 提供顺序 canonicalize |
-  | `created_at` | 必填，签发时刻 | — |
-  | `expires_at` | 可选/条件必填 | — |
-  | `source_refs` | 可选，上游真相源 event 引用 | MUST 按 event_ref 字符串 lexicographic 排序后参与 canonicalization；排序只用于确定性 canonicalization，不表达签发时序。 |
+  | `schema` | required core discriminator | — |
+  | `handle` | canonical `<localpart>:<domain>` | — |
+  | `handle_aliases` | required array | producer MUST UTF-8 bytewise sort |
+  | `subject_account_id` | exact AccountId | — |
+  | `issuer_id` | signing authority DidCoreId | — |
+  | `claim` | closed claim variant | — |
+  | `visibility` | required | — |
+  | `audience` | required string/null | — |
+  | `issued_at` | required | — |
+  | `expires_at` | required timestamp/null | — |
+  | `source_refs` | required array | producer MUST UTF-8 bytewise sort |
 
-  其它字段一律 MUST NOT 进入 `semantic_projection(c)`，即使 wire claim 通过 `additionalProperties: true` 通道携带。
-
-  > **与 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) property 顺序的关系(消歧)**：本表是 `semantic_projection` 的字段**白名单**，刻意**排除** `challenge`、`verified_at`、`proofs` 等非规范身份字段；这些被排除的字段在 schema 的 property 列表中**仍然存在并占位**(例如 schema 中 `challenge` 排在 `audience` 与 `claim_scope` 之间)，因此本表相邻的 `audience` → `claim_scope` 在原始 schema 中被 `challenge` 隔开。读者**不应**把本表理解为 schema 字段缺失或排序冲突——这是"规范语义投影"与"完整 wire schema"的预期差异。此外 `JCS` 最终按 key 字典序重排，故 `semantic_projection` 内字段的展示顺序不影响 `claim_digest` 计算。
-
-  **`binding_state` 与 `verified_at` 被显式排除**的原因：`binding_state` 是 `resolution_as_of` snapshot 上的有效状态（pending / verified / revoked / expired），会随验证、撤销、过期和历史 replay 时刻变化；`verified_at` 是 §6.0 允许 Directory / Station / 其它中间方写入的 pre-verification hint。若二者进入 `semantic_projection`，同一 issuer 签发的规范 claim 会因中间方、缓存时间或 as-of 时刻不同得到不同 `claim_digest`，破坏 tie-breaker、roster `handle_claim_digests[]` 比对与缓存键稳定性。`claim_digest` 因此只锚定 issuer claim 的规范语义内容；候选集过滤仍 MUST 使用 snapshot 中的 `binding_state` 与时间边界，撤销 / 过期通过 effective claim set 变化体现，而不是改写该 claim 的 digest。
-
-  **`challenge` 被显式排除**的原因：`challenge` 是 verifier / request 级防重放输入，不是 handle claim 的稳定规范身份。proof transcript MAY 继续绑定 challenge、domain 与 verifier，但把 `challenge` 放进 `semantic_projection` 会让同一 handle claim 因不同解析请求得到不同 `claim_digest`，破坏 roster `handle_claim_digests[]` 比对、cache key 与 §3.2.1 tie-breaker 稳定性。
-
-  其它字段排除的整体动因把 `claim_digest` 锚定在 §3.4 / §5 定义的 handle_claim 规范 shape 上，与具体 Directory / Station / cache 层附加的 hint 解耦。
+  Status、revocation 与 cache hint 位于 core 外，绝不进入 claim digest。由于 core `additionalProperties=false`，不存在 producer/Directory 自选的 hint 通道。
 
 - 输出形态遵循 [`models/common-fields.md` §2](../models/common-fields.md) 的 `<noun>_digest = <alg>:<hex>` 通用 hash 字段命名规则；
 
-  **wire `claim_digest` 缺失时的退化(normative)**:candidate schema 的 `claim_digest` 字段是 **OPTIONAL**(SHOULD，见 §3.7.1 表)。当 candidate 不携带 wire `claim_digest` 时，Step 2 tie-breaker 与 roster `handle_claim_digests[]` 比对 / 缓存键 **MUST** 改用 verifier 本地按本节公式自算的 `claim_digest(c) = "sha256:" || hex(sha256(JCS(semantic_projection(c))))`——即 tie-breaker 与 audit chain 永不因 wire 字段缺失而出现缺口或非确定收敛(自算值与 issuer 提供值在 candidate 合法时必然相等)。当 wire `claim_digest` **存在**时，verifier SHOULD 校验它等于自算值，不一致 MUST 视为 candidate 不可信并 fail closed(防 issuer 提供与规范语义不符的 digest 污染缓存键 / audit chain)。
+  `claim_digest` 在 status view 中 required。verifier MUST 重算并逐字比较；缺失或不等均 fail closed，不存在 wire 缺失退化。
 
-**Hint 隔离**(normative): §6.0 server-attested hint、Directory 缓存补字段、verifier 本地标注等任何非规范语义字段 MUST 在 wire claim 上以**顶层附加字段**形式存在(而非污染规范字段)，并**MUST NOT** 进入 `semantic_projection(c)`。该约束让同一语义 handle claim 被任意数量的 Directory / Station 加 hint 后，`claim_digest` 始终稳定；tie-breaker、roster `handle_claim_digests[]` 比对、缓存键命中都不会因 hint 抖动。
+**Hint 隔离**(normative): Directory/cache 元数据只能存在于其本地 row 或独立 closed response carrier，禁止写入 HandleClaim core/status/revocation wire。未知字段由 schema 拒绝。
 
 去除 `proofs` 与 server-attested hint 是为了让 `claim_digest` 只覆盖 claim 的**规范语义内容**而非签名包装与中间传输态，让同一 canonical claim 在任意 issuer 重签 / Directory 转发 / cache 层加注后始终产生相同 digest。
 
@@ -269,25 +316,14 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
 
 #### 3.2.1.1 数组规范化规则（normative）
 
-JCS（RFC 8785）按 issuer 提供顺序保留数组元素，不做重排。`semantic_projection(c)` 中任何**无序集合语义**的数组若让 JCS 直接吃，不同 producer / Directory 输出顺序差异会让 `claim_digest` 抖动。因此 §3.2.1 表中显式标 "sorted" 的数组字段 MUST 在送入 JCS 之前按以下规则排序：
+JCS（RFC 8785）保留数组顺序。为使签名字节唯一，producer 在签名前 MUST 将 core 的集合数组规范化；validator 遇到未排序或重复元素必须拒绝，不得先排序后接受：
 
 | 数组字段 | 排序规则 | 排序粒度 |
 | --- | --- | --- |
 | `handle_aliases` | 元素字符串 lexicographic ascending（UTF-8 byte order，与 JCS 字符串排序保持一致） | 顶层数组元素 |
 | `source_refs` | 元素 event_ref 字符串 lexicographic ascending（仅用于确定性 canonicalization，不表达签发时序） | 顶层数组元素 |
 
-**Order-is-semantic 数组**（保留 issuer 给定顺序，不重排）：
-
-| 数组字段 | 理由 |
-| --- | --- |
-| `claims` | VC inner claims，顺序由 issuer 控制并在 proof transcript 内绑定；中间方 reorder 会破坏原 proof，因此 digest 直接保留原序 |
-| `proofs` | 已被整体排除在 `semantic_projection` 外，不参与 digest |
-
-排序仅作用于 `semantic_projection(c)` 的副本构造，**不**改写 wire claim 本身；wire 上 `handle_aliases` / `source_refs` 等仍按 issuer 原始顺序传输，verifier 只在 digest 计算阶段做规范化排序。这保证：
-
-- issuer 不必为 digest 稳定性而强制规范化输出；
-- 不同 verifier / Directory 计算同一 claim 的 `claim_digest` 始终相同；
-- wire 层数组顺序与签发顺序之间的对应关系（例如 `source_refs` 上游签发时序）在传输中不被强行抹除。
+`proofs` 是 fixed tuple `[issuer_attestation, holder_acceptance]`，整体不进 digest；不存在 `claims[]`。Directory 与中间方不得 reorder core 数组或 proof tuple，任何改变都会使签名或 shape 校验失败。
 
 Step 2 结束后候选 MUST 唯一；实现 MUST NOT 在仍有 tie 时随意选取。
 
@@ -303,15 +339,15 @@ Arkret v1 core **不定义**用户注册、handle 申请、邀请审批、管理
 
 协议层只规定 consumption contract：
 
-1. 任何进入 Arkret roster、mention、directory resolve、exact AccountId targeting 或 UI verified display 的 handle MUST 来自可验证的 signed `ak.schema.handle_claim.v1`，或该 claim 的 digest / reference。
+1. 任何进入 Arkret roster、mention、directory resolve、exact AccountId targeting 或 UI verified display 的 handle MUST 来自可验证的 signed `ak.schema.handle_claim.v1` status view（其内含 signed core），或该 core 的 digest / reference。
 2. issuer / Auth Server / 部署本地 API MAY 让用户选择 handle、提交申请、触发人工审批、由管理员直接分配、续签或撤销；这些 API 的 endpoint、权限模型、通知机制和状态机不属于 v1 core。
-3. 这些外部流程一旦要把结果暴露给 Arkret 客户端或其它服务，MUST 输出 `ak.schema.handle_claim.v1`、明确的 revocation evidence、或足以让 Directory / roster 不再返回该 claim 的 issuer-side 状态；不得输出未签名 profile 字段来替代 claim。
+3. 这些外部流程一旦要把结果暴露给 Arkret 客户端或其它服务，MUST 输出完整 `ak.schema.handle_claim.v1` status view；revoked 必须内联独立 revocation carrier。仅让 Directory / roster 不再返回该 claim 不能证明撤销，未签名 issuer-side 状态不得替代 carrier。
 
-已知 exact `subject_account_id` 时，客户端 / renderer 优先使用 roster 内联 `handle_claims[]` 构造候选集。当前 `ak.find.directory.read.list_handles_for_subject.v1` 的查询输入仍是 principal core（其收敛另行裁决）；使用该操作时必须对返回 claim 逐项过滤 exact `subject_account_id`，不得把同 core 的其它 Station 账号作为本账号。已知 handle 字符串时使用 `ak.find.directory.read.resolve_handle.v1`，返回 claim 同样按完整 AccountId 验证。
+已知 exact `subject_account_id` 时，客户端 / renderer 优先使用 roster 内联 `handle_claims[]` 构造候选集。`ak.find.directory.read.list_handles_for_subject.v1` 的查询与响应 echo 均使用完整 `account_id: AccountId`；返回 view 的 `claim.subject_account_id` 必须与请求逐字相等，不得把同 core 的其它 Station 账号作为本账号。已知 handle 字符串时使用 `ak.find.directory.read.resolve_handle.v1`，返回 view 同样按完整 AccountId 验证。
 
 contact request / invite / member-add 不再把 `resolve_handle(intent="contact_request" | "invite" | "member_add")` 作为 base 安全路径；正式 invite 寻址见 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 `invite_address + introduction_evidence` 模型，联系人请求见 [`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md) 的 `contact_address + introduction_evidence` 模型。Directory 可选返回的 handle claim / candidate 只能作为 introduction evidence 或 builder evidence，不能替代显式 address、principal locator、receive policy 或 Join Policy 复核。
 
-管理员或 issuer 后期修改 handle 的可见效果由 claim set 变化驱动：issuer 签发新 claim、撤销旧 claim、或改变 binding_state / expiry 后，`ak.find.directory.read.list_handles_for_subject.v1` 和 roster hint MUST 反映新的 effective claim set。客户端 MAY 发布新的 `ak.member.identity.update` 来刷新 display-profile cache，但这不是 handle 变更生效的条件。
+管理员或 issuer 后期修改 handle 的可见效果由 claim/status set 变化驱动：issuer 签发新 immutable core、发布带 revocation carrier 的 `status=revoked` view、或 core expiry / signed `fresh_until` 变化后，`ak.find.directory.read.list_handles_for_subject.v1` 和 roster hint MUST 反映新的 effective status-view set。客户端 MAY 发布新的 `ak.member.identity.update` 来刷新 display-profile cache，但这不是 handle 变更生效的条件。
 
 ### 3.2.3 Registration and Invitation Strands（informative）
 
@@ -362,9 +398,9 @@ verifier MUST 验证 canonical handle、closed AccountId、issuer authority、pr
 过期或 issuer 无权时 MUST fail closed。通过这些检查仍只得到寻址结果，不能直接写 membership。
 ### 3.8 Mention Reference 与 Display Snapshot（normative）
 
-事件内对某 subject 的引用——@mention、reply target、quoted profile、forwarded message 的原作者引用、reaction 的目标等——**权威引用字段** MUST 使用稳定 `did_core_id`（`subject_account_id`），不得用裸 DID 或 handle 字符串作为 actor 归因、授权判断、解析路径的唯一来源。同一事件 MAY 同时携带 handle / display name / controller-scoped agent selector 的历史快照作为 audit / search / 兜底展示的 metadata（见 §3.8.1），但这些 metadata 字段不参与协议层信任决策（见 §3.8.3）。
+事件内对某 subject 的引用——@mention、reply target、quoted profile、forwarded message 的原作者引用、reaction 的目标等——**权威引用字段** MUST 使用完整 `AccountId`（`subject_account_id`），不得用裸 DID、`did_core_id` 或 handle 字符串作为 actor 归因、授权判断、解析路径的唯一来源。同一事件 MAY 同时携带 handle / display name / controller-scoped agent selector 的历史快照作为 audit / search / 兜底展示的 metadata（见 §3.8.1），但这些 metadata 字段不参与协议层信任决策（见 §3.8.3）。
 
-该规则的根本动因：handle 的 `<domain>` 部分是 issuer 的 authority domain（组织 / holder 自己持有的域名），不是 subject 用户控制的标识。如果把 domain 作为**权威**引用字段持久化进每一个引用点，issuer 的 DNS 治理成本（domain 迁移、authority 重命名）就会转嫁给所有历史事件，并被迫做事件改写。`did_core_id` 才是稳定标识；裸 DID 是解析与控制材料，handle 是稳定标识的可读 label，由解析层实时计算；事件内的 handle metadata 只是"当时是什么"的 audit 快照，不是"现在是什么"的真相源。
+该规则的根本动因：handle 的 `<domain>` 部分是 issuer 的 authority domain（组织 / holder 自己持有的域名），不是 subject 用户控制的标识。如果把 domain 作为**权威**引用字段持久化进每一个引用点，issuer 的 DNS 治理成本（domain 迁移、authority 重命名）就会转嫁给所有历史事件，并被迫做事件改写。完整 `AccountId` 才是稳定账号标识；裸 DID / `did_core_id` 只承担解析与控制角色，handle 是稳定标识的可读 label，由解析层实时计算；事件内的 handle metadata 只是"当时是什么"的 audit 快照，不是"现在是什么"的真相源。
 
 §17 wire-level 作用域规则配套约束了 handle 字符串作为**权威字段**可以出现的位置。MemberIdentity 不再携带 handle 字符串；Realm-scoped roster 若需要加速渲染，只能内联签名 handle claim evidence 或 digest hint（详见 [`sync/client-sync.md` §8.1](../sync/client-sync.md)）。
 
@@ -374,10 +410,10 @@ mention reference / profile snapshot 的 normative shape：
 
 | 字段 | 类型 | 必填 | 用途 |
 | --- | --- | --- | --- |
-| `subject_account_id` | `DidCoreId` | MUST | 被引用主体的稳定 `did_core_id`；唯一参与 actor 归因、授权判断、解析路径与渲染查找的字段。 |
+| `subject_account_id` | `AccountId` | MUST | 被引用账号的完整稳定标识（含 principal 与 Station 分量）；唯一参与 actor 归因、授权判断、解析路径与渲染查找的字段。 |
 | `display_name_at_time` | string | MAY | event 时刻 subject 的 display name 快照；持久化、不再更新；renderer MAY 直接显示。 |
 | `handle_at_time` | canonical handle string（§3.1 主形态） | MAY | event 时刻 subject 的 handle 快照；**仅** audit / debug / 全文搜索 / 历史回溯用途；**MUST NOT** 作为当前显示标识。 |
-| `controller_subject_account_id` | `DidCoreId` | MAY | 当 mention 由 controller-scoped agent selector `@<controller-handle>/<agent_slug>` 解析而来时，记录 controller principal 的稳定 `did_core_id`；仅 audit / fallback metadata，权威 target 仍是 `subject_account_id`。 |
+| `controller_subject_account_id` | `AccountId` | MAY | 当 mention 由 controller-scoped agent selector `@<controller-handle>/<agent_slug>` 解析而来时，记录 controller 的完整账号标识；仅 audit / fallback metadata，权威 target 仍是 `subject_account_id`。 |
 | `controller_handle_at_time` | canonical handle string（§3.1 主形态） | MAY | agent selector 左侧 controller handle 的历史快照；仅 audit / debug / 搜索用途，MUST NOT 作为当前 controller 解析来源。 |
 | `agent_slug_at_time` | string | MAY | agent selector 右侧 `agent_slug` 的历史快照；仅 audit / debug / 搜索用途，MUST NOT 作为当前 agent 解析来源。 |
 | `mention_text_original` | string | MAY | 用户键入的原始输入（例如 `@alice:acme.com` 或 `alice@acme.example`）；audit 与搜索索引用途，不参与渲染逻辑。 |
@@ -387,7 +423,7 @@ mention reference / profile snapshot 的 normative shape：
 
 #### 3.8.2 渲染规则（normative）
 
-UI 渲染 mention / profile reference 时 MUST 按下列流程（`binding_state` 取值范围见 [`models/common-fields.md` §5](../models/common-fields.md)，仅 `pending` / `verified` / `revoked` / `expired` 合法）：
+UI 渲染 mention / profile reference 时 MUST 按下列流程（HandleClaim status view 的 `status` 是 closed `pending | verified | revoked`；`expired` 是对 `claim.expires_at` / `fresh_until` 的本地求值结果，不是 wire status）：
 
 ```
 1. Realm-scoped projection 优先解析：
@@ -411,17 +447,17 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（`binding_state`
 2. 否则 / step 1 失败：
    resolve_primary_handle(subject_account_id, current_context, resolution_as_of) → handle_claim
    （按 §3.2.1 选择规则，跨 Realm / live Directory / cache，
-   返回带 binding_state 的完整 handle_claim 对象；历史 replay / audit
+   返回完整 signed HandleClaim status view；历史 replay / audit
    MUST 使用 resolution_as_of 对应的 claim_set_snapshot / policy_snapshot，
    不得静默 live-resolve 到当前状态）。
 3. 显示判定：
-   - step 1 成功 → 显示 "@{localpart}:{domain}"（来自选中 handle_claim.handle）；
-   - step 2 成功且 handle_claim.binding_state == "verified"
+   - step 1 成功 → 显示 "@{localpart}:{domain}"（来自选中 `handle_claim.claim.handle`）；
+   - step 2 成功且 `handle_claim.status == "verified"`、`resolution_as_of < handle_claim.fresh_until`、core 未过期且 revocation fields 为 null
      （或 §6.0 server-attested verified hint 命中且本地 trust policy TTL 内）
      → 显示 "@{localpart}:{domain}"（来自该 handle_claim 的 canonical handle）。
 4. 解析失败（DID 不可达 / 无 active claim / §3.2.1 选择不唯一 /
    MemberIdentity snapshot 不可构造或不唯一 / step 1 校验 a-d 任一失败 /
-   step 2 binding_state ∈ {pending, revoked, expired}）：
+   step 2 `status ∈ {pending, revoked}` 或 status/core freshness 已过期）：
    按以下顺序 fallback：
    a. 本地 cache 中最近一次 verified primary handle（标记 "cached"）
    b. event 内 display_name_at_time（标记 "name only"）
@@ -535,61 +571,63 @@ Handle 解析分为两个方向：
 
 Handle 解析示例：
 
-```json
-{
-  "schema": "ak.schema.handle_claim.v1",
-  "handle": "alice:alice.dev",
-  "subject_account_id": {
-    "principal_id": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
-    "station_id": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH"
+```text
+HandleClaimStatusView {
+  schema: ak.schema.handle_claim.v1,
+  claim: HandleClaimCore {
+    schema: ak.schema.handle_claim_core.v1,
+    handle: alice:alice.dev,
+    handle_aliases: [],
+    subject_account_id: { principal_id: <alice>, station_id: <alice-station> },
+    issuer_id: <alice>,
+    claim: { kind: handle_binding },
+    visibility: public,
+    audience: null,
+    issued_at: 2026-05-19T00:00:00.000Z,
+    expires_at: 2026-08-19T00:00:00.000Z,
+    source_refs: [],
+    proofs: [issuer_attestation, holder_acceptance]
   },
-  "issuer_id": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
-  "binding_state": "verified",
-  "created_at": "2026-05-19T00:00:00Z",
-  "expires_at": "2026-08-19T00:00:00Z",
-  "proofs": [
-    {
-      "kind": "detached_jws",
-      "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#key-1",
-      "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "created_at": "2026-05-19T00:00:00Z",
-      "jws": "aaa.bbb.ccc"
-    }
-  ]
+  claim_digest: sha256:<core-digest>,
+  status: verified,
+  as_of: 2026-05-19T00:01:00.000Z,
+  verifier_id: <verifier-service>,
+  verified_at: 2026-05-19T00:01:00.000Z,
+  revocation: null,
+  revocation_digest: null,
+  fresh_until: 2026-05-19T00:06:00.000Z,
+  status_proof: status_attestation
 }
 ```
 
 这是 self-issued handle（holder 自己控制 `alice.dev` 域名，`issuer_id` 等于 `subject_account_id.principal_id`）。组织签发 handle 的示例：
 
-```json
-{
-  "schema": "ak.schema.handle_claim.v1",
-  "handle": "alice:acme.example",
-  "handle_aliases": [
-    "acct:alice@acme.example"
-  ],
-  "subject_account_id": {
-    "principal_id": "ak:did_core:webvh:z2dmjA1ice",
-    "station_id": "ak:did_core:webvh:z3omZGak5a5es84Ph2kfPs4UP"
+```text
+HandleClaimStatusView {
+  schema: ak.schema.handle_claim.v1,
+  claim: HandleClaimCore {
+    schema: ak.schema.handle_claim_core.v1,
+    handle: alice:acme.example,
+    handle_aliases: [acct:alice@acme.example],
+    subject_account_id: { principal_id: <alice>, station_id: <alice-station> },
+    issuer_id: <acme-issuer>,
+    claim: { kind: organization_handle, organization_id: <acme> },
+    visibility: restricted,
+    audience: ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5,
+    issued_at: 2026-05-19T00:00:00.000Z,
+    expires_at: 2026-08-19T00:00:00.000Z,
+    source_refs: [],
+    proofs: [issuer_attestation, holder_acceptance]
   },
-  "issuer_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
-  "vouching_id": "ak:did_core:webvh:z3omZGak5a5es84Ph2kfPs4UP",
-  "claim_kind": "organization_handle",
-  "visibility": "restricted",
-  "binding_state": "verified",
-  "audience": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "created_at": "2026-05-19T00:00:00Z",
-  "expires_at": "2026-08-19T00:00:00Z",
-  "proofs": [
-    {
-      "kind": "detached_jws",
-      "verification_method": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example#key-1",
-      "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "created_at": "2026-05-19T00:00:00Z",
-      "audience": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-      "jws": "aaa.bbb.ccc"
-    }
-  ]
+  claim_digest: sha256:<core-digest>,
+  status: verified,
+  as_of: 2026-05-19T00:01:00.000Z,
+  verifier_id: <directory-verifier>,
+  verified_at: 2026-05-19T00:01:00.000Z,
+  revocation: null,
+  revocation_digest: null,
+  fresh_until: 2026-05-19T00:06:00.000Z,
+  status_proof: status_attestation
 }
 ```
 
@@ -608,21 +646,21 @@ did_document.alsoKnownAs contains the canonical handle
 - 现场（live）解析与 `subject_account_id.principal_id` 绑定的 DID Document；或
 - 命中 verifier 自有缓存条目（含 verifier 完全信任、共享同一 DID resolver 与 trust policy 的 co-trusted node，例如自己的 personal node 缓存），且该条目按 §6.1.1 绑定了 DID Document version / digest、`alsoKnownAs` proof，并仍在 TTL 内、未触发 §6.1.2 任何失效信号。
 
-跨信任边界（例如第三方 Directory / 其它组织的 Station）下发的 server-attested `binding_state` 不属于此处可直接满足 MUST 的"缓存条目"——它属于 §6.0 Cache 层的 hint，只能用于明确允许接受 server-attested 结果的展示动作。双向验证失败 MUST NOT 把该 handle 当作公开可信绑定。
+跨信任边界（例如第三方 Directory / 其它组织的 Station）下发的 signed `status=verified` view 不属于此处可直接满足 MUST 的"缓存条目"——它属于 §6.0 Cache 层的 hint，只能用于明确允许接受 server-attested 结果的展示动作。双向验证失败 MUST NOT 把该 handle 当作公开可信绑定。
 
 **受限 handle（issuer 是 Organization / Station / Directory，holder 未公开）**：handle claim 可能不出现在 holder 公开 DID Document 中；此时 verifier MUST 改为验证：
 
 - issuer claim 签名有效，且 issuer 在当前调用上下文的本地 trust policy 内；
 - **holder 侧接受证据存在且有效**（见下方"对称信任"要求）；
-- claim `audience` 与当前调用上下文一致；
-- claim `challenge` 未过期、未重复使用；
-- claim `scope`（Realm、organization、purpose）覆盖当前用途；
-- claim `status` / `binding_state` 仍为 `verified`；
+- `claim.audience` 与当前调用上下文一致；
+- request / presentation transcript 的 challenge 未过期、未重复使用；challenge 不在 HandleClaim core 内；
+- `claim.claim` closed variant 与 `claim.audience` 覆盖当前用途，不存在开放 `claim_scope`；
+- 顶层 signed `status` 仍为 `verified`，`fresh_until` 与 `claim.expires_at` 均未过期，revocation fields 为 null；
 - holder consent / organization policy 允许向当前 requester 披露。
 
-**对称信任：受限 handle 的 `verified` 必须有 holder 侧背书（normative）**：公开 handle 的 `verified` 靠 `alsoKnownAs`（§4.1）提供 holder 侧反向背书，把 issuer-unilateral 攻击降级为 issuer × holder 双方均需表态。受限 handle 不进公开 `alsoKnownAs`（出于 unlinkability / 最小披露），但**不得因此免除 holder 侧背书**——否则 `accepted_issuers` 内任一被攻陷 / 恶意 issuer 即可为受害者账号签发 verified claim，在其 audience 内冒名受害者。因此：当 claim 的 `subject_account_id.principal_id` 不受 issuer 控制时，受限 handle 要显示为 `verified` / 驱动任何信任决策（grant 条件、roster 强归因、exact AccountId targeting），其 `proofs[]` MUST 同时包含一条由该 principal 当前有效 verification method 签发、覆盖 `(handle, subject_account_id, audience, claim_scope)` 的 holder-acceptance proof。verifier MUST 校验 proof 中的完整 AccountId，而不是只验证裸 principal DID。
+**对称信任：受限 handle 的 `verified` 必须有 holder 侧背书（normative）**：公开 handle 的 `verified` 靠 `alsoKnownAs`（§4.1）提供 holder 侧反向背书，把 issuer-unilateral 攻击降级为 issuer × holder 双方均需表态。受限 handle 不进公开 `alsoKnownAs`（出于 unlinkability / 最小披露），但**不得因此免除 holder 侧背书**——否则 `accepted_issuers` 内任一被攻陷 / 恶意 issuer 即可为受害者账号签发 verified claim，在其 audience 内冒名受害者。因此：当 `claim.subject_account_id.principal_id` 不受 issuer 控制时，受限 handle 要显示为 `verified` / 驱动任何信任决策（grant 条件、roster 强归因、exact AccountId targeting），其 `claim.proofs[1]` MUST 是由 holder accepted account-service authority 签发、覆盖完整 HandleClaimCore（含 `handle`、完整 `subject_account_id`、`audience` 与 closed claim variant）的 `holder_acceptance` proof。verifier MUST 校验 proof 中的完整 AccountId，而不是只验证裸 principal DID。
 
-- 缺少有效 holder-acceptance proof 时，该受限 handle MUST 至多被当作 `binding_state` 低于 `verified` 的 **issuer-attested**（issuer 单方声明、未经 holder 确认）：verifier MUST 拒绝把它纳入 verified candidate（`reason=handle_holder_acceptance_missing`），UI MUST NOT 显示为 verified，且 MUST NOT 用它驱动 grant 条件、roster 强归因或 exact AccountId targeting。
+- 缺少有效 `claim.proofs[1]` holder-acceptance proof 时，该受限 handle core 只是 **issuer-attested**（issuer 单方声明、未经 holder 确认），任何 verifier 都不得为它签发 `status=verified`：verifier MUST 拒绝把它纳入 verified candidate（`reason=handle_holder_acceptance_missing`），UI MUST NOT 显示为 verified，且 MUST NOT 用它驱动 grant 条件、roster 强归因或 exact AccountId targeting。
 - **issuer 自管 DID 例外(非豁免)**：当与 `subject_account_id.principal_id` 绑定的 DID 由 issuer 自己控制（受管 DID 配发，例：组织为新员工铸 `did:webvh` 并签发 `@alice:acme.example`）时，issuer 本就能用该 DID 的密钥产出 holder-acceptance proof，故该要求对正常组织配发**自动满足**、不增加摩擦；它只在 subject core 绑定的是外部 / 既有 DID 时真正生效，而那正是冒名风险所在。
 
 DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的判定（受限 handle 本就不进公开 `alsoKnownAs`）；但缺少上述 holder-acceptance proof（且 `subject_account_id.principal_id` 未绑定到 issuer 自管 DID）则 MUST NOT 显示为 verified。判定 = issuer claim 验签链 + holder-acceptance proof + audience / scope 校验。
@@ -631,7 +669,7 @@ DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的�
 
 "verifier" 是任何**正在做信任决策**的节点。`alsoKnownAs` 双向验证的真相源永远是 holder 自己的 DID Document，因此 authority 与 cache 必须分开：
 
-**Authority（first-party 验证，MUST）**：以下信任决策 MUST 由发起方亲自完成双向验证，**不得**用 server-attested `binding_state` 替代亲自解析 DID Document：
+**Authority（first-party 验证，MUST）**：以下信任决策 MUST 由发起方亲自完成双向验证，**不得**用 server-attested `status=verified` view 替代亲自解析 DID Document：
 
 - Wallet 决定是否对某 verifier 披露某 handle（disclosure policy 匹配）；
 - 接受 invite、加入 official Realm、接纳 self-issued handle、跨组织 federation 信任决策；
@@ -645,15 +683,15 @@ DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的�
 [`did-freshness-profile-registry.json`](../../artifacts/registry/did-freshness-profile-registry.json)
 双向关闭；其它 handle action 不得自行调用 authority resolver。
 
-**Pre-verification & Cache（hint 层，SHOULD first-party；MAY use bounded cache）**：Directory / Station / 其它中间方 MAY 代行一次验证并把结果（含 DID Document digest / version、`alsoKnownAs` proof、`verified_at` / `expires_at`）写进 directory entry 或 handle claim 作为 hint。下列展示类动作适用此层：
+**Pre-verification & Cache（hint 层，SHOULD first-party；MAY use bounded cache）**：Directory / Station / 其它中间方 MAY 代行一次验证并签发 HandleClaim status view；缓存同时绑定 DID Document digest / version、`alsoKnownAs` proof、顶层 `verified_at` / `fresh_until` 与 `claim.expires_at`。下列展示类动作适用此层：
 
 - 客户端展示 "verified handle ✓" 徽章、mention autocomplete、联系人卡片上的 verified 状态。
 
 规则：
 
-- 这种 server-attested `binding_state` 是性能 hint，**不是**权威背书；
-- verifier MUST 能用自己的 DID resolver 独立 re-verify（按 §6 顶层取得与 `subject_account_id.principal_id` 绑定的 DID Document 当前内容并复算 `alsoKnownAs` 包含校验），不得仅凭 server-attested `binding_state` 字段做信任决策。独立 re-verify 在首次接受 claim、claim / document digest 变化、撤销 / invalidation 或本地 freshness policy 到期时执行；普通展示与命中同一 accepted binding 的业务使用 MUST 复用验证结果，不得每次在线解析。Server-attested hint 携带的附加字段（例如 DID Document digest 副本、`alsoKnownAs` proof 副本）是实现可选优化，v1 不为此层定义规范 wire schema；不同实现的 hint 字段差异不影响互操作，因为 verifier 始终保留按需独立 re-verify 路径；
-- 上述展示类动作 SHOULD 优先 first-party 验证；MAY 接受 server-attested `binding_state=verified` 命中，并把 UI 状态展示为 verified（cache hit 与 first-party verified 之间不做用户可见区分），前提是 hint 仍在 verifier 本地 trust policy 允许的 TTL 上限内、未触发 §6.1.2 失效信号；
+- 这种 server-attested `status=verified` signed view 是性能 hint，**不是**权威背书；
+- verifier MUST 能用自己的 DID resolver 独立 re-verify（按 §6 顶层取得与 `claim.subject_account_id.principal_id` 绑定的 DID Document 当前内容并复算 `alsoKnownAs` 包含校验），不得仅凭 server-attested status view 做信任决策。独立 re-verify 在首次接受 claim、claim / document digest 变化、撤销 / invalidation 或 signed freshness 到期时执行；普通展示与命中同一 accepted binding 的业务使用 MUST 复用验证结果，不得每次在线解析。Server-attested hint 的规范 wire carrier就是本节 HandleClaim status view，不得另加并行 `binding_state` 字段；
+- 上述展示类动作 SHOULD 优先 first-party 验证；MAY 接受 server-attested `status=verified` 命中，并把 UI 状态展示为 verified（cache hit 与 first-party verified 之间不做用户可见区分），前提是 status/core 均未过期、hint 仍在 verifier 本地 trust policy 允许的 TTL 上限内、未触发 §6.1.2 失效信号；
 - **verified 徽章 vs 纯 autocomplete 区分（normative）**：联系人卡片 / 个人资料页面上的 **verified 徽章** 是用户信任决策的关键视觉信号，其防伪强度 SHOULD 高于纯 mention autocomplete 排序提示。客户端 **SHOULD** 在展示 verified 徽章前执行一次 first-party re-verify（§6 顶层独立 re-verify 路径）；当徽章仅由 hint-only 命中(未经本次 first-party 验证)驱动时，客户端 SHOULD 对该徽章施加弱化视觉（例如"服务器声明，未本地核验"的次级标识）而非与 first-party verified 徽章不可区分地呈现，以避免下一条所述"被攻陷 Directory + 受信 issuer 串通"直接驱动一个用户无法分辨真伪的强信任徽章。纯 mention autocomplete 排序 MAY 继续仅依赖 hint，无需为排序结果执行 first-party re-verify；
 - 命中超期、§6.1.2 任一失效信号触发、或 verifier 本地 trust policy 拒绝该 hint 来源时，UI MUST 降级为 `unverified` 或等价的视觉降级状态，**不得**继续展示 verified 徽章；
 - 一个被攻陷的 Directory 与一个被信任的 issuer 串通可以伪造 server-attested verified 状态——这是把展示动作放在 SHOULD/MAY 而非 MUST 层的根本风险；Authority 层动作不允许承担此风险。
@@ -674,7 +712,7 @@ Handle 解析结果是带时间边界的绑定，不是永久身份事实。
 
 #### 6.1.1 缓存规则
 
-- verified handle cache MUST 绑定 `handle`（canonical `user:domain` 形态）、完整 `subject_account_id` / issuer 的 `did_core_id`、已接受的 DID resolution binding、DID Document version / digest、alsoKnownAs proof、issuer proof、verified_at、expires_at 和 resolver policy。claim 同时携带 `handle` 与 `handle_aliases[]` 时，缓存键 MUST 取 `handle`；`acct:` alias 只作为附加索引，但仍指向同一 cache entry。
+- verified handle cache MUST 绑定 `claim.handle`（canonical `user:domain` 形态）、完整 `claim.subject_account_id` / `claim.issuer_id`、`claim_digest`、已接受的 DID resolution binding、DID Document version / digest、alsoKnownAs proof、两张 core proofs、顶层 `status_proof`、`verified_at`、`fresh_until`、`claim.expires_at` 和 resolver policy。core 同时携带 `handle` 与 `handle_aliases[]` 时，缓存键 MUST 取 `claim.handle`；`acct:` alias 只作为附加索引，但仍指向同一 cache entry。
 - alias lookup 命中缓存时，verifier MUST 跳转到 canonical `handle` 的 freshness re-check 路径：重新检查 TTL、issuer revocation、DID Document digest / version、alsoKnownAs proof 与 resolver policy。实现不得把 `handle_aliases[]` 中的 `acct:` 或其它互通别名当作独立 cache key 直接返回 verified claim，也不得为 alias 单独延长 freshness window。
 - handle cache 若含 `subject_account_id`，还 MUST 绑定完整 AccountId、claim digest 与 audience/scope；缓存结果不得跨 Realm 或跨组织上下文复用，除非 claim 明确授权。
 - DNS / HTTPS 解析结果的 TTL **MUST NOT** 超过以下各项中的最小值：底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL，以及部署对 `ak.did_freshness.current_external_claim.v1` 申报的 `fresh_for_seconds` / `hard_expiry_seconds`。任一来源未给 TTL 时也只能使用该 profile 的部署申报值，不存在独立的 24 小时默认值或 stale grace；到达 profile 边界后 Authority 动作同步刷新或 fail closed。展示 hint 可更早降级，但不得延长 Authority freshness。
@@ -686,7 +724,7 @@ v1 不引入专门的 handle 撤销 event。撤销通过下列三条独立路径
 
 1. **TTL 自然过期**：缓存到达 `expires_at` 后 MUST 重新拉取；不得在 TTL 之外使用。
 2. **Directory withdrawal**：handle issuer 通过 [`ak.find.directory.command.withdraw.v1`](../discovery/discovery-directory.md) 撤回该 handle 的 directory entry；订阅该 handle 的客户端在下一次 directory refresh 或 withdraw notification 收到后 MUST 立即失效缓存。
-3. **DID Document 变化**：holder 移除 `alsoKnownAs` 中的 canonical handle，或 issuer claim 被 revoke / `binding_state=revoked`、`binding_state=expired`；下一次 verify pass 失败时 MUST 失效。
+3. **DID Document / status 变化**：holder 移除 `alsoKnownAs` 中的 canonical handle，或 issuer 发布 `status=revoked` view、signed `fresh_until` 到期、core 到达 `claim.expires_at`；下一次 verify pass 失败时 MUST 失效。`expired` 不编码进 status。
 
 handle issuer SHOULD 把 cache 失效信号与 TTL 一起使用：发布短 TTL（≤1h）的高变更 handle、配合 Directory withdraw 主动通知。**v1 不要求**服务端推送 handle 失效事件；客户端 MUST 按 TTL + 上述三路径处理失效，**不得**依赖未注册的 `ak.handle.*` wire kind。
 

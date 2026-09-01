@@ -15,16 +15,12 @@
       "type": "object",
       "description": "Payload for ak.account.blocklist. Holder-private personal blocklist state; it never enters shared Realm state or federation payloads.",
       "required": [
-        "holder_id",
         "version",
         "entries"
       ],
       "properties": {
         "kind": {
           "const": "ak.account.blocklist"
-        },
-        "holder_id": {
-          "$ref": "#/$defs/did_core_id"
         },
         "version": {
           "type": "integer",
@@ -284,9 +280,6 @@
       "properties": {
         "key": {
           "$ref": "#/$defs/non_empty_string"
-        },
-        "holder_id": {
-          "$ref": "#/$defs/did_core_id"
         },
         "expected_revision": {
           "type": "integer",
@@ -3266,12 +3259,38 @@
       },
       "additionalProperties": false
     },
+    "consent_peer": {
+      "description": "Closed consent counterparty identity. Ordinary and MIMI-correlated parties use one exact ActorId, including Account Station and actor role. A Realm-local pairwise principal has no Account Station and therefore uses the explicit pairwise_principal branch; implementations MUST NOT reinterpret an ordinary account principal as this branch.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "actor_id"],
+          "properties": {
+            "kind": {"const": "actor"},
+            "actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "principal_id"],
+          "properties": {
+            "kind": {"const": "pairwise_principal"},
+            "principal_id": {
+              "$ref": "#/$defs/did_core_id",
+              "description": "Realm-local pairwise principal established by the exact accepted Realm binding. It is not an AccountId and cannot be upgraded by adding the current Station."
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "consent_grant_payload": {
       "type": "object",
       "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell ak:cell:ak.component.consent.grant.v1:<consent_id> (or_set lattice); ak.consent.revoke writes a remove on the same cell. Lives in the holder's Principal Control Realm (or holder-private actor stream); MUST NOT be written to a shared Collaboration Realm. Realm role taxonomy: zh/models/realm-and-space.md §2.7.",
       "required": [
         "consent_id",
-        "peer_id",
+        "peer",
         "consent_scope"
       ],
       "properties": {
@@ -3280,9 +3299,8 @@
           "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Stable identifier; used as the cell_subject of the consent cell. ak.consent.revoke MUST reference the same consent_id."
         },
-        "peer_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Counterparty DID (or pairwise DID) that this consent applies to."
+        "peer": {
+          "$ref": "#/$defs/consent_peer"
         },
         "consent_scope": {
           "type": "string",
@@ -3884,9 +3902,8 @@
     },
     "device_authorize_payload": {
       "type": "object",
-      "description": "Closed authorization record shared by registration genesis, PCR-policy recovery, and accepted-device pairing. registration_anchor and pcr_recovery use a candidate-device possession proof over the full authorization core; pcr_recovery is admitted only beside an accepted recovery session and monotonic PCR generation CAS. accepted_device uses the current accepted approving device. None of these branches derives human authority from current DID state.",
+      "description": "Closed authorization record shared by registration genesis, PCR-policy recovery, and accepted-device pairing. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. registration_anchor and pcr_recovery use a candidate-device possession proof over the full authorization core bound to that exact AccountId; pcr_recovery is admitted only beside an accepted recovery session and monotonic PCR generation CAS. accepted_device uses the current accepted approving device. None of these branches derives human authority from current DID state.",
       "required": [
-        "principal_id",
         "device_id",
         "device_public_key_did",
         "hpke_key",
@@ -3898,9 +3915,6 @@
         "device_signature"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
@@ -3957,9 +3971,7 @@
     },
     "device_list_update_payload": {
       "type": "object",
-      "required": [
-        "principal_id"
-      ],
+      "description": "Closed device-list update whose exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id.",
       "anyOf": [
         {
           "required": [
@@ -3978,9 +3990,6 @@
         }
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
         "changed_ids": {
           "type": "array",
           "minItems": 1,
@@ -4236,18 +4245,14 @@
     },
     "device_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.device.revoke. The revocation's control-plane authorization basis is the Control Move envelope seal_basis (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted Seal covering this Move. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no frontier or generation field, and producers cannot self-report derived pending selectors.",
+      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the Control Move envelope seal_basis (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted Seal covering this Move. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no frontier or generation field, and producers cannot self-report derived pending selectors.",
       "required": [
-        "principal_id",
         "device_id",
         "revoked_by",
         "revoked_at",
         "reason"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
@@ -5304,6 +5309,242 @@
       },
       "additionalProperties": false
     },
+    "join_policy_gate_common": {
+      "type": "object",
+      "required": [
+        "gate_id",
+        "kind"
+      ],
+      "properties": {
+        "gate_id": {
+          "$ref": "#/$defs/join_policy_gate_id"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "auto_resolve": {
+          "const": true
+        }
+      }
+    },
+    "join_policy_gate": {
+      "oneOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/join_policy_gate_common"
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "required_claims"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "claim_required"
+                },
+                "required_claims": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 64,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "#/$defs/non_empty_string"
+                  }
+                }
+              }
+            }
+          ],
+          "unevaluatedProperties": false
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/join_policy_gate_common"
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "provider_did",
+                "challenge_kinds",
+                "max_proof_age"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "challenge_response"
+                },
+                "provider_did": {
+                  "$ref": "./common-ids.schema.json#/$defs/did"
+                },
+                "challenge_kinds": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 16,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "captcha",
+                      "pow",
+                      "attested_human",
+                      "idp_oidc"
+                    ]
+                  }
+                },
+                "max_proof_age": {
+                  "type": "string",
+                  "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+                }
+              }
+            }
+          ],
+          "unevaluatedProperties": false
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/join_policy_gate_common"
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "membership_source_realm_ids",
+                "require_min_membership"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "parent_membership"
+                },
+                "membership_source_realm_ids": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 64,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                  }
+                },
+                "require_min_membership": {
+                  "const": "join"
+                }
+              }
+            }
+          ],
+          "unevaluatedProperties": false
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/join_policy_gate_common"
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "principal_admission"
+                },
+                "allowed_did_methods": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^did:[a-z0-9]+$"
+                  }
+                },
+                "allowed_account_ids": {
+                  "type": "array",
+                  "maxItems": 256,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "./common-ids.schema.json#/$defs/account_id"
+                  }
+                },
+                "denied_account_ids": {
+                  "type": "array",
+                  "maxItems": 256,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "./common-ids.schema.json#/$defs/account_id"
+                  }
+                },
+                "allowed_actor_ids": {
+                  "type": "array",
+                  "maxItems": 256,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                  }
+                },
+                "denied_actor_ids": {
+                  "type": "array",
+                  "maxItems": 256,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                  }
+                },
+                "allowed_principal_core_ids": {
+                  "type": "array",
+                  "maxItems": 256,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "#/$defs/did_core_id"
+                  }
+                },
+                "denied_principal_core_ids": {
+                  "type": "array",
+                  "maxItems": 256,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "#/$defs/did_core_id"
+                  }
+                }
+              },
+              "anyOf": [
+                {"required": ["allowed_did_methods"]},
+                {"required": ["allowed_account_ids"]},
+                {"required": ["denied_account_ids"]},
+                {"required": ["allowed_actor_ids"]},
+                {"required": ["denied_actor_ids"]},
+                {"required": ["allowed_principal_core_ids"]},
+                {"required": ["denied_principal_core_ids"]}
+              ]
+            }
+          ],
+          "unevaluatedProperties": false
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/join_policy_gate_common"
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "min_interval_since_leave"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "cooldown"
+                },
+                "min_interval_since_leave": {
+                  "$ref": "#/$defs/non_empty_string"
+                }
+              }
+            }
+          ],
+          "unevaluatedProperties": false
+        }
+      ]
+    },
     "join_policy_component": {
       "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate cell family, and rides inside the ak.component.realm.policy_bundle.v1 cas_register value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/artifact_lint check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
       "type": "object",
@@ -5318,55 +5559,7 @@
           "maxItems": 16,
           "uniqueItems": true,
           "items": {
-            "type": "object",
-            "required": [
-              "gate_id",
-              "kind"
-            ],
-            "properties": {
-              "gate_id": {
-                "$ref": "#/$defs/join_policy_gate_id"
-              },
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "claim_required",
-                  "challenge_response",
-                  "parent_membership",
-                  "principal_admission",
-                  "cooldown"
-                ]
-              },
-              "auto_resolve": {
-                "type": "boolean"
-              },
-              "allowed_did_methods": {
-                "type": "array",
-                "maxItems": 16,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "pattern": "^did:[a-z0-9]+$"
-                }
-              },
-              "allowed_principal_ids": {
-                "type": "array",
-                "maxItems": 256,
-                "uniqueItems": true,
-                "items": {
-                  "$ref": "#/$defs/did_core_id"
-                }
-              },
-              "denied_principal_ids": {
-                "type": "array",
-                "maxItems": 256,
-                "uniqueItems": true,
-                "items": {
-                  "$ref": "#/$defs/did_core_id"
-                }
-              }
-            },
-            "additionalProperties": true
+            "$ref": "#/$defs/join_policy_gate"
           }
         },
         "combinator": {
@@ -5402,7 +5595,7 @@
           "additionalProperties": false
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "join_policy_gate_id": {
       "type": "string",
@@ -6476,10 +6669,12 @@
           "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
         },
         "holder_principal_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "#/$defs/did_core_id",
+          "description": "Principal projection of the registered holder signing method; distinct from the holder service authority route in holder_id."
         },
         "holder_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "#/$defs/did_core_id",
+          "description": "Registered history-key holder service authority/route, not an AccountId sidecar for holder_principal_id."
         },
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -6622,10 +6817,12 @@
           "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
         },
         "holder_principal_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "#/$defs/did_core_id",
+          "description": "Principal projection of the holder signing authority retained in this archive; distinct from the holder service authority route in holder_id."
         },
         "holder_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "#/$defs/did_core_id",
+          "description": "History-key holder service authority/route, not an AccountId sidecar for holder_principal_id."
         },
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -7766,7 +7963,7 @@
             "self",
             "mimi_facade"
           ],
-          "description": "Admission discriminator (contract-registry admission_variants). Absent or \"self\": the reporter's own device authored the Event (self_authored_proof, actor == reporter). \"mimi_facade\": the Event is service-authored by the MIMI provider facade (service_attested); reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11, and source_provider is required."
+          "description": "Delivery provenance. Absent or \"self\" is a native report; \"mimi_facade\" is a report relayed through the authenticated MIMI provider. Both are authored by the exact reporter Actor's current device or authorized agent proxy under self_authored_proof; the facade never signs on the reporter's behalf. source_provider_id is required only for mimi_facade."
         },
         "source_provider_id": {
           "$ref": "#/$defs/did_core_id",
@@ -10062,73 +10259,88 @@
       },
       "additionalProperties": false
     },
-    "resource_discovery_state_payload": {
+    "resource_discovery_state_value": {
       "type": "object",
-      "description": "State payload for actor, applet, and handle discovery declarations. resource_id is the stable cell subject; value carries the schema-versioned discovery state.",
       "required": [
-        "resource_id",
-        "value"
+        "resource_kind",
+        "discoverability",
+        "directory_ids"
       ],
       "properties": {
-        "resource_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+        "resource_kind": {
+          "type": "string",
+          "enum": ["actor", "applet", "handle"]
         },
-        "value": {
-          "type": "object",
-          "required": [
-            "resource_kind",
-            "discoverability",
-            "directory_ids"
-          ],
-          "properties": {
-            "resource_kind": {
-              "type": "string",
-              "enum": [
-                "actor",
-                "applet",
-                "handle"
-              ]
-            },
-            "discoverability": {
-              "type": "string",
-              "enum": [
-                "public",
-                "listed",
-                "restricted",
-                "unlisted",
-                "invite_only",
-                "secret"
-              ]
-            },
-            "directory_ids": {
-              "type": "array",
-              "maxItems": 64,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/did_core_id"
-              }
-            },
-            "profile_visibility": {
-              "$ref": "#/$defs/discovery_profile_visibility"
-            }
-          },
-          "additionalProperties": false
+        "discoverability": {
+          "type": "string",
+          "enum": ["public", "listed", "restricted", "unlisted", "invite_only", "secret"]
         },
-        "state": {
-          "type": "string"
+        "directory_ids": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/did_core_id" }
         },
-        "reason": {
-          "type": "string"
+        "profile_visibility": {
+          "$ref": "#/$defs/discovery_profile_visibility"
         }
       },
       "additionalProperties": false
+    },
+    "actor_discovery_state_payload": {
+      "type": "object",
+      "required": ["resource_id", "value"],
+      "properties": {
+        "resource_id": { "$ref": "./common-ids.schema.json#/$defs/actor_id" },
+        "value": {
+          "allOf": [
+            { "$ref": "#/$defs/resource_discovery_state_value" },
+            { "properties": { "resource_kind": { "const": "actor" } } }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_discovery_state_payload": {
+      "type": "object",
+      "required": ["resource_id", "value"],
+      "properties": {
+        "resource_id": { "$ref": "./common-ids.schema.json#/$defs/applet_id" },
+        "value": {
+          "allOf": [
+            { "$ref": "#/$defs/resource_discovery_state_value" },
+            { "properties": { "resource_kind": { "const": "applet" } } }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "handle_discovery_state_payload": {
+      "type": "object",
+      "required": ["resource_id", "value"],
+      "properties": {
+        "resource_id": {
+          "allOf": [
+            { "$ref": "string-profiles.schema.json#/$defs/canonical_handle" },
+            { "pattern": "^(?!ak:)" }
+          ]
+        },
+        "value": {
+          "allOf": [
+            { "$ref": "#/$defs/resource_discovery_state_value" },
+            { "properties": { "resource_kind": { "const": "handle" } } }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "resource_discovery_state": {
+      "description": "Union used by generic SDK consumers; Event kinds bind one exact closed branch.",
+      "anyOf": [
+        { "$ref": "#/$defs/actor_discovery_state_payload" },
+        { "$ref": "#/$defs/applet_discovery_state_payload" },
+        { "$ref": "#/$defs/handle_discovery_state_payload" }
+      ]
     },
     "rsvp_encrypted_response": {
       "description": "Encrypted RSVP response envelope. The content_type is pinned so a receiver can route the ciphertext to exactly one decrypted schema; the plaintext MUST validate against rsvp_response.",

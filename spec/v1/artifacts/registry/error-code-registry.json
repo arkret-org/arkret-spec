@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-01.1",
-  "generated_at": "2026-09-01T00:00:00+08:00",
+  "version": "2026-09-01.2",
+  "generated_at": "2026-09-01T12:16:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3690,7 +3690,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A restricted handle whose subject account is NOT controlled by the issuer was presented as binding_state=verified without a holder-acceptance proof (a proof in proofs[] signed by a verification method of subject_account_id.principal_id covering the exact account tuple, handle, audience and claim_scope). Verifiers MUST treat it as at most issuer-attested (below verified): it MUST NOT enter the verified candidate set, be displayed as verified, or drive grant conditions, roster strong attribution or AccountId targeting. This closes issuer-unilateral impersonation within the issuer's audience. See zh/identity/identity-handles.md §6."
+      "description": "A restricted HandleClaim status view was presented as status=verified while its immutable claim core omitted or invalidated the required holder_acceptance proof over the exact claim_digest (including claim.subject_account_id, claim.handle and claim.audience). Verifiers MUST reject the entire status view: it MUST NOT enter the verified candidate set, be displayed as verified, or drive grant conditions, roster strong attribution or AccountId targeting. This closes issuer-unilateral impersonation within the issuer's audience. See zh/identity/identity-handles.md §6."
     },
     {
       "code": "handle_homograph_forbidden",
@@ -4967,7 +4967,7 @@
         "authz",
         "device_recovery"
       ],
-      "description": "A recovery policy or recovery session request targets a principal_id different from the principal bound to the authenticated SessionGrant. Servers MUST reject without revealing the target principal's recovery state."
+      "description": "A recovery policy or recovery session request targets an AccountId different from the exact account bound to the authenticated SessionGrant. Servers MUST compare both principal_id and station_id and reject without revealing the target account's recovery state."
     },
     {
       "code": "recovery_proof_kind_unknown",

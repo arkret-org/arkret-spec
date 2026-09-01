@@ -116,6 +116,10 @@
       "category": "did_method_log_or_evidence"
     },
     {
+      "pointer": "event-payload.schema.json#/$defs/join_policy_gate/oneOf/1/allOf/1/properties/provider_did/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
       "pointer": "identity-receipt.schema.json#/properties/subject_did/$ref",
       "category": "did_method_log_or_evidence"
     },

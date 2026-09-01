@@ -111,7 +111,7 @@
             "realm_id": "ak:realm:ARbIUlzcici90GEaaWOlloxJBixvsfwCb-_GwnOd3EAh",
             "strand_id": "ak:strand:ARbIUlzcici90GEaaWOlloxJBixvsfwCb-_GwnOd3EAh"
           },
-          "hub_provider": "did:webvh:z6mkfixturemimiexamplecom:mimi.example.com",
+          "hub_provider_id": "ak:did_core:webvh:z6mkfixturemimiexamplecom",
           "local_provider_role": "hub",
           "mls_group_id": "mls-group-01",
           "status": "accepted"

@@ -121,7 +121,7 @@
         "transaction_id",
         "transaction_request_digest",
         "prepared_plan_digest",
-        "principal_id",
+        "account_id",
         "coordinator_id",
         "recovery_session_id",
         "terminal_receipt_id",
@@ -145,8 +145,9 @@
         "prepared_plan_digest": {
           "$ref": "#/$defs/digest"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact recovered account. coordinator_id remains the distinct service signer/route authority and MUST equal account_id.station_id for the Station-local recovery transaction."
         },
         "coordinator_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -190,7 +191,7 @@
             "signature": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url signature over RFC 8785 JCS of the fixed projection {schema,transaction_id,transaction_request_digest,prepared_plan_digest,principal_id,coordinator_id,recovery_session_id,terminal_receipt_id,terminal_receipt_digest,replacement_device_id,device_authorization_event_id,result_model_generation_ref,completed_at}. The Event digest is decoded from the suite-bearing device_authorization_event_id."
+              "description": "base64url signature over RFC 8785 JCS of the fixed projection {schema,transaction_id,transaction_request_digest,prepared_plan_digest,account_id,coordinator_id,recovery_session_id,terminal_receipt_id,terminal_receipt_digest,replacement_device_id,device_authorization_event_id,result_model_generation_ref,completed_at}. The Event digest is decoded from the suite-bearing device_authorization_event_id."
             }
           },
           "additionalProperties": false

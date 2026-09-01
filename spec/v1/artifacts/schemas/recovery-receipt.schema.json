@@ -10,7 +10,7 @@
     "transaction_id",
     "transaction_request_digest",
     "prepared_plan_digest",
-    "principal_id",
+    "account_id",
     "recovery_session_id",
     "policy_id",
     "policy_version",
@@ -52,13 +52,14 @@
       "$ref": "#/$defs/digest",
       "description": "Digest of the closed typed prepared_plan stored by the RecoveryTransaction. It MUST equal transaction.prepared_plan_digest and is signed to prevent substituting different prepared bytes under the same reserved ids."
     },
-    "principal_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    "account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id",
+      "description": "Exact recovered AccountId. The replacement-device method proves only its principal projection; the accepted recovery session and device authorization independently bind this complete account, including station_id."
     },
     "recovery_session_id": {
       "type": "string",
       "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Stable session identifier used by every proof transcript, backup decrypt proof, and MLS Welcome replay during this recovery. A byte-identical resubmission of an already accepted receipt is idempotent and MUST return the stored receipt; only a SECOND, DIFFERENT receipt for the same session id and principal is a conflict. Rejecting the byte-identical replay would make a lost response unrecoverable, which zh/identity/security-transactions.md section 1 invariants 3 and 4 forbid."
+      "description": "Stable session identifier used by every proof transcript, backup decrypt proof, and MLS Welcome replay during this recovery. A byte-identical resubmission of an already accepted receipt is idempotent and MUST return the stored receipt; only a SECOND, DIFFERENT receipt for the same session id and exact account is a conflict. Rejecting the byte-identical replay would make a lost response unrecoverable, which zh/identity/security-transactions.md section 1 invariants 3 and 4 forbid."
     },
     "policy_id": {
       "type": "string",

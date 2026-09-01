@@ -384,29 +384,21 @@
     "contact_address": {
       "type": "object",
       "required": [
-        "subject_id",
-        "recipient_id",
+        "recipient",
         "service_resolution"
       ],
       "properties": {
-        "subject_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Principal DID whose private Contact projection receives this fact."
-        },
-        "recipient_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Stable Station service did_core_id that hosts subject_id and accepts this delivery. Together with subject_id this is the complete Contact participant authority key."
+        "recipient": {
+          "$ref": "#/$defs/contact_peer",
+          "description": "Exact Contact participant receiving this private delivery. The delivery Station is derived from the human account_id.station_id or the agent controller_account_id.station_id and is not carried as a parallel identity field."
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-          "description": "First-hop resolution material for recipient_id."
+          "description": "First-hop transport material for the Station derived from recipient."
         },
         "route_assistance": {
           "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
           "description": "Optional transport-only hints for recovering the same recipient_id route during Contact delivery bootstrap. They are not part of the signed Contact Event, Contact projection, Realm member cell or authority state; they do not extend any token/receipt TTL or authorize delivery."
-        },
-        "recipient_kind": {
-          "const": "station"
         }
       },
       "additionalProperties": false
@@ -641,6 +633,7 @@
       "required": [
         "contact_round_id",
         "issuer_id",
+        "peer",
         "head_event_ref",
         "terminal",
         "accepted_frontier",
@@ -653,7 +646,12 @@
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "issuer_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "#/$defs/did_core_id",
+          "description": "Station service authority that signed this proof at fresh_until's evidence lineage. It is not a Contact participant identity."
+        },
+        "peer": {
+          "$ref": "#/$defs/contact_peer",
+          "description": "Signed peer component of the issuer-local lineage key. The directional subject is the other exact member of the bound Contact pair."
         },
         "head_event_ref": {
           "$ref": "#/$defs/event_id",
@@ -1965,6 +1963,7 @@
     "glare_concurrency_attestation": {
       "type": "object",
       "required": [
+        "subject_id",
         "issuer_id",
         "peer_id",
         "request_receipt_digests",
@@ -1975,11 +1974,17 @@
         "signature"
       ],
       "properties": {
+        "subject_id": {
+          "$ref": "#/$defs/actor_id",
+          "description": "Exact Contact participant whose Station issued this directional attestation."
+        },
         "issuer_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "#/$defs/did_core_id",
+          "description": "Station service authority that signed this attestation at observed_at."
         },
         "peer_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "#/$defs/actor_id",
+          "description": "Exact opposite Contact participant."
         },
         "request_receipt_digests": {
           "type": "array",
@@ -2013,7 +2018,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Source-signed evidence that the issuer had accepted both directional request receipts while neither request slot had yet been consumed by a normal response or rejection. Exactly one attestation from each pair member is required by the glare evidence bundle."
+      "description": "Source-service-signed evidence for the subject_id -> peer_id direction that both request receipts were accepted while neither request slot had yet been consumed. A glare bundle requires the two opposite directions; issuer_id is the signing service and is never used as the participant discriminator."
     },
     "non_empty_string": {
       "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
@@ -2042,7 +2047,7 @@
         },
         "outgoing_slot_absence_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest",
-          "description": "Digest binding the responder's local CAS-point slot state showing no outgoing request existed when the normal response was accepted (see identity/contact-and-direct-conversation.md section 4). Self-describing <alg>:<hex>. The canonical preimage for this digest is not yet stated in normative prose; see review/spec-open."
+          "description": "H('ak.contact.no_outgoing_slot.v1', outgoing_slot_absence_transcript) over the exact closed transcript defined by identity/contact-and-direct-conversation.md section 2."
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"

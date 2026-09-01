@@ -27,7 +27,7 @@ updated: 2026-07-02
 
 ### 2.2 推送内容脱敏 (Blind Wakeup)
 
-Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操作安全基线**：声明 `ak.profile.push_gateway.v1` 的实现 MUST 同时声明 `ak.profile.push_gateway.blind_wakeup.v1` 并在所有 provider 出向通知上强制其约束。可见通知字段只在显式声明 `ak.profile.push_gateway.visible_notification.v1` 且满足 Realm policy + 设备 opt-in + UI 明示三项前置时才允许，且仍受最小化约束（见 [`conformance/conformance-profiles.md` §11](../conformance/conformance-profiles.md)）。Matrix 兼容部署使用 `ak.profile.push_gateway.matrix_passthrough.v1`，**MUST NOT** 与默认 v1 隐私基线在同一 `(recipient_id, device)` 元组上混用。
+Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操作安全基线**：声明 `ak.profile.push_gateway.v1` 的实现 MUST 同时声明 `ak.profile.push_gateway.blind_wakeup.v1` 并在所有 provider 出向通知上强制其约束。可见通知字段只在显式声明 `ak.profile.push_gateway.visible_notification.v1` 且满足 Realm policy + 设备 opt-in + UI 明示三项前置时才允许，且仍受最小化约束（见 [`conformance/conformance-profiles.md` §11](../conformance/conformance-profiles.md)）。Matrix 兼容部署使用 `ak.profile.push_gateway.matrix_passthrough.v1`，**MUST NOT** 与默认 v1 隐私基线在同一 `(account_id, device_id)` 元组上混用；这里的 `account_id` 是已验证 registration 的完整 AccountId，不在 notify body 中重复承载。
 
 在 E2EE 场景下，Station sync surface 无法读取消息正文。推送通知的默认行为是**脱敏唤醒 (Blind Wakeup)**：
 - 推送上游（APNs / FCM / Push Gateway）只携带 **per-(account_id, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 AccountId、principal DID、sender DID、Realm id、event id、device verification-method DID URL 或任何其它跨 Realm 稳定标识。设备自身没有 DID。具体规则见 [`crypto-media/device-lifecycle.md` §5.6 Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。同一 principal 在两个 Station 上的推送注册必须不可链接。
@@ -43,7 +43,7 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 
 ### 2.4 多订阅信道去重与 presence timing
 
-同一事件可能同时命中显式 watch、隐式参与订阅、mention rule、read-cursor badge recompute、presence-triggered foreground wakeup 或 notification projection。Station sync surface / notification service 在调用 Push Gateway 前 MUST 在出口做去重：同一 `(recipient_id, device_id, push_route_id, source_event_digest)` 在一个 delivery window 内最多产生一条 push wakeup。默认 `blind_wakeup` profile 下，去重 key 是服务端内部状态，MUST NOT 出现在 push payload、日志导出、provider custom data 或客户端可见的 stable correlation key 中。
+同一事件可能同时命中显式 watch、隐式参与订阅、mention rule、read-cursor badge recompute、presence-triggered foreground wakeup 或 notification projection。Station sync surface / notification service 在调用 Push Gateway 前 MUST 在出口做去重：同一 `(account_id, device_id, push_route_id, source_event_digest)` 在一个 delivery window 内最多产生一条 push wakeup；`account_id` 从已验证 registration 记录取得，两个分量都参与比较。默认 `blind_wakeup` profile 下，去重 key 是服务端内部状态，MUST NOT 出现在 push payload、日志导出、provider custom data 或客户端可见的 stable correlation key 中。
 
 **Provider 侧 collapse / dedup key 约束（normative）**：部分 provider（APNs `apns-collapse-id`、FCM `collapse_key`）需要服务端在 push 请求里附带一个 collapse / dedup key 以折叠同一目标的连续 wakeup。该 key 对 provider 可见，因此 MUST NOT 泄露稳定 correlation：
 
@@ -362,12 +362,12 @@ POST /_arkret/edge/push/notify
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
 | `notification.devices[].platform` | string | optional | 目标平台标识，供 gateway 选择 provider adapter。 |
 | `notification.devices[].visible_notification_opt_in` | boolean | optional（默认 `false`；routing-stripped） | 接收设备授权状态中的 `visible_notification` opt-in 投影。仅当 Realm policy、调用服务 visible profile 与该字段三者同时允许时，Push Gateway 才可处理本表 visible-only 字段；缺失或 `false` 时该设备 MUST 回退到 `blind_wakeup`，不得接收明文标题、发送者显示名或 typed-id preview。MUST NOT 转发给 provider。 |
-| `notification.route_tokens` | object | optional（routing-stripped） | gateway-internal opaque token 集合，blind 与 visible 通知共有。第三方 Push Gateway 只可把 token 用作路由、去重、熔断和等值比较输入；token 由接收 Sync / Principal Service 生成，并绑定 `recipient_id`、Push Gateway service DID、用途、scope 与 salt epoch。其下所有字段 **MUST 在出 provider 前 strip，MUST NOT 转发给 provider**。 |
+| `notification.route_tokens` | object | optional（routing-stripped） | gateway-internal opaque token 集合，blind 与 visible 通知共有。第三方 Push Gateway 只可把 token 用作路由、去重、熔断和等值比较输入；token 由接收 Sync / Principal Service 生成，并绑定完整 `account_id`、Push Gateway service DID、用途、scope 与 salt epoch。其下所有字段 **MUST 在出 provider 前 strip，MUST NOT 转发给 provider**。 |
 | `notification.route_tokens.realm_route_token` | string | optional（routing-stripped） | Realm 级路由 / 去重 / 熔断 token；不得是 Realm id 或可逆 Realm id 编码。 |
 | `notification.route_tokens.scope_route_token` | string | optional（routing-stripped） | effective Realm / Circle scope 的 opaque token；不得携带 Circle id、`effective_scope` 对象或其它可识别 scope 原文。 |
 | `notification.event_id` | id:event | visible-only required | profile-gated Event id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
 | `notification.realm_id` | id:realm | visible-only required | profile-gated Realm id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
-| `notification.sender_actor_id` | did_core_id | visible-only required | profile-gated 发送者 actor 的稳定业务身份。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
+| `notification.sender_actor_id` | ActorId | visible-only required | profile-gated 发送者的完整 Actor identity。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload；不得降格为 principal DID。 |
 | `notification.strand_id` | id:strand | visible-only | profile-gated Strand id。绝不进 blind。 |
 | `notification.message_id` | id:message | visible-only | profile-gated Message id。绝不进 blind。 |
 | `notification.sender_actor_display_name` | string | visible-only | profile-gated 发送者显示名。绝不进 blind（§2.2 已列入 MUST NOT 清单）。 |
@@ -382,7 +382,7 @@ POST /_arkret/edge/push/notify
 
 `blind_wakeup` 下上述最小化义务覆盖 `counts` 内的所有绝对活动计数，包括未读数与未接来电数；`badge` 与 `missed_call` 均只能使用布尔存在标志或 policy 声明的封闭 bucket 字符串，MUST NOT 发送明文绝对计数。`unread_increment` 是唯一允许的有界增量形态，不得被解释为累计总数。
 
-> **传输层 header（非 body 字段）**：notify MUST 携带 exact selector `Arkret-Operation: ak.edge.push.command.notify.v1`；即使 endpoint family 当前只有该候选也不得省略。`idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-ID` header；目标服务 DID 与 `recipient_id` 复用→`Destination-Service-ID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 OpenAPI securitySchemes）。这些字段都不在 body 重复承载，且 **MUST NOT** 出现在请求体内。
+> **传输层 header（非 body 字段）**：notify MUST 携带 exact selector `Arkret-Operation: ak.edge.push.command.notify.v1`；即使 endpoint family 当前只有该候选也不得省略。`idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-ID` header；目标 Push Gateway service DID→`Destination-Service-ID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 OpenAPI securitySchemes）。service header 不承载、复用或替代 recipient AccountId；账号绑定只来自服务端已验证的 `push_target_id` registration。上述字段都不在 body 重复承载，且 **MUST NOT** 出现在请求体内。
 
 **Notify body / product-private body / provider payload 三层边界（normative）**：
 
@@ -401,7 +401,7 @@ POST /_arkret/edge/push/notify
 6. E2EE 默认实现不得依赖该 profile；完整通知标题与正文 SHOULD 由客户端被唤醒、拉取并本地解密后渲染。
 7. `visible_notification` 只放宽本表列出的展示字段，不放宽路由元数据边界；独立第三方 Push Gateway 仍只能接收 opaque route token。与 Sync / Principal Service 同一运营、日志、审计和信任边界内的 co-resident gateway 可以在实现内部使用 raw id，但这些 raw id 不属于 Arkret edge notify wire。
 
-Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` 用于桥接遗留 Matrix push gateway 形态。该 profile 与 `ak.profile.push_gateway.blind_wakeup.v1` **不兼容**：bridge MUST 把流量分区，确保任一基于默认 v1 baseline 协商的 `(recipient_id, device)` 元组永远不会收到 matrix_passthrough payload。
+Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` 用于桥接遗留 Matrix push gateway 形态。该 profile 与 `ak.profile.push_gateway.blind_wakeup.v1` **不兼容**：bridge MUST 把流量分区，确保任一基于默认 v1 baseline 协商的 `(account_id, device_id)` registration 永远不会收到 matrix_passthrough payload。
 
 默认 blind wakeup 请求示例：
 

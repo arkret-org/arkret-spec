@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.1",
+  "version": "2026-09-01.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-01T06:30:00+08:00",
+  "generated_at": "2026-09-01T12:16:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -463,8 +463,13 @@
           {
             "cell_family": "ak.component.actor.discovery.v1",
             "cell_subject": {
-              "kind": "did",
-              "field": "payload.resource_id"
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.resource_id"
+                }
+              ]
             },
             "lattice": "cas_register",
             "bottom": "reject",
@@ -1935,7 +1940,10 @@
             "cell_family": "ak.component.device.authorization.v1",
             "cell_subject": {
               "components": [
-                "payload.principal_id",
+                {
+                  "kind": "canonical_json",
+                  "field": "envelope.actor_id"
+                },
                 "payload.device_id"
               ],
               "kind": "composite"
@@ -1962,8 +1970,13 @@
           {
             "cell_family": "ak.component.device.list_update.v1",
             "cell_subject": {
-              "field": "payload.principal_id",
-              "kind": "did"
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "envelope.actor_id"
+                }
+              ],
+              "kind": "composite"
             },
             "lattice": "or_set",
             "bottom": "inert",
@@ -2013,7 +2026,10 @@
             "cell_family": "ak.component.device.authorization.v1",
             "cell_subject": {
               "components": [
-                "payload.principal_id",
+                {
+                  "kind": "canonical_json",
+                  "field": "envelope.actor_id"
+                },
                 "payload.device_id"
               ],
               "kind": "composite"
@@ -6037,7 +6053,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Actor discoverability state",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/resource_discovery_state_payload",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_discovery_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6049,7 +6065,7 @@
         "reducer_input": true,
         "admission": "service_attested",
         "payload": "Applet discoverability state",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/resource_discovery_state_payload",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_discovery_state_payload",
         "id_source": "reference"
       },
       {
@@ -6061,7 +6077,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Handle discoverability state",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/resource_discovery_state_payload",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/handle_discovery_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7364,7 +7380,7 @@
             "admission": "self_authored_proof"
           }
         ],
-        "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11 consent and holder-claim rules, payload.source_provider carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal. One accepted Event derives exactly one report and one moderation_queue_item; their full typed IDs differ although both retype the same complete event_id token.",
+        "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 11 reporter_authority rules, payload.source_provider_id carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal. One accepted Event derives exactly one report and one moderation_queue_item; their full typed IDs differ although both retype the same complete event_id token.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_report_payload",
         "id_source": "event_derived",
         "id_kinds": [
@@ -8839,6 +8855,20 @@
         "description": "Deduplicated transport-level Agent signer evidence bundle shared by sync, backfill, and federation."
       },
       {
+        "schema_id": "ak.schema.current_signer_evidence_query_request.v1",
+        "file": "schemas/current-signer-evidence-operations.schema.json",
+        "fragment": "#/$defs/query_request",
+        "status": "active",
+        "description": "Request-bound cold-recipient query selecting exactly one current account-device or Agent authority branch per sender."
+      },
+      {
+        "schema_id": "ak.schema.current_signer_evidence_query_outcome.v1",
+        "file": "schemas/current-signer-evidence-operations.schema.json",
+        "fragment": "#/$defs/query_outcome",
+        "status": "active",
+        "description": "Origin-Station-signed response binding exact Signal, recipient, proxy verifier, challenge and closed current signer evidence."
+      },
+      {
         "schema_id": "ak.schema.circle.v1",
         "file": "schemas/circle.schema.json",
         "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity. see zh/models/circle.md."
@@ -9072,6 +9102,18 @@
       {
         "schema_id": "ak.schema.event_payload.v1",
         "file": "schemas/event-payload.schema.json"
+      },
+      {
+        "schema_id": "ak.schema.resource_discovery_state.v1",
+        "file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/resource_discovery_state",
+        "status": "active",
+        "description": "Closed SDK-facing union at schemas/event-payload.schema.json#/$defs/resource_discovery_state over the exact Actor, Applet, and Handle discovery-state Event payloads.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "generic SDK consumer projection over the three exact resource discovery-state Event payloads",
+          "normative_ref": "zh/discovery/discovery-directory.md#3-realm-discoverability"
+        }
       },
       {
         "schema_id": "ak.schema.event_batch_receipt.v1",
@@ -9519,6 +9561,20 @@
         "file": "schemas/member-identity.schema.json",
         "status": "active",
         "description": "Realm-scoped member display/subject projection carried by ak.member.identity.update; handle lifecycle is carried by ak.schema.handle_claim.v1."
+      },
+      {
+        "schema_id": "ak.schema.handle_claim_core.v1",
+        "file": "schemas/handle-claim.schema.json",
+        "fragment": "#/$defs/handle_claim_core",
+        "status": "active",
+        "description": "Signed Handle Claim core binding one canonical handle to an exact Account subject and issuer."
+      },
+      {
+        "schema_id": "ak.schema.handle_claim_revocation.v1",
+        "file": "schemas/handle-claim.schema.json",
+        "fragment": "#/$defs/handle_claim_revocation",
+        "status": "active",
+        "description": "Signed issuer-or-holder revocation of one exact Handle Claim digest."
       },
       {
         "schema_id": "ak.schema.handle_claim.v1",
@@ -10123,8 +10179,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-31.3",
-    "generated_at": "2026-08-31T18:32:02+08:00"
+    "version": "2026-09-01.1",
+    "generated_at": "2026-09-01T12:16:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -11244,6 +11300,7 @@
           "ak.peer.seals.read.resolve.v1",
           "ak.peer.invites.command.submit.v1",
           "ak.peer.contacts.command.submit.v1",
+          "ak.peer.current_signer_evidence.read.resolve.v1",
           "ak.peer.keys.keypackages.command.claim.v1",
           "ak.peer.keys.keypackages.read.claim.v1",
           "ak.peer.service_resolution.command.publish.v1",
@@ -11398,6 +11455,7 @@
           "ak.self.keys.upload.create.v1",
           "ak.self.keys.read.lookup.v1",
           "ak.self.agent_signer_evidence.read.resolve.v1",
+          "ak.self.current_signer_evidence.read.resolve.v1",
           "ak.self.keys.command.claim.v1",
           "ak.self.keys.keypackages.upload.create.v1",
           "ak.self.keys.keypackages.command.claim.v1",
@@ -12221,7 +12279,7 @@
           ]
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -12478,7 +12536,6 @@
         "http": "POST /_arkret/open/mimi/report-abuse",
         "grpc": "OpenMimi/ReportAbuse",
         "mq": "open.mimi.command.report_abuse",
-        "bridges_to": "ak.self.moderation.command.report.v1",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
@@ -12489,8 +12546,10 @@
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome",
         "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.self.moderation.report"
+          ]
         }
       },
       {
@@ -12898,6 +12957,19 @@
             "ak.device.authorize"
           ]
         }
+      },
+      {
+        "operation_id": "ak.peer.current_signer_evidence.read.resolve.v1",
+        "http": "POST /_arkret/peer/current-signer-evidence/query",
+        "grpc": "PeerCurrentSignerEvidence/Resolve",
+        "mq": "peer.current_signer_evidence.query.resolve",
+        "notes": "Authenticated single-hop authority query for a cold recipient. Source-Service-ID is the verifier and must equal recipient_account_id.station_id; Destination-Service-ID must equal the authority. All selectors route to that authority. Current joined membership of exact recipient and target in the named non-minimal Realm gates disclosure. Unknown, wrong-Station, unauthorized, inactive, conflicted and expired cases return the same signed empty outcome. The origin proof binds exact client request_id, challenge, Signal digest, recipient, verifier and evidence and expires within 30 seconds; no user bearer, PCR, KeyPackage or recursive current-evidence query is accepted.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 65536,
+        "max_items": 16,
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_request",
+        "response_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome"
       },
       {
         "operation_id": "ak.peer.service_resolution.command.publish.v1",
@@ -13570,6 +13642,17 @@
         "response_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome"
       },
       {
+        "operation_id": "ak.self.current_signer_evidence.read.resolve.v1",
+        "http": "POST /_arkret/self/current-signer-evidence/query",
+        "grpc": "SelfCurrentSignerEvidence/Resolve",
+        "mq": "self.current_signer_evidence.query.resolve",
+        "notes": "Cold-recipient proxy for one exact Signal. The authenticated SessionGrant Account must equal recipient_account_id. All selectors route to one authority Station. The proxy forwards the same closed body over the peer operation and returns the origin-signed outcome byte-for-byte; it never rewrites verifier context, substitutes a local same-principal directory, or treats cached evidence as a successful acquisition.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_request",
+        "response_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome"
+      },
+      {
         "operation_id": "ak.self.applet.command.install.v1",
         "http": "POST /_arkret/self/applets/install",
         "grpc": "SelfApplet/Install",
@@ -13952,7 +14035,7 @@
       },
       {
         "operation_id": "ak.self.consent.command.grant.v1",
-        "http": "POST /_arkret/self/consent/cells/{holder_principal_id}/grant",
+        "http": "POST /_arkret/self/consent/cells/grant",
         "grpc": "SelfConsent/Grant",
         "mq": "self.consent.command.grant",
         "notes": "Submits the caller-signed ak.consent.grant Control Move carried in grant_event through ordinary Event admission. payload.consent_id is the producer-allocated cell subject and the or_set add dot is 'ak:event:<enclosing event_id>:<write_index>', so the service chooses neither and MUST NOT synthesize the Event. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
@@ -13996,7 +14079,7 @@
       },
       {
         "operation_id": "ak.self.consent.command.revoke.v1",
-        "http": "POST /_arkret/self/consent/cells/{holder_principal_id}/revoke",
+        "http": "POST /_arkret/self/consent/cells/revoke",
         "grpc": "SelfConsent/Revoke",
         "mq": "self.consent.command.revoke",
         "notes": "Submits the caller-signed ak.consent.revoke Control Move carried in revoke_event through ordinary Event admission. Its payload.observed_dot_ids MUST enumerate the active grant dots being removed for the (consent_id, peer, consent_scope), read back from consent_cell_view.active_grant_dots. Revoking consent_scope=any cascades all concrete scopes and MUST still enumerate every dot; revoking a concrete scope leaves others intact.",
@@ -14029,10 +14112,10 @@
       },
       {
         "operation_id": "ak.self.consent.resource.get.v1",
-        "http": "GET /_arkret/self/consent/cells/{holder_principal_id}",
+        "http": "GET /_arkret/self/consent/cell",
         "grpc": "SelfConsent/Get",
         "mq": "self.consent.resource.get",
-        "notes": "Reads one holder-private consent cell. The authenticated actor MUST equal holder_principal_id or be an explicitly authorised holder controller; peers never receive this DTO.",
+        "notes": "Reads one holder-private consent cell selected by the required peer query parameter. The authenticated actor determines the holder coordinate; peers never receive this DTO.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
@@ -14791,7 +14874,7 @@
         "http": "POST /_arkret/self/moderation/report",
         "grpc": "SelfModeration/Report",
         "mq": "self.moderation.command.report",
-        "notes": "Carries exactly one direct-holder signed report_event EventInitialSubmission and no unsigned report fields. The Event kind is ak.self.moderation.report; this self endpoint accepts only absent/self provenance and forbids source_provider, delegated executor, Applet and MIMI-facade provenance. event.actor_id and payload.reporter must equal the authenticated session principal. There is no path Realm: event.realm_id, payload.realm_id, signed scope_ref and the accepted target's derived governance scope must match exactly. Realm-default reports may omit payload.effective_scope; Circle reports must sign the exact Circle scope. The target must be accepted and visible to the reporter; absent, invisible and scope-mismatched targets use the same not_found response. This DataEvent carries seal_ref plus auth_context and cannot carry seal_basis or preconditions. The service forwards exact signed bytes through ordinary Event admission and never authors, rebuilds, co-signs, maps an operation ref to another target or adds a concurrency guard. report_id is derived by retyping the accepted Event id and the stored submit outcome has status=submitted. Exact replay returns that byte-identical outcome without a second log or queue append; the same Event identity with different bytes returns duplicate_conflict. routed_to is omitted for an ordinary reporter and may be returned only when the caller independently holds moderation/governance capability for the exact scope.",
+        "notes": "Carries exactly one direct-holder signed report_event EventInitialSubmission and no unsigned report fields. The Event kind is ak.self.moderation.report; this self endpoint accepts only absent/self provenance and forbids source_provider_id, delegated executor, Applet and MIMI-facade provenance. event.actor_id and payload.reporter must equal the authenticated session principal. There is no path Realm: event.realm_id, payload.realm_id, signed scope_ref and the accepted target's derived governance scope must match exactly. Realm-default reports may omit payload.effective_scope; Circle reports must sign the exact Circle scope. The target must be accepted and visible to the reporter; absent, invisible and scope-mismatched targets use the same not_found response. This DataEvent carries seal_ref plus auth_context and cannot carry seal_basis or preconditions. The service forwards exact signed bytes through ordinary Event admission and never authors, rebuilds, co-signs, maps an operation ref to another target or adds a concurrency guard. report_id is derived by retyping the accepted Event id and the stored submit outcome has status=submitted. Exact replay returns that byte-identical outcome without a second log or queue append; the same Event identity with different bytes returns duplicate_conflict. routed_to is omitted for an ordinary reporter and may be returned only when the caller independently holds moderation/governance capability for the exact scope.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -15224,8 +15307,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-31.8",
-    "generated_at": "2026-08-31T18:32:02+08:00",
+    "version": "2026-09-01.2",
+    "generated_at": "2026-09-01T12:16:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

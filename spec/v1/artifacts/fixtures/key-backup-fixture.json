@@ -21,7 +21,10 @@
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
-        "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
         "version": 1,
         "supersedes_id": null,
         "trust_domain": "ak:trust_domain:did.webvh.example",
@@ -108,7 +111,10 @@
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:01964140-0000-7000-8000-000000000005",
-        "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
         "version": 1,
         "supersedes_id": null,
         "trust_domain": "ak:trust_domain:did.webvh.example",
@@ -170,7 +176,10 @@
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:01964140-0000-7000-8000-000000000001",
-        "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
         "version": 2,
         "trust_domain": "ak:trust_domain:did.webvh.example",
         "allowed_proof_kinds": [
@@ -198,7 +207,10 @@
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:01964140-0000-7000-8000-000000000003",
-        "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
         "version": 1,
         "supersedes_id": null,
         "trust_domain": "ak:trust_domain:did.webvh.example",
@@ -263,7 +275,10 @@
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:01964140-0000-7000-8000-000000000004",
-        "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
         "version": 1,
         "supersedes_id": null,
         "trust_domain": "ak:trust_domain:did.webvh.example",
@@ -311,7 +326,10 @@
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:01964140-0000-7000-8000-000000000002",
-        "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
         "version": 2,
         "supersedes_id": "ak:policy:01964140-0000-7000-8000-000000000000",
         "trust_domain": "ak:trust_domain:did.webvh.example",
@@ -333,7 +351,10 @@
       "instance": {
         "schema": "ak.schema.key_backup_unlock_proof.v1",
         "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000002",
-        "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
         "requesting_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
         "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
         "backup_kind": "secret_storage",

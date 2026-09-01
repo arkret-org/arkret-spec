@@ -26,9 +26,9 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 642,
-    "typed_object_id": 912,
-    "registry_catalog_symbol": 19
+    "responsibility_identity_material": 648,
+    "typed_object_id": 921,
+    "registry_catalog_symbol": 21
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -580,7 +580,7 @@
       "name": "organization_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
       "category": "responsibility_identity_material",
-      "occurrences": 1,
+      "occurrences": 2,
       "example_path": "event-payload.schema.json#/$defs/organization_moderation_policy_state_payload/properties/organization_id",
       "reason": "Carries a responsibility-subject DID core but the schema still declares a loose terminal type; convergence is to pin did_core_id."
     },
@@ -716,11 +716,11 @@
     },
     {
       "name": "resource_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
+      "terminal_signature": "[[\"format\", \"arkret-canonical-handle\"], [\"pattern\", \"^(?!ak:)\"], [\"pattern\", \"^(?!ak:)[^\\\\s:@/#?\\\\\\\\]+:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$\"]]",
+      "category": "external_system_identifier",
       "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/resource_discovery_state_payload/properties/resource_id",
-      "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
+      "example_path": "event-payload.schema.json#/$defs/handle_discovery_state_payload/properties/resource_id",
+      "reason": "Canonical Handle coordinate in the external domain-owned handle namespace; the enclosing discovery event binds it to the Arkret resource projection without turning it into a typed object ID."
     },
     {
       "name": "resource_id",

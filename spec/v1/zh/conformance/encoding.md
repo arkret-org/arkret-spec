@@ -789,7 +789,7 @@ Barrier cursor body 示例：
 
 | 绑定字段 | 承载位置 | 说明 |
 |----------|----------|------|
-| `principal_id` | `h` handle 绑定表 | cursor 所属 principal，跨 principal 命中 MUST `cursor_integrity_invalid` |
+| `account_id` | `h` handle 绑定表 | 账号 cursor 所属完整 AccountId 的 RFC 8785 canonical JSON；同 core 异 Station 或跨账号命中 MUST `cursor_integrity_invalid` |
 | `device_id` | `h` handle 绑定表 | cursor 绑定的 device |
 | `service_id` | `h` handle 绑定表 | issuing service 标识 |
 | `filter_digest` | `h` handle 绑定表 | 订阅 / 查询 filter 的 digest，防跨 filter 复用 |
@@ -820,7 +820,7 @@ Barrier cursor body 示例：
 服务端 MUST 在使用客户端回传的 cursor 推进任何不可逆 server-side state、恢复 stream 位置或解除读己之所写屏障之前，执行下列完整性校验；具体业务场景见对应 sync / API binding（例如 [`client-sync.md`](../sync/client-sync.md) §10 / §12）。仅通过 §8.3 语法 / TTL / purpose 校验不足以信任 cursor 内部状态。
 
 - `h` MUST 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit）。
-- 服务端 MUST 以 `h` 查 issuing service 本地表，记录绑定的 `(principal_id, device_id, service_id, filter_digest, purpose, positions, target?, expiry)` 元组。
+- 服务端 MUST 以 `h` 查 issuing service 本地表；账号路径记录绑定的 `(account_id, device_id, filter_digest, purpose, positions, target?, expiry)` 元组，其中 `account_id` 是单一完整值，不得再拆为 principal + service sidecar。通用 service/directory cursor 使用各自登记的非账号 selector。
 - handle 不存在、已撤销、已过期，或绑定字段与当前 authenticated request 不匹配 → `cursor_integrity_invalid`。
 - 校验通过后，服务端才可读取 handle 解析出的 `positions`（stream cursor）或 `target`（barrier cursor）并推进同步状态。
 - handle 校验本身就是完整性校验，cursor body 不可加 `_mac` / `_sig`，也不可内联 `positions` 或 `target` 作为完整性来源。
@@ -907,7 +907,7 @@ rank_between(left, right):
 
 ## 9.5. Composite Cell Subject
 
-部分 cell 的 subject 由多个 sub-component 复合派生（例如 `ak.device.authorize` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Control Move precondition、Lattice join 和 fixture 必须使用同一形态。
+部分 cell 的 subject 由多个 sub-component 复合派生（例如 `ak.device.authorize` 的 `(JCS(envelope.actor_id), device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Control Move precondition、Lattice join 和 fixture 必须使用同一形态。
 
 ### 9.5.1 通用规则
 

@@ -82,7 +82,7 @@
       "$ref": "#/$defs/base64url",
       "minLength": 22,
       "maxLength": 128,
-      "description": "Client-generated idempotency id. The service keys the canonical request digest and terminal outcome by (principal_id, backup_id, request_id)."
+      "description": "Client-generated idempotency id. The service keys the canonical request digest and terminal outcome by (account_id, backup_id, request_id)."
     },
     "keys_backups_delete_proof": {
       "$ref": "./high-risk-authority-proof.schema.json",
@@ -710,7 +710,7 @@
     },
     "keys_backups_issue_delete_challenge_request_body": {
       "type": "object",
-      "description": "Request body for ak.self.keys.backups.command.issue_delete_challenge.v1. While an issued challenge for the same (principal_id, backup_id, request_id) is still valid, the service MUST return the same challenge; a different request_id mints a new challenge.",
+      "description": "Request body for ak.self.keys.backups.command.issue_delete_challenge.v1. While an issued challenge for the same (account_id, backup_id, request_id) is still valid, the service MUST return the same challenge; a different request_id mints a new challenge.",
       "required": [
         "request_id"
       ],
@@ -729,7 +729,7 @@
         "challenge",
         "nonce",
         "operation",
-        "principal_id",
+        "account_id",
         "backup_id",
         "audience",
         "service_id",
@@ -755,8 +755,9 @@
         "operation": {
           "const": "ak.self.keys.backups.resource.delete.v1"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact account that owns the backup and challenge; both principal and Station components are signed by every delete proof."
         },
         "backup_id": {
           "$ref": "#/$defs/backup_id"

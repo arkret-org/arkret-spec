@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.8",
+  "version": "2026-09-01.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T18:30:02+08:00",
+  "generated_at": "2026-09-01T06:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1688,7 +1688,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Actor discoverability state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/resource_discovery_state_payload",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_discovery_state_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -1696,8 +1696,13 @@
         {
           "cell_family": "ak.component.actor.discovery.v1",
           "cell_subject": {
-            "kind": "did",
-            "field": "payload.resource_id"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.resource_id"
+              }
+            ]
           },
           "lattice": "cas_register",
           "bottom": "reject",
@@ -1720,7 +1725,7 @@
       "reducer_input": true,
       "admission": "service_attested",
       "payload": "Applet discoverability state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/resource_discovery_state_payload",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_discovery_state_payload",
       "id_source": "reference",
       "plane": "control",
       "sealed": true,
@@ -1752,7 +1757,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Handle discoverability state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/resource_discovery_state_payload",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/handle_discovery_state_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -4731,7 +4736,10 @@
           "cell_family": "ak.component.device.authorization.v1",
           "cell_subject": {
             "components": [
-              "payload.principal_id",
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              },
               "payload.device_id"
             ],
             "kind": "composite"
@@ -4804,7 +4812,10 @@
           "cell_family": "ak.component.device.authorization.v1",
           "cell_subject": {
             "components": [
-              "payload.principal_id",
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              },
               "payload.device_id"
             ],
             "kind": "composite"
@@ -4835,8 +4846,13 @@
         {
           "cell_family": "ak.component.device.list_update.v1",
           "cell_subject": {
-            "field": "payload.principal_id",
-            "kind": "did"
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              }
+            ],
+            "kind": "composite"
           },
           "lattice": "or_set",
           "bottom": "inert",
@@ -5748,7 +5764,7 @@
           "admission": "self_authored_proof"
         }
       ],
-      "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11 consent and holder-claim rules, payload.source_provider carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal. One accepted Event derives exactly one report and one moderation_queue_item; their full typed IDs differ although both retype the same complete event_id token.",
+      "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 11 reporter_authority rules, payload.source_provider_id carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal. One accepted Event derives exactly one report and one moderation_queue_item; their full typed IDs differ although both retype the same complete event_id token.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_report_payload",
       "id_source": "event_derived",
       "id_kinds": [

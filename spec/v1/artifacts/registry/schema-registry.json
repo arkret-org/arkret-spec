@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.3",
+  "version": "2026-09-01.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T18:32:02+08:00",
+  "generated_at": "2026-09-01T12:16:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -137,6 +137,20 @@
       "fragment": "#/$defs/sync_bundle",
       "status": "active",
       "description": "Deduplicated transport-level Agent signer evidence bundle shared by sync, backfill, and federation."
+    },
+    {
+      "schema_id": "ak.schema.current_signer_evidence_query_request.v1",
+      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/query_request",
+      "status": "active",
+      "description": "Request-bound cold-recipient query selecting exactly one current account-device or Agent authority branch per sender."
+    },
+    {
+      "schema_id": "ak.schema.current_signer_evidence_query_outcome.v1",
+      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/query_outcome",
+      "status": "active",
+      "description": "Origin-Station-signed response binding exact Signal, recipient, proxy verifier, challenge and closed current signer evidence."
     },
     {
       "schema_id": "ak.schema.circle.v1",
@@ -372,6 +386,18 @@
     {
       "schema_id": "ak.schema.event_payload.v1",
       "file": "schemas/event-payload.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.resource_discovery_state.v1",
+      "file": "schemas/event-payload.schema.json",
+      "fragment": "#/$defs/resource_discovery_state",
+      "status": "active",
+      "description": "Closed SDK-facing union at schemas/event-payload.schema.json#/$defs/resource_discovery_state over the exact Actor, Applet, and Handle discovery-state Event payloads.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "generic SDK consumer projection over the three exact resource discovery-state Event payloads",
+        "normative_ref": "zh/discovery/discovery-directory.md#3-realm-discoverability"
+      }
     },
     {
       "schema_id": "ak.schema.event_batch_receipt.v1",
@@ -819,6 +845,20 @@
       "file": "schemas/member-identity.schema.json",
       "status": "active",
       "description": "Realm-scoped member display/subject projection carried by ak.member.identity.update; handle lifecycle is carried by ak.schema.handle_claim.v1."
+    },
+    {
+      "schema_id": "ak.schema.handle_claim_core.v1",
+      "file": "schemas/handle-claim.schema.json",
+      "fragment": "#/$defs/handle_claim_core",
+      "status": "active",
+      "description": "Signed Handle Claim core binding one canonical handle to an exact Account subject and issuer."
+    },
+    {
+      "schema_id": "ak.schema.handle_claim_revocation.v1",
+      "file": "schemas/handle-claim.schema.json",
+      "fragment": "#/$defs/handle_claim_revocation",
+      "status": "active",
+      "description": "Signed issuer-or-holder revocation of one exact Handle Claim digest."
     },
     {
       "schema_id": "ak.schema.handle_claim.v1",

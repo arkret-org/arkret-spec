@@ -24,8 +24,11 @@
     }
   ],
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    "account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
+    },
+    "consent_peer": {
+      "$ref": "./event-payload.schema.json#/$defs/consent_peer"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -52,8 +55,7 @@
       "type": "object",
       "required": [
         "cell_id",
-        "holder_principal_id",
-        "peer_principal_id",
+        "peer",
         "consent_scope",
         "state",
         "updated_at",
@@ -67,11 +69,8 @@
           "pattern": "^ak:cell:ak\\.component\\.consent\\.grant\\.v1:ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Consent cell id (ak:cell:ak.component.consent.grant.v1:<consent_id>)."
         },
-        "holder_principal_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "peer_principal_id": {
-          "$ref": "#/$defs/did_core_id"
+        "peer": {
+          "$ref": "#/$defs/consent_peer"
         },
         "consent_scope": {
           "$ref": "#/$defs/consent_scope"
@@ -199,13 +198,14 @@
     },
     "consent_request_request_body": {
       "type": "object",
-      "description": "Body for opaque contact/consent request submission. The peer principal is the authenticated actor and is never caller-supplied. Holder existence is deliberately not a precondition visible to the caller.",
+      "description": "Body for opaque contact/consent request submission. The peer is the exact authenticated ActorId and is never caller-supplied. Holder existence is deliberately not a precondition visible to the caller.",
       "required": [
-        "holder_principal_id"
+        "holder_account_id"
       ],
       "properties": {
-        "holder_principal_id": {
-          "$ref": "#/$defs/did_core_id"
+        "holder_account_id": {
+          "$ref": "#/$defs/account_id",
+          "description": "Exact target AccountId. The same principal hosted by another Station is a different holder and MUST NOT hit this request or its rate-limit/cache key."
         },
         "consent_scope": {
           "$ref": "#/$defs/consent_scope",

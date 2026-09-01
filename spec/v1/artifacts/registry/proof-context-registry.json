@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.1",
+  "version": "2026-09-01.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-01T10:30:00+08:00",
+  "generated_at": "2026-09-01T12:16:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -27,7 +27,7 @@
         "payload_digest",
         "account_authority_id",
         "account_subject",
-        "principal_id",
+        "account_id",
         "verification_method",
         "created_at"
       ],
@@ -375,13 +375,33 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof"
     },
     {
+      "context": "ak.directory_source_ref_access_proof.v1",
+      "object_family": "directory_source_ref_access",
+      "binding_fields": [
+        "payload_digest",
+        "source_id",
+        "directory_id",
+        "realm_id",
+        "discovery_event_id",
+        "source_refs",
+        "as_of",
+        "expires_at",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#85-验签与接受规则",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectorySourceRefAccess"
+    },
+    {
       "context": "ak.directory_list_handles_for_subject_request_proof.v1",
       "object_family": "directory_list_handles_for_subject_request",
       "binding_fields": [
         "payload_digest",
         "issuer",
         "operation_id",
-        "subject",
+        "account_id",
         "verification_method",
         "created_at",
         "audience"
@@ -484,16 +504,46 @@
       "context": "ak.handle_claim_proof.v1",
       "object_family": "handle_claim",
       "binding_fields": [
-        "payload_digest",
-        "handle",
-        "subject_id",
+        "kind",
         "verification_method",
+        "payload_digest",
         "created_at",
-        "domain?",
-        "audience?"
+        "domain",
+        "audience",
+        "proof_purpose"
       ],
       "defined_in": "zh/identity/identity-handles.md",
-      "schema_ref": "schemas/handle-claim.schema.json"
+      "schema_ref": "schemas/handle-claim.schema.json#/$defs/handle_claim_core"
+    },
+    {
+      "context": "ak.handle_claim_status.v1",
+      "object_family": "handle_claim_status",
+      "binding_fields": [
+        "kind",
+        "verification_method",
+        "payload_digest",
+        "created_at",
+        "domain",
+        "audience",
+        "proof_purpose"
+      ],
+      "defined_in": "zh/identity/identity-handles.md",
+      "schema_ref": "schemas/handle-claim.schema.json#/$defs/handle_claim_status_view"
+    },
+    {
+      "context": "ak.handle_claim_revocation.v1",
+      "object_family": "handle_claim_revocation",
+      "binding_fields": [
+        "kind",
+        "verification_method",
+        "payload_digest",
+        "created_at",
+        "domain",
+        "audience",
+        "proof_purpose"
+      ],
+      "defined_in": "zh/identity/identity-handles.md",
+      "schema_ref": "schemas/handle-claim.schema.json#/$defs/handle_claim_revocation"
     },
     {
       "context": "ak.identity_creation_control_proof.v1",
@@ -687,6 +737,31 @@
       "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body"
     },
     {
+      "context": "ak.mimi_reporter_authority_proof.v1",
+      "object_family": "mimi_reporter_authority",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "reporter_id",
+        "source_provider_id",
+        "mimi_room_uri",
+        "realm_id",
+        "strand_id",
+        "target_ref",
+        "report_event",
+        "membership_event_id",
+        "room_binding_event_id",
+        "expires_at",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md#11-abuse-report-and-proxy-download",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_reporter_authority"
+    },
+    {
       "context": "ak.organization_registration_control_proof.v1",
       "object_family": "organization_registration_control_proof",
       "binding_fields": [
@@ -758,8 +833,7 @@
       "object_family": "principal_resolution_projection_attestation",
       "binding_fields": [
         "payload_digest",
-        "principal_id",
-        "station_id",
+        "account_id",
         "resolution_projection",
         "method_history_evidence_digest",
         "issued_at",
@@ -1361,8 +1435,32 @@
       "object_family": "contact_no_outgoing_slot",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
-        "contact_pair",
-        "slot"
+        "sorted_pair_member_ids",
+        "request_slot_owner",
+        "contact_round_id",
+        "slot_predecessor",
+        "cas_sequence",
+        "cas_frontier",
+        "observed_at",
+        "outgoing_request_state"
+      ]
+    },
+    {
+      "domain": "ak.current_signer_evidence_response.v1",
+      "object_family": "current_signer_evidence_response",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "request_id",
+        "realm_id",
+        "operation_id",
+        "request_digest",
+        "recipient_account_id",
+        "challenge",
+        "verifier_id",
+        "issuer_id",
+        "issued_at",
+        "expires_at",
+        "evidence"
       ]
     },
     {
@@ -1589,7 +1687,7 @@
         "domain",
         "claim_request_id",
         "keypackage_ref",
-        "recipient_principal_id",
+        "recipient_account_id",
         "recipient_device_id",
         "recipient_agent_id",
         "recipient_agent_verification_method",

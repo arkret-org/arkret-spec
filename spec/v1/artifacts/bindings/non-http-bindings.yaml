@@ -218,6 +218,8 @@ grpc:
       Submit: ak.peer.invites.command.submit.v1
     PeerContacts:
       Submit: ak.peer.contacts.command.submit.v1
+    PeerCurrentSignerEvidence:
+      Resolve: ak.peer.current_signer_evidence.read.resolve.v1
     PeerKeys:
       KeyPackagesClaim: ak.peer.keys.keypackages.command.claim.v1
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.read.claim.v1
@@ -274,6 +276,8 @@ grpc:
       Resolve: ak.self.actor_profile.read.resolve.v1
     SelfAgentSignerEvidence:
       Resolve: ak.self.agent_signer_evidence.read.resolve.v1
+    SelfCurrentSignerEvidence:
+      Resolve: ak.self.current_signer_evidence.read.resolve.v1
     SelfMedia:
       IceConfig: ak.self.media.read.ice_config.v1
     OpenMimi:
@@ -395,6 +399,7 @@ mq:
     peer.mls.query.group_state_material: ak.peer.mls.read.group_state_material.v1
     peer.invites.command.submit: ak.peer.invites.command.submit.v1
     peer.contacts.command.submit: ak.peer.contacts.command.submit.v1
+    peer.current_signer_evidence.query.resolve: ak.peer.current_signer_evidence.read.resolve.v1
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim.v1
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.read.claim.v1
     peer.service_resolution.command.publish: ak.peer.service_resolution.command.publish.v1
@@ -430,6 +435,7 @@ mq:
     self.contact.query.list: ak.self.contact.read.list.v1
     self.contact.command.tombstone: ak.self.contact.command.tombstone.v1
     self.contact.command.scope_update: ak.self.contact.command.scope_update.v1
+    self.current_signer_evidence.query.resolve: ak.self.current_signer_evidence.read.resolve.v1
     self.invite_receive_policy.resource.get: ak.self.invite_receive_policy.resource.get.v1
     self.invite_receive_policy.resource.replace: ak.self.invite_receive_policy.resource.replace.v1
     self.direct_conversation.query.resolve: ak.self.direct_conversation.read.resolve.v1

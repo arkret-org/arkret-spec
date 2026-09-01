@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/security-transaction.schema.json",
   "title": "Arkret Security Transaction",
-  "description": "Closed Station-local durable RecoveryTransaction and SecurityRotationTransaction resource. The prepared plan is the sole canonical intent source; accepted outputs form a durable ordered prefix. principal_id and coordinator_id identify AccountId {principal_id, station_id: coordinator_id}; every prepared Event and backup ActorId must equal this account actor, including its Station identity.",
+  "description": "Closed Station-local durable RecoveryTransaction and SecurityRotationTransaction resource. The prepared plan is the sole canonical intent source; accepted outputs form a durable ordered prefix. account_id is the exact account owner; coordinator_id independently names the executing Station service role and MUST equal account_id.station_id. Every prepared Event and backup ActorId must equal this account actor.",
   "type": "object",
   "required": [
     "transaction_id",
     "kind",
-    "principal_id",
+    "account_id",
     "coordinator_id",
     "expires_at",
     "created_at",
@@ -27,8 +27,8 @@
         "security_rotation"
       ]
     },
-    "principal_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    "account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
     },
     "coordinator_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -564,7 +564,7 @@
       "required": [
         "transaction_id",
         "kind",
-        "principal_id",
+        "account_id",
         "expires_at",
         "prepared_plan"
       ],
@@ -576,8 +576,8 @@
           "type": "string",
           "const": "recovery"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -731,7 +731,7 @@
       "required": [
         "transaction_id",
         "kind",
-        "principal_id",
+        "account_id",
         "expires_at",
         "prepared_plan"
       ],
@@ -743,8 +743,8 @@
           "type": "string",
           "const": "security_rotation"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

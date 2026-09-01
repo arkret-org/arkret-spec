@@ -175,8 +175,10 @@ def bundle_closures(catalog: dict[str, Any]) -> list[dict[str, str]]:
 
 def payload(kind: str, rows: list[dict[str, str]]) -> dict[str, Any]:
     id_key = "operation_id" if kind == "operation_contract" else "operation_bundle_id"
+    catalog = load(CONTRACT)
     return {
         "version": "2026-08-27.1",
+        "generated_at": catalog["generated_at"],
         "source_of_truth": False,
         "generated_from": [
             "registry/contract-registry.json",

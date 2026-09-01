@@ -696,7 +696,7 @@
         },
         "handle_claims": {
           "type": "array",
-          "description": "Optional inline signed handle claim evidence. MUST be omitted unless subject_id is disclosed, and every included claim MUST have claim.subject equal to subject_id. Services may omit this for privacy, size, or freshness; clients can backfill by subject via ak.find.directory.read.list_handles_for_subject.v1.",
+          "description": "Optional inline signed handle claim status evidence. MUST be omitted unless subject_id is disclosed, and every included status view MUST have claim.subject_account_id.principal_id equal to subject_id. Services may omit this for privacy, size, or freshness. A client may backfill through ak.find.directory.read.list_handles_for_subject.v1 only when it separately knows the exact AccountId; it MUST NOT infer station_id from subject_id.",
           "items": {
             "$ref": "./handle-claim.schema.json"
           }

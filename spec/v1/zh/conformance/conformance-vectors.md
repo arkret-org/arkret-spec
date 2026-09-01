@@ -4536,12 +4536,12 @@ Expected:
 Steps:
 
 1. Agent runtime 调用 `ak.gate.account.command.issue_session_grant.v1`，`proof.proof_kind="agent_key_proof"`，`agent_scope_request` 覆盖某 participation-aware scope。
-2. 服务端签发 session，响应 `scope_details.participation[]`。
+2. 服务端签发 session，签名 JWT claims 中含 `scope_details.participation[]`；HTTP outcome 不复制该字段。
 3. runtime 收到 `reply=false` 的 scope 后仍尝试 `ak.message.create`(模拟 runtime bug)。
 
 Expected:
 
-- 第 2 步 `scope_details.participation[]` 每个条目 MUST 与 `agent-operations.schema.json#/$defs/agent_participation_entry` 的 `{target_scope,selection,version,next_replace_input:{expected_version}}` 同构，`next_replace_input.expected_version=version`，不携带 ceiling/effective。
+- 第 2 步签名 claims 的 `scope_details.participation[]` 每个条目 MUST 与 `agent-operations.schema.json#/$defs/agent_participation_entry` 的 `{target_scope,selection,version,next_replace_input:{expected_version}}` 同构，`next_replace_input.expected_version=version`，不携带 ceiling/effective。runtime 可把该 claim 当调度提示；授权只由 resource server 验签 JWT 或 issuer introspection 得出。
 - runtime 用该数组避免无效请求，但它不是安全边界：第 3 步仍由 target 读取 current policy 与 selection，并独立校验普通 capability；第三方 mention 在 dispatcher gate 拦截，`act_on_behalf` 还必须通过 receiver 的 `executed_by`/`authorization_ref` 校验。
 
 ### 11.16 Vector: Participation Third-Party Mention Gate (Non-Retroactive)
@@ -5090,7 +5090,7 @@ Cases / Expected：
 
 Steps：
 
-- **Case A — 正路径**：恢复设备在 recovery session 内提交符合 `ak.schema.key_backup_unlock_proof.v1` 的 proof（绑定 `recovery_session_id`、`principal_id`、`requesting_device_id`、`backup_id`、`backup_kind`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest`、`issued_at`），服务端用当前 session state 重建 transcript 比对 `proof_digest` 后返回 ciphertext；客户端按机器 fixture `key-backup-hardening-fixture.json` 的 `crypto_transcript` 重算 AEAD open（`aead` / `key_b64u` / `nonce_b64u` / `aad_canonical_json` / `ciphertext_b64u` / `tag_b64u`），校验得到的明文符合 `ak.schema.key_backup_plaintext.v1`，且 `backup_id` / `backup_kind` / `series_id` / `series_seq` byte-for-byte 等于外层 envelope。HPKE recipient 的端到端 transcript 由 HPKE suite 向量覆盖；本向量的机器正样本使用对称 AEAD transcript 固化 unlock proof 与 envelope / plaintext 绑定。
+- **Case A — 正路径**：恢复设备在 recovery session 内提交符合 `ak.schema.key_backup_unlock_proof.v1` 的 proof（绑定 `recovery_session_id`、完整 `account_id`、`requesting_device_id`、`backup_id`、`backup_kind`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest`、`issued_at`），服务端用当前 session state 重建 transcript 并逐字比较完整 AccountId 后返回 ciphertext；method adapter 只比较 verification method 对 `account_id.principal_id` 的投影。客户端按机器 fixture `key-backup-hardening-fixture.json` 的 `crypto_transcript` 重算 AEAD open（`aead` / `key_b64u` / `nonce_b64u` / `aad_canonical_json` / `ciphertext_b64u` / `tag_b64u`），校验得到的明文符合 `ak.schema.key_backup_plaintext.v1`，且 `backup_id` / `backup_kind` / `series_id` / `series_seq` byte-for-byte 等于外层 envelope。HPKE recipient 的端到端 transcript 由 HPKE suite 向量覆盖；本向量的机器正样本使用对称 AEAD transcript 固化 unlock proof 与 envelope / plaintext 绑定。
 - **Case B — 绑定不符 / 凭证降级**：(a) proof 的 `ciphertext_digest` 指向另一 envelope，或 `requesting_device_id` 与本次 session 的新设备 key 不一致，或 `proof_digest` 与服务端重建的 transcript 不符；(b) 调用方仅携带 bearer token、无 fresh device proof 请求同一端点。
 
 Expected：

@@ -161,10 +161,26 @@ source 和 recipient 的设备授权使用 **current** 状态，`seal_ref` 只�
 source 每次准入与出站 fresh 检查 MUST 同时满足原 accepted 设备授权的 `now >= not_before`，
 以及非空 `expires_at` 的 `now < expires_at`；缓存 `active` 标记和 Signal TTL 不延长该有效期。
 跨账号 recipient 使用 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md)
-既有关系门控 `keys/query`、origin Station 已签 `device_projection_attestation` 及用户侧验证；
+的 origin Station 已签 `device_projection_attestation` 及用户侧验证；cold foreign sender 必须通过
+`ak.self.current_signer_evidence.read.resolve.v1` 让本地 Station 代查询 origin 的
+`ak.peer.current_signer_evidence.read.resolve.v1`，不得把本地用户 SessionGrant 转发给远端、
+直接请求私有 device gate、用 KeyPackage claim 代替 current projection，或先向缓存预注入材料。
+请求 MUST 绑定完整 Signal digest、每次唯一 challenge、exact recipient Account、Realm 与 closed
+sender selector；origin 签名的 outer response MUST 逐字绑定 authenticated proxy Station 和这些
+client context，代理只能原样转交。ordinary 内层仍复用既有 device attestation，不披露 PCR；Agent
+内层必须是 `current_admission` 的完整 authenticated signer-resolution root，不要求 prior Agent Event。
 缓存 MUST 绑定完整 AccountId/device/authorization/generation，并遵守 attestation expiry 和已观察
 到的 generation、撤销或冲突失效。没有当前可信材料时可以在 TTL 内有界等待已有取证流程，
-但 MUST NOT 展示、更新 high-water 或执行业务；过期即丢弃，不新增证据传输面。
+但 MUST NOT 展示、更新 high-water 或执行业务；过期即丢弃。完整 request-bound response 不得跨
+challenge、recipient、Signal digest 或 verifier 缓存复用；仅其递归已签 basis 可按自身窗口缓存。
+
+foreign evidence authority 必须在签发前同时验证 authenticated requester Station、requester exact
+recipient 与 target 在指定非 minimal-metadata Realm 的 current effective joined membership，以及
+target Actor 的 routing Station 等于自身。ordinary fresh gate 同时检查 exact generation、active
+authorization/time/status；Agent fresh gate严格 fold 全部 current authorize dots，并把 controller
+account active 与 controller exact Realm membership generation 作为两个独立 AND gate。unknown、
+wrong Station、无权、不可见、撤销、冲突、过期或 membership ending 均只产生同形空 evidence，
+不得借状态码、failure reason、长度或明显时序差异形成枚举 oracle。
 
 recipient MUST 要求 directory 的 exact device key 与 current authorization Event 同时匹配
 active leaf 的 accepted transition binding。已知 revoked、expired、revocation-pending、fenced、
@@ -193,6 +209,9 @@ conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖�
    可转交，recipient MUST 验签拒绝，即使密文能解开；proof digest/AAD 或 sender routing 不匹配则在 destination 丢弃；
 7. source 入队后发生撤销、退群、action 收紧或过期：出站 fresh admission 拒绝，不发送旧 item；
 8. Agent current authority、active unique leaf 与 method/key/authorization binding 全部匹配时可用 Agent sender 分支；ordinary 省略 device、Agent 携 device/controller device、paused/deactivated、key revoke/supersede/expire/conflict、controller membership generation ended、旧 leaf 或 pairwise 冒入均拒绝。
+9. cold foreign ordinary 与 Agent sender 均从空 cache 经真实 self→peer query 成功；预注入同一对象、
+   重放另一 challenge/Signal/recipient/verifier 的 response、同 core 不同 Station、旧 generation、
+   expired attestation、已知 revoke 或 membership ending 均拒绝，且未认证 plaintext sequence 不推进 high-water。
 
 Service Describe 的服务级 operation 广告仅表示 transport surface 存在，不表示每个 scope
 可用。实现只有在同时提供 scope-aware profile/limit descriptor，并能在目标 scope 验证

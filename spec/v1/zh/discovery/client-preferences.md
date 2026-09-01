@@ -139,7 +139,6 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 ```json
 {
-  "holder_id": "ak:did_core:webvh:z6mkfixtureHolder",
   "version": 1,
   "entries": [
     {
@@ -181,7 +180,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 规则：
 
-- `holder_id` MUST 与 Event `actor_id` 及 holder-private account-data 的 `holder_id` 逐字一致。`version` 是该 principal blocklist 的单调 CAS revision；第一版为 `1`，后续写入必须精确为当前值 `+ 1`，跳号、回滚或并发旧版本均 `cas_conflict`。`ak.account.blocklist` 与 `ak.account_data.set{key="ak.account.blocklist"}` 共享同一个 revision counter，不能形成两条独立 winner 链。
+- blocklist holder 只取自已验 Event envelope 的完整 account `actor_id`，payload 不复制 `holder_id`。`version` 是该 exact AccountId blocklist 的单调 CAS revision；第一版为 `1`，后续写入必须精确为当前值 `+ 1`，跳号、回滚或并发旧版本均 `cas_conflict`。`ak.account.blocklist` 与同一 account author 的 `ak.account_data.set{key="ak.account.blocklist"}` 共享同一个 revision counter，不能形成两条独立 winner 链；同 principal core 异 Station 的账号绝不共享 counter 或规则。
 - 每个 payload 是**全量替换**，不是 entry patch：加入屏蔽对象是在下一 revision 中加入新 `entry_id`；修改同一规则时保留 `entry_id`；移除屏蔽对象是在下一 revision 中省略对应 entry；`entries=[]` 清空全部规则。服务端或客户端不得把“移除”解释为删除共享消息、撤销 capability 或通知被屏蔽方。`expires_at` 到期只令该 entry 在 holder projection 中失效；同步写者 SHOULD 在下一 revision 中清除它，receiver 不得用本地计时器改写 durable payload。
 - `target` 是闭合 discriminated union：`actor | service | organization` 必须且只能携带 `did`；`applet` 必须且只能携带 canonical `ak:applet:` `object_ref`；`handle | domain | keyword` 必须且只能携带 `value`；`device` 携带 canonical `ak:device:` `object_ref`，或在无法取得 device id 时携带 verification-method DID URL `value`。仅有裸 display name 不得成为 actor/device/service/organization target；device 与 applet 的 typed-id 前缀必须由 schema 校验，不能把其它 `object_ref` 塞入对应分支。
 - 同一 revision 内最多 4096 个 entry；规范化后的 `(target, applies_to)` 不得被多个 entry 重复覆盖；需要不同 mode 时必须使用互不重叠的 `applies_to`。`applies_to` 至少一个值并决定规则作用面，其中 `contacts` 覆盖 contact request/relationship surface，`applets` 覆盖 applet-mediated request；不得用 `dm` 或 `notifications` 猜测替代这两个独立 surface。

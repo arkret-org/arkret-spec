@@ -44,7 +44,10 @@
             "value": {
               "schema": "ak.schema.recovery_policy.v1",
               "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000003",
-              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              },
               "version": 1,
               "supersedes_id": null,
               "trust_domain": "ak:trust_domain:fixture.example",
@@ -156,7 +159,10 @@
         "value": {
           "schema": "ak.schema.recovery_policy.v1",
           "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
           "version": 1,
           "supersedes_id": null,
           "trust_domain": "ak:trust_domain:fixture.example",
@@ -182,7 +188,10 @@
         "value": {
           "schema": "ak.schema.recovery_policy.v1",
           "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
           "version": 1,
           "supersedes_id": null,
           "trust_domain": "ak:trust_domain:fixture.example",
@@ -209,7 +218,10 @@
         "value": {
           "schema": "ak.schema.recovery_policy.v1",
           "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
           "version": 1,
           "supersedes_id": null,
           "trust_domain": "ak:trust_domain:fixture.example",
@@ -245,7 +257,10 @@
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000007",
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
         "version": 1,
         "supersedes_id": null,
         "trust_domain": "ak:trust_domain:fixture.example",

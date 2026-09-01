@@ -359,19 +359,16 @@
       "type": "object",
       "description": "Station assertion that resolution_projection is the current accepted value of this account's singleton resolution cell. It carries no PCR realm id, Event, receipt or Seal: the public consumer verifies the account pair, the projection and the bounded method history, not the account's internal control stream.",
       "required": [
-        "principal_id",
-        "station_id",
+        "account_id",
         "resolution_projection",
         "method_history_evidence_digest",
         "issued_at",
         "expires_at"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "station_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete account identity covered by the Station attestation. Both principal and Station components participate in equality."
         },
         "resolution_projection": {
           "$ref": "#/$defs/resolution_projection"
@@ -410,21 +407,17 @@
     },
     "public_principal_resolution": {
       "type": "object",
-      "description": "Complete public resolution response for one account selected by (principal_id, station_id). It is the only unauthenticated resolution surface and it MUST NOT carry principal_control_realm_id, PCR genesis Event, genesis receipt, resolution Events or accepted Seal; those are account-internal audit material served only by the authorized audit operation. A consumer verifies the service route for station_id, then the attestation proof, then project(did)=principal_id and the bounded method history; a set of bare unproven fields is not a valid response.",
+      "description": "Complete public resolution response for one account selected by account_id. It is the only unauthenticated resolution surface and it MUST NOT carry principal_control_realm_id, PCR genesis Event, genesis receipt, resolution Events or accepted Seal; those are account-internal audit material served only by the authorized audit operation. A consumer verifies the service route for account_id.station_id, then the attestation proof, then project(did)=account_id.principal_id and the bounded method history; a set of bare unproven fields is not a valid response.",
       "required": [
-        "principal_id",
-        "station_id",
+        "account_id",
         "resolution_projection",
         "method_history_evidence",
         "projection_attestation"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "station_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Station for this account authority. Together with principal_id it is the complete public selector and the complete external identity; no PCR-derived value participates in principal equality."
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete public selector and external account identity. No PCR-derived value participates in account equality."
         },
         "resolution_projection": {
           "$ref": "#/$defs/resolution_projection",
@@ -471,10 +464,9 @@
         "ak.identity.resolution.update",
         "ak.realm.create"
       ],
-      "description": "Account-internal resolution audit and recovery evidence for one account selected by (principal_id, station_id). It is served only by the authorized audit operation. PCR genesis, realm and Seal material support account-local audit and recovery; they MUST NOT be compared as external identity, MUST NOT be required to validate an ordinary federated Event carrying a Station admission proof, and MUST NOT be republished on any unauthenticated surface.",
+      "description": "Account-internal resolution audit and recovery evidence for one account selected by account_id. It is served only by the authorized audit operation. PCR genesis, realm and Seal material support account-local audit and recovery; they MUST NOT be compared as external identity, MUST NOT be required to validate an ordinary federated Event carrying a Station admission proof, and MUST NOT be republished on any unauthenticated surface.",
       "required": [
-        "principal_id",
-        "station_id",
+        "account_id",
         "principal_control_realm_id",
         "principal_genesis_receipt",
         "principal_genesis_event",
@@ -484,12 +476,9 @@
         "accepted_seal"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "station_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Station for this account authority. Together with principal_id it is the complete public selector; the remaining PCR material is recovery/audit evidence and does not change principal equality."
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete account selector. The remaining PCR material is recovery/audit evidence and does not change account equality."
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",

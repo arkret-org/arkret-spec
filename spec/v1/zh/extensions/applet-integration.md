@@ -447,7 +447,7 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.edge.applet.read.ping.v1` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did_core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
 | `ak.edge.applet.read.describe.v1` | edge（节点→Applet） | 无 | 无 | SDK `ServiceDescribe` | public mode 只返回 canonical discovery capabilities；不得私定义 Applet describe DTO。 |
 | `ak.edge.applet.command.transaction.v1` | edge（节点→Applet） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | `events: EventEnvelope[]`; `signals: SignalEnvelope[]`（两者**至少出现一个**） | `status: enum(accepted,partial,rejected)`; `rejected: object[]?`; `retry_after_ms: int?` | 字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、event signature、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
-| `ak.edge.applet.actor.read.resolve.v1` | edge（节点→Applet） | `path.actor_id: did_core_id` | 无 | `exists: boolean`; `actor_id: did_core_id?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
+| `ak.edge.applet.actor.read.resolve.v1` | edge（节点→Applet） | `path.actor_id: percent-encoded RFC 8785 JCS(ActorId)` | 无 | `exists: boolean`; `actor_id: ActorId?`; `display_name: string?`; `external_ref: object?` | path 解码后必须是 closed ActorId，按完整 Actor 命中 Applet actor namespace；不得只比较 principal。 |
 | `ak.edge.applet.realm.read.resolve.v1` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.read.protocol_metadata.v1` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
 | `ak.edge.applet.third_party_users.read.list.v1` | edge（节点→Applet） | `query.protocol: string`; `query.instance_id: string`; `query.external_id: string` | 无 | `actor_id: did_core_id?`; `exists: boolean`; `external_ref: object?` | 查询必须逐字匹配 Ghost immutable external tuple。 |
@@ -632,7 +632,7 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 ### 7.4 Query Actor
 
 ```text
-GET /_arkret/edge/applet/actors/{actor_id}
+GET /_arkret/edge/applet/actors/{percent_encoded_jcs_actor_id}
 ```
 
 用于 Arkret 节点发现 namespace 内的未知 Ghost Actor 是否存在。
@@ -642,7 +642,13 @@ GET /_arkret/edge/applet/actors/{actor_id}
 ```json
 {
   "exists": true,
-  "actor_id": "ak:did_core:webvh:z6MkGhostU123",
+  "actor_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:webvh:z6MkGhostU123",
+      "station_id": "ak:did_core:webvh:z6MkStation123"
+    }
+  },
   "display_name": "Alice on Slack",
   "external_ref": {
     "protocol": "slack",
@@ -652,7 +658,9 @@ GET /_arkret/edge/applet/actors/{actor_id}
 }
 ```
 
-若不存在，返回 `404 not_found`。
+path 参数使用 percent-encoded RFC 8785 JCS(`ActorId`)；解码、closed-schema 校验或 canonical
+重编码不一致时返回 `param_invalid`。若完整 ActorId 不存在，返回 `404 not_found`。同 principal
+但 Station 或 Actor kind 不同不是同一查询目标。
 
 ### 7.5 Query Realm
 

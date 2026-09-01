@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.2",
+  "version": "2026-09-01.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-01T06:30:00+08:00",
+  "generated_at": "2026-09-01T12:16:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -100,7 +100,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:af4e6aa48890eb07b53f5f7f3375a5ea8632f0bed78bd8c5cb560f53c4287e82",
+      "section_digest": "sha256:1f2614e95b788a70c2b87d945bcd7991ddd237307f66247e8c8d44a42965a28f",
       "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -178,7 +178,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:b40d68a2752700b6693a550f94b2c89c0a408f6fb555592df71a8614d5690d3d",
+      "section_digest": "sha256:ba57ea8fa2c5381e46e6ee42ddbff8aaac5e4f997186ac8b231195341c91f411",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Station admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal; every MLS epoch binds the independently re-derived security frontier for its accepted key-access state; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -199,7 +199,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
-      "section_digest": "sha256:601588d5ace4e14cec26e9dbf1b0767300a2a305b2dcdcecfe9227b730a9b37d",
+      "section_digest": "sha256:e6bb6767cdb2995a83677c0aeb2a6e27978430d46b24e8d3ed205c07c00638b0",
       "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -383,7 +383,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/client-sync.md#10-to-device-delivery",
-      "section_digest": "sha256:f7b8ee44e81596076a904f3a546415c9b5f37b58b8e3709c798deb091e79769f",
+      "section_digest": "sha256:0a5e6d9eca110f4ab0c966c768ea919642ae6abcd4ced1a758a76aced0a60c4e",
       "requirement": "To-device delivery executes each durable handler effect exactly once: redelivery is deduplicated by the closed sender endpoint plus device_message_id and queue removal happens only on explicit ack.",
       "testability_grade": "vector",
       "evidence_refs": [

@@ -884,8 +884,13 @@
       "type": "object",
       "required": [
         "strand_id",
+        "mimi_room_uri",
+        "realm_id",
         "target_ref",
         "reporter_id",
+        "source_provider_id",
+        "reporter_authority",
+        "report_event",
         "abuse_reason_code"
       ],
       "properties": {
@@ -904,6 +909,17 @@
         "reporter_id": {
           "$ref": "#/$defs/did_core_id"
         },
+        "source_provider_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Exact source provider service id. It MUST equal the authenticated RFC 9421 Provider-ID/source service; a body-only assertion grants no authority."
+        },
+        "reporter_authority": {
+          "$ref": "#/$defs/mimi_reporter_authority"
+        },
+        "report_event": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+          "description": "Exact caller-authored and caller-signed ak.self.moderation.report Event admitted as the durable effect. Its actor, Realm, target, reason, evidence and MIMI provenance MUST match this request and reporter_authority byte-for-byte."
+        },
         "abuse_reason_code": {
           "$ref": "#/$defs/non_empty_string"
         },
@@ -916,6 +932,35 @@
         "description": {
           "$ref": "string-profiles.schema.json#/$defs/short_text",
           "maxLength": 4096
+        }
+      },
+      "additionalProperties": false
+    },
+    "mimi_reporter_authority": {
+      "type": "object",
+      "description": "Holder-signed, short-lived binding from the external reporter in this exact provider/room/report request to one complete current Arkret ActorId. The proof transcript covers the complete report body with only reporter_authority.proof omitted, including reporter_id, source_provider_id, mimi_room_uri, realm_id, strand_id, target_ref, action/reason, membership_event_id, room_binding_event_id and expires_at. The verifier independently resolves the proof key from the exact Actor current device or registered authorized proxy state and verifies both referenced Events remain the unique current accepted participation/binding; carrier fields never self-authorize.",
+      "required": [
+        "actor_id",
+        "membership_event_id",
+        "room_binding_event_id",
+        "expires_at",
+        "proof"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "membership_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "room_binding_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/signature"
         }
       },
       "additionalProperties": false

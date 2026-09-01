@@ -51,7 +51,7 @@ invite/locator 的权威首跳仍是必填 current `service_resolution`；它不
 
 ## 2. Introduction Evidence
 
-每个私有 invite delivery request **MUST** 携带 `introduction_evidence`，说明邀请方为什么可以尝试联系被邀请方。schema 见 [`invite-delivery-request.schema.json`](../../artifacts/schemas/invite-delivery-request.schema.json)。
+每个私有 invite delivery request **MUST** 携带 `introduction_evidence`，说明邀请方为什么可以尝试联系被邀请方。schema 见 [`invite-delivery-request.schema.json`](../../artifacts/schemas/invite-delivery-request.schema.json)。`same_station` 不是可发送的 evidence 分支；它只能由接收端从已验身份派生。
 
 | `kind` | 信任强度 | 说明 |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ invite/locator 的权威首跳仍是必填 current `service_resolution`；它不
 | `consent_grant` | 高 | 邀请者出示被邀请方主动签发给邀请者的 `ak.consent.grant`(scope `invite` 或 `any`)的 `consent_grant_ref`。信任来源与 `locator_ref` 同构:都是被邀请方主动交付给邀请者的授权材料。已是联系人(互授 invite consent)拉群走此 kind,**无需 locator URL**。 |
 | `shared_realm` | 高 | 邀请者与被邀请者已经同在某个 Realm；接收方按本地 policy 判断该 Realm 是否可信。 |
 | `handle_claim` | 发现信任 | 邀请者通过 verified handle claim 找到 exact `account_id`。它证明 holder 或受信 issuer 将某 handle 披露为可解析入口，但**不**证明 holder 已同意该邀请者联系自己。默认 SHOULD quarantine 或 drop；只有 subject policy 与部署约束都允许时才可 notify。 |
-| `same_station` | 中 / 部署相关 | 双方由同一个 Station 承载；适合组织或个人同域场景。 |
+| `same_station` | 中 / 部署相关 | receiver-only 分类：已验 invite Event 的 `actor_id` 必须是 account Actor，且其 `account_id.station_id` 与 `invite_address.account_id.station_id` 逐字相等。sender 不携带此 evidence。 |
 | `explicit_address` | 弱 | 邀请者只提供 `account_id + service_resolution`；等价于“我知道或猜测这个地址及其可验证首跳材料”。默认 SHOULD quarantine 或 drop。 |
 
 `explicit_address` 是合法但最低信任 evidence。接收方 **MUST NOT** 因为请求格式正确就通知用户；必须先应用 subject 私有 `invite_receive_policy`。
@@ -68,7 +68,7 @@ invite/locator 的权威首跳仍是必填 current `service_resolution`；它不
 
 `consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.grant` 在被邀请方(`invite_address.account_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
-`InviteAddress` 唯一收件身份是 `account_id`。`handle_claim` evidence 的接收方验证：`handle_claim.handle == evidence.handle`，`handle_claim.subject_account_id` MUST 精确等于 `invite_address.account_id`，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，且 issuer / Directory / visibility / audience 满足该账号的 policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
+`InviteAddress` 唯一收件身份是 `account_id`。`handle_claim` evidence 的接收方验证：`handle_claim.claim.handle == evidence.handle`，`handle_claim.claim.subject_account_id` MUST 精确等于 `invite_address.account_id`，`handle_claim.status=verified`，`as_of < fresh_until` 且当前时刻仍在该 signed freshness window 内，`claim.expires_at` 未过期，`claim.proofs[0..1]` 与顶层 `evidence` 均有效，`revocation` / `revocation_digest` 均为 null，且 `claim.issuer_id` / Directory / `claim.visibility` / `claim.audience` 满足该账号的 policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
 
 ## 3. 在线 Principal Locator
 
@@ -195,9 +195,9 @@ token 要求：
   "trusted_handle_issuer_ids": [],
   "trusted_directory_ids": [],
   "trusted_realm_ids": [],
-  "trusted_principal_ids": [],
-  "denied_principal_ids": [],
-  "denied_subject_ids": [],
+  "trusted_source_ids": [],
+  "denied_source_ids": [],
+  "denied_actor_ids": [],
   "disclosure": {
     "high_trust": "outcome",
     "discovery_trust": "opaque",
@@ -212,9 +212,9 @@ token 要求：
 - `holder_allowed_introduction_kinds` 是 allowlist；未列出的 evidence MUST NOT 触发用户通知。`consent_grant` 是受推荐的高信任 kind:把它加入 allowlist 即允许"已互授 invite consent 的联系人"直接邀请，而无需 locator URL。
 - `handle_claim_behavior` 取值为 `drop | quarantine | notify`；省略时 MUST 视为 `quarantine`。把 `handle_claim` 配为 `notify` 表示 holder 显式希望别人可通过已发布 handle 发起邀请通知；该选择仍受 §5.2 部署约束限制。实现 MUST NOT 把任何 connection identifier、未 verified handle、过期/revoked handle claim 或未授权 restricted handle 当成 `handle_claim` evidence。
 - `explicit_address_behavior` 取值为 `drop | quarantine | notify`；默认 SHOULD 是 `quarantine` 或 `drop`。把低信任档 evidence（`same_station` / `explicit_address`）配为 `notify` 是部署对该档的显式放宽，MUST 经部署有意配置，不得作为缺省。
-- `denied_handle_domains` 先于 allowlist 生效，命中时 MUST 按策略拒绝处理。`allowed_handle_domains` 若非空，`handle_claim.handle` 的 domain MUST 是列表中的 canonical IDNA A-label 精确域名；子域名不自动继承，必须显式列出。`trusted_handle_issuer_ids` / `trusted_directory_ids` 若非空，issuer 或 `resolved_by` MUST 命中对应 allowlist。
+- `denied_handle_domains` 先于 allowlist 生效，命中时 MUST 按策略拒绝处理。`allowed_handle_domains` 若非空，`handle_claim.claim.handle` 的 domain MUST 是列表中的 canonical IDNA A-label 精确域名；子域名不自动继承，必须显式列出。`trusted_handle_issuer_ids` / `trusted_directory_ids` 若非空，`handle_claim.claim.issuer_id` 或 `resolved_by` MUST 命中对应 allowlist。
 - `unknown_invites` 取值为 `drop | quarantine`；无 evidence 或不合规 evidence 不得默认 notify。
-- `denied_subject_ids` 是按 peer subject DID 的黑名单(对等 `denied_principal_ids` 的服务粒度)。inviter 命中时，delivery MUST `drop`，且 §5.1 披露 MUST 强制为 `opaque`，以免黑名单经回包侧信道泄露。
+- `denied_actor_ids` 是按 exact peer ActorId 的黑名单；inviter 命中时，delivery MUST `drop`，且 §5.1 披露 MUST 强制为 `opaque`，以免黑名单经回包侧信道泄露。同 principal core 异 Station 的 account Actor 不得互相命中。`trusted_source_ids` / `denied_source_ids` 是另一独立维度，只匹配已认证 transport source service DID，不代表 inviter，也不得替代 `denied_actor_ids`。
 - policy 是 exact AccountId 的私有 state，不得写入目标 Realm event log。`policy.account_id` MUST 等于认证 holder 的完整 AccountId；同 principal 在另一 Station 的 policy、consent、quarantine、设备与通知不得继承或合并。
 
 ### 5.1 分级披露(graded disclosure，normative)
@@ -234,7 +234,7 @@ token 要求：
 
 **quarantine 的 wire 落点固定为 `status="deferred"` 且不携带 `disclosed_outcome`**：`deferred` 与“正在重试投递”、“holder 侧尚未处理”共用同一语义，因而不构成对 quarantine 的可区分指示。该映射在所有信任档、所有 `disclosure` 取值下一致，不因 `high_trust=outcome` 而改变。
 
-设计意图:对**已建立信任的来源**(已互授 invite consent 的联系人、对方主动给的 locator、已同在 Realm)，邀请被接收方策略拒绝时能给邀请者明确反馈，避免"联系人加不进却不知为何"的 UX 黑洞；对**可发现但未建立关系的来源**(handle_claim)与**陌生人**(explicit_address)默认保持不可区分。`denied_subject_ids` 命中者无论 disclosure 设置一律 `opaque`。`disclosure` 整体省略时按默认 `high_trust=outcome / discovery_trust=opaque / low_trust=opaque`。
+设计意图:对**已建立信任的来源**(已互授 invite consent 的联系人、对方主动给的 locator、已同在 Realm)，邀请被接收方策略拒绝时能给邀请者明确反馈，避免"联系人加不进却不知为何"的 UX 黑洞；对**可发现但未建立关系的来源**(handle_claim)与**陌生人**(explicit_address)默认保持不可区分。`denied_actor_ids` 命中者无论 disclosure 设置一律 `opaque`。`disclosure` 整体省略时按默认 `high_trust=outcome / discovery_trust=opaque / low_trust=opaque`。
 
 ### 5.2 部署接收约束（normative）
 
@@ -252,9 +252,9 @@ effective_receive_policy =
 - 部署约束只能让 subject 更不容易被联系，MUST NOT 把 subject 从更隐私的设置强制放宽为可通知。若 subject 选择 `drop`，管理员不能通过约束把结果提升为 `quarantine` 或 `notify`。
 - `deployment_allowed_introduction_kinds` 与 `deployment_denied_introduction_kinds` 先于 subject allowlist 生效；任一约束拒绝的 evidence kind MUST 按 `drop` 或 indistinguishable policy denial 处理。
 - 行为强度排序为 `drop < quarantine < notify`。`handle_claim_max_behavior`、`explicit_address_max_behavior` 与 `unknown_invites_max_behavior` 是上限；effective behavior 取 subject 行为与上限中更严格者。
-- `disclosure_max` 是部署 / 管理员对 §5.1 分级披露粒度的上限，按 §2 引入信任分档给出 `{high_trust_max, discovery_trust_max, low_trust_max}`，取值同 `disclosure_level` 枚举（`opaque < outcome`，opaque 更保守）。字段或某档省略表示该档不设部署级披露上限。**effective disclosure 取 subject `invite_receive_policy.disclosure` 与 `disclosure_max` 中更保守（更接近 `opaque`）者**，使部署可以把 subject 自愿设为 `outcome` 的披露强制收紧为 `opaque`（反枚举 / 反侧信道），但 MUST NOT 把 subject 设为 `opaque` 的披露放宽为 `outcome`。该交集与上面的行为交集独立计算：先按行为上限定 drop / quarantine / notify，再按 `disclosure_max` 定 outcome 是否可回送。`denied_subject_ids` / `denied_principal_ids` 命中时仍无条件强制 `opaque`，不受 `disclosure_max` 影响。
-- `allowed_handle_domains`、`trusted_handle_issuer_ids`、`trusted_directory_ids`、`trusted_principal_ids`、`accepted_subject_did_methods` 是部署级 allowlist；字段省略表示该维度不设部署级上限，字段存在且为空数组表示不接受该维度的任何候选。非空时必须命中。未命中 MUST 视为策略拒绝，不得通过响应区分“存在但被策略拒绝”和“不存在”。
-- `denied_principal_ids` 命中时 MUST `drop` 且强制 `opaque`。
+- `disclosure_max` 是部署 / 管理员对 §5.1 分级披露粒度的上限，按 §2 引入信任分档给出 `{high_trust_max, discovery_trust_max, low_trust_max}`，取值同 `disclosure_level` 枚举（`opaque < outcome`，opaque 更保守）。字段或某档省略表示该档不设部署级披露上限。**effective disclosure 取 subject `invite_receive_policy.disclosure` 与 `disclosure_max` 中更保守（更接近 `opaque`）者**，使部署可以把 subject 自愿设为 `outcome` 的披露强制收紧为 `opaque`（反枚举 / 反侧信道），但 MUST NOT 把 subject 设为 `opaque` 的披露放宽为 `outcome`。该交集与上面的行为交集独立计算：先按行为上限定 drop / quarantine / notify，再按 `disclosure_max` 定 outcome 是否可回送。`denied_actor_ids` / `denied_source_ids` 命中时仍无条件强制 `opaque`，不受 `disclosure_max` 影响。
+- `allowed_handle_domains`、`trusted_handle_issuer_ids`、`trusted_directory_ids`、`trusted_source_ids`、`accepted_subject_did_methods` 是部署级 allowlist；字段省略表示该维度不设部署级上限，字段存在且为空数组表示不接受该维度的任何候选。非空时必须命中。未命中 MUST 视为策略拒绝，不得通过响应区分“存在但被策略拒绝”和“不存在”。
+- `denied_source_ids` 命中时 MUST `drop` 且强制 `opaque`。
 
 示例：
 
@@ -344,11 +344,11 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 4. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
 5. 验证 `invite_event.payload.invitee_account_id == invite_address.account_id`，必须比较完整 AccountId。
 6. 验证 durable invite Event 未携带独立 route material；可选 `route_assistance` 只存在于 delivery transport，MUST NOT 要求它写入或匹配 durable Event，也 MUST NOT 把它当作授权证据。
-7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定 `invite_address.account_id`、issuer / Directory trust、domain allowlist、expiry 与 audience。失败时降级为低信任 `explicit_address`，不得直接通知或物化 membership。
-8. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_subject_ids`(命中 inviter 即 `drop` 且强制 opaque)与 `denied_principal_ids`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
-9. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `denied_subject_ids` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与“限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny”落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
+7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定 `invite_address.account_id`、issuer / Directory trust、domain allowlist、expiry 与 audience。分类顺序固定为：有效高信任 evidence，其次有效 `handle_claim`，其次接收端派生 `same_station`，最后 `explicit_address`。派生 `same_station` 只比较已验 invite Event account Actor 的 `account_id.station_id` 与 `invite_address.account_id.station_id`，不得使用 `Source-Service-ID` 或实际 ingress service。证据无效且不满足同 Station 时降级为低信任 `explicit_address`，不得直接通知或物化 membership。
+8. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_actor_ids`（与已验 invite Event 的完整 inviter ActorId 精确匹配；命中即 `drop` 且强制 opaque）与 `denied_source_ids`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
+9. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `denied_actor_ids` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与“限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny”落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
 
-notify 分支的 holder-private 投递承载是 account-data 私有 cell，key 为 `ak.account.invite_delivery`（登记于 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)）。cell value 是**明文** JSON，MUST 符合 `ak.schema.invite_delivery.v1`（[`invite-delivery.schema.json`](../../artifacts/schemas/invite-delivery.schema.json)），不是 `ak.schema.account_data_encrypted_value.v1` envelope：该 cell 由接收方 Station 在投递路径写入，服务端无法产出 holder 客户端加密的 envelope；`invite_token` 本就是服务端基础设施签发并持有的私有 locator，明文存储不改变其信任边界。value 外层为 `schema` / `updated_at` / `delivery_entries[]`，每个 entry 携带 `invite_id` / `realm_id` / `inviter_id` / `invite_token` / `received_at` / `expires_at`。
+notify 分支的 holder-private 投递承载是 account-data 私有 cell，key 为 `ak.account.invite_delivery`（登记于 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)）。cell value 是**明文** JSON，MUST 符合 `ak.schema.invite_delivery.v1`（[`invite-delivery.schema.json`](../../artifacts/schemas/invite-delivery.schema.json)），不是 `ak.schema.account_data_encrypted_value.v1` envelope：该 cell 由接收方 Station 在投递路径写入，服务端无法产出 holder 客户端加密的 envelope；`invite_token` 本就是服务端基础设施签发并持有的私有 locator，明文存储不改变其信任边界。value 外层为 `schema` / `updated_at` / `delivery_entries[]`，每个 entry 携带 `invite_id` / `realm_id` / `inviter_account_id` / `invite_token` / `received_at` / `expires_at`；`inviter_account_id` 必须逐字复制已接受 Invite Event 的完整账号，不能只存 principal 后猜 Station。
 
 写入语义是封闭的：
 

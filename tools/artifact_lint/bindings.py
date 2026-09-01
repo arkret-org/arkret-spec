@@ -669,6 +669,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
     expected = {
         "ak.root.identity.command.submit_did_operation.v1": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
         "ak.gate.account.command.issue_session_grant.v1": ("SessionGrantRequestBody", "SessionGrantOutcome"),
+        "ak.gate.account.command.refresh_session_grant.v1": ("SessionGrantRefreshRequestBody", "SessionGrantOutcome"),
         "ak.find.directory.command.announce.v1": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
         "ak.find.directory.command.withdraw.v1": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
     }

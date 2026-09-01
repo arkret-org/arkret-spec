@@ -32,7 +32,7 @@
       "required": [
         "invite_id",
         "realm_id",
-        "inviter_id",
+        "inviter_account_id",
         "invite_token",
         "received_at",
         "expires_at"
@@ -46,9 +46,9 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "inviter_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "did_core_id of the inviter as bound by the delivery verification chain."
+        "inviter_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete AccountId of the inviter, copied from the accepted invite Event and verified by the delivery chain."
         },
         "invite_token": {
           "type": "string",

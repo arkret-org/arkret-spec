@@ -503,7 +503,7 @@
     },
     "executed_by": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
-      "description": "authority_control(constraint_subkind=applet_authority) binding to the concrete Applet service, bot, or provisioned ghost actor did_core_id that may execute the grant. Its proof verification_method remains a DID URL and MUST project to this value through the registered method adapter."
+      "description": "authority_control(constraint_subkind=applet_authority) binding to the concrete Applet service, bot, or provisioned ghost ActorId that may execute the grant. A proof verification_method remains a DID URL; its adapter projection MUST equal the ActorId principal component, while the complete ActorId is verified from accepted authorization evidence."
     },
     "registration_epoch": {
       "type": "string",

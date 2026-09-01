@@ -9,28 +9,112 @@
   "digest": "sha256",
   "canonicalization": "RFC8785_JCS",
   "minimum_independent_runners": 2,
+  "outgoing_slot_absence": {
+    "domain": "ak.contact.no_outgoing_slot.v1",
+    "required_fields": [
+      "sorted_pair_member_ids",
+      "request_slot_owner",
+      "contact_round_id",
+      "slot_predecessor",
+      "cas_sequence",
+      "cas_frontier",
+      "observed_at",
+      "outgoing_request_state"
+    ],
+    "case": {
+      "transcript": {
+        "sorted_pair_member_ids": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+            }
+          }
+        ],
+        "request_slot_owner": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec",
+        "slot_predecessor": null,
+        "cas_sequence": 7,
+        "cas_frontier": [
+          "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"
+        ],
+        "observed_at": "2026-08-31T03:59:00.000Z",
+        "outgoing_request_state": "absent"
+      },
+      "canonical_transcript": "{\"cas_frontier\":[\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA\"],\"cas_sequence\":7,\"contact_round_id\":\"sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec\",\"observed_at\":\"2026-08-31T03:59:00.000Z\",\"outgoing_request_state\":\"absent\",\"request_slot_owner\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebob\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"account\"},\"slot_predecessor\":null,\"sorted_pair_member_ids\":[{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebob\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"account\"}]}",
+      "expected_digest": "sha256:07bf0692dbec6a4cef398e0f7de448dd2f970edf47fe10d48921bc67a57ecabe"
+    },
+    "negative_cases": [
+      "missing_observed_at",
+      "omitted_slot_predecessor",
+      "null_outgoing_request_state",
+      "swapped_pair",
+      "wrong_contact_round_id",
+      "stale_cas_frontier",
+      "non_canonical_json"
+    ]
+  },
   "cases": [
     {
       "name": "normal",
       "contact_round": {
         "kind": "normal",
         "sorted_pair_member_ids": [
-          "ak:did_core:webvh:z6mkfixturealice",
-          "ak:did_core:webvh:z6mkfixturebob"
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+            }
+          }
         ],
         "request_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "request_acceptance_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       },
-      "canonical_contact_round": "{\"kind\":\"normal\",\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"sorted_pair_member_ids\":[\"ak:did_core:webvh:z6mkfixturealice\",\"ak:did_core:webvh:z6mkfixturebob\"]}",
-      "expected_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681"
+      "canonical_contact_round": "{\"kind\":\"normal\",\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"sorted_pair_member_ids\":[{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebob\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"account\"}]}",
+      "expected_contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec"
     },
     {
       "name": "glare",
       "contact_round": {
         "kind": "glare",
         "sorted_pair_member_ids": [
-          "ak:did_core:webvh:z6mkfixturealice",
-          "ak:did_core:webvh:z6mkfixturebob"
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+            }
+          }
         ],
         "requests": [
           {
@@ -43,8 +127,8 @@
           }
         ]
       },
-      "canonical_contact_round": "{\"kind\":\"glare\",\"requests\":[{\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\"},{\"request_acceptance_receipt_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"request_event_ref\":\"ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA\"}],\"sorted_pair_member_ids\":[\"ak:did_core:webvh:z6mkfixturealice\",\"ak:did_core:webvh:z6mkfixturebob\"]}",
-      "expected_contact_round_id": "sha256:ff61c3443124b8d102e70a65c3a47817c28421b3c6aeb7aed79107c47168be4d"
+      "canonical_contact_round": "{\"kind\":\"glare\",\"requests\":[{\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\"},{\"request_acceptance_receipt_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"request_event_ref\":\"ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA\"}],\"sorted_pair_member_ids\":[{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebob\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"account\"}]}",
+      "expected_contact_round_id": "sha256:baad9aa8d3533cabad17af5ab215f31181bf52743751d7b9a2613a7f347d3b2e"
     }
   ]
 }

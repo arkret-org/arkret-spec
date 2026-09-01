@@ -85,11 +85,19 @@ class KeyPackageWriteTranscriptLintTest(unittest.TestCase):
             receipt = case["unsigned_request"][
                 "recipient_durable_receipt"
             ]
-            receipt["recipient_principal_id"] = "did:webvh:z6mkfixtureagentexample:agent.example"
+            receipt["recipient_account_id"]["principal_id"] = (
+                "did:webvh:z6mkfixtureagentexample:agent.example"
+            )
             self._resign(fixture, case)
 
         errors = self._lint_mutation(mutate)
-        self.assertTrue(any("recipient_principal_id" in error and "does not match" in error for error in errors), errors)
+        self.assertTrue(
+            any(
+                "recipient_account_id" in error and "does not match" in error
+                for error in errors
+            ),
+            errors,
+        )
         self.assertFalse(any("canonical_jcs" in error or "does not verify" in error for error in errors), errors)
 
     def test_case_cannot_switch_operation(self) -> None:

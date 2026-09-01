@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-policy.schema.json",
   "title": "Arkret Recovery Policy",
-  "description": "Normative grammar for a principal's PCR recovery policy. Bound through signed control events to the account selected by the exact (principal_id, station_id) authority pair and its local unique PCR lineage; receivers reject recovery and pcr_recovery device authorization whose proof family, threshold or optional DID-root factor is not allowed by the currently accepted policy.",
+  "description": "Normative grammar for an account's PCR recovery policy. Bound through signed control events to one exact AccountId and its local unique PCR lineage; receivers reject recovery and pcr_recovery device authorization whose proof family, threshold or optional DID-root factor is not allowed by the currently accepted policy.",
   "type": "object",
   "required": [
     "schema",
     "policy_id",
-    "principal_id",
+    "account_id",
     "version",
     "supersedes_id",
     "trust_domain",
@@ -24,13 +24,13 @@
       "type": "string",
       "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "principal_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    "account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
     },
     "version": {
       "type": "integer",
       "minimum": 1,
-      "description": "Monotonically increasing counter scoped by principal_id. Receivers MUST reject a publish whose version is not strictly greater than the currently accepted policy."
+      "description": "Monotonically increasing counter scoped by the exact account_id. Receivers MUST reject a publish whose version is not strictly greater than the currently accepted policy."
     },
     "supersedes_id": {
       "oneOf": [
@@ -42,7 +42,7 @@
           "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       ],
-      "description": "Predecessor policy_id. Null only for the genesis policy of a principal."
+      "description": "Predecessor policy_id. Null only for the genesis policy of an exact account."
     },
     "trust_domain": {
       "$ref": "./common-ids.schema.json#/$defs/trust_domain",
@@ -579,7 +579,7 @@
           }
         }
       ],
-      "description": "Recovery policy publication through the ordinary first-publication Event ingress. Cross-field validation additionally requires payload.policy_id=value.policy_id and actor/scope/lease to bind value.principal_id's Principal Control Realm."
+      "description": "Recovery policy publication through the ordinary first-publication Event ingress. Cross-field validation additionally requires payload.policy_id=value.policy_id and actor/scope/lease to bind value.account_id's exact Principal Control Realm."
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -735,7 +735,7 @@
       "description": "Read-model summary of the currently accepted recovery policy. `policy` carries the original ak.schema.recovery_policy.v1 object when the service can disclose it to the caller.",
       "required": [
         "policy_id",
-        "principal_id",
+        "account_id",
         "version",
         "acceptance_basis_ref",
         "trust_domain",
@@ -746,8 +746,8 @@
         "policy_id": {
           "$ref": "#/$defs/policy_id_ref"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "version": {
           "type": "integer",
@@ -813,7 +813,7 @@
     },
     "control_frontier": {
       "type": "object",
-      "description": "Optional principal control-stream frontier under which the active policy was observed.",
+      "description": "Optional account control-stream frontier under which the active policy was observed.",
       "properties": {
         "event_ids": {
           "type": "array",
@@ -833,14 +833,14 @@
     },
     "recovery_policy_active_outcome": {
       "type": "object",
-      "description": "Response for ak.root.identity.recovery_policy.resource.get.v1. `active_policy=null` is a successful read meaning no accepted recovery policy currently exists for the resolved principal.",
+      "description": "Response for ak.root.identity.recovery_policy.resource.get.v1. `active_policy=null` is a successful read meaning no accepted recovery policy currently exists for the resolved exact account.",
       "required": [
         "active_policy"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Resolved principal. Required when the request used an explicit principal_id selector; SHOULD be present on all authenticated reads."
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Resolved exact account. Required when the request used an explicit account_id selector; SHOULD be present on all authenticated reads."
         },
         "active_policy": {
           "oneOf": [
@@ -870,7 +870,7 @@
       "description": "Response for ak.root.identity.recovery_policy.command.publish.v1 after accepting a ak.schema.recovery_policy.v1 publish or rotation.",
       "required": [
         "policy_id",
-        "principal_id",
+        "account_id",
         "version",
         "acceptance_basis_ref",
         "accepted_at"
@@ -879,8 +879,8 @@
         "policy_id": {
           "$ref": "#/$defs/policy_id_ref"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "version": {
           "type": "integer",

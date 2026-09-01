@@ -1,0 +1,105 @@
+{
+  "suite": "handle_claim_closed_transcripts",
+  "runner": {
+    "kind": "known_answer_tests",
+    "entrypoint": "ak.suite.handle_claim.closed_transcripts.v1"
+  },
+  "canonicalization": "RFC8785_JCS",
+  "core": {
+    "domain": "ak.handle_claim_proof.v1",
+    "preimage": {
+      "schema": "ak.schema.handle_claim_core.v1",
+      "handle": "alice:example.com",
+      "handle_aliases": [],
+      "subject_account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      },
+      "issuer_id": "ak:did_core:webvh:z6mkfixtureissuer",
+      "claim": { "kind": "handle_binding" },
+      "visibility": "public",
+      "audience": null,
+      "issued_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": "2026-09-02T00:00:00.000Z",
+      "source_refs": [],
+      "proofs": [
+        {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:issuer.example#key-1",
+          "payload_digest": "sha256:8c21cd185accfbd34d54f39c86516f0f35b07fa2f56f874fe50cb1898d46a5a5",
+          "created_at": "2026-09-01T00:00:00.000Z",
+          "domain": "ak.handle_claim_proof.v1",
+          "proof_purpose": "issuer_attestation",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
+        },
+        {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+          "payload_digest": "sha256:8c21cd185accfbd34d54f39c86516f0f35b07fa2f56f874fe50cb1898d46a5a5",
+          "created_at": "2026-09-01T00:00:00.000Z",
+          "domain": "ak.handle_claim_proof.v1",
+          "proof_purpose": "holder_acceptance",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
+        }
+      ]
+    },
+    "expected_digest": "sha256:8c21cd185accfbd34d54f39c86516f0f35b07fa2f56f874fe50cb1898d46a5a5"
+  },
+  "revocation": {
+    "domain": "ak.handle_claim_revocation.v1",
+    "preimage": {
+      "schema": "ak.schema.handle_claim_revocation.v1",
+      "claim_digest": "sha256:8c21cd185accfbd34d54f39c86516f0f35b07fa2f56f874fe50cb1898d46a5a5",
+      "revoked_at": "2026-09-01T00:02:00.000Z",
+      "revoker": {
+        "role": "holder",
+        "subject_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        }
+      },
+      "proof": {
+        "kind": "detached_jws",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+        "payload_digest": "sha256:7e54c3d688cc4752913fcaa76787cf10a50e93173a0308612b1c62a41aeaab5c",
+        "created_at": "2026-09-01T00:02:00.000Z",
+        "domain": "ak.handle_claim_revocation.v1",
+        "proof_purpose": "revocation_authorization",
+        "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
+      }
+    },
+    "expected_digest": "sha256:7e54c3d688cc4752913fcaa76787cf10a50e93173a0308612b1c62a41aeaab5c"
+  },
+  "status": {
+    "domain": "ak.handle_claim_status.v1",
+    "preimage": {
+      "claim_digest": "sha256:8c21cd185accfbd34d54f39c86516f0f35b07fa2f56f874fe50cb1898d46a5a5",
+      "status": "verified",
+      "as_of": "2026-09-01T00:01:00.000Z",
+      "verifier_id": "ak:did_core:webvh:z6mkfixtureverifier",
+      "verified_at": "2026-09-01T00:01:00.000Z",
+      "revocation_digest": null,
+      "fresh_until": "2026-09-01T00:06:00.000Z"
+    },
+    "expected_digest": "sha256:5c96c3e66e4658c5347a232ca233a737062b2cad883ab39adaaa63dc9db76ae1"
+  },
+  "proof_signing_input": {
+    "kind": "detached_jws",
+    "verification_method": "did:webvh:z6mkfixture:issuer.example#key-1",
+    "payload_digest": "sha256:8c21cd185accfbd34d54f39c86516f0f35b07fa2f56f874fe50cb1898d46a5a5",
+    "created_at": "2026-09-01T00:00:00.000Z",
+    "domain": "ak.handle_claim_proof.v1",
+    "audience": null,
+    "proof_purpose": "issuer_attestation"
+  },
+  "negative_cases": [
+    "bare_core_hash",
+    "omitted_nullable_audience",
+    "swapped_proof_role",
+    "stale_status",
+    "expired_core",
+    "revoker_account_station_mismatch",
+    "revocation_digest_mismatch",
+    "unknown_extension"
+  ]
+}

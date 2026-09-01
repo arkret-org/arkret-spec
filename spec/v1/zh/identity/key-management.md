@@ -921,7 +921,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 - `challenge`
 - `audience` / `origin`
 - `service_id`
-- `principal_id`
+- `account_id`（完整 AccountId；method adapter 仅把 verification method 投影到其 `principal_id` 分量，Station 分量由已接受授权独立绑定）
 - `key_id`
 - 过期时间
 - 防重放 nonce
@@ -946,9 +946,11 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 #### 7.4.1 备份签名的设备信任根锚定（normative）
 
-`auth_data.verification_method` 必须是 DID URL：其 bare `did` 经 method adapter 投影必须等于
-`actor_id`，fragment 必须等于 `device_id`；不得把 core `actor_id` 直接拼接 fragment。
-`device_authorize_event_id` 必须解析为该 device 在 envelope frontier 的 accepted authorization。Verifier
+`auth_data.verification_method` 必须是 DID URL：其 bare `did` 经已登记 method adapter 投影必须等于
+`actor_id.signing_principal_id()`，fragment 必须等于 `device_id`；不得把完整 `actor_id` 或其 principal
+分量直接拼接 fragment。完整 Account/Station 身份 MUST 独立取自已接受 authorization 并与 envelope
+`actor_id` 逐字绑定；仅凭 DidUrl 不得定位账号。`device_authorize_event_id` 必须解析为该 device 在 envelope
+frontier 的 accepted authorization。Verifier
 KeyPackage 对外 claim 不携带 PCR/device history sidecar。origin Station 在本地检查 registration、generation 与 revocation后签发承载该 KeyPackage 的 admission/claim；普通 Event federation receiver 只验证 Event 内嵌 admission proof。
 
 ### 7.5 Recipient Method Profiles
@@ -1056,7 +1058,7 @@ Welcome/Add 进入唯一 derived group；同 endpoint crash-resume 若使用 dev
 
 每次读取并尝试解密 key backup 都 MUST 产出一条 unlock proof，明文 keybag 也 MUST 有固定 schema，避免“能下载密文”被误当作“有权使用解密结果”：
 
-- backup decrypt proof payload MUST validate as `ak.schema.key_backup_unlock_proof.v1`，其签名输入固定为 `RFC8785_JCS(unlock proof 删除 auth_data.signature)`；闭合 proof 的全部实际存在成员自动受认证，包括出现时的 `challenge`，不携字段名清单。它绑定 `recovery_session_id`、`principal_id`、`requesting_device_id`、`backup_id`、`backup_kind`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest` 与 `issued_at`。`proof_digest` 是已接受 recovery proof transcript 的 digest；receiver MUST 用当前 session state 重建 transcript 后比对，不得采信客户端自报的 policy/session metadata。
+- backup decrypt proof payload MUST validate as `ak.schema.key_backup_unlock_proof.v1`，其签名输入固定为 `RFC8785_JCS(unlock proof 删除 auth_data.signature)`；闭合 proof 的全部实际存在成员自动受认证，包括出现时的 `challenge`，不携字段名清单。它绑定 `recovery_session_id`、完整 `account_id`、`requesting_device_id`、`backup_id`、`backup_kind`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest` 与 `issued_at`。verification method 的 adapter 只比较 `account_id.principal_id`；完整 Account/Station 必须与已接受 recovery session 独立逐字匹配。`proof_digest` 是已接受 recovery proof transcript 的 digest；receiver MUST 用当前 session state 重建 transcript 后比对，不得采信客户端自报的 policy/session metadata。
 - 取回完整 ciphertext 的协议操作是 `ak.self.keys.backups.command.unlock.v1`（`POST /_arkret/self/keys/backups/{backup_id}/unlock`）：unlock proof MUST 作为 request body 的 `proof` 字段提交（`keys-operations.schema.json#/$defs/keys_backups_unlock_request_body`），path `backup_id` 与 `proof.backup_id` MUST 一致；实现 MUST NOT 用 header、query string 或私有载体承载该 proof。服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed（`recovery_evidence_unbound` / `backup_frontier_stale` / `series_chain_broken` / `signature_invalid`）。
 - AEAD/HPKE open 后得到的明文 MUST validate as `ak.schema.key_backup_plaintext.v1`，且其中 `backup_id`、`backup_kind`、`series_id`、`series_seq` MUST byte-for-byte 等于外层 envelope。`items[].secret_id` / `item_kind` 是 keybag 内部路由字段，不得替代外层 envelope 的授权判断。
 - 实现 MUST 把 plaintext keybag 限定为本地瞬时处理材料；除非它被重新加密进本地 secret storage，否则不得持久化明文。日志、crash dump、telemetry MUST NOT 记录 `secret_b64u`。
@@ -1067,7 +1069,7 @@ Welcome/Add 进入唯一 derived group；同 endpoint crash-resume 若使用 dev
 
 - **每 principal 每 24h 下载上限**：默认 `daily_principal_download_limit = 64`（覆盖单一 series 下大量历史 epoch 备份的合理使用，又能拦截批量 dump）。`ak.profile.key_backup.memory_hard.v1` 实现 MUST 公布所采用的实际上限，并接受 deployment 配置在 `[16, 256]` 范围内调整。
 - **每 IP / 每 session 限速**：默认 `per_ip_unlock_burst = 8`，`per_ip_unlock_sustained_per_minute = 4`；逾限响应 MUST 是 `429 Too Many Requests`，并 SHOULD 在 `Retry-After` 中给出建议。
-- **认证降级阻断**：`POST /_arkret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_id / principal_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
+- **认证降级阻断**：`POST /_arkret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_id / 完整 account_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
 - **审计记录**：超出阈值或在异常时间窗内的下载 MUST 写入 `ak.audit.accessed`，`access_kind="key_backup_read"`，并按 `ak.profile.attested_audit.e2ee.v1`（若声明）配对 audit pair。
 - **跨 actor 拒绝**：服务端 MUST 在 envelope `actor_id` 与请求 caller 不一致时返回 `forbidden`，并不得通过 metadata 暴露 envelope 是否存在。v1 不定义 controller-owned Agent active-state backup，因此不存在以 `managed_principal_binding` 绕过本规则的例外。
 - **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 携带 [`high-risk-authority-proof.schema.json`](../../artifacts/schemas/high-risk-authority-proof.schema.json) 的三分支之一（`principal_signing` / `device_quorum` / `trusted_recovery_service`），按 §7.8.1 绑定服务端签发的单次 challenge 并签署 canonical delete-intent transcript，然后写入 `access_kind="key_backup_delete"` 审计。普通 current device proof **不是**该 family 的第四分支：仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。设备revoke轮换的整组删除必须使用[`security-transactions.md` §3](./security-transactions.md)登记的transaction-bound operation；普通DELETE outcome不得作为`erase_confirmation_digest`来源。
@@ -1082,8 +1084,8 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
    （`POST /_arkret/self/keys/backups/{backup_id}/delete-challenge`，request body 为闭合
    `{request_id}`）返回 durable、单次使用、TTL 不超过 300 秒的 challenge
    （[`keys-operations.schema.json#/$defs/keys_backups_delete_challenge`](../../artifacts/schemas/keys-operations.schema.json)），
-   至少绑定 `{challenge_id, challenge, nonce, operation, principal_id, backup_id, audience,
-   service_id, request_id, issued_at, expires_at}`。同一 `(principal_id, backup_id,
+   至少绑定 `{challenge_id, challenge, nonce, operation, account_id, backup_id, audience,
+   service_id, request_id, issued_at, expires_at}`。同一 `(account_id, backup_id,
    request_id)` 在 challenge 尚有效时 MUST 返回同一 challenge；不同 `request_id` 签发新
    challenge。
 2. **唯一 canonical delete-intent transcript**。所有 proof 分支（含 device quorum 中的每一份
@@ -1094,7 +1096,7 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
      "context": "ak.key_backup_delete_proof.v1",
      "operation": "ak.self.keys.backups.resource.delete.v1",
      "request_id": <DELETE body request_id>,
-     "principal_id": <authenticated principal>,
+     "account_id": <authenticated AccountId>,
      "backup_id": <path value, byte-identical>,
      "reason": <request value or JSON null>,
      "challenge_id": <server-issued id>,
@@ -1123,12 +1125,12 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
 3. **验证与消费**。`DELETE` body 为闭合 `{request_id, challenge_id, proof, reason?}`。服务端
    MUST 先按当前 caller / path / audience / service 校验 challenge（重放、过期、path 不同、
    audience / service 不同一律 fail closed），再验证 proof 分支的授权（`principal_signing`
-   的 controller 必须逐字节等于 `principal_id` 且该 key 在 `created_at` 是当前 principal
+   的 controller 投影必须逐字节等于 `account_id.principal_id` 且该 key 在 `created_at` 是当前 account
    control key；`device_quorum` 去重后有效签名数不小于当前 recovery policy 的 `k` 且请求
    `threshold` 等于该 `k`；`trusted_recovery_service` 的 session 必须未过期、未消费且由
    principal signing / recovery unlock / device quorum 建立），最后在成功删除的同一事务中
    原子消费 challenge。
-4. **幂等**。服务端以 `(principal_id, backup_id, request_id)` 保存 canonical request digest 与
+4. **幂等**。服务端以 `(account_id, backup_id, request_id)` 保存 canonical request digest 与
    terminal outcome：完全相同的网络重试返回已存 outcome，不重新验收已消费 challenge；同
    `request_id` 不同 digest 返回 duplicate conflict。"单次 challenge"与 registry 声明的
    DELETE retry-safe 由此并存。

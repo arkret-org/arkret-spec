@@ -175,7 +175,7 @@ mimi://mimi.example.com/rooms/01JSMIMI
 
 实现 MUST NOT 改用 hash 化 subject、URI 片段截取，或在 payload 中另立一个 caller 分配的 room 标识符作为 subject——后者会给同一 room URI 制造第二个身份，使 §4 的 1:1 语义无法在 wire 上强制。canonical 形态与 subject 编码的正反例由 [`ak.vector.encoding.cell_subject_uri.v1`](../../artifacts/registry/vector-registry.json) 唯一闭合。
 
-`ak.mimi.room_binding` 的完整 payload 形态（含 `hub_provider`、`follower_providers`、`content_profile`、`policy_root`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
+`ak.mimi.room_binding` 的完整 payload 形态（含 `hub_provider_id`、`follower_provider_ids`、`content_profile`、`policy_root`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
 
 ```json
 {
@@ -187,10 +187,10 @@ mimi://mimi.example.com/rooms/01JSMIMI
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "strand_id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"
     },
-    "hub_provider": "ak:did_core:webvh:z5dPBhAYJdfYhFqD3peyGJcxj",
+    "hub_provider_id": "ak:did_core:webvh:z5dPBhAYJdfYhFqD3peyGJcxj",
     "local_provider_role": "hub",
     "status": "accepted",
-    "follower_providers": [
+    "follower_provider_ids": [
       "ak:did_core:webvh:z2B174DcqrzvV5vkzDBdSwVvy"
     ],
     "mls_group_id": "base64url...",
@@ -204,7 +204,7 @@ mimi://mimi.example.com/rooms/01JSMIMI
 规则：
 
 - `binding_scope.realm_id` MUST 指向一个 accepted Realm。`strand_id` MUST 指向该 Realm 内启用 discussion track 的 accepted Strand；MIMI room timeline 只投影该 Strand discussion track 的消息。
-- `hub_provider` MUST 是 Realm policy、Organization principal 或 member principal 明确委托的 service `did_core_id`；委托证据中的 service `did` / VM 必须经 adapter 投影到该值。
+- `hub_provider_id` MUST 是 Realm policy、Organization principal 或 member principal 明确委托的 service `did_core_id`；委托证据中的 service `did` / VM 必须经 adapter 投影到该值。
 - `local_provider_role` 取值为 `hub`、`follower` 或 `observer`（封闭枚举，以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威源）。各值语义:
   - `hub`:本地 facade 即拥有该 MIMI room URI 的 hub provider,负责 room fanout 与 groupInfo,对外承担 room 真相投影责任;
   - `follower`:本地 facade 作为 follower provider 参与远端 hub 拥有的 room,接收 fanout 并向 hub 提交本地 writes;
@@ -520,22 +520,15 @@ MIMI identifier MUST NOT 被直接作为 Arkret actor。映射规则：
 
 ## 11. Abuse Report And Proxy Download
 
-`ak.open.mimi.command.report_abuse.v1` MUST 映射到一条 `ak.self.moderation.report` **Event**，由 facade 以自己的 service DID 作者身份提交到普通 Event admission（`service_attested` variant，见下方「归属与 admission 的分离」）。它 **MUST NOT** 走 `ak.self.moderation.command.report.v1` operation：该 self endpoint 只接受 reporter 本人设备直接签名，并显式禁止 MIMI facade provenance（[`../governance/content-moderation.md` §3.1](../governance/content-moderation.md)），按它走必被拒。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
+`ak.open.mimi.command.report_abuse.v1` MUST 携带并提交一条 exact caller-authored、caller-signed `report_event: EventInitialSubmission`，其 Event kind 为 `ak.self.moderation.report`。facade 只把逐字节相同 submission 交给普通 Event admission，MUST NOT 代签、重建或合成 Event；该 open operation 也 **MUST NOT** 调用 `ak.self.moderation.command.report.v1`。contract `durable_effect` 是这条真实 accepted moderation Event，不存在 `bridges_to` self operation。E2EE report SHOULD 携带 message franking proof 与 encrypted evidence package。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
-入站 MIMI report 的 `reporter` MUST 按 [§10 Identifiers And Consent](#10-identifiers-and-consent) 的 consent / holder-claim 规则解析到 Arkret principal,facade MUST NOT 仅凭来源 provider 的断言把 report 归因到既有 principal(防止以他人名义举报)。映射前 facade 还 MUST 校验该 reporter 对 `target_ref` 在对应 Realm / scope 内可见(对齐 [`../governance/content-moderation.md` §3.1/§3.3](../governance/content-moderation.md)),并把 [`../governance/content-moderation.md` §3.1.1](../governance/content-moderation.md) 的 per-reporter 限速至少按 (映射后 reporter principal DID, 来源 provider service DID) 双维度施加；不满足按 pairwise / pending 处理或拒绝。
+入站 report MUST 携带 closed `reporter_authority`：完整 `actor_id`、exact current accepted `membership_event_id`、exact current accepted `room_binding_event_id`、短期 `expires_at` 与 holder detached JWS `proof`。请求同时 MUST 携 `source_provider_id`、canonical `mimi_room_uri` 与 `realm_id`；它们分别逐字等于 RFC 9421 已认证 Provider-ID/source service、当前 accepted room binding 与其 scope。`actor_id.signing_principal_id` MUST 等于 wire `reporter_id`，但该相等关系本身不授权。
 
-**归属与 admission 的分离（normative）**：facade 不持有映射后 principal 的任何签名密钥，
-MUST NOT 以该 principal 作为 envelope `actor_id` 代签 report。`ak.self.moderation.report`
-的 admission 是 conditional（contract-registry `admission_variants`）：
+`ak.mimi_reporter_authority_proof.v1` 的唯一 transcript 覆盖：完整 request 删除 `reporter_authority.proof` 后的 `payload_digest`、`reporter_id`、`source_provider_id`、`mimi_room_uri`、`realm_id`、`strand_id`、`target_ref`、完整 `report_event`、abuse action/reason 与实际 optional evidence/franking/description、`membership_event_id`、`room_binding_event_id`、`expires_at`、proof `verification_method` / `created_at` / `domain` / `audience`。`domain` MUST 是 Arkret Event domain，`audience` MUST 是接收 facade service。facade 必须从 exact Actor 当前 accepted device/agent proxy authority state 解析 verification method 与授权链；carrier 自报 key、provider assertion、同 principal 本机账号、consent、holder claim 或 opaque `evidence_package` 都不能替代。proof 过期、设备/代理撤销、provider/room/target swap 均在读 target 私有状态或写 Event 前拒绝。
 
-- reporter 自己的设备发出的 report 走 `self_authored_proof`，reducer 验证
-  `actor == payload.reporter`；payload 不携带 `provenance` 或取 `"self"`；
-- facade 映射的入站 MIMI report 设 `payload.provenance="mimi_facade"`，走
-  `service_attested`：envelope `actor_id` 是 facade 的 service DID，
-  `payload.reporter` 是按本节规则解析出的 Arkret principal，
-  `payload.source_provider` 必填并携带来源 provider 的 service DID；reducer MUST 验证
-  actor service 确实为 `payload.realm_id` 运营 MIMI facade。归属（attribution）由
-  `payload.reporter` 承载，作者（authorship）由 envelope actor 承载，两者不得混同。
+facade 必须独立解析两个 Event ref 并确认它们在当前 accepted Seal frontier 下仍分别是：(a) `actor_id` 在 exact Realm 的 joined participation；(b) 该 canonical room 对 exact Realm/Strand/provider 的唯一 accepted binding。相同 principal 的其它 Station membership 不匹配；零个或多个 current binding、ref 已被 successor/revoke 覆盖、room/provider/realm/strand 任一不一致都按 `mimi_reporter_resolution_required` 统一拒绝且零副作用。随后 restricted Realm/Circle visibility 与 per-reporter 限速使用完整 `actor_id`；attribution Event 中 `reporter_id` 仍只保存 principal，并至少按 `(actor_id, source_provider_id)` 双维度限速。consent-only、opaque 非空与 pairwise/pending reporter 一律不能提交 Arkret moderation Event。
+
+**Event 交叉绑定（normative）**：`report_event.event.actor_id` MUST 等于 `reporter_authority.actor_id`，其签名 key MUST 是同一 authority 校验得到的当前 device/agent proxy key；Event Realm、scope、target、reason、description、evidence/franking 与 request 对应成员必须逐字相等。payload `reporter_id` 等于 Actor signing principal，`provenance="mimi_facade"` 且 `source_provider_id` 等于 authenticated provider。任一交叉绑定不一致先于 domain-state 检查统一拒绝并零写入。
 
 `ak.open.mimi.command.proxy_download.v1` MUST 遵守 `ak.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
 
@@ -556,6 +549,7 @@ MUST NOT 以该 principal 作为 envelope `actor_id` 代签 report。`ak.self.mo
 - identifier query MUST NOT 返回任何形式的 "reachability proof"（§10 的强禁令负向可测项；facade MUST NOT 复活已被移除的 reachability proof 机制）。
 - consent 不自动授予 membership / write capability。
 - E2EE report franking 验证。
+- report authority exact-binding：合法 holder proof 可提交；同 principal 异 Station、provider/room/target swap、撤销/过期、consent-only、opaque 非空、多个 current binding 歧义均零副作用。
 - proxy download 遵守 asset privacy policy。
 - unsupported draft version fail closed。
 

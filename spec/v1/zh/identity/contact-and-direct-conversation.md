@@ -110,6 +110,32 @@ normal 与 glare 的逐字节 known-answer vectors 见
 [`contact-round-kat.json`](../../artifacts/fixtures/contact-round-kat.json)；实现必须同时核对 canonical round bytes
 与最终 `contact_round_id`，仅比较 object 语义或自行选择 domain 承载形态不算通过。
 
+normal responder 的 `outgoing_slot_absence_digest` 只允许使用以下 closed transcript，计算固定为
+`H("ak.contact.no_outgoing_slot.v1", outgoing_slot_absence_transcript)`：
+
+```text
+outgoing_slot_absence_transcript = {
+  sorted_pair_member_ids: [p0, p1],
+  request_slot_owner: responder_actor_id,
+  contact_round_id: derived_normal_contact_round_id,
+  slot_predecessor: previous_slot_digest_or_null,
+  cas_sequence: accepted_local_slot_sequence,
+  cas_frontier: [event_ref, ...],
+  observed_at: canonical_timestamp,
+  outgoing_request_state: "absent"
+}
+```
+
+`p0/p1` 是 exact pair 的完整 `ActorId` 按 unsigned RFC 8785 JCS bytes 严格升序排列；
+`request_slot_owner` 必须恰为其中的 responder，不能是裸 principal 或签名 Station。`contact_round_id` 必须由同一
+normal request receipt 和 pair 按本节公式重算。`slot_predecessor` 字段永远存在：genesis slot 使用 JSON `null`，
+否则使用刚被 CAS 消费的 exact predecessor digest，禁止省略、空字符串或零摘要。`cas_sequence` 从 1 开始；
+`cas_frontier` 非空、无重复并按 EventId unsigned UTF-8 bytes 严格升序，且精确表示该 CAS 观察点，不得替换为数据库
+行号、map iteration、当前全局 frontier 或后来的 frontier。`observed_at` 必须逐字等于 receipt 的 `accepted_at`；
+`outgoing_request_state` 唯一合法值是字符串 `"absent"`，不存在 null、false、空对象或省略编码。字段名、字段集合和
+JCS bytes 必须精确匹配；旧 frontier、pair/round 对调、任何字段遗漏或非 canonical JSON 都必须拒绝。上述正反
+known-answer vectors 与 round vectors 同在 `contact-round-kat.json`。
+
 glare admission 不仅需要两张 exact request receipts，还 **MUST** 携 source-signed causal frontier/completeness
 evidence，证明两 request 在任一方消费 request ref 前因果并发。仅收到两张 receipt、到达顺序或 wall clock
 不足以建立 glare。证据足够时双方机械派生同一 round，禁止 respond/reject且不合成 `ak.contact.accepted`
@@ -122,6 +148,20 @@ acceptance receipts、normal response receipt（normal 分支）、双方 glare 
 attestation；glare 分支必须有双方各一张 attestation且禁止 response receipt。两种final bundle都必须有pair双方各一张
 current proof；少于两张只能形成非授权的partial/tentative query view，不能冒充portable round evidence。刷新 current proof 不改变 `contact_round_id`。unknown/stale/incomplete evidence 只能产生 tentative；tentative
 不能授权 successor、Contact create/send 或 DM authority。
+
+所有 service-signed Contact proof/receipt 的 `issuer_id` 都是 `DidCoreId` Station service authority，并使用
+`issued_at`/`accepted_at`/`observed_at` 对应 evidence time 已接受且历史完整的 source service key 验签；它从不表示
+pair member。`contact_current_proof` 另签 required `peer: contact_peer`，补全
+`(contact_round_id, issuer_id, peer)` lineage key；方向 subject 是 exact pair 中不等于 `peer` 的唯一成员。
+bundle 的两张 proof 必须覆盖 `p0 -> p1` 与 `p1 -> p0` 两个相反方向，不能按 issuer 集合或 head author 去重。
+非 terminal proof 的 exact head Event author 必须等于方向 subject 且 payload peer 必须等于 signed `peer`；terminal
+proof 即使共同指向同一 tombstone head，仍按 signed peer 覆盖两个方向。重复方向、对调 peer、pair 外 peer、同一方向
+两个时点快照或错误 service signer全部拒绝。
+
+`glare_concurrency_attestation` 同理签 `subject_id: ActorId`、`peer_id: ActorId` 与
+`issuer_id: DidCoreId`。两张 attestation 必须分别是 `p0 -> p1` 与 `p1 -> p0`，issuer 必须是 subject 在
+`observed_at` 已接受的 Station service authority；同 core 异 Station与同 Station双账号均按完整 ActorId 独立判定，
+不得保留裸 core 兼容分支。
 
 `ak.peer.contacts.command.submit.v1` 是唯一 peer carrier，其 closed XOR 分支分别机器限定原始 signed Event kind为
 `ak.contact.requested|accepted|rejected|scope.update|tombstone`并携该分支exact acceptance receipt与允许的
@@ -156,6 +196,14 @@ source-signed proof替换旧 proof，不能修改 fact/receipt/round；成功响
 任何不匹配当前 closed XOR 的请求
 都必须 schema reject；实现不得协商第二种 carrier，也不得以缺少必需 branch receipt 或 proof 的自定义结构进入
 projection。
+
+每个 peer carrier 的 `contact_address` 只有一个身份字段 `recipient: contact_peer`。human 分支携完整
+`account_id`；agent 分支携完整 `actor_id + controller_account_id`，不开放 service participant 分支。delivery Station
+只从 human `account_id.station_id` 或 agent `controller_account_id.station_id` 唯一派生，并必须与 authenticated
+destination service、signed Event author/target 的 exact participant 交叉一致。`subject_id`、`recipient_id`、
+`recipient_kind` 及任何裸 host/subject sidecar 都是 forbidden wire。`service_resolution` 与可选
+`route_assistance` 只提供该派生 Station 的私有首跳 transport material，不进入 durable Event、projection、member cell
+或长期 authority；替换路由材料不能改变 participant identity。
 
 ## 3. Directional scope、current head 与终态
 
@@ -305,15 +353,15 @@ handle、display name、设备 ID、endpoint、Realm ID、Strand ID 与 Contact 
 
 ```text
 founder(contact_round) =
-    normal 分支 -> sorted_pair_member_ids 中不等于 request_event_ref 之 issuer_id 的那一方（即 responder）
-    glare  分支 -> requests[0].request_event_ref 之 issuer_id
+    normal 分支 -> sorted_pair_member_ids 中不等于 request_event_ref 之 author/requester 的那一方（即 responder）
+    glare  分支 -> requests[0].request_event_ref 之 author/requester
 ```
 
 **normal 分支取 responder 而非 requester 是 normative 选择**：Contact round 由 responder 的 `normal_response_acceptance_receipt` 点亮，该 receipt 证明 responder 在该 round 成立时在线且刚完成签名；requester 可能在数日前发出请求后即长期离线。base v1 不定义 fallback（§5.7），因此把 founder 定为可能不在场的一方会使该 pair 永久无法创建。
 
 glare 分支不存在 responder，`requests[0]` 依 §2 已登记的 canonical ordering 取得，**MUST NOT** 另立排序规则。
 
-`sorted_pair_member_ids` 不恰为二、request issuer_id 不属于该 pair、glare requests 未按登记顺序或两个 issuer_id 不构成该 pair 时，founder 派生 **MUST** 失败并整组拒绝，**MUST NOT** 以补集或本地偏好猜测。
+`sorted_pair_member_ids` 不恰为二、request Event author/requester 不属于该 pair、glare requests 未按登记顺序或两个 requester 不构成该 pair 时，founder 派生 **MUST** 失败并整组拒绝，**MUST NOT** 以补集或本地偏好猜测。这里的 author/requester 是 signed Event 的完整 `ActorId`，不是 service-signed proof/receipt 的 `issuer_id`。
 
 ### 5.3 root Contact round 与 recontact continuity
 

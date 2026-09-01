@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.2",
+  "version": "2026-09-01.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-01T10:31:00+08:00",
+  "generated_at": "2026-09-01T12:16:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2041,6 +2041,19 @@
       "vector_id": "ak.vector.directory.announce_signature_stale.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
+        "spec/v1/zh/discovery/discovery-directory.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.directory.announce_source_ref_access_bounds.v1",
+      "status": "active",
+      "domain": "directory",
+      "description": "Directory announce accepts only a current source-signed carrier for the authenticated Directory and exact announce, and peer exact resolve returns only requested refs inside that carrier; wrong source, wrong Directory, expiry, supersession, withdrawal and out-of-carrier selectors fail closed.",
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
@@ -5046,6 +5059,21 @@
       ]
     },
     {
+      "vector_id": "ak.vector.proof_context.transcript.directory_source_ref_access.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.directory_source_ref_access_proof.v1 with exact source, Directory, Realm, discovery Event, bounded refs, as_of and expiry; mutation and cross-context replay are rejected.",
+      "covers_proof_contexts": [
+        "ak.directory_source_ref_access_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.proof_context.transcript.event_batch_receipt.v1",
       "status": "active",
       "domain": "proof_context",
@@ -5097,6 +5125,36 @@
       "description": "Transcript KAT for ak.handle_claim_proof.v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.identity_creation_control_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.handle_claim_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.handle_claim_revocation.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.handle_claim_revocation.v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.handle_claim_revocation.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.handle_claim_status.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.handle_claim_status.v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.handle_claim_status.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -5367,6 +5425,21 @@
       "description": "Transcript KAT for ak.mimi_provider_directory_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi_request_consent_request_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.mimi_provider_directory_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.mimi_reporter_authority.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.mimi_reporter_authority_proof.v1 with the exact Actor, provider, room, report Event, target, accepted membership and room-binding refs and expiry; mutation and cross-context replay are rejected.",
+      "covers_proof_contexts": [
+        "ak.mimi_reporter_authority_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"

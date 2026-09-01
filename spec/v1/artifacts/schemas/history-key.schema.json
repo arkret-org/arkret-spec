@@ -310,10 +310,12 @@
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
         "holder_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Principal projection of the holder signing authority named by holder_signing_ref. This is intentionally not an AccountId: the tuple separately binds the service route/authority in holder_id."
         },
         "holder_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "History-key holder service route and authority. It has a different role from holder_principal_id (the signing principal projection) and MUST NOT be inferred from or compared as though it were that principal."
         },
         "holder_signing_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"

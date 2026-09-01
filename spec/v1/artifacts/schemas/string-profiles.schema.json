@@ -35,7 +35,7 @@
       "type": "string",
       "minLength": 5,
       "maxLength": 382,
-      "pattern": "^[^\\s:@/#?\\\\]+:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$",
+      "pattern": "^(?!ak:)[^\\s:@/#?\\\\]+:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$",
       "format": "arkret-canonical-handle",
       "description": "Canonical <prepared-localpart>:<lowercase-A-label-domain> handle or realm alias. The prepared localpart maximum is 128 Unicode code points; the domain maximum is 253 ASCII octets."
     },

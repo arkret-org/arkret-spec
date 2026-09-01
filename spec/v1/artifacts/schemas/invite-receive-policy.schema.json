@@ -92,27 +92,27 @@
       },
       "uniqueItems": true
     },
-    "trusted_principal_ids": {
+    "trusted_source_ids": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did_core_id"
       },
       "uniqueItems": true
     },
-    "denied_principal_ids": {
+    "denied_source_ids": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did_core_id"
       },
       "uniqueItems": true
     },
-    "denied_subject_ids": {
+    "denied_actor_ids": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/did_core_id"
+        "$ref": "./common-ids.schema.json#/$defs/actor_id"
       },
       "uniqueItems": true,
-      "description": "Per-subject block list (peer principal DIDs). Invite delivery whose inviter is in this list MUST be dropped, and disclosure MUST be forced to opaque regardless of the disclosure policy, to avoid leaking the block via a side channel."
+      "description": "Per-account/actor block list. Invite delivery whose exact inviter ActorId is in this list MUST be dropped, and disclosure MUST be forced to opaque regardless of the disclosure policy. Accounts with the same principal core at different Stations are distinct."
     },
     "disclosure": {
       "$ref": "#/$defs/disclosure_policy",
@@ -258,14 +258,14 @@
           },
           "uniqueItems": true
         },
-        "trusted_principal_ids": {
+        "trusted_source_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
-        "denied_principal_ids": {
+        "denied_source_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"

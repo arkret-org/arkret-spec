@@ -684,7 +684,7 @@
           "$ref": "#/$defs/request_id"
         },
         "account_handle": {
-          "$ref": "./handle-claim.schema.json#/properties/handle",
+          "$ref": "./handle-claim.schema.json#/$defs/handle_claim_core/properties/handle",
           "description": "Canonical handle of the authenticated service account. This unsigned UX hint is only for display and local artifact naming; it MUST NOT be treated as principal identity evidence, authorization, or a service-account-to-principal binding."
         },
         "account_subject": {

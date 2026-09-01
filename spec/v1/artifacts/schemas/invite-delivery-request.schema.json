@@ -113,9 +113,6 @@
           "$ref": "#/$defs/handle_claim_evidence"
         },
         {
-          "$ref": "#/$defs/same_station_evidence"
-        },
-        {
           "$ref": "#/$defs/explicit_address_evidence"
         }
       ]
@@ -201,7 +198,7 @@
         },
         "handle_claim": {
           "$ref": "./handle-claim.schema.json",
-          "description": "Verified handle claim proving that handle resolves to invite_address.account_id. The receiver MUST verify exact AccountId equality, binding_state, proofs, expiry, issuer trust, visibility/audience policy, and that handle_claim.handle equals handle."
+          "description": "Signed HandleClaim status view proving that handle resolves to invite_address.account_id. The receiver MUST verify exact handle_claim.claim.subject_account_id equality, status=verified, the signed as_of/fresh_until window, null revocation fields, core/status proofs, core expiry, issuer trust, visibility/audience policy, and that handle_claim.claim.handle equals handle."
         },
             "resolved_by": {
           "$ref": "#/$defs/did_core_id",
@@ -209,18 +206,6 @@
         },
         "resolved_at": {
           "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
-    "same_station_evidence": {
-      "type": "object",
-      "required": [
-        "kind"
-      ],
-      "properties": {
-        "kind": {
-          "const": "same_station"
         }
       },
       "additionalProperties": false

@@ -148,7 +148,7 @@ attempt 选择与 final 替换 MUST 按 [`signal.md` §7](./signal.md#7-message-
 5. **`unauthorized` frame**: 关闭连接，触发 session 刷新或退出登录。
 6. **建议 reconnect 退避**: 指数退避，起始 1s,最大 60s;`dropped` / `resync_required` 未携带 `reconnect_after_ms` 时可立即重连以缩短数据不一致窗口。客户端收到 `reconnect_after_ms`、HTTP `Retry-After` 或错误 body `retry_after_ms` 时，MUST 优先遵守服务端指令，并 SHOULD 加 jitter 避免同批客户端同步重连。
 
-`reconnect_after_ms` 是 200 stream control frame 内的重连保持时间，不是错误响应字段。服务端发送后 MUST 按至少 `(principal_id, device_id, operation_id, filter_digest)` 维度强制执行；在保持时间内的同 scope `/_arkret/self/account/subscribe` 请求 MUST 返回 `429 rate_limited` 并设置 `Retry-After`，且不得推进 account subscribe position、barrier wait 或 dropped recovery state（to-device 队列删除只由 §10.1 显式 ack 驱动，本就与 subscribe cursor 无关）。服务端 MAY 在实现中加入 source IP / session id / trust domain 等更细维度，但不得把该限制扩大到无关 API。
+`reconnect_after_ms` 是 200 stream control frame 内的重连保持时间，不是错误响应字段。服务端发送后 MUST 按至少 `(account_id, device_id, operation_id, filter_digest)` 维度强制执行；在保持时间内的同 scope `/_arkret/self/account/subscribe` 请求 MUST 返回 `429 rate_limited` 并设置 `Retry-After`，且不得推进 account subscribe position、barrier wait 或 dropped recovery state（to-device 队列删除只由 §10.1 显式 ack 驱动，本就与 subscribe cursor 无关）。服务端 MAY 在实现中加入 source IP / session id / trust domain 等更细维度，但不得把该限制扩大到无关 API。
 
 ## 3. Stream Classes
 
@@ -197,7 +197,7 @@ Account subscribe `delta` frame 包含以下 stream：
 - 客户端 projector MUST 按 `upsert=按同 id 插入或完整替换`、`remove=删除` 应用 delta；把所有 action 都当 insert 的实现不得声明支持该 notification delta。
 - `upsert` 后，客户端 MUST 重读 Agent，要求当前 `approval_request_id` 相同、`key_state.pairing_request_id` / `pairing_mode` / `pairing_expires_at` 共同表明 pairing 仍 open 且未过期，并要求通用 `agent.readiness.blockers` 含 `pairing_open`；`pairing_mode=bootstrap` 时还必须含 `runtime_key_missing`，`replacement` 时必须存在 active authorization 且显示 runtime key replacement 警告。通用 view/key_state 不含 `runtime_state`；该字段只在 runtime pairing poll 响应出现。lifecycle 意图与 open handle 不互锁，pause / resume 不被 replacement 阻塞。服务端在 handle consumed 或过期后 MUST 原子清除上述 open-handle 投影（以及 `pairing_code`）并重算 readiness。审批前 MUST 再次读取或依赖服务端 current-request CAS。匹配 `remove` 必须关闭 prompt并清除本地缓存。Local dismiss 只影响当前设备 UI，不写 durable dismissed state。
 
-Notification 是 account-private projection，不是 Realm Event。服务端必须从认证的 provision/session 上下文派生 `controller_account_id` 与 `recipient_id`，调用方不得提交它们；selection 必须同时绑定 account context、principal 与 service。若同一服务允许一个 principal 绑定多个本地 account，session 与 cursor 也 MUST 绑定本地 account id，仅按 DID 过滤不充分。该 notification 没有 `realm_id`，不得经过 `realm_id_accessible`。
+Notification 是 account-private projection，不是 Realm Event。服务端必须从认证的 provision/session 上下文派生 `controller_account_id` 与 `recipient_id`，调用方不得提交它们；selection、session 与 cursor 必须直接绑定完整 `AccountId`，不得另以裸 principal 加本地账号 sidecar 拼接。该 notification 没有 `realm_id`，不得经过 `realm_id_accessible`。
 
 每次 upsert/remove 都 MUST 在持久化事务中分配严格单调的 notification projection position；不得用可改写的 `created_at` 加 id 拼 position。Opaque account cursor 内部保存其 high-water。Initial sync 必须把当前 account context 下全部仍 open 的 `agent_runtime_approval` 作为 `upsert` baseline 返回；该子集是完整集合，客户端应用前必须删除同一 account context 本地缓存中 baseline 未出现的 open approval。Incremental sync 只返回 cursor position 之后的变化；终止 tombstone 至少保留到 account cursor 最大生命周期加安全窗口。
 
@@ -402,7 +402,13 @@ event_id ASC
   "member_roster": {
     "entries": [
       {
-      "actor_id": "ak:did_core:key:z6MkRealmPairwise...",
+      "actor_id": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:key:z6MkRealmPairwise...",
+          "station_id": "ak:did_core:webvh:z6MkStation..."
+        }
+      },
       "membership": "join",
       "identity_event_ids": [
         "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
@@ -413,21 +419,32 @@ event_id ASC
       "handle_claims": [
         {
           "schema": "ak.schema.handle_claim.v1",
-          "handle": "alice:acme.example",
-          "subject": "ak:did_core:webvh:zQmPr8ExampleSubject",
-          "issuer": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
-          "binding_state": "verified",
-          "created_at": "2026-05-27T00:00:00Z",
-          "expires_at": "2026-06-27T00:00:00Z",
-          "proofs": [
-            {
-              "kind": "detached_jws",
-              "verification_method": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#key-1",
-              "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-              "created_at": "2026-05-27T00:00:00Z",
-              "jws": "aaa.bbb.ccc"
-            }
-          ]
+          "claim": {
+            "schema": "ak.schema.handle_claim_core.v1",
+            "handle": "alice:acme.example",
+            "handle_aliases": [],
+            "subject_account_id": {
+              "principal_id": "ak:did_core:key:z6MkRealmPairwise...",
+              "station_id": "ak:did_core:webvh:z6MkStation..."
+            },
+            "issuer_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+            "claim": { "kind": "handle_binding" },
+            "visibility": "public",
+            "audience": null,
+            "issued_at": "2026-05-27T00:00:00.000Z",
+            "expires_at": "2026-06-27T00:00:00.000Z",
+            "source_refs": [],
+            "proofs": ["issuer_attestation proof", "holder_acceptance proof"]
+          },
+          "claim_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "status": "verified",
+          "as_of": "2026-05-27T00:01:00.000Z",
+          "verifier_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+          "verified_at": "2026-05-27T00:01:00.000Z",
+          "revocation": null,
+          "revocation_digest": null,
+          "fresh_until": "2026-05-27T00:06:00.000Z",
+          "status_proof": "status_attestation proof"
         }
       ],
       "member_display_state_digest": "sha256:..."
@@ -444,24 +461,30 @@ event_id ASC
 | --- | --- | --- | --- |
 | `actor_id` | `ActorId` | MUST | 等于当前 effective `ak.member.state` cell subject / `payload.member_id`，按完整 Actor（包括 AccountId 的 principal 与 Station 分量）比较，不能降格为裸 DID。高隐私 Realm 中 principal 分量 MAY 使用 Realm-scoped pairwise DID；作为**长期 membership key** 的 pairwise DID MUST 由 `did:webvh` 派生（可持久解析 / 轮换 / 撤销）或在部署 `method_policy` 中显式豁免，MUST NOT 使用被标为 `ephemeral_only` 的 `did:key`（见 [`sovereign-deployment.md` §3.1](./sovereign-deployment.md)）。真实 principal 的披露由当前 effective `ak.member.identity.update` events 决定。 |
 | `membership` | enum | MUST | 当前 effective membership，取 `join` / `knock`。leave / ban 不进入 roster；Invite 不产生 roster entry。 |
-| `subject_id` | `DidCoreId` | MAY | handle claim 的 `subject` 对应的 holder / principal 稳定 `did_core_id`，不是裸 DID，也不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal / holder `did_core_id` 时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略，由客户端解密后再走 `ak.find.directory.read.list_handles_for_subject.v1`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
+| `subject_id` | `DidCoreId` | MAY | handle claim `claim.subject_account_id.principal_id` 对应的 holder / principal 稳定投影，不是完整账号，也不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal 分量时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略；解密得到裸 subject 后仍不得猜 Station，只有另有 exact AccountId 才能走 `ak.find.directory.read.list_handles_for_subject.v1`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
 | `identity_event_ids` | event id array | MAY | 当前 effective `ak.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` 或 `state.events`。 |
 | `handle_claim_digests` | hash array | MAY | 当前对调用方可见且可用于该 Realm context 的 effective handle claims 的 canonical digest 集合。每个 digest 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 的 `claim_digest(c)` 定义计算。该字段是跨上下文稳定标识，MUST NOT 在 `subject_id` 未披露时返回。 |
-| `handle_claims` | handle claim array | MAY | 可选内联的完整 `ak.schema.handle_claim.v1` objects。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_id` 未披露时返回；若返回，每个 claim 的 `subject` MUST 等于 `subject_id`。服务端 MAY 因隐私、体积或 freshness 省略，客户端可用 `subject_id` 调 `ak.find.directory.read.list_handles_for_subject.v1` 补拉。 |
+| `handle_claims` | handle claim array | MAY | 可选内联的完整 `ak.schema.handle_claim.v1` status views。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_id` 未披露时返回；若返回，每个 `claim.claim.subject_account_id.principal_id` MUST 等于 `subject_id`。服务端 MAY 因隐私、体积或 freshness 省略；客户端只有在另有 exact AccountId 时才能调用 `ak.find.directory.read.list_handles_for_subject.v1` 补拉，不得从裸 `subject_id` 猜 Station。 |
 | `handle_claims_limited` | boolean | MAY | `true` 表示 `handle_claims[]` 被截断或仅含 digest hints；客户端 MUST NOT 把缺失 claim 解释为该 subject 没有 handle。该字段只在 `subject_id` 已披露且 handle claim set 对调用方可见时返回。 |
-| `member_display_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}], handle_claims:[{claim_digest,binding_state,expires_at}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序，`handle_claims` 按 `(claim_digest)` 排序。用于 roster display cache 失效和重复响应去重；不同于本地从 `ak.member.identity.update.payload.identity_payload` 推导的 carrier digest。 |
+| `member_display_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}], handle_claims:[{claim_digest,status,revocation_digest,fresh_until}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序，`handle_claims` 按 `(claim_digest)` 排序。用于 roster display cache 失效和重复响应去重；不同于本地从 `ak.member.identity.update.payload.identity_payload` 推导的 carrier digest。 |
 | `identity_events` | Event array | MAY | 可选内联的原始 `ak.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。该字段可能明文或可解密地披露同一 member `subject_id`，因此 `subject_id` 未披露时 MUST 省略。 |
 
-`handle_claim_digests[]` 是跨上下文稳定的 claim identifier；完整 `handle_claims[]` 又直接携带 claim `subject`，`identity_events[]` 也可能披露 `MemberIdentity.subject_id`。因此，当 `subject_id` 因 Realm disclosure policy 未披露时，服务端 MUST 同时省略 `identity_events`、`handle_claim_digests`、`handle_claims` 和 `handle_claims_limited`，不得把 digest hint 或原始 identity event 当作隐私安全的替代披露。返回完整 `handle_claims[]` 时，服务端 MUST 确保每个 claim 的 `subject` 等于同一 roster entry 的 `subject_id`；不匹配的 claim MUST 被丢弃或导致该 roster entry 失败 closed。
+`handle_claim_digests[]` 是跨上下文稳定的 claim identifier；完整 `handle_claims[]` 又直接携带 `claim.subject_account_id`，`identity_events[]` 也可能披露 `MemberIdentity.subject_id`。因此，当 `subject_id` 因 Realm disclosure policy 未披露时，服务端 MUST 同时省略 `identity_events`、`handle_claim_digests`、`handle_claims` 和 `handle_claims_limited`，不得把 digest hint 或原始 identity event 当作隐私安全的替代披露。返回完整 `handle_claims[]` 时，服务端 MUST 确保每个 `claim.claim.subject_account_id.principal_id` 等于同一 roster entry 的 `subject_id`；不匹配的 claim MUST 被丢弃或导致该 roster entry 失败 closed。裸 `subject_id` 不足以重建完整 AccountId。
 
-`member_display_state_digest` 只覆盖影响 roster display selection 的 stable 输入：effective identity event references 与当前可见 handle claim 的 `claim_digest` / `binding_state` / `expires_at`。Issuer 仅刷新 `verified_at`、签名打包顺序或其它非语义 freshness hint 时，该 digest MAY 保持不变；需要强制刷新证据新鲜度的服务应使用 claim cache TTL、`as_of` 或重新拉取 claim evidence，而不是通过 digest churn 表达 freshness。
+`member_display_state_digest` 覆盖 effective identity event references 与当前可见 HandleClaim status view 的 `claim_digest` / `status` / `revocation_digest` / `fresh_until`。只重打包等价 proof 不改变它；重新签发 freshness、状态迁移或撤销都会改变它，使 roster display cache 不能越过 signed `fresh_until` 继续复用。`binding_state` 不是该摘要的独立投影，也不得从本地数据库行补造。
 
 `ak.member.identity.update` payload 形态：
 
 ```json
 {
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "actor_id": "ak:did_core:key:z6MkRealmPairwise...",
+  "member_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:key:z6MkRealmPairwise...",
+      "station_id": "ak:did_core:webvh:z6MkStation..."
+    }
+  },
   "segment": "member_identity",
   "replaces": [
     {
@@ -486,14 +509,14 @@ event_id ASC
 
 当前 effective 身份事件集合的计算规则：
 
-- 候选集是同一 `(realm_id, actor_id, segment)` 下 accepted 的 `ak.member.identity.update` events。
+- 候选集是同一 `(realm_id, member_id, segment)` 下 accepted 的 `ak.member.identity.update` events。
 - `payload.replaces[].payload_digest` 是被替代事件完整 `payload.identity_payload` carrier wrapper（`{member_identity: ...}` 或 `{encrypted_payload: ...}`）的 RFC 8785 JCS canonical JSON bytes 的 `sha256` digest。
 - 若 accepted event `B` 的 `replaces[]` 引用 accepted event `A`，且 `payload_digest` 等于 `A.payload.identity_payload` 的 digest，则 `A` 在当前 projection 中被 `B` 替代。
-- `replaces[]` 引用未知 event、其它 `(realm_id, actor_id, segment)` 的 event，或 digest 不匹配时，该 replacement edge 无效；实现 MUST NOT 因此把被引用 event 从 effective set 移除。
+- `replaces[]` 引用未知 event、其它 `(realm_id, member_id, segment)` 的 event，或 digest 不匹配时，该 replacement edge 无效；实现 MUST NOT 因此把被引用 event 从 effective set 移除。
 - 当前 effective set 是候选集中未被有效 replacement edge 指向的事件集合。成员身份查询 / roster hint SHOULD 只返回这个 effective set；历史 backfill / audit 查询 MAY 返回已被替代的旧事件。
 - effective set MAY 因并发写入或 replacement 冲突包含多个未被替代的事件。查询层 MUST 原样暴露该多值状态，MUST NOT 按本地排序、到达顺序或 last-writer-wins 规则静默收敛为单一 MemberIdentity。需要单一 MemberIdentity 的显示路径（例如 mention renderer）MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 处理：不唯一即 Realm-scoped projection 路径失败，进入 live / as-of resolve 或 fallback。
 - 当前事件 `payload.identity_payload` carrier wrapper 的 digest 由消费者从本体本地推导，只用于 payload cache / replacement edge 校验，不在 wire 上重复。
-- `expected_state_digest` 是可选 optimistic concurrency guard。若存在，它 MUST 等于 writer 观察到的同一 `(realm_id, actor_id, segment)` 当前 effective set digest：`sha256` over RFC 8785 JCS canonical JSON `{realm_id, actor_id, segment, effective_events:[{event_id, segment, payload_digest}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序。不匹配时服务端 / reducer MUST reject 或 quarantine，不得把该事件作为有效 replacement 应用。它不同于本地 carrier digest，也不同于 roster 的 `member_display_state_digest`。
+- `expected_state_digest` 是可选 optimistic concurrency guard。若存在，它 MUST 等于 writer 观察到的同一 `(realm_id, member_id, segment)` 当前 effective set digest：`sha256` over RFC 8785 JCS canonical JSON `{realm_id, member_id, segment, effective_events:[{event_id, segment, payload_digest}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序。不匹配时服务端 / reducer MUST reject 或 quarantine，不得把该事件作为有效 replacement 应用。它不同于本地 carrier digest，也不同于 roster 的 `member_display_state_digest`。
 
 MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `encrypted_payload.ciphertext` 解密结果）：
 
@@ -501,7 +524,13 @@ MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `en
 {
   "schema": "ak.schema.member_identity.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "actor_id": "ak:did_core:key:z6MkRealmPairwise...",
+  "actor_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:key:z6MkRealmPairwise...",
+      "station_id": "ak:did_core:webvh:z6MkStation..."
+    }
+  },
   "subject_id": "ak:did_core:webvh:zQmPr8...",
   "display_profile": {
     "display_name": "Alice Zhang",
@@ -536,7 +565,7 @@ Handle claim 获取与刷新规则：
 
 - 注册、邀请链接、管理员预分配、管理员后期修改、重签和撤销 handle 都落到 issuer / Auth Server / 部署本地 `ak.schema.handle_claim.v1` lifecycle。Arkret v1 core 不定义用户如何申请、管理员如何收到通知、谁有权审批、审批状态如何流转或客户端如何在 bootstrap 中领取自己的 claim。
 - 客户端不得通过 `ak.profile.update`、`ak.profile.realm_override` 或 `ak.member.identity.update` 自行设置 handle。无论 claim 来自 Auth Server bootstrap、issuer 本地 API、设备迁移恢复、Directory resolve 还是 roster 内联，客户端只有在 schema、issuer trust、proof、audience、expiry 和 revocation 状态验证通过后，才能把它作为 handle 授权事实。
-- 已知 `subject_id`、需要渲染 Realm member 当前 handle 时，客户端调用 `ak.find.directory.read.list_handles_for_subject.v1`，或使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`。已知 handle 字符串、需要解析到 subject 或投递绑定时，继续使用 `ak.find.directory.read.resolve_handle.v1`。
+- 已知 exact `AccountId`、需要渲染 Realm member 当前 handle 时，客户端调用 `ak.find.directory.read.list_handles_for_subject.v1`，或使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`。只知道裸 `subject_id` 时不得猜测 Station，应等待 AccountId disclosure 或使用已内联 evidence。已知 handle 字符串、需要解析到账号或投递绑定时，继续使用 `ak.find.directory.read.resolve_handle.v1`。
 - roster / member picker / mention autocomplete 的当前 handle projection MUST 由当前可见 handle-claim set + Realm policy 运行 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 得出。`ak.member.identity.update` 事件的 churn 不应成为 handle 更新传播的必要条件。
 - 若 `member_display_state_digest` 因 handle-claim set 变化而改变，服务端 SHOULD 在下一次 `/_arkret/self/account/subscribe` delta 中发送新的 roster entry 或使客户端相关 cache 失效；无法内联完整 claims 时，MUST 至少让 `handle_claim_digests` 或 digest 缺失状态发生可观察变化。
 
@@ -586,18 +615,18 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 2. 客户端本地 dispatcher 崩溃、account subscribe 暂未建立、或前台验证小流程尚未启动完整账号同步时，用于补拉未确认消息。
 3. 非 full-client 的窄实现（例如只做设备验证的登录前/登录中 UI）在持有受限 fresh-device session grant 时，可短轮询本设备队列以完成同一笔验证 transcript。
 
-一旦 full client 的 account subscribe 已经运行，客户端 SHOULD 停止为同一 `(principal_id, device_id)` 维持独立的 SAS 轮询循环；继续轮询只应作为检测到 `limited`、`dropped`、本地处理失败或显式用户前台流程的短期恢复手段。无论消息来自主路径还是补拉路径，ack、去重、过期、`lost` 处理和 transaction 幂等规则完全相同。
+一旦 full client 的 account subscribe 已经运行，客户端 SHOULD 停止为同一 `(account_id, device_id)` 维持独立的 SAS 轮询循环；继续轮询只应作为检测到 `limited`、`dropped`、本地处理失败或显式用户前台流程的短期恢复手段。无论消息来自主路径还是补拉路径，ack、去重、过期、`lost` 处理和 transaction 幂等规则完全相同。
 
 ### 10.1 显式投递确认 (normative)
 
 To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；account stream 与 to-device queue 使用的 `after=` cursor 都 **MUST NOT** 触发队列删除：
 
-1. **`ack_token` 签发**：服务端在每个携带非空 `to_device.messages` 的 `delta` frame 中 MUST 附带 `to_device.ack_token`；`GET /_arkret/self/device_messages` 的每个非空响应页同样 MUST 携带顶层 `ack_token`。`ack_token` 是 server-issued 不透明确认令牌，绑定 `(principal_id, device_id, 该批次的队列高水位)`，覆盖该批次及其之前所有已投递消息。它**不是 cursor**：不使用 `ak:cursor:` wire 形态，不进入 cursor schema / TTL / purpose 体系；客户端 MUST 把它当作不透明字符串原样回传。令牌 MUST 不可伪造：不可猜测（解码后熵 ≥ 128 bit）或等价的服务端查表绑定。**wire 形态（normative）**：`ack_token` MUST 是单个 UTF-8 字符串，且 MUST NOT 超过 1024 字节；客户端按不透明字符串原样回传、不解析其内部结构，服务端 MUST 拒绝超长或非 UTF-8 的 token（`param_invalid`）。该上界保证跨实现可移植，避免无界 token。
+1. **`ack_token` 签发**：服务端在每个携带非空 `to_device.messages` 的 `delta` frame 中 MUST 附带 `to_device.ack_token`；`GET /_arkret/self/device_messages` 的每个非空响应页同样 MUST 携带顶层 `ack_token`。`ack_token` 是 server-issued 不透明确认令牌，绑定 `(account_id, device_id, 该批次的队列高水位)`，覆盖该批次及其之前所有已投递消息。它**不是 cursor**：不使用 `ak:cursor:` wire 形态，不进入 cursor schema / TTL / purpose 体系；客户端 MUST 把它当作不透明字符串原样回传。令牌 MUST 不可伪造：不可猜测（解码后熵 ≥ 128 bit）或等价的服务端查表绑定。**wire 形态（normative）**：`ack_token` MUST 是单个 UTF-8 字符串，且 MUST NOT 超过 1024 字节；客户端按不透明字符串原样回传、不解析其内部结构，服务端 MUST 拒绝超长或非 UTF-8 的 token（`param_invalid`）。该上界保证跨实现可移植，避免无界 token。
 2. **显式 ack**：客户端仅在该 `ack_token` 覆盖位置（含）之前的**所有已投递消息**都已持久化处理完成（密钥材料、verification transcript、secret 已落盘）后，MUST 调用 `ak.self.device_messages.command.ack.v1`（`POST /_arkret/self/device_messages/ack`，body `{ack_token}`）。确认是**累计且单调**的：服务端删除该令牌覆盖位置（含）之前的全部已投递消息；ack 一个早于当前确认位置的令牌是合法 no-op，返回 `{pruned_count: 0}` 且 MUST NOT 回退确认位置。并行 dispatcher MUST 维护"最高已连续持久化队列位点"，MUST NOT ack 覆盖位置晚于任何未持久化消息的 token。该操作天然幂等，不需要 `Idempotency-Key`。
-3. **ack 校验**：服务端 MUST 校验 `ack_token` 绑定与当前 authenticated `(principal_id, device_id)` 匹配；unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。
-4. **cursor 只读与 envelope 幂等**：`/_arkret/self/account/subscribe` 与 `GET /_arkret/self/device_messages` 的 `after=` 都只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息，并原样保留 `DeviceMessageEnvelope.device_message_id`。客户端 MUST 在执行 handler 副作用前查询 durable `(sender_principal_id, sender endpoint id, device_message_id)` 去重记录；endpoint id 按 closed sender XOR 分别取 `sender_device_id`、`sender_agent_id` 或 `sender_id`。同 key 且已成功持久化的消息只恢复完成位点、不得再次执行 handler，随后仍可参与累计 ack。kind-specific `transaction_id` / `request_id` 只关联验证、secret 或其它业务 transcript，不得作为通用 envelope 去重键。相同 `device_message_id` 但 envelope canonical 内容不同视为协议冲突，MUST fail closed，不得覆盖既有去重记录。
+3. **ack 校验**：服务端 MUST 校验 `ack_token` 绑定与当前 authenticated `(account_id, device_id)` 匹配；unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。
+4. **cursor 只读与 envelope 幂等**：`/_arkret/self/account/subscribe` 与 `GET /_arkret/self/device_messages` 的 `after=` 都只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息，并原样保留 `DeviceMessageEnvelope.device_message_id`。客户端 MUST 在执行 handler 副作用前查询 durable closed-sender 去重记录：human device 使用 `(sender_account_id,sender_device_id,device_message_id)`，Agent 使用 `(sender_agent_id,device_message_id)`，Station service 使用 `(sender_id,device_message_id)`。同 key 且已成功持久化的消息只恢复完成位点、不得再次执行 handler，随后仍可参与累计 ack。kind-specific `transaction_id` / `request_id` 只关联验证、secret 或其它业务 transcript，不得作为通用 envelope 去重键。相同 `device_message_id` 但 envelope canonical 内容不同视为协议冲突，MUST fail closed，不得覆盖既有去重记录。
 5. **过期与丢失信号**：未确认消息仍受 `DeviceMessageEnvelope.expires_at` 与 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md) 队列 TTL 约束，过期 MUST 清除。服务端自该设备上次确认位置以来因过期或容量约束丢弃过未确认消息时，SHOULD 在下一个含 `to_device` 的响应中设置 `to_device.lost=true`；客户端收到后 SHOULD 触发密钥恢复路径（key backup / key re-request），MUST NOT 静默假设队列完整。**E2EE client profile 升级（normative）**：对声明 `ak.profile.e2ee_client.v1` 的客户端及其服务对端，由于丢弃的未确认 to-device 消息可能承载不可再生的 MLS Welcome / secret share / key material，上述两个 SHOULD 升为 **MUST**——服务端丢弃过该设备未确认消息时 **MUST** 设置 `to_device.lost=true`；客户端见到 `to_device.lost=true` 时 **MUST** 进入 key re-request / key backup 恢复路径，**MUST NOT** 静默把队列当作完整，以免 E2EE 密钥材料永久丢失而不被检出。
-6. **`ack_token` 独立于 stream cursor 生命周期（normative）**：`dropped` / `resync_required` frame、`cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized` 失效、以及任何清空本地 cursor 缓存的恢复动作，均 **MUST NOT** 使既有未确认的 `ack_token` 失效。`ack_token` 绑定的是 `(principal_id, device_id, to-device 队列高水位)`，与 stream cursor 的 wire 形态、TTL、purpose 和 revocation 体系完全独立（见 §10.1 第 1 条与 §12）。客户端在 cursor 失效 / dropped / resync 后重建订阅时，仍 MAY 用先前持有的有效 `ack_token` 确认已持久化处理的批次；服务端 MUST 仍按 §10.1 第 3 条校验该 token 的 `(principal_id, device_id)` 绑定并执行累计删除，不得仅因 stream cursor 已被重置就把该 token 当作 unknown / cross-binding 拒绝。该口径与 §12.2.1（cursor revoke 不影响已签发 `ack_token`）一致。
+6. **`ack_token` 独立于 stream cursor 生命周期（normative）**：`dropped` / `resync_required` frame、`cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized` 失效、以及任何清空本地 cursor 缓存的恢复动作，均 **MUST NOT** 使既有未确认的 `ack_token` 失效。`ack_token` 绑定的是 `(account_id, device_id, to-device 队列高水位)`，与 stream cursor 的 wire 形态、TTL、purpose 和 revocation 体系完全独立（见 §10.1 第 1 条与 §12）。客户端在 cursor 失效 / dropped / resync 后重建订阅时，仍 MAY 用先前持有的有效 `ack_token` 确认已持久化处理的批次；服务端 MUST 仍按 §10.1 第 3 条校验该 token 的 `(account_id, device_id)` 绑定并执行累计删除，不得仅因 stream cursor 已被重置就把该 token 当作 unknown / cross-binding 拒绝。该口径与 §12.2.1（cursor revoke 不影响已签发 `ack_token`）一致。
 
 > Rationale: cursor 前进表达的是「客户端收到了 frame」，安全删除需要的是「客户端已把载荷持久化」。把删除绑在 cursor 推进上（Matrix `/sync` 的隐式 ack 模型）会留下崩溃窗口：客户端收到 frame、cursor 已推进、但 MLS Welcome / secret share 尚未落盘即崩溃 → 消息被服务端删除、密钥材料永久丢失。显式 ack 把两个语义拆开后，cursor 不再是 to-device 不可逆删除的闸门；§12 的 cursor 完整性校验仍然原样保留——它防护的是伪造 / 跨绑定位点导致的静默缺口（含 `device_lists` 缺口的 E2EE 后果）、barrier 存在性预言机与 catch-up 成本放大，而非 to-device 删除。
 
@@ -660,7 +689,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 无论 stream 还是 barrier cursor，wire 形态 `ak:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于 `/_arkret/self/account/subscribe` `after=` resume 起点、`X-Arkret-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。v1 不存在 cursor 驱动的 to-device ack：to-device 队列删除只由 §10.1 显式 ack 驱动，cursor 的 to-device position 仅决定续传读取位置。
 
-**v1 core 采用单一 stateful opaque handle 形态**：canonical body 为 `{v, purpose, issued_at, expires_at, h}`，其中两个 instant 均为 canonical `.sssZ` string，`h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal_id, device_id, service_id, filter_digest, purpose, positions, target?, expiry)` 映射。Handle 查表本身就是完整性校验 —— 无需在线 transcript 校验，无需 `_mac` / `_sig`，无需 `issuer_kid` 密钥管理。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式。
+**v1 core 采用单一 stateful opaque handle 形态**：canonical body 为 `{v, purpose, issued_at, expires_at, h}`，其中两个 instant 均为 canonical `.sssZ` string，`h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(account_id, device_id, filter_digest, purpose, positions, target?, expiry)` 映射。这里 `account_id` 是完整 exact AccountId，已经包含 Station 分量；不得再以裸 `principal_id` 或 `service_id` sidecar 补齐账号身份。Handle 查表本身就是完整性校验 —— 无需在线 transcript 校验，无需 `_mac` / `_sig`，无需 `issuer_kid` 密钥管理。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式。
 
 服务端 SHOULD 将 handle → binding 映射持久化（或以其它方式保证其跨进程重启存活），使服务重启不会把所有未过期 cursor 同时变成未知 handle、迫使全部客户端按 §12.3 重做 initial sync。仅内存实现不违反完整性契约（未知 handle 仍按 `cursor_integrity_invalid` 失败 closed），但其重启代价随活跃客户端数线性放大；持久化实现 SHOULD 同时对未过期 handle 做超出 TTL 的及时清理（例如客户端出示更新 cursor 即可证明严格更旧的同流 handle 已被取代），避免 handle 表无界增长。
 
@@ -673,7 +702,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 任何 endpoint 在使用客户端回传的 cursor 推进 server-side state 之前，MUST 执行：
 
 1. 解析 `ak:cursor:<base64url>` 并按 `cursor.schema.json` 校验语法、`purpose`、TTL（`expires_at` 未过期）。语法/参数失败映射顶层 `param_invalid`（reason `invalid_cursor`）；TTL 失败映射 `cursor_expired`。
-2. **Handle 查表完整性校验**：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(principal_id, device_id, service_id, filter_digest, purpose)` 与当前 authenticated request 匹配；任一失败 → 返回 `cursor_integrity_invalid`，**MUST NOT** 推进任何 server-side state。
+2. **Handle 查表完整性校验**：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(account_id, device_id, filter_digest, purpose)` 与当前 authenticated request 匹配；`account_id` 必须是认证会话派生的完整 exact AccountId，不能拆成 principal + service sidecar。任一失败 → 返回 `cursor_integrity_invalid`，**MUST NOT** 推进任何 server-side state。
 3. 校验通过后才可读 handle 解析出的 positions（stream cursors）或 target（barrier cursors），并用于推进同步状态。
 
 `cursor_integrity_invalid` 与 `cursor_expired` 语义不同：前者是 tamper / 未知 handle / cross-binding，后者是 TTL 超时。客户端对 `cursor_integrity_invalid` 的恢复路径与 `cursor_expired` 一致（重做 initial sync），但客户端 SHOULD 把它视为本端 cursor 状态被污染的信号，清理本地 cursor 缓存。
@@ -690,10 +719,10 @@ POST /_arkret/self/account/cursor/revoke
 
 `revoke_scope` 范围的 normative 定义（与 [`identity/account-lifecycle.md`](../identity/account-lifecycle.md) 中的 session/device 标识对齐）：
 
-- session 抽象为 `(principal_id, device_id, issued_at, session_id)` 四元组，由签发 cursor 的服务在派发时记录在 cursor handle metadata 中。
+- session 抽象为 `(account_id, device_id, issued_at, session_id)` 四元组，由签发 cursor 的服务在派发时记录在 cursor handle metadata 中。
 - `this_cursor`：仅撤销当前提交的 cursor 本体（按 stateful handle 匹配）。
-- `same_session`：撤销与当前 cursor 同 `(principal_id, device_id, issued_at, session_id)` 的所有未过期 cursor（含同会话内派发的派生 cursor）。
-- `same_device`：撤销与当前 cursor 同 `(principal_id, device_id)` 的所有未过期 cursor（跨会话）。
+- `same_session`：撤销与当前 cursor 同 `(account_id, device_id, issued_at, session_id)` 的所有未过期 cursor（含同会话内派发的派生 cursor）。
+- `same_device`：撤销与当前 cursor 同 `(account_id, device_id)` 的所有未过期 cursor（跨会话）。
 - 当 cursor 来自浏览器或其它无稳定 `device_id` 的环境时，`same_device` MUST 在效果上退化为 `this_cursor`（服务端不得猜测设备同一性），并在响应 `revoke_scope_effective="this_cursor"` 中显式回执，以避免客户端误以为全设备已撤销。
 
 服务端接受后 MUST 将对应 cursor 写入 cursor revocation set（按 stateful handle 匹配），保留时间不少于该服务声明的最长 cursor TTL（stream / barrier cursor 的 TTL 硬上限唯一 canonical 数值见 [`encoding.md` §8.3 规则 9](../conformance/encoding.md)，本节不重复字面数值）。撤销命中时，任何 endpoint MUST 返回 `cursor_revoked`，并且不得推进 subscription position、barrier wait 或 dropped recovery state（to-device 队列删除不经 cursor，见 §10.1；cursor revoke 不影响已签发 `ack_token` 的有效性）。

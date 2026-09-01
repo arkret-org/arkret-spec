@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/current-signer-evidence-operations.schema.json",
+  "title": "Arkret Current Signer Evidence Operations",
+  "description": "Request-bound current signer evidence used by a cold recipient. The same closed request is used on the authenticated self proxy and peer authority hop; the authenticated caller service is derived from transport and is never supplied in the body.",
+  "$defs": {
+    "query_request": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "realm_id",
+        "operation_id",
+        "request_digest",
+        "recipient_account_id",
+        "challenge",
+        "queries"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "operation_id": {
+          "const": "ak.self.signal.command.send.v1"
+        },
+        "request_digest": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256",
+          "description": "SHA-256 typed digest of the complete received SignalEnvelope, including producer proof."
+        },
+        "recipient_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact authenticated recipient Account. On the self hop it MUST equal the SessionGrant subject; on the peer hop its station_id MUST equal authenticated Source-Service-ID."
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 24,
+          "maxLength": 512
+        },
+        "queries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/query_selector"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_selector": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/account_device_selector"
+        },
+        {
+          "$ref": "#/$defs/agent_selector"
+        }
+      ]
+    },
+    "account_device_selector": {
+      "type": "object",
+      "required": [
+        "sender_kind",
+        "account_id",
+        "device_id"
+      ],
+      "properties": {
+        "sender_kind": {
+          "const": "account_device"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_selector": {
+      "type": "object",
+      "required": [
+        "sender_kind",
+        "actor",
+        "verification_method"
+      ],
+      "properties": {
+        "sender_kind": {
+          "const": "agent"
+        },
+        "actor": {
+          "$ref": "#/$defs/agent_account_actor_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_account_actor_id": {
+      "type": "object",
+      "description": "Complete account ActorId whose principal MUST independently have accepted Agent classification. Agent is not an ActorId wire variant; service ActorId is invalid here.",
+      "required": [
+        "kind",
+        "account_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "account"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_outcome": {
+      "type": "object",
+      "required": [
+        "response",
+        "proof"
+      ],
+      "properties": {
+        "response": {
+          "$ref": "#/$defs/response_core"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "response_core": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "realm_id",
+        "operation_id",
+        "request_digest",
+        "recipient_account_id",
+        "challenge",
+        "verifier_id",
+        "issuer_id",
+        "issued_at",
+        "expires_at",
+        "evidences"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "operation_id": {
+          "const": "ak.self.signal.command.send.v1"
+        },
+        "request_digest": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256"
+        },
+        "recipient_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 24,
+          "maxLength": 512
+        },
+        "verifier_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Authenticated proxy Station. MUST equal recipient_account_id.station_id and the peer request Source-Service-ID."
+        },
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Authority Station signing this response. Every returned sender routes to this exact Station."
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "MUST be no later than issued_at plus 30 seconds and no later than every embedded current evidence expiry."
+        },
+        "evidences": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidence_item"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence_item": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/account_device_evidence"
+        },
+        {
+          "$ref": "#/$defs/agent_evidence"
+        }
+      ]
+    },
+    "account_device_evidence": {
+      "type": "object",
+      "required": [
+        "sender_kind",
+        "account_id",
+        "device_id",
+        "device_projection_attestation"
+      ],
+      "properties": {
+        "sender_kind": {
+          "const": "account_device"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "device_projection_attestation": {
+          "$ref": "./keys-operations.schema.json#/$defs/device_projection_attestation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_evidence": {
+      "type": "object",
+      "required": [
+        "sender_kind",
+        "actor",
+        "verification_method",
+        "authenticated_signer_evidence",
+        "dependencies"
+      ],
+      "properties": {
+        "sender_kind": {
+          "const": "agent"
+        },
+        "actor": {
+          "$ref": "#/$defs/agent_account_actor_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "authenticated_signer_evidence": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence"
+        },
+        "dependencies": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
+              },
+              {
+                "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/principal_signer_evidence"
+              },
+              {
+                "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence"
+              }
+            ]
+          },
+          "description": "Byte-exact recursive signer-evidence closure for the root. Traversal is cycle-checked and terminates after at most 64 unique content digests; no dependency may trigger another current-signer-evidence query."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.1",
+  "version": "2026-09-01.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-01T06:30:00+08:00",
+  "generated_at": "2026-09-01T12:16:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 231,
+    "total_operations": 233,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 229
+      "typed_schema": 231
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 144
+        "typed_schema": 146
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -583,10 +583,10 @@
       "http": "POST /_arkret/gate/account/session-grants/refresh",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/SessionGrantRefreshRequestBody",
-        "response": "#/components/schemas/SessionGrantRefreshOutcome"
+        "response": "#/components/schemas/SessionGrantOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -961,6 +961,20 @@
       "openapi_component_refs": {
         "request": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
         "response": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.current_signer_evidence.read.resolve.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/current-signer-evidence/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_request",
+      "response_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/CurrentSignerEvidenceQueryRequestBody",
+        "response": "#/components/schemas/CurrentSignerEvidenceQueryOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2112,7 +2126,7 @@
     {
       "operation_id": "ak.self.consent.command.grant.v1",
       "surface_class": "extension",
-      "http": "POST /_arkret/self/consent/cells/{holder_principal_id}/grant",
+      "http": "POST /_arkret/self/consent/cells/grant",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -2140,7 +2154,7 @@
     {
       "operation_id": "ak.self.consent.command.revoke.v1",
       "surface_class": "extension",
-      "http": "POST /_arkret/self/consent/cells/{holder_principal_id}/revoke",
+      "http": "POST /_arkret/self/consent/cells/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -2167,7 +2181,7 @@
     {
       "operation_id": "ak.self.consent.resource.get.v1",
       "surface_class": "extension",
-      "http": "GET /_arkret/self/consent/cells/{holder_principal_id}",
+      "http": "GET /_arkret/self/consent/cell",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -2312,6 +2326,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/ControlProposalDecisionReadRequestBody",
         "response": "#/components/schemas/ControlProposalDecisionReadOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.current_signer_evidence.read.resolve.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/current-signer-evidence/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_request",
+      "response_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/CurrentSignerEvidenceQueryRequestBody",
+        "response": "#/components/schemas/CurrentSignerEvidenceQueryOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -55,8 +55,6 @@
           "destination_id": "ak:did_core:webvh:z6mkfixturepsexample",
           "request": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
-            "target_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
-            "requester_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
             "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
             "mls_group_id": "fixture-group",
             "claim_purpose": "realm_membership",

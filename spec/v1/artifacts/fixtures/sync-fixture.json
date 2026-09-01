@@ -13,9 +13,15 @@
       "instance": {
         "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
         "kind": "ak.key.verification.request",
-        "sender_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "sender_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixtureservice"
+        },
         "sender_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
-        "recipient_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "recipient_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixtureservice"
+        },
         "recipient_device_id": "ak:device:01964137-1000-7000-8000-000000000012",
         "sent_at": "2026-07-16T08:00:00.000Z",
         "expires_at": "2026-07-16T08:10:00.000Z",
@@ -37,9 +43,15 @@
       "first_expected_error": "$: 'device_message_id' is a required property",
       "instance": {
         "kind": "ak.key.verification.request",
-        "sender_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "sender_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixtureservice"
+        },
         "sender_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
-        "recipient_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "recipient_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixtureservice"
+        },
         "recipient_device_id": "ak:device:01964137-1000-7000-8000-000000000012",
         "sent_at": "2026-07-16T08:00:00.000Z",
         "expires_at": "2026-07-16T08:10:00.000Z",
@@ -157,7 +169,7 @@
     "vector_id": "ak.vector.sync.to_device_message_idempotency.v1",
     "runner": "cotest::conformance::sync::run_to_device_message_idempotency_vector",
     "dedup_key": [
-      "sender_principal_id",
+      "sender_account_id",
       "sender_device_id",
       "device_message_id"
     ],

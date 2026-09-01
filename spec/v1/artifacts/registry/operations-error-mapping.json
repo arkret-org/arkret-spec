@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-31.2",
+  "version": "2026-09-01.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T18:30:05+08:00",
+  "generated_at": "2026-09-01T12:16:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -996,6 +996,12 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ak.peer.current_signer_evidence.read.resolve.v1",
+      "http_alias": "POST /_arkret/peer/current-signer-evidence/query",
+      "operation_specific": [],
+      "description": "All unknown, unauthorized, inactive, conflicted, expired, and wrong-Station selectors collapse to the same signed empty typed outcome; no item-specific error is exposed."
+    },
+    {
       "operation_id": "ak.root.identity.recovery_policy.command.publish.v1",
       "http_alias": "POST /_arkret/root/identity/recovery-policy",
       "operation_specific": [
@@ -1577,6 +1583,12 @@
         "not_found"
       ],
       "description": "Authenticated non-enumerating observation of one durable proposal/Ack/decision/Seal state."
+    },
+    {
+      "operation_id": "ak.self.current_signer_evidence.read.resolve.v1",
+      "http_alias": "POST /_arkret/self/current-signer-evidence/query",
+      "operation_specific": [],
+      "description": "The authenticated proxy returns the origin-signed typed outcome byte-for-byte; selector failures remain an indistinguishable empty success rather than an operation-specific error."
     },
     {
       "operation_id": "ak.self.device_messages.command.ack.v1",

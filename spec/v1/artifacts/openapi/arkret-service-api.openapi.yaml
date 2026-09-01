@@ -722,6 +722,10 @@ components:
       $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_outcome
     ControlProposalDecisionSubmitRequestBody:
       $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_request_body
+    CurrentSignerEvidenceQueryOutcome:
+      $ref: ../schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome
+    CurrentSignerEvidenceQueryRequestBody:
+      $ref: ../schemas/current-signer-evidence-operations.schema.json#/$defs/query_request
     Cursor:
       type: string
       pattern: ^ak:cursor:[A-Za-z0-9_-]+$
@@ -1766,8 +1770,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody
     SessionGrantOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome
-    SessionGrantRefreshOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome
     SessionGrantRefreshRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody
     SessionGrantReplayExpiredProblem:
@@ -4657,6 +4659,38 @@ paths:
           $ref: '#/components/responses/NotFound'
         '413':
           description: Requested or produced material exceeds the registered response budget.
+  /_arkret/peer/current-signer-evidence/query:
+    post:
+      operationId: ak.peer.current_signer_evidence.read.resolve
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.current_signer_evidence.read.resolve.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Resolve origin-signed current sender authority for a cold recipient.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurrentSignerEvidenceQueryRequestBody'
+      responses:
+        '200':
+          description: Origin-signed exact-context current signer evidence or an indistinguishable empty result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentSignerEvidenceQueryOutcome'
   /_arkret/peer/signal:
     post:
       operationId: ak.peer.signal.command.relay
@@ -6728,6 +6762,34 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentSignerEvidenceQueryRequestBody'
+  /_arkret/self/current-signer-evidence/query:
+    post:
+      operationId: ak.self.current_signer_evidence.read.resolve
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.current_signer_evidence.read.resolve.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Proxy a cold-recipient current signer evidence query to the sender authority.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurrentSignerEvidenceQueryRequestBody'
+      responses:
+        '200':
+          description: Byte-exact origin-signed current signer evidence response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentSignerEvidenceQueryOutcome'
   /_arkret/self/identity/resolution-audit/query:
     post:
       operationId: ak.self.identity.read.resolution_audit
@@ -8989,7 +9051,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellList'
-  /_arkret/self/consent/cells/{holder_principal_id}:
+  /_arkret/self/consent/cell:
     get:
       operationId: ak.self.consent.resource.get
       security:
@@ -9004,11 +9066,6 @@ paths:
         schema:
           type: string
           const: ak.self.consent.resource.get.v1
-      - in: path
-        name: holder_principal_id
-        required: true
-        schema:
-          type: string
       - name: peer
         in: query
         required: true
@@ -9033,7 +9090,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellView'
-  /_arkret/self/consent/cells/{holder_principal_id}/grant:
+  /_arkret/self/consent/cells/grant:
     post:
       operationId: ak.self.consent.command.grant
       security:
@@ -9048,11 +9105,6 @@ paths:
         schema:
           type: string
           const: ak.self.consent.command.grant.v1
-      - in: path
-        name: holder_principal_id
-        required: true
-        schema:
-          type: string
       requestBody:
         required: true
         content:
@@ -9066,7 +9118,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellView'
-  /_arkret/self/consent/cells/{holder_principal_id}/revoke:
+  /_arkret/self/consent/cells/revoke:
     post:
       operationId: ak.self.consent.command.revoke
       security:
@@ -9081,11 +9133,6 @@ paths:
         schema:
           type: string
           const: ak.self.consent.command.revoke.v1
-      - in: path
-        name: holder_principal_id
-        required: true
-        schema:
-          type: string
       requestBody:
         required: true
         content:
@@ -9873,7 +9920,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionGrantRefreshOutcome'
+                $ref: '#/components/schemas/SessionGrantOutcome'
         '409':
           description: Conflicting refresh intent, terminal recorded successor, or replay record no longer decidable. A terminal replay carries closed session_grant_id/state details and never creates a second successor.
           content:

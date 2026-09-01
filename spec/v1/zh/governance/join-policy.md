@@ -67,6 +67,32 @@ Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不�
 | `principal_admission` | DID method、principal allowlist 或 denylist selector 至少一个 | 在其它 gate 前执行的硬准入门；deny 优先 |
 | `cooldown` | `min_interval_since_leave` | 最近一次由成员本人签署的主动 leave 未过窗口时拒绝 |
 
+gate item 与 `join_policy` component 都是 closed object；每个 kind 只能携上表列出的专属材料与通用
+`gate_id/kind/auto_resolve`，`auto_resolve` 出现时只能为 `true`。扩展字段、把某 kind 的材料放进另一 kind、或缺任一
+required material 都必须 schema reject，不能由 reducer 猜默认值。
+
+`principal_admission` 的 identity predicate 只允许以下 closed 字段：
+`allowed_account_ids/denied_account_ids: AccountId[]`、
+`allowed_actor_ids/denied_actor_ids: ActorId[]`、
+`allowed_principal_core_ids/denied_principal_core_ids: DidCoreId[]` 与正交的
+`allowed_did_methods[]`。至少一个字段必须出现；旧 `allowed_principal_ids/denied_principal_ids` 是 forbidden wire。
+predicate 适用角色由同一 admission basis 中已接受的 subject classification 决定，不能由 list 命中反推：
+
+- `*_account_ids` 只对 `subject_class=human` 的 exact AccountId 求值；
+- `*_actor_ids` 只对 `subject_class=agent|service` 的 exact ActorId 求值；Agent 即使 ActorId 使用 account 分支也仍只走
+  actor predicate，不能同时走 account predicate；
+- `*_principal_core_ids` 对所有 subject class 求值，但只用于 policy 明确声明“同一密码学主体跨账号”的场景，比较
+  Actor 的 principal 分量；它不能补全 Station，也不能把两个 Account/Actor 合并为同一成员；
+- `allowed_did_methods` 对该 Actor principal 的 evidence-time 已接受 DID method 求值，current resolver 或 transport DID
+  不能替代。
+
+同一 gate 内先对全部 applicable deny predicate 求并集，任一命中立即拒绝；随后对每个**出现的** applicable allow
+predicate 求交集，必须逐个命中。省略 allowed 字段表示该维度不约束；显式空 allowed array 表示该适用角色无成员可
+通过。省略或显式空 denied array均不拒绝任何成员。inapplicable role-specific predicate 不参与该 applicant 的交并运算，
+但 principal-core 与 DID-method predicate始终 applicable。多个 `principal_admission` gate 与 `cooldown` gate固定全部
+AND，任一失败即拒绝，不受 component `combinator` 影响；其它 gate 才按 `all/any` 组合。deny 优先级跨 gate 也不被
+任一 allow 命中覆盖。上述规则使 Account 与包含 account 分支的 Actor 不成为两套含混等价 allowlist。
+
 所有 gate 均必须可由 reducer 根据签名 Event、已接受状态和显式证明确定性重放。依赖服务端私有审核记录、自由文本判断或未登记外部状态的 gate 不得写入当前 v1 policy。
 
 ### 3.2 `directory_hint`
