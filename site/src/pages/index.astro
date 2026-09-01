@@ -2,94 +2,92 @@
 import MarketingLayout from "~/layouts/MarketingLayout.astro";
 import { repoUrl, specReleaseTag, specReleaseLabel } from "~/lib/site-meta";
 
-/* Homepage structure, in the order a first-time reader needs it:
- *   1. what it is          — hero lead
- *   2. what the world looks like, and who is authoritative at each layer
- *                          — protocolStack, from overview/architecture.md §3
- *                            (core stack Presentation→Identity) with the
- *                            authority column from the same file's §6 trust
- *                            boundaries.
- *   3. what it covers      — landings, from overview/current-model.md §1.1
- *   4. what you therefore get — guarantees (audit / security / cross-org)
- *   5. where to start reading — entryPoints
- * Keep every entry to one sentence; the spec pages carry the detail. */
+/* Lead with the collaboration outcomes a product team or organization gets.
+ * Protocol mechanics come later as the explanation for how those outcomes
+ * remain portable and independently verifiable. */
 
-const protocolStack = [
+const capabilities = [
   {
-    plane: "Presentation",
-    name: "客户端界面",
-    what: "聊天、看板、时间线、日历、文档——都是同一份事实的不同画法。",
-    authority: "派生，可随时重算",
+    mark: "联邦",
+    title: "不必加入同一家 SaaS",
+    body: "个人、团队和组织可以运行自己的 Station，并在共享 Realm 中直接协作。成员关系、数据驻地和服务选择不再由单一平台垄断。",
   },
   {
-    plane: "Projection",
-    name: "本地投影",
-    what: "当前状态、搜索和收件箱默认在你自己的设备上算出来，不必交给服务端索引。",
-    authority: "派生，不是真相源",
+    mark: "E2EE",
+    title: "服务器负责送达，不负责阅读",
+    body: "需要保密的 Realm、Circle 与 Agent Sidecar 使用独立的 MLS 加密边界。正文只在授权端点解密，联邦服务器转发密文也能完成同步。",
   },
   {
-    plane: "Distribution",
-    name: "同步与联邦",
-    what: "Station 之间交换 Realm 增量；加密内容原样转发，服务器不需要能读懂。",
-    authority: "可替换的基础设施",
-  },
-  {
-    plane: "Write",
-    name: "签名事件",
-    what: "每一次持久修改——消息、任务、文档、通话、权限变更、Agent 产出——都是一条 actor 签名的 Event，按 Realm 划定成员、历史与加密边界。",
-    authority: "唯一事实",
-    truth: true,
-  },
-  {
-    plane: "Identity",
-    name: "身份",
-    what: "principal 是一个 did:webvh，带可审计的控制历史；由你或你的组织掌握，不属于任何厂商。",
-    authority: "信任根",
+    mark: "Human + Agent",
+    title: "Agent 是协作者，不是超级账号",
+    body: "Agent 以独立 Actor 身份加入，受 capability、责任链和 Realm policy 约束；它可以在私人 Sidecar 中工作，再由人明确发布到团队空间。",
   },
 ];
 
-const landings = [
+const scenarios = [
   {
-    concept: "群聊 / 频道",
-    body: "Realm 划定成员与历史边界，Strand 承载一个话题，消息挂在它的 discussion track 上。",
+    concept: "跨公司项目交付",
+    title: "甲乙双方各用自己的服务器",
+    body: "客户、供应商和审计方进入同一个受控 Realm；各自保留身份、基础设施与数据副本，只同步项目需要的加密协作内容。",
   },
   {
-    concept: "看板 / 列 / 卡片",
-    body: "看板和列都是 Space，卡片是 Strand。拖动改的是对象位置，不是某个视图的本地状态。",
+    concept: "个人 Agent 工作区",
+    title: "先私下研究，再选择是否公开",
+    body: "Agent 在当前 Realm 的私人 Sidecar 中读取获准上下文、整理方案和生成草稿；未经显式发布，不进入团队时间线，也不会改变共享对象。",
   },
   {
-    concept: "Issue / 依赖 / 指派",
-    body: "Strand 带粗粒度 stage；依赖、阻塞、指派用 Relation 表达，不藏在自由字段里。",
+    concept: "产品研发与应急响应",
+    title: "讨论、任务、文档和通话不再割裂",
+    body: "一个 Strand 同时承载正式沉淀与讨论，Relation 表达依赖和指派；客户端可把同一协作图显示为聊天、看板、文档或时间线。",
   },
   {
-    concept: "文档 / 长文",
-    body: "正文在 Strand 的 synthesis track，讨论在 discussion track，同一件事不用拆成两个产品。",
+    concept: "主权与内网部署",
+    title: "内部保持封闭，对外只开放协作飞地",
+    body: "核心 Realm 留在组织网络内，对外项目使用独立的协作 Realm、Station 和 Blob 边界；Agent、Applet 与数据导出都可按项目逐项授权。",
   },
   {
-    concept: "只给一部分人的私密子群",
-    body: "Circle 复用父 Realm 的联邦与策略，只裁剪成员、历史与投递，必要时启用独立 MLS group。",
+    concept: "跨工具长期协作",
+    title: "换界面、换客户端，不必迁移事实",
+    body: "同一批协作对象可以被桌面端、移动端或领域客户端重新投影；搜索、收件箱和视图默认在本地派生，产品体验不锁死协议数据。",
   },
   {
-    concept: "和自己的 AI Agent 协作",
-    body: "Agent Sidecar 是每个用户在每个 Realm 内的私人工作区，有独立 MLS，不是普通子群。",
+    concept: "开放社区与生态集成",
+    title: "跨组织开放，同时保留清晰边界",
+    body: "社区可以选择开放或受限联邦；Applet 通过显式权限连接代码托管、消息网络或业务系统，外部动作仍落回可验证的协作记录。",
   },
 ];
 
-const guarantees = [
+const foundations = [
   {
-    mark: "可审计",
-    title: "历史不需要相信服务器",
-    body: "每条修改都由 actor 签名并带因果链，事后任何一方都能离线重放验证。服务器可以拒收、延迟或丢失副本，但伪造不了。",
+    plane: "Boundary",
+    name: "Realm / Circle / Sidecar",
+    what: "把成员、历史、授权、联邦和加密范围放在明确边界里；团队协作、私密子群与个人 Agent 上下文互不混用。",
+    outcome: "谁能参与、能看到什么",
   },
   {
-    mark: "安全",
-    title: "权限是凭证，不是后台开关",
-    body: "capability 写明资源、动作、时间窗、字段范围与审批要求，可撤销也可委托；成员和设备变更绑定同一个 MLS epoch，移出之后就真的读不到。",
+    plane: "Confidentiality",
+    name: "MLS 端到端加密",
+    what: "每个需要加密的 scope 使用独立 group 与 epoch；成员移除、设备变化和历史访问都与密钥状态一起收敛。",
+    outcome: "内容只对授权端点可读",
+    security: true,
   },
   {
-    mark: "跨组织",
-    title: "协作不必把数据交出去",
-    body: "各方掌握自己的服务器、密钥与数据驻地，通过联邦交换事件；对外协作放在单独的 Realm，不开放内部目录。",
+    plane: "Federation",
+    name: "各方 Station 互联",
+    what: "服务端按 Realm 交换增量、补齐历史并转发密文；任何一方都可以自托管，也可以更换受托服务。",
+    outcome: "跨域同步，不交出控制权",
+  },
+  {
+    plane: "Participation",
+    name: "人、Agent 与 Applet",
+    what: "每个参与者都有独立身份和最小权限；委派、审批、撤销与责任归属进入同一治理模型。",
+    outcome: "能做什么、由谁负责",
+  },
+  {
+    plane: "Portability",
+    name: "Event 与本地投影",
+    what: "持久修改由参与者签名并按因果链同步，客户端据此生成聊天、看板、文档和时间线；服务端不是唯一真相源。",
+    outcome: "可验证、可重放、可换界面",
   },
 ];
 
@@ -101,34 +99,34 @@ const entryPoints = [
     badge: "map",
   },
   {
-    title: "协议分层",
-    description: "Kernel / Collaboration Base / Extension 的边界",
-    href: "/zh/v1/overview/protocol-layers/",
-    badge: "normative",
-  },
-  {
-    title: "架构与信任边界",
-    description: "服务角色、部署拓扑与谁能证明什么",
+    title: "去中心化架构",
+    description: "Station、联邦拓扑与信任边界",
     href: "/zh/v1/overview/architecture/",
     badge: "normative",
   },
   {
-    title: "对象模型",
-    description: "对象总览与 typed-id 一览",
-    href: "/zh/v1/models/overview/",
-    badge: "model",
+    title: "端到端加密",
+    description: "MLS group、epoch 与治理状态绑定",
+    href: "/zh/v1/crypto-media/encryption-and-audit/",
+    badge: "E2EE",
   },
   {
-    title: "OpenAPI",
-    description: "HTTP binding 与请求响应契约",
+    title: "Agent Sidecar",
+    description: "人与 Agent 的私有协作边界",
+    href: "/zh/v1/models/sidecar/",
+    badge: "agent",
+  },
+  {
+    title: "主权部署",
+    description: "内网、外部协作飞地与数据驻地",
+    href: "/zh/v1/sync/sovereign-deployment/",
+    badge: "deploy",
+  },
+  {
+    title: "接口与 Catalog",
+    description: "OpenAPI、事件类型与机读 Schema",
     href: "/openapi/",
     badge: "wire",
-  },
-  {
-    title: "Catalog",
-    description: "事件类型、Schema、操作与错误码",
-    href: "/catalog/event-kinds/",
-    badge: "registry",
   },
 ];
 ---
@@ -136,15 +134,26 @@ const entryPoints = [
 <MarketingLayout>
   <section class="ak-hero">
     <div class="ak-shell ak-hero-inner ak-home-hero">
-      <img
-        class="ak-hero-brand"
-        src="/brand/arkret-logo.svg"
-        alt="Arkret logo"
-        width="148"
-        height="148"
-        loading="eager"
-        decoding="async"
-      />
+      <span class="ak-hero-brand" role="img" aria-label="Arkret logo">
+        <img
+          class="ak-brand-logo--light"
+          src="/brand/arkret-logo.svg"
+          alt=""
+          width="148"
+          height="148"
+          loading="eager"
+          decoding="async"
+        />
+        <img
+          class="ak-brand-logo--dark"
+          src="/brand/arkret-logo-dark.svg"
+          alt=""
+          width="148"
+          height="148"
+          loading="eager"
+          decoding="async"
+        />
+      </span>
       <div class="ak-hero-eyebrow">
         <span class="ak-pill ak-pill--accent">
           <span class="ak-pill-dot" aria-hidden="true"></span>
@@ -156,13 +165,13 @@ const entryPoints = [
         </span>
       </div>
       <h1>
-        协作软件的<br />
-        <span class="ak-h1-accent">去中心化事实层</span>
+        人与 AI Agent 的<br />
+        <span class="ak-h1-accent">去中心化加密协作</span>
       </h1>
       <p class="ak-lead">
-        Arkret 只规定一件事：什么算作事实。消息、任务、文档、日历、通话和 AI Agent 的产出，
-        全都是由 actor 签名、按 Realm 划定边界的 Event，在各方自己托管的服务器之间联邦同步。
-        客户端把它们投影成聊天、看板或时间线——界面可以换，事实不变。
+        Arkret 让个人、团队和组织使用自己掌控的身份、密钥与服务器，仍能在同一个 Realm 中协作。
+        消息、任务、文档、日历、通话，以及 Agent 的委派与产出，都可以跨组织联邦同步；
+        需要保密的内容由参与者端到端加密，服务器只负责验证边界和完成送达。
       </p>
       <div class="ak-cta-row">
         <a class="ak-btn ak-btn-primary" href="/zh/v1/spec-map/">
@@ -172,39 +181,20 @@ const entryPoints = [
         <a class="ak-btn ak-btn-ghost" href="/ecosystem/">浏览参考实现</a>
         <a class="ak-btn ak-btn-ghost" href={repoUrl} rel="noopener">GitHub</a>
       </div>
-    </div>
-  </section>
-
-  <section class="ak-section ak-section-tight">
-    <div class="ak-shell">
-      <div class="ak-section-head">
-        <div>
-          <span class="ak-section-tag">协议的全貌</span>
-          <h2>五层，每层都写明谁说了算</h2>
+      <dl class="ak-hero-stats" aria-label="Arkret 核心能力">
+        <div class="ak-hero-stat">
+          <dt>自托管联邦</dt>
+          <dd>各方保留自己的 Station 与数据驻地</dd>
         </div>
-        <p class="ak-section-sub">
-          常见系统里这五层混在一个服务端数据库里，于是「谁说了算」永远是那台服务器。
-        </p>
-      </div>
-      <ol class="ak-stack">
-        {
-          protocolStack.map((row) => (
-            <li class={`ak-stack-row${row.truth ? " ak-stack-row--truth" : ""}`}>
-              <div class="ak-stack-plane">
-                <b>{row.plane}</b>
-                <span>{row.name}</span>
-              </div>
-              <p class="ak-stack-what">{row.what}</p>
-              <div class="ak-stack-auth">{row.authority}</div>
-            </li>
-          ))
-        }
-      </ol>
-      <p class="ak-stack-note">
-        另有两个横切层：Confidentiality 决定每一层各自能看到什么，
-        让服务器在读不懂正文的前提下也能继续转发；Portability 保证整份历史可导出、
-        可重放、可以换一家服务商继续用。
-      </p>
+        <div class="ak-hero-stat">
+          <dt>MLS E2EE</dt>
+          <dd>Realm、Circle 与 Sidecar 独立加密</dd>
+        </div>
+        <div class="ak-hero-stat">
+          <dt>Human + Agent</dt>
+          <dd>同一协作图，独立身份、权限与责任链</dd>
+        </div>
+      </dl>
     </div>
   </section>
 
@@ -212,18 +202,19 @@ const entryPoints = [
     <div class="ak-shell">
       <div class="ak-section-head">
         <div>
-          <span class="ak-section-tag">覆盖范围</span>
-          <h2>同一份事实，投影成你熟悉的形态</h2>
+          <span class="ak-section-tag">核心能力</span>
+          <h2>把协作能力放回参与者手里</h2>
         </div>
         <p class="ak-section-sub">
-          Arkret 不把某个产品的对象名搬进协议，而是把常见协作场景拆成更稳定的边界。
+          Arkret 不是另一个中心化工作台，而是让不同组织、客户端和 Agent 安全互通的开放协议。
         </p>
       </div>
-      <div class="ak-concepts">
+      <div class="ak-pillar-grid">
         {
-          landings.map((item) => (
-            <article class="ak-concept">
-              <div class="ak-concept-tag">{item.concept}</div>
+          capabilities.map((item) => (
+            <article class="ak-pillar-card">
+              <span class="ak-pillar-mark">{item.mark}</span>
+              <h3>{item.title}</h3>
               <p>{item.body}</p>
             </article>
           ))
@@ -236,21 +227,52 @@ const entryPoints = [
     <div class="ak-shell">
       <div class="ak-section-head">
         <div>
-          <span class="ak-section-tag">因此</span>
-          <h2>安全、可审计、跨组织，是结构带来的，不是配置项</h2>
+          <span class="ak-section-tag">应用场景</span>
+          <h2>从跨公司项目到私人 Agent 工作区</h2>
         </div>
+        <p class="ak-section-sub">
+          协作边界可以按项目和人来划分，不必按某家软件的租户来划分。
+        </p>
       </div>
-      <div class="ak-pillar-grid">
+      <div class="ak-concepts">
         {
-          guarantees.map((g) => (
-            <article class="ak-pillar-card">
-              <span class="ak-pillar-mark">{g.mark}</span>
-              <h3>{g.title}</h3>
-              <p>{g.body}</p>
+          scenarios.map((item) => (
+            <article class="ak-concept">
+              <div class="ak-concept-tag">{item.concept}</div>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
             </article>
           ))
         }
       </div>
+    </div>
+  </section>
+
+  <section class="ak-section ak-section-elevated">
+    <div class="ak-shell">
+      <div class="ak-section-head">
+        <div>
+          <span class="ak-section-tag">协议底座</span>
+          <h2>这些能力如何成立</h2>
+        </div>
+        <p class="ak-section-sub">
+          先有可用的协作体验，再由边界、加密、联邦和可验证历史共同保证它不依赖中心平台。
+        </p>
+      </div>
+      <ol class="ak-stack">
+        {
+          foundations.map((row) => (
+            <li class={`ak-stack-row${row.security ? " ak-stack-row--security" : ""}`}>
+              <div class="ak-stack-plane">
+                <b>{row.plane}</b>
+                <span>{row.name}</span>
+              </div>
+              <p class="ak-stack-what">{row.what}</p>
+              <div class="ak-stack-auth">{row.outcome}</div>
+            </li>
+          ))
+        }
+      </ol>
     </div>
   </section>
 
@@ -259,10 +281,10 @@ const entryPoints = [
       <div class="ak-section-head">
         <div>
           <span class="ak-section-tag">入口</span>
-          <h2>从规范到实现</h2>
+          <h2>从能力边界读到协议实现</h2>
         </div>
         <p class="ak-section-sub">
-          zh 下的中文是唯一 normative 权威；artifacts 是语言中立的机读契约。
+          先从架构、加密和 Agent Sidecar 理解整体，再进入对象、接口与机读契约。
         </p>
       </div>
       <div class="ak-entry-grid ak-entry-grid--wide">
@@ -289,10 +311,9 @@ const entryPoints = [
       <a class="ak-os-banner" href="/ecosystem/">
         <div class="ak-os-banner-text">
           <span class="ak-section-tag">官方实现</span>
-          <h2>协议、SDK、服务端、客户端、一致性测试——全部开源</h2>
+          <h2>自托管 Station、跨平台客户端与协议工具链——全部开源</h2>
           <p>
-            spec / rust-sdk / soland (Station) / coauth / sodmin / floria
-            (push gateway) / inkson (跨平台客户端) / chime / cotest——开箱即用的完整参考栈。
+            从 MLS E2EE、联邦同步到人与 Agent 的协作边界，都有规范、SDK、服务端、客户端和一致性测试共同承载。
           </p>
         </div>
         <span class="ak-os-banner-cta">

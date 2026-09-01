@@ -127,7 +127,7 @@ export default defineConfig({
     starlight({
       title: "Arkret Spec",
       description:
-        "Arkret v1 — decentralized collaboration protocol specification.",
+        "Arkret v1 — federated, end-to-end encrypted collaboration for people, organizations, and AI agents.",
       defaultLocale: "zh",
       // Suppress Starlight's auto-injected /404 route: it issues a
       // `getEntry('docs','404')` lookup at build time to find a user override,
@@ -145,9 +145,28 @@ export default defineConfig({
           tag: "link",
           attrs: {
             rel: "icon",
+            href: "/favicon-dark.svg",
+            type: "image/svg+xml",
+            media: "(prefers-color-scheme: dark)",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "icon",
             href: "/favicon-32x32.png",
             sizes: "32x32",
             type: "image/png",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "icon",
+            href: "/favicon-32x32-dark.png",
+            sizes: "32x32",
+            type: "image/png",
+            media: "(prefers-color-scheme: dark)",
           },
         },
         {
@@ -270,6 +289,7 @@ document.addEventListener("astro:after-swap", boot);
                 "realm-and-space",
                 "strand-and-message",
                 "circle",
+                "sidecar",
                 "morph",
                 "relation",
                 "actor",

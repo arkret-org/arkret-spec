@@ -7,13 +7,13 @@
     <path id="participant-half" d="M 57.285534,109.35355 69.37132,123.33579 79.75,109.5 105.14645,96.267767 c -5,12.000003 -13.414217,16.136043 -17.414217,27.136043 C 84.732233,136.40381 86,159 94,177 L 68,172.5 C 71.911067,146.66982 56.296908,121.86116 35.535534,108.37132 Z"/>
     <path id="ark-half" d="M128.6 201C115 194 104 185 93 181C70 178 48 171 31 163C41 189 59 210 81 222C93 224 110 225 128.6 225Z"/>
   </defs>
-  <use href="#outer-output-half" fill="#A33A50"/>
-  <use href="#outer-output-half" transform="matrix(-1 0 0 1 256 0)" fill="#5F988C"/>
-  <use href="#shared-output-half" transform="translate(0 -2)" fill="#D6942F"/>
-  <use href="#shared-output-half" transform="matrix(-1 0 0 1 256 -2)" fill="#D6942F"/>
-  <use href="#participant-half" transform="translate(-4 0)" fill="#A33A50"/>
-  <use href="#participant-half" transform="matrix(-1 0 0 1 260 0)" fill="#5F988C"/>
-  <g fill="#B45309">
+  <use href="#outer-output-half" fill="#FB7185"/>
+  <use href="#outer-output-half" transform="matrix(-1 0 0 1 256 0)" fill="#73C4B4"/>
+  <use href="#shared-output-half" transform="translate(0 -2)" fill="#F0B44D"/>
+  <use href="#shared-output-half" transform="matrix(-1 0 0 1 256 -2)" fill="#F0B44D"/>
+  <use href="#participant-half" transform="translate(-4 0)" fill="#FB7185"/>
+  <use href="#participant-half" transform="matrix(-1 0 0 1 260 0)" fill="#73C4B4"/>
+  <g fill="#D97706">
     <use href="#ark-half"/>
     <use href="#ark-half" transform="matrix(-1 0 0 1 256 0)"/>
   </g>

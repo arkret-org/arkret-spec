@@ -1,10 +1,15 @@
 <p align="center">
-  <img src="./site/public/brand/arkret-logo.svg" alt="Arkret logo" width="160" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./site/public/brand/arkret-logo-dark.svg" />
+    <img src="./site/public/brand/arkret-logo.svg" alt="Arkret logo" width="160" />
+  </picture>
 </p>
 
 # Arkret Spec
 
-Arkret v1 去中心化协作协议规范。仓库同时承载 **规范本体** 和 **协议站源码**。
+Arkret v1 是面向个人、组织与 AI Agent 的去中心化协作协议：各方可以自托管服务并跨域联邦协作，
+以 Realm / Circle / Agent Sidecar 划分访问与 MLS 端到端加密边界，同时把聊天、任务、文档、日历和通话
+统一为可由不同客户端投影的开放协作模型。仓库同时承载 **规范本体** 和 **协议站源码**。
 
 ## Realm vs Space
 

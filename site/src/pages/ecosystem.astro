@@ -29,14 +29,14 @@ const tiers: Tier[] = [
     id: "protocol",
     title: "协议与 SDK",
     blurb:
-      "互操作的 wire 与对象语义在 arkret-spec 收敛；rust-sdk 把它转成可复用的数据结构与算法，供其他实现直接依赖。",
+      "把联邦、E2EE、协作对象与 Agent 权限边界变成可互操作的协议，再由 SDK 提供实现这些能力所需的数据结构和算法。",
     projects: [
       {
         name: "arkret-spec",
         tag: "protocol · this site",
         status: "stable",
         body:
-          "协议规范本体。spec/v1/zh 下的中文是唯一 normative 文本，spec/v1/artifacts/ 是语言中立的 registry / schema / profile / OpenAPI。本站点直接由 spec 与 artifact 派生。",
+          "协议规范本体。定义自托管联邦、MLS 加密边界、人与 Agent 的协作模型，以及语言中立的 registry / schema / profile / OpenAPI。本站点直接由规范和机读构件派生。",
         href: "/zh/v1/spec-map/",
       },
       {
@@ -44,7 +44,7 @@ const tiers: Tier[] = [
         tag: "sdk · rust",
         status: "wip",
         body:
-          "协议基础 SDK。提供 envelope 签名 / 校验、canonical JSON、HLC 时钟、schema 验证、capability constraint 求值等核心数据结构与工具，多数 Rust 端服务都基于它构建。",
+          "协议基础 SDK。提供 MLS 与 scope 绑定、联邦 envelope 校验、canonical JSON、HLC、schema 验证和 capability constraint 求值等可复用能力。",
       },
     ],
   },
@@ -52,14 +52,14 @@ const tiers: Tier[] = [
     id: "principal",
     title: "Station 部署栈",
     blurb:
-      "组织 / 个人自托管时使用的服务端组件：状态机本体、与企业身份系统的桥接、运维管理面、推送出口。",
+      "个人或组织自托管的服务端组件：连接其它参与方的 Station，保存本方副本并转发 E2EE 内容，同时接入企业身份、运维与推送系统。",
     projects: [
       {
         name: "soland",
         tag: "server · principal",
         status: "wip",
         body:
-          "Station 的参考实现。负责 actor / org / space 状态、event ingestion 与 reducer、authz 求值，以及与其他 Station 的 federation。",
+          "Station 参考实现。负责 Realm 状态、加密事件接入与 reducer、授权求值、历史补齐，以及与其他 Station 的联邦同步。",
       },
       {
         name: "coauth",
@@ -88,14 +88,14 @@ const tiers: Tier[] = [
     id: "client",
     title: "客户端栈",
     blurb:
-      "终端用户体验：跨平台 GUI 客户端，加上配套的推送接收 SDK。客户端只投影协议对象图，不持有协议状态。",
+      "在用户端完成解密、验证与投影，把同一协作对象图呈现为消息、任务、文档或 Agent 工作区；服务端不需要掌握产品体验。",
     projects: [
       {
         name: "inkson",
         tag: "client · cross-platform",
         status: "wip",
         body:
-          "跨平台参考客户端。同一份 Arkret 协议核心，运行在 macOS / Windows / Linux / iOS / Android。",
+          "跨平台参考客户端。在 macOS / Windows / Linux / iOS / Android 上提供同一套联邦、E2EE 和人与 Agent 协作体验。",
       },
       {
         name: "chime",
@@ -125,7 +125,7 @@ const tiers: Tier[] = [
     id: "conformance",
     title: "一致性与测试",
     blurb:
-      "把 wire / state / authz / E2EE 的合规性变成可执行用例，让多实现并行开发时仍能保证互操作。",
+      "把联邦同步、状态收敛、权限边界、Agent 行为与 E2EE 合规性变成可执行用例，让不同实现仍能安全互通。",
     projects: [
       {
         name: "cotest",
@@ -141,8 +141,22 @@ const tiers: Tier[] = [
 
 <MarketingLayout
   title="Arkret 生态 · Ecosystem"
-  description="Arkret 协议生态：spec、SDK、Station、客户端、push gateway、conformance 测试套件等参考实现的总览。"
+  description="从自托管 Station、MLS 端到端加密到人与 Agent 的跨平台协作体验，浏览 Arkret 的完整开源参考栈。"
 >
+  <section class="ak-hero">
+    <div class="ak-shell ak-hero-inner">
+      <span class="ak-section-tag">OPEN REFERENCE STACK</span>
+      <h1>
+        从协议到客户端，<br />
+        <span class="ak-h1-accent">把去中心化协作真正跑起来</span>
+      </h1>
+      <p class="ak-lead">
+        Arkret 不只描述消息格式。参考实现覆盖自托管 Station、跨组织联邦、MLS 端到端加密、
+        企业身份接入、跨平台客户端与一致性测试，让团队可以从可执行组件开始构建人与 Agent 的协作产品。
+      </p>
+    </div>
+  </section>
+
   {
     tiers.map((tier) => (
       <section class="ak-section" id={tier.id}>
@@ -195,15 +209,3 @@ const tiers: Tier[] = [
   }
 
 </MarketingLayout>
-
-<style is:global>
-  /* The first tier section now sits directly under the site nav. Drop the
-   * `.ak-section` border-top on it (otherwise we get a thin line right under
-   * the nav's own border) and trim its top padding to a comfortable lead-in.
-   * `is:global` because the `main` element lives in MarketingLayout, outside
-   * this component's scope. */
-  body.ak-marketing main > section.ak-section:first-of-type {
-    border-top: none;
-    padding-top: 3rem;
-  }
-</style>

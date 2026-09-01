@@ -37,15 +37,24 @@ function isActive(href: string): boolean {
 <nav class={`ak-nav ak-nav--${variant}`} aria-label="Site">
   <div class="ak-shell ak-nav-row">
     <a href="/" class="ak-brand">
-      <img
-        class="ak-brand-mark"
-        src="/brand/arkret-logo.svg"
-        alt=""
-        width="32"
-        height="32"
-        aria-hidden="true"
-        decoding="async"
-      />
+      <span class="ak-brand-mark" aria-hidden="true">
+        <img
+          class="ak-brand-mark-image ak-brand-logo--light"
+          src="/brand/arkret-logo.svg"
+          alt=""
+          width="32"
+          height="32"
+          decoding="async"
+        />
+        <img
+          class="ak-brand-mark-image ak-brand-logo--dark"
+          src="/brand/arkret-logo-dark.svg"
+          alt=""
+          width="32"
+          height="32"
+          decoding="async"
+        />
+      </span>
       <span>Arkret</span>
     </a>
     <ul class="ak-nav-links">

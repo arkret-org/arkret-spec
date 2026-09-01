@@ -7,6 +7,8 @@
 // pulled in via the shared <SiteNav /> component so the page still feels at
 // home on arkret.org.
 import SiteNav from "../components/SiteNav.astro";
+import "../styles/marketing.css";
+import "../styles/spec.css";
 ---
 
 <!doctype html>
@@ -15,9 +17,19 @@ import SiteNav from "../components/SiteNav.astro";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>404 · Arkret Spec</title>
-    <link rel="stylesheet" href="/styles/spec.css" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link
+      rel="icon"
+      href="/favicon-dark.svg"
+      type="image/svg+xml"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#08090f" />
   </head>
-  <body>
+  <body class="ak-marketing">
     <SiteNav />
     <main style="max-width:640px;margin:6rem auto;padding:0 1.5rem;">
       <h1 style="font-size:2.5rem;margin:0 0 1rem;">404</h1>

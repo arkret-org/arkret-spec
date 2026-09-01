@@ -19,7 +19,13 @@ see_also:
 
 ## 1. 范围（Scope）
 
-`arkret-spec` 是 **Arkret v1 去中心化协作协议规范**。其核心不是界面，而是"可验证协作事实 + 可投影的对象语义"：
+`arkret-spec` 是 **Arkret v1 去中心化协作协议规范**。Arkret 让个人、组织与 AI Agent 使用各自掌控的
+身份、密钥和 Station，在 Realm 中跨域联邦协作；需要保密的 Realm / Circle / Agent Sidecar 以独立
+MLS scope 提供端到端加密，服务器无需读取正文即可完成验证、同步与投递。Agent 以独立 Actor 参与，
+受 capability、accountability 与 Realm policy 约束，并可在 controller 的私人 Sidecar 中工作后再显式发布。
+
+为让这些能力跨客户端、跨服务商长期互操作，协议把协作写入定义为可验证 Event，并把聊天、看板、文档、
+日历、通话等产品形态定义为同一协作对象图的不同投影：
 
 - 身份主键：DID principal
 - 数据主语（核心对象导览）：Realm / Circle / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
@@ -171,4 +177,6 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 
 ## 7. 摘要（Summary）
 
-Arkret 的目标是统一协作对象语义，建立"可验证审计 + 长期可恢复"的协作基础设施，而不是绑定聊天协议外壳。
+Arkret 的目标是让人、组织与 AI Agent 在不交出身份、密钥、数据驻地和产品选择权的前提下安全协作。
+联邦同步、MLS 端到端加密、明确的 Agent 委派边界，以及可验证、可重放的协作历史共同支撑这一目标；
+它不是绑定某个聊天或项目管理界面的中心化服务。

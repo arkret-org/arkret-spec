@@ -3,8 +3,8 @@
      width="256" height="256" viewBox="0 0 256 256"
      role="img" aria-labelledby="title desc" focusable="false"
      shape-rendering="geometricPrecision">
-  <title id="title">Arkret negative-space shield ark logo</title>
-  <desc id="desc">Two mirrored participant trees support three collaboration outputs above a warm wooden ark. Their inner contours and the ark form a shield in transparent negative space.</desc>
+  <title id="title">Arkret negative-space shield ark logo — dark background palette</title>
+  <desc id="desc">Dark-background color variant of the Arkret logo, with two mirrored participant trees, shared collaboration output, a wooden ark, and a transparent negative-space shield.</desc>
   <defs>
     <path id="outer-output-half" d="M 31,104 C 41,76 59,55 79,43 L 102.45711,91.924622 74.25,106 Z"/>
     <path id="shared-output-half" d="M 128.6,35 C 112,35 96.18934,38.103553 84.18934,43.103553 l 22.16421,49.174622 22.3929,0.04289 z"/>
@@ -12,16 +12,16 @@
     <path id="ark-half" d="M128.6 201C115 194 104 185 93 181C70 178 48 171 31 163C41 189 59 210 81 222C93 224 110 225 128.6 225Z"/>
   </defs>
   <g aria-label="three collaboration outputs">
-    <use href="#outer-output-half" fill="#A33A50"/>
-    <use href="#outer-output-half" transform="matrix(-1 0 0 1 256 0)" fill="#5F988C"/>
-    <use href="#shared-output-half" transform="translate(0 -2)" fill="#D6942F"/>
-    <use href="#shared-output-half" transform="matrix(-1 0 0 1 256 -2)" fill="#D6942F"/>
+    <use href="#outer-output-half" fill="#FB7185"/>
+    <use href="#outer-output-half" transform="matrix(-1 0 0 1 256 0)" fill="#73C4B4"/>
+    <use href="#shared-output-half" transform="translate(0 -2)" fill="#F0B44D"/>
+    <use href="#shared-output-half" transform="matrix(-1 0 0 1 256 -2)" fill="#F0B44D"/>
   </g>
   <g aria-label="two participants forming a negative-space shield">
-    <use href="#participant-half" transform="translate(-4 0)" fill="#A33A50"/>
-    <use href="#participant-half" transform="matrix(-1 0 0 1 260 0)" fill="#5F988C"/>
+    <use href="#participant-half" transform="translate(-4 0)" fill="#FB7185"/>
+    <use href="#participant-half" transform="matrix(-1 0 0 1 260 0)" fill="#73C4B4"/>
   </g>
-  <g aria-label="wooden ark and protocol safety layer" fill="#B45309">
+  <g aria-label="wooden ark and protocol safety layer" fill="#D97706">
     <use href="#ark-half"/>
     <use href="#ark-half" transform="matrix(-1 0 0 1 256 0)"/>
   </g>

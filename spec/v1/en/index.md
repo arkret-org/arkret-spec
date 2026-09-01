@@ -8,6 +8,12 @@ normative: false
 
 > Informative entry page. This is **not** a normative English translation.
 
+Arkret is a decentralized collaboration protocol for people, organizations,
+and AI agents. Participants can federate through independently operated
+services, protect confidential Realm, Circle, and Agent Sidecar scopes with
+MLS end-to-end encryption, and use different clients to project the same open
+collaboration model as conversations, tasks, documents, calendars, or calls.
+
 ## Language policy
 
 The authoritative Arkret v1 specification is maintained **in Chinese**, under

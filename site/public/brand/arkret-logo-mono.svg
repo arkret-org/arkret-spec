@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="256" height="256" viewBox="0 0 256 256"
+     role="img" aria-labelledby="title desc" focusable="false"
+     shape-rendering="geometricPrecision" color="#24313A">
+  <title id="title">Arkret negative-space shield ark logo — monochrome</title>
+  <desc id="desc">Single-color Arkret logo with mirrored participant trees, collaboration output, a wooden ark, and a transparent negative-space shield.</desc>
+  <defs>
+    <path id="outer-output-half" d="M 31,104 C 41,76 59,55 79,43 L 102.45711,91.924622 74.25,106 Z"/>
+    <path id="shared-output-half" d="M 128.6,35 C 112,35 96.18934,38.103553 84.18934,43.103553 l 22.16421,49.174622 22.3929,0.04289 z"/>
+    <path id="participant-half" d="M 57.285534,109.35355 69.37132,123.33579 79.75,109.5 105.14645,96.267767 c -5,12.000003 -13.414217,16.136043 -17.414217,27.136043 C 84.732233,136.40381 86,159 94,177 L 68,172.5 C 71.911067,146.66982 56.296908,121.86116 35.535534,108.37132 Z"/>
+    <path id="ark-half" d="M128.6 201C115 194 104 185 93 181C70 178 48 171 31 163C41 189 59 210 81 222C93 224 110 225 128.6 225Z"/>
+  </defs>
+  <g fill="currentColor">
+    <use href="#outer-output-half"/>
+    <use href="#outer-output-half" transform="matrix(-1 0 0 1 256 0)"/>
+    <use href="#shared-output-half" transform="translate(0 -2)"/>
+    <use href="#shared-output-half" transform="matrix(-1 0 0 1 256 -2)"/>
+    <use href="#participant-half" transform="translate(-4 0)"/>
+    <use href="#participant-half" transform="matrix(-1 0 0 1 260 0)"/>
+    <use href="#ark-half"/>
+    <use href="#ark-half" transform="matrix(-1 0 0 1 256 0)"/>
+  </g>
+</svg>
