@@ -266,7 +266,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "4310126dc2d0ad25dbad4d23a2ee5735802eab0b3933c4c99da65407907ae075"
+      "sha256": "dee7219732f78bbdee1775ca844918b86ed4e3108186502bf0f8a0216ab7b1e8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-outward-exposure-fixture.json",

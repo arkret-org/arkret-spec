@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
-      "version": "2026-09-02.1",
-      "generated_at": "2026-09-02T21:40:00+08:00",
-      "content_digest": "sha256:ac47ef27da6d110f483832b09bb51f08980e6f55e24f5d3ff454f000bbd665ee"
+      "version": "2026-09-03.1",
+      "generated_at": "2026-09-03T06:00:06+08:00",
+      "content_digest": "sha256:4def8e7a255b1d3d4aad198be03556cf3412864d38f360d2adde9649ebe77291"
     },
     {
       "path": "spec/v1/artifacts/registry/did-document-contract-registry.json",

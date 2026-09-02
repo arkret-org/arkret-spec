@@ -1,0 +1,28 @@
+{
+  "version": "2026-09-03.1",
+  "source_of_truth": true,
+  "generated_at": "2026-09-03T06:40:00+08:00",
+  "lock_kind": "fixture_schema_instance_bindings",
+  "description": "Fixture objects that are real wire instances but carry no `schema` discriminator, bound by exact JSON Pointer to the schema that owns them. check_declared_schema_fixture_instances only claims objects that name their own schema, so an instance without that member has no schema landing point at all: it survives every field deletion its schema makes, and the drift surfaces only when a downstream deny_unknown_fields type finally parses it. Each row makes one such object validate in the artifact pipeline instead.",
+  "registry_rules": [
+    "pointer MUST resolve to an object in the named fixture; a stale row is a failure, not a silent skip",
+    "schema_ref MUST resolve through the shared schema resolver, fragment included",
+    "the instance MUST validate: this registry has no negative rows, because an intentionally invalid branch belongs in that fixture's own schema_validation_cases where its expected first error is testable",
+    "an object that already carries a `schema` discriminator MUST NOT be listed: it is already covered, and a second owner lets the two disagree"
+  ],
+  "bindings": [
+    {
+      "fixture": "pcr-genesis-fixture.json",
+      "pointer": "/founding_device_descriptor",
+      "schema_ref": "schemas/realm-genesis.schema.json#/$defs/founding_device_descriptor",
+      "why": "Embedded in the root-signed PCR genesis payload, so it is not an independently signed object and carries no schema member. Review 2026-09-02-1955 deleted device_key_digest and hpke_key_digest from the schema; this fixture kept shipping both until 2026-09-03."
+    },
+    {
+      "fixture": "file-transfer-stream-aead-fixture.json",
+      "pointer": "/kat/record_json",
+      "schema_ref": "schemas/file-transfer.schema.json",
+      "decode": "json_string",
+      "why": "The record is carried as an embedded JSON string, which is opaque to both the schema walk and additionalProperties. It kept a content_digest sibling that encoding.md 4.0.1 had already deleted from the schema, in the very commit that deleted it."
+    }
+  ]
+}

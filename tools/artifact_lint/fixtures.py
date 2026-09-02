@@ -2057,6 +2057,92 @@ def check_fixture_content_addressed_sibling_digests(lint: Lint) -> None:
             )
 
 
+FIXTURE_SCHEMA_INSTANCE_BINDING_PATH = (
+    ROOT / "tools" / "fixture-schema-instance-binding-registry.json"
+)
+
+
+def check_fixture_schema_instance_bindings(lint: Lint) -> None:
+    """Validate fixture instances that carry no `schema` discriminator.
+
+    ``check_declared_schema_fixture_instances`` only claims objects that name
+    their own schema. An instance without that member has no schema landing
+    point at all: it survives every field deletion its schema makes, and the
+    drift surfaces only when some downstream `deny_unknown_fields` type finally
+    parses it. Two such objects reached that state within one commit of the
+    deletion that should have cascaded to them, so each is bound here by exact
+    JSON Pointer and validated in the pipeline instead.
+    """
+
+    registry = load_json(lint, FIXTURE_SCHEMA_INSTANCE_BINDING_PATH)
+    if not isinstance(registry, dict):
+        return
+    rows = registry.get("bindings")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(FIXTURE_SCHEMA_INSTANCE_BINDING_PATH, "bindings must be a non-empty list")
+        return
+
+    seen: set[tuple[str, str]] = set()
+    for index, row in enumerate(rows):
+        label = f"bindings[{index}]"
+        if not isinstance(row, dict) or not isinstance(row.get("fixture"), str):
+            lint.fail(FIXTURE_SCHEMA_INSTANCE_BINDING_PATH, f"{label} must name a fixture")
+            continue
+        fixture, pointer = row["fixture"], row.get("pointer")
+        schema_ref, why = row.get("schema_ref"), row.get("why")
+        label = f"{fixture}#{pointer}"
+        if not isinstance(pointer, str) or not pointer.startswith("/"):
+            lint.fail(FIXTURE_SCHEMA_INSTANCE_BINDING_PATH, f"{label}: pointer must start with /")
+            continue
+        if not isinstance(schema_ref, str) or "schemas/" not in schema_ref:
+            lint.fail(FIXTURE_SCHEMA_INSTANCE_BINDING_PATH, f"{label}: schema_ref must name a schema")
+            continue
+        if not isinstance(why, str) or len(why.strip()) < 20:
+            lint.fail(
+                FIXTURE_SCHEMA_INSTANCE_BINDING_PATH,
+                f"{label}: why must say what makes this object schema-less",
+            )
+            continue
+        key = (fixture, pointer)
+        if key in seen:
+            lint.fail(FIXTURE_SCHEMA_INSTANCE_BINDING_PATH, f"{label}: duplicate binding")
+            continue
+        seen.add(key)
+
+        path = ARTIFACTS / "fixtures" / fixture
+        if not path.is_file():
+            lint.fail(FIXTURE_SCHEMA_INSTANCE_BINDING_PATH, f"{label}: fixture does not exist")
+            continue
+        data = load_json(lint, path)
+        if data is None:
+            continue
+        try:
+            instance = resolve_json_pointer(data, f"#{pointer}")
+        except (KeyError, IndexError, ValueError):
+            lint.fail(path, f"{pointer}: bound instance no longer resolves; retarget or retire the row")
+            continue
+        if row.get("decode") == "json_string":
+            if not isinstance(instance, str):
+                lint.fail(path, f"{pointer}: declared json_string but the value is not a string")
+                continue
+            try:
+                instance = json.loads(instance)
+            except ValueError as error:
+                lint.fail(path, f"{pointer}: embedded JSON string does not parse: {error}")
+                continue
+        elif "decode" in row:
+            lint.fail(FIXTURE_SCHEMA_INSTANCE_BINDING_PATH, f"{label}: unknown decode mode")
+            continue
+        if isinstance(instance, dict) and isinstance(instance.get("schema"), str):
+            lint.fail(
+                FIXTURE_SCHEMA_INSTANCE_BINDING_PATH,
+                f"{label}: the instance names its own schema, so it is already owned by "
+                "check_declared_schema_fixture_instances; two owners can disagree",
+            )
+            continue
+        check_json_instance_against_schema(lint, path, pointer, schema_ref, instance)
+
+
 def check_cba_seal_canonical_fixture(lint: Lint) -> None:
     """Validate the complete signed Seal body and its content-derived identity."""
 
