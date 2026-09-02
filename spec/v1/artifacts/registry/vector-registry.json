@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.4",
+  "version": "2026-09-02.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-01T19:45:00+08:00",
+  "generated_at": "2026-09-02T08:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3733,6 +3733,24 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.new_source_quota_holder_admission.v1",
+      "status": "active",
+      "domain": "invite",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.new_source_quota_effective_bounds.v1",
+      "status": "active",
+      "domain": "invite",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

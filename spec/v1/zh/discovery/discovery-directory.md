@@ -216,7 +216,7 @@ Organization discovery policy SHOULD 通过组织 profile 状态或 governance r
 {
   "kind": "ak.organization.discovery",
   "payload": {
-    "organization_principal_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+    "organization_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
     "value": {
       "discoverability": "public",
       "profile_visibility": {
@@ -235,7 +235,7 @@ Organization discovery policy SHOULD 通过组织 profile 状态或 governance r
 }
 ```
 
-`organization_principal_id` 是 cell subject 且必须是 `did_core_id`；策略内容位于 whole-value `value` 内。
+`organization_id` 是 cell subject 且必须是 `did_core_id`；策略内容位于 whole-value `value` 内。
 payload **不携带** detached `proof`：治理签名就是该 Event 的 envelope proof（§8.3）。
 
 Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 因为组织 DID 可解析，就公开组织成员列表、官方 Realm 列表、服务拓扑或治理策略全文。
@@ -522,7 +522,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `discovery_event` | `SignedEvent` | required | 已接受的 `ak.{kind}.discovery` Event 原件，逐字节等于真相源（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。资源类别由五个封闭 Event kind 唯一派生；资源主键按 event-kind registry 的 cell subject 派生：Realm 取 envelope `realm_id`，Organization 取 `payload.organization_principal_id`，Actor / Applet / Handle 取 `payload.resource_id`。投递原签名 Event 与 `/_arkret/peer/contacts` 投递原签名 `ak.contact.*` Event 同形。effective discovery state 是闭合 wrapper 的 `payload.value`，不得把 payload wrapper 当作扁平 state。 |
+| `discovery_event` | `SignedEvent` | required | 已接受的 `ak.{kind}.discovery` Event 原件，逐字节等于真相源（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。资源类别由五个封闭 Event kind 唯一派生；资源主键按 event-kind registry 的 cell subject 派生：Realm 取 envelope `realm_id`，Organization 取 `payload.organization_id`，Actor / Applet / Handle 取 `payload.resource_id`。投递原签名 Event 与 `/_arkret/peer/contacts` 投递原签名 `ak.contact.*` Event 同形。effective discovery state 是闭合 wrapper 的 `payload.value`，不得把 payload wrapper 当作扁平 state。 |
 | `source_ref_access` | `DirectorySourceRefAccess` | required | source Station 签发的短期闭合回源 carrier；其 `source_refs` 是真相源 event frontier，至少包含产生当前 effective discovery state 的 state Event；Realm 还 MUST 包含 effective `ak.realm.policy_bundle` Event。carrier 同时绑定 source service、目标 Directory、Realm、exact discovery Event、`as_of`、过期时间与 canonical sorted/duplicate-free refs；请求不再并行携带 `source_refs`。Directory 将已验证 refs 做 JCS + SHA-256，所得 digest 是结果的 `policy_revision`。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
@@ -562,7 +562,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
   "discovery_event": {
     "kind": "ak.organization.discovery",
     "payload": {
-      "organization_principal_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+      "organization_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
       "value": {
         "discoverability": "public",
         "directory_ids": [
@@ -648,9 +648,9 @@ v1 core 只规定 operator takedown、不可篡改审计和资源通知，不定
 
 `withdraw` 的 `governance_proof` MUST 验证
 `service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof`：复用通用非 Event
-detached-JWS proof 叶，并对本对象族封闭三个选择——`proof_purpose` MUST 为
-`governance_authorization`，`audience` MUST 为目标 Directory 的 service DID（单值），
-`domain` MUST 缺席。proof 对象开放、出现未声明成员、purpose / audience 不符，MUST 在
+detached-JWS proof 语义，并为本对象族定义独立 closed leaf——`proof_purpose` MUST 为
+`governance_authorization`，`audience_id` MUST 为目标 Directory 的 `service_id`（单值），
+`domain` / 裸 `audience` MUST 缺席。proof 对象出现未声明成员、purpose / audience_id 不符，MUST 在
 执行撤销动作前拒绝。
 
 绑定按 `device-lifecycle.md` §9.0.1 同一形态构造：先从闭合 request body 删除顶层
@@ -668,15 +668,15 @@ detached-JWS proof 叶，并对本对象族封闭三个选择——`proof_purpos
   "verification_method": "<proof.verification_method>",
   "created_at": "<proof.created_at>",
   "proof_purpose": "governance_authorization",
-  "audience": "<目标 Directory 的 service_id>"
+  "audience_id": "<目标 Directory 的 service_id>"
 }
 ```
 
-**`audience` 形态（normative）**：这里的"目标 Directory 的 service DID"逐字等于该 Directory
+**`audience_id` 形态（normative）**：这里的"目标 Directory 的 service DID"逐字等于该 Directory
 `ak.find.directory.read.describe.v1` 响应中的 `service_id`，即 `did_core_id` 形态
-（`ak:did_core:<method>:<msi>`），与 §2 `directory_restricted_claim_presentation.audience` 同形态。
+（`ak:did_core:<method>:<msi>`）。它与 §2 `directory_restricted_claim_presentation.audience_id` 承载同一表示类别，
 完整 `did:<method>:<msi>` 形、DID URL 与数组形**都不是**可接受的替代形；Directory MUST 以
-`service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof` 的 `audience` 约束拒绝其它形态，
+`service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof` 的 `audience_id` 约束拒绝其它形态，
 MUST NOT 为兼容而同时接受两种形态。
 
 `operation_id` 进入 binding object，阻断签名跨 operation 重放。签名者授权
@@ -749,17 +749,17 @@ POST /_arkret/find/directory/push/register
 
 字段级定义：
 
-`organization_preview` 的基础字段为 `organization_principal_id`、`handle?`、`display_name?`、`avatar_blob_ref?`、`as_of`、`source_refs`、`policy_revision`。当组织目录 policy 允许公开治理预览时，preview MAY 额外携带 `verified_badge`、`member_count`、`realms`、`realm_count`；这些字段仅表示公开/授权可发现的组织和 Realm fan-out，不授权披露非公开成员、完整组织拓扑或私有 Realm。
+`organization_preview` 的基础字段为 `organization_id`、`handle?`、`display_name?`、`avatar_blob_ref?`、`as_of`、`source_refs`、`policy_revision`。当组织目录 policy 允许公开治理预览时，preview MAY 额外携带 `verified_badge`、`member_count`、`realms`、`realm_count`；这些字段仅表示公开/授权可发现的组织和 Realm fan-out，不授权披露非公开成员、完整组织拓扑或私有 Realm。
 
 | operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
 | `ak.find.directory.read.describe.v1` | 无 | 无 | `service_id: did_core_id`; `resource_kinds: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
-| `ak.find.directory.read.search_realms.v1` | 无 | `query: string`; `organization_principal_id: did_core_id`; `source_realm_id: id`; `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；restricted Realm 的 claim presentation 形态见 §2；隐藏资源不得泄露存在性。 |
+| `ak.find.directory.read.search_realms.v1` | 无 | `query: string`; `organization_id: did_core_id`; `source_realm_id: id`; `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；restricted Realm 的 claim presentation 形态见 §2；隐藏资源不得泄露存在性。 |
 | `ak.find.directory.read.resolve_realm.v1` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `join_candidates?: ak.schema.realm_join_candidate.v1[]` | `alias` 输入 MUST 解析自 effective `ak.component.realm.alias.v1`（唯一 wire 承载是 `ak.realm.alias`，tombstone 视为不存在；见 [`object-addressing.md` §3.3](./object-addressing.md)），Directory 行只是该 cell 的投影而非独立真相源。`join_candidates[]` 只向 invitee 的 Station 提供从 signed invite / 当前 joined-joined-member ActorId routing projection 裁剪的转发提示，不是客户端可直投列表。若隐私策略不能披露 candidate，响应 MUST 省略；客户端仍只向自己的 Station 提交 join material。invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
 | `ak.find.directory.read.resolve_target.v1` | `address: string`（object-addressing grammar） | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,strand,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; §9.1 全部通用字段 | `resolve_realm` 的对象级泛化（分享 Strand / Message / Realm 的深链解析）；realm 解析 MUST 委托同一 `resolve_realm` 路径，并继承 `join_candidates[]` 语义；`token` 仅在 `lt ∈ {invite, preview}` 的 link 类型下允许携带，reference 类型 MUST NOT 带 token（见 [`object-addressing.md` §4.1](./object-addressing.md)）；携带 `token` 时 MUST 按 target descriptor 逐级校验再走 join-policy；未授权统一 `not_found`。完整 grammar / token 绑定 / 隐私规则见 [`object-addressing.md`](./object-addressing.md)。 |
 | `ak.find.directory.read.search_organizations.v1` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回公开或授权可发现组织。 |
-| `ak.find.directory.read.resolve_organization.v1` | 至少一个：`organization_principal_id: did_core_id` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
-| `ak.find.directory.read.search_actors.v1` | 无 | `query: string`; `realm_id: id`; `organization_principal_id: did_core_id`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
+| `ak.find.directory.read.resolve_organization.v1` | 至少一个：`organization_id: did_core_id` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
+| `ak.find.directory.read.search_actors.v1` | 无 | `query: string`; `realm_id: id`; `organization_id: did_core_id`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
 | `ak.find.directory.read.search_users.v1` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent`; `body.cursor` | `users[] {handle?, account_id?, display_name?, avatar_blob_ref?, membership?, verified?}`; `next_cursor?`; `has_more` | `account_id` 仅在 requester 通过 disclosure gate 时返回；共同 Realm 不单独授权披露。 |
 | `ak.find.directory.read.resolve_handle.v1` | `handle: string` | `expected_account_id?: AccountId`; requester proof / intent / audience / realm context | `account_id: AccountId`; `handle`; `verified`; `claims?`; `source_refs?`; `expires_at?` | exact AccountId 寻址；不携成员级 route，不直接写 membership。 |
 | `ak.find.directory.read.resolve_agent_selector.v1` | `controller_handle: string`; `agent_slug: string`; `intent: enum(lookup,mention,contact_request,invite,member_add)`; `requester: did` | `expected_actor_id: did_core_id`; `proof_challenge: string`; `realm_id: id`; `proofs: proof[]` | `controller_subject: did`; `subject: did`; `agent_slug: string`; `verified: true`; `selector_claim: object`; `source_refs: id[]?`; `expires_at: timestamp?` | 可选的精确 Agent selector 解析，不属于 `ak.profile.directory_service.v1` 基线。只有直接拥有同一 accepted Event store、能在本地 joined basis 下验证 selector claim、agent Actor Profile 与 accountability grant 的 role-local 部署，才能广告独立 `ak.operation_bundle.directory_service.resolve_agent_selector.v1`；current-v1 不新增 Directory evidence ingest carrier，独立 Directory 因而 MUST 省略该 bundle。广告后，Directory MUST 先按 handle claim 解析 `controller_handle` 为 controller DID，再验证当前可见 `ak.schema.agent_selector_claim.v1` 的 `(controller_subject, agent_slug) -> subject`、`binding_state="verified"`、visibility / audience / claim_scope、proof、agent Actor Profile 与 accountability grant。成功响应中的 `subject` 是 agent DID；失败、未授权、不可见、revoked / expired / ambiguous、controller 不存在或 agent 不可见 MUST 使用与不存在不可区分的失败。该接口不是搜索 / 列表接口，不得支持 slug prefix、模糊匹配或返回候选。 |
@@ -767,7 +767,7 @@ POST /_arkret/find/directory/push/register
 | `ak.find.directory.read.private_contact_discovery.v1` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
 | `ak.find.directory.command.announce.v1` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
 | `ak.find.directory.command.withdraw.v1` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdrawal_ref: string`; `acked_at: timestamp` | `withdrawal_ref` 是 Directory-local audit reference，不是注册 typed ID；见 §8.7。 |
-| `ak.find.directory.push.command.register.v1` | `subscriber_principal_id: did_core_id`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
+| `ak.find.directory.push.command.register.v1` | `subscriber_id: did_core_id`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
 
 **Plaintext query 跨请求关联（normative）**：上表 `query` 脱敏约束（不进入 URL / Referer / 未脱敏 access log）只堵旁路面；受托 Directory（半受信第三方）还 MUST NOT 在应用层把 `(requester_actor_id, query_term, realm_id, timestamp)` 跨请求持久关联用于重建 requester 画像（"谁在找谁、对哪些 Realm 成员感兴趣"）。`search_users` / `search_actors` / `search_realms` 的 plaintext `query` 留存 MUST 有界并 SHOULD 脱敏 / 仅保留聚合反滥用指标；高隐私部署 SHOULD 走客户端本地索引或 §6 PSI / blind index 路径而非把 raw query 交给 Directory。口径对齐 §6 对 raw identifier 的保护与 [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) 对 access pattern 的风险登记。
 
@@ -816,21 +816,21 @@ Directory MUST NOT 因本地存在账号就披露身份，不得替调用方发�
   "operation_id": "<上表中该对象族的 operation>",
   "verification_method": "<proof.verification_method>",
   "created_at": "<proof.created_at>",
-  "audience": "<目标 Directory 的 service_id>"
+  "audience_id": "<目标 Directory 的 service_id>"
 }
 ```
 
-`audience` MUST 为目标 Directory 的 service DID（单值），`domain` MUST 缺席，`proof_purpose`
+`audience_id` MUST 为目标 Directory 的 service DID（单值），`domain`、裸 `audience` 与 `proof_purpose`
 MUST 缺席（`governance_authorization` 只属于 §8.7.1 的写入面）。
 
-**`audience` 形态（normative）**：这里的"目标 Directory 的 service DID"逐字等于该 Directory
+**`audience_id` 形态（normative）**：这里的"目标 Directory 的 service DID"逐字等于该 Directory
 `ak.find.directory.read.describe.v1` 响应中的 `service_id`，即 `did_core_id` 形态
-（`ak:did_core:<method>:<msi>`），与 §2 `directory_restricted_claim_presentation.audience` 及 §8.7.1
-governance proof 的 `audience` 同形态。完整 `did:<method>:<msi>` 形、DID URL 与数组形**都不是**可接受的
-替代形；Directory MUST 以 `directory-operations.schema.json#/$defs/proof` 的 `audience` 约束拒绝其它
+（`ak:did_core:<method>:<msi>`），与 §2 `directory_restricted_claim_presentation.audience_id` 及 §8.7.1
+governance proof 的 `audience_id` 同形态。完整 `did:<method>:<msi>` 形、DID URL 与数组形**都不是**可接受的
+替代形；Directory MUST 以 `directory-operations.schema.json#/$defs/proof` 的 `audience_id` 约束拒绝其它
 形态，MUST NOT 为兼容而同时接受两种形态。签名方与验证方 MUST 用同一 `service_id` 逐字节构造 binding
 object，形态不一致时签名必然不成立，且失败按本节末段走 §9.2 的不可区分拒绝，现场不会给出可归因信号。
-本条只约束 proof 叶与 binding object 的 `audience`；`resolve_handle` 请求体自身的顶层 `audience`
+本条只约束 proof 叶与 binding object 的 `audience_id`；`resolve_handle` 请求体自身的顶层 `audience`
 字段是 handle claim 的披露 audience 选择器（见本节上文），不是 proof audience，不受本条约束。
 
 binding object 各字段的取值形态如下（本表与 registry 的 `binding_fields` 逐族列表配套，registry 只登记
@@ -844,7 +844,7 @@ binding object 各字段的取值形态如下（本表与 registry 的 `binding_
 | `operation_id` | operation id 字面量 | 上表中该对象族的 operation |
 | `verification_method` | DID URL | `proof.verification_method` |
 | `created_at` | RFC 3339 timestamp | `proof.created_at` |
-| `audience` | `did_core_id`（单值） | 目标 Directory `describe.service_id` |
+| `audience_id` | `did_core_id`（单值） | 目标 Directory `describe.service_id` |
 | `address` | 非空 address string | `request.address`（`resolve_target`） |
 | `handle` | canonical handle | `request.handle`（`resolve_handle`） |
 | `controller_handle` | canonical handle | `request.controller_handle`（`resolve_agent_selector`） |
@@ -913,7 +913,7 @@ invitee Station 的转发算法 SHOULD 按 `priority` 升序，再按本地可�
 ```json schema=schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body
 {
   "query": "release",
-  "organization_principal_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+  "organization_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
   "requester_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "proof_challenge": "ak.chal_01JTV0KQ7K5ZP4VN6C9WEZK2X1",
   "limit": 20

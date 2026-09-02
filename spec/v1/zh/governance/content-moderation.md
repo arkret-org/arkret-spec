@@ -486,7 +486,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
 
 该策略由 `ak.organization.moderation_policy` Event 承载。它的 payload 是
 [`event-payload.schema.json#/$defs/organization_moderation_policy_state_payload`](../../artifacts/schemas/event-payload.schema.json)：
-恰好一个 Organization 标识（`organization_principal_id` XOR `organization_id`，即 cell subject）加上
+`organization_id: did_core_id`（即唯一 cell subject）加上
 whole-value `value`；策略内容全部位于 `value` 内，**不得**平铺到 payload 顶层——该 schema 是
 `additionalProperties:false`，平铺形态会被直接拒绝。`value` 是 required，且 v1 只有
 `organization_moderation_policy_document` 这一 closed family：不存在 `value.schema` selector、外部 schema
@@ -498,7 +498,7 @@ bytes，只会多出一条可漂移的第二真相源。
 {
   "kind": "ak.organization.moderation_policy",
   "payload": {
-    "organization_principal_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+    "organization_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
     "value": {
       "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
       "policy_scope": {

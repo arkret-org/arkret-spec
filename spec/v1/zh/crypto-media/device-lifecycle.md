@@ -1218,26 +1218,31 @@ active MLS group state、leaf signer、sender counter、ratchet 或 pending Welc
 active-state 例外。Agent 与 ordinary endpoint 的 fresh restore 都只能安装 schema 允许的 history-secret ranges；重新进入
 active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome（见 [`../identity/key-management.md` §7.5.6](../identity/key-management.md)）。
 
-备份单元使用 `ak.schema.key_backup.v1`，并设置 `backup_kind="mls_history"`。示例：
+备份单元使用 `ak.schema.key_backup.v1`，并设置 `backup_kind="mls_history"`。`actor_id` 是完整 tagged `ActorId`（`common-ids.schema.json#/$defs/actor_id`），裸 DID 字符串 MUST `schema_violation`；`contents[]` 只承载 `history_secret_ranges` 公开索引，secret bytes 只存在于 `ciphertext` 内。示例：
 
-```json
+```json schema=schemas/key-backup.schema.json
 {
   "backup_id": "ak:backup:01964138-8000-7000-8000-000000000000",
-  "actor_id": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
+  "actor_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+    }
+  },
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "backup_kind": "mls_history",
   "backup_version": "kb_1",
   "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000000",
   "series_seq": 0,
-  "supersedes": null,
-  "created_at": "2026-04-26T00:00:00Z",
+  "created_at": "2026-04-26T00:00:00.000Z",
   "encryption": {
     "recipient_method": "secret_storage_key",
     "recipient_key_ref": "mls_group_secrets_backup_key",
     "aead": {
       "name": "xchacha20_poly1305",
       "aead_profile": "ak.aead.xchacha20_poly1305.v1",
-      "nonce": "base64url..."
+      "nonce": "pZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD"
     }
   },
   "domain_separation": {
@@ -1245,21 +1250,27 @@ active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome
   },
   "contents": [
     {
-      "item_kind": "mls_epoch_secret",
-      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-      "mls_group_id": "base64url",
-      "epoch": 42,
-      "first_event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-      "last_event_id": "ak:event:AbxXq2kgnCNX8X5eerT7jjvw-n-ylkJEhAuk2jGoe6CJ"
+      "item_kind": "history_secret_ranges",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "ranges": [
+        {
+          "from_epoch": 40,
+          "to_epoch": 42
+        }
+      ]
     }
   ],
-  "ciphertext": "base64url...",
+  "ciphertext": "H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0",
   "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "auth_data": {
     "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak:device:01964137-0000-7000-8000-000000000000",
-    "signature": "base64url...",
-    "signature_algorithm": "Ed25519"
+    "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:01964137-0000-7000-8000-000000000000",
+    "signature_algorithm": "Ed25519",
+    "signature": "Yq2wq5mQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2Q",
+    "device_authorize_event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
   }
 }
 ```
@@ -1282,7 +1293,7 @@ active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
 - 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。
-- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 先用 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record 确认 canonical `series_id`（当同一 `(actor_id, backup_kind)` 存在多个 series 时），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
+- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes_id` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 先用 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record 确认 canonical `series_id`（当同一 `(actor_id, backup_kind)` 存在多个 series 时），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
 
 ### 12.1 Backup API
 
@@ -1297,7 +1308,7 @@ DELETE /_arkret/self/keys/backups/{backup_id}
 
 `PUT` 请求体 MUST 是 `ak.schema.key_backup.v1`，且 path 中的 `backup_id` MUST 与 body 中的 `backup_id` 一致。`PUT` 按 `(actor_id, backup_id)` 幂等；同一 `backup_id` 若提交不同 canonical content MUST 返回冲突错误。
 
-`PUT` 还 MUST：(a) 校验 `series_seq` 严格大于该 series 已有的最大 sequence（首条 MUST `series_seq=0`）；(b) 校验 `supersedes` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_seq_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
+`PUT` 还 MUST：(a) 校验 `series_seq` 严格大于该 series 已有的最大 sequence（首条 MUST `series_seq=0`）；(b) 校验 `supersedes_id` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_seq_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
 
 `GET /_arkret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_kind=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_kind` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 `identity/key-management.md` §7.8 的限速。
 

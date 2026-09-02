@@ -56,7 +56,7 @@
     "issuer_role": {
       "type": "string",
       "enum": [
-        "organization_principal_id",
+        "organization",
         "governance_service",
         "account_authority",
         "threshold_quorum"

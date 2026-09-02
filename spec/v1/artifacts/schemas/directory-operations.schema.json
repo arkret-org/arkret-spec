@@ -107,31 +107,39 @@
       "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "proof": {
-      "$ref": "./event-envelope.schema.json#/$defs/proof",
+      "type": "object",
       "required": [
-        "audience"
+        "kind",
+        "verification_method",
+        "payload_digest",
+        "created_at",
+        "audience_id",
+        "jws"
       ],
       "properties": {
-        "audience": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "payload_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "audience_id": {
           "$ref": "#/$defs/did_core_id"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
         }
       },
-      "not": {
-        "anyOf": [
-          {
-            "required": [
-              "domain"
-            ]
-          },
-          {
-            "required": [
-              "proof_purpose"
-            ]
-          }
-        ]
-      },
-      "description": "Directory requester proof leaf. Reuses the generic non-Event detached-JWS wire shape while closing the audience, domain, and purpose choices for the directory read surface: audience MUST be the target Directory service_id returned by ak.find.directory.read.describe.v1, in single-valued did_core_id form (the did:<method>:<msi> form and array audiences are invalid for this object family), and domain / proof_purpose MUST be absent. Canonical binding, signer authority, and freshness rules are defined in discovery-directory.md section 9.0.1.",
-      "$comment": "Every request family that carries requester proofs declares its own proofs array inline so that each object family owns a distinct detached-proof node with its own registered context (discovery-directory.md section 9.0.1); a single shared proofs alias would put unrelated operations under one domain separation. The audience narrowing lives on this shared leaf so that all five directory request families are gated by one mechanical constraint."
+      "additionalProperties": false,
+      "description": "Closed Directory requester detached-JWS proof leaf. audience_id MUST be the target Directory service_id returned by ak.find.directory.read.describe.v1, in single-valued did_core_id form; a W3C DID, DID URL, array, bare audience, domain, or proof_purpose member is invalid for this object family. Canonical binding, signer authority, and freshness rules are defined in discovery-directory.md section 9.0.1.",
+      "$comment": "Every request family that carries requester proofs declares its own proofs array inline so that each object family owns a distinct detached-proof node with its own registered context (discovery-directory.md section 9.0.1); a single shared proofs alias would put unrelated operations under one domain separation. This dedicated closed leaf preserves the Arkret identifier naming contract without trying to add audience_id beside the generic proof schema's additionalProperties=false boundary."
     },
     "directory_presented_claim": {
       "type": "object",
@@ -278,7 +286,7 @@
         "avatar_blob_ref": {
           "$ref": "./blob.schema.json#/properties/blob_ref"
         },
-        "organization_principal_id": {
+        "organization_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "join_rule": {
@@ -350,12 +358,12 @@
     "organization_preview": {
       "type": "object",
       "required": [
-        "organization_principal_id",
+        "organization_id",
         "as_of",
         "policy_revision"
       ],
       "properties": {
-        "organization_principal_id": {
+        "organization_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "handle": {
@@ -424,7 +432,7 @@
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
-        "organization_principal_id": {
+        "organization_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "avatar_blob_ref": {
@@ -509,7 +517,7 @@
         "query": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "organization_principal_id": {
+        "organization_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "source_realm_id": {
@@ -754,7 +762,7 @@
       "type": "object",
       "x-arkret-proof-context": "ak.directory_resolve_organization_request_proof.v1",
       "properties": {
-        "organization_principal_id": {
+        "organization_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "handle": {
@@ -771,7 +779,7 @@
       "anyOf": [
         {
           "required": [
-            "organization_principal_id"
+            "organization_id"
           ]
         },
         {
@@ -812,7 +820,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "organization_principal_id": {
+        "organization_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "cursor": {
@@ -1534,12 +1542,12 @@
     "directory_push_register_request_body": {
       "type": "object",
       "required": [
-        "subscriber_principal_id",
+        "subscriber_id",
         "resource_filter",
         "webhook_url"
       ],
       "properties": {
-        "subscriber_principal_id": {
+        "subscriber_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "resource_filter": {

@@ -1,7 +1,7 @@
 {
   "suite": "event_payload_value_closure",
   "fixture_kind": "schema_and_semantic",
-  "version": "2026-08-22",
+  "version": "2026-09-02.1",
   "spec_anchor": "spec/v1/zh/conformance/schema-registry.md",
   "source_refs": [
     "spec/v1/artifacts/schemas/event-payload.schema.json",
@@ -32,7 +32,7 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "organization_principal_id": "ak:did_core:webvh:z6mkfixtureorganization",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
         "value": {
           "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
           "policy_scope": {
@@ -61,7 +61,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "organization_principal_id": "ak:did_core:webvh:z6mkfixtureorganization"
+        "organization_id": "ak:did_core:webvh:z6mkfixtureorganization"
       }
     },
     {
@@ -72,7 +72,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "organization_principal_id": "ak:did_core:webvh:z6mkfixtureorganization",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
         "value": {
           "schema": "organization_moderation_policy",
           "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
@@ -99,7 +99,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "organization_id": "organization-local-1",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
         "value": {
           "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
           "policy_scope": {
@@ -117,7 +117,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "organization_id": "organization-local-1",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
         "value": {
           "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
           "policy_scope": {
@@ -144,7 +144,7 @@
       "instance": {
         "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
         "value": {
-          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
+          "holder_id": "ak:did_core:webvh:z6mkfixtureholder",
           "audience": {
             "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
             "verifier_ids": [
@@ -182,7 +182,7 @@
         "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
         "value": {
           "policy_family": "credential_specific",
-          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
+          "holder_id": "ak:did_core:webvh:z6mkfixtureholder",
           "audience": {
             "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
             "verifier_ids": [
@@ -206,7 +206,7 @@
       "instance": {
         "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
         "value": {
-          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
+          "holder_id": "ak:did_core:webvh:z6mkfixtureholder",
           "audience": {
             "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization"
           },
@@ -227,7 +227,7 @@
       "instance": {
         "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
         "value": {
-          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
+          "holder_id": "ak:did_core:webvh:z6mkfixtureholder",
           "audience": {
             "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
             "verifier_ids": [
@@ -248,7 +248,7 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+        "holder_id": "ak:did_core:key:z6Mkgpairwise",
         "value": {
           "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
           "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
@@ -274,7 +274,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise"
+        "holder_id": "ak:did_core:key:z6Mkgpairwise"
       }
     },
     {
@@ -285,7 +285,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+        "holder_id": "ak:did_core:key:z6Mkgpairwise",
         "value": {
           "receipt_kind": "selective_disclosure",
           "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
@@ -308,7 +308,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+        "holder_id": "ak:did_core:key:z6Mkgpairwise",
         "value": {
           "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000"
         }
@@ -322,7 +322,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+        "holder_id": "ak:did_core:key:z6Mkgpairwise",
         "value": {
           "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
           "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",

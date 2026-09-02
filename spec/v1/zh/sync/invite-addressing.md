@@ -189,6 +189,10 @@ token 要求：
   "handle_claim_behavior": "quarantine",
   "explicit_address_behavior": "quarantine",
   "unknown_invites": "drop",
+  "new_source_quota": {
+    "new_sources_per_window": 2,
+    "new_sources_per_retention": 20
+  },
   "allowed_handle_domains": [
     "bob.example"
   ],
@@ -214,6 +218,7 @@ token 要求：
 - `explicit_address_behavior` 取值为 `drop | quarantine | notify`；默认 SHOULD 是 `quarantine` 或 `drop`。把低信任档 evidence（`same_station` / `explicit_address`）配为 `notify` 是部署对该档的显式放宽，MUST 经部署有意配置，不得作为缺省。
 - `denied_handle_domains` 先于 allowlist 生效，命中时 MUST 按策略拒绝处理。`allowed_handle_domains` 若非空，`handle_claim.claim.handle` 的 domain MUST 是列表中的 canonical IDNA A-label 精确域名；子域名不自动继承，必须显式列出。`trusted_handle_issuer_ids` / `trusted_directory_ids` 若非空，`handle_claim.claim.issuer_id` 或 `resolved_by` MUST 命中对应 allowlist。
 - `unknown_invites` 取值为 `drop | quarantine`；无 evidence 或不合规 evidence 不得默认 notify。
+- `new_source_quota` 是 holder 对"此前未见过的新来源 peer"进入 quarantine inbox 的私有上限，两个成员均为 integer ≥ 0，`0` 表示锁死新来源。它只能把 holder 变得更不可达：effective 值取subject 值与 §5.2 部署 `max_*` 中更小者，省略成员取部署 `default_*`。判定算法、identity key 与ledger 语义由 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 唯一定义；本字段只是它的 holder 侧 carrier，超限后的处置仍是同一 opaque `deferred`。
 - `denied_actor_ids` 是按 exact peer ActorId 的黑名单；inviter 命中时，delivery MUST `drop`，且 §5.1 披露 MUST 强制为 `opaque`，以免黑名单经回包侧信道泄露。同 principal core 异 Station 的 account Actor 不得互相命中。`trusted_source_ids` / `denied_source_ids` 是另一独立维度，只匹配已认证 transport source service DID，不代表 inviter，也不得替代 `denied_actor_ids`。
 - policy 是 exact AccountId 的私有 state，不得写入目标 Realm event log。`policy.account_id` MUST 等于认证 holder 的完整 AccountId；同 principal 在另一 Station 的 policy、consent、quarantine、设备与通知不得继承或合并。
 
@@ -255,6 +260,7 @@ effective_receive_policy =
 - `disclosure_max` 是部署 / 管理员对 §5.1 分级披露粒度的上限，按 §2 引入信任分档给出 `{high_trust_max, discovery_trust_max, low_trust_max}`，取值同 `disclosure_level` 枚举（`opaque < outcome`，opaque 更保守）。字段或某档省略表示该档不设部署级披露上限。**effective disclosure 取 subject `invite_receive_policy.disclosure` 与 `disclosure_max` 中更保守（更接近 `opaque`）者**，使部署可以把 subject 自愿设为 `outcome` 的披露强制收紧为 `opaque`（反枚举 / 反侧信道），但 MUST NOT 把 subject 设为 `opaque` 的披露放宽为 `outcome`。该交集与上面的行为交集独立计算：先按行为上限定 drop / quarantine / notify，再按 `disclosure_max` 定 outcome 是否可回送。`denied_actor_ids` / `denied_source_ids` 命中时仍无条件强制 `opaque`，不受 `disclosure_max` 影响。
 - `allowed_handle_domains`、`trusted_handle_issuer_ids`、`trusted_directory_ids`、`trusted_source_ids`、`accepted_subject_did_methods` 是部署级 allowlist；字段省略表示该维度不设部署级上限，字段存在且为空数组表示不接受该维度的任何候选。非空时必须命中。未命中 MUST 视为策略拒绝，不得通过响应区分“存在但被策略拒绝”和“不存在”。
 - `denied_source_ids` 命中时 MUST `drop` 且强制 `opaque`。
+- `new_source_quota` 是 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) per-holder 新来源限速的**唯一**部署 carrier。字段与缺省：`window_seconds`（86400）、`default_new_sources_per_window`（3）、`max_new_sources_per_window`（10）、`retention_seconds`（2592000）、`default_new_sources_per_retention`（30）、`max_new_sources_per_retention`（200）。**省略该对象或任一字段不等于关闭 quota**，缺省即上表值；MUST 不变式 `max_* ≥ default_*` 与 `retention_seconds ≥ window_seconds` 由 validator 强制，违反者整个 constraints 对象以 `schema_violation` 拒绝。该 quota 与本节其它上限的交集独立计算：先按行为上限定 drop / quarantine / notify，命中 quarantine 后才在 admission chokepoint 执行 quota 判定。
 
 示例：
 
@@ -270,6 +276,14 @@ effective_receive_policy =
   ],
   "handle_claim_max_behavior": "quarantine",
   "explicit_address_max_behavior": "drop",
+  "new_source_quota": {
+    "window_seconds": 86400,
+    "default_new_sources_per_window": 3,
+    "max_new_sources_per_window": 10,
+    "retention_seconds": 2592000,
+    "default_new_sources_per_retention": 30,
+    "max_new_sources_per_retention": 200
+  },
   "allowed_handle_domains": ["acme.example"],
   "trusted_handle_issuer_ids": ["ak:did_core:webvh:z43vHHHeh32Hnyv6t7X3t33Xs"],
   "trusted_directory_ids": ["ak:did_core:webvh:z43vHHHeh32Hnyv6t7X3t33Xs"],
@@ -345,7 +359,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 5. 验证 `invite_event.payload.invitee_account_id == invite_address.account_id`，必须比较完整 AccountId。
 6. 验证 durable invite Event 未携带独立 route material；可选 `route_assistance` 只存在于 delivery transport，MUST NOT 要求它写入或匹配 durable Event，也 MUST NOT 把它当作授权证据。
 7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定 `invite_address.account_id`、issuer / Directory trust、domain allowlist、expiry 与 audience。分类顺序固定为：有效高信任 evidence，其次有效 `handle_claim`，其次接收端派生 `same_station`，最后 `explicit_address`。派生 `same_station` 只比较已验 invite Event account Actor 的 `account_id.station_id` 与 `invite_address.account_id.station_id`，不得使用 `Source-Service-ID` 或实际 ingress service。证据无效且不满足同 Station 时降级为低信任 `explicit_address`，不得直接通知或物化 membership。
-8. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_actor_ids`（与已验 invite Event 的完整 inviter ActorId 精确匹配；命中即 `drop` 且强制 opaque）与 `denied_source_ids`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
+8. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_actor_ids`（与已验 invite Event 的完整 inviter ActorId 精确匹配；命中即 `drop` 且强制 opaque）与 `denied_source_ids`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。判定为 quarantine 时，MUST 在写 quarantine cell 之前于 admission chokepoint 执行 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的 per-holder 新来源 quota 判定（effective 值来自本节 subject `new_source_quota` 与 §5.2 部署 `new_source_quota` 的交集）；超限即静默丢弃，不写 ledger、不写 cell，且与本节其它不可区分情形返回同一 opaque outcome。
 9. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `denied_actor_ids` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与“限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny”落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
 
 notify 分支的 holder-private 投递承载是 account-data 私有 cell，key 为 `ak.account.invite_delivery`（登记于 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)）。cell value 是**明文** JSON，MUST 符合 `ak.schema.invite_delivery.v1`（[`invite-delivery.schema.json`](../../artifacts/schemas/invite-delivery.schema.json)），不是 `ak.schema.account_data_encrypted_value.v1` envelope：该 cell 由接收方 Station 在投递路径写入，服务端无法产出 holder 客户端加密的 envelope；`invite_token` 本就是服务端基础设施签发并持有的私有 locator，明文存储不改变其信任边界。value 外层为 `schema` / `updated_at` / `delivery_entries[]`，每个 entry 携带 `invite_id` / `realm_id` / `inviter_account_id` / `invite_token` / `received_at` / `expires_at`；`inviter_account_id` 必须逐字复制已接受 Invite Event 的完整账号，不能只存 principal 后猜 Station。
@@ -355,7 +369,7 @@ notify 分支的 holder-private 投递承载是 account-data 私有 cell，key �
 - 该 cell 是 [`../models/account-data.md` §5](../models/account-data.md) 的 server-versioned CAS whole-value register：每次写入携带 `expected_revision`，冲突时写入方 MUST 重读当前值、按本节规则重新合并后重试，重试 MUST 有界（至多 3 次）；重试耗尽 MUST 放弃本次投递写入并以内部冲突失败，MUST NOT 以 stale revision 强行覆盖。
 - 每次写入 MUST 先清除 `expires_at <= now` 的过期 entry，再按 `invite_id` 去重（同一 `invite_id` 的重复投递替换旧 entry，不重复占位），随后 append 新 entry；结果超过 200 条上限时 MUST 从 `received_at` 最旧的 entry 开始逐出，直至不超过 200 条。
 - entry 的 `expires_at` MUST 取自 invite Event payload 的 `expires_at`；payload 未携带时服务端 MUST 以该 Event 的 `created_at` 加 7 天兜底。`expires_at <= now` 的 entry 是 stale 的：客户端 MUST NOT 用它执行 accept，并 MUST 在读取时按 `expires_at` 过滤。
-- 写入被 CAS 接受后，服务端 MUST 以 `ak.account_data.update` actor-private device update 把已接受的 revision 与完整 value fanout 到 holder 的全部 active devices。该 envelope 使用 `DeviceMessageSender::Service { sender_id }` 分支：`sender_principal_id == recipient_principal_id == holder`，`sender_id` 等于当前接收 Station 的 service identity；不伪造 origin device，不走 holder device revocation gate，也不排除任一 active holder device。fanout 只是实时加速路径；离线或错过 fanout 的设备 MUST 能直接经 `ak.self.account_data.read.list.v1` 或 `ak.self.account_data.resource.get.v1` 回读该 CAS cell 补取（account-data 天然是可回读的 register），两条路径读到的 revision/value 必须一致。CAS 冲突或其它未接受写入不得 fanout。
+- 写入被 CAS 接受后，服务端 MUST 以 `ak.account_data.update` actor-private device update 把已接受的 revision 与完整 value fanout 到 holder 的全部 active devices。该 envelope 使用 `DeviceMessageSender::Service { sender_id }` 分支：`recipient_account_id == holder`，`sender_id` 等于 `recipient_account_id.station_id` 与当前接收 Station 的 service identity；该分支不携 `sender_account_id`，不伪造 origin device，不走 holder device revocation gate，也不排除任一 active holder device。fanout 只是实时加速路径；离线或错过 fanout 的设备 MUST 能直接经 `ak.self.account_data.read.list.v1` 或 `ak.self.account_data.resource.get.v1` 回读该 CAS cell 补取（account-data 天然是可回读的 register），两条路径读到的 revision/value 必须一致。CAS 冲突或其它未接受写入不得 fanout。
 - private delivery material（含 `invite_token`）MUST NOT 物化到 Invite 对象或任何 Realm state（[`../models/governance-objects.md` §5.3](../models/governance-objects.md)）；该 cell 是 directed invite token 送达被邀请方设备的唯一规范私有承载。
 
 ## 8. Describe Capabilities

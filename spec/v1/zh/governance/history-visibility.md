@@ -526,7 +526,7 @@ resident instance 并取得新 sequence。每 `(scope,group,epoch)` 最多 8 份
 `origin_quota_domain`。三分支为：
 
 - `response_sender`：quota domain=`{source_sender_domain}`，origin ref=`{response_id,source_record_digest}`；
-- `rrk_archive`：quota domain=`{holder_principal_id,holder_id,recovery_key_id,accepted_key_evidence_ref}`，其中 accepted
+- `rrk_archive`：quota domain=`{controller_id,holder_id,recovery_key_id,accepted_key_evidence_ref}`，其中 accepted
   evidence EventId 就是 rotation identity 且不存在独立 key version；origin ref=
   `{container_event_ref,archive_digest}`；
 - `portable_backup`：quota domain=`{backup_series_id,producer_actor_id}`，origin ref=`{backup_origin_id}`。
@@ -632,7 +632,7 @@ RRK holder 唯一读取面是 recipient-bound、按 canonical bytes 分页的
 `key_agreement_ref`、`accepted_key_evidence_ref`、`holder_trusted_basis` 与可选单一 epoch range；每行直接返回匹配 archive、container Event ref、
 archive-lifetime traversal retention。holder 从 target 反向取得完整 Seal cut 并拓扑重放；
 不存在 `ArchiveId` 或第二个 archive-get surface。服务只返回历史 tuple 中
-`holder_principal_id` 与当前认证 holder authority 逐字节相符的行；unknown scope、无匹配、tuple 失配、过期/无权 holder
+`controller_id` 与当前认证 holder authority 逐字节相符的行；unknown scope、无匹配、tuple 失配、过期/无权 holder
 均使用同形 `not_found`。Organization Recovery holder 是显式全历史高权限恢复主体：为独立验证 notary、state root 与 activation，它被授权
 读取从 `holder_trusted_basis` 到 exact archive target 所必需的完整 Control Move 与 Seal closure；这可能披露 membership、policy 及其它 control
 metadata。该披露不能用伪稀疏证明或 service attestation 代替。若部署不能接受，MUST NOT 启用 `organization_recovery_key` durability。

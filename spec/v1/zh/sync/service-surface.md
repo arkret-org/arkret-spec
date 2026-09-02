@@ -903,7 +903,7 @@ POST /_arkret/find/directory/search-realms
 请求 MAY 包含：
 
 - `query`
-- `organization_principal_id`
+- `organization_id`
 - `source_realm_id`
 - `requester`
 - `proofs`

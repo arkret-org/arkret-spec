@@ -53,6 +53,24 @@
       ],
       "description": "Behavior for invite/contact delivery requests without compliant introduction_evidence."
     },
+    "new_source_quota": {
+      "type": "object",
+      "description": "Subject-private ceiling on how many previously unseen source peers may be admitted into this holder's invite quarantine inbox. Each member is intersected with the deployment new_source_quota: the effective value is min(subject value, deployment max). An omitted member takes the deployment default. 0 is legal and locks the holder to zero new sources; every further first contact is silently dropped inside the existing opaque deferred equivalence class.",
+      "required": [],
+      "properties": {
+        "new_sources_per_window": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Holder ceiling for the short sliding window declared by receive_policy_constraints.new_source_quota.window_seconds."
+        },
+        "new_sources_per_retention": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Holder ceiling for distinct new sources inside the long sliding window declared by receive_policy_constraints.new_source_quota.retention_seconds."
+        }
+      },
+      "additionalProperties": false
+    },
     "allowed_handle_domains": {
       "type": "array",
       "items": {
@@ -219,6 +237,44 @@
             "drop",
             "quarantine"
           ]
+        },
+        "new_source_quota": {
+          "type": "object",
+          "description": "Deployment ceiling and defaults for the per-holder new-source quota required by identity/consent-model.md section 6.1.1. Omitting the object does NOT disable the quota: every omitted member takes the specification default below, because the quota itself is a MUST. Both windows are sliding and are evaluated against one server-internal seen-source ledger; the quota never becomes observable to the requester, whose outcome stays inside the existing opaque deferred equivalence class.",
+          "required": [],
+          "properties": {
+            "window_seconds": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Short sliding rate window in seconds. Specification default 86400."
+            },
+            "default_new_sources_per_window": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Short-window admission count used when the subject publishes no override. Specification default 3."
+            },
+            "max_new_sources_per_window": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Upper bound a subject may raise the short window to. Specification default 10. MUST be greater than or equal to default_new_sources_per_window."
+            },
+            "retention_seconds": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Long sliding window in seconds. It is also the seen-source ledger retention period; the two are one parameter. Specification default 2592000. MUST be greater than or equal to window_seconds."
+            },
+            "default_new_sources_per_retention": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Long-window distinct new-source count used when the subject publishes no override. Specification default 30."
+            },
+            "max_new_sources_per_retention": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Upper bound a subject may raise the long window to. Specification default 200, anchored to the quarantine cell maxItems. MUST be greater than or equal to default_new_sources_per_retention."
+            }
+          },
+          "additionalProperties": false
         },
         "disclosure_max": {
           "type": "object",

@@ -2685,7 +2685,7 @@ Expected：
 Steps：
 
 1. 发送一个带稳定 `ak:device_message:<uuidv7>` 的消息，不 ack，断开后从 account subscribe 或 device-message list 重投同一 stored envelope。
-2. receiver 在 handler 副作用前按 `(sender_principal_id, sender_device_id, device_message_id)` 查询 durable 去重记录，并在 handler 结果持久化后记录完成；第二次投递只恢复连续完成位点。
+2. receiver 在 handler 副作用前按 `(sender_account_id, sender_device_id, device_message_id)` 查询 durable 去重记录，并在 handler 结果持久化后记录完成；第二次投递只恢复连续完成位点。
 3. 以同一 sender-scoped `device_message_id` 提交不同 canonical target intent；再以两个不同 `device_message_id` 提交相同业务 content。
 
 Expected：
@@ -5687,6 +5687,59 @@ Expected:
 - quarantine MUST 表示为 `status="deferred"` 且不携带 `disclosed_outcome`。
 - 负例：响应携带 `disclosed_outcome="quarantined"` 视为不合规；该值不在枚举内。
 - 三条通道的可观察量 MUST 互不能用于区分 quarantine 与拒绝。
+
+### 23.8 Per-holder 新来源 quota 的 holder 视角准入
+
+`vector_id`: `ak.vector.invite.new_source_quota_holder_admission.v1`
+
+本向量固化 [`../identity/consent-model.md` §6.1.1.1–§6.1.1.4](../identity/consent-model.md) 的
+admission chokepoint 算法。外部视角按设计不可区分，因此断言全部从 **holder 的
+`ak.account.invite_quarantine` cell** 观察。
+
+Steps:
+
+1. 部署声明 `receive_policy_constraints.new_source_quota`，holder 不发布 override（取部署缺省）。
+2. 用 `E_w` 个互不相同的新来源 peer 依次投递并被 quarantine，再投递第 `E_w + 1` 个新来源。
+3. 短窗滑过 `window_seconds` 后再投递一个新来源。
+4. 已被计费过的同一 source 在短窗内重复接触。
+5. 在长窗内把 distinct 新来源推到 `E_r`，再投递第 `E_r + 1` 个。
+6. 两个不同新来源的首次接触并发到达同一 holder；同一 source 的两条首次接触并发到达。
+7. `require_explicit_consent` profile 下重复第 2 步。
+
+Expected:
+
+- 第 `E_w + 1` 个新来源 MUST 缺席于 quarantine cell，响应仍是同一 opaque `deferred` 且无
+  `disclosed_outcome`。
+- 短窗滑过后的新来源 MUST 重新被准入。
+- 已计费 source 的重复接触 MUST 入列、MUST NOT 再次计费、MUST NOT 刷新其 `first_admitted_at`。
+- 第 `E_r + 1` 个 distinct 新来源 MUST 缺席，即使短窗未满。
+- 并发交错下准入总数 MUST NOT 超过 effective 上限；同一 source 的两条并发首次接触恰好计费一次，
+  两条都不返回可区分错误。
+- 负例：把被丢弃的 source 记入 ledger 视为不合规——下一窗口它会被误判为 seen。
+- 负例：`require_explicit_consent` profile 下出现任何 quarantine entry 视为不合规；该 profile 无
+  quarantine 面，quota 空转。
+- 负例：任何分支返回 429、`Retry-After`、`rate_limited` 或缓存的 drop outcome 均视为不合规。
+
+### 23.8.1 Effective quota 边界与 holder override
+
+`vector_id`: `ak.vector.invite.new_source_quota_effective_bounds.v1`
+
+Steps:
+
+1. holder 发布高于部署 `max_*` 的 `new_source_quota` override。
+2. holder 发布 `new_sources_per_window = 0`、`new_sources_per_retention = 0` 的 override。
+3. 部署省略整个 `new_source_quota` 对象，以及只省略其中部分字段。
+4. 部署声明 `max_new_sources_per_window < default_new_sources_per_window`，或
+   `retention_seconds < window_seconds`。
+
+Expected:
+
+- 超过 `max_*` 的 holder override MUST 被 clamp 到 `max_*`，MUST NOT 放宽超过部署边界。
+- `0` override MUST 使所有新来源静默丢弃，quarantine cell 不新增 entry。
+- 省略的对象或字段 MUST 取 spec 缺省值（`86400 / 3 / 10 / 2592000 / 30 / 200`），
+  MUST NOT 被解释为关闭 quota。
+- 违反 `max_* >= default_*` 或 `retention_seconds >= window_seconds` 的 constraints 对象 MUST 整体
+  拒绝，MUST NOT 取部分字段继续求值。
 
 ### 23.9 3PID claim 过期判定的 canonical 时点
 

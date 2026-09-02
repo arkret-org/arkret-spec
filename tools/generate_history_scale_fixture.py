@@ -548,7 +548,7 @@ def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
         "archive_authorization_tuple": {
             "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000001",
             "key_agreement_ref": SERVICE_DID + "#x25519-1",
-            "holder_principal_id": SERVICE_CORE,
+            "controller_id": SERVICE_CORE,
             "holder_id": SERVICE_CORE,
             "holder_signing_ref": SERVICE_METHOD,
             "accepted_key_evidence_ref": event_id("accepted-key-evidence"),
@@ -938,7 +938,7 @@ def build_rrk_registration_rotation_kat(
     register_tuple = {
         key: archive[key]
         for key in (
-            "recovery_key_id", "holder_principal_id", "holder_id",
+            "recovery_key_id", "controller_id", "holder_id",
             "key_agreement_ref", "holder_signing_ref", "hpke_suite",
             "frozen_public_key_b64u",
         )
@@ -977,7 +977,7 @@ def build_rrk_registration_rotation_kat(
             "actor_id": {
                 "kind": "account",
                 "account_id": {
-                    "principal_id": register_tuple["holder_principal_id"],
+                    "principal_id": register_tuple["controller_id"],
                     "station_id": register_tuple["holder_id"],
                 },
             },
@@ -1048,11 +1048,11 @@ def build_rrk_registration_rotation_kat(
     def did_document(key_tuple: dict[str, Any]) -> dict[str, Any]:
         raw = base64.urlsafe_b64decode(key_tuple["frozen_public_key_b64u"] + "=")
         return {
-            "id": key_tuple["holder_principal_id"],
+            "id": key_tuple["controller_id"],
             "verificationMethod": [{
                 "id": key_tuple["key_agreement_ref"],
                 "type": "Multikey",
-                "controller": key_tuple["holder_principal_id"],
+                "controller": key_tuple["controller_id"],
                 "publicKeyMultibase": "z" + base58btc(b"\xec\x01" + raw),
             }],
             "keyAgreement": [key_tuple["key_agreement_ref"]],
@@ -1155,7 +1155,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "epoch": epoch,
         "transition_digest": transition_digest,
         "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000121",
-        "holder_principal_id": holder_core,
+        "controller_id": holder_core,
         "holder_id": holder_core,
         "key_agreement_ref": holder_key_agreement,
         "holder_signing_ref": holder_method,
@@ -1276,7 +1276,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         for field in (
             "recovery_key_id",
             "key_agreement_ref",
-            "holder_principal_id",
+            "controller_id",
             "holder_id",
             "holder_signing_ref",
             "accepted_key_evidence_ref",

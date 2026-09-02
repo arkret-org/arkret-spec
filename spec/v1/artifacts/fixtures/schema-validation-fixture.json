@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-01.1",
+  "version": "2026-09-02.1",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -3050,7 +3050,7 @@
           "not_before": "2026-05-20T00:00:00.000Z",
           "expires_at": "2026-06-20T00:00:00.000Z"
         },
-        "operator_principal_id": "ak:did_core:webvh:z6mkfixtureoperatorexample",
+        "operator_id": "ak:did_core:webvh:z6mkfixtureoperatorexample",
         "audit_purpose": "internal_policy_audit",
         "audit_policy_version_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "created_at": "2026-05-20T00:00:00.000Z",
@@ -3102,7 +3102,7 @@
           "not_before": "2026-05-20T00:00:00.000Z",
           "expires_at": "2026-06-20T00:00:00.000Z"
         },
-        "operator_principal_id": "ak:did_core:webvh:z6mkfixtureoperatorexample",
+        "operator_id": "ak:did_core:webvh:z6mkfixtureoperatorexample",
         "audit_purpose": "internal_policy_audit",
         "audit_policy_version_digest": "blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "created_at": "2026-05-20T00:00:00.000Z",
@@ -5598,6 +5598,223 @@
           "legacy"
         ]
       }
+    },
+    {
+      "name": "ice_config_request_actor_id_valid",
+      "schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+        "mode": "p2p"
+      }
+    },
+    {
+      "name": "ice_config_request_bare_actor_id_rejected",
+      "schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
+      "instance_from": "ice_config_request_actor_id_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/actor_id",
+          "value": "ak:did_core:webvh:z6mkfixture"
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "ice_config_response_actor_id_valid",
+      "schema_ref": "schemas/ice-config-response.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+        "ttl_seconds": 600,
+        "refresh_lead_seconds": 60,
+        "issued_at": "2026-04-26T00:00:00.000Z",
+        "ice_servers": [
+          {
+            "urls": [
+              "stun:stun.example.com:3478"
+            ]
+          },
+          {
+            "urls": [
+              "turns:turn.example.com:5349?transport=tcp"
+            ],
+            "username": "1699999999:ak_pseudonym_call_4f7c3b2a9e1d5a6f",
+            "credential": "H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0",
+            "credential_type": "password"
+          }
+        ],
+        "turn_required": false,
+        "constraints": {
+          "udp_allowed": true,
+          "tcp_allowed": true,
+          "ipv6_allowed": true
+        },
+        "signature": {
+          "kid": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com#key-1",
+          "sig": "Yq2wq5mQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2Q",
+          "signature_algorithm": "Ed25519"
+        }
+      }
+    },
+    {
+      "name": "ice_config_response_bare_actor_id_rejected",
+      "schema_ref": "schemas/ice-config-response.schema.json",
+      "instance_from": "ice_config_response_actor_id_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/actor_id",
+          "value": "ak:did_core:webvh:z6mkfixture"
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "invite_new_source_quota_subject_override_valid",
+      "schema_ref": "schemas/invite-receive-policy.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.invite_receive_policy.v1",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "holder_allowed_introduction_kinds": [],
+        "explicit_address_behavior": "quarantine",
+        "unknown_invites": "quarantine",
+        "new_source_quota": {
+          "new_sources_per_window": 2,
+          "new_sources_per_retention": 20
+        }
+      }
+    },
+    {
+      "name": "invite_new_source_quota_subject_zero_lockdown_valid",
+      "schema_ref": "schemas/invite-receive-policy.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.invite_receive_policy.v1",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "holder_allowed_introduction_kinds": [],
+        "explicit_address_behavior": "quarantine",
+        "unknown_invites": "quarantine",
+        "new_source_quota": {
+          "new_sources_per_window": 0,
+          "new_sources_per_retention": 0
+        }
+      }
+    },
+    {
+      "name": "invite_new_source_quota_subject_negative_rejected",
+      "schema_ref": "schemas/invite-receive-policy.schema.json",
+      "instance_from": "invite_new_source_quota_subject_override_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/new_source_quota/new_sources_per_window",
+          "value": -1
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:is less than the minimum"
+    },
+    {
+      "name": "invite_new_source_quota_subject_unknown_member_rejected",
+      "schema_ref": "schemas/invite-receive-policy.schema.json",
+      "instance_from": "invite_new_source_quota_subject_override_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/new_source_quota/window_seconds",
+          "value": 86400
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "invite_new_source_quota_deployment_full_valid",
+      "schema_ref": "schemas/invite-receive-policy.schema.json#/$defs/receive_policy_constraints",
+      "expect_valid": true,
+      "instance": {
+        "policy_version": "2026-09-02",
+        "applies_to": [
+          "invite_delivery",
+          "contact_request"
+        ],
+        "new_source_quota": {
+          "window_seconds": 86400,
+          "default_new_sources_per_window": 3,
+          "max_new_sources_per_window": 10,
+          "retention_seconds": 2592000,
+          "default_new_sources_per_retention": 30,
+          "max_new_sources_per_retention": 200
+        }
+      }
+    },
+    {
+      "name": "invite_new_source_quota_deployment_partial_valid",
+      "schema_ref": "schemas/invite-receive-policy.schema.json#/$defs/receive_policy_constraints",
+      "expect_valid": true,
+      "instance": {
+        "policy_version": "2026-09-02",
+        "new_source_quota": {
+          "max_new_sources_per_window": 5
+        }
+      }
+    },
+    {
+      "name": "invite_new_source_quota_deployment_zero_window_rejected",
+      "schema_ref": "schemas/invite-receive-policy.schema.json#/$defs/receive_policy_constraints",
+      "instance_from": "invite_new_source_quota_deployment_full_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/new_source_quota/default_new_sources_per_window",
+          "value": 0
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:is less than the minimum"
+    },
+    {
+      "name": "invite_new_source_quota_deployment_unknown_member_rejected",
+      "schema_ref": "schemas/invite-receive-policy.schema.json#/$defs/receive_policy_constraints",
+      "instance_from": "invite_new_source_quota_deployment_full_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/new_source_quota/new_sources_per_window",
+          "value": 3
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed"
     }
   ]
 }

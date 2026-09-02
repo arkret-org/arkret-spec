@@ -164,9 +164,9 @@
             "origin_domain": {"const": "rrk_archive"},
             "origin_quota_domain": {
               "type": "object",
-              "required": ["holder_principal_id", "holder_id", "recovery_key_id", "accepted_key_evidence_ref"],
+              "required": ["controller_id", "holder_id", "recovery_key_id", "accepted_key_evidence_ref"],
               "properties": {
-                "holder_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+                "controller_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
                 "holder_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
                 "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
                 "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
@@ -298,7 +298,7 @@
       "required": [
         "recovery_key_id",
         "key_agreement_ref",
-        "holder_principal_id",
+        "controller_id",
         "holder_id",
         "holder_signing_ref",
         "accepted_key_evidence_ref",
@@ -309,13 +309,13 @@
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "holder_principal_id": {
+        "controller_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Principal projection of the holder signing authority named by holder_signing_ref. This is intentionally not an AccountId: the tuple separately binds the service route/authority in holder_id."
         },
         "holder_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "History-key holder service route and authority. It has a different role from holder_principal_id (the signing principal projection) and MUST NOT be inferred from or compared as though it were that principal."
+          "description": "History-key holder service route and authority. It has a different role from controller_id (the signing principal projection) and MUST NOT be inferred from or compared as though it were that principal."
         },
         "holder_signing_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -1233,7 +1233,7 @@
               "type": "object",
               "required": [
                 "kind",
-                "holder_principal_id",
+                "controller_id",
                 "holder_id",
                 "archive_tuple_digest"
               ],
@@ -1241,7 +1241,7 @@
                 "kind": {
                   "const": "organization_recovery_holder"
                 },
-                "holder_principal_id": {
+                "controller_id": {
                   "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                 },
                 "holder_id": {
@@ -1297,7 +1297,7 @@
     "rrk_holder_authority_observation": {
       "type": "object",
       "required": [
-        "holder_principal_id",
+        "controller_id",
         "holder_id",
         "current_holder_signing_ref",
         "accepted_key_evidence_ref",
@@ -1307,7 +1307,7 @@
         "expires_at"
       ],
       "properties": {
-        "holder_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "controller_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
         "holder_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
         "current_holder_signing_ref": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
         "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
@@ -2562,7 +2562,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "Recipient-bound RRK archive read/list query. The authenticated holder identity is transport authority and is not caller-supplied here. from_epoch/to_epoch, when present, form one inclusive non-empty range. The service returns only rows whose exact historical key tuple names this recovery_key_id/key_agreement_ref and accepted key provenance Event, whose holder_trusted_basis matches byte-for-byte, and whose holder_principal_id matches current authority. Replay from holder_trusted_basis proves that accepted_key_evidence_ref is reducer-effective; no singular activation Seal selector exists. Cursor binds only the authenticated holder authority, exact query selectors and last ordering tuple. byte_limit below the registry minimum legal item size returns limit_exceeded rather than a zero-progress page."
+      "description": "Recipient-bound RRK archive read/list query. The authenticated holder identity is transport authority and is not caller-supplied here. from_epoch/to_epoch, when present, form one inclusive non-empty range. The service returns only rows whose exact historical key tuple names this recovery_key_id/key_agreement_ref and accepted key provenance Event, whose holder_trusted_basis matches byte-for-byte, and whose controller_id matches current authority. Replay from holder_trusted_basis proves that accepted_key_evidence_ref is reducer-effective; no singular activation Seal selector exists. Cursor binds only the authenticated holder authority, exact query selectors and last ordering tuple. byte_limit below the registry minimum legal item size returns limit_exceeded rather than a zero-progress page."
     },
     "organization_recovery_archive_list_item": {
       "type": "object",

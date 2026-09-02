@@ -288,7 +288,87 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
   **wire 落点（normative）**：在 peer invite delivery 与 contact delivery 面上，该等价类的 wire 形态固定为 `status="deferred"` 且**不携带** `disclosed_outcome`；`disclosed_outcome` 的枚举因此封闭为 `delivered | blocked`，`quarantined` 不是可回送值。详见 [`../sync/invite-addressing.md` §5.1](../sync/invite-addressing.md)。高信任 introduction evidence（`locator_ref` / `consent_grant` / `shared_realm`）**不构成**放宽理由：它只说明 requester 已知 holder 存在，而这里泄露的是 consent 状态而非 existence。
 
   requester 只有在 holder 显式 review 接受并构造 grant Control Move(本节 review 后转换 (a))后，才 MAY 从正常 active-grant 路径观察到可联系状态。否则 quarantine 暂存本身会成为"holder 真实存在且 inbox 可达"的可联系侧信道，违背 consent gate 的"非授权即不可联系"语义。
-- **反滥用限速（normative）**：为闭合"换 pairwise DID 即重新入列"的骚扰放大面，服务端对写入同一 holder quarantine inbox 的**新来源**（此前未见过的 `peer` pairwise DID）首次接触项 MUST 施加 per-holder 速率与总量上限（与 [`../discovery/discovery-directory.md` §6.4](../discovery/discovery-directory.md) 的 private contact discovery 限速同构；具体阈值由 deployment policy 声明，缺省 SHOULD 收敛到与该 PSI quota 同量级）。超过上限的新来源接触 MUST 被静默丢弃——不入列、不向 requester 暴露任何送达 / 可联系信号（遵守上一条不可区分要求）；holder MAY 在 UI 显式放宽。该限速仅针对"新陌生 pairwise 首次接触"；已被 holder grant 过、走正常 active-grant 路径的 peer 不受此限。
+- **反滥用限速（normative）**：为闭合"换 pairwise DID 即重新入列"的骚扰放大面，服务端对写入同一 holder quarantine inbox 的**新来源**（此前未见过的 peer pairwise DID）首次接触项 MUST 施加 per-holder 速率与总量上限。承载、identity key、算法、ledger 与原子性由 §6.1.1.1–§6.1.1.4 唯一定义；超过上限的新来源接触 MUST 被静默丢弃——不入列、不向 requester 暴露任何送达 / 可联系信号（遵守上一条不可区分要求）。该限速仅针对"新陌生 pairwise 首次接触"；已被 holder grant 过、走正常 active-grant 路径的 peer 结构上不进入 quarantine 路径，因而不受此限。
+
+##### 6.1.1.1 Quota carrier 与 effective 值（normative）
+
+- **deployment 侧**：阈值只由 [`../sync/invite-addressing.md` §5.2](../sync/invite-addressing.md) 的
+  `receive_policy_constraints.new_source_quota` 声明（closed object，字段与缺省见该节表）。它经既有
+  `$ref` 自动进入 `ServiceDescribe`，广告边界与 PSI quota 广告同构。部署**省略该对象或其中任一字段
+  ≠ 关闭 quota**：本节是 MUST，省略即取 spec 缺省值；"关闭"不可表达。服务端 MUST NOT 用通用 endpoint
+  限速、Directory PSI device quota 或私有配置替代该 carrier。
+- **holder 侧**：subject 私有 `ak.schema.invite_receive_policy.v1` 的 optional closed
+  `new_source_quota` 携带 `new_sources_per_window` / `new_sources_per_retention`（integer ≥ 0）。
+- **effective 值**：`E_w = min(subject.new_sources_per_window ?? default_new_sources_per_window,
+  max_new_sources_per_window)`；`E_r = min(subject.new_sources_per_retention ??
+  default_new_sources_per_retention, max_new_sources_per_retention)`。subject 值 `0` 合法，表示 holder
+  锁死新来源、全部静默丢弃。放宽边界唯一由部署 `max_*` 给出：这既是"holder MAY 在 UI 显式放宽"的
+  上界，也保持 `receive_policy_constraints` 既有"约束只能让 subject 更不可达"的合同。
+- **MUST 不变式**（validator 强制，schema 无法表达跨字段比较）：`max_new_sources_per_window ≥
+  default_new_sources_per_window`；`max_new_sources_per_retention ≥
+  default_new_sources_per_retention`；`retention_seconds ≥ window_seconds`；部署侧全部字段 ≥ 1。
+  违反 MUST 以 `schema_violation` 拒绝该 constraints 对象，不得取部分字段继续求值。
+  SHOULD：`*_per_retention ≥ *_per_window`。
+
+##### 6.1.1.2 "新来源"的 identity key（normative）
+
+新来源的 identity key 是 `(holder 完整 AccountId, source_peer_principal_id)`。
+`source_peer_principal_id` 在 invite 路径取已验证 invite Event 的完整 inviter ActorId 的 principal
+分量，在 §6.1.2 路径取认证上下文的 peer principal。quarantine entry 的 `source_id` 是已认证
+transport source service DID（见 [`../sync/invite-addressing.md` §5](../sync/invite-addressing.md)），
+它 **MUST NOT** 参与 quota identity：按 Station 计费会一站连坐，也可被换站绕过。holder 维度使用完整
+AccountId，同 principal core 异 Station 是不同 holder。
+
+##### 6.1.1.3 判定算法（normative）
+
+quota 判定发生在 **quarantine admission 唯一 chokepoint**——所有能产生 quarantine entry 的 surface
+（invite delivery、contact delivery 与 §6.1.2 consent request）汇聚于此，在 quarantine cell CAS 写**之前**
+恰好执行一次：
+
+1. **prune**：忽略并删除 ledger 中 `first_admitted_at ≤ now − retention_seconds` 的条目。
+2. **seen**：source 在 prune 后 ledger 中存在 → 非新来源，直接进入 cell 写；MUST NOT 写 ledger，也
+   MUST NOT 刷新其 `first_admitted_at`（刷新会让活跃骚扰源永久保鲜）。
+3. **new**：令 `rate = |{first_admitted_at > now − window_seconds}|`、`total = |ledger|`。
+   `rate ≥ E_w` **或** `total ≥ E_r` → 静默丢弃：零 ledger 写、零 cell 写，对外与本节不可区分等价类
+   同一 opaque `deferred`。两者均未超时 MUST 原子 append `(source, now)` 后进入 cell 写。
+4. 被丢弃的 source **MUST NOT** 记入 ledger：既防"上一窗口被拒 → 下一窗口洗白为 seen"的绕过，也使
+   攻击者无法用海量被拒 DID 撑大 ledger。
+
+"总量上限"是 **retention 窗内 distinct 新来源上限**，不是终身计数，也不是 pending 条数（后者已由
+quarantine cell 的 200 条上限覆盖）。两个窗口都是**滑动窗**，直接由 ledger 时间戳计数，不需要固定窗
+轮转状态。与 [`../discovery/discovery-directory.md` §6.4](../discovery/discovery-directory.md) PSI quota
+的同构点是"准入原子执行一次、replay 不重复计数"；刻意偏离点是**不缓存 drop outcome、不返回 429 /
+`Retry-After`**——PSI 的 outcome 对外可区分才需要缓存，本面对外恒为同一 opaque `deferred`，重评估无
+侧信道，缓存只会新增状态。
+
+##### 6.1.1.4 Seen-source ledger 与原子性（normative）
+
+- ledger 是 Station **内部 durable 反滥用状态**：无 wire carrier，不是 account-data cell，任何 wire
+  surface（含 holder 面）MUST NOT 可读。holder 的可观察面仍只有 quarantine cell 本身。
+- 行内容是 `(holder AccountId, source_peer_principal_id, first_admitted_at)`。holder 列明文建索引；
+  source 列 SHOULD 只存 server-private key 的 keyed digest（成员判定只需相等性），降低落库暴露面。
+- `retention_seconds` 同时是 ledger 保留期与长窗计数窗。超龄条目在判定时 MUST 立即失效（步骤 1），
+  物理删除 MUST 在该 holder 下次 admission 评估或周期清理时完成。prune 后
+  `|ledger| ≤ max_new_sources_per_retention`，存储有部署上界。
+- holder 账号擦除 MUST 连带删除其整个 ledger。consent revoke 与 `denied_source_ids` /
+  `trusted_source_ids` 名单变更 MUST NOT 触碰 ledger：准入反滥用状态与 consent 状态分离。
+- audit MAY 记录聚合丢弃计数，SHOULD NOT 持久化被丢弃 source 的可识别 DID。
+- prune + membership + 双计数 + append 与准入判定 MUST 按 holder **线性化**。并发新来源首次接触在任何
+  交错下 MUST NOT 超额准入；同一 source 的两条并发首次接触恰好计费一次（第二条按 seen 放行）。
+- quota 判定 MUST NOT 在 cell 写的 CAS 重试循环内重复执行。重试耗尽的内部静默放弃**不退费**。
+- replay：命中既有 entry 去重（`request_digest` / `idempotency_key_digest`）的重复投递不进入 quota
+  评估、零新计费；被丢弃请求的重放按当前窗口重新评估。
+
+##### 6.1.1.5 Quarantine cell 写语义（normative）
+
+`ak.account.invite_quarantine` cell 的写语义与 notify 分支的 `ak.account.invite_delivery`
+（[`../sync/invite-addressing.md` §7](../sync/invite-addressing.md)）同构：该 cell 是
+[`../models/account-data.md` §5](../models/account-data.md) 的 server-versioned CAS whole-value
+register。每次写入 MUST 先清除 `expires_at ≤ now` 的过期 entry，再按 `entry_digest` 去重，随后 append
+新 entry；结果超过 200 条上限时 MUST 从 `received_at` 最旧的 entry 起逐出。CAS 冲突时写入方 MUST 重读
+当前值、按本节规则重新合并后重试，重试 MUST 有界（至多 3 次），并保持 oldest-first 顺序与
+`updated_at` 单调。重试耗尽 MUST 以内部失败放弃本次写入并 audit，MUST NOT 以 stale revision 强行覆盖；
+对外仍返回同一 opaque `deferred`。
 
 #### 6.1.2 `ak.self.consent.command.request.v1`（normative）
 

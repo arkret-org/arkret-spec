@@ -15,7 +15,7 @@
     "attestation_key",
     "verification_method",
     "validity",
-    "operator_principal_id",
+    "operator_id",
     "audit_purpose",
     "audit_policy_version_digest",
     "created_at",
@@ -207,9 +207,9 @@
       },
       "additionalProperties": false
     },
-    "operator_principal_id": {
+    "operator_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "DID of the controlling organization actually operating this enclave / HSM. This intentionally keeps the _did suffix because it is raw external DID material being compared against service_id and Realm policy, not a protocol actor_id/principal_id alias. MUST match what the Realm policy lists as the allowed audit operator. Distinct from service_id when the operating organization is different from the technical service DID (e.g. service hosted by organization A on behalf of organization B)."
+      "description": "Stable did_core_id of the controlling organization actually operating this enclave / HSM. MUST match what the Realm policy lists as the allowed audit operator. Distinct from service_id when the operating organization is different from the technical service DID (for example, service hosted by organization A on behalf of organization B)."
     },
     "audit_purpose": {
       "type": "string",

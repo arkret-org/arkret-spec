@@ -1970,6 +1970,27 @@ DURATION_FIELD_EXCEPTIONS = (
         "reason": "A rate count per window, not the window's length; the integer "
         "counts queries, so no unit suffix applies.",
     },
+    {
+        "file": "invite-receive-policy.schema.json",
+        "pointer": "/properties/new_source_quota/properties/new_sources_per_window",
+        "name": "new_sources_per_window",
+        "reason": "A new-source admission count per window, not the window's "
+        "length; the integer counts sources, so no unit suffix applies.",
+    },
+    {
+        "file": "invite-receive-policy.schema.json",
+        "pointer": "/$defs/receive_policy_constraints/properties/new_source_quota/properties/default_new_sources_per_window",
+        "name": "default_new_sources_per_window",
+        "reason": "A default new-source admission count per window, not the "
+        "window's length; the integer counts sources, so no unit suffix applies.",
+    },
+    {
+        "file": "invite-receive-policy.schema.json",
+        "pointer": "/$defs/receive_policy_constraints/properties/new_source_quota/properties/max_new_sources_per_window",
+        "name": "max_new_sources_per_window",
+        "reason": "A maximum new-source admission count per window, not the "
+        "window's length; the integer counts sources, so no unit suffix applies.",
+    },
 )
 
 

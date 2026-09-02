@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
-      "sha256": "b94362c95c2cb4afbeeff4d74a92af8b04468409b5ccebee4fdda2bf30992ef1"
+      "sha256": "cc08ace156e98361a73c5f4ebf6fe52336a72a2550b557521f2bb8ca0bc75b74"
     },
     {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
@@ -190,7 +190,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "cb6d8623478f53c2e12245f85138a99409aec3323d7277cfdd4a253d4b805742"
+      "sha256": "61600cf05730480f937de6629fb7403a650d8ec84cdca6395a8887b2c6ba4939"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "4656a56339778f655afcd0404b18610278db5710a59fbeb12f758fbf5e7ad32d"
+      "sha256": "d10445700e49c75496f5c9ccd680ae24e5a6795da972b35b673d8d80bcbfb2e4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
@@ -290,7 +290,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "bbde0979649606de39ccc232d4a9506813f08dbd094a095bfd13829a4659d285"
+      "sha256": "a8d51db7b56134d257cb67eb58f65ab5c19cd25120088ae7c8753706f32f253d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -314,11 +314,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-organization-fixture.json",
-      "sha256": "f05437bde9b49a652ad94a0bc463c6ff2ce78f391db97be8838bbbc1992c0eca"
+      "sha256": "86a5c88206d3708d2bf933fb02763d06c091696aa6b78373ef7d341adf795496"
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-policy-fixture.json",
-      "sha256": "db7dcb28cc15d14341b7e6fd14c3065bee79dc1701f83d7c1eccc5f860d1e222"
+      "sha256": "244bb803750a247e779d5e87e875101f1e6ad2771826a66906ad274476c980ef"
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
@@ -338,7 +338,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "ad036b5f19feba35f40343d97fb82fa48ca2e0f540b263b578e4214c04176ba3"
+      "sha256": "7f4963363f037b61740cd0e75350854f0fc479134473b9372fbd7538a8849da9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

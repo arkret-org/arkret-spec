@@ -1881,33 +1881,42 @@
       }
     },
     "DirectoryGovernanceProof": {
-      "description": "Single resource-governance authorization proof for directory withdrawal. Reuses the generic non-Event detached-JWS wire leaf while closing audience, purpose, and domain choices for this object family; canonical binding, signer authority, and freshness rules are defined in discovery-directory.md section 8.7.1.",
-      "allOf": [
-        {
-          "$ref": "./event-envelope.schema.json#/$defs/proof"
+      "type": "object",
+      "description": "Closed resource-governance detached-JWS authorization proof for directory withdrawal. audience_id is the target Directory service_id; proof_purpose is fixed to governance_authorization; bare audience and domain members are invalid. Canonical binding, signer authority, and freshness rules are defined in discovery-directory.md section 8.7.1.",
+      "required": [
+        "kind",
+        "verification_method",
+        "payload_digest",
+        "created_at",
+        "audience_id",
+        "proof_purpose",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
         },
-        {
-          "type": "object",
-          "required": [
-            "audience",
-            "proof_purpose"
-          ],
-          "properties": {
-            "audience": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            "proof_purpose": {
-              "type": "string",
-              "const": "governance_authorization"
-            }
-          },
-          "not": {
-            "required": [
-              "domain"
-            ]
-          }
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "payload_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "audience_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "proof_purpose": {
+          "const": "governance_authorization"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
         }
-      ]
+      },
+      "additionalProperties": false
     },
     "DirectoryAnnounceRequestBody": {
       "type": "object",

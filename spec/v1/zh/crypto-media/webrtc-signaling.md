@@ -126,17 +126,23 @@ Content-Type: application/json
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 调用者认证，MUST 绑定 `actor_id` 与 `device_id`。 |
 | `realm_id` | body | `id` | required | 通话所在 Realm。 |
 | `call_id` | body | `id` | required | 通话 ID。 |
-| `actor_id` | body | `did` | required | 请求 ICE 配置的 Actor。 |
+| `actor_id` | body | `ActorId` | required | 请求 ICE 配置的 Actor，完整 tagged `ActorId` 对象（`common-ids.schema.json#/$defs/actor_id`）；裸 DID 字符串 MUST `schema_violation`。 |
 | `device_id` | body | `id` | required | 请求设备。 |
 | `mode` | body | `enum(p2p,sfu,turn)` | required | **传输模式请求**，与 [`call-state.md` §2](./call-state.md) 的会议拓扑 `call_mode`（`{p2p,mesh,sfu,mcu}`）**不是同一枚举、不是同一概念**：本字段表达"客户端希望服务端为本次 ICE 协商返回何种传输面凭证"，`call_mode` 表达"整通会议在 §2 模型下的拓扑形态"。二者同名值（`p2p` / `sfu`）只是巧合，MUST NOT 互相推导或混用。各取值语义：`p2p` = 请求直连 / srflx candidate 优先的对等传输；`sfu` = 请求接入 SFU focus 所需的 ICE/TURN 凭证；`turn` = 请求纯 TURN 中继传输（强制经 TURN server 转发，不暴露 host/srflx candidate，等价于 `force_turn=true` 的传输诉求，用于高隐私 / 受限网络）。本字段不决定也不改写 `ak.call.state.focus.mode`；会议拓扑的权威值始终是 `call-state.md` 的 `call_mode`。**call_mode → 传输 mode 映射（normative）**：`call_mode=mesh` 的各对等腿请求 `mode=p2p`（或受限网络下 `mode=turn`）；`call_mode=mcu` 与 `call_mode=sfu` 均请求 `mode=sfu`（接入 focus 的 ICE/TURN 凭证；纯中继诉求用 `mode=turn`）。即 `mesh` 映射到对等传输、`mcu`/`sfu` 映射到 focus 传输，不存在未覆盖的拓扑→传输空白。 |
 
-请求示例（非完整 schema）：
+请求示例：
 
-```json
+```json schema=schemas/media-operations.schema.json#/$defs/media_ice_config_request_body
 {
-  "realm_id": "ak:realm:...",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-  "actor_id": "ak:did_core:webvh:zExampleActorScid",
+  "actor_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+    }
+  },
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "mode": "p2p"
 }
@@ -148,7 +154,7 @@ Content-Type: application/json
 | --- | --- | --- | --- |
 | `realm_id` | `id` | required | 回显请求 Realm，进入签名 canonical bytes，防止跨 Realm 重放。 |
 | `call_id` | `id` | required | 回显请求 call，进入签名 canonical bytes，防止跨通话重放。 |
-| `actor_id` | `did_core_id` | required | 回显请求 actor 的稳定 `did_core_id`，进入签名 canonical bytes。 |
+| `actor_id` | `ActorId` | required | 回显请求的完整 tagged `ActorId`（与请求逐字节相等），进入签名 canonical bytes。 |
 | `device_id` | `id` | required | 回显请求设备，进入签名 canonical bytes。 |
 | `ttl_seconds` | `int` | required | ICE 配置有效期（秒）。建议 ≤ 1 小时。 |
 | `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`。schema 合法范围为 `minimum=10`、`maximum=1800`。**服务端 MUST 保证 `refresh_lead_seconds` 严格小于 `ttl_seconds`**（否则客户端在签发瞬间即判定 credential 需刷新，陷入刷新风暴)。推荐 floor 60s 仅在 `60 < ttl_seconds` 时适用，否则 `refresh_lead_seconds < ttl_seconds` 优先于推荐 floor（floor 让位的完整论证与取值规则见 §4.2 服务端规则）。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
@@ -163,17 +169,23 @@ Content-Type: application/json
 | `next_retry_at` | `timestamp` | optional | 软失败（如 `turn_credential_expired`）时返回；客户端 MUST NOT 在此前重试。 |
 | `signature` | `signature` | required | Media Service DID 对 canonical bytes（去除 `signature` 自身）的 detached 签名。 |
 
-响应示例（非完整 schema）：
+响应示例：
 
-```json
+```json schema=schemas/ice-config-response.schema.json
 {
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "call_id": "ak:call:AZ3zJ_lO73PnD-ttYUcaM8mzk0oqoKhTUrelyYjrz9Ww",
-  "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+  "actor_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+    }
+  },
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "ttl_seconds": 600,
   "refresh_lead_seconds": 60,
-  "issued_at": "2026-04-26T00:00:00Z",
+  "issued_at": "2026-04-26T00:00:00.000Z",
   "ice_servers": [
     {
       "urls": [
@@ -185,7 +197,7 @@ Content-Type: application/json
         "turns:turn.example.com:5349?transport=tcp"
       ],
       "username": "1699999999:ak_pseudonym_call_4f7c3b2a9e1d5a6f",
-      "credential": "base64url...",
+      "credential": "H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0",
       "credential_type": "password"
     }
   ],
@@ -197,7 +209,7 @@ Content-Type: application/json
   },
   "signature": {
     "kid": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com#key-1",
-    "sig": "base64url...",
+    "sig": "Yq2wq5mQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2Q",
     "signature_algorithm": "Ed25519"
   }
 }

@@ -4633,7 +4633,7 @@
     "identity_disclosure_policy_document": {
       "type": "object",
       "required": [
-        "holder_principal_id",
+        "holder_id",
         "audience",
         "allowed_claims",
         "denied_fields",
@@ -4641,7 +4641,7 @@
         "expires_at"
       ],
       "properties": {
-        "holder_principal_id": {
+        "holder_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "audience": {
@@ -4823,13 +4823,13 @@
     },
     "identity_disclosure_receipt_state_payload": {
       "type": "object",
-      "description": "Closed holder-private disclosure-receipt log payload. holder_principal_id is the stable log subject and value carries the sole v1 receipt document family.",
+      "description": "Closed holder-private disclosure-receipt log payload. holder_id is the stable log subject and value carries the sole v1 receipt document family.",
       "required": [
-        "holder_principal_id",
+        "holder_id",
         "value"
       ],
       "properties": {
-        "holder_principal_id": {
+        "holder_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "value": {
@@ -6657,7 +6657,7 @@
       "type": "object",
       "required": [
         "recovery_key_id",
-        "holder_principal_id",
+        "controller_id",
         "holder_id",
         "key_agreement_ref",
         "holder_signing_ref",
@@ -6668,13 +6668,13 @@
         "recovery_key_id": {
           "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
         },
-        "holder_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Principal projection of the registered holder signing method; distinct from the holder service authority route in holder_id."
+          "description": "Controller projection of the registered holder signing method; distinct from the holder service authority route in holder_id."
         },
         "holder_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Registered history-key holder service authority/route, not an AccountId sidecar for holder_principal_id."
+          "description": "Registered history-key holder service authority/route, distinct from controller_id."
         },
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -6692,7 +6692,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "One logical Realm-authority organization recovery public-key tuple. hpke_suite is fixed to the v1 X25519/ChaCha20-Poly1305 profile. Resolving key_agreement_ref at admission must yield a current exact method whose raw key bytes equal frozen_public_key_b64u and whose controller projects to holder_principal_id. Resolving holder_signing_ref must yield a current signing method with the same controller. Custody topology and threshold policy are not wire fields."
+      "description": "One logical Realm-authority organization recovery public-key tuple. hpke_suite is fixed to the v1 X25519/ChaCha20-Poly1305 profile. Resolving key_agreement_ref at admission must yield a current exact method whose raw key bytes equal frozen_public_key_b64u and whose controller projects to controller_id. Resolving holder_signing_ref must yield a current signing method with the same controller. Custody topology and threshold policy are not wire fields."
     },
     "organization_recovery_holder_acceptance": {
       "type": "object",
@@ -6715,7 +6715,7 @@
         "holder_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
           "x-arkret-proof-context": "ak.organization_recovery_key_holder_acceptance_proof.v1",
-          "description": "Holder proof over RFC 8785 JCS of {realm_id,new_key_tuple,holder_trusted_basis}. proof.verification_method MUST equal new_key_tuple.holder_signing_ref byte-for-byte, resolve current, and its controller MUST project to new_key_tuple.holder_principal_id. The proof key is that exact method key. The proof is excluded from its own transcript."
+          "description": "Holder proof over RFC 8785 JCS of {realm_id,new_key_tuple,holder_trusted_basis}. proof.verification_method MUST equal new_key_tuple.holder_signing_ref byte-for-byte, resolve current, and its controller MUST project to new_key_tuple.controller_id. The proof key is that exact method key. The proof is excluded from its own transcript."
         }
       },
       "additionalProperties": false
@@ -6786,7 +6786,7 @@
         "epoch",
         "transition_digest",
         "recovery_key_id",
-        "holder_principal_id",
+        "controller_id",
         "holder_id",
         "key_agreement_ref",
         "holder_signing_ref",
@@ -6816,13 +6816,13 @@
         "recovery_key_id": {
           "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
         },
-        "holder_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Principal projection of the holder signing authority retained in this archive; distinct from the holder service authority route in holder_id."
+          "description": "Controller projection of the holder signing authority retained in this archive; distinct from the holder service authority route in holder_id."
         },
         "holder_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "History-key holder service authority/route, not an AccountId sidecar for holder_principal_id."
+          "description": "History-key holder service authority/route, distinct from controller_id."
         },
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -8275,13 +8275,13 @@
     },
     "organization_discovery_state_payload": {
       "type": "object",
-      "description": "State payload for an Organization discovery declaration. organization_principal_id is the stable cell subject.",
+      "description": "State payload for an Organization discovery declaration. organization_id is the stable did_core_id cell subject.",
       "required": [
-        "organization_principal_id",
+        "organization_id",
         "value"
       ],
       "properties": {
-        "organization_principal_id": {
+        "organization_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "value": {
@@ -8327,38 +8327,14 @@
     },
     "organization_moderation_policy_state_payload": {
       "type": "object",
-      "description": "Closed Organization moderation-policy state. A producer identifies the Organization by exactly one canonical DID or typed Organization id; the first present identifier is the registered coalesce subject. value carries the sole v1 Organization moderation-policy family.",
+      "description": "Closed Organization moderation-policy state. organization_id is the Organization did_core_id and the sole registered cell subject; value carries the sole v1 Organization moderation-policy family.",
       "required": [
+        "organization_id",
         "value"
       ],
-      "oneOf": [
-        {
-          "required": [
-            "organization_principal_id"
-          ],
-          "not": {
-            "required": [
-              "organization_id"
-            ]
-          }
-        },
-        {
-          "required": [
-            "organization_id"
-          ],
-          "not": {
-            "required": [
-              "organization_principal_id"
-            ]
-          }
-        }
-      ],
       "properties": {
-        "organization_principal_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
         "organization_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/did_core_id"
         },
         "value": {
           "$ref": "#/$defs/organization_moderation_policy_document"
@@ -9764,7 +9740,7 @@
             "issuer_role": {
               "type": "string",
               "enum": [
-                "organization_principal_id",
+                "organization",
                 "governance_service",
                 "account_authority",
                 "threshold_quorum"

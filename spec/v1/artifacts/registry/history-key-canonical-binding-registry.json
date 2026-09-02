@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-31.1",
+  "version": "2026-09-02.1",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -237,7 +237,7 @@
       "domain": "ak.organization-recovery-archive-cursor-v1",
       "primitive": "HMAC-SHA256",
       "jcs_preimage_fields": [
-        "holder_principal_id",
+        "controller_id",
         "holder_id",
         "archive_list_query_digest",
         "accepted_key_evidence_ref",

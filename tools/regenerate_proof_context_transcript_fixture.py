@@ -46,7 +46,7 @@ REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMAS = ARTIFACTS / "schemas"
 
 FIXTURE = ARTIFACTS / "fixtures" / "proof-context-transcript-fixture.json"
-FIXTURE_VERSION = "2026-08-27.1"
+FIXTURE_VERSION = "2026-09-02.1"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 
 # The single conformance signing key already published by
@@ -536,6 +536,11 @@ def build_case(
             for name in required_binding + present_optional:
                 if (
                     name in PROOF_SIDE_FIELDS
+                    or (
+                        family.startswith("directory_")
+                        and family.endswith("_request")
+                        and name == "audience_id"
+                    )
                     or name in SELF_DIGEST_FIELDS
                     or name in body
                     or (family == "ingress_receipt" and name == "authority_set_ref")

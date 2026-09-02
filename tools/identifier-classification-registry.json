@@ -26,7 +26,7 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 647,
+    "responsibility_identity_material": 649,
     "typed_object_id": 922,
     "registry_catalog_symbol": 21
   },
@@ -580,9 +580,9 @@
       "name": "organization_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
       "category": "responsibility_identity_material",
-      "occurrences": 2,
-      "example_path": "event-payload.schema.json#/$defs/organization_moderation_policy_state_payload/properties/organization_id",
-      "reason": "Carries a responsibility-subject DID core but the schema still declares a loose terminal type; convergence is to pin did_core_id."
+      "occurrences": 1,
+      "example_path": "handle-claim.schema.json#/properties/subject/properties/organization_id",
+      "reason": "External organization claim identifier whose literal grammar is owned by the claim issuer; it is not the Arkret organization DID-core identity field used by protocol objects."
     },
     {
       "name": "package_id",

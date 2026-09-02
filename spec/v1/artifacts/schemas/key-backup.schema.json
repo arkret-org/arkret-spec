@@ -70,7 +70,7 @@
     },
     "supersedes_digest": {
       "$ref": "#/$defs/digest",
-      "description": "Required when supersedes is non-null. Hash of the canonical_json of the predecessor envelope (excluding auth_data.signature). Receivers MUST recompute and reject mismatches as `series_chain_broken`."
+      "description": "Required when supersedes_id is non-null. Hash of the canonical_json of the predecessor envelope (excluding auth_data.signature). Receivers MUST recompute and reject mismatches as `series_chain_broken`."
     },
     "frontier_ref": {
       "type": "object",

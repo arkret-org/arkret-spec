@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.1",
+  "version": "2026-09-02.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T10:00:00+08:00",
+  "generated_at": "2026-09-02T12:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -379,12 +379,12 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
         "schema_kind": "object",
         "required": [
-          "subscriber_principal_id",
+          "subscriber_id",
           "resource_filter",
           "webhook_url"
         ],
         "properties": [
-          "subscriber_principal_id",
+          "subscriber_id",
           "resource_filter",
           "webhook_url",
           "secret",
@@ -752,7 +752,7 @@
         "schema_kind": "object",
         "required": [],
         "properties": [
-          "organization_principal_id",
+          "organization_id",
           "handle",
           "proofs"
         ],
@@ -855,7 +855,7 @@
         "properties": [
           "query",
           "realm_id",
-          "organization_principal_id",
+          "organization_id",
           "cursor",
           "limit"
         ],
@@ -915,7 +915,7 @@
         "required": [],
         "properties": [
           "query",
-          "organization_principal_id",
+          "organization_id",
           "source_realm_id",
           "requester_id",
           "proof_challenge",
@@ -7898,6 +7898,7 @@
           "explicit_address_behavior",
           "handle_claim_behavior",
           "unknown_invites",
+          "new_source_quota",
           "allowed_handle_domains",
           "denied_handle_domains",
           "trusted_handle_issuer_ids",
@@ -7931,6 +7932,7 @@
           "explicit_address_behavior",
           "handle_claim_behavior",
           "unknown_invites",
+          "new_source_quota",
           "allowed_handle_domains",
           "denied_handle_domains",
           "trusted_handle_issuer_ids",
@@ -7960,6 +7962,7 @@
           "explicit_address_behavior",
           "handle_claim_behavior",
           "unknown_invites",
+          "new_source_quota",
           "allowed_handle_domains",
           "denied_handle_domains",
           "trusted_handle_issuer_ids",

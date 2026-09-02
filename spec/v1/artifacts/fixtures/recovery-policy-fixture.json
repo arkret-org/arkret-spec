@@ -384,7 +384,7 @@
           "expected_error_code": "failed_precondition"
         },
         {
-          "variant": "issuer_is_share_holder_principal_id",
+          "variant": "issuer_is_share_holder_id",
           "expected_error_code": "failed_precondition"
         },
         {
