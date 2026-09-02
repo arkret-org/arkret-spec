@@ -795,41 +795,386 @@
           "payload": {
             "subject": {
               "kind": "event_id_collision",
-              "event_id": "ak:event:AUl7i16DNG_PX5V_-ud5fDx65PwcMpaj4uSW2K4C0Ev9",
+              "event_id": "ak:event:AUl7i16DNG_PX5V_-ud5fDx65PwcMpaj4uSW2K4C0Ev9"
+            },
+            "conflict_evidence": {
+              "kind": "full_hash_collision",
               "variants": [
-                { "canonical_event_bytes_b64u": "dmFyaWFudC1h" },
-                { "canonical_event_bytes_b64u": "dmFyaWFudC1i" }
+                {
+                  "kind": "inline_canonical_bytes",
+                  "canonical_event_bytes_b64u": "dmFyaWFudC1h"
+                },
+                {
+                  "kind": "inline_canonical_bytes",
+                  "canonical_event_bytes_b64u": "dmFyaWFudC1i"
+                }
               ]
             },
             "verdict": {
               "kind": "canonical_winner",
-              "canonical_event_bytes_b64u": "dmFyaWFudC1h"
+              "winner_preimage": {
+                "kind": "inline_canonical_bytes",
+                "canonical_event_bytes_b64u": "dmFyaWFudC1h"
+              }
             }
           },
-          "critical_ref_roles": ["recovery_capability", "attestation"],
-          "expected": "accept_and_project_exact_scope"
+          "critical_ref_roles": [
+            "recovery_capability",
+            "attestation"
+          ],
+          "expected": "accept"
         },
         {
-          "name": "resolution_voids_complete_sibling_bucket",
+          "name": "resolution_names_winner_by_variant_record_reference",
+          "description": "An original Event close to the 1 MiB ceiling cannot be inlined twice, so the collision is adjudicated through the registered governance-dependency record.",
+          "event_kind": "ak.fork.resolution",
+          "fork_resolution_identifies_winner_by": "canonical_bytes",
+          "payload": {
+            "subject": {
+              "kind": "event_id_collision",
+              "event_id": "ak:event:AUl7i16DNG_PX5V_-ud5fDx65PwcMpaj4uSW2K4C0Ev9"
+            },
+            "conflict_evidence": {
+              "kind": "full_hash_collision",
+              "variants": [
+                {
+                  "kind": "collision_variant_record",
+                  "collision_variant_record_id": "ak:collision_variant_record:01964140-0000-7000-8000-000000000000",
+                  "collision_variant_record_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "kind": "inline_canonical_bytes",
+                  "canonical_event_bytes_b64u": "dmFyaWFudC1i"
+                }
+              ]
+            },
+            "verdict": {
+              "kind": "canonical_winner",
+              "winner_preimage": {
+                "kind": "collision_variant_record",
+                "collision_variant_record_id": "ak:collision_variant_record:01964140-0000-7000-8000-000000000000",
+                "collision_variant_record_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            }
+          },
+          "critical_ref_roles": [
+            "recovery_capability"
+          ],
+          "expected": "accept"
+        },
+        {
+          "name": "resolution_collision_missing_variant_record_is_dependency_missing",
+          "event_kind": "ak.fork.resolution",
+          "unresolvable_dependency": "collision_variant_record",
+          "expected": "reject",
+          "reason_code": "dependency_missing"
+        },
+        {
+          "name": "resolution_voids_complete_sibling_position",
+          "description": "Single-bucket overflow proves itself with exactly 17 siblings; the verdict governs the whole position, not the bucket.",
           "event_kind": "ak.fork.resolution",
           "payload": {
             "subject": {
-              "kind": "event_sibling_bucket",
+              "kind": "event_sibling_position",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:web:fixture-actor.example"
+              },
+              "actor_seq": 7
+            },
+            "conflict_evidence": {
+              "kind": "bucket_overflow",
+              "prev_frontier_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "event_ids": [
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0000",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0001",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0002",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0003",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0004",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0005",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0006",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0007",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0008",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0009",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0010",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0011",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0012",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0013",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0014",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0015",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0016"
+              ]
+            },
+            "verdict": {
+              "kind": "void_all"
+            }
+          },
+          "critical_ref_roles": [
+            "recovery_capability"
+          ],
+          "expected": "accept_and_project_exact_scope"
+        },
+        {
+          "name": "resolution_cross_bucket_overflow_uses_sixty_five_siblings",
+          "description": "Cross-bucket overflow needs 65 siblings and projects onto the same position cell as the single-bucket case.",
+          "event_kind": "ak.fork.resolution",
+          "payload": {
+            "subject": {
+              "kind": "event_sibling_position",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:web:fixture-actor.example"
+              },
+              "actor_seq": 7
+            },
+            "conflict_evidence": {
+              "kind": "actor_seq_overflow",
+              "event_ids": [
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0000",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0001",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0002",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0003",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0004",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0005",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0006",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0007",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0008",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0009",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0010",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0011",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0012",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0013",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0014",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0015",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0016",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0017",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0018",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0019",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0020",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0021",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0022",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0023",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0024",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0025",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0026",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0027",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0028",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0029",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0030",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0031",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0032",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0033",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0034",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0035",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0036",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0037",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0038",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0039",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0040",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0041",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0042",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0043",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0044",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0045",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0046",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0047",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0048",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0049",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0050",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0051",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0052",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0053",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0054",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0055",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0056",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0057",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0058",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0059",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0060",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0061",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0062",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0063",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0064"
+              ]
+            },
+            "verdict": {
+              "kind": "canonical_winner",
+              "winner_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0000"
+            }
+          },
+          "critical_ref_roles": [
+            "recovery_capability"
+          ],
+          "expected": "accept_and_project_exact_scope",
+          "expected_cell_subject_equals_case": "resolution_voids_complete_sibling_position"
+        },
+        {
+          "name": "resolution_bucket_overflow_below_minimal_evidence_rejected",
+          "description": "16 siblings are legal under the v1 ceiling, so they do not prove an overflow.",
+          "event_kind": "ak.fork.resolution",
+          "payload": {
+            "subject": {
+              "kind": "event_sibling_position",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:web:fixture-actor.example"
+              },
+              "actor_seq": 7
+            },
+            "conflict_evidence": {
+              "kind": "bucket_overflow",
+              "prev_frontier_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "event_ids": [
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0000",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0001",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0002",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0003",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0004",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0005",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0006",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0007",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0008",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0009",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0010",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0011",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0012",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0013",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0014",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0015"
+              ]
+            },
+            "verdict": {
+              "kind": "void_all"
+            }
+          },
+          "critical_ref_roles": [
+            "recovery_capability"
+          ],
+          "expected": "reject",
+          "reason_code": "schema_violation"
+        },
+        {
+          "name": "resolution_domain_non_joinable_reruns_registered_cell_family",
+          "event_kind": "ak.fork.resolution",
+          "payload": {
+            "subject": {
+              "kind": "event_sibling_position",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:web:fixture-actor.example"
+              },
+              "actor_seq": 7
+            },
+            "conflict_evidence": {
+              "kind": "domain_non_joinable",
+              "cell_family": "ak.component.notary.v1",
+              "event_ids": [
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0000",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0001"
+              ]
+            },
+            "verdict": {
+              "kind": "canonical_winner",
+              "winner_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0000"
+            }
+          },
+          "critical_ref_roles": [
+            "recovery_capability"
+          ],
+          "expected": "accept_and_project_exact_scope"
+        },
+        {
+          "name": "resolution_winner_outside_evidence_set_rejected",
+          "event_kind": "ak.fork.resolution",
+          "payload": {
+            "subject": {
+              "kind": "event_sibling_position",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:web:fixture-actor.example"
+              },
+              "actor_seq": 7
+            },
+            "conflict_evidence": {
+              "kind": "bucket_overflow",
+              "prev_frontier_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "event_ids": [
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0000",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0001",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0002",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0003",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0004",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0005",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0006",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0007",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0008",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0009",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0010",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0011",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0012",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0013",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0014",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0015",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0016"
+              ]
+            },
+            "verdict": {
+              "kind": "canonical_winner",
+              "winner_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9999"
+            }
+          },
+          "critical_ref_roles": [
+            "recovery_capability"
+          ],
+          "expected": "reject",
+          "reason_code": "failed_precondition"
+        },
+        {
+          "name": "resolution_subject_carrying_bucket_digest_rejected",
+          "description": "prev_frontier_digest inside the subject would split one position into two conflicting resolution cells.",
+          "event_kind": "ak.fork.resolution",
+          "payload": {
+            "subject": {
+              "kind": "event_sibling_position",
               "actor_id": {
                 "kind": "service",
                 "service_id": "ak:did_core:web:fixture-actor.example"
               },
               "actor_seq": 7,
+              "prev_frontier_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "conflict_evidence": {
+              "kind": "bucket_overflow",
               "prev_frontier_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              "sibling_event_digests": [
-                "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-                "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+              "event_ids": [
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0000",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0001",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0002",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0003",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0004",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0005",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0006",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0007",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0008",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0009",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0010",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0011",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0012",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0013",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0014",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0015",
+                "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0016"
               ]
             },
-            "verdict": { "kind": "void_all" }
+            "verdict": {
+              "kind": "void_all"
+            }
           },
-          "critical_ref_roles": ["recovery_capability", "state_witness"],
-          "expected": "accept_and_project_exact_scope"
+          "critical_ref_roles": [
+            "recovery_capability"
+          ],
+          "expected": "reject",
+          "reason_code": "schema_violation"
         },
         {
           "name": "resolution_scope_mismatch_does_not_clear",
@@ -838,11 +1183,31 @@
           "expected": "accepted_cell_but_no_peer_state_transition"
         },
         {
+          "name": "resolution_without_peer_alignment_does_not_clear_peer",
+          "description": "Local normalization and per-peer alignment are separate phases; an accepted resolution alone never clears peer_stale.",
+          "event_kind": "ak.fork.resolution",
+          "peer_exact_scope_challenge_completed": false,
+          "expected": "accepted_cell_but_no_peer_state_transition"
+        },
+        {
           "name": "resolution_missing_recovery_capability",
           "event_kind": "ak.fork.resolution",
-          "critical_ref_roles": ["attestation"],
+          "critical_ref_roles": [
+            "attestation"
+          ],
           "expected": "reject",
           "reason_code": "recovery_capability_not_sealed"
+        },
+        {
+          "name": "resolution_state_witness_role_rejected",
+          "description": "state_witness attests a cell's legal value before Bottom; the fork-resolution cell is __unset__ before its first write, so the role has no referent here.",
+          "event_kind": "ak.fork.resolution",
+          "critical_ref_roles": [
+            "recovery_capability",
+            "state_witness"
+          ],
+          "expected": "reject",
+          "reason_code": "schema_violation"
         },
         {
           "name": "resolution_idempotent_replay",

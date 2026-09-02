@@ -75,9 +75,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-02.3",
-      "generated_at": "2026-09-02T13:00:00+08:00",
-      "content_digest": "sha256:814db64e6092d582f65d634c191a7cbf9348dcfe0f133e031da4c6fc93cd26ad"
+      "version": "2026-09-02.6",
+      "generated_at": "2026-09-02T15:30:00+08:00",
+      "content_digest": "sha256:80a9299ec22cf11d3b97e96fc797027ef9c2764752ca5408eaa628120626c2b3"
     },
     {
       "path": "spec/v1/artifacts/registry/did-document-contract-registry.json",
@@ -117,9 +117,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-02.2",
-      "generated_at": "2026-09-02T12:30:00+08:00",
-      "content_digest": "sha256:e990aa898a64f28937b9c9e34b12a3f03f75c57b7cfcb410662fe34f790e2772"
+      "version": "2026-09-02.3",
+      "generated_at": "2026-09-02T13:30:00+08:00",
+      "content_digest": "sha256:0f2744c402d186f4cfc5b79bb8ebc16ac14fd972a55dae0312c097d807d84eda"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -177,9 +177,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/id-kind-registry.json",
-      "version": "2026-08-30.2",
-      "generated_at": "2026-08-31T00:10:00+08:00",
-      "content_digest": "sha256:4aedf6d602056fe1175fccffcd0a215a6d1165506cbaf640b5f2ff427bb15965"
+      "version": "2026-09-02.2",
+      "generated_at": "2026-09-02T14:00:00+08:00",
+      "content_digest": "sha256:c65f726eb826b671d7db7c22a70db121e97f1b8dcafc0f55cf0e618ca9eb4a2e"
     },
     {
       "path": "spec/v1/artifacts/registry/keypackage-capability-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-02.1",
-      "generated_at": "2026-09-02T10:00:00+08:00",
-      "content_digest": "sha256:e52115cbaf88c62abaee18bd80d198e5b97b6bb98429dede8e8459f60d16005b"
+      "version": "2026-09-02.2",
+      "generated_at": "2026-09-02T13:30:00+08:00",
+      "content_digest": "sha256:3ff3ff101d08314ace6b2e515d54974b4352e8b3820defe8dc44ba97452761e6"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-01.10",
-      "generated_at": "2026-09-02T12:30:00+08:00",
-      "content_digest": "sha256:be08d4c4a20dfa837b221ab99490f6ee2b90c56b0c4aac444fafd668030cd5b1"
+      "version": "2026-09-01.11",
+      "generated_at": "2026-09-02T13:30:00+08:00",
+      "content_digest": "sha256:ba18720abcd7724d50c773dcaf3e43b41fce368e9eb2de3f57f1a236d937d929"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -279,9 +279,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-09-02.2",
-      "generated_at": "2026-09-02T12:30:00+08:00",
-      "content_digest": "sha256:89aaf2e498ea749809b8deab98ad77d8fcc2fa187df1a587797159a9600b2375"
+      "version": "2026-09-02.4",
+      "generated_at": "2026-09-02T14:00:00+08:00",
+      "content_digest": "sha256:27d1aee625b96bd92cb0498d0ee563ac0e767b786f76bb9aff2d8bbc27aec73f"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -333,9 +333,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/schema-registry.json",
-      "version": "2026-09-01.1",
-      "generated_at": "2026-09-01T12:16:00+08:00",
-      "content_digest": "sha256:a066b1219808d14afe0d49844197e34330facb00d644326c387de74574bd1dcd"
+      "version": "2026-09-02.3",
+      "generated_at": "2026-09-02T14:30:00+08:00",
+      "content_digest": "sha256:aafd41bb3394ce5d00c5fb0ffe35e75c582544754fb13d8e8104f8dea1c27d0d"
     },
     {
       "path": "spec/v1/artifacts/registry/service-kind-registry.json",
@@ -363,9 +363,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-02.1",
-      "generated_at": "2026-09-02T08:30:00+08:00",
-      "content_digest": "sha256:8daaf9e51372a1e0dc8e4f96735fdd60493b6e46f145f392c404b97f8eab95ff"
+      "version": "2026-09-02.4",
+      "generated_at": "2026-09-02T13:30:00+08:00",
+      "content_digest": "sha256:f8dd1a8050fbd4bb7fbac29543bedf7f469ad58e4d7b4fea7e24c5716271a9a8"
     }
   ]
 }

@@ -17,6 +17,11 @@
       "type": "string",
       "pattern": "^ak:circle:[A-Za-z0-9_-]{44}$"
     },
+    "collision_variant_record_id": {
+      "type": "string",
+      "pattern": "^ak:collision_variant_record:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Producer-allocated identity of one stored canonical Event preimage used as full-hash collision evidence. It is a transport identity for bounded governance-dependency resolution only; the authority is the record proof plus the recomputed Event identity, never this id."
+    },
     "history_request_id": {
       "type": "string",
       "pattern": "^ak:history_request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",

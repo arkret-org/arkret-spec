@@ -379,10 +379,10 @@ def lint_conflict_recovery_write(lint, event_path, write_ref, kind, write):
     cell_ref = write.get("cell_ref")
     if not isinstance(cell_ref, dict) or cell_ref.get("kind") != "cell_ref":
         lint.fail(event_path, f"{write_ref}.cell_ref must be an object with kind='cell_ref'")
-    elif cell_ref.get("field") != "payload.target_cell":
+    elif cell_ref.get("field") != "payload.target_cell_id":
         lint.fail(
             event_path,
-            f"{write_ref}.cell_ref.field must be payload.target_cell, got "
+            f"{write_ref}.cell_ref.field must be payload.target_cell_id, got "
             f"{cell_ref.get('field')!r}",
         )
     projection = write.get("effect_projection")

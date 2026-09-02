@@ -24,6 +24,7 @@
       "capability",
       "chunk",
       "claim",
+      "collision_variant_record",
       "consent",
       "device",
       "device_message",

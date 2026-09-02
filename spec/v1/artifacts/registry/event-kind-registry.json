@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.2",
+  "version": "2026-09-02.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T12:30:00+08:00",
+  "generated_at": "2026-09-02T13:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2246,7 +2246,7 @@
         {
           "cell_ref": {
             "kind": "cell_ref",
-            "field": "payload.target_cell"
+            "field": "payload.target_cell_id"
           },
           "effect_projection": {
             "kind": "reset",

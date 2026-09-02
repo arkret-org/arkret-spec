@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9961,
-    "total_schema_documents": 164,
+    "total_properties": 9983,
+    "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2713,
+      "optional": 2714,
       "optional_defaulted": 67,
-      "required": 6851,
+      "required": 6872,
       "required_nullable": 122,
       "tristate": 208
     },
@@ -4065,6 +4065,21 @@
         "/properties/state_changed_at"
       ]
     },
+    "collision-variant-record.schema.json": {
+      "schema_ids": [
+        "ak.schema.collision_variant_record.v1"
+      ],
+      "properties": {
+        "/properties/canonical_event_bytes_b64u": "required",
+        "/properties/canonical_event_size_bytes": "required",
+        "/properties/collision_event_id": "required",
+        "/properties/collision_variant_record_id": "required",
+        "/properties/proof": "required",
+        "/properties/realm_id": "required",
+        "/properties/recorded_at": "required",
+        "/properties/schema": "required"
+      }
+    },
     "common-ids.schema.json": {
       "schema_ids": [
         "ak.schema.common_ids.v1"
@@ -6656,27 +6671,41 @@
         "/$defs/effective_scope/oneOf/2/properties/kind": "required",
         "/$defs/effective_scope/oneOf/2/properties/realm_id": "required",
         "/$defs/effective_scope/oneOf/2/properties/sidecar_id": "required",
-        "/$defs/fork_resolution_collision_winner_verdict/properties/canonical_event_bytes_b64u": "required",
+        "/$defs/fork_resolution_actor_seq_overflow/properties/event_ids": "required",
+        "/$defs/fork_resolution_actor_seq_overflow/properties/kind": "required",
+        "/$defs/fork_resolution_bucket_overflow/properties/event_ids": "required",
+        "/$defs/fork_resolution_bucket_overflow/properties/kind": "required",
+        "/$defs/fork_resolution_bucket_overflow/properties/prev_frontier_digest": "required",
+        "/$defs/fork_resolution_collision_preimage_locator/oneOf/0/properties/canonical_event_bytes_b64u": "required",
+        "/$defs/fork_resolution_collision_preimage_locator/oneOf/0/properties/kind": "required",
+        "/$defs/fork_resolution_collision_preimage_locator/oneOf/1/properties/collision_variant_record_digest": "required",
+        "/$defs/fork_resolution_collision_preimage_locator/oneOf/1/properties/collision_variant_record_id": "required",
+        "/$defs/fork_resolution_collision_preimage_locator/oneOf/1/properties/kind": "required",
         "/$defs/fork_resolution_collision_winner_verdict/properties/kind": "required",
+        "/$defs/fork_resolution_collision_winner_verdict/properties/winner_preimage": "required",
+        "/$defs/fork_resolution_domain_non_joinable/properties/cell_family": "required",
+        "/$defs/fork_resolution_domain_non_joinable/properties/event_ids": "required",
+        "/$defs/fork_resolution_domain_non_joinable/properties/kind": "required",
         "/$defs/fork_resolution_event_id_collision_subject/properties/event_id": "required",
         "/$defs/fork_resolution_event_id_collision_subject/properties/kind": "required",
-        "/$defs/fork_resolution_event_id_collision_subject/properties/variants": "required",
-        "/$defs/fork_resolution_event_id_collision_subject/properties/variants/items/properties/canonical_event_bytes_b64u": "required",
-        "/$defs/fork_resolution_event_sibling_bucket_subject/properties/actor_id": "required",
-        "/$defs/fork_resolution_event_sibling_bucket_subject/properties/actor_seq": "required",
-        "/$defs/fork_resolution_event_sibling_bucket_subject/properties/kind": "required",
-        "/$defs/fork_resolution_event_sibling_bucket_subject/properties/prev_frontier_digest": "optional",
-        "/$defs/fork_resolution_event_sibling_bucket_subject/properties/sibling_event_digests": "required",
+        "/$defs/fork_resolution_event_sibling_position_subject/properties/actor_id": "required",
+        "/$defs/fork_resolution_event_sibling_position_subject/properties/actor_seq": "required",
+        "/$defs/fork_resolution_event_sibling_position_subject/properties/kind": "required",
+        "/$defs/fork_resolution_full_hash_collision/properties/kind": "required",
+        "/$defs/fork_resolution_full_hash_collision/properties/variants": "required",
         "/$defs/fork_resolution_payload/allOf/0/if/properties/subject": "tristate",
         "/$defs/fork_resolution_payload/allOf/0/if/properties/subject/properties/kind": "required",
+        "/$defs/fork_resolution_payload/allOf/0/then/properties/conflict_evidence": "optional",
         "/$defs/fork_resolution_payload/allOf/0/then/properties/verdict": "optional",
         "/$defs/fork_resolution_payload/allOf/1/if/properties/subject": "tristate",
         "/$defs/fork_resolution_payload/allOf/1/if/properties/subject/properties/kind": "required",
+        "/$defs/fork_resolution_payload/allOf/1/then/properties/conflict_evidence": "optional",
         "/$defs/fork_resolution_payload/allOf/1/then/properties/verdict": "optional",
+        "/$defs/fork_resolution_payload/properties/conflict_evidence": "required",
         "/$defs/fork_resolution_payload/properties/subject": "required",
         "/$defs/fork_resolution_payload/properties/verdict": "required",
-        "/$defs/fork_resolution_sibling_winner_verdict/properties/event_digest": "required",
         "/$defs/fork_resolution_sibling_winner_verdict/properties/kind": "required",
+        "/$defs/fork_resolution_sibling_winner_verdict/properties/winner_event_id": "required",
         "/$defs/fork_resolution_void_all_verdict/properties/kind": "required",
         "/$defs/handle_discovery_state_payload/properties/resource_id": "required",
         "/$defs/handle_discovery_state_payload/properties/value": "required",

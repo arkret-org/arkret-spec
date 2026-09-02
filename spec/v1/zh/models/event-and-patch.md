@@ -365,7 +365,7 @@ registry 字面 `cell_family` + `cell_subject` 静态确定的 cell。唯一例�
 `ak.conflict.recovery`（[`../authz/event-auth-state-resolution.md` §9.5](../authz/event-auth-state-resolution.md)）：
 
 ```json
-{"cell_ref": {"kind": "cell_ref", "field": "payload.target_cell"},
+{"cell_ref": {"kind": "cell_ref", "field": "payload.target_cell_id"},
  "effect_projection": {"kind": "reset", "value": {"field": "payload.resolved_value"}}}
 ```
 
@@ -484,7 +484,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 - 实现 MUST 对同一 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 的单桶上限为 16。同一 `(realm_id, actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的合法签名 sibling 累计上限为 64；任一上限被超过时 MUST quarantine 或要求 actor chain repair。累计候选集合只由已验证 canonical Event 集合决定，不依赖到达顺序。两项均是无条件 v1 上限，单一数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)。
 - Realm 隔离、同 Realm sibling 与跨 Realm predecessor 拒绝由 `ak.vector.actor_chain.realm_scope.v1` 固定。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
-- **over-fork repair 终局（normative）**：当某 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) operator-approved 归一写入物唯一是 recovery Seal `delta[]` 覆盖的 `ak.fork.resolution` Control Move，其 `event_sibling_bucket` subject 绑定 actor、sequence、可选 bucket digest 与完整 sibling digest 集，verdict 选择集合内唯一 digest 或 `void_all`，并投影到 `ak.component.fork_resolution.v1`；raw replay 与同 scope quorum witness 保持各自既有证明载体，不产生第二种 clear command；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier。追溯进入 quarantine 的 sibling 必须从所有 cell 的 reducer 输入集中移除，并按非 quarantine accepted Event 集合确定性重算 projection；依赖这些 sibling 的后续 Event 转为 `dependency_missing` / pending。
+- **over-fork repair 终局（normative）**：当某 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) operator-approved 归一写入物唯一是 recovery Seal `delta[]` 覆盖的 `ak.fork.resolution` Control Move，其 `event_sibling_position` subject 只绑定 `(actor_id, actor_seq)`——单桶越界与跨桶越界归一的是同一个位置，因此 bucket digest 属于 `conflict_evidence` 而非 cell subject；证据按 v1 上限取有界最小集合，单桶越界恰 17 条 `event_ids[]`，跨桶越界恰 65 条，领域不可 join 为 2..64 条并携已登记 `cell_family`；verdict 以 `winner_event_id` 选择证据集内唯一 Event 或 `void_all`，并投影到 `ak.component.fork_resolution.v1`；`void_all` 后该位置终局作废，actor 的 authoring chain 停在其下、后到变体不得复活它；raw replay 与同 scope quorum witness 保持各自既有证明载体，不产生第二种 clear command；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier。追溯进入 quarantine 的 sibling 必须从所有 cell 的 reducer 输入集中移除，并按非 quarantine accepted Event 集合确定性重算 projection；依赖这些 sibling 的后续 Event 转为 `dependency_missing` / pending。
 
 `prev_frontier_digest` 的 canonical 计算为 `sha256:` + hex(SHA-256(JCS(sort_unique(prev_refs))))；`prev_refs` 先按 bytewise UTF-8 升序排序并去重，输入为空数组时编码为 `[]`。若 Realm 的 `digest_algorithm` 不是 `sha256`，同一结构使用该 Realm 声明的 digest algorithm，并把算法名前缀写入结果。该 digest 只用于 sibling fork 计数分桶，不参与 winner 选择。
 

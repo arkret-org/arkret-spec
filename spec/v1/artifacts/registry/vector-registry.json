@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.1",
+  "version": "2026-09-02.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T08:30:00+08:00",
+  "generated_at": "2026-09-02T13:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3714,6 +3714,24 @@
       ]
     },
     {
+      "vector_id": "ak.vector.invite.new_source_quota_effective_bounds.v1",
+      "status": "active",
+      "domain": "invite",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.new_source_quota_holder_admission.v1",
+      "status": "active",
+      "domain": "invite",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.invite.oob_code_entropy.v1",
       "status": "active",
       "domain": "invite",
@@ -3733,24 +3751,6 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.invite.new_source_quota_holder_admission.v1",
-      "status": "active",
-      "domain": "invite",
-      "scope": "universal",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.invite.new_source_quota_effective_bounds.v1",
-      "status": "active",
-      "domain": "invite",
-      "scope": "universal",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -4894,6 +4894,21 @@
       "description": "Transcript KAT for ak.availability_receipt_proof.v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
       "covers_proof_contexts": [
         "ak.availability_receipt_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.collision_variant_record.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.collision_variant_record_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and a cross-family replay rejected.",
+      "covers_proof_contexts": [
+        "ak.collision_variant_record_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"

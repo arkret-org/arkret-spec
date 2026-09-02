@@ -10816,17 +10816,17 @@
       },
       "additionalProperties": false
     },
-    "fork_resolution_event_sibling_bucket_subject": {
+    "fork_resolution_event_sibling_position_subject": {
       "type": "object",
+      "description": "The disputed authoring position itself. Realm comes from the resolution Event envelope. prev_frontier_digest is deliberately absent: a single-bucket overflow and a cross-bucket overflow at the same position must normalize to one cell, so the bucket belongs to the evidence and never to the cell subject.",
       "required": [
         "kind",
         "actor_id",
-        "actor_seq",
-        "sibling_event_digests"
+        "actor_seq"
       ],
       "properties": {
         "kind": {
-          "const": "event_sibling_bucket"
+          "const": "event_sibling_position"
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -10834,29 +10834,16 @@
         "actor_seq": {
           "type": "integer",
           "minimum": 0
-        },
-        "prev_frontier_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "sibling_event_digests": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/digest"
-          },
-          "description": "Complete bytewise-ascending set of verified sibling Event digests in the original evidence scope."
         }
       },
       "additionalProperties": false
     },
     "fork_resolution_event_id_collision_subject": {
       "type": "object",
+      "description": "The colliding Event identity. The verdict governs only the projection inside the resolution Event's own Realm; variants carried by another Realm are adjudicated by that Realm's own recovery authority.",
       "required": [
         "kind",
-        "event_id",
-        "variants"
+        "event_id"
       ],
       "properties": {
         "kind": {
@@ -10864,24 +10851,152 @@
         },
         "event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fork_resolution_bucket_overflow": {
+      "type": "object",
+      "description": "Exactly 17 verified siblings sharing one prev_frontier_digest: the minimal set that proves the v1 single-bucket ceiling of 16 was passed. A producer is never required to enumerate every sibling an attacker may still submit.",
+      "required": [
+        "kind",
+        "prev_frontier_digest",
+        "event_ids"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bucket_overflow"
         },
-        "variants": {
+        "prev_frontier_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "event_ids": {
+          "type": "array",
+          "minItems": 17,
+          "maxItems": 17,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          },
+          "description": "Canonical bytewise-ascending, duplicate-free. Every entry MUST resolve to a fully verified Event in the same Realm, actor and actor_seq that recomputes into this bucket."
+        }
+      },
+      "additionalProperties": false
+    },
+    "fork_resolution_actor_seq_overflow": {
+      "type": "object",
+      "description": "Exactly 65 verified siblings at one position across any number of buckets: the minimal set that proves the v1 cumulative ceiling of 64 was passed.",
+      "required": [
+        "kind",
+        "event_ids"
+      ],
+      "properties": {
+        "kind": {
+          "const": "actor_seq_overflow"
+        },
+        "event_ids": {
+          "type": "array",
+          "minItems": 65,
+          "maxItems": 65,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          },
+          "description": "Canonical bytewise-ascending, duplicate-free. Every entry MUST resolve to a fully verified Event in the same Realm, actor and actor_seq; entries MAY span buckets."
+        }
+      },
+      "additionalProperties": false
+    },
+    "fork_resolution_domain_non_joinable": {
+      "type": "object",
+      "description": "Siblings whose reducer writes to one registered cell family cannot join under that family's lattice. The receiver re-runs the join from the registry rather than trusting a producer-asserted conflict; there is no separate conflict-rule registry.",
+      "required": [
+        "kind",
+        "cell_family",
+        "event_ids"
+      ],
+      "properties": {
+        "kind": {
+          "const": "domain_non_joinable"
+        },
+        "cell_family": {
+          "type": "string",
+          "pattern": "^ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
+          "description": "Registered cell family whose lattice the receiver re-evaluates to confirm the siblings are not joinable."
+        },
+        "event_ids": {
           "type": "array",
           "minItems": 2,
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "type": "object",
-            "required": [
-              "canonical_event_bytes_b64u"
-            ],
-            "properties": {
-              "canonical_event_bytes_b64u": {
-                "$ref": "#/$defs/base64url",
-                "description": "Canonical unpadded base64url of the complete canonical Event preimage bytes. Digest-only collision variants are invalid."
-              }
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          },
+          "description": "Canonical bytewise-ascending, duplicate-free verified siblings at the subject position whose writes to cell_family are not joinable."
+        }
+      },
+      "additionalProperties": false
+    },
+    "fork_resolution_collision_preimage_locator": {
+      "description": "One complete canonical Event preimage, carried inline or by reference. The reference branch exists because base64 of an Event close to the 1 MiB ceiling cannot fit inside a resolution Event that is itself bounded by 1 MiB.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "canonical_event_bytes_b64u"
+          ],
+          "properties": {
+            "kind": {
+              "const": "inline_canonical_bytes"
             },
-            "additionalProperties": false
+            "canonical_event_bytes_b64u": {
+              "$ref": "#/$defs/base64url",
+              "description": "Canonical unpadded base64url of the complete canonical Event preimage bytes."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "collision_variant_record_id",
+            "collision_variant_record_digest"
+          ],
+          "properties": {
+            "kind": {
+              "const": "collision_variant_record"
+            },
+            "collision_variant_record_id": {
+              "$ref": "./common-ids.schema.json#/$defs/collision_variant_record_id"
+            },
+            "collision_variant_record_digest": {
+              "$ref": "#/$defs/digest",
+              "description": "Digest of the complete canonical record under the Realm's active digest suite at the resolution basis. A missing record is a typed dependency miss; an invalid record rejects the Seal."
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "fork_resolution_full_hash_collision": {
+      "type": "object",
+      "description": "Exactly two byte-distinct preimages that independently recompute to the subject event_id. Fewer than two, duplicate bytes, or a carried-id-only reference is not collision evidence.",
+      "required": [
+        "kind",
+        "variants"
+      ],
+      "properties": {
+        "kind": {
+          "const": "full_hash_collision"
+        },
+        "variants": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/fork_resolution_collision_preimage_locator"
           }
         }
       },
@@ -10889,38 +11004,41 @@
     },
     "fork_resolution_sibling_winner_verdict": {
       "type": "object",
+      "description": "One sibling at the subject position becomes canonical. The winner MUST be a member of this Move's own evidence set.",
       "required": [
         "kind",
-        "event_digest"
+        "winner_event_id"
       ],
       "properties": {
         "kind": {
           "const": "canonical_winner"
         },
-        "event_digest": {
-          "$ref": "#/$defs/digest"
+        "winner_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
         }
       },
       "additionalProperties": false
     },
     "fork_resolution_collision_winner_verdict": {
       "type": "object",
+      "description": "One collision variant becomes canonical, named by the same complete canonical bytes the evidence carries. A digest-only or carried-id-only winner MUST be rejected as witness_disagreement.",
       "required": [
         "kind",
-        "canonical_event_bytes_b64u"
+        "winner_preimage"
       ],
       "properties": {
         "kind": {
           "const": "canonical_winner"
         },
-        "canonical_event_bytes_b64u": {
-          "$ref": "#/$defs/base64url"
+        "winner_preimage": {
+          "$ref": "#/$defs/fork_resolution_collision_preimage_locator"
         }
       },
       "additionalProperties": false
     },
     "fork_resolution_void_all_verdict": {
       "type": "object",
+      "description": "Every current and future variant at the subject position, inside this Realm, is void: none enters the accepted frontier or the reducer input set, and no later-arriving variant revives it. The actor's authoring chain therefore terminates below the voided position, so this verdict is only correct when no legal variant exists.",
       "required": [
         "kind"
       ],
@@ -10932,20 +11050,37 @@
       "additionalProperties": false
     },
     "fork_resolution_payload": {
-      "description": "Authorized fork-resolution Control Move. The Event Realm is the evidence Realm; recovery_capability and witness authorization are critical refs, never mirrored payload authority.",
+      "description": "Authorized fork resolution. subject names the disputed scope and is the whole cell subject; conflict_evidence proves the scope is disputed without entering the cell subject; verdict normalizes it. Authorization is carried only by a critical recovery_capability ref, never by mirrored payload authority.",
       "type": "object",
       "required": [
         "subject",
+        "conflict_evidence",
         "verdict"
       ],
       "properties": {
         "subject": {
           "oneOf": [
             {
-              "$ref": "#/$defs/fork_resolution_event_sibling_bucket_subject"
+              "$ref": "#/$defs/fork_resolution_event_sibling_position_subject"
             },
             {
               "$ref": "#/$defs/fork_resolution_event_id_collision_subject"
+            }
+          ]
+        },
+        "conflict_evidence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/fork_resolution_bucket_overflow"
+            },
+            {
+              "$ref": "#/$defs/fork_resolution_actor_seq_overflow"
+            },
+            {
+              "$ref": "#/$defs/fork_resolution_domain_non_joinable"
+            },
+            {
+              "$ref": "#/$defs/fork_resolution_full_hash_collision"
             }
           ]
         },
@@ -10971,7 +11106,7 @@
               "subject": {
                 "properties": {
                   "kind": {
-                    "const": "event_sibling_bucket"
+                    "const": "event_sibling_position"
                   }
                 },
                 "required": [
@@ -10982,6 +11117,19 @@
           },
           "then": {
             "properties": {
+              "conflict_evidence": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/fork_resolution_bucket_overflow"
+                  },
+                  {
+                    "$ref": "#/$defs/fork_resolution_actor_seq_overflow"
+                  },
+                  {
+                    "$ref": "#/$defs/fork_resolution_domain_non_joinable"
+                  }
+                ]
+              },
               "verdict": {
                 "oneOf": [
                   {
@@ -11012,6 +11160,9 @@
           },
           "then": {
             "properties": {
+              "conflict_evidence": {
+                "$ref": "#/$defs/fork_resolution_full_hash_collision"
+              },
               "verdict": {
                 "oneOf": [
                   {

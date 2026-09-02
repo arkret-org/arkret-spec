@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-01.1",
+  "version": "2026-09-02.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-01T12:16:00+08:00",
+  "generated_at": "2026-09-02T14:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1461,6 +1461,17 @@
       "file": "schemas/registration-did-evidence.schema.json",
       "status": "active",
       "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
+    },
+    {
+      "schema_id": "ak.schema.collision_variant_record.v1",
+      "file": "schemas/collision-variant-record.schema.json",
+      "status": "active",
+      "description": "Stored canonical Event variant bytes referenced by an ak.fork.resolution collision locator.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "ak.fork.resolution payload collision locator kind=collision_variant_record, resolved through the registered governance-dependency bundle surface",
+        "normative_ref": "zh/authz/event-auth-state-resolution.md"
+      }
     }
   ]
 }

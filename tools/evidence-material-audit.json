@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 379,
+  "audited_occurrence_count": 382,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1251,6 +1251,17 @@
       "occurrences": 5,
       "disposition": "registry_contract",
       "reason": "Generated stable source reference for deployment support-vector audit."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "conflict_evidence",
+      "occurrences": 3,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "commitment",
+        "transcript"
+      ],
+      "reason": "Closed union over two registered material families: committed verified sibling identity sets re-evaluated against a registered cell family lattice, and complete canonical Event variant transcripts carried inline or by collision-variant record reference."
     }
   ]
 }

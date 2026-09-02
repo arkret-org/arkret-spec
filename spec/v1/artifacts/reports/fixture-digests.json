@@ -86,7 +86,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "6e51d98d383ffdc6b25313f888a0df960041c12a9219ca0e4945c0d7f32aaea0"
+      "sha256": "3ad02c7c6030cb18137a7de70be3eb3e0c4ad6529507565d82c8f8142ded3327"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -286,11 +286,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json",
-      "sha256": "51ec106b7fb579ed9bafd51887ac25839300cd7c1d62100f6195a6c73dd1123a"
+      "sha256": "81c3b17fb1fcc9af1ac6b0799c79edd0704358544adae9276f5c40e7ba597b7c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "a8d51db7b56134d257cb67eb58f65ab5c19cd25120088ae7c8753706f32f253d"
+      "sha256": "98e60c7e57ce88994605ff348ee9c1f46a0792d55f45cd3943e69215eb83648b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.2",
+  "version": "2026-09-02.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T00:10:00+08:00",
+  "generated_at": "2026-09-02T14:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -944,6 +944,15 @@
       "status": "active",
       "wire_form": "ak:history_response:<uuidv7>",
       "description": "Producer-allocated immutable history-key response record identity.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "collision_variant_record",
+      "category": "audit",
+      "status": "active",
+      "wire_form": "ak:collision_variant_record:<uuidv7>",
+      "description": "Stored canonical Event variant bytes used as full-hash collision evidence by ak.fork.resolution.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     }
