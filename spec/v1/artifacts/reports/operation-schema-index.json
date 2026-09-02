@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.6",
+  "version": "2026-09-02.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T15:30:00+08:00",
+  "generated_at": "2026-09-02T16:24:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3345,13 +3345,12 @@
           "after",
           "order",
           "limit",
-          "filters",
-          "include_completeness"
+          "filters"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
         "schema_kind": "object",
         "required": [
           "events",
@@ -3361,9 +3360,7 @@
           "events",
           "prev_cursor",
           "next_cursor",
-          "has_more",
-          "snapshot_bootstrap",
-          "range_completeness"
+          "has_more"
         ],
         "closed": true
       }
@@ -7592,8 +7589,7 @@
           "after",
           "order",
           "limit",
-          "filters",
-          "include_completeness"
+          "filters"
         ],
         "closed": true
       },
@@ -7609,8 +7605,7 @@
           "prev_cursor",
           "next_cursor",
           "has_more",
-          "snapshot_bootstrap",
-          "range_completeness"
+          "snapshot_bootstrap"
         ],
         "closed": true
       }

@@ -723,7 +723,7 @@ grant SHOULD 同时记录签发时点的 `auth_state_digest` / `auth_frontier`�
 1. 该 grant 直接授权的 pending Event MUST fail closed；
 2. 以它为 ref 的 grant MUST 标记 `revoked_upstream`。child grant 的有效性 MUST 取其**所有** ref path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在某条 path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 MUST 降级 fail-closed，MUST NOT 因为存在另一条"仍有效的 alternate path"而保持有效。实现 MUST NOT 把多 ref 当作可漂白单条 path 撤销的冗余授权；多 ref 只增加约束、不放宽约束。child grant 仅当其**每一条** path 上的全部关键 ancestor 都仍有效时才保持有效；
 3. 依赖该 grant 的 allow cache、policy decision cache、projection shortcut 和 server-side cursor authority MUST 在同一 reducer transaction 内失效；
-4. 已 accepted / sealed 的历史 Event 保留审计事实，但后续 snapshot / range completeness / export MUST NOT 再把它作为"当前仍授权"的证据。
+4. 已 accepted / sealed 的历史 Event 保留审计事实，但后续 snapshot / export MUST NOT 再把它作为"当前仍授权"的证据。
 
 ### 10.4 Revoke 与 relinquish 的分工（normative）
 
@@ -773,7 +773,7 @@ capability 授权状态投影到 cell family `ak.component.capability.grant.v1`�
 - **grant** = 对该 grant cell 的 or_set **add**：add dot = 该 `ak.capability.grant` 事件的 `ak:event:<event_id>:<write_index>`（dot 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value = grant 的 canonical 快照。
 - **revoke** = 对**同一** grant cell 的 or_set **remove**，observe 该 grant 的 add dot（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dot_ids` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 cell；reducer **MUST** 在该 revoke Control Move 的 `seal_basis` view 下把目标 grant 的 add dot 解析为合法 add op 后再 supersede。已被 observe-remove 的 add **MUST NOT** 因同 `grant_id` 的后续 re-add / 重放而复活（remove-after-observed-add 为终态）；多 issuer 并发 revoke 同一 grant 收敛于 or_set 的去重语义。
 - **有效性** = 该 grant cell or_set join 后仍存活（未被 observed-remove）的 add 所对应的 grant 快照。对 `ak.component.capability.grant.v1` 这一 grant cell 而言，`bottom` 对 or_set **inert**：or_set join 永不产生 ⊥，[`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中该 cell 明确登记 `bottom = inert`，reducer **MUST NOT** 据其产生任何 reject 语义（与 [`../identity/consent-model.md`](../identity/consent-model.md) 对 consent or_set `bottom` 的 inert 处理一致）；有效权限集合始终由 or_set join 决定。该 inert 规则只适用于 capability / consent 这类普通 observed-remove 集合；`ak.component.moderation_state.v1` 的 `bottom=expose` 是显式领域冲突处理，按 [`../governance/content-moderation.md`](../governance/content-moderation.md) 的 `moderation_control_split` 规则 fail closed 并暴露冲突状态。
-- **GC / tombstone**：已被 sealed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 cell **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / range completeness / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。
+- **GC / tombstone**：已被 sealed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 cell **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。
 
 conformance：[`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) **MUST** 覆盖 (a) grant → use → revoke → deny 序列、(b) 同一 grant 重复 / 并发 revoke 的幂等去重收敛、(c) revoke 后以同 `grant_id` re-add 仍保持已撤销（终态不复活）。freshness `unknown` 下高风险 action fail-closed 由 §18.2 风险表规范并据其验证。
 

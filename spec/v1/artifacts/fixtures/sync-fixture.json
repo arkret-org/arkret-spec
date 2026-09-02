@@ -1654,6 +1654,25 @@
           }
         }
       }
+    },
+    {
+      "name": "peer_events_query_outcome_without_snapshot_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
+      "expect_valid": true,
+      "instance": {
+        "events": [],
+        "has_more": false
+      }
+    },
+    {
+      "name": "peer_events_query_outcome_snapshot_bootstrap_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
+      "expect_valid": false,
+      "instance": {
+        "events": [],
+        "has_more": false,
+        "snapshot_bootstrap": {}
+      }
     }
   ],
   "actor_frontier_digest": {
@@ -1674,6 +1693,100 @@
     "expected_projection_state": "decryption_pending",
     "must_not_drop_timeline_entry": true
   },
+  "delivery_outcome_cases": [
+    {
+      "name": "http_2xx_without_item_outcome",
+      "http_success": true,
+      "top_level_accepted": [],
+      "top_level_duplicate": [],
+      "expected": {
+        "delivered": false,
+        "retry": true
+      }
+    },
+    {
+      "name": "destination_commit_before_response_crash_then_retry",
+      "destination_committed": true,
+      "response_received": false,
+      "retry_top_level_duplicate": [
+        "ak:event:AY4rjZ5eX4tirzUMKIQZ0K26SIcvduWsg-p90KQ2PMVZ"
+      ],
+      "expected": {
+        "delivered": true,
+        "retry": false
+      }
+    },
+    {
+      "name": "source_crash_before_delivered_persist_then_retry",
+      "top_level_accepted": [
+        "ak:event:AY4rjZ5eX4tirzUMKIQZ0K26SIcvduWsg-p90KQ2PMVZ"
+      ],
+      "source_persisted_delivered": false,
+      "retry_top_level_duplicate": [
+        "ak:event:AY4rjZ5eX4tirzUMKIQZ0K26SIcvduWsg-p90KQ2PMVZ"
+      ],
+      "expected": {
+        "delivered": true,
+        "retry": false
+      }
+    },
+    {
+      "name": "historical_only_original_outcome_does_not_complete_intent",
+      "status": "historical_only",
+      "top_level_accepted": [],
+      "top_level_duplicate": [],
+      "original_outcome_accepted": [
+        "ak:event:AY4rjZ5eX4tirzUMKIQZ0K26SIcvduWsg-p90KQ2PMVZ"
+      ],
+      "expected": {
+        "delivered": false,
+        "retry": true
+      }
+    },
+    {
+      "name": "destination_old_backup_allows_authorized_backfill",
+      "historical_delivery_record": true,
+      "destination_currently_has_event": false,
+      "current_backfill_authorized": true,
+      "expected": {
+        "delivered": false,
+        "retry": true
+      }
+    }
+  ],
+  "frontier_diagnostic_cases": [
+    {
+      "name": "aggregate_root_equal_same_direction",
+      "root_equal": true,
+      "expected": "observation_unchanged_without_set_equality_or_completeness"
+    },
+    {
+      "name": "aggregate_root_mismatch_unknown_scope",
+      "root_equal": false,
+      "known_dependency_gap": false,
+      "expected": "reconciliation_incomplete_without_routine_scan_or_peer_failure"
+    },
+    {
+      "name": "known_dependency_gap",
+      "root_equal": false,
+      "known_dependency_gap": true,
+      "expected": "resolve_then_submit_or_outbox"
+    },
+    {
+      "name": "operator_fallback_budget_exhausted",
+      "root_equal": false,
+      "operator_fallback": true,
+      "local_budget_exhausted": true,
+      "expected": "stop_with_local_diagnostic_without_peer_failure"
+    },
+    {
+      "name": "operator_fallback_cursor_expired",
+      "root_equal": false,
+      "operator_fallback": true,
+      "cursor_expired": true,
+      "expected": "restart_or_stop_without_peer_failure"
+    }
+  ],
   "frontier_reduction_cases": [
     {
       "name": "equal_root",

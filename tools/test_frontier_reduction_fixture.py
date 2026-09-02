@@ -40,6 +40,22 @@ class FrontierReductionTest(unittest.TestCase):
         self.data["frontier_reduction_cases"][0]["expected"]["complete"] = True
         self.assertTrue(self.errors())
 
+    def test_http_success_does_not_complete_an_event_intent(self):
+        case = next(case for case in self.data["delivery_outcome_cases"] if case["name"] == "http_2xx_without_item_outcome")
+        case["expected"]["delivered"] = True
+        case["expected"]["retry"] = False
+        self.assertTrue(self.errors())
+
+    def test_historical_outcome_does_not_complete_an_event_intent(self):
+        case = next(case for case in self.data["delivery_outcome_cases"] if case["name"] == "historical_only_original_outcome_does_not_complete_intent")
+        case["top_level_accepted"] = case["original_outcome_accepted"]
+        self.assertTrue(self.errors())
+
+    def test_root_mismatch_does_not_require_routine_scan(self):
+        case = next(case for case in self.data["frontier_diagnostic_cases"] if case["name"] == "aggregate_root_mismatch_unknown_scope")
+        case["expected"] = "routine_full_history_scan"
+        self.assertTrue(self.errors())
+
 
 if __name__ == "__main__":
     unittest.main()

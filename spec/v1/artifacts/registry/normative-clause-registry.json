@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.2",
+  "version": "2026-09-02.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T13:30:00+08:00",
+  "generated_at": "2026-09-02T16:24:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -232,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:6f4ef043444098524dc345c7489bd1dcaeeadfeefbc60bfb39f18818f2dcf522",
+      "section_digest": "sha256:6c0536c280a5a9b7fa18b9d75b084c51660d95a6b6b49cf8bfcfb3d67cbbd26f",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest. Availability admission is authorized only by the joined predecessor state: genesis has no such authority, commits no AvailabilityReceipt, and materializes policy only for successor Seals.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -250,7 +250,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:e2b03a8657dabda99277781b352e123330bdba65fd8d7ff2a46fbb262ff48576",
+      "section_digest": "sha256:48d60a3f77c613191d8824e660a8f8cbc1267f738c847b48b116f6e11f4b3559",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -266,7 +266,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:e83da4029f25d76af9feb3302e35a99b910bfae9c7b5f48ee76f9850143632b5",
+      "section_digest": "sha256:d829a59043bdc881531ef753e74f4bd7118491a7f95a3045e33f2af86b6ac361",
       "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
       "testability_grade": "vector",
       "evidence_refs": [

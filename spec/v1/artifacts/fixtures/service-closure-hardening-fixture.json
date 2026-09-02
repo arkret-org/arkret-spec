@@ -10,7 +10,6 @@
     "ak.vector.invite.consumed_token_resubject_rejected.v1",
     "ak.vector.signal.class_ttl.v1",
     "ak.vector.projection.pagination_shape.v1",
-    "ak.vector.range_completeness.witness_disagreement.v1",
     "ak.vector.cursor.revoke_high_assurance.v1",
     "ak.vector.device_recovery.lifecycle.v1",
     "ak.vector.device.revocation_seal_binding.v1",
@@ -201,77 +200,6 @@
           "expected": {
             "decision": "reject",
             "reason": "cursor_integrity_invalid"
-          }
-        }
-      ]
-    },
-    {
-      "vector_id": "ak.vector.range_completeness.witness_disagreement.v1",
-      "assertions": [
-        "same_actor_seq_different_digest_quarantines_peer",
-        "same_range_different_root_quarantines_range",
-        "high_assurance_rejects_single_source_completion"
-      ],
-      "steps": [
-        {
-          "name": "actor_seq_digest_disagreement",
-          "witnesses": [
-            {
-              "witness_id": "ak:did_core:webvh:z6mkfixturewitnessaexample",
-              "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:z6mkfixture"
-              },
-              "actor_seq": 7,
-              "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-            },
-            {
-              "witness_id": "ak:did_core:webvh:z6mkfixturewitnessbexample",
-              "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:z6mkfixture"
-              },
-              "actor_seq": 7,
-              "event_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-            }
-          ],
-          "expected": {
-            "decision": "reject",
-            "reason": "witness_disagreement",
-            "quarantine": true
-          }
-        },
-        {
-          "name": "range_root_disagreement",
-          "attestations": [
-            {
-              "issuer": "did:webvh:z6mkfixturewitnessaexample:witness-a.example",
-              "from_frontier": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-              "to_frontier": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-              "range_root": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            },
-            {
-              "issuer": "did:webvh:z6mkfixturewitnessbexample:witness-b.example",
-              "from_frontier": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-              "to_frontier": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-              "range_root": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
-            }
-          ],
-          "expected": {
-            "decision": "reject",
-            "reason": "witness_disagreement",
-            "quarantine": true
-          }
-        },
-        {
-          "name": "high_assurance_single_source_stays_pending",
-          "security_class": "high_assurance",
-          "attestation_mode": "single_source",
-          "expected": {
-            "decision": "pending_stale",
-            "high_assurance_frontier_advanced": false
           }
         }
       ]

@@ -871,7 +871,7 @@ ak.vector.cba_lattice.data_event_observation_does_not_seal.v1
 
 - DataEvent 的证据状态最多为 `data_observed`，不得升级为 `control_sealed`。
 - 客户端不得用观察性 data root 满足 Control Move `seal_basis` 或治理 freshness。
-- `data_observed` 可用于可用性、range completeness 或轻客户端提示，但不是控制面 finality。
+- `data_observed` 可用于可用性或轻客户端提示，但不是控制面 finality，也不证明历史无遗漏。
 
 ### 2.4 Vector: Control Move 必须有 Basis 且由 Seal 覆盖
 
@@ -3532,22 +3532,6 @@ Expected：
 - 权限负例必须证明 Auth Server 未取得 principal/root/device/notary private key，SessionGrant 路径未调用
   `/_arkret/self/events`、未查询 PCR authoring frontier；S2S signature 不得替代 DPoP 或 Event proof。
 
-### 10.6 Vector: Witness Disagreement Quarantine
-
-`vector_id`: `ak.vector.range_completeness.witness_disagreement.v1`
-
-Steps：
-
-1. 两个 witness 对同一 `(realm_id, actor_id, actor_seq)` 给出不同 `event_id` / `event_digest`。
-2. 两个 range-completeness attestation 声称同一 `(from_frontier, to_frontier]` scope，但 `root` 不同且无法由不同上界解释。
-3. High-assurance peer 只提供 `single_source` attestation 试图解除 backfill completeness gate。
-
-Expected：
-
-- 第 1 / 2 步 MUST 标记 `witness_disagreement` 并 quarantine 对应 range / peer。
-- 不得用本地接收顺序、HLC 或最后写入者选择 winner。
-- 第 3 步 MUST 保持 pending / stale，不得推进 high-assurance completeness frontier。
-
 ### 10.7 Vector: Capability Revoke Downstream Recheck
 
 `vector_id`: `ak.vector.capability.revoke_downstream_recheck.v1`
@@ -3820,27 +3804,6 @@ Expected：
 - 第 4 步全部 fail closed：缺字段是 `schema_violation`，其余是 `cas_conflict`，且 revision 与 durable value 均不改变。
 - 第 5 步仍返回 `cas_conflict`、revision 保持 3；实现只保留不可恢复旧 target 的 subject digest / revision / outcome 最小状态。
 - 任一实现不得使用 CBA `preconditions`、arrival-order LWW、`cas_register` Bottom 或 `push_gateway_did` 私有别名替代本向量。
-
-### 10.13 Vector: Events Query Range Completeness Detection
-
-`vector_id`: `ak.vector.sync.range_completeness_client_query.v1`
-
-前置：服务端 `supported_features[]` 声明 `ak.feature.events_query_range_completeness.v1`；Realm 配置 `audit.range_completeness_witness_ids[]` 且已存在覆盖区间 `(F1, F2]` 的 `federation_witness_attested` attestation；区间内 actor Bob 产生过 `seq 10..20` 的 reducer-input event。
-
-Steps：
-
-1. 客户端因 `dropped` / cursor 失效按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复，调用 `ak.self.events.read.scan.v1`（`include_completeness=true`）backfill 区间 `(F1, F2]`。
-2. 服务端返回完整事件页 + `range_completeness.attestation_refs[]`；客户端按 [`operations-sync.md` §6.4.4](../sync/operations-sync.md) 重算 Merkle root 并核对 `actor_seq_ranges[]`。
-3. 变体 A：服务端从响应中扣下 Bob `seq 14..16` 的事件，但返回同一 attestation。
-4. 变体 B：服务端未声明该 feature，收到 `include_completeness=true`。
-5. 变体 C：attestation 仅为 `single_source`，而 Realm 声明 `security_class=high_assurance`。
-
-Expected：
-
-- 第 2 步：root 与 `actor_seq_ranges[]` 全部一致时，客户端方可把该区间标记为已 attest 的完整范围。
-- 变体 A：客户端 MUST 检出本地视图与 attestation 的差异（`range_completeness_actor_seq_gap` 或 root 重算不一致 `range_completeness_root_mismatch`），把该区间标记 degraded 并 fail closed；MUST NOT 向用户展示"历史完整"。
-- 变体 B：服务端 MUST 忽略该参数，响应不含 `range_completeness` 字段且不报错；客户端把范围视为未 attest。
-- 变体 C：客户端 MUST NOT 用 `single_source` attestation 解除 high-assurance Realm 的 completeness 关注；按未 attest 处理或继续等待 quorum attestation。
 
 ## 11. Agent & Sidecar Vectors
 

@@ -2990,48 +2990,35 @@
         },
         "snapshot_bootstrap": {
           "$ref": "#/$defs/SnapshotBootstrap"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PeerEventsQueryOutcome": {
+      "type": "object",
+      "description": "Best-effort Event scan page for ak.peer.events.read.scan.v1. This closed peer response intentionally excludes self-only snapshot_bootstrap and does not promise an immutable generation or historical completeness.",
+      "required": [
+        "events",
+        "has_more"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EventReadRow"
+          }
         },
-        "range_completeness": {
-          "type": "object",
-          "description": "Optional. Present only when the request set include_completeness=true, the service advertises events_query_range_completeness, and at least one ak.attestation.range_completeness attestation covers the returned page's range (service-http-binding.md §3.3.6). Absence means the range is un-attested — neither an error nor a completeness confirmation. Clients verify per operations-sync.md §6.4.4 (root recompute, actor_seq_ranges check, witness_disagreement fail-closed).",
-          "required": [
-            "attestation_refs"
-          ],
-          "properties": {
-            "attestation_refs": {
-              "type": "array",
-              "minItems": 1,
-              "description": "Event ids of ak.attestation.range_completeness events whose union of scopes covers the returned page. Over-coverage is legal; clients intersect scopes during verification.",
-              "items": {
-                "type": "string",
-                "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-              },
-              "uniqueItems": true
-            },
-            "attestations": {
-              "type": "array",
-              "description": "Optional inline complete ak.attestation.range_completeness EventEnvelope objects for the referenced attestations. Every inline event's event_id MUST appear in attestation_refs and clients MUST verify the EventEnvelope signature / event_digest before using its payload. Servers MAY omit this field and let clients backfill the attestation events by id.",
-              "items": {
-                "allOf": [
-                  {
-                    "$ref": "./event-envelope.schema.json"
-                  },
-                  {
-                    "type": "object",
-                    "required": [
-                      "kind"
-                    ],
-                    "properties": {
-                      "kind": {
-                        "const": "ak.attestation.range_completeness"
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          "additionalProperties": false
+        "prev_cursor": {
+          "type": "string",
+          "description": "Absolute-direction cursor toward older events; pass to the next request's before selector while the live cursor remains valid."
+        },
+        "next_cursor": {
+          "type": "string",
+          "description": "Absolute-direction cursor toward newer events; pass to the next request's after selector while the live cursor remains valid."
+        },
+        "has_more": {
+          "type": "boolean",
+          "description": "True if the current live view reports more events in the older direction; this is not an immutable snapshot or termination guarantee."
         }
       },
       "additionalProperties": false
@@ -3096,11 +3083,6 @@
         "filters": {
           "type": "object",
           "description": "Structured filter object (kind, payload predicates)."
-        },
-        "include_completeness": {
-          "type": "boolean",
-          "default": false,
-          "description": "Request range-completeness attestation references covering the returned page (service-http-binding.md §3.3.6). Only effective when the service advertises ak.feature.events_query_range_completeness.v1 in supported_features; services that do not advertise it MUST ignore this parameter."
         }
       }
     },
@@ -5352,7 +5334,7 @@
         },
         "inclusion_proof": {
           "type": "object",
-          "description": "Optional proof that the suite-bearing digest decoded from event_id is included in an Event set / Seal / range-completeness root visible to the caller."
+          "description": "Optional proof that the suite-bearing digest decoded from event_id is included in an Event set or Seal root visible to the caller; it does not prove historical completeness."
         },
         "reducer_input": {
           "const": false,
@@ -6878,7 +6860,7 @@
     },
     "SnapshotBootstrap": {
       "type": "object",
-      "description": "Optional ak.self.events.read.scan.v1 acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
+      "description": "Optional ak.self.events.read.scan.v1 acceleration hint for the authenticated self surface only. It is forbidden in ak.peer.events.read.scan.v1. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
       "required": [
         "snapshot_ref",
         "state_digest",

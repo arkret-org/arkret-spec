@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-01.2",
-  "generated_at": "2026-09-01T12:16:00+08:00",
+  "version": "2026-09-02.3",
+  "generated_at": "2026-09-02T15:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4704,22 +4704,6 @@
       "description": "A threshold-governed control proposal can no longer collect the required independent acknowledgements before its deadline. The receiver MUST fail closed with reason_code=quorum_unreachable rather than guessing authority."
     },
     {
-      "code": "range_completeness_actor_seq_gap",
-      "applies_to": [
-        "audit_decision",
-        "state_resolution"
-      ],
-      "description": "Verifier's local actor view contains a per-actor seq gap inside an interval that a ak.attestation.range_completeness attestation (payload schema ak.schema.range_completeness_attestation.v1) declared complete. Most likely indicator of silent fork or partial replication divergence beyond the attestation's stated scope. See zh/sync/operations-sync.md §6.4.4 step 6."
-    },
-    {
-      "code": "range_completeness_root_mismatch",
-      "applies_to": [
-        "audit_decision",
-        "state_resolution"
-      ],
-      "description": "A ak.attestation.range_completeness attestation's root (payload schema ak.schema.range_completeness_attestation.v1) does not match the locally-recomputed Merkle root over the scope's reducer-input events. Indicates either silent omission by the issuer or scope/canonicalization drift. See zh/sync/operations-sync.md §6.4.4 step 4."
-    },
-    {
       "code": "rate_limited",
       "applies_to": [
         "push_notify_outcome"
@@ -5895,7 +5879,7 @@
         "state_resolution",
         "federation_transaction"
       ],
-      "description": "Confirmed fork/witness evidence: two byte-distinct canonical Event preimages pass structure, suite and proof prerequisites and independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; a profile declares the observed sibling combination non-joinable; or witnesses required to sign the same complete (realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count) attestation payload return inconsistent values. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Different valid event_id values at the same (realm_id, actor_id, actor_seq) are not by themselves disagreement: event-and-patch.md §2.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw frontier_root / heads / range-root differences across different replication, disclosure, or attestation scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay, an aligned same-scope quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md §12 and zh/sync/federation.md §4.5.1."
+      "description": "Confirmed fork evidence: two byte-distinct canonical Event preimages pass structure, suite and proof prerequisites and independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; or a profile declares the observed sibling combination non-joinable. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Different valid event_id values at the same (realm_id, actor_id, actor_seq) are not by themselves disagreement: event-and-patch.md §2.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw frontier_root / heads differences across different replication or disclosure scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay plus an accepted operator-approved fork resolution. See zh/sync/operations-sync.md §12 and zh/sync/federation.md §4.5.1."
     }
   ],
   "vocabulary": {

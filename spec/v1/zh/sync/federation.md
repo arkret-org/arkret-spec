@@ -29,7 +29,7 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Station�
 
 ### 2.2 Station 是受控同步边界，不是全局权威
 
-联邦场景中没有独立第三方分发服务器角色。Realm 范围传播由参与方 Station 之间的 federation transaction 完成。Station 不能伪造、篡改或选择性隐藏已签名的 Event Envelope；任何参与者都可以通过直接查询源 Events API、witness receipt、snapshot frontier 或其他受信 Station 交叉验证历史。
+联邦场景中没有独立第三方分发服务器角色。Realm 范围传播由参与方 Station 之间的 federation transaction 完成。接收方可以独立验证**已经收到**的 Event Envelope 是否被伪造或篡改，并可在两个已知持有者的同一方向、同一授权披露范围内核对已观察集合；签名、frontier、receipt 或多个 Witness 都不能证明一个从未被任何验证方观察到的 Event 不存在，也不能阻止恶意 source withholding。current-v1 不提供 Realm 历史完整性证明或 completeness authority。
 
 ### 2.3 Seal Finality 优于全局同步共识
 
@@ -198,7 +198,7 @@ encrypted-only、单跳、best-effort Signal Extension surface。它承载
 [`signal.md`](./signal.md) 的原 producer-signed `SignalEnvelope`，MUST NOT：
 
 - 分配 Event ID、推进 `actor_seq` / Realm frontier / Seal / CBA state；
-- 写入 durable Event log、backfill、snapshot、range completeness 或 federation ack；
+- 写入 durable Event log、backfill、snapshot 或 federation ack；
 - 复用 `/_arkret/peer/events` 的 transaction/idempotency ledger；
 - 解密、重签、改写或重加密 producer envelope；
 - 从 destination 再转发第三 peer。
@@ -278,7 +278,7 @@ Realm 在接收方 accepted 后，该 pair 的后续 Event 立即回落普通 fe
 
 同一 service DID 的 endpoint/record 更新只刷新 transport route，MUST NOT 改变冻结 witness、target identity 或原幂等键。AccountId 的 Station 分量变化意味着另一完整 ActorId，不是旧 intent 的 route 更新；之后同一 principal 以新 AccountId、其它 ActorId 或新 membership Event 重新加入，只能影响新 intent，MUST NOT 复活或重定向旧 intent。多个 frozen members 共享同一 service 时，一个成员退出不影响其它仍完整有效的 witness。
 
-成功 peer 响应把 intent 置为 terminal `delivered`。`pending_route`、`pending_delivery`、`delivered`、`cancelled_authority_lost` 是 Realm Event fanout 的封闭 target 状态；其中前两者计入 pending，后两者不再欠投递。普通 self submit outcome 只返回汇总 `pending_delivery_count`，不得泄露 target service；consumer 将 count 为 0 派生为 `complete`，非零派生为 `pending`。`accepted` 只表示本地 canonical acceptance，不表示所有 remote target 已交付。delivery-status 读取返回完整 `targets[]`，count 与 state 均从 target 状态派生而不上 wire。
+只有经过 transport 认证、schema 校验和本轮授权求值后，目标 exact `event_id` 出现在响应**顶层当前求值**的 `accepted[] ∪ duplicate[]` 中，source 才能把该 Event / destination intent 置为 terminal `delivered`。HTTP 2xx、批次 `status`、写入 socket、`sent_at`、attempt count、batch receipt，或 `status=historical_only` 的 `original_outcome` 都不是该逐项当前 delivery evidence；同批未出现于该集合的 Event 必须保持 pending 或按其当前 rejection 处理。`pending_route`、`pending_delivery`、`delivered`、`cancelled_authority_lost` 是 Realm Event fanout 的封闭 target 状态；其中前两者计入 pending，后两者不再欠投递。普通 self submit outcome 只返回汇总 `pending_delivery_count`，不得泄露 target service；consumer 将 count 为 0 派生为 `complete`，非零派生为 `pending`。这里的 `complete` 只表示 source 当前没有未结 fanout intent，不表示 destination 当前仍持有 Event 或 Realm 历史完整。`accepted` 只表示本地 canonical acceptance，不表示所有 remote target 已交付。delivery-status 读取返回完整 `targets[]`，count 与 state 均从 target 状态派生而不上 wire。
 
 认证调用者通过 `ak.self.events.read.delivery_status.v1` 读取自己可见 Event 的当前 target 状态。响应按 opaque `target_id` 排序并始终返回完整 frozen target set；只有调用者按当前 Realm membership/history/plaintext visibility 规则可读取产生该 target 的 joined-member ActorId routing projection 时，对应 row 才可携带 `service_id`。未知 Event 与不可见 Event 使用同一 `not_found`，不得通过 target 数量或 service id 枚举隐藏成员拓扑。
 
@@ -371,6 +371,8 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
   `ak.vector.federation.agent_admission_receipt_handoff.v1` 固化。
 - 持续同步、批量重试和 frontier 交换通过组合 `ak.peer.events.command.submit.v1`（推送，本节）、`ak.peer.events.read.scan.v1` / `ak.peer.events.read.resolve.v1`（拉取 / backfill / 补洞，§4.2）与 `ak.peer.events.read.frontier.v1`（§4.5）完成；无需额外的有状态事务 endpoint。
 
+**outbox 崩溃 / 重试矩阵（normative）**：destination 在 durable commit 前崩溃不得确认该 Event；commit 后、响应发送前崩溃时，source 的 byte-identical retry 必须取得 `duplicate[]` 中的逐项确认；source 收到合法 outcome 但在持久化 `delivered` 前崩溃时，恢复后必须允许安全重试并由同一 duplicate 语义收敛。destination 从旧备份恢复或丢失 accepted store 后，历史 `delivered`、batch receipt 或 `historical_only.original_outcome` 不得阻止按当前授权执行 backfill；它们也不构成永久 retention 承诺。协议不新增 delivery ledger、`delivery_seq`、通用 signed ACK 或第二套 receipt 作为另一真相源。
+
 ### 4.2 拉取模式 (Pull / Backfill)
 
 当节点发现自己的验证图中存在缺失（`prev_refs` 引用了本地没有的 Event，或 `refs[role=authorized_by]` 所指 grant record 无法从本地 sealed control history 重建）时，可以主动向源 Station 的 peer surface 拉取对应历史。`authorized_by` 仍保留 `ak:grant:` id，不得改写为承载 Event alias；接收方从回填的 control Event 与 Seal 重建 grant record 后继续验证。v1 联邦 Event pull 使用 `ak.peer.events.read.scan.v1`（`QUERY /_arkret/peer/events`），JSON content 的 `before` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
@@ -399,23 +401,20 @@ v1 的 peer pull **只有**这一种带 JSON body 的 `QUERY` 形态，没有无
 | `order` | query | `enum(default, ascending, descending)` | optional | 联邦 pull 默认沿用 §3.3 "近邻先返回" 规则——仅 `before` 时 descending，仅 `after` 时 ascending；reducer-导向场景显式 `order=ascending`。 |
 | `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值（见 [`scalability-constraints.md`](../conformance/scalability-constraints.md)）。 |
 
-响应字段（与 `ak.peer.events.read.scan.v1` 响应同源；`snapshot_bootstrap` 是 optional 加速返回）：
+响应字段（closed `PeerEventsQueryOutcome`）：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `events` | `object[]` | required | Event Envelope 数组；每项 MUST 保持原始签名信封。scan 只用于发现可见候选与 cursor，不提供独立 publication evidence，也不得直接授予本地 acceptance。批次内顺序按 `order` 规则与"近邻先返回"默认（[`service-http-binding.md` §3.3.3](./service-http-binding.md)）。 |
-| `snapshot_bootstrap` | `object` | optional | 可选的快照加速返回；如有则接收方 MUST 校验签名并验证 frontier 一致性后才可使用。详见 §9.1。 |
 | `prev_cursor` | `cursor` | optional | 朝**更旧事件**方向的延续位置；下次请求传入 `before=<prev_cursor>` 继续历史 backfill。 |
 | `next_cursor` | `cursor` | optional | 朝**更新事件**方向的延续位置；下次请求传入 `after=<next_cursor>` 继续 catch-up。 |
 | `has_more` | `boolean` | required | 是否仍有可拉取的 Event；客户端到达 oldest accessible event 时 `false`。 |
 
-> `snapshot_bootstrap` 字段以 optional 形式出现在 `ak.peer.events.read.scan.v1` 响应中（仅 Realm policy 显式允许时）。若接收方需要直接按 event id / digest 补洞或把 scan 候选送入本地 admission，必须使用 `QUERY /_arkret/peer/events/resolve`（`ak.peer.events.read.resolve.v1`），不得改用 self surface。resolve 的 `events[]` 元素是 `EventFederationSubmission`：source 从首次 durable acceptance 原样投影独立 Control Proposal Ack、membership compensation carrier、Ack-less human self-principal 的 stable admission evidence 以及可选 delayed-publication lease/receipt；receiver 复用 push admission。source 不得在 read 时补签或按当前状态重建这些证据。Ack-less evidence 必须与 Ack 互斥；receiver 必须按 origin-authority replay 规则验证 Event、source Station、producer device、accepted device-authorize dependency、device generation 与 signed Seal basis，不能只信 sidecar 字段。其它需要 Ack 的 Control Move 缺 Ack 必须 fail closed。覆盖 Seal 证明 effectiveness，不替代首次 publication evidence，也不把 pending Move 自动降格为 historical-only acceptance。
+peer scan response MUST NOT 携带 `snapshot_bootstrap`；v1 core 没有 peer snapshot manifest、签名、chunk 或失败回退合同。若接收方需要直接按 event id / digest 补洞或把 scan 候选送入本地 admission，必须使用 `QUERY /_arkret/peer/events/resolve`（`ak.peer.events.read.resolve.v1`），不得改用 self surface。resolve 的 `events[]` 元素是 `EventFederationSubmission`：source 从首次 durable acceptance 原样投影独立 Control Proposal Ack、membership compensation carrier、Ack-less human self-principal 的 stable admission evidence 以及可选 delayed-publication lease/receipt；receiver 复用 push admission。source 不得在 read 时补签或按当前状态重建这些证据。Ack-less evidence 必须与 Ack 互斥；receiver 必须按 origin-authority replay 规则验证 Event、source Station、producer device、accepted device-authorize dependency、device generation 与 signed Seal basis，不能只信 sidecar 字段。其它需要 Ack 的 Control Move 缺 Ack 必须 fail closed。覆盖 Seal 证明 effectiveness，不替代首次 publication evidence，也不把 pending Move 自动降格为 historical-only acceptance。
 
 **Pull 授权 freshness（normative，与 §8.5.1 互补）**：§8.5.1 处理的是 push 路径——把 service key state 一起进入 idempotency cache key，从而在 cache hit 时仍重做授权检查；而 pull 路径根本**不进幂等缓存**：无 body 的 `GET` pull 省略 `Content-Digest`（§3.2），因此不像 push 那样把 receiver-computed canonical body digest 纳入幂等缓存键。两条路径用**不同机制**关闭同一个"撤销后重放"窗口（push 靠 cache-key 绑定 + cache hit 重校验，pull 靠每次请求强制重新解析 service binding freshness），互为补充而非镜像对称。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-ID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-ID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
 
-`snapshot_bootstrap` 的 closed 字段形态以本节响应表和
-[`service-operation-dtos.schema.json#/$defs/EventsQueryOutcome`](../../artifacts/schemas/service-operation-dtos.schema.json)
-为唯一权威；§9.1 不再复述内层字段。
+`ak.peer.events.read.scan.v1` 只作为小历史或 operator-triggered 的 best-effort 兼容 fallback；它不是每次 frontier mismatch 的 routine 路径，也不保证动态权限、持续写入、重启或长历史下确定终止。cursor 只绑定当前 live query scope，不是 immutable accepted-set generation；cursor 过期 / 完整性失败、并发 snapshot stale、分页或本地资源预算耗尽必须显式停止或重启该 fallback，并作为本地 `reconciliation_incomplete` 诊断处理，MUST NOT 单独累计 peer failure、产生 quarantine 或指控 fork。每页仍须重新验证 current authorization，撤权后立即 fail closed。若未来要声明 deterministic disaster recovery，必须另行登记 frozen generation、current-auth recheck、revocation、expiry / restart 与有界资源合同；本 operation 当前不作该声明。
 
 ### 4.3 重复与幂等
 
@@ -447,9 +446,9 @@ v1 的 peer pull **只有**这一种带 JSON body 的 `QUERY` 形态，没有无
 
 该 fanout 不自动把 Realm membership 改为 `ban`；membership action 仍由 Realm policy 决定。但跨 PS 投递和 key/device 能力必须按本节 fail closed。
 
-### 4.5 Fork Detection / Frontier Exchange
+### 4.5 Scope-relative Frontier Diagnostics
 
-参与同一 Realm 的 federation peer 通过 frontier 交换检测 silent fork。本节定义三层职责：peer **MUST** 实现 frontier probe **能力**（响应已授权 peer 的查询），baseline 部署 **SHOULD** 周期性主动交换，high-assurance / sovereign / regulated profile **MUST** 周期性主动交换并具备失败降级语义。
+frontier 只提供 issuer→requester 方向、当前授权披露视图的 divergence hint，并为已知 head / dependency 缺口提供诊断触发；它不检测任意 silent omission，也不是 Realm 全局摘要或历史完整性证明。本节定义三层职责：peer **MUST** 实现 frontier probe **能力**（响应已授权 peer 的查询）；只有能以固定发布 bucket 和增量 / 持久化索引满足部署资源预算的实现，才 MAY 把 probe 作为周期性低成本信号，当前仍需全历史读取的实现必须限制为小历史或 operator-triggered 诊断。baseline 与 high-assurance profile 均不要求用 routine full-history scan 追逐每个 mismatch。
 
 #### 4.5.1 Frontier Probe 能力 (MUST)
 
@@ -499,10 +498,10 @@ Probe 响应 payload：
   三个 actor root 必须同时存在或同时缺失，且与请求的 `actor_id` 选择一致。`realm_id` 不得为 null。
   接收方 MUST 先从 `head_ids` 和 canonical Actor-keyed `actor_seq_upper_bounds` 重算 `frontier_root`，
   再验证该 transcript 的签名，不能信任 response 附带的摘要或 signed-payload 镜像。
-- `actor_seq_upper_bounds` 是 issuer 视角每个 federation-visible actor 的 `actor_seq` 上界，用于检测 *per-actor* 缺口（silent fork 常表现为某 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进）。Issuer MUST 按 probing peer 的投递 / 服务范围裁剪该 map：只返回该 peer 依据 Realm policy、joined-member ActorId routing projection 或 federation role 有 need-to-know 的 actor 子集；不得把与该 peer 无投递或审计职责的其它组织 / 其它服务范围 actor DID 和 seq 上界暴露给该 peer。高隐私 Realm MAY 先只返回聚合 `frontier_root`，在发现差异后再用 per-actor challenge / backfill 展开最小必要子集。
-- **聚合承诺的跨 peer 可比性边界（normative）**：`frontier_root` 的 leaf 集合含**按 probing peer 裁剪**的 `actor_seq_upper_bounds`，同一 Realm 的两个诚实 issuer 若对同一 receiver 的 need-to-know 裁剪不同（joined-member ActorId routing projection 认知不同 → actor 子集不同），会对同一 range 产出**不同的** `frontier_root`。更根本地，v1 **允许合法 partial replication**（见本节下方"`actor_seq_upper_bounds` 差异本身不是冲突证据（合法 partial replication 也会出现差异）"条），因此 `frontier_root`、`head_ids[]`、`range-completeness root` 等**任何聚合承诺**在两个 peer 的复制 / 披露 / attestation scope 不同时都会**诚实地**不同——`head_ids[]` 随各 peer 实际复制的事件子集变化，`range-completeness root` 绑定 attestation 的 `event_range` / `actor_seq_ranges`（见 [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)），二者都**不是** scope 不变量。普通 peer probe 的聚合承诺只是**乐观快路径比较器**：scope 完全相同时取值相等即可快速确认一致；取值不同时 **MUST NOT** 直接判 fork，而 MUST 先对双方已复制 / 披露 actor 的交集做 per-actor challenge / backfill。
+- `actor_seq_upper_bounds` 是 issuer 视角每个 federation-visible actor 的 `actor_seq` 上界，只能提示已观察 actor 的已知差异。Issuer MUST 按 probing peer 的投递 / 服务范围裁剪该 map：只返回该 peer 依据 Realm policy、joined-member ActorId routing projection 或 federation role 有 need-to-know 的 actor 子集；不得把与该 peer 无投递或审计职责的其它组织 / 其它服务范围 actor DID 和 seq 上界暴露给该 peer。高隐私 Realm MAY 只返回聚合 `frontier_root`；不得为了让不同 peer 的 root 相同而泄露 scope 外 Actor 或 shadow Event。
+- **方向与跨 peer 可比性边界（normative）**：一个 disclosure 方向由 `(origin_service_id=issuer_id, destination_service_id=requester Source-Service-ID, realm_id)` 绑定，反向调用是另一个集合。`frontier_root` 的 leaf 集合又含按 requester 裁剪的 `actor_seq_upper_bounds`，而 current-v1 没有登记可由双方唯一重算的 `comparison_scope_digest` 或 frozen disclosure generation；因此不同 issuer、不同 requester、不同 policy / membership / routing basis 的 root **MUST NOT** 作跨端集合相等比较。即使数值相等，也只表示两个 issuer-local observation 恰好具有同一聚合值，不证明中间 sibling、未观察 Event 或 Realm 历史完整；数值不同也不证明丢失或恶意。实现可以保存同一 issuer→requester 方向的连续观察作诊断，但不得据此产生协议级 `set_equal`、fork evidence 或 completeness 状态。
 
-  per-actor 归约的比较单元不是单值 `(actor_id, actor_seq)→hash`，而是该位置的 **canonical sibling 集** `S(peer, realm_id, actor_id, actor_seq) = sort_unique({(event_id,event_digest,prev_frontier_digest)})`。同一位置出现多个不同 `event_id` / hash 是 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 明确允许的 sibling fork；在单桶 16、跨桶累计 64 的上限内，且未触发 counter / FSM 等领域特定不可 join 规则时，双方 MUST 通过 backfill 取 union、逐条验证并收敛到同一 sibling 集，MUST NOT 因各自先看到不同子集而 quarantine。只有归约后出现以下证据才进入 fork-detection quarantine：两个 byte-distinct canonical Event preimage 均通过完整结构、suite 与 proof 前置检查，并独立重算为同一完整 suite-tagged `event_id`（full-hash collision evidence）；某 sibling 桶 / 位置的已验证集合超过 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 上限；领域规范把该 sibling 组合定义为不可 join 冲突；或 [`operations-sync.md` §6.4.2](./operations-sync.md) 的 witness 被要求签署**同一完整 attestation payload**却给出不一致结果。scope 不同的 `frontier_root` / `head_ids[]` / range-completeness root 仍不得单独触发 `witness_disagreement`。
+  per-actor 归约的比较单元不是单值 `(actor_id, actor_seq)→hash`，而是该位置的 **canonical sibling 集** `S(peer, realm_id, actor_id, actor_seq) = sort_unique({(event_id,event_digest,prev_frontier_digest)})`。同一位置出现多个不同 `event_id` / hash 是 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 明确允许的 sibling fork；在单桶 16、跨桶累计 64 的上限内，且未触发 counter / FSM 等领域特定不可 join 规则时，双方 MUST 通过 backfill 取 union、逐条验证并收敛到同一 sibling 集，MUST NOT 因各自先看到不同子集而 quarantine。只有归约后出现以下证据才进入 fork-detection quarantine：两个 byte-distinct canonical Event preimage 均通过完整结构、suite 与 proof 前置检查，并独立重算为同一完整 suite-tagged `event_id`（full-hash collision evidence）；某 sibling 桶 / 位置的已验证集合超过 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 上限；或领域规范把该 sibling 组合定义为不可 join 冲突。scope 不同的 `frontier_root` / `head_ids[]` 仍不得单独触发 `witness_disagreement`。
 - `witness_receipts[]` 可选，每份按其已登记对象族 proof context、issuer、scope 与 freshness 独立验证；未登记或无法验证的 receipt MUST NOT 作为 witness 证据。它们不进入 issuer transcript。缺失/剥离只降低可选 witness 证据，不使 issuer signature 无效；任何强制 witness policy 仍需满足自己的 quorum，不能因此绕过。
 - `signature` 使用 response schema 登记的 closed envelope：`typ, scheme, verification_method, payload_digest, created_at, jws, signed_payload`。
   `typ` 固定为上述 domain，`scheme="ed25519-detached-jws"`；`jws` 按 encoding 的 Ed25519 detached JWS 签署上述九字段 bytes，
@@ -520,37 +519,36 @@ Probe 响应 payload：
 - 若冲突来自同一 actor 的不同签名 frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 - 可疑 remote 输入 MAY 在 quarantine 队列中暂存，直到签名、schema、capability、fork resolution 与 operator policy 全部通过。
 - **quarantine 驻留语义（normative 澄清）**：quarantine 是 fail-closed 安全态——quarantined 输入 MUST NOT 推进本地 frontier、MUST NOT 进入 joined view 或授权判定，因此长时间驻留**不影响互操作正确性或一致性**。协议**不**为 quarantine 设 wire 级最大驻留时长或自动转 `rejected` 的超时:fork resolution 依赖 raw replay / quorum witness / operator-approved resolution 等可能耗时的带外动作，设硬超时反而会丢弃合法但解析较慢的分叉。最大驻留时长、是否以及何时人工清退，属 **operator policy**，不在 wire conformance 范围。实现 SHOULD 对超过部署声明阈值仍未解析的 quarantine 条目触发治理健康告警（运维可见)，但 MUST NOT 据此自动接受或静默丢弃。high-assurance profile MAY 声明更严格的 operator-side resolution SLA，但该 SLA 是运营承诺，不改变上述 wire 语义。
-- `actor_seq_upper_bounds` 差异本身不是冲突证据（合法 partial replication 也会出现差异），在 actor 交集内 MUST 触发 `ak.peer.events.read.scan.v1` 的 exact `actor_ids[]` 与 cursor 分页发现候选；所有待 admission 候选及已知 head/dependency ID 或 digest 缺口 MUST 复用 `ak.peer.events.read.resolve.v1` 取得完整 `EventFederationSubmission`，反向缺口使用现有 submit/outbox。scan 的裸 Event row 不得直接进入 acceptance。分页 MUST 有界；不得新增 actor-seq range 请求字段。backfill 后 upper bounds 仍不同 MUST NOT 单独升级为 fork evidence。
-- 普通 peer probe 的聚合承诺（`frontier_root` / `head_ids[]` / `range-completeness root`）取值不一致本身 **MUST NOT** 单独构成 `witness_disagreement`——合法 partial replication / scope 裁剪以及尚未补齐的合法 sibling 都会使之诚实地不同。接收方 MUST 先按上一条对双方已复制 / 披露 actor 交集做 per-actor sibling-set challenge / backfill；合法且未超限的 sibling union 正常 accepted。只有确认 full-hash collision evidence（定义见本节）、over-fork、领域特定不可 join sibling 冲突，或同一完整 scope 的 witness attestation payload 不一致时，才记录 `witness_disagreement` / 对应更具体 reason 并 quarantine 受影响 range / peer。该状态不是普通网络分歧，不能通过“最后写入者”或本地接收顺序解决；必须走 raw replay、quorum witness 或 operator-approved fork resolution。不同完整 scope 的 range attestation 是两个独立证明，不直接互比；同一 witness quorum 被要求签署同一 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` payload 时的不一致仍按 [`operations-sync.md` §6.4.2](./operations-sync.md) fail closed。
+- `actor_seq_upper_bounds` 差异本身不是冲突证据（合法 partial replication 也会出现差异）。接收方先检查 durable outbox 与已经给出 exact ID / digest 的 head、`prev_refs`、Seal、grant 或其它 dependency 缺口：已知缺口 MUST 复用 `ak.peer.events.read.resolve.v1` 取得完整 `EventFederationSubmission`，反向缺口使用现有 submit/outbox。仍无法定位时，`ak.peer.events.read.scan.v1` 的 exact `actor_ids[]` + cursor 只 MAY 由 operator / disaster-recovery policy 作为小历史 best-effort fallback 启动；不得把它作为每个 mismatch 的 routine MUST。scan 的裸 Event row 不得直接进入 acceptance，分页必须有界，且不得新增 actor-seq range 请求字段。backfill 后 upper bounds 仍不同 MUST NOT 单独升级为 fork evidence。
+- 普通 peer probe 的聚合承诺（`frontier_root` / `head_ids[]`）取值不一致本身 **MUST NOT** 单独构成 `witness_disagreement`——合法 partial replication / scope 裁剪以及尚未补齐的合法 sibling 都会使之诚实地不同。只有从已经取得并独立验证的完整 Event / proof 确认 full-hash collision evidence（定义见本节）、over-fork或领域特定不可 join sibling 冲突时，才记录 `witness_disagreement` / 对应更具体 reason 并 quarantine 受影响 range / peer。合法且未超限的 sibling union 正常 accepted。raw mismatch、未执行的 scan、cursor expiry、snapshot stale 或本地预算耗尽都不产生该证据。
 
 **exchange 归约终态（normative）**：
 
-- 同 scope 的 `frontier_root` 相等只结束本轮 availability/frontier exchange；不替代 range-completeness attestation，也不证明全部中间 sibling 已披露。
-- root 不等 MUST 对双方已复制/披露完整 ActorId 的交集执行 canonical sibling-set challenge/backfill。只有本地已验证 policy/routing 确认没有共同披露义务时，空交集才是合法终态。若 policy/routing 要求共同披露某 actor 而对端省略该 actor 或拒绝 challenge，MUST 按真实 policy/schema/可达性原因失败，不得以 raw mismatch 指控 fork。
-- 合法空交集，或归约后只有 scope 外差异、合法 partial replication、未超限合法 sibling union、本地领先或远端领先且无已确认冲突证据，本轮 exchange MUST 记 success，清零普通连续失败计数，并保存远端 observed root 仅作诊断。MUST NOT 声称历史完整，也 MUST NOT 等待不同 scope 的全局 root、heads 或 upper bounds 重合。本地待发送项继续正常 outbox。
-- challenge/backfill 因网络、超时、HTTP、签名、policy 或 schema 原因无法完成时，MUST 按真实原因进入既有三次普通失败窗口；raw mismatch 本身 MUST NOT 计失败或产生 quarantine。并发本地 snapshot 变化 MUST 开始新的有界归约轮次，不得记为 peer failure。
+- 同一 issuer→requester 方向的 `frontier_root` 与上次 observation 相等，只结束本轮 probe；不证明双方副本集合相等、全部中间 sibling 已披露或历史完整。
+- root 不等时先处理 outbox 与已知 ID / digest dependency；无法定位的剩余差异记录内部 `reconciliation_incomplete`。只有 operator 明确触发 fallback 时才执行 exact ActorId scan；未触发、未完成或预算耗尽都不得伪装为自动修复成功，也不得以 raw mismatch 指控 fork。
+- 已知缺口收敛后只剩 scope 外差异、合法 partial replication、未超限合法 sibling union、本地领先或远端领先且无已确认冲突证据时，本轮 exchange MUST 记 success，清零普通连续失败计数，并保存远端 observed root 仅作诊断。MUST NOT 声称集合相等或历史完整，也 MUST NOT 等待不同 scope 的全局 root、heads 或 upper bounds 重合。本地待发送项继续正常 outbox。
+- 实际执行的 resolve / fallback 因网络、超时、HTTP、签名、policy 或 schema 原因失败时，只有真实对端失败才进入既有三次普通失败窗口；本地 page / byte / wall-clock 预算、cursor 过期、并发 snapshot stale 或调度延迟只停止本地工作并暴露诊断，不计 peer failure。raw mismatch 本身 MUST NOT 计失败或产生 quarantine。
 - 归约确认上述证据时 MUST 立即执行 §4.5.3 的 `peer_stale`、受影响证据范围 quarantine 与 alarm 转换。
 
-#### 4.5.2 Baseline 主动交换 (SHOULD)
+#### 4.5.2 Baseline 诊断交换
 
-普通 federation 部署 **SHOULD** 周期性主动交换 frontier；默认建议每个 federation-visible Realm 与每个 peer 的间隔不超过 6 小时，超大 Realm 或低活跃 Realm 可放宽到 24 小时。Baseline 不强制 fail-state，但实现 SHOULD 在 probe 失败时进入指数退避并向运营暴露 diagnostics。
+普通 federation 部署不承担周期性主动交换义务。实现只有在 probe 计算不需要全量读取 / clone accepted history、固定发布 bucket 已持久化且调度资源有界时，才 SHOULD 按声明 cadence 主动交换；否则 MUST 限制为小历史或 operator-triggered 诊断。Baseline 不以 scan / checkpoint 完成为成功条件；probe 或 fallback 的真实远端失败 MAY 指数退避并向运营暴露 diagnostics，本地资源不足不得归责 peer。
 
-#### 4.5.3 High-Assurance Profile 主动交换 (MUST)
+#### 4.5.3 High-Assurance Profile 失败降级
 
 启用 `ak.profile.federation.high_assurance.v1`（high-assurance / sovereign / regulated / multi-writer federation 部署，详见 [`sovereign-deployment.md`](./sovereign-deployment.md)）的服务 **MUST**：
 
-- 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ **1 小时**；
-- `frontier_root` 主动交换 MUST 使用固定刷新 bucket 与 jitter，bucket 选择不得随 Realm 实时活动量变化；除 operator-triggered diagnostic 外，不得因为新 Event / push / backfill 活动立即触发额外 probe。high-assurance profile 的 bucket 上限 MUST ≤ 1 小时，并且主动交换与按需 probe 共享同一对外可见 snapshot 口径。
-- 对每个 accepted push / backfill range，要求 `ak.attestation.range_completeness` 使用 `federation_witness_attested` quorum；只有单源证明时 MAY 暂存为 pending，但不得推进 high-assurance completeness frontier；
+- high-assurance 不新增历史完整性承诺，也不把 routine full-history scan / checkpoint 作为 profile 成功条件。实现若声明 scheduled probe，只有在满足 §4.5.2 的增量 / 持久化与有界资源前提后才可把 cadence 作为生产 SLO；否则只允许 operator-triggered diagnostics，并必须公开该 limitation。
+- 所有 probe 必须使用固定刷新 bucket 与 jitter，bucket 选择不得随 Realm 实时活动量变化；除 operator-triggered diagnostic 外，不得因为新 Event / push / backfill 活动立即触发额外 probe。主动交换与按需 probe 共享同一对外可见 snapshot 口径。
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
 - **失败分类与计数（normative，避免把 silent fork 延迟到第 3 次才暴露）**：probe 失败 MUST 按两类分别处理，二者不共用同一容忍计数窗口：
   - **可达性 / 签名失败类**（peer 不可达、超时、HTTP 错误、签名验证失败、frontier payload schema 无效）：用**退避计数**，连续 3 次失败 **MUST** 把该 peer 在该 Realm 的状态标记为 `peer_stale`。这类失败可能是瞬态网络问题，给有界容忍窗口合理。
-  - **已确认 fork-evidence 类**（按 §4.5.1，聚合承诺取值不同经 per-actor sibling-set challenge / backfill 归约后，确认 full-hash collision evidence（定义见本节）、over-fork、领域特定不可 join sibling 冲突，或同一完整 attestation scope 的 witness payload 不一致）：**第 1 次**确认即 **MUST** quarantine 该 peer 在该 Realm 的受影响增量，并立即把该 peer/Realm 置为 canonical `peer_stale`，同时通过 alarm 通道告警；实现不得为此定义第二个 wire/status、error code 或状态机，也 **MUST NOT** 把它纳入上面可达性 / 签名失败的 3 次容忍窗口。未归约的聚合承诺差异、scope 不同的聚合值，以及上限内合法 sibling 子集差异**不属本类**、不单独触发 quarantine。
+  - **已确认 fork-evidence 类**（按 §4.5.1，从已取得且独立验证的完整 Event / proof 确认 full-hash collision evidence（定义见本节）、over-fork或领域特定不可 join sibling 冲突）：**第 1 次**确认即 **MUST** quarantine 该 peer 在该 Realm 的受影响增量，并立即把该 peer/Realm 置为 canonical `peer_stale`，同时通过 alarm 通道告警；实现不得为此定义第二个 wire/status、error code 或状态机，也 **MUST NOT** 把它纳入上面可达性 / 签名失败的 3 次容忍窗口。未归约的聚合承诺差异、scope 不同的聚合值、未执行 / 未完成 fallback，以及上限内合法 sibling 子集差异**不属本类**、不单独触发 quarantine。
 - `peer_stale` 状态期间：
-  - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Realm frontier（继续 quarantine，不让 silent fork 永久化），直到 fork resolution 或重新对齐；
+  - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Realm frontier（继续 quarantine，不让已确认冲突证据进入普通 accepted view），直到 fork resolution 或重新对齐；
   - **MUST** 通过 §8.6 威胁映射要求的 alarm 通道（operator dashboard / audit log / pager hook）暴露该状态；
   - **MAY** 拒绝向该 peer fanout 新 Event。
-- 普通失败造成的 `peer_stale` 在一次成功 exchange 后 MUST 解除；已确认 fork evidence 造成的 `peer_stale` MUST NOT 仅因 root 相等或普通 exchange 成功解除。fork resolution 成功后 **MUST** 解除 `peer_stale` 标记。解除分成两个 MUST NOT 合并的阶段。**第一阶段 local normalization**：当前 joined control view 中 `ak.component.fork_resolution.v1` 的对应 cell 已 settled 且非 `⊥` 后，实现按 verdict 原子重算本地争议 scope、移除 losers 或全部作废输入、保留历史 Seal 已钉住的 bytes 与 reducer 输出，并生成 scope-bound resolution record。**第二阶段 per-peer alignment**：对 over-fork、领域不可 join 与 full-hash collision，某 peer 的 `peer_stale` MUST 在第一阶段完成后，再经该 peer 的 authenticated exact-scope challenge / raw replay 证明其 canonical sibling 集已等于 verdict（`canonical_winner` 时为精确单元素 winner，`void_all` 时为空）才可解除。accepted resolution 本身、全局 root 相等、普通 exchange 成功，或另一个 peer 已对齐，**都不足以**清除该 peer。witness-disagreement 分支例外：一份同 exact scope、派生为 `federation_witness_attested` 的新 `ak.attestation.range_completeness` 同时提供 resolution 与 alignment 证据，可在同一事务清除对应 peer/scope。实现只能从上述 accepted cell 投影或 verified quorum 投影生成 resolution record，并原子解除匹配的 original evidence scope；其它 unresolved evidence 与普通失败窗口不变。事务重放 MUST 幂等；若随后观察到该 cell 进入 `⊥` 或出现新的未裁决 subject，MUST 重新 fail closed / quarantine，不得沿用陈旧 clear。由于合法 partial replication 下全局 `heads[]` 可永久不同，**MUST NOT** 要求 scope 不同 peer 的全部 heads 重合作为解除条件。
+- 普通失败造成的 `peer_stale` 在一次成功 exchange 后 MUST 解除；已确认 fork evidence 造成的 `peer_stale` MUST NOT 仅因 root 相等或普通 exchange 成功解除。fork resolution 成功后 **MUST** 解除 `peer_stale` 标记。解除分成两个 MUST NOT 合并的阶段。**第一阶段 local normalization**：当前 joined control view 中 `ak.component.fork_resolution.v1` 的对应 cell 已 settled 且非 `⊥` 后，实现按 verdict 原子重算本地争议 scope、移除 losers 或全部作废输入、保留历史 Seal 已钉住的 bytes 与 reducer 输出，并生成 scope-bound resolution record。**第二阶段 per-peer alignment**：对 over-fork、领域不可 join 与 full-hash collision，某 peer 的 `peer_stale` MUST 在第一阶段完成后，再经该 peer 的 authenticated exact-scope challenge / raw replay 证明其 canonical sibling 集已等于 verdict（`canonical_winner` 时为精确单元素 winner，`void_all` 时为空）才可解除。accepted resolution 本身、全局 root 相等、普通 exchange 成功，或另一个 peer 已对齐，**都不足以**清除该 peer。实现只能从上述 accepted cell 投影生成 resolution record，并原子解除匹配的 original evidence scope；其它 unresolved evidence 与普通失败窗口不变。current-v1 不存在历史范围 attestation 或同 scope witness 重一致的解除分支。事务重放 MUST 幂等；若随后观察到该 cell 进入 `⊥` 或出现新的未裁决 subject，MUST 重新 fail closed / quarantine，不得沿用陈旧 clear。由于合法 partial replication 下全局 `heads[]` 可永久不同，**MUST NOT** 要求 scope 不同 peer 的全部 heads 重合作为解除条件。
 
 启用 high-assurance profile 但实现未实现上述 fail-state 等同于不满足 profile 声明，**MUST NOT** 在 ServiceDescribe profile 声明中声明 `ak.profile.federation.high_assurance.v1`。
 
@@ -871,14 +869,14 @@ managed/Agent Event 与其它普通 Event 使用相同 in-envelope Station admis
 
 ### 9.1 联邦级 Snapshot（未来扩展）
 
-v1 core 的联邦恢复只依赖已注册的 Event push/pull、Event frontier、Seal frontier 与精确 resolve 操作，不定义独立 peer snapshot manifest endpoint。首次加入或大范围缺失可能退化为分段历史回放，这是当前互操作 floor 的明确取舍。
+v1 core 的联邦恢复只依赖已注册的 Event push/pull、Event frontier、Seal frontier 与精确 resolve 操作，不定义独立 peer snapshot manifest endpoint；`ak.peer.events.read.scan.v1` 的 closed response 因此禁止 `snapshot_bootstrap`。首次加入或大范围缺失可能退化为 operator-triggered、best-effort 的分段历史回放，这是当前互操作 floor 的明确取舍，不是确定性长历史恢复保证。self snapshot 合同保持独立，不受本节影响。
 
 未来若增加 snapshot-assisted bootstrap，必须作为完整扩展 profile 同时定义 manifest 签名、authority binding、chunk 获取、frontier 锚定、失败回退、SDK 与 conformance；实现不得把本地 `/_soland/` 快照或 `ak.self.snapshot.read.manifest_head.v1` 直接暴露为 peer 协议。
 ### 9.2 多 Station 的 Gossip / 批量同步（增强项）
 
 该方向用于性能和可靠性提升，不是签名真实性的前提条件。最小实现可直接使用本文件 4/7 节的 push + pull。实现支持时应遵循：
 
-> **集合调和算法 pin（informative）**：本节与 [`../authz/event-auth-state-resolution.md` §4.4](../authz/event-auth-state-resolution.md) 把数据面传播指向"gossip / anti-entropy / RBSR（range-based set reconciliation）类"。跨实现需要具体算法 pin 时，双方 MAY 声明 `ak.profile.federation.rbsr.negentropy.v1` candidate profile：该 profile 把 federation set reconciliation 固定为 Negentropy-style range reconciliation，range fingerprint hash 复用 `digest-suite-registry` 的 active digest suite，运行在 `/_arkret/peer/*` pull 轨之上，不改变单 Event 签名语义。只有双方 ServiceDescribe 都声明该 profile 且 profile digest / hash suite / range bound 一致时，receiver 才可把 RBSR 摘要用于 backfill 缺口定位；任一条件不满足时，peer MUST 回退到本节的 push/pull 与 cursor 回填，不得把本地私有 RBSR 摘要当成互操作证据。
+> **集合调和 no-go（normative）**：current-v1 没有登记 RBSR / Negentropy operation、DTO、算法 / hash / order pin、immutable generation、授权语义、ServiceDescribe negotiation 或双实现 KAT，因此不存在可宣告的 RBSR profile。实现 MUST NOT 在 `supported_profiles` / `supported_features` 中声明相关 candidate，也不得把私有 range fingerprint、索引或 session 当作互操作证据。是否登记方向明确的 exact ActorId 区段调和，必须由独立 prototype 同时证明相对优化 streaming `O(N)` baseline 的数量级收益与真实部署需求后另行裁决；在该 gate 通过并完整登记前，不得增加 actor-seq range operation、production index 或后台 session。
 
 - 批次内必须保持 `events` 的原始签名 Envelope 顺序与 `event_id` 可去重性。
 - Gossip 转发不得改变单条 Event 的语义、签名或时间线排序前置假设。

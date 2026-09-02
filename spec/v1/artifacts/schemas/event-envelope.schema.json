@@ -454,7 +454,6 @@
               "ak.agent.action_reject",
               "ak.agent.action_request",
               "ak.agent.draft.propose",
-              "ak.attestation.range_completeness",
               "ak.audit.erasure_receipt",
               "ak.audit.ryw_receipt",
               "ak.circle.seal_commit",
@@ -3748,25 +3747,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/audit_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.attestation.range_completeness"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./range-completeness-attestation.schema.json"
           }
         }
       }

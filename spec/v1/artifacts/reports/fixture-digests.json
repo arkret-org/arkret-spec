@@ -166,7 +166,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "84a101bc3c2c6c9e616bc32d0479ed34de4e7cde72694deb4668cd7d23f7a6bd"
+      "sha256": "883acf022484a83bc79df5fbf4c5e585d93599c86d07465353c385a9a6ad886e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/file-transfer-stream-aead-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "6f24e396c3402d77c05e97e24ecca9b7dc5d52b7748d3ebcd918241785f0a5b4"
+      "sha256": "8eaef5322008e1faa39fed3362ce15838ee4b99f0e42a193d23e8c628edae16c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
@@ -294,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "98e60c7e57ce88994605ff348ee9c1f46a0792d55f45cd3943e69215eb83648b"
+      "sha256": "ce0d514068348199d391d6c9aed50a4287cf6d2c3842c6cca557b59c3b7df866"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -366,7 +366,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
-      "sha256": "23486089334707f030e772f187f06af7a012de941c13234ff057e114bdb0c3c5"
+      "sha256": "8ba29f0b92e8bdfb76d42e3b7c37c262e7fb2d20bfe172d78354a4a3f47e7684"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
@@ -406,7 +406,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "822de858982310d5785ea080283d5777a5f888abd6a9f63f38aa3fab912ed02a"
+      "sha256": "180667f3d8a1b174b64a8c11761fbfd667e58cec7882bc76acda6f40e85463ab"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

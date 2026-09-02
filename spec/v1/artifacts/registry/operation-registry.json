@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.1",
+  "version": "2026-09-02.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T13:00:00+08:00",
+  "generated_at": "2026-09-02T15:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1721,11 +1721,11 @@
       "http": "QUERY /_arkret/peer/events",
       "grpc": "PeerEvents/Scan",
       "mq": "peer.events.read.scan",
-      "notes": "Federation peer pull/backfill query. Uses the same selector, cursor, order, and response semantics as ak.self.events.read.scan.v1, but the HTTP trust surface is peer and the caller MUST be an authorized federation peer service.",
+      "notes": "Authorized federation peer Event scan with self-equivalent selectors and cursor ordering, but a peer-only closed response that excludes snapshot_bootstrap. This is a small-history or operator-triggered best-effort fallback; it does not promise an immutable generation, deterministic long-history completion, or historical completeness.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",

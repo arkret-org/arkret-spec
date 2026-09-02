@@ -494,7 +494,6 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `param_invalid`。
 - TTL 硬上限：barrier cursor 与 stream cursor 的 `expires_at - issued_at` 硬上限的**唯一 canonical 数值定义点**见 [`encoding.md` §8.3 规则 9](../conformance/encoding.md)；本节不重复字面毫秒数值。
 - 声明 `ak.feature.cursor_revoke_high_assurance.v1` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
-- 声明 `ak.feature.events_query_range_completeness.v1` feature 的服务必须实现 [`service-http-binding.md` §3.3.5](./service-http-binding.md)：`ak.self.events.read.scan.v1` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ak.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
 
 ### 7.1 列表分页（normative）
 

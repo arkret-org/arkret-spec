@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.2",
+  "version": "2026-09-02.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T14:00:00+08:00",
+  "generated_at": "2026-09-02T15:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -782,7 +782,7 @@
       "category": "audit",
       "status": "active",
       "wire_form": "ak:attestation:<uuidv7>",
-      "description": "Attestation object ID (e.g. ak.attestation.range_completeness).",
+      "description": "Attestation object ID for registered attestation object families.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

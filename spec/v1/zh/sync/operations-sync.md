@@ -238,73 +238,11 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 
 `ak.audit.ryw_receipt`（schema [`audit-ryw-receipt.schema.json`](../../artifacts/schemas/audit-ryw-receipt.schema.json)，`ak.schema.audit_ryw_receipt.v1`）是审计释放路径专用的 per-event RYW witness attestation：它对单个 `ak.audit.accessed` / `ak.audit.release` Event 提供带 witness 背书的 accepted 确认，是 audited-E2EE release gate 的前置条件（见 [`../crypto-media/audited-e2ee.md` §6](../crypto-media/audited-e2ee.md)）。与 §6.1 的通用 hint 不同，它带强制 witness attestation 结构与 fail-closed 校验，并具有 "object + durable event kind" 双形态（[`../models/event-and-patch.md` §5.1](../models/event-and-patch.md)）。
 
-### 6.4 Range-bound Completeness Attestation
+### 6.4 历史完整性边界（normative）
 
-需要证明“某范围内没有漏给事件”时，必须使用带显式 range 的 attestation：per-actor seq interval、from/to frontier、root、count 与 witness quorum。Set-bound Merkle commitment 只能证明集合未被篡改，不能证明范围未被删减。
+Arkret v1 不提供历史 range-completeness 证明。服务、自报签名、witness quorum、frontier/root、cursor/`has_more`、Event Batch Receipt、AvailabilityReceipt、Snapshot 或 Seal 的 listed-set commitment 都只能证明各自明确列出的已观察视图、集合或分页状态；任何一项都不能证明 source 没有隐藏一个从未被 verifier 观察到的 Event。
 
-`ak.attestation.range_completeness` 是 v1 已注册 active event kind（payload schema `ak.schema.range_completeness_attestation.v1`，artifact [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)），用于提供 *completeness* 证明——即“该范围内没有 reducer-input event 被静默丢弃”。它与 `ak.event_batch_receipt`（set-bound integrity）和 `ak.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
-
-#### 6.4.1 Payload 与 root（normative）
-
-`ak.attestation.range_completeness` 的 payload schema 是 [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)（schema id `ak.schema.range_completeness_attestation.v1`）。payload MUST 至少声明：
-
-- `realm_id`：完整性范围所属 Realm；
-- `event_range.from_frontier.realm_frontier[]`：下界 frontier（exclusive）；
-- `event_range.to_frontier.realm_frontier[]`：上界 frontier（inclusive）；
-- `event_range.actor_seq_ranges[]`：每个 actor 的 `(from_seq_exclusive, to_seq_inclusive]` 区间；
-- `root`：对范围内全部 reducer-input Event 的 Merkle root；
-- `count`：参与 root 的 leaf 数；
-- `witness_attestation.witnesses[]`；保证级别由 verifier 从有效 witness 集合与 Realm policy 唯一派生，不在 wire 上声明。
-
-`root` 的 leaf 集 MUST 恰好是 `realm_id` 下位于 `(from_frontier, to_frontier]` 且 actor seq 落入对应 `actor_seq_ranges[]` 的全部 reducer-input Event。每个 leaf 的 `leaf_data` 为下列 closed object 的 canonical JSON UTF-8 bytes：
-
-`proofs[]` 使用 `payload_digest`，不得复用 Event Envelope 的 `event_digest` proof。`payload_digest = sha256(RFC8785_JCS(payload_without_proofs))`；detached JWS MUST 签下列 canonical binding object：`{context:"ak.range_completeness_attestation_proof.v1", payload_digest, issuer, scope, verification_method, created_at, domain?, audience?}`。其中 `scope` 是 closed object `{"realm_id": payload.realm_id, "event_range": payload.event_range}`，不得用页码、查询 URL 或局部响应集合替代。`verification_method` 的 bare DID 必须投影为 `issuer`，且该 method 必须在 `observed_at` 对应的 issuer method state 中有效。任何 verifier 若未按上述对象族 context 和完整 `scope` 验证 payload proof，必须 fail closed。
-
-```json
-{
-  "actor_id": "<event.actor_id>",
-  "actor_seq": 0,
-  "event_id": "<event.event_id>",
-  "event_digest": "<event.proofs[0].event_digest>"
-}
-```
-
-在当前 attestation 绑定的单一 `realm_id` 内，leaf 顺序按 `(actor_id code point ASC, actor_seq ASC, event_id ASC, event_digest ASC)` 排列；`actor_seq_ranges[]` 只描述该 Realm 的 `(actor_id, actor_seq)` 链，其他 Realm 的合法序号不形成本 Realm gap。跨 Realm Event 混入 range MUST `range_completeness_actor_seq_gap` 并 fail closed。Merkle 组合 MUST 使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 组合规则（`leaf = H(0x00 || leaf_data)`、`node = H(0x01 || left || right)`、空集合 root 为 `H("")`），`H` 取该 Realm 的 `digest_algorithm`。`count` MUST 等于 leaf 数；`root` MUST 等于该 leaf 集重算结果。
-
-#### 6.4.2 Quorum 语义（normative）
-
-verifier MUST 在完成每项签名、method controller 与 policy 授权校验后派生唯一保证级别：恰有一个有效 witness，且该行 `issuer` 等于 payload issuer、verification method controller 投影也等于该 issuer 时，派生为 `single_source`；有至少两个有效 witness 且满足下列全部独立性与授权条件时，派生为 `federation_witness_attested`；其它组合均为 invalid，MUST fail closed。wire 上不得出现 `kind` 或其它保证级别镜像字段。
-
-`single_source` 是 issuer 自报：verifier MAY 用它检测传输篡改和本地缺口，但 MUST NOT 把它当作 sovereign-grade completeness 证明。
-
-`federation_witness_attested` 表示独立 witness quorum 已对同一 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` 签署一致见证。verifier MUST 校验：
-
-1. `witnesses[].witness_id`、`verification_method`、`controlling_organization_id` 在 quorum 内 pairwise distinct 到 policy 要求的最小独立性；
-2. 每个 witness 均在 Realm policy `audit.range_completeness_witness_ids[]` 或等价 profile-declared witness 集合内；
-3. witness proof 覆盖同一 canonical payload digest；
-4. quorum 中的 witness 必须签署**同一完整 canonical payload**，即 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` 全部逐字节一致。若它们被要求见证该同一完整 scope 却给出不同 `root`、`count` 或 `actor_seq_ranges[]`，verifier MUST 标记 `witness_disagreement`，quarantine 该 attestation / range，并 fail closed，不得把任一方结果展示为完整。反之，`actor_seq_ranges[]` 或 frontier 边界不同的独立 attestation 是不同 scope 的证明，不能仅因 root 不同互判 `witness_disagreement`；consumer 只能分别在各自 scope 内验证，若需要组成 quorum，必须先请求 witness 对同一完整 payload 重新签署。
-
-声明 `security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1` 的 Realm，解除 completeness 关注时 MUST 只接受 `federation_witness_attested`；`single_source` 只能作为诊断输入。
-
-本节所称 witness policy 的唯一 wire 承载是 Realm `audit_policy`（`realm.schema.json`）。“等价 profile-declared witness 集合”仅指 profile 要求同一字段取更严格值，不能引入另一私有承载；`audit_policy` 缺失时 `federation_witness_attested` 不可验证，verifier MUST fail closed。
-
-#### 6.4.3 single-source issuer 行为（normative）
-
-签发 `single_source` attestation 的 issuer MUST 先从自己的 accepted store 构造 `(from_frontier, to_frontier]` 范围，按 §6.4.1 计算 `actor_seq_ranges[]`、`root` 与 `count`，再签名 payload。issuer 不得仅依据分页结果、查询过滤器结果或一组 `events[]` 响应临时推断完整性；范围必须来自该 issuer 对 Realm history 的 accepted frontier 视图。issuer 后续发现该 range 内存在漏收、over-fork quarantine、签名无效或 actor chain repair 时，MUST 将旧 attestation 视为 stale diagnostic，不得继续作为 completeness 证明返回。
-
-#### 6.4.4 verifier 协议（normative）
-
-客户端或 peer 验证 range-completeness attestation 时 MUST 按下列顺序执行：
-
-1. 验证承载 EventEnvelope 的签名、`event_digest`、`kind="ak.attestation.range_completeness"` 与 payload `schema="ak.schema.range_completeness_attestation.v1"`；payload schema 校验失败即 `schema_violation`。
-2. 校验 `realm_id`、`from_frontier`、`to_frontier` 与查询 / backfill scope 一致；attestation 的 range MAY over-cover 响应页，但 verifier 只能对本地已经 backfill 完成且落在 attestation range 内的交集声明完整。
-3. 校验 `actor_seq_ranges[]` canonical 排序、无重复 actor、每个 `from_seq_exclusive < to_seq_inclusive`；不满足时 `schema_violation`。
-4. 从本地已验证 accepted store 取出 `(from_frontier, to_frontier]` 且匹配 `actor_seq_ranges[]` 的全部 reducer-input Event，按 §6.4.1 重算 Merkle root；不一致 MUST `range_completeness_root_mismatch`。
-5. 重算 leaf 数并与 `count` 比对；不一致 MUST `range_completeness_root_mismatch`。
-6. 对每个 `actor_seq_ranges[]`，verifier MUST 比对本地视图的 per-actor seq interval：若本地在该区间内存在缺口、已知 quarantine / dependency_missing 输入，或存在区间内 accepted Event 未被 leaf 覆盖，而 attestation 声称完整，MUST `range_completeness_actor_seq_gap` 并 fail closed。
-7. 按 §6.4.2 校验 quorum；witness 对同一 range 的 payload 不一致、policy 不承认 witness、或 high-assurance Realm 只收到 `single_source` 时，MUST `witness_disagreement` 或 profile 指定的更具体 reason，quarantine 该 completeness 结论。
-
-上述任一步失败时，verifier MAY 继续展示已签名 Event 自身，但 MUST NOT 向用户、上层 API 或审计报告声明该范围“历史完整”。
+日常可靠投递由 durable outbox、幂等 `accepted|duplicate` outcome、known-ID/dependency resolve 与 admission 保证。frontier 只提供同一已知 scope 内的 divergence hint；scan/backfill 只用于 known-gap recovery 或有界的人工 best-effort 调和。实现与 UI MUST NOT 把 root 相等、扫描结束、分页结束、receipt 或单源签名升级表述为“历史完整”“无遗漏”或 high-assurance completeness。
 
 ## 7. 同步面
 
@@ -324,7 +262,7 @@ Strand Sync MUST NOT 因 actor 可读 Strand synthesis 就自动展开不可读 
 
 ## 8. 查询响应证据
 
-v1 不定义跨所有查询响应通用的 `basis` / `grade` 包装。operation registry 的 `response_schema_ref` 与 OpenAPI binding 是各响应字段的机器真源；receipt、Seal observational root、range-completeness attestation 或 transparency attestation 只有在具体 operation / profile 显式登记承载字段、schema 与验证规则时，才构成该响应的可互操作证据。
+v1 不定义跨所有查询响应通用的 `basis` / `grade` 包装。operation registry 的 `response_schema_ref` 与 OpenAPI binding 是各响应字段的机器真源；receipt、Seal observational root 或 transparency attestation 只有在具体 operation / profile 显式登记承载字段、schema 与验证规则时，才构成该响应的可互操作证据。这些证据均不提供历史无遗漏保证。
 
 实现不得用私有等级字符串替代已登记证明，也不得把数据面 observation 表述为控制面 Seal finality。未登记证据字段的响应只具有对应 operation 已声明的读取语义。
 
@@ -390,7 +328,7 @@ Snapshot 后续恢复流程：
 - 只有相同 `event_id` 且相同 canonical preimage 的重复投递才是 exact duplicate，并 MAY 作为幂等成功处理。携带相同 ID 但重算结果不同是 `event_id_digest_mismatch`，必须在进入 ID bucket 前拒绝，不能影响既有 accepted Event。
 - 若两个不同 canonical preimage 在同一 suite 下重算出同一个 `event_id`，这是完整 hash collision evidence。提交响应 MUST 拒绝新到变体；本地状态处置 MUST 把该 ID 的全部已验证变体作为一组进入 quarantine，包括此前已 accepted 的变体、由任一变体创建的 Event-derived object、未 final writes，以及引用该 ID 的后继。先到顺序、较早 accepted 或字典序都不能证明哪一变体“正确”。
 - 节点 MUST 从所有 data cell join 输入移除这些变体经 reducer 派生的 writes；尚未被 accepted Seal 覆盖的 Control Move 同样移除。已被 accepted Seal 覆盖的控制面事实不得从 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。碰撞下两个变体的 `event_digest` 相同，Seal 承诺无法指认覆盖的是哪一个 preimage，因此归一裁决按 canonical bytes 指认、历史 Seal 输入不得事后重算、碰撞区间不得被 compaction 跨越——见 [`event-auth-state-resolution.md` §6.3.3](../authz/event-auth-state-resolution.md)。
-- submit、probe、backfill 或本地审计任一路径发现完整 hash collision，都 MUST 执行同一整组 quarantine。raw/quarantine 查询以完整 Event ID 定位碰撞 bucket，并返回全部已知 canonical 变体，不得 first-row-wins。operator-approved 解除只接受 recovery Seal 覆盖的 `ak.fork.resolution`：`subject.kind=event_id_collision` 时 `conflict_evidence.kind=full_hash_collision` 必须携恰两个 locator，每个 locator 或内联完整 canonical preimage bytes，或按 `ak.schema.collision_variant_record.v1` 引用（接近 1 MiB 的原 Event 必须走引用分支，否则 resolution Event 自身越界）；winner 必须以同一完整 bytes 的 locator 指认或使用 `void_all`；digest-only winner 以 `witness_disagreement` 拒绝。碰撞组跨 Realm 时，本 Realm 的裁决只治理本 Realm 内的投影，不改写其它 Realm 的变体。raw replay 与同 scope quorum witness 的既有终局仍按 [`federation.md` §4.5](./federation.md) 处理，任何普通成功或数据库直清都不是解除 authority。
+- submit、probe、backfill 或本地审计任一路径发现完整 hash collision，都 MUST 执行同一整组 quarantine。raw/quarantine 查询以完整 Event ID 定位碰撞 bucket，并返回全部已知 canonical 变体，不得 first-row-wins。operator-approved 解除只接受 recovery Seal 覆盖的 `ak.fork.resolution`：`subject.kind=event_id_collision` 时 `conflict_evidence.kind=full_hash_collision` 必须携恰两个 locator，每个 locator 或内联完整 canonical preimage bytes，或按 `ak.schema.collision_variant_record.v1` 引用（接近 1 MiB 的原 Event 必须走引用分支，否则 resolution Event 自身越界）；winner 必须以同一完整 bytes 的 locator 指认或使用 `void_all`；digest-only winner 以 `witness_disagreement` 拒绝。碰撞组跨 Realm 时，本 Realm 的裁决只治理本 Realm 内的投影，不改写其它 Realm 的变体。raw replay 只用于取得全部已知变体，最终解除仍必须由上述 accepted fork-resolution authority 驱动；current-v1 不存在历史范围 attestation 或同 scope witness quorum 解除分支，任何普通成功、root 相等或数据库直清都不是解除 authority。
 
 ## 13. 授权时序
 

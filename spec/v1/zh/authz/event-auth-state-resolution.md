@@ -195,11 +195,11 @@ Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制�
 
 ### 4.4 数据面传播与 Event Batch Receipt
 
-数据面传播使用 gossip、anti-entropy 或 RBSR 类集合调和。同步摘要可以作为 federation probe 的 data frontier。
+current-v1 数据面传播使用已登记的 direct push、cursor pull 与 exact-ID resolve；同步摘要只可作为 scope-relative federation diagnostic hint。RBSR / Negentropy 没有登记 operation、DTO 或可宣告 profile，不是 current-v1 能力；任何 future set reconciliation 都必须先通过独立收益 gate 并完整登记互操作合同。
 
-Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 Event 的 `{event_id, kind}` typed item：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间。receipt 不携带 issuer frontier；需要前沿或范围证明时使用标准 frontier probe / range-completeness attestation。
+Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 Event 的 `{event_id, kind}` typed item：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间。receipt 不携带 issuer frontier；需要前沿诊断时使用标准 frontier probe。
 
-单元素 receipt 与批量 receipt 使用同一语义：它是 best-effort、set-bound integrity hint，不带协议级过期或序列语义。issuer 侧漏发/扣发检测由 [`../sync/operations-sync.md` §6.4](../sync/operations-sync.md) range-completeness attestation 与 frontier probe 承担，equivocation 检测归 Seal 的 `notary_seq`（§7.1）；receipt 的本地保留期由部署 retention policy 决定。
+单元素 receipt 与批量 receipt 使用同一语义：它是 best-effort、set-bound integrity hint，不带协议级过期或序列语义。frontier probe 只能提示已知 scope 的差异，v1 不提供 issuer 漏发/扣发的历史无遗漏证明；equivocation 检测归 Seal 的 `notary_seq`（§7.1），receipt 的本地保留期由部署 retention policy 决定。
 
 Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integrity"，不证明事件有效、不提议排序、不进入控制面 state、不提供范围 completeness。部署 MAY 不签发数据面 receipt；关闭后同账号 RYW 的可验证观察证据与数据面审查诊断能力降低。
 
@@ -331,7 +331,7 @@ Seal 的完整运作闭环固定如下；本总览只汇总本节后续规则，
    进入 data DAG；后续 Seal 的 `data_view_root` / `data_event_set_root` 至多证明 notary 观察过某个局部集合，
    不把 DataEvent 加入 `covered_set`、不使其 final，也不能用 omission 拒绝一个原本有效的 DataEvent。
 
-`completeness_root` 是控制面 **listed-set + actor-seq envelope** 承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的 actor_seq 包络区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <did_core_id>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的**已列出控制面 Event** digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，任一 Seal 相对其**每个 predecessor** 的 interval set MUST 单调：已承诺包络不得收缩，`to_seq` 只能非降，已列 digest 不得删除；DAG 上互不可达的并发 leaf 之间不要求可比。compaction Seal MAY 合并相邻包络，但已列 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。由于 actor_seq 链可混合 data/control event，区间内未列 seq **不声明其 plane，也不证明不存在被扣发的 Control Move**；验证者不得把该 root 单独宣传为 range completeness proof。控制面扣发检测依赖 §7.2 Control Proposal Ack obligation / inclusion list 与独立 range-bound attestation。Auditor 的 `completeness_monotonic` 只沿每条 Seal predecessor edge 验证包络与 listed-set 非缩，不得把未列 seq 当作可机械验证的 gap，也不得按 transparency `log_index` 相邻项误作线性比较。
+`completeness_root` 是控制面 **listed-set + actor-seq envelope** 承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的 actor_seq 包络区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <did_core_id>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的**已列出控制面 Event** digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，任一 Seal 相对其**每个 predecessor** 的 interval set MUST 单调：已承诺包络不得收缩，`to_seq` 只能非降，已列 digest 不得删除；DAG 上互不可达的并发 leaf 之间不要求可比。compaction Seal MAY 合并相邻包络，但已列 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。由于 actor_seq 链可混合 data/control event，区间内未列 seq **不声明其 plane，也不证明不存在被扣发的 Control Move**；验证者不得把该 root 宣传为历史完整性证明。控制面已知扣发线索依赖 §7.2 Control Proposal Ack obligation / inclusion list；v1 不提供历史无遗漏证明。Auditor 的 `completeness_monotonic` 只沿每条 Seal predecessor edge 验证包络与 listed-set 非缩，不得把未列 seq 当作可机械验证的 gap，也不得按 transparency `log_index` 相邻项误作线性比较。
 
 ### 6.1 Seal id 与签名 transcript
 
@@ -713,7 +713,7 @@ Wire schema：[`seal-transparency.schema.json`](../../artifacts/schemas/seal-tra
 - **log entry**：`{log_id, log_index, realm_id, seal_id, control_event_set_root, completeness_root, state_root, prev_entry_digest, logged_at, log_signature}`——`log_index` append-only，`prev_entry_digest` 形成 hash 链。同一 `(log_id, log_index)` 出现两个签名不同的 entry 即构成**可证明的 log fork**：split-view 攻击者要么一致发布、要么留下可出示的分叉证据。
 - **auditor attestation**（`#/$defs/auditor_attestation`）：`{log_id, realm_id, from_index, to_index, head_entry_digest, auditor_id, checks{append_only, seal_signatures, set_root_monotonic, completeness_monotonic}, attested_at, signature}`——四项 checks 全部为 true 才可签发；auditor 无法断言任一项时 MUST NOT 出具。
 
-采信 Seal transparency attestation 的判定标准是“该 Seal 被至少 `Realm.audit_policy.witnessed_min_attestations` 份、且满足 `witness_independence` 的独立 auditor attestation 的已验证范围覆盖”。`audit_policy` 缺失时客户端 MUST NOT 把该 attestation 作为 v1 已验证证据；具体 operation / profile 还必须显式登记承载字段及验证规则。
+采信 Seal transparency attestation 的判定标准是“该 Seal 被至少 `Realm.audit_policy.seal_transparency_min_attestations` 份、且满足 `seal_transparency_auditor_independence` 的独立 auditor attestation 的已验证范围覆盖”；每个 auditor 必须位于 `seal_transparency_auditor_ids[]`。`audit_policy` 缺失时客户端 MUST NOT 把该 attestation 作为 v1 已验证证据；具体 operation / profile 还必须显式登记承载字段及验证规则。
 
 ## 8. AvailabilityReceipt
 

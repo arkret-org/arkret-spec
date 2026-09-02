@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-01.1",
-  "generated_at": "2026-09-01T06:30:00+08:00",
+  "version": "2026-09-02.2",
+  "generated_at": "2026-09-02T15:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -557,7 +557,6 @@
   ],
   "candidate_profiles": [
     "ak.profile.ucan_interop.v1",
-    "ak.profile.federation.rbsr.negentropy.v1",
     "ak.profile.binding.websocket.v1"
   ],
   "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate workflow concept/action names / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired wire Event.kind values registered under `ak.*`) once their underlying surface is formally registered.",
@@ -581,7 +580,6 @@
     "ak.profile.signal_peer_relay.v1": "server",
     "ak.profile.signal_message_stream.v1": "client",
     "ak.profile.federation.high_assurance.v1": "server",
-    "ak.profile.federation.rbsr.negentropy.v1": "server",
     "ak.profile.binding.websocket.v1": "interop",
     "ak.profile.identity_registry.v1": "directory",
     "ak.profile.public_network_identity.v1": "directory",
@@ -3104,22 +3102,19 @@
         "federation-fixture.json"
       ],
       "optional_extensions": [
-        "frontier_witness_attestation",
-        "per_actor_seq_backfill"
+        "frontier_witness_attestation"
       ],
       "feature_discovery": {
         "required": [
           "frontier_probe_endpoint",
-          "frontier_probe_interval_seconds",
           "peer_stale_threshold"
         ],
-        "unsupported_optional": "reject claim of ak.profile.federation.high_assurance.v1 if proactive frontier exchange or peer_stale fail-state is not implemented"
+        "unsupported_optional": "reject claim of ak.profile.federation.high_assurance.v1 if the capability-gated frontier diagnostic endpoint or peer_stale fail-state is not implemented"
       },
       "additional_requirements": {
-        "frontier_probe_capability_must": "Peer MUST expose capability-gated frontier probe endpoint per federation.md §4.5.1.",
-        "proactive_exchange_must": "Per federation-visible Realm, per authorized peer, frontier probe interval MUST be <= 3600 seconds.",
-        "fail_state_must": "Three consecutive probe failures (peer unreachable or signature failure) MUST mark the peer as 'peer_stale' for that Realm. Separately, an aggregate-commitment difference MUST first be reduced via per-actor challenge/backfill on the intersection of replicated actors, comparing each (realm_id, actor_id, actor_seq) as a canonical sibling SET of (event_id,event_digest,prev_frontier_digest), not as a single hash. Different event_id/hash siblings at one actor_seq are legal within the event-and-patch.md §2.6 limits and MUST converge by validated set union. Two byte-distinct canonical Event preimages passing structure, suite and proof prerequisites and independently recomputing to the same complete suite-tagged event_id (full-hash collision evidence), an over-limit sibling set, a profile-declared non-joinable sibling conflict, or inconsistent witness payloads for the same complete attestation scope MUST immediately mark the peer/Realm peer_stale, quarantine the affected evidence scope and alarm on the FIRST confirmed occurrence and MUST NOT be folded into the three-consecutive-failure window. Raw frontier_root/heads/range-root differences across different scopes, and incomplete subsets of a legal sibling set, MUST NOT alone count as probe failure or witness_disagreement. Recompute every Event ID before side effects; a carried-ID mismatch MUST be rejected as event_id_digest_mismatch without quarantining local Events. Side-effect-free candidate-byte lookup MAY use an unverified carried ID. A locally verified policy/routing determination of no common disclosure obligation with an empty actor intersection, or completed reduction yielding only scope differences, legal union or non-conflicting replication lag, MUST be exchange success and reset ordinary consecutive failures; store the remote observed root only for diagnostics, never claim completeness or require global root/heads/upper-bound equality. Required actor omission or refused challenge MUST fail by the actual policy/schema/reachability cause; incomplete challenge/backfill uses the existing three-failure window for the actual network, HTTP, signature or schema cause. Concurrent snapshot changes require bounded replanning, not peer failure. Root equality ends availability exchange only, not range attestation. Ordinary success MUST NOT clear unresolved confirmed evidence.",
-        "peer_stale_behavior_must": "While a peer is in 'peer_stale' state: MUST quarantine its push payloads for the affected evidence scope (no local frontier advancement from that scope); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after the original evidence is resolved: the disputed event id/digest or over-fork/non-joinable sibling bucket has an authorized canonical resolution and the peer matches that canonical sibling set, or witnesses for the same complete attestation scope again sign one consistent payload. Scope-different peers MUST NOT be required to have globally identical heads."
+        "frontier_probe_capability_must": "Peer MUST expose the capability-gated scope-relative frontier diagnostic endpoint per federation.md §4.5.1. A deployment MUST NOT advertise a periodic low-cost probe SLO unless fixed publication buckets and incremental or persistent indexing avoid full accepted-history reads and clones.",
+        "fail_state_must": "Three actual remote probe failures (peer unreachable, HTTP, signature, authorization or schema failure) MUST mark the peer as 'peer_stale' for that Realm. A raw frontier_root or heads difference is only an issuer-to-requester diagnostic hint: it MUST first drive durable-outbox and known-ID or known-digest dependency checks and MUST NOT require routine full-history scanning. Any remaining difference becomes reconciliation_incomplete; exact-ActorId cursor scan is only a small-history or operator-triggered best-effort fallback. Cursor expiry, snapshot stale, scheduling delay and local page, byte, memory or wall-clock budget exhaustion MUST stop or restart local work without counting peer failure or producing quarantine. Independently verified full-hash collision evidence, an over-limit sibling set or a profile-declared non-joinable sibling conflict MUST immediately mark peer_stale, quarantine the affected evidence scope and alarm on the first confirmed occurrence; legal sibling union remains accepted. Recompute every Event ID before side effects; a carried-ID mismatch is event_id_digest_mismatch without local quarantine. Root equality ends only the observation round and MUST NOT assert replica-set equality, retention or historical completeness. Ordinary success MUST NOT clear unresolved confirmed evidence.",
+        "peer_stale_behavior_must": "While a peer is in 'peer_stale' state: MUST quarantine its push payloads for the affected evidence scope (no local frontier advancement from that scope); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status caused by confirmed evidence MUST clear only after the disputed event id/digest or over-fork/non-joinable sibling bucket has an authorized canonical resolution and the peer matches that canonical sibling set. Scope-different peers MUST NOT be required to have globally identical heads."
       }
     },
     "ak.profile.identity_registry.v1": {
@@ -4396,6 +4391,7 @@
       }
     },
     "ak.profile.sovereign_deployment.v1": {
+      "description": "Deployment and conformance profile for an organization-controlled Arkret service domain. It is advertised only through ServiceDescribe.claimed_profiles and remains orthogonal to Realm structural role, organization relationship, notary choice and joined-member Station routing. It creates no Realm hosting field, primary service or complete-history authority. See zh/sync/sovereign-deployment.md sections 2, 3.2 and 7.1.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -4415,6 +4411,46 @@
           "direction": "provide",
           "operation_id": "ak.self.authz.read.check.v1",
           "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.frontier.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.frontier.v1",
+          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -4425,7 +4461,8 @@
         "ak.sovereign.did_policy",
         "ak.capability.grant",
         "ak.capability.revoke",
-        "ak.realm.policy"
+        "ak.realm.policy",
+        "ak.realm.policy_bundle"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4460,11 +4497,14 @@
       "additional_requirements": {
         "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, every protected ak.self.* operation MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. The ak.self. prefix is the machine-enforceable default-protected surface; new or unknown operations default to fail closed. The operation registry may explicitly allow an unauthenticated public-metadata projection, but without valid proof it MUST return only that public projection and MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed.",
-        "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed."
+        "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed.",
+        "realm_hosting_boundary_must": "This deployment profile is advertised only through ServiceDescribe.claimed_profiles and MUST NOT be written into Realm genesis, schema_refs or any Realm facet. It creates no primary_server, hosted_on, home_server, canonical mirror or complete-history authority.",
+        "canonical_realm_data_path_must": "Realm creation, facets, invitation, membership, Event persistence, federation and recovery MUST use registered ak.* Event kinds and operations backed by the canonical durable Event store. Private /_soland/* endpoints, in-memory Realm records, caller-seeded Realm ids and arbitrary JSON store-and-forward queues MUST NOT satisfy this profile.",
+        "live_claim_gate_must": "ServiceDescribe MUST omit this profile unless live conformance evidence covers independent Station processes and databases, restart on both sides, durable-outbox outage recovery, external-member boundaries, and effective federation_policy enforcement on ingress, destination selection and fanout. Static fixture ids and private state-machine tests are insufficient."
       }
     },
     "ak.profile.sovereign_enclave.v1": {
-      "description": "Controlled-collaboration enclave variant of the sovereign deployment profile. The enclave runs alongside (or downstream of) a sovereign main node and hosts external collaborators inside `ak.realm.deployment_profile=enclave` Realms. When this profile is claimed the implementation MUST: (a) disable outbound federation; (b) disable public discovery and public DID resolution; (c) restrict its resolver to DID methods in the configured `allowed_did_methods` allow-list; (d) log every outbound HTTP call under the `sovereign_boundary_audit` target. See `zh/sync/sovereign-deployment.md` §2–§6.",
+      "description": "Controlled-collaboration enclave deployment variant. It runs alongside or downstream of a sovereign main domain and serves ordinary ak.schema.realm.v1 Collaboration Realms whose external members, policy and routing remain canonical Realm state. The profile is a ServiceDescribe.claimed_profiles deployment/conformance claim only: no Realm deployment_profile, hosted_on, primary_server or complete-history authority exists. Outbound federation is denied by default and may target only destinations allowed by effective Realm federation policy, joined-member routing projection and the deployment peer allowlist. Public discovery and public DID resolution remain disabled. See zh/sync/sovereign-deployment.md sections 2, 3.2, 4 and 7.1.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -4484,6 +4524,46 @@
           "direction": "provide",
           "operation_id": "ak.self.authz.read.check.v1",
           "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.frontier.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.frontier.v1",
+          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -4491,19 +4571,30 @@
       ],
       "required_event_kinds": [
         "ak.sovereign.did_policy",
-        "ak.realm.policy"
+        "ak.realm.create",
+        "ak.realm.profile",
+        "ak.realm.policy",
+        "ak.realm.policy_bundle",
+        "ak.realm.join_rule",
+        "ak.realm.history_access",
+        "ak.realm.discovery",
+        "ak.realm.organization",
+        "ak.invite.create",
+        "ak.invite.accept",
+        "ak.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.policy.v1"
+        "ak.schema.policy.v1",
+        "ak.schema.realm_genesis.v1",
+        "ak.schema.realm.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
-        "federation-fixture.json"
+        "federation-fixture.json",
+        "schema-validation-fixture.json"
       ],
-      "optional_extensions": [
-        "boundary_audit_persistence",
-        "store_and_forward_outage"
-      ],
+      "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "resolver_policy",
@@ -4512,6 +4603,10 @@
           "outbound_allowlist"
         ],
         "unsupported_optional": "deny outbound HTTP until allowlist contains the destination host"
+      },
+      "additional_requirements": {
+        "canonical_boundary_flow_must": "Main/enclave Realm, invite, membership and Event flows MUST use the registered canonical Event and operation surfaces. Deployment-local export/import review, malware scanning, declassification, watermarking and boundary audit records are not Arkret wire state and MUST NOT be advertised as interoperable features.",
+        "live_claim_gate_must": "ServiceDescribe MUST omit this profile unless live tests use two Station processes with independent databases and cover restart on both sides, disconnection and durable recovery, external-member join/leave/ban, and closed/restricted/quarantine enforcement on ingress, destination selection and fanout. In-memory maps, fixture Realm ids, repeated seeding and private endpoints are not conformance evidence."
       }
     },
     "ak.profile.franking.v1": {
@@ -6582,27 +6677,6 @@
           "encoding.multihash"
         ],
         "unsupported_optional": "do not claim ak.profile.encoding.multihash.v1 unless this build implements and tests the declared profile"
-      }
-    },
-    "ak.profile.federation.rbsr.negentropy.v1": {
-      "description": "Candidate range-based set reconciliation federation gate.",
-      "enforcement_phases": [
-        "conformance",
-        "startup_claim_guard"
-      ],
-      "operation_requirements": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [
-        "sync-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "federation.rbsr.negentropy"
-        ],
-        "unsupported_optional": "do not claim ak.profile.federation.rbsr.negentropy.v1 unless this build implements and tests the declared profile"
       }
     },
     "ak.profile.hash.blake3.v1": {

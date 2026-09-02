@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.5",
+  "version": "2026-09-02.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T15:05:00+08:00",
+  "generated_at": "2026-09-02T16:24:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5670,21 +5670,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.proof_context.transcript.range_completeness_attestation.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.range_completeness_attestation_proof.v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm_join_candidate_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.range_completeness_attestation_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.proof_context.transcript.realm_join_candidate.v1",
       "status": "active",
       "domain": "proof_context",
@@ -5838,7 +5823,7 @@
       "vector_id": "ak.vector.proof_context.transcript.station_event_admission.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.station_admission_proof.v1: digest input deletes `actor_kind`, `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.range_completeness_attestation_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.station_admission_proof.v1: digest input deletes `actor_kind`, `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm_join_candidate_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.station_admission_proof.v1"
       ],
@@ -5953,18 +5938,6 @@
       "vector_id": "ak.vector.push.wakeup_policy.v1",
       "status": "active",
       "domain": "push",
-      "applies_to_fixtures": [
-        "service-closure-hardening-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.range_completeness.witness_disagreement.v1",
-      "status": "active",
-      "domain": "range_completeness",
       "applies_to_fixtures": [
         "service-closure-hardening-fixture.json"
       ],
@@ -6997,19 +6970,6 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.sync.range_completeness_client_query.v1",
-      "status": "active",
-      "domain": "sync",
-      "applies_to_fixtures": [
-        "final-conformance-closure-fixture.json"
-      ],
-      "description": "Client events.query backfill with include_completeness=true detects withheld actor branches via ak.attestation.range_completeness verification; feature-less servers ignore the parameter; single_source attestation does not satisfy high-assurance realms.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

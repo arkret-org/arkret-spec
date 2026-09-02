@@ -5029,46 +5029,6 @@
       ]
     },
     {
-      "schema_path": "range-completeness-attestation.schema.json#/properties/issuer_id",
-      "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "range-completeness-attestation.schema.json#/properties/witness_attestation/properties/witnesses/items/properties/controlling_organization_id",
-      "property_name": "controlling_organization_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "range-completeness-attestation.schema.json#/properties/witness_attestation/properties/witnesses/items/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "range-completeness-attestation.schema.json#/properties/witness_attestation/properties/witnesses/items/properties/witness_id",
-      "property_name": "witness_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key_did",
       "property_name": "device_public_key_did",
       "semantic_category": "responsibility_identity_material",
@@ -5209,8 +5169,8 @@
       ]
     },
     {
-      "schema_path": "realm.schema.json#/properties/audit_policy/properties/range_completeness_witness_ids",
-      "property_name": "range_completeness_witness_ids",
+      "schema_path": "realm.schema.json#/properties/audit_policy/properties/seal_transparency_auditor_ids",
+      "property_name": "seal_transparency_auditor_ids",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

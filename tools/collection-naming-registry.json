@@ -249,6 +249,13 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
+      "pointer": "/$defs/PeerEventsQueryOutcome",
+      "collection_field": "events",
+      "companion_fields": ["has_more", "next_cursor"],
+      "reason": "peer event query outcome paginates events without the self-only snapshot bootstrap"
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/IdentityLogListOutcome",
       "collection_field": "entries",
       "companion_fields": ["has_more", "next_cursor"],

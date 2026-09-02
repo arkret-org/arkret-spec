@@ -41,17 +41,17 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 201,
+    "total_schemas": 200,
     "by_consumer": {
-      "declared_wire": 57,
+      "declared_wire": 56,
       "event_kind": 4,
       "inbound": 45,
       "outbound": 54,
       "prose": 114,
       "prose_only": 2,
-      "schema_reference": 133,
-      "startup_compile": 201,
-      "vectors": 126
+      "schema_reference": 132,
+      "startup_compile": 200,
+      "vectors": 125
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
@@ -1352,7 +1352,6 @@
           "ak.schema.principal_operations.v1",
           "ak.schema.push_operations.v1",
           "ak.schema.query.v1",
-          "ak.schema.range_completeness_attestation.v1",
           "ak.schema.read_cursor.v1",
           "ak.schema.read_cursor_operations.v1",
           "ak.schema.read_receipt.v1",
@@ -2935,27 +2934,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.range_completeness_attestation.v1",
-      "file": "schemas/range-completeness-attestation.schema.json",
-      "consumers": {
-        "declared_wire": "standalone_schema_alias",
-        "prose": "normative_text",
-        "schema_reference": "exact",
-        "startup_compile": "exact",
-        "vectors": "fixture"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "fixture"
-      },
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "sync range completeness attestation",
-        "normative_ref": "zh/sync/operations-sync.md"
-      }
-    },
-    {
       "schema_id": "ak.schema.read_cursor.v1",
       "file": "schemas/read-cursor.schema.json",
       "consumers": {
@@ -3030,12 +3008,12 @@
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
-        "vectors": "fixture"
+        "vectors": "required_schema"
       },
       "wire_covered": true,
       "vector_coverage": {
         "disposition": "direct",
-        "evidence": "fixture"
+        "evidence": "required_schema"
       }
     },
     {
@@ -3092,6 +3070,7 @@
       "schema_id": "ak.schema.realm_profile.v1",
       "file": "schemas/realm-profile.schema.json",
       "consumers": {
+        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "fixture"
@@ -3712,7 +3691,6 @@
           "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
           "ak.schema.push_operations.v1",
-          "ak.schema.range_completeness_attestation.v1",
           "ak.schema.read_cursor.v1",
           "ak.schema.realm.v1",
           "ak.schema.realm_join_candidate.v1",

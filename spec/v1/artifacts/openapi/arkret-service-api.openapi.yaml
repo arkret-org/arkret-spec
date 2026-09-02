@@ -46,7 +46,7 @@ info:
 
     `EventFederationSubmission`, `EventsSubmitFederationRequestBody`, `EventsSubmitOutcome`, `EventView`,
 
-    `EventsResolveRequestBody` / `EventsResolveOutcome`, `EventsQueryOutcome`,
+    `EventsResolveRequestBody` / `EventsResolveOutcome`, `EventsQueryOutcome` / `PeerEventsQueryOutcome`,
 
     `EventsFrontierState`, `SignalSubmitOutcome`,
 
@@ -1369,6 +1369,8 @@ components:
       $ref: ../schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_outcome
     PcrGenesisSubmitRequestBody:
       $ref: ../schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request
+    PeerEventsQueryOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome
     PeerEventsResolveOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome
     PeerEventsResolveRequestBody:
@@ -4193,7 +4195,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsQueryOutcome'
+                $ref: '#/components/schemas/PeerEventsQueryOutcome'
     post:
       operationId: ak.peer.events.command.submit
       security:

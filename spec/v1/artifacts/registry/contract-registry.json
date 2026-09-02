@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.6",
+  "version": "2026-09-02.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T15:30:00+08:00",
+  "generated_at": "2026-09-02T16:24:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -7412,17 +7412,6 @@
         "id_source": "not_an_object_id"
       },
       {
-        "event_kind": "ak.attestation.range_completeness",
-        "category": "audit",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": false,
-        "payload": "Range-bound completeness attestation. Distinct from ak.audit.ryw_receipt (per-event read-your-writes hint) and ak.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4.",
-        "payload_schema_ref": "schemas/range-completeness-attestation.schema.json",
-        "id_source": "not_an_object_id"
-      },
-      {
         "event_kind": "ak.self.moderation.report",
         "category": "moderation",
         "status": "active",
@@ -9207,15 +9196,6 @@
         "description": "Registered schema for the canonical Arkret field-patch wire format."
       },
       {
-        "schema_id": "ak.schema.range_completeness_attestation.v1",
-        "file": "schemas/range-completeness-attestation.schema.json",
-        "consumer_binding": {
-          "kind": "standalone_schema_alias",
-          "selector": "sync range completeness attestation",
-          "normative_ref": "zh/sync/operations-sync.md"
-        }
-      },
-      {
         "schema_id": "ak.schema.ice_config_response.v1",
         "file": "schemas/ice-config-response.schema.json"
       },
@@ -10255,8 +10235,8 @@
         }
       }
     ],
-    "version": "2026-09-02.3",
-    "generated_at": "2026-09-02T14:30:00+08:00"
+    "version": "2026-09-02.4",
+    "generated_at": "2026-09-02T16:24:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -11037,7 +11017,7 @@
         "category": "audit",
         "status": "active",
         "wire_form": "ak:attestation:<uuidv7>",
-        "description": "Attestation object ID (e.g. ak.attestation.range_completeness).",
+        "description": "Attestation object ID for registered attestation object families.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
       },
@@ -11217,8 +11197,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-09-02.2",
-    "generated_at": "2026-09-02T14:00:00+08:00"
+    "version": "2026-09-02.3",
+    "generated_at": "2026-09-02T15:30:00+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -12938,11 +12918,11 @@
         "http": "QUERY /_arkret/peer/events",
         "grpc": "PeerEvents/Scan",
         "mq": "peer.events.read.scan",
-        "notes": "Federation peer pull/backfill query. Uses the same selector, cursor, order, and response semantics as ak.self.events.read.scan.v1, but the HTTP trust surface is peer and the caller MUST be an authorized federation peer service.",
+        "notes": "Authorized federation peer Event scan with self-equivalent selectors and cursor ordering, but a peer-only closed response that excludes snapshot_bootstrap. This is a small-history or operator-triggered best-effort fallback; it does not promise an immutable generation, deterministic long-history completion, or historical completeness.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome"
       },
       {
         "operation_id": "ak.peer.invites.command.submit.v1",
@@ -15392,8 +15372,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-02.1",
-    "generated_at": "2026-09-02T13:00:00+08:00",
+    "version": "2026-09-02.3",
+    "generated_at": "2026-09-02T15:30:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -19733,22 +19713,6 @@
         "semantic_guarantees": [
           "The deployment supports the explicitly relaxed E2EE policy branch defined by the normative encryption contract."
         ],
-        "conflicts": []
-      },
-      {
-        "feature_id": "ak.feature.events_query_range_completeness.v1",
-        "status": "active",
-        "defined_in": "zh/sync/service-http-binding.md#335-range-completeness-optional-feature",
-        "service_kinds": [],
-        "required_operation_pairs": [
-          {
-            "operation_id": "ak.self.events.read.scan.v1",
-            "binding_kind": "http_json"
-          }
-        ],
-        "required_profiles": [],
-        "required_limits": [],
-        "semantic_guarantees": [],
         "conflicts": []
       },
       {

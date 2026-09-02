@@ -16,8 +16,7 @@
     "ak.vector.moderation.evidence_package_minimal_disclosure.v1",
     "ak.vector.moderation.appeal_atomicity.v1",
     "ak.vector.moderation.review_resolution_fold.v1",
-    "ak.vector.relation.reference_projection_indistinguishable.v1",
-    "ak.vector.sync.range_completeness_client_query.v1"
+    "ak.vector.relation.reference_projection_indistinguishable.v1"
   ],
   "cases": [
     {
@@ -766,90 +765,6 @@
         "p95_within_bucket": true,
         "auditor_changes_caller_shape": false
       }
-    },
-    {
-      "vector_id": "ak.vector.sync.range_completeness_client_query.v1",
-      "assertions": [
-        "complete_page_with_matching_attestation_marks_range_attested",
-        "withheld_actor_seq_gap_degrades_range",
-        "featureless_server_omits_completeness_without_error",
-        "high_assurance_rejects_single_source_attestation"
-      ],
-      "steps": [
-        {
-          "name": "complete_attested_range",
-          "feature_supported": true,
-          "security_class": "normal",
-          "returned_actor_seq": [
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            19,
-            20
-          ],
-          "attestation_actor_seq_range": [
-            10,
-            20
-          ],
-          "attestation_mode": "federation_witness_attested",
-          "root_matches": true,
-          "expected": {
-            "decision": "attested_complete"
-          }
-        },
-        {
-          "name": "withheld_actor_seq_gap",
-          "feature_supported": true,
-          "security_class": "normal",
-          "returned_actor_seq": [
-            10,
-            11,
-            12,
-            13,
-            17,
-            18,
-            19,
-            20
-          ],
-          "attestation_actor_seq_range": [
-            10,
-            20
-          ],
-          "attestation_mode": "federation_witness_attested",
-          "root_matches": false,
-          "expected": {
-            "decision": "degraded",
-            "reason": "range_completeness_actor_seq_gap",
-            "history_complete_displayed": false
-          }
-        },
-        {
-          "name": "featureless_server",
-          "feature_supported": false,
-          "include_completeness": true,
-          "response_has_range_completeness": false,
-          "expected": {
-            "decision": "unattested",
-            "error": false
-          }
-        },
-        {
-          "name": "high_assurance_single_source",
-          "feature_supported": true,
-          "security_class": "high_assurance",
-          "attestation_mode": "single_source",
-          "expected": {
-            "decision": "unattested",
-            "high_assurance_frontier_advanced": false
-          }
-        }
-      ]
     }
   ]
 }

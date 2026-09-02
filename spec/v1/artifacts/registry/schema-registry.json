@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.3",
+  "version": "2026-09-02.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T14:30:00+08:00",
+  "generated_at": "2026-09-02T16:24:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -424,15 +424,6 @@
       "schema_id": "ak.schema.patch.v1",
       "file": "schemas/patch.schema.json",
       "description": "Registered schema for the canonical Arkret field-patch wire format."
-    },
-    {
-      "schema_id": "ak.schema.range_completeness_attestation.v1",
-      "file": "schemas/range-completeness-attestation.schema.json",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "sync range completeness attestation",
-        "normative_ref": "zh/sync/operations-sync.md"
-      }
     },
     {
       "schema_id": "ak.schema.ice_config_response.v1",
