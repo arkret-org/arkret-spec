@@ -205,6 +205,10 @@
       "sha256": "696dd51c0c72a3ac9368f5a398a38102b2041ccf215ef9090c249119981b6c31"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",
+      "sha256": "44d6e60bd5a665b7c8504ba96f9f1612943f1357833cec40576324bdfaec5e50"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
       "sha256": "d10445700e49c75496f5c9ccd680ae24e5a6795da972b35b673d8d80bcbfb2e4"
     },

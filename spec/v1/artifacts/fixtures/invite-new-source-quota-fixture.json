@@ -1,0 +1,926 @@
+{
+  "suite": "invite_new_source_quota",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.invite.new_source_quota.v1"
+  },
+  "version": "2026-09-02",
+  "covers_vectors": [
+    "ak.vector.invite.new_source_quota_holder_admission.v1",
+    "ak.vector.invite.new_source_quota_effective_bounds.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/identity/consent-model.md#6111-quota-carrier-与-effective-值normative",
+  "machine_contracts": [
+    "schemas/invite-receive-policy.schema.json",
+    "schemas/invite-quarantine.schema.json"
+  ],
+  "specification_defaults": {
+    "window_seconds": 86400,
+    "default_new_sources_per_window": 3,
+    "max_new_sources_per_window": 10,
+    "retention_seconds": 2592000,
+    "default_new_sources_per_retention": 30,
+    "max_new_sources_per_retention": 200
+  },
+  "principals": {
+    "holder": {
+      "principal_id": "ak:did_core:webvh:z6mkfixtureholderbob",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+    },
+    "holder_same_principal_other_station": {
+      "principal_id": "ak:did_core:webvh:z6mkfixtureholderbob",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationother"
+    },
+    "sources": {
+      "alpha": "ak:did_core:webvh:z6mkfixturepeeralpha",
+      "beta": "ak:did_core:webvh:z6mkfixturepeerbeta",
+      "gamma": "ak:did_core:webvh:z6mkfixturepeergamma",
+      "delta": "ak:did_core:webvh:z6mkfixturepeerdelta"
+    },
+    "transport_sources": {
+      "service_a": "ak:did_core:webvh:z6mkfixturesourceservicea",
+      "service_b": "ak:did_core:webvh:z6mkfixturesourceserviceb"
+    }
+  },
+  "deployment_constraints_profiles": {
+    "narrow": {
+      "window_seconds": 3600,
+      "default_new_sources_per_window": 2,
+      "max_new_sources_per_window": 4,
+      "retention_seconds": 7200,
+      "default_new_sources_per_retention": 3,
+      "max_new_sources_per_retention": 8
+    }
+  },
+  "effective_bounds_cases": [
+    {
+      "name": "omitted_constraints_object_takes_specification_defaults",
+      "deployment_constraints": null,
+      "holder_override": null,
+      "expected": {
+        "decision": "accepted",
+        "effective": {
+          "window_seconds": 86400,
+          "new_sources_per_window": 3,
+          "retention_seconds": 2592000,
+          "new_sources_per_retention": 30
+        }
+      },
+      "invariants": [
+        "an omitted new_source_quota object is not a disabled quota",
+        "the quota itself is a MUST, so omission can only select the specification defaults"
+      ]
+    },
+    {
+      "name": "omitted_members_take_specification_defaults",
+      "deployment_constraints": {
+        "window_seconds": 600,
+        "retention_seconds": 1200
+      },
+      "holder_override": null,
+      "expected": {
+        "decision": "accepted",
+        "effective": {
+          "window_seconds": 600,
+          "new_sources_per_window": 3,
+          "retention_seconds": 1200,
+          "new_sources_per_retention": 30
+        }
+      },
+      "invariants": [
+        "a partially declared object keeps every omitted member at its specification default",
+        "a deployment cannot express 'quota off' by dropping members"
+      ]
+    },
+    {
+      "name": "holder_override_above_deployment_max_is_clamped",
+      "deployment_constraints": {
+        "window_seconds": 3600,
+        "default_new_sources_per_window": 2,
+        "max_new_sources_per_window": 4,
+        "retention_seconds": 7200,
+        "default_new_sources_per_retention": 3,
+        "max_new_sources_per_retention": 8
+      },
+      "holder_override": {
+        "new_sources_per_window": 999,
+        "new_sources_per_retention": 999
+      },
+      "expected": {
+        "decision": "accepted",
+        "effective": {
+          "window_seconds": 3600,
+          "new_sources_per_window": 4,
+          "retention_seconds": 7200,
+          "new_sources_per_retention": 8
+        }
+      },
+      "invariants": [
+        "the deployment max_* members are the only widening bound",
+        "a holder override never reaches past max_*, so constraints stay a ceiling and never a grant"
+      ]
+    },
+    {
+      "name": "holder_zero_override_is_legal_and_narrows_to_zero",
+      "deployment_constraints": {
+        "window_seconds": 3600,
+        "default_new_sources_per_window": 2,
+        "max_new_sources_per_window": 4,
+        "retention_seconds": 7200,
+        "default_new_sources_per_retention": 3,
+        "max_new_sources_per_retention": 8
+      },
+      "holder_override": {
+        "new_sources_per_window": 0,
+        "new_sources_per_retention": 0
+      },
+      "expected": {
+        "decision": "accepted",
+        "effective": {
+          "window_seconds": 3600,
+          "new_sources_per_window": 0,
+          "retention_seconds": 7200,
+          "new_sources_per_retention": 0
+        }
+      },
+      "invariants": [
+        "0 is a legal subject value that locks the holder to zero new sources",
+        "the deployment default_* members never raise a subject value back up"
+      ]
+    },
+    {
+      "name": "holder_override_below_default_narrows",
+      "deployment_constraints": {
+        "window_seconds": 3600,
+        "default_new_sources_per_window": 2,
+        "max_new_sources_per_window": 4,
+        "retention_seconds": 7200,
+        "default_new_sources_per_retention": 3,
+        "max_new_sources_per_retention": 8
+      },
+      "holder_override": {
+        "new_sources_per_window": 1,
+        "new_sources_per_retention": 2
+      },
+      "expected": {
+        "decision": "accepted",
+        "effective": {
+          "window_seconds": 3600,
+          "new_sources_per_window": 1,
+          "retention_seconds": 7200,
+          "new_sources_per_retention": 2
+        }
+      },
+      "invariants": [
+        "a subject may always make itself less reachable than the deployment default"
+      ]
+    },
+    {
+      "name": "partial_holder_override_takes_the_deployment_default_for_the_omitted_member",
+      "deployment_constraints": {
+        "window_seconds": 3600,
+        "default_new_sources_per_window": 2,
+        "max_new_sources_per_window": 4,
+        "retention_seconds": 7200,
+        "default_new_sources_per_retention": 3,
+        "max_new_sources_per_retention": 8
+      },
+      "holder_override": {
+        "new_sources_per_window": 1
+      },
+      "expected": {
+        "decision": "accepted",
+        "effective": {
+          "window_seconds": 3600,
+          "new_sources_per_window": 1,
+          "retention_seconds": 7200,
+          "new_sources_per_retention": 3
+        }
+      },
+      "invariants": [
+        "an omitted subject member selects default_*, never max_* and never zero"
+      ]
+    },
+    {
+      "name": "max_below_default_rejects_the_whole_constraints_object",
+      "deployment_constraints": {
+        "default_new_sources_per_window": 4,
+        "max_new_sources_per_window": 3
+      },
+      "holder_override": null,
+      "expected": {
+        "decision": "rejected",
+        "error": "schema_violation",
+        "partial_member_evaluation": false
+      },
+      "invariants": [
+        "max_new_sources_per_window >= default_new_sources_per_window is a cross-field MUST the schema cannot express",
+        "the whole constraints object is rejected; the remaining members MUST NOT keep being evaluated"
+      ]
+    },
+    {
+      "name": "max_retention_below_default_retention_rejects_the_whole_constraints_object",
+      "deployment_constraints": {
+        "default_new_sources_per_retention": 40,
+        "max_new_sources_per_retention": 30
+      },
+      "holder_override": null,
+      "expected": {
+        "decision": "rejected",
+        "error": "schema_violation",
+        "partial_member_evaluation": false
+      },
+      "invariants": [
+        "max_new_sources_per_retention >= default_new_sources_per_retention is enforced by the validator"
+      ]
+    },
+    {
+      "name": "retention_shorter_than_window_rejects_the_whole_constraints_object",
+      "deployment_constraints": {
+        "window_seconds": 7200,
+        "retention_seconds": 3600
+      },
+      "holder_override": null,
+      "expected": {
+        "decision": "rejected",
+        "error": "schema_violation",
+        "partial_member_evaluation": false
+      },
+      "invariants": [
+        "retention_seconds >= window_seconds, because retention is both the ledger lifetime and the long counting window"
+      ]
+    },
+    {
+      "name": "zero_deployment_member_rejects_the_whole_constraints_object",
+      "deployment_constraints": {
+        "default_new_sources_per_window": 0
+      },
+      "holder_override": null,
+      "expected": {
+        "decision": "rejected",
+        "error": "schema_violation",
+        "partial_member_evaluation": false
+      },
+      "invariants": [
+        "every declared deployment member is >= 1; only the subject side may express 0"
+      ]
+    }
+  ],
+  "identity_key_cases": [
+    {
+      "name": "holder_dimension_is_the_complete_account_id",
+      "left": {
+        "holder": "holder",
+        "source_peer_principal_id": "alpha",
+        "source_id": "service_a"
+      },
+      "right": {
+        "holder": "holder_same_principal_other_station",
+        "source_peer_principal_id": "alpha",
+        "source_id": "service_a"
+      },
+      "expected": {
+        "same_ledger_key": false
+      },
+      "invariants": [
+        "the same principal core at another Station is a different holder with a separate ledger"
+      ]
+    },
+    {
+      "name": "source_dimension_is_the_peer_principal_not_the_transport_source",
+      "left": {
+        "holder": "holder",
+        "source_peer_principal_id": "alpha",
+        "source_id": "service_a"
+      },
+      "right": {
+        "holder": "holder",
+        "source_peer_principal_id": "alpha",
+        "source_id": "service_b"
+      },
+      "expected": {
+        "same_ledger_key": true
+      },
+      "invariants": [
+        "source_id is the authenticated transport source service DID and MUST NOT enter the quota identity",
+        "charging per Station would let one Station be punished collectively and let a harasser bypass by switching Stations"
+      ]
+    },
+    {
+      "name": "two_peers_behind_one_transport_source_stay_distinct",
+      "left": {
+        "holder": "holder",
+        "source_peer_principal_id": "alpha",
+        "source_id": "service_a"
+      },
+      "right": {
+        "holder": "holder",
+        "source_peer_principal_id": "beta",
+        "source_id": "service_a"
+      },
+      "expected": {
+        "same_ledger_key": false
+      },
+      "invariants": [
+        "two peer principals sharing one transport source are two new sources"
+      ]
+    }
+  ],
+  "admission_cases": [
+    {
+      "name": "short_window_ceiling_admits_then_drops_while_a_charged_source_still_enters",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "consent_profile": "default",
+      "initial_ledger": [],
+      "initial_quarantine_entry_sources": [],
+      "contacts": [
+        {
+          "at": "2026-09-02T00:00:00.000Z",
+          "source": "alpha",
+          "expected_decision": "admitted"
+        },
+        {
+          "at": "2026-09-02T00:10:00.000Z",
+          "source": "beta",
+          "expected_decision": "admitted"
+        },
+        {
+          "at": "2026-09-02T00:20:00.000Z",
+          "source": "gamma",
+          "expected_decision": "denied"
+        },
+        {
+          "at": "2026-09-02T00:25:00.000Z",
+          "source": "alpha",
+          "expected_decision": "seen"
+        }
+      ],
+      "expected": {
+        "final_ledger": [
+          {
+            "source": "alpha",
+            "first_admitted_at": "2026-09-02T00:00:00.000Z"
+          },
+          {
+            "source": "beta",
+            "first_admitted_at": "2026-09-02T00:10:00.000Z"
+          }
+        ],
+        "quarantine_entry_sources": [
+          "alpha",
+          "beta",
+          "alpha"
+        ]
+      },
+      "invariants": [
+        "the source over the short-window ceiling is absent from the quarantine cell",
+        "a denied contact performs zero ledger writes and zero cell writes",
+        "an already-charged source still enters the cell while the short window is full, which is what separates a seen-source ledger from a plain per-holder counter",
+        "the requester-visible outcome is unchanged across all four contacts",
+        "this timeline starts from an empty ledger inside one short window, so a live deployment can replay it without controlling the clock"
+      ]
+    },
+    {
+      "name": "sliding_short_window_readmits_after_the_window_passes",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "consent_profile": "default",
+      "initial_ledger": [
+        {
+          "source": "alpha",
+          "first_admitted_at": "2026-09-02T00:00:00.000Z"
+        },
+        {
+          "source": "beta",
+          "first_admitted_at": "2026-09-02T00:10:00.000Z"
+        }
+      ],
+      "initial_quarantine_entry_sources": [
+        "alpha",
+        "beta"
+      ],
+      "contacts": [
+        {
+          "at": "2026-09-02T01:05:00.000Z",
+          "source": "gamma",
+          "expected_decision": "admitted"
+        }
+      ],
+      "expected": {
+        "final_ledger": [
+          {
+            "source": "alpha",
+            "first_admitted_at": "2026-09-02T00:00:00.000Z"
+          },
+          {
+            "source": "beta",
+            "first_admitted_at": "2026-09-02T00:10:00.000Z"
+          },
+          {
+            "source": "gamma",
+            "first_admitted_at": "2026-09-02T01:05:00.000Z"
+          }
+        ],
+        "quarantine_entry_sources": [
+          "alpha",
+          "beta",
+          "gamma"
+        ]
+      },
+      "invariants": [
+        "the short window is sliding and is counted straight off the ledger timestamps",
+        "no fixed-window rotation state exists that could release the ceiling early or late"
+      ]
+    },
+    {
+      "name": "seen_source_is_enqueued_without_recharge_or_refresh",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "consent_profile": "default",
+      "initial_ledger": [
+        {
+          "source": "alpha",
+          "first_admitted_at": "2026-09-02T00:00:00.000Z"
+        },
+        {
+          "source": "beta",
+          "first_admitted_at": "2026-09-02T00:10:00.000Z"
+        }
+      ],
+      "initial_quarantine_entry_sources": [
+        "alpha",
+        "beta"
+      ],
+      "contacts": [
+        {
+          "at": "2026-09-02T00:20:00.000Z",
+          "source": "alpha",
+          "expected_decision": "seen"
+        }
+      ],
+      "expected": {
+        "final_ledger": [
+          {
+            "source": "alpha",
+            "first_admitted_at": "2026-09-02T00:00:00.000Z"
+          },
+          {
+            "source": "beta",
+            "first_admitted_at": "2026-09-02T00:10:00.000Z"
+          }
+        ],
+        "quarantine_entry_sources": [
+          "alpha",
+          "beta",
+          "alpha"
+        ]
+      },
+      "invariants": [
+        "membership is tested before the two ceilings, so a seen source is admitted even with a full short window",
+        "a seen source is not charged again and its first_admitted_at is not refreshed",
+        "refreshing it would keep an active harasser permanently fresh inside the retention window"
+      ]
+    },
+    {
+      "name": "retention_ceiling_denies_even_with_short_window_room",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "consent_profile": "default",
+      "initial_ledger": [
+        {
+          "source": "alpha",
+          "first_admitted_at": "2026-09-01T22:45:00.000Z"
+        },
+        {
+          "source": "beta",
+          "first_admitted_at": "2026-09-01T23:15:00.000Z"
+        },
+        {
+          "source": "gamma",
+          "first_admitted_at": "2026-09-01T23:25:00.000Z"
+        }
+      ],
+      "initial_quarantine_entry_sources": [
+        "alpha",
+        "beta",
+        "gamma"
+      ],
+      "contacts": [
+        {
+          "at": "2026-09-02T00:30:00.000Z",
+          "source": "delta",
+          "expected_decision": "denied"
+        }
+      ],
+      "expected": {
+        "final_ledger": [
+          {
+            "source": "alpha",
+            "first_admitted_at": "2026-09-01T22:45:00.000Z"
+          },
+          {
+            "source": "beta",
+            "first_admitted_at": "2026-09-01T23:15:00.000Z"
+          },
+          {
+            "source": "gamma",
+            "first_admitted_at": "2026-09-01T23:25:00.000Z"
+          }
+        ],
+        "quarantine_entry_sources": [
+          "alpha",
+          "beta",
+          "gamma"
+        ]
+      },
+      "invariants": [
+        "the short-window rate is 0 here, so only the retention-window total can deny",
+        "the two ceilings are independent and either one alone denies"
+      ]
+    },
+    {
+      "name": "retention_prune_frees_the_long_window",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "consent_profile": "default",
+      "initial_ledger": [
+        {
+          "source": "alpha",
+          "first_admitted_at": "2026-09-01T22:45:00.000Z"
+        },
+        {
+          "source": "beta",
+          "first_admitted_at": "2026-09-01T23:15:00.000Z"
+        },
+        {
+          "source": "gamma",
+          "first_admitted_at": "2026-09-01T23:25:00.000Z"
+        }
+      ],
+      "initial_quarantine_entry_sources": [
+        "alpha",
+        "beta",
+        "gamma"
+      ],
+      "contacts": [
+        {
+          "at": "2026-09-02T01:00:00.000Z",
+          "source": "delta",
+          "expected_decision": "admitted"
+        }
+      ],
+      "expected": {
+        "final_ledger": [
+          {
+            "source": "beta",
+            "first_admitted_at": "2026-09-01T23:15:00.000Z"
+          },
+          {
+            "source": "gamma",
+            "first_admitted_at": "2026-09-01T23:25:00.000Z"
+          },
+          {
+            "source": "delta",
+            "first_admitted_at": "2026-09-02T01:00:00.000Z"
+          }
+        ],
+        "quarantine_entry_sources": [
+          "alpha",
+          "beta",
+          "gamma",
+          "delta"
+        ]
+      },
+      "invariants": [
+        "prune runs first and both ignores and physically removes the over-age row",
+        "after prune the ledger size is bounded by max_new_sources_per_retention",
+        "pruning anti-abuse ledger rows never removes quarantine cell entries; the two lifetimes are separate"
+      ]
+    },
+    {
+      "name": "window_and_retention_boundaries_are_exact",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "consent_profile": "default",
+      "initial_ledger": [
+        {
+          "source": "alpha",
+          "first_admitted_at": "2026-09-01T23:00:00.000Z"
+        },
+        {
+          "source": "beta",
+          "first_admitted_at": "2026-09-02T00:00:00.000Z"
+        }
+      ],
+      "initial_quarantine_entry_sources": [
+        "alpha",
+        "beta"
+      ],
+      "contacts": [
+        {
+          "at": "2026-09-02T01:00:00.000Z",
+          "source": "gamma",
+          "expected_decision": "admitted"
+        }
+      ],
+      "expected": {
+        "final_ledger": [
+          {
+            "source": "beta",
+            "first_admitted_at": "2026-09-02T00:00:00.000Z"
+          },
+          {
+            "source": "gamma",
+            "first_admitted_at": "2026-09-02T01:00:00.000Z"
+          }
+        ],
+        "quarantine_entry_sources": [
+          "alpha",
+          "beta",
+          "gamma"
+        ]
+      },
+      "invariants": [
+        "a row at exactly now minus retention_seconds is pruned, because the prune test is <=",
+        "a row at exactly now minus window_seconds is outside the rate window, because the rate test is >"
+      ]
+    },
+    {
+      "name": "denied_source_is_not_ledgered_and_stays_new_next_window",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "consent_profile": "default",
+      "initial_ledger": [],
+      "initial_quarantine_entry_sources": [],
+      "contacts": [
+        {
+          "at": "2026-09-02T00:00:00.000Z",
+          "source": "alpha",
+          "expected_decision": "admitted"
+        },
+        {
+          "at": "2026-09-02T00:05:00.000Z",
+          "source": "beta",
+          "expected_decision": "admitted"
+        },
+        {
+          "at": "2026-09-02T00:10:00.000Z",
+          "source": "gamma",
+          "expected_decision": "denied"
+        },
+        {
+          "at": "2026-09-02T01:20:00.000Z",
+          "source": "gamma",
+          "expected_decision": "admitted"
+        }
+      ],
+      "expected": {
+        "final_ledger": [
+          {
+            "source": "alpha",
+            "first_admitted_at": "2026-09-02T00:00:00.000Z"
+          },
+          {
+            "source": "beta",
+            "first_admitted_at": "2026-09-02T00:05:00.000Z"
+          },
+          {
+            "source": "gamma",
+            "first_admitted_at": "2026-09-02T01:20:00.000Z"
+          }
+        ],
+        "quarantine_entry_sources": [
+          "alpha",
+          "beta",
+          "gamma"
+        ]
+      },
+      "invariants": [
+        "a denied source is never written to the ledger",
+        "recording the drop would make the next window read that source as seen and let it bypass the ceiling",
+        "a denied request replayed later is re-evaluated against the window current at that time, and is charged then",
+        "an attacker cannot inflate the ledger with denied identities"
+      ]
+    },
+    {
+      "name": "zero_holder_override_locks_the_inbox",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": {
+        "new_sources_per_window": 0,
+        "new_sources_per_retention": 0
+      },
+      "consent_profile": "default",
+      "initial_ledger": [],
+      "initial_quarantine_entry_sources": [],
+      "contacts": [
+        {
+          "at": "2026-09-02T00:00:00.000Z",
+          "source": "alpha",
+          "expected_decision": "denied"
+        }
+      ],
+      "expected": {
+        "final_ledger": [],
+        "quarantine_entry_sources": []
+      },
+      "invariants": [
+        "a zero effective ceiling denies the very first new source",
+        "the deployment default of 2 never overrides the narrower subject value"
+      ]
+    },
+    {
+      "name": "require_explicit_consent_profile_has_no_quarantine_face",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "consent_profile": "require_explicit_consent",
+      "initial_ledger": [],
+      "initial_quarantine_entry_sources": [],
+      "contacts": [
+        {
+          "at": "2026-09-02T00:00:00.000Z",
+          "source": "alpha",
+          "expected_decision": "not_evaluated"
+        },
+        {
+          "at": "2026-09-02T00:05:00.000Z",
+          "source": "beta",
+          "expected_decision": "not_evaluated"
+        },
+        {
+          "at": "2026-09-02T00:10:00.000Z",
+          "source": "gamma",
+          "expected_decision": "not_evaluated"
+        }
+      ],
+      "expected": {
+        "final_ledger": [],
+        "quarantine_entry_sources": []
+      },
+      "invariants": [
+        "this profile has no quarantine surface, so the quota idles and charges nothing",
+        "any quarantine entry produced under this profile is non-conformant",
+        "the requester still observes the same opaque outcome, so the profile is not leaked"
+      ]
+    },
+    {
+      "name": "deduplicated_replay_is_not_evaluated",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "consent_profile": "default",
+      "initial_ledger": [
+        {
+          "source": "alpha",
+          "first_admitted_at": "2026-09-02T00:00:00.000Z"
+        }
+      ],
+      "initial_quarantine_entry_sources": [
+        "alpha"
+      ],
+      "contacts": [
+        {
+          "at": "2026-09-02T00:05:00.000Z",
+          "source": "alpha",
+          "deduplicated_replay": true,
+          "expected_decision": "not_evaluated"
+        }
+      ],
+      "expected": {
+        "final_ledger": [
+          {
+            "source": "alpha",
+            "first_admitted_at": "2026-09-02T00:00:00.000Z"
+          }
+        ],
+        "quarantine_entry_sources": [
+          "alpha"
+        ]
+      },
+      "invariants": [
+        "a delivery deduplicated by request_digest or idempotency_key_digest never reaches quota evaluation",
+        "the deduplicated replay adds no cell entry and no ledger row"
+      ]
+    }
+  ],
+  "concurrency_cases": [
+    {
+      "name": "concurrent_distinct_first_contacts_cannot_overshoot",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "initial_ledger": [
+        {
+          "source": "alpha",
+          "first_admitted_at": "2026-09-02T00:00:00.000Z"
+        }
+      ],
+      "concurrent_contacts": [
+        {
+          "at": "2026-09-02T00:05:00.000Z",
+          "source": "beta"
+        },
+        {
+          "at": "2026-09-02T00:05:00.000Z",
+          "source": "gamma"
+        }
+      ],
+      "expected": {
+        "admitted_count": 1,
+        "seen_count": 0,
+        "denied_count": 1,
+        "final_ledger_size": 2,
+        "identical_in_every_interleaving": true,
+        "distinguishable_error_returned": false
+      },
+      "invariants": [
+        "prune, membership, both counts and the append are linearized per holder as one step",
+        "no interleaving admits more new sources than the effective short-window ceiling",
+        "which of the two racing sources wins is implementation timing, so only the counts are normative"
+      ]
+    },
+    {
+      "name": "concurrent_first_contacts_from_one_source_charge_exactly_once",
+      "deployment_constraints_profile": "narrow",
+      "holder_override": null,
+      "initial_ledger": [],
+      "concurrent_contacts": [
+        {
+          "at": "2026-09-02T00:00:00.000Z",
+          "source": "alpha"
+        },
+        {
+          "at": "2026-09-02T00:00:00.000Z",
+          "source": "alpha"
+        }
+      ],
+      "expected": {
+        "admitted_count": 1,
+        "seen_count": 1,
+        "denied_count": 0,
+        "final_ledger_size": 1,
+        "identical_in_every_interleaving": true,
+        "distinguishable_error_returned": false
+      },
+      "invariants": [
+        "the second concurrent first contact from the same source passes as seen, not as a second charge",
+        "neither branch returns an error the requester could distinguish"
+      ]
+    }
+  ],
+  "chokepoint_contract": {
+    "converging_surface_operation_ids": [
+      "ak.peer.invites.command.submit.v1",
+      "ak.peer.contacts.command.submit.v1",
+      "ak.self.consent.command.request.v1"
+    ],
+    "evaluated_exactly_once_before_cell_cas_write": true,
+    "reevaluated_inside_cell_cas_retry_loop": false,
+    "cas_retry_exhaustion_refunds_the_charge": false,
+    "substitutable_by_generic_endpoint_rate_limit": false,
+    "substitutable_by_directory_psi_device_quota": false,
+    "substitutable_by_private_configuration": false
+  },
+  "ledger_contract": {
+    "identity_key": [
+      "holder_account_id",
+      "source_peer_principal_id"
+    ],
+    "row_fields": [
+      "holder_account_id",
+      "source_peer_principal_id",
+      "first_admitted_at"
+    ],
+    "source_id_participates_in_identity_key": false,
+    "wire_readable": false,
+    "is_account_data_cell": false,
+    "holder_observable_surface": "ak.account.invite_quarantine",
+    "source_column_storage": "server_private_keyed_digest",
+    "retention_seconds_is_both_ledger_lifetime_and_long_window": true,
+    "account_erasure_deletes_the_whole_ledger": true,
+    "consent_revoke_touches_the_ledger": false,
+    "source_allow_or_deny_list_change_touches_the_ledger": false,
+    "audit_persists_dropped_source_did": false
+  },
+  "opaque_outcome_contract": {
+    "wire_status": "deferred",
+    "disclosed_outcome_present": false,
+    "indistinguishable_equivalence_class": [
+      "admitted_to_quarantine",
+      "new_source_quota_drop",
+      "ttl_drop",
+      "holder_absent",
+      "holder_policy_deny"
+    ],
+    "forbidden_signals": [
+      "http_429",
+      "retry_after_header",
+      "rate_limited_error",
+      "cached_drop_outcome"
+    ],
+    "disclosed_outcome_enum": [
+      "delivered",
+      "blocked"
+    ]
+  },
+  "minimum_independent_runners": 2
+}
