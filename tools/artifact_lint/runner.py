@@ -105,6 +105,7 @@ from .fixtures import (
     check_cryptographic_suite_kat_bindings,
     check_declared_canonical_json_strings,
     check_declared_schema_fixture_instances,
+    check_fixture_content_addressed_sibling_digests,
     check_direct_conversation_digest_vectors,
     check_encrypted_envelope_digest_vector,
     check_erasure_verification_contract,
@@ -469,6 +470,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "declared_schema_fixture_instances",
                 lambda: check_declared_schema_fixture_instances(lint),
+            ),
+            (
+                "fixture_content_addressed_sibling_digests",
+                lambda: check_fixture_content_addressed_sibling_digests(lint),
             ),
             ("event_id_fixture", lambda: check_content_bound_event_id_fixture(lint)),
             (

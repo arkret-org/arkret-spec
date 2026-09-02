@@ -77,35 +77,52 @@ def _closures(
     return found
 
 
+def overlay_closure_violations(
+    docs: dict[str, Any], file_name: str
+) -> list[tuple[str, str, str]]:
+    """Every `(json_path, required_name, closed_base_label)` this document kills.
+
+    Separated from the lint entry point so the rule is testable on synthetic
+    documents: the interesting cases are relationships between an overlay and a
+    base it reaches through `$ref` / `allOf`, which cannot be built by editing the
+    shipped schemas.
+    """
+
+    document = docs.get(file_name)
+    if not isinstance(document, dict):
+        return []
+    violations: list[tuple[str, str, str]] = []
+    reported: set[tuple[str, str, str]] = set()
+    for json_path, node, _key in walk_json(document):
+        if not isinstance(node, dict) or not _looks_like_schema(node):
+            continue
+        closures = _closures(docs, file_name, node, json_path)
+        if not closures:
+            continue
+        own_required = {name for name in node.get("required") or [] if isinstance(name, str)}
+        required = explicit_required(docs, file_name, node)
+        for label, is_own_additional, declared, patterns in closures:
+            for name in sorted(required):
+                if name in declared or _pattern_allows(patterns, name):
+                    continue
+                if is_own_additional and name in own_required:
+                    # check_closed_object_required_declared already owns this shape.
+                    continue
+                key = (json_path, name, label)
+                if key in reported:
+                    continue
+                reported.add(key)
+                violations.append(key)
+    return violations
+
+
 def check_schema_ref_overlay_closure(lint: Lint) -> None:
     docs = load_schema_documents(lint)
     for file_name in sorted(docs):
-        document = docs[file_name]
-        if not isinstance(document, dict):
-            continue
         path = ARTIFACTS / "schemas" / file_name
-        reported: set[tuple[str, str, str]] = set()
-        for json_path, node, _key in walk_json(document):
-            if not isinstance(node, dict) or not _looks_like_schema(node):
-                continue
-            closures = _closures(docs, file_name, node, json_path)
-            if not closures:
-                continue
-            own_required = {name for name in node.get("required") or [] if isinstance(name, str)}
-            required = explicit_required(docs, file_name, node)
-            for label, is_own_additional, declared, patterns in closures:
-                for name in sorted(required):
-                    if name in declared or _pattern_allows(patterns, name):
-                        continue
-                    if is_own_additional and name in own_required:
-                        # check_closed_object_required_declared already owns this shape.
-                        continue
-                    key = (json_path, name, label)
-                    if key in reported:
-                        continue
-                    reported.add(key)
-                    lint.fail(
-                        path,
-                        f"{json_path} requires {name!r} through an overlay, but closed base {label} "
-                        "never declares it; the branch or overlay can match no instance",
-                    )
+        for json_path, name, label in overlay_closure_violations(docs, file_name):
+            lint.fail(
+                path,
+                f"{json_path} requires {name!r} through an overlay, but closed base {label} "
+                "never declares it; the branch or overlay can match no instance",
+            )

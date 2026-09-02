@@ -1,12 +1,21 @@
 {
-  "version": "2026-09-02.1",
+  "version": "2026-09-03.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T21:40:00+08:00",
+  "generated_at": "2026-09-03T06:00:06+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
     "lock_id_pattern": "^ak\\.lock\\.derived_wire_field_removal\\.[a-z0-9_]+\\.v1$",
-    "row_keys": ["lock_id", "ruling", "schema", "path", "removed", "source", "derivation", "spec_anchor"],
+    "row_keys": [
+      "lock_id",
+      "ruling",
+      "schema",
+      "path",
+      "removed",
+      "source",
+      "derivation",
+      "spec_anchor"
+    ],
     "path_rule": "path is the JSON Pointer (without the leading #) of the schema object that owned the removed member: empty string for the file root, otherwise /$defs/<name>[/properties/<member>|/items|/oneOf/<index>...]. It MUST resolve to a schema object.",
     "removed_rule": "removed names one member. The member MUST be absent from the resolved object's properties and required, and from the properties and required of every allOf, oneOf, anyOf, if, then and else branch that overlays the same object; nested property subschemas are not searched.",
     "source_rule": "source names the member whose bytes the deleted value is recomputed from. source.field is required; source.schema and source.path default to the row's own schema and path and MAY point at another object (for example the Event envelope root when a payload member was a projection of envelope.actor_id). The source member MUST remain declared in that object's explicit property set. When the ruling replaced the deleted member with a new one (E5 winner_index), the replacement is the source and the lock is red until the replacement lands.",
@@ -17,222 +26,16 @@
   },
   "removals": [
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.circle_view_member_count.v1",
-      "ruling": "2026-09-02-1951 A1",
-      "schema": "schemas/circle-operations.schema.json",
-      "path": "/$defs/circle_view",
-      "removed": "member_count",
-      "source": {"field": "member_ids"},
-      "derivation": "member_count := len(member_ids)",
-      "spec_anchor": "spec/v1/zh/models/circle.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.client_step_attestation_attestation_digest.v1",
-      "ruling": "2026-09-02-1951 A2",
-      "schema": "schemas/security-transaction.schema.json",
-      "path": "/$defs/client_step_attestation",
-      "removed": "attestation_digest",
-      "source": {"field": "artifact"},
-      "derivation": "transcript member attestation_digest := SHA-256(JCS(artifact)), recomputed by the verifier; not carried on the wire",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.applet_revoke_preview_outcome_revoke_plan_digest.v1",
-      "ruling": "2026-09-02-1951 A3",
-      "schema": "schemas/applet-install-operations.schema.json",
-      "path": "/$defs/applet_revoke_preview_outcome",
-      "removed": "revoke_plan_digest",
-      "source": {"field": "revoke_plan"},
-      "derivation": "revoke_plan_digest := sha256(JCS(revoke_plan)); the caller recomputes it for the commit CAS field",
-      "spec_anchor": "spec/v1/zh/extensions/applet-integration.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.agent_lifecycle_witness_status.v1",
-      "ruling": "2026-09-02-1951 A4",
-      "schema": "schemas/agent-signer-evidence.schema.json",
-      "path": "/$defs/agent_lifecycle_witness",
-      "removed": "status",
-      "source": {"field": "cell_value"},
-      "derivation": "status := cell_value (the Merkle leaf preimage member); provenance.kind pins cell_value alone",
-      "spec_anchor": "spec/v1/zh/identity/key-management.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_absolute_due_at.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
-      "removed": "absolute_due_at",
-      "source": {"field": "control_proposal_ack"},
-      "derivation": "absolute_due_at := control_proposal_ack.absolute_due_at",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_defer_count.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
-      "removed": "defer_count",
-      "source": {"field": "decisions"},
-      "derivation": "defer_count := len(decisions) once decisions is tightened to signed_defer",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_current_decision_due_at.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
-      "removed": "current_decision_due_at",
-      "source": {"field": "decisions"},
-      "derivation": "current_decision_due_at := decisions[-1].decision_due_at, or control_proposal_ack.decision_due_at when decisions is empty",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_proposal_digest.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
-      "removed": "proposal_digest",
-      "source": {"field": "control_proposal_ack"},
-      "derivation": "proposal_digest := control_proposal_ack.proposal_digest; the array sort key reads the embedded ack",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_retained_proposal_digest.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/retained_faults/items",
-      "removed": "proposal_digest",
-      "source": {"field": "control_proposal_ack"},
-      "derivation": "proposal_digest := control_proposal_ack.proposal_digest; the array sort key reads the embedded ack",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.webvh_method_history_evidence_adapter_version.v1",
-      "ruling": "2026-09-02-1951 A8",
-      "schema": "schemas/identity-resolution.schema.json",
-      "path": "/$defs/webvh_method_history_evidence",
-      "removed": "adapter_version",
-      "source": {"field": "evidence_kind"},
-      "derivation": "adapter_version := did-method-adapter-registry row keyed by method_evidence_kind = evidence_kind",
-      "spec_anchor": "spec/v1/zh/identity/identity-did.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.did_web_method_history_evidence_adapter_version.v1",
-      "ruling": "2026-09-02-1951 A8",
-      "schema": "schemas/identity-resolution.schema.json",
-      "path": "/$defs/did_web_method_history_evidence",
-      "removed": "adapter_version",
-      "source": {"field": "evidence_kind"},
-      "derivation": "adapter_version := did-method-adapter-registry row keyed by method_evidence_kind = evidence_kind",
-      "spec_anchor": "spec/v1/zh/identity/identity-did.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.did_key_method_history_evidence_adapter_version.v1",
-      "ruling": "2026-09-02-1951 A8",
-      "schema": "schemas/identity-resolution.schema.json",
-      "path": "/$defs/did_key_method_history_evidence",
-      "removed": "adapter_version",
-      "source": {"field": "evidence_kind"},
-      "derivation": "adapter_version := did-method-adapter-registry row keyed by method_evidence_kind = evidence_kind",
-      "spec_anchor": "spec/v1/zh/identity/identity-did.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.handle_claim_status_view_claim_digest.v1",
-      "ruling": "2026-09-02-2003 H1",
-      "schema": "schemas/handle-claim.schema.json",
-      "path": "/$defs/handle_claim_status_view",
-      "removed": "claim_digest",
-      "source": {"field": "claim"},
-      "derivation": "claim_digest := sha256(utf8(\"ak.handle_claim_proof.v1\\n\") || JCS(claim without proofs))",
-      "spec_anchor": "spec/v1/zh/identity/identity-handles.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.handle_claim_status_view_revocation_digest.v1",
-      "ruling": "2026-09-02-2003 H3",
-      "schema": "schemas/handle-claim.schema.json",
-      "path": "/$defs/handle_claim_status_view",
-      "removed": "revocation_digest",
-      "source": {"field": "revocation"},
-      "derivation": "revocation_digest := sha256(utf8(\"ak.handle_claim_revocation.v1\\n\") || JCS({schema, claim_digest, revoked_at, revoker})) recomputed from the complete revocation on the revoked branch",
-      "spec_anchor": "spec/v1/zh/identity/identity-handles.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.security_transaction_coordinator_id.v1",
-      "ruling": "2026-09-02-2004 S1",
-      "schema": "schemas/security-transaction.schema.json",
-      "path": "",
-      "removed": "coordinator_id",
-      "source": {"field": "account_id"},
-      "derivation": "coordinator_id := account_id.station_id",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.recovery_completion_attestation_coordinator_id.v1",
-      "ruling": "2026-09-02-2004 S2",
-      "schema": "schemas/recovery-authority.schema.json",
-      "path": "/$defs/recovery_completion_attestation",
-      "removed": "coordinator_id",
-      "source": {"field": "account_id"},
-      "derivation": "coordinator_id := account_id.station_id; also removed from the auth_data fixed signing projection",
-      "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.current_signer_evidence_response_core_verifier_id.v1",
-      "ruling": "2026-09-02-2004 S3",
-      "schema": "schemas/current-signer-evidence-operations.schema.json",
-      "path": "/$defs/response_core",
-      "removed": "verifier_id",
-      "source": {"field": "recipient_account_id"},
-      "derivation": "verifier_id := recipient_account_id.station_id (= the peer request Source-Service-ID)",
-      "spec_anchor": "spec/v1/zh/sync/service-http-binding.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.agent_pause_payload_agent_id.v1",
-      "ruling": "2026-09-02-2004 agent lifecycle",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/agent_pause_payload",
-      "removed": "agent_id",
-      "source": {"schema": "schemas/event-envelope.schema.json", "path": "", "field": "actor_id"},
-      "derivation": "agent principal := envelope.actor_id.account_id.principal_id",
-      "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.agent_pause_payload_controller_id.v1",
-      "ruling": "2026-09-02-2004 agent lifecycle",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/agent_pause_payload",
-      "removed": "controller_id",
-      "source": {"schema": "schemas/event-envelope.schema.json", "path": "", "field": "executed_by"},
-      "derivation": "controller principal := envelope.executed_by.account_id.principal_id; executed_by is mandatory for this kind by event-kind-aware admission",
-      "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.agent_resume_payload_agent_id.v1",
-      "ruling": "2026-09-02-2004 agent lifecycle",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/agent_resume_payload",
-      "removed": "agent_id",
-      "source": {"schema": "schemas/event-envelope.schema.json", "path": "", "field": "actor_id"},
-      "derivation": "agent principal := envelope.actor_id.account_id.principal_id",
-      "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.agent_resume_payload_controller_id.v1",
-      "ruling": "2026-09-02-2004 agent lifecycle",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/agent_resume_payload",
-      "removed": "controller_id",
-      "source": {"schema": "schemas/event-envelope.schema.json", "path": "", "field": "executed_by"},
-      "derivation": "controller principal := envelope.executed_by.account_id.principal_id; executed_by is mandatory for this kind by event-kind-aware admission",
-      "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
-    },
-    {
       "lock_id": "ak.lock.derived_wire_field_removal.agent_deactivate_payload_agent_id.v1",
       "ruling": "2026-09-02-2004 agent lifecycle",
       "schema": "schemas/event-payload.schema.json",
       "path": "/$defs/agent_deactivate_payload",
       "removed": "agent_id",
-      "source": {"schema": "schemas/event-envelope.schema.json", "path": "", "field": "actor_id"},
+      "source": {
+        "schema": "schemas/event-envelope.schema.json",
+        "path": "",
+        "field": "actor_id"
+      },
       "derivation": "agent principal := envelope.actor_id.account_id.principal_id",
       "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
     },
@@ -242,69 +45,351 @@
       "schema": "schemas/event-payload.schema.json",
       "path": "/$defs/agent_deactivate_payload",
       "removed": "controller_id",
-      "source": {"schema": "schemas/event-envelope.schema.json", "path": "", "field": "executed_by"},
+      "source": {
+        "schema": "schemas/event-envelope.schema.json",
+        "path": "",
+        "field": "executed_by"
+      },
       "derivation": "controller principal := envelope.executed_by.account_id.principal_id; executed_by is mandatory for this kind by event-kind-aware admission",
       "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_reporter_id.v1",
-      "ruling": "2026-09-02-2005",
-      "schema": "schemas/mimi-operations.schema.json",
-      "path": "/$defs/mimi_report_abuse_request_body",
-      "removed": "reporter_id",
-      "source": {"field": "reporter_authority"},
-      "derivation": "reporter_id := reporter_authority.actor_id.signing_principal_id, cross-checked against report_event.event.actor_id",
-      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.agent_lifecycle_witness_status.v1",
+      "ruling": "2026-09-02-1951 A4",
+      "schema": "schemas/agent-signer-evidence.schema.json",
+      "path": "/$defs/agent_lifecycle_witness",
+      "removed": "status",
+      "source": {
+        "field": "cell_value"
+      },
+      "derivation": "status := cell_value (the Merkle leaf preimage member); provenance.kind pins cell_value alone",
+      "spec_anchor": "spec/v1/zh/identity/key-management.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_source_provider_id.v1",
-      "ruling": "2026-09-02-2005",
-      "schema": "schemas/mimi-operations.schema.json",
-      "path": "/$defs/mimi_report_abuse_request_body",
-      "removed": "source_provider_id",
-      "source": {"field": "report_event"},
-      "derivation": "provider := authenticated transport Provider-ID; report_event.event.payload.source_provider_id MUST equal it",
-      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.agent_pause_payload_agent_id.v1",
+      "ruling": "2026-09-02-2004 agent lifecycle",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/agent_pause_payload",
+      "removed": "agent_id",
+      "source": {
+        "schema": "schemas/event-envelope.schema.json",
+        "path": "",
+        "field": "actor_id"
+      },
+      "derivation": "agent principal := envelope.actor_id.account_id.principal_id",
+      "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_realm_id.v1",
-      "ruling": "2026-09-02-2005",
-      "schema": "schemas/mimi-operations.schema.json",
-      "path": "/$defs/mimi_report_abuse_request_body",
-      "removed": "realm_id",
-      "source": {"field": "report_event"},
-      "derivation": "realm_id := report_event.event.realm_id",
-      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.agent_pause_payload_controller_id.v1",
+      "ruling": "2026-09-02-2004 agent lifecycle",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/agent_pause_payload",
+      "removed": "controller_id",
+      "source": {
+        "schema": "schemas/event-envelope.schema.json",
+        "path": "",
+        "field": "executed_by"
+      },
+      "derivation": "controller principal := envelope.executed_by.account_id.principal_id; executed_by is mandatory for this kind by event-kind-aware admission",
+      "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_strand_id.v1",
-      "ruling": "2026-09-02-2005",
-      "schema": "schemas/mimi-operations.schema.json",
-      "path": "/$defs/mimi_report_abuse_request_body",
-      "removed": "strand_id",
-      "source": {"field": "report_event"},
-      "derivation": "strand_id := report_event.event.payload strand scope",
-      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.agent_resume_payload_agent_id.v1",
+      "ruling": "2026-09-02-2004 agent lifecycle",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/agent_resume_payload",
+      "removed": "agent_id",
+      "source": {
+        "schema": "schemas/event-envelope.schema.json",
+        "path": "",
+        "field": "actor_id"
+      },
+      "derivation": "agent principal := envelope.actor_id.account_id.principal_id",
+      "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_mimi_room_uri.v1",
-      "ruling": "2026-09-02-2005",
-      "schema": "schemas/mimi-operations.schema.json",
-      "path": "/$defs/mimi_report_abuse_request_body",
-      "removed": "mimi_room_uri",
-      "source": {"field": "report_event"},
-      "derivation": "mimi_room_uri := report_event.event.payload MIMI provenance room",
-      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.agent_resume_payload_controller_id.v1",
+      "ruling": "2026-09-02-2004 agent lifecycle",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/agent_resume_payload",
+      "removed": "controller_id",
+      "source": {
+        "schema": "schemas/event-envelope.schema.json",
+        "path": "",
+        "field": "executed_by"
+      },
+      "derivation": "controller principal := envelope.executed_by.account_id.principal_id; executed_by is mandatory for this kind by event-kind-aware admission",
+      "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_target_ref.v1",
-      "ruling": "2026-09-02-2005",
-      "schema": "schemas/mimi-operations.schema.json",
-      "path": "/$defs/mimi_report_abuse_request_body",
-      "removed": "target_ref",
-      "source": {"field": "report_event"},
-      "derivation": "target_ref := report_event.event.payload target",
-      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.applet_revoke_preview_outcome_revoke_plan_digest.v1",
+      "ruling": "2026-09-02-1951 A3",
+      "schema": "schemas/applet-install-operations.schema.json",
+      "path": "/$defs/applet_revoke_preview_outcome",
+      "removed": "revoke_plan_digest",
+      "source": {
+        "field": "revoke_plan"
+      },
+      "derivation": "revoke_plan_digest := sha256(JCS(revoke_plan)); the caller recomputes it for the commit CAS field",
+      "spec_anchor": "spec/v1/zh/extensions/applet-integration.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.circle_view_member_count.v1",
+      "ruling": "2026-09-02-1951 A1",
+      "schema": "schemas/circle-operations.schema.json",
+      "path": "/$defs/circle_view",
+      "removed": "member_count",
+      "source": {
+        "field": "member_ids"
+      },
+      "derivation": "member_count := len(member_ids)",
+      "spec_anchor": "spec/v1/zh/models/circle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.client_step_attestation_attestation_digest.v1",
+      "ruling": "2026-09-02-1951 A2",
+      "schema": "schemas/security-transaction.schema.json",
+      "path": "/$defs/client_step_attestation",
+      "removed": "attestation_digest",
+      "source": {
+        "field": "artifact"
+      },
+      "derivation": "transcript member attestation_digest := SHA-256(JCS(artifact)), recomputed by the verifier; not carried on the wire",
+      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_absolute_due_at.v1",
+      "ruling": "2026-09-02-1951 A5",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
+      "removed": "absolute_due_at",
+      "source": {
+        "field": "control_proposal_ack"
+      },
+      "derivation": "absolute_due_at := control_proposal_ack.absolute_due_at",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_current_decision_due_at.v1",
+      "ruling": "2026-09-02-1951 A5",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
+      "removed": "current_decision_due_at",
+      "source": {
+        "field": "decisions"
+      },
+      "derivation": "current_decision_due_at := decisions[-1].decision_due_at, or control_proposal_ack.decision_due_at when decisions is empty",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_defer_count.v1",
+      "ruling": "2026-09-02-1951 A5",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
+      "removed": "defer_count",
+      "source": {
+        "field": "decisions"
+      },
+      "derivation": "defer_count := len(decisions) once decisions is tightened to signed_defer",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_proposal_digest.v1",
+      "ruling": "2026-09-02-1951 A5",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
+      "removed": "proposal_digest",
+      "source": {
+        "field": "control_proposal_ack"
+      },
+      "derivation": "proposal_digest := control_proposal_ack.proposal_digest; the array sort key reads the embedded ack",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_retained_proposal_digest.v1",
+      "ruling": "2026-09-02-1951 A5",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/ControlGovernanceHealth/properties/retained_faults/items",
+      "removed": "proposal_digest",
+      "source": {
+        "field": "control_proposal_ack"
+      },
+      "derivation": "proposal_digest := control_proposal_ack.proposal_digest; the array sort key reads the embedded ack",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.current_signer_evidence_response_core_verifier_id.v1",
+      "ruling": "2026-09-02-2004 S3",
+      "schema": "schemas/current-signer-evidence-operations.schema.json",
+      "path": "/$defs/response_core",
+      "removed": "verifier_id",
+      "source": {
+        "field": "recipient_account_id"
+      },
+      "derivation": "verifier_id := recipient_account_id.station_id (= the peer request Source-Service-ID)",
+      "spec_anchor": "spec/v1/zh/sync/service-http-binding.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.did_key_method_history_evidence_adapter_version.v1",
+      "ruling": "2026-09-02-1951 A8",
+      "schema": "schemas/identity-resolution.schema.json",
+      "path": "/$defs/did_key_method_history_evidence",
+      "removed": "adapter_version",
+      "source": {
+        "field": "evidence_kind"
+      },
+      "derivation": "adapter_version := did-method-adapter-registry row keyed by method_evidence_kind = evidence_kind",
+      "spec_anchor": "spec/v1/zh/identity/identity-did.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.did_web_method_history_evidence_adapter_version.v1",
+      "ruling": "2026-09-02-1951 A8",
+      "schema": "schemas/identity-resolution.schema.json",
+      "path": "/$defs/did_web_method_history_evidence",
+      "removed": "adapter_version",
+      "source": {
+        "field": "evidence_kind"
+      },
+      "derivation": "adapter_version := did-method-adapter-registry row keyed by method_evidence_kind = evidence_kind",
+      "spec_anchor": "spec/v1/zh/identity/identity-did.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_created_at.v1",
+      "ruling": "2026-09-02-1952 §1",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
+      "removed": "created_at",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/EventsFrontierFederationPeerState",
+        "field": "observed_at"
+      },
+      "derivation": "created_at := observed_at; the freshness window is judged on observed_at",
+      "spec_anchor": "spec/v1/zh/sync/federation.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_payload_digest.v1",
+      "ruling": "2026-09-02-1952 §1",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
+      "removed": "payload_digest",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/EventsFrontierFederationPeerState",
+        "field": "frontier_root"
+      },
+      "derivation": "payload_digest := SHA-256(JCS(nine-field transcript rebuilt from the outer response))",
+      "spec_anchor": "spec/v1/zh/sync/federation.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_scheme.v1",
+      "ruling": "2026-09-02-1952 §1",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
+      "removed": "scheme",
+      "source": {
+        "field": "jws"
+      },
+      "derivation": "scheme := ed25519-detached-jws; the protected header alg is the only algorithm source",
+      "spec_anchor": "spec/v1/zh/sync/federation.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_signed_payload.v1",
+      "ruling": "2026-09-02-1952 §1",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
+      "removed": "signed_payload",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/EventsFrontierFederationPeerState",
+        "field": "frontier_root"
+      },
+      "derivation": "signed_payload := the nine-field transcript rebuilt from the outer response; diagnostics are printed locally, never mirrored on the wire",
+      "spec_anchor": "spec/v1/zh/sync/federation.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_typ.v1",
+      "ruling": "2026-09-02-1952 §1",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
+      "removed": "typ",
+      "source": {
+        "field": "jws"
+      },
+      "derivation": "typ := the registered domain ak.events.frontier.signature.v1 (x-arkret-signature-domain); constant, never on the wire",
+      "spec_anchor": "spec/v1/zh/sync/federation.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.file_transfer_key_envelope_aad_digest.v1",
+      "ruling": "2026-09-02-1953 §2.2",
+      "schema": "schemas/file-transfer.schema.json",
+      "path": "/$defs/key_envelope",
+      "removed": "aad_digest",
+      "source": {
+        "field": "scheme"
+      },
+      "derivation": "AAD := the unique projection written into zh/models/file-transfer.md in the same change (record members plus the envelope header); the digest is recomputed locally",
+      "spec_anchor": "spec/v1/zh/models/file-transfer.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.fork_resolution_collision_winner_verdict_winner_preimage.v1",
+      "ruling": "2026-09-02-2001 E5",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/fork_resolution_collision_winner_verdict",
+      "removed": "winner_preimage",
+      "source": {
+        "field": "winner_index"
+      },
+      "derivation": "winner := conflict_evidence.variants[winner_index], winner_index in {0, 1}; no third copy of the canonical bytes",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.founding_device_descriptor_device_key_digest.v1",
+      "ruling": "2026-09-02-1955",
+      "schema": "schemas/realm-genesis.schema.json",
+      "path": "/$defs/founding_device_descriptor",
+      "removed": "device_key_digest",
+      "source": {
+        "field": "device_public_key_did"
+      },
+      "derivation": "device_key_digest := SHA-256(UTF-8(device_public_key_did without its did:key: prefix))",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.founding_device_descriptor_hpke_key_digest.v1",
+      "ruling": "2026-09-02-1955",
+      "schema": "schemas/realm-genesis.schema.json",
+      "path": "/$defs/founding_device_descriptor",
+      "removed": "hpke_key_digest",
+      "source": {
+        "field": "hpke_key"
+      },
+      "derivation": "hpke_key_digest := SHA-256(UTF-8(hpke_key as carried, the canonical z6LS multikey))",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.handle_claim_status_view_claim_digest.v1",
+      "ruling": "2026-09-02-2003 H1",
+      "schema": "schemas/handle-claim.schema.json",
+      "path": "/$defs/handle_claim_status_view",
+      "removed": "claim_digest",
+      "source": {
+        "field": "claim"
+      },
+      "derivation": "claim_digest := sha256(utf8(\"ak.handle_claim_proof.v1\\n\") || JCS(claim without proofs))",
+      "spec_anchor": "spec/v1/zh/identity/identity-handles.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.handle_claim_status_view_revocation_digest.v1",
+      "ruling": "2026-09-02-2003 H3",
+      "schema": "schemas/handle-claim.schema.json",
+      "path": "/$defs/handle_claim_status_view",
+      "removed": "revocation_digest",
+      "source": {
+        "field": "revocation"
+      },
+      "derivation": "revocation_digest := sha256(utf8(\"ak.handle_claim_revocation.v1\\n\") || JCS({schema, claim_digest, revoked_at, revoker})) recomputed from the complete revocation on the revoked branch",
+      "spec_anchor": "spec/v1/zh/identity/identity-handles.md"
     },
     {
       "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_abuse_reason_code.v1",
@@ -312,7 +397,9 @@
       "schema": "schemas/mimi-operations.schema.json",
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "abuse_reason_code",
-      "source": {"field": "report_event"},
+      "source": {
+        "field": "report_event"
+      },
       "derivation": "abuse_reason_code := report_event.event.payload reason",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
@@ -322,7 +409,9 @@
       "schema": "schemas/mimi-operations.schema.json",
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "description",
-      "source": {"field": "report_event"},
+      "source": {
+        "field": "report_event"
+      },
       "derivation": "description := report_event.event.payload description",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
@@ -332,7 +421,9 @@
       "schema": "schemas/mimi-operations.schema.json",
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "evidence_package",
-      "source": {"field": "report_event"},
+      "source": {
+        "field": "report_event"
+      },
       "derivation": "evidence_package := report_event.event.payload evidence",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
@@ -342,79 +433,107 @@
       "schema": "schemas/mimi-operations.schema.json",
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "franking_proof",
-      "source": {"field": "report_event"},
+      "source": {
+        "field": "report_event"
+      },
       "derivation": "franking_proof := report_event.event.payload franking evidence",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.fork_resolution_collision_winner_verdict_winner_preimage.v1",
-      "ruling": "2026-09-02-2001 E5",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/fork_resolution_collision_winner_verdict",
-      "removed": "winner_preimage",
-      "source": {"field": "winner_index"},
-      "derivation": "winner := conflict_evidence.variants[winner_index], winner_index in {0, 1}; no third copy of the canonical bytes",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_mimi_room_uri.v1",
+      "ruling": "2026-09-02-2005",
+      "schema": "schemas/mimi-operations.schema.json",
+      "path": "/$defs/mimi_report_abuse_request_body",
+      "removed": "mimi_room_uri",
+      "source": {
+        "field": "report_event"
+      },
+      "derivation": "mimi_room_uri := report_event.event.payload MIMI provenance room",
+      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_typ.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "typ",
-      "source": {"field": "jws"},
-      "derivation": "typ := the registered domain ak.events.frontier.signature.v1 (x-arkret-signature-domain); constant, never on the wire",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_realm_id.v1",
+      "ruling": "2026-09-02-2005",
+      "schema": "schemas/mimi-operations.schema.json",
+      "path": "/$defs/mimi_report_abuse_request_body",
+      "removed": "realm_id",
+      "source": {
+        "field": "report_event"
+      },
+      "derivation": "realm_id := report_event.event.realm_id",
+      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_scheme.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "scheme",
-      "source": {"field": "jws"},
-      "derivation": "scheme := ed25519-detached-jws; the protected header alg is the only algorithm source",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_reporter_id.v1",
+      "ruling": "2026-09-02-2005",
+      "schema": "schemas/mimi-operations.schema.json",
+      "path": "/$defs/mimi_report_abuse_request_body",
+      "removed": "reporter_id",
+      "source": {
+        "field": "reporter_authority"
+      },
+      "derivation": "reporter_id := reporter_authority.actor_id.signing_principal_id, cross-checked against report_event.event.actor_id",
+      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_payload_digest.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "payload_digest",
-      "source": {"schema": "schemas/service-operation-dtos.schema.json", "path": "/$defs/EventsFrontierFederationPeerState", "field": "frontier_root"},
-      "derivation": "payload_digest := SHA-256(JCS(nine-field transcript rebuilt from the outer response))",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_source_provider_id.v1",
+      "ruling": "2026-09-02-2005",
+      "schema": "schemas/mimi-operations.schema.json",
+      "path": "/$defs/mimi_report_abuse_request_body",
+      "removed": "source_provider_id",
+      "source": {
+        "field": "report_event"
+      },
+      "derivation": "provider := authenticated transport Provider-ID; report_event.event.payload.source_provider_id MUST equal it",
+      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_created_at.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "created_at",
-      "source": {"schema": "schemas/service-operation-dtos.schema.json", "path": "/$defs/EventsFrontierFederationPeerState", "field": "observed_at"},
-      "derivation": "created_at := observed_at; the freshness window is judged on observed_at",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_strand_id.v1",
+      "ruling": "2026-09-02-2005",
+      "schema": "schemas/mimi-operations.schema.json",
+      "path": "/$defs/mimi_report_abuse_request_body",
+      "removed": "strand_id",
+      "source": {
+        "field": "report_event"
+      },
+      "derivation": "strand_id := report_event.event.payload strand scope",
+      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_signed_payload.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "signed_payload",
-      "source": {"schema": "schemas/service-operation-dtos.schema.json", "path": "/$defs/EventsFrontierFederationPeerState", "field": "frontier_root"},
-      "derivation": "signed_payload := the nine-field transcript rebuilt from the outer response; diagnostics are printed locally, never mirrored on the wire",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_target_ref.v1",
+      "ruling": "2026-09-02-2005",
+      "schema": "schemas/mimi-operations.schema.json",
+      "path": "/$defs/mimi_report_abuse_request_body",
+      "removed": "target_ref",
+      "source": {
+        "field": "report_event"
+      },
+      "derivation": "target_ref := report_event.event.payload target",
+      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.signal_proof_created_at.v1",
-      "ruling": "2026-09-02-1952 §2",
-      "schema": "schemas/signal-envelope.schema.json",
-      "path": "/$defs/signal_proof",
-      "removed": "created_at",
-      "source": {"schema": "schemas/signal-envelope.schema.json", "path": "", "field": "sent_at"},
-      "derivation": "transcript member created_at := outer sent_at",
-      "spec_anchor": "spec/v1/zh/sync/signal.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.recovery_completion_attestation_coordinator_id.v1",
+      "ruling": "2026-09-02-2004 S2",
+      "schema": "schemas/recovery-authority.schema.json",
+      "path": "/$defs/recovery_completion_attestation",
+      "removed": "coordinator_id",
+      "source": {
+        "field": "account_id"
+      },
+      "derivation": "coordinator_id := account_id.station_id; also removed from the auth_data fixed signing projection",
+      "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.security_transaction_coordinator_id.v1",
+      "ruling": "2026-09-02-2004 S1",
+      "schema": "schemas/security-transaction.schema.json",
+      "path": "",
+      "removed": "coordinator_id",
+      "source": {
+        "field": "account_id"
+      },
+      "derivation": "coordinator_id := account_id.station_id",
+      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
     },
     {
       "lock_id": "ak.lock.derived_wire_field_removal.signal_encrypted_payload_aad_digest.v1",
@@ -422,7 +541,9 @@
       "schema": "schemas/signal-envelope.schema.json",
       "path": "/properties/encrypted_payload",
       "removed": "aad_digest",
-      "source": {"field": "nonce"},
+      "source": {
+        "field": "nonce"
+      },
       "derivation": "AAD := JCS(closed pre-encryption header projected from the envelope top level, key_ref, epoch and the counter recovered from nonce); its digest is a keyless local recomputation and never travels",
       "spec_anchor": "spec/v1/zh/sync/signal.md"
     },
@@ -432,19 +553,37 @@
       "schema": "schemas/signal-envelope.schema.json",
       "path": "/properties/encrypted_payload/properties/key_ref",
       "removed": "algorithm",
-      "source": {"field": "group_state_ref"},
+      "source": {
+        "field": "group_state_ref"
+      },
       "derivation": "algorithm := MLS-EXPORTER-AEAD fixed by the group state at group_state_ref and aead_profile",
       "spec_anchor": "spec/v1/zh/sync/signal.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.file_transfer_key_envelope_aad_digest.v1",
-      "ruling": "2026-09-02-1953 §2.2",
-      "schema": "schemas/file-transfer.schema.json",
-      "path": "/$defs/key_envelope",
-      "removed": "aad_digest",
-      "source": {"field": "scheme"},
-      "derivation": "AAD := the unique projection written into zh/models/file-transfer.md in the same change (record members plus the envelope header); the digest is recomputed locally",
-      "spec_anchor": "spec/v1/zh/models/file-transfer.md"
+      "lock_id": "ak.lock.derived_wire_field_removal.signal_proof_created_at.v1",
+      "ruling": "2026-09-02-1952 §2",
+      "schema": "schemas/signal-envelope.schema.json",
+      "path": "/$defs/signal_proof",
+      "removed": "created_at",
+      "source": {
+        "schema": "schemas/signal-envelope.schema.json",
+        "path": "",
+        "field": "sent_at"
+      },
+      "derivation": "transcript member created_at := outer sent_at",
+      "spec_anchor": "spec/v1/zh/sync/signal.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.webvh_method_history_evidence_adapter_version.v1",
+      "ruling": "2026-09-02-1951 A8",
+      "schema": "schemas/identity-resolution.schema.json",
+      "path": "/$defs/webvh_method_history_evidence",
+      "removed": "adapter_version",
+      "source": {
+        "field": "evidence_kind"
+      },
+      "derivation": "adapter_version := did-method-adapter-registry row keyed by method_evidence_kind = evidence_kind",
+      "spec_anchor": "spec/v1/zh/identity/identity-did.md"
     }
   ]
 }

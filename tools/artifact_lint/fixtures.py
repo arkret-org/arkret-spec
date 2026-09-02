@@ -49,6 +49,11 @@ from .core import (
     walk_json,
 )
 
+from .schemas import CONTENT_ADDRESSED_REF_MIRROR_REMOVALS
+
+CONTENT_ADDRESSED_TYPED_REF_RE = re.compile(r"ak:[a-z_]+:(?:sha256|blake3):[0-9a-f]{64}")
+NEGATIVE_BRANCH_KEY_TOKENS = ("negative", "invalid", "malformed", "rejected", "tampered")
+
 try:
     from cryptography.exceptions import InvalidSignature, InvalidTag
     from cryptography.hazmat.primitives import serialization
@@ -1975,6 +1980,81 @@ def check_declared_schema_fixture_instances(lint: Lint) -> None:
         data = load_json(lint, path)
         if data is not None:
             visit(path, data, "")
+
+
+def content_addressed_sibling_digest_violations(
+    data: Any,
+    removals: Iterable[tuple[str, tuple[Any, ...], str, str]] = CONTENT_ADDRESSED_REF_MIRROR_REMOVALS,
+) -> list[tuple[str, str, str]]:
+    """Every `(pointer, ref_field, sibling_digest_field)` this instance violates.
+
+    Split out from the lint entry point so the decision is testable on its own:
+    the walk has to reason about JSON-string-embedded records and about negative
+    branches, and neither is verifiable through a check that only reads the real
+    artifact tree.
+    """
+
+    pairs: dict[str, set[str]] = {}
+    for _file_name, _path, id_field, digest_field in removals:
+        pairs.setdefault(id_field, set()).add(digest_field)
+
+    violations: list[tuple[str, str, str]] = []
+
+    def visit(value: Any, pointer: str, negative: bool) -> None:
+        if isinstance(value, dict):
+            local_negative = negative or value.get("expect_valid") is False
+            if not local_negative:
+                for id_field, digest_fields in pairs.items():
+                    ref = value.get(id_field)
+                    if not isinstance(ref, str) or not CONTENT_ADDRESSED_TYPED_REF_RE.fullmatch(ref):
+                        continue
+                    for digest_field in sorted(digest_fields):
+                        if digest_field in value:
+                            violations.append((pointer, id_field, digest_field))
+            for key, child in value.items():
+                key_negative = local_negative or any(
+                    token in key.lower() for token in NEGATIVE_BRANCH_KEY_TOKENS
+                )
+                visit(child, f"{pointer}/{key}", key_negative)
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                visit(child, f"{pointer}/{index}", negative)
+        elif isinstance(value, str) and pointer.rsplit("/", 1)[-1].endswith("_json"):
+            try:
+                decoded = json.loads(value)
+            except ValueError:
+                return
+            visit(decoded, f"{pointer}(decoded)", negative)
+
+    visit(data, "", False)
+    return violations
+
+
+def check_fixture_content_addressed_sibling_digests(lint: Lint) -> None:
+    """`encoding.md` 4.0.1 on fixture instances, not just on schemas.
+
+    ``check_content_addressed_ref_mirror_removals`` proves each registered sibling
+    digest is gone from its schema.  That leaves fixtures unguarded wherever a
+    record is not schema-validated in place -- a record carried as an embedded
+    JSON *string* is opaque to both the schema walk and ``additionalProperties``,
+    so it can keep shipping a sibling the schema deleted.
+
+    A violation is claimed only when the ref field actually holds a complete
+    content-addressed typed ref.  A union-shaped ref holding a UUID branch carries
+    no digest, so its neighbour is not a mirror and is not judged here.
+    """
+
+    for path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        data = load_json(lint, path)
+        if data is None:
+            continue
+        for pointer, id_field, digest_field in content_addressed_sibling_digest_violations(data):
+            lint.fail(
+                path,
+                f"{pointer or '/'}: {digest_field} mirrors the complete "
+                f"content-addressed {id_field}; 4.0.1 leaves the ref as the "
+                "sole digest source",
+            )
 
 
 def check_cba_seal_canonical_fixture(lint: Lint) -> None:

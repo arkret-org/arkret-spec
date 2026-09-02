@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-02.2",
+  "version": "2026-09-03.1",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -4312,6 +4312,51 @@
         },
         "completed_at": "2026-08-02T00:10:00.000Z"
       }
+    },
+    {
+      "name": "erasure_verification_stub_event_digest_on_event_subject_valid",
+      "schema_ref": "schemas/erasure-verification-stub.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "stub_schema": "ak.schema.erasure_verification_stub.v1",
+        "subject": {
+          "kind": "event",
+          "subject_ref": "ak:event:AUPhm9XGSn2ah7YYExswNu0yaccqupAufE2bFvqEoD5N"
+        },
+        "scope": {
+          "storage_boundary": "account_private_store"
+        },
+        "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000030",
+        "trigger": {
+          "kind": "account_status_record",
+          "account_status_record_id": "ak:account_status_record:AUPhm9XGSn2ah7YYExswNu0yaccqupAufE2bFvqEoD5N"
+        },
+        "completed_at": "2026-08-02T00:10:00.000Z",
+        "event_digest": "sha256:50f866bd5c64a7d9a1ed86131b3036edd320a72aeaa900b84dd9b16fa912a03d"
+      }
+    },
+    {
+      "name": "erasure_verification_stub_event_digest_on_non_event_subject_rejected",
+      "schema_ref": "schemas/erasure-verification-stub.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "stub_schema": "ak.schema.erasure_verification_stub.v1",
+        "subject": {
+          "kind": "principal",
+          "subject_ref": "ak:did_core:webvh:z6mkfixtureerasedaccountexample"
+        },
+        "scope": {
+          "storage_boundary": "account_private_store"
+        },
+        "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000030",
+        "trigger": {
+          "kind": "account_status_record",
+          "account_status_record_id": "ak:account_status_record:AUPhm9XGSn2ah7YYExswNu0yaccqupAufE2bFvqEoD5N"
+        },
+        "completed_at": "2026-08-02T00:10:00.000Z",
+        "event_digest": "sha256:50f866bd5c64a7d9a1ed86131b3036edd320a72aeaa900b84dd9b16fa912a03d"
+      },
+      "first_expected_error": "contains:event_digest"
     },
     {
       "name": "account_blocklist_actor_target_with_value_rejected",
