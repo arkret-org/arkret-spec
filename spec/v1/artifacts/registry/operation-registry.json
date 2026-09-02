@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.2",
+  "version": "2026-09-02.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T12:30:00+08:00",
+  "generated_at": "2026-09-02T13:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4184,6 +4184,7 @@
       "independent_gates": [
         "agent_runtime",
         "applet",
+        "device_pairing_handoff",
         "history_key_recovery",
         "mimi_interop",
         "push",
@@ -4755,6 +4756,27 @@
         },
         {
           "operation_id": "ak.self.agent.sidecar.resource.get.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.device_pairing_handoff.v1",
+      "service_kind": "station",
+      "deployment_evidence": [
+        "ak.deployment_prototype.soland_station.v1#device_pairing_handoff"
+      ],
+      "members": [
+        {
+          "operation_id": "ak.open.device_pairing.command.stage.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.open.device_pairing.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.open.device_pairing.read.status.v1",
           "binding_kind": "http_json"
         }
       ]

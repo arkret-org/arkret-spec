@@ -2426,8 +2426,8 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if canonical_members != sorted(set(canonical_members)):
             lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
 
-    if len(bundle_ids) != 34:
-        lint.fail(operation_path, f"operation_bundles must contain the 34 evidenced v1 bundles, got {len(bundle_ids)}")
+    if len(bundle_ids) != 35:
+        lint.fail(operation_path, f"operation_bundles must contain the 35 evidenced v1 bundles, got {len(bundle_ids)}")
     describe_pair = ("ak.server.read.describe.v1", "http_json")
     for service_kind in sorted(service_kinds):
         describe_bundle_id = f"ak.operation_bundle.{service_kind}.describe.v1"
@@ -2552,6 +2552,15 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         lint.fail(
             operation_path,
             "station.history_key_recovery must exactly project the complete history_key_recovery surface",
+        )
+
+    device_pairing_handoff = exact_http_members(
+        "ak.operation_bundle.station.device_pairing_handoff.v1"
+    )
+    if device_pairing_handoff != surface_operations.get("device_pairing_handoff", set()):
+        lint.fail(
+            operation_path,
+            "station.device_pairing_handoff must exactly project the complete device_pairing_handoff surface",
         )
 
     migration_path = ROOT / "tools" / "operation-id-v1-migration.json"
