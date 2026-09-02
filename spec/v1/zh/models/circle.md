@@ -58,6 +58,11 @@ Schema 的两个 closed branch 是：create branch 同时禁止 `id/mls_group_id
 时要求 derived `mls_group_id=base64url_no_pad(utf8(canonical CircleId))`。Plaintext、standard MLS、exporter MLS 的
 closed union 见 [`history-visibility.md`](../governance/history-visibility.md) §2。
 
+self-surface 的 `circle_view`（[`circle-operations.schema.json#/$defs/circle_view`](../../artifacts/schemas/circle-operations.schema.json)）
+不携 `member_count`：成员数由同载体 required 的 `member_ids.length` 派生，能拿到 `circle_view` 的 caller 自行计数；
+隐私阈由 `circle_view` 本身的可见性承担。directory-only preview 不携 `member_ids`，只能按
+[`discovery-directory.md` §3](../discovery/discovery-directory.md) 的 bucket 合同携 `member_count_bucket`。
+
 ## 4. `display` 字段(标准化视觉身份)
 
 跨客户端一致的 UI 表达是 Circle 安全模型的必要条件（见 §11 UX 论证）：
@@ -322,8 +327,8 @@ tombstone / destroy 时，即使 Circle canonical state 仍为 `active`，receiv
 > **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Station sync surface MUST NOT 向不属于 `C.members(at causal frontier of E)` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events，否则 ∅)。
 
 特例:
-- `ak.circle.create` 的 authorization shell 是 Realm-level event，但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、member_count、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ak.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；原生 Sidecar 的独立存在性隐私由 `ak.vector.sidecar.existence_privacy.v1` 覆盖。
-- `directory_visibility=realm_members` 时，属于父 Realm 但不属于该 Circle 的 caller 只能看到固定预览白名单：`circle_id`、`realm_id`、`visibility="realm_members"`、`display.color_token`、`display.symbol`、`member_count_bucket`、`join_rule` 与 `opaque_commitment`。不得向非 Circle 成员暴露 title、summary、raw member_count、成员 DID、created_by、join history 或 Circle 私有事件引用。非 Realm 成员与未授权 caller 必须收到与 `directory_visibility=members` 相同的 locked stub / not_found envelope 和 timing bucket。该要求由 `ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1` 覆盖。
+- `ak.circle.create` 的 authorization shell 是 Realm-level event，但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、`member_ids`、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ak.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；原生 Sidecar 的独立存在性隐私由 `ak.vector.sidecar.existence_privacy.v1` 覆盖。
+- `directory_visibility=realm_members` 时，属于父 Realm 但不属于该 Circle 的 caller 只能看到固定预览白名单：`circle_id`、`realm_id`、`visibility="realm_members"`、`display.color_token`、`display.symbol`、`member_count_bucket`、`join_rule` 与 `opaque_commitment`。不得向非 Circle 成员暴露 title、summary、`member_ids`、成员 DID、created_by、join history 或 Circle 私有事件引用。非 Realm 成员与未授权 caller 必须收到与 `directory_visibility=members` 相同的 locked stub / not_found envelope 和 timing bucket。该要求由 `ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1` 覆盖。
 - `ak.circle.member.state` 仅投递给该 Circle 的成员 + 完成 `ak.circle.audit` / `ak.audit.accessed` 配对的 audit reader。
 - `ak.circle.seal_commit` 是 Realm-level event，但只携带 opaque digest(见 §10)，且触发节奏不得泄露 Circle 活动频率。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.4",
+  "version": "2026-09-02.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T16:24:00+08:00",
+  "generated_at": "2026-09-02T23:25:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -903,10 +903,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.moderation_appeal.v1",
-      "file": "schemas/moderation-appeal.schema.json"
-    },
-    {
       "schema_id": "ak.schema.audit_release_attestation.v1",
       "file": "schemas/audit-release-attestation.schema.json",
       "consumer_binding": {
@@ -1428,7 +1424,7 @@
       "schema_id": "ak.schema.principal_operations.v1",
       "file": "schemas/principal-operations.schema.json",
       "status": "active",
-      "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, KeyPackage terminal handling, Sidecar staging and shared primitives.",
+      "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, Sidecar staging and shared primitives.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "registered principal-scoped operation DTO and proof carriers",

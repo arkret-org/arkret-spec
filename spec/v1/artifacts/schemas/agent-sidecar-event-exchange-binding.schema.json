@@ -184,8 +184,7 @@
         "source_track_ref",
         "source_hlc",
         "client_order_key",
-        "addressed_agent_ids",
-        "completion_policy"
+        "addressed_agent_ids"
       ],
       "properties": {
         "source_track_ref": {
@@ -225,10 +224,6 @@
           },
           "uniqueItems": true,
           "minItems": 1
-        },
-        "completion_policy": {
-          "const": "coordinator",
-          "description": "Closed v1 completion policy. Only the effective coordinator may ask the controller to close the exchange."
         },
         "coordinator_agent_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",

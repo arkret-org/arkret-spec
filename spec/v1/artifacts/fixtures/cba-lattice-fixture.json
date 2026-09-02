@@ -812,10 +812,7 @@
             },
             "verdict": {
               "kind": "canonical_winner",
-              "winner_preimage": {
-                "kind": "inline_canonical_bytes",
-                "canonical_event_bytes_b64u": "dmFyaWFudC1h"
-              }
+              "winner_index": 0
             }
           },
           "critical_ref_roles": [
@@ -850,11 +847,7 @@
             },
             "verdict": {
               "kind": "canonical_winner",
-              "winner_preimage": {
-                "kind": "collision_variant_record",
-                "collision_variant_record_id": "ak:collision_variant_record:01964140-0000-7000-8000-000000000000",
-                "collision_variant_record_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-              }
+              "winner_index": 0
             }
           },
           "critical_ref_roles": [

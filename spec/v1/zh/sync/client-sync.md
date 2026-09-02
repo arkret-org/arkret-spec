@@ -436,13 +436,11 @@ event_id ASC
             "source_refs": [],
             "proofs": ["issuer_attestation proof", "holder_acceptance proof"]
           },
-          "claim_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "status": "verified",
           "as_of": "2026-05-27T00:01:00.000Z",
           "verifier_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
           "verified_at": "2026-05-27T00:01:00.000Z",
           "revocation": null,
-          "revocation_digest": null,
           "fresh_until": "2026-05-27T00:06:00.000Z",
           "status_proof": "status_attestation proof"
         }
@@ -471,7 +469,7 @@ event_id ASC
 
 `handle_claim_digests[]` 是跨上下文稳定的 claim identifier；完整 `handle_claims[]` 又直接携带 `claim.subject_account_id`，`identity_events[]` 也可能披露 `MemberIdentity.subject_id`。因此，当 `subject_id` 因 Realm disclosure policy 未披露时，服务端 MUST 同时省略 `identity_events`、`handle_claim_digests`、`handle_claims` 和 `handle_claims_limited`，不得把 digest hint 或原始 identity event 当作隐私安全的替代披露。返回完整 `handle_claims[]` 时，服务端 MUST 确保每个 `claim.claim.subject_account_id.principal_id` 等于同一 roster entry 的 `subject_id`；不匹配的 claim MUST 被丢弃或导致该 roster entry 失败 closed。裸 `subject_id` 不足以重建完整 AccountId。
 
-`member_display_state_digest` 覆盖 effective identity event references 与当前可见 HandleClaim status view 的 `claim_digest` / `status` / `revocation_digest` / `fresh_until`。只重打包等价 proof 不改变它；重新签发 freshness、状态迁移或撤销都会改变它，使 roster display cache 不能越过 signed `fresh_until` 继续复用。`binding_state` 不是该摘要的独立投影，也不得从本地数据库行补造。
+`member_display_state_digest` 覆盖 effective identity event references 与当前可见 HandleClaim status view 的 `status` / `fresh_until`，以及从其 `claim` 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 重算的 `claim_digest` 和从其 `revocation` 重算的 `revocation_digest`（`revocation=null` 时为 `null`）；这两个 digest 只是摘要输入的派生值，status view wire 本身不携带它们。只重打包等价 proof 不改变它；重新签发 freshness、状态迁移或撤销都会改变它，使 roster display cache 不能越过 signed `fresh_until` 继续复用。`binding_state` 不是该摘要的独立投影，也不得从本地数据库行补造。
 
 `ak.member.identity.update` payload 形态：
 

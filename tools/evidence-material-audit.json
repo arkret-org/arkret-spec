@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 382,
+  "audited_occurrence_count": 363,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -108,13 +108,6 @@
     },
     {
       "file": "agent-signer-evidence.schema.json",
-      "key": "producer_signer_resolution_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds the receiver receipt to the byte-exact origin-frozen producer signer-evidence root."
-    },
-    {
-      "file": "agent-signer-evidence.schema.json",
       "key": "producer_signer_resolution_evidence_ref",
       "occurrences": 1,
       "disposition": "qualifier",
@@ -184,13 +177,6 @@
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "account_authority_signer_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "account_authority_signer_evidence_ref",
       "occurrences": 1,
       "disposition": "qualifier",
@@ -220,22 +206,8 @@
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "attester_signer_evidence_digest",
-      "occurrences": 2,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "attester_signer_evidence_ref",
       "occurrences": 2,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "controller_signer_evidence_digest",
-      "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
@@ -259,13 +231,6 @@
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "receiver_signer_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "receiver_signer_evidence_ref",
       "occurrences": 1,
       "disposition": "qualifier",
@@ -285,13 +250,6 @@
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "signer_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "availability-receipt.schema.json",
-      "key": "holder_signer_evidence_digest",
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
@@ -569,7 +527,7 @@
         "attestation",
         "commitment"
       ],
-      "reason": "Verbatim echo of the DirectConversationFoundingUnitSubmission member, returned by the creation_required resolver outcome so the founder can construct the unit at all; same closed XOR branches and same material families as the service-operation-dtos.schema.json registration."
+      "reason": "Authoring material returned by the creation_required resolver outcome so the founder can construct the unit at all; it is consumed to author the four Events and is not echoed back on the self founding submission. Same closed XOR branches and same material families as the service-operation-dtos.schema.json federation registration."
     },
     {
       "file": "event-batch-receipt.schema.json",
@@ -592,24 +550,10 @@
     },
     {
       "file": "event-envelope.schema.json",
-      "key": "producer_signer_resolution_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Origin Station commitment to the exact producer signer-evidence root used at admission."
-    },
-    {
-      "file": "event-envelope.schema.json",
       "key": "producer_signer_resolution_evidence_ref",
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Content-addressed producer evidence locator signed into the Station admission transcript."
-    },
-    {
-      "file": "event-envelope.schema.json",
-      "key": "signer_resolution_evidence_digest",
-      "occurrences": 2,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
     {
       "file": "event-envelope.schema.json",
@@ -761,13 +705,6 @@
     },
     {
       "file": "history-key.schema.json",
-      "key": "identity_link_signer_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds the encrypted IdentityLink proof to the exact retained Principal signer evidence used at its effective boundary."
-    },
-    {
-      "file": "history-key.schema.json",
       "key": "identity_link_signer_evidence_ref",
       "occurrences": 1,
       "disposition": "qualifier",
@@ -797,24 +734,10 @@
     },
     {
       "file": "history-key.schema.json",
-      "key": "release_service_signer_evidence_digest",
-      "occurrences": 2,
-      "disposition": "qualifier",
-      "reason": "Binds each mailbox record or lost descriptor to the exact historical release-service signer evidence retained under its request receipt."
-    },
-    {
-      "file": "history-key.schema.json",
       "key": "release_service_signer_evidence_ref",
       "occurrences": 2,
       "disposition": "qualifier",
       "reason": "Locates the exact content-addressed release-service signer evidence covered by the record or lost-descriptor proof."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "source_signer_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds the response source proof to the exact content-addressed historical signer evidence resolved through the governance dependency surface."
     },
     {
       "file": "history-key.schema.json",
@@ -975,37 +898,6 @@
       "reason": "Names a digest of the heterogeneous introduction evidence container, not a material instance."
     },
     {
-      "file": "mimi-operations.schema.json",
-      "key": "evidence_package",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "The interop abuse package may carry content proofs, third-party attestations, and delivery receipts."
-    },
-    {
-      "file": "moderation-appeal.schema.json",
-      "key": "evidence_refs",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "Appeals may cite message or blob proofs, witness attestations, and prior handling receipts."
-    },
-    {
-      "file": "moderation-appeal.schema.json",
-      "key": "evidence_visibility",
-      "occurrences": 2,
-      "disposition": "qualifier",
-      "reason": "Classifies the audience of a heterogeneous evidence container."
-    },
-    {
       "file": "moderation-evidence.schema.json",
       "key": "evidence_package",
       "occurrences": 1,
@@ -1159,14 +1051,14 @@
     {
       "file": "service-operation-dtos.schema.json",
       "key": "founding_authority_evidence",
-      "occurrences": 2,
+      "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
         "attestation",
         "commitment"
       ],
-      "reason": "Closed XOR authorization evidence for one Direct Conversation founding unit: the human branch carries Contact acceptance receipts and current proofs, the controller_agent branch carries provision and controller-binding commitments."
+      "reason": "Closed XOR authorization evidence for one Direct Conversation founding unit, carried only by the federation submission where the source Station projects it across the trust-domain boundary: the human branch carries Contact acceptance receipts and current proofs, the controller_agent branch carries provision and controller-binding commitments. The self founding submission carries no copy."
     },
     {
       "file": "service-operation-dtos.schema.json",

@@ -106,6 +106,29 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
         errors = self._lint(mutate)
         self.assertTrue(any("derived expected_next_step" in error for error in errors), errors)
 
+    def test_continue_must_require_attestation(self) -> None:
+        def mutate(schema) -> None:
+            schema["$defs"]["continue_request"]["required"].remove("client_attestation")
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("client-attested terminal step" in error for error in errors), errors)
+
+    def test_continue_kind_blind_index_gate_fails(self) -> None:
+        def mutate(schema) -> None:
+            request = schema["$defs"]["continue_request"]
+            request["allOf"] = [{"if": {"required": ["client_attestation"]}}]
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("kind-blind terminal indexes" in error for error in errors), errors)
+
+    def test_continue_kind_blind_maximum_fails(self) -> None:
+        def mutate(schema) -> None:
+            request = schema["$defs"]["continue_request"]
+            request["properties"]["expected_accepted_step_count"]["maximum"] = 4
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("kind-blind maximum" in error for error in errors), errors)
+
     def test_orphan_prepared_material_fails(self) -> None:
         def mutate(schema) -> None:
             schema["$defs"]["prepared_orphan_probe"] = {

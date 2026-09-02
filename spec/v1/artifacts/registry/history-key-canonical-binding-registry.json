@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-02.1",
+  "version": "2026-09-02.2",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -54,8 +54,8 @@
     "history_source_agent_observation_digest": {
       "domain": "ak.history-source-agent-observation-v1",
       "preimage_schema_ref": "schemas/history-key.schema.json#/$defs/history_source_agent_observation_input",
-      "preimage": "the complete closed HistoryKeyResponseSigningInput with source_signer_evidence_ref and source_signer_evidence_digest removed",
-      "rule": "Agent CurrentAdmission current_observation.request_digest equals this digest. The exclusion breaks the signer-evidence content-address cycle while source_proof still signs the complete HistoryKeyResponseSigningInput including both evidence coordinates."
+      "preimage": "the complete closed HistoryKeyResponseSigningInput with source_signer_evidence_ref removed",
+      "rule": "Agent CurrentAdmission current_observation.request_digest equals this digest. The exclusion breaks the signer-evidence content-address cycle while source_proof still signs the complete HistoryKeyResponseSigningInput including the evidence ref, whose embedded digest is the sole wire copy (encoding.md 4.0.1)."
     },
     "manifest_admission_digest": {
       "domain": "ak.history-manifest-admission-v1",
@@ -111,7 +111,6 @@
         "source_record",
         "sent_at",
         "release_service_signer_evidence_ref",
-        "release_service_signer_evidence_digest",
         "manifest_admission?",
         "release_attestation?"
       ],

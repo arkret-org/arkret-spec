@@ -10,10 +10,7 @@
     "call_id",
     "recording_id",
     "recording_start_event_id",
-    "artifact_kind",
     "blob_ref",
-    "content_digest",
-    "ciphertext_digest",
     "size_bytes",
     "duration_ms",
     "media_type",
@@ -39,19 +36,8 @@
     "recording_start_event_id": {
       "$ref": "#/$defs/event_ref"
     },
-    "artifact_kind": {
-      "const": "recording"
-    },
     "blob_ref": {
       "$ref": "#/$defs/blob_ref"
-    },
-    "content_digest": {
-      "$ref": "#/$defs/digest",
-      "description": "Digest published by the Arkret blob pipeline for the stored recording object."
-    },
-    "ciphertext_digest": {
-      "$ref": "#/$defs/digest",
-      "description": "Digest of encrypted recording bytes. This MUST match encryption.ciphertext_digest and the referenced encrypted blob metadata."
     },
     "size_bytes": {
       "type": "integer",
@@ -116,9 +102,6 @@
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "digest": {
-      "$ref": "./account-operations.schema.json#/$defs/digest"
-    },
     "media_type": {
       "$ref": "./blob-operations.schema.json#/$defs/media_type"
     },
@@ -152,8 +135,7 @@
       "required": [
         "encryption_algorithm",
         "exporter_label",
-        "context",
-        "ciphertext_digest"
+        "context"
       ],
       "properties": {
         "encryption_algorithm": {
@@ -202,9 +184,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "ciphertext_digest": {
-          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false

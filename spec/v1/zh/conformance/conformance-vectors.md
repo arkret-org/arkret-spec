@@ -938,8 +938,9 @@ Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transpo
 
 Materializer matrix MUST 覆盖精确有效输出、`base == target` 与 ancestor→descendant 正例，以及并发/不可达 basis（`mls_governance_anchor_unreachable`）、必需 Seal/Event/witness 缺失（`frontier_unavailable`）、撤销后的 notary、control-cell Bottom、scope visibility denial 与 exact response 超界（`mls_governance_proof_bounds_exceeded`）；失败时 response count 必须为 0，不能输出 partial outcome 或替换 basis。两条 runner 在同一 profile certification job 中还 MUST 执行 companion `ak.vector.scalability.mls_governance_proof_bounds.v1` 的全部 `limit-1 / limit / limit+1` 与 exact-response cases，并记录每 case 的 stage、reason/error、response count、query/outcome digest、epoch transition 与 peak buffer bytes。
 
-MLS group tracker 的 companion matrix MUST 另外对 `ak.peer.mls.read.group_state_material.v1` 执行：两组 ref/digest/raw
-bytes 完全匹配的 accepted genesis 正例；Event id、scope、group 或 epoch cross-binding；只有 ref/只有 digest；
+MLS group tracker 的 companion matrix MUST 另外对 `ak.peer.mls.read.group_state_material.v1` 执行：两组 ref/raw
+bytes 完全匹配的 accepted genesis 正例；Event id、scope、group 或 epoch cross-binding；缺 ref、ref suite 不等于 Realm
+`digest_algorithm`、payload 携带 sibling digest 镜像；
 object missing；ref 内嵌 hash mismatch；raw-byte digest mismatch；GroupInfo 与 ratchet tree / GroupContext 不一致；
 未 accepted 或 quarantine genesis；响应总界超限。所有失败必须 response count 0。正例必须从验证后的 RFC 9420
 occupied tree leaves 得到 leaf index；runner 若从 KeyPackage 顺序、数据库 row 顺序或 governance-proof outcome 里伪造的 leaf DTO 得到 index，
@@ -4187,7 +4188,7 @@ Steps:
 Expected:
 
 - C 对 `R1` / `R2` 均只能看到 `ReferenceProjectionState.locked` 或等价 locked stub,wire 字段集合、Problem Details、metadata 集合必须相同。
-- C 的视图 MUST NOT 泄露目标 `realm_id`、title、member_count、created_at、issuer set、preview 或任何能区分"目标存在 vs 不存在"的信息。
+- C 的视图 MUST NOT 泄露目标 `realm_id`、title、member_ids、created_at、issuer set、preview 或任何能区分"目标存在 vs 不存在"的信息。
 - raw event / backfill / federation fanout 对 C MUST 返回同一类 redacted event view 或 locked stub，不得暴露完整 `from_ref` / `to_ref` canonical bytes。
 - 两类样本 p95 服务端耗时差异 SHOULD <= 50ms；声明高安全 profile 时 p99 MUST 落入同一 timing bucket。
 - D MAY 取得完整 canonical bytes，但不得改变 C 对同一 Relation 的 locked projection shape。
@@ -4206,7 +4207,7 @@ Steps:
 Expected:
 
 - 对 V，可见 Circle 与不存在 Circle 的响应 MUST 使用同一 envelope、字段集合和 timing bucket。
-- V MUST NOT 看到 Circle title、display、short_name、member_count、created_by、member id、join history 或可枚举错误。
+- V MUST NOT 看到 Circle title、display、short_name、member_ids、created_by、join history 或可枚举错误。
 - V 的 stub 最多为 `{ "visibility": "locked", "opaque_commitment": "<fixed-length>" }` 或等价字段集合；`opaque_commitment` MUST 固定长度、不可逆、不可由 title / short_name / member set 枚举。
 - Realm public seal 只暴露固定 cadence 的 opaque commitment，不得反映真实 Circle 活动频率。
 - M MAY 看到 policy 允许的 Circle metadata，但不得改变 V 的不可区分性要求。
@@ -4346,7 +4347,7 @@ Expected:
 Steps:
 
 1. Alice 提交 routed request：`P1` 携带 `role=request` binding，`addressed_agent_ids=[S,T]`、
-   `completion_policy=coordinator`、`coordinator_agent_id=S`。另一个 owned Agent U 未被 addressed。
+   `coordinator_agent_id=S`；completion policy 由 schema identity 固定为 coordinator，不在 binding 回显。另一个 owned Agent U 未被 addressed。
 2. S 通过 runtime 消费门后产生 `I1` 与 user-facing `R1`；runtime 重启并再次收到 `P1`。controller 又 author 不同 request Event `P_dup` 复用同一 `exchange_id=X1`。T 产生 user-facing `R_noncoord` 且错误声明 `completes_exchange=true`；U 尝试执行同一 request。
 3. 构造变异响应：wrong exchange/request/sidecar scope、actor U、unknown role、missing binding、缺少顶层
    `refs[role=after]`、以及 `ak:message:` shaped request id；另由 T 发送携带 `role=request` 的 Event `F1`。
@@ -5013,26 +5014,7 @@ Runner MUST 加载 [`franking-proof-transcript-fixture.json`](../../artifacts/fi
 
 本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §3.4 的 evidence package 最小披露闭包：evidence package MUST 加密给 `effective_scope` 对应 moderator audience，MUST 只包含 reporter 可见且愿意提交的目标证据，MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料。
 
-### 15.2 Vector: Moderation Appeal 状态转换原子性
-
-`vector_id`: `ak.vector.moderation.appeal_atomicity.v1`
-
-本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §5.5.2 的 reducer 强制约束：“`ak.moderation.appeal.decision` `decision=overturn` MUST 与一条 `ak.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或同一 control transaction 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝”；“`decision=modify` MUST 在同一 batch 同时 lift 原 decision 并新增 `modify_decision_ref` 指向的 replacement decision”。该向量同时固定 overturn 不复活不可逆 redaction tombstone / 已销毁 key 的边界。
-
-Steps（前置：appeal cell 已沿 §5.5.1 状态机 `submitted → under_review` 推进，reviewer ≠ 原 decision issuer）：
-
-- **Case A — overturn 缺 lift / 正常 overturn**：reviewer 提交 `decision=overturn` 的 `ak.moderation.appeal.decision`，但同一 ordered submit batch / control transaction 中**不**含 target 等于 `decision_ref` 的 `ak.moderation.decision.lift`；随后在另一次提交中补齐同 batch 的 decision + lift 对。原 decision 已触发 redaction tombstone 的变体也包含在内。
-- **Case B — modify 原子替换失败**：reviewer 提交 `decision=modify` 的 decision，但缺少原 decision lift，或 `modify_decision_ref` 指向的事件不在同一 batch，或同 batch新 `ak.moderation.decision` 的 `target_ref` 不等于原 target。
-- **Case C — modify 正路径**：同一 batch 含 appeal decision、指向原 `decision_ref` 的 lift、以及 `modify_decision_ref` 指向且 target 相同的新 moderation decision。
-
-Expected：
-
-- **Case A**：缺 lift 的提交 MUST 被 reducer 以 `appeal_overturn_missing_lift` 拒绝，appeal cell 保持 `under_review`，原 moderation decision 继续生效（不存在“上诉胜诉但原 decision 仍生效”的中间窗口，反向亦然）；补齐后的同 batch decision + lift MUST 原子接受，cell 转入 `decided` 且原 decision 解除。若原 decision 已触发 redaction，tombstone 与 audit fact MUST 保留，原文 / key MUST NOT 被复活。
-- **Case B**：MUST 拒绝整个 modify 提交；缺 lift时 reason=`appeal_modify_missing_lift`。不得出现“appeal 已 `decided` 但旧 decision 未 lift / 新 decision 缺失 / 指向错误”的部分状态。
-- **Case C**：三件套 MUST 原子接受；旧 decision inactive，replacement active，appeal cell 进入 `decided`。
-- 所有 case 中 cell 状态机 MUST 遵循 §5.5.1 转换表（`submitted → under_review → decided → closed`）；跳跃转换 MUST `failed_precondition`。
-
-### 15.2.1 Vector: Moderation Review Resolution 与多 Decision Fold
+### 15.2 Vector: Moderation Review Resolution 与多 Decision Fold
 
 `vector_id`: `ak.vector.moderation.review_resolution_fold.v1`
 
@@ -5134,19 +5116,19 @@ Expected：支持 `ak.reducer.core.v1` 时普通 Event 继续 admission；本地
 
 `vector_id`: `ak.vector.blob.stream_aead_roundtrip.v1`
 
-本向量固化 [`media-and-blob.md` §3.3.1](../crypto-media/media-and-blob.md) 切分、同文 §3.3.2 nonce 构造、§3.3.3 AAD 绑定、§3.3.5 整体 `ciphertext_digest` 语义与 §3.3.6 解密验证的正路径：明文按 `segment_bytes` 切成有序 segment（末段长度在 `1 .. segment_bytes`，可短于 `segment_bytes`），逐段独立 AEAD 加密、可分段下载并逐段增量校验，最终整体 `ciphertext_digest` 重算比对通过。
+本向量固化 [`media-and-blob.md` §3.3.1](../crypto-media/media-and-blob.md) 切分、同文 §3.3.2 nonce 构造、§3.3.3 AAD 绑定、§3.3.5 content-addressed `blob_ref` 整体 digest 语义与 §3.3.6 解密验证的正路径：明文按 `segment_bytes` 切成有序 segment（末段长度在 `1 .. segment_bytes`，可短于 `segment_bytes`），逐段独立 AEAD 加密、可分段下载并逐段增量校验，最终整体 digest 重算与 ref 内嵌值相等。
 
 Steps：
 
-1. 取一份明文，长度使派生段数 `N = max(1, ceil(plaintext_size / segment_bytes))` 且末段严格短于 `segment_bytes`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ak.blob.stream_aead.v1` 分支，声明 `scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_bytes`、`ciphertext_digest` 与 `size_bytes`，不声明段数或 `epoch`。分别以 accepted winning commit Event ref 与等价 proof hash 构造 `key_ref.group_state_ref`，并从 exact winning group state 唯一派生 epoch。
+1. 取一份明文，长度使派生段数 `N = max(1, ceil(plaintext_size / segment_bytes))` 且末段严格短于 `segment_bytes`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ak.blob.stream_aead.v1` 分支，声明由完整 stored ciphertext 派生的 content-addressed `blob_ref`、`scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_bytes` 与 `size_bytes`，不声明 sibling digest、段数或 `epoch`。分别以 accepted winning commit Event ref 与等价 proof hash 构造 `key_ref.group_state_ref`，并从 exact winning group state 唯一派生 epoch。
 2. 对每个 segment 用同一 content key、nonce = `nonce_prefix || u32_be(segment_index) || last_segment_flag` 加密，并把 `segment_index` / `last_segment_flag`（及 `media-and-blob.md` §3.3.3 要求字段）纳入 AAD；末段 `last_segment_flag = 0x01` 且 `segment_index == N - 1`。
 3. 接收方按 `segment_index` 从 `0` 起严格升序分段下载（SHOULD 按 `segment_bytes` 整数倍偏移做 Range），逐段做 per-segment AEAD tag 校验并安全释放对应明文。
-4. 全部 segment 接收完毕后，按 `media-and-blob.md` §3.3.5 对全部 segment 密文（每段含其 AEAD tag）按 `segment_index` 升序拼接重算 `ciphertext_digest`，与 envelope 声明值比对。
+4. 全部 segment 接收完毕后，按 `media-and-blob.md` §3.3.5 对全部 segment 密文（每段含其 AEAD tag）按 `segment_index` 升序拼接重算 digest，与 `blob_ref` 内嵌值比对。
 
 Expected：
 
-- 逐段 AEAD tag 校验全部通过，整体 `ciphertext_digest` 重算等于 envelope 声明值；接收方还原出 byte-for-byte 等于原明文的内容，并仅在见到合法末段（`last_segment_flag=0x01` 且 `segment_index==N-1`）后才标记附件完整。
-- per-segment 增量校验提供边下边验，顶层 `ciphertext_digest` 提供整体完整性；二者都 MUST 校验通过才允许最终持久化 / 标记完整。
+- 逐段 AEAD tag 校验全部通过，整体 digest 重算等于 `blob_ref` 内嵌值；接收方还原出 byte-for-byte 等于原明文的内容，并仅在见到合法末段（`last_segment_flag=0x01` 且 `segment_index==N-1`）后才标记附件完整。
+- per-segment 增量校验提供边下边验，content-addressed `blob_ref` 提供整体完整性；二者都 MUST 校验通过才允许最终持久化 / 标记完整。
 - Event ref 与 proof hash 必须派生相同 winning epoch 并通过；无法解析、解析到非 winning state 时在密钥派生前以 `attachment_group_state_unresolved` 拒绝，解析到另一 epoch 时因 AAD 不同而 tag 校验失败。旧 wire `epoch` 成员必须按 closed schema 拒绝。
 - 反例（顺带覆盖）：将任一 segment 密文整体替换为另一份相同 segment_index 的合法密文，使 per-segment tag 仍可能通过但拼接后整体 digest 不符时，`media-and-blob.md` §3.3.6 步骤 7 MUST 以 `digest_mismatch`（与该文 §5 一致）拒绝、丢弃全部明文、不渲染不持久化。
 
@@ -6065,8 +6047,8 @@ Runner MUST 覆盖：
 
 1. 原 producer-signed encrypted `SignalEnvelope` 经一个 source → destination peer hop 后，ciphertext、proof 与 envelope digest identity 不变；
 2. `signals[]` 127/128/129、canonical request body 1 MiB−1/1 MiB/1 MiB+1、HTTP Message Signature `expires-created` 4,999/5,000/5,001 ms；
-3. request `realm_id` 与任一 envelope/scope Realm 不一致、closed proof schema 不合法按 request-level reject；第二 peer hop、source 不托管 sender、destination 不在 active joined-member ActorId routing projection、proof transcript/digest、Seal/TTL/AAD 无效按 opaque item drop；
-4. 有 eligible local recipient 与无 eligible local recipient 的已认证合法 request 都返回逐字相同 `{"accepted":true}`，且无 count/per-item outcome；
+3. request `realm_id` 与任一 envelope/scope Realm 不一致、closed proof schema 不合法按 request-level reject；第二 peer hop、source 不托管 sender、destination 不在 active joined-member ActorId routing projection、proof transcript/digest、Seal/TTL/basis 无效按 opaque item drop；
+4. 有 eligible local recipient 与无 eligible local recipient 的已认证合法 request 都返回相同 HTTP 204 empty response，且无 count/per-item outcome；
 5. response 丢失时 source 不自动重放，不携带 `Idempotency-Key`，按 `drop_unconfirmed` 丢弃不确定结果；
 6. peer/live/local rails 重复、乱序或丢失不写 durable Event、不推进 actor sequence / Realm frontier，consumer 依靠下一自足 signal 或产品级 timeout/renegotiation 恢复；
 7. source/destination 改写、重签、解密重加密 envelope，以及 destination 再转发第三 peer，全部 fail closed；
@@ -6321,9 +6303,9 @@ Runner MUST 覆盖：
    或更换 signing method 均不合格。相同去重键但 Event canonical bytes、digest 或 receipt intent 不同 MUST
    `duplicate_conflict`，零 receipt 且零覆盖。
 5. source durable outbox 收到 2xx 后 MUST 先校验 response transport authentication 与 outcome schema，再要求
-   receipt 集合与 `accepted[] ∪ duplicate[]` 中带 origin producer evidence pair 的 Agent Event 精确一一对应：
+   receipt 集合与 `accepted[] ∪ duplicate[]` 中带 origin `producer_signer_resolution_evidence_ref` 的 Agent Event 精确一一对应：
    少一个、多一个、receipt proof 不可解析、`receiver_id` 不匹配，或 receipt 承诺的
-   `producer_signer_resolution_evidence_ref/digest` 与 origin 冻结的 pair 不一致，MUST NOT 把该 Event/receiver 的
+   `producer_signer_resolution_evidence_ref` 与 origin 冻结的 ref 不一致，MUST NOT 把该 Event/receiver 的
    历史证据交接标为完成。
 6. 只有 receipt 已验证并与 materialization obligation 原子保存后，该 Event 对该 receiver 的 outbox delivery 才可推进；
    source 在 obligation 提交前重启 MUST 复用同一 outbox row 与同一 Event/receiver/receipt intent，

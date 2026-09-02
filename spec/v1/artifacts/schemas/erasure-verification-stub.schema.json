@@ -24,7 +24,7 @@
     },
     "event_digest": {
       "$ref": "#/$defs/digest",
-      "description": "Optional redundant digest for an Event subject. Its suite and all 32 digest octets MUST exactly match the suite wire code and digest carried by subject.subject_ref. If omitted, the suite and digest are recovered from the Event ID. This field and the Event ID preserve consistency evidence; neither independently verifies erased canonical Event bytes."
+      "description": "Optional redundant digest for an Event subject; it is permitted only when subject.kind is event and MUST be absent for every other subject kind. Its suite and all 32 digest octets MUST exactly match the suite wire code and digest carried by subject.subject_ref. If omitted, the suite and digest are recovered from the Event ID. This field and the Event ID preserve consistency evidence; neither independently verifies erased canonical Event bytes."
     },
     "retained_digests": {
       "type": "array",
@@ -77,6 +77,36 @@
     }
   },
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "subject": {
+              "properties": {
+                "kind": {
+                  "const": "event"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          },
+          "required": [
+            "subject"
+          ]
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "event_digest"
+          ]
+        }
+      }
+    }
+  ],
   "$defs": {
     "trigger": {
       "oneOf": [
@@ -286,7 +316,7 @@
     },
     "subject_ref": {
       "type": "string",
-      "pattern": "^(did:[^\\s]+|(?:ak:(realm|event|message|strand|morph|relation|view):[A-Za-z0-9_-]{44}|ak:(blob|device|policy|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:seal:(?:sha256|blake3):[0-9a-f]{64}|ak:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
+      "pattern": "^(did:[^\\s]+|(?:ak:(realm|event|message|strand|morph|relation|view):[A-Za-z0-9_-]{44}|ak:(blob|device|policy|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:seal:(?:sha256|blake3):[0-9a-f]{64}|ak:blob:(?:sha256|blake3):[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
     }
   }
 }

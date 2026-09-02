@@ -4461,6 +4461,112 @@ def _proof_annotated_nodes(document: Any) -> list[tuple[str, dict[str, Any]]]:
     return found
 
 
+def _proof_transcript_property_names(
+    documents: dict[str, Any], file_name: str, node: Any, depth: int = 0
+) -> set[str]:
+    """Collect explicitly declared transcript members through schema overlays.
+
+    This is deliberately narrower than instance validation: it only answers whether
+    a registered binding member has a declared schema source. Conditional branches
+    contribute their properties, while ``if``/``not`` predicates do not.
+    """
+    if depth > 12 or not isinstance(node, dict):
+        return set()
+    names = set((node.get("properties") or {}).keys()) if isinstance(node.get("properties"), dict) else set()
+    reference = node.get("$ref")
+    if isinstance(reference, str):
+        target, _, fragment = reference.partition("#")
+        target_file = file_name if not target else target.split("/")[-1]
+        target_document = documents.get(target_file)
+        if target_document is not None:
+            try:
+                target_node = resolve_json_pointer(target_document, "#" + fragment) if fragment else target_document
+            except (KeyError, IndexError, ValueError):
+                target_node = None
+            names.update(_proof_transcript_property_names(documents, target_file, target_node, depth + 1))
+    for keyword in ("allOf", "oneOf", "anyOf"):
+        for branch in node.get(keyword) or []:
+            names.update(_proof_transcript_property_names(documents, file_name, branch, depth + 1))
+    for keyword in ("then", "else"):
+        names.update(_proof_transcript_property_names(documents, file_name, node.get(keyword), depth + 1))
+    return names
+
+
+def _check_domain_binding_schema_closure(
+    lint: Lint,
+    path: Path,
+    documents: dict[str, Any],
+    index: int,
+    row: dict[str, Any],
+) -> None:
+    """Require every domain binding member to have a schema or explicit injected source."""
+    refs: list[str] = []
+    schema_ref = row.get("schema_ref")
+    if isinstance(schema_ref, str):
+        refs.append(schema_ref)
+    transcript_refs = row.get("transcript_schema_refs")
+    if transcript_refs is not None:
+        if not isinstance(transcript_refs, list) or not transcript_refs or not all(
+            isinstance(item, str) and item.startswith("schemas/") for item in transcript_refs
+        ):
+            lint.fail(path, f"domain_separations[{index}].transcript_schema_refs must be a non-empty schemas/* string array")
+            return
+        refs.extend(transcript_refs)
+    if not refs:
+        if "injected_fields" in row:
+            lint.fail(path, f"domain_separations[{index}].injected_fields requires schema_ref or transcript_schema_refs")
+        return
+
+    schema_fields: set[str] = set()
+    for ref in refs:
+        file_name, _, node = _resolve_proof_schema_ref(documents, ref)
+        if not isinstance(node, dict):
+            lint.fail(path, f"domain_separations[{index}] transcript schema does not resolve: {ref}")
+            return
+        schema_fields.update(_proof_transcript_property_names(documents, file_name, node))
+
+    fields = row.get("binding_fields")
+    if not isinstance(fields, list) or not all(isinstance(item, str) for item in fields):
+        return
+    binding_fields = {item.removesuffix("?") for item in fields}
+    injected = row.get("injected_fields", [])
+    if not isinstance(injected, list):
+        lint.fail(path, f"domain_separations[{index}].injected_fields must be an array of field/source objects")
+        return
+    injected_names: set[str] = set()
+    for injection_index, entry in enumerate(injected):
+        if (
+            not isinstance(entry, dict)
+            or set(entry) != {"field", "source"}
+            or not isinstance(entry.get("field"), str)
+            or not entry["field"]
+            or not isinstance(entry.get("source"), str)
+            or not entry["source"].strip()
+        ):
+            lint.fail(
+                path,
+                f"domain_separations[{index}].injected_fields[{injection_index}] must be exactly a non-empty field/source object",
+            )
+            continue
+        if entry["field"] in injected_names:
+            lint.fail(path, f"domain_separations[{index}].injected_fields duplicates {entry['field']!r}")
+        injected_names.add(entry["field"])
+    missing = binding_fields - schema_fields
+    if injected_names != missing:
+        undeclared = sorted(missing - injected_names)
+        stale = sorted(injected_names - missing)
+        if undeclared:
+            lint.fail(
+                path,
+                f"domain_separations[{index}].binding_fields names {undeclared} outside its registered transcript schemas; declare injected_fields sources",
+            )
+        if stale:
+            lint.fail(
+                path,
+                f"domain_separations[{index}].injected_fields names {stale} that are already schema fields or not binding fields",
+            )
+
+
 def _proof_top_def(pointer: str) -> str:
     """The ``/$defs/<name>`` entry a pointer lives under, or "" for a root-level node."""
     parts = [part for part in pointer.split("/") if part != ""]
@@ -4590,6 +4696,12 @@ def check_proof_context_registry(lint: Lint) -> None:
         if not isinstance(node, dict):
             lint.fail(path, f"contexts[{index}].schema_ref must resolve to a schema object: {schema_ref}")
             continue
+        if SIGNATURE_DOMAIN_ANNOTATION in node:
+            lint.fail(
+                path,
+                f"contexts[{index}].schema_ref resolves an explicitly local signature domain; "
+                "local proof leaves belong in domain_separations[]",
+            )
         if context is not None:
             anchors[context] = (file_name, fragment)
 
@@ -4775,20 +4887,21 @@ def check_proof_context_registry(lint: Lint) -> None:
             lint.fail(path, f"domain_separations[{index}].binding_fields must be a non-empty string array")
         schema_ref = row.get("schema_ref")
         if schema_ref is not None:
-            if primitive != "detached_signature" or not isinstance(schema_ref, str):
+            if not isinstance(schema_ref, str) or not schema_ref.startswith("schemas/"):
                 lint.fail(
                     path,
-                    f"domain_separations[{index}].schema_ref is only valid for a detached-signature schema anchor",
+                    f"domain_separations[{index}].schema_ref must point into artifacts/schemas",
                 )
             else:
                 file_name, fragment, node = _resolve_proof_schema_ref(documents, schema_ref)
                 if not isinstance(node, dict):
                     lint.fail(path, f"domain_separations[{index}].schema_ref does not resolve: {schema_ref}")
-                elif node.get(SIGNATURE_DOMAIN_ANNOTATION) != domain:
+                elif primitive == "detached_signature" and node.get(SIGNATURE_DOMAIN_ANNOTATION) != domain:
                     lint.fail(
                         ARTIFACTS / "schemas" / file_name,
                         f"{fragment or '/'} must declare {SIGNATURE_DOMAIN_ANNOTATION}={domain!r}",
                     )
+        _check_domain_binding_schema_closure(lint, path, documents, index, row)
         if primitive != REPLAY_CACHE_NAMESPACE_PRIMITIVE:
             continue
         defined_in = row.get("defined_in")

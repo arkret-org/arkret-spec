@@ -64,7 +64,6 @@ def accepted_event(preimage: dict[str, object], digest: str, identifier: str, jw
         "event_digest": digest,
         "created_at": preimage["created_at"],
         "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:" + "1" * 64,
-        "signer_resolution_evidence_digest": "sha256:" + "1" * 64,
         "jws": jws,
     }]
     return event
@@ -87,7 +86,6 @@ def availability_receipt(
         "holder_id": "ak:did_core:webvh:z6mkholder",
         "retention_expires_at": expires_at,
         "holder_signer_evidence_ref": "ak:signer_evidence:sha256:" + "2" * 64,
-        "holder_signer_evidence_digest": "sha256:" + "2" * 64,
     }
     payload_digest = sha256(jcs(core).encode())
     transcript = {

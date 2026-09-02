@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.5",
+  "version": "2026-09-02.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T20:30:00+08:00",
+  "generated_at": "2026-09-02T23:35:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -28,7 +28,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#2-canonical-json",
-      "section_digest": "sha256:9625ee22150dd6b67f9502a155c05367ff654a15062139e39a68e05183535513",
+      "section_digest": "sha256:ace36e585d6942d65fcf9d9b6ed2514aaa27bb58eaf98db8936e40046878f7a6",
       "requirement": "Canonical JSON serialization (key order, number form, NFC strings, duplicate-key rejection) is the single encoding used for every digest, signature and canonical comparison.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -53,7 +53,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-hash",
-      "section_digest": "sha256:82c4213bd929da93605ddfff84e4a83a103af87862d0754c2d27a0f2822cbe13",
+      "section_digest": "sha256:f44d7ff0cb23103c502abc001b06e7cc07b1bbc7bf3220cd1ec1b39aba0b59f3",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -68,7 +68,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:d90dd22ac3bf9dd7036f51abaefa42b5de401880ddecca72b6b8a2d72cc17721",
+      "section_digest": "sha256:eb44a08074bb80350bd73a8f7356447f57c274a0c582bfe5c04a14af156b9dd1",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another. Section 6.0.2 fixes one construction for every registered proof context: the unsigned projection deletes the proof carrier member rather than nulling it and never defaults an absent optional, an absent optional binding field is omitted rather than written as null, audience is a single string or a duplicate-free array with the single-value form mandatory for one audience, and the context constant is a binding object member rather than a JWS header parameter, so a signature valid under one object family's context MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -114,7 +114,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#10-encrypted-envelope-aead",
-      "section_digest": "sha256:312912bb128ee5175e36c96a92696b9e2eb50004a1351394da3369c87a70b157",
+      "section_digest": "sha256:588cbc8506f653618d4889b41d46821f32ff670d980ddf1c9a672d4b6d991586",
       "requirement": "Encrypted envelopes carry a pre-encryption immutable header; AAD digest and ciphertext digest are computed over fixed transcripts and any mismatch MUST fail closed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -178,7 +178,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:ba57ea8fa2c5381e46e6ee42ddbff8aaac5e4f997186ac8b231195341c91f411",
+      "section_digest": "sha256:1b2bee88de3be70649837526f42dec0e510c2e5fad90249dcf49be5103329913",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Station admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal; every MLS epoch binds the independently re-derived security frontier for its accepted key-access state; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -232,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:63f3f86b65f91844400ca685c7a588dc5b346029edd2c2bf65dcea8b3b130123",
+      "section_digest": "sha256:a0903c1c6adab97b241e6f026aa3c2425eed8363b2fef08170cd1a8aa5281e5e",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest. Availability admission is authorized only by the joined predecessor state: genesis has no such authority, commits no AvailabilityReceipt, and materializes policy only for successor Seals.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -298,7 +298,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:5333380d251a955551a50008fb125dbb4bbfe40cd36d6c1307e35bb4a5961414",
+      "section_digest": "sha256:ec1031c0a16924f98e2369753792ff61e344876f4e8501dcef942fafdb7b4137",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -420,7 +420,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:ce3c9c68e89d05ab88ef13f7e4b1c618dcea728eeadcd8fce21b1a5608e812f3",
+      "section_digest": "sha256:33c998c86d8866eb86efa3da7255e1b4bd24b73bdb5120fc0a4af366252bc498",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -442,7 +442,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:ce3c9c68e89d05ab88ef13f7e4b1c618dcea728eeadcd8fce21b1a5608e812f3",
+      "section_digest": "sha256:33c998c86d8866eb86efa3da7255e1b4bd24b73bdb5120fc0a4af366252bc498",
       "requirement": "An accepted ordinary-Realm or Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.1",
+  "version": "2026-09-02.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T18:10:06+08:00",
+  "generated_at": "2026-09-02T23:35:00+08:00",
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
@@ -451,6 +451,22 @@
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Closed named-exemption registry for the zh/conformance/encoding.md 6.0.1 ban on committing to an Event identity from inside the event_digest preimage. Only one-way forward declarations naming a later Event from another submission are registerable; self and same-unit sibling shapes MUST NOT appear. Consumed by tools/artifact_lint#check_preimage_event_identity_commitments."
+    },
+    {
+      "name": "content_addressed_ref_digest_exemptions",
+      "file": "registry/content-addressed-ref-digest-exemption-registry.json",
+      "kind": "content_addressed_ref_digest_exemption_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Closed per-field registry for the zh/conformance/encoding.md 4.0.1 rule that a carrier holding a complete content-addressed typed ref MUST NOT also carry a sibling digest of the same bytes. Every digest property that sits next to a content-addressed ref in the same closed object must state here the distinct preimage it commits to. Only refs whose whole pattern is one content-addressed form are in scope; union patterns are outside the gate. Consumed by tools/artifact_lint#check_content_addressed_ref_sibling_digests."
+    },
+    {
+      "name": "derived_wire_field_removal_lock",
+      "file": "registry/derived-wire-field-removal-lock.json",
+      "kind": "derived_wire_field_removal_lock",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Closed regression lock for adjudicated removals of wire members that are derived from retained carrier fields. Consumed by tools/artifact_lint#check_derived_wire_field_removals."
     },
     {
       "name": "request_material_supply_exemptions",

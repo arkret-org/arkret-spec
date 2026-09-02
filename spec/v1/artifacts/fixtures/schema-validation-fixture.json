@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-02.1",
+  "version": "2026-09-02.2",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -516,7 +516,6 @@
       "expect_valid": true,
       "instance": {
         "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "status": "pending_review",
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
           "station_id": "ak:did_core:web:ps.example"
@@ -540,7 +539,6 @@
       "expect_valid": false,
       "instance": {
         "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "status": "pending_review",
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
           "station_id": "ak:did_core:web:ps.example"
@@ -904,11 +902,9 @@
           "descriptor_version": 1,
           "device_id": "ak:device:019a0000-0000-7000-8000-000000000002",
           "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
-          "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
           "device_key_algorithm": "Ed25519",
           "device_key_purpose": "event_signing_and_mls_identity",
           "hpke_key": "z6LSfixtureFoundingHpkeKey",
-          "hpke_key_digest": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
           "hpke_key_algorithm": "X25519",
           "algorithms": [
             "ak.mls.v1"
@@ -1302,20 +1298,10 @@
         ],
         "private_contact_discovery": {
           "profile": "ak.private_contact_discovery.v1",
-          "oprf_mode": "VOPRF",
-          "ciphersuite": "ristretto255-SHA512",
           "public_key": "yAPizGsF_BUGRUm1kgZZykp3ssym8E9rNXAJM1R2rU4",
           "key_epoch": 14,
           "batch_item_count": 4,
-          "derived_prefix_bytes": 16,
-          "proof_shape": "single_batched_dleq",
           "handoff_stubs_mode": "always",
-          "response_size_buckets_bytes": [
-            4096,
-            16384,
-            65536,
-            262144
-          ],
           "blind_response_bucket_bytes": 4096,
           "match_response_bucket_bytes": 4096,
           "batch_completion_ttl_seconds": 3600,
@@ -1323,8 +1309,7 @@
           "quota_window_seconds": 86400,
           "anti_enumeration_delay": {
             "minimum_ms": 100,
-            "jitter_ms": 50,
-            "distribution": "uniform"
+            "jitter_ms": 50
           }
         },
         "restricted_query_proof": true,
@@ -1868,8 +1853,7 @@
             "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
       }
@@ -1933,8 +1917,7 @@
             "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
       }
@@ -2004,11 +1987,9 @@
               "descriptor_version": 1,
               "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
               "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
-              "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
               "device_key_algorithm": "Ed25519",
               "device_key_purpose": "event_signing_and_mls_identity",
               "hpke_key": "z6LSfixtureFoundingHpkeKey",
-              "hpke_key_digest": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
               "hpke_key_algorithm": "X25519",
               "algorithms": [
                 "ak.mls.v1"
@@ -2024,8 +2005,7 @@
             "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
       }
@@ -2102,8 +2082,7 @@
             "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
       }
@@ -2173,11 +2152,9 @@
               "descriptor_version": 1,
               "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
               "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
-              "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
               "device_key_algorithm": "Ed25519",
               "device_key_purpose": "event_signing_and_mls_identity",
               "hpke_key": "z6LSfixtureFoundingHpkeKey",
-              "hpke_key_digest": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
               "hpke_key_algorithm": "X25519",
               "algorithms": [
                 "ak.mls.v1"
@@ -2193,8 +2170,7 @@
             "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
       }
@@ -2263,8 +2239,7 @@
             "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
       }
@@ -2326,8 +2301,7 @@
             "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "created_at": "2026-06-04T00:00:00.000Z",
             "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
       }
@@ -2694,8 +2668,69 @@
         "approval_evidence": {
           "kind": "capability_grant",
           "evidence_ref": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL"
+        },
+        "runtime_attestation": {
+          "kind": "self_asserted",
+          "attestation_ref": "ak:blob:blake3:abababababababababababababababababababababababababababababababab"
         }
       }
+    },
+    {
+      "name": "runtime_attestation_sibling_digest_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorize_payload/properties/runtime_attestation",
+      "expect_valid": false,
+      "instance": {
+        "kind": "self_asserted",
+        "attestation_ref": "ak:blob:sha256:abababababababababababababababababababababababababababababababab",
+        "attestation_digest": "sha256:abababababababababababababababababababababababababababababababab"
+      },
+      "first_expected_error": "contains:attestation_digest"
+    },
+    {
+      "name": "blob_ref_content_addressed_valid",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/blob_ref",
+      "expect_valid": true,
+      "instance": "ak:blob:blake3:abababababababababababababababababababababababababababababababab"
+    },
+    {
+      "name": "blob_ref_metadata_uuid_rejected",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/blob_ref",
+      "expect_valid": false,
+      "instance": "ak:blob:019a7360-0000-7000-8000-000000000004",
+      "first_expected_error": "contains:does not match"
+    },
+    {
+      "name": "blob_id_uuid_valid",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/blob_id",
+      "expect_valid": true,
+      "instance": "ak:blob:019a7360-0000-7000-8000-000000000004"
+    },
+    {
+      "name": "blob_id_content_addressed_rejected",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/blob_id",
+      "expect_valid": false,
+      "instance": "ak:blob:sha256:abababababababababababababababababababababababababababababababab",
+      "first_expected_error": "contains:does not match"
+    },
+    {
+      "name": "snapshot_chunk_content_addressed_ref_valid",
+      "schema_ref": "schemas/snapshot.schema.json#/properties/chunks/items",
+      "expect_valid": true,
+      "instance": {
+        "chunk_ref": "ak:blob:sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "size_bytes": 128
+      }
+    },
+    {
+      "name": "snapshot_chunk_sibling_digest_rejected",
+      "schema_ref": "schemas/snapshot.schema.json#/properties/chunks/items",
+      "expect_valid": false,
+      "instance": {
+        "chunk_ref": "ak:blob:sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "digest": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "size_bytes": 128
+      },
+      "first_expected_error": "contains:digest"
     },
     {
       "name": "agent_provision_requested_scope_global_ceiling_valid",
@@ -2976,7 +3011,6 @@
         "mls_leaf_index": 0,
         "mls_epoch": 1,
         "response_signing_verification_method": "did:key:z6Mkpseudonymous#history-response-1",
-        "response_signing_algorithm": "Ed25519",
         "response_signing_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "response_signing_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925",
         "effective_at": "2026-05-20T00:00:00.000Z",
@@ -3002,7 +3036,6 @@
         "mls_leaf_index": 0,
         "mls_epoch": 1,
         "response_signing_verification_method": "did:key:z6Mkpseudonymous#history-response-1",
-        "response_signing_algorithm": "Ed25519",
         "response_signing_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "response_signing_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925",
         "effective_at": "2026-05-20T00:00:00.000Z",
@@ -3140,15 +3173,13 @@
         "encrypted_payload": {
           "scheme": "ak.signal_exporter_aead.v1",
           "key_ref": {
-            "algorithm": "MLS-EXPORTER-AEAD",
             "group_state_ref": "ak:event:ARKvbHo7orDUG4lSf-XaWVE2UDU5C-hOBPqUSLx8PmM3"
           },
           "purpose": "ak.signal.v1",
           "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
           "epoch": 3,
           "nonce": "AAAAAAAAAAAAAAAA",
-          "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA",
-          "aad_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA"
         }
       }
     },
@@ -3162,10 +3193,7 @@
         "call_id": "ak:call:AQa43DnIR4MLCfl_uNpMxi4HpW0AI9ohd8M9eDFd_hRw",
         "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
         "recording_start_event_id": "ak:event:AclIsLcU-Zk2IepeXob10AadaGoSGvTYiDrgPpK-IqaP",
-        "artifact_kind": "recording",
-        "blob_ref": "ak:blob:019a7360-0000-7000-8000-000000000004",
-        "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "blob_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "size_bytes": 1048576,
         "duration_ms": 42000,
         "media_type": "video/mp4",
@@ -3179,7 +3207,6 @@
             "media_service_id": "ak:did_core:webvh:z6mkfixturerecorderexample",
             "recording_start_event_id": "ak:event:AclIsLcU-Zk2IepeXob10AadaGoSGvTYiDrgPpK-IqaP"
           },
-          "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream"
         },
         "retention_policy_id": "ak:policy:019a7360-0000-7000-8000-000000000005",
@@ -3211,10 +3238,7 @@
         "call_id": "ak:call:AQa43DnIR4MLCfl_uNpMxi4HpW0AI9ohd8M9eDFd_hRw",
         "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
         "recording_start_event_id": "ak:event:AclIsLcU-Zk2IepeXob10AadaGoSGvTYiDrgPpK-IqaP",
-        "artifact_kind": "recording",
-        "blob_ref": "ak:blob:019a7360-0000-7000-8000-000000000004",
-        "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "blob_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "size_bytes": 1048576,
         "duration_ms": 42000,
         "media_type": "video/mp4",
@@ -3228,7 +3252,6 @@
             "media_service_id": "ak:did_core:webvh:z6mkfixturerecorderexample",
             "recording_start_event_id": "ak:event:AclIsLcU-Zk2IepeXob10AadaGoSGvTYiDrgPpK-IqaP"
           },
-          "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream"
         },
         "retention_policy_id": "ak:policy:019a7360-0000-7000-8000-000000000005",
@@ -3745,6 +3768,46 @@
       }
     },
     {
+      "name": "prepared_event_draft_blake3_realm_suite_valid",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/prepared_event_draft",
+      "expect_valid": true,
+      "instance": {
+        "unsigned_event_bytes": "eyJraW5kIjoiYWsuZXhhbXBsZSJ9",
+        "event_digest": "blake3:abababababababababababababababababababababababababababababababab"
+      }
+    },
+    {
+      "name": "security_rotation_terminal_continue_at_prefix_four_valid",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/continue_request",
+      "expect_valid": true,
+      "instance": {
+        "request_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "prepared_plan_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "expected_accepted_step_count": 4,
+        "client_attestation": {
+          "step": "local_commit",
+          "output_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "transaction_id": "ak:transaction:019a7400-0000-7000-8000-000000000006",
+          "transaction_request_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "prepared_plan_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "artifact": {
+            "schema": "ak.schema.security_rotation_local_commit.v1",
+            "transaction_id": "ak:transaction:019a7400-0000-7000-8000-000000000006",
+            "transaction_request_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "prepared_plan_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "local_commit_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "device_id": "ak:device:019a7400-0000-7000-8000-000000000007",
+            "committed_at": "2026-09-02T20:20:00.000Z"
+          },
+          "auth_data": {
+            "verification_method": "did:webvh:z6mkfixture:example.com#device-1",
+            "signature_algorithm": "Ed25519",
+            "signature": "AA"
+          }
+        }
+      }
+    },
+    {
       "name": "security_transaction_terminal_continue_without_device_attestation_rejected",
       "schema_ref": "schemas/security-transaction.schema.json#/$defs/continue_request",
       "expect_valid": false,
@@ -3828,21 +3891,18 @@
             "encrypted_payload": {
               "scheme": "ak.signal_exporter_aead.v1",
               "key_ref": {
-                "algorithm": "MLS-EXPORTER-AEAD",
                 "group_state_ref": "ak:event:ARKvbHo7orDUG4lSf-XaWVE2UDU5C-hOBPqUSLx8PmM3"
               },
               "purpose": "ak.signal.v1",
               "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
               "epoch": 3,
               "nonce": "AAAAAAAAAAAAAAAA",
-              "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA",
-              "aad_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+              "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA"
             },
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
               "envelope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              "created_at": "2026-05-20T00:00:00.000Z",
               "jws": "a..b"
             }
           }
@@ -3996,7 +4056,6 @@
         "kind": "ak.typing",
         "payload_sequence": 8,
         "strand_id": "ak:strand:AaalePlTK6W4ZKrbKyKzlmmcdhXVx-InxeWY4ul69tiN",
-        "track_name": "discussion",
         "typing": true,
         "ttl_ms": 5000
       }
@@ -4356,16 +4415,14 @@
         "epoch": 0,
         "group_state_event_id": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
         "group_info_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "group_info_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "ratchet_tree_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "ratchet_tree_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        "ratchet_tree_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       }
     },
     {
-      "name": "mls_group_state_material_request_without_tree_digest_rejected",
+      "name": "mls_group_state_material_request_without_tree_ref_rejected",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
       "expect_valid": false,
-      "first_expected_error": "$: 'ratchet_tree_digest' is a required property",
+      "first_expected_error": "$: 'ratchet_tree_ref' is a required property",
       "instance": {
         "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
         "effective_scope": {
@@ -4375,9 +4432,7 @@
         "mls_group_id": "Z3JvdXAtMA",
         "epoch": 0,
         "group_state_event_id": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
-        "group_info_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "group_info_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "ratchet_tree_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        "group_info_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       }
     },
     {
@@ -4394,11 +4449,96 @@
         "epoch": 0,
         "group_state_event_id": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
         "group_info_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "group_info_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "group_info_bytes_b64": "AQID",
         "ratchet_tree_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "ratchet_tree_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "ratchet_tree_bytes_b64": "BAUG"
+      }
+    },
+    {
+      "name": "mls_group_state_material_request_blake3_realm_suite_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY"
+        },
+        "mls_group_id": "Z3JvdXAtYmxha2Uz",
+        "epoch": 0,
+        "group_state_event_id": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
+        "group_info_ref": "ak:blob:blake3:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ratchet_tree_ref": "ak:blob:blake3:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    },
+    {
+      "name": "mls_genesis_payload_blake3_realm_suite_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_payload",
+      "expect_valid": true,
+      "instance": {
+        "mls_group_id": "Z3JvdXAtYmxha2Uz",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY"
+        },
+        "epoch": 0,
+        "cipher_suite": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
+        "group_info_ref": "ak:blob:blake3:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ratchet_tree_ref": "ak:blob:blake3:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "governance_binding": {
+          "binding_version": 1,
+          "encoding_profile": "cbor-deterministic-rfc8949-v1",
+          "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY"
+          },
+          "mls_group_id": "Z3JvdXAtYmxha2Uz",
+          "previous_epoch": 0,
+          "next_epoch": 0,
+          "security_frontier_digest": "blake3:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "content_scheme": "mls_exporter_aead_v1",
+          "durability_policy": "none",
+          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+          "reducer_profile": "ak.reducer.default.v1"
+        },
+        "created_at": "2026-09-02T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "mls_genesis_payload_sibling_group_info_digest_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_payload",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('group_info_digest' was unexpected)",
+      "instance": {
+        "mls_group_id": "Z3JvdXAtYmxha2Uz",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY"
+        },
+        "epoch": 0,
+        "cipher_suite": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
+        "group_info_ref": "ak:blob:blake3:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ratchet_tree_ref": "ak:blob:blake3:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "governance_binding": {
+          "binding_version": 1,
+          "encoding_profile": "cbor-deterministic-rfc8949-v1",
+          "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY"
+          },
+          "mls_group_id": "Z3JvdXAtYmxha2Uz",
+          "previous_epoch": 0,
+          "next_epoch": 0,
+          "security_frontier_digest": "blake3:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "content_scheme": "mls_exporter_aead_v1",
+          "durability_policy": "none",
+          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+          "reducer_profile": "ak.reducer.default.v1"
+        },
+        "created_at": "2026-09-02T00:00:00.000Z",
+        "group_info_digest": "blake3:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       }
     },
     {
@@ -5193,7 +5333,6 @@
             "action": "ak.member.compensate.leave",
             "deadline": "2026-08-30T08:00:00.000Z"
           },
-          "delegation_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "signature": {
             "verification_method": "did:webvh:z6mkfixturesubject:example.com#key-1",
             "created_at": "2026-08-30T01:00:00.000Z",
@@ -5214,7 +5353,7 @@
         "terminal_certificate": {
           "domain": "ak.membership_compensation.terminal_certificate.v1",
           "admission_id": "membership-admission-1",
-          "delegation_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "delegation_id": "ak:membership_compensation_delegation:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "operation_id": "ak:operation:019a6aa0-1000-7000-8000-000000000000",
           "terminal_state": "failed_after_membership_acceptance",
           "certified_at": "2026-08-30T02:00:00.000Z",
@@ -5228,7 +5367,7 @@
         "single_use_cas_token": {
           "domain": "ak.membership_compensation.single_use_cas.v1",
           "admission_id": "membership-admission-1",
-          "delegation_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "delegation_id": "ak:membership_compensation_delegation:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "expected_state": "unused",
           "destination_id": "ak:did_core:webvh:z6mkfixtureexecutor",
           "issued_at": "2026-08-30T02:00:00.000Z",

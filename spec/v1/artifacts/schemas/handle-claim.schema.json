@@ -9,12 +9,6 @@
         { "type": "null" }
       ]
     },
-    "nullable_digest": {
-      "oneOf": [
-        { "$ref": "./event-envelope.schema.json#/$defs/digest" },
-        { "type": "null" }
-      ]
-    },
     "claim_variant": {
       "oneOf": [
         {
@@ -160,13 +154,12 @@
     "handle_claim_status_view": {
       "type": "object",
       "required": [
-        "schema", "claim", "claim_digest", "status", "as_of", "verifier_id",
-        "verified_at", "revocation", "revocation_digest", "fresh_until", "status_proof"
+        "schema", "claim", "status", "as_of", "verifier_id",
+        "verified_at", "revocation", "fresh_until", "status_proof"
       ],
       "properties": {
         "schema": { "const": "ak.schema.handle_claim.v1" },
         "claim": { "$ref": "#/$defs/handle_claim_core" },
-        "claim_digest": { "$ref": "./event-envelope.schema.json#/$defs/digest" },
         "status": { "type": "string", "enum": ["pending", "verified", "revoked"] },
         "as_of": { "$ref": "#/$defs/timestamp" },
         "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
@@ -177,7 +170,6 @@
             { "type": "null" }
           ]
         },
-        "revocation_digest": { "$ref": "#/$defs/nullable_digest" },
         "fresh_until": { "$ref": "#/$defs/timestamp" },
         "status_proof": {
           "allOf": [
@@ -199,8 +191,7 @@
           "then": {
             "properties": {
               "verified_at": { "$ref": "#/$defs/timestamp" },
-              "revocation": { "type": "null" },
-              "revocation_digest": { "type": "null" }
+              "revocation": { "type": "null" }
             }
           }
         },
@@ -208,14 +199,12 @@
           "if": { "properties": { "status": { "const": "revoked" } }, "required": ["status"] },
           "then": {
             "properties": {
-              "revocation": { "$ref": "#/$defs/handle_claim_revocation" },
-              "revocation_digest": { "$ref": "./event-envelope.schema.json#/$defs/digest" }
+              "revocation": { "$ref": "#/$defs/handle_claim_revocation" }
             }
           },
           "else": {
             "properties": {
-              "revocation": { "type": "null" },
-              "revocation_digest": { "type": "null" }
+              "revocation": { "type": "null" }
             }
           }
         },

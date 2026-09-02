@@ -447,7 +447,7 @@ founding_receipt_transcript = H("ak.direct-conversation.founding-receipt.v1",
 transcript 与同一签名输入。
 
 carrier 是 `ak.self.events.command.submit.v1` request union 中显式登记的 discriminated branch
-`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好四条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 `founding_authority_evidence` 与 `idempotency_key`，并在 response union `SelfEventsSubmitOutcome` 中返回 `DirectConversationFoundingAcceptanceOutcome`。每条 Event 的实际 author `ActorId` 必须路由到接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支或让服务端代签 producer Event；`ak.self.direct_conversation.read.resolve.v1` 继续 query-only，**MUST NOT** 承载 create。
+`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好四条按 §6.1 顺序排列的 `EventInitialSubmission` 与 `idempotency_key`，不携带 `founding_authority_evidence`——founder 的 current Station 在同一 admission 事务内以自己 current 的 Contact round / Agent provision 证据校验该 unit（§9.1.1），并在 response union `SelfEventsSubmitOutcome` 中返回 `DirectConversationFoundingAcceptanceOutcome`。每条 Event 的实际 author `ActorId` 必须路由到接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支或让服务端代签 producer Event；`ak.self.direct_conversation.read.resolve.v1` 继续 query-only，**MUST NOT** 承载 create。
 
 幂等与 crash/restart 语义 **MUST** 如下封闭：
 
@@ -670,15 +670,18 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 
 #### 9.1.1 `creation_required` 的 authoring material（normative）
 
-`DirectConversationFoundingUnitSubmission` 必填 `founding_authority_evidence`；它由服务端从 Contact round 证据投影并由 caller 原样回传。Event origin authority 已由四条 Event 的完整 actual-author `ActorId` 及服务端追加的 admission proofs 表达。若 resolver 只回一个无 material 的
-`creation_required`，则 founder 在协议层不可能构造该 unit——这正是
+`DirectConversationFoundingUnitSubmission` 的 closed shape **不携带** `founding_authority_evidence`：founder 与验证方是同一台 current Station，§5.5 的 self admission 在同一事务内以服务端自己 current 的 Contact round（或 Agent provision）证据校验四条 Event；caller 回传的副本既不进入 `founding_unit_digest` 等任何幂等身份，也不可能成为可信输入，因此不存在于 wire 上。Event origin authority 已由四条 Event 的完整 actual-author `ActorId` 及服务端追加的 admission proofs 表达。
+
+但 founder 仍需要领料才能构造该 unit：§6.1 四条 Event 的 §5.4 critical ref、round / continuity 坐标与 §6.2 派生 baseline 都取决于 pair 当前的 Contact round（或 Agent provision）证据。若 resolver 只回一个无 material 的
+`creation_required`，则 founder 在协议层无法确定这些输入——这正是
 [`service-http-binding.md` §2.2.2](../sync/service-http-binding.md) 供给闭合律禁止的形态。
 因此：
 
-- `creation_required` **MUST** 携带 `next_founding_input`，其成员名与 submission 的对应成员
-  **逐字节一致**（`founding_authority_evidence`），caller 原样搬运，
-  **MUST NOT** 引入任何改名映射；服务端 **MUST NOT** 在该容器里附带 Event bytes、坐标、
-  `idempotency_key` 或 receipt——四条 Event 仍由 founder 自签，服务端**永不**代签。
+- `creation_required` **MUST** 携带 `next_founding_input {founding_authority_evidence}`。它是 founder 构造
+  四条 Event 的领料容器，**不是** submission 的回声：caller 从中读取 round、continuity chain 与 binding 坐标去
+  author 与签署 Event，**MUST NOT** 把该对象再放回 submission；submission 的 closed shape 对同名成员直接
+  `schema_violation`，服务端 **MUST NOT** 以任何私有载体重新收取它。服务端 **MUST NOT** 在该容器里附带
+  Event bytes、坐标、`idempotency_key` 或 receipt——四条 Event 仍由 founder 自签，服务端**永不**代签。
 - 服务端 **MUST** 按本 pair 选择唯一分支：peer Contact founding 用 `human` 分支（含完整
   bundle 与 root continuity chain），own-Agent founding 用 `controller_agent` 分支；
   **MUST NOT** 同时返回两个分支，也 **MUST NOT** 返回与 §5.4 验证口径不同的另一份证据。
@@ -687,20 +690,24 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
   为此新增错误码或状态值——求值优先级表里 `temporarily_unavailable` 本就覆盖"依赖不可验证"。
 - **新鲜度**：该 material 是响应时刻的快照，**不是** authority。caller **MUST NOT** 跨
   Contact 状态变化复用它；material 在提交时已陈旧的，submission 侧按 §5.4/§6 既有校验拒绝
-  （round 不匹配、continuity 断链、binding 非 current），**MUST NOT** 因为它来自 resolver
-  就放宽任何一条校验，服务端也 **MUST NOT** 把 caller 回传的 material 当作可信输入——
-  它 **MUST** 以自己 current 的那份重新验证。
+  （round 不匹配、continuity 断链、binding 非 current），**MUST NOT** 因为 Event 是依据 resolver
+  供料 author 的就放宽任何一条校验。submission 不携带 evidence，服务端 **MUST** 以自己 current 的那份
+  证据校验 unit，**MUST NOT** 依赖任何 caller 侧的证据副本。
 - **并发 founder 设备**：同一 founder 的多台设备 **MAY** 同时取得 `creation_required` 与
   相同 material；胜负仍只由 §5.5 的 `(founder_id, trust_domain_id, pair_key)` slot CAS 决定，
   失败方得到 `direct_conversation_slot_already_committed` 后 **MUST** 改走 resolver 取回既有
   坐标，**MUST NOT** 用自己那份 unit 重试。material 相同不构成"两份 unit 等价"。
 
-联邦面（`ak.peer.events.command.submit.v1` 的同形字段）由 source 服务器在 server-to-server
-一跳上投影供给，**MUST NOT** 要求 founder 客户端亲手跨服务器搬运这些证据。
+联邦面与 self 面不同：`ak.peer.events.command.submit.v1` 的 `DirectConversationFoundingFederationSubmission`
+**MUST** 显式携带 `founding_authority_evidence`——接收方是另一台 Station，读不到 source 的 Contact round / Agent
+provision 状态，该成员是跨信任域的真实载荷，由 source 服务器在 server-to-server 一跳上投影供给并由接收
+Station 独立验证；**MUST NOT** 要求 founder 客户端亲手跨服务器搬运这些证据，接收方也 **MUST NOT** 把搬运副本
+当作 authority。
 
 实现 **MUST** 执行 [`ak.vector.direct_conversation.founding_authoring_material.v1`](../../artifacts/registry/vector-registry.json)：
-它断言容器存在性、成员名逐字一致、单一分支、无 Event bytes / 坐标 / receipt、无料时降为
-`temporarily_unavailable`，以及提交侧对回传 material 的重新验证。
+它断言容器存在性、单一分支、无 Event bytes / 坐标 / receipt、无料时降为
+`temporarily_unavailable`、self submission 的 closed shape 拒绝同名回声成员，以及联邦面对 source 投影
+evidence 的显式携带与接收 Station 的独立重新验证。
 
 #### 9.1.2 Origin authority 供给（normative）
 

@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.security_transaction.v1",
-  "version": "2026-07-29",
+  "version": "2026-09-02.1",
   "suite": "security_transaction_resilience",
   "runner": {
     "kind": "named_suite",
@@ -98,6 +98,8 @@
     "exact_replay_returns_the_stored_outcome",
     "conflicting_replay_returns_duplicate_conflict",
     "accepted_webvh_entry_resumes_the_same_reanchor_unit",
+    "coordinator_owned_prefix_is_advanced_only_by_the_durable_worker",
+    "continue_accepts_only_a_terminal_ready_client_attestation",
     "device_attestation_readiness_is_derived_from_canonical_next_step",
     "pointer_switch_precedes_every_old_series_erase",
     "erased_series_never_becomes_active_again",
@@ -131,6 +133,55 @@
         "reason": "failed_precondition",
         "old_backup_deleted": false
       }
+    }
+  ],
+  "continue_cases": [
+    {
+      "name": "rotation_prefix_one_is_worker_owned",
+      "transaction_kind": "security_rotation",
+      "accepted_step_count": 1,
+      "derived_next_step": "upload_new_material",
+      "driver": "durable_transaction_worker",
+      "client_continue_present": false,
+      "expected": "worker_resumes_same_step"
+    },
+    {
+      "name": "rotation_prefix_four_attested_terminal_continue",
+      "transaction_kind": "security_rotation",
+      "accepted_step_count": 4,
+      "derived_next_step": "local_commit",
+      "client_attestation_step": "local_commit",
+      "cas_matches": true,
+      "reserved_output_matches": true,
+      "expected": "accept_terminal_step"
+    },
+    {
+      "name": "rotation_prefix_one_attestation_cannot_drive_worker_step",
+      "transaction_kind": "security_rotation",
+      "accepted_step_count": 1,
+      "derived_next_step": "upload_new_material",
+      "client_attestation_step": "local_commit",
+      "expected": "reject_without_side_effect",
+      "reason_code": "failed_precondition"
+    },
+    {
+      "name": "continue_without_attestation_is_not_get_alias",
+      "transaction_kind": "recovery",
+      "accepted_step_count": 1,
+      "derived_next_step": "issue_terminal_receipt",
+      "client_attestation_present": false,
+      "expected": "reject_without_side_effect",
+      "reason_code": "failed_precondition"
+    },
+    {
+      "name": "recovery_prefix_one_attested_terminal_continue",
+      "transaction_kind": "recovery",
+      "accepted_step_count": 1,
+      "derived_next_step": "issue_terminal_receipt",
+      "client_attestation_step": "issue_terminal_receipt",
+      "cas_matches": true,
+      "reserved_output_matches": true,
+      "expected": "accept_terminal_step"
     }
   ],
   "equivalence_output": {

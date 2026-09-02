@@ -167,7 +167,6 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
       "algorithm": "MLS",
       "group_state_ref": "ak:event:AckEwH4jJdfBphZALp-M3ga3R1KDhI2KpvVb8MZiOMbW"
     },
-    "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "size_bytes": 700000,
     "media_type": "text/plain",
     "nonce_prefix": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -181,10 +180,10 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
 
 - 完整正文的明文字节数由 `attachment.size_bytes` 承载（[`../crypto-media/media-and-blob.md` §3.1](../crypto-media/media-and-blob.md)：`encrypted_attachment.size_bytes` 是**明文**字节数，段数由 `N=max(1,ceil(size_bytes/segment_bytes))` 本地派生）。本 kind MUST NOT 再定义 `plaintext_size_bytes` 之类的第二个明文尺寸字段；
 - `attachment.scheme` MUST 是 `ak.blob.stream_aead.v1`，`attachment.alg` MUST 是对应的 `_stream` 算法。E2EE long text MUST NOT 使用 whole-file AEAD——强制 streaming 是为了让超过分界的正文能边下边验且内存有界，不作为同一语义的第二种可选形态；
-- `attachment.blob_ref` MUST 是 hash-addressed，且其中的 `<suite>:<hex>` MUST 同时等于 `attachment.ciphertext_digest` 与 Blob metadata `content_digest`；三者都承诺按 `segment_index` 顺序拼接、每段包含 AEAD tag 的完整 stored ciphertext bytes；
+- `attachment.blob_ref` MUST 是 content-addressed，其中的 `<suite>:<hex>` 是按 `segment_index` 顺序拼接、每段包含 AEAD tag 的完整 stored ciphertext bytes 的唯一 wire commitment；attachment 不携 sibling `ciphertext_digest`，独立 Blob metadata 的 `content_digest` 必须与 ref 内嵌值相等；
 - `attachment.media_type` MUST 是 `text/plain` 或 `text/markdown`，MUST NOT 携带参数，charset 固定为 UTF-8；它是完整正文的唯一媒体类型及渲染判别字段，并继续按通用附件规则进入逐段 AAD。根级 MUST NOT 携带 `format` 或 `media_type`，MUST NOT 从 Blob 服务 metadata 或 HTTP Content-Type 推断正文渲染类型；
 - 接收端 MUST 本地派生 `N=max(1,ceil(attachment.size_bytes/attachment.segment_bytes))`，并验证实际 segment 数与 `N` 一致；attachment MUST NOT 携带 `segment_count` 或 `epoch`，epoch 从 `key_ref.group_state_ref` 指向的已验证 group state 派生（[`../crypto-media/media-and-blob.md` §3.3.1](../crypto-media/media-and-blob.md)）；接收端 MUST NOT 从 stored ciphertext 长度反推明文长度；
-- 完整 `ciphertext_digest`、逐段 AEAD、末段与顺序全部验证通过前，接收端 MUST NOT 把正文标成完整；
+- `blob_ref` 内嵌整体 digest、逐段 AEAD、末段与顺序全部验证通过前，接收端 MUST NOT 把正文标成完整；
 - fallback `body` 已在 Message encrypted payload 内认证，Blob 服务 MUST NOT 改写。
 
 ### 4.1.2 文本规范化与计数（normative）

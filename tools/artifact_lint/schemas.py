@@ -29,6 +29,14 @@ from .core import (
     PREIMAGE_IDENTITY_EXACT_NAMES,
     PREIMAGE_IDENTITY_NAME_SUFFIXES,
     PREIMAGE_SELF_REFERENCE_PHRASES,
+    SIBLING_DIGEST_EXEMPTION_KINDS,
+    SIBLING_DIGEST_EXEMPTION_REGISTRY_PATH,
+    SIBLING_DIGEST_EXEMPTION_ROW_KEYS,
+    SIBLING_DIGEST_EXEMPTION_STATUS,
+    SIBLING_DIGEST_PATTERN_RE,
+    SIBLING_DIGEST_SECTION_ANCHOR,
+    SIBLING_DIGEST_SECTION_PATH,
+    CONTENT_ADDRESSED_HEX64,
     PROFILE_ID_RE,
     PROFILE_ID_TOKEN_RE,
     Path,
@@ -619,6 +627,13 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
     continue_properties = continue_request.get("properties", {}) if isinstance(continue_request, dict) else {}
     if "expected_accepted_step_count" not in continue_required:
         lint.fail(path, "$defs/continue_request must require expected_accepted_step_count CAS")
+    if "client_attestation" not in continue_required:
+        lint.fail(path, "$defs/continue_request must require the client-attested terminal step")
+    if isinstance(continue_request, dict) and "allOf" in continue_request:
+        lint.fail(path, "$defs/continue_request must not encode kind-blind terminal indexes in allOf")
+    accepted_count = continue_properties.get("expected_accepted_step_count", {})
+    if isinstance(accepted_count, dict) and any(key in accepted_count for key in ("maximum", "enum")):
+        lint.fail(path, "$defs/continue_request accepted-step CAS must not encode kind-blind maximum or terminal indexes")
     if "expected_next_step" in continue_required or "expected_next_step" in continue_properties:
         lint.fail(path, "$defs/continue_request must not accept a derived expected_next_step")
 
@@ -637,6 +652,128 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
                 path,
                 f"orphan prepared material $defs/{def_name} is not referenced by any plan",
             )
+
+
+def check_stated_digest_suite_sources(lint: Lint) -> None:
+    """Keep Realm-suite material and fixed-SHA service CAS digests disjoint.
+
+    This is deliberately a closed path check, not a natural-language algorithm
+    guesser. Each covered field either declares a machine suite source or uses the
+    fixed sha256_digest definition selected by its owning contract.
+    """
+    schema_dir = ARTIFACTS / "schemas"
+    principal_path = schema_dir / "principal-operations.schema.json"
+    security_path = schema_dir / "security-transaction.schema.json"
+    event_payload_path = schema_dir / "event-payload.schema.json"
+    dto_path = schema_dir / "service-operation-dtos.schema.json"
+    erasure_path = schema_dir / "erasure-verification-stub.schema.json"
+    genesis_path = schema_dir / "realm-genesis.schema.json"
+    receipt_path = schema_dir / "event-batch-receipt.schema.json"
+
+    principal = load_json(lint, principal_path)
+    security = load_json(lint, security_path)
+    event_payload = load_json(lint, event_payload_path)
+    dto = load_json(lint, dto_path)
+    erasure = load_json(lint, erasure_path)
+    genesis = load_json(lint, genesis_path)
+    receipt = load_json(lint, receipt_path)
+    if not all(isinstance(value, dict) for value in (
+        principal, security, event_payload, dto, erasure, genesis, receipt
+    )):
+        return
+
+    draft_digest = (
+        principal.get("$defs", {})
+        .get("prepared_event_draft", {})
+        .get("properties", {})
+        .get("event_digest", {})
+    )
+    expected_realm_digest = "./account-operations.schema.json#/$defs/digest"
+    if draft_digest.get("$ref") != expected_realm_digest:
+        lint.fail(principal_path, "prepared_event_draft.event_digest must use the multi-suite Realm digest definition")
+    if draft_digest.get("x-arkret-digest-suite-source") != "realm_digest_algorithm":
+        lint.fail(principal_path, "prepared_event_draft.event_digest must declare realm_digest_algorithm as its suite source")
+
+    expected_plan_digest = "#/$defs/sha256_digest"
+    for json_path, value, key in walk_json(security):
+        if key != "prepared_plan_digest" or not isinstance(value, dict):
+            continue
+        if value.get("$ref") != expected_plan_digest:
+            lint.fail(security_path, f"{json_path} must use fixed sha256_digest, not a Realm-selected digest")
+    sha256_def = security.get("$defs", {}).get("sha256_digest")
+    if sha256_def != {"$ref": "./account-operations.schema.json#/$defs/sha256_digest"}:
+        lint.fail(security_path, "$defs/sha256_digest must directly reference the canonical fixed SHA-256 definition")
+
+    realm_ref_pattern = r"^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$"
+    mls_fields = (
+        (event_payload_path, event_payload, "mls_genesis_payload"),
+        (dto_path, dto, "MlsGroupStateMaterialRequestBody"),
+        (dto_path, dto, "MlsGroupStateMaterialOutcome"),
+    )
+    for path, document, def_name in mls_fields:
+        properties = document.get("$defs", {}).get(def_name, {}).get("properties", {})
+        for field in ("group_info_ref", "ratchet_tree_ref"):
+            node = properties.get(field, {}) if isinstance(properties, dict) else {}
+            if node.get("pattern") != realm_ref_pattern:
+                lint.fail(path, f"$defs/{def_name}.{field} must admit sha256 and blake3 Realm blob refs")
+            if node.get("x-arkret-digest-suite-source") != "realm_digest_algorithm":
+                lint.fail(path, f"$defs/{def_name}.{field} must declare realm_digest_algorithm as its suite source")
+
+    subject_ref = erasure.get("$defs", {}).get("subject_ref", {})
+    if "ak:blob:(?:sha256|blake3):" not in str(subject_ref.get("pattern", "")):
+        lint.fail(erasure_path, "subject_ref blob branch must admit both active Realm digest suites")
+
+    founding = genesis.get("$defs", {}).get("founding_device_descriptor", {})
+    founding_members = _members(founding)
+    for removed in ("device_key_digest", "hpke_key_digest"):
+        if removed in founding_members:
+            lint.fail(genesis_path, f"founding_device_descriptor must not restore derived {removed}")
+    receipt_properties = receipt.get("$defs", {}).get("pcr_genesis_scope", {}).get("properties", {})
+    fixed_ref = "./account-operations.schema.json#/$defs/sha256_digest"
+    for field in ("device_key_digest", "hpke_key_digest"):
+        node = receipt_properties.get(field, {}) if isinstance(receipt_properties, dict) else {}
+        if node.get("$ref") != fixed_ref:
+            lint.fail(receipt_path, f"pcr_genesis_scope.{field} must remain fixed SHA-256")
+
+
+def _members(node: Any) -> set[str]:
+    if not isinstance(node, dict):
+        return set()
+    required = node.get("required")
+    properties = node.get("properties")
+    return set(required if isinstance(required, list) else []) | set(
+        properties if isinstance(properties, dict) else {}
+    )
+
+
+def _check_aead_carrier_mirrors(lint: Lint, schema_dir: Path) -> None:
+    """Keep the non-Event AEAD carriers free of rebuilt-AAD and algorithm mirrors.
+
+    encoding.md section 10 forbids, inside one AEAD carrier, an aad_digest that
+    the carrier's own canonical header rebuilds and an algorithm copy fixed by
+    its profile or group state. The Signal proof likewise injects created_at
+    from the outer sent_at instead of carrying it (encoding.md section 6).
+    """
+    signal_path = schema_dir / "signal-envelope.schema.json"
+    file_transfer_path = schema_dir / "file-transfer.schema.json"
+    signal = load_json(lint, signal_path)
+    file_transfer = load_json(lint, file_transfer_path)
+    if isinstance(signal, dict):
+        encrypted_payload = signal.get("properties", {}).get("encrypted_payload", {})
+        if "aad_digest" in _members(encrypted_payload):
+            lint.fail(signal_path, "signal encrypted_payload must not mirror its rebuilt AAD as aad_digest")
+        key_ref = encrypted_payload.get("properties", {}).get("key_ref") if isinstance(encrypted_payload, dict) else None
+        if "algorithm" in _members(key_ref):
+            lint.fail(signal_path, "signal key_ref must not mirror the algorithm fixed by aead_profile and group state")
+        signal_proof = signal.get("$defs", {}).get("signal_proof", {})
+        if "created_at" in _members(signal_proof):
+            lint.fail(signal_path, "signal_proof must inject created_at from the outer sent_at instead of carrying it")
+        if not isinstance(signal_proof, dict) or signal_proof.get("x-arkret-binding-field-sources") != {"created_at": "sent_at"}:
+            lint.fail(signal_path, "signal_proof must declare x-arkret-binding-field-sources created_at=sent_at")
+    if isinstance(file_transfer, dict):
+        key_envelope = file_transfer.get("$defs", {}).get("key_envelope", {})
+        if "aad_digest" in _members(key_envelope):
+            lint.fail(file_transfer_path, "file-transfer key_envelope must not mirror its rebuilt HPKE AAD as aad_digest")
 
 
 def check_canonical_wire_source_closure(lint: Lint) -> None:
@@ -727,6 +864,8 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     )
     if duplicated_account_digests:
         lint.fail(account_data_path, f"account-data envelope duplicates local digests {duplicated_account_digests}")
+
+    _check_aead_carrier_mirrors(lint, schema_dir)
 
     receipt_defs = receipt.get("$defs", {})
     receipt_item = receipt_defs.get("event_receipt_item") if isinstance(receipt_defs, dict) else None
@@ -3051,7 +3190,61 @@ def check_reducer_payload_closure(lint: Lint) -> None:
 
 
 
-EVENT_ID_DIGEST_MIRROR_REMOVALS = (
+# Regression lock for every sibling digest deleted under encoding.md 4.0.1 (Event digest
+# mirrors, seal_digest, signer evidence digests, MLS genesis material digests and the
+# membership compensation delegation_digest). check_content_addressed_ref_sibling_digests
+# is the pattern-driven gate; this tuple only pins that a deleted field never returns
+# under its old name.
+def check_blob_identifier_form_closure(lint: Lint) -> None:
+    """Keep metadata Blob identity and content-addressed Blob references disjoint."""
+    schema_dir = ARTIFACTS / "schemas"
+    common_path = schema_dir / "common-ids.schema.json"
+    blob_path = schema_dir / "blob.schema.json"
+    recording_path = schema_dir / "call-recording-artifact.schema.json"
+    common = load_json(lint, common_path)
+    blob = load_json(lint, blob_path)
+    recording = load_json(lint, recording_path)
+    if not all(isinstance(value, dict) for value in (common, blob, recording)):
+        return
+
+    defs = common.get("$defs", {})
+    expected_blob_id = r"^ak:blob:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    expected_blob_ref = r"^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$"
+    if defs.get("blob_id", {}).get("pattern") != expected_blob_id:
+        lint.fail(common_path, "$defs.blob_id must be the metadata UUIDv7 form only")
+    if defs.get("blob_ref", {}).get("pattern") != expected_blob_ref:
+        lint.fail(common_path, "$defs.blob_ref must be the content-addressed form only")
+
+    root_properties = blob.get("properties", {})
+    root_required = set(blob.get("required", []))
+    if "blob_id" not in root_properties or "blob_id" not in root_required:
+        lint.fail(blob_path, "Blob metadata must require blob_id as its resource identity")
+    if "blob_ref" in root_properties or "blob_ref" in root_required:
+        lint.fail(blob_path, "Blob metadata must not restore the content-addressed blob_ref as its identity")
+    if "content_digest" not in root_properties or "content_digest" not in root_required:
+        lint.fail(blob_path, "Blob metadata must retain content_digest beside non-content-addressed blob_id")
+
+    encryption = recording.get("$defs", {}).get("recording_encryption", {})
+    encryption_members = _members(encryption)
+    if "ciphertext_digest" in encryption_members:
+        lint.fail(
+            recording_path,
+            "$defs.recording_encryption must derive the ciphertext commitment from outer blob_ref",
+        )
+
+
+CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
+    ("blob.schema.json", ("$defs", "encrypted_attachment"), "blob_ref", "ciphertext_digest"),
+    ("blob-operations.schema.json", ("$defs", "upload_receipt"), "blob_ref", "content_digest"),
+    ("blob-operations.schema.json", ("$defs", "blob_upload_outcome"), "blob_ref", "content_digest"),
+    ("file-transfer.schema.json", (), "blob_ref", "content_digest"),
+    ("media-metadata.schema.json", ("properties", "thumbnails", "items"), "source_blob_ref", "source_ciphertext_digest"),
+    ("media-metadata.schema.json", ("properties", "thumbnails", "items"), "thumbnail_blob_ref", "thumbnail_ciphertext_digest"),
+    ("call-recording-artifact.schema.json", (), "blob_ref", "content_digest"),
+    ("call-recording-artifact.schema.json", (), "blob_ref", "ciphertext_digest"),
+    ("snapshot.schema.json", ("properties", "chunks", "items"), "chunk_ref", "digest"),
+    ("event-payload.schema.json", ("$defs", "mls_commit_payload"), "commit_message_ref", "commit_digest"),
+    ("event-payload.schema.json", ("$defs", "agent_key_authorize_payload", "properties", "runtime_attestation"), "attestation_ref", "attestation_digest"),
     ("agent-membership-cascade.schema.json", ("$defs", "agent_cleanup_record"), "controller_terminal_event_id", "controller_terminal_event_digest"),
     ("agent-signer-evidence-operations.schema.json", ("$defs", "historical_query_selector"), "event_id", "event_digest"),
     ("agent-signer-evidence.schema.json", ("$defs", "account_status_event_basis"), "status_event_id", "status_event_digest"),
@@ -3079,13 +3272,36 @@ EVENT_ID_DIGEST_MIRROR_REMOVALS = (
     ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationDelegationCore"), "join_event_id", "join_event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MembershipJoinAcceptedProof"), "join_event_id", "join_event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "ReferenceLockedEventStub"), "event_id", "event_digest"),
+    ("event-envelope.schema.json", ("$defs", "station_admission_proof"), "signer_resolution_evidence_ref", "signer_resolution_evidence_digest"),
+    ("event-envelope.schema.json", ("$defs", "station_admission_proof"), "producer_signer_resolution_evidence_ref", "producer_signer_resolution_evidence_digest"),
+    ("event-envelope.schema.json", ("$defs", "producer_event_proof"), "signer_resolution_evidence_ref", "signer_resolution_evidence_digest"),
+    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "principal_signer_evidence"), "attester_signer_evidence_ref", "attester_signer_evidence_digest"),
+    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "attester_signer_evidence_ref", "attester_signer_evidence_digest"),
+    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "controller_signer_evidence_ref", "controller_signer_evidence_digest"),
+    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "account_authority_signer_evidence_ref", "account_authority_signer_evidence_digest"),
+    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "receiver_signer_evidence_ref", "receiver_signer_evidence_digest"),
+    ("availability-receipt.schema.json", (), "holder_signer_evidence_ref", "holder_signer_evidence_digest"),
+    ("agent-signer-evidence.schema.json", ("$defs", "event_admission_receipt"), "producer_signer_resolution_evidence_ref", "producer_signer_resolution_evidence_digest"),
+    ("history-key.schema.json", ("$defs", "history_key_response_signing_input"), "source_signer_evidence_ref", "source_signer_evidence_digest"),
+    ("history-key.schema.json", ("$defs", "minimal_metadata_mls_leaf_signer_evidence"), "identity_link_signer_evidence_ref", "identity_link_signer_evidence_digest"),
+    ("history-key.schema.json", ("$defs", "history_key_response_record"), "release_service_signer_evidence_ref", "release_service_signer_evidence_digest"),
+    ("history-key.schema.json", ("$defs", "history_key_response_lost_record"), "release_service_signer_evidence_ref", "release_service_signer_evidence_digest"),
+    ("event-payload.schema.json", ("$defs", "mls_genesis_payload"), "group_info_ref", "group_info_digest"),
+    ("event-payload.schema.json", ("$defs", "mls_genesis_payload"), "ratchet_tree_ref", "ratchet_tree_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialRequestBody"), "group_info_ref", "group_info_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialRequestBody"), "ratchet_tree_ref", "ratchet_tree_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialOutcome"), "group_info_ref", "group_info_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialOutcome"), "ratchet_tree_ref", "ratchet_tree_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationExecutorDelegation"), "delegation_id", "delegation_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationTerminalCertificate"), "delegation_id", "delegation_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationCasToken"), "delegation_id", "delegation_digest"),
 )
 
 
-def check_event_id_digest_mirror_removals(lint: Lint) -> None:
-    """Complete content-addressed IDs are the sole wire source for their encoded digest."""
+def check_content_addressed_ref_mirror_removals(lint: Lint) -> None:
+    """Deleted sibling digests stay deleted: the complete ref is the sole digest source."""
     schema_dir = ARTIFACTS / "schemas"
-    for file_name, path, id_field, digest_field in EVENT_ID_DIGEST_MIRROR_REMOVALS:
+    for file_name, path, id_field, digest_field in CONTENT_ADDRESSED_REF_MIRROR_REMOVALS:
         schema_path = schema_dir / file_name
         node = load_json(lint, schema_path)
         try:
@@ -3094,18 +3310,270 @@ def check_event_id_digest_mirror_removals(lint: Lint) -> None:
         except (KeyError, TypeError):
             lint.fail(
                 schema_path,
-                f"missing registered EventId mirror-removal object {'/'.join(map(str, path))}",
+                f"missing registered content-addressed mirror-removal object {'/'.join(map(str, path))}",
             )
             continue
         properties = node.get("properties", {}) if isinstance(node, dict) else {}
         required = set(node.get("required", [])) if isinstance(node, dict) else set()
         if id_field not in properties:
-            lint.fail(schema_path, f"{id_field} must remain the complete Event identity source")
+            lint.fail(schema_path, f"{id_field} must remain the complete content-addressed identity source")
         if digest_field in properties or digest_field in required:
             lint.fail(
                 schema_path,
                 f"{digest_field} must be derived from {id_field}, not restored as a wire mirror",
             )
+
+
+def _load_schema_documents(lint: Lint) -> dict[str, Any]:
+    return {
+        path.name: load_json(lint, path)
+        for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json"))
+    }
+
+
+def _resolve_schema_ref_chain(docs: dict[str, Any], file_name: str, node: Any) -> tuple[str, Any]:
+    depth = 0
+    while isinstance(node, dict) and isinstance(node.get("$ref"), str) and depth < 8:
+        file_part, _, fragment = node["$ref"].partition("#")
+        target_file = file_part.removeprefix("./") or file_name
+        target = docs.get(target_file)
+        if target is None:
+            return file_name, node
+        for segment in [part for part in fragment.split("/") if part]:
+            segment = segment.replace("~1", "/").replace("~0", "~")
+            if isinstance(target, dict) and segment in target:
+                target = target[segment]
+            elif isinstance(target, list) and segment.isdigit() and int(segment) < len(target):
+                target = target[int(segment)]
+            else:
+                return file_name, node
+        file_name, node, depth = target_file, target, depth + 1
+    return file_name, node
+
+
+def _schema_string_pattern(docs: dict[str, Any], file_name: str, node: Any, depth: int = 0) -> str | None:
+    """First `pattern` reachable through $ref / allOf / oneOf / anyOf, or None."""
+    if depth > 8:
+        return None
+    file_name, node = _resolve_schema_ref_chain(docs, file_name, node)
+    if not isinstance(node, dict):
+        return None
+    pattern = node.get("pattern")
+    if isinstance(pattern, str):
+        return pattern
+    for key in ("allOf", "oneOf", "anyOf"):
+        for branch in node.get(key) or []:
+            found = _schema_string_pattern(docs, file_name, branch, depth + 1)
+            if found:
+                return found
+    return None
+
+
+def _pure_content_addressed_kind(pattern: str, kind_alternation: str) -> bool:
+    """True when the whole pattern admits exactly one content-addressed typed form.
+
+    Groups are flattened so `^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$` still reads
+    as `ak:seal:sha256|blake3:[0-9a-f]{64}`. A union that also admits a UUID, Event or
+    DID branch leaves residue and is rejected: such a field may hold a non-content
+    address, so its sibling digest cannot be judged from the schema alone.
+    """
+    flat = pattern.strip("^$").replace("(?:", "").replace("(", "").replace(")", "")
+    return re.fullmatch(
+        r"ak:(?:" + kind_alternation + r"):(?:(?:sha256\|blake3|sha256|blake3):)?\[0-9a-f\]\{64\}",
+        flat,
+    ) is not None
+
+
+def load_content_addressed_kinds(lint: Lint) -> set[str]:
+    """Special-form kinds whose typed ref embeds the full digest of the referenced bytes."""
+    path = ARTIFACTS / "registry" / "id-kind-registry.json"
+    data = load_json(lint, path)
+    kinds: set[str] = set()
+    rows = data.get("special_forms") if isinstance(data, dict) else None
+    for row in rows or []:
+        if not isinstance(row, dict) or row.get("content_addressed") is not True:
+            continue
+        kind = row.get("kind")
+        payload = row.get("payload_pattern")
+        if not isinstance(kind, str) or not isinstance(payload, str) or CONTENT_ADDRESSED_HEX64 not in payload:
+            lint.fail(
+                path,
+                f"special_forms[{kind}] is marked content_addressed but its payload_pattern does not "
+                "end in a 64-hex digest; the mark claims the ref carries every digest octet",
+            )
+            continue
+        kinds.add(kind)
+    if not kinds:
+        lint.fail(path, "no special_forms row is marked content_addressed; encoding.md 4.0.1 needs the family list")
+    return kinds
+
+
+def load_sibling_digest_exemptions(lint: Lint) -> dict[tuple[str, str, str], dict[str, Any]]:
+    """Validate the 4.0.1 exemption registry and index its active rows.
+
+    Keys are `(schema file name, json path of the properties object, digest field)`.
+    Rows that fail structural validation are reported and dropped so a broken registry
+    never widens the gate.
+    """
+    path = SIBLING_DIGEST_EXEMPTION_REGISTRY_PATH
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return {}
+    rules = data.get("registry_rules") if isinstance(data.get("registry_rules"), dict) else {}
+    id_pattern = re.compile(str(rules.get("exemption_id_pattern") or r"^$"))
+    if set(rules.get("allowed_kinds") or []) != SIBLING_DIGEST_EXEMPTION_KINDS:
+        lint.fail(path, "registry_rules.allowed_kinds must be exactly distinct_preimage")
+    allowed_status = set(rules.get("allowed_status") or [])
+    if allowed_status != SIBLING_DIGEST_EXEMPTION_STATUS:
+        lint.fail(path, "registry_rules.allowed_status must be exactly active and retired")
+    expected_binding = f"spec/v1/zh/conformance/encoding.md#{SIBLING_DIGEST_SECTION_ANCHOR}"
+    if rules.get("prose_binding") != expected_binding:
+        lint.fail(path, f"registry_rules.prose_binding must be {expected_binding}")
+    if markdown_section_body(read_text(SIBLING_DIGEST_SECTION_PATH), SIBLING_DIGEST_SECTION_ANCHOR) is None:
+        lint.fail(path, f"encoding.md section {SIBLING_DIGEST_SECTION_ANCHOR} does not exist")
+    rows = data.get("exemptions")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "exemptions must be a non-empty list")
+        return {}
+
+    indexed: dict[tuple[str, str, str], dict[str, Any]] = {}
+    seen_ids: set[str] = set()
+    for index, row in enumerate(rows):
+        label = f"exemptions[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+        exemption_id = row.get("exemption_id")
+        if not isinstance(exemption_id, str) or not id_pattern.fullmatch(exemption_id):
+            lint.fail(path, f"{label}.exemption_id must match registry_rules.exemption_id_pattern")
+            continue
+        label = exemption_id
+        if exemption_id in seen_ids:
+            lint.fail(path, f"{label}: duplicate exemption_id")
+            continue
+        seen_ids.add(exemption_id)
+        missing = [key for key in SIBLING_DIGEST_EXEMPTION_ROW_KEYS if key not in row]
+        if missing:
+            lint.fail(path, f"{label}: missing {', '.join(missing)}")
+            continue
+        if row["status"] not in SIBLING_DIGEST_EXEMPTION_STATUS:
+            lint.fail(path, f"{label}.status must be active or retired")
+            continue
+        kind = row["kind"]
+        if kind not in SIBLING_DIGEST_EXEMPTION_KINDS:
+            lint.fail(path, f"{label}.kind must be distinct_preimage; an open question is not a ruling")
+            continue
+        subject = row["subject"]
+        refs = subject.get("content_addressed_refs") if isinstance(subject, dict) else None
+        if (
+            not isinstance(subject, dict)
+            or not all(isinstance(subject.get(key), str) and subject.get(key) for key in ("schema_file", "json_path", "digest_field"))
+            or not isinstance(refs, list)
+            or not refs
+            or not all(isinstance(ref, str) for ref in refs)
+        ):
+            lint.fail(
+                path,
+                f"{label}.subject needs schema_file, json_path, digest_field and a non-empty content_addressed_refs[]",
+            )
+            continue
+        schema_file = subject["schema_file"]
+        if not schema_file.startswith("schemas/") or not (ARTIFACTS / schema_file).is_file():
+            lint.fail(path, f"{label}.subject.schema_file {schema_file} does not exist under artifacts/")
+            continue
+        preimage = row["preimage"]
+        if not isinstance(preimage, str) or len(preimage) < 20:
+            lint.fail(path, f"{label}.preimage must state the bytes the digest commits to (>= 20 chars)")
+            continue
+        anchor = row["spec_anchor"]
+        if not isinstance(anchor, str) or not anchor:
+            lint.fail(path, f"{label}.spec_anchor must be a non-empty string")
+            continue
+        file_part, _, heading = anchor.partition("#")
+        if not file_part.startswith("spec/v1/zh/") or not (ROOT / file_part).is_file():
+            lint.fail(path, f"{label}.spec_anchor must point at an existing spec/v1/zh prose file")
+            continue
+        if heading and markdown_section_body(read_text(ROOT / file_part), heading) is None:
+            lint.fail(path, f"{label}.spec_anchor heading #{heading} does not exist in {file_part}")
+            continue
+        if row["status"] != "active":
+            continue
+        key = (schema_file.removeprefix("schemas/"), subject["json_path"], subject["digest_field"])
+        if key in indexed:
+            lint.fail(path, f"{label}: duplicate subject {key}")
+            continue
+        indexed[key] = row
+    return indexed
+
+
+def check_content_addressed_ref_sibling_digests(lint: Lint) -> None:
+    """A carrier holding a complete content-addressed ref carries no sibling digest of it.
+
+    encoding.md 4.0.1: `ak:<kind>:<suite>:<hex>` (and the suite-less `ak:<kind>:<hex>` forms)
+    already carry the suite and every digest octet of the referenced bytes, so a second
+    field restating that digest is a wire mirror that lets the two be forged apart. The
+    gate is pattern-driven: every `properties` object whose members, after $ref
+    resolution, include a pattern that is exactly one content_addressed special form
+    with a 64-hex payload and a bare `<suite>:<hex>` pattern is a candidate, whatever
+    the fields are called. Union patterns that also admit UUID, Event or DID forms are
+    outside the gate by construction. A digest survives only when the closed exemption
+    registry states the distinct preimage it commits to, and the registered ref set must
+    still match the schema so a later ref addition forces a fresh ruling.
+    """
+    kinds = load_content_addressed_kinds(lint)
+    if not kinds:
+        return
+    kind_alternation = "|".join(sorted(re.escape(kind) for kind in kinds))
+    docs = _load_schema_documents(lint)
+    exemptions = load_sibling_digest_exemptions(lint)
+    unmatched = dict(exemptions)
+
+    for file_name in sorted(docs):
+        document = docs[file_name]
+        if not isinstance(document, dict):
+            continue
+        path = ARTIFACTS / "schemas" / file_name
+        for json_path, value, key in walk_json(document):
+            if key != "properties" or not isinstance(value, dict):
+                continue
+            refs: list[str] = []
+            digests: list[str] = []
+            for name, field in value.items():
+                if not isinstance(field, dict):
+                    continue
+                pattern = _schema_string_pattern(docs, file_name, field) or ""
+                if _pure_content_addressed_kind(pattern, kind_alternation):
+                    refs.append(name)
+                elif SIBLING_DIGEST_PATTERN_RE.match(pattern):
+                    digests.append(name)
+            if not refs or not digests:
+                continue
+            for name in digests:
+                row = exemptions.get((file_name, json_path, name))
+                if row is None:
+                    lint.fail(
+                        path,
+                        f"{json_path}.{name} is a bare digest next to content-addressed ref(s) "
+                        f"{', '.join(refs)}; encoding.md 4.0.1 treats it as a forbidden wire mirror unless "
+                        f"{SIBLING_DIGEST_EXEMPTION_REGISTRY_PATH.name} states the distinct preimage it commits to",
+                    )
+                    continue
+                unmatched.pop((file_name, json_path, name), None)
+                declared = sorted(row["subject"]["content_addressed_refs"])
+                if declared != sorted(refs):
+                    lint.fail(
+                        path,
+                        f"{json_path}.{name} is exempted as {row['exemption_id']} against refs {declared} but now "
+                        f"sits next to {sorted(refs)}; a changed ref set needs a fresh ruling",
+                    )
+
+    for (schema_name, json_path, field), row in sorted(unmatched.items()):
+        lint.fail(
+            SIBLING_DIGEST_EXEMPTION_REGISTRY_PATH,
+            f"{row['exemption_id']} exempts {schema_name} {json_path}.{field}, which no longer exists or no "
+            "longer sits next to a content-addressed ref. A stale exemption silently licenses whatever later "
+            "takes that name.",
+        )
 
 
 REANCHOR_RETIRED_AUTHORITY_FIELDS = (
@@ -4416,4 +4884,98 @@ def check_fsm_state_reachability(lint: Lint) -> None:
                 f"{row['exemption_id']}: stale fsm exemption row waives no "
                 "failing state or transition; delete the row now that the "
                 "machine contract carries the write",
+            )
+
+
+
+def check_did_method_adapter_evidence_kind_routing(lint: Lint) -> None:
+    """evidence_kind is the single-source adapter discriminator for method history evidence.
+
+    did-method-adapter-registry.json must expose a unique method_evidence_kind per active
+    adapter so that a wire evidence_kind reverse-resolves to exactly one adapter. The
+    identity-resolution.schema.json method_history_evidence branches must cover exactly the
+    active kinds and must not carry a second discriminator (adapter_version): an adapter
+    change is a schema/operation version change, not a registry drift under the same wire.
+    """
+    registry_path = ARTIFACTS / "registry" / "did-method-adapter-registry.json"
+    schema_path = ARTIFACTS / "schemas" / "identity-resolution.schema.json"
+    registry = load_json(lint, registry_path)
+    schema = load_json(lint, schema_path)
+    if not isinstance(registry, dict) or not isinstance(schema, dict):
+        return
+
+    adapters = registry.get("adapters")
+    if not isinstance(adapters, list):
+        lint.fail(registry_path, "adapters must be an array")
+        return
+    kind_owner: dict[str, str] = {}
+    for index, adapter in enumerate(adapters):
+        if not isinstance(adapter, dict) or adapter.get("status") != "active":
+            continue
+        method = adapter.get("method")
+        kind = adapter.get("method_evidence_kind")
+        if not isinstance(kind, str) or not kind:
+            lint.fail(
+                registry_path,
+                f"adapters[{index}] ({method}) must declare a non-empty method_evidence_kind",
+            )
+            continue
+        if kind in kind_owner:
+            lint.fail(
+                registry_path,
+                f"adapters[{index}] ({method}) reuses method_evidence_kind {kind!r} already owned by "
+                f"{kind_owner[kind]}; evidence_kind must reverse-resolve to exactly one active adapter",
+            )
+            continue
+        kind_owner[kind] = str(method)
+
+    defs = schema.get("$defs")
+    if not isinstance(defs, dict):
+        lint.fail(schema_path, "identity-resolution schema must define $defs")
+        return
+    union = defs.get("method_history_evidence")
+    branches = union.get("oneOf") if isinstance(union, dict) else None
+    if not isinstance(branches, list) or not branches:
+        lint.fail(schema_path, "$defs/method_history_evidence must be a oneOf over adapter-routed branches")
+        return
+    branch_kinds: dict[str, str] = {}
+    for index, branch in enumerate(branches):
+        ref = branch.get("$ref") if isinstance(branch, dict) else None
+        if not isinstance(ref, str) or not ref.startswith("#/$defs/"):
+            lint.fail(schema_path, f"$defs/method_history_evidence.oneOf[{index}] must reference a local $defs branch")
+            continue
+        name = ref.removeprefix("#/$defs/")
+        node = defs.get(name)
+        if not isinstance(node, dict):
+            lint.fail(schema_path, f"$defs/method_history_evidence.oneOf[{index}] references unknown $defs/{name}")
+            continue
+        properties = node.get("properties", {})
+        required = node.get("required", [])
+        if "adapter_version" in properties or "adapter_version" in required:
+            lint.fail(
+                schema_path,
+                f"$defs/{name}: adapter_version must be derived from evidence_kind through "
+                "did-method-adapter-registry.method_evidence_kind and must not return to the wire",
+            )
+        kind_schema = properties.get("evidence_kind") if isinstance(properties, dict) else None
+        kind = kind_schema.get("const") if isinstance(kind_schema, dict) else None
+        if not isinstance(kind, str) or "evidence_kind" not in required:
+            lint.fail(schema_path, f"$defs/{name} must pin a required evidence_kind const")
+            continue
+        if kind in branch_kinds:
+            lint.fail(schema_path, f"$defs/{name} reuses evidence_kind {kind!r} already pinned by $defs/{branch_kinds[kind]}")
+            continue
+        branch_kinds[kind] = name
+        if kind not in kind_owner:
+            lint.fail(
+                schema_path,
+                f"$defs/{name} evidence_kind {kind!r} does not reverse-resolve to an active "
+                "did-method-adapter-registry.json method_evidence_kind",
+            )
+    for kind, method in sorted(kind_owner.items()):
+        if kind not in branch_kinds:
+            lint.fail(
+                schema_path,
+                f"active adapter {method} method_evidence_kind {kind!r} has no "
+                "$defs/method_history_evidence branch",
             )

@@ -79,7 +79,7 @@ flowchart TB
 
 任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 sealed Move 写入 `ak.component.moderation_state.v1` cell。`dismiss` 同样使用 sealed `ak.moderation.decision`，但其 `target_ref` MUST 指向被驳回举报的 `ak.self.moderation.report` Event，且只把对应 queue item 终结为 `resolved`；它在目标内容的 decision fold 中等价于 `none`，不得放行本来缺少 capability 或被其它 active decision 拒绝的操作。个人 blocklist 仍是 out-of-band，不进入该 cell。
 
-**确定性收敛与提交路径（normative）**：`ak.component.moderation_state.v1` 与 `ak.component.moderation.appeal.v1` 两类 cell 的确定性收敛由 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 注册的 lattice 定义，与 capability cell（[`authz/capabilities.md` §12.1](../authz/capabilities.md)）同型：`ak.moderation.decision` = 对 moderation_state cell 的 `or_set` **add**；`ak.moderation.decision.lift` = 对同一 cell 的**部分撤销**，投影为 `or_set_remove_dots`，移除集合逐字节等于 payload 的 `observed_dot_ids[]`；`ak.moderation.appeal.*` = appeal cell 上的 `fsm` 状态机（submitted → under_review → decided → closed）。裁决（`ak.moderation.decision[.lift]`）与申诉（`ak.moderation.appeal.*`）一律经 `POST /_arkret/self/events` 作为 self-authored Move 提交，**不经任何实现私有运维 / admin 写路径**；治理状态完全由数据/控制面 reducer 收敛，运维管理面不持有 moderation 真相。
+**确定性收敛与提交路径（normative）**：`ak.component.moderation_state.v1` cell 的确定性收敛由 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 注册的 lattice 定义，与 capability cell（[`authz/capabilities.md` §12.1](../authz/capabilities.md)）同型：`ak.moderation.decision` = 对 moderation_state cell 的 `or_set` **add**；`ak.moderation.decision.lift` = 对同一 cell 的**部分撤销**，投影为 `or_set_remove_dots`，移除集合逐字节等于 payload 的 `observed_dot_ids[]`。裁决一律经 `POST /_arkret/self/events` 作为 self-authored Move 提交，**不经任何实现私有运维 / admin 写路径**；治理状态完全由数据/控制面 reducer 收敛，运维管理面不持有 moderation 真相。lift 只解除指定 decision 的后续治理效力，不删除审计事实，也不复原已经接受的 redaction tombstone、已经密码学销毁的 content key 或其它不可逆 effect；需要恢复可见内容时只能由有权 actor 创建新的 replacement Event / object，并重新执行当下 authz 与 content policy。
 
 **active decision set 与 effective decision（normative）**：moderation_state cell 的当前值是“所有尚未被 observed-remove 的 decision add”组成的集合，不是 last-writer register。对某次 read / write / distribute，reducer 先筛出 target 与可选 `action` 对本次路径适用的 active entries，再按封闭收紧序 `hard_deny > quarantine > require_review > none` 取最严格 effective decision；`dismiss` 只适用于 report queue item 且 fold 为 `none`，`soft_deny` 不写 cell，`allow` 也不是 decision add。多个 issuer 或同一 issuer 的多个合法 add 并存是 OR-Set 的正常可 join 状态，必须按该 fold 得到相同结果，**不得**因“集合元素多于一个”直接报 `moderation_control_split`，也不得按本地到达顺序选 winner。只有同一 add identity 对应不同 canonical bytes、remove provenance 不可验证或 cell 无法按注册 lattice join 等真正 non-joinable / 损坏状态才进入 split fail-closed。
 
@@ -100,8 +100,8 @@ dot，会连带撤销其它 issuer 的 decision；[`../models/event-and-patch.md
 `ak:event:<44-char-event-token>`，dot 是 `ak:event:<44-char-event-token>:<write_index>`，二者永不逐字节相等，而 §2.4.2
 不提供 `event_ref -> dot` 的派生式。
 
-§5.5.2 的 `modify` 路径由此天然成立：同 batch 内 lift 只移除被指名的旧 decision dot，
-新增的 replacement decision 是同一 cell 上的新 dot，二者并存并继续参与最严格 fold。
+若要替换既有处置，提交方可在同一 batch 中 lift 被指名的旧 decision dot 并新增 replacement decision；
+新 decision 是同一 cell 上的新 dot，继续参与最严格 fold。
 
 ## 3. 内容举报 (Report)
 
@@ -216,7 +216,6 @@ MIMI facade provenance。它是 DataEvent，MUST 携带 `seal_ref + auth_context
 `submitted → resolved` 只能由一条已接受、目标绑定该 `report_id`（或其被举报 target）的 `ak.moderation.decision` 派生；举报不成立时 moderator MUST 使用 `decision="dismiss"` 并令 `target_ref` 指向该 report Event。decision issuer MUST 持有该 decision 所需 moderation capability。queue service / reducer 在同一 accepted basis 上把 item 投影为 `resolved`，不接受 reporter、普通成员或无对应 decision 的显式 close/status 写入。重复派生是幂等 no-op；从 `resolved` 转出 MUST `failed_precondition`。
 
 - **处置结果**(是否违规、采取何种处置)**不进** `status`,由独立的 `ak.moderation.decision` 事件承载。
-- **申诉**不改 queue-item,由独立的 `ak.moderation.appeal.*` 子系统(§5.5)按 `decision_ref` 维护。
 - 本两态 queue-item 只承载用户 `report` 的受理 / 完成，不承载 §2.6 的 policy `require_review` pending 状态。后者以 active moderation decision add 为真相源并投影到同一 UI queue；两者可以在 View 中合并展示，但 reducer MUST 保持各自 lifecycle 与 id 不混用。
 - 如后续工作流需要中间相(如 triage / review 分阶段),MAY 在新修订中增补状态值;v1 实现 MUST NOT 产生这两值之外的 `status`。
 
@@ -395,58 +394,6 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集用户举报�
 }
 ```
 
-### 5.5 上诉流程 (Appeal Strand, normative)
-
-上诉是审核闭环的反向通道。被 `ak.moderation.decision` 影响的 target（成员被 ban、消息被 remove、Strand 被锁等）可以走标准 `ak.moderation.appeal.*` 事件链请求复核，无需脱离 Arkret wire。本节定义事件链、状态机与 reducer 强制约束。
-
-#### 5.5.1 事件链
-
-四个 active event kind（见 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)）：
-
-| Event kind | 触发者 | 目标 cell 状态转换 | capability |
-| --- | --- | --- | --- |
-| `ak.moderation.appeal.submit` | appellant（被影响 target 的控制者或 policy 列出的 advocate） | (none) → `submitted` | `ak.moderation.appeal.submit`（risk_tier=low） |
-| `ak.moderation.appeal.review` | reviewer（不得是原 decision 的 issuer） | `submitted` → `under_review` | `ak.moderation.appeal.review`（risk_tier=medium） |
-| `ak.moderation.appeal.decision` | reviewer（同上） | `under_review` → `decided` | （复用 `ak.moderation.appeal.review`，见表注） |
-| `ak.moderation.appeal.close` | reviewer（手动）、appellant（撤回）或部署的授权关闭服务（见 §5.5.2 close 是手动 / 授权动作） | `decided` → `closed`；`submitted` / `under_review` → `closed` 仅限 appellant withdraw | （复用 `ak.moderation.appeal.review`，appellant withdraw 例外见 §5.5.2） |
-
-> 表注（capability 复用）：`.decision` 与 `.close` 是 `ak.moderation.appeal.review` capability action 的目标 event kind，**有意复用同一 review capability**——见 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `ak.moderation.appeal.review`（`event_mapping_kind=aggregate_admin`，`target_event_kinds` 含 `review` / `decision` / `close` 三者）。因此 `.decision` / `.close` 行不另列独立 capability，其 `risk_tier` **继承自 `ak.moderation.appeal.review` 的 `medium`**；它们不是独立 capability action，registry 也不为其登记单独 action。`separation of duties`（reviewer ≠ 原 decision issuer）由 §5.5.2 reducer 约束兜底，弥补共用 capability 带来的影响差。
-> 表注（submit 授权）：Realm member 作为被影响 target 的 appellant 提交 `ak.moderation.appeal.submit` 属于 baseline membership 权限；非成员 advocate 只有在 Realm policy / `ak.moderation.appeal.submit` capability 授权时 MAY 代表 appellant 提交。
-
-Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/moderation-appeal.schema.json)（schema id `ak.schema.moderation_appeal.v1`，四种 payload 通过 `oneOf` 分支）。
-
-##### 5.5.1.1 `decision` 封闭枚举（normative）
-
-`ak.moderation.appeal.decision` 的 `decision` 字段是**封闭枚举**，权威取值集合为 `{ uphold, overturn, modify }`（与 [`moderation-appeal.schema.json`](../../artifacts/schemas/moderation-appeal.schema.json) `decision_payload.decision.enum` 完全一致）。取未列值时 reducer MUST 用 `schema_violation` 拒绝。各值语义与后续动作如下：
-
-| `decision` | 含义 | 后续动作（normative） |
-| --- | --- | --- |
-| `uphold` | **驳回上诉**：原 `ak.moderation.decision` 维持生效，无进一步动作。这是最常见结局。 | 不得携带 `modify_decision_ref`（schema `if/then` 强制）；不产生 lift / 新 decision；cell 转入 `decided`。 |
-| `overturn` | **撤销原 decision**：上诉胜诉，解除该 decision 的后续治理效力；不声称逆转已发生的不可逆副作用。 | MUST 与一条 `ak.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或等价控制事务中出现，否则 reducer 用 `appeal_overturn_missing_lift` 拒绝（见 §5.5.2）。 |
-| `modify` | **替换原 decision**：处置参数被修订（如缩短 ban 时长、降级处置）。 | MUST 在同一 batch 同时 lift 原 decision，并新增一条 replacement `ak.moderation.decision`；`modify_decision_ref` 指向该新 event（见 §5.5.2）。 |
-
-#### 5.5.2 Reducer 强制约束
-
-- **非法迁移错误**：除 §5.5.1 表与本节 appellant-withdraw 例外外，任何 from/to 不匹配、越序或从 `closed` 转出的 appeal Move MUST `failed_precondition`，`reason_code="invalid_appeal_fsm_transition"`；不得复用 task 专用的 `invalid_task_fsm_transition`，也不得静默纠正状态。
-- **Realm 绑定**：所有 `ak.moderation.appeal.*` payload MUST 携带 `realm_id`，且该值 MUST 等于 enclosing Event 的 `realm_id`。Reducer 还 MUST 解析 `decision_ref`，确认它引用同一 Realm 的 `ak.moderation.decision`；若 target / decision 属于另一 Realm，除非显式 cross-Realm moderation profile 授权，否则 MUST `schema_violation`（形态 / 成员违例）或 `capability_denied`（形态合法但 actor 无该 action 权限）——二者按失败原因互斥，实现 MUST NOT 任选其一。
-- **separation of duties**：`ak.moderation.appeal.review` / `ak.moderation.appeal.decision` 的 `reviewer` MUST NOT 等于被上诉 `decision_ref` 对应 `ak.moderation.decision` event 的 issuer。违反时 reducer 用 `appeal_self_review_forbidden` 拒绝。
-- **overturn 与 lift 原子**：`ak.moderation.appeal.decision` `decision=overturn` MUST 与一条 `ak.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或等价控制事务中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝。这关闭"上诉胜诉但原 decision 仍生效"的窗口。
-- **不可逆副作用边界**：overturn 只 observed-remove 被上诉的 moderation decision，不删除审计事实，也不复原已经 accepted 的 redaction tombstone、已经密码学销毁的 content key 或其它不可逆 effect。原 decision 若已触发 §5.1 redaction，上诉胜诉后 reducer MUST 保留 tombstone，并在 appeal / audit projection 标记 decision 已 overturn；需要恢复可见内容时只能由有权 actor 创建一个新的 replacement Event / object（重新执行当下 authz 与 content policy），绝不得伪造原 Event resurrection。UI MUST NOT 把此结果描述为“原文已恢复”。
-- **modify、lift 与新 decision 原子**：`decision=modify` MUST 与一条 lift 原 `decision_ref` 的 `ak.moderation.decision.lift`、以及一条新的 `ak.moderation.decision`（其 `target_ref` 等于原 target）在同一 batch 中出现。`modify_decision_ref` 是 `ak.moderation.appeal.decision` payload 上的字段（不是新 decision 上的字段），其值 MUST 指向同 batch 内该新 decision event 的 id；reducer 校验 lift 目标、`modify_decision_ref` 与同 batch新 decision 的 event id / target 全部一致。缺 lift 时用 `failed_precondition`（`reason="appeal_modify_missing_lift"`）拒绝整个 batch，避免旧 decision 与 replacement 并存时按最严格 fold 继续保留旧处置。
-- **Appeal 身份与重复 submit 约束**：submit payload MUST 省略 `appeal_id`，receiver 从该 submit Event 的 `event_id` 重标得到 `ak:appeal:<同一44字符token>`；review / decision / close payload 必须引用该派生 ID。同一 `(decision_ref, appellant)` 在其 appeal cell 处于**非 `closed`** 状态时不得再次 submit；违反时 `failed_precondition`。这是与时长无关的幂等约束（同一 appellant 对同一 decision 不得并存多个未结上诉）。cell 进入 `closed` 后允许新的 submit Event，并由其派生新 `appeal_id`。重复 submit 的**时长级限流**（冷静期）不在协议层规定，由部署 / Realm policy 自行决定，协议不规定任何具体时长。
-- **appellant withdraw**：cell 处于 `submitted` 或 `under_review` 时，`appellant` 本人 MAY emit `ak.moderation.appeal.close`，并把 payload 字段 `close_reason` 设为 enum 值 `appellant_withdrawn`，从而把 appeal 直接转为 `closed`。Reducer MUST 校验 `closer == appellant`，且不得要求 reviewer capability；该路径不得隐式改变原 moderation decision。
-- **close 是手动 / 授权动作**：`ak.moderation.appeal.close` 由 reviewer / 部署授权关闭服务在 appeal 已 `decided` 后主动关闭，或由 appellant withdraw 提前触发(见上一条)。协议层不规定任何自动关闭定时器、超时时长或 timer-service DID。部署若需要"非活跃自动关闭"，自行实现产品服务，在 appeal 已 `decided` 后经正常授权通道(reviewer / 部署的授权关闭服务的 capability)提交 `ak.moderation.appeal.close`；未 `decided` 的提前 close 只允许 appellant withdrawal。该 close payload MUST 携带 `closer`，reducer 按常规 capability gate 校验 `closer` 是否有权关闭。
-
-#### 5.5.3 审计与可见性
-
-- 全部四个 event 进入 moderation audit log（durable_event），同时受 moderation / appeal policy 的 evidence visibility 控制可见范围；它们不触发 Audit Applet release。
-- `evidence_visibility`（submit payload 字段）控制 reason text / evidence_refs 的明文可见范围（`appellant_only` / `reviewers_only` / `realm_admins` / `realm_members`），默认 `reviewers_only`。这只影响明文 audience，不改变 wire envelope 加密。
-- 与 §10 v1 流程要求一致：appeal 流程"形成可审计事件"现在由这四个事件原生承担，不再需要平台外通道。
-
-#### 5.5.4 与 `moderation_policy.appeal.endpoint` 的关系
-
-§5.3 `moderation_policy` 中 `appeal.endpoint` 字段保留用于 UI 引导（用户在哪个 Strand 提交上诉），不替代 wire 事件。endpoint Strand 内的消息只是 narrative，约束性 decision / lift 仍走本节 normative 事件链。
-
 ## 6. 服务器级访问控制
 
 ### 6.1 本地部署 ACL 与 Realm ACL 的边界
@@ -569,6 +516,5 @@ Organization 审核策略与部署本地审核配置由接收请求的服务根�
 ## 10. v1 流程要求
 
 - 自动化审核只能产生 risk signal、`quarantine` 或 `require_review` 建议；除非 Realm policy 明确授权，AI 分类器不得直接 hard delete、ban 或扩大可见性。
-- 上诉流程 MUST 形成可审计事件，至少包含 target、moderation action、appeal actor、reviewer、decision、reason code 和时间；上诉材料的明文可见范围必须受 policy 控制。v1 中该要求由 §5.5 的 normative 事件链原生承担：appeal MUST 走 `ak.moderation.appeal.submit` / `.review` / `.decision` / `.close` 四个 active event kind（见 §5.5.1），不再需要平台外通道。
-- 跨 Realm 共享封禁列表必须由 Organization DID、联盟治理 DID 或受信 issuer 签名，并声明 scope、reason code、evidence hash、过期时间和误伤申诉入口。默认不得把个人 blocklist 发布为共享封禁。
+- 跨 Realm 共享封禁列表必须由 Organization DID、联盟治理 DID 或受信 issuer 签名，并声明 scope、reason code、evidence hash 和过期时间。默认不得把个人 blocklist 发布为共享封禁。
 - 审核操作 MUST 使用不可抵赖日志：moderator DID、device/service proof、policy version、target event hash、action、reason code 和 audit timestamp 都必须进入签名记录。

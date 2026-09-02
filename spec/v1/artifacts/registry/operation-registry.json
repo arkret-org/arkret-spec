@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.4",
+  "version": "2026-09-02.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T18:20:00+08:00",
+  "generated_at": "2026-09-02T23:25:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1874,18 +1874,17 @@
       "http": "POST /_arkret/peer/signal",
       "grpc": "PeerSignal/Relay",
       "mq": "peer.signal.command.relay",
-      "notes": "Optional Signal Extension single-hop peer relay. The source batches original producer-signed encrypted SignalEnvelope values for one Realm and one destination service. The destination independently verifies peer authentication, current joined-member ActorId routing authority, envelope proof, scope, Seal, signal_class, TTL and encrypted payload binding, then performs only local live fanout. The request MUST NOT carry Idempotency-Key; uncertain outcomes use drop_unconfirmed. The opaque accepted=true response reveals no Realm, scope, sender, recipient, binding, support, or per-signal result and is not a durable delivery receipt.",
+      "notes": "Optional Signal Extension single-hop peer relay. The source batches original producer-signed encrypted SignalEnvelope values for one Realm and one destination service. The destination independently verifies peer authentication, current joined-member ActorId routing authority, envelope proof, scope, Seal, signal_class, TTL and encrypted payload binding, then performs only local live fanout. The request MUST NOT carry Idempotency-Key; uncertain outcomes use drop_unconfirmed. A successful request returns an empty response; it reveals no Realm, scope, sender, recipient, binding, support, or per-signal result and is not a durable delivery receipt.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 1048576,
       "max_items": 128,
-      "success_shape_kind": "schema_resource",
+      "success_shape_kind": "empty_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
       "uncertain_outcome": {
         "strategy": "drop_unconfirmed"
       },
       "request_schema_ref": "schemas/signal-relay.schema.json",
-      "response_schema_ref": "schemas/signal-relay.schema.json#/$defs/signal_relay_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "ephemeral_signal_must_not_be_durable_event"
@@ -3343,7 +3342,7 @@
       "http": "POST /_arkret/self/seals/governance-dependencies",
       "grpc": "SelfSeals/GovernanceDependencies",
       "mq": "self.seals.read.governance_dependencies",
-      "notes": "Resolve a caller-split batch of exactly four content-addressed governance-dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, MinimalMetadataMlsLeafSignerEvidence, and CollisionVariantRecord. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
+      "notes": "Resolve a caller-split batch of exactly four typed non-Event dependency kinds: the content-addressed AvailabilityReceipt, AuthenticatedSignerResolutionEvidence and MinimalMetadataMlsLeafSignerEvidence, plus CollisionVariantRecord selected by collision_variant_record_id and verified against the referencing ak.fork.resolution locator digest. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 8388608,
       "success_shape_kind": "typed_response",
@@ -3562,14 +3561,13 @@
       "http": "DELETE /_arkret/self/keys/backups/{backup_id}",
       "grpc": "SelfKeys/BackupsDelete",
       "mq": "self.keys.backups.resource.delete",
-      "notes": "High-risk delete guarded by a server-issued single-use challenge and the shared high-risk authority proof family (key-management.md section 7.8/7.8.1). The challenge is consumed atomically with the first successful delete; a byte-identical retry returns the stored terminal outcome, and the same request_id with a different canonical digest is a duplicate conflict.",
+      "notes": "High-risk delete guarded by a server-issued single-use challenge and the shared high-risk authority proof family (key-management.md section 7.8/7.8.1). The challenge is consumed atomically with the first successful delete; a byte-identical retry returns the same empty success response, and the same request_id with a different canonical digest is a duplicate conflict.",
       "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "empty_response",
       "idempotency_mechanism": "canonical_hash",
       "canonical_hash_input": "/request_id",
       "retry_safe": true,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"

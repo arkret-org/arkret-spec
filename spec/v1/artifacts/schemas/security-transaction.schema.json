@@ -2,13 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/security-transaction.schema.json",
   "title": "Arkret Security Transaction",
-  "description": "Closed Station-local durable RecoveryTransaction and SecurityRotationTransaction resource. The prepared plan is the sole canonical intent source; accepted outputs form a durable ordered prefix. account_id is the exact account owner; coordinator_id independently names the executing Station service role and MUST equal account_id.station_id. Every prepared Event and backup ActorId must equal this account actor.",
+  "description": "Closed Station-local durable RecoveryTransaction and SecurityRotationTransaction resource. The prepared plan is the sole canonical intent source; accepted outputs form a durable ordered prefix. account_id is the exact account owner; the coordinator role is account_id.station_id, the service core identity of the executing Station, and no separate coordinator field exists on wire. Every prepared Event and backup ActorId must equal this account actor.",
   "type": "object",
   "required": [
     "transaction_id",
     "kind",
     "account_id",
-    "coordinator_id",
     "expires_at",
     "created_at",
     "request_digest",
@@ -28,11 +27,8 @@
       ]
     },
     "account_id": {
-      "$ref": "./common-ids.schema.json#/$defs/account_id"
-    },
-    "coordinator_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Service core identity of the executing Station, not an arbitrary external coordinator. Process separation is deployment-private and creates no public coordinator role."
+      "$ref": "./common-ids.schema.json#/$defs/account_id",
+      "description": "Exact account owner. Its station_id is the coordinator: the service core identity of the executing Station, not an arbitrary external coordinator. Process separation is deployment-private and creates no public coordinator role."
     },
     "expires_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -54,8 +50,8 @@
       ]
     },
     "prepared_plan_digest": {
-      "$ref": "#/$defs/digest",
-      "description": "Digest of canonical prepared_plan bytes. Implementations MUST recompute it and persist both bytes and typed value before the first side effect."
+      "$ref": "#/$defs/sha256_digest",
+      "description": "SHA-256(RFC8785_JCS(prepared_plan)). Implementations MUST recompute it and persist both bytes and typed value before the first side effect. This cross-service CAS coordinate never follows a Realm digest_algorithm."
     },
     "accepted_steps": {
       "type": "array",
@@ -341,7 +337,6 @@
         "transaction_id",
         "transaction_request_digest",
         "prepared_plan_digest",
-        "attestation_digest",
         "artifact",
         "auth_data"
       ],
@@ -377,11 +372,7 @@
           "$ref": "#/$defs/digest"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "attestation_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 of JCS(artifact). The coordinator MUST recompute it from the received typed artifact bytes."
+          "$ref": "#/$defs/sha256_digest"
         },
         "artifact": {
           "oneOf": [
@@ -411,7 +402,7 @@
             "signature": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url signature over RFC 8785 JCS of the fixed projection {step,output_ref,transaction_id,transaction_request_digest,prepared_plan_digest,attestation_digest}. artifact is authenticated transitively by attestation_digest and is not duplicated in the outer projection."
+              "description": "base64url signature over RFC 8785 JCS of the fixed projection {step,output_ref,transaction_id,transaction_request_digest,prepared_plan_digest,attestation_digest}. attestation_digest is not a wire field: the signer and the verifier each recompute it as SHA-256(JCS(artifact)) from the typed artifact carried in this object and fill it into the projection, so artifact is authenticated transitively and is not duplicated in the outer projection."
             }
           },
           "additionalProperties": false
@@ -449,74 +440,29 @@
     },
     "continue_request": {
       "type": "object",
+      "description": "Submits the client-attested terminal step only. The resource-aware validator derives the next step from transaction kind and accepted prefix, accepts recovery index 1 or security-rotation index 4 only when that terminal step is ready, and rejects every coordinator-owned prefix with failed_precondition. Coordinator-owned steps are executed and recovered by the durable worker, never driven by this request.",
       "required": [
         "request_digest",
         "prepared_plan_digest",
-        "expected_accepted_step_count"
+        "expected_accepted_step_count",
+        "client_attestation"
       ],
       "properties": {
         "request_digest": {
           "$ref": "#/$defs/digest"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/digest"
+          "$ref": "#/$defs/sha256_digest"
         },
         "expected_accepted_step_count": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 4,
-          "description": "CAS coordinate. It MUST equal the current accepted_steps length; the coordinator selects the next fixed step from transaction kind and this index."
+          "description": "CAS coordinate. It MUST equal the current accepted_steps length. The schema intentionally has no kind-blind maximum or {1,4} coupling; the service resolves the transaction resource, derives the next fixed step, and accepts only a terminal-ready index."
         },
         "client_attestation": {
           "$ref": "#/$defs/client_step_attestation"
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "client_attestation"
-            ]
-          },
-          "then": {
-            "properties": {
-              "expected_accepted_step_count": {
-                "enum": [
-                  1,
-                  4
-                ]
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "expected_accepted_step_count": {
-                "enum": [
-                  1,
-                  4
-                ]
-              }
-            },
-            "required": [
-              "expected_accepted_step_count"
-            ]
-          },
-          "then": {
-            "required": [
-              "client_attestation"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "client_attestation"
-              ]
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "create_request": {
@@ -538,9 +484,12 @@
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     },
+    "sha256_digest": {
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+    },
     "prepared_event_unit": {
       "type": "object",
-      "description": "Exact typed Event submit request plus its suite-bearing canonical digest. Operation, request schema, destination and audience are fixed by this unit type and the parent coordinator_id; canonical request bytes are RFC 8785 JCS(request), not a second wire input. A PCR recovery unit contains reanchor plus replacement authorize for the same account-local lineage/session/generation CAS; candidate possession is verified through the unit-local overlay before mutation and never by resolving current human DID.",
+      "description": "Exact typed Event submit request plus its suite-bearing canonical digest. Operation, request schema, destination and audience are fixed by this unit type and the parent account_id.station_id; canonical request bytes are RFC 8785 JCS(request), not a second wire input. A PCR recovery unit contains reanchor plus replacement authorize for the same account-local lineage/session/generation CAS; candidate possession is verified through the unit-local overlay before mutation and never by resolving current human DID.",
       "required": [
         "request",
         "request_digest"
@@ -757,6 +706,7 @@
     },
     "security_rotation_local_commit": {
       "type": "object",
+      "description": "Client-authored terminal artifact. The device copies transaction_id, transaction_request_digest and prepared_plan_digest from the authoritative SecurityTransaction resource, copies local_commit_digest from its closed prepared_plan, and supplies its own device_id and canonical committed_at. No server-issued signed artifact or separate supply operation exists; the enclosing client_step_attestation authenticates this complete object.",
       "required": [
         "schema",
         "transaction_id",
@@ -777,7 +727,7 @@
           "$ref": "#/$defs/digest"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/digest"
+          "$ref": "#/$defs/sha256_digest"
         },
         "local_commit_digest": {
           "$ref": "#/$defs/digest"

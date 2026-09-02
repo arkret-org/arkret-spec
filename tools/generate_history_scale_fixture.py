@@ -217,7 +217,6 @@ def build_signer_evidence(schemas: SchemaSet) -> dict[str, Any]:
         "authenticated_resolution": {
             "service_resolution_record": record,
             "method_history_evidence": {
-                "adapter_version": "did:key:1",
                 "evidence_kind": "did_key_expansion",
                 "boundary": {
                     "from_method_history_head": history_head,
@@ -269,7 +268,6 @@ def build_dependency_kat(schemas: SchemaSet, signer: dict[str, Any]) -> dict[str
         "holder_id": SERVICE_CORE,
         "retention_expires_at": EXPIRES,
         "holder_signer_evidence_ref": signer["evidence_ref"],
-        "holder_signer_evidence_digest": signer["evidence_digest"],
     }
     receipt = {**receipt_core, "signature": detached_proof(sha256(jcs(receipt_core)))}
     receipt_digest = sha256(jcs(receipt))
@@ -741,11 +739,9 @@ def build_source_agent_observation_digest_kat(schemas: SchemaSet) -> dict[str, A
     }
     evidence_a = {
         "source_signer_evidence_ref": "ak:signer_evidence:" + digest_marker(0x51),
-        "source_signer_evidence_digest": digest_marker(0x51),
     }
     evidence_b = {
         "source_signer_evidence_ref": "ak:signer_evidence:" + digest_marker(0x52),
-        "source_signer_evidence_digest": digest_marker(0x52),
     }
     expected = domain_digest(SOURCE_AGENT_OBSERVATION_DOMAIN, preimage)
     schemas.validator(
@@ -802,7 +798,6 @@ def build_response_stream_kat(schemas: SchemaSet) -> dict[str, Any]:
         "source_actor_id": SERVICE_ACTOR,
         "source_sender_domain": SERVICE_DID,
         "source_signer_evidence_ref": "ak:signer_evidence:" + signer_digest,
-        "source_signer_evidence_digest": signer_digest,
         "request_digest": digest_marker(0x41),
         "request_receipt_digest": digest_marker(0x42),
         "expires_at": EXPIRES,
@@ -847,7 +842,6 @@ def build_response_stream_kat(schemas: SchemaSet) -> dict[str, Any]:
         "record_digest": digest_marker(0x63),
         "lost_at": "2026-08-23T00:00:02.000Z",
         "release_service_signer_evidence_ref": "ak:signer_evidence:" + signer_digest,
-        "release_service_signer_evidence_digest": signer_digest,
     }
     lost_record = {
         **lost_unsigned,
@@ -1222,7 +1216,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "proposal_refs": [],
         "next_epoch": epoch,
         "commit_bytes_b64": b64u(transition_bytes),
-        "commit_digest": transition_digest,
+        "commit_message_ref": "ak:blob:" + transition_digest,
         "governance_binding": governance_binding,
         "organization_recovery_archive": archive,
     }
@@ -1247,7 +1241,6 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "actor_id": container_event_core["actor_id"],
         "verification_method": source_method,
         "signer_resolution_evidence_ref": "ak:signer_evidence:" + source_evidence_digest,
-        "signer_resolution_evidence_digest": source_evidence_digest,
         "created_at": replicated_at,
     }
     event_protected = b64u(jcs({"alg": "Ed25519"}))
@@ -1265,7 +1258,6 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
                 "event_digest": container_event_digest,
                 "created_at": replicated_at,
                 "signer_resolution_evidence_ref": "ak:signer_evidence:" + source_evidence_digest,
-                "signer_resolution_evidence_digest": source_evidence_digest,
                 "jws": event_protected + ".." + b64u(event_signature),
             }
         ],
@@ -1674,7 +1666,7 @@ def render() -> str:
         raise ValueError("history fixture does not register the direct-traversal split vector")
     fixture.pop("mailbox_cases", None)
     fixture.update(build_sections())
-    fixture["version"] = "2026-08-22"
+    fixture["version"] = "2026-09-02"
     fixture["runner"] = {
         "kind": "named_suite",
         "entrypoint": "ak.suite.crypto.history_key_recovery.v1",

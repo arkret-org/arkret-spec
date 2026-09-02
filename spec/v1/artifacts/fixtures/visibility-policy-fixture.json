@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-06-19",
+  "version": "2026-09-02",
   "suite": "visibility_policy",
   "runner": {
     "kind": "named_suite",
@@ -143,7 +143,7 @@
           "title",
           "display",
           "short_name",
-          "member_count",
+          "member_ids",
           "created_by",
           "members",
           "join_history"
@@ -182,7 +182,7 @@
           "title",
           "summary",
           "short_name",
-          "member_count",
+          "member_ids",
           "members",
           "member_dids",
           "created_by",

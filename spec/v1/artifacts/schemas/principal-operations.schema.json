@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/principal-operations.schema.json",
   "title": "Arkret Principal Operation Carriers",
-  "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, KeyPackage terminal handling, Sidecar staging and shared primitives.",
+  "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, Sidecar staging and shared primitives.",
   "oneOf": [
     {
       "$ref": "#/$defs/pcr_genesis_unit"
@@ -21,9 +21,6 @@
     },
     {
       "$ref": "#/$defs/history_share_contract"
-    },
-    {
-      "$ref": "#/$defs/keypackage_terminal_command"
     },
     {
       "$ref": "#/$defs/sidecar_ensure_request"
@@ -174,89 +171,6 @@
     },
     "history_access": {
       "$ref": "./event-payload.schema.json#/$defs/history_access_value"
-    },
-    "keypackage_terminal_command": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "keypackage_ref",
-            "expected_state",
-            "action",
-            "idempotency_key"
-          ],
-          "properties": {
-            "keypackage_ref": {
-              "$ref": "#/$defs/opaque_id"
-            },
-            "expected_state": {
-              "const": "published_unused"
-            },
-            "action": {
-              "const": "retire"
-            },
-            "idempotency_key": {
-              "$ref": "#/$defs/opaque_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "keypackage_ref",
-            "expected_state",
-            "claim_id",
-            "action",
-            "idempotency_key"
-          ],
-          "properties": {
-            "keypackage_ref": {
-              "$ref": "#/$defs/opaque_id"
-            },
-            "expected_state": {
-              "const": "claimed_unconsumed"
-            },
-            "claim_id": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/opaque_id"
-                },
-                {
-                  "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                }
-              ]
-            },
-            "action": {
-              "const": "revoke"
-            },
-            "idempotency_key": {
-              "$ref": "#/$defs/opaque_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "keypackage_ref",
-            "expected_state",
-            "action"
-          ],
-          "properties": {
-            "keypackage_ref": {
-              "$ref": "#/$defs/opaque_id"
-            },
-            "expected_state": {
-              "const": "consumed"
-            },
-            "action": {
-              "const": "no_write"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
     },
     "opaque_id": {
       "type": "string",
@@ -972,7 +886,9 @@
           "$ref": "#/$defs/base64url"
         },
         "event_digest": {
-          "$ref": "#/$defs/digest"
+          "$ref": "./account-operations.schema.json#/$defs/digest",
+          "x-arkret-digest-suite-source": "realm_digest_algorithm",
+          "description": "Digest of unsigned_event_bytes under the target Realm's effective digest_algorithm. The suite prefix is part of the value and MUST equal that Realm suite; this draft is therefore constructable for both sha256 and blake3 Realms."
         }
       },
       "additionalProperties": false

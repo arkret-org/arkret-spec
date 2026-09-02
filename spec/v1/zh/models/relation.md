@@ -143,7 +143,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 | --- | --- | --- |
 | `accessible` | caller 已通过目标 Realm 的 discover/reference 与内容展开授权，可展示目标 policy 允许的 metadata / preview。 | 目标 policy 允许的最小 metadata；不得超出本次授权。 |
 | `lazy_link` | caller 可能有后续展开路径，但当前查询深度、范围、profile 或缺失依赖要求截断为惰性链接。 | 不解引用占位、必要的 source-side relation id / digest；不得自动 backfill 目标 Realm。 |
-| `locked` | 目标不存在、未发现、policy 拒绝或 caller 无权知道目标存在性；这些原因对 caller MUST 保持不可区分。 | 固定 locked stub；不得包含目标 `realm_id`、title、member_count、created_at、issuer set、preview 或任何可区分存在性的字段。 |
+| `locked` | 目标不存在、未发现、policy 拒绝或 caller 无权知道目标存在性；这些原因对 caller MUST 保持不可区分。 | 固定 locked stub；不得包含目标 `realm_id`、title、member_ids、created_at、issuer set、preview 或任何可区分存在性的字段。 |
 
 响应实现 MAY 使用 `reference_projection.status`、`edge_status` 或等价字段名，但值 MUST 能无损映射到上述三值。`locked` 是 projection-only 派生状态，不写入 canonical Relation 对象，也不得与 account lifecycle 的 `locked` 混用。
 
@@ -174,7 +174,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 ### 4.5 反枚举（normative）
 
-**存在性反枚举**：`ReferenceProjectionState.locked` 与"目标 Realm 不存在 / 未发现"对外 MUST 保持不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 或等价字段、相同 metadata 集合、相同 error 字符串、相同 timing bucket。Timing 判定使用同一服务端测量点、同一请求类别和同一部署 profile 的分布式口径：实现 SHOULD 对每类至少采样 30 次，p95 差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入该 bucket。网络传输时间不计入服务端本地口径，但 conformance runner MAY 在同一网络条件下做端到端抽样。MUST NOT 在 `locked` 响应中泄露目标 `realm_id`、`title`、`member_count`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Realm reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Realm `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。Conformance vector `ak.vector.relation.reference_projection_indistinguishable.v1` 固化该响应 shape、raw event/backfill masking 与 timing bucket。
+**存在性反枚举**：`ReferenceProjectionState.locked` 与"目标 Realm 不存在 / 未发现"对外 MUST 保持不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 或等价字段、相同 metadata 集合、相同 error 字符串、相同 timing bucket。Timing 判定使用同一服务端测量点、同一请求类别和同一部署 profile 的分布式口径：实现 SHOULD 对每类至少采样 30 次，p95 差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入该 bucket。网络传输时间不计入服务端本地口径，但 conformance runner MAY 在同一网络条件下做端到端抽样。MUST NOT 在 `locked` 响应中泄露目标 `realm_id`、`title`、`member_ids`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Realm reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Realm `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。Conformance vector `ak.vector.relation.reference_projection_indistinguishable.v1` 固化该响应 shape、raw event/backfill masking 与 timing bucket。
 
 读取实现 MUST 对 projection caller、raw event caller、backfill consumer 与 federation peer 使用同一 reference-disclosure 决策。对 peer 传输 canonical bytes 仅在 peer 本身被授权接收完整 payload 且承诺对其本地 caller 继续执行本节 masking 时允许；否则发送方 MUST 只传 redacted event view / locked stub。签名验证工具需要证明原始事件存在时，服务端 MAY 返回 `payload_digest`、inclusion proof 与 redaction reason，但不得返回被 target policy 禁止的 target ref 明文字段。RedactedEventView 与 ReferenceLockedEventStub 均为 projection / completeness evidence,`reducer_input` MUST 为 `false`；接收方 MUST NOT 把它们作为 reducer input、canonical event bytes、dedupe authority 或 proof.event_digest 重算材料。
 

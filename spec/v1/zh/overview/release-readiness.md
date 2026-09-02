@@ -30,9 +30,9 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 174 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 200 | `artifacts/registry/schema-registry.json` |
-| Typed ID kind | 60 | `artifacts/registry/id-kind-registry.json` |
+| Event kind（active） | 170 | `artifacts/registry/event-kind-registry.json` |
+| Schema | 199 | `artifacts/registry/schema-registry.json` |
+| Typed ID kind | 59 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 233 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 67 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 96 | `artifacts/profiles/conformance-profiles.json` |

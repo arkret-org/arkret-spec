@@ -360,18 +360,18 @@
       "type": "object",
       "required": [
         "kind",
-        "content_digest"
+        "collision_variant_record_id"
       ],
       "properties": {
         "kind": {
           "const": "collision_variant_record"
         },
-        "content_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "Digest of the complete canonical record under the Realm's active digest suite, byte-identical to the collision_variant_record_digest an ak.fork.resolution locator signs."
+        "collision_variant_record_id": {
+          "$ref": "./common-ids.schema.json#/$defs/collision_variant_record_id"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Selects one stored collision variant record by its producer-allocated id. The record content is bound by the referencing ak.fork.resolution locator's collision_variant_record_digest, so the selector carries no digest of its own."
     },
     "GovernanceDependencySelector": {
       "oneOf": [
@@ -545,7 +545,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object; collision_variant_record recomputes the selector digest over the complete canonical record under the Realm's active digest suite, and the caller additionally verifies the record proof, its realm_id and the independently recomputed collision_event_id before apply_seal. Each evidence object is at most 1 MiB. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
+      "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object; collision_variant_record recomputes collision_variant_record_digest = <Realm suite>(RFC8785_JCS(record)) over the whole object, proof included, against the referencing ak.fork.resolution locator and independently recomputes collision_event_id from canonical_event_bytes_b64u. Each evidence object is at most 1 MiB, except collision_variant_record, whose canonical size is bounded by the 1 MiB decoded Event ceiling expanded to base64url (never more than 2 MiB canonical): the reference branch exists precisely for Events too large to inline twice. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
     },
     "SealAvailabilityReceiptIssueRequest": {
       "type": "object",
@@ -1347,22 +1347,15 @@
         "pending_proposals": {
           "type": "array",
           "maxItems": 128,
+          "description": "Sorted by (control_proposal_ack.absolute_due_at, control_proposal_ack.proposal_digest). proposal_digest, absolute_due_at, defer_count and the current decision_due_at are derived from the embedded signed chain and are never carried as separate wire fields: proposal_digest and absolute_due_at come from control_proposal_ack, defer_count equals decisions.length, and the current decision_due_at is the last decisions[] item's decision_due_at or control_proposal_ack.decision_due_at when decisions is empty.",
           "items": {
             "type": "object",
             "required": [
-              "proposal_digest",
               "control_proposal_ack",
               "decisions",
-              "current_decision_due_at",
-              "absolute_due_at",
-              "defer_count",
               "decision_state"
             ],
             "properties": {
-              "proposal_digest": {
-                "type": "string",
-                "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-              },
               "control_proposal_ack": {
                 "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
               },
@@ -1370,20 +1363,9 @@
                 "type": "array",
                 "maxItems": 2,
                 "items": {
-                  "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_decision"
+                  "$ref": "./control-proposal-decision.schema.json#/$defs/signed_defer"
                 },
-                "description": "Verified signed decision chain in ascending defer_count order. Signed-reject is terminal and therefore does not remain in pending_proposals."
-              },
-              "current_decision_due_at": {
-                "$ref": "./time.schema.json#/$defs/timestamp"
-              },
-              "absolute_due_at": {
-                "$ref": "./time.schema.json#/$defs/timestamp"
-              },
-              "defer_count": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 2
+                "description": "Verified signed-defer chain in ascending defer_count order. Signed-reject is terminal and therefore does not remain in pending_proposals."
               },
               "decision_state": {
                 "enum": [
@@ -1422,11 +1404,10 @@
         "retained_faults": {
           "type": "array",
           "maxItems": 128,
-          "description": "Deadline faults retained after a late but otherwise valid Seal is accepted. Sorted by (accepted_at, proposal_digest); this is evidence derived from the signed chain, not a second finality source.",
+          "description": "Deadline faults retained after a late but otherwise valid Seal is accepted. Sorted by (accepted_at, control_proposal_ack.proposal_digest); this is evidence derived from the signed chain, not a second finality source, and proposal_digest is read from the embedded control_proposal_ack rather than carried again.",
           "items": {
             "type": "object",
             "required": [
-              "proposal_digest",
               "control_proposal_ack",
               "decisions",
               "accepted_seal_id",
@@ -1434,10 +1415,6 @@
               "fault_reason"
             ],
             "properties": {
-              "proposal_digest": {
-                "type": "string",
-                "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-              },
               "control_proposal_ack": {
                 "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
               },
@@ -1829,7 +1806,8 @@
           "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
         },
         "founding_authority_evidence": {
-          "$ref": "#/$defs/DirectConversationFoundingAuthorityEvidence"
+          "$ref": "#/$defs/DirectConversationFoundingAuthorityEvidence",
+          "description": "Source-projected cross-trust-domain evidence, carried explicitly by this federation branch only. Unlike the self founding submission, the receiver is a different Station that cannot read the source Contact round or Agent provision state, so it verifies this member independently and never trusts the relayed copy as authority. The source Station projects it on the server-to-server hop; the founder client never relays it."
         },
         "cba_proof_bundles": {
           "type": "array",
@@ -1844,12 +1822,11 @@
     },
     "DirectConversationFoundingUnitSubmission": {
       "type": "object",
-      "description": "Caller-authored Direct Conversation founding unit submitted to the founder's current Station. The founder authors all four Events itself: realm_id is retype(events[0] Event ID) and main_strand_id is retype(events[2] Event ID), so no party can allocate either coordinate before the canonical preimage exists. The service never allocates, replaces or renegotiates an ID; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1.",
+      "description": "Caller-authored Direct Conversation founding unit submitted to the founder's current Station. The founder authors all four Events itself: realm_id is retype(events[0] Event ID) and main_strand_id is retype(events[2] Event ID), so no party can allocate either coordinate before the canonical preimage exists. The service never allocates, replaces or renegotiates an ID; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically. The closed shape carries no founding_authority_evidence: the founder's current Station verifies the unit against its own current Contact round or Agent provision evidence inside the same admission transaction, so a caller-echoed copy would be neither an idempotency input nor trusted input. See zh/identity/contact-and-direct-conversation.md sections 5.5, 6.1 and 9.1.1.",
       "required": [
         "unit_kind",
         "idempotency_key",
-        "events",
-        "founding_authority_evidence"
+        "events"
       ],
       "properties": {
         "unit_kind": {
@@ -1868,9 +1845,6 @@
             "$ref": "#/$defs/EventInitialSubmission"
           },
           "description": "Exactly four founder-signed Events in fixed wire order: ak.realm.create with an omitted realm_id and a realm_genesis scope_ref, the peer participant's ak.member.state{join}, ak.strand.create with an omitted strand_id, then the founder's explicit ak.member.state{join} genesis write carrying head_eq null. Reordering, a fifth Event, either missing member join and a missing Strand each reject the whole unit."
-        },
-        "founding_authority_evidence": {
-          "$ref": "#/$defs/DirectConversationFoundingAuthorityEvidence"
         },
         "cba_proof_bundles": {
           "type": "array",
@@ -2201,11 +2175,10 @@
     },
     "MembershipCompensationExecutorDelegation": {
       "type": "object",
-      "description": "Content-addressed executor delegation. delegation_digest is SHA-256(canonical_json(core)); delegation_id carries the same digest in the registered typed reference form. signature is made by the actual join author over the registered delegation transcript.",
+      "description": "Content-addressed executor delegation. delegation_id carries SHA-256(canonical_json(core)) in the registered typed reference form and is the sole wire carrier of that digest (encoding.md 4.0.1). signature is made by the actual join author over the registered delegation transcript {delegation_id, core}.",
       "required": [
         "delegation_id",
         "core",
-        "delegation_digest",
         "signature"
       ],
       "properties": {
@@ -2214,9 +2187,6 @@
         },
         "core": {
           "$ref": "#/$defs/MembershipCompensationDelegationCore"
-        },
-        "delegation_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -2262,11 +2232,12 @@
     },
     "MembershipCompensationTerminalCertificate": {
       "type": "object",
+      "x-arkret-signature-domain": "ak.membership_compensation.terminal_certificate.v1",
       "description": "Issuer-signed terminal result proving that the registered join operation stopped after membership acceptance or after its MLS Add and therefore may execute its one compensation transition.",
       "required": [
         "domain",
         "admission_id",
-        "delegation_digest",
+        "delegation_id",
         "operation_id",
         "terminal_state",
         "certified_at",
@@ -2287,8 +2258,8 @@
             }
           ]
         },
-        "delegation_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        "delegation_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref"
         },
         "operation_id": {
           "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -2317,7 +2288,7 @@
       "required": [
         "domain",
         "admission_id",
-        "delegation_digest",
+        "delegation_id",
         "expected_state",
         "destination_id",
         "issued_at",
@@ -2339,8 +2310,8 @@
             }
           ]
         },
-        "delegation_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        "delegation_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref"
         },
         "expected_state": {
           "const": "unused"
@@ -2646,7 +2617,8 @@
       ],
       "properties": {
         "accepted": {
-          "const": false
+          "const": false,
+          "description": "Retained on purpose: this is an RFC 9457 Problem Details extension member on the failure path, and the self-describing accepted=false lets a reader distinguish a proven non-admission from a partial or uncertain admission without consulting the HTTP status line. It is not a success-only outcome constant."
         },
         "current_frontier": {
           "$ref": "#/$defs/RealmActorFrontierView"
@@ -2754,6 +2726,12 @@
         "domain", "frontier_root", "auth_state_root", "policy_frontier_root",
         "membership_frontier_root", "realm_id", "issuer_id", "max_hlc", "observed_at"
       ],
+      "x-arkret-injected-fields": [
+        {
+          "field": "domain",
+          "source": "constant ak.events.frontier.signature.v1"
+        }
+      ],
       "description": "Federation peer ak.peer.events.read.frontier.v1 response. Requires S2S signed trust-domain headers.",
       "required": [
         "realm_id",
@@ -2821,17 +2799,12 @@
         },
         "signature": {
           "type": "object",
-          "description": "Closed detached-JWS envelope over the exact federation.md section 4.5.1 transcript, rebuilt from the outer response. Optional roots and max_hlc enter as null. Metadata mirrors MUST equal the rebuilt transcript and never override it.",
+          "description": "Closed detached-JWS envelope over the exact federation.md section 4.5.1 transcript. The nine-field transcript named by x-arkret-signature-transcript is rebuilt from the outer response only (optional roots and max_hlc enter as null); the envelope carries no transcript mirror, digest, timestamp, typ or scheme, because each would be a second copy of a value the verifier already reconstructs. The algorithm comes from the protected JWS header alone and the freshness window is judged on observed_at.",
           "x-arkret-signature-domain": "ak.events.frontier.signature.v1",
-          "required": ["typ", "scheme", "verification_method", "payload_digest", "created_at", "jws", "signed_payload"],
+          "required": ["verification_method", "jws"],
           "properties": {
-            "typ": {"const": "ak.events.frontier.signature.v1"},
-            "scheme": {"const": "ed25519-detached-jws"},
             "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
-            "payload_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
-            "created_at": {"$ref": "./time.schema.json#/$defs/timestamp"},
-            "jws": {"type": "string", "minLength": 1},
-            "signed_payload": {"type": "object", "description": "MUST equal the exact nine-field canonical transcript reconstructed from this response; absent optional values are explicit null here."}
+            "jws": {"type": "string", "minLength": 1}
           },
           "additionalProperties": false
         }
@@ -4126,7 +4099,7 @@
     },
     "MlsGroupStateMaterialOutcome": {
       "type": "object",
-      "description": "Exact RFC 9420 public group-state material. *_bytes_b64 use unpadded base64url. Consumers MUST decode, hash raw bytes, compare both explicit digests and the hashes embedded in both ak:blob:sha256 refs, verify GroupInfo and ratchet_tree consistency, then derive leaf_index only from occupied leaves in the verified tree.",
+      "description": "Exact RFC 9420 public group-state material. *_bytes_b64 use unpadded base64url. Consumers MUST decode, hash raw bytes under the target Realm digest_algorithm, compare the hashes embedded in both content-addressed refs, verify GroupInfo and ratchet_tree consistency, then derive leaf_index only from occupied leaves in the verified tree.",
       "required": [
         "realm_id",
         "effective_scope",
@@ -4134,10 +4107,8 @@
         "epoch",
         "group_state_event_id",
         "group_info_ref",
-        "group_info_digest",
         "group_info_bytes_b64",
         "ratchet_tree_ref",
-        "ratchet_tree_digest",
         "ratchet_tree_bytes_b64"
       ],
       "properties": {
@@ -4161,11 +4132,9 @@
         },
         "group_info_ref": {
           "type": "string",
-          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$"
-        },
-        "group_info_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
+          "x-arkret-digest-suite-source": "realm_digest_algorithm",
+          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Realm-suite digest is the sole wire carrier of the material digest (encoding.md 4.0.1)."
         },
         "group_info_bytes_b64": {
           "type": "string",
@@ -4175,11 +4144,9 @@
         },
         "ratchet_tree_ref": {
           "type": "string",
-          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$"
-        },
-        "ratchet_tree_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
+          "x-arkret-digest-suite-source": "realm_digest_algorithm",
+          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Realm-suite digest is the sole wire carrier of the material digest (encoding.md 4.0.1)."
         },
         "ratchet_tree_bytes_b64": {
           "type": "string",
@@ -4200,9 +4167,7 @@
         "epoch",
         "group_state_event_id",
         "group_info_ref",
-        "group_info_digest",
-        "ratchet_tree_ref",
-        "ratchet_tree_digest"
+        "ratchet_tree_ref"
       ],
       "properties": {
         "realm_id": {
@@ -4225,19 +4190,15 @@
         },
         "group_info_ref": {
           "type": "string",
-          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$"
-        },
-        "group_info_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
+          "x-arkret-digest-suite-source": "realm_digest_algorithm",
+          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Realm-suite digest is the sole wire carrier of the material digest (encoding.md 4.0.1)."
         },
         "ratchet_tree_ref": {
           "type": "string",
-          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$"
-        },
-        "ratchet_tree_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
+          "x-arkret-digest-suite-source": "realm_digest_algorithm",
+          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Realm-suite digest is the sole wire carrier of the material digest (encoding.md 4.0.1)."
         },
         "max_response_bytes": {
           "type": "integer",
@@ -4251,17 +4212,12 @@
     "ModerationReportOutcome": {
       "type": "object",
       "required": [
-        "report_id",
-        "status"
+        "report_id"
       ],
       "properties": {
         "report_id": {
           "type": "string",
           "pattern": "^ak:report:[A-Za-z0-9_-]{44}$"
-        },
-        "status": {
-          "const": "submitted",
-          "description": "Stored submit outcome. Later queue resolution does not rewrite this response; exact replay returns the byte-identical submitted outcome."
         },
         "routed_to_ids": {
           "type": "array",
@@ -5383,7 +5339,6 @@
       "additionalProperties": false,
       "required": [
         "view_kind",
-        "status",
         "realm_id",
         "reason_code",
         "reducer_input"
@@ -5391,9 +5346,6 @@
       "properties": {
         "view_kind": {
           "const": "reference_locked_event_stub"
-        },
-        "status": {
-          "const": "locked"
         },
         "event_id": {
           "$ref": "#/$defs/EventId",
@@ -6966,7 +6918,8 @@
         },
         "state": {
           "type": "string",
-          "const": "expired"
+          "const": "expired",
+          "description": "Retained on purpose: this is an RFC 9457 Problem Details extension member on the failure path and names the issuer-ledger state that caused the rejection, so the problem document stays self-describing next to SessionGrantReplayTerminalProblem. It is not a success-only outcome constant."
         }
       },
       "additionalProperties": false
@@ -7003,7 +6956,8 @@
           "$ref": "device-message.schema.json#/$defs/device_message_id"
         },
         "status": {
-          "const": "delivered"
+          "const": "delivered",
+          "description": "Retained on purpose: DeviceMessagesSendOutcome dispatches this item by its position in the delivered map, and the status member keeps a detached item self-describing against DeviceMessageUnknownResult. It is a positional discriminator, not a success-only outcome constant."
         }
       },
       "additionalProperties": false
@@ -7020,7 +6974,8 @@
           "$ref": "device-message.schema.json#/$defs/device_message_id"
         },
         "status": {
-          "const": "unknown"
+          "const": "unknown",
+          "description": "Retained on purpose: DeviceMessagesSendOutcome dispatches this item by its position in the unknown_devices map, and the status member keeps a detached item self-describing against DeviceMessageDeliveredResult. It is a positional discriminator, not a success-only outcome constant."
         },
         "reason_code": {
           "type": "string",

@@ -20,7 +20,6 @@ SecurityTransaction {
   transaction_id,
   kind,
   account_id,
-  coordinator_id,
   expires_at,
   created_at,
   request_digest,
@@ -38,21 +37,22 @@ phase/state。客户端是否需要设备签名必须由 `terminal_result` 缺�
 `steps(kind)[accepted_steps.length]` 为 client-attested step 纯函数计算，禁止把该 readiness 再序列化或
 持久化为协议状态。
 
-顶层 `account_id` 唯一确定事务拥有者；`coordinator_id` 独立表示执行该事务的 Station service role，
-且 MUST 逐字等于 `account_id.station_id`。`coordinator_id` MUST 是该 Station 的 service core identity，
-不得指向任意外部协调者。部署可以把步骤执行拆为多个进程，但不得由此产生独立的公开 coordinator role。
+顶层 `account_id` 唯一确定事务拥有者；本文所称 coordinator 是执行该事务的 Station service role，它就是
+`account_id.station_id`，wire 上不存在第二个可与之不一致的 coordinator 字段。该 Station 的 service core identity
+即 coordinator，不得指向任意外部协调者。部署可以把步骤执行拆为多个进程，但不得由此产生独立的公开 coordinator role。
 事务中的 Event 与备份对象的完整 `ActorId` MUST 等于该 `AccountId` 对应的 account actor；只比较
 只比较 `account_id.principal_id` 不足以验证归属，同一主体在另一 Station 的 Event、备份、PCR、设备与 session 均不得混入。
 
 `prepared_plan` 是按 kind/model 判别的 closed typed public plan，也是 intent 与 reserved material 的唯一
 canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 的 reserved binding view 由
 `revoke_unit` 与两项 `backup_rotations[].binding` 等字段纯函数投影，不能使用任意键值或通用步骤 DSL。
-`prepared_plan_digest` 是 coordinator 对完整 plan canonical bytes 重算并返回的只读派生值；create request
+`prepared_plan_digest = SHA-256(RFC8785_JCS(prepared_plan))`，是 coordinator 对完整 plan canonical bytes
+重算并返回的固定 SHA-256、跨 Realm CAS 坐标；它不跟随任何 Realm 的 `digest_algorithm`。create request
 不得携带该值，`prepared_plan` 内也不得携带自身 digest，计算时没有排除字段的隐式规则。
 每个 `prepared_event_unit` 的 wire 形态固定为 `{request,request_digest}`：`request` 必须独立满足
 `EventsSubmitBatchRequestBody`，`request_digest` 必须等于其 digest suite 对 `RFC8785_JCS(request)` 的计算结果。
 该 unit 的 operation 固定为 `ak.self.events.command.submit.v1`，request schema 固定为上述 DTO，destination 与 audience
-都从父 transaction 的 `coordinator_id` 取得；这四项与 canonical request bytes 是构造时的 computed view，
+都从父 transaction 的 `account_id.station_id` 取得；这四项与 canonical request bytes 是构造时的 computed view，
 不得作为平行 wire 输入或 durable 真相源。coordinator 必须以同一 `JCS(request)` bytes 执行和持久化。
 `accepted_steps[]` 的每项固定为
 `{prepared_material_digest, acceptor, output_ref, output_digest, accepted_at}`；数组位置按下述固定步骤表
@@ -96,18 +96,30 @@ recovery session，并在同一 durable commit 中 CAS 绑定该 session；Secur
 不依赖 recovery session，必须验证当前 AccountId 的 high-risk action authority。`continue` 的 `request_digest`、
 `prepared_plan_digest` 必须与当前 resource 精确相等，`expected_accepted_step_count` 必须等于当前
 `accepted_steps.length`，否则
-`duplicate_conflict` /
-`failed_precondition`；它不是提交任意步骤列表的接口。
+`duplicate_conflict` / `failed_precondition`；它不是提交任意步骤列表的接口。coordinator-owned prefix——Recovery 的
+`submit_reanchor_unit`，以及 SecurityRotation 的 `revoke`、`upload_new_material`、
+`switch_authoritative_pointer`、`erase_old_material`——只能由 durable transaction worker 自动执行与恢复；restart、
+response loss 或 retry 都从同一 resource 继续，客户端只能用 `get` 观察，不能用 `continue` 驱动或重复执行这些步骤。
 
-只有 `issue_terminal_receipt` 与 `local_commit` 可以携带 `client_attestation`，且其 `output_ref`
+`continue` 只提交 client-attested terminal step，因此 request 必须携带 `client_attestation`。服务端必须先从 resource 的
+`kind` 与 `accepted_steps.length` 派生下一步：Recovery 只在 terminal index 1、SecurityRotation 只在 terminal index 4
+ready 时继续验证 CAS、reserved output 与 attestation；任何 coordinator-owned prefix、尚未 ready 的 terminal、错误 kind/step
+或越界 prefix 都返回 `failed_precondition`，不得产生副作用。通用 request schema 不携 `kind`，所以不得把 `{1,4}` 或 kind-specific
+maximum 写进 JSON Schema；无 attestation 的 POST 也不是 `get` 的 no-op 别名。
+
+只有 `issue_terminal_receipt` 与 `local_commit` 可以作为 `client_attestation.step`，且其 `output_ref`
 必须等于 prepared plan 中预留的 `terminal_receipt_id` / `local_commit_digest`。attestation 必须携带
 typed `artifact`：前者是完整 `ak.schema.recovery_receipt.v1`，后者是
-`ak.schema.security_rotation_local_commit.v1`。`attestation_digest` 必须等于
-`SHA-256(JCS(artifact))`；外层 Ed25519 签名输入固定为
+`ak.schema.security_rotation_local_commit.v1`。Recovery receipt 由 replacement device 按其已接受的 device key
+自行签发，服务端不得伪造或返回带占位签名的 draft；local commit 同样由客户端从权威 transaction resource
+复制 `transaction_id`、`request_digest`、`prepared_plan_digest` 与 prepared plan 的 `local_commit_digest`，再加入
+本地 `device_id` / `committed_at` 构造。两类 artifact 都是 caller-authored material，不需要也不存在第二个服务端
+supply operation。wire 上不携 `attestation_digest`；外层 Ed25519 签名输入固定为
 `RFC8785_JCS({step, output_ref, transaction_id, transaction_request_digest, prepared_plan_digest,
-attestation_digest})`，wire 上不携字段名清单。coordinator 必须重算 artifact digest，
-验证 outer attestation；recovery 还必须验证 receipt 自己的 device signature transcript。其它 step
-携带 client attestation 必须拒绝。`get` 是 response loss、restart 与
+attestation_digest})`，其中投影成员 `attestation_digest := SHA-256(JCS(artifact))` 由签名方与 verifier
+各自从同载体 `artifact` 重算填入，不从 wire 读取；wire 上也不携字段名清单。coordinator 必须重算 artifact
+digest，验证 outer attestation；recovery 还必须验证 receipt 自己的 device signature transcript。其它 step
+对应非 terminal-ready resource 的 attestation 必须拒绝。`get` 是 response loss、restart 与
 跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
 当 coordinator-owned prefix 已完成而最终 client-attested step 尚未提交时，resource 仍不携带
 `terminal_result`；它不会被误判为 completed，因为完整 accepted prefix 与 `result=completed` 的 terminal
@@ -141,8 +153,8 @@ coordinator 在 terminal receipt 接受与完成 ledger 同一原子提交中生
 `RFC8785_JCS({schema, transaction_id, transaction_request_digest, prepared_plan_digest, account_id,
 recovery_session_id, terminal_receipt_id, terminal_receipt_digest,
 replacement_device_id, device_authorization_event_id, result_model_generation_ref, completed_at})`，wire 上不携字段名清单。
-其中 `account_id.station_id` 必须等于签发 attestation 的 coordinator；transaction 资源与 attestation
-均携同一完整 `account_id`，`coordinator_id` 只承担独立 service role，不得再由两者拼装账号。
+其中签发 attestation 的 coordinator 就是 `account_id.station_id`；transaction 资源与 attestation
+均携同一完整 `account_id`，两者都不携独立 coordinator 字段，coordinator 只能从该 `account_id` 取得，不得再由两个值拼装账号。
 Event digest 必须由 suite-bearing `device_authorization_event_id` 解码；修改该 ID 会同时修改派生 digest 并使签名失败。
 
 DID method operation 的发布继续使用 `POST /_arkret/root/identity/submit-did-operation`，但它不是

@@ -277,17 +277,8 @@
                 },
                 {
                   "not": {
-                    "anyOf": [
-                      {
-                        "required": [
-                          "signer_resolution_evidence_ref"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "signer_resolution_evidence_digest"
-                        ]
-                      }
+                    "required": [
+                      "signer_resolution_evidence_ref"
                     ]
                   }
                 }
@@ -3106,6 +3097,29 @@
       }
     },
     {
+      "$comment": "Agent lifecycle Control Moves are delegated controller writes: actor_id is the Agent account ActorId and executed_by is the controller. The registered event-kind admission rule denies every branch without the executor pair; this schema lock mirrors that rule so a lifecycle write cannot rely on the generic optional executed_by.",
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "ak.self.agent.pause",
+              "ak.self.agent.resume",
+              "ak.self.agent.deactivate"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "executed_by",
+          "authorization_ref"
+        ]
+      }
+    },
+    {
       "if": {
         "properties": {
           "kind": {
@@ -3462,82 +3476,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.moderation.appeal.submit"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./moderation-appeal.schema.json#/$defs/submit_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.moderation.appeal.review"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./moderation-appeal.schema.json#/$defs/review_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.moderation.appeal.decision"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./moderation-appeal.schema.json#/$defs/decision_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.moderation.appeal.close"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./moderation-appeal.schema.json#/$defs/close_payload"
           }
         }
       }
@@ -4415,7 +4353,7 @@
     "membership_compensation_delegation_ref": {
       "type": "string",
       "pattern": "^ak:membership_compensation_delegation:sha256:[0-9a-f]{64}$",
-      "description": "Content-addressed accepted-at membership compensation delegation. It is valid only for ak.member.state leave/remove submitted with the matching closed Event submission transport-only membership_compensation_evidence carrier and registered single-use evaluator. This carrier is not an ak:sidecar: Agent Sidecar object and has no participant semantics."
+      "description": "Content-addressed accepted-at membership compensation delegation. It is valid only for ak.member.state leave/remove submitted with the matching closed Event submission transport-only membership_compensation_evidence carrier and registered single-use evaluator. This carrier is not an ak:sidecar: Agent Sidecar object and has no participant semantics. The lowercase hex suffix is the sole wire carrier of the delegation digest (encoding.md 4.0.1)."
     },
     "seal_ref": {
       "type": "string",
@@ -4676,7 +4614,7 @@
     },
     "station_admission_proof": {
       "type": "object",
-      "description": "Origin Station admission proof over canonical_json({context:'ak.station_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,producer_signer_resolution_evidence_digest?,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). The optional producer pair freezes the original producer evidence root when that signer regime has portable evidence; Agent federation requires it. The unprefixed signer pair continues to bind the Station proof's own service signer evidence.",
+      "description": "Origin Station admission proof over canonical_json({context:'ak.station_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,signer_resolution_evidence_ref,accepted_at,verification_method}). The optional producer ref freezes the original producer evidence root when that signer regime has portable evidence; Agent federation requires it. The unprefixed signer ref continues to bind the Station proof's own service signer evidence. Each content-addressed ref embeds the sole wire copy of its evidence digest; no sibling *_digest mirror is carried (encoding.md 4.0.1).",
       "required": [
         "kind",
         "verification_method",
@@ -4685,7 +4623,6 @@
         "producer_verification_method",
         "producer_signing_key_did",
         "signer_resolution_evidence_ref",
-        "signer_resolution_evidence_digest",
         "accepted_at",
         "jws"
       ],
@@ -4715,20 +4652,12 @@
           "description": "Public signing key that verifies the exact producer proof at admission time."
         },
         "producer_signer_resolution_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
-        },
-        "producer_signer_resolution_evidence_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Must be present as a matching pair with producer_signer_resolution_evidence_ref. Agent admission requires the pair and it resolves to the exact frozen CurrentAdmission root."
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Optional origin-frozen producer signer evidence root. Agent admission requires it and it resolves to the exact frozen CurrentAdmission root."
         },
         "signer_resolution_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
-        },
-        "signer_resolution_evidence_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Must equal the digest encoded by signer_resolution_evidence_ref and resolve to the exact Station verification method used by this proof."
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Content-addressed Station signer evidence; it resolves to the exact Station verification method used by this proof."
         },
         "accepted_at": {
           "$ref": "#/$defs/canonical_event_timestamp"
@@ -4738,32 +4667,6 @@
           "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "producer_signer_resolution_evidence_ref"
-            ]
-          },
-          "then": {
-            "required": [
-              "producer_signer_resolution_evidence_digest"
-            ]
-          }
-        },
-        {
-          "if": {
-            "required": [
-              "producer_signer_resolution_evidence_digest"
-            ]
-          },
-          "then": {
-            "required": [
-              "producer_signer_resolution_evidence_ref"
-            ]
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "producer_event_proof": {
@@ -4797,10 +4700,6 @@
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
           "description": "Required only for the direct/DID-root/native producer regime without station_admission; forbidden otherwise."
-        },
-        "signer_resolution_evidence_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
         },
         "domain": {
           "type": "string"

@@ -76,6 +76,15 @@ JSON Schema 同时允许 property 省略和显式 `null`，只表示两种 wire 
 Strand watch CAS 均在各自 schema description 中规定 absent≡null=`head_eq null`，因此使用普通
 optional；它们不是“省略即关闭 CAS”的例外。
 
+### 2.1.2 Success-only 响应（normative）
+
+一个 operation 只有单一 2xx 成功分支时，响应体 MUST NOT 携带只会复述该分支的 required const
+`status`、`state`、`verified`、`deleted` 或 `accepted` 成员；成功由 HTTP 2xx 信封表达，失败统一走
+RFC 9457 Problem Details。若删去这些成员后响应对象为空或只剩 optional 成员，operation registry
+MUST 登记 `success_shape_kind=empty_response`，成功使用无响应体形态，不得保留 `{}` 或全 optional
+object。该规则不删除用于 `oneOf` / `if-then` / map 位置分派的判别字段，也不删除 Problem Details
+为了自描述失败原因而定义的 extension 状态。
+
 ### 2.2 String profile 与 Unicode 处理
 
 字符串 MUST 先按其协议角色选择 profile；实现 MUST NOT 对 DID、URI、email、phone、display text 与 Arkret human identifier 套用同一个 NFKC / case-fold normalizer。所有进入 canonical JSON 的 string value 仍 MUST 是 NFC；receiver MUST 验证而不得在验签阶段静默改写非 NFC wire bytes。
@@ -195,6 +204,11 @@ v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm d
 
 `state_root`、Seal `id`、Event `event_digest` / `event_id` 引用、receipt digest 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `digest_algorithm` 字段固定（默认 `sha256`）。`digest_algorithm` 的取值是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 **active suite id**——它锁定的不只是 hash 算法，而是完整 digest 定义（canonicalization × hash）。Control Move 是 reducer-input Event 的控制面协议视图；Control Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。
 
+服务端返回的通用 `prepared_event_draft.event_digest` 同样属于 Realm 内容身份：它 MUST 使用目标 Realm 在该 basis 下的
+`digest_algorithm`，其 suite prefix 决定客户端如何验证并签署 `unsigned_event_bytes`。因此该字段接受 `sha256 | blake3`，不得
+通过服务层 DTO 的固定 SHA-256 alias 收窄；相反，跨 Realm 服务 transcript/CAS（例如 SecurityTransaction
+`prepared_plan_digest`）必须由 owning contract 显式固定为 SHA-256，不能让 caller 自选 suite。
+
 **Realm 级 suite 排他（normative）**：一个 Realm 同一时刻 MUST 只有一个 live digest suite；Realm 内所有后续 Seal / Event digest / state_root / receipt digest MUST 使用同一 suite。接收方在 Realm 上下文中遇到 suite prefix 与该 Realm 声明不符的 digest MUST 按 `schema_violation` 拒绝，即使该 suite 本身是 receiver 支持的 active suite——这条排他规则消除“同一语义对象在同一 Realm 内拥有两个合法 digest”的去重 / 重放二义性（`duplicate_conflict` 配对、`prev_refs` 解析、幂等键均依赖单一 digest 定义）。桥接例外由 [`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md) 完整定义：固定 SHA-256 身份布局的 Realm create Event 可被声明初始 suite 的首 Seal 原样引用；Transition Move Event、其 receipt 与 snapshot commitment 仍用旧 suite，Transition Seal 的 id、notary payload、累计 Merkle roots 与 post-state root 已用新 suite；Transition Seal 内对旧 Event、receipt 与 predecessor 的 typed 引用保留原值。跨 Realm 引用按 digest 值自带的 suite prefix 验证，无需上下文。
 
 切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ak.profile.hash_transition.v1` snapshot commitment + signed compaction Seal 在 frontier 上做一次 suite transition Seal，新旧 suite 都能在 transition Seal 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.2（digest suite transition）。
@@ -274,7 +288,39 @@ producer 顺序固定为：完成除 `event_id` / `proofs` 外的字段；计算
 
 Event ID 保留底层 256-bit digest 的指定目标与碰撞安全强度；额外 header octet 承载固定为零的 reserved nibble 与 suite nibble，不增加同一 suite 的 hash 强度。canonical store、proof / receipt / Seal coverage、raw replay 与所有 Event 引用 MUST 使用完整 Event ID，且可从 ID 无损恢复 suite code 与全部 digest bytes。
 
-**Event 引用唯一表示（normative）**：除 enclosing Event 的 producer / admission proof 有意保留 `proof.event_digest` 作为 conformance / test 交叉验证、early-validation 与 canonicalization diagnostics入口外，任何 wire carrier、read projection、receipt、delegation、selector 或 proof 若已经携带某一 Event 的完整 `event_id` / `*_event_id` / `*_event_ref`，MUST NOT 再携带该 Event 的 sibling full digest。consumer 需要算法名或 digest bytes 时 MUST 严格解析完整 Event ID 并无损恢复，不得接受 caller 另报的 mirror。若某 privacy 分支不能披露 Event ID，也不得用可逆的 suite-tagged full Event digest 冒充更低披露级别；应省略两者，或由 owning contract 直接携带完整 Event ID。`proof.event_digest` 理论上可由 Event 重算；v1明确选择保留它，但该选择不构成其它 carrier 复制 Event digest 的豁免。
+#### 4.0.1 Content-addressed typed ref 唯一表示（normative）
+
+[`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 中 `id_form` 为 `event_derived` /
+`suite_tagged_full_digest` 的 kind，以及 `special_forms[]` 中标记 `content_addressed: true` 的 kind（v1：`blob`、`seal`、
+`signer_evidence`、`membership_compensation_delegation`、`service_registration_receipt`、
+`organization_registration_receipt`），其完整 typed ref 已无损携带 digest suite 与全部 32 digest octets：Event token 按 §4.0
+解码；`ak:<kind>:<digest-suite>:<hex>` 与 `ak:<kind>:<hex>` 形态直接携带 suite 名（或该 kind 固定的 suite）与 lowercase hex。
+对这些 kind 统一适用下列规则：
+
+1. 任何 wire carrier、read projection、receipt、delegation、selector、proof transcript 或 content-addressed 原像，若已携带某对象的
+   完整 content-addressed typed ref，MUST NOT 再携带对同一对象、同一 bytes 的 sibling digest，无论该 sibling 叫什么名字。consumer
+   需要 suite 或 digest bytes 时 MUST 严格解析完整 ref 并无损恢复，MUST NOT 接受 caller 另报的 mirror：两个可分别伪造的字段只会让
+   verifier 二选一信任其中之一。
+2. 同一 closed object 内与 content-addressed ref 并列的其它 digest 字段 MUST 承诺**不同的原像**，并在
+   [`content-addressed-ref-digest-exemption-registry.json`](../../artifacts/registry/content-addressed-ref-digest-exemption-registry.json)
+   逐字段登记该原像、并列的 ref 集合与 spec 锚点。登记表是封闭的：未登记的 sibling digest 一律视为禁止的镜像，machine gate
+   `content_addressed_ref_sibling_digests` MUST 失败；登记行的 ref 集合与 schema 当前状态不一致时同样失败。门禁只按 registry
+   标记与 pattern 形态判定，不按字段名猜测语义；一个 ref property 只有在其 pattern **整体**恰为一种 content-addressed 形态时才进入
+   判定，同时接受 UUID / Event / DID 分支的 union pattern 不在射程内，其 sibling digest 的取舍由 owning contract 单独裁决。登记表
+   MUST NOT 引用 `arkret-spec` 之外的路径，也不存在「待裁决」行：没有裁决就没有登记。
+3. 唯一保留的同源镜像是 enclosing Event 的 producer / admission proof 中的 `proof.event_digest`：v1 明确保留它作为 conformance /
+   test 交叉验证、early-validation 与 canonicalization diagnostics 入口（§6.0.1）。该保留是具名例外，不构成其它 carrier 复制任何
+   content-addressed digest 的豁免。
+4. 若某 privacy 分支不能披露完整 ref，也 MUST NOT 用可逆的 suite-tagged full digest 冒充更低披露级别；应省略两者，或由 owning
+   contract 直接携带完整 ref。
+5. 已按本规则删除的 sibling digest（`*_signer_evidence_digest`、`signer_resolution_evidence_digest`、
+   `producer_signer_resolution_evidence_digest`、`group_info_digest`、`ratchet_tree_digest`、`delegation_digest`、`seal_digest`
+   与各 Event digest 镜像）MUST NOT 以任何名字回到 wire、transcript 或原像；`tools/artifact_lint` 的
+   `CONTENT_ADDRESSED_REF_MIRROR_REMOVALS` 是这些删除的回归锁。
+
+**Event 引用**是本规则在 `event` kind 上的实例：任何 wire carrier、read projection、receipt、delegation、selector 或 proof 若已经
+携带某一 Event 的完整 `event_id` / `*_event_id` / `*_event_ref`，MUST NOT 再携带该 Event 的 sibling full digest；`event_id` 的携带
+与重算义务见 §6。
 
 派生对象 ID 的规则见 [`../models/common-fields.md`](../models/common-fields.md)；Realm token header 见 §4.1；`event_id` 的携带与重算义务见 §6。
 
@@ -331,8 +377,8 @@ Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile �
 
 - `ak:did_core:<method>:<core>` 是 DID method adapter 产出的稳定 `did_core_id`，不是 Arkret 私有 DID method，也不是可直接交给 DID resolver 的DID。`<method>` 与 `<core>` 必须按 registry / adapter 校验；编码层不得截断、拆分后重新拼接或从中推导 endpoint。
 - `ak:cursor:<base64url>` 是 opaque token，不是 typed UUID object ID。
-- `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
-- `ak:seal:<digest-suite>:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。`<digest-suite>` 与 `ak:blob:<digest-suite>:<digest>` 取同一值空间：MUST 是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 active 行，且 MUST 等于该 Realm 声明的 `digest_algorithm`；Seal id 是 critical field，前缀不属于 active 行时 MUST 以 `unsupported_digest_algorithm` fail closed（[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。完整 `seal_ref` 已无损携带 suite 与全部 digest bytes，任何同一 carrier 中的 sibling `seal_digest` 都是禁止的 wire 镜像；consumer MUST 从 ref 解析。
+- `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用；内容寻址形态同样受 §4.0.1 约束。
+- `ak:seal:<digest-suite>:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。`<digest-suite>` 与 `ak:blob:<digest-suite>:<digest>` 取同一值空间：MUST 是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 active 行，且 MUST 等于该 Realm 声明的 `digest_algorithm`；Seal id 是 critical field，前缀不属于 active 行时 MUST 以 `unsupported_digest_algorithm` fail closed（[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。完整 `seal_ref` 已无损携带 suite 与全部 digest bytes；同一 carrier 内的任何同源 sibling digest（如 `seal_digest`）按 §4.0.1 禁止，consumer MUST 从 ref 解析。
 - `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；`component` MUST 是从 cell-component registry 取得并原样嵌入的完整 `ak.component.<family-path>.v<n>` family 标识符，`subject` 是 cell 的 subject key）。因此标准实例形如 `ak:cell:ak.component.strand.position.v1:<subject>`；`ak:cell:component.*`、`ak:cell:<裸 family>`、任何非 `ak.component.*.v<n>` family、截断/非十六进制 percent escape 或任何未完整携带 `ak.component.*.v<n>` 的形态 MUST 拒绝。
   - **Subject 嵌入编码按 registry subject kind 分派（normative，封闭表）**：subject 的 wire 形态由 `contract-registry.json` 的 `cell_writes[].cell_subject` 唯一决定。下表覆盖该字段的**全部**合法形态；实现 MUST NOT 让两行同时适用于同一字段，也 MUST NOT 按字段内容猜测规则。
 
@@ -425,15 +471,15 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 - `event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`
 - `actor_id`
 - `verification_method`
-- `signer_resolution_evidence_ref` / `signer_resolution_evidence_digest`（仅 retained direct-history / DID-root / native producer 分支；caller 首次提交态省略）
+- `signer_resolution_evidence_ref`（仅 retained direct-history / DID-root / native producer 分支；caller 首次提交态省略。其内嵌 digest 是 signer evidence digest 的唯一表示，§4.0.1）
 - `created_at`
 - `domain` / `audience` where applicable
 
 Event proof 有三个语境，不得仅凭“是否已有 admission proof”把 caller submit 与 retained history 合并：
 
-1. caller 首次提交态只有一个 producer proof，且 MUST 省略 signer-evidence pair；origin 在本地解析并验证 producer key 后追加 admission proof，pair 不得临时写入再剥离，因为它属于 producer 签名字节；
-2. accepted / federation Event 含一个 producer proof与一个 `station_admission` proof，producer proof MUST 省略 pair；历史 device/Agent producer key 由 admission 签入的 `producer_signing_key` 与 producer evidence pair 验证，Station 自身历史 key由 admission 的 service signer evidence 验证；
-3. retained direct-history Event 没有 admission proof，producer proof MUST 同时携带 ref+digest，二者进入上述 binding object并解析为该 `verification_method` 的 exact 历史证据。
+1. caller 首次提交态只有一个 producer proof，且 MUST 省略 `signer_resolution_evidence_ref`；origin 在本地解析并验证 producer key 后追加 admission proof，该 ref 不得临时写入再剥离，因为它属于 producer 签名字节；
+2. accepted / federation Event 含一个 producer proof与一个 `station_admission` proof，producer proof MUST 省略该 ref；历史 device/Agent producer key 由 admission 签入的 `producer_signing_key` 与 `producer_signer_resolution_evidence_ref` 验证，Station 自身历史 key由 admission 的 service signer evidence 验证；
+3. retained direct-history Event 没有 admission proof，producer proof MUST 携带 `signer_resolution_evidence_ref`，它进入上述 binding object 并解析为该 `verification_method` 的 exact 历史证据。
 
 `ak.schema.event.v1` 只对单个 envelope 可观察的闭合形状负责：admission 存在时机械禁止 producer pair；无 admission 时pair 允许成对出现或成对省略。`EventSubmitEnvelope` 的 producer-submission validator 与 direct-history replay validator MUST分别收紧第 1、3 项，任一调用面不得把基础 JSON Schema 的允许集误当成完整准入判据。
 
@@ -464,7 +510,14 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 
 非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族 MUST 在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 登记唯一 context、binding fields、规范定义点与 schema；schema description 只可作镜像注解，不是常量真相源。MUST NOT 复用其它对象族（尤其 `ak.event_proof.v1`）的 context，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。用错误对象族 context 生成的签名即使密码学验签通过也 MUST 拒绝。
 
-AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / station proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}`，令 `payload_digest=H(JCS(core))`；再签
+**Detached proof 信封的元数据投影（normative，封闭列举）**：下列两处的 transcript 成员由外层对象重建或注入，MUST NOT 作为 proof 信封的 wire 字段再携带一份：
+
+- federation frontier `signature`（`ak.events.frontier.signature.v1`，[`../sync/federation.md` §4.5.1](../sync/federation.md)）只携 `{verification_method, jws}`：九字段 transcript 及其摘要全部从外层 response 重建，`observed_at` 不再以 `created_at` 镜像，`typ` / `scheme` 常量由 registry 行与 JWS protected header 给出。
+- `ak.signal_proof.v1`（[`../sync/signal.md` §1](../sync/signal.md)）的 transcript 成员 `created_at` 取外层 `sent_at`，proof 不携带 `created_at`。registry 行以 `binding_field_sources` 声明该注入来源（`{"created_at": "sent_at"}`），schema 的 proof 节点以 `x-arkret-binding-field-sources` 镜像同一声明，两者 MUST 逐字一致。
+
+本条只登记这两种已证明的投影；通用 `$defs/proof` 的 `payload_digest` / `kind` 与本地 directory proof 叶不在本条射程内，其取舍按各自对象族逐项裁决。
+
+AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / station proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref}`，令 `payload_digest=H(JCS(core))`；再签
 `JCS({context:"ak.availability_receipt_proof.v1",payload_digest,...core,verification_method,created_at})` 并得到完整
 `receipt={...core,signature}`；最后按需要计算 selector digest `H(JCS(receipt))`。Seal 只签入这个 full canonical digest，receipt wire 不回显它。
 任何实现若把 selector digest 写回 receipt preimage、从 digest 中排除 signature，或省略 signer evidence 绑定都必须拒绝。
@@ -973,8 +1026,16 @@ _Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各
 
 ## 10. Encrypted Envelope AEAD
 
-Inline encrypted Event 不携 `aad_digest`、`payload_digest`、`key_ref.algorithm` 或可由 group state 推出的算法/profile
-副本。Ciphertext 由外层 Event proof 覆盖；外置 content-addressed blob 的检索 digest 不受此规则影响。
+**同 carrier AEAD 镜像禁令（normative）**：任何 Arkret AEAD carrier——inline encrypted Event（§10.1 / §10.2）、
+account-data envelope（[`../models/account-data.md` §3](../models/account-data.md)）、Signal `encrypted_payload`
+（[`../sync/signal.md` §1](../sync/signal.md)）、to-device / file-transfer key envelope
+（[`../crypto-media/device-lifecycle.md` §7](../crypto-media/device-lifecycle.md)、[`../models/file-transfer.md` §4.2](../models/file-transfer.md)）——
+MUST NOT 携带可由该 carrier 自身的 canonical header / profile 无损重建的 `aad_digest`，也 MUST NOT 携带由 `aead_profile`、
+HPKE suite `scheme` 或 group state 唯一决定的算法镜像（如 `key_ref.algorithm`）。理由是同一的：无密钥者本地重算的 AAD 摘要不增加
+任何认证能力，持密钥者的 AAD 错误直接表现为 AEAD open 失败；算法只有一个受保护来源。inline encrypted Event 另外不携
+`payload_digest`，其 ciphertext 由外层 Event proof 覆盖。本条只约束同 carrier 内的 AAD 摘要与算法镜像：content addressing、
+detached signature 的 `payload_digest`、跨步骤 CAS 承诺与外置 content-addressed blob 的检索 digest 不在射程内，由各自 owning
+contract 裁决。
 
 ### 10.1 Exporter content nonce（normative）
 

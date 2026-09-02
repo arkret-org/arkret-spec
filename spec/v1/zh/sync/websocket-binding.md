@@ -39,15 +39,15 @@ dedupe、catch-up 与完成语义保持独立，不因共享连接而合并。
 {
   "kind": "websocket",
   "base_url": "wss://server.example/_arkret/ws",
-  "extension_profile_required": "ak.profile.binding.websocket.v1",
-  "subprotocol": "arkret.v1",
-  "authentication": "challenge_dpop_session_v1",
   "max_frame_bytes": 262144,
   "max_channels": 16
 }
 ```
 
 transport descriptor 只承载连接坐标与传输 limit，**MUST NOT** 携带自己的 operation 列表：
+`kind="websocket"` 通过 binding-kind registry 与 schema identity 固定
+`ak.profile.binding.websocket.v1`、`arkret.v1` subprotocol 和 `challenge_dpop_session_v1`
+authentication，descriptor 不回显这三项固定参数；任一参数变化必须发布新的 binding profile。
 它由 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)
 的 `transport_binding_websocket` 闭合（`additionalProperties: false`）。operation 可达性的唯一真源是
 同一 `ServiceDescribe` 的 `supported_operation_bundles` 展开后的 `(operation_id, binding_kind)` union

@@ -1654,7 +1654,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed non-wire canonical input for history_source_agent_observation_digest. It intentionally excludes source_signer_evidence_ref and source_signer_evidence_digest so an Agent can obtain CurrentAdmission evidence before authoring the complete signed response."
+      "description": "Closed non-wire canonical input for history_source_agent_observation_digest. It intentionally excludes source_signer_evidence_ref so an Agent can obtain CurrentAdmission evidence before authoring the complete signed response."
     },
     "history_key_response_signing_input": {
       "type": "object",
@@ -1664,7 +1664,6 @@
         "source_actor_id",
         "source_sender_domain",
         "source_signer_evidence_ref",
-        "source_signer_evidence_digest",
         "request_digest",
         "request_receipt_digest",
         "expires_at",
@@ -1686,11 +1685,8 @@
           "maxLength": 512
         },
         "source_signer_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
-        },
-        "source_signer_evidence_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Must equal the digest encoded by source_signer_evidence_ref and resolve through the request-receipt governance-dependency surface to the exact historical source signer and verification method."
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Content-addressed source signer evidence. Its embedded digest is the sole wire copy (encoding.md 4.0.1) and resolves through the request-receipt governance-dependency surface to the exact historical source signer and verification method."
         },
         "request_digest": {
           "$ref": "#/$defs/digest"
@@ -1728,7 +1724,6 @@
         "identity_link_canonical_bytes_b64u",
         "identity_link_digest",
         "identity_link_signer_evidence_ref",
-        "identity_link_signer_evidence_digest",
         "leaf_node_canonical_bytes_b64u",
         "leaf_node_digest",
         "winning_group_state_transition_ref",
@@ -1750,7 +1745,6 @@
         "identity_link_canonical_bytes_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 1048576},
         "identity_link_digest": {"$ref": "#/$defs/digest"},
         "identity_link_signer_evidence_ref": {"$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref", "description": "Content-addressed Principal signer evidence for the IdentityLink proof verification_method at the link effective_at boundary."},
-        "identity_link_signer_evidence_digest": {"$ref": "#/$defs/digest"},
         "leaf_node_canonical_bytes_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 1048576},
         "leaf_node_digest": {"$ref": "#/$defs/digest"},
         "winning_group_state_transition_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
@@ -2095,7 +2089,6 @@
         "record_digest",
         "sent_at",
         "release_service_signer_evidence_ref",
-        "release_service_signer_evidence_digest",
         "service_proof",
         "source_record"
       ],
@@ -2110,7 +2103,7 @@
         },
         "record_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Must equal SHA-256(UTF8('ak.history-response-record-v1') || 0x00 || JCS({sequence,cursor,source_record,sent_at,release_service_signer_evidence_ref,release_service_signer_evidence_digest,manifest_admission?,release_attestation?})). A manifest has exactly manifest_admission; a chunk has exactly release_attestation. record_digest and service_proof are excluded."
+          "description": "Must equal SHA-256(UTF8('ak.history-response-record-v1') || 0x00 || JCS({sequence,cursor,source_record,sent_at,release_service_signer_evidence_ref,manifest_admission?,release_attestation?})). A manifest has exactly manifest_admission; a chunk has exactly release_attestation. record_digest and service_proof are excluded."
         },
         "sent_at": {
           "$ref": "#/$defs/timestamp"
@@ -2125,11 +2118,7 @@
         },
         "release_service_signer_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Content-addressed Service-kind historical signer evidence used by this exact release-service proof."
-        },
-        "release_service_signer_evidence_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 digest of the complete AuthenticatedSignerResolutionEvidence::Service object named by release_service_signer_evidence_ref."
+          "description": "Content-addressed Service-kind historical signer evidence used by this exact release-service proof. Its embedded digest is the sole wire copy (encoding.md 4.0.1)."
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
@@ -2206,7 +2195,6 @@
         "record_digest",
         "lost_at",
         "release_service_signer_evidence_ref",
-        "release_service_signer_evidence_digest",
         "service_proof"
       ],
       "properties": {
@@ -2229,11 +2217,7 @@
         },
         "release_service_signer_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Content-addressed Service-kind historical signer evidence used by this exact lost-record proof."
-        },
-        "release_service_signer_evidence_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 digest of the complete AuthenticatedSignerResolutionEvidence::Service object named by release_service_signer_evidence_ref."
+          "description": "Content-addressed Service-kind historical signer evidence used by this exact lost-record proof. Its embedded digest is the sole wire copy (encoding.md 4.0.1)."
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",

@@ -1220,8 +1220,6 @@ components:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body
     KeysBackupsDeleteChallenge:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_challenge
-    KeysBackupsDeleteOutcome:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome
     KeysBackupsDeleteRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body
     KeysBackupsIssueDeleteChallengeRequestBody:
@@ -4735,15 +4733,11 @@ paths:
             schema:
               $ref: ../schemas/signal-relay.schema.json
       responses:
-        '200':
+        '204':
           description: |
             Opaque request takeover result. It does not reveal whether any
             Realm, scope, sender, binding or recipient exists and does not
-            promise delivery.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/signal-relay.schema.json#/$defs/signal_relay_outcome
+            promise delivery. Successful responses have no body.
         '400':
           description: Malformed or cross-Realm relay request.
         '403':
@@ -7044,11 +7038,7 @@ paths:
               $ref: '#/components/schemas/KeysBackupsDeleteRequestBody'
       responses:
         '200':
-          description: Encrypted key backup deleted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/KeysBackupsDeleteOutcome'
+          description: Encrypted key backup deleted; successful responses have no body.
   /_arkret/self/keys/backups/{backup_id}/delete-challenge:
     post:
       operationId: ak.self.keys.backups.command.issue_delete_challenge

@@ -26,14 +26,14 @@
       "reason": "The field states the accepted blob-ref shape rather than one blob ref; the alternation and the <64 lowercase hex> placeholder are template syntax, and the registered value space it restates is special_forms[blob].payload_pattern."
     },
     {
-      "pointer": "schema-validation-fixture.json#/schema_validation_cases/136/instance/cell_ids/0",
+      "pointer": "schema-validation-fixture.json#/schema_validation_cases/143/instance/cell_ids/0",
       "position": "value",
       "value": "ak:cell:ak.component.member.state.v1:did:web:host%3",
       "category": "deliberate_negative_vector",
       "reason": "Case cell_ref_with_malformed_percent_escape_rejected declares expect_valid false; the truncated percent-escape is exactly what bottom.schema.json must reject."
     },
     {
-      "pointer": "schema-validation-fixture.json#/schema_validation_cases/137/instance/cell_ids/0",
+      "pointer": "schema-validation-fixture.json#/schema_validation_cases/144/instance/cell_ids/0",
       "position": "value",
       "value": "ak:cell:message:019640ed-8000-7000-8000-000000000000",
       "category": "deliberate_negative_vector",

@@ -38,9 +38,6 @@
       "$ref": "#/$defs/keys_backups_delete_request_body"
     },
     {
-      "$ref": "#/$defs/keys_backups_delete_outcome"
-    },
-    {
       "$ref": "#/$defs/backup_series_erase_request_body"
     },
     {
@@ -805,22 +802,6 @@
         },
         "reason": {
           "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
-        }
-      },
-      "additionalProperties": false
-    },
-    "keys_backups_delete_outcome": {
-      "type": "object",
-      "required": [
-        "deleted"
-      ],
-      "properties": {
-        "deleted": {
-          "type": "boolean",
-          "const": true
-        },
-        "backup_id": {
-          "$ref": "#/$defs/backup_id"
         }
       },
       "additionalProperties": false

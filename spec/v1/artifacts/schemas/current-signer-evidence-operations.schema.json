@@ -137,6 +137,7 @@
     },
     "response_core": {
       "type": "object",
+      "x-arkret-signature-domain": "ak.current_signer_evidence_response.v1",
       "required": [
         "request_id",
         "realm_id",
@@ -144,7 +145,6 @@
         "request_digest",
         "recipient_account_id",
         "challenge",
-        "verifier_id",
         "issuer_id",
         "issued_at",
         "expires_at",
@@ -164,16 +164,13 @@
           "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256"
         },
         "recipient_account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id"
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact recipient account echoed from the request. Its station_id is the verifier: the authenticated proxy Station that MUST equal the peer request Source-Service-ID. No separate verifier field exists on wire."
         },
         "challenge": {
           "type": "string",
           "minLength": 24,
           "maxLength": 512
-        },
-        "verifier_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Authenticated proxy Station. MUST equal recipient_account_id.station_id and the peer request Source-Service-ID."
         },
         "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",

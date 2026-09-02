@@ -45,7 +45,6 @@ class SignalEnvelopeSchemaTest(unittest.TestCase):
             "encrypted_payload": {
                 "scheme": "ak.signal_exporter_aead.v1",
                 "key_ref": {
-                    "algorithm": "MLS-EXPORTER-AEAD",
                     "group_state_ref": "sha256:" + "b" * 64,
                 },
                 "purpose": "ak.signal.v1",
@@ -53,16 +52,27 @@ class SignalEnvelopeSchemaTest(unittest.TestCase):
                 "epoch": 1,
                 "nonce": "A" * 16,
                 "ciphertext": "A" * 22,
-                "aad_digest": "sha256:" + "c" * 64,
             },
             "proof": {
                 "kind": "detached_jws",
                 "verification_method": "did:webvh:z6mkfixture:alice.example#" + device,
                 "envelope_digest": "sha256:" + "d" * 64,
-                "created_at": "2026-08-31T00:00:00.000Z",
                 "jws": "eyJhbGciOiJFZDI1NTE5In0.." + "A" * 86,
             },
         }
+
+    def test_rebuilt_aad_and_injected_created_at_never_travel_on_the_wire(self):
+        envelope = self.envelope()
+        self.validator.validate(envelope)
+        with_aad_digest = copy.deepcopy(envelope)
+        with_aad_digest["encrypted_payload"]["aad_digest"] = "sha256:" + "c" * 64
+        self.assertFalse(self.validator.is_valid(with_aad_digest))
+        with_algorithm = copy.deepcopy(envelope)
+        with_algorithm["encrypted_payload"]["key_ref"]["algorithm"] = "MLS-EXPORTER-AEAD"
+        self.assertFalse(self.validator.is_valid(with_algorithm))
+        with_created_at = copy.deepcopy(envelope)
+        with_created_at["proof"]["created_at"] = envelope["sent_at"]
+        self.assertFalse(self.validator.is_valid(with_created_at))
 
     def test_ciphertext_limit_matches_46_kib_plaintext_plus_tag(self):
         maximum = ((46 * 1024 + 16) * 8 + 5) // 6

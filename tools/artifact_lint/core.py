@@ -99,6 +99,8 @@ EVENT_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{44}$")
 
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
+CONTENT_ADDRESSED_BLOB_PAYLOAD_RE = re.compile(r"^(?:sha256|blake3):[0-9a-f]{64}$")
+
 OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$", re.MULTILINE)
 
 YAML_REF_RE = re.compile(r"\$ref:\s*['\"]?([^'\"\s#]+(?:#[^'\"\s]+)?)")
@@ -504,7 +506,7 @@ EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {}
 
 # Matches dispatch refs of the form `[./]?<filename>.schema.json#/$defs/<class>`.
 # Covers `event-payload.schema.json#/$defs/...` (canonical) and sibling-schema
-# refs such as `moderation-appeal.schema.json#/$defs/submit_payload`.
+# refs such as `accountability-grant.schema.json#/$defs/grant_payload`.
 # Refs without a $defs anchor (e.g. `./read-cursor.schema.json` whose entire
 # file is the payload) have no class name to lint and are intentionally skipped.
 PAYLOAD_DISPATCH_REF_RE = re.compile(
@@ -628,6 +630,39 @@ PREIMAGE_EXEMPTION_STATUS = frozenset({"active", "retired"})
 # Class A / class B directions. A row carrying one of these is a defective registry,
 # not a ruling: encoding.md 6.0.1 says those shapes are never exemptible.
 PREIMAGE_FORBIDDEN_DIRECTIONS = frozenset({"self_identity", "same_unit_sibling"})
+
+
+# encoding.md 4.0.1: a closed object that already carries a complete content-addressed
+# typed ref must not carry a sibling digest of the same bytes. Every other digest next
+# to such a ref states its distinct preimage in this closed registry. Only refs whose
+# whole pattern is one content-addressed form count; unions that also admit UUID, Event
+# or DID forms are outside the gate by construction.
+SIBLING_DIGEST_EXEMPTION_REGISTRY_PATH = ARTIFACTS / "registry" / "content-addressed-ref-digest-exemption-registry.json"
+
+SIBLING_DIGEST_SECTION_ANCHOR = "401-content-addressed-typed-ref-唯一表示normative"
+
+SIBLING_DIGEST_SECTION_PATH = SPEC_ROOT / "zh" / "conformance" / "encoding.md"
+
+SIBLING_DIGEST_EXEMPTION_ROW_KEYS = (
+    "exemption_id",
+    "status",
+    "kind",
+    "subject",
+    "preimage",
+    "spec_anchor",
+)
+
+SIBLING_DIGEST_EXEMPTION_KINDS = frozenset({"distinct_preimage"})
+
+SIBLING_DIGEST_EXEMPTION_STATUS = frozenset({"active", "retired"})
+
+# A bare digest property: exactly one (or the registered pair of) active suite names
+# followed by 64 lowercase hex characters.
+SIBLING_DIGEST_PATTERN_RE = re.compile(
+    r"^\^\(?(?:\?:)?(?:sha256(?:\|blake3)?|blake3)\)?:\[0-9a-f\]\{64\}\$$"
+)
+
+CONTENT_ADDRESSED_HEX64 = "[0-9a-f]{64}"
 
 
 
@@ -937,8 +972,11 @@ _SUPPLY_CAS_ECHO_RE = re.compile(
 # join-policy.md 7 applicant/reviewer receipts; the recovery terminal receipt
 # is signed by the replacement device's accepted device key (recovery-receipt
 # .schema.json auth_data forbids service keys) and that same device is the
-# issue_recovery_completion_grant caller. Entries are schema identities: a
-# $defs name or a bare-file schema path.
+# issue_recovery_completion_grant caller. The security-rotation local commit is
+# likewise authored from the returned transaction coordinates plus client-local
+# device/time state and authenticated by the enclosing client_step_attestation;
+# it is not third-party material for which a server supply surface is owed.
+# Entries are schema identities: a $defs name or a bare-file schema path.
 _SUPPLY_CALLER_SIGNED_SCHEMAS = frozenset(
     {
         "application_receipt",
@@ -947,6 +985,7 @@ _SUPPLY_CALLER_SIGNED_SCHEMAS = frozenset(
         "AcceptedDevicePossessionProof",
         "AgentSessionRefreshProof",
         "keypackages_claim_service_binding",
+        "security_rotation_local_commit",
         "schemas/recovery-receipt.schema.json",
     }
 )
@@ -1296,9 +1335,11 @@ def check_event_ref_invariants_in_value(lint: Lint, path: Path, json_path: str, 
 
 
 def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str, rest: str, known: dict[str, set[str]]) -> None:
-    if token_kind == "blob" and rest.startswith("sha256:"):
-        if not SHA256_RE.fullmatch(rest):
-            lint.fail(path, f"{json_path} has invalid ak:blob:sha256 reference")
+    if token_kind == "blob" and (rest.startswith("sha256:") or rest.startswith("blake3:")):
+        # id-kind-registry special form ak:blob:<digest-suite>:<digest>: every active
+        # suite of digest-suite-registry.json, not only sha256 (encoding.md section 4).
+        if not CONTENT_ADDRESSED_BLOB_PAYLOAD_RE.fullmatch(rest):
+            lint.fail(path, f"{json_path} has invalid ak:blob:<digest-suite> content-addressed reference")
         return
     if token_kind in known["id_kinds"]:
         candidate = rest[:44] if token_kind in known.get("event_derived_id_kinds", set()) or token_kind in known.get("digest_token_id_kinds", set()) else rest[:36]

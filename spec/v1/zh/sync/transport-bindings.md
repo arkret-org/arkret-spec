@@ -196,8 +196,9 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 `transport_bindings[]` 必须通过
 [`transport-binding.schema.json`](../../artifacts/schemas/transport-binding.schema.json)
 验证。当前注册 kind 为 `http_json`、`tus` 与 `websocket`；未知 kind 不能覆盖任何 bundle pair，
-若它是公告能力所需的唯一 carrier，客户端必须 fail closed。WebSocket 条目必须声明 `ak.profile.binding.websocket.v1` 及该 profile
-要求的 subprotocol、认证和 limit 字段。
+若它是公告能力所需的唯一 carrier，客户端必须 fail closed。WebSocket 条目的 `kind` 通过 registry/schema identity
+固定 `ak.profile.binding.websocket.v1`、所需 subprotocol 与认证；条目只声明连接坐标和 limit 字段，
+不得回显这些固定参数。
 
 其它 binding（gRPC / SSE / WebTransport / MQ / libp2p）需先发布对应 binding profile 和
 machine registry/schema，才可出现在此处；v1 core 仅要求 `http_json`。WebTransport profile

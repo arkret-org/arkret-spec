@@ -201,11 +201,9 @@
         "descriptor_version",
         "device_id",
         "device_public_key_did",
-        "device_key_digest",
         "device_key_algorithm",
         "device_key_purpose",
         "hpke_key",
-        "hpke_key_digest",
         "hpke_key_algorithm",
         "algorithms",
         "founding_authorize_payload_digest"
@@ -219,10 +217,8 @@
         },
         "device_public_key_did": {
           "type": "string",
-          "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$"
-        },
-        "device_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
+          "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
+          "description": "did:key form of the founding device Ed25519 signing key. The descriptor carries the raw key inside the root-signed genesis payload, so it carries no key digest; the receipt pcr_genesis_scope.device_key_digest is SHA-256(UTF-8(canonical multikey)) over this value with the did:key: prefix removed."
         },
         "device_key_algorithm": {
           "const": "Ed25519"
@@ -232,10 +228,8 @@
         },
         "hpke_key": {
           "type": "string",
-          "minLength": 1
-        },
-        "hpke_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
+          "pattern": "^z6LS[1-9A-HJ-NP-Za-km-z]+$",
+          "description": "Founding device X25519 HPKE public key as the canonical multibase base58btc multikey of the X25519 multicodec (0xec), always starting with z6LS. It is the same encoding discipline as device_public_key_did without the did:key: prefix and the same value the founding ak.device.authorize payload carries; the receipt pcr_genesis_scope.hpke_key_digest is SHA-256(UTF-8(this exact string))."
         },
         "hpke_key_algorithm": {
           "const": "X25519"

@@ -565,6 +565,11 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 
 Message 是 Strand `discussion` track 时间线中的原子消息对象。
 
+`ak.schema.message.v1` 的 schema identity 固定 discussion family；物化 Message 不携 `track_name`。
+进入签名原像的 `ak.message.create` / `ak.message.revise` Event payload 仍可按其 owning Event schema
+携带并校验 discussion track，不能从物化对象字段反向替代该签名事实。需要其它 timeline 语义的
+profile MUST 注册独立对象/event profile。
+
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
 `ak.message.create` 只有一个内容派生创建身份：Event wire 的
@@ -588,7 +593,6 @@ Schema id: `ak.schema.message.v1`
 | `schema` | yes | `ak.schema.message.v1` | const。 | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `strand_id` | yes | `id:strand` |  | 所属 Strand。 |
-| `track_name` | yes | `const("discussion")` | v1 Message 只属于目标 Strand 的 `discussion` track，且该 track 必须当前 active。需要其它 timeline 语义的 profile MUST 注册独立对象 / event profile，不得复用 Message.track_name 扩展出第二类消息时间线。 | 所属 Strand track key。 |
 | `content` | conditional | `object` | 富文本/parts 见 `content-types.md`；`state=active` 且未加密时必填。effective `content_encryption_floor=e2ee_required` scope 下 MUST 改用 `encrypted_content`,plaintext `content` 由 reducer 拒绝(`content_encryption_floor_violation`)——单对象 schema 不感知 Realm floor，通过校验不代表合法。 | 消息正文。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；`content_type` MUST 精确为 `application/vnd.arkret.message+json`，见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件 ContentBlock。 |
 | `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. `sidecar_exchange_binding`（`ak.schema.agent_sidecar_event_exchange_binding.v1`）只能出现在 Sidecar-scoped Event 的 `encrypted_metadata` plaintext 中；明文 `metadata` 或 shared scope 携带 MUST `schema_violation` 拒绝（见 [`sidecar.md` §8](./sidecar.md) 与 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
@@ -621,7 +625,6 @@ Schema id: `ak.schema.message.v1`
   "schema": "ak.schema.message.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "strand_id": "ak:strand:AVK8GYTWvWfnkNjO2MMRJaNYukVBNiB0s6v8tdxK1nmu",
-  "track_name": "discussion",
   "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "content": {
     "kind": "ak.content.text",

@@ -222,13 +222,9 @@ class SessionGrantKatTests(unittest.TestCase):
             "one_time_use_consumed": False,
             "grant": {
                 "id": claims["jti"],
-                "issuer": claims["issuer"],
-                "subject": claims["subject"],
-                "account_id": {
-                    "principal_id": "did:webvh:z6mkfixture:alice.example",
-                    "station_id": "did:webvh:z6mkfixture:principal.example",
-                },
-                "audience": claims["audience"],
+                "issuer_id": claims["issuer_id"],
+                "account_id": claims["account_id"],
+                "audience_id": claims["audience_id"],
                 "scopes": claims["scopes"],
                 "expires_at": claims["expires_at"],
                 "revocation_ref": "issuer-ledger-fixture",

@@ -245,7 +245,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | **scope 后缀变体** | action 按主体、目标子集或语义相邻的 event 子集细分授权；可映射到一个异名 event，也可映射到多个紧密相关 event | `ak.message.revise.own` → `ak.message.revise`；`ak.call.join` → `{ak.call.create, ak.call.state, ak.call.summary}`；`ak.circle.member.add` → `ak.circle.member.state` |
 | **操作动词动作（`event_mapping_kind="operation_verb"`）** | action token 命名为操作 / 命令动词，与 target event kind 名形态不同；reducer admission 经 `target_event_kinds` 解析，逐字命中 `actions[]` 规则照常适用，且不带聚合 admin 语义 | `ak.message.redact` → `{ak.message.redact, ak.redaction}` |
 
-`ak.mls.commit` action → `{ak.mls.commit, ak.mls.commit_failed}`、`ak.moderation.appeal.review` → `{ak.moderation.appeal.review, ak.moderation.appeal.decision, ak.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
+`ak.mls.commit` action → `{ak.mls.commit, ak.mls.commit_failed}` 等“同一 action 同时覆盖正常 event 与诊断 / 派生 event”的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
 
 `ak.message.redact` → `{ak.message.redact, ak.redaction}` **不是聚合 admin**：registry 把它标为 `event_mapping_kind="operation_verb"`（risk_tier=medium），即上表第四类“操作动词动作”。授权决策、IAM 工具与 audit 解析 MUST 以 registry 的 `event_mapping_kind` 与 `target_event_kinds` 为准。
 
@@ -429,8 +429,6 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.approval.vote`
 - `ak.moderation.decision`（写入 sealed moderation state cell；详见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）
 - `ak.moderation.decision.lift`（解除已 sealed 的 moderation 决策）
-- `ak.moderation.appeal.submit`（risk_tier=low；提交对 moderation 决策的申诉，target=`ak.moderation.appeal.submit`）
-- `ak.moderation.appeal.review`（risk_tier=medium；审理申诉，aggregate admin action，target=`{ak.moderation.appeal.review, ak.moderation.appeal.decision, ak.moderation.appeal.close}`）
 
 ### 5.5 服务动作
 

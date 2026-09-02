@@ -124,9 +124,15 @@
       "pattern": "^(?:http://(?:\\[[0-9A-Fa-f:.]+\\]|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)(?::(?!80$)(?:[1-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?|https://(?:\\[[0-9A-Fa-f:.]+\\]|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)(?::(?!443$)(?:[1-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?)$",
       "description": "Canonical HTTP(S) Web Origin: lowercase scheme/host plus an optional valid non-default effective port. Userinfo, path (including a trailing slash), query, fragment, explicit :80 on HTTP, and explicit :443 on HTTPS are forbidden."
     },
+    "blob_id": {
+      "type": "string",
+      "pattern": "^ak:blob:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Producer-allocated identity of one Blob metadata resource. A blob_id never commits to content bytes and MUST NOT be used where a content-addressed blob_ref is required."
+    },
     "blob_ref": {
       "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
+      "description": "Content-addressed reference to exact Blob bytes. The embedded suite and digest are the sole wire commitment to those bytes; sibling content/ciphertext digest mirrors are forbidden."
     },
     "trust_domain": {
       "type": "string",

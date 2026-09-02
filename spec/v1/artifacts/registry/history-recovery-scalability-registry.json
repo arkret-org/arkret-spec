@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-02.1",
+  "version": "2026-09-02.2",
   "source_of_truth": true,
   "units": "bytes unless explicitly named",
   "history_request": {
@@ -70,6 +70,32 @@
   "backup": {
     "max_encrypted_object_bytes": 8388608,
     "rule": "Each object belongs to one exporter effective scope and is split by final encrypted bytes, never by guessed epoch count."
+  },
+  "backup_access": {
+    "ordinary_download": {
+      "window_seconds": 86400,
+      "default_principal_download_limit": 64,
+      "config_min_principal_download_limit": 16,
+      "config_max_principal_download_limit": 64,
+      "per_ip_unlock_burst": 8,
+      "per_ip_unlock_sustained_per_minute": 4,
+      "rule": "These limits apply only outside a verified RecoverySession. A deployment may choose a principal limit in the closed [16,64] range and may tighten the IP limits, but it cannot exceed the default 64-object principal ceiling."
+    },
+    "recovery_session_unlock": {
+      "session_max_ttl_seconds": 900,
+      "completion_reserve_seconds": 60,
+      "allowances_per_manifest_entry": 1,
+      "max_concurrent_unlocks_per_session": 8,
+      "minimum_conformance_mls_scope_count": 300,
+      "rate_formula": "ceil(frozen_manifest_entry_count * 60 / (expires_at - verified_at - completion_reserve_seconds))",
+      "rule": "At the atomic transition to verified, the Station freezes the complete set of then-active, recoverable backup_id values and each exact object's canonical response-byte charge. The resulting server-side manifest is immutable and grants one independently consumed unlock allowance per entry plus a checked-u64 total byte budget equal to the sum of those charges. Manifest entries do not consume the ordinary 24-hour principal counter. Objects absent from the manifest, entries added or activated later, and a second use of a consumed allowance cannot borrow recovery quota. The Station MUST NOT enter verified when the remaining lifetime is no greater than completion_reserve_seconds or when its advertised byte/concurrency capacity cannot serve the manifest before the reserved deadline. It MUST admit at least the rate_formula rate, keyed by recovery_session_id rather than IP, while retaining fresh device proof, per-object unlock proof, byte-budget, concurrency, audit and one-use checks."
+    },
+    "unlock_operation": {
+      "operation_id": "ak.self.keys.backups.command.unlock.v1",
+      "request_cardinality": "exactly_one_backup_id_from_path",
+      "batch_operation": null,
+      "rule": "v1 defines no collection-level or batch unlock operation. Every request carries one complete object-bound proof and produces one object outcome; batching, partial outcomes and cross-object proof reuse require a future AKP."
+    }
   },
   "stress_vectors": {
     "large_realistic_epoch_count": 26298,

@@ -11,6 +11,25 @@
   ],
   "operation_id": "ak.self.applet.command.revoke.v1",
   "preview_operation_id": "ak.self.applet.revoke.command.preview.v1",
+  "preview_plan_digest_kat": {
+    "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_plan",
+    "revoke_plan": {
+      "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+      },
+      "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "reason_code": "operator_revocation",
+      "revoke_mode": "revoke_all",
+      "capability_revocations": [],
+      "membership_removals": [],
+      "widget_token_refs": [],
+      "delegated_session_refs": []
+    },
+    "revoke_plan_jcs": "{\"applet_id\":\"ak:applet:019a6aa0-0000-7000-8000-000000000000\",\"capability_revocations\":[],\"delegated_session_refs\":[],\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"membership_removals\":[],\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"revoke_mode\":\"revoke_all\",\"widget_token_refs\":[]}",
+    "expected_revoke_plan_digest": "sha256:5fadba3c75ddfa08638286a7885173c72651adeb9705f2714c79ab0b45d5029c"
+  },
   "plan": {
     "revoke_plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "steps": [

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-02.3",
-  "generated_at": "2026-09-02T15:30:00+08:00",
+  "version": "2026-09-02.4",
+  "generated_at": "2026-09-02T23:25:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2562,29 +2562,6 @@
       "description": "The immutable provision ceiling and accepted Agent key authorization both contain every operation required by the selected runtime capability, but the requested or current session scope omits one or more. The operation fails with failed_precondition and recovery is a new session constrained by both upper ceilings. See zh/identity/key-management.md §3.6.1 and agent-runtime-scope-registry.json."
     },
     {
-      "code": "appeal_modify_missing_lift",
-      "applies_to": [
-        "schema_violation",
-        "state_resolution"
-      ],
-      "description": "A ak.moderation.appeal.decision event with verdict=modify did not atomically include both a ak.moderation.decision.lift for the original decision_ref and the replacement decision named by modify_decision_ref. Reducer MUST reject the whole batch so the old and replacement decisions cannot remain active together. See zh/governance/content-moderation.md §5.5.2."
-    },
-    {
-      "code": "appeal_overturn_missing_lift",
-      "applies_to": [
-        "schema_violation",
-        "state_resolution"
-      ],
-      "description": "A ak.moderation.appeal.decision event with verdict=overturn was accepted without a paired ak.moderation.decision.lift event in the same ordered submit batch or equivalent control transaction (targeting the original decision_ref). Reducer MUST reject; appeal overturn is only complete when the lift is observed atomically. See zh/governance/content-moderation.md §5.5.2."
-    },
-    {
-      "code": "appeal_self_review_forbidden",
-      "applies_to": [
-        "auth_decision"
-      ],
-      "description": "The reviewer in ak.moderation.appeal.review / ak.moderation.appeal.decision is the same actor who issued the original ak.moderation.decision being appealed. Separation of duties forbids self-review; reducer MUST reject. See zh/governance/content-moderation.md §5.5."
-    },
-    {
       "code": "applet_namespace_mismatch",
       "applies_to": [
         "state_resolution",
@@ -3841,14 +3818,6 @@
         "service_call"
       ],
       "description": "A to-device message ack carried an ack token that does not correspond to a delivered to-device cursor (unknown, malformed, or already-superseded). Carried under param_invalid. See zh/sync/client-sync.md §10.1 and zh/sync/service-http-binding.md device_messages/ack."
-    },
-    {
-      "code": "invalid_appeal_fsm_transition",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "A moderation appeal Move requested an unlisted, out-of-order, from-state-mismatched, or post-closed transition. The reducer MUST reject it with failed_precondition. See zh/governance/content-moderation.md §5.5.2."
     },
     {
       "code": "invalid_canonical_json",

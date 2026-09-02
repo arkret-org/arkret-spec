@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.6",
+  "version": "2026-09-02.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T16:24:00+08:00",
+  "generated_at": "2026-09-02T23:35:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3804,6 +3804,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.key_backup.recovery_session_manifest_capacity.v1",
+      "status": "active",
+      "domain": "key_backup",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "description": "A verified RecoverySession freezes one independently consumable unlock allowance for every then-active recoverable backup object. A 300-MLS-scope account plus secret storage completes all 301 single-object unlocks before the 900-second session expiry without charging the ordinary 24-hour principal counter; objects outside the manifest, allowance reuse, post-verification mutation and an unregistered batch request fail closed.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.key_backup.unlock_proof.v1",
       "status": "active",
       "domain": "key_backup",
@@ -4467,19 +4479,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.moderation.appeal_atomicity.v1",
-      "status": "active",
-      "domain": "moderation",
-      "applies_to_fixtures": [
-        "final-conformance-closure-fixture.json"
-      ],
-      "description": "Appeal verdict transitions are atomic: overturn requires a same-batch ak.moderation.decision.lift and never resurrects irreversible redaction/key-destruction effects; modify requires both a same-batch lift of the original decision and the replacement decision matched by modify_decision_ref.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.moderation.evidence_package_minimal_disclosure.v1",
       "status": "active",
       "domain": "moderation",
@@ -5043,84 +5042,9 @@
       "vector_id": "ak.vector.proof_context.transcript.directory_governance_request.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.directory_governance_request_proof.v1: digest input deletes `governance_proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory_list_handles_for_subject_request_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.directory_governance_request_proof.v1: digest input deletes `governance_proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory_source_ref_access_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.directory_governance_request_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.directory_list_handles_for_subject_request.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.directory_list_handles_for_subject_request_proof.v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory_resolve_agent_selector_request_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.directory_list_handles_for_subject_request_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.directory_resolve_agent_selector_request.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.directory_resolve_agent_selector_request_proof.v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory_resolve_handle_request_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.directory_resolve_agent_selector_request_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.directory_resolve_handle_request.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.directory_resolve_handle_request_proof.v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory_resolve_organization_request_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.directory_resolve_handle_request_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.directory_resolve_organization_request.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.directory_resolve_organization_request_proof.v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory_resolve_target_request_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.directory_resolve_organization_request_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.directory_resolve_target_request.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.directory_resolve_target_request_proof.v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.event_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.directory_resolve_target_request_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -5496,21 +5420,6 @@
       "description": "Transcript KAT for ak.mimi_provider_directory_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi_request_consent_request_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.mimi_provider_directory_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.mimi_reporter_authority.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.mimi_reporter_authority_proof.v1 with the exact Actor, provider, room, report Event, target, accepted membership and room-binding refs and expiry; mutation and cross-context replay are rejected.",
-      "covers_proof_contexts": [
-        "ak.mimi_reporter_authority_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"

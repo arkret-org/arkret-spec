@@ -12,7 +12,6 @@
       "schemas/accountability-grant.schema.json",
       "schemas/agent-provision.schema.json",
       "schemas/agent-selector-claim.schema.json",
-      "schemas/moderation-appeal.schema.json",
       "schemas/moderation-evidence.schema.json",
       "schemas/read-cursor.schema.json"
     ]

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.3",
+  "version": "2026-09-02.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T15:30:00+08:00",
+  "generated_at": "2026-09-02T20:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -183,8 +183,9 @@
       "wire_form": "ak:blob:<digest-suite>:<digest>",
       "payload_pattern": "(?:sha256|blake3):[0-9a-f]{64}",
       "status": "active",
+      "content_addressed": true,
       "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
-      "description": "Content-addressed blob reference using an active digest-suite id (v1: sha256 or profile-gated blake3); distinct from ak:blob:<uuid> blob metadata IDs."
+      "description": "Content-addressed blob reference using an active digest-suite id (v1: sha256 or profile-gated blake3); distinct from ak:blob:<uuid> blob metadata IDs. The embedded digest is the sole wire carrier of the referenced bytes' digest; same-carrier sibling digest mirrors are forbidden (encoding.md 4.0.1)."
     },
     {
       "kind": "mls",
@@ -215,6 +216,7 @@
       "wire_form": "ak:service_registration_receipt:<sha256-hex>",
       "payload_pattern": "[0-9a-f]{64}",
       "status": "active",
+      "content_addressed": true,
       "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
       "description": "Content-addressed ServiceRegistrationReceipt identifier derived from canonical receipt claims. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt claims))."
     },
@@ -250,6 +252,7 @@
       "wire_form": "ak:organization_registration_receipt:<64-lowercase-hex>",
       "payload_pattern": "[0-9a-f]{64}",
       "status": "active",
+      "content_addressed": true,
       "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
       "description": "Content-addressed OrganizationRegistrationReceipt identifier. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt_claims)), where receipt_claims is exactly the receipt object with registration_receipt_id and proof both omitted; it is the same content-addressed family as service_registration_receipt and MUST NOT be reused as a Realm capability, membership, notary designation or service delegation."
     },
@@ -258,14 +261,16 @@
       "wire_form": "ak:membership_compensation_delegation:sha256:<lowercase_hex>",
       "payload_pattern": "sha256:[0-9a-f]{64}",
       "status": "active",
-      "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference.",
-      "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal the SHA-256 delegation_digest derived from the profile-defined digest-free canonical core."
+      "content_addressed": true,
+      "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference; the reference is the only wire carrier of that digest.",
+      "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(core)) over the profile-defined closed core that carries neither delegation_id nor signature. The delegation object, terminal certificate and single-use CAS token carry only this typed reference; no sibling delegation_digest exists (encoding.md 4.0.1)."
     },
     {
       "kind": "seal",
       "wire_form": "ak:seal:<digest-suite>:<digest>",
       "payload_pattern": "(?:sha256|blake3):[0-9a-f]{64}",
       "status": "active",
+      "content_addressed": true,
       "storage_recommendation": "Store as a content-addressed canonical Seal hash.",
       "description": "Content-addressed Seal identifier using an active digest-suite id (v1: sha256 or profile-gated blake3), the same suite-tagged shape as ak:blob:<digest-suite>:<digest>. The suite segment is not fixed to sha256: a Seal id is a critical field, so its suite prefix MUST equal the Realm digest_algorithm and MUST be an active row of registry/digest-suite-registry.json; any other prefix fails closed with unsupported_digest_algorithm. See spec/v1/zh/authz/event-auth-state-resolution.md section 6."
     },
@@ -298,6 +303,7 @@
       "wire_form": "ak:signer_evidence:sha256:<64-lowercase-hex>",
       "payload_pattern": "sha256:[0-9a-f]{64}",
       "status": "active",
+      "content_addressed": true,
       "storage_recommendation": "Store the complete typed content-addressed identifier together with the exact canonical signer-evidence bytes.",
       "description": "Content-addressed authenticated signer-resolution evidence reference. The suffix is the SHA-256 digest of the complete canonical evidence object under its registered digest rule."
     }
@@ -316,18 +322,6 @@
       "identity_authority": "event",
       "genesis_event_kinds": [
         "ak.profile.create"
-      ]
-    },
-    {
-      "kind": "appeal",
-      "category": "moderation",
-      "status": "active",
-      "wire_form": "ak:appeal:<44-char-event-token>",
-      "description": "Moderation appeal ID derived from ak.moderation.appeal.submit and referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.moderation.appeal.submit"
       ]
     },
     {

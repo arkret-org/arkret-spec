@@ -61,7 +61,6 @@
       "type": "object",
       "required": [
         "blob_ref",
-        "content_digest",
         "size_bytes",
         "received_at",
         "issuer_id",
@@ -70,9 +69,6 @@
       "properties": {
         "blob_ref": {
           "$ref": "#/$defs/blob_ref"
-        },
-        "content_digest": {
-          "$ref": "#/$defs/digest"
         },
         "size_bytes": {
           "type": "integer",
@@ -133,8 +129,7 @@
       "type": "object",
       "required": [
         "blob_ref",
-        "size_bytes",
-        "content_digest"
+        "size_bytes"
       ],
       "properties": {
         "blob_ref": {
@@ -146,9 +141,6 @@
         },
         "media_type": {
           "$ref": "#/$defs/media_type"
-        },
-        "content_digest": {
-          "$ref": "#/$defs/digest"
         },
         "upload_receipt": {
           "$ref": "#/$defs/upload_receipt"

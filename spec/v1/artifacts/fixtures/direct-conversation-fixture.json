@@ -703,7 +703,7 @@
       "name": "founding_unit_submission_rejects_two_events",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFoundingUnitSubmission",
       "expect_valid": false,
-      "first_expected_error": "contains:is too short",
+      "first_expected_error": "contains:founding_authority_evidence",
       "semantic_outcome": "reject",
       "expected_reason_code": "direct_conversation_founding_unit_invalid",
       "instance": {

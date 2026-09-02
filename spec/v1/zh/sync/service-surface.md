@@ -108,7 +108,7 @@ Station 同时是业务数据所在地、`AccountId {principal_id, station_id}` 
 | Device / key | device authorization/revocation、active generation、OTK/fallback key、MLS KeyPackage claim、to-device queue 与 encrypted backup；所有裁决绑定 Station-local `AccountId`、PCR 与 durable gate。 |
 | Blob authority | account / Realm 对象 authorization、metadata、retention policy 与引用关系；默认 bytes surface MAY 与 Station 同部署。 |
 | Search | 私有 account / Realm 搜索；公共或授权发现属于 Directory Service。 |
-| Moderation | report intake、local queue、Station ACL 与普通 appeal orchestration。 |
+| Moderation | report intake、local queue、Station ACL 与 decision/lift projection。 |
 
 *Table 2-C. 按需出现的独立服务（informative）。只有满足本节保留判据且实际启用时才进入 discovery。*
 

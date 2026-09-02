@@ -47,9 +47,9 @@
     },
     "quarantine_entry": {
       "type": "object",
+      "description": "One pending-review quarantined invite. Membership in quarantine_entries is the only state this cell expresses: an entry is pending review until the holder reviews it or its TTL discards it, so no status member is carried.",
       "required": [
         "entry_digest",
-        "status",
         "account_id",
         "source_peer_principal_id",
         "source_id",
@@ -67,9 +67,6 @@
         "entry_digest": {
           "$ref": "#/$defs/digest",
           "description": "Recipient-service-local stable deduplication digest for this quarantined delivery."
-        },
-        "status": {
-          "const": "pending_review"
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",

@@ -126,13 +126,11 @@ Handle 解析结果（无论来自 Directory、Station、Organization authority 
 HandleClaimStatusView {
   schema: "ak.schema.handle_claim.v1",
   claim: HandleClaimCore,
-  claim_digest,
   status: pending | verified | revoked,
   as_of,
   verifier_id,
   verified_at: timestamp | null,
   revocation: HandleClaimRevocation | null,
-  revocation_digest: digest | null,
   fresh_until,
   status_proof
 }
@@ -152,22 +150,23 @@ HandleClaimCore {
 
 core digest 固定为 `sha256(utf8("ak.handle_claim_proof.v1\n") || JCS(core_without_proofs))`，其中字段集合与 schema `handle_claim_core` property 集合逐字相同，仅移除 `proofs`；不得使用裸 JCS hash、数据库行或本地 DTO。`proofs[0]` 固定 `proof_purpose=issuer_attestation`，其 DID URL 在 `issued_at` 有效且 adapter projection 等于 `issuer_id`；`proofs[1]` 固定 `holder_acceptance`，其方法在 `issued_at` 属于 `subject_account_id.station_id` 的 accepted account-service authority。两条 proof 均令 `domain=ak.handle_claim_proof.v1`、`payload_digest=claim_digest`，并覆盖完整 AccountId；同 core 异 Station 不得复用 holder proof。
 
-status transcript 固定为以下顺序与 nullable 编码：
+status transcript 就是去掉 `status_proof` 后的 canonical status view，字段集合与 schema `handle_claim_status_view` property 集合逐字相同，nullable 编码固定：
 
 ```text
 status_preimage = {
-  claim_digest,
+  schema,
+  claim,              // 完整 HandleClaimCore，含两条 core proof
   status,
   as_of,
   verifier_id,
   verified_at,        // timestamp | null，字段不得省略
-  revocation_digest,  // digest | null，字段不得省略
+  revocation,         // HandleClaimRevocation | null，字段不得省略
   fresh_until
 }
 status_digest = sha256(utf8("ak.handle_claim_status.v1\n") || JCS(status_preimage))
 ```
 
-`status_proof` 必须令 `domain=ak.handle_claim_status.v1`、`proof_purpose=status_attestation`、`payload_digest=status_digest`；其 verification method 必须在 `as_of` 为 `verifier_id` 的 evidence-time accepted service authority。调用者、本地缓存或未签名 Directory row 不得自报 `verified`。verifier 只有在 core 两张 proof、exact AccountId、issuer/domain authority、audience 与当前 revocation floor 全部通过后才能签 `verified`。`verified_at` 对 verified 必须非 null 且 `claim.issued_at <= verified_at <= as_of`；pending 必须 null。`status=revoked` 必须携完整 `revocation` 且 `revocation_digest` 等于其下述 digest；其它 status 两者均必须 null。`expired` 不是 status 值：求值时只要 `claim.expires_at != null && claim.expires_at <= evaluation_time` 就 fail closed 为 expired，禁止重写 core/status。
+status view 不携 `claim_digest` 与 `revocation_digest`：两者只是 verifier 从同载体 `claim` / `revocation` 重算的派生值（公式见本节与 §3.2.1），不得作为 wire 字段出现，也不得在 status transcript 中补回。`status_proof` 必须令 `domain=ak.handle_claim_status.v1`、`proof_purpose=status_attestation`、`payload_digest=status_digest`；其 verification method 必须在 `as_of` 为 `verifier_id` 的 evidence-time accepted service authority。调用者、本地缓存或未签名 Directory row 不得自报 `verified`。verifier 只有在 core 两张 proof、exact AccountId、issuer/domain authority、audience 与当前 revocation floor 全部通过后才能签 `verified`。`verified_at` 对 verified 必须非 null 且 `claim.issued_at <= verified_at <= as_of`；pending 必须 null。`status=revoked` 必须携完整 `revocation`，verifier 从该 carrier 按下述公式重算 `revocation_digest` 并与其 `proof.payload_digest` 逐字比较；其它 status 的 `revocation` 必须为 null。`expired` 不是 status 值：求值时只要 `claim.expires_at != null && claim.expires_at <= evaluation_time` 就 fail closed 为 expired，禁止重写 core/status。
 
 freshness 固定为 `as_of < fresh_until <= as_of + 300 seconds`，并且 core 有 expiry 时 `fresh_until <= claim.expires_at`。admission time 超过 `fresh_until` 必须在线取得新 status；不得以本地 TTL、HTTP cache age 或旧 status 回退延长。status 更新、issuer/holder key revocation、Directory trust/policy revision变化均使缓存立即失效。historical replay 只能使用 exact historical status carrier，不能把 current status 与 historical `as_of` 拼接。
 
@@ -306,7 +305,7 @@ claim_digest(c) = "sha256:" || hex( sha256( utf8("ak.handle_claim_proof.v1\n") |
 
 - 输出形态遵循 [`models/common-fields.md` §2](../models/common-fields.md) 的 `<noun>_digest = <alg>:<hex>` 通用 hash 字段命名规则；
 
-  `claim_digest` 在 status view 中 required。verifier MUST 重算并逐字比较；缺失或不等均 fail closed，不存在 wire 缺失退化。
+  `claim_digest` 不上 status view wire：status view 只携完整 `claim`，verifier MUST 按上式从 `claim` 重算 `claim_digest`，再与两条 core proof 的 `payload_digest` 及 `revocation.claim_digest` 逐字比较；不等均 fail closed，不存在 wire 携带值可供比对的退化路径。
 
 **Hint 隔离**(normative): Directory/cache 元数据只能存在于其本地 row 或独立 closed response carrier，禁止写入 HandleClaim core/status/revocation wire。未知字段由 schema 拒绝。
 
@@ -588,13 +587,11 @@ HandleClaimStatusView {
     source_refs: [],
     proofs: [issuer_attestation, holder_acceptance]
   },
-  claim_digest: sha256:<core-digest>,
   status: verified,
   as_of: 2026-05-19T00:01:00.000Z,
   verifier_id: <verifier-service>,
   verified_at: 2026-05-19T00:01:00.000Z,
   revocation: null,
-  revocation_digest: null,
   fresh_until: 2026-05-19T00:06:00.000Z,
   status_proof: status_attestation
 }
@@ -619,13 +616,11 @@ HandleClaimStatusView {
     source_refs: [],
     proofs: [issuer_attestation, holder_acceptance]
   },
-  claim_digest: sha256:<core-digest>,
   status: verified,
   as_of: 2026-05-19T00:01:00.000Z,
   verifier_id: <directory-verifier>,
   verified_at: 2026-05-19T00:01:00.000Z,
   revocation: null,
-  revocation_digest: null,
   fresh_until: 2026-05-19T00:06:00.000Z,
   status_proof: status_attestation
 }

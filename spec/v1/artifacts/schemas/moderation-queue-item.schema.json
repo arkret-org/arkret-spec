@@ -30,7 +30,7 @@
         "submitted",
         "resolved"
       ],
-      "description": "Authoritative moderation queue-item lifecycle. v1 is intentionally minimal: 'submitted' = report accepted and awaiting handling; 'resolved' = handling complete (terminal). The disposition (action taken vs no violation) lives on the separate ak.moderation.decision event; the appeal loop lives in the independent ak.moderation.appeal.* subsystem (§5.5). Additional intermediate states MAY be introduced in a later revision if a workflow phase needs them. See governance/content-moderation.md §3.3."
+      "description": "Authoritative moderation queue-item lifecycle. v1 is intentionally minimal: 'submitted' = report accepted and awaiting handling; 'resolved' = handling complete (terminal). The disposition (action taken vs no violation) lives on the separate ak.moderation.decision event. Additional intermediate states MAY be introduced in a later revision if a workflow phase needs them. See governance/content-moderation.md §3.3."
     },
     "priority": {
       "type": "string",

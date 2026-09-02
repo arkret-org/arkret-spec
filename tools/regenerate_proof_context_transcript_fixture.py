@@ -46,7 +46,7 @@ REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMAS = ARTIFACTS / "schemas"
 
 FIXTURE = ARTIFACTS / "fixtures" / "proof-context-transcript-fixture.json"
-FIXTURE_VERSION = "2026-09-02.1"
+FIXTURE_VERSION = "2026-09-02.2"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 
 # The single conformance signing key already published by
@@ -496,6 +496,9 @@ def build_case(
     context = row["context"]
     family = row["object_family"]
     declared = list(row["binding_fields"])
+    # Binding members the proof does not carry on the wire: the registry row
+    # names the signed-object member whose value is injected in their place.
+    binding_sources: dict[str, str] = dict(row.get("binding_field_sources") or {})
 
     required_binding = [name for name in declared if not name.endswith("?")]
     optional_binding = [name[:-1] for name in declared if name.endswith("?")]
@@ -572,6 +575,8 @@ def build_case(
             name for name in optional_binding if name not in present_optional
         ],
     }
+    if binding_sources:
+        case["binding_field_sources"] = dict(binding_sources)
     external_binding_values: dict[str, Any] = {}
     if family == "ingress_receipt":
         authority_set_ref = {
@@ -602,6 +607,8 @@ def build_case(
             "verification_method": VALUE_TABLE["verification_method"],
             "created_at": VALUE_TABLE["created_at"],
         }
+        for name in binding_sources:
+            proof_stub.pop(name, None)
         signed_object: dict[str, Any]
         if subject_pointer:
             signed_object = {subject_pointer.lstrip("/"): dict(body), carrier: proof_stub}
@@ -649,6 +656,14 @@ def build_case(
             binding[name] = AUDIENCE_SINGLE
         elif name in SELF_DIGEST_FIELDS:
             binding[name] = typed_digest(f"ak.fixture.proof_context_transcript.{family}.{name}")
+        elif name in binding_sources:
+            unsigned = case.get("unsigned_object")
+            if not isinstance(unsigned, dict) or binding_sources[name] not in unsigned:
+                raise SystemExit(
+                    f"{context} binding_field_sources.{name} names {binding_sources[name]!r}, "
+                    "which is not a member of the unsigned object"
+                )
+            binding[name] = unsigned[binding_sources[name]]
         elif isinstance(case.get("unsigned_object"), dict) and name in case["unsigned_object"]:
             binding[name] = case["unsigned_object"][name]
         elif name in external_binding_values:

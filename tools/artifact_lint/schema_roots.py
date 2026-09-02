@@ -32,7 +32,11 @@ def _schema_ref_key(value: str) -> tuple[str, str]:
 
 
 def _machine_roots(documents: dict[str, Any]) -> list[tuple[str, str]]:
-    roots = [(file_name, "") for file_name in documents]
+    # A schema document's catalog-style root oneOf is an index, not a protocol
+    # owner.  Ownership starts at an explicit operation/profile/binding/OpenAPI
+    # reference (plus the separately registered formal roots below), and the
+    # reference graph is then followed transitively.
+    roots: list[tuple[str, str]] = []
     for directory in ("registry", "profiles", "bindings", "openapi"):
         for path in sorted((ARTIFACTS / directory).rglob("*")):
             if not path.is_file() or path.suffix.lower() not in {".json", ".yaml", ".yml"}:
@@ -168,7 +172,7 @@ def check_schema_root_reachability(lint: Lint) -> None:
     for file_name, fragment in sorted(unreachable - expected_compatibility):
         lint.fail(
             SCHEMAS / file_name,
-            f"orphan schema definition {fragment} is unreachable from every machine root; connect it or register a dated owned root",
+            f"orphan schema definition {fragment} is unreachable from every protocol owner; connect it to an operation, Event kind, owned schema or registered dated root",
         )
     for file_name, fragment in sorted(expected_compatibility - unreachable):
         lint.fail(

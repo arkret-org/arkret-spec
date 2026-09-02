@@ -319,7 +319,7 @@ Signature: sig1=:base64...:
 
 Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 profile。接收方对每个 Event 独立读取其 CBA governance basis 中的 `ak.component.realm.reducer_profile.v1` cell：DataEvent 使用 `seal_ref` 认证的 joined control state，Control Move 使用 `seal_basis` 的 frozen predecessor `J(L)`。缺少求值依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`；settled profile 本地未实现时返回 `unsupported_profile`。
 
-每个 federation Event 必须原样携带 origin `station_admission` proof。接收方重算 canonical Event digest、exact producer proof digest、producer JWS 与 admission JWS，并要求 admission service 等于 Event `actor_id` 的 routing-service projection；Agent Event 还必须带 admission proof 已签入的 `producer_signer_resolution_evidence_ref/digest` pair。receiver 只复制并绑定这组 content-addressed selector，不接收内联 device/PCR/Agent signer evidence sidecar，也不得由 receiver 或 relay 重签 origin proof。
+每个 federation Event 必须原样携带 origin `station_admission` proof。接收方重算 canonical Event digest、exact producer proof digest、producer JWS 与 admission JWS，并要求 admission service 等于 Event `actor_id` 的 routing-service projection；Agent Event 还必须带 admission proof 已签入的 `producer_signer_resolution_evidence_ref`。receiver 只复制并绑定这个 content-addressed selector，不接收内联 device/PCR/Agent signer evidence sidecar，也不得由 receiver 或 relay 重签 origin proof。
 
 ### 4.1.0 推送时序
 
@@ -358,7 +358,7 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
 - receiver 对每个 `accepted[] ∪ duplicate[]` 内的 Agent Event MUST 返回一个
   `agent_event_admission_receipts[]` 项。receipt 与 Event durable acceptance 在同一事务写入；exact duplicate 返回
   第一次保存的 byte-identical receipt。rejected、quarantine 与 dependency-missing 项不得签发 receipt。
-- source durable outbox 必须先验证 receipt 的 Event/Realm/Agent/method、origin producer evidence pair、receiver service、
+- source durable outbox 必须先验证 receipt 的 Event/Realm/Agent/method、origin `producer_signer_resolution_evidence_ref`、receiver service、
   protected `kid` 与 historical receiver key，再原子保存 receipt 和 materialization obligation；在此之前不得把该
   Event/receiver 的历史证据交接标为完成。
 - Agent Authority 消费 obligation 时只允许读取 admission proof 指向的 byte-exact original `CurrentAdmission` root，
@@ -503,13 +503,15 @@ Probe 响应 payload：
 
   per-actor 归约的比较单元不是单值 `(actor_id, actor_seq)→hash`，而是该位置的 **canonical sibling 集** `S(peer, realm_id, actor_id, actor_seq) = sort_unique({(event_id,event_digest,prev_frontier_digest)})`。同一位置出现多个不同 `event_id` / hash 是 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 明确允许的 sibling fork；在单桶 16、跨桶累计 64 的上限内，且未触发 counter / FSM 等领域特定不可 join 规则时，双方 MUST 通过 backfill 取 union、逐条验证并收敛到同一 sibling 集，MUST NOT 因各自先看到不同子集而 quarantine。只有归约后出现以下证据才进入 fork-detection quarantine：两个 byte-distinct canonical Event preimage 均通过完整结构、suite 与 proof 前置检查，并独立重算为同一完整 suite-tagged `event_id`（full-hash collision evidence）；某 sibling 桶 / 位置的已验证集合超过 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 上限；或领域规范把该 sibling 组合定义为不可 join 冲突。scope 不同的 `frontier_root` / `head_ids[]` 仍不得单独触发 `witness_disagreement`。
 - `witness_receipts[]` 可选，每份按其已登记对象族 proof context、issuer、scope 与 freshness 独立验证；未登记或无法验证的 receipt MUST NOT 作为 witness 证据。它们不进入 issuer transcript。缺失/剥离只降低可选 witness 证据，不使 issuer signature 无效；任何强制 witness policy 仍需满足自己的 quorum，不能因此绕过。
-- `signature` 使用 response schema 登记的 closed envelope：`typ, scheme, verification_method, payload_digest, created_at, jws, signed_payload`。
-  `typ` 固定为上述 domain，`scheme="ed25519-detached-jws"`；`jws` 按 encoding 的 Ed25519 detached JWS 签署上述九字段 bytes，
-  不是 RFC 9421 HTTP response 签名。`payload_digest` 必须等于这些 bytes 的 SHA-256；`signed_payload` 必须逐值等于重建对象；
-  `created_at` 必须等于 canonical `observed_at`，并在接收时间前后 300 秒内。镜像只用于诊断，绝不提供第二份 authority。
+- `signature` 使用 response schema 登记的 closed envelope：`verification_method, jws`。
+  `jws` 按 encoding 的 Ed25519 detached JWS 签署上述九字段 bytes，不是 RFC 9421 HTTP response 签名；算法唯一来源是
+  JWS protected header 的 `alg`（[`encoding.md` §6.1](../conformance/encoding.md)）。envelope MUST NOT 携带 transcript 镜像、
+  transcript 摘要、第二个时间戳或任何可由位置推导的类型/方案常量：九字段 transcript 的每个值都只从外层 response 重建，verifier 在
+  验签失败时 MAY 在本地打印重建对象作诊断，但该诊断不上 wire。
+  freshness 对 canonical `observed_at` 判定：`observed_at` 必须在接收时间前后 300 秒内，否则 MUST 拒绝。
   `verification_method` 必须是已验证 issuer current DID Document 中授权的 assertion method；不得使用未发布的合成 key id，
   对 key rotation/miss 必须遵守 §3.2 current resolution/freshness，不能回退到 service-id-only key cache 或开发确定性 key。
-  任何字段、null 规则、摘要、issuer、Realm、时间或 JWS 不匹配都 MUST 拒绝；对象非空不等于已验签。
+  任何字段、null 规则、issuer、Realm、`observed_at` 时间窗或 JWS 不匹配都 MUST 拒绝；对象非空不等于已验签。
 
 冲突检测规则：
 

@@ -254,9 +254,9 @@ ak.mls.genesis、ak.mls.commit、需要绑定当前 epoch 的 ak.mls.welcome 与
 
 membership_frontier、covered_seal_refs、policy_root、capability_root 与 discussion_metadata_digest 不再是 wire 字段。它们把同一 accepted state 重复拆成多个 producer-supplied commitments，并导致无关治理变化阻断消息；receiver 改为从 Seal state 直接重算唯一 security_frontier_digest。
 
-每个 ak.mls.commit MUST 同时携带 mls_group_id、base_epoch、next_epoch、完整 commit_bytes_b64、commit_digest 与 governance_binding。receiver 先校验 digest，再按 RFC 9420 应用完整 Commit bytes，并核对 epoch、group 与 security frontier。只提供 digest 或 object ref 不合规。
+每个 ak.mls.commit MUST 同时携带 mls_group_id、base_epoch、next_epoch、完整 commit_bytes_b64 与 governance_binding；可选 `commit_message_ref` 若存在必须是 content-addressed Blob ref，其内嵌 digest 必须匹配解码后的完整 Commit bytes。receiver 先验证包含该 payload 的 Event，并在 ref 存在时校验其 digest，再按 RFC 9420 应用完整 Commit bytes，并核对 epoch、group 与 security frontier。只提供 digest 或 object ref 不合规，payload 不携 sibling `commit_digest`。
 
-Station 对 `ak.mls.commit` 的 admission 边界是 schema、Event proof/capability、canonical effective scope/group identity、`commit_bytes_b64` 的 `commit_digest`、`base_epoch -> next_epoch` CAS 与 governance-binding shape。服务端不是 member MLS frontier authority，MUST NOT 因自己没有 member leaf/private tree state 而返回 `frontier_unavailable` 或固定 503，也无需建设第二套 server-side public-tree tracker。`security_frontier_digest` 的语义重算与 RFC 9420 Commit 应用属于持有相应 group state 的 member receiver；receiver 即使看到 accepted Event 也 MUST 独立执行，错误 Commit 不得进入 verified MLS state。
+Station 对 `ak.mls.commit` 的 admission 边界是 schema、Event proof/capability、canonical effective scope/group identity、可选 `commit_message_ref` 与 `commit_bytes_b64` 的 byte-exact digest 绑定、`base_epoch -> next_epoch` CAS 与 governance-binding shape。服务端不是 member MLS frontier authority，MUST NOT 因自己没有 member leaf/private tree state 而返回 `frontier_unavailable` 或固定 503，也无需建设第二套 server-side public-tree tracker。`security_frontier_digest` 的语义重算与 RFC 9420 Commit 应用属于持有相应 group state 的 member receiver；receiver 即使看到 accepted Event 也 MUST 独立执行，错误 Commit 不得进入 verified MLS state。
 
 ak.mls.welcome MUST 携带 commit_ref，并与同一 Commit、recipient 和 claimed KeyPackage 逐字段闭合。Delivery/Station sync surface 必须原样保留完整 payload；不得转发缺 claim、commit_ref、binding 或 ciphertext 的缩减 envelope。
 #### 2.5.2 Send gate 与 self-heal
@@ -682,8 +682,8 @@ producer、Station 与 receiver MUST 复算比较。普通 Realm/Circle/Sidecar 
 - `effective_scope`：tagged scope —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 MLS-backed [Circle](../models/circle.md)；`{kind:"sidecar", realm_id, sidecar_id}` 表示 native Sidecar MLS group。MUST NOT 从 `strand_id`、track 或隐藏 Circle 推断 genesis scope。
 - `epoch`：MUST 为 `0`。
 - `cipher_suite`
-- `group_info_ref` 与 `group_info_digest`
-- `ratchet_tree_ref` 与 `ratchet_tree_digest`
+- `group_info_ref`
+- `ratchet_tree_ref`
 - `governance_binding`
 - `created_at`
 
@@ -711,20 +711,22 @@ Genesis 接受规则：
 
 #### 5.1.1 Epoch-0 public group-state material
 
-`group_info_ref` 与 `ratchet_tree_ref` MUST 分别是 `ak:blob:sha256:...` content-addressed ref（省略号位置是
-64 个 lowercase hex）；ref 内嵌 digest MUST 分别与同 Event 的
-`group_info_digest`、`ratchet_tree_digest` 逐字对应。producer MUST 在提交 genesis 前把精确 RFC 9420
-GroupInfo bytes 与 `ratchet_tree` extension bytes 放入可由承载该 Realm 的服务解析的 durable object store，
-并对**原始 bytes**计算 SHA-256。ref 只提供检索坐标，不替代 digest 校验；只有 digest、只有 ref、随机 UUID
-object ref、解析后的 leaf DTO 或本地路径都不合规。
+`group_info_ref` 与 `ratchet_tree_ref` MUST 分别是 `ak:blob:<digest-suite>:<hex>` content-addressed ref：`<digest-suite>`
+MUST 等于该 Realm 声明的 `digest_algorithm`（[`../conformance/encoding.md` §4](../conformance/encoding.md)），`<hex>` 是
+64 个 lowercase hex。producer MUST 在提交 genesis 前把精确 RFC 9420 GroupInfo bytes 与 `ratchet_tree` extension bytes
+放入可由承载该 Realm 的服务解析的 durable object store，并按 Realm digest suite 对**原始 bytes**计算 digest 编码进 ref。
+ref 内嵌的 digest 是这两份材料 digest 的唯一 wire 表示：verifier MUST 从 ref 解析 suite 与 digest 并据此校验取回的 bytes；
+payload MUST NOT 再携带 `group_info_digest` / `ratchet_tree_digest` 之类的 sibling digest
+（[`../conformance/encoding.md` §4.0.1](../conformance/encoding.md)）。随机 UUID object ref、解析后的 leaf DTO 或本地路径
+都不合规。
 
 需要读取 epoch-0 public tree 的 federation peer 或显式部署的独立公开 MLS group tracker MUST 使用注册操作
 `ak.peer.mls.read.group_state_material.v1`（`POST /_arkret/peer/mls/group-state-material`）或逐字段等价的同进程
-typed binding。request 必须逐字携带 accepted genesis 的 Realm/scope/group/epoch/Event id 和两组 ref/digest；
+typed binding。request 必须逐字携带 accepted genesis 的 Realm/scope/group/epoch/Event id 和两组 content-addressed ref；
 响应必须回显同一 binding，并以未填充 base64url 返回两份原始 bytes。provider 在响应前 MUST：
 
 1. resolve `group_state_event_id` 为当前 Realm 可验证、accepted 且未 quarantine 的 `ak.mls.genesis`；
-2. 逐字段比较 Event 中的 scope/group/epoch/ref/digest，不允许 caller 用一个 Event 的授权取另一个对象；
+2. 逐字段比较 Event 中的 scope/group/epoch/ref，不允许 caller 用一个 Event 的授权取另一个对象；
 3. 从 ref 取两份 bytes，对 raw bytes 重算 SHA-256，同时比较显式 digest 与 ref 内嵌 digest；
 4. 按 RFC 9420 验证 GroupInfo、GroupContext、cipher suite、group id、epoch 与 ratchet tree 一致，并确认
    `governance_binding` 是该 Event transcript-authenticated binding；
@@ -787,8 +789,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 - `proposal_refs`：被该 Commit 消费的 `ak.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
 - Add proposal 必须携 `target_authorization_incarnation`，逐字绑定要加入的 exact current Realm 或 Realm+Circle membership incarnation；非 Add proposal 禁带。消费该 Add 的 winning Commit 的 `next_epoch` 是该 incarnation 的唯一 `join_epoch`，不得用 wall clock 或服务本地接收顺序派生。
 - `commit_bytes_b64`：未填充 base64url 编码的完整 RFC 9420 MLS Commit 消息，MUST 内联携带，使离线成员仅依赖 durable Event history 即可按序追上 epoch；只携带摘要不能满足 §6 的离线恢复义务。
-- `commit_digest`：`commit_bytes_b64` 解码后字节的 SHA-256 摘要；接收方 MUST 在处理 Commit 前校验。
-- `commit_message_ref`：可选的 content-addressed blob 引用，只用于归档、去重或传输优化；不得替代 `commit_bytes_b64`，也不得成为应用 winning Commit 的额外可用性依赖。
+- `commit_message_ref`：可选的 content-addressed Blob 引用，只用于归档、去重或传输优化；内嵌 suite/digest 必须匹配 `commit_bytes_b64` 解码后的 exact bytes，是这些 bytes 的唯一独立 wire digest carrier。payload 不携 `commit_digest`；ref 不得替代 `commit_bytes_b64`，也不得成为应用 winning Commit 的额外可用性依赖。
 - `next_epoch`：必须等于 `base_epoch + 1`。
 - `governance_binding`：见第 2.5 节。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.5",
+  "version": "2026-09-02.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T16:24:00+08:00",
+  "generated_at": "2026-09-02T21:30:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -9,6 +9,8 @@
     "contexts[] closure is triggered by a terminal use point of the shared event-envelope.schema.json#/$defs/proof leaf. A non-Event schema that declares its own local detached-proof or signature leaf instead of referencing the shared leaf is outside contexts[] by construction and MUST NOT be registered there",
     "Such a locally anchored signing domain MUST instead appear in domain_separations[] with primitive detached_signature and binding_fields naming the transcript fields its proof covers, so that membership of this file is decidable from the schema alone rather than by convention",
     "A verifier MUST reject a valid signature made under a context registered to a different object family",
+    "Every contexts[] schema_ref MUST resolve a terminal use point of the shared event-envelope detached-proof leaf; an explicitly annotated local signing domain belongs only in domain_separations[]",
+    "For any domain_separations[] row that declares schema_ref or transcript_schema_refs, every binding field MUST occur in those registered transcript schemas unless injected_fields explicitly records its outer-carrier, constant, or pure-function source",
     "schema_ref MUST resolve to a real node: the file part MUST exist and the JSON Pointer fragment, when present, MUST resolve to a schema object",
     "Every terminal use point of the shared detached-proof leaf (a schema node whose $ref chain terminates at event-envelope.schema.json#/$defs/proof and that no other node references) MUST be covered by exactly one most-specific row here; a fragmentless schema_ref is exact only when the file root itself is the object family",
     "A row whose schema_ref subtree contains shared-proof use points that all belong to deeper rows is over-broad and MUST be tightened to the inner $defs node it actually describes",
@@ -27,7 +29,7 @@
         "payload_digest",
         "account_authority_id",
         "account_subject",
-        "account_id",
+        "principal_id",
         "verification_method",
         "created_at"
       ],
@@ -60,12 +62,17 @@
       "context": "ak.account_handoff_authentication_proof.v1",
       "object_family": "account_handoff_authentication",
       "binding_fields": [
-        "payload_digest",
-        "account_id",
-        "principal_id",
-        "verification_method",
-        "created_at",
-        "audience_id"
+        "proof_kind",
+        "challenge",
+        "request_canonical_digest",
+        "audience_id",
+        "issuer_uri",
+        "client_id",
+        "redirect_uri",
+        "state",
+        "nonce",
+        "authorization_code",
+        "code_verifier"
       ],
       "defined_in": "zh/identity/account-lifecycle.md",
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_authentication_proof"
@@ -102,8 +109,8 @@
       "object_family": "accountability_grant",
       "binding_fields": [
         "payload_digest",
-        "issuer",
-        "subject",
+        "issuer_id",
+        "subject_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -142,7 +149,13 @@
         "runtime_key_binding_digest"
       ],
       "defined_in": "zh/identity/key-management.md#362-runtime-request-binding审批竞态与账号通知normative",
-      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof"
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof",
+      "injected_fields": [
+        {
+          "field": "pairing_code",
+          "source": "authenticated pairing record pairing_code, byte-identical to the runtime request pairing_code"
+        }
+      ]
     },
     {
       "context": "ak.agent_session_refresh_proof.v1",
@@ -162,8 +175,8 @@
       "object_family": "agent_selector_claim",
       "binding_fields": [
         "payload_digest",
-        "controller_id",
-        "agent_id",
+        "controller_subject_id",
+        "subject_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -183,7 +196,13 @@
         "audience"
       ],
       "defined_in": "zh/extensions/applet-schema.md",
-      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/authoring_request"
+      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/authoring_request",
+      "injected_fields": [
+        {
+          "field": "context",
+          "source": "constant ak.applet_managed_actor_authoring_request_proof.v1"
+        }
+      ]
     },
     {
       "context": "ak.applet_managed_actor_bundle_proof.v1",
@@ -196,7 +215,13 @@
         "audience"
       ],
       "defined_in": "zh/extensions/applet-schema.md",
-      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
+      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_bundle",
+      "injected_fields": [
+        {
+          "field": "context",
+          "source": "constant ak.applet_managed_actor_bundle_proof.v1"
+        }
+      ]
     },
     {
       "context": "ak.applet_package_proof.v1",
@@ -204,7 +229,7 @@
       "binding_fields": [
         "payload_digest",
         "applet_id",
-        "publisher_id",
+        "controller_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -218,8 +243,8 @@
       "object_family": "attestation_evidence",
       "binding_fields": [
         "payload_digest",
-        "issuer",
-        "subject",
+        "operator_id",
+        "audit_actor_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -233,8 +258,8 @@
       "object_family": "audit_ryw_receipt",
       "binding_fields": [
         "payload_digest",
-        "issuer",
-        "scope",
+        "issuer_id",
+        "realm_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -312,7 +337,13 @@
         "authorization_binding_kind"
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload"
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
+      "injected_fields": [
+        {
+          "field": "principal_id",
+          "source": "containing Event envelope actor_id.account_id.principal_id"
+        }
+      ]
     },
     {
       "context": "ak.device_authorize_recovery_possession_proof.v1",
@@ -329,7 +360,13 @@
         "authorization_binding_kind"
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md#14-全设备丢失恢复与设备重锚定",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload"
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
+      "injected_fields": [
+        {
+          "field": "principal_id",
+          "source": "containing Event envelope actor_id.account_id.principal_id"
+        }
+      ]
     },
     {
       "context": "ak.device_revocation_gate_decision_proof.v1",
@@ -372,7 +409,16 @@
         "audience_id"
       ],
       "defined_in": "zh/discovery/discovery-directory.md#871-governance-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof"
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof",
+      "transcript_schema_refs": [
+        "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody"
+      ],
+      "injected_fields": [
+        {
+          "field": "operation_id",
+          "source": "constant ak.find.directory.command.withdraw.v1"
+        }
+      ]
     },
     {
       "context": "ak.directory_source_ref_access_proof.v1",
@@ -395,80 +441,6 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectorySourceRefAccess"
     },
     {
-      "context": "ak.directory_list_handles_for_subject_request_proof.v1",
-      "object_family": "directory_list_handles_for_subject_request",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "account_id",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body"
-    },
-    {
-      "context": "ak.directory_resolve_agent_selector_request_proof.v1",
-      "object_family": "directory_resolve_agent_selector_request",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "controller_handle",
-        "agent_slug",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body"
-    },
-    {
-      "context": "ak.directory_resolve_handle_request_proof.v1",
-      "object_family": "directory_resolve_handle_request",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "handle",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body"
-    },
-    {
-      "context": "ak.directory_resolve_organization_request_proof.v1",
-      "object_family": "directory_resolve_organization_request",
-      "binding_fields": [
-        "payload_digest",
-        "operation_id",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body"
-    },
-    {
-      "context": "ak.directory_resolve_target_request_proof.v1",
-      "object_family": "directory_resolve_target_request",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "address",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body"
-    },
-    {
       "context": "ak.event_proof.v1",
       "object_family": "event_envelope",
       "binding_fields": [
@@ -476,14 +448,16 @@
         "actor_id",
         "verification_method",
         "signer_resolution_evidence_ref?",
-        "signer_resolution_evidence_digest?",
         "created_at",
         "domain?",
         "audience?"
       ],
       "defined_in": "zh/models/event-and-patch.md",
       "schema_ref": "schemas/event-envelope.schema.json#/$defs/event_proof",
-      "regime_rule": "Exactly one event-level branch applies. With one valid station_admission proof, producer signer evidence fields are absent and admission.producer_signing_key verifies the bound producer proof. Without admission, both signer evidence fields are present, enter this transcript and resolve to the exact producer verification_method."
+      "transcript_schema_refs": [
+        "schemas/event-envelope.schema.json"
+      ],
+      "regime_rule": "Exactly one event-level branch applies. With one valid station_admission proof, the producer signer_resolution_evidence_ref is absent and admission.producer_signing_key verifies the bound producer proof. Without admission, signer_resolution_evidence_ref is present, enters this transcript and resolves to the exact producer verification_method; its embedded digest is the sole wire copy (encoding.md 4.0.1)."
     },
     {
       "context": "ak.extension_manifest_proof.v1",
@@ -600,7 +574,13 @@
         "audience?"
       ],
       "defined_in": "zh/authz/offline-publication.md",
-      "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt"
+      "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt",
+      "injected_fields": [
+        {
+          "field": "authority_set_ref",
+          "source": "companion authorization_lease.authority_set_ref"
+        }
+      ]
     },
     {
       "context": "ak.key_backup_delete_proof.v1",
@@ -610,7 +590,7 @@
         "payload_digest",
         "operation",
         "request_id",
-        "principal_id",
+        "account_id",
         "backup_id",
         "reason",
         "challenge_id",
@@ -624,7 +604,11 @@
         "created_at"
       ],
       "defined_in": "zh/identity/key-management.md",
-      "schema_ref": "schemas/high-risk-authority-proof.schema.json"
+      "schema_ref": "schemas/high-risk-authority-proof.schema.json",
+      "transcript_schema_refs": [
+        "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
+        "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_challenge"
+      ]
     },
     {
       "context": "ak.mimi_identifier_query_outcome_proof.v1",
@@ -638,7 +622,13 @@
         "audience"
       ],
       "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome"
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome",
+      "injected_fields": [
+        {
+          "field": "operation_id",
+          "source": "constant ak.open.mimi.read.identifiers.v1"
+        }
+      ]
     },
     {
       "context": "ak.mimi_identifier_query_request_proof.v1",
@@ -653,7 +643,17 @@
         "audience"
       ],
       "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body"
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.requester_id when present"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.open.mimi.read.identifiers.v1"
+        }
+      ]
     },
     {
       "context": "ak.mimi_key_material_outcome_proof.v1",
@@ -667,7 +667,13 @@
         "audience"
       ],
       "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome"
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome",
+      "injected_fields": [
+        {
+          "field": "operation_id",
+          "source": "constant ak.open.mimi.exchange.request_key_material.v1"
+        }
+      ]
     },
     {
       "context": "ak.mimi_key_material_request_proof.v1",
@@ -684,7 +690,17 @@
         "audience"
       ],
       "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body"
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.requester_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.open.mimi.exchange.request_key_material.v1"
+        }
+      ]
     },
     {
       "context": "ak.mimi_provider_directory_proof.v1",
@@ -717,7 +733,17 @@
         "audience"
       ],
       "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body"
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.requester_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.open.mimi.command.request_consent.v1"
+        }
+      ]
     },
     {
       "context": "ak.mimi_update_consent_request_proof.v1",
@@ -734,32 +760,17 @@
         "audience"
       ],
       "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body"
-    },
-    {
-      "context": "ak.mimi_reporter_authority_proof.v1",
-      "object_family": "mimi_reporter_authority",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "reporter_id",
-        "source_provider_id",
-        "mimi_room_uri",
-        "realm_id",
-        "strand_id",
-        "target_ref",
-        "report_event",
-        "membership_event_id",
-        "room_binding_event_id",
-        "expires_at",
-        "verification_method",
-        "created_at",
-        "domain",
-        "audience"
-      ],
-      "defined_in": "zh/extensions/mimi-interop.md#11-abuse-report-and-proxy-download",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_reporter_authority"
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.actor_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.open.mimi.command.update_consent.v1"
+        }
+      ]
     },
     {
       "context": "ak.organization_registration_control_proof.v1",
@@ -768,14 +779,17 @@
         "challenge_id",
         "organization_id",
         "organization_did",
-        "local_admin_subject",
+        "local_admin_subject_id",
         "version_id",
         "log_head_digest",
         "verification_method",
         "created_at"
       ],
       "defined_in": "zh/identity/identity-did.md",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationControlProof"
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationControlProof",
+      "transcript_schema_refs": [
+        "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody"
+      ]
     },
     {
       "context": "ak.organization_registration_receipt_proof.v1",
@@ -812,7 +826,13 @@
         "created_at"
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
-      "schema_ref": "schemas/keys-operations.schema.json#/$defs/device_projection_attestation"
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/device_projection_attestation",
+      "injected_fields": [
+        {
+          "field": "payload_digest",
+          "source": "sha256(RFC8785_JCS(device_projection_attestation with proof omitted))"
+        }
+      ]
     },
     {
       "context": "ak.principal_locator_proof.v1",
@@ -842,7 +862,13 @@
         "created_at"
       ],
       "defined_in": "zh/identity/identity-did.md",
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_projection_attestation"
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_projection_attestation",
+      "injected_fields": [
+        {
+          "field": "payload_digest",
+          "source": "sha256(RFC8785_JCS(principal_resolution_projection_attestation with proof omitted))"
+        }
+      ]
     },
     {
       "context": "ak.station_admission_proof.v1",
@@ -851,9 +877,9 @@
         "event_digest",
         "producer_proof_digest",
         "producer_verification_method",
-        "producer_signing_key",
+        "producer_signing_key_did",
+        "producer_signer_resolution_evidence_ref?",
         "signer_resolution_evidence_ref",
-        "signer_resolution_evidence_digest",
         "accepted_at",
         "verification_method"
       ],
@@ -866,7 +892,7 @@
       "binding_fields": [
         "payload_digest",
         "realm_id",
-        "subject_id",
+        "service_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -880,7 +906,7 @@
       "object_family": "event_batch_receipt",
       "binding_fields": [
         "payload_digest",
-        "issuer",
+        "issuer_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -904,7 +930,13 @@
         "created_at"
       ],
       "defined_in": "zh/identity/account-lifecycle.md",
-      "schema_ref": "schemas/registration-did-evidence.schema.json#/$defs/registration_did_evidence_draft"
+      "schema_ref": "schemas/registration-did-evidence.schema.json#/$defs/registration_did_evidence_draft",
+      "injected_fields": [
+        {
+          "field": "method_evidence_digest",
+          "source": "sha256(RFC8785_JCS(method_evidence))"
+        }
+      ]
     },
     {
       "context": "ak.service_registration_receipt_proof.v1",
@@ -938,7 +970,13 @@
         "created_at"
       ],
       "defined_in": "zh/sync/federation.md",
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_ack"
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_ack",
+      "injected_fields": [
+        {
+          "field": "payload_digest",
+          "source": "sha256(RFC8785_JCS(service_resolution_publish_ack.ack))"
+        }
+      ]
     },
     {
       "context": "ak.service_resolution_record_proof.v1",
@@ -965,7 +1003,21 @@
         "audience?"
       ],
       "defined_in": "zh/sync/service-surface.md",
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record"
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record",
+      "injected_fields": [
+        {
+          "field": "payload_digest",
+          "source": "sha256(RFC8785_JCS(service_resolution_record.record))"
+        },
+        {
+          "field": "domain",
+          "source": "constant ak.service_resolution_record_proof.v1 when domain is present"
+        },
+        {
+          "field": "audience",
+          "source": "verification policy audience bound to service_resolution_record.record.service_id when present"
+        }
+      ]
     },
     {
       "context": "ak.service_route_handover_notice_proof.v1",
@@ -993,7 +1045,21 @@
         "audience?"
       ],
       "defined_in": "zh/sync/service-surface.md",
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_handover_notice"
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_handover_notice",
+      "injected_fields": [
+        {
+          "field": "payload_digest",
+          "source": "sha256(RFC8785_JCS(service_route_handover_notice.notice))"
+        },
+        {
+          "field": "domain",
+          "source": "constant ak.service_route_handover_notice_proof.v1 when domain is present"
+        },
+        {
+          "field": "audience",
+          "source": "verification policy audience bound to service_route_handover_notice.notice.service_id when present"
+        }
+      ]
     },
     {
       "context": "ak.session_grant_accepted_device_possession_proof.v1",
@@ -1004,7 +1070,7 @@
         "account_subject?",
         "account_handoff_grant_digest?",
         "predecessor_session_grant_id?",
-        "principal_id",
+        "account_id",
         "device_id",
         "audience_id",
         "holder_jkt",
@@ -1028,8 +1094,17 @@
         "domain?",
         "audience?"
       ],
+      "binding_field_sources": {
+        "created_at": "sent_at"
+      },
       "defined_in": "zh/sync/signal.md",
-      "schema_ref": "schemas/signal-envelope.schema.json"
+      "schema_ref": "schemas/signal-envelope.schema.json",
+      "injected_fields": [
+        {
+          "field": "created_at",
+          "source": "signal_envelope.sent_at"
+        }
+      ]
     },
     {
       "context": "ak.snapshot_proof.v1",
@@ -1044,7 +1119,13 @@
         "audience?"
       ],
       "defined_in": "zh/conformance/snapshot-schema.md",
-      "schema_ref": "schemas/snapshot.schema.json"
+      "schema_ref": "schemas/snapshot.schema.json",
+      "injected_fields": [
+        {
+          "field": "snapshot_id",
+          "source": "snapshot.id"
+        }
+      ]
     },
     {
       "context": "ak.snapshot_witness_attestation_proof.v1",
@@ -1069,7 +1150,36 @@
         "created_at"
       ],
       "defined_in": "zh/conformance/snapshot-schema.md",
-      "schema_ref": "schemas/snapshot.schema.json#/$defs/snapshot_witness_attestation"
+      "schema_ref": "schemas/snapshot.schema.json#/$defs/snapshot_witness_attestation",
+      "transcript_schema_refs": [
+        "schemas/snapshot.schema.json"
+      ],
+      "injected_fields": [
+        {
+          "field": "snapshot_id",
+          "source": "snapshot.id"
+        },
+        {
+          "field": "issuer",
+          "source": "snapshot.created_by"
+        },
+        {
+          "field": "authority_kind",
+          "source": "snapshot.authority_binding.authority_kind"
+        },
+        {
+          "field": "auth_state_digest",
+          "source": "snapshot.authority_binding.auth_state_digest"
+        },
+        {
+          "field": "auth_frontier",
+          "source": "snapshot.authority_binding.auth_frontier"
+        },
+        {
+          "field": "snapshot_created_at",
+          "source": "snapshot.created_at"
+        }
+      ]
     },
     {
       "context": "ak.history_key_request_proof.v1",
@@ -1133,7 +1243,6 @@
         "source_actor_id",
         "source_sender_domain",
         "source_signer_evidence_ref",
-        "source_signer_evidence_digest",
         "request_digest",
         "request_receipt_digest",
         "expires_at",
@@ -1155,7 +1264,6 @@
         "source_record",
         "sent_at",
         "release_service_signer_evidence_ref",
-        "release_service_signer_evidence_digest",
         "manifest_admission?",
         "release_attestation?",
         "verification_method",
@@ -1176,7 +1284,6 @@
         "record_digest",
         "lost_at",
         "release_service_signer_evidence_ref",
-        "release_service_signer_evidence_digest",
         "verification_method",
         "created_at"
       ],
@@ -1330,7 +1437,6 @@
         "holder_id",
         "retention_expires_at",
         "holder_signer_evidence_ref",
-        "holder_signer_evidence_digest",
         "verification_method",
         "created_at"
       ],
@@ -1385,7 +1491,6 @@
         "agent_id",
         "verification_method",
         "producer_signer_resolution_evidence_ref",
-        "producer_signer_resolution_evidence_digest",
         "receiver_id"
       ]
     },
@@ -1452,12 +1557,12 @@
         "request_digest",
         "recipient_account_id",
         "challenge",
-        "verifier_id",
         "issuer_id",
         "issued_at",
         "expires_at",
-        "evidence"
-      ]
+        "evidences"
+      ],
+      "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/response_core"
     },
     {
       "domain": "ak.contact.request_acceptance_core.v1",
@@ -1492,6 +1597,146 @@
         "verification_method",
         "issued_at",
         "expires_at"
+      ]
+    },
+    {
+      "domain": "ak.directory_list_handles_for_subject_request_proof.v1",
+      "object_family": "directory_list_handles_for_subject_request",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "account_id",
+        "verification_method",
+        "created_at",
+        "audience_id"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
+      "transcript_schema_refs": [
+        "schemas/directory-operations.schema.json#/$defs/proof"
+      ],
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.requester_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.find.directory.read.list_handles_for_subject.v1"
+        }
+      ]
+    },
+    {
+      "domain": "ak.directory_resolve_agent_selector_request_proof.v1",
+      "object_family": "directory_resolve_agent_selector_request",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "controller_handle",
+        "agent_slug",
+        "verification_method",
+        "created_at",
+        "audience_id"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
+      "transcript_schema_refs": [
+        "schemas/directory-operations.schema.json#/$defs/proof"
+      ],
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.requester_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.find.directory.read.resolve_agent_selector.v1"
+        }
+      ]
+    },
+    {
+      "domain": "ak.directory_resolve_handle_request_proof.v1",
+      "object_family": "directory_resolve_handle_request",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "handle",
+        "verification_method",
+        "created_at",
+        "audience_id"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
+      "transcript_schema_refs": [
+        "schemas/directory-operations.schema.json#/$defs/proof"
+      ],
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.requester_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.find.directory.read.resolve_handle.v1"
+        }
+      ]
+    },
+    {
+      "domain": "ak.directory_resolve_organization_request_proof.v1",
+      "object_family": "directory_resolve_organization_request",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "payload_digest",
+        "operation_id",
+        "verification_method",
+        "created_at",
+        "audience_id"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
+      "transcript_schema_refs": [
+        "schemas/directory-operations.schema.json#/$defs/proof"
+      ],
+      "injected_fields": [
+        {
+          "field": "operation_id",
+          "source": "constant ak.find.directory.read.resolve_organization.v1"
+        }
+      ]
+    },
+    {
+      "domain": "ak.directory_resolve_target_request_proof.v1",
+      "object_family": "directory_resolve_target_request",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "address",
+        "verification_method",
+        "created_at",
+        "audience_id"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
+      "transcript_schema_refs": [
+        "schemas/directory-operations.schema.json#/$defs/proof"
+      ],
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.requester_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.find.directory.read.resolve_target.v1"
+        }
       ]
     },
     {
@@ -1539,7 +1784,16 @@
         "observed_at"
       ],
       "defined_in": "zh/sync/federation.md",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState/properties/signature"
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState/properties/signature",
+      "transcript_schema_refs": [
+        "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState"
+      ],
+      "injected_fields": [
+        {
+          "field": "domain",
+          "source": "constant ak.events.frontier.signature.v1"
+        }
+      ]
     },
     {
       "domain": "ak.federation.verify_actor.signature.v1",
@@ -1652,27 +1906,78 @@
         "replay_nonce"
       ],
       "defined_in": "zh/governance/content-moderation.md",
-      "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof"
+      "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
+      "injected_fields": [
+        {
+          "field": "domain",
+          "source": "constant ak.franking_proof.signature.v1"
+        }
+      ]
     },
     {
       "domain": "ak.membership_compensation.single_use_cas.v1",
       "object_family": "membership_compensation_single_use_cas",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
-        "delegation_ref",
+        "domain",
+        "admission_id",
+        "delegation_id",
         "expected_state",
-        "operation"
-      ]
+        "destination_id",
+        "issued_at",
+        "expires_at",
+        "issuer_id"
+      ],
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MembershipCompensationCasToken"
     },
     {
       "domain": "ak.membership_compensation.terminal_certificate.v1",
       "object_family": "membership_compensation_terminal_certificate",
       "primitive": "detached_signature",
       "binding_fields": [
+        "domain",
+        "admission_id",
+        "delegation_id",
         "operation_id",
         "terminal_state",
         "certified_at",
-        "issuer"
+        "issuer_id"
+      ],
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MembershipCompensationTerminalCertificate"
+    },
+    {
+      "domain": "ak.mimi_reporter_authority_proof.v1",
+      "object_family": "mimi_reporter_authority",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "report_event",
+        "cba_proof_bundles?",
+        "membership_event_id",
+        "room_binding_event_id",
+        "expires_at",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md#11-abuse-report-and-proxy-download",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_reporter_authority",
+      "transcript_schema_refs": [
+        "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
+        "schemas/mimi-operations.schema.json#/$defs/signature"
+      ],
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.reporter_authority.actor_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.open.mimi.command.report_abuse.v1"
+        }
       ]
     },
     {

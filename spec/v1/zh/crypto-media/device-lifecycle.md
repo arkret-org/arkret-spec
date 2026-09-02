@@ -994,18 +994,19 @@ frontier/Commit facts。takeover必须签 predecessor、current epoch与相同 e
 `revoked`，不得第二次claim；只有recipient durable后才能consume。
 
 注册唯一 authority source `ak.authority.membership_compensation.v1`。补偿 delegation由实际 accepted join
-Event的authoring proof signer产生；其无签名、无自身digest、无`delegation_id`的closed core逐字绑定
+Event的authoring proof signer产生；其无签名、无`delegation_id`的closed core逐字绑定
 admission/join identity、member Event ID/digest、membership cell与J1 provenance、subject、真实
 `actor_id/executed_by?/authorization_ref?/verification_method`分支、executor service DID+proof key、resource、
-deadline及唯一action。先从exact RFC8785/JCS core计算stable `delegation_digest`，再机械派生外层
-`delegation_id=ak:membership_compensation_delegation:sha256:<lowercase_hex>`；ID后缀必须逐字等于该digest，
-外层author signature覆盖ID、core与digest。不可转授，也不得用普通grant/source代替。
+deadline及唯一action。对exact RFC8785/JCS core计算SHA-256，并机械派生外层
+`delegation_id=ak:membership_compensation_delegation:sha256:<lowercase_hex>`；ID后缀就是该digest的唯一wire表示，
+delegation、terminal certificate与single-use CAS token都只携带`delegation_id`，MUST NOT再携带sibling
+`delegation_digest`（[`../conformance/encoding.md` §4.0.1](../conformance/encoding.md)）；外层author signature覆盖ID与core。不可转授，也不得用普通grant/source代替。
 
 action是closed XOR：self join仅 `ak.member.compensate.leave`，delegated/admin join仅
 `ak.member.compensate.remove`；未知action fail closed。executor author fresh标准 `ak.member.state`减权 Event，
 固定原join actor，`executed_by=executor`，`authorization_ref`精确引用delegation。terminal certificate仅作
 critical submission evidence，不进入被授权Event digest。destination authority以
-`(admission_id,delegation_digest)`做single-use CAS；current membership head仍是J1时最多一次写入，already absent或
+`(admission_id,delegation_id)`做single-use CAS；current membership head仍是J1时最多一次写入，already absent或
 已被J2/new join supersede时返回 `membership_compensation_conflict` 且零写，绝不得删除后来重新加入者。
 
 失败分支固定为：claim前拒绝零烧；claim后/member acceptance前只revoke原claim；member accepted/Add前执行

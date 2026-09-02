@@ -259,7 +259,7 @@ registration/grant，任一失败整个单元不可见。membership、E2EE 与 w
 | `ak.self.applet.install.command.preview.v1` | `POST /_arkret/self/applets/install/preview` | 校验唯一内嵌的管理员 formal Events，返回 canonical `InstallPlan` 与目标 Station 签名的短期 authoring request。 |
 | `ak.edge.applet.managed_actor.command.author.v1` | `POST /_arkret/edge/applet/managed-actors/author` | Applet service 消费 `install_bot|provision_ghost` 的统一 signed request，签 role-neutral 四 Event bundle，并按 branch subject + full request digest durable exact replay；不 mint request ID。 |
 | `ak.self.applet.command.install.v1` | `POST /_arkret/self/applets/install` | 提交安装，必须带 `Idempotency-Key`、exact signed authoring request 与 exact Applet bundle。 |
-| `ak.self.applet.revoke.command.preview.v1` | `POST /_arkret/self/applets/{applet_id}/revoke/preview` | 只读重算 active install，返回 canonical `AppletRevokePlan` 与 `revoke_plan_digest`。 |
+| `ak.self.applet.revoke.command.preview.v1` | `POST /_arkret/self/applets/{applet_id}/revoke/preview` | 只读重算 active install，返回 canonical `AppletRevokePlan`；`revoke_plan_digest` 由 caller 自算。 |
 | `ak.self.applet.command.revoke.v1` | `POST /_arkret/self/applets/{applet_id}/revoke` | 提交 caller-signed revoke saga，必须带 `Idempotency-Key` 与 preview digest。 |
 
 `effective_scope` 是单次 install 的唯一目标:
@@ -309,7 +309,8 @@ Revoke 使用 caller-signed event-log saga。请求中的 `effective_scope` 与 
 effective install；该操作只撤销这个 exact install，不得隐式撤销同一 Applet 在其它 scope 的 active install。
 preview MUST 从该 current effective install 精确枚举每个 active
 grant、applet-managed bot/ghost membership、widget scoped token 与 delegated session，返回 canonical
-`AppletRevokePlan` 及 `revoke_plan_digest=sha256(canonical_json(plan))`。plan 中每个 grant 对应一条
+`AppletRevokePlan`；preview outcome 不携 `revoke_plan_digest`，caller 自算
+`revoke_plan_digest = SHA-256(RFC 8785 JCS(revoke_plan))` 并填入 commit request。plan 中每个 grant 对应一条
 `ak.capability.revoke` intent；每个需要离开/移除的 managed member 对应一条 `ak.member.state` intent。
 projection 不完整时 MUST fail closed 并要求先重建 projection，不得按 namespace pattern、旧 request 或
 本地默认值猜测 grant/member/token/session。
@@ -455,7 +456,7 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.self.applet.install.command.preview.v1` | self（管理员→Station） | `applet_package`; `authoring_request_basis`（唯一内嵌 caller-signed registration/grant Events） | 无 | `{plan, authoring_request}`（契约 `applet-install-authoring.schema.json`） | Station 重算 plan、限制短期 expiry 并签名；registration epoch evidence 只在 registration Event manifest，不属于 package digest / proof。 |
 | `ak.edge.applet.managed_actor.command.author.v1` | edge（客户端→Applet service） | `authoring_request` | 无 | `managed_actor_bundle` | 统一消费 `purpose=install_bot|provision_ghost`；四个 role-neutral Event 仅在 bundle 出现一次。 |
 | `ak.self.applet.command.install.v1` | self（管理员→Station） | `Idempotency-Key`; `applet_package`; `authoring_request`; 首次分支 `managed_actor_bundle` 或后续分支 `reuse_existing_managed_actor` | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源 | 两分支 closed XOR；同一 applet/target PS 后续 scope install 必须复用首次 anchors。 |
-| `ak.self.applet.revoke.command.preview.v1` | self（管理员→Station） | `path.applet_id`; `effective_scope`; `reason_code`; `revoke_mode` | 无 | `revoke_plan_digest`; `revoke_plan` | 只读枚举 exact revoke intents；见 §4b。 |
+| `ak.self.applet.revoke.command.preview.v1` | self（管理员→Station） | `path.applet_id`; `effective_scope`; `reason_code`; `revoke_mode` | 无 | `revoke_plan` | 只读枚举 exact revoke intents；`revoke_plan_digest` 由 caller 自算；见 §4b。 |
 | `ak.self.applet.command.revoke.v1` | self（管理员→Station） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs[]?`; `rejected[]?` | caller-signed event-log saga；见 §4b。 |
 | `ak.self.applet.ghost.command.preview.v1` | self（已安装 Applet service→Station） | `path.applet_id`; `realm_id`; `external_ref` | `display_name` | `authoring_request` | PS 从 active install 派生全部 current 坐标并签发唯一 current generation；preview 有 durable winner/supersede ledger。 |
 | `ak.self.applet.ghost.command.provision.v1` | self（已安装 Applet service→Station） | `header.Idempotency-Key`; `path.applet_id`; `authoring_request`; `managed_actor_bundle` | 无 | Ghost provision outcome | commit 重验 PS proof、Applet bundle proof、hosting notary、external tuple 与 active install；不接受裸四 Event body。 |
@@ -521,21 +522,18 @@ Arkret Station sync surface / Events API 向 Applet 推送事件批次。
       "encrypted_payload": {
         "scheme": "ak.signal_exporter_aead.v1",
         "key_ref": {
-          "algorithm": "MLS-EXPORTER-AEAD",
           "group_state_ref": "ak:event:AWn8zXw0Iuqoi0snySz3P5bT_ssUZS1nwhpXchPIvk48"
         },
         "purpose": "ak.signal.v1",
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
         "epoch": 7,
         "nonce": "AAECAwQFBgcICQoL",
-        "ciphertext": "AQIDBAUGBwgJCgsMDQ4PEA",
-        "aad_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        "ciphertext": "AQIDBAUGBwgJCgsMDQ4PEA"
       },
       "proof": {
         "kind": "detached_jws",
         "verification_method": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example#device-1",
         "envelope_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
-        "created_at": "2026-07-30T12:00:00Z",
         "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJl"
       }
     }

@@ -334,8 +334,9 @@ authorized ranges 和 T0 pass marker。Source 必须先取得该首次 accepted 
 admission digest 必须 dependency reject 且零 pending、零 response record、零 attestation。
 Receiver 必须先 durable 取得并验证 manifest。Receiver 安装前必须独立执行同一 target→base 遍历与 base→target replay，核对 winner、
 join/incarnation、current monotone history-access ratchet 及 request/receipt/attestation 绑定。RRK archive 使用 archive-lifetime traversal profile，不伪造 recipient。Source 不生成、
-不签名也不携带 T1 authorization basis。Source proof 对 exact request/ranges/content 归因。`history_response_signing_input` 必须同时携带
-`source_signer_evidence_ref` 与 `source_signer_evidence_digest`，两者逐字绑定 closed source-signer evidence union 的同一份对象：
+不签名也不携带 T1 authorization basis。Source proof 对 exact request/ranges/content 归因。`history_response_signing_input` 必须携带
+`source_signer_evidence_ref`，其内嵌 digest 逐字绑定 closed source-signer evidence union 的同一份对象，且是该 digest 的唯一
+wire 表示（[`../conformance/encoding.md` §4.0.1](../conformance/encoding.md)）：
 ordinary human、Agent 与 organization-recovery holder 使用 `AuthenticatedSignerResolutionEvidence`，minimal-metadata 使用
 `MinimalMetadataMlsLeafSignerEvidence`。Evidence 必须授权 `source_actor_id`、`source_proof.verification_method` 与
 `source_proof.created_at`。Release service admission 必须完整验证 authenticated branch 及其递归 attester evidence closure；对于只有 receiver
@@ -349,7 +350,7 @@ Agent 使用 CurrentAdmission branch 时，`current_observation.request_digest` 
 ```text
 history_source_agent_observation_digest = H(
   UTF8("ak.history-source-agent-observation-v1") || 0x00 ||
-  JCS(history_response_signing_input 去掉 source_signer_evidence_ref 与 source_signer_evidence_digest)
+  JCS(history_response_signing_input 去掉 source_signer_evidence_ref)
 )
 ```
 
@@ -367,9 +368,10 @@ winning MLS state、active LeafNode 与本地加密取得的 IdentityLink 逐字
 LeafNode signature key 不得被冒充为 generic PayloadProof key，因此 MLDSA44 hybrid group 不会被暗中禁用。该 evidence 使用独立
 `minimal_metadata_mls_leaf_signer_evidence` governance-dependency selector，canonical bytes 同样不得超过 1 MiB。
 IdentityLink 的 closed shape 必须携带并由其既有 proof transcript 签入
-`response_signing_verification_method,response_signing_algorithm,response_signing_public_key_b64u,response_signing_public_key_digest`；
-其中 algorithm 必须为 `Ed25519`，method controller 必须投影为 `pairwise_actor_id`，digest 必须等于 decoded 32-byte key 的 SHA-256。
-Minimal-metadata evidence 中的四项 response-signing 坐标必须与接收端通过同一 MLS group 端到端加密取得并和 exact active LeafNode
+`response_signing_verification_method,response_signing_public_key_b64u,response_signing_public_key_digest`；
+`ak.schema.identity_link.v1` identity 固定 response signing algorithm 为 `Ed25519`，wire 不再回显 algorithm。
+method controller 必须投影为 `pairwise_actor_id`，digest 必须等于 decoded 32-byte key 的 SHA-256。
+Minimal-metadata evidence 中的三项 wire response-signing 坐标与 schema-injected Ed25519 algorithm 必须与接收端通过同一 MLS group 端到端加密取得并和 exact active LeafNode
 绑定的 canonical IdentityLink 逐字相等；仅让
 evidence 自己携带并 self-consistently hash 一把未被 IdentityLink 签入的 key 必须拒绝。
 IdentityLink 通过 `content_type=application/vnd.arkret.identity-link+json` 的加密 MLS application message 或等价 MLS private extension
@@ -378,7 +380,7 @@ IdentityLink 通过 `content_type=application/vnd.arkret.identity-link+json` 的
 BasicCredential LeafNode 对齐、`trust_domain` 等于当前连接的已验证 trust domain 后，才可把 IdentityLink canonical bytes、digest、exact
 LeafNode TLS bytes、digest 与 winning transition ref 写入 E2EE secure cache。该接收步骤只证明 MLS delivery 与本地 tree 绑定；IdentityLink
 自身的 Principal proof 必须在 history response 验证时由
-`identity_link_signer_evidence_ref + identity_link_signer_evidence_digest` 解析出的 exact
+`identity_link_signer_evidence_ref` 解析出的 exact
 `AuthenticatedSignerResolutionEvidence::Principal` 及其递归 attester closure 验证，禁止把 evidence 内嵌 IdentityLink bytes 当作自证来源。
 Source record 的唯一 digest 为：
 
@@ -403,7 +405,7 @@ chunk 必须 dependency reject 且零写；只有 manifest、descriptor、完整
 Service proof 的 transcript 是移除 `service_proof` 后完整 closed response record 的 RFC 8785 JCS bytes；chunk record 中的
 完整 release attestation（含 typed authority locator/digest vector）因此逐字节受 service proof 覆盖，attestation 不再有第二条独立签名或
 不完整的外层摘要。每条 normal record 与 lost descriptor 都 MUST 携带
-`release_service_signer_evidence_ref + release_service_signer_evidence_digest`；该坐标必须解析为
+`release_service_signer_evidence_ref`；该坐标必须解析为
 `AuthenticatedSignerResolutionEvidence::Service`，其 signer id 和 verification method 分别逐字等于 receipt 冻结的
 `release_id` 与该条 `service_proof.verification_method`，并按 `service_proof.created_at` 验证完整 method history。
 Release service 必须在首次写入 record/lost 的同一事务中把该 evidence 及其递归依赖按 request-receipt access 保留到 request expiry；

@@ -44,7 +44,6 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
   "chunks": [
     {
       "chunk_ref": "ak:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-      "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "size_bytes": 524288
     }
   ],
@@ -81,7 +80,6 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
 ```json
 {
   "chunk_ref": "ak:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-  "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
   "size_bytes": 524288
 }
 ```
@@ -117,7 +115,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 - `items` MUST 按 `(kind, id)` canonical byte order 排序。
 - `object` 是该 reducer profile 在 snapshot frontier 下的 materialized canonical object，包括 active object、active Relation、以及 reducer profile 声明需要保留的 tombstone / redaction verification stub。
 - `source_event_id` 是产生该 materialized object 当前版本的最后 accepted Event；字段级 merge 时 MAY 指向最后改变该对象任一字段的 Event。
-- chunk `digest` MUST 是 `<alg>:<hex>` 形态，并覆盖 chunk payload 的 canonical JSON bytes。Manifest `state_digest` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
+- content-addressed `chunk_ref` 的内嵌 suite/digest MUST 覆盖 chunk payload 的 canonical JSON bytes，是该 bytes 的唯一 wire commitment；descriptor 不携 sibling `digest`。Manifest `state_digest` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
 - `conflict_records`、`soft_failed` 和 `quarantined` 可为空，但 high-assurance snapshot MUST 通过 manifest `verification_hints` 提交这些集合的 digest，不能静默隐藏影响授权、可见性、E2EE epoch 或对象状态的非 accepted 输入。
 
 Chunk 边界 MAY 由实现按本地传输目标大小选择，但 MUST 以完整 `items[]` 元素为边界；实现 MUST NOT 把单个 item 或 JSON token 切开。每个 chunk payload 仍必须是上方 `snapshot_chunk` object 的完整 canonical JSON。把整份 reducer state bytes 先序列化、再按 byte range 切块的 dev bundle 形态不是合法的 `ak.schema.snapshot.v1` chunk payload；这类实现 MUST NOT 把 byte-range chunk 描述为 manifest `chunks[]` 的标准 chunk。
@@ -138,7 +136,7 @@ Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排
 
 ## 5. Snapshot Signature
 
-Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `id`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_digest`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（`chunk_ref` / `digest` / `size_bytes`）、`security_class`、`verification_hints`、`created_by`、`created_at` 与 `authority_binding`；字段清单与顺序 MUST 与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) `signature` 的 `x-canonical-bytes-include` 完全对齐。其中 `security_class` 被纳入签名输入，使 `high_assurance → standard` 降级无法在不使签名失效的情况下完成。consumer MUST 先验证该 transcript，再逐个验证 chunk payload digest。
+Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `id`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_digest`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（content-addressed `chunk_ref` / `size_bytes`）、`security_class`、`verification_hints`、`created_by`、`created_at` 与 `authority_binding`；字段清单与顺序 MUST 与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) `signature` 的 `x-canonical-bytes-include` 完全对齐。其中 `security_class` 被纳入签名输入，使 `high_assurance → standard` 降级无法在不使签名失效的情况下完成。consumer MUST 先验证该 transcript，再从每个 `chunk_ref` 恢复 suite/digest 并验证 chunk payload。
 
 签名 DID MUST 属于以下之一：
 

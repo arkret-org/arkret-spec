@@ -7,7 +7,7 @@ that proves the gate can actually fail:
   only exempts an object that declares ``x-arkret-external-literal-object`` on
   its own schema node, so the mutations here cover the three ways that mechanism
   can be broken: a camelCase name on an unmarked object, an annotation without an
-  external anchor, and an annotation that no longer exempts anything.
+  external anchor, and an annotation on an object with no declared properties.
 * NC-IDENTIFIER-001 lexical disjointness -- an identifier field whose value
   category does not own the ``ak:`` namespace but whose terminal constraint
   admits an ``ak:`` value anyway. This is the direction the typed-ID prefix
@@ -153,9 +153,9 @@ class FieldCaseGateTest(MutationHarness):
 
     def test_annotation_that_exempts_nothing_is_stale(self) -> None:
         def mutate(document):
-            document["$defs"][ARKRET_OWNED_DTO][
-                EXTERNAL_LITERAL_OBJECT_KEYWORD
-            ] = {
+            target = document["$defs"][ARKRET_OWNED_DTO]
+            target["properties"] = {}
+            target[EXTERNAL_LITERAL_OBJECT_KEYWORD] = {
                 "specification": "did:webvh v1.0, did:webvh DID method parameters",
                 "anchor": "https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters",
             }

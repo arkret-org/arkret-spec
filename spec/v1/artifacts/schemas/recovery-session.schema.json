@@ -94,7 +94,6 @@
       "type": "object",
       "description": "Server-snapshotted accepted PCR recovery authority for publishing the re-anchor unit. It never grants the replacement device a generic lease issuer role.",
       "required": [
-        "identity_model",
         "basis_ref",
         "scope_ref",
         "authority_set_ref",
@@ -102,9 +101,6 @@
         "allowed_actions"
       ],
       "properties": {
-        "identity_model": {
-          "const": "pcr_policy"
-        },
         "basis_ref": {
           "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
         },
@@ -603,20 +599,13 @@
     },
     "recovery_session_proof_submit_outcome": {
       "type": "object",
+      "description": "Success outcome of ak.root.identity.recovery_session.command.submit_proof.v1. A 2xx reply means the proof verified and the session entered state=verified; a proof that does not verify is an error reply, so no state member is echoed.",
       "required": [
-        "recovery_session_id",
-        "state",
-        "verification"
+        "recovery_session_id"
       ],
       "properties": {
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
-        },
-        "state": {
-          "const": "verified"
-        },
-        "verification": {
-          "const": "verified"
         },
         "proof_summary": {
           "$ref": "#/$defs/proof_summary"

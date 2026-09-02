@@ -25,10 +25,6 @@
       "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$",
       "description": "Target Strand. It MUST lie inside the Realm/Circle security scope named by the signed outer scope_ref."
     },
-    "track_name": {
-      "const": "discussion",
-      "description": "Optional. When present it MUST be discussion; when omitted the receiver resolves it as discussion."
-    },
     "typing": {
       "type": "boolean",
       "description": "True while the sender is composing; senders SHOULD emit at most one update every 3 seconds and MUST send typing=false when composition stops."

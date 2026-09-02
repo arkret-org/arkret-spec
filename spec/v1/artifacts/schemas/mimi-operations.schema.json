@@ -632,15 +632,11 @@
     "mimi_request_consent_outcome": {
       "type": "object",
       "required": [
-        "consent_id",
-        "status"
+        "consent_id"
       ],
       "properties": {
         "consent_id": {
           "$ref": "#/$defs/consent_id"
-        },
-        "status": {
-          "const": "requested"
         },
         "challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -749,16 +745,12 @@
     "mimi_update_consent_outcome": {
       "type": "object",
       "required": [
-        "status",
         "consent_id",
         "decision",
         "updated_at",
         "event_ref"
       ],
       "properties": {
-        "status": {
-          "const": "accepted"
-        },
         "consent_id": {
           "$ref": "#/$defs/consent_id"
         },
@@ -882,63 +874,35 @@
     },
     "mimi_report_abuse_request_body": {
       "type": "object",
+      "description": "Compact MIMI abuse-report submission. The body carries no unsigned mirrors of the signed report_event payload and no provider identity echo: the facade derives report semantics from report_event, cross-checks its actor against reporter_authority, and authenticates the source provider at the transport layer.",
       "required": [
-        "strand_id",
-        "mimi_room_uri",
-        "realm_id",
-        "target_ref",
-        "reporter_id",
-        "source_provider_id",
         "reporter_authority",
-        "report_event",
-        "abuse_reason_code"
+        "report_event"
       ],
       "properties": {
-        "strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "mimi_room_uri": {
-          "$ref": "#/$defs/mimi_room_uri"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "target_ref": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "reporter_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "source_provider_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Exact source provider service id. It MUST equal the authenticated RFC 9421 Provider-ID/source service; a body-only assertion grants no authority."
-        },
         "reporter_authority": {
           "$ref": "#/$defs/mimi_reporter_authority"
         },
         "report_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-          "description": "Exact caller-authored and caller-signed ak.self.moderation.report Event admitted as the durable effect. Its actor, Realm, target, reason, evidence and MIMI provenance MUST match this request and reporter_authority byte-for-byte."
+          "description": "Exact caller-authored and caller-signed ak.self.moderation.report Event admitted as the durable effect. Realm, Strand/scope, target, reason, description, evidence, franking and MIMI provenance are read only from this signed Event; its actor MUST equal reporter_authority.actor_id and its payload source_provider_id MUST equal the authenticated transport Provider-ID."
         },
-        "abuse_reason_code": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "evidence_package": {
-          "$ref": "#/$defs/opaque_payload"
-        },
-        "franking_proof": {
-          "$ref": "#/$defs/opaque_payload"
-        },
-        "description": {
-          "$ref": "string-profiles.schema.json#/$defs/short_text",
-          "maxLength": 4096
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          },
+          "description": "Optional receiver-relative CBA dependency bundles. They are transport evidence covered by reporter_authority.proof but are not Event members."
         }
       },
       "additionalProperties": false
     },
     "mimi_reporter_authority": {
       "type": "object",
-      "description": "Holder-signed, short-lived binding from the external reporter in this exact provider/room/report request to one complete current Arkret ActorId. The proof transcript covers the complete report body with only reporter_authority.proof omitted, including reporter_id, source_provider_id, mimi_room_uri, realm_id, strand_id, target_ref, action/reason, membership_event_id, room_binding_event_id and expires_at. The verifier independently resolves the proof key from the exact Actor current device or registered authorized proxy state and verifies both referenced Events remain the unique current accepted participation/binding; carrier fields never self-authorize.",
+      "x-arkret-signature-domain": "ak.mimi_reporter_authority_proof.v1",
+      "description": "Holder-signed, short-lived binding from the external reporter to one complete current Arkret ActorId. The proof transcript covers the compact report body with only reporter_authority.proof omitted: reporter_authority, report_event and any cba_proof_bundles. The verifier independently resolves the proof key from the exact Actor current device or registered authorized proxy state, cross-checks report_event.event.actor_id, authenticates the provider at the transport layer, and verifies both referenced Events remain the unique current accepted participation/binding; carrier fields never self-authorize.",
       "required": [
         "actor_id",
         "membership_event_id",
@@ -968,15 +932,11 @@
     "mimi_report_abuse_outcome": {
       "type": "object",
       "required": [
-        "report_id",
-        "status"
+        "report_id"
       ],
       "properties": {
         "report_id": {
           "$ref": "#/$defs/report_id"
-        },
-        "status": {
-          "const": "queued"
         },
         "routed_to_ids": {
           "type": "array",

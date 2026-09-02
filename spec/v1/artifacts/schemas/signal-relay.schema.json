@@ -23,20 +23,5 @@
       "description": "Original producer-signed encrypted envelopes. The source and destination services MUST NOT alter, re-sign, decrypt, or re-encrypt an item."
     }
   },
-  "additionalProperties": false,
-  "$defs": {
-    "signal_relay_outcome": {
-      "type": "object",
-      "description": "Opaque request-level takeover result. accepted=true does not reveal whether the Realm, scope, sender, recipient, binding, or local Signal rail exists, and does not promise delivery.",
-      "required": [
-        "accepted"
-      ],
-      "properties": {
-        "accepted": {
-          "const": true
-        }
-      },
-      "additionalProperties": false
-    }
-  }
+  "additionalProperties": false
 }

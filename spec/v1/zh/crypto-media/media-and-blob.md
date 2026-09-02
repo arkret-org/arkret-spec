@@ -18,7 +18,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ```json
 {
-  "blob_ref": "ak:blob:sha256:...",
+  "blob_id": "ak:blob:019a7360-0000-7000-8000-000000000004",
   "schema": "ak.schema.blob.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "content_digest": "sha256:...",
@@ -34,7 +34,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `blob_ref` | `string` | required | 内容地址，通常包含强 hash。 |
+| `blob_id` | `string` | required | Blob metadata 资源的 producer-allocated UUIDv7 身份；不承诺内容字节。 |
 | `schema` | `ak.schema.blob.v1` | required | Blob metadata schema discriminator。 |
 | `realm_id` | `id:realm` | conditional | Owning Realm。普通用户/组织上传 MUST 设置，用于授权、asset privacy policy enforcement、retention 与 GC。仅当 deployment policy 显式声明的全局/跨 Realm 服务 blob（例如 avatar 公共预览）才可省略。 |
 | `content_digest` | `digest` | required | 服务端计算的内容 digest，wire 形态为 `<algo>:<lowercase_hex>`。 |
@@ -47,7 +47,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `filename` | `string` | optional | 用户提供或服务生成的文件名；不得用于路径拼接。 |
 | `encryption` | `object/null` | required | 加密附件元数据或 `null`。 |
 
-命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob 内容 digest 统一使用 `content_digest`，不得新增裸 `sha256` 字段；内容寻址 `blob_ref` 继续可携带 `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 这类 typed-id 形态。
+命名说明：`blob_id=ak:blob:<uuidv7>` 只标识 Blob metadata 资源，`blob_ref=ak:blob:<suite>:<hex>` 只标识并承诺 exact content bytes；两者的 schema 形态互斥，consumer 不得按值猜测一种字段的含义。Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob metadata 以 `content_digest` 承诺其 metadata id 对应的内容；任何携带 content-addressed `blob_ref` 的 carrier 不得再携同原像 `content_digest` / `ciphertext_digest` 镜像。
 
 上传请求 schema 见 [`blob-operations.schema.json#/$defs/upload_request`](../../artifacts/schemas/blob-operations.schema.json)，响应 schema 见 [`blob-operations.schema.json#/$defs/upload_response`](../../artifacts/schemas/blob-operations.schema.json)。
 
@@ -57,7 +57,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 - 客户端 SHOULD 提供准确 `Content-Type`，但服务端 MUST 把上传声明的 MIME 和文件名视为不可信 metadata。
 - 如果服务端发现声明 MIME 与内容明显冲突，MAY 把 `media_type` 降级为 `application/octet-stream`，并记录安全标记。
 - 文件名 MUST 做控制字符、路径分隔符和过长字段清理；不得影响 `blob_ref` 或存储路径。
-- `upload_receipt` 若返回，MUST 绑定 `blob_ref`、`content_digest`、`size_bytes`、`received_at` 与 `issuer_id`，并由 Blob Service DID 对 receipt canonical bytes 签名；不得作为开放实现私有对象返回。
+- `upload_receipt` 若返回，MUST 绑定 content-addressed `blob_ref`、`size_bytes`、`received_at` 与 `issuer_id`，并由 Blob Service DID 对 receipt canonical bytes 签名；digest 从 `blob_ref` 唯一恢复，不得作为 sibling 字段重复；receipt 不得作为开放实现私有对象返回。
 - 大文件 / 弱网场景 MAY 通过 §2.1 的可续传上传 binding 完成同一次上传；该 binding 是可选扩展，是否支持以及如何发现见 §2.1 与 [`sync/service-surface.md` §3](../sync/service-surface.md)。
 
 ### 2.1 可续传上传（Resumable Upload binding，optional extension）
@@ -77,7 +77,7 @@ TUS 创建请求的 `POST` MUST 携带
 
 **内容寻址不变式（normative）**
 
-- 续传只是字节传输方式。所有 segment 组装完成后，服务端 MUST 对完整字节计算 `content_digest`，最终 `blob_ref` 与 `content_digest` MUST 等于对同一字节序列走 §2 canonical multipart 上传所得的值，并按 §2 规则签发 `upload_receipt`。
+- 续传只是字节传输方式。所有 segment 组装完成后，服务端 MUST 对完整字节计算 Realm-selected digest 并编码为最终 `blob_ref`；同一字节序列走 §2 canonical multipart 上传必须得到 byte-identical `blob_ref`，并按 §2 规则签发不含 sibling digest 的 `upload_receipt`。独立 Blob metadata 资源仍以 `blob_id` + `content_digest` 表达其身份与内容承诺。
 - tus 的 offset 分块（`Upload-Offset` / 每个 `PATCH` chunk）是**传输层切分**，与加密附件 `ak.blob.stream_aead.v1`（§3.3）的 **AEAD segment** 是两个独立维度：实现 MUST NOT 把 tus chunk 边界与 AEAD segment 边界互相约束或混为一谈。续传承载的始终是（可能已在客户端 AEAD 加密的）Blob 字节，加密形态由客户端在上传前决定。
 
 **能力发现（normative）**
@@ -125,7 +125,6 @@ winning state、hash/ref 歧义或缺少该 state 时 MUST 在密钥派生和解
     "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
   },
   "nonce": "base64url...",
-  "ciphertext_digest": "sha256:...",
   "size_bytes": 1234,
   "media_type": "image/png",
   "encryption_algorithm": "xchacha20_poly1305"
@@ -147,7 +146,7 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
    - `size_bytes`——在 `encrypted_attachment` descriptor 中它是**明文**字节数（§3.3.1 的段数只从它与 `segment_bytes` 派生），在 seal 之前即已确定，因此进入 AAD 不产生任何循环。它与 Blob metadata 顶层的 `size_bytes`（存储的密文字节数）是两个不同对象上的不同量，实现 MUST NOT 互相替代；descriptor 中 MUST NOT 再增加第二个明文尺寸字段；
    - 任何 profile 声明的 content policy digest（该 digest 必须在加密前已确定）。
 
-   分块形态的逐段 AAD 见 §3.3.3。**`ciphertext_digest` MUST NOT 进入 AAD**：它覆盖含 AEAD tag 的完整密文，进入生成同一 tag 的 AAD 会形成不可构造循环（encoding §10.2）。它是 post-encryption commitment，MUST 由引用该附件的已签名 Event / encrypted descriptor / upload receipt 覆盖；若某条 Blob 路径没有任何外层认证，MUST 补齐该认证，MUST NOT 把 digest 塞回 AEAD AAD。
+   分块形态的逐段 AAD 见 §3.3.3。**content-addressed `blob_ref` MUST NOT 进入 AAD**：其内嵌 digest 覆盖含 AEAD tag 的完整密文，进入生成同一 tag 的 AAD 会形成不可构造循环（encoding §10.2）。它是 post-encryption commitment，MUST 由引用该附件的已签名 Event / encrypted descriptor / upload receipt 覆盖；若某条 Blob 路径没有任何外层认证，MUST 补齐该认证，MUST NOT 把 ref 或其 digest 塞回 AEAD AAD。
 
 3. **禁止形态**: 实现 **MUST NOT** 使用以下 nonce 来源:
    - 纯随机 96-bit nonce(birthday bound 不够);
@@ -158,7 +157,7 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
 
 4. **整文件形态（`ak.blob.whole_file_aead.v1`）接收方校验（normative）**：整文件 envelope 只携单 `nonce` 字段。Producer MUST 以原子 CAS 耐久预留严格递增的 `durable_sender_counter`，并把整个 `AEAD.Nn` 字节 nonce 编码为 `I2OSP(counter, AEAD.Nn)`；不得为 sender domain、device 或其它信息保留高位 prefix。Receiver MUST 解码恰好 `AEAD.Nn` 字节的 nonce，以 `OS2IP(nonce)` 取得 counter，并把 `(key_ref, purpose, aead_profile, counter)` 绑定到 exact ciphertext digest。相同 tuple 的相同密文折叠；相同 tuple 的不同密文 MUST 以 `failed_precondition`（`aead_nonce_counter_replay`）fail closed。高位字节不是任意 padding：任何不等于该 counter 的 canonical full-width `I2OSP` 编码、counter 回退／复用、counter 耗尽后的继续发送或 random fallback 都 MUST 拒绝。
 
-E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 wire 形态。Producer 必须提供 `ciphertext_digest`，不得提供明文 hash；若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md)。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
+E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 wire 形态。Producer 必须提供由 stored ciphertext bytes 派生的 content-addressed `blob_ref`，不得再提供 sibling `ciphertext_digest` 或明文 hash；若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md)。
 
 ### 3.2 形态选择：整文件 AEAD 与分块流式 AEAD
 
@@ -166,13 +165,13 @@ E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`
 
 | `scheme` | 形态 | 适用 |
 | --- | --- | --- |
-| `ak.blob.whole_file_aead.v1` | 整文件单次 AEAD：单 `nonce` + 单 `ciphertext_digest`，整体密文校验通过后才释放明文。 | 默认形态；小文件、缩略图。 |
+| `ak.blob.whole_file_aead.v1` | 整文件单次 AEAD：单 `nonce`；整体密文 digest 由 content-addressed `blob_ref` 内嵌承诺，校验通过后才释放明文。 | 默认形态；小文件、缩略图。 |
 | `ak.blob.stream_aead.v1` | 分块流式 AEAD（STREAM / OAE2）：明文切成固定大小 segment，每段独立 AEAD 加密，可边下边验、内存有界。 | 大文件、流式播放、跨设备传输。见 §3.3。 |
 
 - envelope **MUST** 携带 `scheme` 字段。未携带 `scheme` 字段时的 missing-field default 为 `ak.blob.whole_file_aead.v1`（整文件形态）。
 - 发送方 **MAY** 对任意附件选用 `ak.blob.stream_aead.v1`；大文件 **SHOULD** 选用分块形态（见 [`models/file-transfer.md`](../models/file-transfer.md)）。
 - 接收方 **MUST** 按 envelope 的 `scheme` 字段分派解密路径；遇到未知 `scheme` MUST fail closed（`unsupported_attachment_scheme`），不得回退到任何其它形态尝试解密。
-- **`ak.content.long_text` 例外（normative）**：[`../models/content-types.md` §4.1.1](../models/content-types.md) 的 E2EE 长文本正文 **MUST** 使用 `ak.blob.stream_aead.v1` 与对应的 `_stream` 算法，MUST NOT 使用整文件形态；其 `blob_ref` MUST 是 hash-addressed（`ak:blob:(sha256|blake3):<64 hex>`），且其中的 `<suite>:<hex>` MUST 同时等于 `ciphertext_digest` 与 Blob metadata `content_digest`。plaintext 长文本的 `blob_ref` 同样 MUST 是 hash-addressed，作为完整规范化正文字节的 digest commitment；UUID 形态 Blob ref 在该 Content Block 中 MUST NOT 使用。强制 streaming 是为了让超过 256 KiB 的正文能边下边验且内存有界，不是同一语义的第二种可选形态。
+- **`ak.content.long_text` 例外（normative）**：[`../models/content-types.md` §4.1.1](../models/content-types.md) 的 E2EE 长文本正文 **MUST** 使用 `ak.blob.stream_aead.v1` 与对应的 `_stream` 算法，MUST NOT 使用整文件形态；其 `blob_ref` MUST 是 content-addressed（`ak:blob:(sha256|blake3):<64 hex>`），且内嵌 digest MUST 等于完整 stored ciphertext bytes 的 digest。attachment 不再携 sibling `ciphertext_digest`；独立 Blob metadata 的 `content_digest` 必须与 ref 内嵌值一致。plaintext 长文本的 `blob_ref` 同样承诺完整规范化正文字节；`blob_id` 不得用于该 Content Block。强制 streaming 是为了让超过 256 KiB 的正文能边下边验且内存有界，不是同一语义的第二种可选形态。
 - 两种形态的 envelope 都 MUST 满足 §3.1 的 AEAD nonce 纪律；分块形态的 nonce 兼容关系见 §3.3.2。
 
 ### 3.3 Streaming Chunked AEAD（`ak.blob.stream_aead.v1`，normative）
@@ -224,21 +223,21 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 `segment_index`、`last_segment_flag` 已进入 nonce，本节要求其同时进入 AAD，使重排、截断与末段伪造在 AEAD 层即被拒绝（tag 校验失败）。
 
-上述字段全部在 AEAD seal 前确定，构成 encoding [§10.2](../conformance/encoding.md) 意义上的 pre-encryption immutable header。**逐段 AAD MUST NOT 包含 `ciphertext_digest`**（§3.3.5 的整体 digest 覆盖每段的 tag，进入 AAD 会形成循环）、也 MUST NOT 包含任何其它 post-encryption 值。整体 `ciphertext_digest` 的认证归属见 §3.1 第 2 条与 §3.3.5。
+上述字段全部在 AEAD seal 前确定，构成 encoding [§10.2](../conformance/encoding.md) 意义上的 pre-encryption immutable header。**逐段 AAD MUST NOT 包含 `blob_ref` 或其内嵌 digest**（§3.3.5 的整体 digest 覆盖每段的 tag，进入 AAD 会形成循环）、也 MUST NOT 包含任何其它 post-encryption 值。整体 commitment 的认证归属见 §3.1 第 2 条与 §3.3.5。
 
 #### 3.3.4 Content key 与 thumbnail
 
 - 每个附件 object MUST 使用 fresh content key；content key MUST NOT 跨 object / 跨 transfer 复用。key 派生与 key_ref 形态沿用 §3 与 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md)。
 - thumbnail 在分块形态下仍走 §4 / §5.3 的**整文件形态**：缩略图通常远小于 `segment_bytes`，无需分块；其独立 AEAD key / nonce context（`purpose="thumbnail"`、独立 key derivation / AAD，不复用正文 key+nonce）规则不变（见 §5.3）。即正文密文使用 `ak.blob.stream_aead.v1` 时，其缩略图附件 envelope 仍 SHOULD 使用 `ak.blob.whole_file_aead.v1`。
 
-#### 3.3.5 ciphertext_digest（分块形态语义，normative）
+#### 3.3.5 `blob_ref` 内嵌 digest（分块形态语义，normative）
 
 为保持与整文件形态一致的**单值整体完整性**语义：
 
-- `ciphertext_digest` = 对全部 segment 密文（每段含其各自 AEAD tag）按 segment_index 升序拼接后的完整字节流，用仓库既有 digest suite（见 [`../conformance/encoding.md` §3.2](../conformance/encoding.md)）求得，wire 形态为 `<algo>:<lowercase_hex>`，与 §3 / encoding.md §10 一致。
+- `blob_ref=ak:blob:<suite>:<hex>` 的 `<suite>:<hex>` = 对全部 segment 密文（每段含其各自 AEAD tag）按 segment_index 升序拼接后的完整字节流，用 Realm digest suite（见 [`../conformance/encoding.md` §3.2](../conformance/encoding.md)）求得。
 - 拼接顺序 MUST 严格按 segment_index 升序，且覆盖恰好派生的 `N` 段、不含其它字节。
-- 语义分层：per-segment AEAD tag 提供**增量**校验（边下边验），顶层 `ciphertext_digest` 提供**整体**完整性（防止整体替换 / 段集合层面的攻击）。两者都 MUST 校验通过。
-- **认证归属（normative）**：`ciphertext_digest` 是 post-encryption commitment，MUST NOT 出现在任何 segment 的 AEAD AAD 中（encoding [§10.2](../conformance/encoding.md)）。它自身的真实性由引用该附件的已签名 Event / encrypted descriptor（例如 `ak.content.file` / `ak.content.long_text` 的 attachment、file-transfer record）或 upload receipt 承担；接收方 MUST 以外层已认证值为准，MUST NOT 采信仅由传输层提供的 digest。
+- 语义分层：per-segment AEAD tag 提供**增量**校验（边下边验），content-addressed `blob_ref` 提供**整体**完整性（防止整体替换 / 段集合层面的攻击）。两者都 MUST 校验通过。
+- **认证归属（normative）**：`blob_ref` 是 post-encryption commitment，MUST NOT 出现在任何 segment 的 AEAD AAD 中（encoding [§10.2](../conformance/encoding.md)）。它自身的真实性由引用该附件的已签名 Event / encrypted descriptor（例如 `ak.content.file` / `ak.content.long_text` 的 attachment、file-transfer record）或 upload receipt 承担；接收方 MUST 以外层已认证值为准，MUST NOT 采信仅由传输层提供的 digest。
 
 #### 3.3.6 解密 MUST（normative）
 
@@ -250,7 +249,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 4. **缺末段拒绝**：流在未出现合法末段时即终止（连接中断，或派生的 `N` 段已耗尽但末段 flag 仍为 `0x00`）MUST 拒绝（`segment_stream_truncated`），并丢弃已释放/缓冲明文，不得把已得明文当作完整文件。
 5. **重复拒绝**：同一 segment_index 出现多次 MUST 拒绝（`segment_replay`）。
 6. **越界拒绝**：`segment_index >= N`、或非末段长度不等于 `segment_bytes`、或末段长度超出 `1 .. segment_bytes`（空明文 0 例外）MUST 拒绝（`segment_bounds_invalid`）。
-7. **整体 digest 校验**：全部 segment 接收完毕后，MUST 按 §3.3.5 重算拼接密文的 `ciphertext_digest` 并与 envelope 声明值比对；不匹配 MUST 拒绝、丢弃全部明文、不得渲染或写入持久缓存（与 §5 digest mismatch 规则一致）。Range / 分段流式播放场景下允许在整体 digest 完成前消费已通过 per-segment 校验的明文段，但**最终持久化或标记完整**前 MUST 完成整体 digest 校验。
+7. **整体 digest 校验**：全部 segment 接收完毕后，MUST 按 §3.3.5 重算拼接密文 digest 并与 `blob_ref` 内嵌值比对；不匹配 MUST 拒绝、丢弃全部明文、不得渲染或写入持久缓存（与 §5 digest mismatch 规则一致）。Range / 分段流式播放场景下允许在整体 digest 完成前消费已通过 per-segment 校验的明文段，但**最终持久化或标记完整**前 MUST 完成整体 digest 校验。
 
 任一上述校验失败 MUST fail closed，按 §5 规则丢弃已下载字节、不得渲染、不得写入持久缓存，并 SHOULD 记录安全审计事件。
 
@@ -267,7 +266,6 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
   },
   "nonce_prefix": "base64url-N_AEAD-minus-5-bytes",
   "segment_bytes": 262144,
-  "ciphertext_digest": "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
   "size_bytes": 3211264,
   "media_type": "video/mp4",
   "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream"
@@ -330,7 +328,7 @@ Retention 与 erasure 规则：
 
 - Blob 删除 MUST 由 Realm policy、对象所有权、account lifecycle、retention expiry 或签名 compliance decision 授权。
 - 处于 legal hold 的 blob MUST NOT 被物理删除；服务可以通过 redaction 或 policy 在普通视图中隐藏。
-- Blob 被擦除后，服务 SHOULD 只保留最小 receipt：`blob_ref`、digest、策略允许时的 size class、erasure reason、执行服务 DID、执行时间和签名。
+- Blob 被擦除后，服务 SHOULD 只保留最小 receipt：content-addressed `blob_ref`（包含唯一 digest commitment）、策略允许时的 size class、erasure reason、执行服务 DID、执行时间和签名；不得再携同原像 sibling digest。
 - 缩略图、preview、转码、搜索文本、embedding 和通知摘要等派生内容 MUST 在源 blob 或源 event 被 redacted / erased 后删除或重新最小化。
 - E2EE 附件密钥销毁只能阻止后续访问，不能撤回已被授权接收方下载或解密的明文。
 
@@ -351,10 +349,10 @@ Range: bytes=<start>-<end>
 - 受保护下载 MUST NOT 接受 query string 中的 session credential 或长期 capability。浏览器客户端应通过 `Authorization` header、service worker 代理或 device-bound proof 获取媒体。
 - Blob 服务 MAY 返回短期 signed download URL 或 `307/308` redirect 到对象存储，但 redirect token MUST 短时效、单 blob、单 purpose、可撤销，并不得扩大可见性。
 - `Location` 值不得被服务端或客户端长期缓存；未立即下载时 SHOULD 重新请求 `/_arkret/self/blob/get` 获取新的授权上下文。
-- 客户端跟随 redirect 后仍 MUST 重新计算内容 digest，并与 `blob_ref` / `content_digest` 比对。
-- 如果内容 hash、`Digest` header、`blob_ref` 或 encrypted attachment `ciphertext_digest` 不匹配，客户端 MUST 拒绝该响应、丢弃已下载字节、不得渲染、不得写入持久缓存，并 SHOULD 记录安全审计事件。服务端在上传、镜像或代理时发现 digest mismatch MUST 返回 `digest_mismatch`，并不得生成可用 blob metadata。
+- 客户端跟随 redirect 后仍 MUST 重新计算内容 digest，并与 content-addressed `blob_ref` 内嵌值比对；若同时读取独立 Blob metadata，其 `content_digest` 也必须相等。
+- 如果内容 hash、`Digest` header 或 `blob_ref` 不匹配，客户端 MUST 拒绝该响应、丢弃已下载字节、不得渲染、不得写入持久缓存，并 SHOULD 记录安全审计事件。服务端在上传、镜像或代理时发现 digest mismatch MUST 返回 `digest_mismatch`，并不得生成可用 blob metadata。
 - Range / HEAD download MUST 绑定同一授权上下文；服务端不得让 Range probe 或 HEAD response 泄露不可见 blob 的大小、MIME、文件名或存在性。
-- 对采用 `ak.blob.stream_aead.v1`（§3.3）的加密附件，Range 下载的语义从"密文任意字节分片"升级为"可独立验证的明文分段"：客户端 SHOULD 按 segment 边界（`segment_bytes` 的整数倍偏移）请求 Range，使每个取回的 segment 能立即用 per-segment AEAD tag 增量校验并安全释放对应明文，无需先下完整文件。客户端仍 MUST 按 §3.3.6 完成按序、末段与整体 `ciphertext_digest` 校验后才认为附件完整；服务端对密文字节本身的 Range 语义不变（仍以 `Content-Range` 描述密文字节区间）。
+- 对采用 `ak.blob.stream_aead.v1`（§3.3）的加密附件，Range 下载的语义从"密文任意字节分片"升级为"可独立验证的明文分段"：客户端 SHOULD 按 segment 边界（`segment_bytes` 的整数倍偏移）请求 Range，使每个取回的 segment 能立即用 per-segment AEAD tag 增量校验并安全释放对应明文，无需先下完整文件。客户端仍 MUST 按 §3.3.6 完成按序、末段与 `blob_ref` 内嵌整体 digest 校验后才认为附件完整；服务端对密文字节本身的 Range 语义不变（仍以 `Content-Range` 描述密文字节区间）。
 - 对不可见 blob，服务端 SHOULD 返回与不存在资源一致的 `not_found`，并避免返回 `Content-Length`、`Content-Type`、`Content-Disposition`、`Accept-Ranges` 等可枚举 header。
 
 ### 5.1 Content-Type 与 Content-Disposition
@@ -431,7 +429,7 @@ Cache-Control: public, immutable, max-age=31536000
 - 服务端生成私有明文缩略图前，该服务 MUST 列入 `plaintext_visible_services`，且 `data_classes[]` 覆盖 `thumbnail` / `attachment_preview`。
 - 预览 URL、尺寸、MIME、文件名和 unsafe 标记都必须服从 Realm policy 与 capability，不能绕过正文授权。
 - 缩略图必须重新绑定源 blob、生成参数、生成服务 DID 和可见性；删除、撤回、保留策略或 legal hold 改变时，派生内容必须随源内容重新判定。
-- 缩略图 descriptor MUST 至少绑定 `source_blob_ref`、`source_ciphertext_digest?`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by?`、`visibility` 和 `derivation_profile`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，推荐 `purpose="thumbnail"` 并把 `source_blob_ref`、`thumbnail_blob_ref`、尺寸和生成参数纳入 key derivation / AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
+- 缩略图 descriptor MUST 至少绑定 content-addressed `source_blob_ref`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by?`、`visibility` 和 `derivation_profile`；两项 ref 的内嵌 digest 分别是 exact stored bytes 的唯一承诺，descriptor 不携 `source_ciphertext_digest` / `thumbnail_ciphertext_digest`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，推荐 `purpose="thumbnail"` 并把两项 ref、尺寸和生成参数纳入 key derivation / AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
 - producer SHOULD 使用 `thumbnails[]` 数组表达上述绑定。Consumer 收到只含 `media-metadata.schema.json` 的 `preview_blob_ref`、缺少 `thumbnails[]` descriptor 的 metadata 时，必须按源 blob 的最严格可见性处理，不得因缺少 descriptor 而放宽访问或缓存。
 
 `media-metadata.visibility` 的标准取值是 `public` / `realm_bound` / `actor_private` / `device_bound`。`realm_bound` 表示访问受 owning Realm、Circle scope 与 capability 共同约束；它不是 Space 边界。`actor_private` 表示仅 issuing actor 的授权会话可通过 header auth 获取，MUST NOT 被转换为 bearer presign URL。`presign` 是 §5.4 定义的**下载通道机制**（发放短 TTL bearer URL），不是 visibility 维度上的取值；blob 的 visibility 仍按上述四值之一判定，是否允许 presign 由 §5.4.4.1 的 fail-closed 规则按 visibility 与 Realm policy 决定（例如 `actor_private` MUST NOT 走 presign）。`presigned` 不是合法 visibility 枚举值。

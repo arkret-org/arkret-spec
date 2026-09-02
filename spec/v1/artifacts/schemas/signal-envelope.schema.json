@@ -50,7 +50,7 @@
     },
     "encrypted_payload": {
       "type": "object",
-      "description": "AEAD ciphertext. The immutable outer header digest is bound into AAD; exact payload kind, product target, and sender sequence exist only in plaintext after recipient decryption. The scheme names the construction, never the algorithm: aead_profile carries the algorithm and MUST equal the active MLS ciphersuite the group at key_ref.group_state_ref actually negotiated (zh/conformance/encoding.md section 10.1). Activating a further ciphersuite therefore reaches Signal with no wire change.",
+      "description": "AEAD ciphertext. The AAD is the JCS bytes of the closed pre-encryption header projected from the envelope top level, this object's scheme/key_ref/purpose/aead_profile/epoch/nonce and the verified group state (zh/sync/signal.md section 1); it is rebuilt by the recipient and never carried as an aad_digest. Exact payload kind, product target, and sender sequence exist only in plaintext after recipient decryption. The scheme names the construction, never the algorithm: aead_profile carries the algorithm and MUST equal the active MLS ciphersuite the group at key_ref.group_state_ref actually negotiated (zh/conformance/encoding.md section 10.1), so key_ref carries no algorithm mirror. Activating a further ciphersuite therefore reaches Signal with no wire change.",
       "required": [
         "scheme",
         "key_ref",
@@ -58,8 +58,7 @@
         "aead_profile",
         "epoch",
         "nonce",
-        "ciphertext",
-        "aad_digest"
+        "ciphertext"
       ],
       "properties": {
         "scheme": {
@@ -68,13 +67,9 @@
         "key_ref": {
           "type": "object",
           "required": [
-            "algorithm",
             "group_state_ref"
           ],
           "properties": {
-            "algorithm": {
-              "const": "MLS-EXPORTER-AEAD"
-            },
             "group_state_ref": {
               "oneOf": [
                 {
@@ -112,9 +107,6 @@
           "minLength": 22,
           "maxLength": 62827,
           "pattern": "^[A-Za-z0-9_-]+$"
-        },
-        "aad_digest": {
-          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -144,12 +136,14 @@
     },
     "signal_proof": {
       "type": "object",
-      "description": "Detached sender proof over canonical_json({context:'ak.signal_proof.v1', envelope_digest, sender_actor_id, sender_device_id?, verification_method, created_at, domain?, audience?}). sender_device_id exists only for the ordinary branch and is omitted for Agent. envelope_digest hashes the complete SignalEnvelope with proof removed; created_at MUST equal the outer sent_at. Source and recipient authenticate current endpoint authority and verify this producer signature. Peer destination validates closed proof/transcript structure and recomputed digest, not the producer signature or remote authority; recipient must independently authenticate before display or effects (zh/sync/signal.md section 3).",
+      "description": "Detached sender proof over canonical_json({context:'ak.signal_proof.v1', envelope_digest, sender_actor_id, sender_device_id?, verification_method, created_at, domain?, audience?}). sender_device_id exists only for the ordinary branch and is omitted for Agent. envelope_digest hashes the complete SignalEnvelope with proof removed. The transcript member created_at is injected from the outer sent_at (x-arkret-binding-field-sources) and is not a wire member of this proof. Source and recipient authenticate current endpoint authority and verify this producer signature. Peer destination validates closed proof/transcript structure and recomputed digest, not the producer signature or remote authority; recipient must independently authenticate before display or effects (zh/sync/signal.md section 3).",
+      "x-arkret-binding-field-sources": {
+        "created_at": "sent_at"
+      },
       "required": [
         "kind",
         "verification_method",
         "envelope_digest",
-        "created_at",
         "jws"
       ],
       "properties": {
@@ -163,9 +157,6 @@
         },
         "envelope_digest": {
           "$ref": "#/$defs/digest"
-        },
-        "created_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "domain": {
           "type": "string"

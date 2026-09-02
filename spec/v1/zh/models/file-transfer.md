@@ -57,7 +57,6 @@ transfer_key = derive_account_data_key(transfer_id)
 | `kind` | yes | 固定 `file_transfer`。 |
 | `transfer_id` | yes | 发送设备生成的不透明 id；不进入 account-data key。 |
 | `blob_ref` | yes | 存储的密文 Blob 引用。 |
-| `content_digest` | yes | Blob 字节 digest；对加密文件传输而言是 ciphertext digest，MUST NOT 是明文文件 hash。 |
 | `blob_size_bytes` | yes | Blob 字节数，通常是 ciphertext + AEAD overhead。 |
 | `media_type` | yes | 原始文件 MIME；只在 encrypted account-data 明文中出现。 |
 | `filename` | no | 清理后的原始文件名；只在 encrypted account-data 明文中出现。 |
@@ -76,7 +75,7 @@ Producer MUST NOT 写入任何明文文件 digest / hash 字段（例如 `plaint
 
 文件传输默认是服务端不可读内容。Producer MUST 对每个 transfer 生成 fresh content key，并使用 `ak.aead.xchacha20_poly1305.v1` 加密文件明文。除非 profile 后续显式定义可证明安全的 key-reuse 形态，content key MUST NOT 在多个 transfer 间复用。
 
-大文件 SHOULD 使用分块流式 AEAD 形态（`ak.blob.stream_aead.v1`，见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3），使接收设备能边下边验、内存有界，并在收到合法末段并通过整体 `content_digest` 校验前不把文件视为完整。选用该形态时，transfer record 的 `encryption` descriptor 只携带 `nonce_prefix` / `segment_bytes`（而非整文件形态的单 `nonce`），MUST NOT 携带 `segment_count`。双方 MUST 从已认证 record 令 `S=plaintext_size_bytes`、`B=encryption.segment_bytes`，唯一派生 `N=max(1,ceil(S/B))`；`1024 <= B <= 8388608` 且 `1 <= N <= 1048576`，必须在分配下载计划、派生密钥或处理密文前校验。空文件恰有一个携末段 flag 的空明文段，不得从 `blob_size_bytes` 或收到的密文长度反推段数。`ak.file_transfer.key.v1` 只投递 content-key envelope，不回声这些 record 字段。小文件与缩略图 MAY 继续使用整文件形态（`ak.blob.whole_file_aead.v1`）。无论形态如何，`content_digest` 仍是 Blob 密文字节摘要的唯一字段。
+大文件 SHOULD 使用分块流式 AEAD 形态（`ak.blob.stream_aead.v1`，见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3），使接收设备能边下边验、内存有界，并在收到合法末段且重算 digest 与 content-addressed `blob_ref` 内嵌值一致前不把文件视为完整。选用该形态时，transfer record 的 `encryption` descriptor 只携带 `nonce_prefix` / `segment_bytes`（而非整文件形态的单 `nonce`），MUST NOT 携带 `segment_count`。双方 MUST 从已认证 record 令 `S=plaintext_size_bytes`、`B=encryption.segment_bytes`，唯一派生 `N=max(1,ceil(S/B))`；`1024 <= B <= 8388608` 且 `1 <= N <= 1048576`，必须在分配下载计划、派生密钥或处理密文前校验。空文件恰有一个携末段 flag 的空明文段，不得从 `blob_size_bytes` 或收到的密文长度反推段数。`ak.file_transfer.key.v1` 只投递 content-key envelope，不回声这些 record 字段。小文件与缩略图 MAY 继续使用整文件形态（`ak.blob.whole_file_aead.v1`）。无论形态如何，`blob_ref` 都是 Blob 密文字节摘要的唯一 wire carrier。
 
 AEAD AAD MUST 至少绑定：
 
@@ -88,7 +87,7 @@ AEAD AAD MUST 至少绑定：
 
 整文件 AAD 是 `encryption.aad` 的 RFC 8785 JCS bytes。stream 文件传输使用同一个 nonce/段序/末段算法，但密钥来自本节的 fresh content key，而不是 MLS `key_ref`。其逐段 AAD MUST 恰为 RFC 8785 JCS 对象 `{schema,purpose,transfer_id,origin_device_id,created_at,scheme,nonce_prefix,segment_index,last_segment_flag,segment_count,media_type,size_bytes}`：前五项取经本 record 逐字段相等校验的 `encryption.aad`，`scheme` 固定为 `ak.blob.stream_aead.v1`，`nonce_prefix` 取 descriptor，`segment_index` 为当前段的零基序号，`last_segment_flag` 为整数 `0` 或 `1`，`segment_count=N`，`size_bytes=S`，`media_type` 取 record。`segment_count` 只存在于本地重建的 AAD；MUST NOT 给 record 或 key message 增加该字段，也不得虚构 MLS `key_ref` 或 `epoch`。XChaCha20-Poly1305 的 `nonce_prefix` 解码后恰为 19 bytes，单 nonce 为 24 bytes；两者均为 canonical Base64URL-no-pad。密文为按序拼接的 N 段（每段包含 16-byte tag），接收方 MUST 校验每段 tag、精确末段、总明文长度和完整密文 digest，截断、额外字节及重排均拒绝。
 
-AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = digest(ciphertext)` 与 `ciphertext = AEAD(plaintext, aad(blob_ref))` 形成循环定义。Receiver MUST 在解密前校验 `blob_ref` 与 `content_digest` 均和实际下载字节一致；不一致 MUST 拒绝、丢弃已下载字节、不得渲染或写入持久缓存。`content_digest` 是 Blob 密文字节摘要的唯一字段，record 不得再嵌套第二个 ciphertext digest 副本。
+AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = digest(ciphertext)` 与 `ciphertext = AEAD(plaintext, aad(blob_ref))` 形成循环定义。Receiver MUST 在解密前从 `blob_ref` 恢复 suite/digest 并与实际下载字节的重算结果比较；不一致 MUST 拒绝、丢弃已下载字节、不得渲染或写入持久缓存。record 不携 `content_digest` 或任何第二个 ciphertext digest 副本。
 
 ### 4.1 `account_data_wrapped_key`
 
@@ -100,7 +99,21 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 当 `access.visibility="device_bound"` 时，`access.recipient_device_ids` 是目标设备集合的唯一真相源，且 `encryption.key_delivery.method` MUST 是 `to_device_wrapped_key`。Producer MUST 为 `access.recipient_device_ids` 中的每个目标设备发送一条 `kind="ak.file_transfer.key.v1"` 的 to-device message；message `content` MUST validate as `ak.schema.file_transfer.v1#/$defs/file_transfer_key_message`。
 
-`ak.file_transfer.key.v1` 的 `key_envelope` MUST 使用接收设备的 HPKE / device key 加密 content key。服务端只可转发该 envelope，不得看到 content key 明文。该 message 的权威内容只有 `transfer_id`、`key_envelope` 与 `expires_at`；Receiver MUST 以 `transfer_id` 选择已认证、已解密的 exact account-data transfer record，并只从该 record 取得 `blob_ref`、AEAD profile、ciphertext digest、nonce/nonce_prefix 与 segment 参数。`expires_at` 过期、record 不存在/未认证、envelope 无法在该 record 的 recipient/device context 下解开时 MUST 拒绝；不得接受 message 对这些 record 字段的回声或用回声替代 record 校验。
+`ak.file_transfer.key.v1` 的 `key_envelope` MUST 使用接收设备的 HPKE / device key 加密 content key。服务端只可转发该 envelope，不得看到 content key 明文。该 message 的权威内容只有 `transfer_id`、`key_envelope` 与 `expires_at`；Receiver MUST 以 `transfer_id` 选择已认证、已解密的 exact account-data transfer record，并只从该 record 取得 `blob_ref`（其内嵌 digest 即 ciphertext commitment）、AEAD profile、nonce/nonce_prefix 与 segment 参数。`expires_at` 过期、record 不存在/未认证、envelope 无法在该 record 的 recipient/device context 下解开时 MUST 拒绝；不得接受 message 对这些 record 字段的回声或用回声替代 record 校验。
+
+`key_envelope` 是 RFC 9180 base-mode 单发 seal（`SetupBaseS` / `SetupBaseR`），suite 由 `scheme` 选定。其 HPKE `info` 与 AEAD `aad` MUST 是同一份 bytes，即下列对象的 RFC 8785 JCS：
+
+```text
+file_transfer_key_aad = {
+  device_message_id, kind: "ak.file_transfer.key.v1",
+  <DeviceMessageEnvelope 实际存在的 closed sender branch 字段，逐字>,
+  recipient_account_id, recipient_device_id, expires_at,
+  transfer_id
+}
+info = aad = RFC8785_JCS(file_transfer_key_aad)
+```
+
+envelope 成员取承载该 message 的 `DeviceMessageEnvelope` 原始 canonical value：sender branch 是 `sender_account_id` + `sender_device_id`，或完整 `sender_agent_*` 三元组，缺席的 key 整体省略、不写 `null`；`expires_at` 逐字取 envelope 已验证的 `.sssZ` string；`transfer_id` 取 message content。该集合满足 [`../crypto-media/device-lifecycle.md` §7](../crypto-media/device-lifecycle.md) 的通用 AAD 最小集，且不含队列服务物化的 `sent_at`。Receiver 从已认证 envelope 与 content 确定性重建同一 bytes 后执行 `Open`；AAD 由该投影重算、不上 wire，`key_envelope` MUST NOT 携带 `aad_digest`、算法名或任何 record 字段回声（[`../conformance/encoding.md` §10](../conformance/encoding.md)），AAD 错误只表现为 HPKE open 失败并按上一段拒绝。
 
 未列入 `recipient_device_ids` 的设备即使收到了 account-data record，也 MUST 把该 transfer 视为不可解密，不得尝试从其它本地缓存或历史消息中恢复 key。
 

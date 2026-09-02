@@ -9,7 +9,6 @@
     "schema",
     "realm_id",
     "controller_id",
-    "encryption_profile",
     "state",
     "created_at"
   ],
@@ -25,10 +24,6 @@
     },
     "controller_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
-    "encryption_profile": {
-      "const": "mls_rfc9420",
-      "description": "Agent Sidecar is always protected by an independent MLS group; plaintext fallback is invalid."
     },
     "state": {
       "type": "string",

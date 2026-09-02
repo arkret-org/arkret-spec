@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-06-19",
+  "version": "2026-09-02",
   "suite": "final_conformance_closure",
   "runner": {
     "kind": "named_suite",
@@ -14,7 +14,6 @@
     "ak.vector.mls.governance_epoch_binding.v1",
     "ak.vector.moderation.franking_roundtrip.v1",
     "ak.vector.moderation.evidence_package_minimal_disclosure.v1",
-    "ak.vector.moderation.appeal_atomicity.v1",
     "ak.vector.moderation.review_resolution_fold.v1",
     "ak.vector.relation.reference_projection_indistinguishable.v1"
   ],
@@ -542,89 +541,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.moderation.appeal_atomicity.v1",
-      "assertions": [
-        "overturn_without_same_batch_lift_rejected",
-        "overturn_with_lift_accepts_atomically",
-        "overturn_does_not_resurrect_irreversible_effects",
-        "modify_requires_same_batch_lift_and_replacement",
-        "modify_ref_must_point_to_same_batch_new_decision",
-        "rejected_submit_leaves_appeal_under_review"
-      ],
-      "cases": [
-        {
-          "name": "overturn_missing_lift",
-          "appeal_state": "under_review",
-          "decision": "overturn",
-          "same_batch_lift_target_matches": false,
-          "expected": {
-            "decision": "reject",
-            "reason": "appeal_overturn_missing_lift",
-            "appeal_state": "under_review",
-            "original_decision_active": true
-          }
-        },
-        {
-          "name": "overturn_with_lift",
-          "appeal_state": "under_review",
-          "decision": "overturn",
-          "same_batch_lift_target_matches": true,
-          "original_irreversible_effect": "redaction_tombstone",
-          "expected": {
-            "decision": "accept",
-            "appeal_state": "decided",
-            "original_decision_active": false,
-            "redaction_tombstone_present": true,
-            "original_content_resurrected": false
-          }
-        },
-        {
-          "name": "modify_ref_mismatch",
-          "appeal_state": "under_review",
-          "decision": "modify",
-          "same_batch_lift_target_matches": true,
-          "modify_decision_ref_in_same_batch": false,
-          "new_decision_target_matches_original": false,
-          "expected": {
-            "decision": "reject",
-            "reason": "failed_precondition",
-            "partial_state_written": false
-          }
-        },
-        {
-          "name": "modify_missing_original_lift",
-          "appeal_state": "under_review",
-          "decision": "modify",
-          "same_batch_lift_target_matches": false,
-          "modify_decision_ref_in_same_batch": true,
-          "new_decision_target_matches_original": true,
-          "expected": {
-            "decision": "reject",
-            "reason": "appeal_modify_missing_lift",
-            "appeal_state": "under_review",
-            "original_decision_active": true,
-            "replacement_decision_active": false,
-            "partial_state_written": false
-          }
-        },
-        {
-          "name": "modify_with_lift_and_replacement",
-          "appeal_state": "under_review",
-          "decision": "modify",
-          "same_batch_lift_target_matches": true,
-          "modify_decision_ref_in_same_batch": true,
-          "new_decision_target_matches_original": true,
-          "expected": {
-            "decision": "accept",
-            "appeal_state": "decided",
-            "original_decision_active": false,
-            "replacement_decision_active": true,
-            "partial_state_written": false
-          }
-        }
-      ]
-    },
-    {
       "vector_id": "ak.vector.moderation.review_resolution_fold.v1",
       "assertions": [
         "multiple_active_decisions_use_strictest_fold_not_split",
@@ -748,7 +664,7 @@
       "forbidden_fields": [
         "target_realm_id",
         "title",
-        "member_count",
+        "member_ids",
         "created_at",
         "issuer_set",
         "preview"

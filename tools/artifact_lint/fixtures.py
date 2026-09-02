@@ -757,6 +757,42 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
     if not carrier_fields.issubset(required):
         lint.fail(schema_path, "Applet revoke commit schema is missing its exact signed carrier")
 
+    preview = defs.get("applet_revoke_preview_outcome", {}) if isinstance(defs, dict) else {}
+    preview_properties = preview.get("properties", {}) if isinstance(preview, dict) else {}
+    preview_required = preview.get("required", []) if isinstance(preview, dict) else []
+    if "revoke_plan_digest" in preview_properties or "revoke_plan_digest" in preview_required:
+        lint.fail(
+            schema_path,
+            "applet_revoke_preview_outcome.revoke_plan_digest must be derived by the caller from "
+            "revoke_plan (SHA-256 over RFC 8785 JCS) and must not return to the preview wire",
+        )
+    if "revoke_plan" not in preview_required:
+        lint.fail(schema_path, "applet_revoke_preview_outcome must require the canonical revoke_plan")
+
+    kat = fixture.get("preview_plan_digest_kat")
+    plan_ref = "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_plan"
+    if not isinstance(kat, dict):
+        lint.fail(fixture_path, "preview_plan_digest_kat must pin the caller-side revoke_plan_digest recomputation")
+    else:
+        if kat.get("schema_ref") != plan_ref:
+            lint.fail(fixture_path, f"preview_plan_digest_kat.schema_ref must be {plan_ref}")
+        revoke_plan = kat.get("revoke_plan")
+        if not isinstance(revoke_plan, dict):
+            lint.fail(fixture_path, "preview_plan_digest_kat.revoke_plan must be an object")
+        else:
+            check_json_instance_against_schema(
+                lint, fixture_path, "preview_plan_digest_kat.revoke_plan", plan_ref, revoke_plan
+            )
+            jcs = canonical_json(revoke_plan)
+            if kat.get("revoke_plan_jcs") != jcs:
+                lint.fail(fixture_path, "preview_plan_digest_kat.revoke_plan_jcs must equal RFC 8785 JCS of revoke_plan")
+            expected = "sha256:" + hashlib.sha256(jcs.encode("utf-8")).hexdigest()
+            if kat.get("expected_revoke_plan_digest") != expected:
+                lint.fail(
+                    fixture_path,
+                    "preview_plan_digest_kat.expected_revoke_plan_digest must equal SHA-256 over the JCS bytes of revoke_plan",
+                )
+
 
 
 def check_normative_clause_registry(lint: Lint) -> None:
@@ -1986,6 +2022,108 @@ def check_cba_seal_canonical_fixture(lint: Lint) -> None:
         "schemas/seal.schema.json",
         schema_instance,
     )
+
+
+def _event_id_validation_error(value: Any, active_suite_codes: set[int]) -> str | None:
+    """Return the semantic v1 Event-ID validation error, if any."""
+
+    if not isinstance(value, str) or not value.startswith("ak:event:"):
+        return "must be an ak:event: identifier"
+    token = value.removeprefix("ak:event:")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{44}", token):
+        return "must carry a canonical 44-character base64url token"
+    try:
+        body = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
+    except (ValueError, binascii.Error):
+        return "must carry decodable base64url"
+    if base64.urlsafe_b64encode(body).rstrip(b"=").decode("ascii") != token:
+        return "must use canonical unpadded base64url"
+    if len(body) != 33:
+        return "must decode to the 33-byte v1 Event-ID body"
+    header = body[0]
+    if header >> 4:
+        return f"uses non-zero reserved header nibble 0x{header:02x}"
+    suite_code = header & 0x0F
+    if suite_code == 0:
+        return "uses permanently invalid digest-suite code 0x0"
+    if suite_code not in active_suite_codes:
+        return f"uses inactive or unassigned digest-suite code 0x{suite_code:x}"
+    return None
+
+
+def check_cba_fork_resolution_event_ids(lint: Lint) -> None:
+    """Validate nested fork-resolution Event IDs beyond their surface regex."""
+
+    path = ARTIFACTS / "fixtures" / "cba-lattice-fixture.json"
+    fixture = load_json(lint, path)
+    registry_path = ARTIFACTS / "registry" / "digest-suite-registry.json"
+    registry = load_json(lint, registry_path)
+    if not isinstance(fixture, dict) or not isinstance(registry, dict):
+        return
+    active_suite_codes = {
+        row.get("wire_code")
+        for row in registry.get("suites", [])
+        if isinstance(row, dict)
+        and row.get("status") == "active"
+        and isinstance(row.get("wire_code"), int)
+    }
+    vector = next(
+        (
+            row
+            for row in fixture.get("vectors", [])
+            if isinstance(row, dict)
+            and row.get("name") == "sealed_control_move_full_digest_collision"
+        ),
+        None,
+    )
+    if not isinstance(vector, dict) or not isinstance(vector.get("resolution_cases"), list):
+        lint.fail(path, "missing sealed_control_move_full_digest_collision.resolution_cases")
+        return
+
+    for index, case in enumerate(vector["resolution_cases"]):
+        if not isinstance(case, dict) or not isinstance(case.get("payload"), dict):
+            continue
+        name = case.get("name", f"resolution_cases[{index}]")
+        payload = case["payload"]
+        nested_ids: list[tuple[str, str]] = []
+
+        def visit(value: Any, pointer: str) -> None:
+            if isinstance(value, dict):
+                for key, child in value.items():
+                    visit(child, f"{pointer}/{key}")
+            elif isinstance(value, list):
+                for child_index, child in enumerate(value):
+                    visit(child, f"{pointer}/{child_index}")
+            elif isinstance(value, str) and value.startswith("ak:event:"):
+                nested_ids.append((pointer, value))
+
+        visit(payload, "payload")
+        for pointer, value in nested_ids:
+            error = _event_id_validation_error(value, active_suite_codes)
+            if error:
+                lint.fail(path, f"{name}.{pointer} {error}")
+
+        evidence = payload.get("conflict_evidence")
+        event_ids = evidence.get("event_ids") if isinstance(evidence, dict) else None
+        if isinstance(event_ids, list):
+            if len(event_ids) != len(set(event_ids)):
+                lint.fail(path, f"{name}.conflict_evidence.event_ids must be unique")
+            valid_ids = [
+                value
+                for value in event_ids
+                if _event_id_validation_error(value, active_suite_codes) is None
+            ]
+            if len(valid_ids) == len(event_ids) and event_ids != sorted(event_ids):
+                lint.fail(path, f"{name}.conflict_evidence.event_ids must be canonical bytewise ascending")
+
+        if isinstance(case.get("expected"), str) and case["expected"].startswith("accept"):
+            check_json_instance_against_schema(
+                lint,
+                path,
+                f"{name} payload",
+                "schemas/event-payload.schema.json#/$defs/fork_resolution_payload",
+                payload,
+            )
 
 
 def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
@@ -3658,6 +3796,167 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
     return
 
 
+def backup_recovery_unlock_manifest_contract_errors(
+    fixture: dict[str, Any],
+    scalability: dict[str, Any],
+    operation_ids: set[str],
+    vector_registry: dict[str, Any],
+) -> list[str]:
+    """Validate the frozen-manifest recovery quota and its 300-scope KAT."""
+
+    errors: list[str] = []
+    access = scalability.get("backup_access")
+    ordinary = access.get("ordinary_download") if isinstance(access, dict) else None
+    recovery = access.get("recovery_session_unlock") if isinstance(access, dict) else None
+    unlock = access.get("unlock_operation") if isinstance(access, dict) else None
+    if not isinstance(ordinary, dict) or (
+        ordinary.get("window_seconds") != 86400
+        or ordinary.get("default_principal_download_limit") != 64
+        or ordinary.get("config_min_principal_download_limit") != 16
+        or ordinary.get("config_max_principal_download_limit") != 64
+        or ordinary.get("per_ip_unlock_burst") != 8
+        or ordinary.get("per_ip_unlock_sustained_per_minute") != 4
+    ):
+        errors.append("ordinary backup download limits must remain the closed 16..64 hardening profile")
+    if not isinstance(recovery, dict) or (
+        recovery.get("session_max_ttl_seconds") != 900
+        or recovery.get("completion_reserve_seconds") != 60
+        or recovery.get("allowances_per_manifest_entry") != 1
+        or recovery.get("max_concurrent_unlocks_per_session") != 8
+        or recovery.get("minimum_conformance_mls_scope_count") != 300
+    ):
+        errors.append("recovery-session manifest limits must pin 900 seconds, one allowance and the 300-scope floor")
+    single_operation = "ak.self.keys.backups.command.unlock.v1"
+    registered_unlock_operations = sorted(
+        operation_id
+        for operation_id in operation_ids
+        if operation_id.startswith("ak.self.keys.backups.") and "unlock" in operation_id
+    )
+    if not isinstance(unlock, dict) or (
+        unlock.get("operation_id") != single_operation
+        or unlock.get("request_cardinality") != "exactly_one_backup_id_from_path"
+        or unlock.get("batch_operation") is not None
+        or registered_unlock_operations != [single_operation]
+    ):
+        errors.append("v1 backup unlock must remain one registered single-object operation with no batch surface")
+
+    kat = fixture.get("backup_recovery_unlock_manifest_kat")
+    vector_id = "ak.vector.key_backup.recovery_session_manifest_capacity.v1"
+    if not isinstance(kat, dict):
+        return [*errors, "history recovery fixture must carry the frozen unlock manifest KAT"]
+    if (
+        kat.get("vector_id") != vector_id
+        or kat.get("classification") != "service_behavior"
+        or vector_id not in fixture.get("covers_vectors", [])
+    ):
+        errors.append("frozen unlock manifest KAT vector binding drifted")
+    registered = next(
+        (
+            row
+            for row in vector_registry.get("vectors", [])
+            if isinstance(row, dict) and row.get("vector_id") == vector_id
+        ),
+        None,
+    )
+    if not isinstance(registered, dict) or (
+        registered.get("status") != "active"
+        or registered.get("domain") != "key_backup"
+        or registered.get("applies_to_fixtures") != ["history-key-recovery-fixture.json"]
+    ):
+        errors.append("frozen unlock manifest vector must be active and bound to the history recovery fixture")
+
+    session = kat.get("session")
+    manifest = kat.get("frozen_manifest")
+    rate = kat.get("computed_recovery_rate")
+    outcome = kat.get("quota_outcome")
+    if not all(isinstance(value, dict) for value in (session, manifest, rate, outcome)):
+        return [*errors, "frozen unlock manifest KAT sections must be objects"]
+    assert isinstance(session, dict)
+    assert isinstance(manifest, dict)
+    assert isinstance(rate, dict)
+    assert isinstance(outcome, dict)
+
+    scope_count = manifest.get("mls_history_scope_count")
+    secret_storage_count = manifest.get("secret_storage_object_count")
+    entry_count = manifest.get("entry_count")
+    verified_at = session.get("verified_at_offset_seconds")
+    expires_at = session.get("expires_at_offset_seconds")
+    reserve = session.get("completion_reserve_seconds")
+    if not all(
+        isinstance(value, int) and not isinstance(value, bool)
+        for value in (scope_count, secret_storage_count, entry_count, verified_at, expires_at, reserve)
+    ):
+        errors.append("frozen unlock manifest KAT counts and offsets must be integers")
+        return errors
+    assert isinstance(scope_count, int)
+    assert isinstance(secret_storage_count, int)
+    assert isinstance(entry_count, int)
+    assert isinstance(verified_at, int)
+    assert isinstance(expires_at, int)
+    assert isinstance(reserve, int)
+    if (
+        scope_count < 300
+        or secret_storage_count != 1
+        or entry_count != scope_count + secret_storage_count
+        or manifest.get("allowances_per_entry") != 1
+        or manifest.get("total_allowances") != entry_count
+        or manifest.get("mutable_after_verified") is not False
+    ):
+        errors.append("frozen manifest must cover at least 300 MLS scopes plus secret storage with one immutable allowance each")
+    completion_window = expires_at - verified_at - reserve
+    if expires_at != 900 or reserve != 60 or completion_window <= 0:
+        errors.append("recovery manifest completion window must preserve the registered 900-second TTL and reserve")
+        return errors
+    expected_rate = (entry_count * 60 + completion_window - 1) // completion_window
+    actual_rate = rate.get("minimum_unlocks_per_minute")
+    if not isinstance(actual_rate, int) or isinstance(actual_rate, bool) or actual_rate < expected_rate:
+        errors.append("recovery manifest rate cannot complete the frozen entries before the reserved deadline")
+        return errors
+    expected_elapsed = (entry_count * 60 + actual_rate - 1) // actual_rate
+    deadline = expires_at - reserve
+    if (
+        rate.get("completed_unlocks") != entry_count
+        or rate.get("last_completion_offset_seconds") != expected_elapsed
+        or rate.get("completion_deadline_offset_seconds") != deadline
+        or expected_elapsed > deadline
+        or rate.get("completes_before_session_expiry") is not True
+    ):
+        errors.append("300-scope recovery schedule does not complete every allowance before session expiry")
+    if (
+        outcome.get("ordinary_24h_principal_counter_before")
+        != outcome.get("ordinary_24h_principal_counter_after")
+        or outcome.get("consumed_manifest_allowances") != entry_count
+        or outcome.get("remaining_manifest_allowances") != 0
+        or outcome.get("all_scope_objects_recovered") is not True
+        or outcome.get("fresh_device_proof_per_request") is not True
+        or outcome.get("object_bound_unlock_proof_per_request") is not True
+        or outcome.get("audit_per_request") is not True
+        or outcome.get("batch_request_count") != 0
+    ):
+        errors.append("recovery quota outcome must consume only per-object manifest allowances")
+    negative_by_name = {
+        row.get("name"): row
+        for row in kat.get("negative_cases", [])
+        if isinstance(row, dict) and isinstance(row.get("name"), str)
+    }
+    if set(negative_by_name) != {
+        "object_outside_frozen_manifest",
+        "consumed_allowance_reuse",
+        "manifest_mutation_after_verified",
+        "batch_unlock_request",
+    }:
+        errors.append("frozen unlock manifest negative matrix drifted")
+    else:
+        if negative_by_name["object_outside_frozen_manifest"].get("ordinary_counter_fallback") is not False:
+            errors.append("an object outside the manifest must not fall back to ordinary quota")
+        if negative_by_name["consumed_allowance_reuse"].get("ciphertext_returned") is not False:
+            errors.append("a consumed recovery allowance must not return ciphertext again")
+        batch = negative_by_name["batch_unlock_request"]
+        if batch.get("operation_registered") is not False or batch.get("partial_outcome") is not False:
+            errors.append("batch unlock and partial outcomes must remain rejected")
+    return errors
+
+
 def check_history_scale_fixture(lint: Lint) -> None:
     path = ARTIFACTS / "fixtures" / "history-key-recovery-fixture.json"
     data = load_json(lint, path)
@@ -3671,6 +3970,23 @@ def check_history_scale_fixture(lint: Lint) -> None:
     private_kdf = load_json(lint, private_kdf_path)
     vector_registry_path = ARTIFACTS / "registry" / "vector-registry.json"
     vector_registry = load_json(lint, vector_registry_path)
+    scalability_path = ARTIFACTS / "registry" / "history-recovery-scalability-registry.json"
+    scalability = load_json(lint, scalability_path)
+    contract_registry = load_json(lint, ARTIFACTS / "registry" / "contract-registry.json")
+    operation_ids = {
+        row.get("operation_id")
+        for row in (
+            contract_registry.get("operation_registry", {}).get("operations", [])
+            if isinstance(contract_registry, dict)
+            else []
+        )
+        if isinstance(row, dict) and isinstance(row.get("operation_id"), str)
+    }
+    if isinstance(scalability, dict) and isinstance(vector_registry, dict):
+        for error in backup_recovery_unlock_manifest_contract_errors(
+            data, scalability, operation_ids, vector_registry
+        ):
+            lint.fail(path, error)
     if removed_rrk_vector_id in canonical_json(data) or (
         isinstance(private_kdf, dict) and removed_rrk_vector_id in canonical_json(private_kdf)
     ) or (
@@ -4008,7 +4324,8 @@ def check_history_scale_fixture(lint: Lint) -> None:
             if (
                 provenance["mls_transition_digest"] != transition_digest
                 or archive["transition_digest"] != transition_digest
-                or container_event["payload"]["commit_digest"] != transition_digest
+                or container_event["payload"].get("commit_message_ref")
+                != "ak:blob:" + transition_digest
             ):
                 raise ValueError("archive transition provenance is not single-sourced")
             event_proof = container_event["proofs"][0]
@@ -4021,8 +4338,8 @@ def check_history_scale_fixture(lint: Lint) -> None:
                 or event_binding["verification_method"] != event_proof["verification_method"]
                 or event_binding["signer_resolution_evidence_ref"]
                 != event_proof["signer_resolution_evidence_ref"]
-                or event_binding["signer_resolution_evidence_digest"]
-                != event_proof["signer_resolution_evidence_digest"]
+                or "signer_resolution_evidence_digest" in event_binding
+                or "signer_resolution_evidence_digest" in event_proof
                 or event_binding["created_at"] != event_proof["created_at"]
             ):
                 raise ValueError("container Event proof binding is incomplete")
@@ -4233,7 +4550,8 @@ def check_history_scale_fixture(lint: Lint) -> None:
                     continue
                 projected = dict(signing_input)
                 projected.pop("source_signer_evidence_ref", None)
-                projected.pop("source_signer_evidence_digest", None)
+                if "source_signer_evidence_digest" in signing_input:
+                    lint.fail(path, f"source Agent observation digest KAT {member} carries a sibling evidence digest mirror")
                 if projected != preimage:
                     lint.fail(path, f"source Agent observation digest KAT {member} projection drifted")
             if source_agent_kat.get("mutating_only_evidence_coordinates_keeps_digest") != expected:
@@ -4603,7 +4921,7 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
     required_discovery_names = {
         "closed_descriptor",
         "noncanonical_or_credentialed_url_rejected",
-        "missing_subprotocol_or_limit_rejected",
+        "missing_limit_rejected",
     }
     if set(discovery_by_name) != required_discovery_names:
         lint.fail(path, f"discovery_cases names drift: {sorted(set(discovery_by_name))}")
@@ -4631,15 +4949,13 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
                 "operation reachability lives in ServiceDescribe.supported_operation_bundles",
             )
 
-        missing_case = discovery_by_name.get("missing_subprotocol_or_limit_rejected") or {}
+        missing_case = discovery_by_name.get("missing_limit_rejected") or {}
         remove_each = missing_case.get("remove_each")
         if not isinstance(remove_each, list) or set(remove_each) != {
-            "subprotocol",
-            "authentication",
             "max_frame_bytes",
             "max_channels",
         }:
-            lint.fail(path, "missing_subprotocol_or_limit_rejected remove_each drift")
+            lint.fail(path, "missing_limit_rejected remove_each drift")
         else:
             for field in remove_each:
                 mutation = copy.deepcopy(descriptor)

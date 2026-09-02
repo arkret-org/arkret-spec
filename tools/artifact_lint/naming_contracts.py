@@ -462,6 +462,12 @@ def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None
                         f"{EXTERNAL_LITERAL_OBJECT_KEYWORD} on that exact node",
                     )
                 continue
+            if not owner.names:
+                lint.fail(
+                    schema_path,
+                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD} is a stale annotation: "
+                    "the annotated object declares no properties",
+                )
             if not isinstance(marker, dict):
                 lint.fail(
                     schema_path,

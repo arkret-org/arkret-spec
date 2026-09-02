@@ -1442,7 +1442,7 @@ _EVENT_DERIVED_UUID_WORDING = re.compile(
     flags=re.IGNORECASE,
 )
 _EVENT_DERIVED_UUID_PLACEHOLDER = re.compile(
-    r"ak:(?:actor_profile|appeal|audit_binding|audit_session|audit_release|call|circle|event|grant|invite|message|moderation_queue_item|morph|realm|relation|report|session_grant|sidecar|space|strand|view):<uuid(?:v7)?>",
+    r"ak:(?:actor_profile|audit_binding|audit_session|audit_release|call|circle|event|grant|invite|message|moderation_queue_item|morph|realm|relation|report|session_grant|sidecar|space|strand|view):<uuid(?:v7)?>",
     flags=re.IGNORECASE,
 )
 _EVENT_DERIVED_SCOPE_UUID_NAME = re.compile(

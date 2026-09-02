@@ -1512,6 +1512,115 @@ def check_capability_action_event_mapping(lint: Lint) -> None:
 
 
 
+# Delegated controller writes whose admission rule denies every branch without the
+# executor pair. The Agent lifecycle Control Moves derive the Agent principal from
+# envelope.actor_id and the controller from envelope.executed_by, so the pair is the
+# only controller binding and MUST be enforced by event-kind-aware admission.
+DELEGATED_WRITE_ADMISSION_KINDS = (
+    "ak.self.agent.pause",
+    "ak.self.agent.resume",
+    "ak.self.agent.deactivate",
+)
+DELEGATED_WRITE_ENVELOPE_FIELDS = frozenset({"executed_by", "authorization_ref"})
+
+
+def _admission_mandatory_top_level_fields(event_registry: dict[str, Any]) -> dict[str, set[str]]:
+    """Event kinds whose every non-otherwise admission branch requires the same
+    Event Envelope fields while the final otherwise branch denies."""
+    mandatory: dict[str, set[str]] = {}
+    for event in event_registry.get("event_kinds", []):
+        if not isinstance(event, dict) or event.get("admission") != "conditional":
+            continue
+        kind = event.get("event_kind")
+        variants = event.get("admission_variants")
+        if not isinstance(kind, str) or not isinstance(variants, list):
+            continue
+        branches: list[dict[str, Any]] = []
+        otherwise_admission: Any = None
+        for variant in variants:
+            if not isinstance(variant, dict) or not isinstance(variant.get("when"), dict):
+                continue
+            if variant["when"].get("otherwise") is True:
+                otherwise_admission = variant.get("admission")
+            else:
+                branches.append(variant)
+        if not branches or otherwise_admission != "deny":
+            continue
+        common: set[str] | None = None
+        for branch in branches:
+            fields = branch["when"].get("top_level_fields_present")
+            present = set(fields) if isinstance(fields, list) else set()
+            common = present if common is None else common & present
+        if common:
+            mandatory[kind] = common
+    return mandatory
+
+
+def _envelope_kind_locked_fields(envelope: dict[str, Any]) -> dict[str, set[str]]:
+    """Fields the Event Envelope schema requires unconditionally for a kind:
+    an allOf if/then whose only if-selector is the kind const/enum."""
+    locked: dict[str, set[str]] = {}
+    for block in envelope.get("allOf", []):
+        if not isinstance(block, dict):
+            continue
+        condition = block.get("if")
+        consequence = block.get("then")
+        if not isinstance(condition, dict) or not isinstance(consequence, dict):
+            continue
+        properties = condition.get("properties")
+        if not isinstance(properties, dict) or set(properties) != {"kind"}:
+            continue
+        if set(condition) - {"properties", "required"}:
+            continue
+        kind_selector = properties["kind"]
+        if not isinstance(kind_selector, dict):
+            continue
+        if "const" in kind_selector:
+            kinds = [kind_selector["const"]]
+        elif isinstance(kind_selector.get("enum"), list):
+            kinds = list(kind_selector["enum"])
+        else:
+            continue
+        required = consequence.get("required")
+        if not isinstance(required, list):
+            continue
+        for kind in kinds:
+            if isinstance(kind, str):
+                locked.setdefault(kind, set()).update(
+                    field for field in required if isinstance(field, str)
+                )
+    return locked
+
+
+def check_delegated_write_admission_envelope_lock(lint: Lint) -> None:
+    """Event kinds whose admission requires the executor pair on every branch MUST
+    keep that requirement in the registry and mirror it as an Event Envelope lock."""
+    event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    envelope_path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
+    event_registry = load_json(lint, event_path)
+    envelope = load_json(lint, envelope_path)
+    if not isinstance(event_registry, dict) or not isinstance(envelope, dict):
+        return
+    mandatory = _admission_mandatory_top_level_fields(event_registry)
+    for kind in DELEGATED_WRITE_ADMISSION_KINDS:
+        if mandatory.get(kind) != set(DELEGATED_WRITE_ENVELOPE_FIELDS):
+            lint.fail(
+                event_path,
+                f"{kind}: delegated controller write MUST declare admission=conditional whose "
+                "every non-otherwise branch requires top_level_fields_present "
+                f"{sorted(DELEGATED_WRITE_ENVELOPE_FIELDS)} and whose final otherwise branch denies",
+            )
+    locked = _envelope_kind_locked_fields(envelope)
+    for kind in sorted(mandatory):
+        missing = sorted(mandatory[kind] - locked.get(kind, set()))
+        if missing:
+            lint.fail(
+                envelope_path,
+                f"{kind}: admission requires {sorted(mandatory[kind])} on every branch but "
+                f"event-envelope.schema.json has no kind-selected if/then requiring {missing}",
+            )
+
+
 def check_event_admission_coverage(lint: Lint) -> None:
     """Every active durable reducer-input event MUST have a machine-readable admission source."""
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
@@ -1885,12 +1994,15 @@ def _supply_walk_demand(
             or ref_def in _SUPPLY_CALLER_SIGNED_SCHEMAS
             or ref_file in _SUPPLY_CALLER_SIGNED_SCHEMAS
         )
-        resolved_union_branches: list[tuple[str, dict[str, Any], frozenset]] = []
+        resolved_union_branches: list[
+            tuple[str, dict[str, Any], frozenset, bool]
+        ] = []
         if isinstance(resolved_sub, dict):
             for branch in resolved_sub.get("oneOf") or []:
                 branch_file = resolved_file
                 branch_node = branch
                 branch_visiting = visiting
+                branch_caller_signed = False
                 if isinstance(branch_node, dict) and "$ref" in branch_node:
                     resolved_branch = _supply_resolve_ref(
                         schema_files, branch_file, branch_node["$ref"]
@@ -1899,6 +2011,10 @@ def _supply_walk_demand(
                         resolved_union_branches = []
                         break
                     branch_file, branch_def, branch_identity, branch_node = resolved_branch
+                    branch_caller_signed = (
+                        branch_def in _SUPPLY_CALLER_SIGNED_SCHEMAS
+                        or branch_file in _SUPPLY_CALLER_SIGNED_SCHEMAS
+                    )
                     branch_key = (branch_file, branch_identity)
                     if branch_key in branch_visiting:
                         resolved_union_branches = []
@@ -1911,7 +2027,7 @@ def _supply_walk_demand(
                     resolved_union_branches = []
                     break
                 resolved_union_branches.append(
-                    (branch_file, branch_node, branch_visiting)
+                    (branch_file, branch_node, branch_visiting, branch_caller_signed)
                 )
         is_union = bool(resolved_union_branches) and len(resolved_union_branches) == len(
             resolved_sub.get("oneOf") or []
@@ -1921,7 +2037,12 @@ def _supply_walk_demand(
             # fully constructible; evaluate branches independently and let the
             # container carry the demand if every branch fails.
             branches: list[list[dict[str, Any]]] = []
-            for branch_file, branch_node, branch_visiting in resolved_union_branches:
+            for (
+                branch_file,
+                branch_node,
+                branch_visiting,
+                branch_caller_signed,
+            ) in resolved_union_branches:
                 branch_out: list[dict[str, Any]] = []
                 _supply_walk_demand(
                     schema_files,
@@ -1933,7 +2054,7 @@ def _supply_walk_demand(
                     True,
                     supplied_defs,
                     covered or ref_supplied,
-                    field_caller_signed,
+                    field_caller_signed or branch_caller_signed,
                 )
                 branches.append(branch_out)
             out.append(

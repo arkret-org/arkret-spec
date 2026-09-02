@@ -133,6 +133,7 @@ def check_proof_context_transcript_vectors(lint: Lint) -> None:
         families.append(family)
         contexts.append(context)
         binding_fields[context] = [item for item in fields if isinstance(item, str)]
+        _check_binding_field_sources(lint, index, row, binding_fields[context])
 
     covered = _check_vector_rows(lint, contexts, families)
     missing = [context for context in contexts if context not in covered]
@@ -148,6 +149,45 @@ def check_proof_context_transcript_vectors(lint: Lint) -> None:
             )
 
     _check_fixture(lint, rows, contexts, families, binding_fields)
+
+
+def _check_binding_field_sources(
+    lint: Lint,
+    index: int,
+    row: dict[str, Any],
+    fields: list[str],
+) -> None:
+    """A binding member the proof does not carry names its injected source.
+
+    ``binding_field_sources`` maps a required binding field to the member of the
+    unsigned object whose value enters the transcript in its place, so a
+    verifier can rebuild the binding object from the outer object alone.
+    """
+    sources = row.get("binding_field_sources")
+    if sources is None:
+        return
+    required = {name for name in fields if not name.endswith("?")}
+    if (
+        not isinstance(sources, dict)
+        or not sources
+        or any(not isinstance(name, str) or not isinstance(source, str) or not source for name, source in sources.items())
+    ):
+        lint.fail(
+            REGISTRY_PATH,
+            f"contexts[{index}].binding_field_sources must map binding field names to unsigned-object member names",
+        )
+        return
+    for name, source in sources.items():
+        if name not in required:
+            lint.fail(
+                REGISTRY_PATH,
+                f"contexts[{index}].binding_field_sources names {name!r}, which is not a required binding field",
+            )
+        if name == source:
+            lint.fail(
+                REGISTRY_PATH,
+                f"contexts[{index}].binding_field_sources.{name} must name a different member than the binding field itself",
+            )
 
 
 def _check_vector_rows(lint: Lint, contexts: list[str], families: list[str]) -> set[str]:
@@ -263,6 +303,7 @@ def _check_fixture(
             )
             continue
         binding = _check_case_binding(lint, index, case, context, binding_fields[context])
+        _check_case_binding_sources(lint, index, case, rows[index], binding)
         signing_input = _check_case_bytes(lint, index, case, binding, verifying_key)
         _check_negative_case(
             lint,
@@ -274,6 +315,37 @@ def _check_fixture(
             signing_input,
             verifying_key,
         )
+
+
+def _check_case_binding_sources(
+    lint: Lint,
+    index: int,
+    case: dict[str, Any],
+    row: dict[str, Any],
+    binding: dict[str, Any] | None,
+) -> None:
+    sources = row.get("binding_field_sources")
+    expected = dict(sources) if isinstance(sources, dict) else None
+    if case.get("binding_field_sources") != expected:
+        lint.fail(
+            FIXTURE_PATH,
+            f"cases[{index}].binding_field_sources drifted from the registry row for {row.get('context')}",
+        )
+        return
+    if binding is None or expected is None:
+        return
+    unsigned = case.get("unsigned_object")
+    for name, source in expected.items():
+        if not isinstance(unsigned, dict) or source not in unsigned:
+            lint.fail(
+                FIXTURE_PATH,
+                f"cases[{index}] injects {name} from {source!r}, which the unsigned object does not carry",
+            )
+        elif binding.get(name) != unsigned[source]:
+            lint.fail(
+                FIXTURE_PATH,
+                f"cases[{index}].binding_object.{name} must equal the unsigned object's {source}",
+            )
 
 
 def _check_test_key(lint: Lint, test_key: Any) -> Any:

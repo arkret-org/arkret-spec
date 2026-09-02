@@ -59,7 +59,6 @@ class CurrentSignerEvidenceSchemaTest(unittest.TestCase):
                     "request_id", "realm_id", "operation_id", "request_digest",
                     "recipient_account_id", "challenge",
                 )},
-                "verifier_id": request["recipient_account_id"]["station_id"],
                 "issuer_id": request["queries"][0]["account_id"]["station_id"],
                 "issued_at": "2026-09-01T00:00:00.000Z",
                 "expires_at": "2026-09-01T00:00:30.000Z",

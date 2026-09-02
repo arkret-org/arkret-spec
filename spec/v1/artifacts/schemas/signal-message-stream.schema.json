@@ -21,7 +21,6 @@
         "kind",
         "payload_sequence",
         "strand_id",
-        "track_name",
         "message_id",
         "attempt",
         "stream_id",
@@ -40,9 +39,6 @@
         },
         "strand_id": {
           "$ref": "#/$defs/strand_id"
-        },
-        "track_name": {
-          "const": "discussion"
         },
         "message_id": {
           "$ref": "#/$defs/message_id",
@@ -107,9 +103,6 @@
             "strand_id": {
               "$ref": "#/$defs/strand_id"
             },
-            "track_name": {
-              "const": "discussion"
-            },
             "message_id": {
               "$ref": "#/$defs/message_id"
             },
@@ -169,9 +162,6 @@
             },
             "strand_id": {
               "$ref": "#/$defs/strand_id"
-            },
-            "track_name": {
-              "const": "discussion"
             },
             "message_id": {
               "$ref": "#/$defs/message_id"
@@ -234,9 +224,6 @@
             },
             "strand_id": {
               "$ref": "#/$defs/strand_id"
-            },
-            "track_name": {
-              "const": "discussion"
             },
             "message_id": {
               "$ref": "#/$defs/message_id"

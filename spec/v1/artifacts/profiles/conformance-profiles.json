@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-02.2",
-  "generated_at": "2026-09-02T15:30:00+08:00",
+  "version": "2026-09-02.3",
+  "generated_at": "2026-09-02T23:25:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -662,8 +662,7 @@
   "federation_hardening": [
     "service_id_authentication",
     "cross_domain_space_join",
-    "policy_decision_exchange",
-    "quarantine_appeal_audit"
+    "policy_decision_exchange"
   ],
   "e2ee_hardening": [
     "ak.profile.mls_governance_binding.full.v1",

@@ -42,13 +42,16 @@ from .schemas import (
     check_circle_lifecycle_basis_vector,
     check_circle_membership_enum_single_source,
     check_classification_context_paths,
+    check_blob_identifier_form_closure,
     check_closed_object_required_declared,
     check_device_reanchor_payload_receipt_binding,
     check_derived_signature_projection_closure,
     check_did_and_device_constraints,
     check_did_boundary_allowlist,
+    check_did_method_adapter_evidence_kind_routing,
     check_event_reference_inventory,
-    check_event_id_digest_mirror_removals,
+    check_content_addressed_ref_mirror_removals,
+    check_content_addressed_ref_sibling_digests,
     check_event_schema_coverage,
     check_fsm_state_reachability,
     check_foundational_schema_dependency_direction,
@@ -64,6 +67,7 @@ from .schemas import (
     check_sdk_conformance_contract,
     check_signed_object_closure,
     check_stable_identity_fields_use_core_id,
+    check_stated_digest_suite_sources,
     check_trust_domain_constraints,
     check_vector_group_requirements,
     check_wire_schema_no_bare_scope,
@@ -73,6 +77,7 @@ from .bindings import (
     check_binding_completeness_index,
     check_binding_variant_non_http,
     check_capability_action_event_mapping,
+    check_delegated_write_admission_envelope_lock,
     check_event_admission_coverage,
     check_openapi_auth_semantics,
     check_openapi_core_selector_constraints,
@@ -94,6 +99,7 @@ from .fixtures import (
     check_applet_revoke_saga_contract,
     check_canonical_digest_fixtures,
     check_cba_seal_canonical_fixture,
+    check_cba_fork_resolution_event_ids,
     check_content_bound_event_id_fixture,
     check_crypto_signature_fixture,
     check_cryptographic_suite_kat_bindings,
@@ -199,6 +205,9 @@ from .recovery_transcripts import (
 from .schema_roots import check_schema_root_reachability
 
 from .constructability import check_schema_constructability
+from .derived_wire_removals import check_derived_wire_field_removals
+from .expanded_projections import check_expanded_projection_registry
+from .ref_overlay_closure import check_schema_ref_overlay_closure
 
 from .psi_class_b import check_psi_class_b_artifact_closure
 
@@ -314,6 +323,9 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("schema_root_reachability", lambda: check_schema_root_reachability(lint)),
             ("schema_constructability", lambda: check_schema_constructability(lint)),
+            ("schema_ref_overlay_closure", lambda: check_schema_ref_overlay_closure(lint)),
+            ("expanded_projection_registry", lambda: check_expanded_projection_registry(lint)),
+            ("derived_wire_field_removals", lambda: check_derived_wire_field_removals(lint)),
             (
                 "registered_context_schema_duplicates",
                 lambda: check_registered_context_schema_duplicates(lint),
@@ -321,6 +333,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "security_transaction_schema_closure",
                 lambda: check_security_transaction_schema_closure(lint),
+            ),
+            (
+                "stated_digest_suite_sources",
+                lambda: check_stated_digest_suite_sources(lint),
             ),
             (
                 "canonical_wire_source_closure",
@@ -337,7 +353,12 @@ def main(argv: list[str] | None = None) -> int:
                 "keypackage_claim_unsigned_projection",
                 lambda: check_keypackage_claim_unsigned_projection(lint),
             ),
-            ("event_id_digest_mirrors", lambda: check_event_id_digest_mirror_removals(lint)),
+            ("content_addressed_ref_mirrors", lambda: check_content_addressed_ref_mirror_removals(lint)),
+            ("blob_identifier_form_closure", lambda: check_blob_identifier_form_closure(lint)),
+            (
+                "content_addressed_ref_sibling_digests",
+                lambda: check_content_addressed_ref_sibling_digests(lint),
+            ),
             ("wire_scope", lambda: check_wire_schema_no_bare_scope(lint)),
             ("closed_object_required", lambda: check_closed_object_required_declared(lint)),
             (
@@ -367,6 +388,10 @@ def main(argv: list[str] | None = None) -> int:
             ("did_device", lambda: check_did_and_device_constraints(lint)),
             ("trust_domain_constraints", lambda: check_trust_domain_constraints(lint)),
             ("did_boundary_allowlist", lambda: check_did_boundary_allowlist(lint)),
+            (
+                "did_method_adapter_evidence_kind_routing",
+                lambda: check_did_method_adapter_evidence_kind_routing(lint),
+            ),
             (
                 "stable_identity_ids",
                 lambda: check_stable_identity_fields_use_core_id(lint),
@@ -398,6 +423,7 @@ def main(argv: list[str] | None = None) -> int:
             ("non_http_variants", lambda: check_binding_variant_non_http(lint)),
             ("capability_mapping", lambda: check_capability_action_event_mapping(lint)),
             ("event_admission", lambda: check_event_admission_coverage(lint)),
+            ("delegated_write_admission_lock", lambda: check_delegated_write_admission_envelope_lock(lint)),
             ("dto_closure", lambda: check_operation_dto_closure(lint)),
             (
                 "request_material_supply",
@@ -462,6 +488,10 @@ def main(argv: list[str] | None = None) -> int:
             ("crypto_signatures", lambda: check_crypto_signature_fixture(lint)),
             ("canonical_digests", lambda: check_canonical_digest_fixtures(lint)),
             ("cba_seal_canonical", lambda: check_cba_seal_canonical_fixture(lint)),
+            (
+                "cba_fork_resolution_event_ids",
+                lambda: check_cba_fork_resolution_event_ids(lint),
+            ),
             (
                 "direct_conversation_digests",
                 lambda: check_direct_conversation_digest_vectors(lint),

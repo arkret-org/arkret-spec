@@ -149,11 +149,6 @@
         "state": {
           "$ref": "#/$defs/circle_state"
         },
-        "member_count": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Exact count of active Circle members. Present only when the caller is an active Circle member; directory-only previews MUST omit it and use the privacy-bucketed preview contract instead."
-        },
         "viewer_membership": {
           "$ref": "./event-payload.schema.json#/$defs/membership_state",
           "description": "The caller's own Circle membership state when one exists."
@@ -164,7 +159,7 @@
             "$ref": "#/$defs/actor_id"
           },
           "uniqueItems": true,
-          "description": "Active Circle member ActorIds (strict subset of parent Realm.members). Empty after tombstone."
+          "description": "Active Circle member ActorIds (strict subset of parent Realm.members). Empty after tombstone. The member count is derived as member_ids.length and is never carried as a separate wire field; directory-only previews never carry member_ids and use the privacy-bucketed preview contract instead."
         },
         "created_by": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"

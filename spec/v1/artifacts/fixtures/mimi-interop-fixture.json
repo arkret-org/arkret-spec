@@ -266,7 +266,7 @@
       "vector_id": "ak.vector.mimi.proxy_download_policy.v1",
       "name": "proxy_download_policy",
       "input": {
-        "blob_ref": "ak:blob:0110c853-1d09-7044-b214-c74240110c85",
+        "blob_ref": "ak:blob:sha256:0110c8531d097044b214c74240110c850110c8531d097044b214c74240110c85",
         "asset_privacy_policy": "provider_proxy"
       },
       "expected": "direct_object_store_url_is_not_returned"

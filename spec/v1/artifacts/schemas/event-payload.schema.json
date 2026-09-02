@@ -633,21 +633,13 @@
     },
     "agent_deactivate_payload": {
       "type": "object",
-      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. The lifecycle cell is addressed only by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; payload.agent_id merely cross-binds that ActorId's signing principal and never addresses the cell. At the accepted Seal covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
+      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. The lifecycle cell is addressed only by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent_id or controller_id mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. At the accepted Seal covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
       "required": [
-        "agent_id",
-        "controller_id",
         "transition",
         "previous_status",
         "status_changed_at"
       ],
       "properties": {
-        "agent_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
         "transition": {
           "const": "deactivate"
         },
@@ -890,13 +882,9 @@
               "type": "string",
               "maxLength": 64
             },
-            "attestation_digest": {
-              "$ref": "#/$defs/digest",
-              "description": "Optional digest of verifiable attestation material when kind is not self_asserted."
-            },
             "attestation_ref": {
-              "$ref": "#/$defs/object_ref",
-              "description": "Optional external verifiable attestation reference (TEE quote, SLSA provenance, etc.)."
+              "$ref": "./common-ids.schema.json#/$defs/blob_ref",
+              "description": "Optional content-addressed reference to exact external verifiable attestation bytes (TEE quote, SLSA provenance, etc.). Its embedded suite and digest are the sole wire commitment to that material."
             }
           },
           "additionalProperties": false
@@ -1164,21 +1152,13 @@
     },
     "agent_pause_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.pause. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; payload.agent_id only cross-binds the ActorId signing principal and never addresses the cell. Authorization is evaluated against the Control Move envelope seal_basis; the reducer accepts the transition only under the accepted current control frontier.",
+      "description": "Payload for ak.self.agent.pause. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent_id or controller_id mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the Control Move envelope seal_basis; the reducer accepts the transition only under the accepted current control frontier.",
       "required": [
-        "agent_id",
-        "controller_id",
         "transition",
         "previous_status",
         "status_changed_at"
       ],
       "properties": {
-        "agent_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
         "transition": {
           "const": "pause"
         },
@@ -1196,21 +1176,13 @@
     },
     "agent_resume_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.resume. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; payload.agent_id only cross-binds the ActorId signing principal and never addresses the cell. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
+      "description": "Payload for ak.self.agent.resume. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent_id or controller_id mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
       "required": [
-        "agent_id",
-        "controller_id",
         "transition",
         "previous_status",
         "status_changed_at"
       ],
       "properties": {
-        "agent_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
         "transition": {
           "const": "resume"
         },
@@ -3839,7 +3811,7 @@
                     "blob_ref": {
                       "type": "string",
                       "pattern": "^ak:blob:(sha256|blake3):[0-9a-f]{64}$",
-                      "description": "Long text MUST use a hash-addressed Blob ref; the <suite>:<hex> part MUST equal attachment.ciphertext_digest and the Blob metadata content_digest."
+                      "description": "Long text MUST use a content-addressed Blob ref; its embedded <suite>:<hex> is the attachment's only ciphertext digest carrier and MUST equal the independent Blob metadata content_digest."
                     },
                     "encryption_algorithm": {
                       "type": "string",
@@ -6443,7 +6415,6 @@
         "proposal_refs",
         "next_epoch",
         "commit_bytes_b64",
-        "commit_digest",
         "governance_binding"
       ],
       "not": {
@@ -6481,13 +6452,11 @@
           "type": "string",
           "minLength": 1,
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "Unpadded base64url RFC 9420 MLS Commit message. Receivers verify commit_digest before applying it."
+          "description": "Unpadded base64url RFC 9420 MLS Commit message. Receivers authenticate these bytes through the containing Event and, when commit_message_ref is present, require its embedded digest to match these exact decoded bytes before applying the Commit."
         },
         "commit_message_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "commit_digest": {
-          "$ref": "#/$defs/digest"
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref",
+          "description": "Optional content-addressed reference to the exact decoded commit_bytes_b64 bytes. The embedded suite and digest are the sole wire commitment and this ref never replaces the required inline bytes."
         },
         "governance_binding": {
           "$ref": "#/$defs/mls_governance_binding"
@@ -6561,9 +6530,7 @@
         "epoch",
         "cipher_suite",
         "group_info_ref",
-        "group_info_digest",
         "ratchet_tree_ref",
-        "ratchet_tree_digest",
         "governance_binding",
         "created_at"
       ],
@@ -6586,23 +6553,15 @@
         },
         "group_info_ref": {
           "type": "string",
-          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$",
-          "description": "Content-addressed reference to the exact RFC 9420 GroupInfo bytes. The embedded sha256 value MUST equal group_info_digest without the sha256: prefix."
-        },
-        "group_info_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "SHA-256 of the raw bytes obtained by base64url-decoding group_info_bytes_b64 from the standard group-state-material operation."
+          "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
+          "x-arkret-digest-suite-source": "realm_digest_algorithm",
+          "description": "Content-addressed reference to the exact RFC 9420 GroupInfo bytes. The digest suite MUST equal the Realm digest_algorithm and the embedded digest is computed over the raw bytes returned as group_info_bytes_b64 by the standard group-state-material operation. It is the sole wire carrier of that digest; no sibling group_info_digest is carried (encoding.md 4.0.1)."
         },
         "ratchet_tree_ref": {
           "type": "string",
-          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$",
-          "description": "Content-addressed reference to the exact RFC 9420 ratchet_tree extension bytes for epoch 0. The embedded sha256 value MUST equal ratchet_tree_digest without the sha256: prefix."
-        },
-        "ratchet_tree_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "SHA-256 of the raw bytes obtained by base64url-decoding ratchet_tree_bytes_b64 from the standard group-state-material operation."
+          "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
+          "x-arkret-digest-suite-source": "realm_digest_algorithm",
+          "description": "Content-addressed reference to the exact RFC 9420 ratchet_tree extension bytes for epoch 0. The digest suite MUST equal the Realm digest_algorithm and the embedded digest is computed over the raw bytes returned as ratchet_tree_bytes_b64 by the standard group-state-material operation. It is the sole wire carrier of that digest; no sibling ratchet_tree_digest is carried (encoding.md 4.0.1)."
         },
         "governance_binding": {
           "$ref": "#/$defs/mls_governance_binding"
@@ -6857,7 +6816,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Exactly one RRK archive for this exporter transition. transition_digest is the mls_transition_digest: commit_digest for Commit and the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. accepted_key_evidence_ref identifies the exact register/rotate Event; its reducer-effective tuple is proved by direct Seal replay from holder_trusted_basis to the archive target, never by a singular activation Seal field. HPKE info/AAD binds every public field above except enc/ciphertext and never the containing EventId."
+      "description": "Exactly one RRK archive for this exporter transition. transition_digest is the mls_transition_digest: the digest derived from exact decoded Commit bytes for Commit and the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. accepted_key_evidence_ref identifies the exact register/rotate Event; its reducer-effective tuple is proved by direct Seal replay from holder_trusted_basis to the archive target, never by a singular activation Seal field. HPKE info/AAD binds every public field above except enc/ciphertext and never the containing EventId."
     },
     "mls_governance_binding": {
       "type": "object",
@@ -7814,7 +7773,7 @@
     },
     "moderation_decision_lift_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision.lift. Writes an or_set remove effect on the same ak.component.moderation_state.v1 cell, removing exactly the dots enumerated in observed_dot_ids, which MUST belong to the decision identified by decision_ref. See zh/governance/content-moderation.md §5.5.2 (appeal verdict=overturn MUST pair a lift whose target equals decision_ref in the same ordered submit batch or equivalent control transaction).",
+      "description": "Payload for ak.moderation.decision.lift. Writes an or_set remove effect on the same ak.component.moderation_state.v1 cell, removing exactly the dots enumerated in observed_dot_ids, which MUST belong to the decision identified by decision_ref.",
       "required": [
         "target_ref",
         "decision_ref",
@@ -7836,7 +7795,7 @@
           "items": {
             "$ref": "#/$defs/or_set_dot"
           },
-          "description": "Exact add dots being removed. Every dot's event_id segment MUST equal the complete EventId token of decision_ref, so a lift can only revoke the appealed decision; adds from other issuers stay active and keep folding by hard_deny > quarantine > require_review. A lift is a partial revocation, so or_set_remove_observed is forbidden here - it would remove every surviving add on the cell. See zh/models/event-and-patch.md section 2.4.2 and zh/governance/content-moderation.md section 5.5.2."
+          "description": "Exact add dots being removed. Every dot's event_id segment MUST equal the complete EventId token of decision_ref, so a lift can only revoke that decision; adds from other issuers stay active and keep folding by hard_deny > quarantine > require_review. A lift is a partial revocation, so or_set_remove_observed is forbidden here - it would remove every surviving add on the cell. See zh/models/event-and-patch.md section 2.4.2."
         },
         "reason_code": {
           "type": "string",
@@ -7877,7 +7836,7 @@
         },
         "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Actor or service DID issuing the sealed moderation decision. Reducers use it as part of the or_set add tag and appeal separation-of-duties check."
+          "description": "Actor or service DID issuing the sealed moderation decision. Reducers use it as part of the or_set add tag."
         },
         "request_canonical_digest": {
           "$ref": "#/$defs/digest",
@@ -7905,10 +7864,6 @@
         },
         "reason": {
           "type": "string"
-        },
-        "modify_decision_ref": {
-          "$ref": "#/$defs/event_ref",
-          "description": "Set when this decision is the new decision emitted atomically by an appeal verdict=modify (content-moderation.md §5.5.2); reducer verifies it matches the same-batch appeal event id."
         },
         "effective_at": {
           "$ref": "#/$defs/timestamp"
@@ -11021,17 +10976,21 @@
     },
     "fork_resolution_collision_winner_verdict": {
       "type": "object",
-      "description": "One collision variant becomes canonical, named by the same complete canonical bytes the evidence carries. A digest-only or carried-id-only winner MUST be rejected as witness_disagreement.",
+      "description": "One collision variant becomes canonical. winner_index selects the complete canonical-bytes locator at conflict_evidence.variants[0] or [1], so the verdict does not carry a third copy of an inline or referenced preimage. A digest-only or carried-id-only winner MUST be rejected as witness_disagreement.",
       "required": [
         "kind",
-        "winner_preimage"
+        "winner_index"
       ],
       "properties": {
         "kind": {
           "const": "canonical_winner"
         },
-        "winner_preimage": {
-          "$ref": "#/$defs/fork_resolution_collision_preimage_locator"
+        "winner_index": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
         }
       },
       "additionalProperties": false
@@ -11990,7 +11949,7 @@
     "track_name": {
       "type": "string",
       "const": "discussion",
-      "description": "Strand track key for Message payloads. Mirrors message.schema.json#/properties/track_name: v1 Message payloads are restricted to 'discussion'."
+      "description": "Strand track key carried by Message Event payloads. In v1 Message payloads are restricted to 'discussion'; the materialized Message resolves its track through the referenced Strand and does not duplicate this payload-only field."
     },
     "verification_method": {
       "type": "string",

@@ -50,7 +50,6 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 | `schema` | yes | const | `ak.schema.agent_sidecar.v1` |
 | `realm_id` | yes | `id:realm` | 从 create Event scope 派生，create-locked |
 | `controller_id` | yes | `did_core_id` | 等于 create Event `actor_id`，create-locked |
-| `encryption_profile` | yes | const | `mls_rfc9420` |
 | `state` | yes | enum | `active | suspended | tombstoned`，reducer-derived |
 | `state_changed_at` | conditional | timestamp | 非 active 时必填 |
 | `created_at` | yes | timestamp | 等于 accepted create Event `created_at` |
@@ -58,6 +57,10 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 
 `backing_circle_id`、成员列表、管理员、title、summary、directory visibility、join rule 与 history visibility
 均不是 Sidecar 字段。
+
+`ak.schema.agent_sidecar.v1` 的 schema identity 固定独立 MLS/RFC 9420 保护，物化 Sidecar 对象不再
+回显 `encryption_profile`；`ak.sidecar.create` Event payload 中进入签名原像的
+`encryption_profile="mls_rfc9420"` 仍保留，并由 reducer 校验。
 
 ## 3. 创建与原生 scope
 
@@ -236,6 +239,11 @@ Sidecar 没有可用的 controller authority。
 
 客户端 MAY 在普通 Strand shell 中显示 Sidecar-private view，但必须明确标记 private provenance，且
 进入/退出 Sidecar 不得改变普通 Strand canonical history。
+
+v1 exchange profile 固定 source-track routed origin 与 coordinator completion policy；
+`ak.schema.agent_sidecar_exchange_projection.v1` cache 不携 `origin` / `completion_policy`，request-role
+`ak.schema.agent_sidecar_event_exchange_binding.v1` 也不回显 `completion_policy`。consumer 直接从各自
+schema identity 注入这些值，不能把省略解释为可选择其它 origin 或 completion policy。
 
 真正发布到普通 Strand 必须由 controller 对最终 allowlist payload 显式确认，并创建一条新的普通
 Strand Event：

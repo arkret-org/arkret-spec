@@ -12,14 +12,12 @@
         "encrypted",
         "encryption_algorithm",
         "key_ref",
-        "ciphertext_digest",
         "size_bytes",
         "media_type"
       ],
       "properties": {
         "blob_ref": {
-          "type": "string",
-          "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
         },
         "encrypted": {
           "const": true
@@ -69,10 +67,6 @@
           },
           "additionalProperties": false
         },
-        "ciphertext_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-        },
         "size_bytes": {
           "type": "integer",
           "minimum": 0
@@ -84,7 +78,7 @@
       },
       "oneOf": [
         {
-          "$comment": "whole-file AEAD form: single nonce, single ciphertext_digest",
+          "$comment": "whole-file AEAD form: single nonce; blob_ref embeds the whole stored-ciphertext digest",
           "properties": {
             "scheme": {
               "const": "ak.blob.whole_file_aead.v1"
@@ -158,7 +152,7 @@
   "title": "Arkret Blob Metadata",
   "type": "object",
   "required": [
-    "blob_ref",
+    "blob_id",
     "schema",
     "content_digest",
     "size_bytes",
@@ -185,9 +179,8 @@
     }
   ],
   "properties": {
-    "blob_ref": {
-      "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+    "blob_id": {
+      "$ref": "./common-ids.schema.json#/$defs/blob_id"
     },
     "schema": {
       "const": "ak.schema.blob.v1"
@@ -222,8 +215,7 @@
       ]
     },
     "thumbnail_blob_ref": {
-      "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./common-ids.schema.json#/$defs/blob_ref"
     },
     "created_by": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id"

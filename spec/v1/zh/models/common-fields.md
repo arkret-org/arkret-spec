@@ -435,13 +435,13 @@ DID core 的 `ServiceResolutionRecord`，不改变 ActorId；service DID core �
   | --- | --- | --- |
   | `outcome` | 请求 / 提交 / receipt 的完成结果，配 `outcome_reason_code` | 全部 `*_outcome` DTO、receipt 的结果字段 |
   | `result` | 执行体或 session 自身算出的运行结果 | call recording / transcript 的 `result`、SDK conformance claim |
-  | `decision` | 人为或治理裁决 | moderation、appeal、join review、consent |
+  | `decision` | 人为或治理裁决 | moderation、join review、consent |
   | `resolution` | 名称 / 选择器 / 冲突的**解析**结果，不是过程结局 | `service_resolution`、agent selector、applet namespace conflict |
 
   新增相邻对象 MUST 从上表取词，不得随机换用近义词。已收敛的历史别名：
-  receipt 上的 `disposition` 已并入 `outcome`；moderation / appeal 的 `verdict` 已并入 `decision`
-  ——后者是为了让字段名与既有符号 `ak.moderation.decision`、`ak.moderation.appeal.decision`
-  及 `moderation_decision_payload` 三层一致，而不是反过来把三个符号面改去迁就一个字段名。
+  receipt 上的 `disposition` 已并入 `outcome`；moderation 的 `verdict` 已并入 `decision`
+  ——后者是为了让字段名与既有符号 `ak.moderation.decision` 及 `moderation_decision_payload`
+  两层一致，而不是反过来把符号面改去迁就一个字段名。
   `response` / `ack` 不是独立结果词：HTTP 响应体统一走 `*_outcome`，确认类载荷按其真实语义归入上表。
 
 ### 4.3 角色名词登记索引

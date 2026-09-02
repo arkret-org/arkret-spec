@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.1",
+  "version": "2026-09-02.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T10:00:00+08:00",
+  "generated_at": "2026-09-02T20:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -835,30 +835,6 @@
       "notes": "Narrow Direct Conversation participant authority for welcoming another currently authorized device of the same stable participant. It cannot add a third principal or a device of the other participant."
     },
     {
-      "action": "ak.moderation.appeal.review",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.moderation.appeal.review",
-        "ak.moderation.appeal.decision",
-        "ak.moderation.appeal.close"
-      ],
-      "profile": null,
-      "event_mapping_kind": "aggregate_admin"
-    },
-    {
-      "action": "ak.moderation.appeal.submit",
-      "category": "management",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.moderation.appeal.submit"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
       "action": "ak.moderation.decision",
       "category": "management",
       "risk_tier": "high",
@@ -1363,10 +1339,6 @@
         "ak.mls.keypackage",
         "ak.mls.proposal",
         "ak.mls.welcome",
-        "ak.moderation.appeal.close",
-        "ak.moderation.appeal.decision",
-        "ak.moderation.appeal.review",
-        "ak.moderation.appeal.submit",
         "ak.moderation.decision",
         "ak.moderation.decision.lift",
         "ak.morph.archive",
@@ -1477,8 +1449,6 @@
         "ak.mls.keypackage",
         "ak.mls.proposal",
         "ak.mls.welcome",
-        "ak.moderation.appeal.review",
-        "ak.moderation.appeal.submit",
         "ak.moderation.decision",
         "ak.moderation.decision.lift",
         "ak.morph.archive",

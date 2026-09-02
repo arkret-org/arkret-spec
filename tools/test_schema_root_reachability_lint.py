@@ -14,7 +14,7 @@ from tools.artifact_lint import schema_roots
 from tools.artifact_lint.core import Lint
 
 
-TARGET = ROOT / "spec" / "v1" / "artifacts" / "schemas" / "time.schema.json"
+TARGET = ROOT / "spec" / "v1" / "artifacts" / "schemas" / "principal-operations.schema.json"
 
 
 class SchemaRootReachabilityLintTest(unittest.TestCase):
@@ -47,6 +47,23 @@ class SchemaRootReachabilityLintTest(unittest.TestCase):
     def test_self_reference_cannot_hide_an_orphan(self) -> None:
         errors = self._lint({"$ref": "#/$defs/orphan_probe"})
         self.assertTrue(any("orphan_probe" in error for error in errors), errors)
+
+    def test_root_catalog_reference_cannot_own_definition(self) -> None:
+        documents = {
+            "catalog-only.schema.json": {
+                "oneOf": [{"$ref": "#/$defs/orphan_probe"}],
+                "$defs": {
+                    "orphan_probe": {
+                        "type": "object",
+                        "additionalProperties": False,
+                    }
+                },
+            }
+        }
+        roots = schema_roots._machine_roots(documents)
+        self.assertNotIn(("catalog-only.schema.json", ""), roots)
+        reached = schema_roots._reachable(documents, roots)
+        self.assertNotIn(("catalog-only.schema.json", "/$defs/orphan_probe"), reached)
 
 
 if __name__ == "__main__":

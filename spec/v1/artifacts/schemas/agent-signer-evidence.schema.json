@@ -474,7 +474,6 @@
         "agent_id",
         "verification_method",
         "producer_signer_resolution_evidence_ref",
-        "producer_signer_resolution_evidence_digest",
         "receiver_id",
         "proof"
       ],
@@ -501,10 +500,8 @@
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
         "producer_signer_resolution_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
-        },
-        "producer_signer_resolution_evidence_digest": {
-          "$ref": "#/$defs/sha256"
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Origin-frozen producer signer evidence root copied from the verified station_admission proof; its embedded digest is the sole wire copy (encoding.md 4.0.1)."
         },
         "receiver_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -845,7 +842,6 @@
         "component",
         "agent_id",
         "controller_id",
-        "status",
         "provenance",
         "accepted_status_event",
         "seal_id",
@@ -867,14 +863,6 @@
         },
         "controller_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "active",
-            "paused",
-            "deactivated"
-          ]
         },
         "provenance": {
           "oneOf": [
@@ -953,9 +941,6 @@
           },
           "then": {
             "properties": {
-              "status": {
-                "const": "active"
-              },
               "cell_value": {
                 "const": "active"
               }
@@ -979,9 +964,6 @@
           },
           "then": {
             "properties": {
-              "status": {
-                "const": "paused"
-              },
               "cell_value": {
                 "const": "paused"
               }
@@ -1005,9 +987,6 @@
           },
           "then": {
             "properties": {
-              "status": {
-                "const": "active"
-              },
               "cell_value": {
                 "const": "active"
               }
@@ -1031,9 +1010,6 @@
           },
           "then": {
             "properties": {
-              "status": {
-                "const": "deactivated"
-              },
               "cell_value": {
                 "const": "deactivated"
               }

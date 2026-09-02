@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.8",
+  "version": "2026-09-02.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T18:20:00+08:00",
+  "generated_at": "2026-09-02T23:25:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1276,15 +1276,14 @@
       "operation_id": "ak.peer.signal.command.relay.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/peer/signal",
-      "success_shape_kind": "schema_resource",
+      "success_shape_kind": "empty_response",
       "request_schema_ref": "schemas/signal-relay.schema.json",
-      "response_schema_ref": "schemas/signal-relay.schema.json#/$defs/signal_relay_outcome",
+      "response_schema_ref": null,
       "openapi_component_refs": {
-        "request": "../schemas/signal-relay.schema.json",
-        "response": "../schemas/signal-relay.schema.json#/$defs/signal_relay_outcome"
+        "request": "../schemas/signal-relay.schema.json"
       },
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
+      "reason": "registry declares artifact schema ref(s) for request."
     },
     {
       "operation_id": "ak.root.identity.command.submit_did_operation.v1",
@@ -2733,15 +2732,14 @@
       "operation_id": "ak.self.keys.backups.resource.delete.v1",
       "surface_class": "extension",
       "http": "DELETE /_arkret/self/keys/backups/{backup_id}",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "empty_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",
+      "response_schema_ref": null,
       "openapi_component_refs": {
-        "request": "#/components/schemas/KeysBackupsDeleteRequestBody",
-        "response": "#/components/schemas/KeysBackupsDeleteOutcome"
+        "request": "#/components/schemas/KeysBackupsDeleteRequestBody"
       },
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
+      "reason": "registry declares artifact schema ref(s) for request."
     },
     {
       "operation_id": "ak.self.keys.backups.resource.replace.v1",

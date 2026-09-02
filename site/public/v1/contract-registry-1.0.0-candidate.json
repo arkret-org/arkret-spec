@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.8",
+  "version": "2026-09-02.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T18:20:00+08:00",
+  "generated_at": "2026-09-02T23:25:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -435,7 +435,7 @@
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
       "lifecycle_modality applies to physical object lifecycle writes, identified mechanically by an fsm_contract whose axis is object_lifecycle, plus explicitly registered reversible Realm lifecycle facets. Every active event kind that writes such a family MUST declare lifecycle_modality. Use reversible for a reversible facet or either member of an archive/restore pair, and terminal for an irreversible transition. Workflow, membership, status, audit, key-material and OR-Set revocation axes are excluded. Reducers and SDKs MUST read this field and MUST NOT infer modality from event-kind spelling.",
       "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a canonical_json descriptor for a closed structured identifier (key bytes are its RFC 8785 JCS bytes), a coalesce descriptor, or a composite descriptor whose structured components use the same canonical_json descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
-      "The ak.component.agent.status.v1 lifecycle cell is keyed only by the complete Agent account ActorId: agent-control ak.realm.create and every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate write MUST use the identical single-component composite canonical_json(envelope.actor_id) subject. The Agent actor MUST be the account variant; a service actor is invalid. payload.agent_id is a redundant principal cross-binding and MUST equal envelope.actor_id.account_id.principal_id, but it never addresses the cell. payload.controller_id MUST equal executed_by.account_id.principal_id. Missing or unequal bindings fail closed, and Account ActorIds with the same principal_id at different station_id values MUST derive different subjects.",
+      "The ak.component.agent.status.v1 lifecycle cell is keyed only by the complete Agent account ActorId: agent-control ak.realm.create and every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate write MUST use the identical single-component composite canonical_json(envelope.actor_id) subject. The Agent actor MUST be the account variant; a service actor is invalid. The Agent principal component is derived only from envelope.actor_id and the controller principal only from envelope.executed_by; the lifecycle payloads carry no agent_id or controller_id mirror. These writes are delegated controller writes: executed_by and its paired authorization_ref MUST be present for agent-control ak.realm.create and for every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate, enforced by the registered event-kind admission rule (and its Event Envelope schema lock), never only by the generic optional envelope schema. A missing executor pair, a service actor, or a missing exact Station binding fails closed, and Account ActorIds with the same principal_id at different station_id values MUST derive different subjects.",
       "Every lattice=fsm cell write MUST resolve by cell_family to exactly one fsm_contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
       "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBA fields, reducer_input, or shared cell_contracts.",
       "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 and ak.component.realm.reducer_profile.v1 are canonically defined in zh/authz/event-auth-state-resolution.md; their genesis values come from ak.realm.create, and subsequent writes use ak.realm.notary and ak.realm.upgrade respectively.",
@@ -3104,103 +3104,6 @@
           }
         ],
         "concurrency_class": "merge_safe"
-      },
-      "ak.moderation.appeal.close": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.moderation.appeal.v1",
-            "cell_subject": {
-              "field": "payload.appeal_id",
-              "kind": "string"
-            },
-            "lattice": "fsm",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "transition_to",
-              "to": {
-                "const": "closed"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "exclusive"
-      },
-      "ak.moderation.appeal.decision": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.moderation.appeal.v1",
-            "cell_subject": {
-              "field": "payload.appeal_id",
-              "kind": "string"
-            },
-            "lattice": "fsm",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "transition",
-              "from": {
-                "const": "under_review"
-              },
-              "to": {
-                "const": "decided"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "exclusive"
-      },
-      "ak.moderation.appeal.review": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.moderation.appeal.v1",
-            "cell_subject": {
-              "field": "payload.appeal_id",
-              "kind": "string"
-            },
-            "lattice": "fsm",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "transition",
-              "from": {
-                "const": "submitted"
-              },
-              "to": {
-                "const": "under_review"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "exclusive"
-      },
-      "ak.moderation.appeal.submit": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.moderation.appeal.v1",
-            "cell_subject": {
-              "field": "envelope.event_id",
-              "kind": "id:appeal"
-            },
-            "lattice": "fsm",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "transition",
-              "from": {
-                "const": null
-              },
-              "to": {
-                "const": "submitted"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "exclusive"
       },
       "ak.moderation.decision": {
         "plane": "control",
@@ -6890,6 +6793,24 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
+        "admission": "conditional",
+        "admission_variants": [
+          {
+            "when": {
+              "top_level_fields_present": [
+                "executed_by",
+                "authorization_ref"
+              ]
+            },
+            "admission": "capability_gated"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "admission": "deny"
+          }
+        ],
         "payload": "Agent lifecycle transition to paused state. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within an independent pause revocation freshness window of at most 60 seconds, never merely the session maximum TTL. Reversible via ak.self.agent.resume.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_pause_payload",
         "id_source": "not_an_object_id"
@@ -6901,6 +6822,24 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
+        "admission": "conditional",
+        "admission_variants": [
+          {
+            "when": {
+              "top_level_fields_present": [
+                "executed_by",
+                "authorization_ref"
+              ]
+            },
+            "admission": "capability_gated"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "admission": "deny"
+          }
+        ],
         "payload": "Agent lifecycle transition from paused to active. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. At acceptance the reducer MUST use the accepted current control frontier to re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_resume_payload",
         "id_source": "not_an_object_id"
@@ -6912,6 +6851,24 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
+        "admission": "conditional",
+        "admission_variants": [
+          {
+            "when": {
+              "top_level_fields_present": [
+                "executed_by",
+                "authorization_ref"
+              ]
+            },
+            "admission": "capability_gated"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "admission": "deny"
+          }
+        ],
         "payload": "Agent lifecycle terminal state. One accepted controller-authorized Event is the unavoidable parent AND gate for every runtime key, session, pairing handle, capability grant, KeyPackage, presence and future submission. Cleanup is asynchronous and MUST NOT synthesize or require child revocation Events. Terminal — no transition out.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_deactivate_payload",
         "id_source": "not_an_object_id"
@@ -7475,51 +7432,6 @@
         "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_decision_lift_payload",
         "id_source": "not_an_object_id"
-      },
-      {
-        "event_kind": "ak.moderation.appeal.submit",
-        "category": "moderation",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. appeal_id is omitted and derived by retyping this Event's event_id. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
-        "payload_schema_ref": "schemas/moderation-appeal.schema.json#/$defs/submit_payload",
-        "id_source": "event_derived",
-        "id_kind": "appeal"
-      },
-      {
-        "event_kind": "ak.moderation.appeal.review",
-        "category": "moderation",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ak.schema.moderation_appeal.v1.",
-        "payload_schema_ref": "schemas/moderation-appeal.schema.json#/$defs/review_payload",
-        "id_source": "reference"
-      },
-      {
-        "event_kind": "ak.moderation.appeal.decision",
-        "category": "moderation",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ak.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ak.schema.moderation_appeal.v1.",
-        "payload_schema_ref": "schemas/moderation-appeal.schema.json#/$defs/decision_payload",
-        "id_source": "reference"
-      },
-      {
-        "event_kind": "ak.moderation.appeal.close",
-        "category": "moderation",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ak.schema.moderation_appeal.v1.",
-        "payload_schema_ref": "schemas/moderation-appeal.schema.json#/$defs/close_payload",
-        "id_source": "reference"
       },
       {
         "event_kind": "ak.read_cursor.advance",
@@ -8357,43 +8269,6 @@
             "audit_effect": "append_keypackage_claim_record"
           }
         ]
-      },
-      "ak.component.moderation.appeal.v1": {
-        "axis": "workflow",
-        "states": [
-          "submitted",
-          "under_review",
-          "decided",
-          "closed"
-        ],
-        "terminal_states": [
-          "closed"
-        ],
-        "idempotent_replay": "same_transition_same_basis_noop",
-        "concurrent_sibling_conflict": "bottom",
-        "allowed_transitions": [
-          [
-            "submitted",
-            "under_review"
-          ],
-          [
-            "under_review",
-            "decided"
-          ],
-          [
-            "submitted",
-            "closed"
-          ],
-          [
-            "under_review",
-            "closed"
-          ],
-          [
-            "decided",
-            "closed"
-          ]
-        ],
-        "initial_state": "submitted"
       },
       "ak.component.morph.lifecycle.v1": {
         "axis": "object_lifecycle",
@@ -9673,10 +9548,6 @@
         }
       },
       {
-        "schema_id": "ak.schema.moderation_appeal.v1",
-        "file": "schemas/moderation-appeal.schema.json"
-      },
-      {
         "schema_id": "ak.schema.audit_release_attestation.v1",
         "file": "schemas/audit-release-attestation.schema.json",
         "consumer_binding": {
@@ -10198,7 +10069,7 @@
         "schema_id": "ak.schema.principal_operations.v1",
         "file": "schemas/principal-operations.schema.json",
         "status": "active",
-        "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, KeyPackage terminal handling, Sidecar staging and shared primitives.",
+        "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, Sidecar staging and shared primitives.",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "registered principal-scoped operation DTO and proof carriers",
@@ -10235,8 +10106,8 @@
         }
       }
     ],
-    "version": "2026-09-02.4",
-    "generated_at": "2026-09-02T16:24:00+08:00"
+    "version": "2026-09-02.5",
+    "generated_at": "2026-09-02T23:25:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -10418,8 +10289,9 @@
         "wire_form": "ak:blob:<digest-suite>:<digest>",
         "payload_pattern": "(?:sha256|blake3):[0-9a-f]{64}",
         "status": "active",
+        "content_addressed": true,
         "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
-        "description": "Content-addressed blob reference using an active digest-suite id (v1: sha256 or profile-gated blake3); distinct from ak:blob:<uuid> blob metadata IDs."
+        "description": "Content-addressed blob reference using an active digest-suite id (v1: sha256 or profile-gated blake3); distinct from ak:blob:<uuid> blob metadata IDs. The embedded digest is the sole wire carrier of the referenced bytes' digest; same-carrier sibling digest mirrors are forbidden (encoding.md 4.0.1)."
       },
       {
         "kind": "mls",
@@ -10450,6 +10322,7 @@
         "wire_form": "ak:service_registration_receipt:<sha256-hex>",
         "payload_pattern": "[0-9a-f]{64}",
         "status": "active",
+        "content_addressed": true,
         "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
         "description": "Content-addressed ServiceRegistrationReceipt identifier derived from canonical receipt claims. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt claims))."
       },
@@ -10485,6 +10358,7 @@
         "wire_form": "ak:organization_registration_receipt:<64-lowercase-hex>",
         "payload_pattern": "[0-9a-f]{64}",
         "status": "active",
+        "content_addressed": true,
         "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
         "description": "Content-addressed OrganizationRegistrationReceipt identifier. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt_claims)), where receipt_claims is exactly the receipt object with registration_receipt_id and proof both omitted; it is the same content-addressed family as service_registration_receipt and MUST NOT be reused as a Realm capability, membership, notary designation or service delegation."
       },
@@ -10493,14 +10367,16 @@
         "wire_form": "ak:membership_compensation_delegation:sha256:<lowercase_hex>",
         "payload_pattern": "sha256:[0-9a-f]{64}",
         "status": "active",
-        "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference.",
-        "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal the SHA-256 delegation_digest derived from the profile-defined digest-free canonical core."
+        "content_addressed": true,
+        "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference; the reference is the only wire carrier of that digest.",
+        "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(core)) over the profile-defined closed core that carries neither delegation_id nor signature. The delegation object, terminal certificate and single-use CAS token carry only this typed reference; no sibling delegation_digest exists (encoding.md 4.0.1)."
       },
       {
         "kind": "seal",
         "wire_form": "ak:seal:<digest-suite>:<digest>",
         "payload_pattern": "(?:sha256|blake3):[0-9a-f]{64}",
         "status": "active",
+        "content_addressed": true,
         "storage_recommendation": "Store as a content-addressed canonical Seal hash.",
         "description": "Content-addressed Seal identifier using an active digest-suite id (v1: sha256 or profile-gated blake3), the same suite-tagged shape as ak:blob:<digest-suite>:<digest>. The suite segment is not fixed to sha256: a Seal id is a critical field, so its suite prefix MUST equal the Realm digest_algorithm and MUST be an active row of registry/digest-suite-registry.json; any other prefix fails closed with unsupported_digest_algorithm. See spec/v1/zh/authz/event-auth-state-resolution.md section 6."
       },
@@ -10533,6 +10409,7 @@
         "wire_form": "ak:signer_evidence:sha256:<64-lowercase-hex>",
         "payload_pattern": "sha256:[0-9a-f]{64}",
         "status": "active",
+        "content_addressed": true,
         "storage_recommendation": "Store the complete typed content-addressed identifier together with the exact canonical signer-evidence bytes.",
         "description": "Content-addressed authenticated signer-resolution evidence reference. The suffix is the SHA-256 digest of the complete canonical evidence object under its registered digest rule."
       }
@@ -10551,18 +10428,6 @@
         "identity_authority": "event",
         "genesis_event_kinds": [
           "ak.profile.create"
-        ]
-      },
-      {
-        "kind": "appeal",
-        "category": "moderation",
-        "status": "active",
-        "wire_form": "ak:appeal:<44-char-event-token>",
-        "description": "Moderation appeal ID derived from ak.moderation.appeal.submit and referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5.",
-        "id_form": "event_derived",
-        "identity_authority": "event",
-        "genesis_event_kinds": [
-          "ak.moderation.appeal.submit"
         ]
       },
       {
@@ -11197,8 +11062,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-09-02.3",
-    "generated_at": "2026-09-02T15:30:00+08:00"
+    "version": "2026-09-02.4",
+    "generated_at": "2026-09-02T20:40:00+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -13071,18 +12936,17 @@
         "http": "POST /_arkret/peer/signal",
         "grpc": "PeerSignal/Relay",
         "mq": "peer.signal.command.relay",
-        "notes": "Optional Signal Extension single-hop peer relay. The source batches original producer-signed encrypted SignalEnvelope values for one Realm and one destination service. The destination independently verifies peer authentication, current joined-member ActorId routing authority, envelope proof, scope, Seal, signal_class, TTL and encrypted payload binding, then performs only local live fanout. The request MUST NOT carry Idempotency-Key; uncertain outcomes use drop_unconfirmed. The opaque accepted=true response reveals no Realm, scope, sender, recipient, binding, support, or per-signal result and is not a durable delivery receipt.",
+        "notes": "Optional Signal Extension single-hop peer relay. The source batches original producer-signed encrypted SignalEnvelope values for one Realm and one destination service. The destination independently verifies peer authentication, current joined-member ActorId routing authority, envelope proof, scope, Seal, signal_class, TTL and encrypted payload binding, then performs only local live fanout. The request MUST NOT carry Idempotency-Key; uncertain outcomes use drop_unconfirmed. A successful request returns an empty response; it reveals no Realm, scope, sender, recipient, binding, support, or per-signal result and is not a durable delivery receipt.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 1048576,
         "max_items": 128,
-        "success_shape_kind": "schema_resource",
+        "success_shape_kind": "empty_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "drop_unconfirmed"
         },
         "request_schema_ref": "schemas/signal-relay.schema.json",
-        "response_schema_ref": "schemas/signal-relay.schema.json#/$defs/signal_relay_outcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "ephemeral_signal_must_not_be_durable_event"
@@ -14540,7 +14404,7 @@
         "http": "POST /_arkret/self/seals/governance-dependencies",
         "grpc": "SelfSeals/GovernanceDependencies",
         "mq": "self.seals.read.governance_dependencies",
-        "notes": "Resolve a caller-split batch of exactly four content-addressed governance-dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, MinimalMetadataMlsLeafSignerEvidence, and CollisionVariantRecord. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
+        "notes": "Resolve a caller-split batch of exactly four typed non-Event dependency kinds: the content-addressed AvailabilityReceipt, AuthenticatedSignerResolutionEvidence and MinimalMetadataMlsLeafSignerEvidence, plus CollisionVariantRecord selected by collision_variant_record_id and verified against the referencing ak.fork.resolution locator digest. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -14759,14 +14623,13 @@
         "http": "DELETE /_arkret/self/keys/backups/{backup_id}",
         "grpc": "SelfKeys/BackupsDelete",
         "mq": "self.keys.backups.resource.delete",
-        "notes": "High-risk delete guarded by a server-issued single-use challenge and the shared high-risk authority proof family (key-management.md section 7.8/7.8.1). The challenge is consumed atomically with the first successful delete; a byte-identical retry returns the stored terminal outcome, and the same request_id with a different canonical digest is a duplicate conflict.",
+        "notes": "High-risk delete guarded by a server-issued single-use challenge and the shared high-risk authority proof family (key-management.md section 7.8/7.8.1). The challenge is consumed atomically with the first successful delete; a byte-identical retry returns the same empty success response, and the same request_id with a different canonical digest is a duplicate conflict.",
         "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
+        "success_shape_kind": "empty_response",
         "idempotency_mechanism": "canonical_hash",
         "canonical_hash_input": "/request_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
-        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -15372,8 +15235,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-02.3",
-    "generated_at": "2026-09-02T15:30:00+08:00",
+    "version": "2026-09-02.5",
+    "generated_at": "2026-09-02T23:25:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17585,30 +17448,6 @@
         "notes": "Narrow Direct Conversation participant authority for welcoming another currently authorized device of the same stable participant. It cannot add a third principal or a device of the other participant."
       },
       {
-        "action": "ak.moderation.appeal.review",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.moderation.appeal.review",
-          "ak.moderation.appeal.decision",
-          "ak.moderation.appeal.close"
-        ],
-        "profile": null,
-        "event_mapping_kind": "aggregate_admin"
-      },
-      {
-        "action": "ak.moderation.appeal.submit",
-        "category": "management",
-        "risk_tier": "low",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.moderation.appeal.submit"
-        ],
-        "profile": null,
-        "event_mapping_kind": "same_name"
-      },
-      {
         "action": "ak.moderation.decision",
         "category": "management",
         "risk_tier": "high",
@@ -18113,10 +17952,6 @@
           "ak.mls.keypackage",
           "ak.mls.proposal",
           "ak.mls.welcome",
-          "ak.moderation.appeal.close",
-          "ak.moderation.appeal.decision",
-          "ak.moderation.appeal.review",
-          "ak.moderation.appeal.submit",
           "ak.moderation.decision",
           "ak.moderation.decision.lift",
           "ak.morph.archive",
@@ -18227,8 +18062,6 @@
           "ak.mls.keypackage",
           "ak.mls.proposal",
           "ak.mls.welcome",
-          "ak.moderation.appeal.review",
-          "ak.moderation.appeal.submit",
           "ak.moderation.decision",
           "ak.moderation.decision.lift",
           "ak.morph.archive",

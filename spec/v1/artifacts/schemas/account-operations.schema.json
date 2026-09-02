@@ -2454,7 +2454,6 @@
       "description": "Recorded terminal outcome of an explicit abandonment. One transaction consumed the challenge, recorded the orphan-anchor tombstone / audit reservation, suppressed the reserved_identity_creation checkpoint on every holder-readable surface and released the identity-creation lease. There is exactly one success terminal; every other terminal is an error reply. Whether the orphan anchor is annotated on a discovery surface, when its handle and namespace are released and how long the reservation is retained are deployment governance and are not carried here.",
       "required": [
         "request_id",
-        "status",
         "account_subject",
         "principal_id",
         "did_version_id",
@@ -2463,9 +2462,6 @@
       "properties": {
         "request_id": {
           "$ref": "#/$defs/request_id"
-        },
-        "status": {
-          "const": "abandoned"
         },
         "account_subject": {
           "$ref": "#/$defs/account_subject"
@@ -2509,16 +2505,12 @@
       "description": "Acceptance confirmation of a self-initiated account erasure request. At most one live intent record exists per account while the erasure_pending AccountStatusRecord is unsigned. This outcome proves only that the intent is durably recorded; it MUST NOT be read as record issuance or physical erasure completion. Completion is observed through the existing account-status read surface, and physical completion through the erasure receipt rail (zh/identity/account-lifecycle.md section 8).",
       "required": [
         "request_id",
-        "status",
         "principal_id",
         "recorded_at"
       ],
       "properties": {
         "request_id": {
           "$ref": "#/$defs/request_id"
-        },
-        "status": {
-          "const": "accepted"
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",

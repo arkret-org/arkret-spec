@@ -8,7 +8,6 @@
     "schema",
     "realm_id",
     "strand_id",
-    "track_name",
     "state",
     "created_by",
     "created_at"
@@ -37,7 +36,7 @@
         "required": [
           "track"
         ],
-        "$comment": "forbidden track key; canonical name is track_name"
+        "$comment": "forbidden track selector; the Message schema identity fixes the discussion family"
       },
       {
         "required": [
@@ -118,11 +117,6 @@
     "strand_id": {
       "type": "string",
       "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
-    },
-    "track_name": {
-      "type": "string",
-      "const": "discussion",
-      "description": "Strand track key for this Message. v1 Message objects are restricted to the Strand discussion track. Profiles that need another timeline kind MUST register a separate object/event profile instead of overloading Message.track_name."
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",

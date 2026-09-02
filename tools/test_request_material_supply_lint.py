@@ -118,6 +118,21 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
             errors,
         )
 
+    def test_caller_signed_referenced_union_branches_are_client_local(self) -> None:
+        # A caller-signed identity selected inside a required oneOf remains
+        # caller-authored at the branch root. The continue artifact union uses
+        # this for both recovery_receipt and security_rotation_local_commit.
+        errors = self._run()
+        self.assertFalse(
+            [
+                error
+                for error in errors
+                if "ak.self.security_transaction.command.continue.v1" in error
+                and "client_attestation.artifact" in error
+            ],
+            errors,
+        )
+
     def test_referenced_union_branches_retain_supply_requirements(self) -> None:
         # introduction_evidence is a oneOf whose branches are all local $refs.
         # An unsupplied required member added inside one referenced branch must

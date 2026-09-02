@@ -43,15 +43,33 @@ def main() -> int:
         raise SystemExit("HandleClaim revocation digest drifted")
 
     status = fixture["status"]
-    if status["preimage"]["claim_digest"] != core_digest:
+    status_claim = status["preimage"]["claim"]
+    if status_claim != core["preimage"]:
+        raise SystemExit("HandleClaim status does not carry the exact core")
+    status_claim_projection = {
+        key: value for key, value in status_claim.items() if key != "proofs"
+    }
+    if digest(core["domain"], status_claim_projection) != core_digest:
         raise SystemExit("HandleClaim status does not bind the exact core")
-    if digest(status["domain"], status["preimage"]) != status["expected_digest"]:
+    status_projection = {
+        key: value for key, value in status["preimage"].items() if key != "status_proof"
+    }
+    if digest(status["domain"], status_projection) != status["expected_digest"]:
         raise SystemExit("HandleClaim status digest drifted")
     if set(status["preimage"]) != {
-        "claim_digest", "status", "as_of", "verifier_id", "verified_at",
-        "revocation_digest", "fresh_until",
+        "schema", "claim", "status", "as_of", "verifier_id", "verified_at",
+        "revocation", "fresh_until", "status_proof",
     }:
         raise SystemExit("HandleClaim status preimage is not closed")
+    status_proof = status["preimage"]["status_proof"]
+    if (
+        status_proof["payload_digest"] != status["expected_digest"]
+        or status_proof["domain"] != status["domain"]
+        or status_proof["proof_purpose"] != "status_attestation"
+    ):
+        raise SystemExit("HandleClaim status proof does not bind the exact status transcript")
+    if status["preimage"]["revocation"] is not None:
+        raise SystemExit("HandleClaim verified status must carry revocation=null")
 
     proof = fixture["proof_signing_input"]
     if proof["payload_digest"] != core_digest or proof["domain"] != core["domain"]:

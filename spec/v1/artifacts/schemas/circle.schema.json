@@ -50,7 +50,7 @@
         "members",
         "realm_members"
       ],
-      "description": "Who may see this Circle exists as a directory entry. 'members' means only Circle members see its title/display/member_count. 'realm_members' exposes directory metadata only and does NOT grant event or history access."
+      "description": "Who may see this Circle exists as a directory entry. 'members' means only Circle members see its title/display/member_ids. 'realm_members' exposes directory metadata only and does NOT grant event or history access."
     },
     "join_rule": {
       "type": "string",

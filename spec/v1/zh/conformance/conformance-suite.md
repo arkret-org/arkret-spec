@@ -172,7 +172,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 | Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal realm 映射 |
 | MIMI Provider Facade | draft pinning、room binding、KeyPackage claim、message/content roundtrip、policy mapping、identifier privacy、consent isolation、proxy download、unsupported draft fail-closed | MIMI content extension lossless preservation |
 | Identity Registry | DID log 一致性、witness receipt、method adapter | witness-only、read-replica |
-| Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | appeal / audit trail |
+| Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | audit trail |
 | Agent Runtime | capability grant 解释、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |
 
 **向量与 operation clause 覆盖（normative）**：领域行为的 active 向量以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为真相源；HTTP/API 行为以 [`operation-clause-registry.json`](../../artifacts/registry/operation-clause-registry.json) 的 selector-based clause closure 为认证入口。runner MUST 先计算 profile 继承后的 `operation_requirements`，再对每个 operation 执行全部匹配的 active `AK-OP-NNN` clause；OpenAPI shape、认证、错误、限额、幂等/uncertain outcome、stream recovery、partial outcome 与 privacy evidence 任一缺失，均不得声明该 profile 为 `v1-conformance-certified`。prose 或 OpenAPI 形状检查不能替代 registry 声明的行为证据。

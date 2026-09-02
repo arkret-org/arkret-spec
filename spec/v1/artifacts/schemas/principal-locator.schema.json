@@ -214,15 +214,11 @@
       "type": "object",
       "required": [
         "locator_id",
-        "status",
         "revoked_at"
       ],
       "properties": {
         "locator_id": {
           "$ref": "#/$defs/locator_id"
-        },
-        "status": {
-          "const": "revoked"
         },
         "revoked_at": {
           "$ref": "#/$defs/timestamp"

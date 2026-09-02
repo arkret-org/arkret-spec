@@ -14,7 +14,6 @@
     "mls_leaf_index",
     "mls_epoch",
     "response_signing_verification_method",
-    "response_signing_algorithm",
     "response_signing_public_key_b64u",
     "response_signing_public_key_digest",
     "effective_at",
@@ -80,10 +79,6 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
       "description": "Pairwise DID URL used only for generic history response PayloadProof signatures. Its controller MUST project to pairwise_actor_id."
-    },
-    "response_signing_algorithm": {
-      "const": "Ed25519",
-      "description": "The v1 history response PayloadProof algorithm. This key is independent from the MLS ciphersuite LeafNode signature key."
     },
     "response_signing_public_key_b64u": {
       "type": "string",

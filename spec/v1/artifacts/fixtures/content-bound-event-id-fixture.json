@@ -182,7 +182,6 @@
       "vector_id": "ak.vector.object_identity.event_derived.v1",
       "derived_event_id": "ak:event:Aa2Nr64418oSiMpEfwPph1BEAJvBD8rTgUfGC_U64p0v",
       "event_kind_to_object_id": {
-        "ak.moderation.appeal.submit": "ak:appeal:Aa2Nr64418oSiMpEfwPph1BEAJvBD8rTgUfGC_U64p0v",
         "ak.audit.session.request": "ak:audit_session:Aa2Nr64418oSiMpEfwPph1BEAJvBD8rTgUfGC_U64p0v",
         "ak.audit.release": "ak:audit_release:Aa2Nr64418oSiMpEfwPph1BEAJvBD8rTgUfGC_U64p0v",
         "ak.invite.create": "ak:invite:Aa2Nr64418oSiMpEfwPph1BEAJvBD8rTgUfGC_U64p0v",

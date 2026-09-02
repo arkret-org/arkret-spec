@@ -9,12 +9,10 @@
     "controller_id",
     "sidecar_id",
     "exchange_id",
-    "origin",
     "source_track_ref",
     "source_hlc",
     "client_order_key",
     "addressed_agent_ids",
-    "completion_policy",
     "coordinator_agent_id",
     "coordinator_assignment_event_id",
     "participating_agent_ids",
@@ -35,9 +33,6 @@
     },
     "exchange_id": {
       "$ref": "#/$defs/exchange_id"
-    },
-    "origin": {
-      "const": "source_track_routed"
     },
     "source_track_ref": {
       "$ref": "#/$defs/source_track_ref"
@@ -60,9 +55,6 @@
       },
       "uniqueItems": true,
       "minItems": 1
-    },
-    "completion_policy": {
-      "const": "coordinator"
     },
     "coordinator_agent_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"

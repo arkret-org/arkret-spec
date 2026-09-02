@@ -15,3 +15,4 @@ _*.md
 /_*_todos.md
 _*.txt
 out*.txt
+.codex*

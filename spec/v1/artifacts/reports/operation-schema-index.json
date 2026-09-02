@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.8",
+  "version": "2026-09-02.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T18:20:00+08:00",
+  "generated_at": "2026-09-02T23:25:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -531,7 +531,6 @@
           "profile",
           "phase",
           "batch_id",
-          "ciphersuite",
           "key_epoch",
           "blinded_elements",
           "derived_prefixes"
@@ -545,7 +544,6 @@
               "profile",
               "phase",
               "batch_id",
-              "ciphersuite",
               "key_epoch",
               "blinded_elements"
             ],
@@ -553,7 +551,6 @@
               "profile",
               "phase",
               "batch_id",
-              "ciphersuite",
               "key_epoch",
               "blinded_elements"
             ],
@@ -594,11 +591,9 @@
           "profile",
           "phase",
           "batch_id",
-          "ciphersuite",
           "key_epoch",
           "evaluated_elements",
           "evaluation_proofs",
-          "derived_prefix_bytes",
           "padding",
           "hit_bitmap",
           "handoff_stubs"
@@ -612,22 +607,18 @@
               "profile",
               "phase",
               "batch_id",
-              "ciphersuite",
               "key_epoch",
               "evaluated_elements",
               "evaluation_proofs",
-              "derived_prefix_bytes",
               "padding"
             ],
             "properties": [
               "profile",
               "phase",
               "batch_id",
-              "ciphersuite",
               "key_epoch",
               "evaluated_elements",
               "evaluation_proofs",
-              "derived_prefix_bytes",
               "padding"
             ],
             "closed": true
@@ -688,14 +679,12 @@
           "controller_subject_id",
           "subject_id",
           "agent_slug",
-          "verified",
           "selector_claim"
         ],
         "properties": [
           "controller_subject_id",
           "subject_id",
           "agent_slug",
-          "verified",
           "selector_claim",
           "source_refs",
           "expires_at"
@@ -1300,7 +1289,6 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "status",
           "account_subject",
           "principal_id",
           "did_version_id",
@@ -1308,7 +1296,6 @@
         ],
         "properties": [
           "request_id",
-          "status",
           "account_subject",
           "principal_id",
           "did_version_id",
@@ -1476,13 +1463,11 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "status",
           "principal_id",
           "recorded_at"
         ],
         "properties": [
           "request_id",
-          "status",
           "principal_id",
           "recorded_at",
           "withdrawal_window_ends_at"
@@ -2262,29 +2247,13 @@
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
         "schema_kind": "object",
         "required": [
-          "strand_id",
-          "mimi_room_uri",
-          "realm_id",
-          "target_ref",
-          "reporter_id",
-          "source_provider_id",
           "reporter_authority",
-          "report_event",
-          "abuse_reason_code"
+          "report_event"
         ],
         "properties": [
-          "strand_id",
-          "mimi_room_uri",
-          "realm_id",
-          "target_ref",
-          "reporter_id",
-          "source_provider_id",
           "reporter_authority",
           "report_event",
-          "abuse_reason_code",
-          "evidence_package",
-          "franking_proof",
-          "description"
+          "cba_proof_bundles"
         ],
         "closed": true
       },
@@ -2292,12 +2261,10 @@
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome",
         "schema_kind": "object",
         "required": [
-          "report_id",
-          "status"
+          "report_id"
         ],
         "properties": [
           "report_id",
-          "status",
           "routed_to_ids"
         ],
         "closed": true
@@ -2328,12 +2295,10 @@
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome",
         "schema_kind": "object",
         "required": [
-          "consent_id",
-          "status"
+          "consent_id"
         ],
         "properties": [
           "consent_id",
-          "status",
           "challenge"
         ],
         "closed": true
@@ -2402,14 +2367,12 @@
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome",
         "schema_kind": "object",
         "required": [
-          "status",
           "consent_id",
           "decision",
           "updated_at",
           "event_ref"
         ],
         "properties": [
-          "status",
           "consent_id",
           "decision",
           "updated_at",
@@ -3543,9 +3506,7 @@
           "epoch",
           "group_state_event_id",
           "group_info_ref",
-          "group_info_digest",
-          "ratchet_tree_ref",
-          "ratchet_tree_digest"
+          "ratchet_tree_ref"
         ],
         "properties": [
           "realm_id",
@@ -3554,9 +3515,7 @@
           "epoch",
           "group_state_event_id",
           "group_info_ref",
-          "group_info_digest",
           "ratchet_tree_ref",
-          "ratchet_tree_digest",
           "max_response_bytes"
         ],
         "closed": true
@@ -3571,10 +3530,8 @@
           "epoch",
           "group_state_event_id",
           "group_info_ref",
-          "group_info_digest",
           "group_info_bytes_b64",
           "ratchet_tree_ref",
-          "ratchet_tree_digest",
           "ratchet_tree_bytes_b64"
         ],
         "properties": [
@@ -3584,10 +3541,8 @@
           "epoch",
           "group_state_event_id",
           "group_info_ref",
-          "group_info_digest",
           "group_info_bytes_b64",
           "ratchet_tree_ref",
-          "ratchet_tree_digest",
           "ratchet_tree_bytes_b64"
         ],
         "closed": true
@@ -3775,7 +3730,7 @@
     },
     {
       "operation_id": "ak.peer.signal.command.relay.v1",
-      "success_shape_kind": "schema_resource",
+      "success_shape_kind": "empty_response",
       "request": {
         "schema_ref": "schemas/signal-relay.schema.json",
         "schema_kind": "object",
@@ -3786,17 +3741,6 @@
         "properties": [
           "realm_id",
           "signals"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/signal-relay.schema.json#/$defs/signal_relay_outcome",
-        "schema_kind": "object",
-        "required": [
-          "accepted"
-        ],
-        "properties": [
-          "accepted"
         ],
         "closed": true
       }
@@ -4253,14 +4197,10 @@
         "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome",
         "schema_kind": "object",
         "required": [
-          "recovery_session_id",
-          "state",
-          "verification"
+          "recovery_session_id"
         ],
         "properties": [
           "recovery_session_id",
-          "state",
-          "verification",
           "proof_summary"
         ],
         "closed": true
@@ -5690,11 +5630,9 @@
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_outcome",
         "schema_kind": "object",
         "required": [
-          "revoke_plan_digest",
           "revoke_plan"
         ],
         "properties": [
-          "revoke_plan_digest",
           "revoke_plan"
         ],
         "closed": true
@@ -5875,14 +5813,12 @@
         "schema_kind": "object",
         "required": [
           "blob_ref",
-          "size_bytes",
-          "content_digest"
+          "size_bytes"
         ],
         "properties": [
           "blob_ref",
           "size_bytes",
           "media_type",
-          "content_digest",
           "upload_receipt"
         ],
         "closed": true
@@ -5984,7 +5920,6 @@
           "mls_group_id",
           "durability_policy",
           "state",
-          "member_count",
           "viewer_membership",
           "member_ids",
           "created_by",
@@ -6126,7 +6061,6 @@
           "mls_group_id",
           "durability_policy",
           "state",
-          "member_count",
           "viewer_membership",
           "member_ids",
           "created_by",
@@ -7059,7 +6993,6 @@
           "events",
           "unit_kind",
           "idempotency_key",
-          "founding_authority_evidence",
           "cascade_mode",
           "controller_transition",
           "agent_transitions",
@@ -7099,14 +7032,12 @@
             "required": [
               "unit_kind",
               "idempotency_key",
-              "events",
-              "founding_authority_evidence"
+              "events"
             ],
             "properties": [
               "unit_kind",
               "idempotency_key",
               "events",
-              "founding_authority_evidence",
               "cba_proof_bundles"
             ],
             "closed": true
@@ -7827,12 +7758,10 @@
         "schema_kind": "object",
         "required": [
           "locator_id",
-          "status",
           "revoked_at"
         ],
         "properties": [
           "locator_id",
-          "status",
           "revoked_at"
         ],
         "closed": true
@@ -8144,7 +8073,7 @@
     },
     {
       "operation_id": "ak.self.keys.backups.resource.delete.v1",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "empty_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
         "schema_kind": "object",
@@ -8158,18 +8087,6 @@
           "challenge_id",
           "proof",
           "reason"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",
-        "schema_kind": "object",
-        "required": [
-          "deleted"
-        ],
-        "properties": [
-          "deleted",
-          "backup_id"
         ],
         "closed": true
       }
@@ -8569,12 +8486,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome",
         "schema_kind": "object",
         "required": [
-          "report_id",
-          "status"
+          "report_id"
         ],
         "properties": [
           "report_id",
-          "status",
           "routed_to_ids"
         ],
         "closed": true
@@ -8832,7 +8747,8 @@
         "required": [
           "request_digest",
           "prepared_plan_digest",
-          "expected_accepted_step_count"
+          "expected_accepted_step_count",
+          "client_attestation"
         ],
         "properties": [
           "request_digest",
@@ -8849,7 +8765,6 @@
           "transaction_id",
           "kind",
           "account_id",
-          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -8861,7 +8776,6 @@
           "transaction_id",
           "kind",
           "account_id",
-          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -8942,7 +8856,6 @@
           "transaction_id",
           "kind",
           "account_id",
-          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -8954,7 +8867,6 @@
           "transaction_id",
           "kind",
           "account_id",
-          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -8976,7 +8888,6 @@
           "transaction_id",
           "kind",
           "account_id",
-          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -8988,7 +8899,6 @@
           "transaction_id",
           "kind",
           "account_id",
-          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",

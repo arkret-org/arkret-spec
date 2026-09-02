@@ -62,14 +62,8 @@
           "source_blob_ref": {
             "$ref": "#/$defs/blob_ref"
           },
-          "source_ciphertext_digest": {
-            "$ref": "#/$defs/digest"
-          },
           "thumbnail_blob_ref": {
             "$ref": "#/$defs/blob_ref"
-          },
-          "thumbnail_ciphertext_digest": {
-            "$ref": "#/$defs/digest"
           },
           "width": {
             "type": "integer",
@@ -139,9 +133,6 @@
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
-    "digest": {
-      "$ref": "./account-operations.schema.json#/$defs/digest"
     }
   }
 }

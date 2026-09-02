@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 200,
+    "total_schemas": 199,
     "by_consumer": {
       "declared_wire": 56,
-      "event_kind": 4,
+      "event_kind": 3,
       "inbound": 45,
-      "outbound": 54,
-      "prose": 114,
+      "outbound": 53,
+      "prose": 113,
       "prose_only": 2,
-      "schema_reference": 133,
-      "startup_compile": 200,
-      "vectors": 125
+      "schema_reference": 132,
+      "startup_compile": 199,
+      "vectors": 126
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 75,
+    "without_vector_coverage": 73,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -120,7 +120,6 @@
     "ak.schema.media_operations.v1",
     "ak.schema.member_identity.v1",
     "ak.schema.mimi_operations.v1",
-    "ak.schema.moderation_appeal.v1",
     "ak.schema.object_addressing.v1",
     "ak.schema.offline_publication.v1",
     "ak.schema.patch.v1",
@@ -137,7 +136,6 @@
     "ak.schema.resource_discovery_state.v1",
     "ak.schema.sdk_conformance_claim.v1",
     "ak.schema.seal_transparency.v1",
-    "ak.schema.security_rotation_local_commit.v1",
     "ak.schema.service_describe.v1",
     "ak.schema.service_identity_bundle.v1",
     "ak.schema.signal_presence.v1",
@@ -1342,7 +1340,6 @@
           "ak.schema.mimi_interop.v1",
           "ak.schema.mimi_operations.v1",
           "ak.schema.mls_governance_proof_bundle.v1",
-          "ak.schema.moderation_appeal.v1",
           "ak.schema.moderation_evidence.v1",
           "ak.schema.moderation_queue_item.v1",
           "ak.schema.morph.v1",
@@ -2589,24 +2586,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.moderation_appeal.v1",
-      "file": "schemas/moderation-appeal.schema.json",
-      "consumers": {
-        "event_kind": "registered",
-        "prose": "normative_text",
-        "schema_reference": "fragment",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.event.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
-      }
-    },
-    {
       "schema_id": "ak.schema.moderation_evidence.v1",
       "file": "schemas/moderation-evidence.schema.json",
       "consumers": {
@@ -3334,15 +3313,13 @@
       "consumers": {
         "prose": "normative_text",
         "schema_reference": "exact",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "fixture"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.security_transaction.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+        "disposition": "direct",
+        "evidence": "fixture"
       },
       "fragment": "#/$defs/security_rotation_local_commit"
     },
@@ -3481,7 +3458,6 @@
       "file": "schemas/signal-relay.schema.json",
       "consumers": {
         "inbound": "exact",
-        "outbound": "fragment",
         "prose": "normative_text",
         "startup_compile": "exact",
         "vectors": "required_schema"
@@ -3681,7 +3657,6 @@
           "ak.schema.message.v1",
           "ak.schema.mimi_interop.v1",
           "ak.schema.mimi_operations.v1",
-          "ak.schema.moderation_appeal.v1",
           "ak.schema.moderation_evidence.v1",
           "ak.schema.moderation_queue_item.v1",
           "ak.schema.morph.v1",

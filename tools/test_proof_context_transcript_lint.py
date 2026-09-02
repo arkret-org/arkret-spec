@@ -36,7 +36,7 @@ SAMPLE_FAMILY = "accountability_grant"
 SAMPLE_VECTOR = "ak.vector.proof_context.transcript.accountability_grant.v1"
 
 # A family whose binding carries a required single-value audience.
-REQUIRED_AUDIENCE_FAMILY = "directory_resolve_handle_request"
+REQUIRED_AUDIENCE_FAMILY = "directory_source_ref_access"
 
 
 class ProofContextTranscriptLintTest(unittest.TestCase):

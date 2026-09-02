@@ -85,9 +85,8 @@
     },
     "webvh_method_history_evidence": {
       "type": "object",
-      "description": "Complete did:webvh log, proof and witness material routed to adapter did:webvh:1.0. log_entries is the gap-free native history from inception through boundary.to_version_id, not a resolver summary or a partial segment. witness_records is the complete did-witness.json record set required by every witness policy active in that interval and is empty only when no entry activates a witness policy. The receiver independently verifies SCID derivation, every versionId/hash-chain link, every controller proof, rotation authorization, all applicable witness thresholds, the exact boundary endpoints and canonical equality of the terminal state with normalized_did_document. Canonical encoded evidence MUST NOT exceed 1 MiB; an over-limit service history is ineligible for this retained historical-signer/notary bootstrap and fails closed rather than returning partial evidence.",
+      "description": "Complete did:webvh log, proof and witness material routed by evidence_kind webvh_log to the active did:webvh adapter. log_entries is the gap-free native history from inception through boundary.to_version_id, not a resolver summary or a partial segment. witness_records is the complete did-witness.json record set required by every witness policy active in that interval and is empty only when no entry activates a witness policy. The receiver independently verifies SCID derivation, every versionId/hash-chain link, every controller proof, rotation authorization, all applicable witness thresholds, the exact boundary endpoints and canonical equality of the terminal state with normalized_did_document. Canonical encoded evidence MUST NOT exceed 1 MiB; an over-limit service history is ineligible for this retained historical-signer/notary bootstrap and fails closed rather than returning partial evidence.",
       "required": [
-        "adapter_version",
         "evidence_kind",
         "boundary",
         "evidence",
@@ -95,9 +94,6 @@
         "witness_records"
       ],
       "properties": {
-        "adapter_version": {
-          "const": "did:webvh:1.0"
-        },
         "evidence_kind": {
           "const": "webvh_log"
         },
@@ -130,17 +126,13 @@
     },
     "did_web_method_history_evidence": {
       "type": "object",
-      "description": "Bounded current DID Document retrieval evidence routed to adapter did:web:1. The boundary endpoints MUST be identical synthetic values. Canonical encoded evidence MUST NOT exceed 1 MiB.",
+      "description": "Bounded current DID Document retrieval evidence routed by evidence_kind did_web_document to the active did:web adapter. The boundary endpoints MUST be identical synthetic values. Canonical encoded evidence MUST NOT exceed 1 MiB.",
       "required": [
-        "adapter_version",
         "evidence_kind",
         "boundary",
         "evidence"
       ],
       "properties": {
-        "adapter_version": {
-          "const": "did:web:1"
-        },
         "evidence_kind": {
           "const": "did_web_document"
         },
@@ -156,17 +148,13 @@
     },
     "did_key_method_history_evidence": {
       "type": "object",
-      "description": "Bounded deterministic local expansion evidence routed to adapter did:key:1. The boundary endpoints MUST be identical synthetic values. Canonical encoded evidence MUST NOT exceed 1 MiB.",
+      "description": "Bounded deterministic local expansion evidence routed by evidence_kind did_key_expansion to the active did:key adapter. The boundary endpoints MUST be identical synthetic values. Canonical encoded evidence MUST NOT exceed 1 MiB.",
       "required": [
-        "adapter_version",
         "evidence_kind",
         "boundary",
         "evidence"
       ],
       "properties": {
-        "adapter_version": {
-          "const": "did:key:1"
-        },
         "evidence_kind": {
           "const": "did_key_expansion"
         },
@@ -181,7 +169,7 @@
       "additionalProperties": false
     },
     "method_history_evidence": {
-      "description": "Adapter-routed evidence. adapter_version and evidence_kind are a closed discriminator pair; unknown adapters or mismatched pairs fail closed.",
+      "description": "Adapter-routed evidence. evidence_kind is the single-source discriminator: the receiver resolves it through did-method-adapter-registry.json method_evidence_kind, which is unique across active adapters, to exactly one active adapter for this versioned schema. The evidence carries no adapter_version; an adapter change requires a new schema/operation version rather than a registry drift under the same wire shape. Unknown evidence kinds fail closed.",
       "oneOf": [
         {
           "$ref": "#/$defs/webvh_method_history_evidence"

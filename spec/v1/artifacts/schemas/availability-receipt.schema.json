@@ -11,7 +11,6 @@
     "holder_id",
     "retention_expires_at",
     "holder_signer_evidence_ref",
-    "holder_signer_evidence_digest",
     "signature"
   ],
   "properties": {
@@ -32,10 +31,8 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "holder_signer_evidence_ref": {
-      "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
-    },
-    "holder_signer_evidence_digest": {
-      "$ref": "#/$defs/sha256_digest"
+      "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+      "description": "Content-addressed holder signer evidence. Its embedded digest is the sole wire copy (encoding.md 4.0.1)."
     },
     "signature": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
@@ -43,13 +40,10 @@
     }
   },
   "additionalProperties": false,
-  "$comment": "The signature-free core is {realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}. signature.payload_digest is the Realm-suite digest of RFC 8785 JCS(core). The full receipt content address is computed from this complete signed object and is carried only by selectors, Seal commitments and storage keys.",
+  "$comment": "The signature-free core is {realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref}. signature.payload_digest is the Realm-suite digest of RFC 8785 JCS(core). The full receipt content address is computed from this complete signed object and is carried only by selectors, Seal commitments and storage keys.",
   "$defs": {
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
-    },
-    "sha256_digest": {
-      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     }
   }
 }

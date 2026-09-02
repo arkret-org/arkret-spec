@@ -139,7 +139,7 @@
     },
     "direct_conversation_founding_input": {
       "type": "object",
-      "description": "Verbatim authoring material for the founding unit the caller is now entitled to author, carried only by the creation_required outcome. Member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies them across without any renaming map (service-http-binding.md 2.2.2 echo-container discipline). The caller still authors and signs all four Events itself; this container never carries Event bytes, coordinates or a receipt. Material that the service cannot assemble or verify yields temporarily_unavailable instead of a creation_required outcome without it.",
+      "description": "Authoring material for the founding unit the caller is now entitled to author, carried only by the creation_required outcome. The founder reads the current Contact round, continuity chain and binding coordinates from it to author and sign the four Events; it is not an echo container, because DirectConversationFoundingUnitSubmission carries no founding_authority_evidence member and the founder's current Station re-verifies the unit against its own current evidence (zh/identity/contact-and-direct-conversation.md section 9.1.1). This container never carries Event bytes, coordinates or a receipt. Material that the service cannot assemble or verify yields temporarily_unavailable instead of a creation_required outcome without it.",
       "required": [
         "founding_authority_evidence"
       ],

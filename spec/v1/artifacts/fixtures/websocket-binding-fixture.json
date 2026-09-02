@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.binding.websocket.v1",
-  "version": "2026-07-29",
+  "version": "2026-09-02",
   "suite": "websocket_binding",
   "runner": {
     "kind": "named_suite",
@@ -23,9 +23,6 @@
       "instance": {
         "kind": "websocket",
         "base_url": "wss://server.example/_arkret/ws",
-        "extension_profile_required": "ak.profile.binding.websocket.v1",
-        "subprotocol": "arkret.v1",
-        "authentication": "challenge_dpop_session_v1",
         "max_frame_bytes": 2048,
         "max_channels": 16
       },
@@ -45,10 +42,8 @@
       "expected_transport": "http_json"
     },
     {
-      "name": "missing_subprotocol_or_limit_rejected",
+      "name": "missing_limit_rejected",
       "remove_each": [
-        "subprotocol",
-        "authentication",
         "max_frame_bytes",
         "max_channels"
       ],
@@ -116,9 +111,6 @@
           {
             "kind": "websocket",
             "base_url": "wss://server.example/_arkret/ws",
-            "extension_profile_required": "ak.profile.binding.websocket.v1",
-            "subprotocol": "arkret.v1",
-            "authentication": "challenge_dpop_session_v1",
             "max_frame_bytes": 2048,
             "max_channels": 16
           }
@@ -350,7 +342,7 @@
     {
       "name": "signal_data",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"data\",\"payload\":{\"envelope\":{\"encrypted_payload\":{\"aad_digest\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"ciphertext\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"epoch\":7,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"nonce\":\"AAAAAAAAAAAAAAAA\",\"purpose\":\"ak.signal.v1\",\"scheme\":\"ak.signal_exporter_aead.v1\"},\"expires_at\":\"2026-07-29T00:01:30.000Z\",\"proof\":{\"created_at\":\"2026-07-29T00:01:00.000Z\",\"envelope_digest\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"jws\":\"e30..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-key\"},\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"},\"seal_ref\":\"ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"sender_actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"sender_device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"sent_at\":\"2026-07-29T00:01:00.000Z\",\"signal_class\":\"session\"},\"kind\":\"signal\"}}",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"data\",\"payload\":{\"envelope\":{\"encrypted_payload\":{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"ciphertext\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"epoch\":7,\"key_ref\":{\"group_state_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"nonce\":\"AAAAAAAAAAAAAAAA\",\"purpose\":\"ak.signal.v1\",\"scheme\":\"ak.signal_exporter_aead.v1\"},\"expires_at\":\"2026-07-29T00:01:30.000Z\",\"proof\":{\"envelope_digest\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"jws\":\"e30..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-key\"},\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"},\"seal_ref\":\"ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"sender_actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"sender_device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"sent_at\":\"2026-07-29T00:01:00.000Z\",\"signal_class\":\"session\"},\"kind\":\"signal\"}}",
       "expect_valid": true
     },
     {

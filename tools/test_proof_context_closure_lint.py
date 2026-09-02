@@ -71,6 +71,13 @@ class ProofContextClosureLintTest(unittest.TestCase):
         raise AssertionError(f"missing registry row {context}")
 
     @staticmethod
+    def _domain_row(document, domain: str) -> dict:
+        for row in document["domain_separations"]:
+            if row.get("domain") == domain:
+                return row
+        raise AssertionError(f"missing domain-separation row {domain}")
+
+    @staticmethod
     def _drop_row(document, context: str) -> None:
         document["contexts"] = [
             row for row in document["contexts"] if row.get("context") != context
@@ -86,6 +93,57 @@ class ProofContextClosureLintTest(unittest.TestCase):
         lint = Lint()
         foundation.check_proof_context_registry(lint)
         self.assertEqual(lint.errors, [])
+
+    def test_local_directory_proof_cannot_move_back_to_contexts(self) -> None:
+        def move_to_contexts(document) -> None:
+            row = self._domain_row(
+                document, "ak.directory_resolve_target_request_proof.v1"
+            )
+            document["domain_separations"].remove(row)
+            moved = copy.deepcopy(row)
+            moved["context"] = moved.pop("domain")
+            moved.pop("primitive")
+            moved.pop("transcript_schema_refs")
+            moved.pop("injected_fields")
+            document["contexts"].append(moved)
+
+        errors = self._run_with_mutations({REGISTRY: move_to_contexts})
+        self.assertAnyContains(errors, "local proof leaves belong in domain_separations[]")
+
+    def test_current_signer_binding_field_must_match_schema(self) -> None:
+        def drift(document) -> None:
+            row = self._domain_row(document, "ak.current_signer_evidence_response.v1")
+            row["binding_fields"][-1] = "evidence"
+
+        errors = self._run_with_mutations({REGISTRY: drift})
+        self.assertAnyContains(errors, "binding_fields names ['evidence']")
+
+    def test_membership_compensation_bindings_are_schema_closed(self) -> None:
+        def drift(document) -> None:
+            cas = self._domain_row(
+                document, "ak.membership_compensation.single_use_cas.v1"
+            )
+            cas["binding_fields"][2] = "delegation_ref"
+            certificate = self._domain_row(
+                document, "ak.membership_compensation.terminal_certificate.v1"
+            )
+            certificate["binding_fields"][-1] = "issuer"
+
+        errors = self._run_with_mutations({REGISTRY: drift})
+        self.assertAnyContains(errors, "binding_fields names ['delegation_ref']")
+        self.assertAnyContains(errors, "binding_fields names ['issuer']")
+
+    def test_outer_binding_field_requires_explicit_injection(self) -> None:
+        def drop_injection(document) -> None:
+            row = self._domain_row(
+                document, "ak.directory_resolve_handle_request_proof.v1"
+            )
+            row["injected_fields"] = [
+                entry for entry in row["injected_fields"] if entry["field"] != "issuer"
+            ]
+
+        errors = self._run_with_mutations({REGISTRY: drop_injection})
+        self.assertAnyContains(errors, "declare injected_fields sources")
 
     def test_unregistered_use_point_family_fails(self) -> None:
         """The MIMI provider directory state: a whole object family with no row."""
@@ -234,6 +292,11 @@ class ProofContextClosureLintTest(unittest.TestCase):
                 "ak.directory_list_handles_for_subject_request_proof.v1",
             ):
                 self._drop_row(document, context)
+                document["domain_separations"] = [
+                    row
+                    for row in document["domain_separations"]
+                    if row.get("domain") != context
+                ]
             document["contexts"].append(
                 {
                     "context": "ak.directory_operation_proof.v1",
@@ -247,12 +310,12 @@ class ProofContextClosureLintTest(unittest.TestCase):
         def repack_schema(document) -> None:
             document["$defs"]["proofs"] = {
                 "type": "array",
-                "items": {"$ref": "#/$defs/proof"},
+                "items": {"$ref": "./event-envelope.schema.json#/$defs/proof"},
                 "minItems": 1,
             }
             for family in DIRECTORY_PROOF_FAMILIES:
                 node = document["$defs"][family]
-                node.pop("x-arkret-proof-context")
+                node.pop("x-arkret-signature-domain")
                 node["properties"]["proofs"] = {"$ref": "#/$defs/proofs"}
 
         errors = self._run_with_mutations(

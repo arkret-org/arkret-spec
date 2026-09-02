@@ -455,7 +455,7 @@ accepted Seal 的 `covered_set`、`control_event_set_root`、`completeness_root`
 `event_id`（[`operations-sync.md` §12](../sync/operations-sync.md)）时该前提不成立：两个变体的
 `event_digest` 逐字节相同，`covered_set`、`control_event_set_root` 与 `completeness_root` 里的 digest 无法指认 Seal 当初覆盖的是哪一个 preimage。因此本节在 §6.3.2 之上补充：
 
-1. **归一裁决 MUST 按 canonical bytes 指认，不得按 digest 指认。** `subject.kind=event_id_collision` 时，`conflict_evidence.kind` MUST 是 `full_hash_collision` 且恰含两个 locator；两个 locator 解出的完整 canonical Event bytes MUST byte-distinct、各自独立通过结构 / suite / proof 前置检查并重算为同一完整 `event_id`。locator 是封闭 XOR：`inline_canonical_bytes` 直接内联，或 `collision_variant_record` 引用 `ak.schema.collision_variant_record.v1`。**reference 分支是必需的而非便利**：接近 1 MiB 上限的原 Event 再经 base64 内联必然使 resolution Event 自身越过 §2.1.1 的 1 MiB 边界，那样的碰撞将不可裁决。引用时 payload 签入 `collision_variant_record_id` 与 `collision_variant_record_digest`；receiver MUST 经 `ak.self.seals.read.governance_dependencies.v1` / `ak.peer.seals.read.governance_dependencies.v1` 的 `collision_variant_record` selector 取得完整 record，重算 `collision_variant_record_digest = <Realm active suite>(JCS(record))`——原像是**含 `proof` 的完整 canonical record**，与 proof 自身的 `payload_digest`（其原像删去 `proof`）是两个不同摘要，不得互相代入——并与 locator 签入的值逐字比对；随后校验其 proof（context `ak.collision_variant_record_proof.v1`，controller 等于本 Move 的 `executed_by ?? actor_id` 且为已验证 recovery-capability 持有者）、`realm_id` 等于本 Event Realm、解码 bytes 长度与 `canonical_event_size_bytes` 一致、并独立重算出 `collision_event_id` 后，才可继续 `apply_seal`；record 缺失是 typed dependency missing，record 非法则拒绝 Seal。record 不进入 Seal `covered_set`——Seal 覆盖的是引用它的 resolution Move。`verdict.kind=canonical_winner` MUST 以 `winner_preimage` locator 指认，且其解出的 bytes MUST 逐字等于两个证据 locator 之一；`void_all` 明确作废本 Realm 内整组。receiver MUST 拒绝仅以 `event_id` / `event_digest`、另一 suite discriminator、长度或局部 byte slice 指认胜出变体的 Move，reason code `witness_disagreement`：在碰撞 suite 下这样的裁决没有指称。碰撞组可能跨 Realm；本 Move 只治理其 envelope `realm_id` 内的投影，winner MUST 是其 canonical bytes 内 `realm_id` 等于本 Realm 的变体，其它 Realm 由各自恢复权威独立裁决。
+1. **归一裁决 MUST 按 canonical bytes 指认，不得按 digest 指认。** `subject.kind=event_id_collision` 时，`conflict_evidence.kind` MUST 是 `full_hash_collision` 且恰含两个 locator；两个 locator 解出的完整 canonical Event bytes MUST byte-distinct、各自独立通过结构 / suite / proof 前置检查并重算为同一完整 `event_id`。locator 是封闭 XOR：`inline_canonical_bytes` 直接内联，或 `collision_variant_record` 引用 `ak.schema.collision_variant_record.v1`。**reference 分支是必需的而非便利**：接近 1 MiB 上限的原 Event 再经 base64 内联必然使 resolution Event 自身越过 §2.1.1 的 1 MiB 边界，那样的碰撞将不可裁决。引用时 payload 签入 `collision_variant_record_id` 与 `collision_variant_record_digest`；receiver MUST 经 `ak.self.seals.read.governance_dependencies.v1` / `ak.peer.seals.read.governance_dependencies.v1` 的 `collision_variant_record` selector 取得完整 record，重算 `collision_variant_record_digest = <Realm active suite>(JCS(record))`——原像是**含 `proof` 的完整 canonical record**，与 proof 自身的 `payload_digest`（其原像删去 `proof`）是两个不同摘要，不得互相代入——并与 locator 签入的值逐字比对；随后校验其 proof（context `ak.collision_variant_record_proof.v1`，controller 等于本 Move 的 `executed_by ?? actor_id` 且为已验证 recovery-capability 持有者）、`realm_id` 等于本 Event Realm、解码 bytes 长度与 `canonical_event_size_bytes` 一致、并独立重算出 `collision_event_id` 后，才可继续 `apply_seal`；record 缺失是 typed dependency missing，record 非法则拒绝 Seal。record 不进入 Seal `covered_set`——Seal 覆盖的是引用它的 resolution Move。`verdict.kind=canonical_winner` MUST 以 `winner_index ∈ {0,1}` 指向同一 Move 的 `conflict_evidence.variants[winner_index]`；该 locator 解出的完整 bytes 就是 winner，verdict 不得再携第三份 locator 或 preimage。`void_all` 明确作废本 Realm 内整组。receiver MUST 拒绝仅以 `event_id` / `event_digest`、另一 suite discriminator、长度或局部 byte slice 指认胜出变体的 Move，reason code `witness_disagreement`：在碰撞 suite 下这样的裁决没有指称。碰撞组可能跨 Realm；本 Move 只治理其 envelope `realm_id` 内的投影，winner MUST 是其 canonical bytes 内 `realm_id` 等于本 Realm 的变体，其它 Realm 由各自恢复权威独立裁决。
 2. **不得事后重算历史 Seal 输入。** receiver MUST 把该 Seal 已物化的确定性 reducer 输出与它当初实际应用的 canonical bytes 一起钉住，并 MUST NOT 在检出碰撞后用任一变体重新推导它。未保留当初 bytes 的 receiver MUST 把该 Seal 覆盖区间视为不可验证并 fail closed，直到归一裁决到达；它 MUST NOT 用任取一个变体重算出的 `state_root` 冒充原承诺。
 3. **碰撞区间不得被 compaction 跨越。** compaction Seal 的意义是给新 verifier 一个有界 bootstrap 物化点（§6.2）。区间内存在未归一的完整 digest collision 时，notary MUST NOT 签发跨越该区间的 compaction Seal——新 verifier 无法从 digest 重建被覆盖的 preimage，物化点因此不可复现。归一裁决自身承载 canonical bytes，可以是 compaction Seal。
 4. **跨 suite discriminator 只是诊断。** 实现 MAY 对同一 canonical preimage 另算一个**不同** active suite 的 digest 作为紧凑区分符；由于 `blake3` 是 profile-gated 的 `v1_optional_interop`（[`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)），它 MUST NOT 成为裁决的唯一指称，也 MUST NOT 成为对端验证该裁决的前提。
@@ -659,12 +659,18 @@ resolve 并验证每个 leaf Seal 及路径，再自行重算 joined control sta
 
 `RealmSealFrontierView.governance_health` MUST 从已验证的
 Ack / decision chain 与 accepted Seal covered set 派生；pending 明细最多返回 128 项，
-按 `(absolute_due_at, proposal_digest)` canonical 升序。超过读取上限时 readiness MUST
-fail closed，不能静默截断后报告 `healthy`。该 View 不是新的可写真相源。
-迟到但合法的 Seal 覆盖 proposal 后，proposal 从 `pending_proposals[]` 移除，但失约证据
+按内嵌 Ack 的 `(control_proposal_ack.absolute_due_at, control_proposal_ack.proposal_digest)`
+canonical 升序。每个 pending 项只携 `control_proposal_ack`、`decisions[]`（仅 `signed_defer`，
+按 `defer_count` 升序）与 `decision_state`，不镜像 `proposal_digest`、`absolute_due_at`、
+`defer_count` 或当前 `decision_due_at`：`proposal_digest` 与 `absolute_due_at` 取自
+`control_proposal_ack`（全链原样保留）；`defer_count = decisions.length`；当前决议期限即 DTO
+语义中的 `current_decision_due_at`，对应 ack / decision 的字段名 `decision_due_at`，取
+`decisions[]` 末项的 `decision_due_at`，无 defer 时取 `control_proposal_ack.decision_due_at`。
+超过读取上限时 readiness MUST fail closed，不能静默截断后报告 `healthy`。该 View 不是新的
+可写真相源。迟到但合法的 Seal 覆盖 proposal 后，proposal 从 `pending_proposals[]` 移除，但失约证据
 MUST 进入 `retained_faults[]`，携带原 Ack、完整 signed-defer chain、accepted Seal id
-与其签名 `sealed_at`；按 `(accepted_at, proposal_digest)` canonical 升序，最多 128 项，
-超限同样 fail closed。只要 pending overdue 或 retained fault 非空，`status` MUST 为
+与其签名 `sealed_at`；按 `(accepted_at, control_proposal_ack.proposal_digest)` canonical 升序，
+最多 128 项，超限同样 fail closed。只要 pending overdue 或 retained fault 非空，`status` MUST 为
 `degraded`，不得因 proposal 后来取得 finality 而把已发生的 deadline fault 抹除。
 
 **compaction 不承担终局（normative）**：首个 Seal **MUST NOT** 是 compaction Seal；
@@ -722,7 +728,7 @@ Digest membership 不能证明 bytes 可获取。Arkret v1 独立建模 availabi
 ```text
 AvailabilityReceipt {
   realm_id, event_id, bytes_digest, holder_id, retention_expires_at,
-  holder_signer_evidence_ref, holder_signer_evidence_digest, signature
+  holder_signer_evidence_ref, signature
 }
 ```
 

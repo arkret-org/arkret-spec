@@ -1,6 +1,6 @@
 {
   "suite": "signal_peer_relay",
-  "version": "2026-07-28",
+  "version": "2026-09-02",
   "profile": "ak.profile.signal_peer_relay.v1",
   "runner": {
     "kind": "generated_limit_cases",
@@ -365,8 +365,7 @@
           ],
           "opaque_item_drops": [
             "proof_envelope_digest_mismatch",
-            "proof_created_at_mismatch",
-            "aad_digest_mismatch",
+            "proof_transcript_mismatch",
             "source_sender_routing_mismatch",
             "expired_envelope",
             "mls_state_not_current_winner"

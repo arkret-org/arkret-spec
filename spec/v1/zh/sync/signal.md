@@ -26,7 +26,8 @@ SignalEnvelope {
 ```
 
 Signal 始终是短 TTL encrypted-only transport，不是 Event、history response 或 durable object。Sender proof 使用
-`ak.signal_proof.v1` 并覆盖移除 proof 后的完整 envelope digest。sender 是 closed XOR：ordinary
+`ak.signal_proof.v1` 并覆盖移除 proof 后的完整 envelope digest；transcript 成员 `created_at` 由外层 `sent_at` 注入
+（proof-context registry 该行的 `binding_field_sources`），proof 本身不携带第二个时间戳。sender 是 closed XOR：ordinary
 account-device MUST 携带 `sender_device_id: DeviceId`；Agent MUST 省略该字段，且 `null`/空值非法。
 字段存在性只选择候选分支，不能证明 actor 是 Agent；source 与 recipient MUST 从 accepted principal
 classification 和 current authority 独立确认。minimal-metadata pairwise endpoint 没有 Signal carrier，
@@ -53,7 +54,24 @@ nonce = I2OSP(counter, AEAD.Nn)
 ```
 
 Signal encrypted payload 的 closed pre-encryption header 必须绑定 scope/sender/seal/class/time/scheme/group/epoch/state/
-counter；AAD 是该 header 的 JCS bytes。Counter 回退/复用 fail closed，不得 prefix 或 random fallback。Signal 不得借
+counter；AAD 是该 header 的 JCS bytes。header 是下列对象，全部成员在 seal 前冻结，并只从 envelope 顶层、
+`encrypted_payload` 的已登记成员与已验证 group state 投影（`sender_device_id` 仅在实际存在时进入，缺席即整体省略该 key）：
+
+```text
+signal_aad_header = {
+  realm_id, scope_ref, sender_actor_id, sender_device_id?, seal_ref, signal_class, sent_at, expires_at,
+  scheme: encrypted_payload.scheme, key_ref: encrypted_payload.key_ref, purpose: encrypted_payload.purpose,
+  aead_profile: encrypted_payload.aead_profile, epoch: encrypted_payload.epoch, nonce: encrypted_payload.nonce
+}
+AAD = RFC8785_JCS(signal_aad_header)
+```
+
+`nonce` 以 wire 上的 base64url 字符串逐字进入，`counter` 由 `nonce = I2OSP(counter, AEAD.Nn)` 反推。AAD 由 header
+投影重算，不上 wire：`encrypted_payload` MUST NOT 携带 `aad_digest` 或 `key_ref.algorithm`——前者只是无密钥的本地重算值，
+后者由 `aead_profile` 与 `key_ref.group_state_ref` 所指 group state 唯一决定，两者都是
+[`encoding.md` §10](../conformance/encoding.md) 禁止的同 carrier 镜像。recipient 按本节重建 AAD 并在 AEAD open 时验证；
+Station 只核对 header 的 basis 成员，不比对任何 AAD 摘要。
+Counter 回退/复用 fail closed，不得 prefix 或 random fallback。Signal 不得借
 history response stream 交付 standard signal root，也不得把 Signal digest 注册为持久 ID。
 
 ### 1.1 Plaintext payload profile 通用最小集（normative）
@@ -150,7 +168,8 @@ Signal 把来源授权、联邦准入与端到端身份分成三层，MUST NOT �
 
 各层公共外层检查包括 `scope_ref.realm_id == realm_id`、sender actor 在 signed Seal 的 Realm /
 scope basis 下具备发送资格且当前仍有 membership、`signal_class=moderation` 的对应 action，以及
-已登记加密 scheme/ciphersuite、current epoch/winning state ref、AAD digest 和 §2 TTL。Station 利用已有 accepted
+已登记加密 scheme/ciphersuite、current epoch/winning state ref 和 §2 TTL；AAD 不上 wire，由 recipient 按 §1 的 header
+投影重算，Station 只核对这些 basis 成员。Station 利用已有 accepted
 scope、MLS genesis/winning Commit 与 governance projection 核对外层 basis；未知、不匹配或已知
 stale 的 basis 不能靠猜测补全。该检查不要求 Station 取得 MLS secret、维护 RFC 9420 public tree
 或 leaf-directory tracker；recipient 仍 MUST 用自己的 verified MLS state 独立完成完整绑定。
@@ -206,7 +225,7 @@ conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖�
 5. 设备 current active 但 sender 在 Realm `seal_ref` 下无 scope 发送资格或缺
    `signal_class` action：拒绝；
 6. 恶意 source 以有效 peer 签名提交结构正确但 producer signature 伪造的 envelope：destination
-   可转交，recipient MUST 验签拒绝，即使密文能解开；proof digest/AAD 或 sender routing 不匹配则在 destination 丢弃；
+   可转交，recipient MUST 验签拒绝，即使密文能解开；proof digest/transcript 或 sender routing 不匹配则在 destination 丢弃；
 7. source 入队后发生撤销、退群、action 收紧或过期：出站 fresh admission 拒绝，不发送旧 item；
 8. Agent current authority、active unique leaf 与 method/key/authorization binding 全部匹配时可用 Agent sender 分支；ordinary 省略 device、Agent 携 device/controller device、paused/deactivated、key revoke/supersede/expire/conflict、controller membership generation ended、旧 leaf 或 pairwise 冒入均拒绝。
 9. cold foreign ordinary 与 Agent sender 均从空 cache 经真实 self→peer query 成功；预注入同一对象、
@@ -245,7 +264,7 @@ server-visible selector；精确 signal kind 和 product target 始终位于 cip
 operation: ak.peer.signal.command.relay.v1
 POST /_arkret/peer/signal
 request:  ak.schema.signal_relay.v1
-response: ak.schema.signal_relay.v1#/$defs/signal_relay_outcome
+response: empty
 ```
 
 request 是闭合对象：
@@ -301,8 +320,8 @@ destination 在任何 local fanout 前 MUST：
    进入下述静默丢弃路径。这同时阻止
    destination 把收到的 signal 再转发第三 peer；
 4. 验证完整 `SignalEnvelope` closed schema、proof method 的 §1 identity projection、
-   `proof.created_at == sent_at`、重算移除 proof 的 envelope digest、closed detached-JWS
-   transcript/header 结构及 AAD digest，再验证 `seal_ref`、sender 在 signed scope/basis 的资格与
+   重算移除 proof 的 envelope digest、以外层 `sent_at` 注入 `created_at` 重建的 closed detached-JWS
+   transcript 与 header 结构，再验证 `seal_ref`、sender 在 signed scope/basis 的资格与
    current membership、三值 `signal_class` action gate、TTL、外层 accepted epoch/state/ciphersuite basis。
    这些是结构、完整性和 transport admission 检查，**不是** producer signature 的密码学验证。
    destination MUST NOT 查询远端 current device directory、重放远端 PCR 或维护 MLS public-tree /
@@ -312,7 +331,7 @@ destination 在任何 local fanout 前 MUST：
 6. 把原 envelope 原样交给本地 live rail；精确 payload type、Strand/Message/Call/receipt
    target 与 sequence 只由 recipient 解密后校验。
 
-source 与 destination MUST NOT 改写 `sent_at` / `expires_at`、ciphertext、AAD、routing header
+source 与 destination MUST NOT 改写 `sent_at` / `expires_at`、ciphertext、`nonce` 等 AAD 输入、routing header
 或 producer proof，MUST NOT 重签 producer envelope，MUST NOT 解密后重加密。HTTP JSON 的
 空白/成员顺序无需保留，但重新 canonicalize 后的完整 envelope digest identity MUST 不变。
 
@@ -323,22 +342,17 @@ destination 静默丢弃并 MAY 写 audit-only reason；不得向 source 返回 
 peer HTTP Message Signature / trust-domain / destination-endpoint 认证失败、跨 Realm batch 或
 request schema/count/byte 超限才是 request-level reject，并复用 federation 的统一最小披露
 错误/timing bucket。closed schema 中 proof 缺字段、字段类型/shape 非法属于 request schema 失败；
-结构正确但 proof digest、created_at、AAD 或 source/sender binding 不匹配属于 item failure。
+结构正确但 proof digest、transcript 或 source/sender binding 不匹配属于 item failure。
 结构正确的无效 producer signature 不属于 destination 的判定项，MUST 留给独立 recipient
 认证拒绝；有效 source HTTP 签名不把该 producer signature 变为可信。
 
 ### 4.4 Opaque outcome、重复与不确定结果
 
-成功 response 固定为：
-
-```json
-{"accepted":true}
-```
-
-`accepted=true` 只表示已认证、结构合法的 peer request 被接管处理，不表示 Realm/scope/sender/
-recipient/binding 存在，也不表示任何设备收到 signal。响应 MUST NOT 含 accepted/rejected count、
+成功使用 HTTP 204 empty response；operation registry 必须登记 `success_shape_kind=empty_response`，不得
+返回 `{}` 或 `accepted=true`。2xx 只表示已认证、结构合法的 peer request 被接管处理，不表示
+Realm/scope/sender/recipient/binding 存在，也不表示任何设备收到 signal。响应 MUST NOT 含 accepted/rejected count、
 per-item outcome、recipient count、supported kind、envelope digest 或远端拓扑。无 local
-eligible recipient 与存在 recipient 必须得到逐字相同 response。
+eligible recipient 与存在 recipient 必须得到相同 HTTP status 与空响应体。
 
 operation registry 固定：
 
@@ -415,7 +429,8 @@ producer 在首帧前 MUST：
 MUST 生成新的 Event/Message identity，不得猜测或复用旧 identity。
 
 解密后的 `strand_id` MUST 在 Signal 外层签名 `scope_ref` 指定的 Realm/Circle security scope
-内，`track_name` 固定为 `discussion`。sender MUST 同时持有 `ak.message.stream.send` 和目标
+内；`ak.schema.signal_message_stream.v1` identity 固定 discussion family，plaintext frame 不携
+`track_name`。sender MUST 同时持有 `ak.message.stream.send` 和目标
 Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密，service 只能执行外层实时
 发送资格与 scope gate，recipient MUST 在展示前按 `seal_ref` basis 重验这两个产品级 action。
 授权、scope、schema 或 AEAD 任一项不可验证时 MUST fail closed 且不得显示正文。

@@ -12,7 +12,7 @@
     "signer_evidence_ref": {
       "type": "string",
       "pattern": "^ak:signer_evidence:sha256:[0-9a-f]{64}$",
-      "description": "ak:signer_evidence:sha256:<hex>, where hex is SHA-256(RFC8785-JCS(complete evidence object))."
+      "description": "ak:signer_evidence:sha256:<hex>, where hex is SHA-256(RFC8785-JCS(complete evidence object)). The embedded hex is the sole wire carrier of the evidence digest; a carrier that holds this ref MUST NOT also carry a sibling *_digest mirror of it (encoding.md 4.0.1)."
     },
     "service_signer_evidence": {
       "type": "object",
@@ -52,7 +52,7 @@
     },
     "principal_signer_evidence": {
       "type": "object",
-      "required": ["kind", "signer_id", "verification_method", "public_resolution", "normalized_did_document", "attester_signer_evidence_ref", "attester_signer_evidence_digest"],
+      "required": ["kind", "signer_id", "verification_method", "public_resolution", "normalized_did_document", "attester_signer_evidence_ref"],
       "properties": {
         "kind": {"const": "principal"},
         "signer_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
@@ -62,31 +62,26 @@
           "type": "object",
           "description": "Exact normalized DID document whose digest and history position are authenticated by public_resolution.method_history_evidence."
         },
-        "attester_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
-        "attester_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+        "attester_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"}
       },
       "additionalProperties": false,
-      "description": "attester_signer_evidence_ref/digest resolves to a service-kind leaf that historically verifies the Station projection attestation. Current route or DID expiry is not a retrospective validity input."
+      "description": "attester_signer_evidence_ref resolves to a service-kind leaf that historically verifies the Station projection attestation. Current route or DID expiry is not a retrospective validity input."
     },
     "agent_signer_evidence": {
       "type": "object",
-      "required": ["kind", "signer_id", "verification_method", "agent_signer_evidence", "attester_signer_evidence_ref", "attester_signer_evidence_digest", "controller_signer_evidence_ref", "controller_signer_evidence_digest", "account_authority_signer_evidence_ref", "account_authority_signer_evidence_digest", "receiver_signer_evidence_ref", "receiver_signer_evidence_digest"],
+      "required": ["kind", "signer_id", "verification_method", "agent_signer_evidence", "attester_signer_evidence_ref", "controller_signer_evidence_ref", "account_authority_signer_evidence_ref", "receiver_signer_evidence_ref"],
       "properties": {
         "kind": {"const": "agent"},
         "signer_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
         "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
         "agent_signer_evidence": {"$ref": "./agent-signer-evidence.schema.json"},
         "attester_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
-        "attester_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
         "controller_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
-        "controller_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
         "account_authority_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
-        "account_authority_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
-        "receiver_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
-        "receiver_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+        "receiver_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"}
       },
       "additionalProperties": false,
-      "description": "The four required ref/digest pairs resolve the Agent Authority, controller, Account Authority and receiver historical signer leaves selected by the exact methods in agent_signer_evidence. Each ref content digest equals its paired digest. Current route or DID expiry is not a retrospective validity input."
+      "description": "The four required content-addressed refs resolve the Agent Authority, controller, Account Authority and receiver historical signer leaves selected by the exact methods in agent_signer_evidence. Each ref embeds the sole wire copy of its evidence digest (encoding.md 4.0.1). Current route or DID expiry is not a retrospective validity input."
     }
   }
 }

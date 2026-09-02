@@ -62,7 +62,7 @@ class CellSubjectPathLintTest(unittest.TestCase):
             row = next(
                 row
                 for row in registry["event_kinds"]
-                if row["event_kind"] == "ak.actor.discovery"
+                if row["event_kind"] == "ak.applet.discovery"
             )
             row["cell_writes"][0]["cell_subject"]["field"] = "payload.missing_id"
 

@@ -785,17 +785,17 @@ class IdentifierRoleSuffixTest(MutationHarness):
 
     def test_role_qualified_service_id_fails(self) -> None:
         def mutate(document):
-            shape = document["$defs"]["contact_address"]
+            shape = document
             shape["required"] = [
-                "recipient_service_id" if item == "recipient_id" else item
+                "recipient_service_id" if item == "service_id" else item
                 for item in shape["required"]
             ]
             shape["properties"]["recipient_service_id"] = shape["properties"].pop(
-                "recipient_id"
+                "service_id"
             )
 
         errors = self.lint_with_file(
-            SCHEMA_DIR / "contact-operations.schema.json",
+            SCHEMA_DIR / "service-describe.schema.json",
             mutate,
             check=check_identifier_role_suffix_contracts,
         )
@@ -804,17 +804,17 @@ class IdentifierRoleSuffixTest(MutationHarness):
 
     def test_role_qualified_service_kind_fails(self) -> None:
         def mutate(document):
-            shape = document["$defs"]["contact_address"]
+            shape = document
             shape["required"] = [
-                "recipient_service_kind" if item == "recipient_kind" else item
+                "recipient_service_kind" if item == "service_kind" else item
                 for item in shape["required"]
             ]
             shape["properties"]["recipient_service_kind"] = shape["properties"].pop(
-                "recipient_kind"
+                "service_kind"
             )
 
         errors = self.lint_with_file(
-            SCHEMA_DIR / "contact-operations.schema.json",
+            SCHEMA_DIR / "service-describe.schema.json",
             mutate,
             check=check_identifier_role_suffix_contracts,
         )

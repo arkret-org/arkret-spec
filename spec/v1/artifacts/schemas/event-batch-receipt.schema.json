@@ -267,25 +267,27 @@
           "description": "The exact method-native version identifier pinned by the identity-root control proof. It identifies verified DID control evidence and MUST NOT initialize or otherwise determine the PCR-local device generation."
         },
         "log_head_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "The exact verified DID history head digest accepted for this PCR genesis."
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "The exact verified DID history head digest accepted for this PCR genesis. It is a cross-Realm identity-root commitment and is always SHA-256."
         },
         "control_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "Digest of the active identity-root control key pinned by the control proof."
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "SHA-256(UTF-8(canonical multikey)) of the active identity-root control key pinned by the control proof; see zh/identity/account-lifecycle.md section 2.1."
         },
         "registration_evidence_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest",
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
           "description": "SHA-256 digest of RFC 8785 JCS of the complete accepted registration_did_evidence relayed to the Station."
         },
         "accepted_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "device_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "SHA-256(UTF-8(canonical multikey)) where the preimage is the accepted founding device_public_key_did with its did:key: prefix removed (the bare z6Mk... multikey string). The receipt carries no raw key, so the Station computes it from the accepted genesis descriptor with the same encoding discipline as control_key_digest. Hashing the complete did:key: URI, the decoded key octets or any other suite is founding_device_commitment_mismatch."
         },
         "hpke_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "SHA-256(UTF-8(canonical multikey)) where the preimage is the accepted founding hpke_key exactly as carried (the canonical X25519 multikey string starting with z6LS). Same encoding discipline as device_key_digest and control_key_digest; never the Realm digest_algorithm."
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

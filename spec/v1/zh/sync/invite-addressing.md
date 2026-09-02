@@ -68,7 +68,7 @@ invite/locator 的权威首跳仍是必填 current `service_resolution`；它不
 
 `consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.grant` 在被邀请方(`invite_address.account_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
-`InviteAddress` 唯一收件身份是 `account_id`。`handle_claim` evidence 的接收方验证：`handle_claim.claim.handle == evidence.handle`，`handle_claim.claim.subject_account_id` MUST 精确等于 `invite_address.account_id`，`handle_claim.status=verified`，`as_of < fresh_until` 且当前时刻仍在该 signed freshness window 内，`claim.expires_at` 未过期，`claim.proofs[0..1]` 与顶层 `evidence` 均有效，`revocation` / `revocation_digest` 均为 null，且 `claim.issuer_id` / Directory / `claim.visibility` / `claim.audience` 满足该账号的 policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
+`InviteAddress` 唯一收件身份是 `account_id`。`handle_claim` evidence 的接收方验证：`handle_claim.claim.handle == evidence.handle`，`handle_claim.claim.subject_account_id` MUST 精确等于 `invite_address.account_id`，`handle_claim.status=verified`，`as_of < fresh_until` 且当前时刻仍在该 signed freshness window 内，`claim.expires_at` 未过期，`claim.proofs[0..1]` 与顶层 `evidence` 均有效，`revocation` 为 null，且 `claim.issuer_id` / Directory / `claim.visibility` / `claim.audience` 满足该账号的 policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
 
 ## 3. 在线 Principal Locator
 

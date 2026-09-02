@@ -527,15 +527,12 @@
     "applet_revoke_preview_outcome": {
       "type": "object",
       "required": [
-        "revoke_plan_digest",
         "revoke_plan"
       ],
       "properties": {
-        "revoke_plan_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "revoke_plan": {
-          "$ref": "#/$defs/applet_revoke_plan"
+          "$ref": "#/$defs/applet_revoke_plan",
+          "description": "Canonical exact revoke plan. The preview carries no revoke_plan_digest: the caller computes SHA-256 over RFC 8785 JCS of this plan and submits that value as applet_revoke_request_body.revoke_plan_digest."
         }
       },
       "additionalProperties": false

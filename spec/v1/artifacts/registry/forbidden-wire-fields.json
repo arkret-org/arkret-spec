@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 35,
+  "version": 36,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -2880,7 +2880,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Range-completeness event_range, audit RYW receipt, and POST /events response MUST use 'realm_frontier'. The replication and security boundary covered by this frontier is the Realm, not an in-Realm Space container. 'space_frontier' MUST NOT appear on the current wire as a frontier object property."
+      "notes": "Audit RYW receipt and POST /events response MUST use 'realm_frontier'. The replication and security boundary covered by this frontier is the Realm, not an in-Realm Space container. 'space_frontier' MUST NOT appear on the current wire as a frontier object property."
     },
     {
       "id": "ssk_generation",

@@ -8,7 +8,6 @@
     "kind",
     "transfer_id",
     "blob_ref",
-    "content_digest",
     "blob_size_bytes",
     "media_type",
     "plaintext_size_bytes",
@@ -29,10 +28,6 @@
     },
     "blob_ref": {
       "$ref": "#/$defs/blob_ref"
-    },
-    "content_digest": {
-      "$ref": "#/$defs/digest",
-      "description": "Digest of the stored blob bytes. For encrypted file transfer this is the ciphertext digest and MUST NOT be a plaintext file hash."
     },
     "blob_size_bytes": {
       "type": "integer",
@@ -176,9 +171,6 @@
     },
     "blob_ref": {
       "$ref": "./agent-operations.schema.json#/$defs/blob_ref"
-    },
-    "digest": {
-      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "media_type": {
       "$ref": "./blob-operations.schema.json#/$defs/media_type"
@@ -393,11 +385,11 @@
     },
     "key_envelope": {
       "type": "object",
+      "description": "HPKE base-mode seal of the content key for one recipient device. The HPKE info and AAD are the same JCS bytes projected from the authenticated DeviceMessageEnvelope and the message transfer_id (zh/models/file-transfer.md section 4.2); they are rebuilt by the recipient and never carried as an aad_digest.",
       "required": [
         "scheme",
         "enc",
-        "ciphertext",
-        "aad_digest"
+        "ciphertext"
       ],
       "properties": {
         "scheme": {
@@ -409,9 +401,6 @@
         },
         "ciphertext": {
           "$ref": "#/$defs/base64url"
-        },
-        "aad_digest": {
-          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
