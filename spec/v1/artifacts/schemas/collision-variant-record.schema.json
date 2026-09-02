@@ -45,7 +45,7 @@
     },
     "proof": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
-      "description": "Detached proof in context ak.collision_variant_record_proof.v1. Its controller MUST equal the referencing resolution Move's executed_by ?? actor_id, and that principal MUST be the verified holder of the recovery capability the Move carries."
+      "description": "Detached proof in context ak.collision_variant_record_proof.v1, whose payload_digest preimage is JCS(record) with this proof member deleted. Its controller MUST equal the referencing resolution Move's executed_by ?? actor_id, and that principal MUST be the verified holder of the recovery capability the Move carries. The locator digest that addresses this record is a different value: it covers the whole record, proof included."
     }
   },
   "additionalProperties": false

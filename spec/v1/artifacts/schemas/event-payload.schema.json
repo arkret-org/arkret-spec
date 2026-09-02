@@ -10973,7 +10973,7 @@
             },
             "collision_variant_record_digest": {
               "$ref": "#/$defs/digest",
-              "description": "Digest of the complete canonical record under the Realm's active digest suite at the resolution basis. A missing record is a typed dependency miss; an invalid record rejects the Seal."
+              "description": "Digest of the complete canonical record under the Realm's active digest suite at the resolution basis: <suite>(JCS(record)) over the whole object, proof included. It is not the proof's own payload_digest, whose preimage deletes proof. A missing record is a typed dependency miss; an invalid record rejects the Seal."
             }
           },
           "additionalProperties": false
