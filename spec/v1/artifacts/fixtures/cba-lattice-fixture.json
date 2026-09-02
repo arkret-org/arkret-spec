@@ -1596,7 +1596,7 @@
       "valid_recovery_move": {
         "kind": "ak.conflict.recovery",
         "payload": {
-          "target_cell": "ak:cell:ak.component.realm.policy.v1:null",
+          "target_cell_id": "ak:cell:ak.component.realm.policy.v1:null",
           "resolved_value": {
             "policy_revision": 8
           }
@@ -1683,7 +1683,25 @@
           "expected": {
             "result": "failed_precondition",
             "reason": "recovery_witness_invalid",
-            "note": "the state_witness must witness the cell named by payload.target_cell; witnessing a different cell proves nothing about the one being reset."
+            "note": "the state_witness must witness the cell named by payload.target_cell_id; witnessing a different cell proves nothing about the one being reset."
+          }
+        },
+        {
+          "name": "legacy_target_cell_alias_rejected",
+          "payload_field_name": "target_cell",
+          "expected": {
+            "result": "reject",
+            "reason": "schema_violation",
+            "note": "target_cell_id is the only registered payload field (NC-IDROLE-001); the retired target_cell alias is an unknown property under additionalProperties:false and the required target_cell_id is absent, so the Move never reaches recovery evaluation."
+          }
+        },
+        {
+          "name": "duplicate_target_cell_fields_rejected",
+          "payload_extra_field": "target_cell",
+          "expected": {
+            "result": "reject",
+            "reason": "schema_violation",
+            "note": "carrying both target_cell_id and the retired alias is a schema violation; a receiver MUST NOT pick either field or reconcile them."
           }
         },
         {

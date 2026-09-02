@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9956,
+    "total_properties": 9957,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2712,
+      "optional": 2713,
       "optional_defaulted": 66,
       "required": 6848,
       "required_nullable": 122,
@@ -8917,6 +8917,7 @@
         "/$defs/receive_policy_constraints/properties/unknown_invites_max_behavior": "optional",
         "/properties/account_id": "required",
         "/properties/allowed_handle_domains": "optional",
+        "/properties/consent_profile": "optional",
         "/properties/denied_actor_ids": "optional",
         "/properties/denied_handle_domains": "optional",
         "/properties/denied_source_ids": "optional",

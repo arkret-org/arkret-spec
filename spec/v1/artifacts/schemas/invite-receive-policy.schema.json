@@ -53,6 +53,14 @@
       ],
       "description": "Behavior for invite/contact delivery requests without compliant introduction_evidence."
     },
+    "consent_profile": {
+      "type": "string",
+      "enum": [
+        "default",
+        "require_explicit_consent"
+      ],
+      "description": "Holder-selected invite consent gate profile (consent-model.md section 6.1). Omitted means default. Under require_explicit_consent only verified consent_grant introduction evidence may notify the holder; every other invite or first-contact delivery without an active grant is silently dropped on the holder Station: no quarantine entry, no new-source ledger charge, no holder-private write, and the requester observes the same opaque status=deferred without disclosed_outcome regardless of trust tier or disclosure settings. The profile is subject-private: it is never advertised through ServiceDescribe and MUST NOT be observable by requesters or peer Stations. It is independent of the Realm-level realm_policy_bundle preauth.consent_required flag, which only forces the admission gate to run and selects no profile."
+    },
     "new_source_quota": {
       "type": "object",
       "description": "Subject-private ceiling on how many previously unseen source peers may be admitted into this holder's invite quarantine inbox. Each member is intersected with the deployment new_source_quota: the effective value is min(subject value, deployment max). An omitted member takes the deployment default. 0 is legal and locks the holder to zero new sources; every further first contact is silently dropped inside the existing opaque deferred equivalence class.",

@@ -5730,6 +5730,43 @@
       }
     },
     {
+      "name": "invite_receive_policy_consent_profile_require_explicit_consent_valid",
+      "schema_ref": "schemas/invite-receive-policy.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.invite_receive_policy.v1",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "holder_allowed_introduction_kinds": [
+          "consent_grant"
+        ],
+        "explicit_address_behavior": "drop",
+        "unknown_invites": "drop",
+        "consent_profile": "require_explicit_consent"
+      }
+    },
+    {
+      "name": "invite_receive_policy_consent_profile_unregistered_value_rejected",
+      "schema_ref": "schemas/invite-receive-policy.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.invite_receive_policy.v1",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "holder_allowed_introduction_kinds": [
+          "consent_grant"
+        ],
+        "explicit_address_behavior": "drop",
+        "unknown_invites": "drop",
+        "consent_profile": "strict"
+      },
+      "first_expected_error": "contains:is not one of"
+    },
+    {
       "name": "invite_new_source_quota_subject_negative_rejected",
       "schema_ref": "schemas/invite-receive-policy.schema.json",
       "instance_from": "invite_new_source_quota_subject_override_valid",

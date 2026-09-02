@@ -759,9 +759,11 @@
         "quarantine_entry_sources": []
       },
       "invariants": [
+        "the profile is carried only by the holder's invite_receive_policy.consent_profile = require_explicit_consent; no deployment, Realm or peer-visible carrier selects it",
         "this profile has no quarantine surface, so the quota idles and charges nothing",
-        "any quarantine entry produced under this profile is non-conformant",
-        "the requester still observes the same opaque outcome, so the profile is not leaked"
+        "any quarantine entry or ledger row produced under this profile is non-conformant",
+        "each delivery without a verified consent_grant is silently dropped on the holder Station and the requester observes the same opaque status=deferred without disclosed_outcome on every trust tier, so the profile is not leaked",
+        "a failed_precondition or any other distinguishable response under this profile is non-conformant"
       ]
     },
     {

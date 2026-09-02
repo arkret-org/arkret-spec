@@ -5667,7 +5667,7 @@ Steps:
 4. 已被计费过的同一 source 在短窗内重复接触。
 5. 在长窗内把 distinct 新来源推到 `E_r`，再投递第 `E_r + 1` 个。
 6. 两个不同新来源的首次接触并发到达同一 holder；同一 source 的两条首次接触并发到达。
-7. `require_explicit_consent` profile 下重复第 2 步。
+7. holder 发布 `invite_receive_policy.consent_profile = require_explicit_consent`（其余 policy 不变），用新来源重复第 2 步。
 
 Expected:
 
@@ -5679,8 +5679,10 @@ Expected:
 - 并发交错下准入总数 MUST NOT 超过 effective 上限；同一 source 的两条并发首次接触恰好计费一次，
   两条都不返回可区分错误。
 - 负例：把被丢弃的 source 记入 ledger 视为不合规——下一窗口它会被误判为 seen。
-- 负例：`require_explicit_consent` profile 下出现任何 quarantine entry 视为不合规；该 profile 无
-  quarantine 面，quota 空转。
+- `require_explicit_consent` profile 下每个新来源 MUST 缺席于 quarantine cell、MUST NOT 写入
+  seen-source ledger，响应仍是同一 opaque `deferred` 且无 `disclosed_outcome`；该 profile 无
+  quarantine 面，quota 空转。负例：该 profile 下出现任何 quarantine entry、ledger 行、
+  `failed_precondition` 或任何可区分响应视为不合规。
 - 负例：任何分支返回 429、`Retry-After`、`rate_limited` 或缓存的 drop outcome 均视为不合规。
 
 ### 23.8.1 Effective quota 边界与 holder override
