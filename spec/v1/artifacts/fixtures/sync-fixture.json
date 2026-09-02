@@ -163,6 +163,26 @@
         "frontier_event_ids": [],
         "frontier_digest": "sha256:b7f809febc010d09395e32891785c6d174805d31c5cb7d3df1531849c2db1a73"
       }
+    },
+    {
+      "name": "peer_events_query_outcome_without_snapshot_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
+      "expect_valid": true,
+      "instance": {
+        "events": [],
+        "has_more": false
+      }
+    },
+    {
+      "name": "peer_events_query_outcome_snapshot_bootstrap_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:snapshot_bootstrap",
+      "instance": {
+        "events": [],
+        "has_more": false,
+        "snapshot_bootstrap": {}
+      }
     }
   ],
   "to_device_message_idempotency": {
@@ -1653,25 +1673,6 @@
             }
           }
         }
-      }
-    },
-    {
-      "name": "peer_events_query_outcome_without_snapshot_valid",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
-      "expect_valid": true,
-      "instance": {
-        "events": [],
-        "has_more": false
-      }
-    },
-    {
-      "name": "peer_events_query_outcome_snapshot_bootstrap_rejected",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
-      "expect_valid": false,
-      "instance": {
-        "events": [],
-        "has_more": false,
-        "snapshot_bootstrap": {}
       }
     }
   ],

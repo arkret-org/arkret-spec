@@ -822,7 +822,7 @@
             "recovery_capability",
             "attestation"
           ],
-          "expected": "accept"
+          "expected": "accept_and_project_exact_scope"
         },
         {
           "name": "resolution_names_winner_by_variant_record_reference",
@@ -860,7 +860,7 @@
           "critical_ref_roles": [
             "recovery_capability"
           ],
-          "expected": "accept"
+          "expected": "accept_and_project_exact_scope"
         },
         {
           "name": "resolution_collision_missing_variant_record_is_dependency_missing",
@@ -1250,7 +1250,7 @@
           "event_kind": "ak.fork.resolution",
           "canonical_event_size_bytes": 1048000,
           "locator_kind": "collision_variant_record",
-          "expected": "accept"
+          "expected": "accept_and_project_exact_scope"
         },
         {
           "name": "resolution_variant_record_digest_mismatch_rejected",
