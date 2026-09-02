@@ -2302,6 +2302,26 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "track_names": track_names,
         "active_track_names": active_track_names,
         "id_kinds": id_kinds,
+        # Exact `<fixture file>#<json pointer>|<value>` triples the closed
+        # exemption registry pins as deliberate negative vectors or wire-form
+        # templates. A gate that rejects every unregistered spelling still has
+        # to let a fixture publish the input it exists to reject, and the
+        # registry is the only place that can say so per exact value.
+        "fixture_typed_id_exemption_keys": {
+            f"{pointer}|{value}"
+            for (pointer, position, value) in fixture_typed_id_exemptions(lint)
+            if position == "value"
+        },
+        # An Event token leads with the digest-suite wire code. Only the codes
+        # the registry marks active are legal; `0x0` is permanently disabled, so
+        # a placeholder token of zero bytes must not pass as an Event id.
+        "active_digest_suite_wire_codes": {
+            row.get("wire_code")
+            for row in (
+                load_json(lint, ARTIFACTS / "registry" / "digest-suite-registry.json") or {}
+            ).get("suites", [])
+            if isinstance(row, dict) and row.get("status") == "active"
+        },
         "event_derived_id_kinds": event_derived_id_kinds,
         "digest_token_id_kinds": {
             row.get("kind")
@@ -4118,6 +4138,12 @@ def check_typed_id_fixture_value_closure(lint: Lint) -> None:
         for pointer, position, segment, payload, value in typed_id_fixture_value_rows(document):
             absolute = f"{path.name}#{pointer}"
             key = (absolute, position, value)
+            # An entry stays live while the fixture still ships that exact value
+            # at that exact pointer, whichever gate the value is exempted from:
+            # the same registry now also pins deliberate negative vectors for
+            # the digest-suite wire-code gate, which fires in the fixture pass.
+            if key in exemptions:
+                used.add(key)
             if f"ak:{segment}:" not in prefixes:
                 if key in exemptions:
                     used.add(key)

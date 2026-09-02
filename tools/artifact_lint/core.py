@@ -672,6 +672,18 @@ CONTENT_ADDRESSED_HEX64 = "[0-9a-f]{64}"
 NEGATIVE_TOKEN_PATH_SEGMENTS = (".rejected_form.", ".rejected_forms.")
 
 
+def json_path_to_pointer(json_path: str) -> str:
+    """Rewrite a `$.a.b[0]` walker path as the RFC 6901 pointer `/a/b/0`.
+
+    The fixture exemption registry keys on JSON Pointers so an entry names one
+    exact carrier position rather than a field-name convention; the fixture
+    walker reports the dotted form, so the two notations meet here.
+    """
+    body = json_path[1:] if json_path.startswith("$") else json_path
+    body = re.sub(r"\[(\d+)\]", r".\1", body)
+    return "".join(f"/{segment}" for segment in body.split(".") if segment)
+
+
 
 FIXTURE_REJECT_DECISION_KEYS = ("decision", "result", "seal_result", "event_state")
 
@@ -1404,6 +1416,17 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
                 return
             if token[0] >> 4 != 0:
                 lint.fail(path, f"{json_path} has invalid ak:{token_kind}: Event reserved nibble must be zero")
+                return
+            # The leading byte is the digest-suite wire code, and only the
+            # registry's active codes exist. Checking the shape but not the code
+            # is how a placeholder token of zero bytes passed as an Event id.
+            active_codes = known.get("active_digest_suite_wire_codes") or set()
+            if active_codes and (token[0] & 0x0F) not in active_codes:
+                lint.fail(
+                    path,
+                    f"{json_path} has invalid ak:{token_kind}: digest-suite wire code "
+                    f"0x{token[0] & 0x0F:x} is not an active registered suite",
+                )
                 return
         elif not UUID7_RE.fullmatch(candidate):
             lint.fail(path, f"{json_path} has invalid ak:{token_kind}: typed UUIDv7 reference")

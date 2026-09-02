@@ -194,6 +194,7 @@ grpc:
       Frontier: ak.peer.events.read.frontier.v1
       Query: ak.peer.events.read.scan.v1
       Resolve: ak.peer.events.read.resolve.v1
+      SiblingPositions: ak.peer.events.read.sibling_positions.v1
       Submit: ak.peer.events.command.submit.v1
     PeerSeals:
       Frontier: ak.peer.seals.read.frontier.v1
@@ -387,6 +388,7 @@ mq:
     peer.device_revocations.command.check: ak.peer.device_revocations.command.check.v1
     peer.events.read.scan.resolve: ak.peer.events.read.resolve.v1
     peer.events.read.scan: ak.peer.events.read.scan.v1
+    peer.events.read.sibling_positions: ak.peer.events.read.sibling_positions.v1
     peer.events.read.scan.frontier: ak.peer.events.read.frontier.v1
     peer.seals.read.frontier: ak.peer.seals.read.frontier.v1
     peer.seals.read.resolve: ak.peer.seals.read.resolve.v1

@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-09-02.3",
-      "generated_at": "2026-09-02T23:25:00+08:00",
-      "content_digest": "sha256:f071ef5af2b80c8c4f616f47d063e378f3cfcd983e1042ce12b9926dba7619f4"
+      "version": "2026-09-03.1",
+      "generated_at": "2026-09-03T01:30:00+08:00",
+      "content_digest": "sha256:9ef24cb1518aff4fbe4712b8085579f208bb3719d56d990450e44cd9adc4170e"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-02.9",
-      "generated_at": "2026-09-02T23:25:00+08:00",
-      "content_digest": "sha256:79cd87ba4420060d3c8ad6d2cc5af73f373141e2782466a9f67b5d65b472e6a5"
+      "version": "2026-09-03.1",
+      "generated_at": "2026-09-03T01:30:00+08:00",
+      "content_digest": "sha256:baae55166747587d114294a7cc5a58eabe3c81acdc76b9fe9018c9d1e9c6f49d"
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
-      "version": "2026-08-29.18",
-      "generated_at": null,
-      "content_digest": "sha256:ddde226ecd6cfc1470ca14f6e745ecbcf3f6c64a6acc546ba0ca61d87b31573b"
+      "version": "2026-09-03.1",
+      "generated_at": "2026-09-03T01:30:00+08:00",
+      "content_digest": "sha256:bd8a5c09233fadf6636faab08f378179399565237513c8b1fe46690e56906bee"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -243,21 +243,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-01.18",
-      "generated_at": "2026-09-02T23:25:00+08:00",
-      "content_digest": "sha256:0724968d10d27f69f14566ee4362984ba455148272f03f827fa2f70983a43ac4"
+      "version": "2026-09-03.1",
+      "generated_at": "2026-09-03T01:30:00+08:00",
+      "content_digest": "sha256:1448df9916593aec3a8238fc6069fdd1bb02ebcb7408bea8a09abeee85f4579a"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-02.5",
-      "generated_at": "2026-09-02T23:25:00+08:00",
-      "content_digest": "sha256:4f9c8c8eaa34c610d3a3a9528f6873b00bbbdd6d1b8398669caa9d469d2c7719"
+      "version": "2026-09-03.1",
+      "generated_at": "2026-09-03T01:30:00+08:00",
+      "content_digest": "sha256:af8a506238e8512d7d58dc40011c9aee0d4eb555c6cc880b0ad18b118e611bb3"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-09-02.1",
-      "generated_at": "2026-09-02T12:30:00+08:00",
-      "content_digest": "sha256:231956be1c9ede67f05b9be1d18488a2d83b6dd0c921cc04a56c823468f52b86"
+      "version": "2026-09-03.1",
+      "generated_at": "2026-09-03T01:30:00+08:00",
+      "content_digest": "sha256:b8af85c03118df739cd25dfb6e5684549d01ff6538b21284bce65d556f78fc7f"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",
@@ -375,9 +375,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-02.8",
-      "generated_at": "2026-09-02T23:35:00+08:00",
-      "content_digest": "sha256:079c4e2b5b2bf20f47a037e367cca12a4dfc0f42afc419093f7e50e40cca45d7"
+      "version": "2026-09-03.2",
+      "generated_at": "2026-09-03T02:30:00+08:00",
+      "content_digest": "sha256:98c32842cf6b064113ce2529698d66b163e298bb015aacb19339c9bdedfd06fb"
     }
   ]
 }

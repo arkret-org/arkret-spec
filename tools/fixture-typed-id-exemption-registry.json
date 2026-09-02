@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Closed exact-path exemption registry for check_typed_id_fixture_value_closure. Every concrete typed ID a conformance fixture ships MUST be a registered wire form of registry/id-kind-registry.json. A fixture legitimately carries a few strings that wear a typed-ID prefix and MUST NOT be a registered form: a negative vector whose value only exists to be rejected, and a documented wire-form template. Those cases are declared here by exact JSON pointer, carrier position and pinned value, never inferred from a field name such as negative_cases, reject_* or invalid_*, because an authoring convention is not a contract and a gate that trusted one would let any future value opt out by renaming its key. Editing the value ends its exemption, and an entry that stops matching a failing occurrence is reported as stale.",
+  "description": "Closed exact-path exemption registry for the typed-ID fixture gates (check_typed_id_fixture_value_closure and the digest-suite wire-code check in the fixture pass). Every concrete typed ID a conformance fixture ships MUST be a registered wire form of registry/id-kind-registry.json. A fixture legitimately carries a few strings that wear a typed-ID prefix and MUST NOT be a registered form: a negative vector whose value only exists to be rejected, and a documented wire-form template. Those cases are declared here by exact JSON pointer, carrier position and pinned value, never inferred from a field name such as negative_cases, reject_* or invalid_*, because an authoring convention is not a contract and a gate that trusted one would let any future value opt out by renaming its key. Editing the value ends its exemption, and an entry that stops matching a failing occurrence is reported as stale.",
   "positions": {
     "value": "The whole JSON string is the identifier.",
     "object_key": "The object member name is the identifier.",
@@ -11,6 +11,13 @@
     "wire_form_template": "The string is a readable wire-form shape carrying placeholders, in the same style as a registry wire_form, and denotes no concrete identifier."
   },
   "entries": [
+    {
+      "pointer": "redaction-fixture.json#/cases/9/verification_cases/2/subject/subject_ref",
+      "position": "value",
+      "value": "ak:event:AFXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR",
+      "category": "deliberate_negative_vector",
+      "reason": "The case is named invalid_event_id_suite_rejected and expects unsupported_digest_algorithm; the token decodes to 33 octets whose leading digest-suite wire code is the permanently disabled 0x0, which is exactly the property under test. Repairing the value would delete the vector."
+    },
     {
       "pointer": "cursor-negative-fixture.json#/vectors/0/cases/1/input_cursor",
       "position": "value",

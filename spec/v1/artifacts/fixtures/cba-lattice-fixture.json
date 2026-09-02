@@ -2063,6 +2063,236 @@
           "expected": "schema_violation"
         }
       ]
+    },
+    {
+      "name": "fork_resolution_peer_alignment",
+      "vector_id": "ak.vector.cba_lattice.fork_resolution_peer_alignment.v1",
+      "description": "Second-phase per-peer alignment of sync/federation.md 4.5.3. Local normalization alone never clears peer_stale; the challenged peer has to disclose, at the exact adjudicated position, a canonical sibling set equal to the verdict. The disclosure face is bounded by the request, so alignment is decidable independently of how long the actor history is.",
+      "disclosure_faces": {
+        "event_sibling_position": "ak.peer.events.read.sibling_positions.v1",
+        "event_id_collision": "ak.peer.events.read.resolve.v1"
+      },
+      "subject": {
+        "kind": "event_sibling_position",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:web:fixture-actor.example"
+        },
+        "actor_seq": 7
+      },
+      "fork_resolution_event_id": "ak:event:ATbjS3I1zPyk0KAHpu5YkiAx8hw6WrdXDGFs5xZAVNQb",
+      "local_normalization": "settled",
+      "cases": [
+        {
+          "name": "winner_single_element_aligns",
+          "verdict": {
+            "kind": "canonical_winner",
+            "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+          },
+          "peer_disclosure": {
+            "disclosed": true,
+            "siblings": [
+              "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+            ]
+          },
+          "expected": {
+            "alignment": "aligned",
+            "peer_stale": "cleared",
+            "evidence_scope": "resolved",
+            "peer_failure_counted": false
+          }
+        },
+        {
+          "name": "void_all_empty_set_aligns",
+          "verdict": {
+            "kind": "void_all"
+          },
+          "peer_disclosure": {
+            "disclosed": true,
+            "siblings": []
+          },
+          "expected": {
+            "alignment": "aligned",
+            "peer_stale": "cleared",
+            "evidence_scope": "resolved",
+            "peer_failure_counted": false
+          },
+          "note": "An empty disclosed set is the positive statement that the peer holds nothing at this position; it is not a missing answer."
+        },
+        {
+          "name": "extra_sibling_does_not_align",
+          "verdict": {
+            "kind": "canonical_winner",
+            "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+          },
+          "peer_disclosure": {
+            "disclosed": true,
+            "siblings": [
+              "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE",
+              "ak:event:ARK8nkJp0G6J3mZTRCBvkq8M5BMG40WviXOcSQERftHw"
+            ]
+          },
+          "expected": {
+            "alignment": "not_aligned",
+            "peer_stale": "retained",
+            "evidence_scope": "unresolved",
+            "peer_failure_counted": false,
+            "fork_evidence": "none"
+          },
+          "note": "Holding the winner is not alignment; the negative half of the verdict has to hold too. A contradicting disclosure keeps the peer stale and never becomes new fork evidence."
+        },
+        {
+          "name": "missing_winner_does_not_align",
+          "verdict": {
+            "kind": "canonical_winner",
+            "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+          },
+          "peer_disclosure": {
+            "disclosed": true,
+            "siblings": [
+              "ak:event:ARK8nkJp0G6J3mZTRCBvkq8M5BMG40WviXOcSQERftHw"
+            ]
+          },
+          "expected": {
+            "alignment": "not_aligned",
+            "peer_stale": "retained",
+            "evidence_scope": "unresolved",
+            "peer_failure_counted": false
+          }
+        },
+        {
+          "name": "void_all_with_residual_sibling_does_not_align",
+          "verdict": {
+            "kind": "void_all"
+          },
+          "peer_disclosure": {
+            "disclosed": true,
+            "siblings": [
+              "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+            ]
+          },
+          "expected": {
+            "alignment": "not_aligned",
+            "peer_stale": "retained",
+            "evidence_scope": "unresolved",
+            "peer_failure_counted": false
+          }
+        },
+        {
+          "name": "undisclosed_position_does_not_align",
+          "verdict": {
+            "kind": "canonical_winner",
+            "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+          },
+          "peer_disclosure": {
+            "disclosed": false
+          },
+          "expected": {
+            "alignment": "not_aligned",
+            "peer_stale": "retained",
+            "evidence_scope": "unresolved",
+            "peer_failure_counted": false,
+            "retry": "next_exchange"
+          },
+          "note": "Unadjudicated position, unauthorized peer, unknown Realm scope, a resolution Move the peer does not hold and a local budget are one indistinguishable bucket. Fail closed, no peer failure, retry next round."
+        },
+        {
+          "name": "carried_event_id_not_recomputed_is_rejected",
+          "verdict": {
+            "kind": "canonical_winner",
+            "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+          },
+          "peer_disclosure": {
+            "disclosed": true,
+            "siblings": [
+              "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+            ],
+            "carried_event_id_matches_recomputed": false
+          },
+          "expected": {
+            "result": "reject",
+            "reason_code": "event_id_digest_mismatch",
+            "alignment": "not_aligned",
+            "peer_stale": "retained"
+          },
+          "note": "Every disclosed row is re-derived before it counts toward the set; a carried id is never trusted."
+        },
+        {
+          "name": "actor_wide_scan_page_is_not_an_alignment_face",
+          "verdict": {
+            "kind": "canonical_winner",
+            "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+          },
+          "peer_disclosure": {
+            "face": "ak.peer.events.read.scan.v1",
+            "page_complete": false
+          },
+          "expected": {
+            "alignment": "not_aligned",
+            "peer_stale": "retained",
+            "peer_failure_counted": false
+          },
+          "note": "A best-effort scan page proves no negative, and its cost grows with the actor history; it MUST NOT be used to clear peer_stale."
+        },
+        {
+          "name": "collision_subject_aligns_on_exact_point_resolve",
+          "subject": {
+            "kind": "event_id_collision",
+            "event_id": "ak:event:AQ506zK_96xEWJvc7d4u0hiKVyAzNqoxVKHViNxStymJ"
+          },
+          "verdict": {
+            "kind": "canonical_winner",
+            "winner_index": 0
+          },
+          "peer_disclosure": {
+            "face": "ak.peer.events.read.resolve.v1",
+            "held_variant": "winner"
+          },
+          "expected": {
+            "alignment": "aligned",
+            "peer_stale": "cleared",
+            "evidence_scope": "resolved"
+          },
+          "note": "A collision identity is a point query: the peer holds either byte-identical winner bytes or nothing, so exhaustiveness needs no separate face."
+        },
+        {
+          "name": "collision_subject_void_all_aligns_on_empty_point_resolve",
+          "subject": {
+            "kind": "event_id_collision",
+            "event_id": "ak:event:AQ506zK_96xEWJvc7d4u0hiKVyAzNqoxVKHViNxStymJ"
+          },
+          "verdict": {
+            "kind": "void_all"
+          },
+          "peer_disclosure": {
+            "face": "ak.peer.events.read.resolve.v1",
+            "held_variant": null
+          },
+          "expected": {
+            "alignment": "aligned",
+            "peer_stale": "cleared",
+            "evidence_scope": "resolved"
+          }
+        },
+        {
+          "name": "another_peer_alignment_does_not_clear_this_peer",
+          "verdict": {
+            "kind": "canonical_winner",
+            "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+          },
+          "peer_disclosure": {
+            "disclosed": false,
+            "other_peer_aligned": true,
+            "frontier_root_equal": true
+          },
+          "expected": {
+            "alignment": "not_aligned",
+            "peer_stale": "retained",
+            "evidence_scope": "unresolved"
+          },
+          "note": "Accepted resolution, global root equality, an ordinary successful exchange and another peer having aligned are all insufficient."
+        }
+      ]
     }
   ]
 }

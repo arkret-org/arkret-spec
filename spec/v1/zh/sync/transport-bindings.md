@@ -90,6 +90,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.peer.events.command.submit.v1` | federation peer 推送 signed Event Envelope 批次。 |
 | `ak.peer.events.read.resolve.v1` | federation peer 按 event id / digest 补洞解析 Event。 |
 | `ak.peer.events.read.scan.v1` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
+| `ak.peer.events.read.sibling_positions.v1` | federation peer 对已裁决的精确 `(actor_id, actor_seq)` 位置取完整 canonical sibling 集，用于 fork-resolution per-peer alignment。 |
 | `ak.peer.events.read.frontier.v1` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
 | `ak.peer.contacts.command.submit.v1` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
 | `ak.self.contact.command.scope_update.v1` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |

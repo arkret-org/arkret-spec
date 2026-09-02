@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.8",
+  "version": "2026-09-03.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T23:35:00+08:00",
+  "generated_at": "2026-09-03T02:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1435,6 +1435,18 @@
       "applies_to_fixtures": [
         "cba-lattice-fixture.json"
       ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.cba_lattice.fork_resolution_peer_alignment.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
+      "description": "second-phase per-peer alignment clears peer_stale only when the challenged peer discloses, at the exact adjudicated position, a canonical sibling set equal to the verdict; winner-only and empty-set align, an extra or missing sibling and an undisclosed position do not, and neither counts a peer failure or produces new fork evidence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]

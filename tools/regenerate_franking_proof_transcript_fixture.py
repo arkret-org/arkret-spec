@@ -48,7 +48,7 @@ def build_fixture() -> dict[str, Any]:
     replacements: dict[str, Any] = {
         "domain": "ak.franking_proof.signature.invalid.v1",
         "realm_id": "ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8",
-        "event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "event_id": "ak:event:AYPZ73QecBPnUvir4K5wgH_jtDMWOCIHOY7rhzIZ5vUK",
         "received_by": "ak:did_core:webvh:z6mkotherprincipalexample",
         "verification_method": "did:webvh:z6mkfixture:principal.example#rotated-key",
         "received_at": "2026-05-02T00:00:01.000Z",

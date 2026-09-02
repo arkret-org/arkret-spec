@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.9",
+  "version": "2026-09-03.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T23:25:00+08:00",
+  "generated_at": "2026-09-03T01:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -11225,6 +11225,7 @@
           "ak.peer.mls.read.group_state_material.v1",
           "ak.peer.events.read.resolve.v1",
           "ak.peer.events.read.scan.v1",
+          "ak.peer.events.read.sibling_positions.v1",
           "ak.peer.events.read.frontier.v1",
           "ak.peer.seals.read.frontier.v1",
           "ak.peer.seals.read.resolve.v1",
@@ -12788,6 +12789,17 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome"
+      },
+      {
+        "operation_id": "ak.peer.events.read.sibling_positions.v1",
+        "http": "QUERY /_arkret/peer/events/sibling-positions",
+        "grpc": "PeerEvents/SiblingPositions",
+        "mq": "peer.events.read.sibling_positions",
+        "notes": "Bounded exact-scope sibling disclosure for fork-resolution per-peer alignment. Each selector is one exact (actor_id, actor_seq) position plus the accepted ak.fork.resolution Event that adjudicates it; there is no cursor, no range and no actor-wide scan, so the cost is bounded by the request instead of by the actor history length. A disclosed position returns the responder complete canonical sibling set at that position, and an empty set is the positive statement that it holds none. A position no settled non-bottom ak.component.fork_resolution.v1 cell adjudicates, an unauthorized peer, an unknown Realm scope and a local budget all collapse into one indistinguishable undisclosed bucket, so this is not a general history read or an enumeration face. Exhaustiveness is an unsigned claim on the same node-to-node authenticated channel that already carries missing_event_ids on ak.peer.events.read.resolve.v1; the challenger recomputes every returned Event identity, and a contradicting disclosure leaves the peer in peer_stale rather than producing new fork evidence.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsRequestBody",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsOutcome"
       },
       {
         "operation_id": "ak.peer.invites.command.submit.v1",
@@ -16069,6 +16081,10 @@
           },
           {
             "operation_id": "ak.peer.events.read.scan.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.events.read.sibling_positions.v1",
             "binding_kind": "http_json"
           },
           {

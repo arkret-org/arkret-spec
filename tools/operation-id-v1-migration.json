@@ -304,6 +304,10 @@
       "new": "ak.peer.events.read.scan.v1"
     },
     {
+      "old": "ak.peer.events.read.sibling_positions",
+      "new": "ak.peer.events.read.sibling_positions.v1"
+    },
+    {
       "old": "ak.peer.history_key_requests.command.replicate",
       "new": "ak.peer.history_key_requests.command.replicate.v1"
     },

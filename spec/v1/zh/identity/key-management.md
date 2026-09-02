@@ -717,7 +717,7 @@ Control Realm 不保存 grant genesis、grant state cell 或其任何投影。
   },
   "device_binding": {
     "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
-    "authorization_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "authorization_event_id": "ak:event:AUTTW11VHiB1CyE9I304vg0i43r0udn-PTMgwXCFGYrG",
     "model_generation_ref": 1
   },
   "proof_kind": "account_handoff"

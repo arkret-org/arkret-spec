@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-02.3",
-  "generated_at": "2026-09-02T23:25:00+08:00",
+  "version": "2026-09-03.1",
+  "generated_at": "2026-09-03T01:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2795,6 +2795,11 @@
         },
         {
           "direction": "provide",
+          "operation_id": "ak.peer.events.read.sibling_positions.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
           "operation_id": "ak.peer.events.read.frontier.v1",
           "binding_kind": "http_json"
         }
@@ -2849,6 +2854,13 @@
             "ak.peer.events.read.scan.v1",
             "ak.peer.events.read.resolve.v1",
             "sync-fixture.json"
+          ]
+        },
+        {
+          "requirement": "bounded exact-scope sibling disclosure for fork-resolution alignment",
+          "coverage": [
+            "ak.peer.events.read.sibling_positions.v1",
+            "cba-lattice-fixture.json"
           ]
         },
         {

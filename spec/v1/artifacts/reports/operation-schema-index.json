@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.9",
+  "version": "2026-09-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T23:25:00+08:00",
+  "generated_at": "2026-09-03T01:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3324,6 +3324,37 @@
           "prev_cursor",
           "next_cursor",
           "has_more"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.events.read.sibling_positions.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "positions"
+        ],
+        "properties": [
+          "realm_id",
+          "positions",
+          "max_response_bytes"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsOutcome",
+        "schema_kind": "object",
+        "required": [
+          "disclosed_positions",
+          "undisclosed_positions"
+        ],
+        "properties": [
+          "disclosed_positions",
+          "undisclosed_positions"
         ],
         "closed": true
       }

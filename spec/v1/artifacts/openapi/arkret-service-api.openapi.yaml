@@ -1373,6 +1373,10 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome
     PeerEventsResolveRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody
+    PeerEventsSiblingPositionsOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsOutcome
+    PeerEventsSiblingPositionsRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsRequestBody
     PeerGovernanceDependencyResolveRequest:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequest
     PeerKeyPackagesClaimOutcome:
@@ -4302,6 +4306,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PeerEventsResolveOutcome'
+  /_arkret/peer/events/sibling-positions:
+    query:
+      operationId: ak.peer.events.read.sibling_positions
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.events.read.sibling_positions.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerEventsSiblingPositionsRequestBody'
+      responses:
+        '200':
+          description: Complete canonical sibling set at each adjudicated position, or the same-shape undisclosed bucket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerEventsSiblingPositionsOutcome'
   /_arkret/peer/events/frontier:
     query:
       operationId: ak.peer.events.read.frontier

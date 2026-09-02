@@ -30,6 +30,7 @@ from .core import (
     check_event_envelope_candidates,
     check_json_instance_against_schema,
     check_typed_id_token,
+    json_path_to_pointer,
     copy,
     datetime,
     hashlib,
@@ -1763,6 +1764,11 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
                 if negative_token_branch:
                     if kind not in known["id_kinds"] and kind not in known["special_id_kinds"]:
                         lint.fail(path, f"{json_path} references unregistered typed ID kind: ak:{kind}:")
+                    continue
+                exemption_key = (
+                    f"{path.name}#{json_path_to_pointer(json_path)}|{value}"
+                )
+                if exemption_key in known.get("fixture_typed_id_exemption_keys", set()):
                     continue
                 check_typed_id_token(lint, path, json_path, kind, match.group(2), known)
 

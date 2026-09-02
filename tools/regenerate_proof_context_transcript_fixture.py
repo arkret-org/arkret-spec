@@ -559,7 +559,7 @@ def build_case(
                 "qualified_ingress_did": "did:webvh:z6mkfixture:ingress.example",
                 "received_at": "2026-05-02T00:00:00.000Z",
                 "ingress_frontier": [
-                    "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    "ak:event:AZal7FRETVhQjSd-xv3SVmTX0jD5Rh3IBDKh72HzCSLU"
                 ],
             }
         )
