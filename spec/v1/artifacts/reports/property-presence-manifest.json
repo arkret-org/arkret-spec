@@ -15,7 +15,7 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9957,
+    "total_properties": 9961,
     "total_schema_documents": 164,
     "by_presence_class": {
       "optional": 2713,

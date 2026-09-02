@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-01.13",
-  "generated_at": "2026-09-02T18:20:00+08:00",
+  "version": "2026-09-01.15",
+  "generated_at": "2026-09-02T19:05:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -769,11 +769,11 @@
     },
     {
       "operation_id": "ak.self.invite_receive_policy.resource.get.v1",
-      "sha256": "sha256:2ee471c1f52a71a9fec8c454d83158ea03aaedb856933491088541ea9a8141b6"
+      "sha256": "sha256:60fc3f2dfacd862fa1c84402d2bb2431ce134714e57657989776c3eb0d33016f"
     },
     {
       "operation_id": "ak.self.invite_receive_policy.resource.replace.v1",
-      "sha256": "sha256:77e0c8bbe2da38e4123089f03adae5a1ffd424c66b2a8f51152d6d65143c85c9"
+      "sha256": "sha256:d2323517cee81c52bd684ee58454ca86223c89c82a8b24e51b3afc9c5a4c976a"
     },
     {
       "operation_id": "ak.self.invites.command.dispatch.v1",

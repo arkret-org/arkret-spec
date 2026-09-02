@@ -86,7 +86,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "74405e6bb4f21e1732f43620d7b51d0363e9eed8c233273bcdc25f898826d12e"
+      "sha256": "c07d47ade7c3fad2e57087b7c09d01c7e75348ba48eabf0ced4acfec2540cb48"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",
-      "sha256": "44d6e60bd5a665b7c8504ba96f9f1612943f1357833cec40576324bdfaec5e50"
+      "sha256": "7e7b4a8f206a166ea37dfc1534ce13244041fb7ef658d7dfbe506aa7fad27fc3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
@@ -342,7 +342,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "7f4963363f037b61740cd0e75350854f0fc479134473b9372fbd7538a8849da9"
+      "sha256": "b78e38ea025475f5e6614de7b8affd9f6ce8ee5dca8c4fd5d4ea0024d790914f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
