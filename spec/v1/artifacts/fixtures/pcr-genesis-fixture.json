@@ -1,6 +1,6 @@
 {
   "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 1,
+  "version": 2,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
@@ -413,5 +413,25 @@
       "handle_and_namespace_release",
       "retention_period"
     ]
+  },
+  "founding_device_key_digest_kat": {
+    "vector_id": "ak.vector.identity.pcr_genesis.v1",
+    "rule": "SHA-256(UTF-8(canonical multikey)); fixed at SHA-256, never the Realm digest_algorithm",
+    "device_key_digest": {
+      "expected": "sha256:88d57d808ea9594c50a950437f08bb72a09c824491351cb7b016d7552cd11dea",
+      "preimage_utf8": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+      "rejected_reason": "digesting the whole did:key: URI is the retired convention; the receipt binds the bare multikey",
+      "rejected_retired_expected": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
+      "rejected_retired_preimage_utf8": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+      "source_pointer": "/founding_device_descriptor/device_public_key_did",
+      "transform": "strip the did:key: prefix"
+    },
+    "hpke_key_digest": {
+      "expected": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
+      "preimage_utf8": "z6LSfixtureFoundingHpkeKey",
+      "source_pointer": "/founding_device_descriptor/hpke_key",
+      "transform": "none; the canonical multikey exactly as carried"
+    },
+    "carrier_rule": "the descriptor carries the keys and MUST NOT carry either digest; the receipt carries the digests because it carries no raw key"
   }
 }
