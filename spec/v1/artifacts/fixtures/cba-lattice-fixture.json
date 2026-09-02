@@ -1221,11 +1221,12 @@
           "expected": "retain_confirmed_evidence"
         },
         {
-          "name": "witness_disagreement_same_scope_quorum_reagrees",
+          "name": "witness_disagreement_quorum_reagreement_does_not_clear",
+          "description": "Current-v1 registers no history-range attestation and no same-scope witness re-agreement branch. Repeated agreeing witnesses are diagnostics; only an authorized fork resolution plus per-peer exact-scope alignment clears confirmed evidence.",
           "witness_count": 2,
           "same_complete_scope": true,
           "same_payload": true,
-          "expected": "clear_exact_witness_scope"
+          "expected": "retain_confirmed_evidence"
         },
         {
           "name": "cross_suite_discriminator_is_diagnostic_only",
@@ -1233,6 +1234,107 @@
           "expected": "reject",
           "reason_code": "witness_disagreement",
           "note": "blake3 is profile-gated v1_optional_interop, so a peer may be unable to verify it"
+        },
+        {
+          "name": "resolution_near_one_mib_collision_requires_variant_record",
+          "description": "Two preimages close to the 1 MiB Event ceiling cannot both be inlined: the resolution Event would itself exceed the ceiling. The reference branch is the only way such a collision stays adjudicable.",
+          "event_kind": "ak.fork.resolution",
+          "canonical_event_size_bytes": 1048000,
+          "locator_kind": "inline_canonical_bytes",
+          "expected": "reject",
+          "reason_code": "payload_too_large"
+        },
+        {
+          "name": "resolution_near_one_mib_collision_accepts_variant_record",
+          "description": "The same collision adjudicated through two registered records keeps the resolution Move itself inside the 1 MiB bound.",
+          "event_kind": "ak.fork.resolution",
+          "canonical_event_size_bytes": 1048000,
+          "locator_kind": "collision_variant_record",
+          "expected": "accept"
+        },
+        {
+          "name": "resolution_variant_record_digest_mismatch_rejected",
+          "description": "The selector digest is recomputed over the complete canonical record; a record that does not hash to the signed locator digest is not the referenced material.",
+          "event_kind": "ak.fork.resolution",
+          "collision_variant_record_id": "ak:collision_variant_record:01964140-0000-7000-8000-000000000000",
+          "collision_variant_record_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "resolved_record_defect": "digest_mismatch",
+          "expected": "reject",
+          "reason_code": "digest_mismatch"
+        },
+        {
+          "name": "resolution_variant_record_size_mismatch_rejected",
+          "description": "A truncated transfer must not present itself as a shorter legal preimage, so the decoded length is checked against canonical_event_size_bytes.",
+          "event_kind": "ak.fork.resolution",
+          "resolved_record_defect": "canonical_event_size_bytes_mismatch",
+          "expected": "reject",
+          "reason_code": "schema_violation"
+        },
+        {
+          "name": "resolution_variant_record_foreign_realm_rejected",
+          "description": "A record whose realm_id differs from the resolution Event Realm belongs to another recovery authority.",
+          "event_kind": "ak.fork.resolution",
+          "resolved_record_defect": "foreign_realm_id",
+          "expected": "reject",
+          "reason_code": "schema_violation"
+        },
+        {
+          "name": "resolution_variant_record_proof_controller_mismatch_rejected",
+          "description": "The record proof controller MUST equal the resolution Move executed_by ?? actor_id, and that principal MUST be the verified recovery-capability holder.",
+          "event_kind": "ak.fork.resolution",
+          "resolved_record_defect": "proof_controller_not_move_principal",
+          "expected": "reject",
+          "reason_code": "schema_violation"
+        },
+        {
+          "name": "resolution_variant_record_event_id_recompute_mismatch_rejected",
+          "description": "collision_event_id is recomputed from the decoded bytes; the carried value is never trusted.",
+          "event_kind": "ak.fork.resolution",
+          "resolved_record_defect": "recomputed_collision_event_id_mismatch",
+          "expected": "reject",
+          "reason_code": "event_id_digest_mismatch"
+        },
+        {
+          "name": "resolution_cross_realm_winner_outside_event_realm_rejected",
+          "description": "A collision group can span Realms, but this Move only governs its own envelope realm_id. Naming a winner whose canonical bytes carry another realm_id would let one Realm overwrite another Realm recovery authority.",
+          "event_kind": "ak.fork.resolution",
+          "winner_variant_realm_relation": "other_realm",
+          "expected": "reject",
+          "reason_code": "schema_violation"
+        },
+        {
+          "name": "resolution_cross_realm_verdict_does_not_govern_other_realm",
+          "description": "Realm A canonical_winner or void_all changes only Realm A projections; the same collision group in Realm B stays quarantined until Realm B adjudicates it.",
+          "event_kind": "ak.fork.resolution",
+          "other_realm_holds_same_collision_group": true,
+          "expected": "accept_and_project_exact_scope",
+          "other_realm_projection": "unchanged_and_still_quarantined"
+        },
+        {
+          "name": "resolution_peer_alignment_clears_only_exact_evidence_key",
+          "description": "Second phase. After local normalization, one peer proves through an authenticated exact-scope challenge that its canonical sibling set equals the verdict, and only that evidence key clears.",
+          "event_kind": "ak.fork.resolution",
+          "peer_exact_scope_challenge_completed": true,
+          "peer_sibling_set_equals_verdict": true,
+          "expected": "clear_exact_evidence_scope",
+          "other_peer_confirmed_evidence": "retained",
+          "other_subject_confirmed_evidence": "retained",
+          "ordinary_failure_window": "unchanged"
+        },
+        {
+          "name": "resolution_peer_alignment_mismatch_keeps_peer_stale",
+          "description": "A challenge that answers with a sibling set different from the verdict is not alignment.",
+          "event_kind": "ak.fork.resolution",
+          "peer_exact_scope_challenge_completed": true,
+          "peer_sibling_set_equals_verdict": false,
+          "expected": "retain_confirmed_evidence"
+        },
+        {
+          "name": "resolution_cell_bottom_refails_closed_after_clear",
+          "description": "A stale clear must not survive: once the resolution cell joins to bottom or a new unadjudicated subject appears, the peer is quarantined again.",
+          "event_kind": "ak.fork.resolution",
+          "resolution_cell_status_after_clear": "bottom",
+          "expected": "requarantine_peer"
         }
       ]
     },
@@ -1679,7 +1781,7 @@
         },
         {
           "name": "target_cell_mismatch",
-          "payload_target_cell": "ak:cell:ak.component.realm.notary.v1:null",
+          "payload_target_cell_id": "ak:cell:ak.component.realm.notary.v1:null",
           "expected": {
             "result": "failed_precondition",
             "reason": "recovery_witness_invalid",

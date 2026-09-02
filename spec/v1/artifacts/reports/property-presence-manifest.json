@@ -20,7 +20,7 @@
     "by_presence_class": {
       "optional": 2713,
       "optional_defaulted": 66,
-      "required": 6848,
+      "required": 6852,
       "required_nullable": 122,
       "tristate": 208
     },
@@ -12208,6 +12208,8 @@
         "/$defs/CallMediaTokenExchangeRequestBody/properties/device_id": "required",
         "/$defs/CallMediaTokenExchangeRequestBody/properties/focus_id": "required",
         "/$defs/CallMediaTokenExchangeRequestBody/properties/realm_id": "required",
+        "/$defs/CollisionVariantRecordSelector/properties/content_digest": "required",
+        "/$defs/CollisionVariantRecordSelector/properties/kind": "required",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals": "required",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals/items/allOf/0/if/properties/decision_state": "optional",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals/items/properties/absolute_due_at": "required",
@@ -12429,6 +12431,8 @@
         "/$defs/GovernanceDependency/oneOf/1/properties/selector": "required",
         "/$defs/GovernanceDependency/oneOf/2/properties/minimal_metadata_mls_leaf_signer_evidence": "required",
         "/$defs/GovernanceDependency/oneOf/2/properties/selector": "required",
+        "/$defs/GovernanceDependency/oneOf/3/properties/collision_variant_record": "required",
+        "/$defs/GovernanceDependency/oneOf/3/properties/selector": "required",
         "/$defs/GovernanceDependencyResolveOutcome/properties/items": "required",
         "/$defs/GovernanceDependencyResolveOutcome/properties/missing_selectors": "required",
         "/$defs/GrantList/properties/evaluated_at": "optional",

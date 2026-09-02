@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-01.12",
-  "generated_at": "2026-09-02T15:30:00+08:00",
+  "version": "2026-09-01.13",
+  "generated_at": "2026-09-02T18:20:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -349,7 +349,7 @@
     },
     {
       "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
-      "sha256": "sha256:9574ae16c14bb39a84f9d12263d2057a581ebba3c2810713266b6e1f8a98e1b9"
+      "sha256": "sha256:3996b12b2a20f6cbf611df01bfa86f34cf5c3180ab0f39bad13f68f2eaa8f98c"
     },
     {
       "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
@@ -885,7 +885,7 @@
     },
     {
       "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
-      "sha256": "sha256:80f8329a63604a1631ce62f96b20704ae8d2c848e595f5204996efac94a57fbe"
+      "sha256": "sha256:fd6450c4e86e6d0660e50a9c8c00739942dbb484c7ae9e8cd10fdcc1fa6b3e09"
     },
     {
       "operation_id": "ak.self.seals.command.submit.v1",
@@ -897,7 +897,7 @@
     },
     {
       "operation_id": "ak.self.seals.read.governance_dependencies.v1",
-      "sha256": "sha256:f95c356240705055c2984f8fb4b11cb272b6172e41165497f53437b51cdb83d1"
+      "sha256": "sha256:d55457c5b95801e13e831a470f6db0df18376d01d35814a33b1e560c0a1d1c9d"
     },
     {
       "operation_id": "ak.self.seals.read.mls_governance_proof.v1",

@@ -75,9 +75,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-02.7",
-      "generated_at": "2026-09-02T16:24:00+08:00",
-      "content_digest": "sha256:1195a0a3f182739fc599ace70fcd51ef078b0175bd9370cb6cd4bf6760ee4d09"
+      "version": "2026-09-02.8",
+      "generated_at": "2026-09-02T18:20:00+08:00",
+      "content_digest": "sha256:09ed590aaa43b69c010a31db0e063a42c45d486a77ef0743c46723b4201912c7"
     },
     {
       "path": "spec/v1/artifacts/registry/did-document-contract-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-02.3",
-      "generated_at": "2026-09-02T16:24:00+08:00",
-      "content_digest": "sha256:585e4240e75ae5ca4ca62015d9f430f4f39016d734f2ff53baa79e036cc413dc"
+      "version": "2026-09-02.4",
+      "generated_at": "2026-09-02T18:20:00+08:00",
+      "content_digest": "sha256:7161061381351ef0ebd8a13e625dfbf13851a2609617bb20194151f696586916"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -231,15 +231,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-01.12",
-      "generated_at": "2026-09-02T15:30:00+08:00",
-      "content_digest": "sha256:adad7e0e42dda96b91c76fbf52020f2be6aed301d3daf8fd17fc35b226910069"
+      "version": "2026-09-01.13",
+      "generated_at": "2026-09-02T18:20:00+08:00",
+      "content_digest": "sha256:cebcd9e6e1befbdd37ef03b0ba0756e7785f85d87207469e9e1355b07f19f4ab"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-02.3",
-      "generated_at": "2026-09-02T15:30:00+08:00",
-      "content_digest": "sha256:ac4194b6b1d605522fbfa9dbd59ed33e3f00f687f0fa895fdf664512677476aa"
+      "version": "2026-09-02.4",
+      "generated_at": "2026-09-02T18:20:00+08:00",
+      "content_digest": "sha256:7f98d0a37de66d372d3be0d05931a2f8169f7ba768512aae3c49b6415ce2342f"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",

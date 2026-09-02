@@ -356,6 +356,23 @@
       },
       "additionalProperties": false
     },
+    "CollisionVariantRecordSelector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "content_digest"
+      ],
+      "properties": {
+        "kind": {
+          "const": "collision_variant_record"
+        },
+        "content_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
+          "description": "Digest of the complete canonical record under the Realm's active digest suite, byte-identical to the collision_variant_record_digest an ak.fork.resolution locator signs."
+        }
+      },
+      "additionalProperties": false
+    },
     "GovernanceDependencySelector": {
       "oneOf": [
         {
@@ -366,6 +383,9 @@
         },
         {
           "$ref": "#/$defs/MinimalMetadataMlsLeafSignerEvidenceSelector"
+        },
+        {
+          "$ref": "#/$defs/CollisionVariantRecordSelector"
         }
       ]
     },
@@ -482,6 +502,22 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "selector",
+            "collision_variant_record"
+          ],
+          "properties": {
+            "selector": {
+              "$ref": "#/$defs/CollisionVariantRecordSelector"
+            },
+            "collision_variant_record": {
+              "$ref": "./collision-variant-record.schema.json"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -509,7 +545,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object. Each evidence object is at most 1 MiB. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
+      "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object; collision_variant_record recomputes the selector digest over the complete canonical record under the Realm's active digest suite, and the caller additionally verifies the record proof, its realm_id and the independently recomputed collision_event_id before apply_seal. Each evidence object is at most 1 MiB. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
     },
     "SealAvailabilityReceiptIssueRequest": {
       "type": "object",
