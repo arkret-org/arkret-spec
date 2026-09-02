@@ -1335,6 +1335,29 @@
           "event_kind": "ak.fork.resolution",
           "resolution_cell_status_after_clear": "bottom",
           "expected": "requarantine_peer"
+        },
+        {
+          "name": "recovery_seal_covering_only_fork_resolution_accepted",
+          "description": "The dedicated fork-resolution Seal is a closed member of the step 2b recovery allow-list.",
+          "event_kind": "ak.fork.resolution",
+          "seal_signer_descriptor": "recovery_members",
+          "seal_delta_kinds": [
+            "ak.fork.resolution",
+            "ak.fork.resolution"
+          ],
+          "expected": "accept_and_project_exact_scope"
+        },
+        {
+          "name": "recovery_seal_mixing_an_ordinary_move_rejected",
+          "description": "A recovery signer that could attach an ordinary Control Move to a fork-resolution Seal would hold a general signing authority rather than a recovery one.",
+          "event_kind": "ak.fork.resolution",
+          "seal_signer_descriptor": "recovery_members",
+          "seal_delta_kinds": [
+            "ak.fork.resolution",
+            "ak.member.state"
+          ],
+          "expected": "reject",
+          "reason_code": "seal_signer_unauthorized"
         }
       ]
     },
