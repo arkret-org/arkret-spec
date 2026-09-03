@@ -385,6 +385,7 @@ VALUE_PROJECTION_DIGEST_INPUTS = {
 
 VALUE_PROJECTION_DERIVATIONS = {
     "event_digest_from_event_id",
+    "mls_commit_transition_digest",
     "mls_genesis_transition_digest",
 }
 

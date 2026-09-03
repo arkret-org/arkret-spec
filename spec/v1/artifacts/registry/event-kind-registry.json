@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.8",
+  "version": "2026-09-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T20:40:00+08:00",
+  "generated_at": "2026-09-03T01:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -5268,7 +5268,7 @@
               },
               {
                 "name": "mls_transition_digest",
-                "field": "payload.commit_digest"
+                "derivation": "mls_commit_transition_digest"
               },
               {
                 "name": "effective_scope",
@@ -5327,7 +5327,7 @@
         }
       ],
       "concurrency_class": "security_barrier",
-      "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is payload.commit_digest. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence."
+      "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is the SHA-256 digest derived from the exact decoded payload.commit_bytes_b64 bytes. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence."
     },
     {
       "event_kind": "ak.mls.commit_failed",

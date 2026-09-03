@@ -129,7 +129,7 @@ Projection MAY 派生：
 若 Realm 需要从另一个 Realm 派生 capability 或 policy，必须使用目标 Realm 内的显式 policy：
 
 - `ak.realm.inheritance_policy`：声明允许从哪个 source Realm 继承哪些收窄型 policy / capability bundle。
-- `ak.capability.derived`：reducer-only 派生 grant，必须引用 source grant、目标 Realm 的 inheritance policy 和有效 causal frontier。
+- `ak.capability.derived`：reducer-only 派生 grant；`payload.grant.issuer_authority_refs[]` 中唯一的 `kind="grant"` 条目引用 source grant，目标 Realm 当前有效的 inheritance policy 表达本地 opt-in，承载 Event 的 `seal_basis` 固定有效 causal frontier。payload 只携带完整的派生 `grant` 与逐字相等的 `grant_id`，不得复制 policy 或 frontier sidecar 字段。
 
 继承规则：
 

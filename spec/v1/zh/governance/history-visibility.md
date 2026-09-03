@@ -624,7 +624,7 @@ history secret，不得删除或改写 holder archive。`ak.vector.history_key.o
 
 effective epoch cell 明确分开：`transition_ref` 是 Genesis/Commit EventId，`transition_event_digest` 是 outer Event digest，
 `mls_transition_digest` 才是 MLS transition 内容摘要。Conflict recovery 选择前两者；state leaf 同时绑定三者。Archive 的
-`transition_digest` 必须逐字等于 `mls_transition_digest`。Commit 使用 `payload.commit_digest`。Genesis 使用
+`transition_digest` 必须逐字等于 `mls_transition_digest`。Commit 对解码后的 `payload.commit_bytes_b64` 原始字节计算 SHA-256；该摘要是 reducer 派生值，不作为 sibling 字段进入 wire payload。Genesis 使用
 `SHA-256(UTF8("ak.mls-genesis-transition-v1") || 0x00 || JCS(closed mls_genesis_payload core after removing
 organization_recovery_archive))`；outer EventId、Event proof 与 archive 本身均排除。Genesis/Commit 的
 `governance_binding.content_scheme` 与 conditional `durability_policy` 机械决定 archive 必填/禁止，producer 不得漏 archive 后继续。
