@@ -2275,6 +2275,33 @@
           }
         },
         {
+          "name": "stale_peer_receives_resolution_before_alignment_challenge",
+          "verdict": {
+            "kind": "canonical_winner",
+            "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+          },
+          "peer_stale_sequence": [
+            "durable_outbox_delivers_recovery_seal",
+            "durable_outbox_delivers_fork_resolution_move",
+            "peer_accepts_resolution",
+            "challenger_requests_exact_sibling_position"
+          ],
+          "peer_disclosure": {
+            "disclosed": true,
+            "resolution_move_held": true,
+            "siblings": [
+              "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+            ]
+          },
+          "expected": {
+            "alignment": "aligned",
+            "peer_stale": "cleared",
+            "evidence_scope": "resolved",
+            "resolution_fanout_exempt_from_peer_stale": true
+          },
+          "note": "The recovery Seal and its covered resolution Move remain deliverable while the peer is stale; otherwise the responder could never satisfy the disclosure gate and the second phase would not terminate."
+        },
+        {
           "name": "another_peer_alignment_does_not_clear_this_peer",
           "verdict": {
             "kind": "canonical_winner",

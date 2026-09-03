@@ -9,9 +9,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
-      "version": "2026-08-30.1",
-      "generated_at": "2026-08-30T23:30:00+08:00",
-      "content_digest": "sha256:cae211ac2492fc511727779258c3115e0452bb332c855b0cef20ee2284564f69"
+      "version": "2026-09-03.1",
+      "generated_at": "2026-09-03T20:50:00+08:00",
+      "content_digest": "sha256:85b042aa942640832a3e9c0fe2a35007286ca02ac61547de294645f9b80ed4a2"
     },
     {
       "path": "spec/v1/artifacts/registry/account-status-replica-decision-table.json",
@@ -225,9 +225,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-02.7",
-      "generated_at": "2026-09-02T23:35:00+08:00",
-      "content_digest": "sha256:086ca15f0cbe6365213f219b2aa5cb0f367d6cda3a032a6fccf4e51a1e7693cf"
+      "version": "2026-09-03.1",
+      "generated_at": "2026-09-03T20:50:00+08:00",
+      "content_digest": "sha256:2eb46637e792b51c22eb4b9e1450a0ff303f7a8ed736628a5ff958c3ee2f45ad"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-03.1",
-      "generated_at": "2026-09-03T01:30:00+08:00",
-      "content_digest": "sha256:1448df9916593aec3a8238fc6069fdd1bb02ebcb7408bea8a09abeee85f4579a"
+      "version": "2026-09-03.3",
+      "generated_at": "2026-09-03T20:50:00+08:00",
+      "content_digest": "sha256:ae1276af782560bda29e714ac3b090f10a841e93a91d282385bf9653407e04e9"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -375,9 +375,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-03.2",
-      "generated_at": "2026-09-03T02:30:00+08:00",
-      "content_digest": "sha256:98c32842cf6b064113ce2529698d66b163e298bb015aacb19339c9bdedfd06fb"
+      "version": "2026-09-03.3",
+      "generated_at": "2026-09-03T20:50:00+08:00",
+      "content_digest": "sha256:85e9e13dbe53db81f58d5c0950bc3ab7a6b04b238911b5d7bae23cec4a276f4e"
     }
   ]
 }

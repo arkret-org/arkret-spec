@@ -43,8 +43,8 @@
       "description": "Principal DID sets whose authoritative device list changed or left the caller's visibility scope on `delta` frames."
     },
     "account_data": {
-      "$ref": "#/$defs/event_container",
-      "description": "Account-scoped private data updates on `delta` frames."
+      "$ref": "#/$defs/account_data_container",
+      "description": "Account-scoped private data on `delta` frames, split by authority: holder-authored durable Events remain in events[], while registry-declared station_cas registers use the closed station_cas branch."
     },
     "notifications": {
       "$ref": "#/$defs/notification_container",
@@ -88,6 +88,94 @@
         }
       },
       "additionalProperties": true
+    },
+    "account_data_container": {
+      "type": "object",
+      "required": [
+        "events"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "description": "Holder-authored ak.account_data.set Events only. Station-CAS rows MUST NOT be synthesized as Events.",
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          }
+        },
+        "station_cas": {
+          "$ref": "#/$defs/station_cas_account_data_container"
+        }
+      },
+      "additionalProperties": false
+    },
+    "station_cas_account_data_container": {
+      "type": "object",
+      "description": "Holder-readable register projection for every account-data registry row whose writer_authorities contains station_cas. complete=true is an authoritative initial baseline: upserts is the complete live set and removals is empty. complete=false is a cursor-covered delta; absence means unchanged, never removed.",
+      "required": [
+        "complete",
+        "upserts",
+        "removals"
+      ],
+      "properties": {
+        "complete": {
+          "type": "boolean"
+        },
+        "upserts": {
+          "type": "array",
+          "items": {
+            "$ref": "./account-data-operations.schema.json#/$defs/account_data_entry"
+          }
+        },
+        "removals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/station_cas_account_data_removal"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "complete": {
+                "const": true
+              }
+            },
+            "required": [
+              "complete"
+            ]
+          },
+          "then": {
+            "properties": {
+              "removals": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "station_cas_account_data_removal": {
+      "type": "object",
+      "description": "Explicit physical-delete delta. The revision is the per-key tombstone high-water revision; updated_at is diagnostic only and never selects a winner.",
+      "required": [
+        "account_data_key",
+        "revision",
+        "updated_at"
+      ],
+      "properties": {
+        "account_data_key": {
+          "$ref": "./account-data-operations.schema.json#/$defs/account_data_key"
+        },
+        "revision": {
+          "$ref": "./account-data-operations.schema.json#/$defs/revision"
+        },
+        "updated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
     },
     "notification_container": {
       "type": "object",

@@ -2072,6 +2072,102 @@
           }
         },
         {
+          "name": "display_name_match_does_not_trigger_handle_target",
+          "input": {
+            "target": {
+              "kind": "handle",
+              "value": "alice:acme.example"
+            },
+            "sender_actor_display_name": "alice:acme.example",
+            "verified_handle_claims": []
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "display metadata is not verified identity evidence",
+              "the holder projection remains visible",
+              "no actor or organization affiliation is inferred"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account.blocklist_projection.v1",
+              "preconditions": {
+                "blocklist_version": 1,
+                "handle_target": "alice:acme.example"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "display_name_match_does_not_trigger_handle_target",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "sender_actor_display_name": "alice:acme.example",
+                "verified_handle_claims": []
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "holder_projection": "visible"
+            },
+            "expected_external_response": {
+              "outcome": "accepted",
+              "block_disclosed": false
+            },
+            "expected_audit_reason": "accepted"
+          }
+        },
+        {
+          "name": "verified_handle_claim_triggers_handle_target",
+          "input": {
+            "target": {
+              "kind": "handle",
+              "value": "alice:acme.example"
+            },
+            "sender_actor_display_name": "Mallory",
+            "verified_handle_claims": [
+              "alice:acme.example"
+            ]
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "only a verified handle claim is compared with a handle target",
+              "the holder projection is filtered",
+              "the match does not expand to an organization realm or service"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account.blocklist_projection.v1",
+              "preconditions": {
+                "blocklist_version": 1,
+                "handle_target": "alice:acme.example"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "verified_handle_claim_triggers_handle_target",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "sender_actor_display_name": "Mallory",
+                "verified_handle_claims": [
+                  "alice:acme.example"
+                ]
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "holder_projection": "filtered"
+            },
+            "expected_external_response": {
+              "outcome": "accepted",
+              "block_disclosed": false
+            },
+            "expected_audit_reason": "accepted"
+          }
+        },
+        {
           "name": "next_revision_removes_entry_and_rebuilds_projection",
           "input": {
             "previous_version": 1,

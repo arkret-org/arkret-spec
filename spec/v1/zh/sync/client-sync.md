@@ -103,7 +103,10 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
   },
   "to_device": {"messages": []},
   "device_lists": {"changed": [], "left": []},
-  "account_data": {"events": []},
+  "account_data": {
+    "events": [],
+    "station_cas": {"complete": true, "upserts": [], "removals": []}
+  },
   "notifications": {"items": []}
 }
 ```
@@ -119,7 +122,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "unauthorized"}
 ```
 
-`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `knock` 进入 roster（`member_roster.entries[]`），`leave` / `ban` 不进入 roster（见 §8.1 roster `member_roster.entries[]` 定义）。Invite 是独立 pending workflow，只能从调用方私有 Invite inbox / delivery projection 展示，不得推造 membership cell 或 roster row。`state`、`state_after`、Realm-scoped `account_data` 以及顶层 `account_data` 使用事件容器形状:
+`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `knock` 进入 roster（`member_roster.entries[]`），`leave` / `ban` 不进入 roster（见 §8.1 roster `member_roster.entries[]` 定义）。Invite 是独立 pending workflow，只能从调用方私有 Invite inbox / delivery projection 展示，不得推造 membership cell 或 roster row。`state`、`state_after` 与 Realm-scoped `account_data` 使用事件容器形状:
 
 ```json
 {
@@ -127,7 +130,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 }
 ```
 
-`state`、`state_after` 与 `account_data` 的 `events[]` 使用 durable / actor-private `Event`。
+顶层 `account_data` 使用闭合双分支 `{events, station_cas?}`：`events[]` 只承载 durable holder-authored actor-private `Event`；`station_cas` 只承载 registry 中 `writer_authorities` 含 `station_cas` 的行，形状为 `{complete, upserts, removals}`。两类真相源不得互相合成或镜像。
 `SignalEnvelope` 只出现在 `ak.self.signal.stream.subscribe.v1`，不得为了复用本流容器而包装
 成 durable Event，也不得恢复旧的 presence/receipt/call 聚合对象。
 `ak.profile.signal_message_stream.v1` 的 `ak.message.stream` 正文预览同样只在该 Signal rail
@@ -141,7 +144,7 @@ attempt 选择与 final 替换 MUST 按 [`signal.md` §7](./signal.md#7-message-
 
 客户端 MUST 维护一个连续的 `/_arkret/self/account/subscribe` 有界长轮询序列，并:
 
-1. **原子持久化 frame 与 cursor**: 客户端 MUST 在同一本地事务中持久化 frame payload(timeline 事件、state、account_data、device_lists 等)与该 frame 的 `cursor`,之后才把它用作重连 `after=` 起点;MUST NOT 在 payload 落盘前单独推进本地 cursor 高水位。"先存 cursor、后落数据"的实现会在崩溃时产生本地静默缺口——其中 `device_lists` 缺口只能靠重做 initial sync 恢复。to-device 消息的投递安全由 §10.1 显式 ack 在协议层保证，不依赖本条；但 SHOULD 同样与 cursor 同事务落盘以减少重连后的重复处理。仅带 cursor 不带数据的 frame(`frontier` / `catchup_complete`)直接更新本地高水位即可。
+1. **原子持久化 frame 与 cursor**: 客户端 MUST 在同一本地事务中持久化 frame payload(timeline 事件、state、account_data、device_lists 等)与该 frame 的 `cursor`,之后才把它用作重连 `after=` 起点;MUST NOT 在 payload 落盘前单独推进本地 cursor 高水位。`account_data.station_cas` 的 upsert/remove 与 revision 高水位也属于这笔事务。"先存 cursor、后落数据"的实现会在崩溃时产生本地静默缺口——其中 `device_lists` 或 Station-CAS 缺口只能靠重做 initial sync 恢复。to-device 消息的投递安全由 §10.1 显式 ack 在协议层保证，不依赖本条；但 SHOULD 同样与 cursor 同事务落盘以减少重连后的重复处理。仅带 cursor 不带数据的 frame(`frontier` / `catchup_complete`)直接更新本地高水位即可。
 2. **正常续轮与网络断开**: 正常收到 `delta` / `frontier` 并完成本轮响应后，若没有服务端 `reconnect_after_ms` 或 HTTP `Retry-After` 指令，MUST 立即用最近 `cursor` 作为 `after=` 发起下一轮请求，并设置 `catchup=true`；网络断开时使用相同规则重连，确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。客户端 MUST NOT 在服务端 30 秒等待窗口之外再固定 sleep 5 秒，否则会平白增加实时延迟。
 3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `ak.self.events.read.scan.v1` 恢复，因为 `to_device`、`account_data`、`device_lists` 与 notifications 不属于裸 Realm Event 查询面。
 4. **`resync_required` frame**: 清空本地 cursor 缓存，重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。大型 Realm 的当前态可走 snapshot bootstrap,见 §12.3 与 §13。
@@ -595,7 +598,9 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 存储模型、value 加密与跨设备并发写入契约的单一真源是 [`../models/account-data.md`](../models/account-data.md)：每个 key 是 server-versioned compare-and-set whole-value register，写入携带 `expected_revision`，领域 merge 规则在客户端明文上执行。
 
-`ak.account.invite_delivery` 与 `ak.account.invite_quarantine` 是 registry 声明的 `station_cas` plaintext cell。它们的权威 revision/value 只由 account-data list/get 返回；CAS 被接受后的实时提示走本 sync frame 的 `to_device.messages[]`，使用受限 service sender 的 `ak.account_data.update`。它们不是 holder-authored Event，MUST NOT 出现在 `account_data.events[]`，也不得为了填充该 Event container 而合成 `ak.account_data.set`。
+`ak.account.invite_delivery` 与 `ak.account.invite_quarantine` 是 registry 声明的 `station_cas` plaintext cell。它们的权威 revision/value 同时由 account-data list/get 诊断面与本 sync frame 顶层 `account_data.station_cas` 投影：initial sync 的 `complete=true` baseline 必须含当前 registry 中所有 holder-readable Station-CAS live row；增量用 `upserts[]` / `removals[]` 表达 cursor 覆盖后的最终 revision，同 key 可合并为窗口内最后一项。`complete=true` 时 `removals` 必须为空，客户端先清空本地 Station-CAS live set 再应用 `upserts`。它们不是 holder-authored Event，MUST NOT 出现在 `account_data.events[]`，也不得为了填充该 Event container 而合成 `ak.account_data.set`。
+
+每个 upsert 逐字复用 `account-data-operations.schema.json#/$defs/account_data_entry`；remove 携带 `account_data_key`、`revision`、`updated_at`。客户端对每个 key 只接受更高 revision；更低 revision MUST fail closed，同 revision 的不同 value / tombstone MUST 视为同步冲突并触发 resync。服务端 MUST 把 accepted Station-CAS 写入、该 key 的投影位置推进与可重放变更记录放在同一事务；cursor 必须覆盖该位置。变更记录保留期 MUST 不短于 cursor TTL 与 `account_data_tombstone_retention_ms` 的较大者；无法填满 `after` 到当前 frontier 的区间时必须返回 `dropped` / `resync_required`，不得静默跳过。`to_device` 中的 `ak.account_data.update` 仅是低延迟唤醒/加速器，不是第三个真相源，也不能代替上述 baseline 与增量。
 
 ## 10. To-Device Delivery
 
@@ -771,6 +776,7 @@ Accept: application/x-ndjson
 - 对活跃 Realm 返回有限 timeline。
 - 返回足够 `required_state` 让客户端首屏可渲染。
 - 返回 device list delta 的完整 baseline。
+- 顶层 `account_data.station_cas` 必须以 `complete=true` 返回当前 registry 中全部 holder-readable `station_cas` live row；filter 不得裁掉该集合，`removals` 必须为空。当前只有零行也必须返回空的 complete container，使客户端能清除陈旧本地投影。
 
 此外，baseline `delta` MUST 把当前 account context 下全部仍 open 的
 `agent_runtime_approval` notification 作为 `action=upsert` 的权威完整集合返回；即使其它

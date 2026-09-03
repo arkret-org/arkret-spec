@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.7",
+  "version": "2026-09-03.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T23:35:00+08:00",
+  "generated_at": "2026-09-03T20:50:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -359,7 +359,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/models/account-data.md#5-并发写入与收敛契约normative",
-      "section_digest": "sha256:4292dfc7868392670466c4a45218402ca161eb0be5fc160b82dd348a55474591",
+      "section_digest": "sha256:b097b445bd44ab79beb5c0e1ec407c7f2469dde379dfd7acb4af1aef1806d63e",
       "requirement": "Account Data keys are server-versioned compare-and-set registers with explicitly registered writer authority and holder self operations: a stale write MUST fail with cas_conflict, the revision high-water mark never goes backwards, and domain merge runs client-side on plaintext.",
       "testability_grade": "vector",
       "evidence_refs": [

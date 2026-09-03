@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9801,
+    "total_properties": 9808,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2684,
+      "optional": 2682,
       "optional_defaulted": 65,
-      "required": 6724,
+      "required": 6732,
       "required_nullable": 122,
-      "tristate": 206
+      "tristate": 207
     },
-    "tristate_occurrences": 206,
-    "tristate_audit_targets": 147,
+    "tristate_occurrences": 207,
+    "tristate_audit_targets": 148,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 138,
+      "absent_null_equivalent": 139,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -44,6 +44,7 @@
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event",
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload",
     "account-subscribe-frame.schema.json/$defs/device_message_container/allOf/0/if/properties/messages",
+    "account-subscribe-frame.schema.json/$defs/station_cas_account_data_container/allOf/0/then/properties/removals",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/0/then/properties/blockers",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/1/then/properties/blockers",
     "agent-sidecar-exchange-projection.schema.json/allOf/0/then/properties/user_facing_response_event_ids",
@@ -284,6 +285,16 @@
       "instance_path": "/messages",
       "occurrences": [
         "/$defs/device_message_container/allOf/0/if/properties/messages"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "account-subscribe-frame.schema.json",
+      "shape": "/$defs/station_cas_account_data_container",
+      "instance_path": "/removals",
+      "occurrences": [
+        "/$defs/station_cas_account_data_container/allOf/0/then/properties/removals"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -2192,6 +2203,8 @@
         "ak.schema.account_subscribe_frame.v1"
       ],
       "properties": {
+        "/$defs/account_data_container/properties/events": "required",
+        "/$defs/account_data_container/properties/station_cas": "optional",
         "/$defs/agent_runtime_approval_notification_data/properties/agent_id": "required",
         "/$defs/agent_runtime_approval_notification_data/properties/approval_request_id": "required",
         "/$defs/agent_runtime_approval_notification_data/properties/expires_at": "required",
@@ -2264,6 +2277,14 @@
         "/$defs/state_at_window_start/properties/realm_metadata/properties/join_rule": "optional",
         "/$defs/state_at_window_start/properties/realm_metadata/properties/summary": "optional",
         "/$defs/state_at_window_start/properties/realm_metadata/properties/title": "optional",
+        "/$defs/station_cas_account_data_container/allOf/0/if/properties/complete": "required",
+        "/$defs/station_cas_account_data_container/allOf/0/then/properties/removals": "tristate",
+        "/$defs/station_cas_account_data_container/properties/complete": "required",
+        "/$defs/station_cas_account_data_container/properties/removals": "required",
+        "/$defs/station_cas_account_data_container/properties/upserts": "required",
+        "/$defs/station_cas_account_data_removal/properties/account_data_key": "required",
+        "/$defs/station_cas_account_data_removal/properties/revision": "required",
+        "/$defs/station_cas_account_data_removal/properties/updated_at": "required",
         "/$defs/timeline/properties/events": "required",
         "/$defs/timeline/properties/limited": "required",
         "/$defs/timeline/properties/ordered_log_siblings": "optional",
@@ -7037,7 +7058,6 @@
         "/$defs/moderation_report_payload/properties/reporter_id": "required",
         "/$defs/moderation_report_payload/properties/source_provider_id": "optional",
         "/$defs/moderation_report_payload/properties/target_ref": "required",
-        "/$defs/morph_create_payload/properties/initial_relations": "optional",
         "/$defs/morph_create_payload/properties/object": "required",
         "/$defs/morph_stage_set_payload/properties/expected_stage": "optional",
         "/$defs/morph_stage_set_payload/properties/morph_id": "required",
@@ -7417,7 +7437,6 @@
         "/$defs/sovereign_did_policy_state_payload/properties/value/properties/method_policy": "required",
         "/$defs/sovereign_did_policy_state_payload/properties/value/properties/public_resolver_allowed": "required",
         "/$defs/sovereign_did_policy_state_payload/properties/value/properties/trust_root_ids": "required",
-        "/$defs/space_create_payload/properties/initial_relations": "optional",
         "/$defs/space_create_payload/properties/object": "required",
         "/$defs/space_object_tombstone_payload/properties/effective_at": "optional",
         "/$defs/space_object_tombstone_payload/properties/reason": "optional",
@@ -7436,7 +7455,6 @@
         "/$defs/state_conflict_recovery_payload/properties/reason": "optional",
         "/$defs/state_conflict_recovery_payload/properties/resolved_value": "required_nullable",
         "/$defs/state_conflict_recovery_payload/properties/target_cell_id": "required",
-        "/$defs/strand_create_payload/properties/initial_relations": "optional",
         "/$defs/strand_create_payload/properties/object": "required",
         "/$defs/strand_move_payload/properties/board_space_id": "required",
         "/$defs/strand_move_payload/properties/expected_position": "optional",

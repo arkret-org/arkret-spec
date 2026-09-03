@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-03.2",
+  "version": "2026-09-03.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-03T02:30:00+08:00",
+  "generated_at": "2026-09-03T20:50:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -39,7 +39,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "A human Contact petname is globally keyed by peer.principal_id through an opaque holder-private HMAC/JCS suffix; raw principal IDs, Realm IDs, pairwise actor IDs, and peer service IDs are forbidden key material, and decrypted slot swapping fails closed.",
+      "description": "A human Contact remark is globally keyed by peer.principal_id through an opaque holder-private HMAC/JCS suffix; petname is holder-authored, confirmed_display_name is an explicit verified PCR Profile confirmation baseline, ordinary edits preserve it, Realm/Directory fallbacks cannot initialize it, raw principal IDs, Realm IDs, pairwise actor IDs, and peer service IDs are forbidden key material, and decrypted slot swapping fails closed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/discovery/client-preferences.md"

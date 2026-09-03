@@ -282,28 +282,10 @@ Franking 信任链：
 
 ### 4.1 屏蔽是 Actor-Private 状态
 
-用户可以屏蔽任意 Actor，屏蔽列表存储在本地或用户的私有 account data 中。`ak.account.blocklist` 的**权威结构定义（entry 字段集、`version`、`entry_id`、`applies_to`、`target.kind` 取值与同步 / 隐私约束）在 [`../discovery/client-preferences.md` §3.5`](../discovery/client-preferences.md)**；本节不重复定义，仅引用，避免字段漂移。下例为最小说明性片段（完整必填字段与约束以 client-preferences §3.5 为准）：
-
-```json
-{
-  "holder_id": "ak:did_core:webvh:z6mkfixtureHolder",
-  "version": 1,
-  "entries": [
-    {
-      "entry_id": "ak:block:019640b3-cc00-7000-8000-000000000000",
-      "target": {
-        "kind": "actor",
-        "actor_id": "ak:did_core:webvh:zGMfBAbnRTYqW4943CVr9Dcii"
-      },
-      "mode": "block",
-      "applies_to": ["messages", "mentions", "dm"],
-      "reason_code": "harassment",
-      "created_at": "2026-04-26T10:00:00Z",
-      "expires_at": null
-    }
-  ]
-}
-```
+用户可以屏蔽任意精确发送者 ActorId，屏蔽列表存储在本地或用户的私有 account data 中。
+`ak.account.blocklist` 的**唯一权威结构定义与受检示例**在
+[`../discovery/client-preferences.md` §3.5](../discovery/client-preferences.md)；本节不复制 payload，避免
+`holder_id`、裸 DID 或 target union 再次形成第二套结构。
 
 ### 4.2 屏蔽行为
 
@@ -322,22 +304,27 @@ Franking 信任链：
 
 个人 blocklist MAY 包含：
 
-- actor DID
+- 完整发送者 ActorId（外层统一为 `target.kind="actor"`；内部允许 account 或 service ActorId）
 - device verification-method DID URL / `device_id`（设备自身没有 DID）
-- service DID
 - handle
 - domain
-- organization DID
 - Applet id
 - keyword / mention pattern
 
-对 handle、domain、organization DID 的屏蔽 MUST 在本地解析成可验证 DID / claim 后应用。客户端 MUST NOT 因裸字符串后缀误伤无关主体。
+actor target 只按 Event / request 已验证的完整发送者 ActorId 精确匹配，不得按 Organization、Realm、
+托管 Station、转发 service 或其它 affiliation 扩张。`handle` 只与发送者已验证 handle claim 的
+canonical handle 匹配；`domain` 只与该 claim 的 domain 分量或已验证 DID 域名绑定匹配；display name、
+未验证身份字符串或裸后缀不得命中。`keyword` 才是纯内容字符串过滤。三者都只在 holder-private
+projection 生效，不证明任何 Actor、service、Organization 或 Realm 归属，也不得改写身份或共享治理事实。
+v1 不定义 `organization` 或 `realm` personal-blocklist target。
 
 ### 4.4 隐私要求
 
 个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Station sync surface、Realm、Directory 或被屏蔽方可见的位置。
 
-跨设备同步 SHOULD 使用加密 account data。服务端只应看到不透明密文。
+跨设备同步 MUST 使用加密 account data。普通 Station / federation peer 只能看到不透明密文；仅有被
+holder 显式授权读取 blocklist 明文的 confidential service 才能代表 holder 执行过滤，且不得向发送方
+或 peer 暴露命中结果。
 
 ## 5. Realm 审核工具
 

@@ -534,6 +534,21 @@
           },
           {
             "required": [
+              "board_space_id"
+            ]
+          },
+          {
+            "required": [
+              "list_space_id"
+            ]
+          },
+          {
+            "required": [
+              "rank"
+            ]
+          },
+          {
+            "required": [
               "state"
             ]
           },

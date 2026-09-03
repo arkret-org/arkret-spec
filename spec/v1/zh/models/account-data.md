@@ -78,3 +78,11 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 `account-data-key-registry.json` 的每一行 MUST 声明 `writer_authorities`、`holder_self_operations` 与 `deletion_mode`。`writer_authorities` 的 v1 闭集是 `holder_event | station_cas`；一行允许多个 authority 时必须逐项列出。`holder_self_operations` 的闭集是 `put | delete`，空数组表示规范 self PUT/DELETE 均禁止，不得从 storage 类型猜测。`station_cas` MUST 配 `storage="plaintext_account_data"`、非空 `plaintext_schema`，其 `write_event_kinds` 必须为空；`holder_event` MUST 显式列出非空 `write_event_kinds`。v1 的 merge primitive 恒为 `cas_register`。引入任何无协调 merge primitive MUST 通过 registry 版本化重新引入机读分支，并同时登记比较 transcript、tombstone 规则与 active conformance vector；MUST NOT 使用"CAS/LWW"一类不指定比较键与冲突返回的模糊表述。
 
 可执行覆盖见 [`../conformance/conformance-vectors.md` §5.10](../conformance/conformance-vectors.md) 的 `ak.vector.account_data.cas_convergence.v1`。
+
+### 5.5 Station-CAS 同步投影（normative）
+
+registry 中 `writer_authorities` 含 `station_cas` 的 row 必须进入 `ak.self.account.stream.subscribe.v1` 顶层 `account_data.station_cas`。服务端 MUST 在 accepted CAS 写入的同一事务中推进 per-exact-AccountId 投影位置并保存可重放的 upsert 或 remove；replay cursor 覆盖该位置。initial sync 省略 `after` 且 `catchup=true` 时，服务端 MUST 以 `complete=true` 返回 registry 当前全部 holder-readable Station-CAS live row（允许为空），不得由 filter 截断。带 `after` 的 catch-up 返回 cursor 之后各 key 的最终 revision，允许同 key 窗口内合并，但不得改变最终状态。
+
+upsert 必须复用 `account_data_entry`；remove 必须显式携带 key、revision 与更新时间。客户端 MUST 按 key 单调应用 revision：较高 revision 替换，较低 revision 拒绝；同 revision 只有 canonical 内容/删除态完全相同时才是幂等 replay，否则为同步冲突并 fail closed。frame payload、各 key revision 与 cursor 必须在同一本地事务提交。
+
+Station MUST 将增量记录保留至少 `max(cursor_ttl, account_data_tombstone_retention_ms)`；无法从有效 `after` 连续恢复时只能返回 `dropped` / `resync_required`。`ak.self.account_data.read.list.v1` 与 `.resource.get.v1` 是同一权威 register 的诊断/定点恢复面；to-device `ak.account_data.update` 是低延迟加速，不得替代 subscribe baseline、cursor-covered delta 或 list/get。

@@ -137,7 +137,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 **Key:** `ak.account.blocklist`
 
-```json
+```json schema=schemas/event-payload.schema.json#/$defs/account_blocklist_payload
 {
   "version": 1,
   "entries": [
@@ -145,7 +145,13 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
       "entry_id": "ak:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
-        "actor_id": "ak:did_core:webvh:zGMfBAbnRTYqW4943CVr9Dcii"
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:zGMfBAbnRTYqW4943CVr9Dcii",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        }
       },
       "mode": "block",
       "applies_to": [
@@ -160,7 +166,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
         "directory"
       ],
       "reason_code": "harassment",
-      "created_at": "2026-04-26T10:00:00Z",
+      "created_at": "2026-04-26T10:00:00.000Z",
       "expires_at": null
     }
   ]
@@ -171,10 +177,8 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 - `actor`
 - `device`
-- `service`
 - `handle`
 - `domain`
-- `organization`
 - `applet`
 - `keyword`
 
@@ -182,7 +186,9 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 - blocklist holder 只取自已验 Event envelope 的完整 account `actor_id`，payload 不复制 `holder_id`。`version` 是该 exact AccountId blocklist 的单调 CAS revision；第一版为 `1`，后续写入必须精确为当前值 `+ 1`，跳号、回滚或并发旧版本均 `cas_conflict`。`ak.account.blocklist` 与同一 account author 的 `ak.account_data.set{key="ak.account.blocklist"}` 共享同一个 revision counter，不能形成两条独立 winner 链；同 principal core 异 Station 的账号绝不共享 counter 或规则。
 - 每个 payload 是**全量替换**，不是 entry patch：加入屏蔽对象是在下一 revision 中加入新 `entry_id`；修改同一规则时保留 `entry_id`；移除屏蔽对象是在下一 revision 中省略对应 entry；`entries=[]` 清空全部规则。服务端或客户端不得把“移除”解释为删除共享消息、撤销 capability 或通知被屏蔽方。`expires_at` 到期只令该 entry 在 holder projection 中失效；同步写者 SHOULD 在下一 revision 中清除它，receiver 不得用本地计时器改写 durable payload。
-- `target` 是闭合 discriminated union：`actor | service | organization` 必须且只能携带 `did`；`applet` 必须且只能携带 canonical `ak:applet:` `object_ref`；`handle | domain | keyword` 必须且只能携带 `value`；`device` 携带 canonical `ak:device:` `object_ref`，或在无法取得 device id 时携带 verification-method DID URL `value`。仅有裸 display name 不得成为 actor/device/service/organization target；device 与 applet 的 typed-id 前缀必须由 schema 校验，不能把其它 `object_ref` 塞入对应分支。
+- `target` 是闭合 discriminated union：`actor` 必须且只能携带完整 `actor_id`；`applet` 必须且只能携带 canonical `ak:applet:` `object_ref`；`handle | domain | keyword` 必须且只能携带 `value`；`device` 携带 canonical `ak:device:` `object_ref`，或在无法取得 device id 时携带 verification-method DID URL `value`。仅有裸 display name、W3C DID 或 `did_core_id` 不得成为 actor target；device 与 applet 的 typed-id 前缀必须由 schema 校验，不能把其它 `object_ref` 塞入对应分支。
+- `actor` target 只按被过滤 Event / request 已验证的完整发送者 `actor_id` 逐字匹配：Station 承载的 user、organization、team、Agent、Bot 或 integration 账号均使用 `ActorId.account{account_id:{principal_id,station_id}}`，service 以自身身份实际作为发送者时使用 `ActorId.service{service_id}`。不得按 `actor_kind`、Organization DID / claim、`ak.realm.organization`、托管 Station、转发 service 或其它 affiliation 把一条 actor rule 扩张到关联主体；service 仅作为 transport / relay 时也不得命中。
+- v1 不定义 `organization` 或 `realm` blocklist target。Organization 官方账号发出的内容按其 exact account ActorId 过滤；service 自身发出的内容按其 service ActorId 过滤。整个 Realm 的通知或默认视图偏好属于独立 per-Realm 客户端偏好；退出、拒绝新写入或撤销共享权限必须使用 membership / Contact / capability 的既有协议路径，不得由个人 blocklist 合成。
 - 同一 revision 内最多 4096 个 entry；规范化后的 `(target, applies_to)` 不得被多个 entry 重复覆盖；需要不同 mode 时必须使用互不重叠的 `applies_to`。`applies_to` 至少一个值并决定规则作用面，其中 `contacts` 覆盖 contact request/relationship surface，`applets` 覆盖 applet-mediated request；不得用 `dm` 或 `notifications` 猜测替代这两个独立 surface。
 - `mode="block"`：在所选 holder-facing surface 上拒绝新的 contact / DM / call / applet request 或隐藏来自 target 的内容；但共享 Realm Event 仍按下文“收取与过滤边界”处理。`mode="mute"`：内容仍可见、可搜索和正常同步，只抑制铃声、push、mention badge 等 attention surface。`mode="hide"`：内容仍同步、验证和保留，但从默认 holder view / search 中排除；它不拒绝新的协议请求。
 - 通过非可信服务同步时，account blocklist MUST 仅为 holder 自己的设备加密。
@@ -192,7 +198,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 - 对被屏蔽方的可观察行为 MUST 与普通不可达 / 不可枚举场景一致：客户端和受托服务不得返回 `blocked_by_user`、不得发送 read receipt / typing / presence 的差异信号、不得因为 block 命中改变公开错误码、延迟模式或 directory 结果形态。需要本地诊断时只能在 holder 自己的加密 account data 或本地日志中记录。
 - `ak.account.blocklist` 是 actor-private/account-private durable cell：它可以在 holder 的设备间同步，但不进入共享 Realm Seal coverage、membership state、Directory ingest 或 federation payload。
 - 若服务端代表用户执行 blocklist 过滤（例如通知、DM invite、call invite 或 directory preview），该服务 MUST 被 holder 显式授权读取对应 blocklist 明文，或声明自身进入 `plaintext_visible_services.data_classes=["blocklist"]` / 等价 holder-private confidential service；否则只能转发给客户端本地过滤。服务端执行模式不得让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 用户离线"。
-- 屏蔽组织或域 MUST 在可能时通过已验证的 DID / claim 绑定评估；仅有弱字符串匹配时，客户端 SHOULD 给出警告。
+- `handle` target 只与发送者已验证 handle claim 中的 canonical `handle`逐字比较；`domain` target 只与该已验证 handle claim 的 domain 分量，或按 [`../identity/did-usage-and-verification.md`](../identity/did-usage-and-verification.md) 已验证的 DID 域名绑定比较。display name、未验证 handle / DID 字符串或裸字符串后缀均不得命中这两类 target；`keyword` 才是纯内容字符串过滤。三者命中都只在 holder-private projection 生效，不证明也不得推断任何 actor、service、Organization 或 Realm 的控制关系。
 
 #### 3.5.1 收取与过滤边界（normative）
 
@@ -235,7 +241,7 @@ storage_key = "ak.contacts.actor." || principal_key
   "tags": ["work", "favorite"],
   "pinned": true,
   "verified_handle_at_save": "wang.example.com",
-  "global_display_name_at_save": "Wang Wei",
+  "confirmed_display_name": "Wang Wei",
   "saved_at": "2026-05-08T10:00:00Z",
   "updated_at": "2026-05-08T10:00:00Z"
 }
@@ -253,7 +259,7 @@ storage_key = "ak.contacts.actor." || principal_key
 | `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Realm tags（`ak.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。 |
 | `pinned` | `bool` | no | 是否置顶。 |
 | `verified_handle_at_save` | `string` | no | 保存或最近一次更新时该 DID 的 verified handle 快照，用于反冒充比对。 |
-| `global_display_name_at_save` | `string` | no | 保存或 holder 最近一次显式确认时，从对方 PCR `actor_profile.display_name` 观察到的全局公开值；不得写入 Realm override、MemberIdentity display、OIDC `name` 或其它 fallback。 |
+| `confirmed_display_name` | `string` | no | holder 最近一次显式确认联系人身份时所见的 verified PCR `actor_profile.display_name`；与 Profile 共用 `display_text_128`（最大 128 个 Unicode code point）。不得写入 Realm override、MemberIdentity display、Directory 裸结果、OIDC `name` 或其它 fallback。 |
 | `saved_at` | `timestamp` | yes | 首次保存时间。 |
 | `updated_at` | `timestamp` | no | 最近修改时间。 |
 
@@ -263,12 +269,12 @@ storage_key = "ak.contacts.actor." || principal_key
 - 该 key 是 principal-private，MUST 与 §3.5 blocklist 一样以加密 account data 形式同步，Station sync surface 不得读取明文。客户端解密后 MUST 验证 `subject.kind="human"`，并用完整 `subject.principal_id` 和 holder 的 namespace key 重算 storage key；不匹配时 MUST fail closed，且不得覆盖本地已验证记录。
 - `petname` 与 `note` MUST NOT 通过 mention、quote、forward、profile、Realm state、directory 或 Realm export 泄露给备注对象本人或其他成员。客户端构造引用、转发或导出时 MUST 使用对方公开的 display name / handle，不得替换为备注名。
 - 本地备注 MUST NOT 参与 ACL、grant subject、policy condition、audit attribution、sender verification 或 MLS credential 判定，约束与 [`identity/identity-handles.md`](../identity/identity-handles.md) §2.3 中 display name 一致。
-- roster、消息 sender、联系人 / DM 列表、mention autocomplete、邀请 / 请求确认等实时 holder-facing 身份面，只有在 verified evidence 能把可见主体唯一归约到 accepted Contact 的 `peer.principal_id` 时才可 join 备注；映射缺失、不唯一或仅有 display name / handle 时 MUST 按“无备注”处理，不得按字符串猜测关联。非空 `petname` MUST 作为主标签并带可识别的“备注”角标；Realm override、全局 display name 与 verified handle只能作为次要上下文。
+- roster、消息 sender、联系人 / DM 列表、mention autocomplete、邀请 / 请求确认等实时 holder-facing 身份面，只有在 verified evidence 能把可见主体唯一归约到 accepted Contact 的 `peer.principal_id` 时才可 join 备注；映射缺失、不唯一或仅有 display name / handle 时 MUST 按“无备注”处理，不得按字符串猜测关联。非空 `petname` MUST 作为主标签并带可识别的“备注”角标，当前 verified PCR Profile display 作为次要上下文；没有 `petname` 时主标签使用当前 verified PCR Profile display，不可达时才按既有 verified handle / protocol ID 降级。`confirmed_display_name` 是确认基准，不得充当实时名称缓存。
 - 历史 replay、audit 与 export 中，当前 `petname` MAY 作为明确标注的 holder-private name 并列，但 MUST NOT 取代事件的 `subject_id`、as-of handle、`display_name_at_time` 或 audit attribution。安全敏感 UI MUST 能直接显示完整 `peer.principal_id`；若显示 `peer_id`，必须标记为托管服务而不是联系人身份。
 - 当对方当前 verified handle 与 `verified_handle_at_save` 不一致时，客户端 SHOULD 在该联系人的渲染处显示 handle changed / transferred 标记，并提示用户复核备注，与 [`identity/identity-handles.md`](../identity/identity-handles.md) §6.1 的缓存失效语义一致。
-- 当前可验证的 PCR `actor_profile.display_name` 与 `global_display_name_at_save` 不一致时，普通实时身份面 SHOULD、安全敏感面 MUST 显示“全局显示名已变更”并提供原快照。profile 不可达、候选不唯一或只有 Realm override 时状态是 unknown，不得伪报 changed；只有 holder 显式确认才可刷新快照。
-- 客户端 MUST 在本地构造 accepted human Contact 的 confusable comparison set（confusable 比较基准集）：每个非空 `petname` 及已保存的 `global_display_name_at_save`。渲染主体 S 的当前 surface public display 时，MUST 以 [`conformance/encoding.md` §2.2](../conformance/encoding.md) 的 `arkret_display_confusable_v1` 与其它 Contact 的比较基准值比较，并排除 S 自己的基准值。碰撞主体不是 Contact 时必须显示“非联系人”及 verified handle / DID；是另一 Contact 时使用其自己的 `petname`（若有）并加 handle / DID 消歧，且不得继承被碰撞联系人的头像信任环、verified-contact badge 或颜色。roster、请求、mention autocomplete、邀请确认与不可逆操作面必须使用同一判据。
-- Contact accept 生效后，客户端 SHOULD 仅在该 key 从未存在时，以当时可验证的全局 `actor_profile.display_name` 同时初始化 `petname` 与 `global_display_name_at_save`，并保存 verified handle（若有）。不得以 Realm override、handle、DID、MemberIdentity display 或 OIDC `name` 代替全局 profile。已有记录的 `petname`、note、tags、pin、`saved_at` 与快照必须保留；并发初始化必须按 account-data whole-value CAS 做 read/decrypt → domain merge → encrypt/write，且保持幂等。
+- 当前可验证的 PCR `actor_profile.display_name` 与 `confirmed_display_name` 不一致时，普通实时身份面 SHOULD、安全敏感面 MUST 显示“全局显示名已变更”并同时提供旧确认值。profile 不可达、候选不唯一或只有 Realm override 时状态是 unknown，不得伪报 changed；只有 holder 的显式身份确认动作才可刷新已有值。普通 petname / note / tags / pin 编辑与 account-data CAS merge MUST 原样保留该字段。
+- 客户端 MUST 在本地构造 accepted human Contact 的 confusable comparison set（confusable 比较基准集）：每个非空 `petname` 及已保存的 `confirmed_display_name`。渲染主体 S 的当前 surface public display 时，MUST 以 [`conformance/encoding.md` §2.2](../conformance/encoding.md) 的 `arkret_display_confusable_v1` 与其它 Contact 的比较基准值比较，并排除 S 自己的基准值。碰撞主体不是 Contact 时必须显示“非联系人”及 verified handle / DID；是另一 Contact 时使用其自己的 `petname`（若有）并加 handle / DID 消歧，且不得继承被碰撞联系人的头像信任环、verified-contact badge 或颜色。roster、请求、mention autocomplete、邀请确认与不可逆操作面必须使用同一判据。
+- Contact accept 生效后，客户端仅可在该 key 从未存在、并且接受界面当场持有和展示了 exact signed Profile Event 及覆盖其 digest 的 accepted Seal 时，把接受动作作为首次身份确认，初始化 `confirmed_display_name`；此动作 MUST NOT 自动创建或覆盖 `petname`。当时没有可验证 Profile 时保持两字段缺失，Contact accept 仍成功；稍后的静默后台读取不得冒充用户确认。不得以 Realm override、Directory 裸结果、handle、DID、MemberIdentity display 或 OIDC `name` 代替 verified PCR Profile。已有记录的 `petname`、note、tags、pin、`saved_at` 与确认值必须保留；并发初始化必须按 account-data whole-value CAS 做 read/decrypt → domain merge → encrypt/write，且保持幂等。
 - 备注初始化或同步失败 MUST NOT 回滚、拒绝或伪装成 Contact accept 失败；客户端 SHOULD 持久重试并可显示“备注尚未跨设备同步”。手工输入备注和备注写入成功都不得成为 request / respond / glare accepted 的协议前置，也不得成为 typing / presence 等可被对端观察的差异信号。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `petname` 与 `note`。服务端仍可能观察不透明 key 的数量、大小与更新时间；实现不得声称消除了这些流量 metadata。
 - 删除联系人备注 MUST 使用 `ak.self.account_data.resource.delete.v1` 写入 [`../models/account-data.md` §5.3](../models/account-data.md) 定义的有版本 physical-delete tombstone，不依赖客户端本地清理，也不得用无法通过本节字段验证的空对象冒充删除。

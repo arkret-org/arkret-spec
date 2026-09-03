@@ -86,7 +86,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "425c2ad834f4354535e3954f7afcc0c951ac1bab42e959cd0a04cd5ef19ede34"
+      "sha256": "2c3e713301af903e3805326f9922cbeb294383e5b56e91f6bf90a4d9053ae58d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -298,7 +298,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "601c678ba74d5b3e2add41b62546da91ccf42da0fdb7b1e0bea0ff9b33fe28b9"
+      "sha256": "9b8ab5d4dc233d4622cfffc56431ba94a4ca1232bb56ae5ccae8a84a03cde19a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
@@ -342,7 +342,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "16232c48d9c0566ed573c488a4fdc4f0714fcd75ba96477335e6f370733dc999"
+      "sha256": "abc91113daff171d8feb04c5bf56520fff510b558c8c3ab8aa8ad9d8440f86d7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -358,7 +358,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-      "sha256": "9007355930443cd4ee2db047a1991af5940745555f7297dc9a4fc24f612f0f23"
+      "sha256": "4b6ef2f27d0967b99dc68de2360222fab069faa3a34d1c55e9d5573d9c9df756"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",

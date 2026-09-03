@@ -597,7 +597,7 @@ value   := id:space | null
 
 规则：
 
-- 首次 set 使用 `head_eq null`。
+- `ak.space.create` 的 `payload.object.parent_space_id` 是 `ak.component.space.parent.v1` cell 的 genesis 写入；若 create 同时携带 `rank`，两字段共同形成 Space 的 canonical 初始结构投影。这不合成 `ak.space.parent` Move，也不新建 Relation Event。对 create 时未携带 parent 的 root Space，后续首次挂载才使用 `ak.space.parent` 且 `head_eq null`。
 - reparent 使用 `head_eq <expected_parent_space_id>`；该名称与 `ak.space.parent` payload 字段一致。
 - 并发 reparent 返回 `⊥`，后续 Move fail closed，必须走 conflict recovery。
 - `parent_space_id == this_space_id` MUST `schema_violation`。
@@ -629,6 +629,8 @@ value shape := { "list_space_id": id:space, "rank": string } | null
 | `target_space_id` | yes | `id:space`（List） | 移动后的目标 List；payload 不得另带 `list_space_id`。 |
 | `rank` | yes | `string` | 目标 List 内 canonical rank。 |
 | `expected_position` | no | `object{space_id?: id:space, rank?: string, relation_id?: id:relation}` | 可选 CAS 诊断前像；字段集封闭。 |
+
+Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Move 的 position cell 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Move 使用相同的授权、Seal、CAS 和 WIP 后像判定。create 成功而 Move 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Move，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position cell 投影，不得合成 canonical Relation Event。
 
 默认规则：workflow placement MUST resolve to the same effective Realm as the Strand unless a profile explicitly declares a cross-Realm reference relation. 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
 

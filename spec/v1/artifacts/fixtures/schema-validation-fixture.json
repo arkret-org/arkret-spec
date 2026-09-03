@@ -4188,6 +4188,56 @@
       }
     },
     {
+      "name": "account_blocklist_removed_service_target_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "version": 1,
+        "entries": [
+          {
+            "target": {
+              "kind": "service",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixtureblockedexample"
+              }
+            },
+            "mode": "block",
+            "applies_to": [
+              "messages"
+            ],
+            "created_at": "2026-08-02T00:00:00.000Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "account_blocklist_organization_affiliation_target_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "version": 1,
+        "entries": [
+          {
+            "target": {
+              "kind": "organization",
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixtureorganizationexample"
+              }
+            },
+            "mode": "block",
+            "applies_to": [
+              "messages"
+            ],
+            "created_at": "2026-08-02T00:00:00.000Z"
+          }
+        ]
+      }
+    },
+    {
       "name": "account_status_receipt_without_authorization_lease_valid",
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_receipt",
       "expect_valid": true,

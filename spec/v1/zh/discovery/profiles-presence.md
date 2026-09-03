@@ -61,7 +61,7 @@ updated: 2026-07-03
 | `realm_id` | id:realm | 可选 | Profile state 所属的 principal control Realm 或 profile materialization scope。存在时 MUST 与承载该 profile create/update 的 principal control Realm 或授权 materialization scope 一致；不得被当作协作 Realm membership 或读取权限。 |
 | `principal_id` | did_core_id | MUST | Actor / Principal 的稳定业务身份。 |
 | `actor_kind` | enum | MUST | `user`、`organization`、`team`、`agent`、`bot`、`service` 或 `integration`；`agent` 只表示 Agent，Applet automation 使用 `bot`（不含 `device`：设备非 actor 主体，见 [`../models/actor.md` §2](../models/actor.md)）。 |
-| `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
+| `display_name` | string | MUST | 人类可读的显示名；按 `arkret_single_line_display_text` 验证，最大 128 个 Unicode code point，与 Contact `confirmed_display_name` 共用 `display_text_128` 机读 profile。 |
 | `handle` | string | 可选 | 本地或目录展示 handle。经 Directory / projection 披露时同受 §5 handle 披露 gate 约束（不得旁路 handle 搜索披露限制）。 |
 | `agent_slug` | string | 可选 | Agent 的 controller-scoped selector projection。必须由当前有效 `ak.schema.agent_selector_claim.v1` 支撑；只与 controller handle 组合为 `@<controller-handle>/<agent_slug>` 输入别名；不是全局 handle 或公开目录发现键。 |
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |

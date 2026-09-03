@@ -2482,7 +2482,6 @@ ak.vector.auth.sensitive_field_handling.v1
       },
       "payload": {
         "object": {
-          "id": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
           "schema": "ak.schema.space.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "kind": "board",
@@ -2499,7 +2498,6 @@ ak.vector.auth.sensitive_field_handling.v1
       },
       "payload": {
         "object": {
-          "id": "ak:space:AXOaX0qZYqWHkCJWQN_QI3vVio0uYmZ1va2RASTmBvgm",
           "schema": "ak.schema.space.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "parent_space_id": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
@@ -2518,7 +2516,6 @@ ak.vector.auth.sensitive_field_handling.v1
       },
       "payload": {
         "object": {
-          "id": "ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh",
           "schema": "ak.schema.strand.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "metadata": {
@@ -2532,18 +2529,19 @@ ak.vector.auth.sensitive_field_handling.v1
           "stage": "planned",
           "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z6mkfixtureAlice","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
           "created_at": "2026-04-26T00:00:00Z"
-        },
-        "initial_relations": [
-          {
-            "relation_kind": "contains",
-            "from_ref": "ak:space:AXOaX0qZYqWHkCJWQN_QI3vVio0uYmZ1va2RASTmBvgm",
-            "to_ref": "ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh",
-            "fields": {
-              "board_space_id": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
-              "rank": "U"
-            }
-          }
-        ]
+        }
+      }
+    },
+    {
+      "kind": "ak.strand.move",
+      "unsigned": {
+        "target_ref_hint": "ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh"
+      },
+      "payload": {
+        "board_space_id": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
+        "strand_id": "ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh",
+        "target_space_id": "ak:space:AXOaX0qZYqWHkCJWQN_QI3vVio0uYmZ1va2RASTmBvgm",
+        "rank": "U"
       }
     }
   ]

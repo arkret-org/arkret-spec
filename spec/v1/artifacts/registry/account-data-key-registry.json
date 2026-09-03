@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-09-03.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-30T23:30:00+08:00",
+  "generated_at": "2026-09-03T20:50:00+08:00",
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
     "writer_authorities is a non-empty unique array over the closed v1 set holder_event | station_cas. holder_event requires non-empty write_event_kinds; station_cas requires plaintext_account_data plus plaintext_schema and does not mint an Event.",
@@ -157,7 +157,7 @@
         "ak.account_data.set"
       ],
       "deletion_mode": "physical_delete",
-      "description": "Principal-private global petname, global display-name snapshot, note, tag, and pin metadata for one accepted human Contact peer.principal_id. principal_key is base64url(HMAC-SHA256(account_data_namespace_key, RFC8785_JCS([\"ak.contacts.actor\", peer.principal_id]))).",
+      "description": "Principal-private holder-authored petname, explicitly confirmed PCR display-name baseline, note, tag, and pin metadata for one accepted human Contact peer.principal_id. Contact acceptance may initialize confirmed_display_name only from profile evidence displayed during acceptance and never auto-creates petname. principal_key is base64url(HMAC-SHA256(account_data_namespace_key, RFC8785_JCS([\"ak.contacts.actor\", peer.principal_id]))).",
       "source_refs": [
         "spec/v1/zh/discovery/client-preferences.md"
       ]

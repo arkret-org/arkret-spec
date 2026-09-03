@@ -463,6 +463,35 @@
       "canonical_input_utf8": "[\"ak.contacts.actor\",\"ak:did_core:web:alice.example\"]",
       "expected_principal_key": "pD0U2utjPMaXROrStCFHbCtquoTSVsA7mo9nVniePkY",
       "expected_storage_key": "ak.contacts.actor.pD0U2utjPMaXROrStCFHbCtquoTSVsA7mo9nVniePkY",
+      "contact_remark_cases": [
+        {
+          "name": "accept_with_verified_profile_initializes_confirmation_only",
+          "verified_profile_display_name": "Alice Zhang",
+          "expected_petname_present": false,
+          "expected_confirmed_display_name": "Alice Zhang"
+        },
+        {
+          "name": "ordinary_petname_save_preserves_confirmation",
+          "existing_confirmed_display_name": "Alice Zhang",
+          "new_petname": "Alice from Ops",
+          "expected_confirmed_display_name": "Alice Zhang"
+        },
+        {
+          "name": "explicit_identity_confirmation_refreshes_confirmation",
+          "verified_profile_display_name": "Alice Zhou",
+          "expected_confirmed_display_name": "Alice Zhou"
+        },
+        {
+          "name": "realm_override_cannot_initialize_confirmation",
+          "realm_override_display_name": "Team Alice",
+          "expected_confirmed_display_name_present": false
+        },
+        {
+          "name": "missing_profile_evidence_cannot_initialize_confirmation",
+          "directory_display_name": "Alice Directory",
+          "expected_confirmed_display_name_present": false
+        }
+      ],
       "negative_cases": [
         "raw_principal_id_in_storage_key",
         "realm_id_added_to_derivation_input",
@@ -472,7 +501,10 @@
       "assertions": [
         "the canonical input is RFC 8785 JCS for the two-element array",
         "the server-visible suffix is exactly 43 unpadded base64url characters",
-        "the decrypted value carries peer.principal_id and is rejected on slot mismatch"
+        "the decrypted value carries peer.principal_id and is rejected on slot mismatch",
+        "petname is never auto-created from a profile display name",
+        "confirmed_display_name changes only on evidence-backed acceptance initialization or explicit identity confirmation",
+        "ordinary remark edits preserve confirmed_display_name and Realm or Directory names cannot initialize it"
       ]
     },
     {

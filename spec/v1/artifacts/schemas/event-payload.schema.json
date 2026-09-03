@@ -54,10 +54,8 @@
                     "enum": [
                       "actor",
                       "device",
-                      "service",
                       "handle",
                       "domain",
-                      "organization",
                       "applet",
                       "keyword"
                     ]
@@ -85,11 +83,7 @@
                   {
                     "properties": {
                       "kind": {
-                        "enum": [
-                          "actor",
-                          "service",
-                          "organization"
-                        ]
+                        "const": "actor"
                       }
                     },
                     "required": [
@@ -8004,12 +7998,6 @@
               }
             }
           ]
-        },
-        "initial_relations": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
         }
       },
       "additionalProperties": false
@@ -10661,12 +10649,6 @@
               }
             }
           ]
-        },
-        "initial_relations": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
         }
       },
       "additionalProperties": false
@@ -11663,12 +11645,6 @@
               }
             }
           ]
-        },
-        "initial_relations": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
         }
       },
       "additionalProperties": false
