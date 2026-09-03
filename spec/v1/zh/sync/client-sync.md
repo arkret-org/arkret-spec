@@ -812,10 +812,10 @@ E2EE client 在处理 encrypted event 前 MUST：
 
 ### 14.2 History-only multi-candidate store（normative）
 
-History response、portable backup restore 与 RRK archive 的 material 只写 history-only store。received material 全局 key 为
+History response、portable backup restore 与 RHRK archive 的 material 只写 history-only store。received material 全局 key 为
 `(effective_scope,mls_group_id,epoch,candidate_digest)`，origin 不参与 bytes 身份；每 scope/group/epoch 最多 8 份 resident secret material。
 新实例取得不可变 `material_received_sequence`，同 bytes/新 origin 不刷新；bytes 驱逐后 refetch 才取得新 sequence。独立
-`CandidateOriginAttribution=(material_key,origin_domain,origin_ref)` 账本另存稳定 `origin_quota_domain`；response 按 source sender、RRK 按 holder/key tuple、
+`CandidateOriginAttribution=(material_key,origin_domain,origin_ref)` 账本另存稳定 `origin_quota_domain`；response 按 source sender、RHRK 按 holder/key tuple、
 portable backup 按 series/producer 配额，具体 response/archive/envelope 只进 retrieval ref。每 candidate 最多 4 条、每 exact quota domain/epoch 最多 64 条、
 每 epoch 总计 256 条，固定 30 日 TTL 且 duplicate/refetch 不续期；确定性裁剪顺序见 history-visibility §7。
 本机 verified MLS state 直接导出项另记为

@@ -6,7 +6,7 @@
   "type": "object",
   "required": [
     "schema",
-    "controller_id",
+    "controller_account_id",
     "sidecar_id",
     "exchange_id",
     "source_track_ref",
@@ -25,8 +25,8 @@
     "schema": {
       "const": "ak.schema.agent_sidecar_exchange_projection.v1"
     },
-    "controller_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    "controller_account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
     },
     "sidecar_id": {
       "$ref": "./common-ids.schema.json#/$defs/sidecar_id"

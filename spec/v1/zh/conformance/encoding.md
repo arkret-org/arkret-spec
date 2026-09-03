@@ -517,7 +517,7 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 
 本条只登记这两种已证明的投影；通用 `$defs/proof` 的 `payload_digest` / `kind` 与本地 directory proof 叶不在本条射程内，其取舍按各自对象族逐项裁决。
 
-AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / station proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref}`，令 `payload_digest=H(JCS(core))`；再签
+AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / station proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_service_id,retention_expires_at,holder_signer_evidence_ref}`，令 `payload_digest=H(JCS(core))`；再签
 `JCS({context:"ak.availability_receipt_proof.v1",payload_digest,...core,verification_method,created_at})` 并得到完整
 `receipt={...core,signature}`；最后按需要计算 selector digest `H(JCS(receipt))`。Seal 只签入这个 full canonical digest，receipt wire 不回显它。
 任何实现若把 selector digest 写回 receipt preimage、从 digest 中排除 signature，或省略 signer evidence 绑定都必须拒绝。

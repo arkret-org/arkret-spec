@@ -164,14 +164,28 @@ VALUE_TABLE: dict[str, Any] = {
     "ciphertext": "rsvpAlpha",
     "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
     "controller_handle": "alice:acme.example",
-    "controller_id": "ak:did_core:webvh:z6mkcontroller",
+    "controller_principal_id": "ak:did_core:webvh:z6mkcontroller",
+    "controller_account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkcontroller",
+        "station_id": "ak:did_core:webvh:z6mkfixturestation",
+    },
+    "controller_actor_id": {
+        "kind": "account",
+        "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkcontroller",
+            "station_id": "ak:did_core:webvh:z6mkfixturestation",
+        },
+    },
+    "method_controller_principal_id": "ak:did_core:webvh:z6mkcontroller",
+    "holder_principal_id": "ak:did_core:webvh:z6mkholder",
+    "holder_service_id": "ak:did_core:webvh:z6mkholderservice",
     "created_at": "2026-05-02T00:00:00.000Z",
     "cutover_at": "2026-08-11T02:00:00.000Z",
     "decision": "reject",
     "directory_id": "ak:did_core:web:directory.example",
-    "discovery_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+    "discovery_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
     "describe_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    "device_authorize_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+    "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
     "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
     "device_key_algorithm": "Ed25519",
     "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
@@ -244,7 +258,7 @@ VALUE_TABLE: dict[str, Any] = {
     "reporter_id": "ak:did_core:web:alice.example",
     "report_event": {
         "event": {
-            "event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+            "event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
             "kind": "ak.self.moderation.report",
             "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
             "scope_ref": {
@@ -292,7 +306,7 @@ VALUE_TABLE: dict[str, Any] = {
     "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
     "source_id": "ak:did_core:webvh:z6mkfixturesourceexample",
     "source_provider_id": "ak:did_core:web:provider.example",
-    "source_refs": ["ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM"],
+    "source_refs": ["ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"],
     "state": "archived",
     "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
     "subject": "ak:did_core:webvh:z6mkfixture",
@@ -621,7 +635,7 @@ def build_case(
                 elif member == "actor_kind":
                     signed_object[member] = "user"
                 elif member == "event_id":
-                    signed_object[member] = "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM"
+                    signed_object[member] = "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
                 elif member in ("proofs", "signatures"):
                     signed_object[member] = [proof_stub]
                 else:

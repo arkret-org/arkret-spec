@@ -390,6 +390,16 @@ VALUE_PROJECTION_DERIVATIONS = {
 }
 
 
+# Closed semantic carrier metadata for projected object members.  The metadata
+# makes an otherwise schema-less reducer-derived field machine-classifiable by
+# the naming contract without changing its wire representation.
+VALUE_PROJECTION_IDENTITY_SUBJECTS = {
+    "did_core_id": {"principal", "service", "station", "hardware_module"},
+    "account_id": {"account"},
+    "actor_id": {"actor"},
+}
+
+
 # Reducer derivations a cell write may add on top of the projected payload.
 #
 # The projected cell value is what a `state_root` leaf hashes, so a field the

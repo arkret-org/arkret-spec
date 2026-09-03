@@ -38,7 +38,7 @@
     },
     {
       "earlier": "agent_id",
-      "later": "controller_id"
+      "later": "controller_principal_id"
     }
   ],
   "hard_immediate_follow": [

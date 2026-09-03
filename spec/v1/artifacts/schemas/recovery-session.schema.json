@@ -529,7 +529,7 @@
             "type": "object",
             "required": [
               "share_id",
-              "holder_id",
+              "holder_kind",
               "transcript_digest",
               "verification_method",
               "signature_algorithm",
@@ -540,7 +540,17 @@
                 "type": "string",
                 "pattern": "^[A-Za-z0-9_-]{1,64}$"
               },
-              "holder_id": {
+              "holder_kind": {
+                "type": "string",
+                "enum": [
+                  "personal_principal",
+                  "custodial_service"
+                ]
+              },
+              "holder_principal_id": {
+                "$ref": "#/$defs/did_core_id"
+              },
+              "holder_service_id": {
                 "$ref": "#/$defs/did_core_id"
               },
               "transcript_digest": {
@@ -562,7 +572,12 @@
                 "pattern": "^[A-Za-z0-9_-]+$"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "$ref": "./recovery-policy.schema.json#/$defs/recovery_share_holder"
+              }
+            ]
           }
         }
       },
@@ -847,7 +862,7 @@
             "type": "object",
             "required": [
               "share_id",
-              "holder_id",
+              "holder_kind",
               "transcript_digest",
               "verification_method",
               "signature_algorithm"
@@ -857,7 +872,17 @@
                 "type": "string",
                 "pattern": "^[A-Za-z0-9_-]{1,64}$"
               },
-              "holder_id": {
+              "holder_kind": {
+                "type": "string",
+                "enum": [
+                  "personal_principal",
+                  "custodial_service"
+                ]
+              },
+              "holder_principal_id": {
+                "$ref": "#/$defs/did_core_id"
+              },
+              "holder_service_id": {
                 "$ref": "#/$defs/did_core_id"
               },
               "transcript_digest": {
@@ -874,7 +899,12 @@
                 ]
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "$ref": "./recovery-policy.schema.json#/$defs/recovery_share_holder"
+              }
+            ]
           }
         }
       },

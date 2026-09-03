@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-sidecar.schema.json",
   "title": "Arkret Agent Sidecar",
-  "description": "Controller-owned private AI workspace bound one-to-one to (realm_id, controller_id). Agent Sidecar is a first-class native protocol scope, not a Circle profile, backing Circle, or editable membership container. See spec/v1/zh/models/sidecar.md.",
+  "description": "Controller-account-owned private AI workspace bound one-to-one to (realm_id, controller_account_id). Agent Sidecar is a first-class native protocol scope, not a Circle profile, backing Circle, or editable membership container. See spec/v1/zh/models/sidecar.md.",
   "type": "object",
   "required": [
     "id",
     "schema",
     "realm_id",
-    "controller_id",
+    "controller_account_id",
     "state",
     "created_at"
   ],
@@ -22,8 +22,8 @@
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "controller_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    "controller_account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
     },
     "state": {
       "type": "string",

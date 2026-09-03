@@ -1,5 +1,6 @@
 {
-  "version": "2026-09-02.2",
+  "version": "2026-09-04.1",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -81,12 +82,12 @@
     "source_authority_digest": {
       "domain": "ak.history-source-authority-locator-v1",
       "preimage": "the complete closed SourceAuthorityLocator",
-      "rule": "member and organization_recovery_holder are mutually exclusive closed branches; the RRK branch includes the complete RrkHolderAuthorityObservation rather than a bare digest locator"
+      "rule": "member and organization_recovery_holder are mutually exclusive closed branches; the RHRK branch includes the complete RhrkHolderAuthorityObservation rather than a bare digest locator"
     },
-    "rrk_holder_authority_observation_digest": {
-      "domain": "ak.rrk-holder-authority-observation-v1",
-      "preimage": "the complete closed RrkHolderAuthorityObservation",
-        "rule": "holder principal/service and archive_authorization_tuple_digest match the immutable archive tuple; current_holder_signing_ref, accepted_key_evidence_ref and holder_trusted_basis prove current holder authority and need not equal historical tuple coordinates; current_holder_signing_ref and expiry match the outer source proof and relay byte-for-byte"
+    "rhrk_holder_authority_observation_digest": {
+      "domain": "ak.rhrk-holder-authority-observation-v1",
+      "preimage": "the complete closed RhrkHolderAuthorityObservation",
+      "rule": "method_controller_principal_id, holder_service_id and archive_authorization_tuple_digest match the immutable archive tuple; current_holder_signing_ref, accepted_key_evidence_ref and holder_trusted_basis prove current holder authority and need not equal historical tuple coordinates; current_holder_signing_ref and expiry match the outer source proof and relay byte-for-byte"
     },
     "agent_signer_evidence_digest": {
       "preimage": "the complete closed current AgentSignerEvidence",
@@ -236,8 +237,8 @@
       "domain": "ak.organization-recovery-archive-cursor-v1",
       "primitive": "HMAC-SHA256",
       "jcs_preimage_fields": [
-        "controller_id",
-        "holder_id",
+        "method_controller_principal_id",
+        "holder_service_id",
         "archive_list_query_digest",
         "accepted_key_evidence_ref",
         "holder_trusted_basis",

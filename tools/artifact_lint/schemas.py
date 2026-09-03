@@ -204,7 +204,7 @@ def ensure_schema_annotation_pointers(
 _STABLE_CORE_ID_FIELDS = {
     "principal_id",
     "actor_id",
-    "controller_id",
+    "controller_principal_id",
     "service_id",
     "recipient_principal_id",
     "target_principal_id",
@@ -324,6 +324,11 @@ def check_did_boundary_allowlist(lint: Lint) -> None:
             "python tools/generate_did_representation_report.py",
         )
     entries = expected_report.get("entries", [])
+    multi_representation_contracts = {
+        row.get("property_name"): set(row.get("representation_profiles", []))
+        for row in expected_report.get("multi_representation_fields", [])
+        if isinstance(row, dict) and isinstance(row.get("property_name"), str)
+    }
     if isinstance(entries, list):
         name_profiles: dict[str, set[str]] = {}
         for row in entries:
@@ -342,11 +347,13 @@ def check_did_boundary_allowlist(lint: Lint) -> None:
                 name_profiles.setdefault(name, set()).add(profile)
         for name, profiles in sorted(name_profiles.items()):
             if len(profiles) > 1:
-                lint.fail(
-                    report_path,
-                    f"Arkret-owned property {name!r} maps to multiple DID representations: "
-                    f"{sorted(profiles)}",
-                )
+                registered = multi_representation_contracts.get(name)
+                if registered != profiles:
+                    lint.fail(
+                        report_path,
+                        f"Arkret-owned property {name!r} maps to multiple DID representations "
+                        f"{sorted(profiles)} without an exact machine-readable contract",
+                    )
 
     legacy_tokens = (
         "did" + "_full_id",

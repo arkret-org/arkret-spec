@@ -161,13 +161,13 @@
           "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at"],
           "properties": {
             "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
-            "origin_domain": {"const": "rrk_archive"},
+            "origin_domain": {"const": "rhrk_archive"},
             "origin_quota_domain": {
               "type": "object",
-              "required": ["controller_id", "holder_id", "recovery_key_id", "accepted_key_evidence_ref"],
+              "required": ["method_controller_principal_id", "holder_service_id", "recovery_key_id", "accepted_key_evidence_ref"],
               "properties": {
-                "controller_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-                "holder_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+                "method_controller_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+                "holder_service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
                 "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
                 "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
               },
@@ -298,8 +298,8 @@
       "required": [
         "recovery_key_id",
         "key_agreement_ref",
-        "controller_id",
-        "holder_id",
+        "method_controller_principal_id",
+        "holder_service_id",
         "holder_signing_ref",
         "accepted_key_evidence_ref",
         "holder_trusted_basis"
@@ -309,13 +309,13 @@
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "controller_id": {
+        "method_controller_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Principal projection of the holder signing authority named by holder_signing_ref. This is intentionally not an AccountId: the tuple separately binds the service route/authority in holder_id."
+          "description": "Principal projection of the holder signing authority named by holder_signing_ref. This is intentionally not an AccountId: the tuple separately binds the service route/authority in holder_service_id."
         },
-        "holder_id": {
+        "holder_service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "History-key holder service route and authority. It has a different role from controller_id (the signing principal projection) and MUST NOT be inferred from or compared as though it were that principal."
+          "description": "History-key holder service route and authority. It has a different role from method_controller_principal_id (the signing principal projection) and MUST NOT be inferred from or compared as though it were that principal."
         },
         "holder_signing_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -698,7 +698,7 @@
         "history_secret_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "description": "Unpadded base64url of the exact history_secret for archive.epoch. Its decoded length must equal KDF.Nh of the winning group transition proven for that epoch."}
       },
       "additionalProperties": false,
-      "description": "The only RRK archive HPKE plaintext. An opened secret globally deduplicates by HistoryCandidateMaterialKey and gets a separate rrk_archive CandidateOriginAttribution; it never becomes local_authoritative. Success/failure EventCandidateBinding contains no origin and does not pin bytes. HPKE seals RFC 8785 JCS UTF-8 of this object. It cannot carry active MLS state, counters, policy snapshots, holder claims or another epoch."
+      "description": "The only RHRK archive HPKE plaintext. An opened secret globally deduplicates by HistoryCandidateMaterialKey and gets a separate rhrk_archive CandidateOriginAttribution; it never becomes local_authoritative. Success/failure EventCandidateBinding contains no origin and does not pin bytes. HPKE seals RFC 8785 JCS UTF-8 of this object. It cannot carry active MLS state, counters, policy snapshots, holder claims or another epoch."
     },
     "history_key_request_signing_input": {
       "type": "object",
@@ -996,7 +996,7 @@
           "additionalProperties": false
         }
       ],
-      "description": "Closed direct-Seal traversal intent. target_basis must dominate every trusted_current_basis and trusted_history_base_basis leaf; reverse traversal follows signed predecessor_refs until the exact base cut, consumes every base leaf, and admits no predecessor outside the cut. requested_ranges are canonical. RRK requires one singleton range."
+      "description": "Closed direct-Seal traversal intent. target_basis must dominate every trusted_current_basis and trusted_history_base_basis leaf; reverse traversal follows signed predecessor_refs until the exact base cut, consumes every base leaf, and admits no predecessor outside the cut. requested_ranges are canonical. RHRK requires one singleton range."
     },
     "history_governance_traversal_retention": {
       "type": "object",
@@ -1009,7 +1009,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Retention commitment for the exact target-to-base accepted Seal cut, base Seals and their delta, each interval Seal.delta Control Move canonical byte string, every AvailabilityReceipt, SemanticRef external evidence, AuthenticatedSignerResolutionEvidence, method-native DID material and registry snapshot required by registered apply_seal replay. Base predecessors are outside the cut and are never fetched. The service atomically pins the complete closure before signing the request receipt or archive-replica acknowledgement. Member retention ends at request expiry; RRK retention equals archive lifetime. This is not a proof package, snapshot, checkpoint or authority result set."
+      "description": "Retention commitment for the exact target-to-base accepted Seal cut, base Seals and their delta, each interval Seal.delta Control Move canonical byte string, every AvailabilityReceipt, SemanticRef external evidence, AuthenticatedSignerResolutionEvidence, method-native DID material and registry snapshot required by registered apply_seal replay. Base predecessors are outside the cut and are never fetched. The service atomically pins the complete closure before signing the request receipt or archive-replica acknowledgement. Member retention ends at request expiry; RHRK retention equals archive lifetime. This is not a proof package, snapshot, checkpoint or authority result set."
     },
     "self_history_traversal_access": {
       "oneOf": [
@@ -1233,18 +1233,18 @@
               "type": "object",
               "required": [
                 "kind",
-                "controller_id",
-                "holder_id",
+                "method_controller_principal_id",
+                "holder_service_id",
                 "archive_tuple_digest"
               ],
               "properties": {
                 "kind": {
                   "const": "organization_recovery_holder"
                 },
-                "controller_id": {
+                "method_controller_principal_id": {
                   "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                 },
-                "holder_id": {
+                "holder_service_id": {
                   "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                 },
                 "archive_tuple_digest": {
@@ -1267,7 +1267,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private S2S immutable request fanout from the release service to either the Station selected by one exact current member identity and membership Event, or an exact RRK holder service whose archive tuple intersects requested ranges. destination_authorization is a closed union and must name destination_id."
+      "description": "Private S2S immutable request fanout from the release service to either the Station selected by one exact current member identity and membership Event, or an exact RHRK holder service whose archive tuple intersects requested ranges. destination_authorization is a closed union and must name destination_id."
     },
     "history_key_request_replica_outcome": {
       "type": "object",
@@ -1294,11 +1294,11 @@
       },
       "additionalProperties": false
     },
-    "rrk_holder_authority_observation": {
+    "rhrk_holder_authority_observation": {
       "type": "object",
       "required": [
-        "controller_id",
-        "holder_id",
+        "method_controller_principal_id",
+        "holder_service_id",
         "current_holder_signing_ref",
         "accepted_key_evidence_ref",
         "archive_authorization_tuple_digest",
@@ -1307,8 +1307,8 @@
         "expires_at"
       ],
       "properties": {
-        "controller_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-        "holder_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "method_controller_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "holder_service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
         "current_holder_signing_ref": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
         "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
         "archive_authorization_tuple_digest": {"$ref": "#/$defs/digest"},
@@ -1317,7 +1317,7 @@
         "expires_at": {"$ref": "#/$defs/timestamp"}
       },
       "additionalProperties": false,
-      "description": "Current source-local RRK holder authority observation. archive_authorization_tuple_digest binds the immutable historical archive tuple; current_holder_signing_ref, accepted_key_evidence_ref and holder_trusted_basis prove current holder authority and are not required to equal the tuple's historical signing/evidence coordinates. Its registered digest is SHA-256(UTF8('ak.rrk-holder-authority-observation-v1') || 0x00 || JCS(complete object))."
+      "description": "Current source-local RHRK holder authority observation. archive_authorization_tuple_digest binds the immutable historical archive tuple; current_holder_signing_ref, accepted_key_evidence_ref and holder_trusted_basis prove current holder authority and are not required to equal the tuple's historical signing/evidence coordinates. Its registered digest is SHA-256(UTF8('ak.rhrk-holder-authority-observation-v1') || 0x00 || JCS(complete object))."
     },
     "source_authority_locator": {
       "oneOf": [
@@ -1356,7 +1356,7 @@
               "const": "organization_recovery_holder"
             },
             "authority_observation": {
-              "$ref": "#/$defs/rrk_holder_authority_observation"
+              "$ref": "#/$defs/rhrk_holder_authority_observation"
             }
           },
           "additionalProperties": false
@@ -1495,7 +1495,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "The source's authenticated local Station verifies current source AccountId/device, hosted ActorId, exact membership Event or RRK holder authority and signs this private relay receipt. The first accepted self send atomically stores the exact relay envelope/outbox keyed by (response_id,source_record_digest); relayed_at and proof are never regenerated on retry/restart, and the first accepted outcome is durably backfilled. Exact retry returns those byte-identical bytes without a duplicate status. For RRK the source proof uses current_holder_signing_ref; historical archive holder_signing_ref is provenance only."
+      "description": "The source's authenticated local Station verifies current source AccountId/device, hosted ActorId, exact membership Event or RHRK holder authority and signs this private relay receipt. The first accepted self send atomically stores the exact relay envelope/outbox keyed by (response_id,source_record_digest); relayed_at and proof are never regenerated on retry/restart, and the first accepted outcome is durably backfilled. Exact retry returns those byte-identical bytes without a duplicate status. For RHRK the source proof uses current_holder_signing_ref; historical archive holder_signing_ref is provenance only."
     },
     "history_key_source_relay": {
       "type": "object",
@@ -1512,7 +1512,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private S2S immutable source record carrier to request_receipt.release_id. The destination verifies the relay service against the source ActorId and current membership or RRK authority before it performs the final T1 linearization and creates HistoryReleaseAttestation."
+      "description": "Private S2S immutable source record carrier to request_receipt.release_id. The destination verifies the relay service against the source ActorId and current membership or RHRK authority before it performs the final T1 linearization and creates HistoryReleaseAttestation."
     },
     "history_response_manifest": {
       "type": "object",
@@ -2546,7 +2546,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "Recipient-bound RRK archive read/list query. The authenticated holder identity is transport authority and is not caller-supplied here. from_epoch/to_epoch, when present, form one inclusive non-empty range. The service returns only rows whose exact historical key tuple names this recovery_key_id/key_agreement_ref and accepted key provenance Event, whose holder_trusted_basis matches byte-for-byte, and whose controller_id matches current authority. Replay from holder_trusted_basis proves that accepted_key_evidence_ref is reducer-effective; no singular activation Seal selector exists. Cursor binds only the authenticated holder authority, exact query selectors and last ordering tuple. byte_limit below the registry minimum legal item size returns limit_exceeded rather than a zero-progress page."
+      "description": "Recipient-bound RHRK archive read/list query. The authenticated holder_service_id is transport authority and is not caller-supplied here. from_epoch/to_epoch, when present, form one inclusive non-empty range. The service returns only rows whose exact historical key tuple names this recovery_key_id/key_agreement_ref and accepted key provenance Event, whose holder_trusted_basis matches byte-for-byte, whose holder_service_id matches the authenticated service, and whose current holder_signing_ref resolves to the exact method_controller_principal_id. Replay from holder_trusted_basis proves that accepted_key_evidence_ref is reducer-effective; no singular activation Seal selector exists. Cursor binds the authenticated holder_service_id, current method_controller_principal_id, exact query selectors and last ordering tuple. byte_limit below the registry minimum legal item size returns limit_exceeded rather than a zero-progress page."
     },
     "organization_recovery_archive_list_item": {
       "type": "object",
@@ -2561,7 +2561,7 @@
         "archive_sequence": {
           "type": "integer",
           "minimum": 0,
-          "description": "Strictly monotonic sequence assigned by holder_id on first durable acceptance of this immutable archive replica."
+          "description": "Strictly monotonic sequence assigned by holder_service_id on first durable acceptance of this immutable archive replica."
         },
         "archive_replica_digest": {
           "$ref": "#/$defs/digest",
@@ -2628,7 +2628,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "Canonical-byte-paged recipient-bound projection. Rows are ordered by (archive_sequence numeric ascending, container_event_ref UTF-8 bytes); a delayed old epoch receives a new sequence and cannot be inserted behind a cursor. Cursor binds only the holder principal/service authority, exact query digest including accepted evidence Event and complete holder_trusted_basis, and the last ordering tuple. The direct Seal traversal closure has the same long-term retention/replication lifetime as its archive. The high-privilege holder may resolve every Control Move, Seal and registered apply_seal dependency required by that closure, including membership/policy/control metadata, but no unrelated DataEvent, generic timeline scan, membership grant or send authority. Unknown scope, absent rows, wrong holder authority and unauthorized or mismatched tuple all produce the same not_found response shape."
+      "description": "Canonical-byte-paged recipient-bound projection. Rows are ordered by (archive_sequence numeric ascending, container_event_ref UTF-8 bytes); a delayed old epoch receives a new sequence and cannot be inserted behind a cursor. Cursor binds the authenticated holder_service_id, current method_controller_principal_id, exact query digest including accepted evidence Event and complete holder_trusted_basis, and the last ordering tuple. The direct Seal traversal closure has the same long-term retention/replication lifetime as its archive. The high-privilege holder service may resolve every Control Move, Seal and registered apply_seal dependency required by that closure, including membership/policy/control metadata, but no unrelated DataEvent, generic timeline scan, membership grant or send authority. Unknown scope, absent rows, wrong holder service or method-controller authority and unauthorized or mismatched tuple all produce the same not_found response shape."
     },
     "organization_recovery_archive_replica": {
       "type": "object",
@@ -2638,7 +2638,7 @@
         "container_event_ref",
         "history_traversal_retention",
         "source_id",
-        "holder_id",
+        "holder_service_id",
         "replicated_at",
         "service_proof"
       ],
@@ -2658,7 +2658,7 @@
         "source_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "holder_id": {
+        "holder_service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "replicated_at": {
@@ -2670,13 +2670,13 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private immutable S2S archive replica to the exact holder_id frozen by the archive tuple. It binds one container Event, the accepted-key evidence Event, the distinct holder trusted basis and one archive-lifetime exact-one-epoch direct Seal traversal. Semantic uniqueness is (effective_scope,mls_group_id,epoch,container_event_ref,archive tuple digest). The full body digest is only the exact-retry key: changing replicated_at cannot allocate another sequence for the same semantic row. Archive bytes and the traversal's complete registered apply_seal dependency closure are retained and reconciled for the archive lifetime; v1 has no remote GC or renewal state."
+      "description": "Private immutable S2S archive replica to the exact holder_service_id frozen by the archive tuple. It binds one container Event, the accepted-key evidence Event, the distinct holder trusted basis and one archive-lifetime exact-one-epoch direct Seal traversal. Semantic uniqueness is (effective_scope,mls_group_id,epoch,container_event_ref,archive tuple digest). The full body digest is only the exact-retry key: changing replicated_at cannot allocate another sequence for the same semantic row. Archive bytes and the traversal's complete registered apply_seal dependency closure are retained and reconciled for the archive lifetime; v1 has no remote GC or renewal state."
     },
     "organization_recovery_archive_replica_outcome": {
       "type": "object",
       "required": [
         "archive_replica_digest",
-        "holder_id",
+        "holder_service_id",
         "archive_sequence",
         "accepted_at",
         "service_proof"
@@ -2685,7 +2685,7 @@
         "archive_replica_digest": {
           "$ref": "#/$defs/digest"
         },
-        "holder_id": {
+        "holder_service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "archive_sequence": {

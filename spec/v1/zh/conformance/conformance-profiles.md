@@ -651,7 +651,7 @@ MUST 支持:
 - Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
-- `display_name`与`avatar_blob_ref`不得进入 provision Event或三个 projection；provision完成后只可用既有 `ak.profile.update` 独立 Event，固定 `actor_id=agent_id`、`executed_by=controller_id`与 accepted controller delegation。该独立 operation失败不得回滚 provision complete
+- `display_name`与`avatar_blob_ref`不得进入 provision Event或三个 projection；provision完成后只可用既有 `ak.profile.update` 独立 Event，固定 `actor_id=agent_id`、`executed_by=controller_account_id`与 accepted controller delegation。该独立 operation失败不得回滚 provision complete
 - Controller deactivate / suspend 时,accountable Agents 的 active sessions revocation 链失效
 - Sidecar exposure 披露：激活新 Agent 前 UI MUST 显式披露其在完成 access/MLS reconciliation 后将获得现有 Sidecar 未来内容访问权（联动 `ak.profile.agent_sidecar.v1`）
 
@@ -710,7 +710,7 @@ MUST 支持：
   `encryption_profile=mls_rfc9420`，不携完整对象或 reducer-derived 字段。
 - `POST /_arkret/self/agent-sidecars:ensure` 的 closed prepare/commit/attach 三阶段；prepare 固定 exact Event
   drafts，new 分支返回 create + context attach，existing 分支只返回 attach；同 operation/key/exact bytes 幂等。
-- singleton key `(realm_id,controller_id)` 原子保留；不同 genesis Event 争用同一 key 必须 fail closed。
+- singleton key `(realm_id,controller_account_id)` 原子保留；不同 genesis Event 争用同一 key 必须 fail closed。
 - native `{kind:"sidecar",realm_id,sidecar_id}` scope 进入 Event digest、AAD、query/delivery 与 Seal 验证。
 - `ak.sidecar.context.attach` 只登记一个已存在的 source Strand/Relation context，不创建 Strand 或 Relation。
 - read surface 返回只读 `desired_agent_ids` 与 `effective_agent_ids`；前者从 ownership、Agent lifecycle/
@@ -730,7 +730,7 @@ MUST NOT：
 - 创建 backing Circle、Circle membership、private Strand 或 `agent_sidecar_of` Relation；
 - 允许 caller 提供 participant/member/Agent selection；
 - 将 source Strand 当作 Sidecar security scope，或向 shared surface泄漏 Sidecar private activity；
-- 为同一 `(realm_id,controller_id)` 创建第二个 non-tombstoned Sidecar。
+- 为同一 `(realm_id,controller_account_id)` 创建第二个 non-tombstoned Sidecar。
 
 ### 18.5 Agent Participation Policy
 
@@ -759,7 +759,7 @@ MUST 支持:
   三位 shape、bit 重命名或把 `reply_message` 隐式扩展为 reaction 权限
 - 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
 - `reply_message`只映射`ak.message.create`，reaction add/remove分别映射`ak.reaction.add/remove`。
-  reply-as-Agent固定`actor_id=agent_id`；act-on-behalf固定`actor_id=controller_id,executed_by=agent_id`并携匹配
+  reply-as-Agent固定`actor_id=agent_id`；act-on-behalf固定`actor_id=controller_account_id,executed_by=agent_id`并携匹配
   controller approval/accountability authorization ref，二者不可混用
 
 MUST NOT:

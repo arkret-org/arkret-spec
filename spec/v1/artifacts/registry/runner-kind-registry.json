@@ -1,5 +1,6 @@
 {
-  "version": "2026-07-13",
+  "version": "2026-09-04.1",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "source_of_truth": true,
   "description": "Closed vocabulary for fixture top-level runner.kind. Unknown kinds MUST fail lint and conformance loading. owner identifies the maintainer of this protocol execution contract, never a required implementation or verifier product; fixture-local runner metadata may further specialize an entry but cannot invent a new kind.",
   "runner_kinds": [
@@ -60,7 +61,7 @@
     {
       "kind": "arkret_private_kdf_and_durability",
       "execution_status": "contract_published",
-      "execution_contract": "Execute RFC 9420 KDFLabel/MLS-Exporter bytes, NFC/HMAC KATs, and RRK eager-seal state transitions from arkret-private-kdf-fixture.json.",
+      "execution_contract": "Execute RFC 9420 KDFLabel/MLS-Exporter bytes, NFC/HMAC KATs, and RHRK eager-seal state transitions from arkret-private-kdf-fixture.json.",
       "owner": "cotest"
     }
   ]

@@ -73,7 +73,7 @@
           }
         },
         "ciphertext": "AA",
-        "commit_ref": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+        "commit_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "governance_binding": {
           "binding_version": 1,
           "encoding_profile": "cbor-deterministic-rfc8949-v1",

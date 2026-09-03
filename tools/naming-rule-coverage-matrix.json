@@ -522,7 +522,7 @@
       "normative_anchor": {
         "file": "spec/v1/zh/models/common-fields.md",
         "section": "2.1.3",
-        "quote": "Arkret-owned identifier 字段默认使用完整语义角色加表示后缀"
+        "quote": "Arkret-owned identifier 字段由三个不可互相替代的轴组成"
       },
       "applies_to": [
         "wire_property",
@@ -546,7 +546,7 @@
         "tools/test_naming_gate_lint.py"
       ],
       "coverage_level": "full",
-      "residual_gap": "Exact-path external literal objects and closed polymorphic subjects require an explicit registered exception; the resolved-terminal walker reports every exception reason and does not propagate it to wrappers."
+      "residual_gap": "Exact-path external literal objects, compound role stems and closed polymorphic subjects require explicit registry metadata; context-specific multi-representation field names are closed to the exact carrier set and per-profile meanings registered in identifier-role-suffix-registry.json."
     },
     {
       "rule_id": "NC-COLLECTION-001",

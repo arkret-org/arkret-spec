@@ -152,7 +152,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
   "service_id": "ak:did_core:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
-  "controller_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn",
+  "controller_principal_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn",
   "base_url": "https://slack-bridge.example/applet",
   "bot_actor_id": {
     "kind": "account",
@@ -223,7 +223,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 
 - `applet_id` MUST 稳定。
 - `service_id` MUST 是稳定 service `did_core_id`；注册时提供的 `did` 必须经 adapter 投影到它，当前 endpoint 通过 verified ServiceResolutionRecord 取得。
-- `controller_id` MUST 是 controller `did_core_id`；复制到 registration 的 package proof VM 的 bare `did` 必须经 adapter 投影到它并通过签名验证。
+- `controller_principal_id` MUST 是 controller `did_core_id`；复制到 registration 的 package proof VM 的 bare `did` 必须经 adapter 投影到它并通过签名验证。
 - `bot_actor_id` 是独立 Bot 的完整 `ActorId`；安装单元的 managed-actor provision payload MUST 逐字等于 registration 的该字段，并携 initial resolution 与 method history evidence。一个 registration 只能接受这一个 Bot ActorId，且 Bot 不得等于 service/controller/Ghost。
 - `claimed_profiles` MUST 从已验证 package 原样复制到 durable registration，至少包含
   `ak.profile.applet_service.v1`；profile-bound authority 只读取 accepted Event，不得读取

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-03.3",
+  "version": "2026-09-04.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-03T20:50:00+08:00",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1143,7 +1143,7 @@
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "Grant-ref liveness follows upstream revocation without cascade writes; root refs survive controller transfer but fail after generation reset. Transfer authoring supplies only controller_id, reset supplies no patch, registered increment_members computes the respective successor counter from the CAS-frozen pre-state, and safe-integer overflow fails closed with zero write. Root-control terminal events reject ordinary grant-based authorization.",
+      "description": "Grant-ref liveness follows upstream revocation without cascade writes; root refs survive controller transfer but fail after generation reset. Transfer authoring supplies only controller_actor_id, reset supplies no patch, registered increment_members computes the respective successor counter from the CAS-frozen pre-state, and safe-integer overflow fails closed with zero write. Root-control terminal events reject ordinary grant-based authorization.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
@@ -3244,7 +3244,7 @@
         "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ],
-      "description": "Closed split between the bounded near-current stateless group-security frontier and receipt-bound bulk direct Seal traversal. Covers caller-pinned bootstrap/current bases, target dominance, complete predecessor cut replay, registered dependency resolution, current monotone history access, join floor and RRK singleton traversal; no stateless epoch-range or package/page profile remains."
+      "description": "Closed split between the bounded near-current stateless group-security frontier and receipt-bound bulk direct Seal traversal. Covers caller-pinned bootstrap/current bases, target dominance, complete predecessor cut replay, registered dependency resolution, current monotone history access, join floor and RHRK singleton traversal; no stateless epoch-range or package/page profile remains."
     },
     {
       "vector_id": "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1",
@@ -3283,7 +3283,7 @@
         "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ],
-      "description": "Ordinary, Agent and minimal sender domains bind history-secret KDF, derived nonce, reconstructed AAD, HPKE chunk context and replay rejection. Received bytes globally deduplicate by (scope,group,epoch,candidate_digest). CandidateOriginAttribution separates stable response-sender/RRK-holder-key/backup-series-producer origin_quota_domain from retrieval-only origin_ref, with immutable 30-day TTL and 4-per-candidate/64-per-quota-domain/256-total caps. EventCandidateBinding contains no origin, is independently capped at 256 per epoch for 30 days, and never pins bytes or promotes an epoch winner. Two-tier eviction uses immutable material_received_sequence then candidate_digest, including success-bound material as the second tier."
+      "description": "Ordinary, Agent and minimal sender domains bind history-secret KDF, derived nonce, reconstructed AAD, HPKE chunk context and replay rejection. Received bytes globally deduplicate by (scope,group,epoch,candidate_digest). CandidateOriginAttribution separates stable response-sender/RHRK-holder-key/backup-series-producer origin_quota_domain from retrieval-only origin_ref, with immutable 30-day TTL and 4-per-candidate/64-per-quota-domain/256-total caps. EventCandidateBinding contains no origin, is independently capped at 256 per epoch for 30 days, and never pins bytes or promotes an epoch winner. Two-tier eviction uses immutable material_received_sequence then candidate_digest, including success-bound material as the second tier."
     },
     {
       "vector_id": "ak.vector.hpke.p256_aes256gcm_base.v1",

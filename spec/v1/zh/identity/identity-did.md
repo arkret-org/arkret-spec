@@ -86,7 +86,7 @@ did ≅ did_core_id + method-specific resolution
 
 以下边界固定：
 
-- Event `actor_id`、principal / service reference、membership、capability subject 与业务数据库稳定关联使用 `did_core_id`。
+- principal / service core reference 与只按 core 定义的 capability subject 使用 `did_core_id`。Event `actor_id` 与 Realm membership 必须使用完整 closed `ActorId`；account-scoped state 必须使用完整 `AccountId`。同 principal、异 Station 的两个 account actor 永不相等，任何实现不得通过 `signing_principal_id()` 或其它 core 投影完成 account/actor equality。
 - 注册、首次 service binding、method-native operation、DID Document 获取以及需要最新控制状态的验证提交 `did`。
 - 同一个 `did_core_id` 的 resolution 更新不改变主体；改变 method 或 `<core>` 会产生另一个 `did_core_id`，MUST NOT 作为“迁移”冒充原主体。
 - `verification_method` 等 DID URL MUST 由已验证的 `did` 及 method adapter 构造和比较；不得把 fragment 直接拼到 `did_core_id`，也不得用 `did_core_id` 与 DID URL 做字符串前缀比较。
@@ -899,7 +899,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 | --- | --- | --- | --- |
 | `ArkretGovernanceService` | Organization | 组织治理 endpoint | 本节示例 |
 | `ArkretService` + `serviceKind="station"` | Principal / Organization / Agent | service bootstrap / discoverable Station hint（非强制投递入口） | §3.7 / `ServiceDidEndpoint` |
-| `ArkretRealmHistoryRecoveryKey` | Organization / Principal | 指定该主体的离线 Realm 历史恢复公钥（RRK），供 Realm `durability_policy` 引用 | §8.3 |
+| `ArkretRealmHistoryRecoveryKey` | Organization / Principal | 指定该主体的离线 Realm 历史恢复公钥（RHRK），供 Realm `durability_policy` 引用 | §8.3 |
 | `ArkretManagedPrincipalController` | Agent | entry 0 中 create-locked controller delegation | `key-management.md` §4.1 |
 | `ArkretPrincipalControlRealm` | Agent | entry 1 中 create-locked PCR 四元组反向指针 | `key-management.md` §4.1 |
 
@@ -952,9 +952,9 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 2. 恢复事件必须绑定 incident id、旧 history head、新 key set、失效 key set、原因和生效延迟。
 3. 客户端在 cooldown 内 SHOULD 显示高风险状态；高风险 Realm MAY 冻结组织 admin 动作，直到 recovery witness / approval 完成。
 
-### 8.3 Realm History Recovery Key（RRK，normative）
+### 8.3 Realm History Recovery Key（RHRK，normative）
 
-`ArkretRealmHistoryRecoveryKey` service entry 指定该主体（通常是 Organization Principal）持有的一把**离线 Realm 历史恢复公钥（RRK）**。它供 Realm `durability_policy.recovery_recipients[]` 引用，使组织在该 Realm 全体成员设备失效或全员离职后仍能解开历史（机制见 [`../crypto-media/encryption-and-audit.md` §2.10](../crypto-media/encryption-and-audit.md)，策略字段见 [`../models/realm-and-space.md` §2.3.1](../models/realm-and-space.md)）。
+`ArkretRealmHistoryRecoveryKey` service entry 指定该主体（通常是 Organization Principal）持有的一把**离线 Realm 历史恢复公钥（RHRK）**。它供 Realm `durability_policy.recovery_recipients[]` 引用，使组织在该 Realm 全体成员设备失效或全员离职后仍能解开历史（机制见 [`../crypto-media/encryption-and-audit.md` §2.10](../crypto-media/encryption-and-audit.md)，策略字段见 [`../models/realm-and-space.md` §2.3.1](../models/realm-and-space.md)）。
 
 ```json
 {

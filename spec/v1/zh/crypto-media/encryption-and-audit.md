@@ -569,7 +569,7 @@ counter 耗尽或状态无法证明时必须先推进 epoch。Nonce 不上 wire�
 Standard MLS 分支把同一 `content_aad` 作为 RFC 9420 authenticated_data，不使用 Arkret counter、K_content 或 exporter nonce；
 exporter 分支才使用 per-sender K_content 与 `I2OSP(counter,AEAD.Nn)`。
 
-本机从 verified MLS state 直接导出的 secret 是 `local_authoritative`。history response、RRK open 与其它 received secret 永远只是
+本机从 verified MLS state 直接导出的 secret 是 `local_authoritative`。history response、RHRK open 与其它 received secret 永远只是
 candidate；v1 不定义远端 epoch promotion。Receiver 先验证外层 proof、scope/group/epoch、sender domain、AAD、schema 与
 replay，再逐 candidate 尝试。AEAD 成功只把 exact `(EventId,event_digest,sender_domain)` 耐久绑定到该 candidate digest，失败也只记录
 该 Event attribution；binding 只保存 digest/attribution、不得 pin secret bytes，也不得因此立即淘汰或升级 epoch 候选。后续配额驱逐
@@ -581,7 +581,7 @@ Receiver 先按 EventId 折叠完全相同 Event，再执行 durable replay gate
 即使 AEAD 可开也拒绝。ordinary DeviceId 历史上不得重分配给另一 endpoint/principal。
 
 `history_secret[N]` 是 epoch 最小授权单元，不能执行 per-Event audience；各 epoch secret 必须独立，禁止正向或反向
-互推。交付授权、per-request response stream、proof、backup、RRK 与 multi-candidate store 的唯一合同见
+互推。交付授权、per-request response stream、proof、backup、RHRK 与 multi-candidate store 的唯一合同见
 [`history-visibility.md`](../governance/history-visibility.md)。Standard `mls_rfc9420` 没有可交付 secret，固定
 `history_access=since_join`。
 
@@ -706,7 +706,7 @@ Genesis 接受规则：
 3. 同一 effective scope（其 `mls_group_id` 已由上式唯一派生）的 genesis/epoch/key-schedule cell 使用 `cas_register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Control Move 必须 fail closed，直到 recovery Control Move 修复；不同 group id 不能创建另一个 cell。
 4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `ak.mls.commit` Control Move，其 `base_epoch=0`、`base_epoch_ref` 指向 effective `ak.mls.genesis`、`next_epoch=1`。
 5. 新加入成员的 `ak.mls.welcome` MUST 引用 effective genesis 或后续 effective commit 派生出的 epoch state；客户端不得从未被 accepted Seal 覆盖的 welcome / ratchet tree 本地推断 group authority。
-6. `effective_scope.kind = "sidecar"` 的 genesis 另有创建者约束：`Event.actor_id` MUST 逐字等于该 Sidecar 的 `controller_id`；`Event.executed_by` MUST 缺席——该 Event 是 Agent PCR 后继 Seal 覆盖的 effectless `ak.mls.genesis`，MUST 由 controller device 直接签名（见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)）；signer regime MUST 是 ordinary device regime，且上式投影出的 creator device MUST 是该 controller 在该 Event 的 accepted basis 上 active 的 accepted device。Agent、Applet、service 或任何 delegated signer 一律拒绝。
+6. `effective_scope.kind = "sidecar"` 的 genesis 另有创建者约束：`Event.actor_id` MUST 是 account 分支，且 `Event.actor_id.account_id` MUST 逐字等于该 Sidecar 的 `controller_account_id`；`Event.executed_by` MUST 缺席——该 Event 是 Agent PCR 后继 Seal 覆盖的 effectless `ak.mls.genesis`，MUST 由 controller device 直接签名（见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)）；signer regime MUST 是 ordinary device regime，且上式投影出的 creator device MUST 是该 controller 在该 Event 的 accepted basis 上 active 的 accepted device。Agent、Applet、service 或任何 delegated signer 一律拒绝。
 7. 对尚无 accepted Genesis 的 scope/group，`governance_binding.content_scheme` 与 `durability_policy` 必须逐字等于产出该 `security_frontier_digest` 的 0→0 query 中 `proposed_group_genesis_binding`。Admission 必须在写入前验证 proposal-bound query/cache identity 与 signed Genesis transcript 的相等性；不一致返回 `mls_genesis_binding_proposal_mismatch` 且零写入。并发 Genesis 的输家按 winning accepted binding 重新查询，不得沿用自身 proposal。Genesis accepted 后，这对字段永久来自 accepted state，任何 caller override 都拒绝。
 
 #### 5.1.1 Epoch-0 public group-state material
@@ -823,7 +823,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 Epoch 推进只由 MLS forward secrecy、message-count、membership/security-frontier 变化或部署固定运维上限触发。
 Routing metadata 不得要求每小时 Commit。Exporter transition 在 accepted Event/Seal 后 MUST 先原子耐久保存 post-state、
-该 epoch 的独立 history secret、group-state ref、counter marker，以及启用时同 Event 内的单一 RRK archive，才允许
+该 epoch 的独立 history secret、group-state ref、counter marker，以及启用时同 Event 内的单一 RHRK archive，才允许
 下一 Commit 或 application send。Standard MLS 只保存 RFC 9420 active state，不生成 history secret/archive。
 
 

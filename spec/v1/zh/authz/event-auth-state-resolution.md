@@ -727,7 +727,7 @@ Digest membership 不能证明 bytes 可获取。Arkret v1 独立建模 availabi
 
 ```text
 AvailabilityReceipt {
-  realm_id, event_id, bytes_digest, holder_id, retention_expires_at,
+  realm_id, event_id, bytes_digest, holder_service_id, retention_expires_at,
   holder_signer_evidence_ref, signature
 }
 ```

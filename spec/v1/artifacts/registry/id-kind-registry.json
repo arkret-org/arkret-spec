@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.4",
+  "version": "2026-09-04.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T20:40:00+08:00",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -477,7 +477,7 @@
       "category": "core_object",
       "status": "active",
       "wire_form": "ak:sidecar:<44-char-event-token>",
-      "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
+      "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_account_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
       "id_form": "event_derived",
       "identity_authority": "event",
       "genesis_event_kinds": [

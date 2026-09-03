@@ -62,6 +62,40 @@ class RecoveryTranscriptClosureLintTest(unittest.TestCase):
         errors = self._recovery_lint(mutate)
         self.assertTrue(any("exactly one domain_separations row" in error for error in errors), errors)
 
+    def test_recovery_share_hardware_branch_fails(self) -> None:
+        policy = recovery_transcripts.POLICY_SCHEMA.resolve()
+
+        def mutate(path, value):
+            if path == policy:
+                value["$defs"]["recovery_share_holder"]["properties"]["holder_kind"]["enum"].append(
+                    "hardware_module"
+                )
+
+        errors = self._recovery_lint(mutate)
+        self.assertTrue(any("exact two-branch enum" in error for error in errors), errors)
+
+    def test_recovery_share_discriminator_branch_mismatch_fails(self) -> None:
+        policy = recovery_transcripts.POLICY_SCHEMA.resolve()
+
+        def mutate(path, value):
+            if path == policy:
+                branch = value["$defs"]["recovery_share_holder"]["oneOf"][0]
+                branch["required"] = ["holder_service_id"]
+
+        errors = self._recovery_lint(mutate)
+        self.assertTrue(any("matching branch-specific holder field" in error for error in errors), errors)
+
+    def test_recovery_share_branch_ref_drift_fails(self) -> None:
+        schema = recovery_transcripts.SCHEMA.resolve()
+
+        def mutate(path, value):
+            if path == schema:
+                item = value["$defs"]["threshold_recovery_proof_body"]["properties"]["share_releases"]["items"]
+                item["allOf"] = []
+
+        errors = self._recovery_lint(mutate)
+        self.assertTrue(any("must reuse recovery_share_holder exactly" in error for error in errors), errors)
+
     def test_registered_context_schema_copy_fails(self) -> None:
         original = recovery_transcripts.load_json
         target = recovery_transcripts.SCHEMA.resolve()

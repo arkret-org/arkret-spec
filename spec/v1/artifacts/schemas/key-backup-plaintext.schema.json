@@ -24,7 +24,7 @@
     {
       "properties": {
         "backup_kind": {"const": "mls_history"},
-        "items": {"items": {"$ref": "./history-key.schema.json#/$defs/history_secret_range", "description": "Every packed secret in a portable backup MUST have local_authoritative origin from direct export of locally verified MLS state. A received history-response or RRK-opened candidate is forbidden even after it successfully decrypts an Event."}}
+        "items": {"items": {"$ref": "./history-key.schema.json#/$defs/history_secret_range", "description": "Every packed secret in a portable backup MUST have local_authoritative origin from direct export of locally verified MLS state. A received history-response or RHRK-opened candidate is forbidden even after it successfully decrypts an Event."}}
       },
       "required": ["effective_scope"]
     }

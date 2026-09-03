@@ -338,7 +338,7 @@ Plaintext Circle 不存在 MLS Seal stream。Standard/exporter Circle 各自拥�
 leaf 与 snapshot；`content_scheme` 和 security frontier 固定在自己的 Genesis。`history_access` 只可由专用
 `ak.circle.history_access` Move 从 `all_history_for_current_members` 单向收紧到 `since_join`，立即作用于历史交付，
 且不进入 MLS security frontier；不存在 epoch ceiling 或 activation-time policy snapshot。
-Standard scheme 固定 since_join 且没有 history secret；exporter scheme 才允许 private delivery/backup/RRK。
+Standard scheme 固定 since_join 且没有 history secret；exporter scheme 才允许 private delivery/backup/RHRK。
 
 ## 11. Scope-identity UX safety invariants
 

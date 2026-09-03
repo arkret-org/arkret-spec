@@ -376,19 +376,21 @@
         "share_releases": [
           {
             "share_id": "share-a",
-            "holder_id": "ak:did_core:web:holder-a.example",
+            "holder_kind": "personal_principal",
+            "holder_principal_id": "ak:did_core:web:holder-a.example",
             "transcript_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
             "verification_method": "did:web:holder-a.example#recovery-1",
             "signature_algorithm": "Ed25519",
-            "signature": "gyjyuhDLuw3w40jX61oqP3_ZcKZa6yrA10RyzxH4kCnvK4H5bBZfYnl4NWQUFD_kzy4WmTDdsR4v8mODR5G1BA"
+            "signature": "Rat0Ud7jWR0TsVYzXoSpbaABQnyqYK6swR_DDQQm6EExo8n1dKH0McxJgHIYqSwxSDdlok8WfEHWcZR6IViNBw"
           },
           {
             "share_id": "share-b",
-            "holder_id": "ak:did_core:web:holder-b.example",
+            "holder_kind": "custodial_service",
+            "holder_service_id": "ak:did_core:web:holder-b.example",
             "transcript_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "verification_method": "did:web:holder-b.example#recovery-1",
             "signature_algorithm": "Ed25519",
-            "signature": "gyjyuhDLuw3w40jX61oqP3_ZcKZa6yrA10RyzxH4kCnvK4H5bBZfYnl4NWQUFD_kzy4WmTDdsR4v8mODR5G1BA"
+            "signature": "Rat0Ud7jWR0TsVYzXoSpbaABQnyqYK6swR_DDQQm6EExo8n1dKH0McxJgHIYqSwxSDdlok8WfEHWcZR6IViNBw"
           }
         ]
       },
@@ -423,14 +425,16 @@
           "share_releases": [
             {
               "share_id": "share-a",
-              "holder_id": "ak:did_core:web:holder-a.example",
+              "holder_kind": "personal_principal",
+              "holder_principal_id": "ak:did_core:web:holder-a.example",
               "transcript_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
               "verification_method": "did:web:holder-a.example#recovery-1",
               "signature_algorithm": "Ed25519"
             },
             {
               "share_id": "share-b",
-              "holder_id": "ak:did_core:web:holder-b.example",
+              "holder_kind": "custodial_service",
+              "holder_service_id": "ak:did_core:web:holder-b.example",
               "transcript_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "verification_method": "did:web:holder-b.example#recovery-1",
               "signature_algorithm": "Ed25519"
@@ -438,9 +442,9 @@
           ]
         }
       },
-      "transcript_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"created_at\":\"2026-08-23T09:00:00.000Z\",\"expires_at\":\"2026-08-23T09:30:00.000Z\",\"identity_model\":\"pcr_policy\",\"kind\":\"threshold_recovery\",\"model_generation_ref\":19,\"policy_id\":\"ak:policy:019b6a40-0000-7000-8000-000000000002\",\"policy_version\":7,\"proof_body\":{\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"threshold_recovery\",\"share_releases\":[{\"holder_id\":\"ak:did_core:web:holder-a.example\",\"share_id\":\"share-a\",\"signature_algorithm\":\"Ed25519\",\"transcript_digest\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"verification_method\":\"did:web:holder-a.example#recovery-1\"},{\"holder_id\":\"ak:did_core:web:holder-b.example\",\"share_id\":\"share-b\",\"signature_algorithm\":\"Ed25519\",\"transcript_digest\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"verification_method\":\"did:web:holder-b.example#recovery-1\"}],\"threshold\":2},\"publication_authority_context_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"recovery_session_id\":\"ak:recovery_session:019b6a40-0000-7000-8000-000000000003\",\"request_id\":\"ak:request:019b6a40-0000-7000-8000-000000000000\",\"requesting_device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000001\",\"schema\":\"ak.identity.recovery_proof.v1\",\"session_grant_cnf_jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"session_grant_id\":\"ak:session_grant:ARZh3t6pUePAQHfZ8vZbYERKa2BqFWV_dynfVmrmHA_N\",\"trust_domain\":\"ak:trust_domain:recovery-fixture\"}",
-      "transcript_digest": "sha256:e6e2bea092796952697a05d14fa04e7d49d521ebba839668640ee39780e61fc4",
-      "signature_b64u": "gyjyuhDLuw3w40jX61oqP3_ZcKZa6yrA10RyzxH4kCnvK4H5bBZfYnl4NWQUFD_kzy4WmTDdsR4v8mODR5G1BA",
+      "transcript_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"created_at\":\"2026-08-23T09:00:00.000Z\",\"expires_at\":\"2026-08-23T09:30:00.000Z\",\"identity_model\":\"pcr_policy\",\"kind\":\"threshold_recovery\",\"model_generation_ref\":19,\"policy_id\":\"ak:policy:019b6a40-0000-7000-8000-000000000002\",\"policy_version\":7,\"proof_body\":{\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"threshold_recovery\",\"share_releases\":[{\"holder_kind\":\"personal_principal\",\"holder_principal_id\":\"ak:did_core:web:holder-a.example\",\"share_id\":\"share-a\",\"signature_algorithm\":\"Ed25519\",\"transcript_digest\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"verification_method\":\"did:web:holder-a.example#recovery-1\"},{\"holder_kind\":\"custodial_service\",\"holder_service_id\":\"ak:did_core:web:holder-b.example\",\"share_id\":\"share-b\",\"signature_algorithm\":\"Ed25519\",\"transcript_digest\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"verification_method\":\"did:web:holder-b.example#recovery-1\"}],\"threshold\":2},\"publication_authority_context_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"recovery_session_id\":\"ak:recovery_session:019b6a40-0000-7000-8000-000000000003\",\"request_id\":\"ak:request:019b6a40-0000-7000-8000-000000000000\",\"requesting_device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000001\",\"schema\":\"ak.identity.recovery_proof.v1\",\"session_grant_cnf_jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"session_grant_id\":\"ak:session_grant:ARZh3t6pUePAQHfZ8vZbYERKa2BqFWV_dynfVmrmHA_N\",\"trust_domain\":\"ak:trust_domain:recovery-fixture\"}",
+      "transcript_digest": "sha256:5523685a5a9719541678f513415ed325025ab1478a9cff2fec00e6e792365913",
+      "signature_b64u": "Rat0Ud7jWR0TsVYzXoSpbaABQnyqYK6swR_DDQQm6EExo8n1dKH0McxJgHIYqSwxSDdlok8WfEHWcZR6IViNBw",
       "expected_result": "accept",
       "cross_factor_replay": {
         "replayed_kind": "did_root",
@@ -472,14 +476,16 @@
             "share_releases": [
               {
                 "share_id": "share-a",
-                "holder_id": "ak:did_core:web:holder-a.example",
+                "holder_kind": "personal_principal",
+                "holder_principal_id": "ak:did_core:web:holder-a.example",
                 "transcript_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
                 "verification_method": "did:web:holder-a.example#recovery-1",
                 "signature_algorithm": "Ed25519"
               },
               {
                 "share_id": "share-b",
-                "holder_id": "ak:did_core:web:holder-b.example",
+                "holder_kind": "custodial_service",
+                "holder_service_id": "ak:did_core:web:holder-b.example",
                 "transcript_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
                 "verification_method": "did:web:holder-b.example#recovery-1",
                 "signature_algorithm": "Ed25519"

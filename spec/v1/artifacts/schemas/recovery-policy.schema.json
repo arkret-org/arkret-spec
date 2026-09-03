@@ -896,11 +896,65 @@
       },
       "additionalProperties": false
     },
+    "recovery_share_holder": {
+      "type": "object",
+      "description": "Closed identity carrier for a recovery-share holder. A holder is either an independently verified personal principal or an explicitly authorized custodial service; v1 defines no hardware-module branch.",
+      "required": [
+        "holder_kind"
+      ],
+      "properties": {
+        "holder_kind": {
+          "type": "string",
+          "enum": [
+            "personal_principal",
+            "custodial_service"
+          ]
+        },
+        "holder_principal_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "holder_service_id": {
+          "$ref": "#/$defs/did_core_id"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "holder_kind": {
+              "const": "personal_principal"
+            }
+          },
+          "required": [
+            "holder_principal_id"
+          ],
+          "not": {
+            "required": [
+              "holder_service_id"
+            ]
+          }
+        },
+        {
+          "properties": {
+            "holder_kind": {
+              "const": "custodial_service"
+            }
+          },
+          "required": [
+            "holder_service_id"
+          ],
+          "not": {
+            "required": [
+              "holder_principal_id"
+            ]
+          }
+        }
+      ]
+    },
     "share": {
       "type": "object",
       "required": [
         "share_id",
-        "holder_id",
+        "holder_kind",
         "transport",
         "share_commitment"
       ],
@@ -909,9 +963,20 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{1,64}$"
         },
-        "holder_id": {
+        "holder_kind": {
+          "type": "string",
+          "enum": [
+            "personal_principal",
+            "custodial_service"
+          ]
+        },
+        "holder_principal_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "DID of the share holder. MAY be a user, a hardware module identified by did:key, or a custodial service. The holder DID does NOT inherit any business capability of the principal."
+          "description": "Stable principal core of a personal share holder. The holder does not inherit any business capability of the recovered account."
+        },
+        "holder_service_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Stable service core of a custodial recovery service accepted by the recovery policy."
         },
         "transport": {
           "type": "string",
@@ -920,7 +985,6 @@
             "hpke_x25519",
             "wrapped_key_did_document",
             "offline_qr",
-            "hardware_module",
             "service_defined"
           ]
         },
@@ -981,7 +1045,12 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/recovery_share_holder"
+        }
+      ]
     }
   }
 }

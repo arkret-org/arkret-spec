@@ -1945,7 +1945,7 @@
         "prev_refs": [],
         "refs": [
           {
-            "id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+            "id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
             "role": "did_inception",
             "critical": true
           }
@@ -2091,7 +2091,7 @@
       "name": "event_envelope_noncritical_did_inception_rejected",
       "schema_ref": "schemas/event-envelope.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.refs: [{'id': 'ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM', 'role': 'did_inception', 'critical': False}] does not contain items matching the given schema",
+      "first_expected_error": "$.refs: [{'id': 'ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape', 'role': 'did_inception', 'critical': False}] does not contain items matching the given schema",
       "instance": {
         "event_id": "ak:event:Ae87Us4b_--wrRETgz10TETVSHxqCkCyjk4AC59eG1RU",
         "kind": "ak.realm.create",
@@ -2110,7 +2110,7 @@
         "prev_refs": [],
         "refs": [
           {
-            "id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+            "id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
             "role": "did_inception",
             "critical": false
           }
@@ -3330,7 +3330,7 @@
         "package_id": "applet-package-demo-1",
         "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
-        "controller_id": "ak:did_core:webvh:z6mkfixturevendorexample",
+        "controller_principal_id": "ak:did_core:webvh:z6mkfixturevendorexample",
         "base_url": "https://applet.example",
         "bot_actor_id": {
           "kind": "service",
@@ -3405,7 +3405,7 @@
         "package_id": "applet-package-demo-1",
         "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
-        "controller_id": "ak:did_core:webvh:z6mkfixturevendorexample",
+        "controller_principal_id": "ak:did_core:webvh:z6mkfixturevendorexample",
         "base_url": "https://applet.example",
         "bot_actor_id": {
           "kind": "service",
@@ -3474,7 +3474,7 @@
         "package_id": "applet-package-demo-1",
         "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
-        "controller_id": "ak:did_core:webvh:z6mkfixturevendorexample",
+        "controller_principal_id": "ak:did_core:webvh:z6mkfixturevendorexample",
         "base_url": "https://applet.example",
         "bot_actor_id": {
           "kind": "service",
@@ -3582,7 +3582,7 @@
         "package_id": "applet-package-demo-1",
         "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
-        "controller_id": "ak:did_core:webvh:z6mkfixturevendorexample",
+        "controller_principal_id": "ak:did_core:webvh:z6mkfixturevendorexample",
         "base_url": "https://applet.example",
         "bot_actor_id": {
           "kind": "service",

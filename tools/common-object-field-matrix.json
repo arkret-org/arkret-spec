@@ -101,7 +101,7 @@
       "Read Cursor": "— (see `actor_id`)",
       "Notification": "— (see `actor_id`)",
       "Actor Profile": "— (see `principal_id`)",
-      "Sidecar": "— (see `controller_id`，见附注)"
+      "Sidecar": "— (see `controller_account_id`，见附注)"
     },
     {
       "字段": "`created_at`",

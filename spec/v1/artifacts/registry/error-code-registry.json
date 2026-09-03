@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-02.4",
-  "generated_at": "2026-09-02T23:25:00+08:00",
+  "version": "2026-09-04.1",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3398,7 +3398,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a ak.realm.policy_bundle write declares durability_policy.mode != none on a Realm whose content_scheme is not mls_exporter_aead_v1. mls_rfc9420 Realms have no deliverable history_secret, so Realm Recovery Key (RRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10.8."
+      "description": "Sub-reason for failed_precondition when a ak.realm.policy_bundle write declares durability_policy.mode != none on a Realm whose content_scheme is not mls_exporter_aead_v1. mls_rfc9420 Realms have no deliverable history_secret, so Realm History Recovery Key (RHRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10.8."
     },
     {
       "code": "e2ee_key_source_unauthorised",
@@ -4733,7 +4733,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "An Event presented ak:cell:ak.component.realm.authority_root.v1:null as its authorization_ref but the cell's current controller_id is not the authorizing principal, or the epoch / authority_generation bound at issuance no longer matches the cell in that basis. Includes replaying a staged genesis-batch root proof outside its atomic bootstrap unit. See zh/authz/capabilities.md section 3.2."
+      "description": "An Event presented ak:cell:ak.component.realm.authority_root.v1:null as its authorization_ref but the cell's current controller_actor_id is not the authorizing ActorId, or the epoch / authority_generation bound at issuance no longer matches the cell in that basis. Includes replaying a staged genesis-batch root proof outside its atomic bootstrap unit. See zh/authz/capabilities.md section 3.2."
     },
     {
       "code": "realm_authority_root_conflict",
@@ -4741,7 +4741,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "The authority-root cell value was author-supplied or otherwise diverges from the registered value_projection: controller_id not equal to the create envelope actor_id, a non-zero controller_epoch or authority_generation at genesis, or members beyond the closed three-field shape. Reducer MUST reject the whole unit. See zh/models/realm-and-space.md section 2.5."
+      "description": "The authority-root cell value was author-supplied or otherwise diverges from the registered value_projection: controller_actor_id not equal to the create envelope actor_id, a non-zero controller_epoch or authority_generation at genesis, or members beyond the closed three-field shape. Reducer MUST reject the whole unit. See zh/models/realm-and-space.md section 2.5."
     },
     {
       "code": "realm_authority_root_missing",

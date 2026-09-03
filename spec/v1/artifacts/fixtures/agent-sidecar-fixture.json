@@ -35,7 +35,10 @@
         "domain": "ak.sidecar.participant_authority.v1",
         "sidecar_id": "ak:sidecar:Aa9QYb77BXMoa1ySi5zspQe1V0D983aoWG7js7Co0k7_",
         "realm_id": "ak:realm:AUu6GayQb7-Knno7Ar5EA6ndAgK47WhZI_ViA21yHqDE",
-        "controller_id": "ak:did_core:webvh:z6mkfixture",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixtureserviceexample"
+        },
         "desired_agent_ids": [
           "ak:did_core:webvh:z6mkfixtureassistantagentsexample"
         ]
@@ -88,13 +91,29 @@
       "name": "sidecar_ensure_idempotent",
       "vector_id": "ak.vector.sidecar.ensure_idempotent.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_ensure_idempotent_vector",
+      "account_separation": {
+        "controller_account_a": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "controller_account_b": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+        },
+        "expected_account_equality": false,
+        "expected_singleton_key_equality": false,
+        "expected_participant_authority_transcript_equality": false,
+        "forbidden_comparison": "signing_principal_id"
+      },
       "assertions": [
         "ensure operation id remains ak.self.agent.sidecar.command.ensure.v1",
         "ensure capability action matches the operation id",
         "prepare returns a closed new or existing branch with Event-derived sidecar id, source context, Event IDs and canonical unsigned draft bytes",
         "the controller may append proofs but any unsigned-byte, payload, Event ID, source context, or refs.after mutation conflicts with zero writes",
         "create and attach produce no Circle membership Strand or Relation object",
-        "sidecar profile id remains ak.profile.agent_sidecar.v1"
+        "sidecar profile id remains ak.profile.agent_sidecar.v1",
+        "a create Event service actor is rejected with sidecar_create_denied before existence is revealed",
+        "the same principal at different Stations produces distinct controller_account_id values, singleton keys, Agent sets, MLS rosters and participant-authority transcripts"
       ]
     },
     {
@@ -202,7 +221,10 @@
       },
       "locator": {
         "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
-        "controller_id": "ak:did_core:webvh:z6mkfixture",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixtureserviceexample"
+        },
         "sidecar_id": "ak:sidecar:Aa9QYb77BXMoa1ySi5zspQe1V0D983aoWG7js7Co0k7_",
         "source_context_ref": "ak:strand:AdyEmwcTgbpYjiHCd9ca5d0RcfP1aU9h88qvGZBiJKGB"
       },

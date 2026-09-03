@@ -52,7 +52,8 @@
           "shares": [
             {
               "share_id": "s1",
-              "holder_id": "ak:did_core:webvh:z6mkfixturebobexample",
+              "holder_kind": "personal_principal",
+              "holder_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman_vss_sha256",
@@ -61,7 +62,8 @@
             },
             {
               "share_id": "s2",
-              "holder_id": "ak:did_core:webvh:z6mkfixturecarolexample",
+              "holder_kind": "custodial_service",
+              "holder_service_id": "ak:did_core:webvh:z6mkfixturecarolexample",
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman_vss_sha256",
@@ -142,7 +144,8 @@
           "shares": [
             {
               "share_id": "s1",
-              "holder_id": "ak:did_core:webvh:z6mkfixturebobexample",
+              "holder_kind": "personal_principal",
+              "holder_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman_vss_sha256",
@@ -151,7 +154,8 @@
             },
             {
               "share_id": "s2",
-              "holder_id": "ak:did_core:webvh:z6mkfixturecarolexample",
+              "holder_kind": "custodial_service",
+              "holder_service_id": "ak:did_core:webvh:z6mkfixturecarolexample",
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman_vss_sha256",

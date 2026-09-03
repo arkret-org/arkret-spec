@@ -2,6 +2,117 @@
   "version": "2026-08-28",
   "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
+  "forbidden_arkret_owned_fields": [
+    "holder_id",
+    "controller_id"
+  ],
+  "multi_representation_field_contracts": [
+    {
+      "field": "issuer_id",
+      "representation_profiles": ["actor_id", "did_core_id"],
+      "profile_meanings": {
+        "actor_id": "Exact account-or-service actor that issued a grant or durable protocol statement.",
+        "did_core_id": "Stable principal or service core that issued a proof, receipt, claim, or registry statement."
+      },
+      "reason": "The enclosing schema decides whether issuer authority requires an exact routed actor or a stable DID core; each occurrence remains closed to one carrier."
+    },
+    {
+      "field": "peer_id",
+      "representation_profiles": ["actor_id", "did_core_id"],
+      "profile_meanings": {
+        "actor_id": "Exact Contact peer actor, preserving the Station component for an account actor.",
+        "did_core_id": "Stable peer service or principal core named by a receipt."
+      },
+      "reason": "Contact concurrency needs exact actor equality while independent receipt subjects use a stable DID core; no individual occurrence is polymorphic."
+    },
+    {
+      "field": "resource_id",
+      "representation_profiles": ["actor_id", "did_core_id"],
+      "profile_meanings": {
+        "actor_id": "Exact actor resource stored by the actor-discovery projection.",
+        "did_core_id": "Stable DID-core branch of the directory withdrawal resource selector."
+      },
+      "reason": "Discovery projections preserve exact actors, while the directory withdrawal union separately admits a stable DID-core resource branch."
+    },
+    {
+      "field": "revoked_by",
+      "representation_profiles": ["actor_id", "did_core_id"],
+      "profile_meanings": {
+        "actor_id": "Exact account-or-service actor that revoked a capability grant.",
+        "did_core_id": "Stable controller principal core that revoked an Agent key."
+      },
+      "reason": "The complete revocation byline is carrier-specific in each enclosing schema and never permits an ambiguous union at one occurrence."
+    },
+    {
+      "field": "signer_id",
+      "representation_profiles": ["actor_id", "did_core_id"],
+      "profile_meanings": {
+        "actor_id": "Exact Contact participant actor bound by a bilateral continuity signature.",
+        "did_core_id": "Stable principal or service core selected by a verification method and signer evidence."
+      },
+      "reason": "Contact continuity signs as an exact actor; general proof evidence binds the stable DID core."
+    },
+    {
+      "field": "subject_id",
+      "representation_profiles": ["actor_id", "did_core_id"],
+      "profile_meanings": {
+        "actor_id": "Exact Contact participant actor, including Station for account actors.",
+        "did_core_id": "Stable claim, mention, selector, or accountability subject core."
+      },
+      "reason": "Contact concurrency requires exact actor identity while claims and selectors intentionally identify stable principals."
+    }
+  ],
+  "responsibility_field_contracts": [
+    {
+      "field": "holder_principal_id",
+      "terminal_category": "did_core_id",
+      "subject_class": "principal",
+      "account_scoped": false,
+      "required_evidence": ["verified_holder_principal_authority"]
+    },
+    {
+      "field": "holder_service_id",
+      "terminal_category": "did_core_id",
+      "subject_class": "service",
+      "account_scoped": false,
+      "required_evidence": ["verified_holder_service_authority"]
+    },
+    {
+      "field": "holder_account_id",
+      "terminal_category": "account_id",
+      "subject_class": "account",
+      "account_scoped": true,
+      "required_evidence": ["exact_account_ownership_binding"]
+    },
+    {
+      "field": "controller_principal_id",
+      "terminal_category": "did_core_id",
+      "subject_class": "principal",
+      "account_scoped": false,
+      "required_evidence": ["accepted_controller_principal_binding"]
+    },
+    {
+      "field": "method_controller_principal_id",
+      "terminal_category": "did_core_id",
+      "subject_class": "principal",
+      "account_scoped": false,
+      "required_evidence": ["verified_w3c_method_controller"]
+    },
+    {
+      "field": "controller_account_id",
+      "terminal_category": "account_id",
+      "subject_class": "account",
+      "account_scoped": true,
+      "required_evidence": ["exact_account_authority_binding"]
+    },
+    {
+      "field": "controller_actor_id",
+      "terminal_category": "actor_id",
+      "subject_class": "actor",
+      "account_scoped": false,
+      "required_evidence": ["accepted_realm_authority_root"]
+    }
+  ],
   "registered_service_role_fields": [
     {
       "field": "service_id",
@@ -142,8 +253,8 @@
   "registered_provenance_byline_fields": [
     {"field": "approved_by", "terminal_categories": ["did_core_id"], "reason": "complete approval provenance role"},
     {"field": "changed_by", "terminal_categories": ["did_core_id"], "reason": "complete change provenance role"},
-    {"field": "created_by", "terminal_categories": ["did_core_id", "composite_identifier"], "reason": "complete creation byline role"},
-    {"field": "executed_by", "terminal_categories": ["did_core_id", "composite_identifier"], "reason": "complete delegated-execution provenance role"},
+    {"field": "created_by", "terminal_categories": ["did_core_id", "actor_id"], "reason": "complete creation byline role"},
+    {"field": "executed_by", "terminal_categories": ["did_core_id", "actor_id"], "reason": "complete delegated-execution provenance role"},
     {"field": "generated_by", "terminal_categories": ["did_core_id"], "reason": "complete generation provenance role"},
     {"field": "produced_by", "terminal_categories": ["did_core_id"], "reason": "complete production provenance role"},
     {"field": "received_by", "terminal_categories": ["did_core_id"], "reason": "complete receipt provenance role"},
@@ -151,8 +262,8 @@
     {"field": "requested_by", "terminal_categories": ["did_core_id"], "reason": "complete request provenance role"},
     {"field": "resolved_by", "terminal_categories": ["did_core_id"], "reason": "complete resolution provenance role"},
     {"field": "restored_by", "terminal_categories": ["did_core_id"], "reason": "complete restoration provenance role"},
-    {"field": "revoked_by", "terminal_categories": ["did_core_id", "composite_identifier"], "reason": "complete revocation provenance role; generic protocol provenance uses ActorId while cryptographic controller records may retain did_core_id"},
-    {"field": "updated_by", "terminal_categories": ["did_core_id", "composite_identifier"], "reason": "complete update byline role"}
+    {"field": "revoked_by", "terminal_categories": ["did_core_id", "actor_id"], "reason": "complete revocation provenance role; generic protocol provenance uses ActorId while cryptographic controller records may retain did_core_id"},
+    {"field": "updated_by", "terminal_categories": ["did_core_id", "actor_id"], "reason": "complete update byline role"}
   ],
   "registered_network_locator_fields": [
     {"field": "arkret_base_url", "schemes": ["http", "https"], "reason": "dereferenceable Arkret service base locator"},
@@ -194,8 +305,52 @@
   ],
   "generic_grammars": [
     {
+      "category": "principal_identity",
+      "terminal_categories": ["did_core_id"],
+      "subject_class": "principal",
+      "exact_names": [],
+      "suffixes": ["_principal_id", "_principal_ids"]
+    },
+    {
+      "category": "service_identity",
+      "terminal_categories": ["did_core_id"],
+      "subject_class": "service",
+      "exact_names": [],
+      "suffixes": ["_service_id", "_service_ids"]
+    },
+    {
+      "category": "station_identity",
+      "terminal_categories": ["did_core_id"],
+      "subject_class": "service",
+      "service_kind": "station",
+      "exact_names": [],
+      "suffixes": ["_station_id", "_station_ids"]
+    },
+    {
+      "category": "hardware_module_identity",
+      "terminal_categories": ["did_core_id"],
+      "subject_class": "hardware_module",
+      "required_binding": "hardware_backed_attestation",
+      "exact_names": [],
+      "suffixes": ["_hardware_module_id", "_hardware_module_ids"]
+    },
+    {
+      "category": "account_identity",
+      "terminal_categories": ["account_id"],
+      "subject_class": "account",
+      "exact_names": ["account_id"],
+      "suffixes": ["_account_id", "_account_ids"]
+    },
+    {
+      "category": "actor_identity",
+      "terminal_categories": ["actor_id"],
+      "subject_class": "actor",
+      "exact_names": ["actor_id"],
+      "suffixes": ["_actor_id", "_actor_ids"]
+    },
+    {
       "category": "primary_or_responsibility_id",
-      "terminal_categories": ["did_core_id", "typed_object_id", "composite_identifier"],
+      "terminal_categories": ["did_core_id", "typed_object_id", "account_id", "actor_id", "composite_identifier"],
       "exact_names": ["id"],
       "suffixes": ["_id", "_ids"]
     },
@@ -246,13 +401,13 @@
     {
       "file": "capability-grant.schema.json",
       "pointer": "/properties/subject",
-      "terminal_categories": ["composite_identifier"],
+      "terminal_categories": ["actor_id"],
       "reason": "closed condition-selector union: exact ActorId or discriminator-bearing condition object"
     },
     {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/capability_grant_payload/properties/grant/properties/subject",
-      "terminal_categories": ["composite_identifier"],
+      "terminal_categories": ["actor_id"],
       "reason": "exact projection of CapabilityGrant.subject closed ActorId-or-condition union"
     },
     {
@@ -272,6 +427,30 @@
       "pointer": "/properties/authorization_ref",
       "terminal_categories": ["mixed[did_url,typed_object_id]"],
       "reason": "closed, lexically disjoint authorization reference union governed by the independent _ref grammar"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/mls_welcome_payload/properties/recipient_pairwise_actor_id",
+      "terminal_categories": ["did_core_id"],
+      "reason": "pairwise_actor is the complete protocol role for the stable pairwise principal core; the _id suffix is the carrier marker"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/mls_welcome_payload/properties/claim_ref/properties/pairwise_actor_id",
+      "terminal_categories": ["did_core_id"],
+      "reason": "pairwise_actor is the complete protocol role for the stable pairwise principal core; the _id suffix is the carrier marker"
+    },
+    {
+      "file": "history-key.schema.json",
+      "pointer": "/$defs/minimal_metadata_mls_leaf_signer_evidence/properties/pairwise_actor_id",
+      "terminal_categories": ["did_core_id"],
+      "reason": "pairwise_actor is the complete protocol role for the stable pairwise principal core; the _id suffix is the carrier marker"
+    },
+    {
+      "file": "identity-link.schema.json",
+      "pointer": "/properties/pairwise_actor_id",
+      "terminal_categories": ["did_core_id"],
+      "reason": "pairwise_actor is the complete protocol role for the stable pairwise principal core; the _id suffix is the carrier marker"
     },
     {
       "file": "service-operation-dtos.schema.json",
@@ -313,7 +492,7 @@
       "file": "query.schema.json",
       "pointer": "/$defs/relation_query/properties/source_ref",
       "terminal_categories": [
-        "composite_identifier"
+        "actor_id"
       ],
       "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
     },
@@ -321,7 +500,7 @@
       "file": "query.schema.json",
       "pointer": "/$defs/relation_query/properties/target_ref",
       "terminal_categories": [
-        "composite_identifier"
+        "actor_id"
       ],
       "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
     },
@@ -329,7 +508,7 @@
       "file": "relation.schema.json",
       "pointer": "/properties/from_ref",
       "terminal_categories": [
-        "composite_identifier"
+        "actor_id"
       ],
       "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
     },
@@ -337,7 +516,7 @@
       "file": "relation.schema.json",
       "pointer": "/properties/to_ref",
       "terminal_categories": [
-        "composite_identifier"
+        "actor_id"
       ],
       "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
     },
@@ -345,7 +524,7 @@
       "file": "relation.schema.json",
       "pointer": "/allOf/0/then/properties/to_ref",
       "terminal_categories": [
-        "composite_identifier"
+        "actor_id"
       ],
       "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
     },
@@ -353,7 +532,7 @@
       "file": "relation.schema.json",
       "pointer": "/allOf/1/then/properties/from_ref",
       "terminal_categories": [
-        "composite_identifier"
+        "actor_id"
       ],
       "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
     }

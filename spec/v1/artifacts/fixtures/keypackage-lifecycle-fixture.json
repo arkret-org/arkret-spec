@@ -100,7 +100,7 @@
           "kind": "device",
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
           "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
-          "device_authorize_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+          "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
           "signed_at": "2026-07-31T00:00:00.000Z",
           "signature": {
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
@@ -138,7 +138,7 @@
           "kind": "device",
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
           "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
-          "device_authorize_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+          "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
           "signed_at": "2026-07-31T00:00:00.000Z",
           "signature": {
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
@@ -252,7 +252,7 @@
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "mls_group_id": "fixture-group",
           "mls_epoch": 1,
-          "welcome_ref": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+          "welcome_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
           "welcome_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
           "durable_at": "2026-08-24T00:01:00.000Z",
           "signature": {
@@ -285,7 +285,7 @@
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "mls_group_id": "fixture-group",
           "mls_epoch": 1,
-          "welcome_ref": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+          "welcome_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
           "welcome_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
           "durable_at": "2026-08-24T00:01:00.000Z",
           "signature": {
@@ -683,7 +683,7 @@
       "authority_id": "ak:did_core:webvh:z6mkfixturepsexample",
       "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-      "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+      "device_authorization_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
       "model_generation_ref": 1,
       "unsigned_request": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
@@ -832,7 +832,7 @@
       },
       "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-      "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+      "device_authorization_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
       "model_generation_ref": 1,
       "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
       "welcome_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",

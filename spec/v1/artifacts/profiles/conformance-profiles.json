@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-03.1",
-  "generated_at": "2026-09-03T01:30:00+08:00",
+  "version": "2026-09-04.1",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2765,7 +2765,7 @@
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
         "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ak.invite.accept or an explicitly profiled equivalent path.",
         "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
-        "history_key_recovery_conditional_must": "A Station that accepts or serves an mls_exporter_aead_v1 scope with history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and expose the complete registered self/peer Seal-proof, request, response, relay and RRK archive operation set. Partial legacy realm_key feature claims are forbidden.",
+        "history_key_recovery_conditional_must": "A Station that accepts or serves an mls_exporter_aead_v1 scope with history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and expose the complete registered self/peer Seal-proof, request, response, relay and RHRK archive operation set. Partial legacy realm_key feature claims are forbidden.",
         "account_authority_surface_must": "The Station MUST publish exactly one auth_metadata.account_authority gate_account_base_url and expose all client-visible gate/account operations through that base. Any internal authentication process is deployment-private and MUST NOT publish a service kind, role-local Describe, service registration, federation identity, or peer-discoverable endpoint.",
         "session_grant_issuer_ledger_must": "The Station Account Authority MUST be the sole durable authority for immutable SessionGrant issuance records and active, revoked, or superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, atomically persist issuance before response, provide durable exact replay for issue, refresh, and revoke, and use the same ledger for cascade and introspection.",
         "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval, and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience, and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal, device, notary, or Event proof.",
@@ -4157,7 +4157,7 @@
           "sidecar_context_excluded_from_control_frontier",
           "ownership_lifecycle_authority_frontier"
         ],
-        "unsupported_optional": "fail closed; do not create multiple Sidecars or synthesize Circle/member/Strand/Relation objects for one (realm_id, controller_id)"
+        "unsupported_optional": "fail closed; do not create multiple Sidecars or synthesize Circle/member/Strand/Relation objects for one (realm_id, controller_account_id)"
       }
     },
     "ak.profile.agent_participation_policy.v1": {

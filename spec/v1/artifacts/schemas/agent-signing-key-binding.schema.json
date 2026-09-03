@@ -13,7 +13,7 @@
     "public_key_digest",
     "agent_key_authorize_event_id",
     "issued_at",
-    "controller_id",
+    "controller_principal_id",
     "controller_proof"
   ],
   "properties": {
@@ -53,7 +53,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Present iff the authorization itself declares expires_at. JSON null is forbidden."
     },
-    "controller_id": {
+    "controller_principal_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "controller_proof": {

@@ -11,6 +11,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS = ROOT / "spec" / "v1" / "artifacts" / "schemas"
 OUTPUT = ROOT / "spec" / "v1" / "artifacts" / "reports" / "did-representation-report.json"
+EVENT_KIND_REGISTRY = ROOT / "spec" / "v1" / "artifacts" / "registry" / "event-kind-registry.json"
+ROLE_SUFFIX_REGISTRY = ROOT / "tools" / "identifier-role-suffix-registry.json"
 
 DID_NAMES = {
     "did": "did",
@@ -22,8 +24,9 @@ DID_NAMES = {
     "did_key_did": "did",
     "did_core_id": "did_core_id",
     "did_url": "did_url",
+    "account_id": "account_id",
+    "actor_id": "actor_id",
 }
-
 
 def _escape(value: str) -> str:
     return value.replace("~", "~0").replace("/", "~1")
@@ -66,6 +69,16 @@ def _profiles(value: Any) -> tuple[set[str], set[str]]:
 
 def build_report() -> dict[str, Any]:
     entries: list[dict[str, Any]] = []
+    responsibility_entries: list[dict[str, Any]] = []
+    naming_registry = json.loads(ROLE_SUFFIX_REGISTRY.read_text(encoding="utf-8"))
+    responsibility_contracts = {
+        row["field"]: row
+        for row in naming_registry["responsibility_field_contracts"]
+    }
+    multi_representation_contracts = {
+        row["field"]: row
+        for row in naming_registry["multi_representation_field_contracts"]
+    }
     for path in sorted(SCHEMAS.glob("*.schema.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
 
@@ -95,6 +108,23 @@ def build_report() -> dict[str, Any]:
                                     "terminal_signature": sorted(terminals),
                                 }
                             )
+                        contract = responsibility_contracts.get(name)
+                        if contract is not None:
+                            resolved_carrier = (
+                                next(iter(profiles)) if len(profiles) == 1 else "ambiguous"
+                            )
+                            responsibility_entries.append(
+                                {
+                                    "source": "json_schema",
+                                    "schema_path": f"{path.name}#{property_pointer}",
+                                    "property_name": name,
+                                    "resolved_carrier": resolved_carrier,
+                                    "required_subject_class": contract["subject_class"],
+                                    "contract_carrier": contract["terminal_category"],
+                                    "account_scoped": contract["account_scoped"],
+                                    "required_evidence": contract["required_evidence"],
+                                }
+                            )
                         visit(schema, property_pointer, external)
                 for key, child in value.items():
                     if key != "properties":
@@ -104,12 +134,85 @@ def build_report() -> dict[str, Any]:
                     visit(child, f"{pointer}/{index}", external_literal)
 
         visit(document, "", False)
+
+    event_registry = json.loads(EVENT_KIND_REGISTRY.read_text(encoding="utf-8"))
+
+    def visit_registry(value: Any, pointer: str) -> None:
+        if isinstance(value, dict):
+            members = value.get("members")
+            if isinstance(members, list):
+                for index, member in enumerate(members):
+                    if not isinstance(member, dict):
+                        continue
+                    name = member.get("name")
+                    if not isinstance(name, str):
+                        continue
+                    contract = responsibility_contracts.get(name)
+                    if contract is None:
+                        continue
+                    responsibility_entries.append(
+                        {
+                            "source": "event_kind_registry.value_projection.members",
+                            "schema_path": (
+                                "event-kind-registry.json#"
+                                f"{pointer}/members/{index}/name"
+                            ),
+                            "property_name": name,
+                            "resolved_carrier": member.get("terminal_category", "ambiguous"),
+                            "required_subject_class": contract["subject_class"],
+                            "resolved_subject_class": member.get("subject_class"),
+                            "contract_carrier": contract["terminal_category"],
+                            "account_scoped": contract["account_scoped"],
+                            "required_evidence": contract["required_evidence"],
+                            "projection_source": member.get("field")
+                            or member.get("envelope_field"),
+                        }
+                    )
+            for key, child in value.items():
+                visit_registry(child, f"{pointer}/{_escape(key)}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                visit_registry(child, f"{pointer}/{index}")
+
+    visit_registry(event_registry, "")
     entries.sort(key=lambda row: row["schema_path"])
+    responsibility_entries.sort(key=lambda row: row["schema_path"])
+    multi_representation_entries: list[dict[str, Any]] = []
+    for field, contract in sorted(multi_representation_contracts.items()):
+        occurrences = [
+            row
+            for row in entries
+            if row["property_name"] == field
+            and row["semantic_category"] != "external_system_identifier"
+        ]
+        counts = {
+            profile: sum(
+                occurrence["representation_profile"] == profile
+                for occurrence in occurrences
+            )
+            for profile in contract["representation_profiles"]
+        }
+        multi_representation_entries.append(
+            {
+                "property_name": field,
+                "representation_profiles": sorted(
+                    {
+                        occurrence["representation_profile"]
+                        for occurrence in occurrences
+                    }
+                ),
+                "profile_meanings": contract["profile_meanings"],
+                "occurrences_by_profile": counts,
+                "reason": contract["reason"],
+            }
+        )
     return {
         "source_of_truth": False,
         "generated_by": "tools/generate_did_representation_report.py",
-        "profiles": ["did_core_id", "did", "did_url"],
+        "profiles": ["did_core_id", "did", "did_url", "account_id", "actor_id"],
+        "multi_representation_fields": multi_representation_entries,
         "entries": entries,
+        "responsibility_fields": responsibility_entries,
     }
 
 

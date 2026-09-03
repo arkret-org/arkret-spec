@@ -1328,7 +1328,7 @@
       "root": {
         "realm_id": "ak:realm:AQpyF2T0bDz8a7SNAM5QdzbniqdGx7oJSb-7ohqeJ1Ui",
         "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
-        "controller_id": {
+        "controller_actor_id": {
           "kind": "account",
           "account_id": {
             "principal_id": "ak:did_core:web:alice.example",
@@ -1393,7 +1393,7 @@
         {
           "name": "controller_transfer_preserves_chain",
           "author_supplied_patch": {
-            "controller_id": {
+            "controller_actor_id": {
               "kind": "account",
               "account_id": {
                 "principal_id": "ak:did_core:web:bob.example",
@@ -1405,7 +1405,7 @@
             "controller_epoch"
           ],
           "next_root": {
-            "controller_id": {
+            "controller_actor_id": {
               "kind": "account",
               "account_id": {
                 "principal_id": "ak:did_core:web:bob.example",
@@ -1433,7 +1433,7 @@
             "authority_generation"
           ],
           "next_root": {
-            "controller_id": {
+            "controller_actor_id": {
               "kind": "account",
               "account_id": {
                 "principal_id": "ak:did_core:web:alice.example",
@@ -1474,7 +1474,7 @@
         {
           "name": "transfer_missing_acceptance_rejected",
           "next_root": {
-            "controller_id": {
+            "controller_actor_id": {
               "kind": "account",
               "account_id": {
                 "principal_id": "ak:did_core:web:bob.example",

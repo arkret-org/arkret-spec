@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-03.2",
+  "version": "2026-09-04.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-03T19:36:00+08:00",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5081,7 +5081,7 @@
           "operation_id",
           "idempotency_key",
           "source_realm_id",
-          "controller_id",
+          "controller_account_id",
           "context_ref",
           "reservation_handle",
           "create_event",
@@ -5097,7 +5097,7 @@
               "operation_id",
               "idempotency_key",
               "source_realm_id",
-              "controller_id",
+              "controller_account_id",
               "context_ref"
             ],
             "properties": [
@@ -5105,7 +5105,7 @@
               "operation_id",
               "idempotency_key",
               "source_realm_id",
-              "controller_id",
+              "controller_account_id",
               "context_ref"
             ],
             "closed": true
@@ -9501,7 +9501,7 @@
           "container_event_ref",
           "history_traversal_retention",
           "source_id",
-          "holder_id",
+          "holder_service_id",
           "replicated_at",
           "service_proof"
         ],
@@ -9511,7 +9511,7 @@
           "container_event_ref",
           "history_traversal_retention",
           "source_id",
-          "holder_id",
+          "holder_service_id",
           "replicated_at",
           "service_proof"
         ],
@@ -9522,14 +9522,14 @@
         "schema_kind": "object",
         "required": [
           "archive_replica_digest",
-          "holder_id",
+          "holder_service_id",
           "archive_sequence",
           "accepted_at",
           "service_proof"
         ],
         "properties": [
           "archive_replica_digest",
-          "holder_id",
+          "holder_service_id",
           "archive_sequence",
           "accepted_at",
           "service_proof"

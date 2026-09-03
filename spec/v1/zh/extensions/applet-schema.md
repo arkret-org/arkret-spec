@@ -19,7 +19,7 @@ updated: 2026-07-02
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
   "service_id": "ak:did_core:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
-  "controller_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn",
+  "controller_principal_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn",
   "base_url": "https://applet.example/applet",
   "bot_actor_id": "ak:did_core:webvh:z5AppletBotActorScid",
   "claimed_profiles": [
@@ -107,7 +107,7 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | `package_id` | yes | typed id 或 DID URL；仅用于 package 分发。 |
 | `applet_id` | yes | 唯一合法形态为 `ak:applet:<uuidv7>`；旧的 service DID 代用形态已删除。 |
 | `service_id` | yes | Applet runtime 的稳定 service `did_core_id`。 |
-| `controller_id` | yes | 对 package 负责的 controller `did_core_id`；package proof VM 的 bare `did` 必须经 adapter 投影到该值。 |
+| `controller_principal_id` | yes | 对 package 负责的 controller `did_core_id`；package proof VM 的 bare `did` 必须经 adapter 投影到该值。 |
 | `base_url` | yes | Applet API base URL。 |
 | `bot_actor_id` | yes | 可见 bot actor 的稳定 `did_core_id`；不得含 `#fragment`。 |
 | `claimed_profiles` | yes | v1 Applet profile id 数组；MUST 至少包含 `ak.profile.applet_service.v1`。 |
@@ -136,7 +136,7 @@ Package -> registration 派生映射:
 | --- | --- | --- |
 | `applet_id` | `applet_id` | 原样复制；只接受 `ak:applet:<uuidv7>`。 |
 | `service_id` | `service_id` | 原样复制；必须可解析并绑定 Applet endpoint。 |
-| `controller_id` | `controller_id` | 原样复制；必须验证 controller proof。 |
+| `controller_principal_id` | `controller_principal_id` | 原样复制；必须验证 controller proof。 |
 | `base_url` | `base_url` | 原样复制；必须与 service DID Document binding 一致。 |
 | `bot_actor_id` | `bot_actor_id` | 原样复制；不得含 `#fragment`。 |
 | `protocols` | `protocols` | 原样复制；空数组非法。 |

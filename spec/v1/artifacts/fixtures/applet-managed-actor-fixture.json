@@ -70,7 +70,7 @@
     },
     {
       "name": "actor_reuses_service_or_controller",
-      "mutation": "actor_id == service_id || actor_id == controller_id",
+      "mutation": "actor_id == service_id || actor_id == controller_principal_id",
       "expect": "applet_managed_actor_provision_invalid"
     },
     {

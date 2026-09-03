@@ -380,7 +380,6 @@
       "required": [
         "approval_id",
         "agent_id",
-        "controller_id",
         "proposed_action",
         "target",
         "approved_payload_digest",
@@ -422,9 +421,6 @@
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
         "proposed_action": {
           "$ref": "#/$defs/non_empty_string"
         },
@@ -455,7 +451,6 @@
       "required": [
         "rejection_id",
         "agent_id",
-        "controller_id",
         "rejected_at"
       ],
       "properties": {
@@ -492,9 +487,6 @@
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
         "reason": {
           "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         },
@@ -510,7 +502,7 @@
       "required": [
         "request_id",
         "agent_id",
-        "controller_id",
+        "controller_account_id",
         "proposed_action",
         "target",
         "request_canonical_digest",
@@ -541,8 +533,8 @@
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "proposed_action": {
           "$ref": "#/$defs/non_empty_string"
@@ -627,7 +619,7 @@
     },
     "agent_deactivate_payload": {
       "type": "object",
-      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. The lifecycle cell is addressed only by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent_id or controller_id mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. At the accepted Seal covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
+      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. The lifecycle cell is addressed only by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. At the accepted Seal covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
       "required": [
         "transition",
         "previous_status",
@@ -660,7 +652,7 @@
       "required": [
         "draft_id",
         "agent_id",
-        "controller_id",
+        "controller_account_id",
         "proposed_action",
         "target",
         "content_digest",
@@ -681,8 +673,8 @@
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "proposed_action": {
           "$ref": "#/$defs/non_empty_string"
@@ -807,7 +799,7 @@
         },
         "signing_key_binding_digest": {
           "$ref": "#/$defs/digest",
-          "description": "sha256 over the canonical agent-signing binding core containing schema, agent_id, agent_key_id, verification_method, public_key, public_key_digest, issued_at, optional expires_at, and controller_id, but excluding agent_key_authorize_event_id and controller_proof. The complete accepted Event ID and controller proof are appended only when materializing the public ak.schema.agent_signing_key_binding.v1 object. Including this Event's not-yet-derived identity would create an impossible digest fixed point. A service MUST recompute the core digest before appending the verified accepted Event identity and MUST NOT substitute another disclosure."
+          "description": "sha256 over the canonical agent-signing binding core containing schema, agent_id, agent_key_id, verification_method, public_key, public_key_digest, issued_at, optional expires_at, and controller_principal_id, but excluding agent_key_authorize_event_id and controller_proof. The complete accepted Event ID and controller proof are appended only when materializing the public ak.schema.agent_signing_key_binding.v1 object. Including this Event's not-yet-derived identity would create an impossible digest fixed point. A service MUST recompute the core digest before appending the verified accepted Event identity and MUST NOT substitute another disclosure."
         },
         "accountable_principal_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1146,7 +1138,7 @@
     },
     "agent_pause_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.pause. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent_id or controller_id mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the Control Move envelope seal_basis; the reducer accepts the transition only under the accepted current control frontier.",
+      "description": "Payload for ak.self.agent.pause. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the Control Move envelope seal_basis; the reducer accepts the transition only under the accepted current control frontier.",
       "required": [
         "transition",
         "previous_status",
@@ -1170,7 +1162,7 @@
     },
     "agent_resume_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.resume. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent_id or controller_id mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
+      "description": "Payload for ak.self.agent.resume. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
       "required": [
         "transition",
         "previous_status",
@@ -1290,7 +1282,7 @@
       "required": [
         "applet_id",
         "service_id",
-        "controller_id",
+        "controller_principal_id",
         "base_url",
         "bot_actor_id",
         "claimed_profiles",
@@ -1315,9 +1307,13 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "DID of the service hosting the applet runtime."
         },
-        "controller_id": {
+        "controller_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "DID of the Applet controller / external system; signs the registration."
+          "x-arkret-principal-kinds": [
+            "human",
+            "organization"
+          ],
+          "description": "Accountable human or organization publisher principal that signs the registration; the runtime service_id is not an eligible controller."
         },
         "base_url": {
           "type": "string",
@@ -4599,7 +4595,7 @@
     "identity_disclosure_policy_document": {
       "type": "object",
       "required": [
-        "holder_id",
+        "holder_principal_id",
         "audience",
         "allowed_claims",
         "denied_fields",
@@ -4607,7 +4603,7 @@
         "expires_at"
       ],
       "properties": {
-        "holder_id": {
+        "holder_principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "audience": {
@@ -4789,13 +4785,13 @@
     },
     "identity_disclosure_receipt_state_payload": {
       "type": "object",
-      "description": "Closed holder-private disclosure-receipt log payload. holder_id is the stable log subject and value carries the sole v1 receipt document family.",
+      "description": "Closed holder-private disclosure-receipt log payload. holder_principal_id is the stable principal log subject and value carries the sole v1 receipt document family.",
       "required": [
-        "holder_id",
+        "holder_principal_id",
         "value"
       ],
       "properties": {
-        "holder_id": {
+        "holder_principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "value": {
@@ -6610,8 +6606,8 @@
       "type": "object",
       "required": [
         "recovery_key_id",
-        "controller_id",
-        "holder_id",
+        "method_controller_principal_id",
+        "holder_service_id",
         "key_agreement_ref",
         "holder_signing_ref",
         "hpke_suite",
@@ -6621,13 +6617,13 @@
         "recovery_key_id": {
           "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
         },
-        "controller_id": {
+        "method_controller_principal_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Controller projection of the registered holder signing method; distinct from the holder service authority route in holder_id."
+          "description": "Controller projection of the registered holder signing method; distinct from the holder service authority route in holder_service_id."
         },
-        "holder_id": {
+        "holder_service_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Registered history-key holder service authority/route, distinct from controller_id."
+          "description": "Registered history-key holder service authority/route, distinct from method_controller_principal_id."
         },
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -6645,7 +6641,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "One logical Realm-authority organization recovery public-key tuple. hpke_suite is fixed to the v1 X25519/ChaCha20-Poly1305 profile. Resolving key_agreement_ref at admission must yield a current exact method whose raw key bytes equal frozen_public_key_b64u and whose controller projects to controller_id. Resolving holder_signing_ref must yield a current signing method with the same controller. Custody topology and threshold policy are not wire fields."
+      "description": "One logical Realm-authority organization recovery public-key tuple. hpke_suite is fixed to the v1 X25519/ChaCha20-Poly1305 profile. Resolving key_agreement_ref at admission must yield a current exact method whose raw key bytes equal frozen_public_key_b64u and whose controller projects to method_controller_principal_id. Resolving holder_signing_ref must yield a current signing method with the same controller. Custody topology and threshold policy are not wire fields."
     },
     "organization_recovery_holder_acceptance": {
       "type": "object",
@@ -6668,7 +6664,7 @@
         "holder_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
           "x-arkret-proof-context": "ak.organization_recovery_key_holder_acceptance_proof.v1",
-          "description": "Holder proof over RFC 8785 JCS of {realm_id,new_key_tuple,holder_trusted_basis}. proof.verification_method MUST equal new_key_tuple.holder_signing_ref byte-for-byte, resolve current, and its controller MUST project to new_key_tuple.controller_id. The proof key is that exact method key. The proof is excluded from its own transcript."
+          "description": "Holder proof over RFC 8785 JCS of {realm_id,new_key_tuple,holder_trusted_basis}. proof.verification_method MUST equal new_key_tuple.holder_signing_ref byte-for-byte, resolve current, and its controller MUST project to new_key_tuple.method_controller_principal_id. The proof key is that exact method key. The proof is excluded from its own transcript."
         }
       },
       "additionalProperties": false
@@ -6739,8 +6735,8 @@
         "epoch",
         "transition_digest",
         "recovery_key_id",
-        "controller_id",
-        "holder_id",
+        "method_controller_principal_id",
+        "holder_service_id",
         "key_agreement_ref",
         "holder_signing_ref",
         "hpke_suite",
@@ -6769,13 +6765,13 @@
         "recovery_key_id": {
           "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
         },
-        "controller_id": {
+        "method_controller_principal_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Controller projection of the holder signing authority retained in this archive; distinct from the holder service authority route in holder_id."
+          "description": "Controller projection of the holder signing authority retained in this archive; distinct from the holder service authority route in holder_service_id."
         },
-        "holder_id": {
+        "holder_service_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "History-key holder service authority/route, distinct from controller_id."
+          "description": "History-key holder service authority/route, distinct from method_controller_principal_id."
         },
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -6810,7 +6806,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Exactly one RRK archive for this exporter transition. transition_digest is the mls_transition_digest: the digest derived from exact decoded Commit bytes for Commit and the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. accepted_key_evidence_ref identifies the exact register/rotate Event; its reducer-effective tuple is proved by direct Seal replay from holder_trusted_basis to the archive target, never by a singular activation Seal field. HPKE info/AAD binds every public field above except enc/ciphertext and never the containing EventId."
+      "description": "Exactly one RHRK archive for this exporter transition. transition_digest is the mls_transition_digest: the digest derived from exact decoded Commit bytes for Commit and the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. accepted_key_evidence_ref identifies the exact register/rotate Event; its reducer-effective tuple is proved by direct Seal replay from holder_trusted_basis to the archive target, never by a singular activation Seal field. HPKE info/AAD binds every public field above except enc/ciphertext and never the containing EventId."
     },
     "mls_governance_binding": {
       "type": "object",
@@ -9756,7 +9752,7 @@
     },
     "realm_owner_transfer_payload": {
       "type": "object",
-      "description": "ak.realm.owner.transfer — rotate the controller binding of the Realm authority-root cell. It changes controller_id and increments controller_epoch only: authority_generation, the cell ref and every existing grant are untouched, so the whole authority tree issued by the previous controller stays valid. This is not a reparent — the root never moves.",
+      "description": "ak.realm.owner.transfer — rotate the controller binding of the Realm authority-root cell. It changes controller_actor_id and increments controller_epoch only: authority_generation, the cell ref and every existing grant are untouched, so the whole authority tree issued by the previous controller stays valid. This is not a reparent — the root never moves.",
       "required": [
         "realm_id",
         "expected_state_digest",
@@ -9775,10 +9771,10 @@
         "patch": {
           "type": "object",
           "required": [
-            "controller_id"
+        "controller_actor_id"
           ],
           "properties": {
-            "controller_id": {
+        "controller_actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id",
               "description": "Exact ActorId of the successor that becomes the root controller. Its control proof MUST bind this complete identity; a bare principal DID or parallel Station sidecar is insufficient."
             }
@@ -10506,7 +10502,7 @@
     },
     "sidecar_create_payload": {
       "type": "object",
-      "description": "Minimal native Sidecar genesis intent. sidecar_id is derived from the Event id; realm_id, controller_id, state and timestamps are reducer-derived from the accepted envelope and MUST NOT appear here.",
+      "description": "Minimal native Sidecar genesis intent. sidecar_id is derived from the Event id; realm_id, controller_account_id, state and timestamps are reducer-derived from the accepted envelope and MUST NOT appear here.",
       "required": [
         "encryption_profile"
       ],

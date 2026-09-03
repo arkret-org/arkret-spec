@@ -841,7 +841,6 @@
       "required": [
         "component",
         "agent_id",
-        "controller_id",
         "provenance",
         "accepted_status_event",
         "seal_id",
@@ -859,9 +858,6 @@
           "const": "ak.component.agent.status.v1"
         },
         "agent_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "controller_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "provenance": {

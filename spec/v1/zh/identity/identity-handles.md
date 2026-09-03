@@ -985,7 +985,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
   "payload": {
     "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
     "value": {
-      "holder_id": "ak:did_core:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5",
+      "holder_principal_id": "ak:did_core:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5",
       "audience": {
         "represented_organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
         "verifier_ids": ["ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n"],
@@ -1023,10 +1023,11 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 
 `payload` MUST 严格匹配
 [`identity_disclosure_policy_state_payload`](../../artifacts/schemas/event-payload.schema.json)：`policy_id` 与
-`value` 都是必填，`value` 是 v1 唯一的 closed disclosure-policy document family。`holder_id` 只位于
+`value` 都是必填，`value` 是 v1 唯一的 closed disclosure-policy document family。`holder_principal_id` 只位于
 `value`，不得平铺；`state` / `reason` 与未知 family selector 都不是该 Event 的 wire 字段。
 
 Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm。
+接收方 MUST 以 accepted DID/profile 或 credential proof 验证 `holder_principal_id` 是该 credential、main 或 pairwise holder principal，并要求外层 Event `actor_id` 是 account 分支且其 `account_id` 是本条 holder-private state 的 exact storage owner。`holder_principal_id` 不得用作 account-data partition key，也不得替代完整 AccountId；同 principal、异 Station 的外层 actor 仍是不同 storage owner。
 
 #### 16.2.3 Presentation Response
 
@@ -1066,7 +1067,7 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 {
   "kind": "ak.identity.disclosure_receipt",
   "payload": {
-    "holder_id": "ak:did_core:key:z6Mkgpairwise",
+    "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
     "value": {
       "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
       "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
@@ -1091,13 +1092,14 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 
 `payload` MUST 严格匹配
 [`identity_disclosure_receipt_state_payload`](../../artifacts/schemas/event-payload.schema.json)：
-`holder_id` 与 `value` 都是必填，receipt body 只位于 closed `value`；v1 没有 `receipt_kind` 分派、
+`holder_principal_id` 与 `value` 都是必填，receipt body 只位于 closed `value`；v1 没有 `receipt_kind` 分派、
 `state` / `reason` 或平铺 receipt 字段。
 
 Receipt 是 holder 私域 audit record。Receipt MUST NOT 包含未披露字段的具体值。
+接收方 MUST 对 Receipt 执行与 Policy 相同的 holder-principal proof 与外层 Event account-owner 交叉绑定；principal proof、outer account actor 或 request binding 任一不匹配时均 fail closed，不能仅凭字段名或本地账户上下文接受。
 
 四类对象的字段 ownership 是单向的：credential schema 定义 claim 语义；Disclosure Policy 只拥有稳定的
-`holder_id`、audience selector、allowed claims / fields、denied fields、consent 与 policy expiry；Presentation
+`holder_principal_id`、audience selector、allowed claims / fields、denied fields、consent 与 policy expiry；Presentation
 Request 独占本次 `verifier_id`、`represented_organization_id`、`domain`、`challenge`、claim set 与 request expiry；Response
 和 Receipt 都只用 `(request_id, request_digest)` 绑定 exact Request，不复制这些 request-owned 字段。Policy 匹配要求
 `request.verifier_id` 属于 `policy.audience.verifier_ids` 且

@@ -8,7 +8,7 @@
     "realm_id",
     "event_id",
     "bytes_digest",
-    "holder_id",
+    "holder_service_id",
     "retention_expires_at",
     "holder_signer_evidence_ref",
     "signature"
@@ -24,7 +24,7 @@
       "$ref": "#/$defs/digest",
       "description": "Realm-suite digest of UTF8('ak.availability_event_bytes.v1') || 0x00 || JCS(the complete accepted EventEnvelope with only unsigned removed). event_id, actor_kind and all accepted producer/station proofs remain in the preimage."
     },
-    "holder_id": {
+    "holder_service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "retention_expires_at": {
@@ -40,7 +40,7 @@
     }
   },
   "additionalProperties": false,
-  "$comment": "The signature-free core is {realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref}. signature.payload_digest is the Realm-suite digest of RFC 8785 JCS(core). The full receipt content address is computed from this complete signed object and is carried only by selectors, Seal commitments and storage keys.",
+  "$comment": "The signature-free core is {realm_id,event_id,bytes_digest,holder_service_id,retention_expires_at,holder_signer_evidence_ref}. signature.payload_digest is the Realm-suite digest of RFC 8785 JCS(core). The full receipt content address is computed from this complete signed object and is carried only by selectors, Seal commitments and storage keys.",
   "$defs": {
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"

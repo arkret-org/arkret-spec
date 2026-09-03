@@ -26,6 +26,7 @@ from .core import (
     SPEC_ROOT,
     VALUE_PROJECTION_DIGEST_INPUTS,
     VALUE_PROJECTION_DERIVATIONS,
+    VALUE_PROJECTION_IDENTITY_SUBJECTS,
     json,
     load_json,
     load_yaml,
@@ -584,7 +585,34 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
                 unknown = set(digest) - {"field", "input"}
                 if unknown:
                     lint.fail(path, f"{member_ref}.digest_of has unknown member(s) {sorted(unknown)}")
-        unknown_keys = set(member) - {"name", "optional", source}
+        identity_metadata_keys = {"terminal_category", "subject_class"}
+        present_identity_metadata = identity_metadata_keys & set(member)
+        if present_identity_metadata and present_identity_metadata != identity_metadata_keys:
+            lint.fail(
+                path,
+                f"{member_ref}.terminal_category and .subject_class must be declared together",
+            )
+        elif present_identity_metadata:
+            terminal_category = member["terminal_category"]
+            subject_class = member["subject_class"]
+            if (
+                not isinstance(terminal_category, str)
+                or terminal_category not in VALUE_PROJECTION_IDENTITY_SUBJECTS
+            ):
+                lint.fail(
+                    path,
+                    f"{member_ref}.terminal_category must be one of "
+                    f"{sorted(VALUE_PROJECTION_IDENTITY_SUBJECTS)}",
+                )
+            else:
+                allowed_subjects = VALUE_PROJECTION_IDENTITY_SUBJECTS[terminal_category]
+                if not isinstance(subject_class, str) or subject_class not in allowed_subjects:
+                    lint.fail(
+                        path,
+                        f"{member_ref}.subject_class must be one of {sorted(allowed_subjects)} "
+                        f"for terminal_category={terminal_category!r}",
+                    )
+        unknown_keys = set(member) - {"name", "optional", source} - identity_metadata_keys
         if unknown_keys:
             lint.fail(path, f"{member_ref} has unknown member(s) {sorted(unknown_keys)}")
         if "optional" in member and not isinstance(member["optional"], bool):

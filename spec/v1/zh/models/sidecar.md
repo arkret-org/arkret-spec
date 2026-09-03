@@ -13,7 +13,7 @@ updated: 2026-08-07
 
 ## 1. 对象边界
 
-Agent Sidecar（`ak:sidecar:`）是绑定到一个 `(realm_id, controller_id)` 的个人 AI 私有工作区。
+Agent Sidecar（`ak:sidecar:`）是绑定到一个 `(realm_id, controller_account_id)` 的个人 AI 私有工作区。
 它是一等协议对象和原生安全 scope，不是 Circle、Circle profile、Direct Conversation、Strand Track，
 也不是某个 Agent 的 1:1 会话。
 
@@ -38,7 +38,7 @@ Sidecar 与 Circle 功能正交：
 协议中不存在 Sidecar backing Circle。实现 MUST NOT 为 Sidecar 创建、隐藏、保留或模拟 Circle 对象、
 Circle membership、Circle role/admin、Circle join rule、Circle invite 或 `SC-` 保留名称。
 
-每个 `(realm_id, controller_id)` MUST 至多存在一个 non-tombstoned Sidecar。
+每个 `(realm_id, controller_account_id)` MUST 至多存在一个 non-tombstoned Sidecar。
 
 ## 2. Sidecar 对象与身份
 
@@ -49,7 +49,7 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 | `id` | yes | `id:sidecar` | Event-derived 44 字符 token；`retype(create_event.event_id,"sidecar")` |
 | `schema` | yes | const | `ak.schema.agent_sidecar.v1` |
 | `realm_id` | yes | `id:realm` | 从 create Event scope 派生，create-locked |
-| `controller_id` | yes | `did_core_id` | 等于 create Event `actor_id`，create-locked |
+| `controller_account_id` | yes | `did_core_id` | 等于 create Event `actor_id`，create-locked |
 | `state` | yes | enum | `active | suspended | tombstoned`，reducer-derived |
 | `state_changed_at` | conditional | timestamp | 非 active 时必填 |
 | `created_at` | yes | timestamp | 等于 accepted create Event `created_at` |
@@ -71,7 +71,7 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 ```text
 sidecar_id = retype_event_token(event.event_id, "sidecar")
 realm_id = event.scope_ref.realm_id
-controller_id = event.actor_id
+controller_account_id = event.actor_id.account_id
 created_at = event.created_at
 ```
 
@@ -84,11 +84,11 @@ create Event 使用 parent Realm scope，因为 Sidecar 尚未存在：
 }
 ```
 
-payload MUST NOT 携带 `sidecar_id`、完整 Sidecar object、`controller_id`、成员、Circle ID、Strand ID、
+payload MUST NOT 携带 `sidecar_id`、完整 Sidecar object、`controller_account_id`、成员、Circle ID、Strand ID、
 Relation ID、state 或 timestamp。Receiver MUST 重算 Sidecar ID；payload 携带这些字段必须在 schema 层拒绝。
 
 `ak.component.sidecar.create.v1` 以派生 `sidecar_id` 为 subject，保存已接受 genesis intent。
-Reducer 另以 `(realm_id, controller_id)` 执行原子 singleton reservation；相同 key 的 exact replay 幂等，
+Reducer 另以 `(realm_id, controller_account_id)` 执行原子 singleton reservation；相同 key 的 exact replay 幂等，
 不同 create Event 必须 fail closed，不得 LWW、merge 或创建第二个 Sidecar。
 
 ### 3.2 后续 Event scope
@@ -139,14 +139,14 @@ Sidecar 没有独立的 membership 管理面。其 MLS 目标参与者是 accept
 
 ```text
 desired_agent_ids(S, F) =
-  active_authorized_owned_agents(S.controller_id, F)
+  active_authorized_owned_agents(S.controller_account_id, F)
   ∩ active_realm_member_ids(S.realm_id, F)
 ```
 
 其中 `F` 是读取或 admission 使用的 accepted control frontier。`active_authorized_owned_agents` 来自 canonical
 Agent ownership/provisioning、lifecycle 与 Agent runtime-key authorization truth；它不包含 target action grant、
 participation selection 或 MLS readiness。`active_realm_member_ids` 来自 `S.realm_id` 自己的 Realm membership
-truth。完整 MLS 目标 roster 是 `S.controller_id` 加上这个 Agent 集合；无需再维护第二个 participant 字段或
+truth。完整 MLS 目标 roster 是 `S.controller_account_id` 加上这个 Agent 集合；无需再维护第二个 participant 字段或
 派生函数。controller 自身也必须是该 Realm 的 active member，否则 Sidecar 进入 suspended/readiness blocked，
 不得继续分发新 epoch 内容。caller、controller、Realm admin、Agent 或 service 均不得在 Sidecar 内设置、
 替换、追加、邀请、移除或转让 participant。
@@ -166,7 +166,7 @@ kind 按 unknown Event kind 处理。
 exact `S.realm_id` 的 active member 时，它才进入该 Sidecar 的 desired 集合并产生该 Sidecar 自己的 MLS
 reconciliation obligation；不会影响 controller 在其它 Realm 的 Sidecar。
 
-每个 Sidecar `S` 的 desired/effective 集合必须以 exact `(S.realm_id, S.controller_id, S.id)` 独立求值。
+每个 Sidecar `S` 的 desired/effective 集合必须以 exact `(S.realm_id, S.controller_account_id, S.id)` 独立求值。
 来自其它 Realm 或其它 Sidecar 的 membership、Welcome、KeyPackage consume 或 MLS readiness **MUST NOT**
 满足本 Sidecar 的任何条件。因而，对 `S1=(R1,C)` 完成 Agent membership 与 MLS reconciliation 不得改变
 `S2=(R2,C)` 的 `desired_agent_ids`、`effective_agent_ids` 或 MLS membership，其中 `R1 != R2`。
@@ -196,7 +196,7 @@ epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidec
   "domain": "ak.sidecar.participant_authority.v1",
   "sidecar_id": "ak:sidecar:...",
   "realm_id": "ak:realm:...",
-  "controller_id": "ak:did_core:webvh:zExampleControllerScid",
+  "controller_account_id": "ak:did_core:webvh:zExampleControllerScid",
   "desired_agent_ids": ["ak:did_core:webvh:zExampleDesiredAgentScid"]
 }
 ```
@@ -229,8 +229,8 @@ Sidecar archive/restore/member Event：
 
 **没有 actor-authored erase，也没有重建（normative）**：Sidecar state 是 accepted frontier 的纯函数，
 v1 **没有**注册任何 Sidecar erase / tombstone Event 或 operation；tombstone 只由上表右列的上游 terminal
-派生。§1 的「每个 `(realm_id, controller_id)` 至多一个 non-tombstoned Sidecar」因此是**永久 reservation**：
-一旦某个 `(realm_id, controller_id)` 的 Sidecar 进入 `tombstoned`，同一 key **MUST NOT** 再有新的
+派生。§1 的「每个 `(realm_id, controller_account_id)` 至多一个 non-tombstoned Sidecar」因此是**永久 reservation**：
+一旦某个 `(realm_id, controller_account_id)` 的 Sidecar 进入 `tombstoned`，同一 key **MUST NOT** 再有新的
 `ak.sidecar.create` 被接受（§3.1 的 singleton reservation 按 key 而不是按 live 状态判定）。理由是
 tombstone 的两个触发条件本身都是上游终态：controller principal 或 parent Realm 已不可逆终止，重建
 Sidecar 没有可用的 controller authority。

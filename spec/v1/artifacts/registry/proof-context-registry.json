@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.7",
+  "version": "2026-09-04.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T21:30:00+08:00",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -124,7 +124,7 @@
       "object_family": "agent_requested_scope_disclosure",
       "binding_fields": [
         "payload_digest",
-        "controller_id",
+        "controller_principal_id",
         "agent_id",
         "verification_method",
         "created_at",
@@ -229,7 +229,7 @@
       "binding_fields": [
         "payload_digest",
         "applet_id",
-        "controller_id",
+        "controller_principal_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -1378,7 +1378,7 @@
         "container_event_ref",
         "history_traversal_retention",
         "source_id",
-        "holder_id",
+        "holder_service_id",
         "replicated_at",
         "verification_method",
         "created_at"
@@ -1392,7 +1392,7 @@
       "binding_fields": [
         "payload_digest",
         "archive_replica_digest",
-        "holder_id",
+        "holder_service_id",
         "archive_sequence",
         "accepted_at",
         "verification_method",
@@ -1434,7 +1434,7 @@
         "realm_id",
         "event_id",
         "bytes_digest",
-        "holder_id",
+        "holder_service_id",
         "retention_expires_at",
         "holder_signer_evidence_ref",
         "verification_method",

@@ -83,7 +83,7 @@ def availability_receipt(
         "realm_id": realm_id,
         "event_id": event["event_id"],
         "bytes_digest": bytes_digest,
-        "holder_id": "ak:did_core:webvh:z6mkholder",
+        "holder_service_id": "ak:did_core:webvh:z6mkholder",
         "retention_expires_at": expires_at,
         "holder_signer_evidence_ref": "ak:signer_evidence:sha256:" + "2" * 64,
     }

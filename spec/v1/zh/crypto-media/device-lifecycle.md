@@ -1357,7 +1357,7 @@ Request、source response、service receipt 与 service response record 分别�
 context，全部复用标准 generic detached-JWS proof shape。Source proof 签入 actor/sender domain/scope/request/receipt/
 response stream/expiry 与 content；不签服务生成的 sent_at 或 release attestation。Service record
 proof 覆盖 sequence、cursor、source-record digest、exact response、sent_at 与条件式 release attestation。Ordinary human/Agent/minimal source sender domain
-按 exact historical active Leaf BasicCredential identity 校验；RRK holder 使用 archive 钉住的 holder signing binding，
+按 exact historical active Leaf BasicCredential identity 校验；RHRK holder 使用 archive 钉住的 holder signing binding，
 不得冒充 MLS leaf。
 
 每个 chunk 首次入队是 release 线性化点：服务在同一事务复核 request 当前 membership、source、scope/Circle parent、

@@ -265,7 +265,7 @@ def build_dependency_kat(schemas: SchemaSet, signer: dict[str, Any]) -> dict[str
         "realm_id": REALM,
         "event_id": accepted_event["event_id"],
         "bytes_digest": bytes_digest,
-        "holder_id": SERVICE_CORE,
+        "holder_service_id": SERVICE_CORE,
         "retention_expires_at": EXPIRES,
         "holder_signer_evidence_ref": signer["evidence_ref"],
     }
@@ -534,7 +534,7 @@ def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
     schemas.validator("history-key.schema.json", "history_governance_traversal_intent").validate(intent)
     schemas.validator("history-key.schema.json", "history_governance_traversal_retention").validate(retention)
 
-    rrk_intent = {
+    rhrk_intent = {
         "kind": "ak.history_governance.traversal_intent",
         "profile": "organization_recovery_archive",
         "effective_scope": {"kind": "realm", "realm_id": REALM},
@@ -546,8 +546,8 @@ def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
         "archive_authorization_tuple": {
             "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000001",
             "key_agreement_ref": SERVICE_DID + "#x25519-1",
-            "controller_id": SERVICE_CORE,
-            "holder_id": SERVICE_CORE,
+            "method_controller_principal_id": SERVICE_CORE,
+            "holder_service_id": SERVICE_CORE,
             "holder_signing_ref": SERVICE_METHOD,
             "accepted_key_evidence_ref": event_id("accepted-key-evidence"),
             "holder_trusted_basis": case["trusted_history_base_basis"],
@@ -555,14 +555,14 @@ def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
         "container_event_ref": event_id("archive-container"),
         "retention": {"kind": "archive_lifetime"},
     }
-    schemas.validator("history-key.schema.json", "history_governance_traversal_intent").validate(rrk_intent)
-    invalid_rrk = copy.deepcopy(rrk_intent)
-    invalid_rrk["requested_ranges"].append({"from_epoch": 2, "to_epoch": 2})
-    rrk_error_count = len(
-        list(schemas.validator("history-key.schema.json", "history_governance_traversal_intent").iter_errors(invalid_rrk))
+    schemas.validator("history-key.schema.json", "history_governance_traversal_intent").validate(rhrk_intent)
+    invalid_rhrk = copy.deepcopy(rhrk_intent)
+    invalid_rhrk["requested_ranges"].append({"from_epoch": 2, "to_epoch": 2})
+    rhrk_error_count = len(
+        list(schemas.validator("history-key.schema.json", "history_governance_traversal_intent").iter_errors(invalid_rhrk))
     )
-    if rrk_error_count == 0:
-        raise AssertionError("RRK multi-range negative unexpectedly schema-valid")
+    if rhrk_error_count == 0:
+        raise AssertionError("RHRK multi-range negative unexpectedly schema-valid")
     request_base = {
         "request_id": "ak:history_request:019c0000-0000-7000-8000-000000000001",
         "kind": "ak.history_key.request",
@@ -644,10 +644,10 @@ def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
             "expected_join_epoch": 1,
             "forbidden_derivations": ["joined_at", "received_at", "latest_epoch", "current_session_device"],
         },
-        "organization_recovery_intent": rrk_intent,
-        "rrk_non_singleton_negative": {
+        "organization_recovery_intent": rhrk_intent,
+        "rhrk_non_singleton_negative": {
             "expected": "schema_violation",
-            "actual_error_count": rrk_error_count,
+            "actual_error_count": rhrk_error_count,
         },
     }
 
@@ -925,14 +925,14 @@ def base58btc(value: bytes) -> str:
     return "1" * leading_zeroes + (encoded or "1")
 
 
-def build_rrk_registration_rotation_kat(
+def build_rhrk_registration_rotation_kat(
     schemas: SchemaSet, durability: dict[str, Any]
 ) -> dict[str, Any]:
     archive = durability["archive"]
     register_tuple = {
         key: archive[key]
         for key in (
-            "recovery_key_id", "controller_id", "holder_id",
+            "recovery_key_id", "method_controller_principal_id", "holder_service_id",
             "key_agreement_ref", "holder_signing_ref", "hpke_suite",
             "frozen_public_key_b64u",
         )
@@ -960,7 +960,7 @@ def build_rrk_registration_rotation_kat(
     rotate_tuple = {
         **register_tuple,
         "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000122",
-        "key_agreement_ref": "did:web:rrk-holder.example#x25519-2",
+        "key_agreement_ref": "did:web:rhrk-holder.example#x25519-2",
         "frozen_public_key_b64u": b64u(b"\x06" * 32),
     }
     def event_from_template(kind: str, payload: dict[str, Any], label: str, actor_seq: int) -> dict[str, Any]:
@@ -971,8 +971,8 @@ def build_rrk_registration_rotation_kat(
             "actor_id": {
                 "kind": "account",
                 "account_id": {
-                    "principal_id": register_tuple["controller_id"],
-                    "station_id": register_tuple["holder_id"],
+                    "principal_id": register_tuple["method_controller_principal_id"],
+                    "station_id": register_tuple["holder_service_id"],
                 },
             },
             "actor_seq": actor_seq,
@@ -984,10 +984,10 @@ def build_rrk_registration_rotation_kat(
         return event
 
     register_event = event_from_template(
-        "ak.realm.organization_recovery_key.register", register_payload, "rrk-register", 8
+        "ak.realm.organization_recovery_key.register", register_payload, "rhrk-register", 8
     )
     register_event_digest = register_event["proofs"][0]["event_digest"]
-    accepted_key_evidence_seal_ref = seal_ref("rrk-register-accepted-key-evidence")
+    accepted_key_evidence_seal_ref = seal_ref("rhrk-register-accepted-key-evidence")
     accepted_key_evidence_seal = {
         "seal_id": accepted_key_evidence_seal_ref,
         "body": {
@@ -1025,7 +1025,7 @@ def build_rrk_registration_rotation_kat(
         "holder_acceptance": holder_acceptance(rotate_tuple, rotate_trusted_basis),
     }
     rotate_event = event_from_template(
-        "ak.realm.organization_recovery_key.rotate", rotate_payload, "rrk-rotate", 9
+        "ak.realm.organization_recovery_key.rotate", rotate_payload, "rhrk-rotate", 9
     )
     rotate_event["preconditions"] = [{
         "cell_id": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
@@ -1042,11 +1042,11 @@ def build_rrk_registration_rotation_kat(
     def did_document(key_tuple: dict[str, Any]) -> dict[str, Any]:
         raw = base64.urlsafe_b64decode(key_tuple["frozen_public_key_b64u"] + "=")
         return {
-            "id": key_tuple["controller_id"],
+            "id": key_tuple["method_controller_principal_id"],
             "verificationMethod": [{
                 "id": key_tuple["key_agreement_ref"],
                 "type": "Multikey",
-                "controller": key_tuple["controller_id"],
+                "controller": key_tuple["method_controller_principal_id"],
                 "publicKeyMultibase": "z" + base58btc(b"\xec\x01" + raw),
             }],
             "keyAgreement": [key_tuple["key_agreement_ref"]],
@@ -1107,12 +1107,12 @@ def build_rrk_registration_rotation_kat(
     }
 
 
-def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
-    source_core = "ak:did_core:web:rrk-source.example"
-    source_method = "did:web:rrk-source.example#ed25519-1"
-    holder_core = "ak:did_core:web:rrk-holder.example"
-    holder_method = "did:web:rrk-holder.example#ed25519-1"
-    holder_key_agreement = "did:web:rrk-holder.example#x25519-1"
+def build_rhrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
+    source_core = "ak:did_core:web:rhrk-source.example"
+    source_method = "did:web:rhrk-source.example#ed25519-1"
+    holder_core = "ak:did_core:web:rhrk-holder.example"
+    holder_method = "did:web:rhrk-holder.example#ed25519-1"
+    holder_key_agreement = "did:web:rhrk-holder.example#x25519-1"
     replicated_at = "2026-08-23T00:00:00.000Z"
     accepted_at = "2026-08-23T00:00:01.000Z"
     proof_created_at = "2026-08-23T00:00:02.000Z"
@@ -1139,9 +1139,9 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
     )
 
     effective_scope = {"kind": "realm", "realm_id": REALM}
-    holder_trusted_basis = basis(seal_ref("rrk-holder-trusted-basis"))
-    accepted_key_evidence_ref = event_id("rrk-accepted-key-evidence")
-    transition_bytes = b"arkret rrk archive fixture commit epoch 7"
+    holder_trusted_basis = basis(seal_ref("rhrk-holder-trusted-basis"))
+    accepted_key_evidence_ref = event_id("rhrk-accepted-key-evidence")
+    transition_bytes = b"arkret rhrk archive fixture commit epoch 7"
     transition_digest = sha256(transition_bytes)
     archive_public = {
         "effective_scope": effective_scope,
@@ -1149,8 +1149,8 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "epoch": epoch,
         "transition_digest": transition_digest,
         "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000121",
-        "controller_id": holder_core,
-        "holder_id": holder_core,
+        "method_controller_principal_id": holder_core,
+        "holder_service_id": holder_core,
         "key_agreement_ref": holder_key_agreement,
         "holder_signing_ref": holder_method,
         "hpke_suite": "ak.hpke_x25519_aead_chacha20poly1305.v1",
@@ -1192,7 +1192,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
     ciphertext = ChaCha20Poly1305(key).encrypt(base_nonce, plaintext_bytes, info)
     recovered_plaintext = ChaCha20Poly1305(key).decrypt(base_nonce, ciphertext, info)
     if recovered_plaintext != plaintext_bytes:
-        raise AssertionError("RRK archive HPKE round trip failed")
+        raise AssertionError("RHRK archive HPKE round trip failed")
     archive = {**archive_public, "enc": b64u(enc), "ciphertext": b64u(ciphertext)}
 
     governance_binding = {
@@ -1212,7 +1212,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
     container_payload = {
         "mls_group_id": GROUP,
         "base_epoch": epoch - 1,
-        "base_epoch_ref": event_id("rrk-base-epoch"),
+        "base_epoch_ref": event_id("rhrk-base-epoch"),
         "proposal_refs": [],
         "next_epoch": epoch,
         "commit_bytes_b64": b64u(transition_bytes),
@@ -1229,7 +1229,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "created_at": replicated_at,
         "prev_refs": [container_payload["base_epoch_ref"]],
         "refs": [],
-        "seal_basis": basis(seal_ref("rrk-source-accepted-basis")),
+        "seal_basis": basis(seal_ref("rhrk-source-accepted-basis")),
         "payload": container_payload,
     }
     container_event_digest = sha256(jcs(container_event_core))
@@ -1268,14 +1268,14 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         for field in (
             "recovery_key_id",
             "key_agreement_ref",
-            "controller_id",
-            "holder_id",
+            "method_controller_principal_id",
+            "holder_service_id",
             "holder_signing_ref",
             "accepted_key_evidence_ref",
             "holder_trusted_basis",
         )
     }
-    target_basis = basis(seal_ref("rrk-winning-archive-transition"))
+    target_basis = basis(seal_ref("rhrk-winning-archive-transition"))
     traversal_intent = {
         "kind": "ak.history_governance.traversal_intent",
         "profile": "organization_recovery_archive",
@@ -1300,7 +1300,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "container_event_ref": container_event_ref,
         "history_traversal_retention": traversal_retention,
         "source_id": source_core,
-        "holder_id": holder_core,
+        "holder_service_id": holder_core,
         "replicated_at": replicated_at,
     }
     replica_proof, replica_proof_transcript = detached_jws(
@@ -1313,7 +1313,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
             "container_event_ref",
             "history_traversal_retention",
             "source_id",
-            "holder_id",
+            "holder_service_id",
             "replicated_at",
         ],
         source_method,
@@ -1324,7 +1324,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
 
     receipt_unsigned = {
         "archive_replica_digest": archive_replica_digest,
-        "holder_id": holder_core,
+        "holder_service_id": holder_core,
         "archive_sequence": 1,
         "accepted_at": accepted_at,
     }
@@ -1332,7 +1332,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         holder_signing_key,
         "ak.organization_recovery_archive_replica_receipt_proof.v1",
         receipt_unsigned,
-        ["archive_replica_digest", "holder_id", "archive_sequence", "accepted_at"],
+        ["archive_replica_digest", "holder_service_id", "archive_sequence", "accepted_at"],
         holder_method,
         proof_created_at,
     )
@@ -1558,7 +1558,7 @@ def build_sections() -> dict[str, Any]:
     signer = build_signer_evidence(schemas)
     dependency = build_dependency_kat(schemas, signer)
     traversal = build_traversal_kat(schemas)
-    durability = build_rrk_durable_before_gc_kat(schemas)
+    durability = build_rhrk_durable_before_gc_kat(schemas)
     scale = [build_scale_recipe(26_298), build_scale_recipe(65_536)]
     probe = {"journal_rows": 0, "resolved_objects": 0, "outbox_writes": 0}
     reason = None
@@ -1577,7 +1577,7 @@ def build_sections() -> dict[str, Any]:
         "history_response_capability_kat": build_response_capability_kat(),
         "response_stream_cases": build_response_stream_kat(schemas),
         "organization_recovery_archive_durable_before_gc_kat": durability,
-        "rrk_registration_rotation_kat": build_rrk_registration_rotation_kat(schemas, durability),
+        "rhrk_registration_rotation_kat": build_rhrk_registration_rotation_kat(schemas, durability),
         "streaming_direct_traversal_scale_kats": scale,
         "streaming_direct_traversal_scale_negative_kats": [{
             "epoch_count": 65_537,
@@ -1599,14 +1599,14 @@ def build_sections() -> dict[str, Any]:
 
 def render() -> str:
     fixture = json.loads(OUTPUT.read_text(encoding="utf-8"))
-    rrk_durability_vector = (
+    rhrk_durability_vector = (
         "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1"
     )
     covers_vectors = fixture.get("covers_vectors")
     if not isinstance(covers_vectors, list):
         raise ValueError("history fixture covers_vectors must be an array")
-    if rrk_durability_vector not in covers_vectors:
-        covers_vectors.append(rrk_durability_vector)
+    if rhrk_durability_vector not in covers_vectors:
+        covers_vectors.append(rhrk_durability_vector)
     for case in fixture.get("scope_and_endpoint_kats", []):
         for scope_case in (case.get("realm"), case.get("circle")):
             if isinstance(scope_case, dict):

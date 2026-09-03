@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-03.1",
+  "version": "2026-09-04.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-03T20:50:00+08:00",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
     "writer_authorities is a non-empty unique array over the closed v1 set holder_event | station_cas. holder_event requires non-empty write_event_kinds; station_cas requires plaintext_account_data plus plaintext_schema and does not mint an Event.",
@@ -359,7 +359,7 @@
       ]
     },
     {
-      "key_pattern": "ak.agent.sidecar_view_state.v1:<controller_id>:<target_realm_id>:<target_strand_id>",
+      "key_pattern": "ak.agent.sidecar_view_state.v1:<controller_account_key>:<target_realm_id>:<target_strand_id>",
       "status": "active",
       "scope": "controller_private_preference",
       "storage": "encrypted_account_data",
@@ -371,7 +371,7 @@
         "ak.account_data.set"
       ],
       "deletion_mode": "physical_delete",
-      "description": "Controller-private per-context Sidecar hosted-view state. Synchronizes display_mode (context_merged or sidecar_only), pin/collapse state, and HLC without changing either Strand, Track, access, read, watch, notification, or search state.",
+      "description": "Controller-private per-context Sidecar hosted-view state. controller_account_key is derive_account_data_key(RFC8785_JCS(controller_account_id)) from models/account-data.md section 2; the structured AccountId is never inserted directly into the colon-delimited key. Synchronizes display_mode (context_merged or sidecar_only), pin/collapse state, and HLC without changing either Strand, Track, access, read, watch, notification, or search state.",
       "source_refs": [
         "spec/v1/zh/models/private-objects.md"
       ]

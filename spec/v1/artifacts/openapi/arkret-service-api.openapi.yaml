@@ -3571,7 +3571,7 @@ paths:
               $ref: '#/components/schemas/HistoryKeyRequestListQuery'
       responses:
         '200':
-          description: Current-member projection or the RRK-holder intersecting-request projection; RRK evidence resolution separately permits the complete Control Move/Seal closure required to verify a matching archive.
+          description: Current-member projection or the RHRK-holder intersecting-request projection; RHRK evidence resolution separately permits the complete Control Move/Seal closure required to verify a matching archive.
           content:
             application/json:
               schema:
@@ -3672,7 +3672,7 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Recipient-bound byte-paged projection of RRK archives for one exact historical key tuple.
+      summary: Recipient-bound byte-paged projection of RHRK archives for one exact historical key tuple.
       requestBody:
         required: true
         content:
@@ -3702,7 +3702,7 @@ paths:
         sourceServiceId: []
         destinationServiceId: []
         contentDigest: []
-      summary: Privately replicate one immutable history request to the service projected from an exact member ActorId or to an RRK holder service.
+      summary: Privately replicate one immutable history request to the service projected from an exact member ActorId or to an RHRK holder service.
       requestBody:
         required: true
         content:
@@ -3822,7 +3822,7 @@ paths:
         sourceServiceId: []
         destinationServiceId: []
         contentDigest: []
-      summary: Privately replicate one immutable RRK archive and its archive-lifetime direct traversal retention to the holder service.
+      summary: Privately replicate one immutable RHRK archive and its archive-lifetime direct traversal retention to the holder service.
       requestBody:
         required: true
         content:

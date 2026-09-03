@@ -71,7 +71,7 @@
         "kind",
         "applet_id",
         "service_id",
-        "controller_id",
+        "controller_principal_id",
         "base_url",
         "bot_actor_id",
         "protocols",
@@ -92,8 +92,12 @@
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "controller_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "x-arkret-principal-kinds": [
+            "human",
+            "organization"
+          ]
         },
         "base_url": {
           "type": "string",

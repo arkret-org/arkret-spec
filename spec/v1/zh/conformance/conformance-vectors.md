@@ -2353,14 +2353,14 @@ ak.vector.capability.membership_is_not_baseline.v1
 ak.vector.realm.authority_root_bootstrap.v1
 ```
 
-本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条无条件 registered cell write，其中 authority-root 写入是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0}`；另有五条 registered condition row：`initial_resolution`、`agent_control` 的 Agent status，以及由 `payload.object.purpose` 互斥选择的 `direct_conversation|principal_control|agent_control` history-access `null→since_join` 初始化。每个命中的条件写入都必须包含。
+本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条无条件 registered cell write，其中 authority-root 写入是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_actor_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0}`；另有五条 registered condition row：`initial_resolution`、`agent_control` 的 Agent status，以及由 `payload.object.purpose` 互斥选择的 `direct_conversation|principal_control|agent_control` history-access `null→since_join` 初始化。每个命中的条件写入都必须包含。
 
 正例：五条无条件 registered write 与条件命中的已登记 write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。
 
 负例（每条各自 MUST fail closed，不得留下 Realm / membership 半成品）：
 
 - 缺 authority-root cell → `realm_authority_root_missing`；
-- author 自行提供 `controller_id` / 非零 `controller_epoch` / 非零 `authority_generation` / 三字段之外的额外成员 → `realm_authority_root_conflict`；
+- author 自行提供 `controller_actor_id` / 非零 `controller_epoch` / 非零 `authority_generation` / 三字段之外的额外成员 → `realm_authority_root_conflict`；
 - 夹带旧四项 / 五项 / 三项 founding-grant shape 的 self grant MUST NOT 被识别为 authority root，仍按 §3.2 普通 issuer 上界判定为 `grant_exceeds_issuer_authority`；
 - staged root proof 在 genesis batch 之外重放，或在 batch 内改用 accepted-Seal inclusion proof（此时尚无 accepted Seal）→ `realm_authority_controller_mismatch`。
 
@@ -3812,7 +3812,7 @@ Expected：
 
 Steps:
 
-1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Station + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `did` 调用 `ak.self.agent.command.provision.v1`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
+1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Station + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `did` 调用 `ak.self.agent.command.provision.v1`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_principal_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
 2. Agent runtime 生成 key pair，取得 pairing verifier 签名的 presentation request/challenge；controller 生成符合 `ak.schema.agent_requested_scope_disclosure.v1`、绑定该 verifier/audience/challenge 且接收窗口不超过 300 秒的私有披露，与 key pair request 一起提交。controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
 4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 提交一个 controller-authored `ak.capability.grant` `EventInitialSubmission` 以附加更窄的 Realm-scoped grant。其 `event.payload.grant` 不含内层 proof，Event envelope proof 是唯一 durable issuer signature；另分别尝试提交 body-local proof、让服务端代签/合成 Event、含未 provision action及超出显式内容 resource ceiling 的变体。
@@ -3835,7 +3835,7 @@ Steps:
 
 1. 解析 Agent accepted inception DID Document，验证唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 的闭合四元组；扫描DID version history 与公开 registry/notification/Event fixture。
 2. Verifier 生成签名 `ak.identity.presentation_request`，包含唯一 `request_id`、不可预测 `challenge`、`verifier_id`、`audience/domain` 与五分钟内 expiry；controller 经 TSP、HTTP/JWE、DIDComm-like、to-device 或 MLS DM 私有通道返回 `ak.schema.agent_requested_scope_disclosure.v1`。
-3. Verifier 验证 controller current proof、`payload_digest`、`agent_id/controller_id`、`verifier_id/audience`、`expires_at-issued_at <= 300s`，消费 `(verifier_id, request_id, challenge)`，并以披露 scope 重算 DID commitment。
+3. Verifier 验证 controller current proof、`payload_digest`、`agent_id/controller_principal_id`、`verifier_id/audience`、`expires_at-issued_at <= 300s`，消费 `(verifier_id, request_id, challenge)`，并以披露 scope 重算 DID commitment。
 4. 负向变体依次为：公开 endpoint 加入完整 `requested_scope`；disclosure 改一个 resource/constraint 但保留旧 digest；错 verifier 或 audience；过期/超 300 秒窗口；重放已消费 challenge；把 disclosure 复制进 grant、authorize Event、notification 或 Realm plaintext。
 
 Expected:
@@ -4216,7 +4216,7 @@ Expected:
 
 Steps:
 
-1. Alice 的两台设备并发对同一 `(realm_id, controller_id)` 调用 `prepare`，并请求映射同一 `source_context_ref`。
+1. Alice 的两台设备并发对同一 `(realm_id, controller_account_id)` 调用 `prepare`，并请求映射同一 `source_context_ref`。
 2. 一台设备对服务端返回的 exact `ak.sidecar.create` draft 签名并提交；另一台分别变异 Event ID、payload、
    `refs.after` 与 unsigned bytes，再重放自己的 reservation。
 3. 两台设备并发提交同一 `ak.sidecar.context.attach`；随后 Alice 对另一来源上下文再次 attach。
@@ -6363,12 +6363,12 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
   按 `retry_same_attempt` 处理，重启后分支不变；
 - `ak.vector.history_key.frontier_traversal_split.v1`：near-current `group_security_frontier` 的 bounded stateless 完整响应，与
   bulk/old-history receipt-bound direct Seal traversal 严格分型；覆盖 `trusted_history_base_basis`、独立 anti-rollback
-  `trusted_current_basis`、target dominance、完整 predecessor cut、registered dependency resolve、current ratchet/join floor、per-item RRK traversal 及 self/peer visibility 边界；
+  `trusted_current_basis`、target dominance、完整 predecessor cut、registered dependency resolve、current ratchet/join floor、per-item RHRK traversal 及 self/peer visibility 边界；
 - `ak.vector.history_key.sender_crypto.v1`：ordinary human/Agent/minimal sender domain、history-secret KDF、nonce、
-  reconstructed AAD、HPKE chunk context、multi-candidate store 与 replay ledger。Received/RRK secret 永远是 candidate，AEAD success
+  reconstructed AAD、HPKE chunk context、multi-candidate store 与 replay ledger。Received/RHRK secret 永远是 candidate，AEAD success
   只建立 exact Event→candidate digest binding，不得 epoch-level promote/淘汰其它 candidate；fake secret+fake ciphertext 只能影响恶意作者
   自己签名的 Event。Runner 还必须覆盖按 `(scope,group,epoch,candidate_digest)` 全局 material 去重、与 bytes 分离的 typed
-  `CandidateOriginAttribution(material_key,response_sender|rrk_archive|portable_backup,origin_quota_domain,origin_ref)`；quota domain 分别固定为
+  `CandidateOriginAttribution(material_key,response_sender|rhrk_archive|portable_backup,origin_quota_domain,origin_ref)`；quota domain 分别固定为
   source sender、holder/key tuple、backup series/producer，origin_ref 只作取回坐标。Runner 必须覆盖 immutable 30 日 TTL、每 candidate 4 条、
   每 exact epoch-quota-domain 64 条、每 epoch 总计 256 条与 canonical 确定性裁剪，
   以及不含 origin 的 `EventCandidateBinding(event_binding_key,candidate_digest,outcome)` 每 epoch 256 条/30 日上限。两级 eviction 必须先无 success
@@ -6407,10 +6407,10 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
    拒绝，各计数保持 0。`python tools/generate_history_scale_fixture.py --check` 任一字节漂移必须失败；写模式只刷新本 fixture，不生成
    reports/site/digests。
 
-RRK cases MUST 另覆盖 create Seal 后 register、key-evidence Event reducer-effective 前禁止 durability Genesis、CAS rotate、provenance Event、
+RHRK cases MUST 另覆盖 create Seal 后 register、key-evidence Event reducer-effective 前禁止 durability Genesis、CAS rotate、provenance Event、
 完整 `holder_trusted_basis` 与 exact-one-epoch archive-lifetime direct traversal retention、holder replica/read、current holder
 source relay 及首次入队 attestation；该子组登记为 `ak.vector.history_key.organization_recovery_registration.v1`，并必须断言
 effective recovery-key cell 不含 service-selected effectiveness locator；生效事实只由 replay 后的 reducer state 决定。所有 positive/negative inputs 都使用二态 `history_access`；fixture 不得出现旧 share/withheld
 Event、homogeneous policy-root segment、to-device request、foreign active MLS snapshot、profile-fixed baseline 或旧五档 literal。
-RRK holder 向量还必须断言：它可以取得完整 holder-basis→archive-target 验证 closure 所需的 Control Move/Seal 及由此暴露的
-membership/policy/control metadata，但不能读取 closure 外 DataEvent、generic timeline 或获得 membership/send 权；不能接受该披露的部署必须禁用 RRK。
+RHRK holder 向量还必须断言：它可以取得完整 holder-basis→archive-target 验证 closure 所需的 Control Move/Seal 及由此暴露的
+membership/policy/control metadata，但不能读取 closure 外 DataEvent、generic timeline 或获得 membership/send 权；不能接受该披露的部署必须禁用 RHRK。

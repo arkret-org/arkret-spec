@@ -629,6 +629,26 @@ class IdentifierRoleSuffixTest(MutationHarness):
         lint = run_check(check_identifier_role_suffix_contracts)
         self.assertEqual(lint.errors, [])
 
+    def test_multi_representation_field_requires_exact_registry_contract(self) -> None:
+        registry_path = ROOT / "tools" / "identifier-role-suffix-registry.json"
+
+        def mutate(document):
+            document["multi_representation_field_contracts"] = [
+                row
+                for row in document["multi_representation_field_contracts"]
+                if row["field"] != "issuer_id"
+            ]
+
+        errors = self.lint_with_file(
+            registry_path,
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(
+            any("multi-representation field `issuer_id`" in error for error in errors),
+            errors,
+        )
+
     def test_web_origin_profile_cannot_be_weakened_to_generic_http_uri(self) -> None:
         def mutate(document):
             document["$defs"]["web_origin"]["pattern"] = "^https?://"
@@ -783,7 +803,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
         self.assertTrue(any("role_stem=normalized_controller" in error for error in errors), errors)
         self.assertTrue(any("lexical_owner=arkret_owned" in error for error in errors), errors)
 
-    def test_role_qualified_service_id_fails(self) -> None:
+    def test_role_qualified_service_id_uses_service_carrier_grammar(self) -> None:
         def mutate(document):
             shape = document
             shape["required"] = [
@@ -799,8 +819,59 @@ class IdentifierRoleSuffixTest(MutationHarness):
             mutate,
             check=check_identifier_role_suffix_contracts,
         )
-        self.assertTrue(any("required_subject_class=service" in error for error in errors), errors)
-        self.assertTrue(any("rename `recipient_service_id` to `recipient_id`" in error for error in errors), errors)
+        self.assertEqual(errors, [])
+
+    def test_bare_controller_id_is_forbidden_for_every_terminal(self) -> None:
+        def mutate(document):
+            document["properties"]["controller_id"] = {
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "availability-receipt.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("`controller_id` is forbidden" in error for error in errors), errors)
+
+    def test_bare_holder_id_is_forbidden_for_every_terminal(self) -> None:
+        def mutate(document):
+            document["properties"]["holder_id"] = {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "availability-receipt.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("`holder_id` is forbidden" in error for error in errors), errors)
+
+    def test_controller_account_id_rejects_did_core_terminal(self) -> None:
+        def mutate(document):
+            document["properties"]["controller_account_id"] = {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "agent-sidecar.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("required carrier is account_id" in error for error in errors), errors)
+
+    def test_holder_station_id_requires_station_metadata(self) -> None:
+        def mutate(document):
+            document["properties"]["holder_station_id"] = {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "availability-receipt.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("x-arkret-service-kind=station" in error for error in errors), errors)
 
     def test_role_qualified_service_kind_fails(self) -> None:
         def mutate(document):
@@ -834,7 +905,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
             mutate,
             check=check_identifier_role_suffix_contracts,
         )
-        self.assertTrue(any("terminal_category=composite_identifier" in error for error in errors), errors)
+        self.assertTrue(any("terminal_category=actor_id" in error for error in errors), errors)
         self.assertTrue(any("expected_suffix=_ids" in error for error in errors), errors)
 
     def test_object_array_cannot_claim_ids_representation(self) -> None:

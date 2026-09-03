@@ -787,7 +787,7 @@
             "operation_id",
             "idempotency_key",
             "source_realm_id",
-            "controller_id",
+            "controller_account_id",
             "context_ref"
           ],
           "properties": {
@@ -803,8 +803,8 @@
             "source_realm_id": {
               "$ref": "#/$defs/realm_id"
             },
-            "controller_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "controller_account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
             },
             "context_ref": {
               "$ref": "#/$defs/sidecar_context_ref"

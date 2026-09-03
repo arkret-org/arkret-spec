@@ -10,7 +10,7 @@
   "required": [
     "schema",
     "agent_id",
-    "controller_id",
+    "controller_principal_id",
     "principal_control_realm_id",
     "controller_authorization_ref",
     "agent_slug",
@@ -26,7 +26,7 @@
     "agent_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "controller_id": {
+    "controller_principal_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "principal_control_realm_id": {

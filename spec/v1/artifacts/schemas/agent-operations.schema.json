@@ -444,7 +444,7 @@
       "description": "Controller-private key, pairing-handle and authorization material for a generic Agent view. This object deliberately carries no lifecycle, readiness, presence, runtime_state or backup-readiness field: the only three generic status axes are siblings on agent_projection, while pairing poll alone exposes its operation-local runtime_state diagnostic.",
       "required": [
         "agent_id",
-        "controller_id",
+        "controller_account_id",
         "principal_control_realm_id",
         "controller_authorization_ref",
         "requested_scope"
@@ -453,8 +453,8 @@
         "agent_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -950,6 +950,7 @@
         },
         "controller_station_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "x-arkret-service-kind": "station",
           "description": "Authenticated controller account Station. Together with the session principal_id this selects the controller authority; PCR identifiers are not exposed."
         }
       },
@@ -1589,7 +1590,7 @@
         },
         "effective_agent_ids": {
           "type": "array",
-          "description": "Desired Agent principals that are members of the current accepted Sidecar MLS epoch and have completed target-device Welcome/KeyPackage consumption and key readiness. Reducer/service MUST enforce this set is a subset of desired_agent_ids. The controller is represented by sidecar.controller_id and is not duplicated in either Agent array.",
+          "description": "Desired Agent principals that are members of the current accepted Sidecar MLS epoch and have completed target-device Welcome/KeyPackage consumption and key readiness. Reducer/service MUST enforce this set is a subset of desired_agent_ids. The controller is represented by sidecar.controller_account_id and is not duplicated in either Agent array.",
           "items": {
             "$ref": "#/$defs/did_core_id"
           },

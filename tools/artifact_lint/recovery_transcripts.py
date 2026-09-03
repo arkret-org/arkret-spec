@@ -15,6 +15,7 @@ except ImportError:  # pragma: no cover - CI installs cryptography.
 REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 SCHEMA = ARTIFACTS / "schemas" / "recovery-session.schema.json"
+POLICY_SCHEMA = ARTIFACTS / "schemas" / "recovery-policy.schema.json"
 FIXTURE = ARTIFACTS / "fixtures" / "recovery-transcript-fixture.json"
 VECTOR_ID = "ak.vector.identity.recovery_transcript.v1"
 DOMAIN = "ak.identity.recovery_proof.v1"
@@ -117,14 +118,67 @@ def _verify_signature(public_key: Any, signature: Any, transcript: Any) -> bool:
 
 def check_recovery_transcript_closure(lint: Lint) -> None:
     schema = load_json(lint, SCHEMA)
+    policy_schema = load_json(lint, POLICY_SCHEMA)
     registry = load_json(lint, REGISTRY)
     fixture = load_json(lint, FIXTURE)
     vectors = load_json(lint, VECTOR_REGISTRY)
-    if not all(isinstance(value, dict) for value in (schema, registry, fixture, vectors)):
+    if not all(isinstance(value, dict) for value in (schema, policy_schema, registry, fixture, vectors)):
         return
     defs = schema.get("$defs")
     if not isinstance(defs, dict):
         return
+
+    policy_defs = policy_schema.get("$defs")
+    holder = policy_defs.get("recovery_share_holder") if isinstance(policy_defs, dict) else None
+    expected_holder_branches = [
+        {
+            "properties": {"holder_kind": {"const": "personal_principal"}},
+            "required": ["holder_principal_id"],
+            "not": {"required": ["holder_service_id"]},
+        },
+        {
+            "properties": {"holder_kind": {"const": "custodial_service"}},
+            "required": ["holder_service_id"],
+            "not": {"required": ["holder_principal_id"]},
+        },
+    ]
+    if not isinstance(holder, dict):
+        lint.fail(POLICY_SCHEMA, "$defs.recovery_share_holder is required")
+    else:
+        holder_properties = holder.get("properties", {})
+        if set(holder_properties) != {
+            "holder_kind",
+            "holder_principal_id",
+            "holder_service_id",
+        }:
+            lint.fail(
+                POLICY_SCHEMA,
+                "recovery_share_holder must expose only holder_kind plus the personal-principal and custodial-service branch fields",
+            )
+        if holder_properties.get("holder_kind", {}).get("enum") != [
+            "personal_principal",
+            "custodial_service",
+        ]:
+            lint.fail(POLICY_SCHEMA, "recovery_share_holder holder_kind must be the exact two-branch enum")
+        if holder.get("oneOf") != expected_holder_branches:
+            lint.fail(
+                POLICY_SCHEMA,
+                "recovery_share_holder branches must require exactly one matching branch-specific holder field",
+            )
+
+    expected_holder_ref = {
+        "$ref": "./recovery-policy.schema.json#/$defs/recovery_share_holder"
+    }
+    for definition in ("threshold_recovery_proof", "threshold_recovery_proof_body"):
+        try:
+            release_item = defs[definition]["properties"]["share_releases"]["items"]
+        except (KeyError, TypeError):
+            release_item = None
+        if not isinstance(release_item, dict) or release_item.get("allOf") != [expected_holder_ref]:
+            lint.fail(
+                SCHEMA,
+                f"$defs.{definition} share releases must reuse recovery_share_holder exactly",
+            )
 
     proof_kind = defs.get("proof_kind")
     proof_enum = proof_kind.get("enum") if isinstance(proof_kind, dict) else None

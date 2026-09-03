@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-03.1",
+  "version": "2026-09-04.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-03T06:00:06+08:00",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
@@ -40,11 +40,11 @@
       "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.agent_deactivate_payload_controller_id.v1",
+      "lock_id": "ak.lock.derived_wire_field_removal.agent_deactivate_payload_controller_principal_id.v1",
       "ruling": "2026-09-02-2004 agent lifecycle",
       "schema": "schemas/event-payload.schema.json",
       "path": "/$defs/agent_deactivate_payload",
-      "removed": "controller_id",
+      "removed": "controller_principal_id",
       "source": {
         "schema": "schemas/event-envelope.schema.json",
         "path": "",
@@ -80,11 +80,11 @@
       "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.agent_pause_payload_controller_id.v1",
+      "lock_id": "ak.lock.derived_wire_field_removal.agent_pause_payload_controller_principal_id.v1",
       "ruling": "2026-09-02-2004 agent lifecycle",
       "schema": "schemas/event-payload.schema.json",
       "path": "/$defs/agent_pause_payload",
-      "removed": "controller_id",
+      "removed": "controller_principal_id",
       "source": {
         "schema": "schemas/event-envelope.schema.json",
         "path": "",
@@ -108,11 +108,11 @@
       "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.agent_resume_payload_controller_id.v1",
+      "lock_id": "ak.lock.derived_wire_field_removal.agent_resume_payload_controller_principal_id.v1",
       "ruling": "2026-09-02-2004 agent lifecycle",
       "schema": "schemas/event-payload.schema.json",
       "path": "/$defs/agent_resume_payload",
-      "removed": "controller_id",
+      "removed": "controller_principal_id",
       "source": {
         "schema": "schemas/event-envelope.schema.json",
         "path": "",

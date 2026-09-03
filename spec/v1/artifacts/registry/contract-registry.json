@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-03.2",
+  "version": "2026-09-04.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-03T19:36:00+08:00",
+  "generated_at": "2026-09-04T00:28:18+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -362,6 +362,7 @@
       "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact round. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_contact_round and with the Agent PCR agent_provision role.",
       "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_contact_round pointing to the portable Contact round evidence bundle and its continuity chain to the pair's root Contact round. The verifier derives founder from the root Contact round (normal branch: the sorted_pair_member_ids entry that is not the request_event_ref issuer_id, i.e. the responder; glare branch: the requests[0] issuer_id), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_member_ids and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at Contact round validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
       "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
+      "sidecar_account_self_authored_proof": "Admitted only when Event actor_id is the account branch and its complete AccountId is the authenticated controller account. The reducer derives controller_account_id byte-for-byte from actor_id.account_id, uses (realm_id, controller_account_id) as the singleton key, and rejects the service actor branch with sidecar_create_denied before revealing existence. The same exact AccountId binds Sidecar membership, MLS genesis and participant authority; principal-only equality is forbidden.",
       "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed."
     },
     "admission_predicate_contract": {
@@ -435,7 +436,7 @@
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
       "lifecycle_modality applies to physical object lifecycle writes, identified mechanically by an fsm_contract whose axis is object_lifecycle, plus explicitly registered reversible Realm lifecycle facets. Every active event kind that writes such a family MUST declare lifecycle_modality. Use reversible for a reversible facet or either member of an archive/restore pair, and terminal for an irreversible transition. Workflow, membership, status, audit, key-material and OR-Set revocation axes are excluded. Reducers and SDKs MUST read this field and MUST NOT infer modality from event-kind spelling.",
       "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a canonical_json descriptor for a closed structured identifier (key bytes are its RFC 8785 JCS bytes), a coalesce descriptor, or a composite descriptor whose structured components use the same canonical_json descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
-      "The ak.component.agent.status.v1 lifecycle cell is keyed only by the complete Agent account ActorId: agent-control ak.realm.create and every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate write MUST use the identical single-component composite canonical_json(envelope.actor_id) subject. The Agent actor MUST be the account variant; a service actor is invalid. The Agent principal component is derived only from envelope.actor_id and the controller principal only from envelope.executed_by; the lifecycle payloads carry no agent_id or controller_id mirror. These writes are delegated controller writes: executed_by and its paired authorization_ref MUST be present for agent-control ak.realm.create and for every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate, enforced by the registered event-kind admission rule (and its Event Envelope schema lock), never only by the generic optional envelope schema. A missing executor pair, a service actor, or a missing exact Station binding fails closed, and Account ActorIds with the same principal_id at different station_id values MUST derive different subjects.",
+      "The ak.component.agent.status.v1 lifecycle cell is keyed only by the complete Agent account ActorId: agent-control ak.realm.create and every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate write MUST use the identical single-component composite canonical_json(envelope.actor_id) subject. The Agent actor MUST be the account variant; a service actor is invalid. The Agent principal component is derived only from envelope.actor_id and the controller principal only from envelope.executed_by; the lifecycle payloads carry no duplicate agent or controller coordinate. These writes are delegated controller writes: executed_by and its paired authorization_ref MUST be present for agent-control ak.realm.create and for every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate, enforced by the registered event-kind admission rule (and its Event Envelope schema lock), never only by the generic optional envelope schema. A missing executor pair, a service actor, or a missing exact Station binding fails closed, and Account ActorIds with the same principal_id at different station_id values MUST derive different subjects.",
       "Every lattice=fsm cell write MUST resolve by cell_family to exactly one fsm_contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
       "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBA fields, reducer_input, or shared cell_contracts.",
       "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 and ak.component.realm.reducer_profile.v1 are canonically defined in zh/authz/event-auth-state-resolution.md; their genesis values come from ak.realm.create, and subsequent writes use ak.realm.notary and ak.realm.upgrade respectively.",
@@ -594,7 +595,7 @@
             "cell_subject": {
               "kind": "composite",
               "components": [
-                "payload.controller_id",
+                "payload.controller_principal_id",
                 "payload.agent_id",
                 "payload.accountability_scope"
               ]
@@ -627,7 +628,7 @@
             "cell_family": "ak.component.agent.selector_claim.v1",
             "cell_subject": {
               "components": [
-                "payload.controller_id",
+                "payload.controller_principal_id",
                 "payload.agent_slug"
               ],
               "kind": "composite"
@@ -2195,7 +2196,7 @@
             "cell_family": "ak.component.identity.disclosure_receipt.v1",
             "cell_subject": {
               "kind": "did",
-              "field": "payload.holder_id"
+              "field": "payload.holder_principal_id"
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -3941,8 +3942,10 @@
               "kind": "object",
               "members": [
                 {
-                  "name": "controller_id",
-                  "envelope_field": "actor_id"
+                  "name": "controller_actor_id",
+                  "envelope_field": "actor_id",
+                  "terminal_category": "actor_id",
+                  "subject_class": "actor"
                 },
                 {
                   "name": "controller_epoch",
@@ -4147,8 +4150,8 @@
         "admission_checks": [
           "payload.realm_id/new_key_tuple/holder_trusted_basis equal the nested holder_acceptance fields byte-for-byte",
           "new_key_tuple.hpke_suite equals ak.hpke_x25519_aead_chacha20poly1305.v1 and frozen_public_key_b64u is canonical unpadded base64url of exactly 32 X25519 bytes",
-          "key_agreement_ref resolves current; its controller projects to controller_id and its raw X25519 key equals frozen_public_key_b64u",
-          "holder_signing_ref resolves current; its controller projects to controller_id; holder_proof.verification_method equals holder_signing_ref byte-for-byte and verifies under that exact key",
+          "key_agreement_ref resolves current; its controller projects to method_controller_principal_id and its raw X25519 key equals frozen_public_key_b64u",
+          "holder_signing_ref resolves current; its controller projects to method_controller_principal_id; holder_proof.verification_method equals holder_signing_ref byte-for-byte and verifies under that exact key",
           "holder_trusted_basis is the holder-pinned complete accepted Seal antichain and causally covers the accepted Realm-create Seal",
           "ak.component.realm.organization_recovery_key.v1 is unset; register is exact create-once CAS"
         ],
@@ -4191,8 +4194,8 @@
         "admission_checks": [
           "payload.realm_id/new_key_tuple/holder_trusted_basis equal the nested holder_acceptance fields byte-for-byte",
           "new_key_tuple.hpke_suite equals ak.hpke_x25519_aead_chacha20poly1305.v1 and frozen_public_key_b64u is canonical unpadded base64url of exactly 32 X25519 bytes",
-          "key_agreement_ref resolves current; its controller projects to controller_id and its raw X25519 key equals frozen_public_key_b64u",
-          "holder_signing_ref resolves current; its controller projects to controller_id; holder_proof.verification_method equals holder_signing_ref byte-for-byte and verifies under that exact key",
+          "key_agreement_ref resolves current; its controller projects to method_controller_principal_id and its raw X25519 key equals frozen_public_key_b64u",
+          "holder_signing_ref resolves current; its controller projects to method_controller_principal_id; holder_proof.verification_method equals holder_signing_ref byte-for-byte and verifies under that exact key",
           "expected_previous_key_evidence_ref equals the current cell provenance Event and expected_previous_key_evidence_seal_ref is the exact accepted Seal whose state membership makes that Event tuple effective",
           "holder_trusted_basis is the holder-pinned complete accepted Seal antichain and causally covers the prior accepted evidence Seal",
           "the signed Event carries exactly one whole-value head_eq for ak:cell:ak.component.realm.organization_recovery_key.v1:null whose value equals the current projected cell tuple; the generic projector copies it to op.from",
@@ -5890,7 +5893,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "admission": "self_authored_proof",
+        "admission": "sidecar_account_self_authored_proof",
         "payload": "Controller-signed minimal native Sidecar creation intent. The Sidecar id is derived from the Event id; controller, Realm, lifecycle and timestamps are reducer-derived. It creates no Circle, membership, Strand or Relation object. See zh/models/sidecar.md §2-§5.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_create_payload",
         "id_source": "event_derived",
@@ -10583,7 +10586,7 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ak:sidecar:<44-char-event-token>",
-        "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
+        "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_account_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
         "id_form": "event_derived",
         "identity_authority": "event",
         "genesis_event_kinds": [
@@ -15068,7 +15071,7 @@
         "http": "POST /_arkret/self/history-key-requests/read",
         "grpc": "SelfHistoryKey/RequestList",
         "mq": "self.history_key_requests.read.list",
-        "notes": "List immutable current-member-only requests for the exact Realm/Circle scope. realm_id is required; circle_id absence selects Realm scope. The RRK-holder branch returns only requests whose ranges intersect an archive sealed to the caller's exact historical key.",
+        "notes": "List immutable current-member-only requests for the exact Realm/Circle scope. realm_id is required; circle_id absence selects Realm scope. The RHRK-holder branch returns only requests whose ranges intersect an archive sealed to the caller's exact historical key.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -15144,7 +15147,7 @@
         "http": "POST /_arkret/peer/history-key-requests/replicate",
         "grpc": "PeerHistoryKey/RequestReplicate",
         "mq": "peer.history_key_requests.command.replicate",
-        "notes": "Private S2S fanout of one byte-identical request+receipt to a closed exact current joined-member ActorId routing projection service or exact RRK holder service with intersecting archive tuple. Destination authorization, TTL and bytes are signed; no public Event/DeviceMessage.",
+        "notes": "Private S2S fanout of one byte-identical request+receipt to a closed exact current joined-member ActorId routing projection service or exact RHRK holder service with intersecting archive tuple. Destination authorization, TTL and bytes are signed; no public Event/DeviceMessage.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 1048576,
         "success_shape_kind": "typed_response",
@@ -15212,7 +15215,7 @@
         "http": "POST /_arkret/peer/organization-recovery-archives/replicate",
         "grpc": "PeerHistoryKey/OrganizationRecoveryArchiveReplicate",
         "mq": "peer.organization_recovery_archives.command.replicate",
-        "notes": "Private immutable RRK archive replica to exact holder_id. It binds exact archive bytes, container Event, accepted evidence Event, complete holder_trusted_basis and archive-lifetime direct traversal retention for one epoch. First durable acceptance assigns one archive_sequence per semantic key; changing replicated_at cannot add a row. Exact duplicate returns the first byte-identical accepted receipt. Archive and replay closure are retained for the Realm recovery-material lifetime; v1 defines no remote GC/renewal.",
+        "notes": "Private immutable RHRK archive replica to exact holder_service_id. It binds exact archive bytes, container Event, accepted evidence Event, complete holder_trusted_basis and archive-lifetime direct traversal retention for one epoch. First durable acceptance assigns one archive_sequence per semantic key; changing replicated_at cannot add a row. Exact duplicate returns the first byte-identical accepted receipt. Archive and replay closure are retained for the Realm recovery-material lifetime; v1 defines no remote GC/renewal.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 1048576,
         "success_shape_kind": "typed_response",

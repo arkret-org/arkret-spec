@@ -6,7 +6,7 @@
   "type": "object",
   "required": [
     "schema",
-    "controller_id",
+    "controller_account_id",
     "sidecar_id",
     "context_ref",
     "display_mode",
@@ -17,8 +17,8 @@
     "schema": {
       "const": "ak.schema.agent_sidecar_view_state.v1"
     },
-    "controller_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    "controller_account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
     },
     "sidecar_id": {
       "$ref": "./common-ids.schema.json#/$defs/sidecar_id"

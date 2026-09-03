@@ -4137,7 +4137,7 @@ def check_history_scale_fixture(lint: Lint) -> None:
     runner = data.get("runner")
     if not isinstance(runner, dict) or runner.get("scale_generator") != "tools/generate_history_scale_fixture.py":
         lint.fail(path, "history recovery fixture must name its streaming scale generator")
-    removed_rrk_vector_id = "ak.vector.mls_exporter_aead.rrk_archive_durable_before_gc.v1"
+    removed_rhrk_vector_id = "ak.vector.mls_exporter_aead.rhrk_archive_durable_before_gc.v1"
     private_kdf_path = ARTIFACTS / "fixtures" / "arkret-private-kdf-fixture.json"
     private_kdf = load_json(lint, private_kdf_path)
     vector_registry_path = ARTIFACTS / "registry" / "vector-registry.json"
@@ -4159,13 +4159,13 @@ def check_history_scale_fixture(lint: Lint) -> None:
             data, scalability, operation_ids, vector_registry
         ):
             lint.fail(path, error)
-    if removed_rrk_vector_id in canonical_json(data) or (
-        isinstance(private_kdf, dict) and removed_rrk_vector_id in canonical_json(private_kdf)
+    if removed_rhrk_vector_id in canonical_json(data) or (
+        isinstance(private_kdf, dict) and removed_rhrk_vector_id in canonical_json(private_kdf)
     ) or (
         isinstance(vector_registry, dict)
-        and removed_rrk_vector_id in canonical_json(vector_registry)
+        and removed_rhrk_vector_id in canonical_json(vector_registry)
     ):
-        lint.fail(path, "removed exporter-classified RRK durability vector must not remain as an alias")
+        lint.fail(path, "removed exporter-classified RHRK durability vector must not remain as an alias")
 
     scope_cases = data.get("scope_and_endpoint_kats")
     if not isinstance(scope_cases, list):
@@ -4260,36 +4260,36 @@ def check_history_scale_fixture(lint: Lint) -> None:
         if negative_names != {"same_id_different_content", "bad_source", "out_of_order_ack"}:
             lint.fail(path, "history response stream mutation matrix is incomplete")
 
-    rrk_method = data.get("rrk_registration_rotation_kat")
-    if not isinstance(rrk_method, dict):
-        lint.fail(path, "RRK registration/rotation KAT must be structured input")
+    rhrk_method = data.get("rhrk_registration_rotation_kat")
+    if not isinstance(rhrk_method, dict):
+        lint.fail(path, "RHRK registration/rotation KAT must be structured input")
     else:
-        events = rrk_method.get("events", {})
+        events = rhrk_method.get("events", {})
         for label, schema_ref, instance in (
-            ("RRK register Event", "schemas/event-envelope.schema.json", events.get("register")),
-            ("RRK rotate Event", "schemas/event-envelope.schema.json", events.get("rotate")),
-            ("RRK register payload", "schemas/event-payload.schema.json#/$defs/organization_recovery_key_register_payload", events.get("register", {}).get("payload") if isinstance(events.get("register"), dict) else None),
-            ("RRK rotate payload", "schemas/event-payload.schema.json#/$defs/organization_recovery_key_rotate_payload", events.get("rotate", {}).get("payload") if isinstance(events.get("rotate"), dict) else None),
+            ("RHRK register Event", "schemas/event-envelope.schema.json", events.get("register")),
+            ("RHRK rotate Event", "schemas/event-envelope.schema.json", events.get("rotate")),
+            ("RHRK register payload", "schemas/event-payload.schema.json#/$defs/organization_recovery_key_register_payload", events.get("register", {}).get("payload") if isinstance(events.get("register"), dict) else None),
+            ("RHRK rotate payload", "schemas/event-payload.schema.json#/$defs/organization_recovery_key_rotate_payload", events.get("rotate", {}).get("payload") if isinstance(events.get("rotate"), dict) else None),
         ):
             check_json_instance_against_schema(lint, path, label, schema_ref, instance)
-        documents = rrk_method.get("did_documents", {})
+        documents = rhrk_method.get("did_documents", {})
         if any(isinstance(document, dict) and "service" in document for document in documents.values()):
-            lint.fail(path, "RRK KAT must not add an unregistered DID service-designation requirement")
+            lint.fail(path, "RHRK KAT must not add an unregistered DID service-designation requirement")
         mutation_names = {
-            row.get("name") for row in rrk_method.get("negative_mutations", []) if isinstance(row, dict)
+            row.get("name") for row in rhrk_method.get("negative_mutations", []) if isinstance(row, dict)
         }
-        required_rrk_mutations = {
+        required_rhrk_mutations = {
             "wrong_curve", "wrong_method_type", "wrong_key_length", "wrong_controller",
             "wrong_holder_proof_domain", "holder_tuple_mismatch", "register_before_realm_create",
             "rotate_before_register", "rotate_missing_head_eq", "rotate_stale_head_eq",
             "rotate_provenance_event_mismatch", "rotate_provenance_seal_mismatch",
         }
-        if mutation_names != required_rrk_mutations:
-            lint.fail(path, "RRK registration/rotation mutation matrix is incomplete or expanded")
+        if mutation_names != required_rhrk_mutations:
+            lint.fail(path, "RHRK registration/rotation mutation matrix is incomplete or expanded")
         register = events.get("register") if isinstance(events, dict) else None
         rotate = events.get("rotate") if isinstance(events, dict) else None
-        seal = rrk_method.get("accepted_key_evidence_seal")
-        projected_op = rrk_method.get("projected_rotate_op")
+        seal = rhrk_method.get("accepted_key_evidence_seal")
+        projected_op = rhrk_method.get("projected_rotate_op")
         if isinstance(register, dict) and isinstance(rotate, dict):
             prior_tuple = {
                 "key_tuple": register.get("payload", {}).get("new_key_tuple"),
@@ -4301,9 +4301,9 @@ def check_history_scale_fixture(lint: Lint) -> None:
                 "predicate": {"op": "head_eq", "value": prior_tuple},
             }]
             if rotate.get("preconditions") != expected_precondition:
-                lint.fail(path, "RRK rotate must carry the exact whole-value signed head_eq")
+                lint.fail(path, "RHRK rotate must carry the exact whole-value signed head_eq")
             if not isinstance(projected_op, dict) or projected_op.get("from") != prior_tuple:
-                lint.fail(path, "RRK production projection KAT must copy head_eq value to op.from")
+                lint.fail(path, "RHRK production projection KAT must copy head_eq value to op.from")
             seal_ref_value = (
                 seal.get("seal_id") if isinstance(seal, dict) else None
             )
@@ -4316,45 +4316,45 @@ def check_history_scale_fixture(lint: Lint) -> None:
                 or register.get("event_id") not in seal_covered
                 or rotate_payload.get("expected_previous_key_evidence_ref") != register.get("event_id")
             ):
-                lint.fail(path, "RRK rotate provenance must cite the accepted Seal covering register")
+                lint.fail(path, "RHRK rotate provenance must cite the accepted Seal covering register")
         concurrency_names = {
             row.get("name")
-            for row in rrk_method.get("concurrency_cases", [])
+            for row in rhrk_method.get("concurrency_cases", [])
             if isinstance(row, dict)
         }
         if concurrency_names != {
             "same_seal_sibling_is_rejected_before_join",
             "incomparable_accepted_branches_join_bottom",
         }:
-            lint.fail(path, "RRK CAS concurrency cases are incomplete")
+            lint.fail(path, "RHRK CAS concurrency cases are incomplete")
 
-    rrk = data.get("organization_recovery_archive_durable_before_gc_kat")
-    rrk_vector_id = (
+    rhrk = data.get("organization_recovery_archive_durable_before_gc_kat")
+    rhrk_vector_id = (
         "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1"
     )
-    if not isinstance(rrk, dict):
-        lint.fail(path, "history recovery fixture must carry the executable RRK durability KAT")
+    if not isinstance(rhrk, dict):
+        lint.fail(path, "history recovery fixture must carry the executable RHRK durability KAT")
     elif (
-        rrk.get("vector_id") != rrk_vector_id
-        or rrk.get("classification") != "service_behavior"
-        or rrk_vector_id not in data.get("covers_vectors", [])
+        rhrk.get("vector_id") != rhrk_vector_id
+        or rhrk.get("classification") != "service_behavior"
+        or rhrk_vector_id not in data.get("covers_vectors", [])
     ):
-        lint.fail(path, "RRK durability KAT classification or vector registration drifted")
+        lint.fail(path, "RHRK durability KAT classification or vector registration drifted")
     else:
-        registered_rrk = next(
+        registered_rhrk = next(
             (
                 row
                 for row in vector_registry.get("vectors", [])
-                if isinstance(row, dict) and row.get("vector_id") == rrk_vector_id
+                if isinstance(row, dict) and row.get("vector_id") == rhrk_vector_id
             ),
             None,
         ) if isinstance(vector_registry, dict) else None
         if (
-            not isinstance(registered_rrk, dict)
-            or registered_rrk.get("domain") != "history_key"
-            or registered_rrk.get("applies_to_fixtures")
+            not isinstance(registered_rhrk, dict)
+            or registered_rhrk.get("domain") != "history_key"
+            or registered_rhrk.get("applies_to_fixtures")
             != ["history-key-recovery-fixture.json"]
-            or registered_rrk.get("source_refs")
+            or registered_rhrk.get("source_refs")
             != [
                 "spec/v1/zh/governance/history-visibility.md",
                 "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
@@ -4362,19 +4362,19 @@ def check_history_scale_fixture(lint: Lint) -> None:
         ):
             lint.fail(
                 path,
-                "RRK durability vector registry row must bind its normative prose and service fixture",
+                "RHRK durability vector registry row must bind its normative prose and service fixture",
             )
         typed_instances = (
-            ("RRK archive plaintext", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_plaintext", rrk.get("hpke_transcript", {}).get("plaintext")),
-            ("RRK archive", "schemas/event-payload.schema.json#/$defs/organization_recovery_archive", rrk.get("archive")),
-            ("RRK commit payload", "schemas/event-payload.schema.json#/$defs/mls_commit_payload", rrk.get("container_event", {}).get("payload")),
-            ("RRK container Event", "schemas/event-envelope.schema.json", rrk.get("container_event")),
-            ("RRK archive tuple", "schemas/history-key.schema.json#/$defs/archive_authorization_tuple", rrk.get("archive_authorization_tuple")),
-            ("RRK traversal retention", "schemas/history-key.schema.json#/$defs/history_governance_traversal_retention", rrk.get("replica", {}).get("history_traversal_retention")),
-            ("RRK replica", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica", rrk.get("replica")),
-            ("RRK first receipt", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome", rrk.get("first_receipt")),
-            ("RRK barrier query", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query", rrk.get("barrier_query")),
-            ("RRK barrier outcome", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome", rrk.get("barrier_resolve_outcome")),
+            ("RHRK archive plaintext", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_plaintext", rhrk.get("hpke_transcript", {}).get("plaintext")),
+            ("RHRK archive", "schemas/event-payload.schema.json#/$defs/organization_recovery_archive", rhrk.get("archive")),
+            ("RHRK commit payload", "schemas/event-payload.schema.json#/$defs/mls_commit_payload", rhrk.get("container_event", {}).get("payload")),
+            ("RHRK container Event", "schemas/event-envelope.schema.json", rhrk.get("container_event")),
+            ("RHRK archive tuple", "schemas/history-key.schema.json#/$defs/archive_authorization_tuple", rhrk.get("archive_authorization_tuple")),
+            ("RHRK traversal retention", "schemas/history-key.schema.json#/$defs/history_governance_traversal_retention", rhrk.get("replica", {}).get("history_traversal_retention")),
+            ("RHRK replica", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica", rhrk.get("replica")),
+            ("RHRK first receipt", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome", rhrk.get("first_receipt")),
+            ("RHRK barrier query", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query", rhrk.get("barrier_query")),
+            ("RHRK barrier outcome", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome", rhrk.get("barrier_resolve_outcome")),
         )
         for label, schema_ref, instance in typed_instances:
             check_json_instance_against_schema(lint, path, label, schema_ref, instance)
@@ -4384,8 +4384,8 @@ def check_history_scale_fixture(lint: Lint) -> None:
                 raise ValueError("not a base64url string")
             return base64.urlsafe_b64decode(value + "=" * ((4 - len(value) % 4) % 4))
 
-        hpke = rrk.get("hpke_transcript")
-        archive = rrk.get("archive")
+        hpke = rhrk.get("hpke_transcript")
+        archive = rhrk.get("archive")
         try:
             if not isinstance(hpke, dict) or not isinstance(archive, dict):
                 raise ValueError("missing HPKE transcript or archive")
@@ -4473,13 +4473,13 @@ def check_history_scale_fixture(lint: Lint) -> None:
             if decode_b64u(hpke["opened_plaintext_jcs_b64u"]) != plaintext_bytes:
                 raise ValueError("HPKE opened plaintext assertion drifted")
         except (KeyError, TypeError, ValueError, binascii.Error, InvalidTag) as exc:
-            lint.fail(path, f"RRK durability HPKE transcript is not executable: {exc}")
+            lint.fail(path, f"RHRK durability HPKE transcript is not executable: {exc}")
 
         try:
-            container_event = rrk["container_event"]
-            container_preimage = decode_b64u(rrk["container_event_producer_bytes_b64u"])
+            container_event = rhrk["container_event"]
+            container_preimage = decode_b64u(rhrk["container_event_producer_bytes_b64u"])
             container_digest = "sha256:" + hashlib.sha256(container_preimage).hexdigest()
-            provenance = rrk["transition_provenance"]
+            provenance = rhrk["transition_provenance"]
             if container_preimage != canonical_json({
                 key: value for key, value in container_event.items() if key not in {"event_id", "proofs"}
             }).encode("utf-8"):
@@ -4501,7 +4501,7 @@ def check_history_scale_fixture(lint: Lint) -> None:
             ):
                 raise ValueError("archive transition provenance is not single-sourced")
             event_proof = container_event["proofs"][0]
-            event_transcript = rrk["container_event_proof_transcript"]
+            event_transcript = rhrk["container_event_proof_transcript"]
             event_binding = json.loads(decode_b64u(event_transcript["binding_jcs_b64u"]))
             if (
                 event_binding["context"] != "ak.event_proof.v1"
@@ -4517,32 +4517,32 @@ def check_history_scale_fixture(lint: Lint) -> None:
                 raise ValueError("container Event proof binding is incomplete")
             event_signature = decode_b64u(event_proof["jws"].split("..", 1)[1])
             Ed25519PublicKey.from_public_bytes(
-                decode_b64u(rrk["signing_keys"]["source_ed25519_public_key_b64u"])
+                decode_b64u(rhrk["signing_keys"]["source_ed25519_public_key_b64u"])
             ).verify(
                 event_signature,
                 event_transcript["signing_input_ascii"].encode("ascii"),
             )
         except (KeyError, TypeError, ValueError, binascii.Error, InvalidSignature) as exc:
-            lint.fail(path, f"RRK durability transition/container provenance drifted: {exc}")
+            lint.fail(path, f"RHRK durability transition/container provenance drifted: {exc}")
 
         try:
-            replica = rrk["replica"]
+            replica = rhrk["replica"]
             replica_unsigned = dict(replica)
             replica_unsigned.pop("service_proof")
             replica_digest = "sha256:" + hashlib.sha256(
                 b"ak.organization-recovery-archive-replica-v1\x00"
                 + canonical_json(replica_unsigned).encode("utf-8")
             ).hexdigest()
-            receipt = rrk["first_receipt"]
+            receipt = rhrk["first_receipt"]
             if receipt["archive_replica_digest"] != replica_digest:
                 raise ValueError("first receipt does not bind the exact replica")
             receipt_jcs = canonical_json(receipt).encode("utf-8")
-            if decode_b64u(rrk["first_receipt_jcs_b64u"]) != receipt_jcs:
+            if decode_b64u(rhrk["first_receipt_jcs_b64u"]) != receipt_jcs:
                 raise ValueError("first receipt canonical bytes drifted")
-            signing_keys = rrk["signing_keys"]
+            signing_keys = rhrk["signing_keys"]
             proof_cases = (
-                (replica["service_proof"], rrk["replica_proof_transcript"], signing_keys["source_ed25519_public_key_b64u"]),
-                (receipt["service_proof"], rrk["receipt_proof_transcript"], signing_keys["holder_ed25519_public_key_b64u"]),
+                (replica["service_proof"], rhrk["replica_proof_transcript"], signing_keys["source_ed25519_public_key_b64u"]),
+                (receipt["service_proof"], rhrk["receipt_proof_transcript"], signing_keys["holder_ed25519_public_key_b64u"]),
             )
             for proof, transcript, public_key_b64u in proof_cases:
                 if proof["payload_digest"] != transcript["payload_digest"]:
@@ -4552,17 +4552,17 @@ def check_history_scale_fixture(lint: Lint) -> None:
                     signature, transcript["signing_input_ascii"].encode("ascii")
                 )
         except (KeyError, TypeError, ValueError, binascii.Error, InvalidSignature) as exc:
-            lint.fail(path, f"RRK durability replica/receipt transcript drifted: {exc}")
+            lint.fail(path, f"RHRK durability replica/receipt transcript drifted: {exc}")
 
         try:
-            reread = rrk["barrier_resolve_outcome"]["items"][0]
-            assertions = rrk["exact_reread_assertions"]
+            reread = rhrk["barrier_resolve_outcome"]["items"][0]
+            assertions = rhrk["exact_reread_assertions"]
             if any(reread[field] != assertions[field] for field in assertions):
                 raise ValueError("barrier resolve is not the exact frozen archive row")
             if reread["archive_replica_digest"] != replica_digest:
                 raise ValueError("barrier resolve does not expose the exact accepted replica digest")
-            ledger = rrk["coverage_ledger"]
-            steps = {step["name"]: step for step in rrk["steps"]}
+            ledger = rhrk["coverage_ledger"]
+            steps = {step["name"]: step for step in rhrk["steps"]}
             if set(steps) != {
                 "gc_before_durable_acceptance",
                 "first_holder_replica_acceptance",
@@ -4574,11 +4574,11 @@ def check_history_scale_fixture(lint: Lint) -> None:
             if (
                 steps["gc_before_durable_acceptance"]["expected_decision"] != "failed_precondition"
                 or steps["gc_before_durable_acceptance"]["expected_ledger"] != ledger["initial"]
-                or steps["first_holder_replica_acceptance"]["expected_receipt"] != rrk["first_receipt"]
+                or steps["first_holder_replica_acceptance"]["expected_receipt"] != rhrk["first_receipt"]
                 or steps["first_holder_replica_acceptance"]["expected_ledger"] != ledger["after_first_accept"]
-                or steps["exact_duplicate_replica"]["expected_receipt_jcs_b64u"] != rrk["first_receipt_jcs_b64u"]
+                or steps["exact_duplicate_replica"]["expected_receipt_jcs_b64u"] != rhrk["first_receipt_jcs_b64u"]
                 or steps["exact_duplicate_replica"]["expected_new_archive_sequence_count"] != 0
-                or steps["barrier_resolve_exact_reread"]["expected_outcome"] != rrk["barrier_resolve_outcome"]
+                or steps["barrier_resolve_exact_reread"]["expected_outcome"] != rhrk["barrier_resolve_outcome"]
                 or steps["barrier_resolve_exact_reread"]["expected_ledger"] != ledger["after_exact_reread"]
                 or steps["gc_after_exact_reread"]["expected_decision"] != "accepted"
                 or steps["gc_after_exact_reread"]["expected_ledger"] != ledger["after_local_gc"]
@@ -4591,18 +4591,18 @@ def check_history_scale_fixture(lint: Lint) -> None:
                 or ledger["after_local_gc"]["local_history_secret_present"] is not False
             ):
                 raise ValueError("coverage-ledger initial/intermediate/final states drifted")
-            negative_names = {row["name"] for row in rrk["negative_mutations"]}
+            negative_names = {row["name"] for row in rhrk["negative_mutations"]}
             if negative_names != {
                 "barrier_missing_archive_replica_digest",
                 "barrier_archive_replica_digest_substitution",
                 "same_semantic_archive_changed_replicated_at",
                 "barrier_archive_bytes_mismatch",
             }:
-                raise ValueError("RRK durability negative matrix drifted")
-            if "private_database_row_shape" not in rrk["forbidden_artifacts"]:
-                raise ValueError("RRK durability KAT no longer forbids private storage shape")
+                raise ValueError("RHRK durability negative matrix drifted")
+            if "private_database_row_shape" not in rhrk["forbidden_artifacts"]:
+                raise ValueError("RHRK durability KAT no longer forbids private storage shape")
         except (KeyError, TypeError, ValueError) as exc:
-            lint.fail(path, f"RRK durability state-machine closure drifted: {exc}")
+            lint.fail(path, f"RHRK durability state-machine closure drifted: {exc}")
     kat = data.get("direct_traversal_kat")
     if not isinstance(kat, dict):
         lint.fail(path, "history recovery fixture must carry the executable direct-traversal KAT")
@@ -4845,10 +4845,10 @@ def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:
     if not isinstance(data, dict):
         return
 
-    def commitment_digest(agent_id: str, controller_id: str, requested_scope: Any) -> str:
+    def commitment_digest(agent_id: str, controller_principal_id: str, requested_scope: Any) -> str:
         preimage = {
             "agent_id": agent_id,
-            "controller_id": controller_id,
+            "controller_principal_id": controller_principal_id,
             "kind": "ak.agent.requested_scope_commitment.v1",
             "requested_scope": requested_scope,
         }
@@ -4870,12 +4870,12 @@ def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:
         lint.fail(path, "agent_provision omits requested_scope_commitment")
         return
     agent_id = commitment.get("agent_id")
-    controller_id = commitment.get("controller_id")
+    controller_principal_id = commitment.get("controller_principal_id")
     requested_scope = commitment.get("requested_scope")
-    if not isinstance(agent_id, str) or not isinstance(controller_id, str) or requested_scope is None:
+    if not isinstance(agent_id, str) or not isinstance(controller_principal_id, str) or requested_scope is None:
         lint.fail(path, "requested_scope_commitment preimage is incomplete")
         return
-    expected = commitment_digest(agent_id, controller_id, requested_scope)
+    expected = commitment_digest(agent_id, controller_principal_id, requested_scope)
     if commitment.get("expected_digest") != expected:
         lint.fail(
             path,
@@ -4900,7 +4900,7 @@ def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:
             continue
         scope = instance.get("requested_scope")
         case_agent = instance.get("agent_id")
-        case_controller = instance.get("controller_id")
+        case_controller = instance.get("controller_principal_id")
         if scope is None:
             # The instance carries only the commitment; it must reuse the case digest.
             if stated != expected:

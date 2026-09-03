@@ -598,6 +598,17 @@ def resolve_terminal_constraints(
         if not isinstance(node, dict):
             return out
         if node.get("x-arkret-composite-identifier") is True:
+            required = set(node.get("required", []))
+            if {"principal_id", "station_id"} <= required:
+                return {("account_id", "closed_object")}
+            branches = node.get("oneOf", [])
+            if any(
+                isinstance(branch, dict)
+                and branch.get("properties", {}).get("kind", {}).get("const")
+                in {"account", "service"}
+                for branch in branches
+            ):
+                return {("actor_id", "closed_object")}
             return {("composite_identifier", "closed_object")}
         ref = node.get("$ref")
         if isinstance(ref, str):
@@ -710,8 +721,8 @@ def _role_terminal_contract(
             # URI syntax does not decide URL-vs-URI field spelling.  Network
             # locators and generic URI identities are registered separately.
             categories.add(("uri", None))
-        elif kind == "composite_identifier" and value == "closed_object":
-            categories.add(("composite_identifier", "_ids" if plural else "_id"))
+        elif kind in {"account_id", "actor_id", "composite_identifier"} and value == "closed_object":
+            categories.add((kind, "_ids" if plural else "_id"))
     # JSON Schema commonly combines a broad URI format with a narrower DID or
     # DID-URL lexical pattern. The pattern owns the representation category in
     # that case; format remains decisive only when no narrower identifier
@@ -991,6 +1002,8 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
     if not isinstance(registry, dict):
         return
     grammars = registry.get("generic_grammars")
+    forbidden_fields = registry.get("forbidden_arkret_owned_fields")
+    responsibility_rows = registry.get("responsibility_field_contracts")
     exception_rows = registry.get("exact_exceptions")
     service_role_rows = registry.get("registered_service_role_fields")
     qualified_service_rows = registry.get("registered_service_qualified_fields")
@@ -998,10 +1011,20 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
     network_locator_rows = registry.get("registered_network_locator_fields")
     uri_reference_rows = registry.get("registered_uri_reference_fields")
     origin_rows = registry.get("registered_origin_fields")
+    multi_representation_rows = registry.get("multi_representation_field_contracts")
+    if not isinstance(forbidden_fields, list) or not all(
+        isinstance(field, str) and field for field in forbidden_fields
+    ):
+        lint.fail(
+            ROLE_SUFFIX_REGISTRY_PATH,
+            "forbidden_arkret_owned_fields must be an array of field names",
+        )
+        forbidden_fields = []
     if not all(
         isinstance(rows, list)
         for rows in (
             grammars,
+            responsibility_rows,
             exception_rows,
             service_role_rows,
             qualified_service_rows,
@@ -1009,6 +1032,7 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             network_locator_rows,
             uri_reference_rows,
             origin_rows,
+            multi_representation_rows,
         )
     ):
         lint.fail(
@@ -1016,6 +1040,73 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             "identifier role registries and exception tables must be arrays",
         )
         return
+    allowed_representation_profiles = {
+        "did_core_id",
+        "did",
+        "did_url",
+        "account_id",
+        "actor_id",
+    }
+    multi_representation_contracts: dict[str, set[str]] = {}
+    for index, row in enumerate(multi_representation_rows):
+        where = f"multi_representation_field_contracts[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} must be an object")
+            continue
+        field = row.get("field")
+        profiles = row.get("representation_profiles")
+        profile_meanings = row.get("profile_meanings")
+        reason = row.get("reason")
+        if (
+            not isinstance(field, str)
+            or field in multi_representation_contracts
+            or not isinstance(profiles, list)
+            or len(profiles) < 2
+            or not all(profile in allowed_representation_profiles for profile in profiles)
+            or len(set(profiles)) != len(profiles)
+            or not isinstance(profile_meanings, dict)
+            or set(profile_meanings) != set(profiles)
+            or not all(isinstance(value, str) and value for value in profile_meanings.values())
+            or not isinstance(reason, str)
+            or not reason
+        ):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} is incomplete or duplicated")
+            continue
+        multi_representation_contracts[field] = set(profiles)
+    responsibility_contracts: dict[str, dict[str, Any]] = {}
+    allowed_responsibility_carriers = {"did_core_id", "account_id", "actor_id"}
+    allowed_responsibility_subjects = {"principal", "service", "station", "hardware_module", "account", "actor"}
+    for index, row in enumerate(responsibility_rows):
+        where = f"responsibility_field_contracts[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} must be an object")
+            continue
+        field = row.get("field")
+        terminal_category = row.get("terminal_category")
+        subject_class = row.get("subject_class")
+        account_scoped = row.get("account_scoped")
+        required_evidence = row.get("required_evidence")
+        if (
+            not isinstance(field, str)
+            or field in responsibility_contracts
+            or terminal_category not in allowed_responsibility_carriers
+            or subject_class not in allowed_responsibility_subjects
+            or not isinstance(account_scoped, bool)
+            or not isinstance(required_evidence, list)
+            or not required_evidence
+            or not all(isinstance(item, str) and item for item in required_evidence)
+        ):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} is incomplete or duplicated")
+            continue
+        if account_scoped and (
+            terminal_category != "account_id" or not field.endswith("_account_id")
+        ):
+            lint.fail(
+                ROLE_SUFFIX_REGISTRY_PATH,
+                f"{where} declares account_scoped=true without an _account_id AccountId carrier",
+            )
+            continue
+        responsibility_contracts[field] = row
     registered_service_roles: set[str] = set()
     for index, row in enumerate(service_role_rows):
         if not isinstance(row, dict) or not isinstance(row.get("field"), str) or not isinstance(row.get("reason"), str):
@@ -1146,11 +1237,55 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
 
     documents = _schema_documents(lint)
     _check_duplicate_representation_suffixes(lint, documents)
+    observed_representation_profiles: dict[str, set[str]] = {}
+    for file_name, document in documents.items():
+        external_owners = {
+            owner.pointer
+            for owner in enumerate_property_owners(file_name, document)
+            if EXTERNAL_LITERAL_OBJECT_KEYWORD in owner.node
+        }
+        for occurrence in enumerate_schema_properties(file_name, document):
+            owner_pointer = occurrence.pointer.rsplit("/properties/", 1)[0]
+            if owner_pointer in external_owners or (
+                file_name == "common-ids.schema.json"
+                and "/$defs/tsp_vid/" in occurrence.pointer
+            ):
+                continue
+            terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
+            cardinalities = _shape_cardinalities(documents, file_name, occurrence.shape)
+            category, _ = _role_terminal_contract(
+                terminals, plural=cardinalities == {"array"}
+            )
+            if category in allowed_representation_profiles:
+                observed_representation_profiles.setdefault(occurrence.name, set()).add(category)
+    observed_multi_representation = {
+        field: profiles
+        for field, profiles in observed_representation_profiles.items()
+        if len(profiles) > 1
+    }
+    for field, profiles in sorted(observed_multi_representation.items()):
+        registered = multi_representation_contracts.get(field)
+        if registered != profiles:
+            lint.fail(
+                ROLE_SUFFIX_REGISTRY_PATH,
+                f"multi-representation field `{field}` resolves to {sorted(profiles)} but "
+                f"registry declares {sorted(registered) if registered is not None else None}",
+            )
+    stale_multi_representation = sorted(
+        set(multi_representation_contracts) - set(observed_multi_representation)
+    )
+    if stale_multi_representation:
+        lint.fail(
+            ROLE_SUFFIX_REGISTRY_PATH,
+            "multi-representation field contracts are stale or no longer polymorphic: "
+            f"{stale_multi_representation}",
+        )
     reached_exceptions: set[tuple[str, str]] = set()
     reached_provenance_bylines: set[str] = set()
     reached_network_locators: set[str] = set()
     reached_uri_references: set[str] = set()
     reached_origins: set[tuple[str, str]] = set()
+    reached_responsibility_contracts: set[str] = set()
     for file_name, document in documents.items():
         external_owners = {
             owner.pointer
@@ -1169,6 +1304,62 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             exception = exceptions.get((file_name, occurrence.pointer))
             exception_reason = exception[0] if exception else "none"
 
+            if name in forbidden_fields:
+                terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
+                terminal_category, _ = _role_terminal_contract(terminals, plural=False)
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: Arkret-owned responsibility field "
+                    f"`{name}` is forbidden regardless of terminal_category={terminal_category}; "
+                    "use a subject-class and carrier-specific field such as "
+                    "holder_principal_id, holder_service_id, controller_principal_id, "
+                    "controller_account_id, or controller_actor_id",
+                )
+                continue
+
+            responsibility_contract = responsibility_contracts.get(name)
+            if responsibility_contract is not None:
+                terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
+                cardinalities = _shape_cardinalities(documents, file_name, occurrence.shape)
+                terminal_category, _ = _role_terminal_contract(
+                    terminals, plural=cardinalities == {"array"}
+                )
+                required_carrier = responsibility_contract["terminal_category"]
+                if cardinalities not in ({"scalar"}, set()):
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: `{name}` must be a scalar responsibility identifier",
+                    )
+                elif terminal_category != required_carrier:
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: `{name}` resolves to "
+                        f"terminal_category={terminal_category}; required carrier is "
+                        f"{required_carrier} for subject_class={responsibility_contract['subject_class']}",
+                    )
+                if (
+                    name == "controller_principal_id"
+                    and (
+                        file_name in {
+                            "applet-package.schema.json",
+                            "applet-registration-epoch-transcript.schema.json",
+                        }
+                        or (
+                            file_name == "event-payload.schema.json"
+                            and "/$defs/applet_registration_payload/" in occurrence.pointer
+                        )
+                    )
+                    and occurrence.shape.get("x-arkret-principal-kinds")
+                    != ["human", "organization"]
+                ):
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: Applet controller_principal_id "
+                        "must declare the exact human/organization publisher-principal constraint",
+                    )
+                reached_responsibility_contracts.add(name)
+                continue
+
             if re.search(r"_by_(?:id|ids|did|dids|verification_method|verification_methods)$", name):
                 bare_byline = re.sub(
                     r"_(?:id|ids|did|dids|verification_method|verification_methods)$",
@@ -1184,25 +1375,9 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                 continue
 
             if (
-                (name.endswith("_service_id") or name.endswith("_service_ids"))
-                and name not in registered_service_roles
-            ):
-                role_stem = name.removesuffix("_service_ids").removesuffix("_service_id")
-                expected = f"{role_stem}_{'ids' if name.endswith('_ids') else 'id'}"
-                lint.fail(
-                    SCHEMA_DIR / file_name,
-                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
-                    f"role_stem={role_stem}; terminal_category=did_core_id; "
-                    f"required_subject_class=service; expected_suffix=_id; "
-                    f"exception_reason={exception_reason}; service is an entity-class "
-                    f"qualifier here, so rename `{name}` to `{expected}` and keep the "
-                    "service-only invariant in schema/authorization validation",
-                )
-                continue
-
-            if (
                 (name.endswith("_service_kind") or name.endswith("_service_kinds"))
                 and name not in registered_service_roles
+                and not name.endswith(("_service_id", "_service_ids"))
             ):
                 plural = name.endswith("_service_kinds")
                 role_stem = name.removesuffix("_service_kinds").removesuffix("_service_kind")
@@ -1222,6 +1397,7 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                 ({"service", "services"} & set(name.split("_")))
                 and name not in registered_service_roles
                 and name not in registered_service_qualified
+                and not name.endswith(("_service_id", "_service_ids"))
             ):
                 lint.fail(
                     SCHEMA_DIR / file_name,
@@ -1338,6 +1514,53 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                     )
                 reached_provenance_bylines.add(name)
                 continue
+
+            carrier_suffixes = {
+                "_principal_id": "did_core_id",
+                "_service_id": "did_core_id",
+                "_station_id": "did_core_id",
+                "_hardware_module_id": "did_core_id",
+                "_account_id": "account_id",
+                "_actor_id": "actor_id",
+            }
+            matched_carrier = next(
+                (
+                    (suffix, carrier)
+                    for suffix, carrier in carrier_suffixes.items()
+                    if name.endswith(suffix)
+                ),
+                None,
+            )
+            if matched_carrier is not None:
+                declared_suffix, required_carrier = matched_carrier
+                terminal_category, _ = _role_terminal_contract(
+                    terminals, plural=False
+                )
+                if terminal_category != required_carrier:
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: `{name}` declares "
+                        f"carrier suffix {declared_suffix} but resolves to "
+                        f"terminal_category={terminal_category}; required carrier is "
+                        f"{required_carrier}",
+                    )
+                    continue
+                if name.endswith("_station_id") and name.startswith(("holder_", "controller_")):
+                    if occurrence.shape.get("x-arkret-service-kind") != "station":
+                        lint.fail(
+                            SCHEMA_DIR / file_name,
+                            f"NC-IDROLE-001 {occurrence.pointer}: `{name}` requires "
+                            "machine-readable x-arkret-service-kind=station metadata",
+                        )
+                        continue
+                if name.endswith("_hardware_module_id") and name.startswith(("holder_", "controller_")):
+                    if occurrence.shape.get("x-arkret-required-binding") != "hardware_backed_attestation":
+                        lint.fail(
+                            SCHEMA_DIR / file_name,
+                            f"NC-IDROLE-001 {occurrence.pointer}: `{name}` requires "
+                            "machine-readable hardware-backed attestation binding",
+                        )
+                        continue
             inverse_mismatch = _representation_suffix_incompatibility(
                 name, terminals, cardinalities
             )
@@ -1353,11 +1576,20 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                     f"`{name}` declares {declared_suffix} but {mismatch_reason}",
                 )
                 continue
-            if name.endswith(("_id", "_ids")) and ("type", '"object"') in terminals:
-                if name == "account_id":
-                    # AccountId is the one closed compound identity in v1. Its two
-                    # did_core_id components are atomic identity material, not an
-                    # arbitrary embedded object or a role with a missing suffix.
+            if name.endswith(("_id", "_ids")) and (
+                ("type", '"object"') in terminals
+                or any(
+                    kind in {"account_id", "actor_id", "composite_identifier"}
+                    and value == "closed_object"
+                    for kind, value in terminals
+                )
+            ):
+                terminal_category, expected_suffix = _role_terminal_contract(
+                    terminals, plural=name.endswith("_ids")
+                )
+                if _role_name_matches_terminal(
+                    name, terminal_category or "", expected_suffix or "", grammars
+                ):
                     continue
                 expected = (
                     name.removesuffix("_ids") + "s"
@@ -1432,6 +1664,15 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             )
 
     stale_exceptions = sorted(set(exceptions) - reached_exceptions)
+    stale_responsibility_contracts = sorted(
+        set(responsibility_contracts) - reached_responsibility_contracts
+    )
+    if stale_responsibility_contracts:
+        lint.fail(
+            ROLE_SUFFIX_REGISTRY_PATH,
+            "responsibility field contracts are stale or unreachable: "
+            f"{stale_responsibility_contracts}",
+        )
     if stale_exceptions:
         lint.fail(
             ROLE_SUFFIX_REGISTRY_PATH,
@@ -1464,6 +1705,33 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             ROLE_SUFFIX_REGISTRY_PATH,
             f"registered origin fields are stale or unreachable: {stale_origins}",
         )
+
+    event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    event_registry = load_json(lint, event_registry_path)
+    authority_members: list[dict[str, Any]] = []
+
+    def collect_authority_members(value: Any) -> None:
+        if isinstance(value, dict):
+            if value.get("name") == "controller_actor_id":
+                authority_members.append(value)
+            for child in value.values():
+                collect_authority_members(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect_authority_members(child)
+
+    if isinstance(event_registry, dict):
+        collect_authority_members(event_registry)
+        if (
+            len(authority_members) != 1
+            or authority_members[0].get("terminal_category") != "actor_id"
+            or authority_members[0].get("subject_class") != "actor"
+        ):
+            lint.fail(
+                event_registry_path,
+                "Realm authority-root controller_actor_id must appear once with "
+                "machine-readable actor_id/actor projection metadata",
+            )
 
 
 def check_collection_field_contracts(lint: Lint) -> None:
@@ -1689,7 +1957,7 @@ def derive_category(
                 categories.add("registry_catalog_symbol")
                 continue
             return None
-        if kind == "composite_identifier" and value == "closed_object":
+        if kind in {"account_id", "actor_id", "composite_identifier"} and value == "closed_object":
             categories.add("responsibility_identity_material")
             continue
         return None

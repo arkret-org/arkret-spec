@@ -8,7 +8,7 @@
     "schema",
     "request_id",
     "agent_id",
-    "controller_id",
+    "controller_principal_id",
     "requested_scope",
     "verifier_id",
     "audience",
@@ -29,7 +29,7 @@
     "agent_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "controller_id": {
+    "controller_principal_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "requested_scope": {
@@ -63,7 +63,7 @@
       "items": {
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
-      "description": "At least one current controller proof. The proof verification method MUST belong to controller_id or one of its currently authorized devices. payload_digest is sha256(canonical_json(this object with proofs omitted)); detached JWS signs canonical_json({context:'ak.agent_requested_scope_disclosure_proof.v1', payload_digest, agent_id, controller_id, verifier_id, audience, challenge, verification_method, created_at})."
+      "description": "At least one current controller proof. The proof verification method MUST belong to controller_principal_id or one of its currently authorized devices. payload_digest is sha256(canonical_json(this object with proofs omitted)); detached JWS signs canonical_json({context:'ak.agent_requested_scope_disclosure_proof.v1', payload_digest, agent_id, controller_principal_id, verifier_id, audience, challenge, verification_method, created_at})."
     }
   },
   "additionalProperties": false,
