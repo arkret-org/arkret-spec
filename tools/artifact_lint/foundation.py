@@ -444,6 +444,23 @@ def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: objec
     if condition_kind not in allowed_kinds:
         lint.fail(path, f"{ref}.kind must be one of {sorted(allowed_kinds)}")
         return
+    # zh/conformance/encoding.md 9.5.1: a registry field source is explicitly
+    # sourced. A bare name would reintroduce the "try payload, then envelope"
+    # fallback that section makes undefined, and a condition decides whether a
+    # cell write happens at all, so an undefined source there is worse than in a
+    # subject. Every registered condition already carries the prefix, so this is
+    # a zero-baseline rule rather than a ratchet.
+    for member in ("field", "fields"):
+        value = condition.get(member)
+        candidates = value if isinstance(value, list) else [value]
+        for index, candidate in enumerate(candidates):
+            if not isinstance(candidate, str) or candidate.startswith("payload."):
+                continue
+            where = f"{ref}.{member}" if member == "field" else f"{ref}.{member}[{index}]"
+            lint.fail(
+                path,
+                f"{where} must be an explicitly sourced payload path: {candidate!r}",
+            )
     if condition_kind == "any_field_present":
         unknown = set(condition) - {"kind", "fields"}
         if unknown:
@@ -1125,13 +1142,40 @@ def check_state_contract_closure(lint: Lint) -> None:
             if not isinstance(requirement, dict):
                 lint.fail(path, f"{kind}.pre_state_requirements[{index}] must be an object")
                 continue
+            unknown_members = set(requirement) - {
+                "cell_family",
+                "subject",
+                "condition",
+                "predicate",
+                "failure",
+            }
+            if unknown_members:
+                lint.fail(
+                    path,
+                    f"{kind}.pre_state_requirements[{index}] has unknown member(s) "
+                    f"{sorted(unknown_members)}",
+                )
+            # event-and-patch.md 2.4.2: a requirement MAY be gated by the same
+            # closed payload-condition grammar a conditional cell write uses, so
+            # one kind can carry a per-branch pre-state rule without a second
+            # predicate vocabulary. An ungated requirement is always evaluated.
+            if "condition" in requirement:
+                lint_cell_write_condition(
+                    lint,
+                    path,
+                    f"{kind}.pre_state_requirements[{index}].condition",
+                    requirement["condition"],
+                )
             predicate = requirement.get("predicate")
             predicate_valid = isinstance(predicate, dict) and isinstance(
                 predicate.get("field"), str
             )
             if predicate_valid and predicate.get("kind") == "stored_field_present":
                 predicate_valid = set(predicate) == {"kind", "field"}
-            elif predicate_valid and predicate.get("kind") == "stored_field_equals_payload":
+            elif predicate_valid and predicate.get("kind") in {
+                "stored_field_equals_payload",
+                "stored_field_matches_payload",
+            }:
                 predicate_valid = (
                     set(predicate) == {"kind", "field", "payload_field"}
                     and isinstance(predicate.get("payload_field"), str)

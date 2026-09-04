@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9809,
+    "total_properties": 9819,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2686,
+      "optional": 2694,
       "optional_defaulted": 65,
-      "required": 6729,
+      "required": 6730,
       "required_nullable": 122,
-      "tristate": 207
+      "tristate": 208
     },
-    "tristate_occurrences": 207,
-    "tristate_audit_targets": 148,
+    "tristate_occurrences": 208,
+    "tristate_audit_targets": 149,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 139,
+      "absent_null_equivalent": 140,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -132,6 +132,7 @@
     "history-key.schema.json/$defs/history_release_attestation/allOf/4/then/properties/accepted_authority_views",
     "history-key.schema.json/$defs/source_relay_attestation/allOf/0/else/properties/source_authority_locator",
     "history-key.schema.json/$defs/source_relay_attestation/allOf/0/then/properties/source_authority_locator",
+    "holder-quarantine.schema.json/$defs/quarantine_entry/allOf/0/else/properties/consent_scope",
     "identity-resolution.schema.json/$defs/service_resolution_resolve_outcome/allOf/0/then/properties/successor_records",
     "identity-resolution.schema.json/$defs/service_route_handover_notice_core/allOf/0/then/properties/previous_notice_digest",
     "identity-resolution.schema.json/$defs/service_route_handover_notice_core/allOf/1/else/properties/notice_revision",
@@ -886,6 +887,16 @@
       "occurrences": [
         "/$defs/source_relay_attestation/allOf/0/else/properties/source_authority_locator",
         "/$defs/source_relay_attestation/allOf/0/then/properties/source_authority_locator"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "holder-quarantine.schema.json",
+      "shape": "/$defs/quarantine_entry",
+      "instance_path": "/consent_scope",
+      "occurrences": [
+        "/$defs/quarantine_entry/allOf/0/else/properties/consent_scope"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -6463,6 +6474,7 @@
         "/$defs/consent_peer/oneOf/0/properties/kind": "required",
         "/$defs/consent_peer/oneOf/1/properties/kind": "required",
         "/$defs/consent_peer/oneOf/1/properties/principal_id": "required",
+        "/$defs/consent_peer/oneOf/1/properties/realm_id": "required",
         "/$defs/consent_revoke_payload/properties/consent_id": "required",
         "/$defs/consent_revoke_payload/properties/observed_dot_ids": "required",
         "/$defs/consent_revoke_payload/properties/reason": "optional",
@@ -6718,6 +6730,7 @@
         "/$defs/identity_presentation_response_state_payload/properties/value/properties/presentation_digest": "required",
         "/$defs/identity_presentation_response_state_payload/properties/value/properties/proof_profile": "required",
         "/$defs/invite_accept_payload/properties/invite_id": "required",
+        "/$defs/invite_accept_payload/properties/invitee_account_id": "optional",
         "/$defs/invite_cancel_payload/properties/invite_id": "required",
         "/$defs/invite_cancel_payload/properties/invitee_account_id": "required",
         "/$defs/invite_cancel_payload/properties/reason": "optional",
@@ -6744,6 +6757,7 @@
         "/$defs/invite_create_payload/properties/expires_at": "required",
         "/$defs/invite_create_payload/properties/introduction_evidence_digest": "required",
         "/$defs/invite_create_payload/properties/invitee_account_id": "required",
+        "/$defs/invite_revoke_payload/allOf/0/if/properties/target_state": "required",
         "/$defs/invite_revoke_payload/properties/invite_id": "required",
         "/$defs/invite_revoke_payload/properties/invitee_account_id": "optional",
         "/$defs/invite_revoke_payload/properties/reason": "optional",
@@ -6810,13 +6824,13 @@
         "/$defs/membership_payload/properties/strand_id": "optional",
         "/$defs/mention_node/properties/agent_slug_at_time": "optional",
         "/$defs/mention_node/properties/controller_handle_at_time": "optional",
-        "/$defs/mention_node/properties/controller_subject_id": "optional",
+        "/$defs/mention_node/properties/controller_subject_account_id": "optional",
         "/$defs/mention_node/properties/display_name_at_time": "optional",
         "/$defs/mention_node/properties/handle_at_time": "optional",
         "/$defs/mention_node/properties/kind": "required",
         "/$defs/mention_node/properties/mention_text_original": "optional",
         "/$defs/mention_node/properties/resolved_at": "optional",
-        "/$defs/mention_node/properties/subject_id": "required",
+        "/$defs/mention_node/properties/subject_account_id": "required",
         "/$defs/message_create_payload/properties/agent_context": "optional",
         "/$defs/message_create_payload/properties/agent_context/properties/agent_id": "required",
         "/$defs/message_create_payload/properties/agent_context/properties/authorization_ref": "required",
@@ -8415,6 +8429,47 @@
         "/$defs/source_relay_attestation/properties/source_authorization_incarnation"
       ]
     },
+    "holder-quarantine.schema.json": {
+      "schema_ids": [
+        "ak.schema.holder_quarantine.v1"
+      ],
+      "properties": {
+        "/$defs/consent_revoke_invalidation/properties/consent_scope": "required",
+        "/$defs/consent_revoke_invalidation/properties/peer_principal_id": "required",
+        "/$defs/consent_revoke_invalidation/properties/reason": "required",
+        "/$defs/consent_revoke_invalidation/properties/removed_entries": "required",
+        "/$defs/consent_revoke_invalidation/properties/revoked_at": "required",
+        "/$defs/quarantine_entry/allOf/0/else/properties/consent_scope": "tristate",
+        "/$defs/quarantine_entry/allOf/0/if/properties/surface_kind": "required",
+        "/$defs/quarantine_entry/allOf/0/then/properties/consent_scope": "optional",
+        "/$defs/quarantine_entry/properties/account_id": "required",
+        "/$defs/quarantine_entry/properties/consent_scope": "required",
+        "/$defs/quarantine_entry/properties/effective_kind": "optional",
+        "/$defs/quarantine_entry/properties/entry_digest": "required",
+        "/$defs/quarantine_entry/properties/expires_at": "required",
+        "/$defs/quarantine_entry/properties/idempotency_key_digest": "optional",
+        "/$defs/quarantine_entry/properties/introduction_kind": "optional",
+        "/$defs/quarantine_entry/properties/invite_event_id": "optional",
+        "/$defs/quarantine_entry/properties/received_at": "required",
+        "/$defs/quarantine_entry/properties/request_digest": "optional",
+        "/$defs/quarantine_entry/properties/source_id": "required",
+        "/$defs/quarantine_entry/properties/source_peer_principal_id": "required",
+        "/$defs/quarantine_entry/properties/surface_kind": "required",
+        "/$defs/quarantine_entry/properties/trust_tier": "optional",
+        "/properties/last_invalidation": "optional",
+        "/properties/quarantine_entries": "required",
+        "/properties/schema": "required",
+        "/properties/updated_at": "required"
+      },
+      "conditionally_required": [
+        "/$defs/quarantine_entry/properties/effective_kind",
+        "/$defs/quarantine_entry/properties/idempotency_key_digest",
+        "/$defs/quarantine_entry/properties/introduction_kind",
+        "/$defs/quarantine_entry/properties/invite_event_id",
+        "/$defs/quarantine_entry/properties/request_digest",
+        "/$defs/quarantine_entry/properties/trust_tier"
+      ]
+    },
     "http-problem-details.schema.json": {
       "schema_ids": [
         "ak.schema.http_problem_details.v1"
@@ -8770,35 +8825,6 @@
         "/$defs/delivery_entry/properties/realm_id": "required",
         "/$defs/delivery_entry/properties/received_at": "required",
         "/properties/delivery_entries": "required",
-        "/properties/schema": "required",
-        "/properties/updated_at": "required"
-      }
-    },
-    "invite-quarantine.schema.json": {
-      "schema_ids": [
-        "ak.schema.invite_quarantine.v1"
-      ],
-      "properties": {
-        "/$defs/consent_revoke_invalidation/properties/consent_scope": "required",
-        "/$defs/consent_revoke_invalidation/properties/peer_principal_id": "required",
-        "/$defs/consent_revoke_invalidation/properties/reason": "required",
-        "/$defs/consent_revoke_invalidation/properties/removed_entries": "required",
-        "/$defs/consent_revoke_invalidation/properties/revoked_at": "required",
-        "/$defs/quarantine_entry/properties/account_id": "required",
-        "/$defs/quarantine_entry/properties/consent_scope": "required",
-        "/$defs/quarantine_entry/properties/effective_kind": "required",
-        "/$defs/quarantine_entry/properties/entry_digest": "required",
-        "/$defs/quarantine_entry/properties/expires_at": "required",
-        "/$defs/quarantine_entry/properties/idempotency_key_digest": "required",
-        "/$defs/quarantine_entry/properties/introduction_kind": "required",
-        "/$defs/quarantine_entry/properties/invite_event_id": "required",
-        "/$defs/quarantine_entry/properties/received_at": "required",
-        "/$defs/quarantine_entry/properties/request_digest": "required",
-        "/$defs/quarantine_entry/properties/source_id": "required",
-        "/$defs/quarantine_entry/properties/source_peer_principal_id": "required",
-        "/$defs/quarantine_entry/properties/trust_tier": "required",
-        "/properties/last_invalidation": "optional",
-        "/properties/quarantine_entries": "required",
         "/properties/schema": "required",
         "/properties/updated_at": "required"
       }
@@ -12320,6 +12346,9 @@
         "/$defs/InitialSessionGrantIntent/properties/audience_id": "required",
         "/$defs/InitialSessionGrantIntent/properties/device_id": "required",
         "/$defs/InitialSessionGrantIntent/properties/session_public_key": "required",
+        "/$defs/InviteLiveTargetOccupiedProblem/properties/create_event_id": "required",
+        "/$defs/InviteLiveTargetOccupiedProblem/properties/invite_id": "required",
+        "/$defs/InviteLiveTargetOccupiedProblem/properties/reason_code": "required",
         "/$defs/MembershipCompensationCarrierPresence/if/properties/event": "tristate",
         "/$defs/MembershipCompensationCarrierPresence/if/properties/event/properties/authorization_ref": "required",
         "/$defs/MembershipCompensationCasToken/properties/admission_id": "required",

@@ -712,7 +712,7 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 规则处理：源消息可暴露 ref 与最小 metadata，目标对象内容与 preview 必须重新按
 目标 Realm policy 授权。
 
-客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 MUST 从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 解析为 DID，并在结构化 mention 节点中以 `subject_id` 为权威字段保存解析结果。Realm message mention **MUST NOT** 自动调用外部 `ak.find.directory.read.resolve_handle.v1(intent="mention")` 来发现未知主体；当前 handle 展示可使用 roster 内联 claim，只有另有 exact AccountId 时才可调用 `ak.find.directory.read.list_handles_for_subject.v1`，不得从裸 `subject_id` 猜 Station。handle 字符串本身**不**作为权威字段进入 mention 节点；MAY 携带 §3.8.1 定义的 audit / fallback metadata（`handle_at_time` / `display_name_at_time` / `controller_subject_id` / `controller_handle_at_time` / `agent_slug_at_time` / `mention_text_original`）。授权、通知路由、audit attribution 一律按 `subject_id` 处理。
+客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 MUST 从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 解析为 DID，并在结构化 mention 节点中以 `subject_account_id` 为权威字段保存解析结果（完整 `AccountId`，含 `principal_id` 与 `station_id` 两个分量）。Realm message mention **MUST NOT** 自动调用外部 `ak.find.directory.read.resolve_handle.v1(intent="mention")` 来发现未知主体；当前 handle 展示可使用 roster 内联 claim，该调用所需的 exact AccountId 就是 mention 自己携带的 `subject_account_id`，实现 MUST NOT 从任何裸 principal 反猜 Station。handle 字符串本身**不**作为权威字段进入 mention 节点；MAY 携带 §3.8.1 定义的 audit / fallback metadata（`handle_at_time` / `display_name_at_time` / `controller_subject_account_id` / `controller_handle_at_time` / `agent_slug_at_time` / `mention_text_original`）。授权、通知路由、audit attribution 一律按 `subject_account_id` 处理，且 MUST 按完整 AccountId 逐字节比较——同 principal 不同 Station 的账号 MUST NOT 命中。
 
 Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agent mention selector：
 
@@ -720,7 +720,7 @@ Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agen
 @<controller-handle>/<agent_slug>
 ```
 
-例如 `@alice:acme.example/summary`。该 token 是**输入别名**，不是 handle 子路径；`<controller-handle>` 按上段 handle 规则解析为 controller `subject_id`，`<agent_slug>` 必须匹配 [`actor.md` §3.2](./actor.md) 的 `agent_slug` 规则。发送前客户端 MUST 验证一个当前可见的 `ak.schema.agent_selector_claim.v1`，其 `controller_subject` 等于左侧 controller `subject_id`，`agent_slug` 等于 token 右侧，`subject` 是唯一 active Agent DID，`binding_state="verified"`，`visibility` / `audience` / `claim_scope` 覆盖当前 requester 与 Realm intent，且 proof 由 controller 或 controller 授权 issuer 签发。客户端还 MUST 验证该 agent 的 Actor Profile `actor_kind="agent"`，并存在已验证 `ak.identity.accountability_grant` 证明该 agent 的 controller / accountable principal 等于 `controller_subject`。解析结果 MUST 写成普通结构化 mention 节点，`subject_id` 为 **agent principal DID**。解析不到、解析出多个 current valid selector claims、controller handle 未披露、selector claim 不可见、accountability grant 未验证或 agent profile 不可见时，客户端 MUST fail closed：不得构造 mention 节点，可要求用户从 picker 选择或把输入保留为普通文本。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
+例如 `@alice:acme.example/summary`。该 token 是**输入别名**，不是 handle 子路径；`<controller-handle>` 按上段 handle 规则解析为 controller 的完整 `AccountId`，`<agent_slug>` 必须匹配 [`actor.md` §3.2](./actor.md) 的 `agent_slug` 规则。发送前客户端 MUST 验证一个当前可见的 `ak.schema.agent_selector_claim.v1`，其 `controller_subject_id` 等于左侧 controller 账号的 principal 分量（agent selector claim 是 principal 级 selector namespace，与 mention 的账号级 target 是两个不同的登记字段），`agent_slug` 等于 token 右侧，`subject` 是唯一 active Agent DID，`binding_state="verified"`，`visibility` / `audience` / `claim_scope` 覆盖当前 requester 与 Realm intent，且 proof 由 controller 或 controller 授权 issuer 签发。客户端还 MUST 验证该 agent 的 Actor Profile `actor_kind="agent"`，并存在已验证 `ak.identity.accountability_grant` 证明该 agent 的 controller / accountable principal 等于 `controller_subject_id`。解析结果 MUST 写成普通结构化 mention 节点，`subject_account_id` 为 **agent 的完整 AccountId**（principal 分量是 agent DID，Station 分量是该 agent 账号的托管 Station）。解析不到、解析出多个 current valid selector claims、controller handle 未披露、selector claim 不可见、accountability grant 未验证或 agent profile 不可见时，客户端 MUST fail closed：不得构造 mention 节点，可要求用户从 picker 选择或把输入保留为普通文本。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_account_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
 
 任何支持跨 roster / Directory / bridge 的 selector resolve surface 都 MUST 复用 Directory 的反枚举姿态：只有当请求者已与该 agent 共享一个可见 scope、或 selector claim `visibility="public"` / 当前 `audience` 明确授权该 requester 与 `intent="mention"` 时，才可返回 agent DID 或 selector claim。未授权、slug 不存在、controller 不存在、agent 不可见、claim expired / revoked / ambiguous 等情况 MUST 使用不可区分的失败形态（例如统一 `not_found` / 空结果 / opaque denial），不得泄露"该 controller 是否拥有某 slug 的 agent"。
 
@@ -729,11 +729,14 @@ Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agen
 ```json
 {
   "kind": "mention",
-  "subject_id": "ak:did_core:webvh:z2dmjA1ice",
+  "subject_account_id": {
+    "principal_id": "ak:did_core:webvh:z2dmjA1ice",
+    "station_id": "ak:did_core:web:acme.example"
+  },
   "display_name_at_time": "Alice Zhang",
   "handle_at_time": "alice:acme.example",
   "mention_text_original": "@alice:acme.example",
-  "resolved_at": "2026-05-19T10:00:00Z"
+  "resolved_at": "2026-05-19T10:00:00.000Z"
 }
 ```
 
@@ -742,28 +745,35 @@ Agent selector 解析后的 mention 节点示例：
 ```json
 {
   "kind": "mention",
-  "subject_id": "ak:did_core:webvh:zSummaryAgent",
+  "subject_account_id": {
+    "principal_id": "ak:did_core:webvh:zSummaryAgent",
+    "station_id": "ak:did_core:web:acme.example"
+  },
   "display_name_at_time": "Alice / Summary Assistant",
-  "controller_subject_id": "ak:did_core:webvh:z2dmjA1ice",
+  "controller_subject_account_id": {
+    "principal_id": "ak:did_core:webvh:z2dmjA1ice",
+    "station_id": "ak:did_core:web:acme.example"
+  },
   "controller_handle_at_time": "alice:acme.example",
   "agent_slug_at_time": "summary",
   "mention_text_original": "@alice:acme.example/summary",
-  "resolved_at": "2026-06-11T10:00:00Z"
+  "resolved_at": "2026-06-11T10:00:00.000Z"
 }
 ```
 
 字段语义：
 
-- `subject_id`（必填）：被 mention 主体的 principal `did_core_id`。授权、通知路由、audit attribution、阅读侧渲染查找一律以此为准。
+- `kind`（必填）：`const("mention")` 节点判别器。
+- `subject_account_id`（必填）：被 mention 主体的完整 `AccountId`（`principal_id` + `station_id`）。授权、通知路由、audit attribution、阅读侧渲染查找一律以此为准，比较 MUST 覆盖两个分量。
 - `display_name_at_time`（可选）：发送时刻 subject 的 display name 快照；persistent snapshot 语义，写入后不再随 subject 改名而变化（反冒充护栏）。
 - `handle_at_time`（可选）：发送时刻的 canonical handle string；**仅** audit / debug / 全文搜索用途，**MUST NOT** 作为阅读侧主显示路径的当前 handle 来源。
-- `controller_subject_id`（可选）：当 mention 由 `@<controller-handle>/<agent_slug>` 解析而来时，记录 controller principal DID；仅 audit / debug / fallback metadata，MUST NOT 替代 `subject_id`。
+- `controller_subject_account_id`（可选）：当 mention 由 `@<controller-handle>/<agent_slug>` 解析而来时，记录 controller 的完整 `AccountId`；仅 audit / debug / fallback metadata，MUST NOT 替代 `subject_account_id`。
 - `controller_handle_at_time`（可选）：agent selector 左侧 controller handle 的 canonical 快照；仅 audit / debug / 全文搜索用途，MUST NOT 作为当前 controller 解析来源。
 - `agent_slug_at_time`（可选）：agent selector 右侧 slug 快照；仅 audit / debug / 全文搜索用途，MUST NOT 作为当前 agent 解析来源。
 - `mention_text_original`（可选）：用户键入的原始字符串（例如 `@alice:acme.example`）；audit 与搜索索引用途。
 - `resolved_at`（可选）：handle / subject / agent selector 解析时刻；audit metadata，标记 `handle_at_time`、`display_name_at_time` 或 selector 快照对应的时间点。
 
-阅读侧渲染 MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 流程解析当前 primary handle（优先使用 Realm-scoped MemberIdentity disclosure + roster handle-claim snapshot；只有另有 exact AccountId 时才回退到 live `list_handles_for_subject`），**不得**用节点内 `handle_at_time` 作为当前显示值，也不得从 mention 的裸 `subject_id` 猜 Station。`handle` 重分配的语义自然结果：旧消息里 `alice:acme.example` 这条 mention 解析到的 `subject_id` 仍是原 Alice，渲染时显示她**当前**的 primary handle；新拿到 `alice` localpart 的人是不同的 `subject_id`，不会被回填进历史 mention。若 renderer 检测到 `handle_at_time` 与当前 primary handle 不一致，MAY 加 "handle changed since" 提示（显示层增强，非 normative）。
+阅读侧渲染 MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 流程解析当前 primary handle（优先使用 Realm-scoped MemberIdentity disclosure + roster handle-claim snapshot；只有另有 exact AccountId 时才回退到 live `list_handles_for_subject`），**不得**用节点内 `handle_at_time` 作为当前显示值；mention 自己携带的 `subject_account_id` 已含 Station，渲染路径不需要、也不得再去猜。`handle` 重分配的语义自然结果：旧消息里 `alice:acme.example` 这条 mention 解析到的 `subject_account_id` 仍是原 Alice，渲染时显示她**当前**的 primary handle；新拿到 `alice` localpart 的人是不同的 `subject_account_id`，不会被回填进历史 mention。若 renderer 检测到 `handle_at_time` 与当前 primary handle 不一致，MAY 加 "handle changed since" 提示（显示层增强，非 normative）。
 
 本地没有可用的 handle / profile binding 时按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) fallback 序列降级：`display_name_at_time`（若存在）作为 "name only" 兜底；都没有则显示 truncated DID。渲染路径只读本地 accepted binding / cache，MUST NOT 为显示名称触发在线 DID 解析。任何 fallback 渲染 MUST 有视觉降级标识，不得与正常解析无差别显示。
 
@@ -771,8 +781,8 @@ Agent selector 解析后的 mention 节点示例：
 
 普通 mention 是面向单个主体的定向引用。Notification dispatcher 在从 Message 派生 `notification_kind=mention` 时 MUST 使用下列规则：
 
-- 目标 actor MUST 等于结构化 mention 节点的 `subject_id`，并且在 source event 的 causal frontier 下拥有该 Message 所在 effective scope 的读取权；否则不得产生通知，也不得把目标对象内容或 preview 泄露给该 actor。
-- 同一 Message / revision 中重复出现同一 `subject_id` MUST 去重；同一 `(actor_id, source_event_id, notification_kind=mention)` 最多产生一个 notification projection。
+- 目标 actor 的 account 分支 MUST 逐字节等于结构化 mention 节点的 `subject_account_id`（`principal_id` 与 `station_id` 都相等），并且在 source event 的 causal frontier 下拥有该 Message 所在 effective scope 的读取权；否则不得产生通知，也不得把目标对象内容或 preview 泄露给该 actor。**同 principal 不同 Station 的账号 MUST NOT 命中**：只比较 principal 分量会把通知投递给另一个 Station 上的同名 principal 账号。
+- 同一 Message / revision 中重复出现同一 `subject_account_id` MUST 去重；同一 `(actor_id, source_event_id, notification_kind=mention)` 最多产生一个 notification projection。
 - 默认情况下，发送者自己的 direct mention 不产生通知；用户可通过 actor-private push rule 显式 opt-in，但该 opt-in 不改变 shared history 或他人投影。
 - `level=muted`、个人 blocklist、DND 与更高优先级 `dont_notify` push rule MUST 覆盖 direct mention。
 - `ak.message.create` 可以产生 mention notification。`ak.message.revise` 只有在实现能证明某个 target 相比前一条 accepted visible revision 是**新增** mention 时，才 MAY 为该 revise event 派生新的 mention notification；无法证明差异时 MUST NOT 通知，避免通过反复编辑制造重复提醒。
@@ -789,7 +799,7 @@ v1 定义 audience mention 作为一等结构化 AST 节点，唯一的 wire 承
   "kind": "audience_mention",
   "audience": "effective_scope_members",
   "mention_text_original": "@all",
-  "resolved_at": "2026-05-31T10:00:00Z"
+  "resolved_at": "2026-05-31T10:00:00.000Z"
 }
 ```
 

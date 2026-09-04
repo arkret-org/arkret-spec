@@ -103,7 +103,10 @@ final 不同不构成 Content schema 错误。
   "mentions": [
     {
       "kind": "mention",
-      "subject_id": "ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4",
+      "subject_account_id": {
+        "principal_id": "ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4",
+        "station_id": "ak:did_core:web:acme.example"
+      },
       "mention_text_original": "@bob"
     }
   ]

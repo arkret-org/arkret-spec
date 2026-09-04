@@ -168,7 +168,7 @@
       ]
     },
     "introduction_kind": {
-      "$ref": "./invite-quarantine.schema.json#/$defs/introduction_kind"
+      "$ref": "./holder-quarantine.schema.json#/$defs/introduction_kind"
     },
     "disclosure_level": {
       "type": "string",

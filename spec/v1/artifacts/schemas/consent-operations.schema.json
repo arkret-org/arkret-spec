@@ -209,7 +209,11 @@
         },
         "consent_scope": {
           "$ref": "#/$defs/consent_scope",
-          "default": "direct_message"
+          "not": {
+            "const": "invite"
+          },
+          "default": "direct_message",
+          "description": "Requested scope, taken from the section 4 enum minus invite. An invite-scope request has no carrier here: it would have to become a holder_quarantine entry whose surface_kind is consent_request, and that branch pins consent_scope away from invite because an invite belongs to invite delivery. Rejecting it at the request boundary keeps the server from inventing a behaviour for a scope it can never store."
         }
       },
       "additionalProperties": false

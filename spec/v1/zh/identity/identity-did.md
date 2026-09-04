@@ -509,7 +509,11 @@ Resolver policy MUST 至少定义：
   对应 `role_requirements` 推导，不能由一个 `long_lived_principal` 条件代替。human anchor 当前为
   `did:webvh` + `did:web` + `did:key`；MTI 仍只有 `did:webvh`。
   ephemeral actor 必须声明 `ak.profile.ephemeral_pairwise_principal.v1` 并以 exact accepted MLS
-  LeafNode 为唯一 authority。deployment policy 只能收紧，不能增加任何角色的 method。
+  LeafNode 为唯一 authority；它作者 Event 时 envelope `actor_id` 的 `station_id` 分量是当次
+  hosting Station。Realm 内状态仍按完整 `ActorId` 定址；只有 Realm 之外的持有方（consent peer 匹配、
+  KeyPackage claim 授权两处）改用 `(realm_id, principal_id)` 作匹配键，判据与封闭列举见
+  [`../crypto-media/encryption-and-audit.md` §2.7](../crypto-media/encryption-and-audit.md)。
+  deployment policy 只能收紧，不能增加任何角色的 method。
 - trust roots：webvh witness / watcher、DNS / HTTPS trust、PLC directory / mirror（仅 AT 互通）、KERI watcher、chain namespace allowlist 等。
 - method capability：该 method 是否支持 rotation、recovery、deactivation、service endpoint、historical resolution、witness evidence。
 - privacy handling：是否允许公开解析、是否需要 holder-approved proof、pairwise DID 是否禁止 directory 查询。

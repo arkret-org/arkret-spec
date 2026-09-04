@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.5",
+  "version": "2026-09-05.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T23:25:00+08:00",
+  "generated_at": "2026-09-05T10:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -357,13 +357,13 @@
       }
     },
     {
-      "schema_id": "ak.schema.invite_quarantine.v1",
-      "file": "schemas/invite-quarantine.schema.json",
+      "schema_id": "ak.schema.holder_quarantine.v1",
+      "file": "schemas/holder-quarantine.schema.json",
       "status": "active",
-      "description": "Actor-private plaintext account-data cell value of ak.account.invite_quarantine, written only by the recipient Station CAS materializer. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
+      "description": "Actor-private plaintext account-data cell value of ak.account.holder_quarantine, written only by the recipient Station CAS materializer. surface_kind discriminates invite_delivery from consent_request. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
       "consumer_binding": {
         "kind": "account_data_plaintext",
-        "selector": "account_data key ak.account.invite_quarantine",
+        "selector": "account_data key ak.account.holder_quarantine",
         "normative_ref": "zh/identity/consent-model.md"
       }
     },

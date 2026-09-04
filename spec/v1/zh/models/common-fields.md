@@ -411,8 +411,8 @@ value category，不会自动触发 DID Document 解析或在线验证。
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的完整 ActorId，由 reducer 从 Event `actor_id` 原样派生；不得只保存其中的 principal DID。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing actor 语义。 |
 | `issuer_id` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim、SessionGrant | 签发授权、receipt、claim 或 credential 的主体 `did_core_id`；必须持有签发权限。 |
 | `subject` | Capability Grant | 唯一登记的 closed polymorphic subject：principal `did_core_id` 或带 discriminator 的 condition selector。裸名表示整个闭合 union，不是稳定 ID 的别名。 |
-| `subject_account_id` | Handle claim 与账号寻址 | 必须是 exact AccountId；不得降级为裸 principal DID。Agent Selector / Mention 中的 Principal 级引用使用各自登记的 typed identity 字段，不构成另一种账号身份。 |
-| `controller_subject_id` | Agent Selector Claim、事件 mention metadata | 拥有 controller-scoped agent selector namespace 的 controller principal `did_core_id`。 |
+| `subject_account_id` | Handle claim、账号寻址与 mention target | 必须是 exact AccountId；不得降级为裸 principal DID。mention 节点的权威 target 就是本字段（[`../identity/identity-handles.md` §3.8](../identity/identity-handles.md)）。Agent Selector Claim 的 principal 级 selector namespace 是另一件事，使用它自己登记的 `controller_subject_id` / `subject_id`，不构成另一种账号身份。 |
+| `controller_subject_id` | Agent Selector Claim | 拥有 controller-scoped agent selector namespace 的 controller principal `did_core_id`。事件 mention 的 controller audit metadata 另用账号级 `controller_subject_account_id`，两者不可互换。 |
 | `inviter_account_id` / `invitee_account_id` | Account-addressed Invite | 邀请方 / 被邀请方 exact AccountId；通用 membership target 使用 ActorId。 |
 | `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal `did_core_id`（每个条目须有对应 active `ak.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
 | `agent_id` / `audit_actor_id` | Agent key payload、Audit release evidence | agent / audit release service 作为协议责任主体时使用 `did_core_id`；承载运行或托管服务身份时另用 `service_id`。 |

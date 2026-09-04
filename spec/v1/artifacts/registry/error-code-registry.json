@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-05.1",
-  "generated_at": "2026-09-05T00:40:00+08:00",
+  "version": "2026-09-05.2",
+  "generated_at": "2026-09-05T10:20:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3885,6 +3885,14 @@
         "auth_decision"
       ],
       "description": "ak.invite.cancel targeted a token/3PID Invite without a stored direct invitee binding. Only ak.invite.revoke may terminate that Invite class."
+    },
+    {
+      "code": "invite_live_target_occupied",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Sub-reason for failed_precondition when ak.invite.create targets an account whose Realm live-target slot ak.component.invite.live_target.v1 is already claimed by another live directed Invite. The Event is not accepted, enters no canonical history and derives no cell write; the closed error.details is InviteLiveTargetOccupiedProblem carrying the occupying invite_id and create_event_id. See zh/models/governance-objects.md section 5.3."
     },
     {
       "code": "invite_oob_entropy_too_low",

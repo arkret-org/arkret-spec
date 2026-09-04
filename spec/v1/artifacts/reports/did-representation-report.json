@@ -101,7 +101,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 8
+        "did_core_id": 7
       },
       "reason": "Contact concurrency requires exact actor identity while claims and selectors intentionally identify stable principals."
     }
@@ -3789,16 +3789,6 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/consent_peer/oneOf/1/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "event-payload.schema.json#/$defs/content_block/properties/reply_context/properties/sender_actor_id",
       "property_name": "sender_actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -3966,6 +3956,16 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "event-payload.schema.json#/$defs/invite_accept_payload/properties/invitee_account_id",
+      "property_name": "invitee_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
       ]
     },
     {
@@ -4149,23 +4149,23 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/mention_node/properties/controller_subject_id",
-      "property_name": "controller_subject_id",
+      "schema_path": "event-payload.schema.json#/$defs/mention_node/properties/controller_subject_account_id",
+      "property_name": "controller_subject_account_id",
       "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
+      "representation_profile": "account_id",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:did_core_id"
+        "ref:account_id"
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/mention_node/properties/subject_id",
-      "property_name": "subject_id",
+      "schema_path": "event-payload.schema.json#/$defs/mention_node/properties/subject_account_id",
+      "property_name": "subject_account_id",
       "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
+      "representation_profile": "account_id",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:did_core_id"
+        "ref:account_id"
       ]
     },
     {
@@ -5329,6 +5329,46 @@
       ]
     },
     {
+      "schema_path": "holder-quarantine.schema.json#/$defs/consent_revoke_invalidation/properties/peer_principal_id",
+      "property_name": "peer_principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "holder-quarantine.schema.json#/$defs/quarantine_entry/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "holder-quarantine.schema.json#/$defs/quarantine_entry/properties/source_id",
+      "property_name": "source_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "holder-quarantine.schema.json#/$defs/quarantine_entry/properties/source_peer_principal_id",
+      "property_name": "source_peer_principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "ice-config-response.schema.json#/$defs/signature/properties/kid",
       "property_name": "kid",
       "semantic_category": "responsibility_identity_material",
@@ -5646,46 +5686,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "invite-quarantine.schema.json#/$defs/consent_revoke_invalidation/properties/peer_principal_id",
-      "property_name": "peer_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "invite-quarantine.schema.json#/$defs/quarantine_entry/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "invite-quarantine.schema.json#/$defs/quarantine_entry/properties/source_id",
-      "property_name": "source_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "invite-quarantine.schema.json#/$defs/quarantine_entry/properties/source_peer_principal_id",
-      "property_name": "source_peer_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {

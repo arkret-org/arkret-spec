@@ -255,7 +255,7 @@
         },
         "mentions": {
           "type": "array",
-          "description": "Structured direct mention AST nodes for this Content Block. This is the only carrier of a direct mention: authorization, notification routing and audit attribution read mention_node.subject_id exclusively (zh/models/strand-and-message.md §9.4.1-§9.4.2).",
+          "description": "Structured direct mention AST nodes for this Content Block. This is the only carrier of a direct mention: authorization, notification routing and audit attribution read mention_node.subject_account_id exclusively, and compare it as a complete AccountId (zh/models/strand-and-message.md §9.4.1-§9.4.2).",
           "items": {
             "$ref": "#/$defs/mention_node"
           }

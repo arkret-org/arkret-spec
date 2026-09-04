@@ -27,21 +27,36 @@
       "changed_agent_slug": "digest",
       "changed_agent_subject": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicedigest",
       "persisted_mention": {
-        "subject_id": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary",
-        "controller_subject": "ak:did_core:webvh:z6mkfixtureacmeexampleusersalice",
+        "subject_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "controller_subject_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureacmeexampleusersalice",
+          "station_id": "ak:did_core:web:acme.example"
+        },
         "agent_slug_at_time": "summary",
         "mention_text_original": "@alice:acme.example/summary"
       },
       "expected": {
         "ambiguous_selector": "fail_closed",
         "unavailable_selector": "fail_closed",
-        "historical_target_after_slug_change": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary"
+        "historical_target_after_slug_change": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "same_principal_other_station_account": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary",
+          "station_id": "ak:did_core:web:other.example"
+        },
+        "same_principal_other_station_matches": false
       },
       "assertions": [
-        "selector resolution binds the persisted mention subject_id to the agent DID",
+        "selector resolution binds the persisted mention subject_account_id to the agent complete AccountId, principal and Station component both",
         "controller, slug and original text are audit metadata only",
         "slug changes do not rewrite historical mention targets",
-        "ambiguous or unavailable selector claims fail closed"
+        "ambiguous or unavailable selector claims fail closed",
+        "a member account with the same principal on another Station does not match the mention: comparison covers principal_id and station_id, so it produces no mention notification and no authorization or MemberIdentity join hit"
       ]
     },
     {

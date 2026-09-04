@@ -397,7 +397,14 @@ verifier MUST 验证 canonical handle、closed AccountId、issuer authority、pr
 过期或 issuer 无权时 MUST fail closed。通过这些检查仍只得到寻址结果，不能直接写 membership。
 ### 3.8 Mention Reference 与 Display Snapshot（normative）
 
-事件内对某 subject 的引用——@mention、reply target、quoted profile、forwarded message 的原作者引用、reaction 的目标等——**权威引用字段** MUST 使用完整 `AccountId`（`subject_account_id`），不得用裸 DID、`did_core_id` 或 handle 字符串作为 actor 归因、授权判断、解析路径的唯一来源。同一事件 MAY 同时携带 handle / display name / controller-scoped agent selector 的历史快照作为 audit / search / 兜底展示的 metadata（见 §3.8.1），但这些 metadata 字段不参与协议层信任决策（见 §3.8.3）。
+事件内对某 subject 的引用，其**权威引用字段** MUST 使用完整 `AccountId`（`subject_account_id`），不得用裸 DID、`did_core_id` 或 handle 字符串作为 actor 归因、授权判断、解析路径的唯一来源。
+
+**适用范围（normative，逐条对应 v1 wire）**：v1 中自带 subject 载体的引用只有 mention 一处，本节的 `subject_account_id` 规则即指它——`event-payload.schema.json#/$defs/mention_node`，经 `content_block.mentions[]` 承载（[`../models/strand-and-message.md` §9.4](../models/strand-and-message.md)）。其余同族引用在 v1 里各有自己的已登记载体，**都已经是 exact 形态、都不是裸 principal**，本节不改写它们：
+- reply target 的作者引用是 `content_block.reply_context.sender_actor_id`，类型为完整 `ActorId`（它引用的是一条已签名 Event 的作者，作者身份的登记类型就是 ActorId）；
+- reaction 的目标是 `reaction_payload.target_ref`（object ref），发起方身份来自 envelope `actor_id`，该 payload 没有、也不需要 subject 载体；
+- quoted profile 与 forwarded message 在 v1 wire 上没有独立的 `$defs`，因此没有可被本节约束的字段；MIMI 互通的 `mimi_message_provenance.attributed_sender_actor_id` 同样是完整 `ActorId`。
+
+共同的硬约束只有一条：**任何一侧都不得退化到裸 `principal_id` 比较**（[`common-ids.schema.json#/$defs/actor_id`](../../artifacts/schemas/common-ids.schema.json) 明文禁止），也不得把同 principal 的另一 Station 账号合并（[`../discovery/discovery-directory.md` §9](../discovery/discovery-directory.md)）。AccountId 与 ActorId 的选择按被引用者的角色决定：mention 寻址的是**账号**，故用 `AccountId`；Event 作者身份寻址的是**actor**，故用 `ActorId`。同一事件 MAY 同时携带 handle / display name / controller-scoped agent selector 的历史快照作为 audit / search / 兜底展示的 metadata（见 §3.8.1），但这些 metadata 字段不参与协议层信任决策（见 §3.8.3）。
 
 该规则的根本动因：handle 的 `<domain>` 部分是 issuer 的 authority domain（组织 / holder 自己持有的域名），不是 subject 用户控制的标识。如果把 domain 作为**权威**引用字段持久化进每一个引用点，issuer 的 DNS 治理成本（domain 迁移、authority 重命名）就会转嫁给所有历史事件，并被迫做事件改写。完整 `AccountId` 才是稳定账号标识；裸 DID / `did_core_id` 只承担解析与控制角色，handle 是稳定标识的可读 label，由解析层实时计算；事件内的 handle metadata 只是"当时是什么"的 audit 快照，不是"现在是什么"的真相源。
 
@@ -409,6 +416,7 @@ mention reference / profile snapshot 的 normative shape：
 
 | 字段 | 类型 | 必填 | 用途 |
 | --- | --- | --- | --- |
+| `kind` | `const("mention")` | MUST | 节点判别器；`content_block.mentions[]` 只承载该一种 canonical 形态。 |
 | `subject_account_id` | `AccountId` | MUST | 被引用账号的完整稳定标识（含 principal 与 Station 分量）；唯一参与 actor 归因、授权判断、解析路径与渲染查找的字段。 |
 | `display_name_at_time` | string | MAY | event 时刻 subject 的 display name 快照；持久化、不再更新；renderer MAY 直接显示。 |
 | `handle_at_time` | canonical handle string（§3.1 主形态） | MAY | event 时刻 subject 的 handle 快照；**仅** audit / debug / 全文搜索 / 历史回溯用途；**MUST NOT** 作为当前显示标识。 |
@@ -430,7 +438,13 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（HandleClaim sta
    - 实时渲染使用当前 effective set；
    - 历史 replay / audit 使用 resolution_as_of 时刻的 as-of effective set；
    - 若实现无法构造对应 as-of snapshot，step 1 失败。
-   在该 snapshot 中筛选 subject_account_id == mention.subject_account_id 的 MemberIdentity 候选。
+   在该 snapshot 中筛选与 `mention.subject_account_id` 匹配的 MemberIdentity 候选。
+   **联接键（normative）**：MemberIdentity 声明的是 `subject_actor_id: ActorId`（[`member-identity.schema.json`](../../artifacts/schemas/member-identity.schema.json)），
+   而 mention 携带的是 `AccountId`，因此联接式固定为：取 `subject_actor_id.kind == "account"` 的候选，
+   再把其 `subject_actor_id.account_id` 与 `mention.subject_account_id` 逐字节比较（`principal_id` 与
+   `station_id` 两个分量都必须相等）。`service` 分支**不参与** mention 解析与 handle projection：
+   mention 寻址的是账号，service actor 没有可被 @ 的账号身份。实现 MUST NOT 用 `principal_id`
+   单独比较来"放宽"该联接。
    若候选数量不等于 1，step 1 失败（包括并发写入造成同一 actor
    存在多个 effective MemberIdentity 的情况），进入 step 2。
    对唯一候选 M：

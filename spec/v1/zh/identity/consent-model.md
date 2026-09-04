@@ -85,7 +85,9 @@ ControlMove(ak.consent.grant) {
   actor_id      = holder DID
   payload       = {
     consent_id: <consent_id>,
-    peer: "ak:did_core:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip",
+    peer: {kind: "actor", actor_id: {kind: "account", account_id: {
+      principal_id: "ak:did_core:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip",
+      station_id: "ak:did_core:web:peer.example"}}},
     consent_scope: "invite",
     not_before: "2026-05-07T00:00:00Z",
     expires_at: "2026-12-31T00:00:00Z",
@@ -106,7 +108,12 @@ entry。该投影不是 Event wire 字段。
 字段语义：
 
 - `intent.consent_id`：consent cell subject。同一 holder 对同一 peer 的不同 consent_scope 用不同 consent_id。
-- `intent.peer`：闭合 `consent_peer`。ordinary account、Agent 与 MIMI exact correlation 使用 `{kind:"actor",actor_id:ActorId}`，完整保留 Account Station 与 actor role；只有已接受 Realm-local pairwise binding 使用 `{kind:"pairwise_principal",principal_id:DidCoreId}`。不得把普通账号的 principal core 填入 pairwise 分支，也不得把同 core 异 Station / 异角色 Actor 当作同一 peer。
+- `intent.peer`：闭合 `consent_peer`，两个分支的语义互斥且**跨 kind 永不匹配**（见 §6.1 查询步骤 1）。
+  - `{kind:"actor",actor_id:ActorId}`：ordinary account、Agent、**为每段关系另铸 principal 的 pseudonymous Account**、以及 MIMI exact correlation 一律走这一支，完整保留 Account Station 与 actor role。不得把同 core 异 Station / 异角色 Actor 当作同一 peer。
+  - `{kind:"pairwise_principal",realm_id:RealmId,principal_id:DidCoreId}`：**唯一表示 minimal-metadata Realm 的 Realm-local ephemeral pairwise actor**（[`identity-did.md` §3.1](./identity-did.md) 的 `ak.profile.ephemeral_pairwise_principal.v1`；该 actor 不建账号 / PCR / 设备目录，authority 完全来自 `realm_id` 所指 Realm 中一条 active LeafNode，见 [`../crypto-media/encryption-and-audit.md` §2.7](../crypto-media/encryption-and-audit.md)）。因为这种 actor **脱离该 Realm 就不存在**，`realm_id` 是必填载体；consent Event 位于 holder PCR，其 envelope `realm_id` 是 holder 自己的 PCR，**不能**充当该绑定。`principal_id` MUST 是 `ak:did_core:key:` 形态。不得把普通账号的 principal core 填入本分支。
+  - **不携带 `pairwise_verification_method`**：`did:key` 的 method URL 与 `ak:did_core:key:` 投影一一对应，另设字段即平行 principal 镜像；consent peer 是匹配键，不承担签名验证。
+  - **不携带 binding Event ref / binding digest / epoch / leaf selector。** 三条理由任一独立成立：v1 没有「accepted pairwise binding Event」这个对象，binding 就是该 Realm 内的 MLS LeafNode，要求 ref 等于发明一个新 Event 类型；LeafNode 每次 commit 都会变，把 epoch / leaf 冻进 holder PCR 的 grant Event 下一个 commit 即陈旧，而跨 epoch 稳定的身份恰好就是 `did:key` 投影的 `principal_id`（rebinding = 换 key = 换 actor = 换 peer，本来就该是一条新 consent entry）；holder PCR 对 Collaboration Realm history 没有也不应有可验证视图，要求写入时证明外部 Realm 的当前态，是把浮动远端状态钉进 frozen Seal basis。
+  - **「只有已接受 binding」的强制点在匹配时点，不在写入时点（normative）**：Event admission 只验证闭合形态、`realm_id` 合法、`principal_id` 形态、以及 peer principal ≠ holder principal，**不**查询任何外部 Realm。holder 若填了未接受、跨 Realm 或凭空生成的值，该 entry 在 §6.1 匹配时永远命中不了，等价 no-consent，fail closed；伪造只能自伤，不产生任何越权。holder 离开该 Realm 后不再有该 Realm 的 view，pairwise entry 自然永不匹配，规范不需要额外的可见性或删除规则。
 - `intent.consent_scope`：详见 §4。
 - `not_before` / `expires_at`：时间窗口（可选）。窗口外 consent 不生效，相当于 implicit revoke（不需要单独的 revoke Control Move）。
 - `evidence_ref`：可选审计链——指向引发此 consent 的 claim disclosure / presentation response / invite proof Event。
@@ -258,7 +265,7 @@ Consent cell 是 or_set lattice（dot-based observed-remove，详见 [`event-aut
 
 ### 6.1 Invite 前置 gate
 
-Peer 发送 invite Control Move 时，consent gate 在 **holder 的 Station** 于 invite / contact delivery admission（[`../sync/invite-addressing.md` §7](../sync/invite-addressing.md) 第 8 步；同 Station 本地分支从第 4 步起执行同一套验证）查询 holder 的 consent cell。Consent cell 位于 holder PCR，而目标 invite Move 位于目标 Realm；因此该检查是**跨 Realm operation admission gate**，不是 CBA `preconditions[]`。CBA precondition 只能引用并求值同一目标 Realm 的 cell；producer、facade 与 reducer MUST NOT 把 holder PCR cell id、跨 Realm state root 或 consent query result 塞进目标 Move 的 `preconditions[]`，目标 Realm reducer也不得读取 holder PCR 当前态作为本 Realm reducer 输入。邀请方 Station / facade 在提交目标 Realm Control Move 前 MAY 预检 consent，但只能基于同一受信服务边界内已验证的 holder PCR view，或 holder 主动披露的 §2.1 / §6.2.2 audience-bound green-light；跨 Station 时 MUST NOT 读取 holder consent cell（§6.1.2），且「没有 active grant」MUST NOT 被转换为 inviter 客户端可见的 `failed_precondition` 或任何可区分错误——self dispatch 面的 `failed_precondition` 子理由封闭为 `invite_event_unaccepted` / `invite_event_actor_mismatch` 两条（[`../sync/invite-addressing.md` §7](../sync/invite-addressing.md)）。查询强度按 holder 选择的 **consent profile** 分两档。profile 的唯一 carrier 是 subject 私有 `ak.schema.invite_receive_policy.v1` 的 `consent_profile` 字段（`default | require_explicit_consent`，省略即 `default`，见 [`../sync/invite-addressing.md` §5](../sync/invite-addressing.md)）：它不经 `ServiceDescribe` 广告，MUST NOT 被 requester 或 peer Station 观察；与 Realm 级 `preauth.consent_required` 是两个独立维度，后者只强制本 gate 对该 Realm 全部 invite 执行，不选择也不覆盖 holder 的 profile。（与 §4.1.2 invite gate cache 的 revoke 后 MUST 重判咬合：被 eager invalidate 的 cache 在下一次 invite 时，`require_explicit_consent` profile 下 MUST 走完整重判，旧 cache MUST NOT 让 holder Station 放行）：
+Peer 发送 invite Control Move 时，consent gate 在 **holder 的 Station** 于 invite delivery admission（[`../sync/invite-addressing.md` §7](../sync/invite-addressing.md) 第 8 步；同 Station 本地分支从第 4 步起执行同一套验证）查询 holder 的 consent cell。**Contact delivery 不在本 gate 内**：Contact request / response、Contact-based create/send 与 Personal DM 按 [`contact-and-direct-conversation.md` §1](./contact-and-direct-conversation.md) 与 [`../sync/service-http-binding.md`](../sync/service-http-binding.md) 的 `POST /_arkret/self/contacts/request` 行**不读写 Consent**，只读双方 holder-signed directional Contact heads；它们仍受 §6.1.1 的 new-source quota 计费，但那是反滥用面，不是 consent gate（见 §6.1.1.3）。Consent cell 位于 holder PCR，而目标 invite Move 位于目标 Realm；因此该检查是**跨 Realm operation admission gate**，不是 CBA `preconditions[]`。CBA precondition 只能引用并求值同一目标 Realm 的 cell；producer、facade 与 reducer MUST NOT 把 holder PCR cell id、跨 Realm state root 或 consent query result 塞进目标 Move 的 `preconditions[]`，目标 Realm reducer也不得读取 holder PCR 当前态作为本 Realm reducer 输入。邀请方 Station / facade 在提交目标 Realm Control Move 前 MAY 预检 consent，但只能基于同一受信服务边界内已验证的 holder PCR view，或 holder 主动披露的 §2.1 / §6.2.2 audience-bound green-light；跨 Station 时 MUST NOT 读取 holder consent cell（§6.1.2），且「没有 active grant」MUST NOT 被转换为 inviter 客户端可见的 `failed_precondition` 或任何可区分错误——self dispatch 面的 `failed_precondition` 子理由封闭为 `invite_event_unaccepted` / `invite_event_actor_mismatch` 两条（[`../sync/invite-addressing.md` §7](../sync/invite-addressing.md)）。查询强度按 holder 选择的 **consent profile** 分两档。profile 的唯一 carrier 是 subject 私有 `ak.schema.invite_receive_policy.v1` 的 `consent_profile` 字段（`default | require_explicit_consent`，省略即 `default`，见 [`../sync/invite-addressing.md` §5](../sync/invite-addressing.md)）：它不经 `ServiceDescribe` 广告，MUST NOT 被 requester 或 peer Station 观察；与 Realm 级 `preauth.consent_required` 是两个独立维度，后者只强制本 gate 对该 Realm 全部 invite 执行，不选择也不覆盖 holder 的 profile。（与 §4.1.2 invite gate cache 的 revoke 后 MUST 重判咬合：被 eager invalidate 的 cache 在下一次 invite 时，`require_explicit_consent` profile 下 MUST 走完整重判，旧 cache MUST NOT 让 holder Station 放行）：
 
 - **`require_explicit_consent` profile**：holder Station **MUST** 查询 holder consent cell；只有已验证的 `consent_grant` introduction evidence（exact holder 给 inviter 的 active `invite` / `any` grant dot）可以通知 holder，其余一律按 §6.1 step 2 静默丢弃（consent gate 强制，但属于 operation admission，不是 Event/CBA precondition）。
 - **default profile**：holder Station **SHOULD** 查询；无 active grant 时 MAY 进入 holder quarantine inbox（见 §6.1 step 2 与下述 quarantine inbox 定义）,而非直接拒绝或放行。
@@ -266,6 +273,11 @@ Peer 发送 invite Control Move 时，consent gate 在 **holder 的 Station** �
 查询步骤：
 
 1. 调用 holder 的 principal control Realm（或受托 contact discovery service）查询所有候选 consent cell（subject 由 holder consent 命名约定决定），跑 or_set join 后筛选 `value.intent` 匹配 `(peer=requester, scope="invite" OR consent_scope="any")` 当前 active 的 dot 集合。
+   **`peer=requester` 是分类型精确匹配，跨 kind 永不匹配（normative）**：
+   - 已认证对端是普通 Account / Agent / pseudonymous Account / service Actor 时，**只**与 `{kind:"actor"}` entry 按**完整 ActorId**（含 Station 与 role）比较，MUST NOT 降维到 principal core；
+   - 已认证对端是 Realm-local ephemeral pairwise actor 时，**只**与 `{kind:"pairwise_principal"}` entry 按 `(realm_id, principal_id)` 比较，且该 actor MUST 是 `realm_id` 所指 Realm **当前** active LeafNode 所投影的 actor；
+   - 两类 entry 之间 MUST NOT 互相命中。把 peer 折叠成裸 `DidCoreId` 再比较（无论哪一侧）MUST 视为不合规：它同时制造「异 Station / 异角色 Actor 被当作同一 peer」与「pairwise 值冒充普通 Account」两条越权路径。
+   **隔离键（normative）**：pairwise peer 按 `(realm_id, principal_id)` 隔离，**不聚合**。同一 `principal_id` 出现在不同 Realm 时是不同 peer；这与 [`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) 中「客户端把已绑定另一 Realm 的同一 pairwise key / ActorId 用于本 Realm：本地拒绝」一致，consent cell MUST NOT 替这种违规兜底聚合。§8.1 的 holder-side 聚合 revoke 仍只是本地组织能力，不进入 wire 语义。
 2. 若没有匹配的活跃 grant：
    - **`require_explicit_consent` profile**：holder Station MUST 静默丢弃该 delivery——不写 quarantine cell、不计 §6.1.1 新来源 ledger、不写任何 holder-private cell、不通知；对 requester 返回与 §6.1.1 五元等价类**逐字节相同**的 opaque `status="deferred"` 且不携带 `disclosed_outcome`，无论 evidence 信任档与 `invite_receive_policy.disclosure` / `disclosure_max` 取值（该情形是等价类中「holder policy deny」成员，profile 本身不可观察）。MUST NOT 返回 `failed_precondition` 或任何可区分错误码，也不得创建一个随后等待目标 reducer 读取 holder PCR 的 pending Move。Peer 只能在 holder 主动授权（holder 自行构造 §3.2 grant，或经 `ak.private_contact_discovery.v1` 等 holder 主导机制）后重试。
    - **default profile**：invite MAY 进入 holder 的 quarantine inbox（"陌生人邀请"），由 holder 在 UI 上 review 后构造 grant Control Move 或丢弃。
@@ -277,9 +289,14 @@ Peer 发送 invite Control Move 时，consent gate 在 **holder 的 Station** �
 
 §3.1 缺省判定与 §6.1 step 2 提到的 **quarantine inbox** 是 default profile 下"无 active consent 的 invite"既不直接拒绝、也不直接放行的暂存区，其最小定义如下：
 
-- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder 的 Station CAS account-data cell（key `ak.account.invite_quarantine`，plaintext value 符合 `ak.schema.invite_quarantine.v1`）。权威 register 通过 account subscribe 顶层 `account_data.station_cas` 的 complete baseline 与 cursor-covered upsert/remove 持续投影；`ak.self.account_data.read.list.v1` / `.resource.get.v1` 是诊断与定点恢复面，`to_device.messages[]` 中的 `ak.account_data.update` 只是低延迟加速。该 CAS-only cell **不会**出现在 `delta.account_data.events[]`，也不得被合成为 authorless 或 service-authored `ak.account_data.set` Event。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。`quarantine_entries[]` 的成员资格本身固定表达 pending-review；entry 不携 `status="pending_review"`，离开该状态即从数组删除。
+- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder 的 Station CAS account-data cell（key `ak.account.holder_quarantine`，plaintext value 符合 `ak.schema.holder_quarantine.v1`，机读真源 [`holder-quarantine.schema.json`](../../artifacts/schemas/holder-quarantine.schema.json)）。权威 register 通过 account subscribe 顶层 `account_data.station_cas` 的 complete baseline 与 cursor-covered upsert/remove 持续投影；`ak.self.account_data.read.list.v1` / `.resource.get.v1` 是诊断与定点恢复面，`to_device.messages[]` 中的 `ak.account_data.update` 只是低延迟加速。该 CAS-only cell **不会**出现在 `delta.account_data.events[]`，也不得被合成为 authorless 或 service-authored `ak.account_data.set` Event。每条暂存项记录待 review 的引用，**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。`quarantine_entries[]` 的成员资格本身固定表达 pending-review；entry 不携 `status="pending_review"`，离开该状态即从数组删除。
+- **两个封闭分支（normative）**：entry 携带封闭判别器 `surface_kind ∈ {invite_delivery, consent_request}`，未登记取值 fail closed。公共字段为 `entry_digest` / `account_id` / `source_peer_principal_id` / `source_id` / `surface_kind` / `consent_scope` / `received_at` / `expires_at`；分支私有字段各自闭合：
+  - `invite_delivery`：MUST 携带 `introduction_kind` / `effective_kind` / `trust_tier` / `invite_event_id` / `request_digest` / `idempotency_key_digest`，且 `consent_scope` 固定为 `invite`。该分支的约束与判别器引入之前逐字相同，不因此放松任何一项。
+  - `consent_request`：**不携带任何 Event ref**——§6.1.2 的请求根本不产生 Event。上述六个字段在该分支 **MUST NOT** 出现：consent request 没有 introduction evidence，填任何值都是伪造；而 `ak.self.consent.command.request.v1` 是 `idempotency_mechanism="none"` / `retry_safe=false` / `durable_effect.kind=none`，body 只有 `holder_account_id` 与 `consent_scope`（闭合），两个 digest 在该分支**无源可取**。`consent_scope` 取 §4 枚举**去掉 `invite`**：scope 为 invite 的请求本来就该走 invite delivery。
+  - **不为 `consent_request` 新增第三个 digest**。它的去重键是 holder 本地的 **live-entry 唯一性**：`(account_id, source_peer_principal_id, consent_scope)` 上同时至多一条非终态 entry。live 期间的重复请求是 no-op、不计 §6.1.1 quota；entry 终结（holder 接受 / 丢弃 / `expires_at` 到达）之后的同 tuple 请求是一条新 entry。wire 上不存在任何能区分"合法重复"与"replay"的信息（body 无 nonce、无时间戳），因此只能用 live 唯一性定义去重，不得用一个凭空构造的 digest 假装有。
+- **Contact delivery 不是本 cell 的分支（normative）**：Contact 有自己的正文真源与自己的待审状态——`pending_incoming` 本身就是"有人等我回应"的 holder 待审面，由 Contact 状态机独占。给本 cell 加一个 Contact 分支等于给 Contact 造第二个平行待审 carrier，会与该状态机争夺同一事实。因此 `POST /_arkret/self/contacts/request` 形成 `pending_outgoing` / `pending_incoming` 而 holder quarantine 无 entry 是**正确行为**，不是缺陷。Contact 侧仍受同一条 new-source quota 计费，落点见 [`contact-and-direct-conversation.md` §1.1](./contact-and-direct-conversation.md)。
 - **生命周期与 TTL**：暂存项停留在 `pending_review` 直到 holder 在 UI review;实现 SHOULD 为暂存项设置 deployment-policy 声明的 TTL（缺省建议 30 天）,超时后 MUST 按"丢弃"处理（等价 holder 未授权，不得自动转 grant）。
-- **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ak.consent.grant` Control Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Control Move 落入 consent cell,quarantine inbox 永远不是授权根。
+- **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ak.consent.grant` Control Move 写入 consent cell（此后该 peer 走正常 active-grant 路径）;(b) **丢弃** → 删除暂存项，不产生任何 consent dot；TTL 超时等价于丢弃。review 动作本身不绕过 consent cell:授权始终经 grant Control Move 落入 consent cell,quarantine inbox 永远不是授权根。**接受后是否还有"原对象"要处理，按 `surface_kind` 分叉（normative）**：`invite_delivery` 分支 holder **MAY** 另行接受原 invite（grant 不等于入群）；`consent_request` 分支**到此为止**——它没有任何待接受的原对象，requester 需自己在拿到 active grant 后走正常路径重试。这一条必须明写，否则实现会去猜有没有一个隐藏的待接受对象。
 - **profile 边界**：quarantine inbox 仅在 default profile 生效；`require_explicit_consent` profile 下无 active grant 的 invite 按 §6.1 step 2 在 holder Station 静默丢弃，不进入 quarantine inbox、不计本节新来源 quota，requester 仍只观察到本节等价类的同一 opaque `deferred`。
 - **不向 requester 暴露可联系信号（normative）**：invite 进入 quarantine inbox 暂存(§3.1 缺省判定的"非拒绝、非放行")**MUST NOT** 被对 requester 暴露为送达 / 可联系信号。quarantine 期间(暂存项处于 `pending_review`,以及超时丢弃后)服务端与客户端 **MUST NOT** 向 requester 返回任何 deliver / seen / read receipt / presence / typing / "已送达" / "可联系" 等指示，亦不得通过响应码、时序或副作用让 requester 区分下列五种情形。
 
@@ -314,23 +331,30 @@ Peer 发送 invite Control Move 时，consent gate 在 **holder 的 Station** �
 
 新来源的 identity key 是 `(holder 完整 AccountId, source_peer_principal_id)`。
 `source_peer_principal_id` 在 invite 路径取已验证 invite Event 的完整 inviter ActorId 的 principal
-分量，在 §6.1.2 路径取认证上下文的 peer principal。quarantine entry 的 `source_id` 是已认证
+分量，在 §6.1.2 路径取认证上下文的 peer principal。**对端是 Realm-local ephemeral pairwise actor 时，
+该 identity key 的 peer 分量 MUST 是 `(realm_id, principal_id)`**，与 §6.1 查询步骤 1 的隔离键一致；
+只取 `principal_id` 会把两个 Realm 的不同 peer 并进同一条 quota 账，取完整 ActorId 又会引入该 actor
+身份键里本不存在的 Station 维度。quarantine entry 的 `source_id` 是已认证
 transport source service DID（见 [`../sync/invite-addressing.md` §5](../sync/invite-addressing.md)），
 它 **MUST NOT** 参与 quota identity：按 Station 计费会一站连坐，也可被换站绕过。holder 维度使用完整
 AccountId，同 principal core 异 Station 是不同 holder。
 
 ##### 6.1.1.3 判定算法（normative）
 
-quota 判定发生在 **quarantine admission 唯一 chokepoint**——所有能产生 quarantine entry 的 surface
-（invite delivery、contact delivery 与 §6.1.2 consent request）汇聚于此，在 quarantine cell CAS 写**之前**
-恰好执行一次：
+quota 判定发生在 **holder admission 唯一 chokepoint**——三条陌生人首次接触面（invite delivery、
+contact delivery 与 §6.1.2 consent request）全部汇聚于此，在任何 holder-visible 待审状态写入**之前**
+恰好执行一次。三条面共用同一份 ledger 与同一组阈值；**超限时被丢弃的对象各不相同**：invite delivery 与
+consent request 丢弃的是 holder quarantine entry 的写入，contact delivery 丢弃的是 Contact
+`pending_incoming` row 的建立（见 [`contact-and-direct-conversation.md` §1.1](./contact-and-direct-conversation.md)）。
+只有前两条会产生 quarantine entry；contact 永远不产生（理由见 §6.1.1 的 carrier 分支条）。判定步骤：
 
 1. **prune**：忽略并删除 ledger 中 `first_admitted_at ≤ now − retention_seconds` 的条目。
-2. **seen**：source 在 prune 后 ledger 中存在 → 非新来源，直接进入 cell 写；MUST NOT 写 ledger，也
+2. **seen**：source 在 prune 后 ledger 中存在 → 非新来源，直接进入本面的 carrier 写入（invite delivery 与
+   consent request 是 quarantine cell 写，contact delivery 是 `pending_incoming` head 写）；MUST NOT 写 ledger，也
    MUST NOT 刷新其 `first_admitted_at`（刷新会让活跃骚扰源永久保鲜）。
 3. **new**：令 `rate = |{first_admitted_at > now − window_seconds}|`、`total = |ledger|`。
-   `rate ≥ E_w` **或** `total ≥ E_r` → 静默丢弃：零 ledger 写、零 cell 写，对外与本节不可区分等价类
-   同一 opaque `deferred`。两者均未超时 MUST 原子 append `(source, now)` 后进入 cell 写。
+   `rate ≥ E_w` **或** `total ≥ E_r` → 静默丢弃：零 ledger 写、零 carrier 写，对外与本节不可区分等价类
+   同一 opaque `deferred`。两者均未超时 MUST 原子 append `(source, now)` 后进入本面的 carrier 写入。
 4. 被丢弃的 source **MUST NOT** 记入 ledger：既防"上一窗口被拒 → 下一窗口洗白为 seen"的绕过，也使
    攻击者无法用海量被拒 DID 撑大 ledger。
 
@@ -356,25 +380,30 @@ quarantine cell 的 200 条上限覆盖）。两个窗口都是**滑动窗**，�
 - prune + membership + 双计数 + append 与准入判定 MUST 按 holder **线性化**。并发新来源首次接触在任何
   交错下 MUST NOT 超额准入；同一 source 的两条并发首次接触恰好计费一次（第二条按 seen 放行）。
 - quota 判定 MUST NOT 在 cell 写的 CAS 重试循环内重复执行。重试耗尽的内部静默放弃**不退费**。
-- replay：命中既有 entry 去重（`request_digest` / `idempotency_key_digest`）的重复投递不进入 quota
-  评估、零新计费；被丢弃请求的重放按当前窗口重新评估。
+- replay 去重**按 `surface_kind` 分叉（normative）**：`invite_delivery` 命中既有 entry 的
+  `request_digest` / `idempotency_key_digest` 时判为重复投递；`consent_request` 没有这两个 digest，
+  改判 `(account_id, source_peer_principal_id, consent_scope)` 上是否已有 live entry（§6.1.1 carrier
+  分支条）。两种形态的后果相同：重复不进入 quota 评估、零新计费、对外仍是同一 opaque outcome。
+  contact delivery 的重复判定由 Contact 状态机自身的 directional head 决定，同样零新计费。
+  被丢弃请求的重放按当前窗口重新评估。
 
 ##### 6.1.1.5 Quarantine cell 写语义（normative）
 
-`ak.account.invite_quarantine` cell 的写语义与 notify 分支的 `ak.account.invite_delivery`
+`ak.account.holder_quarantine` cell 的写语义与 notify 分支的 `ak.account.invite_delivery`
 （[`../sync/invite-addressing.md` §7](../sync/invite-addressing.md)）同构：该 cell 是
 [`../models/account-data.md` §5](../models/account-data.md) 的 server-versioned CAS whole-value
 register。每次写入 MUST 先清除 `expires_at ≤ now` 的过期 entry，再按 `entry_digest` 去重，随后 append
 新 entry；结果超过 200 条上限时 MUST 从 `received_at` 最旧的 entry 起逐出。CAS 冲突时写入方 MUST 重读
 当前值、按本节规则重新合并后重试，重试 MUST 有界（至多 3 次），并保持 oldest-first 顺序与
 `updated_at` 单调。重试耗尽 MUST 以内部失败放弃本次写入并 audit，MUST NOT 以 stale revision 强行覆盖；
-对外仍返回同一 opaque `deferred`。
+对外仍返回同一 opaque `deferred`。两个 `surface_kind` 分支共用这一套写语义：`entry_digest` 去重、200 条上限、
+oldest-first 逐出、`updated_at` 单调、有界 CAS 重试均不分支。
 
 #### 6.1.2 `ak.self.consent.command.request.v1`（normative）
 
 该 self-surface operation 只把 authenticated actor 的请求提交给上述 quarantine/anti-abuse pipeline；它**不**创建 consent grant dot、pending consent state 或 contact fact。peer 的完整 ActorId 只取认证上下文，不由 request body 携带；body 的 `holder_account_id` 是跨 Station target，必须按完整 AccountId 参与路由、限速与 anti-enumeration key。
 
-服务端对 holder 不存在、holder policy deny、per-holder 限速、静默丢弃与成功进入 quarantine MUST 返回完全相同的 `consent_request_outcome {accepted_for_processing:true}`，并 SHOULD 做统一时序填充。响应 MUST NOT 包含 cell id、state、dots、expiry、request timestamp、account-existence flag 或可关联 queue id。写入 quarantine 时必须执行 §6.1.1 的总量/速率上限；`require_explicit_consent` profile 下请求被静默丢弃，仍返回相同 opaque outcome。
+服务端对 holder 不存在、holder policy deny、per-holder 限速、静默丢弃与成功进入 quarantine MUST 返回完全相同的 `consent_request_outcome {accepted_for_processing:true}`，并 SHOULD 做统一时序填充。响应 MUST NOT 包含 cell id、state、dots、expiry、request timestamp、account-existence flag 或可关联 queue id。**该 operation 不是空壳（normative）**：请求通过 §6.1.1 chokepoint 后 MUST 写入 holder quarantine 的一条 `surface_kind="consent_request"` entry，其 `consent_scope` 取 body 的值（§4 枚举去掉 `invite`），`source_peer_principal_id` 取认证上下文的 peer principal，且 **MUST NOT** 携带 `introduction_kind` / `effective_kind` / `trust_tier` / `invite_event_id` / `request_digest` / `idempotency_key_digest`。去重按 §6.1.1 的 live-entry 唯一性：`(account_id, source_peer_principal_id, consent_scope)` 上已有非终态 entry 时本次请求是 no-op、不计 quota，对外仍是同一 opaque outcome。**request body 的 `consent_scope` 取 §4 枚举去掉 `invite`**（[`consent-operations.schema.json#/$defs/consent_request_request_body`](../../artifacts/schemas/consent-operations.schema.json)）：invite scope 的请求在本 operation 上没有 carrier——它只能变成一条 `surface_kind="consent_request"` 的 entry，而该分支按定义不接受 `invite`。在请求边界就以 `schema_violation` 拒绝，服务端因而不需要为一个存不下的 scope 发明行为；真正的 invite 走 invite delivery 面。写入 quarantine 时必须执行 §6.1.1 的总量/速率上限；`require_explicit_consent` profile 下请求被静默丢弃、不写 entry、不计 ledger，仍返回相同 opaque outcome。
 
 完整 consent cell 查询 `ak.self.consent.read.list.v1` / `.resource.get` 仅允许 holder 或 holder 明确授权的 controller 调用。Peer MUST NOT 读取 consent cell、grant/revoked dots、expiry 或 request history；peer 若获 holder 主动披露，只能消费 §2.1/§6.2.2 定义的 audience-bound 短期 opaque green-light。
 
@@ -416,17 +445,17 @@ MIMI 协议有 `request_consent` / `update_consent` 操作（`ak.open.mimi.comma
 - consent state 是 holder 私有；服务端 MUST NOT 把它暴露给非 holder actor 或非授权 service。
 - consent grant / revoke 的 backfill 受 holder principal control Realm 的 history visibility 与 access policy 约束。
 - audit projection MAY 记录 consent state 变化（用于合规审查），但 audit access 必须经 holder 授权或 legal hold 边界。
-- pairwise DID / pseudonym 场景下，consent 可绑定 pairwise DID 而非真实 principal DID；reducer 不强制 consent.peer 必须是 principal DID。
+- pseudonymous account 场景下（对端为每段关系另铸一个 principal 并以之开设 Account），consent 绑定的是那个 pseudonymous Account 的完整 ActorId 而非其真实主体，holder 与 reducer 都无从判定两个 pseudonym 是否同一主体——这正是该形态的隐私目标。**该形态走 `{kind:"actor"}` 分支**；`{kind:"pairwise_principal"}` 分支只表示 §3.2 定义的 Realm-local ephemeral pairwise actor，本条 MUST NOT 被读成对该分支的松绑。
 
-### 8.1 Pairwise consent 的反骚扰局限与聚合 revoke（normative for client UI）
+### 8.1 Pseudonym consent 的反骚扰局限与聚合 revoke（normative for client UI）
 
-consent 的去重 / 撤销键含 `intent.peer`（counterparty DID 或 pairwise DID，见 §3.2）。这带来一个协议层局限：**骚扰者每换一个新 pairwise DID 发起联系，就构成一个全新的 `(consent_id, peer)` 入口**——holder 此前对旧 pairwise DID 的 `ak.consent.revoke` 不会覆盖新 pairwise DID，default profile 下该新 peer 仍可经 §6.1.1 quarantine inbox 暂存，重新出现在 holder 的待 review 列表中。（本节的 pairwise 反骚扰分析以"quarantine 对 requester 完全不可区分"为前提；该前提由 §6.1.1 的五元等价类与 [`../sync/invite-addressing.md` §5.1](../sync/invite-addressing.md) 的 `deferred` 映射**共同**保证，不是隐含假设。任一侧回送 `quarantined` 都会让本节结论失效。）协议层无法在 wire 上判定两个 pairwise DID 是否指向同一真实主体（这正是 pairwise pseudonym 的隐私目标），因此**不能**在 consent cell 语义中强制把多 pairwise DID 折叠到同一撤销键。
+consent 的去重 / 撤销键含 `intent.peer`（见 §3.2 的两个封闭分支）。这带来一个协议层局限：**骚扰者每换一个新 principal 另铸一个 pseudonymous Account 发起联系，就构成一个全新的 `(consent_id, peer)` 入口**——holder 此前对旧 pseudonym 的 `ak.consent.revoke` 不会覆盖新 pseudonym，default profile 下该新 peer 仍可经 §6.1.1 quarantine inbox 暂存，重新出现在 holder 的待 review 列表中。本节讨论的对象是 `{kind:"actor"}` 分支下的 pseudonymous Account，不是 §3.2 的 Realm-local ephemeral pairwise actor（后者脱离其 Realm 不存在，也不能用来向 holder PCR 发起跨 Realm 骚扰）。（本节的 pairwise 反骚扰分析以"quarantine 对 requester 完全不可区分"为前提；该前提由 §6.1.1 的五元等价类与 [`../sync/invite-addressing.md` §5.1](../sync/invite-addressing.md) 的 `deferred` 映射**共同**保证，不是隐含假设。任一侧回送 `quarantined` 都会让本节结论失效。）协议层无法在 wire 上判定两个 pseudonymous Account 是否指向同一真实主体（这正是 pseudonym 的隐私目标），因此**不能**在 consent cell 语义中强制把多个 pseudonym 折叠到同一撤销键。
 
 为收敛该局限，对反骚扰能力作如下要求：
 
-- **聚合 revoke（SHOULD）**：当 holder 客户端能够在本地把多个 pairwise DID link 到同一真实主体（例如 holder 本地维护的 contact↔pairwise 映射，或 holder 显式标注"这些都是同一人"）时，反骚扰 / block UI **SHOULD** 提供"聚合 revoke"：一次操作对该主体名下 holder 已知的全部 pairwise `(consent_id, peer)` 入口分别构造 `ak.consent.revoke`，并对后续来自这些已知 pairwise DID 的 quarantine 暂存项默认丢弃，而非逐个 peer 手动撤销。该 link 只是 holder-side 本地组织能力，不构成跨 `did_core_id` 身份等价，不进入 consent cell 的 wire 语义，也不要求 holder 向任何 peer 或服务端披露 pairwise 关联。
-- **协议局限披露（SHOULD）**：UI **SHOULD** 向 holder 明示：单条 consent revoke 只对一个 pairwise DID 生效；对方更换 pairwise DID 后可能重新进入 quarantine inbox，聚合 revoke 仅覆盖 holder 客户端**当前已能 link** 的 pairwise DID，无法阻止 holder 尚未识别为同一主体的全新 pairwise DID。
-- **profile 边界**：`require_explicit_consent` profile 下该反骚扰面更小——无 active grant 的 invite（无论换不换 pairwise DID）一律按 §6.1 step 2 在 holder Station 静默丢弃（opaque `deferred`）、不进入 quarantine inbox，骚扰者换 pairwise DID 也得不到 holder 侧的待 review 入口或任何可联系信号（§6.1.1 不向 requester 暴露可联系信号）。该 profile 因此把 pairwise 切换骚扰面收敛为"必须先获得 holder 显式 grant 才能产生任何 holder-visible 入口"。
+- **聚合 revoke（SHOULD）**：当 holder 客户端能够在本地把多个 pseudonymous Account link 到同一真实主体（例如 holder 本地维护的 contact↔pseudonym 映射，或 holder 显式标注"这些都是同一人"）时，反骚扰 / block UI **SHOULD** 提供"聚合 revoke"：一次操作对该主体名下 holder 已知的全部 `(consent_id, peer)` 入口分别构造 `ak.consent.revoke`，并对后续来自这些已知 pseudonym 的 quarantine 暂存项默认丢弃，而非逐个 peer 手动撤销。该 link 只是 holder-side 本地组织能力，不构成跨 `did_core_id` 身份等价，不进入 consent cell 的 wire 语义，也不要求 holder 向任何 peer 或服务端披露 pseudonym 关联。
+- **协议局限披露（SHOULD）**：UI **SHOULD** 向 holder 明示：单条 consent revoke 只对一个 peer 生效；对方更换 principal / 另铸 pseudonymous Account 后可能重新进入 quarantine inbox，聚合 revoke 仅覆盖 holder 客户端**当前已能 link** 的 pseudonym，无法阻止 holder 尚未识别为同一主体的全新 pseudonym。
+- **profile 边界**：`require_explicit_consent` profile 下该反骚扰面更小——无 active grant 的 invite（无论换不换 pseudonym）一律按 §6.1 step 2 在 holder Station 静默丢弃（opaque `deferred`）、不进入 quarantine inbox，骚扰者换 pseudonym 也得不到 holder 侧的待 review 入口或任何可联系信号（§6.1.1 不向 requester 暴露可联系信号）。该 profile 因此把 pseudonym 切换骚扰面收敛为"必须先获得 holder 显式 grant 才能产生任何 holder-visible 入口"。
 
 ## 9. 与未来 Capability Constraint 的关系
 

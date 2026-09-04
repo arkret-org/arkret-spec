@@ -8,7 +8,7 @@
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
     "digest_copy_or_commitment": 17,
-    "complete_event_id": 176,
+    "complete_event_id": 177,
     "external_event_namespace": 1
   },
   "fields": [
@@ -745,6 +745,12 @@
       "classification": "complete_event_id"
     },
     {
+      "schema": "holder-quarantine.schema.json",
+      "json_pointer": "/$defs/quarantine_entry/properties/invite_event_id",
+      "field": "invite_event_id",
+      "classification": "complete_event_id"
+    },
+    {
       "schema": "identity-receipt.schema.json",
       "json_pointer": "/properties/head_event_digest",
       "field": "head_event_digest",
@@ -771,12 +777,6 @@
     {
       "schema": "invite-delivery-request.schema.json",
       "json_pointer": "/$defs/self_invite_dispatch_request_body/properties/invite_event_id",
-      "field": "invite_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "invite-quarantine.schema.json",
-      "json_pointer": "/$defs/quarantine_entry/properties/invite_event_id",
       "field": "invite_event_id",
       "classification": "complete_event_id"
     },
@@ -1084,6 +1084,12 @@
       "schema": "service-operation-dtos.schema.json",
       "json_pointer": "/$defs/EventsSubmitRejectedRow/properties/missing_event_ids",
       "field": "missing_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/InviteLiveTargetOccupiedProblem/properties/create_event_id",
+      "field": "create_event_id",
       "classification": "complete_event_id"
     },
     {

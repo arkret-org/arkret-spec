@@ -13,7 +13,7 @@
   "spec_anchor": "spec/v1/zh/identity/consent-model.md#6111-quota-carrier-与-effective-值normative",
   "machine_contracts": [
     "schemas/invite-receive-policy.schema.json",
-    "schemas/invite-quarantine.schema.json"
+    "schemas/holder-quarantine.schema.json"
   ],
   "specification_defaults": {
     "window_seconds": 86400,
@@ -880,7 +880,22 @@
     "cas_retry_exhaustion_refunds_the_charge": false,
     "substitutable_by_generic_endpoint_rate_limit": false,
     "substitutable_by_directory_psi_device_quota": false,
-    "substitutable_by_private_configuration": false
+    "substitutable_by_private_configuration": false,
+    "surface_drop_targets": {
+      "ak.peer.invites.command.submit.v1": "holder_quarantine_entry",
+      "ak.peer.contacts.command.submit.v1": "contact_pending_incoming_head",
+      "ak.self.consent.command.request.v1": "holder_quarantine_entry"
+    },
+    "surface_kind_written": {
+      "ak.peer.invites.command.submit.v1": "invite_delivery",
+      "ak.peer.contacts.command.submit.v1": null,
+      "ak.self.consent.command.request.v1": "consent_request"
+    },
+    "contact_delivery_writes_a_quarantine_entry": false,
+    "contact_delivery_consumes_a_new_source_slot": true,
+    "consent_request_operation_is_a_no_op_shell": false,
+    "consent_request_dedupe": "live_entry_uniqueness_over_account_id_source_peer_principal_id_consent_scope",
+    "invite_delivery_dedupe": "request_digest_and_idempotency_key_digest"
   },
   "ledger_contract": {
     "identity_key": [
@@ -895,7 +910,7 @@
     "source_id_participates_in_identity_key": false,
     "wire_readable": false,
     "is_account_data_cell": false,
-    "holder_observable_surface": "ak.account.invite_quarantine",
+    "holder_observable_surface": "ak.account.holder_quarantine",
     "source_column_storage": "server_private_keyed_digest",
     "retention_seconds_is_both_ledger_lifetime_and_long_window": true,
     "account_erasure_deletes_the_whole_ledger": true,

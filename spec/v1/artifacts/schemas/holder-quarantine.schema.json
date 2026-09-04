@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/holder-quarantine.schema.json",
+  "title": "Arkret Holder Quarantine",
+  "description": "Closed plaintext account-data cell value of ak.account.holder_quarantine. The recipient Station is the sole CAS writer; the cell is a pending-review pointer inbox and grants no membership, contact, or consent authority. surface_kind is the closed discriminator: invite_delivery entries reference an accepted invite Event and its introduction evidence, consent_request entries reference no Event at all. Contact delivery is not a branch here: a Contact request has its own pending_incoming state and MUST NOT get a second parallel review carrier.",
+  "type": "object",
+  "required": [
+    "schema",
+    "updated_at",
+    "quarantine_entries"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.holder_quarantine.v1"
+    },
+    "updated_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp",
+      "description": "Instant of the accepted Station CAS write that produced this value."
+    },
+    "quarantine_entries": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "$ref": "#/$defs/quarantine_entry"
+      },
+      "description": "Bounded pending-review entries, oldest first. Expired entries are purged before a write and overflow evicts the oldest entries."
+    },
+    "last_invalidation": {
+      "$ref": "#/$defs/consent_revoke_invalidation",
+      "description": "Optional diagnostic for the latest accepted consent-revoke invalidation. It is holder-private and never disclosed to the requester."
+    }
+  },
+  "$defs": {
+    "digest": {
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+    },
+    "surface_kind": {
+      "type": "string",
+      "enum": [
+        "invite_delivery",
+        "consent_request"
+      ],
+      "description": "Closed discriminator for the admission surface that produced this entry. An unregistered value fails closed."
+    },
+    "introduction_kind": {
+      "type": "string",
+      "enum": [
+        "locator_ref",
+        "consent_grant",
+        "shared_realm",
+        "handle_claim",
+        "same_station",
+        "explicit_address"
+      ]
+    },
+    "quarantine_entry": {
+      "type": "object",
+      "description": "One pending-review quarantined admission. Membership in quarantine_entries is the only state this cell expresses: an entry is pending review until the holder reviews it or its TTL discards it, so no status member is carried. The two surface_kind branches are closed and mutually exclusive; a member declared by the other branch is a schema violation.",
+      "required": [
+        "entry_digest",
+        "account_id",
+        "source_peer_principal_id",
+        "source_id",
+        "surface_kind",
+        "consent_scope",
+        "received_at",
+        "expires_at"
+      ],
+      "properties": {
+        "entry_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Recipient-service-local stable deduplication digest for this quarantined delivery."
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact holder of this account-data cell and recipient of the quarantined invite. The sole CAS writer is account_id.station_id; another account with the same principal core is a different holder."
+        },
+        "source_peer_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Requester/inviter principal used by consent review and revoke invalidation."
+        },
+        "source_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Authenticated transport source service DID. It never participates in the new-source quota identity key."
+        },
+        "surface_kind": {
+          "$ref": "#/$defs/surface_kind"
+        },
+        "consent_scope": {
+          "type": "string",
+          "enum": [
+            "invite",
+            "direct_message",
+            "voice_call",
+            "video_call",
+            "presence",
+            "any"
+          ],
+          "description": "Requested consent scope. The invite_delivery branch pins it to invite; the consent_request branch admits every other registered scope. The enum mirrors zh/identity/consent-model.md section 4."
+        },
+        "introduction_kind": {
+          "$ref": "#/$defs/introduction_kind",
+          "description": "Introduction evidence kind presented by the requester. invite_delivery branch only; a consent request has no introduction evidence, so any value there would be fabricated."
+        },
+        "effective_kind": {
+          "$ref": "#/$defs/introduction_kind",
+          "description": "Evidence kind after verification downgrade."
+        },
+        "trust_tier": {
+          "enum": [
+            "high",
+            "discovery",
+            "low"
+          ]
+        },
+        "invite_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Accepted invite Event identity. Its suite-tagged token is the sole wire source for the complete Event digest."
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Replay deduplication digest of the invite delivery request. invite_delivery branch only: ak.self.consent.command.request.v1 declares idempotency_mechanism none and carries no nonce, so its branch deduplicates by live-entry uniqueness instead."
+        },
+        "idempotency_key_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Digest of the invite delivery Idempotency-Key. invite_delivery branch only, for the same reason as request_digest."
+        },
+        "received_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Deployment-policy TTL. An expired entry is discarded and never converts to a grant."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "surface_kind": {
+                "const": "invite_delivery"
+              }
+            },
+            "required": [
+              "surface_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "introduction_kind",
+              "effective_kind",
+              "trust_tier",
+              "invite_event_id",
+              "request_digest",
+              "idempotency_key_digest"
+            ],
+            "properties": {
+              "consent_scope": {
+                "const": "invite"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "introduction_kind"
+                  ]
+                },
+                {
+                  "required": [
+                    "effective_kind"
+                  ]
+                },
+                {
+                  "required": [
+                    "trust_tier"
+                  ]
+                },
+                {
+                  "required": [
+                    "invite_event_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "request_digest"
+                  ]
+                },
+                {
+                  "required": [
+                    "idempotency_key_digest"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "consent_scope": {
+                "not": {
+                  "const": "invite"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "consent_revoke_invalidation": {
+      "type": "object",
+      "required": [
+        "reason",
+        "peer_principal_id",
+        "consent_scope",
+        "revoked_at",
+        "removed_entries"
+      ],
+      "properties": {
+        "reason": {
+          "const": "consent_revoke"
+        },
+        "peer_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "consent_scope": {
+          "enum": [
+            "invite",
+            "any"
+          ]
+        },
+        "revoked_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "removed_entries": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

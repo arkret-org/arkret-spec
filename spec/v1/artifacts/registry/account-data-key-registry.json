@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.2",
+  "version": "2026-09-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-04T09:45:16+08:00",
+  "generated_at": "2026-09-05T10:20:00+08:00",
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
     "writer_authorities is a non-empty unique array over the closed v1 set holder_event | station_cas. holder_event requires non-empty write_event_kinds; station_cas requires plaintext_account_data plus plaintext_schema and does not mint an Event.",
@@ -16,8 +16,13 @@
       "status": "active",
       "scope": "realm_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -32,8 +37,13 @@
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -49,8 +59,13 @@
       "status": "active",
       "scope": "principal_private_notification_state",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -66,8 +81,13 @@
       "status": "active",
       "scope": "realm_private_view",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -83,8 +103,13 @@
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -101,8 +126,13 @@
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -117,8 +147,13 @@
       "status": "active",
       "scope": "device_or_principal_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -133,8 +168,13 @@
       "status": "active",
       "scope": "principal_private_policy",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set",
         "ak.account.blocklist"
@@ -151,8 +191,13 @@
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -167,8 +212,13 @@
       "status": "active",
       "scope": "realm_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -183,8 +233,13 @@
       "status": "active",
       "scope": "principal_private_policy",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -201,8 +256,13 @@
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -218,8 +278,13 @@
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -235,8 +300,13 @@
       "status": "active",
       "scope": "principal_private_productivity_state",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -251,8 +321,13 @@
       "status": "active",
       "scope": "principal_private_productivity_state",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -267,8 +342,13 @@
       "status": "active",
       "scope": "principal_private_productivity_state",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -283,8 +363,13 @@
       "status": "active",
       "scope": "principal_private_productivity_state",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -299,8 +384,13 @@
       "status": "active",
       "scope": "principal_private_draft_state",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -315,8 +405,12 @@
       "status": "active",
       "scope": "principal_private_file_transfer_state",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -331,8 +425,13 @@
       "status": "active",
       "scope": "principal_private_search_state",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "write_event_kinds": [
         "ak.account_data.set"
       ],
@@ -347,8 +446,13 @@
       "status": "active",
       "scope": "controller_private_state",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "owner_principal": "controller",
       "write_event_kinds": [
         "ak.agent.action_approve",
@@ -365,8 +469,13 @@
       "status": "active",
       "scope": "controller_private_preference",
       "storage": "encrypted_account_data",
-      "writer_authorities": ["holder_event"],
-      "holder_self_operations": ["put", "delete"],
+      "writer_authorities": [
+        "holder_event"
+      ],
+      "holder_self_operations": [
+        "put",
+        "delete"
+      ],
       "owner_principal": "controller",
       "plaintext_schema": "ak.schema.agent_sidecar_view_state.v1",
       "write_event_kinds": [
@@ -381,15 +490,17 @@
     {
       "status": "active",
       "scope": "actor_private",
-      "key_pattern": "ak.account.invite_quarantine",
+      "key_pattern": "ak.account.holder_quarantine",
       "storage": "plaintext_account_data",
-      "plaintext_schema": "ak.schema.invite_quarantine.v1",
-      "writer_authorities": ["station_cas"],
+      "plaintext_schema": "ak.schema.holder_quarantine.v1",
+      "writer_authorities": [
+        "station_cas"
+      ],
       "holder_self_operations": [],
       "write_event_kinds": [],
       "deletion_mode": "physical_delete",
       "encrypted_at_rest": false,
-      "description": "Actor-private plaintext quarantine inbox for invites held by the consent gate default profile. The recipient Station is the sole CAS writer; holder self PUT/DELETE and synthetic ak.account_data.set are forbidden. Accepted writes fan out as service-sender ak.account_data.update hints and MUST NOT expose contactability signals to the inviter.",
+      "description": "Actor-private plaintext holder quarantine inbox for the two admission surfaces the consent gate defers under the default profile: invite delivery and ak.self.consent.command.request.v1. The recipient Station is the sole CAS writer; holder self PUT/DELETE and synthetic ak.account_data.set are forbidden. Accepted writes fan out as service-sender ak.account_data.update hints and MUST NOT expose contactability signals to the requester. Contact requests are metered by the same new-source quota but keep their own pending_incoming state and never produce an entry here.",
       "source_refs": [
         "spec/v1/zh/sync/client-sync.md",
         "spec/v1/zh/identity/consent-model.md"
@@ -401,7 +512,9 @@
       "key_pattern": "ak.account.invite_delivery",
       "storage": "plaintext_account_data",
       "plaintext_schema": "ak.schema.invite_delivery.v1",
-      "writer_authorities": ["station_cas"],
+      "writer_authorities": [
+        "station_cas"
+      ],
       "holder_self_operations": [],
       "write_event_kinds": [],
       "deletion_mode": "physical_delete",

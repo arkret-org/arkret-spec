@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.2",
+  "version": "2026-09-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-04T08:33:13+08:00",
+  "generated_at": "2026-09-05T10:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3718,6 +3718,16 @@
     },
     {
       "vector_id": "ak.vector.invite.membership_transition_atomicity.v1",
+      "status": "active",
+      "domain": "invite",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.live_target_uniqueness.v1",
       "status": "active",
       "domain": "invite",
       "scope": "universal",

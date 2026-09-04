@@ -26,7 +26,7 @@
     },
     {
       "document": "spec/v1/zh/crypto-media/device-lifecycle.md",
-      "schema_ref": "service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
+      "schema_ref": "keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
       "external_field_mentions": []
     },
     {
@@ -36,7 +36,12 @@
     },
     {
       "document": "spec/v1/zh/crypto-media/device-lifecycle.md",
-      "schema_ref": "keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+      "schema_ref": "service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/discovery/discovery-directory.md",
+      "schema_ref": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
       "external_field_mentions": []
     },
     {
@@ -50,18 +55,8 @@
       ]
     },
     {
-      "document": "spec/v1/zh/discovery/discovery-directory.md",
-      "schema_ref": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
-      "external_field_mentions": []
-    },
-    {
       "document": "spec/v1/zh/discovery/profiles-presence.md",
       "schema_ref": "presence-preference.schema.json#",
-      "external_field_mentions": []
-    },
-    {
-      "document": "spec/v1/zh/discovery/push-notifications.md",
-      "schema_ref": "push-operations.schema.json#/$defs/push_register_device_request_body",
       "external_field_mentions": []
     },
     {
@@ -72,6 +67,11 @@
         "device_id",
         "salt_epoch_id"
       ]
+    },
+    {
+      "document": "spec/v1/zh/discovery/push-notifications.md",
+      "schema_ref": "push-operations.schema.json#/$defs/push_register_device_request_body",
+      "external_field_mentions": []
     },
     {
       "document": "spec/v1/zh/discovery/push-notifications.md",
@@ -92,6 +92,13 @@
       "document": "spec/v1/zh/governance/join-policy.md",
       "schema_ref": "event-payload.schema.json#/$defs/join_policy_component",
       "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/identity/identity-handles.md",
+      "schema_ref": "event-payload.schema.json#/$defs/mention_node",
+      "external_field_mentions": [
+        "agent_slug"
+      ]
     },
     {
       "document": "spec/v1/zh/models/calendar-event.md",
@@ -130,15 +137,15 @@
     },
     {
       "document": "spec/v1/zh/models/governance-objects.md",
-      "schema_ref": "policy.schema.json#",
-      "external_field_mentions": []
-    },
-    {
-      "document": "spec/v1/zh/models/governance-objects.md",
       "schema_ref": "invite.schema.json#",
       "external_field_mentions": [
         "introduction_evidence"
       ]
+    },
+    {
+      "document": "spec/v1/zh/models/governance-objects.md",
+      "schema_ref": "policy.schema.json#",
+      "external_field_mentions": []
     },
     {
       "document": "spec/v1/zh/models/morph.md",
@@ -152,13 +159,20 @@
     },
     {
       "document": "spec/v1/zh/models/private-objects.md",
-      "schema_ref": "read-cursor.schema.json#",
+      "schema_ref": "notification.schema.json#",
       "external_field_mentions": []
     },
     {
       "document": "spec/v1/zh/models/private-objects.md",
-      "schema_ref": "notification.schema.json#",
+      "schema_ref": "read-cursor.schema.json#",
       "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/realm-and-space.md",
+      "schema_ref": "event-payload.schema.json#/$defs/strand_move_payload",
+      "external_field_mentions": [
+        "list_space_id"
+      ]
     },
     {
       "document": "spec/v1/zh/models/realm-and-space.md",
@@ -171,11 +185,9 @@
       ]
     },
     {
-      "document": "spec/v1/zh/models/realm-and-space.md",
-      "schema_ref": "event-payload.schema.json#/$defs/strand_move_payload",
-      "external_field_mentions": [
-        "list_space_id"
-      ]
+      "document": "spec/v1/zh/models/relation.md",
+      "schema_ref": "realm.schema.json#/properties/relation_profiles/items",
+      "external_field_mentions": []
     },
     {
       "document": "spec/v1/zh/models/relation.md",
@@ -185,13 +197,36 @@
       ]
     },
     {
-      "document": "spec/v1/zh/models/relation.md",
-      "schema_ref": "realm.schema.json#/properties/relation_profiles/items",
+      "document": "spec/v1/zh/models/sidecar.md",
+      "schema_ref": "agent-sidecar.schema.json#",
       "external_field_mentions": []
     },
     {
-      "document": "spec/v1/zh/models/sidecar.md",
-      "schema_ref": "agent-sidecar.schema.json#",
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "event-payload.schema.json#/$defs/reaction_encrypted_payload_plaintext",
+      "external_field_mentions": [
+        "actor_id",
+        "target_ref"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "event-payload.schema.json#/$defs/reaction_payload",
+      "external_field_mentions": [
+        "actor_id",
+        "effective_scope"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "event-payload.schema.json#/$defs/strand_watch_set_payload",
+      "external_field_mentions": [
+        "access_kind"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "message.schema.json#",
       "external_field_mentions": []
     },
     {
@@ -209,34 +244,6 @@
       "document": "spec/v1/zh/models/strand-and-message.md",
       "schema_ref": "strand.schema.json#/$defs/strand_track",
       "external_field_mentions": []
-    },
-    {
-      "document": "spec/v1/zh/models/strand-and-message.md",
-      "schema_ref": "event-payload.schema.json#/$defs/strand_watch_set_payload",
-      "external_field_mentions": [
-        "access_kind"
-      ]
-    },
-    {
-      "document": "spec/v1/zh/models/strand-and-message.md",
-      "schema_ref": "message.schema.json#",
-      "external_field_mentions": []
-    },
-    {
-      "document": "spec/v1/zh/models/strand-and-message.md",
-      "schema_ref": "event-payload.schema.json#/$defs/reaction_payload",
-      "external_field_mentions": [
-        "actor_id",
-        "effective_scope"
-      ]
-    },
-    {
-      "document": "spec/v1/zh/models/strand-and-message.md",
-      "schema_ref": "event-payload.schema.json#/$defs/reaction_encrypted_payload_plaintext",
-      "external_field_mentions": [
-        "actor_id",
-        "target_ref"
-      ]
     },
     {
       "document": "spec/v1/zh/models/views.md",

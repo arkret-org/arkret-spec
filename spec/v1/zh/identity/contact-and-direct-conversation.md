@@ -40,6 +40,33 @@ lineage facts携 `contact_round_id` / version：normal accepted genesis固定`ve
 lineage/current proof绑定，不得回写旧Event。fork、跳版、同version不同bytes、未知predecessor或signer不匹配
 全部quarantine/fail closed。
 
+### 1.1 陌生人首次接触的 new-source quota（normative）
+
+Contact request 与 invite delivery、`ak.self.consent.command.request.v1` 一样，是**陌生人向 holder
+发起的首次接触**，因此同样是"换一个 principal 就能重新骚扰"的放大面。这三条面 **MUST** 汇聚到
+[`consent-model.md` §6.1.1.3](./consent-model.md) 定义的**同一个 holder admission chokepoint**，共用
+§6.1.1.1 的 quota carrier 与 effective 值、§6.1.1.2 的 identity key
+`(holder 完整 AccountId, source_peer_principal_id)`、以及 §6.1.1.4 的 seen-source ledger 与线性化要求。
+Contact 首次接触照常计费；被计费的是**发起方 principal 首次向该 holder 接触**这件事，与该请求最终落在
+哪个 carrier 无关。
+
+但 **Contact 的 carrier 不是 holder quarantine**：Contact 的待审状态是本文 §3 的 directional
+`pending_incoming` head，由 Contact 状态机独占。因此：
+
+- Contact request 通过 chokepoint 时，写入的是 `pending_incoming`，**MUST NOT** 在 holder quarantine 中
+  产生 entry——那会给同一事实造出第二个平行待审 carrier；
+- Contact request 命中 quota 上限时，被静默丢弃的对象是 **`pending_incoming` row 的建立**，不是
+  quarantine entry。丢弃 **MUST** 对 requester 不可区分：与 `pending` 建立成功、holder 不存在、
+  holder policy deny 返回逐字节相同的响应并落在同一 timing bucket，理由与
+  [`consent-model.md` §6.1.1](./consent-model.md) 的五元等价类完全相同；
+- Contact 的重复判定由本文 §3 的 directional current head 决定：同一 issuer 对同一 peer 已有未终态的
+  request 或 lineage head 时即为重复，重复不进入 quota 评估、零新计费。本节不新增第二个去重键；
+  §1 的 `(contact_round_id, issuer_id, peer)` lineage 仍是唯一真源。
+
+Contact 路径**仍然不读写 Consent**（本节开头条与
+[`../sync/service-http-binding.md`](../sync/service-http-binding.md) 的 `POST /_arkret/self/contacts/request`
+行）。共用 chokepoint 只共享反滥用计数，不引入任何 consent 授权语义。
+
 ## 2. Contact 写链、回执与 Contact round
 
 request、respond、reject、scope replacement 与 tombstone 共享唯一写链：

@@ -3222,7 +3222,7 @@
       "additionalProperties": false
     },
     "consent_peer": {
-      "description": "Closed consent counterparty identity. Ordinary and MIMI-correlated parties use one exact ActorId, including Account Station and actor role. A Realm-local pairwise principal has no Account Station and therefore uses the explicit pairwise_principal branch; implementations MUST NOT reinterpret an ordinary account principal as this branch.",
+      "description": "Closed consent counterparty identity. Ordinary accounts, Agents, pseudonymous accounts and MIMI-correlated parties use one exact ActorId, including Account Station and actor role. The pairwise_principal branch is reserved for the Realm-local ephemeral pairwise actor of a minimal-metadata Realm, which exists only inside that Realm and therefore MUST carry it; implementations MUST NOT reinterpret an ordinary account principal as this branch, and the two branches never match each other.",
       "oneOf": [
         {
           "type": "object",
@@ -3235,12 +3235,17 @@
         },
         {
           "type": "object",
-          "required": ["kind", "principal_id"],
+          "required": ["kind", "realm_id", "principal_id"],
           "properties": {
             "kind": {"const": "pairwise_principal"},
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id",
+              "description": "Collaboration Realm the pairwise actor is local to. A pairwise actor does not exist outside it, and the holder consent Event lives in the holder Principal Control Realm, so the envelope realm_id cannot supply this binding. The same principal_id under a different realm_id is a different peer and MUST NOT be aggregated."
+            },
             "principal_id": {
-              "$ref": "#/$defs/did_core_id",
-              "description": "Realm-local pairwise principal established by the exact accepted Realm binding. It is not an AccountId and cannot be upgraded by adding the current Station."
+              "type": "string",
+              "pattern": "^ak:did_core:key:z6Mk[A-Za-z0-9]+$",
+              "description": "Realm-local ephemeral pairwise principal of the minimal-metadata Realm named by realm_id; the ephemeral pairwise principal profile only admits did:key. It is not an AccountId and cannot be upgraded by adding the current Station. Admission validates form only; the accepted-binding requirement is enforced at match time by requiring the authenticated counterparty to be the actor projected by that Realm's current active LeafNode."
             }
           },
           "additionalProperties": false
@@ -3566,7 +3571,7 @@
         },
         "mentions": {
           "type": "array",
-          "description": "Structured direct mention AST nodes for this Content Block. This is the only carrier of a direct mention: authorization, notification routing and audit attribution read mention_node.subject_id exclusively (zh/models/strand-and-message.md §9.4.1-§9.4.2).",
+          "description": "Structured direct mention AST nodes for this Content Block. This is the only carrier of a direct mention: authorization, notification routing and audit attribution read mention_node.subject_account_id exclusively, and compare it as a complete AccountId (zh/models/strand-and-message.md §9.4.1-§9.4.2).",
           "items": {
             "$ref": "#/$defs/mention_node"
           }
@@ -5069,6 +5074,10 @@
       "properties": {
         "invite_id": {
           "$ref": "#/$defs/invite_id"
+        },
+        "invitee_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Present exactly when the target Invite stores one, that is for a directed invite and never for a third-party invite; admission compares it byte-for-byte with the stored value. It is the only signed source from which the ak.component.invite.live_target.v1 slot subject can be derived, because the reducer projection grammar cannot convert the envelope ActorId into an AccountId."
         }
       },
       "patternProperties": {
@@ -5124,7 +5133,7 @@
         },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Required for a directed invite and forbidden by semantic admission for a 3PID placeholder."
+          "description": "Present exactly when the target Invite stores one and target_state is not send_failed; forbidden for a 3PID placeholder and forbidden on send_failed. It is the only signed source from which the ak.component.invite.live_target.v1 slot subject can be derived, and send_failed keeps the invite inside the live set, so that transition derives no slot write and needs no account."
         },
         "target_state": {
           "type": "string",
@@ -5147,6 +5156,27 @@
           "type": "string"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "target_state": {
+                "const": "send_failed"
+              }
+            },
+            "required": [
+              "target_state"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "invitee_account_id"
+              ]
+            }
+          }
+        }
+      ],
       "patternProperties": {
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },
@@ -5770,26 +5800,26 @@
       "type": "object",
       "required": [
         "kind",
-        "subject_id"
+        "subject_account_id"
       ],
       "properties": {
         "kind": {
           "const": "mention"
         },
-        "subject_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Authoritative mention target principal DID. For Agent selectors this is the agent principal DID, not the controller DID."
+        "subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Authoritative mention target as the complete AccountId, principal and Station component both. For Agent selectors this is the agent account, not the controller account. Equality is byte-for-byte over both components: the same principal hosted by another Station is a different subject and MUST NOT match (zh/identity/identity-handles.md §3.8, zh/discovery/discovery-directory.md §9)."
         },
         "display_name_at_time": {
           "type": "string"
         },
         "handle_at_time": {
           "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
-          "description": "Canonical handle snapshot at compose time. Audit / debug / search metadata only; renderers MUST resolve the current primary handle from subject_id instead (zh/identity/identity-handles.md §3.8.1-§3.8.2)."
+          "description": "Canonical handle snapshot at compose time. Audit / debug / search metadata only; renderers MUST resolve the current primary handle from subject_account_id instead (zh/identity/identity-handles.md §3.8.1-§3.8.2)."
         },
-        "controller_subject_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Audit metadata for @<controller-handle>/<agent_slug> inputs. MUST NOT replace subject_id for routing, authorization, or attribution."
+        "controller_subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Audit metadata for @<controller-handle>/<agent_slug> inputs, carried as the complete controller AccountId. MUST NOT replace subject_account_id for routing, authorization, or attribution."
         },
         "controller_handle_at_time": {
           "$ref": "string-profiles.schema.json#/$defs/canonical_handle",

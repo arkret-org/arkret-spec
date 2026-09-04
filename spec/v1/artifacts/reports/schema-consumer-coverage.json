@@ -51,12 +51,12 @@
       "prose_only": 2,
       "schema_reference": 133,
       "startup_compile": 199,
-      "vectors": 126
+      "vectors": 127
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 73,
+    "without_vector_coverage": 72,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -113,7 +113,6 @@
     "ak.schema.inclusion_list.v1",
     "ak.schema.invite_delivery.v1",
     "ak.schema.invite_delivery_request.v1",
-    "ak.schema.invite_quarantine.v1",
     "ak.schema.keypackage_operations.v1",
     "ak.schema.keys_operations.v1",
     "ak.schema.list_handles_for_subject_response.v1",
@@ -1317,6 +1316,7 @@
           "ak.schema.handle_claim_revocation.v1",
           "ak.schema.high_risk_authority_proof.v1",
           "ak.schema.history_key.v1",
+          "ak.schema.holder_quarantine.v1",
           "ak.schema.ice_config_response.v1",
           "ak.schema.identity_link.v1",
           "ak.schema.identity_receipt.v1",
@@ -1325,7 +1325,6 @@
           "ak.schema.invite.v1",
           "ak.schema.invite_delivery.v1",
           "ak.schema.invite_delivery_request.v1",
-          "ak.schema.invite_quarantine.v1",
           "ak.schema.invite_receive_policy.v1",
           "ak.schema.key_backup.v1",
           "ak.schema.key_backup_active_series.v1",
@@ -2100,6 +2099,27 @@
       }
     },
     {
+      "schema_id": "ak.schema.holder_quarantine.v1",
+      "file": "schemas/holder-quarantine.schema.json",
+      "consumers": {
+        "declared_wire": "account_data_plaintext",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "fixture"
+      },
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.account.holder_quarantine",
+        "normative_ref": "zh/identity/consent-model.md"
+      }
+    },
+    {
       "schema_id": "ak.schema.http_problem_details.v1",
       "file": "schemas/http-problem-details.schema.json",
       "consumers": {
@@ -2265,29 +2285,6 @@
           "ak.self.invites.command.dispatch.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
-      }
-    },
-    {
-      "schema_id": "ak.schema.invite_quarantine.v1",
-      "file": "schemas/invite-quarantine.schema.json",
-      "consumers": {
-        "declared_wire": "account_data_plaintext",
-        "prose": "normative_text",
-        "schema_reference": "fragment",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.invite_receive_policy.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
-      },
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "account_data key ak.account.invite_quarantine",
-        "normative_ref": "zh/identity/consent-model.md"
       }
     },
     {
@@ -3637,6 +3634,7 @@
           "ak.schema.handle_claim_core.v1",
           "ak.schema.handle_claim_revocation.v1",
           "ak.schema.history_key.v1",
+          "ak.schema.holder_quarantine.v1",
           "ak.schema.ice_config_response.v1",
           "ak.schema.identity_link.v1",
           "ak.schema.identity_receipt.v1",
@@ -3645,7 +3643,6 @@
           "ak.schema.invite.v1",
           "ak.schema.invite_delivery.v1",
           "ak.schema.invite_delivery_request.v1",
-          "ak.schema.invite_quarantine.v1",
           "ak.schema.key_backup.v1",
           "ak.schema.key_backup_active_series.v1",
           "ak.schema.key_backup_unlock_proof.v1",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.1",
+  "version": "2026-09-05.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T00:40:00+08:00",
+  "generated_at": "2026-09-05T12:40:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -178,8 +178,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:5c15433bd5d47804bf3715298911b5f9b4cb417b5864f1026f37328d9bca7074",
-      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Station admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal; every MLS epoch binds the independently re-derived security frontier for its accepted key-access state; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
+      "section_digest": "sha256:8b1b6fe20008a41ced08e0a97437181e91e802f6d609b7711e5ed2f6104f42ff",
+      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Station admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal, and a minimal-metadata Realm-local pairwise actor is no exception: its Realm state stays keyed by the complete ActorId, and only the two closed out-of-Realm matching sites (consent peer, KeyPackage claim) use (realm_id, principal_id), which its did:key principal already pins; every MLS epoch binds the independently re-derived security frontier for its accepted key-access state; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.encrypted_envelope_digest.v1",
@@ -344,14 +344,15 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:41781bf8d2b51ff4bec8dea6d93c0fc1620f13b1826224424af0bd468ae504d9",
-      "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the claimed lifecycle transition is atomic with its subject-bound membership proposal; only invite acceptance writes member state.",
+      "section_digest": "sha256:249cea8d7e70c39233bc5eb78c1a54c0a1090999465ced4f88277ee1d74ac9c9",
+      "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the claimed lifecycle transition is atomic with its subject-bound membership proposal; only invite acceptance writes member state. Directed invite live uniqueness is carried by the registered ak.component.invite.live_target.v1 slot: create claims it under a head_eq __unset__ precondition, every transition leaving the live set releases it under a head_eq create_event_id precondition, send_failed keeps it claimed, and a duplicate create is rejected with failed_precondition and invite_live_target_occupied at zero writes.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.invite.claim_reducer_state_machine.v1",
         "ak.vector.invite.consumed_token_resubject_rejected.v1",
         "ak.vector.invite.claim_expiry_canonical_time.v1",
-        "ak.vector.invite.membership_transition_atomicity.v1"
+        "ak.vector.invite.membership_transition_atomicity.v1",
+        "ak.vector.invite.live_target_uniqueness.v1"
       ]
     },
     {

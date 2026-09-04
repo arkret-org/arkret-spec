@@ -3274,7 +3274,7 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 4), "group_state_ref", "group_state_digest"),
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 5), "group_state_ref", "group_state_digest"),
     ("event-payload.schema.json", ("$defs", "audit_release_payload"), "seal_ref", "seal_digest"),
-    ("invite-quarantine.schema.json", ("$defs", "quarantine_entry"), "invite_event_id", "invite_event_digest"),
+    ("holder-quarantine.schema.json", ("$defs", "quarantine_entry"), "invite_event_id", "invite_event_digest"),
     ("mls-governance-proof-bundle.schema.json", ("$defs", "typed_proof_material", "properties", "seal_descriptors", "items"), "seal_ref", "seal_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationDelegationCore"), "join_event_id", "join_event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MembershipJoinAcceptedProof"), "join_event_id", "join_event_digest"),
@@ -3605,7 +3605,7 @@ def check_account_identity_carrier_closure(lint: Lint) -> None:
         ("account-subscribe-frame", "/$defs/realm_summary/properties/hero_ids/items", "actor_id"),
         ("agent-membership-cascade", "/$defs/agent_cleanup_record/properties/expected_agent_ids/items", "actor_id"),
         ("invite-receive-policy", "/properties/account_id", "account_id"),
-        ("invite-quarantine", "/$defs/quarantine_entry/properties/account_id", "account_id"),
+        ("holder-quarantine", "/$defs/quarantine_entry/properties/account_id", "account_id"),
         ("keys-operations", "/$defs/device_projection_attestation_core/properties/account_id", "account_id"),
     )
     for name, pointer, role in targets:

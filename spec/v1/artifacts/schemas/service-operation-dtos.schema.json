@@ -2626,6 +2626,30 @@
       },
       "additionalProperties": false
     },
+    "InviteLiveTargetOccupiedProblem": {
+      "type": "object",
+      "description": "Closed RFC 9457 Problem Details extension members for an ak.invite.create rejected with failed_precondition because the Realm live-target slot for payload.invitee_account_id is already claimed. The submission performed zero Event, Seal, reducer, projection, or frontier writes. Both identifiers name the same 33-octet token under two prefixes so the client never has to re-spell one from the other.",
+      "required": [
+        "reason_code",
+        "invite_id",
+        "create_event_id"
+      ],
+      "properties": {
+        "reason_code": {
+          "const": "invite_live_target_occupied"
+        },
+        "invite_id": {
+          "type": "string",
+          "pattern": "^ak:invite:[A-Za-z0-9_-]{44}$",
+          "description": "Invite ID of the live directed Invite already holding the slot."
+        },
+        "create_event_id": {
+          "$ref": "#/$defs/EventId",
+          "description": "Event ID of that Invite's ak.invite.create, which is also the current slot value and therefore the head_eq value a release Move must carry."
+        }
+      },
+      "additionalProperties": false
+    },
     "EventsDependencyMissingProblem": {
       "type": "object",
       "description": "Closed RFC 9457 Problem Details extension members for an atomic federation unit rejected with top-level dependency_missing. The unit performed zero Event, Seal, reducer, projection, or frontier writes.",

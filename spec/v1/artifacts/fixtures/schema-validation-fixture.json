@@ -512,7 +512,7 @@
     },
     {
       "name": "account_identity_closure_quarantine_exact_holder_valid",
-      "schema_ref": "schemas/invite-quarantine.schema.json#/$defs/quarantine_entry",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
       "expect_valid": true,
       "instance": {
         "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -522,6 +522,7 @@
         },
         "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
         "source_id": "ak:did_core:web:sender.example",
+        "surface_kind": "invite_delivery",
         "consent_scope": "invite",
         "introduction_kind": "explicit_address",
         "effective_kind": "explicit_address",
@@ -535,7 +536,7 @@
     },
     {
       "name": "account_identity_closure_quarantine_recipient_mirror_rejected",
-      "schema_ref": "schemas/invite-quarantine.schema.json#/$defs/quarantine_entry",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
       "expect_valid": false,
       "instance": {
         "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -545,6 +546,7 @@
         },
         "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
         "source_id": "ak:did_core:web:sender.example",
+        "surface_kind": "invite_delivery",
         "consent_scope": "invite",
         "introduction_kind": "explicit_address",
         "effective_kind": "explicit_address",
@@ -557,6 +559,151 @@
         "recipient_id": "ak:did_core:web:ps.example"
       },
       "first_expected_error": "contains:Additional properties"
+    },
+    {
+      "name": "holder_quarantine_consent_request_branch_valid",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
+      "expect_valid": true,
+      "instance": {
+        "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
+        "source_id": "ak:did_core:web:sender.example",
+        "surface_kind": "consent_request",
+        "consent_scope": "direct_message",
+        "received_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z"
+      }
+    },
+    {
+      "name": "holder_quarantine_consent_request_with_request_digest_rejected",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
+      "expect_valid": false,
+      "instance": {
+        "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
+        "source_id": "ak:did_core:web:sender.example",
+        "surface_kind": "consent_request",
+        "consent_scope": "direct_message",
+        "received_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z",
+        "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "first_expected_error": "contains:should not be valid under"
+    },
+    {
+      "name": "holder_quarantine_consent_request_with_introduction_kind_rejected",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
+      "expect_valid": false,
+      "instance": {
+        "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
+        "source_id": "ak:did_core:web:sender.example",
+        "surface_kind": "consent_request",
+        "consent_scope": "direct_message",
+        "received_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z",
+        "introduction_kind": "explicit_address"
+      },
+      "first_expected_error": "contains:should not be valid under"
+    },
+    {
+      "name": "holder_quarantine_consent_request_with_invite_scope_rejected",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
+      "expect_valid": false,
+      "instance": {
+        "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
+        "source_id": "ak:did_core:web:sender.example",
+        "surface_kind": "consent_request",
+        "consent_scope": "invite",
+        "received_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z"
+      },
+      "first_expected_error": "contains:'invite' should not be valid under"
+    },
+    {
+      "name": "holder_quarantine_invite_delivery_with_non_invite_scope_rejected",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
+      "expect_valid": false,
+      "instance": {
+        "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
+        "source_id": "ak:did_core:web:sender.example",
+        "surface_kind": "invite_delivery",
+        "consent_scope": "direct_message",
+        "introduction_kind": "explicit_address",
+        "effective_kind": "explicit_address",
+        "trust_tier": "low",
+        "invite_event_id": "ak:event:AUTTW11VHiB1CyE9I304vg0i43r0udn-PTMgwXCFGYrG",
+        "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "idempotency_key_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "received_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z"
+      },
+      "first_expected_error": "contains:'invite' was expected"
+    },
+    {
+      "name": "holder_quarantine_invite_delivery_missing_idempotency_digest_rejected",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
+      "expect_valid": false,
+      "instance": {
+        "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
+        "source_id": "ak:did_core:web:sender.example",
+        "surface_kind": "invite_delivery",
+        "consent_scope": "invite",
+        "introduction_kind": "explicit_address",
+        "effective_kind": "explicit_address",
+        "trust_tier": "low",
+        "invite_event_id": "ak:event:AUTTW11VHiB1CyE9I304vg0i43r0udn-PTMgwXCFGYrG",
+        "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "received_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z"
+      },
+      "first_expected_error": "contains:'idempotency_key_digest' is a required property"
+    },
+    {
+      "name": "holder_quarantine_unknown_surface_kind_rejected",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
+      "expect_valid": false,
+      "instance": {
+        "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
+        "source_id": "ak:did_core:web:sender.example",
+        "surface_kind": "contact_delivery",
+        "consent_scope": "direct_message",
+        "received_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z"
+      },
+      "first_expected_error": "contains:is not one of"
     },
     {
       "name": "account_identity_closure_reanchor_scope_valid",

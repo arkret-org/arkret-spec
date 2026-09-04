@@ -1190,6 +1190,8 @@ components:
       $ref: ../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome
     InviteDeliveryRequestBody:
       $ref: ../schemas/invite-delivery-request.schema.json
+    InviteLiveTargetOccupiedProblem:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/InviteLiveTargetOccupiedProblem
     InviteLocatorIssueOutcome:
       $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome
     InviteLocatorIssueRequestBody:

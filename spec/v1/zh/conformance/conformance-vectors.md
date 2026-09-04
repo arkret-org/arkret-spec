@@ -3858,16 +3858,18 @@ Steps:
 
 1. Bob 在 message composer 输入 `@alice:acme.example/summary`。
 2. 客户端从本地 Realm roster / actor profile / handle claim cache 解析 controller handle → `AliceDID`，再验证 selector claim `(AliceDID, "summary")` → 唯一 active `AgentSDID`。
-3. 客户端提交 Message content AST，其中 mention node `subject_id=AgentSDID`，并可携带 `controller_subject_id=AliceDID`、`controller_handle_at_time="alice:acme.example"`、`agent_slug_at_time="summary"`、`mention_text_original="@alice:acme.example/summary"`。
+3. 客户端提交 Message content AST，其中 mention node `subject_account_id={principal_id:AgentSDID, station_id:AgentSStation}`，并可携带 `controller_subject_account_id={principal_id:AliceDID, station_id:AliceStation}`、`controller_handle_at_time="alice:acme.example"`、`agent_slug_at_time="summary"`、`mention_text_original="@alice:acme.example/summary"`。
 4. Alice 之后把 `AgentS.slug` 改为 `sum` 并更新对应 selector claim 的 `agent_slug`，或把 `summary` 分配给另一个新 agent `AgentT`。
 5. 另一次测试中，Alice 同时存在两个 current valid selector claims 绑定 `(AliceDID, "summary")` 到不同 active agents，或 Bob 不可见 selector claim / accountability evidence。
+6. 另一次测试中，同一 `AgentSDID` principal 在另一个 Station 上另有一个账号 `{principal_id:AgentSDID, station_id:OtherStation}`，且该账号也是本 Realm 成员。
 
 Expected:
 
-- 第 2 步 MUST 在持久化前完成；selector claim 是 slug 绑定的权威来源。持久化事件里的权威 mention target MUST 是 agent `subject_id=AgentSDID`，不得把 `alice:acme.example/summary` 当作 handle 或权威字段写入。
+- 第 2 步 MUST 在持久化前完成；selector claim 是 slug 绑定的权威来源。持久化事件里的权威 mention target MUST 是 agent 的完整 `subject_account_id`，不得把 `alice:acme.example/summary` 当作 handle 或权威字段写入，也不得只写 principal 分量。
 - 第 3 步的 `controller_*` 与 `agent_slug_at_time` 只作 audit / search / fallback metadata；reducer、dispatcher、policy engine MUST 忽略这些字段做授权和投递决策。
-- 第 4 步 MUST NOT 改写历史 mention target；旧消息仍指向 `AgentSDID`。
-- 第 5 步 MUST fail closed：客户端不得构造 mention node；实现可提示 picker 选择或把输入保留为普通文本。服务端若收到仅靠 metadata 声称 selector 的事件，也必须只按 `subject_id` 和已验证 agent state 判定。
+- 第 4 步 MUST NOT 改写历史 mention target；旧消息仍指向同一个完整 `subject_account_id`。
+- 第 5 步 MUST fail closed：客户端不得构造 mention node；实现可提示 picker 选择或把输入保留为普通文本。服务端若收到仅靠 metadata 声称 selector 的事件，也必须只按 `subject_account_id` 和已验证 agent state 判定。
+- **第 6 步（负例，normative）**：另一 Station 上同 principal 的账号 MUST NOT 命中该 mention——不产生 `notification_kind=mention`、不进入授权判定、不参与 §3.8.2 的 MemberIdentity 联接。实现若按 `subject_account_id.principal_id` 单独比较即为不合规；比较 MUST 覆盖 `principal_id` 与 `station_id` 两个分量（[`../identity/identity-handles.md` §3.8](../identity/identity-handles.md)、[`../discovery/discovery-directory.md` §9](../discovery/discovery-directory.md)）。
 
 ### 11.1.2 Vector: Agent PCR Genesis 前向声明与反查
 
@@ -5565,12 +5567,37 @@ Steps:
 
 Expected:
 
-- 正例：create 只写 `invite.lifecycle: null -> pending`，目标 member 保持 `leave`；accept 在同一 Control Move 原子写 `invite.lifecycle -> accepted` 与 member `leave -> join`。
+- 正例：create 原子写 `invite.lifecycle: null -> pending` 与 `invite.live_target` 占格，目标 member 保持 `leave`；accept 在同一 Control Move 原子写 `invite.lifecycle -> accepted`、member `leave -> join` 与 `invite.live_target` 释放。
 - 负例：没有 `pending` / `claimed` invite 前态、actor 不是 exact invitee，或 member 前态不是 `leave` 的 accept MUST fail closed 且零写。
-- 正例：cancel / revoke / expired revoke 只写 `invite.lifecycle`；member cell 保持逐字节不变，不得合成 `leave` write。
+- 正例：cancel / revoke / expired revoke 不写 member cell（保持逐字节不变，不得合成 `leave` write），只推进 `invite.lifecycle` 并按 §23.4.1 的规则释放或保留 `invite.live_target`。
 - 负例：direct invite cancel 缺失 `payload.invitee_account_id`，或其值与 invite cell 记录不等，MUST `reducer_projection_failed`；token / 3PID invite 的 cancel MUST `invite_kind_requires_revoke`。
 - 正例：3PID create / revoke 不投影 `member.state`；claim 只产生 subject-bound membership proposal，后续 accept 才写 member `leave -> join`。
 - 正例：membership FSM 状态集不含 `invite`，且 direct `leave -> ban` 按 membership FSM 独立合法；实现不得创造 invite member prestate 或要求先合成一次 `leave`。
+
+#### 23.4.1 Direct invite 的 live-target slot 唯一性
+
+`vector_id`: `ak.vector.invite.live_target_uniqueness.v1`
+
+Steps:
+
+1. 同一 Realm 内对同一 `invitee_account_id` 顺序提交两条不同的、各自 schema-valid 的 `ak.invite.create`。
+2. 在同一 CBA basis 上并发提交两条 `ak.invite.create`，目标同一 `invitee_account_id`。
+3. 让第一条 invite 进入终态（`ak.invite.cancel` 或 `ak.invite.revoke`），随后重新邀请同一账号。
+4. 让一条 invite 到达 `expires_at` 但不提交任何 Move，再提交一条新的 create。
+5. 让一条 direct invite 进入 `send_failed`，随后分别尝试直接重发 create、以及先 revoke 再 create。
+6. 对一条 3PID invite 提交携带伪造 `payload.invitee_account_id` 的 `ak.invite.revoke`；对一条 direct invite 提交省略该字段的终态 `ak.invite.revoke`。
+7. 用 `ak:invite:` 拼写而非 `ak:event:` 拼写构造释放 Move 的 `head_eq` 值。
+
+Expected:
+
+- 正例：`ak.invite.create` 携带 `ak.component.invite.live_target.v1` 的 `head_eq:"__unset__"`，原子写 lifecycle 与 slot；slot subject 是 `canonical_json(payload.invitee_account_id)` 的单分量 composite，**不含 `realm_id`**。
+- 负例：第 1 步的第二条 create MUST `failed_precondition` + `reason_code="invite_live_target_occupied"`，不进 canonical history、零 cell write、零投影、零通知；`error.details` 严格通过 [`service-operation-dtos.schema.json#/$defs/InviteLiveTargetOccupiedProblem`](../../artifacts/schemas/service-operation-dtos.schema.json)，即只含 `reason_code` / `invite_id` / `create_event_id`。MUST NOT 返回 `cas_conflict`，MUST NOT 作为幂等成功返回既有 `invite_id`。
+- 正例：第 2 步的两条并发 create 争用同一个 cell，恰好一条获胜，结果由 CBA basis 唯一确定，与任何实现私有唯一索引或数据库插入先后无关。
+- 正例：第 3 步的重新邀请被接受（终态 Move 已释放格子）。
+- 负例：第 4 步的新 create 仍 MUST `invite_live_target_occupied`——`expires_at` 到达不释放格子，只有已登记的 `ak.invite.revoke(target_state="expired")` 才释放。
+- 负例：第 5 步直接重发 create MUST `invite_live_target_occupied`；先 `ak.invite.revoke(target_state="revoked")` 再 create MUST 被接受。`send_failed` 分支的 `ak.invite.revoke` payload MUST NOT 携带 `invitee_account_id`（schema `if/then`），因而不派生 slot 释放写。
+- 负例：第 6 步两种形态 MUST 都以 `failed_precondition` + `reducer_projection_failed` 原子拒绝（`stored_field_matches_payload` 的两个方向）。前者保证 3PID invite 不能释放别人的 direct slot，后者保证 direct invite 不能靠省略字段把格子永久占住。
+- 负例：第 7 步 MUST `failed_precondition`——slot value 逐字是 `ak:event:` 形态的 `create_event_id`。
 
 ### 23.5 Call state 正交轴各自成 cell
 
@@ -5630,6 +5657,16 @@ Expected:
 - quarantine MUST 表示为 `status="deferred"` 且不携带 `disclosed_outcome`。
 - 负例：响应携带 `disclosed_outcome="quarantined"` 视为不合规；该值不在枚举内。
 - 三条通道的可观察量 MUST 互不能用于区分 quarantine 与拒绝。
+- **carrier 分叉（正例）**：invite delivery 与 consent request 各自写入一条 holder quarantine entry，
+  `surface_kind` 分别为 `invite_delivery` / `consent_request`；contact delivery 写入的是 Contact
+  `pending_incoming` head，holder quarantine **零 entry**。三者对 requester 仍逐字节不可区分。
+- 负例：consent request 的 entry 携带 `invite_event_id` / `introduction_kind` / `effective_kind` /
+  `trust_tier` / `request_digest` / `idempotency_key_digest` 任一字段，或其 `consent_scope="invite"`；
+  invite delivery 的 entry 缺少上述任一字段，或其 `consent_scope` 不是 `invite`；出现
+  `surface_kind="contact_delivery"` 或任何未登记取值——以上 MUST 全部 `schema_violation`。
+- 负例：`ak.self.consent.command.request.v1` 通过 chokepoint 后不写任何 entry（把该 operation 当空壳），
+  或对同一 `(account_id, source_peer_principal_id, consent_scope)` 在已有 live entry 时再写第二条，
+  视为不合规。
 
 ### 23.8 Per-holder 新来源 quota 的 holder 视角准入
 
@@ -5637,7 +5674,7 @@ Expected:
 
 本向量固化 [`../identity/consent-model.md` §6.1.1.1–§6.1.1.4](../identity/consent-model.md) 的
 admission chokepoint 算法。外部视角按设计不可区分，因此断言全部从 **holder 的
-`ak.account.invite_quarantine` cell** 观察。
+`ak.account.holder_quarantine` cell** 观察。
 
 Steps:
 
@@ -5664,6 +5701,10 @@ Expected:
   quarantine 面，quota 空转。负例：该 profile 下出现任何 quarantine entry、ledger 行、
   `failed_precondition` 或任何可区分响应视为不合规。
 - 负例：任何分支返回 429、`Retry-After`、`rate_limited` 或缓存的 drop outcome 均视为不合规。
+- **contact delivery 计费但不入 quarantine（正例）**：陌生人首次 Contact request 照常消耗一个新来源名额；
+  超限时被丢弃的是 Contact `pending_incoming` row 的建立，holder quarantine 始终零 entry
+  （[`../identity/contact-and-direct-conversation.md` §1.1](../identity/contact-and-direct-conversation.md)）。
+  负例：contact 首次接触不计费，或它在 holder quarantine 里产生 entry，均视为不合规。
 
 ### 23.8.1 Effective quota 边界与 holder override
 

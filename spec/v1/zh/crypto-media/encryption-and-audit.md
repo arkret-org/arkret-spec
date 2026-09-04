@@ -474,10 +474,33 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 ### 2.7 Minimal-Metadata E2EE Realm
 
 Minimal-metadata 的 author/authorization subject 是 Realm-local pairwise endpoint actor。每个
-`(Realm, endpoint incarnation)` MUST 使用唯一 canonical `ak:did_core:key:<canonical-multibase-id>` principal 分量与 signature key；完整 endpoint identity 仍是含该 principal 与其 Station 分量的 account `ActorId`。同一 Realm 的不同 endpoint
+`(Realm, endpoint incarnation)` MUST 使用唯一 canonical `ak:did_core:key:<canonical-multibase-id>` principal 分量与 signature key。同一 Realm 的不同 endpoint
 不得复用，同一 endpoint MAY 在该 Realm-default group 与该 Realm 的 Circles 中复用。它在 Event actor、exact active
 Leaf BasicCredential identity、Event `actor_id`、content KDF/counter sender domain 与 history request sender
-domain 中用于密码学分域的 principal 必须是该 canonical did_core_id 的同一组 UTF-8 bytes；需要参与者身份的字段必须携完整 ActorId。proof `verification_method` 是完整 did:key DID URL；其 controller/base 必须经 registered adapter 投影到该 ActorId 的 principal 分量，完整 Account/Station 另由 accepted membership 与 authorization evidence 验证，且其 key 必须等于 exact leaf signature key。
+domain 中用于密码学分域的 principal 必须是该 canonical did_core_id 的同一组 UTF-8 bytes。proof `verification_method` 是完整 did:key DID URL；其 controller/base 必须经 registered adapter 投影到该 ActorId 的 principal 分量，且其 key 必须等于 exact leaf signature key。
+
+**wire 载体与外部匹配键的分工（normative）**：pairwise endpoint 在 wire 上作者 Event 时，envelope
+`actor_id` 仍是完整 account `ActorId`——其 `station_id` 分量是**当次的 hosting Station**，只承担 wire 路由与
+作者身份，由 accepted membership 与 authorization evidence 验证。**Realm 内的一切状态仍按完整 `ActorId`
+定址**：`ak.component.member.state.v1` 的 cell subject 就是 `canonical_json(payload.member_id)`，
+`member_id` 是完整 `ActorId`；§2.5.3 governance proof 的 `local_mls_leaves[].actor_id` 同样逐条携带完整
+`ActorId`。同一 principal 不可能在本 profile 下出现两个并存 endpoint：本节已要求同一 Realm 内一个
+`ak:did_core:key:` principal 恰对应一个 endpoint incarnation，重复 credential 在 MLS 层即被拒绝。
+
+**例外是封闭列举的两处**：当一个**外部于该 Realm 的持有方**需要把这个 pairwise actor 当作匹配键时，
+它拿不到、也不应该依赖 hosting Station，此时匹配键是 `(realm_id, principal_id)`。v1 只有两个这样的站点：
+
+- consent peer 匹配（[`../identity/consent-model.md` §3.2 / §6.1](../identity/consent-model.md)）——
+  consent Event 位于 holder PCR，holder 对该 Collaboration Realm 只有 view，没有 membership 记录；
+- KeyPackage claim 授权（[`device-lifecycle.md` §9](./device-lifecycle.md) 的
+  `(pairwise_verification_method, intended_realm_id)`）——该形态在本规范里已经这么写了。
+
+这两处成立的理由只对本 profile 有效：`principal_id` 是 `did:key`，即公钥本身，冒充它需要私钥，
+Station 分量不提供任何额外安全性。**普通 Account / Agent / service actor 不适用本条**，
+本 profile 的 Realm 内状态也不适用：相等判断仍按
+[`common-ids.schema.json#/$defs/actor_id`](../../artifacts/schemas/common-ids.schema.json) 的完整 ActorId 规则，
+「no comparison may fall back to a bare `principal_id`」原样成立（另见
+[`../identity/identity-handles.md` §3.2](../identity/identity-handles.md)）。
 
 服务端只按 pairwise actor 执行 membership/current gate/join floor/remove/rejoin，不得查询目录或 transport session
 推断真实 principal/device 聚合。持有 encrypted `identity_link` 的成员可在本地聚合并批量移除已知 actors；协议不声称

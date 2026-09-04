@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 66,
+    "total_fields": 67,
     "by_classification": {
       "bounded_free_text": 7,
       "closed_enum": 32,
-      "closed_literal": 9,
+      "closed_literal": 10,
       "validated_open_reason_code": 18
     },
     "unclassified": 0
@@ -514,6 +514,14 @@
       "pointer": "#/$defs/EventsSubmitRejectedRow/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "InviteLiveTargetOccupiedProblem",
+      "field": "reason_code",
+      "pointer": "#/$defs/InviteLiveTargetOccupiedProblem/properties/reason_code",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",

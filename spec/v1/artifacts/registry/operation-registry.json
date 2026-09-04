@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.1",
+  "version": "2026-09-05.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "generated_at": "2026-09-05T10:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2940,7 +2940,7 @@
       "http": "POST /_arkret/self/consent/request",
       "grpc": "SelfConsent/Request",
       "mq": "self.consent.command.request",
-      "notes": "Submits an opaque consent-contact request from the authenticated peer. peer_principal_id defaults to and MUST equal the actor. The response is identical for missing holders, policy denial, rate limiting, silent drop and quarantine acceptance; the operation never returns a consent cell.",
+      "notes": "Submits an opaque consent-contact request from the authenticated peer. peer_principal_id defaults to and MUST equal the actor. The response is identical for missing holders, policy denial, rate limiting, silent drop and quarantine acceptance; the operation never returns a consent cell. On admission the recipient Station writes one holder-private ak.account.holder_quarantine entry with surface_kind consent_request, carrying no Event ref and none of the invite_delivery branch members; it shares the invite delivery quota, ledger and CAS chokepoint. Because this operation declares no idempotency key and carries no nonce, that branch deduplicates by live-entry uniqueness over (account_id, source_peer_principal_id, consent_scope). The written entry is holder-private service-local material, so durable_effect stays none.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",

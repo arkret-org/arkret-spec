@@ -409,8 +409,10 @@ barrier 串行化。实现不得按 Event kind 名称猜测类别。
   已解析 `allowed_transitions` 决定；未登记 self-transition 时必须拒绝。
 - 无 `condition` 的目标是无条件必需目标。
 - 未知 `kind`、缺 `field`、`field` 不是点分具名路径、`field_equals` 缺 `const` 或 `const` 不是标量，MUST fail closed（registry 无效，发布门禁失败）。
+- `condition` 的 `field` / `fields[]` MUST 是**显式来源**的 `payload.<具名路径>`。裸字段名会把 [`../conformance/encoding.md` §9.5.1](../conformance/encoding.md) 明禁的「先查 payload、再查 envelope」fallback 带回来；而 `condition` 决定的是**这条 cell write 到底发不发生**，来源不确定的后果比 subject 更重。
 - **`any_field_present` 的两种正当用途**：(i) 同一语义值在同 kind 的不同 payload 形态下落在不同路径（例如 invite 既可用 `payload.invite` 完整对象、也可用扁平字段承载）；(ii) 同一 cell 承载多个不同字段，其中任一字段出现即需写该 cell。
 - **subject 可派生性（normative）**：条件命中时该目标的 `cell_subject` MUST 可派生。用途 (i) 下 `cell_subject` 必然是 `coalesce`，其 `fields[]` MUST 与 `condition.fields[]` 逐项一致、同序——否则会出现「条件命中但 subject 无法派生」或反之的组合；该一致性由 `tools/artifact_lint` 机械校验。用途 (ii) 下 `cell_subject` 取一个与条件字段无关的路径，该路径 MUST 是 payload 的无条件必填字段。
+- **自门控目标（normative）**：`condition:{kind:"field_present",field:F}` 与一个完全由同一个 `F` 派生的 `cell_subject`（`F` 本身，或只含 `F` 的单分量 `canonical_json` composite）组合时，可派生性按构造成立：条件命中即 `F` 存在，subject 即可求值；条件未命中即 `F` 缺失，该目标不参与。这是 optional payload 字段承载可选 cell 目标的唯一合法形态——`ak.invite.accept` / `ak.invite.revoke` 的 `payload.invitee_account_id` 与 `ak.component.invite.live_target.v1` 即属此类。实现 MUST NOT 用「字段缺失时退回另一个字段」或「按 payload 形状推断」替代该显式条件。
 - `condition` 只决定该目标是否参与，MUST NOT 改变 `cell_family`、`cell_subject` 派生式、
   `lattice` 或 `bottom`；需要按判别值切换取值字段时使用已登记的 `select` component。
 
@@ -419,15 +421,25 @@ barrier 串行化。实现不得按 Event kind 名称猜测类别。
 
 - `predicate:{kind:"stored_field_present",field}`：该具名字段存在且非 `null`；
 - `predicate:{kind:"stored_field_equals_payload",field,payload_field}`：持久化字段存在，
-  `payload_field` 也存在，且二者逐字节相等。
+  `payload_field` 也存在，且二者逐字节相等；
+- `predicate:{kind:"stored_field_matches_payload",field,payload_field}`：持久化字段与
+  `payload_field` **同时缺失**，或**同时存在且逐字节相等**。它比上一条弱一格，专用于「该字段
+  在 payload 中是 optional，且它的存在与否必须逐字对应前态」的场合；两个方向同时封死，
+  既不能凭伪造字段进入只属于另一类对象的分支，也不能靠省略字段跳过一条已登记的写。
 
-任一失败时必须原样返回该 requirement 登记的 `failure.code` / `failure.reason_code`，整个
-Move 不得产生任何 cell write。实现不能用请求另传的同名字段替代持久化前态。当前
-`ak.invite.cancel` 先要求目标 Invite 已有 `invitee_account_id`，把该 kind 封闭在普通定向邀请；再要求
-它与签名 `payload.invitee_account_id` 相等，保证请求不能把第三方/token invite 冒充为普通定向邀请。
-第三方/token invite 必须使用 `ak.invite.revoke`。
+每个 requirement MAY 携带一个 `condition`，语法与上面 `cell_writes[].condition` 的封闭表逐字相同，
+同样 MUST 是已通过 schema 校验的 payload 的纯函数。`condition` 未命中的 requirement **不被求值**；
+命中时按上述谓词判定。任一失败时必须原样返回该 requirement 登记的 `failure.code` /
+`failure.reason_code`，整个 Move 不得产生任何 cell write。实现不能用请求另传的同名字段替代持久化前态。
 
-`ak.mls.genesis` / `ak.mls.commit` 的三目标合约固定为 MLS epoch、key schedule 与 covered-seals；`ak.invite.accept` 固定为 invite lifecycle 与 member state；`ak.invite.claim` 固定为 invite lifecycle 与 subject-bound membership proposal。`ak.invite.create` / `ak.invite.cancel` / `ak.invite.revoke` 只写 invite lifecycle。generic/message redaction 写入单调 `ak.component.object.redaction.v1` fact；对象的 effective terminal/redacted 状态由该 fact 与对象 lifecycle cell 联合派生，不允许用到达顺序选择是否清除内容。闭包与正负路径由 `ak.vector.event_kind.cell_contract_closure.v1` 固定。
+当前的三处用法：`ak.invite.cancel` 先要求目标 Invite 已有 `invitee_account_id`，把该 kind 封闭在
+普通定向邀请；再要求它与签名 `payload.invitee_account_id` 相等，保证请求不能把第三方/token invite
+冒充为普通定向邀请（第三方/token invite 必须使用 `ak.invite.revoke`）。`ak.invite.accept` 无条件
+要求 `stored_field_matches_payload(invitee_account_id)`。`ak.invite.revoke` 对 5 个非 `send_failed`
+的 `target_state` 逐值登记同一谓词——`send_failed` 由 payload schema 直接禁止携带该字段，
+因而不产生 slot 释放写，也不需要该前态要求。
+
+`ak.mls.genesis` / `ak.mls.commit` 的三目标合约固定为 MLS epoch、key schedule 与 covered-seals；`ak.invite.accept` 固定为 invite lifecycle、member state 与条件性的 invite live-target 释放；`ak.invite.claim` 固定为 invite lifecycle 与 subject-bound membership proposal。`ak.invite.create` 固定为 invite lifecycle 与 invite live-target 占用，`ak.invite.cancel` 固定为 invite lifecycle 与 invite live-target 释放，`ak.invite.revoke` 固定为 invite lifecycle 与条件性的 invite live-target 释放（`send_failed` 不释放）；`ak.invite.third_party` 只写 invite lifecycle。live-target slot 的完整语义见 [`governance-objects.md` §5.3](./governance-objects.md)。generic/message redaction 写入单调 `ak.component.object.redaction.v1` fact；对象的 effective terminal/redacted 状态由该 fact 与对象 lifecycle cell 联合派生，不允许用到达顺序选择是否清除内容。闭包与正负路径由 `ak.vector.event_kind.cell_contract_closure.v1` 固定。
 
 ### 2.5 Create 类 Event 的跨字段语义校验
 

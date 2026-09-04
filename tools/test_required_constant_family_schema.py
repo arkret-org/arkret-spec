@@ -29,7 +29,7 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             ("account-operations.schema.json", "identity_abandonment_outcome", ("status",)),
             ("account-operations.schema.json", "account_request_erasure_outcome", ("status",)),
             ("directory-operations.schema.json", "directory_agent_selector_resolution_outcome", ("verified",)),
-            ("invite-quarantine.schema.json", "quarantine_entry", ("status",)),
+            ("holder-quarantine.schema.json", "quarantine_entry", ("status",)),
             ("mimi-operations.schema.json", "mimi_request_consent_outcome", ("status",)),
             ("mimi-operations.schema.json", "mimi_update_consent_outcome", ("status",)),
             ("mimi-operations.schema.json", "mimi_report_abuse_outcome", ("status",)),
