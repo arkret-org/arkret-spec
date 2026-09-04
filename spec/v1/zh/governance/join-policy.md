@@ -31,6 +31,8 @@ Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不�
 
 `principal_admission` 与 `cooldown` 对所有入口模式生效。切换 `join_rule` 不得绕过 DID allow/deny 约束或离开冷却期。
 
+`join_rule` 与 `join_policy` 的一致性由 reducer 强制：`join_rule` 为 `restricted` 或 `knock_restricted` 时，`join_policy` MUST 含至少一个自动 gate（`claim_required` / `challenge_response` / `parent_membership`），且 `combinator` 不得使评估结果与声明的入口模式矛盾：只含 `principal_admission` / `cooldown` 硬门时，按 §4 规则 2-3 的求值顺序 `restricted` 的可通过集合与 `public` 完全相同，`knock_restricted` 则退化为 `restricted`。`restricted` 未配任何自动 gate、或 `knock_restricted` 的 gate 组合实际退化为 `restricted` 时，写入 `ak.realm.join_rule` / `ak.realm.policy_bundle` 的 reducer MUST 以 `failed_precondition`、`reason_code=join_rule_policy_mismatch` 拒绝，不接受互相矛盾的入口声明。
+
 ## 3. 数据模型
 
 机器真源是 [`event-payload.schema.json#/$defs/join_policy_component`](../../artifacts/schemas/event-payload.schema.json)。最小形态：
@@ -61,7 +63,7 @@ Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不�
 
 | `kind` | 必要材料 | 语义 |
 | --- | --- | --- |
-| `claim_required` | `required_claims[]` | 验证调用方提交的 VC / claim presentation |
+| `claim_required` | `required_claims[]` | 验证调用方提交的 VC / claim presentation；claim 畸形、不可验证或未通过 policy 校验时拒绝，授权审计 reason 为 `claim_invalid` |
 | `challenge_response` | `provider_did`、`challenge_kinds[]`、`max_proof_age` | 验证 CAPTCHA、PoW、attested-human 或 OIDC challenge 的签名结果 |
 | `parent_membership` | `membership_source_realm_ids[]`、`require_min_membership="join"` | 验证调用方已在声明的来源 Realm 具有 accepted `join` 成员状态；待处理 Invite 与 `knock` 均不满足该 gate |
 | `principal_admission` | DID method、principal allowlist 或 denylist selector 至少一个 | 在其它 gate 前执行的硬准入门；deny 优先 |
@@ -104,10 +106,10 @@ AND，任一失败即拒绝，不受 component `combinator` 影响；其它 gate
 1. reducer 先验证 Event envelope、producer proof、CBA basis、capability 与目标 Realm。
 2. 先评估全部 `principal_admission` 和 `cooldown` gate；任一失败即拒绝。
 3. 再按 `combinator` 评估其余自动 gate。`all` 要求全部成功；`any` 要求至少一个成功。
-4. 每个 `gate_proofs[]` 项 MUST 绑定 `gate_id`、目标 Realm、applicant、policy frontier/digest 和 proof 创建时间；跨 Realm、跨主体、跨 policy revision 重放 MUST 失败。
+4. 每个 `gate_proofs[]` 项 MUST 绑定 `gate_id`、目标 Realm、applicant、policy frontier/digest 和 proof 创建时间；跨 Realm、跨主体、跨 policy revision 重放 MUST 失败。proof 签名、verifier-domain 绑定或 freshness 核验失败时，授权审计 reason 为 `challenge_proof_invalid`；它与 `challenge_failed`（challenge 答案本身核验失败）和 `challenge_expired`（proof 签发超过 `max_proof_age`）互斥，不得混用。
 5. gate 成功仅说明 admission 条件满足，不创建 capability、invite 或 membership。最终 `membership=join` 仍按普通 Event admission 和成员状态机处理。
 
-对尚未成为成员的调用方，gate 失败 MUST 使用统一的 `gate_check_failed` 或等价不可枚举结果；不得暴露 allowlist 命中、Realm 存在性、凭证差异或成员状态。详细原因只可写入授权审计。
+对尚未成为成员的调用方，gate 失败 MUST 使用统一的 `gate_check_failed` 或等价不可枚举结果；不得暴露 allowlist 命中、Realm 存在性、凭证差异或成员状态。详细原因只可写入授权审计，其 reason 集合包含 `claim_invalid`、`challenge_failed`、`challenge_proof_invalid` 与 `challenge_expired`。
 
 ## 5. Knock 与隐私
 

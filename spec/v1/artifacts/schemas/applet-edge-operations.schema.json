@@ -103,7 +103,8 @@
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "$comment": "Registered error-code-registry reason code for the per-event rejection. Inbound queue saturation (backpressure) uses queue_full; the rejection does not consume the idempotency identity and the push sender MAY re-deliver the rejected events under the same idempotency identity after retry_after_ms. See zh/extensions/applet-integration.md §7.3."
         },
         "retry_after_ms": {
           "type": "integer",

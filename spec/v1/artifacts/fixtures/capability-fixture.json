@@ -1714,6 +1714,19 @@
           "expected": {
             "all_fail_closed": true
           }
+        },
+        {
+          "name": "agent_sidecar_write_requires_allowed_strand_ids",
+          "subject_kind": "agent",
+          "action": "ak.agent.sidecar.write",
+          "required_constraints": [
+            "allowed_strand_ids"
+          ],
+          "declared_constraints": [],
+          "expected": {
+            "accepted": false,
+            "reason_code": "agent_grant_constraint_missing"
+          }
         }
       ]
     },

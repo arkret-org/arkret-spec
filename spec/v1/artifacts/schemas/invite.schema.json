@@ -207,7 +207,8 @@
             ]
           }
         }
-      ]
+      ],
+      "$comment": "Token sourcing is closed: the invite_token MUST come from the URL fragment or an out-of-band code. A claim whose token was sourced from a URL query string or path segment MUST be rejected with reason third_party_invite_token_in_query (zh/sync/third-party-invites.md §3.2). That rejection is produced by the verification-service token presentation endpoint; operation-registry.json registers no operation for it, so this schema note is the machine carrier of the reason code."
     }
   },
   "patternProperties": {

@@ -91,7 +91,8 @@
             },
             "nonce": {
               "type": "string",
-              "pattern": "^[A-Za-z0-9_-]{16,64}$"
+              "pattern": "^[A-Za-z0-9_-]{16,64}$",
+              "$comment": "zh/crypto-media/media-and-blob.md §3.1: the whole-file nonce MUST be the canonical full-width I2OSP(durable_sender_counter, AEAD.Nn) encoding; a nonce that is not that deterministic derivation (truncated prefix, counter rollback, exhausted-counter continue, or random fallback) is rejected with reason aead_nonce_derivation_invalid."
             }
           },
           "required": [

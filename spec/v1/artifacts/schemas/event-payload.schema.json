@@ -1763,6 +1763,7 @@
       "pattern": "^ak:audit_release:[A-Za-z0-9_-]{44}$"
     },
     "audit_release_payload": {
+      "$comment": "Reducer rejections for this payload carry registered sub-reasons: no active binding for the declared effective_scope is failed_precondition reason audit_release_binding_missing; effective_scope disagreeing with the active binding (or a Realm-scoped binding used to cover Circle history) is audit_release_scope_mismatch; a release without a valid prior ak.audit.session.notice for the same session/binding/scope is audit_release_notice_missing; targeting the current active MLS epoch is audit_release_current_epoch_forbidden. See zh/crypto-media/audited-e2ee.md §4.1 / §4.4 / §5.2.",
       "type": "object",
       "description": "Payload for ak.audit.release. A sealed audit release manifest for a bounded historical window. It appends to the control-plane ordered log ak.component.audit.release.v1 keyed by session_id only while the accepted session FSM head is notice. Same-basis close dominates and rejects the release. The payload records release metadata and wrapped material digests only; plaintext MUST NOT be inlined.",
       "required": [
@@ -1794,7 +1795,8 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "effective_scope": {
-          "$ref": "#/$defs/effective_scope"
+          "$ref": "#/$defs/effective_scope",
+          "$comment": "MUST equal the effective_scope of the active ak.audit.applet_binding; a mismatch is rejected with reason audit_release_scope_mismatch, and no active binding for the scope is audit_release_binding_missing. See zh/crypto-media/audited-e2ee.md §3 / §4.1."
         },
         "applet_id": {
           "$ref": "./common-ids.schema.json#/$defs/applet_id"
@@ -1827,7 +1829,8 @@
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "notice_ref": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "$comment": "MUST reference an accepted ak.audit.session.notice of the same session, binding, scope, purpose and approved range; a release without a valid prior notice is rejected with reason audit_release_notice_missing. See zh/crypto-media/audited-e2ee.md §4.3 / §4.4."
         },
         "purpose_kind": {
           "$ref": "#/$defs/non_empty_string"
@@ -2040,7 +2043,8 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "effective_scope": {
-          "$ref": "#/$defs/effective_scope"
+          "$ref": "#/$defs/effective_scope",
+          "$comment": "Session contract scope MUST match the active ak.audit.applet_binding effective_scope; a mismatch is rejected with reason audit_release_scope_mismatch, and no active binding for the scope is audit_release_binding_missing. See zh/crypto-media/audited-e2ee.md §3 / §4.1."
         },
         "session_state": {
           "type": "string",
@@ -2150,6 +2154,7 @@
       "additionalProperties": false
     },
     "audit_session_request_payload": {
+      "$comment": "Reducer rejections for this payload carry registered sub-reasons: no active ak.audit.applet_binding for the declared effective_scope is failed_precondition reason audit_release_binding_missing; an effective_scope disagreeing with the active binding is audit_release_scope_mismatch. See zh/crypto-media/audited-e2ee.md §4.1.",
       "allOf": [
         {
           "$ref": "#/$defs/audit_session_contract"
@@ -5184,6 +5189,7 @@
         "binding_proof": {
           "type": "object",
           "description": "Verification-service proof for ak.invite.claim. Reducers verify signature over the ak.invite.claim.binding_proof.v1 transcript against the invite's verification_public_key and current Realm verification_id allowlist before accepting a claimed transition.",
+          "$comment": "A malformed or unverifiable binding proof is recorded with the authorized audit reason claim_invalid; external responses stay non-enumerable (see zh/sync/third-party-invites.md §4.3 / §6).",
           "required": [
             "verification_id",
             "verification_method",
@@ -5603,7 +5609,8 @@
           "enum": [
             "member_identity"
           ],
-          "description": "v1 core defines a single full MemberIdentity segment. Narrower segments require a future schema/profile revision that extends this enum or defines a new payload schema; v1 receivers MUST reject unknown segment values."
+          "description": "v1 core defines a single full MemberIdentity segment. Narrower segments require a future schema/profile revision that extends this enum or defines a new payload schema; v1 receivers MUST reject unknown segment values.",
+          "$comment": "Reducer rejection for a segment value outside the v1 enum carries reason member_identity_unknown_segment. See zh/sync/client-sync.md §8.1."
         },
         "replaces": {
           "type": "array",
@@ -5688,7 +5695,8 @@
           "items": {
             "type": "object"
           },
-          "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join. maxItems aligns with the gates 1..16 bound in join_policy_component; see zh/conformance/scalability-constraints.md."
+          "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join. maxItems aligns with the gates 1..16 bound in join_policy_component; see zh/conformance/scalability-constraints.md.",
+          "$comment": "Gate failures are reported to a non-member caller uniformly as gate_check_failed in response.rejected[] (see governance/join-policy.md §4). The authorized audit reasons are challenge_failed (answer verification failed) and challenge_proof_invalid (proof signature, verifier-domain binding, or replay freshness failed; exceeding max_proof_age is challenge_expired instead). These audit reasons MUST NOT appear in response.rejected[]."
         },
         "reason": {
           "type": "string",

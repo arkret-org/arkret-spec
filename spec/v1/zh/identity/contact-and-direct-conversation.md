@@ -444,7 +444,9 @@ founding_receipt_transcript = H("ak.direct-conversation.founding-receipt.v1",
 `proof.verification_method` **MUST** 解析为 `issuer_id` 在 `accepted_at` 时的 current service key，
 `proof.created_at` **MUST** 等于 `accepted_at`。receiver **MUST** 从 receipt 自身字段重算该 transcript 再验签，
 **MUST NOT** 采信任何随 receipt 传来的预算 digest；这使 byte-identical retry 与两个独立实现必然得到同一
-transcript 与同一签名输入。
+transcript 与同一签名输入。receipt 或 `ak.direct_conversation.bound` binding fact 的 issuer、`pair_key`、
+authorization basis、Realm role、exact two-member set、main Strand、`founding_unit_digest` 或 founding MLS
+引用任一无效时，verifier **MUST** 拒绝该 binding（reason `direct_conversation_binding_invalid`）。
 
 carrier 是 `ak.self.events.command.submit.v1` request union 中显式登记的 discriminated branch
 `DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好四条按 §6.1 顺序排列的 `EventInitialSubmission` 与 `idempotency_key`，不携带 `founding_authority_evidence`——founder 的 current Station 在同一 admission 事务内以自己 current 的 Contact round / Agent provision 证据校验该 unit（§9.1.1），并在 response union `SelfEventsSubmitOutcome` 中返回 `DirectConversationFoundingAcceptanceOutcome`。每条 Event 的实际 author `ActorId` 必须路由到接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支或让服务端代签 producer Event；`ak.self.direct_conversation.read.resolve.v1` 继续 query-only，**MUST NOT** 承载 create。

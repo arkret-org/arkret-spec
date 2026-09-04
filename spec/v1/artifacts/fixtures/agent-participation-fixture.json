@@ -264,6 +264,76 @@
         "enabling third-party mention later is non-retroactive",
         "subsequent third-party mentions deliver only after the effective bit is true"
       ]
+    },
+    {
+      "name": "ceiling_unresolved_fail_closed",
+      "vector_id": "ak.vector.agent.participation.effective_intersection.v1",
+      "kind": "effective_participation",
+      "ordinary_capabilities": [
+        "ak.message.create"
+      ],
+      "governance_ceiling": {
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
+        "accept_third_party_mention": true,
+        "act_on_behalf": false
+      },
+      "selection": {
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
+        "accept_third_party_mention": false,
+        "act_on_behalf": true
+      },
+      "required_policy_source": "unknown",
+      "expected": {
+        "accepted": false,
+        "reason": "agent_participation_ceiling_unresolved",
+        "selection_unchanged": true
+      },
+      "assertions": [
+        "a bottom, stale or unresolvable required policy layer fails the action-time gate closed",
+        "the unresolved policy is treated as all false and the controller selection stays stored unchanged"
+      ]
+    },
+    {
+      "name": "reply_not_permitted_by_selection",
+      "vector_id": "ak.vector.agent.participation.effective_intersection.v1",
+      "kind": "effective_participation",
+      "ordinary_capabilities": [
+        "ak.message.create"
+      ],
+      "governance_ceiling": {
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
+        "accept_third_party_mention": true,
+        "act_on_behalf": false
+      },
+      "selection": {
+        "reply_message": false,
+        "reaction_add": true,
+        "reaction_remove": false,
+        "accept_third_party_mention": false,
+        "act_on_behalf": true
+      },
+      "expected": {
+        "accepted": false,
+        "reason": "agent_reply_not_permitted",
+        "effective": {
+          "reply_message": false,
+          "reaction_add": true,
+          "reaction_remove": false,
+          "accept_third_party_mention": false,
+          "act_on_behalf": false
+        }
+      },
+      "assertions": [
+        "an Agent may author ak.message.create only where the current controller selection and the current target policy both enable reply_message",
+        "effective participation is the bitwise meet of the current governance/deployment ceiling and controller selection",
+        "participation is an additional action gate and never materializes a capability grant"
+      ]
     }
   ]
 }

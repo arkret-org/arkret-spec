@@ -498,7 +498,8 @@ source-local durable 处置之一：顶层 code 取自 RFC 9457 Problem `type` �
   `did_proof_required`、`account_locked`、`account_suspended`、`operation_selector_required`。
 - `replace_manifest`：`schema_violation`、`json_invalid`、`query_invalid`、`param_missing`、`param_invalid`、
   `too_large`、`limit_exceeded`、`signature_invalid`、`state_mismatch`、`conflict`、`duplicate_conflict`、
-  `failed_precondition`（含 `reason_code=history_traversal_anchor_unreachable`）。
+  `failed_precondition`（含 `reason_code=history_traversal_anchor_unreachable`）、`ttl_expired`
+  （staged bytes 所携的 TTL / `expires_at` 窗口已过，同一 bytes 重发永远不会被接受）。
 - `request_terminal`：`capability_denied`、`history_not_visible`、`account_deactivated`、`account_erased`、
   `not_implemented`、`unsupported_feature`、`unsupported_event_kind`、`unsupported_protocol_version`、
   `unsupported_operation_version`。

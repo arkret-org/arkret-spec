@@ -513,11 +513,11 @@ event_id ASC
 - 候选集是同一 `(realm_id, member_id, segment)` 下 accepted 的 `ak.member.identity.update` events。
 - `payload.replaces[].payload_digest` 是被替代事件完整 `payload.identity_payload` carrier wrapper（`{member_identity: ...}` 或 `{encrypted_payload: ...}`）的 RFC 8785 JCS canonical JSON bytes 的 `sha256` digest。
 - 若 accepted event `B` 的 `replaces[]` 引用 accepted event `A`，且 `payload_digest` 等于 `A.payload.identity_payload` 的 digest，则 `A` 在当前 projection 中被 `B` 替代。
-- `replaces[]` 引用未知 event、其它 `(realm_id, member_id, segment)` 的 event，或 digest 不匹配时，该 replacement edge 无效；实现 MUST NOT 因此把被引用 event 从 effective set 移除。
+- `replaces[]` 引用未知 event、其它 `(realm_id, member_id, segment)` 的 event，或 digest 不匹配时，该 replacement edge 无效（reason `member_identity_replacement_digest_mismatch`）；实现 MUST NOT 因此把被引用 event 从 effective set 移除。
 - 当前 effective set 是候选集中未被有效 replacement edge 指向的事件集合。成员身份查询 / roster hint SHOULD 只返回这个 effective set；历史 backfill / audit 查询 MAY 返回已被替代的旧事件。
 - effective set MAY 因并发写入或 replacement 冲突包含多个未被替代的事件。查询层 MUST 原样暴露该多值状态，MUST NOT 按本地排序、到达顺序或 last-writer-wins 规则静默收敛为单一 MemberIdentity。需要单一 MemberIdentity 的显示路径（例如 mention renderer）MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 处理：不唯一即 Realm-scoped projection 路径失败，进入 live / as-of resolve 或 fallback。
 - 当前事件 `payload.identity_payload` carrier wrapper 的 digest 由消费者从本体本地推导，只用于 payload cache / replacement edge 校验，不在 wire 上重复。
-- `expected_state_digest` 是可选 optimistic concurrency guard。若存在，它 MUST 等于 writer 观察到的同一 `(realm_id, member_id, segment)` 当前 effective set digest：`sha256` over RFC 8785 JCS canonical JSON `{realm_id, member_id, segment, effective_events:[{event_id, segment, payload_digest}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序。不匹配时服务端 / reducer MUST reject 或 quarantine，不得把该事件作为有效 replacement 应用。它不同于本地 carrier digest，也不同于 roster 的 `member_display_state_digest`。
+- `expected_state_digest` 是可选 optimistic concurrency guard。若存在，它 MUST 等于 writer 观察到的同一 `(realm_id, member_id, segment)` 当前 effective set digest：`sha256` over RFC 8785 JCS canonical JSON `{realm_id, member_id, segment, effective_events:[{event_id, segment, payload_digest}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序。不匹配时服务端 / reducer MUST 以 `member_identity_state_mismatch` reject 或 quarantine，不得把该事件作为有效 replacement 应用。它不同于本地 carrier digest，也不同于 roster 的 `member_display_state_digest`。
 
 MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `encrypted_payload.ciphertext` 解密结果）：
 
@@ -551,7 +551,7 @@ MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `en
 MemberIdentity replacement 规则：
 
 - v1 core 只定义 `segment="member_identity"`，因此每次替代旧身份事件时，新事件的 `identity_payload` MUST 携带完整 MemberIdentity。用户只修改 display name 时，客户端也必须读取本地当前 effective MemberIdentity，应用本地修改后重新封装完整对象；不得只发送 `{display_name: ...}`。
-- 更窄且互不重叠的 segment（例如 `display_profile` / `subject_disclosure`）需要后续 schema / profile revision 扩展 `segment` 枚举或定义新的 payload schema；v1 receiver MUST reject unknown segment values。扩展后的每个 segment 内仍然是完整替换：如果一个新事件替代某个旧 segment event，它必须包含该 segment 的所有数据，即使本次只改变其中一个字段。
+- 更窄且互不重叠的 segment（例如 `display_profile` / `subject_disclosure`）需要后续 schema / profile revision 扩展 `segment` 枚举或定义新的 payload schema；v1 receiver MUST reject unknown segment values，reason 为 `member_identity_unknown_segment`。扩展后的每个 segment 内仍然是完整替换：如果一个新事件替代某个旧 segment event，它必须包含该 segment 的所有数据，即使本次只改变其中一个字段。
 - v1 MemberIdentity payload MUST NOT carry `primary_handle`、`handles[]` 或其它 handle 字符串字段。handle 是 issuer claim lifecycle 的输出，不是用户 profile / identity event 的输入；客户端需要展示 `@alice:acme.example` 时，MUST 从当前可见 `ak.schema.handle_claim.v1` set 运行 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) primary handle selection。
 - canonical handle string 仍为 `alice:acme.example`；`@alice:acme.example` 的 `@` 是 mention/UI sigil，不属于 handle。`alice@acme.example` 只可作为输入别名，normalize 后不得进入签名 transcript、claim、cache key 或 MemberIdentity。
 - MemberIdentity 只负责 Realm-scoped display projection：`subject_id` 披露、display name、avatar 和其它未来 display-profile segment。mention / reply / quote 等 actor 引用字段 MUST 按 [`identity/identity-handles.md` §3.8](../identity/identity-handles.md) 使用 `subject_id` 而不是 handle 字符串；handle claim 只影响显示和可读寻址，不影响 grant subject、actor attribution、membership key、delivery 决策或 audit attribution。
@@ -560,7 +560,7 @@ MemberIdentity replacement 规则：
 - `identity_payload.encrypted_payload` MUST 复用 [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)。明文 MemberIdentity 是 `ciphertext` 解密结果；`content_type` SHOULD 使用 `application/vnd.arkret.member-identity+json`。
 - 加密 MemberIdentity MUST 由成员设备或被 Realm policy 授权的身份 issuer 设备生成。Sync / Principal / Federation Service MUST 存储和返回原始 encrypted payload 或其事件引用，不得因客户端查询而重加密、重封包或推进 MLS sender generation。
 - 客户端解密时按 `group_id`、`epoch` 和 `key_ref.group_state_ref` 查找本地 MLS group state；缺少 epoch 时按 §15 标记 `decryption_pending` 并补拉 `ak.mls.*` state / Welcome / winning Commit / 授权 history key material。
-- 客户端 MUST 验证 MemberIdentity 的 `realm_id`、`actor_id`、`subject_id`、`proof.payload_digest`、签名链和 Realm disclosure policy；`proof.payload_digest` MUST 等于移除顶层 `proof` 字段后的 MemberIdentity 对象的 RFC 8785 JCS canonical JSON bytes 的 `sha256` digest，签名也 MUST 覆盖同一 canonical bytes。任一失败时不得把该 event 提升为 verified display identity。
+- 客户端 MUST 验证 MemberIdentity 的 `realm_id`、`actor_id`、`subject_id`、`proof.payload_digest`、签名链和 Realm disclosure policy；`proof.payload_digest` MUST 等于移除顶层 `proof` 字段后的 MemberIdentity 对象的 RFC 8785 JCS canonical JSON bytes 的 `sha256` digest，签名也 MUST 覆盖同一 canonical bytes。任一失败（reason `member_identity_proof_invalid`）时不得把该 event 提升为 verified display identity。
 
 Handle claim 获取与刷新规则：
 
