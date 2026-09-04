@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9816,
+    "total_properties": 9805,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2692,
+      "optional": 2683,
       "optional_defaulted": 65,
-      "required": 6730,
+      "required": 6728,
       "required_nullable": 122,
       "tristate": 207
     },
@@ -2415,9 +2415,8 @@
         "/$defs/account_device_pair_outcome/properties/key_backup_hint": "optional",
         "/$defs/account_device_pair_request_body/properties/authorize_event": "required",
         "/$defs/account_device_pair_request_body/properties/challenge_proof": "required",
-        "/$defs/account_device_pair_request_body/properties/challenge_transcript": "optional",
         "/$defs/account_device_pair_request_body/properties/device_metadata": "optional",
-        "/$defs/account_device_pair_request_body/properties/device_pairing_request_id": "optional",
+        "/$defs/account_device_pair_request_body/properties/device_pairing_request_id": "required",
         "/$defs/account_device_pair_request_body/properties/display_name": "optional",
         "/$defs/account_device_pair_request_body/properties/new_device_pubkey": "required",
         "/$defs/account_device_pair_request_body/properties/pairing_code": "required",
@@ -2609,8 +2608,6 @@
         "/$defs/pending_sidecar_access_reconciliation_item/properties/provisioning_phase": "required"
       },
       "conditionally_required": [
-        "/$defs/account_device_pair_request_body/properties/challenge_transcript",
-        "/$defs/account_device_pair_request_body/properties/device_pairing_request_id",
         "/$defs/agent_provision_outcome/properties/allocation_handle",
         "/$defs/agent_provision_outcome/properties/controller_realm_id",
         "/$defs/agent_provision_outcome/properties/expires_at",
@@ -4736,13 +4733,10 @@
         "ak.schema.device_message.v1"
       ],
       "properties": {
-        "/$defs/key_verification_content/properties/challenge_proof": "optional",
         "/$defs/key_verification_content/properties/code": "optional",
         "/$defs/key_verification_content/properties/commitment": "optional",
-        "/$defs/key_verification_content/properties/device_metadata": "optional",
         "/$defs/key_verification_content/properties/expires_at": "optional",
         "/$defs/key_verification_content/properties/from_device_id": "required",
-        "/$defs/key_verification_content/properties/gate_audience": "optional",
         "/$defs/key_verification_content/properties/hashes": "optional",
         "/$defs/key_verification_content/properties/key": "optional",
         "/$defs/key_verification_content/properties/key_agreement_protocols": "optional",
@@ -4751,14 +4745,10 @@
         "/$defs/key_verification_content/properties/message_authentication_codes": "optional",
         "/$defs/key_verification_content/properties/method": "optional",
         "/$defs/key_verification_content/properties/methods": "optional",
-        "/$defs/key_verification_content/properties/new_device_pubkey": "optional",
-        "/$defs/key_verification_content/properties/pairing_code": "optional",
         "/$defs/key_verification_content/properties/purpose": "optional",
         "/$defs/key_verification_content/properties/reason": "optional",
-        "/$defs/key_verification_content/properties/request_canonical_digest": "optional",
         "/$defs/key_verification_content/properties/short_authentication_string": "optional",
         "/$defs/key_verification_content/properties/signatures": "optional",
-        "/$defs/key_verification_content/properties/target_attestation": "optional",
         "/$defs/key_verification_content/properties/timestamp": "optional",
         "/$defs/key_verification_content/properties/transaction_id": "required",
         "/$defs/key_verification_content/properties/verified_keys": "optional",
@@ -4861,10 +4851,7 @@
         "/$defs/device_pairing_target_attestation/properties/device_public_key_did": "required",
         "/$defs/device_pairing_target_attestation/properties/device_signature": "required",
         "/$defs/device_pairing_target_attestation/properties/hpke_key": "required",
-        "/$defs/device_pairing_target_attestation/properties/pairing_challenge_transcript_digest": "required",
-        "/$defs/device_pairing_to_device_challenge_transcript/properties/expires_at": "required",
-        "/$defs/device_pairing_to_device_challenge_transcript/properties/request_canonical_digest": "required",
-        "/$defs/device_pairing_to_device_challenge_transcript/properties/transaction_id": "required"
+        "/$defs/device_pairing_target_attestation/properties/pairing_challenge_transcript_digest": "required"
       },
       "conditionally_required": [
         "/$defs/device_pairing_status_outcome/properties/authorized_event_ref",

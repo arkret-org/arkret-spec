@@ -2865,7 +2865,6 @@
         "owners": [
           "ak.schema.agent_operations.v1",
           "ak.schema.agent_pairing_bootstrap.v1",
-          "ak.schema.device_message.v1",
           "ak.schema.device_pairing_bootstrap.v1",
           "ak.schema.device_pairing_operations.v1"
         ],

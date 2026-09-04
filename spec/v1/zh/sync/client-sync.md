@@ -616,8 +616,6 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 1. `delta.to_device.limited=true` 时，用 `delta.to_device.next_cursor` 继续分页读取队列。
 2. 客户端本地 dispatcher 崩溃、account subscribe 暂未建立、或前台验证小流程尚未启动完整账号同步时，用于补拉未确认消息。
-3. 非 full-client 的窄实现（例如只做设备验证的登录前/登录中 UI）在持有受限 fresh-device session grant 时，可短轮询本设备队列以完成同一笔验证 transcript。
-
 一旦 full client 的 account subscribe 已经运行，客户端 SHOULD 停止为同一 `(account_id, device_id)` 维持独立的 SAS 轮询循环；继续轮询只应作为检测到 `limited`、`dropped`、本地处理失败或显式用户前台流程的短期恢复手段。无论消息来自主路径还是补拉路径，ack、去重、过期、`lost` 处理和 transaction 幂等规则完全相同。
 
 ### 10.1 显式投递确认 (normative)

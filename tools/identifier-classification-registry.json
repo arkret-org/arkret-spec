@@ -888,14 +888,6 @@
     },
     {
       "name": "transaction_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "device-pairing.schema.json#/$defs/device_pairing_to_device_challenge_transcript/properties/transaction_id",
-      "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
-      "name": "transaction_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._~=-]{1,128}$\"]]",
       "category": "opaque_correlation",
       "occurrences": 1,

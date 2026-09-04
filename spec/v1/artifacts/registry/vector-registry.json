@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.1",
+  "version": "2026-09-04.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "generated_at": "2026-09-04T08:33:13+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1819,7 +1819,7 @@
       "status": "active",
       "domain": "device_pairing",
       "scope": "universal",
-      "description": "accepted_device pairing signs a closed target-owned possession attestation under ak.device_authorize_accepted_device_possession_proof.v1 whose only replay boundary is the pairing challenge transcript digest: the approving device and the Account Authority each rebuild it independently, it is the sole authority for hpke_key and algorithms, short-link and to-device share one schema and one domain, transcripts never cross between root_anchored and accepted_device, and the target device fails closed before local assembly when the accepted Event does not match its attestation or the expected principal_id.",
+      "description": "accepted_device pairing signs a closed target-owned possession attestation under ak.device_authorize_accepted_device_possession_proof.v1 whose only replay boundary is the staged short-link pairing challenge transcript digest: the approving device and the Account Authority each rebuild it independently, it is the sole authority for hpke_key and algorithms, it travels only in the out-of-band QR or short-link fragment, transcripts never cross between root_anchored and accepted_device, and the target device fails closed before local assembly when the accepted Event does not match its attestation or the expected principal_id.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/crypto-media/device-lifecycle.md",
@@ -1831,6 +1831,7 @@
       "status": "active",
       "domain": "device_pairing",
       "scope": "universal",
+      "description": "Fresh-device authorization has exactly one bootstrap transcript, ak.device-pairing.challenge.v1, tied to an account-less bounded-TTL staged request. Pair commit requires that still-pending request; stage/resolve/status expose no principal, sibling targets, or SessionGrant, and an unauthorized fresh device cannot call self device-message operations.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/crypto-media/device-lifecycle.md",

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-04.3",
-  "generated_at": "2026-09-04T00:41:06+08:00",
+  "version": "2026-09-04.4",
+  "generated_at": "2026-09-04T08:33:13+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -165,7 +165,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.pair_device.v1",
-      "sha256": "sha256:f66d718a100e1af196dbd7fea1b6766b614b3413da904ade6ec7f0e6eb1979d6"
+      "sha256": "sha256:53e3e413ab982daf725d59524b3f6729bac47035767c58e29ddec810b3783056"
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
@@ -465,7 +465,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:29dec7aec550efeac3eb6d7b0ccc4a7b569355a3599a9247e819a7eeb5fb1b14"
+      "sha256": "sha256:7840de569e46ff8a343c35cc7b2675b27cc6a1ccac7e88fcde3e19f8e5ac7bb5"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -697,7 +697,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.read.list.v1",
-      "sha256": "sha256:c618b5be3dea52655ba62d365d65cff809ef6114c4da2a36a06cba52744d84bb"
+      "sha256": "sha256:596b3031c2fbb8eba63de9aa733c495912f7c071a6335b2990dbcf0d77044ffe"
     },
     {
       "operation_id": "ak.self.direct_conversation.read.resolve.v1",

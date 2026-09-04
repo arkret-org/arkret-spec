@@ -5712,11 +5712,11 @@ Expected:
 
 - 正例：proof 覆盖 `ak.device-pairing.challenge.v1` transcript 的全部 member，verifier 独立重算 transcript 后验签通过。
 - 正例：同一 `new_device_pubkey` object 的 canonical bytes 与 `new_device_pubkey_digest` 在 stage / resolve / gate 三处逐字节不变。
-- 负例：坏 `gate_audience`、坏 `request_canonical_digest`、旧 `pairing_code`、跨 request 重放、过期窗口外、改 key、坏签名、proof `kid` 与 `new_device_pubkey.kid` 不等、proof 使用已废弃的 `verification_method` 字段名承载 device key id、路径 A 的 proof 用于路径 B，一律 MUST 拒绝。
+- 负例：坏 `gate_audience`、旧 `pairing_code`、跨 request 重放、过期窗口外、改 key、坏签名、proof `kid` 与 `new_device_pubkey.kid` 不等、proof 使用已废弃的 `verification_method` 字段名承载 device key id，或 proof transcript 不是 `ak.device-pairing.challenge.v1`，一律 MUST 拒绝。
 - 负例：正文旧示例形态 `{kid, alg, public_key}` MUST 被 canonical `PublicKey` schema 拒绝（缺 `kty` / 缺 `key` / 多余 `public_key`）。
 - 负例：stage 请求携带 challenge proof MUST `schema_violation`（proof 必须承诺 stage 才铸出的值，因此不可能在 stage 时存在）。
-- 负例：`ak.gate.account.command.pair_device.v1` 同时携带 `device_pairing_request_id` 与 `challenge_transcript`，或两者都不携带，MUST `schema_violation`（schema 以 `oneOf` 强制该 XOR，gate 必须确定该用哪套 transcript）。
-- 负例：路径 B 下 gate 采用请求体提供的 `gate_audience` 而非自身 origin，视为不合规——那会让跨 Account Authority 重放重新成立。
+- 负例：`ak.gate.account.command.pair_device.v1` 缺少 `device_pairing_request_id`，或引用未知、过期、已消费、code/key 不匹配的 staged record，MUST fail closed；不得接受客户端提供的替代 challenge transcript。
+- 负例：stage/resolve/status 返回或绑定 principal、SessionGrant、sibling device 集合，或未授权新设备调用 `ak.self.device_messages.*`，一律视为不合规。无效与不匹配的 resolve/status credential 保持统一防枚举错误。
 
 `vector_id`: `ak.vector.device_pairing.accepted_device_attestation.v1`
 
@@ -5727,15 +5727,15 @@ Steps:
    `device_pairing_target_attestation`，批准设备与 Account Authority 各自独立重建该封闭对象并验签，
    目标设备再按 [`../crypto-media/device-lifecycle.md` §5.4.1](../crypto-media/device-lifecycle.md)
    在本地装配前核对被接受的 `ak.device.authorize`。
-2. 路径 A 与路径 B 各跑一遍，比较两条路径使用的 attestation schema 与 domain。
+2. 验证 attestation 只经二维码/短链 fragment 到达批准设备，stage 与 resolve 均不返回该对象。
 
 Expected:
 
 - 正例：`accepted_device` 的 `device_signature` 使用 domain `ak.device_authorize_accepted_device_possession_proof.v1`，签名对象恰为 `{algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key_did, hpke_key, pairing_challenge_transcript_digest}`，批准设备与 gate 各自重建后验签通过；gate 不接受任何请求方提供的 attestation 副本。
-- 正例：路径 A 与路径 B 共享同一个 `device_pairing_target_attestation` schema 与同一个 domain；路径判别由 `pairing_challenge_transcript_digest` 所承诺的封闭 challenge transcript 承担。
+- 正例：`device_pairing_target_attestation` 只绑定唯一的 staged short-link `pairing_challenge_transcript_digest`，不登记 to-device 配对 transcript 分支。
 - 正例：`hpke_key` 与 `algorithms` 只从验签通过的 attestation 取得；stage 请求与 `DevicePairingBootstrap` 都不承载这两个值。
 - 负例：attestation 的 `pairing_challenge_transcript_digest` 与本次 pairing 重算得到的 `transcript_digest` 不等 MUST 拒绝，且 MUST 在验签之前拒绝。
-- 负例：attestation 的 `hpke_key` 与 `ak.gate.account.command.pair_device.v1` 的 `hpke_key` 或 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key_did` / `device_id` 同理。
+- 负例：attestation 的 `hpke_key` 与 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key_did` / `device_id` 同理。
 - 负例：把 `root_anchored` 的 `ak.device_authorize_possession_proof.v1` transcript 用于 `accepted_device`，或把 `accepted_device` attestation 用于 genesis / re-anchor 的第二条 authorize，双向 MUST 拒绝。
 - 负例：attestation 的 `device_public_key_did` 与 `new_device_pubkey.key` 解码为不同 key，或 `device_id` 与 `new_device_pubkey.kid` 不等，MUST 拒绝。
 - 负例：把 attestation 经免认证 stage / resolve 面回传，或在 `DevicePairingBootstrap` 中镜像 `hpke_key` / `algorithms`，视为不合规。

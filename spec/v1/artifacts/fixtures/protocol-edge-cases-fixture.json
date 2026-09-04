@@ -620,16 +620,17 @@
       "variants": [
         "complete_stage_resolve_gate_round_trip",
         "gate_audience_mismatch",
-        "request_canonical_digest_mismatch",
         "stale_pairing_code",
         "cross_request_replay",
         "expired_challenge",
         "public_key_mutation",
         "signature_invalid",
         "verification_method_key_mismatch",
-        "cross_path_proof_replay",
+        "non_canonical_transcript_name",
         "stage_request_carries_challenge_proof",
-        "gate_path_selector_xor_violation"
+        "gate_request_omits_staged_request_id",
+        "stage_response_leaks_principal_or_siblings",
+        "fresh_device_self_device_messages_call"
       ],
       "expected": {
         "positive_decision": "accept",
@@ -641,8 +642,9 @@
         "the verifier independently rebuilds the complete challenge transcript before signature verification",
         "new_device_pubkey canonical bytes and digest remain identical across stage, resolve and gate",
         "stage accepts only the canonical PublicKey shape and rejects a challenge proof minted before server challenge material exists",
-        "the gate request selects exactly one staged or to-device transcript path",
-        "the to-device path binds gate_audience to the Account Authority origin rather than requester-controlled input"
+        "the gate request requires one still-pending staged request and rejects every client-supplied substitute transcript",
+        "stage resolve and status remain account-less and expose neither principal binding nor sibling targets",
+        "an unauthorized fresh device receives no SessionGrant and cannot call any self device-messages operation"
       ]
     },
     {
@@ -676,7 +678,7 @@
         "the approving device and the Account Authority each rebuild that object independently and never accept a requester-supplied attestation copy",
         "pairing_challenge_transcript_digest is compared against a locally recomputed challenge transcript before signature verification",
         "hpke_key and algorithms are read only from the verified attestation; neither the stage request nor the bootstrap carries them",
-        "short-link and to-device share one attestation schema and one domain because the digest already carries the path discriminator",
+        "the target attestation travels only in the out-of-band QR or short-link fragment and is never returned by stage or resolve",
         "a transcript minted for one authorization_binding_kind never verifies for the other in either direction",
         "the target device fetches the accepted authorize Event and verifies byte-identical device_signature, byte-identical key material and an expected principal_id before it assembles the identity locally"
       ]

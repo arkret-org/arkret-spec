@@ -579,7 +579,8 @@
         "pairing_code",
         "new_device_pubkey",
         "challenge_proof",
-        "authorize_event"
+        "authorize_event",
+        "device_pairing_request_id"
       ],
       "properties": {
         "pairing_code": {
@@ -590,7 +591,7 @@
         },
         "challenge_proof": {
           "$ref": "./device-pairing.schema.json#/$defs/device_pairing_challenge_proof",
-          "description": "Structured proof of possession of new_device_pubkey. The Account Authority MUST recompute the signing transcript itself and MUST NOT settle for byte equality against a stored copy. Which transcript applies is fixed by the request shape: with device_pairing_request_id it is ak.device-pairing.challenge.v1 rebuilt from the staged record; with challenge_transcript it is ak.device-pairing.challenge.to_device.v1 rebuilt from those inputs plus the Account Authority own gate_audience origin. The digest of that recomputed transcript is also the value the target device_signature commits to, so one recomputation gates both proofs. A mismatched transcript_digest, a transcript name that does not match the request shape, a kid other than new_device_pubkey.kid, or a failing signature MUST NOT authorize a device."
+          "description": "Structured proof of possession of new_device_pubkey. The Account Authority MUST rebuild ak.device-pairing.challenge.v1 from the referenced staged record and MUST NOT settle for byte equality against a stored copy. The digest of that recomputed transcript is also the value the target device_signature commits to, so one recomputation gates both proofs. A mismatched transcript_digest, a transcript name other than ak.device-pairing.challenge.v1, a kid other than new_device_pubkey.kid, or a failing signature MUST NOT authorize a device."
         },
         "authorize_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
@@ -604,35 +605,9 @@
         },
         "device_pairing_request_id": {
           "$ref": "#/$defs/device_pairing_request_id",
-          "description": "Server-mediated short-link request id. Present exactly for the short-link path. The Account Authority MUST atomically authorize only the still-pending staged record whose pairing_code and new_device_pubkey exactly match this request, and MUST verify challenge_proof against the ak.device-pairing.challenge.v1 transcript rebuilt from that record (device_pairing_request_id, pairing_code, gate_audience, expires_at, server_nonce, client_nonce, new_device_pubkey digest). A record whose proof does not verify MUST NOT authorize a device."
-        },
-        "challenge_transcript": {
-          "$ref": "./device-pairing.schema.json#/$defs/device_pairing_to_device_challenge_transcript",
-          "description": "Transcript inputs for the to-device path, where there is no staged record for the Account Authority to rebuild from. Present exactly when device_pairing_request_id is absent."
+          "description": "Required server-mediated short-link request id. The Account Authority MUST atomically authorize only the still-pending staged record whose pairing_code and new_device_pubkey exactly match this request, and MUST verify challenge_proof against the ak.device-pairing.challenge.v1 transcript rebuilt from that record (device_pairing_request_id, pairing_code, gate_audience, expires_at, server_nonce, client_nonce, new_device_pubkey digest). A record whose proof does not verify MUST NOT authorize a device."
         }
       },
-      "oneOf": [
-        {
-          "required": [
-            "device_pairing_request_id"
-          ],
-          "not": {
-            "required": [
-              "challenge_transcript"
-            ]
-          }
-        },
-        {
-          "required": [
-            "challenge_transcript"
-          ],
-          "not": {
-            "required": [
-              "device_pairing_request_id"
-            ]
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "account_device_pair_outcome": {

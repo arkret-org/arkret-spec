@@ -1556,30 +1556,24 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
-        "schema_kind": "oneOf",
-        "required": [],
-        "properties": [],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
-            "schema_kind": null,
-            "required": [
-              "device_pairing_request_id"
-            ],
-            "properties": [],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
-            "schema_kind": null,
-            "required": [
-              "challenge_transcript"
-            ],
-            "properties": [],
-            "closed": false
-          }
-        ]
+        "schema_kind": "object",
+        "required": [
+          "pairing_code",
+          "new_device_pubkey",
+          "challenge_proof",
+          "authorize_event",
+          "device_pairing_request_id"
+        ],
+        "properties": [
+          "pairing_code",
+          "new_device_pubkey",
+          "challenge_proof",
+          "authorize_event",
+          "display_name",
+          "device_metadata",
+          "device_pairing_request_id"
+        ],
+        "closed": true
       },
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",

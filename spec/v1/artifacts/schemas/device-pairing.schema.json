@@ -58,36 +58,6 @@
       "format": "uri",
       "description": "Origin of the Account Authority gate surface (gate_account_base_url) this pairing request is bound to. Minted by the staging service; the challenge proof commits to it so a proof cannot be replayed against another Account Authority."
     },
-    "device_pairing_to_device_challenge_transcript": {
-      "type": "object",
-      "description": "Transcript inputs the authorizing device forwards for the to-device pairing path, where no server-staged record exists. The Account Authority rebuilds the ak.device-pairing.challenge.to_device.v1 signing input from these values plus its own gate_audience origin and the digest of the submitted new_device_pubkey; it MUST NOT accept a client-supplied gate_audience, because substituting its own origin is exactly what blocks cross-Account-Authority replay. See crypto-media/device-lifecycle.md section 2.1.2.",
-      "required": [
-        "transaction_id",
-        "request_canonical_digest",
-        "expires_at"
-      ],
-      "properties": {
-        "transaction_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ],
-          "description": "Verification transaction id of the ak.key.verification.request that carried this pairing challenge."
-        },
-        "request_canonical_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp",
-          "description": "Expiry the proof committed to. The Account Authority MUST reject an elapsed expires_at before it verifies the signature."
-        }
-      },
-      "additionalProperties": false
-    },
     "device_pairing_challenge_proof": {
       "type": "object",
       "description": "Proof of possession of the staged new_device_pubkey, bound to the server-minted pairing challenge. Signing input is UTF8(\"ak.device-pairing.challenge.v1\\n\") || canonical_json({client_nonce, device_pairing_request_id, expires_at, gate_audience, new_device_pubkey_digest, pairing_code, server_nonce}); see crypto-media/device-lifecycle.md section 2.1.2. The proof can only be generated after staging returns, because it commits to server-minted values that do not exist at stage time.",
@@ -101,11 +71,8 @@
       "properties": {
         "transcript": {
           "type": "string",
-          "enum": [
-            "ak.device-pairing.challenge.v1",
-            "ak.device-pairing.challenge.to_device.v1"
-          ],
-          "description": "Names the exact signing transcript. ak.device-pairing.challenge.v1 is the server-mediated short-link path and commits to {client_nonce, device_pairing_request_id, expires_at, gate_audience, new_device_pubkey_digest, pairing_code, server_nonce}. ak.device-pairing.challenge.to_device.v1 is the to-device verification path and commits to {expires_at, gate_audience, new_device_pubkey_digest, pairing_code, request_canonical_digest, transaction_id}. A verifier MUST select the member set from this discriminator and MUST NOT accept a proof whose transcript name does not match the path it is verifying."
+          "const": "ak.device-pairing.challenge.v1",
+          "description": "Names the unique server-mediated short-link transcript, which commits to {client_nonce, device_pairing_request_id, expires_at, gate_audience, new_device_pubkey_digest, pairing_code, server_nonce}. A proof using any other transcript name MUST be rejected."
         },
         "kid": {
           "$ref": "#/$defs/device_id",
@@ -130,7 +97,7 @@
     },
     "device_pairing_target_attestation": {
       "type": "object",
-      "description": "Closed possession attestation the target device produces for the accepted_device pairing path, and the only authority for its hpke_key and algorithms: neither the staged record nor the bootstrap carries them, so the approving device reads them here after the signature verifies and copies them byte-for-byte into the ak.device.authorize payload. Signing input is UTF8(\"ak.device_authorize_accepted_device_possession_proof.v1\\n\") || canonical_json({algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key_did, hpke_key, pairing_challenge_transcript_digest}); see crypto-media/device-lifecycle.md section 5.2.2. The object is closed over target-owned material plus this pairing challenge, so the target can build it before it knows which sibling will approve and what principal_id, authorized_by, not_before, expires_at or scopes that sibling will choose; those values are carried by the approving device Event proof instead. It travels only over the out-of-band channel (QR fragment or to-device message) and MUST NOT be posted back through the unauthenticated stage or resolve surface. It is never a wire field of ak.gate.account.command.pair_device.v1: every member is already recomputable there from the request payload and the Account Authority own challenge transcript.",
+      "description": "Closed possession attestation the target device produces for the accepted_device pairing path, and the only authority for its hpke_key and algorithms: neither the staged record nor the bootstrap carries them, so the approving device reads them here after the signature verifies and copies them byte-for-byte into the ak.device.authorize payload. Signing input is UTF8(\"ak.device_authorize_accepted_device_possession_proof.v1\\n\") || canonical_json({algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key_did, hpke_key, pairing_challenge_transcript_digest}); see crypto-media/device-lifecycle.md section 5.2.2. The object is closed over target-owned material plus this pairing challenge, so the target can build it before it knows which sibling will approve and what principal_id, authorized_by, not_before, expires_at or scopes that sibling will choose; those values are carried by the approving device Event proof instead. It travels only over the out-of-band QR or short-link fragment and MUST NOT be posted back through the unauthenticated stage or resolve surface. It is never a wire field of ak.gate.account.command.pair_device.v1: every member is already recomputable there from the request payload and the Account Authority own challenge transcript.",
       "required": [
         "device_id",
         "device_public_key_did",

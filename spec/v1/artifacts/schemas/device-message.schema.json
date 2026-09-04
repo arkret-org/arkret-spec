@@ -547,43 +547,8 @@
           "$ref": "#/$defs/timestamp"
         },
         "purpose": {
-          "enum": [
-            "device_key_verification",
-            "same_principal_device_authorization"
-          ],
-          "description": "Optional verification purpose. Omitted means generic device key verification. same_principal_device_authorization is used when a fresh device asks already authorized devices of the same principal to approve device authorization."
-        },
-        "pairing_code": {
-          "type": "string",
-          "pattern": "^[A-HJ-NP-Z2-9]{8}$",
-          "description": "Eight-character human-readable Crockford-style device-pairing code bound into a same-principal authorization transcript. It is short-lived, one-time, and locked after ten failed submissions."
-        },
-        "new_device_pubkey": {
-          "$ref": "./public-key.schema.json#/$defs/public_key",
-          "description": "Canonical PublicKey for the requesting device when purpose=same_principal_device_authorization. kid MUST be the requesting ak:device:<uuidv7> id and the key material MUST be carried in key. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected. The object is later consumed verbatim by ak.gate.account.command.pair_device.v1."
-        },
-        "challenge_proof": {
-          "$ref": "./device-pairing.schema.json#/$defs/device_pairing_challenge_proof",
-          "description": "Fresh requesting-device proof of possession over the ak.device-pairing.challenge.to_device.v1 transcript, which commits to {expires_at, gate_audience, new_device_pubkey_digest, pairing_code, request_canonical_digest, transaction_id}. The receiving authorized device MUST recompute the transcript from the values it displays to the user and verify the signature before treating the requesting device as pairable; it is later submitted verbatim to ak.gate.account.command.pair_device.v1."
-        },
-        "target_attestation": {
-          "$ref": "./device-pairing.schema.json#/$defs/device_pairing_target_attestation",
-          "description": "Closed accepted_device possession attestation of the requesting device when purpose=same_principal_device_authorization, and the only authority for its hpke_key and algorithms. It is the same schema and same domain the short-link path uses, because it binds only pairing_challenge_transcript_digest and each path already closes its own challenge transcript. The receiving authorized device MUST rebuild and verify it after the challenge proof, requiring device_id to equal new_device_pubkey.kid, device_public_key_did to decode to the same key as new_device_pubkey.key, and pairing_challenge_transcript_digest to equal the transcript digest it just recomputed; only then may it read hpke_key and algorithms from it and copy device_signature verbatim into the ak.device.authorize payload. It travels only on this out-of-band message and MUST NOT be posted back through the unauthenticated stage or resolve surface."
-        },
-        "gate_audience": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Auth Server audience/origin expected to consume the paired proof."
-        },
-        "request_canonical_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Digest of the canonical request material bound into the pairing proof."
-        },
-        "device_metadata": {
-          "type": "object",
-          "description": "User-facing requesting-device hints. Receivers MUST treat this as display metadata and bind the parts shown to the user into the verification transcript.",
-          "additionalProperties": true
+          "const": "device_key_verification",
+          "description": "Optional purpose for ordinary verification between already authorized device endpoints. Fresh-device authorization uses the out-of-band device-pairing handoff and MUST NOT use this message."
         },
         "key_agreement_protocols": {
           "$ref": "#/$defs/string_list"
@@ -646,6 +611,17 @@
           "type": "string",
           "maxLength": 256
         }
+      },
+      "not": {
+        "anyOf": [
+          { "required": ["pairing_code"] },
+          { "required": ["new_device_pubkey"] },
+          { "required": ["challenge_proof"] },
+          { "required": ["target_attestation"] },
+          { "required": ["gate_audience"] },
+          { "required": ["request_canonical_digest"] },
+          { "required": ["device_metadata"] }
+        ]
       },
       "additionalProperties": true
     },
