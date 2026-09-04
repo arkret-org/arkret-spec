@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.5",
+  "version": "2026-09-04.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T23:25:00+08:00",
+  "generated_at": "2026-09-04T23:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -781,6 +781,13 @@
     {
       "schema_id": "ak.schema.read_cursor.v1",
       "file": "schemas/read-cursor.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.read_cursor_update.v1",
+      "file": "schemas/device-message.schema.json",
+      "fragment": "#/$defs/read_cursor_update_content",
+      "status": "active",
+      "description": "Closed ak.read_cursor.update sibling-device content: the derived projection of the winning ak.read_cursor.advance for one (actor_id, realm_id, read_scope), carrying the winning envelope created_at as updated_at. Not the ak.schema.read_cursor.v1 payload object."
     },
     {
       "schema_id": "ak.schema.read_receipt.v1",

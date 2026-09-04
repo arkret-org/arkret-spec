@@ -290,7 +290,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json",
-      "sha256": "81c3b17fb1fcc9af1ac6b0799c79edd0704358544adae9276f5c40e7ba597b7c"
+      "sha256": "ffb007e7d77c3d83201f2aa37afca5578bf6558fb9961be5455a8af1807f9983"
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
@@ -314,7 +314,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/read-cursor-multi-device-merge-fixture.json",
-      "sha256": "468baff399bbd0f0da4e43206205ba52169a7a0bd3980194fc4fef3def30f1e9"
+      "sha256": "6ef208e1bee184d004bfaf324c09bfa99fa58d85f67a290a727791782895545e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-organization-fixture.json",
@@ -342,7 +342,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "f48fa8cd9e13ee7683e3d15d3f9cfcd28f968cd2d2b81053a2843d72b40fafb7"
+      "sha256": "d51037e2e9192241bda9419c6995a25241ad2f119e7a4f0fdea7d2f68fec54f8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

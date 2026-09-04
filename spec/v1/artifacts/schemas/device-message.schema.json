@@ -407,6 +407,25 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.read_cursor.update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/read_cursor_update_content"
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -472,6 +491,46 @@
         }
       },
       "additionalProperties": true
+    },
+    "read_cursor_update_content": {
+      "type": "object",
+      "description": "ak.read_cursor.update actor-private sibling-device content (read-receipts.md §6.6 step 2). A derived projection of the ak.read_cursor.advance Event that currently wins the causal-first merge for one (actor_id, realm_id, read_scope); it is NOT the ak.schema.read_cursor.v1 payload object (which has no id and no updated_at) and never enters shared Realm history. updated_at is the winning advance Event envelope created_at.",
+      "required": [
+        "schema",
+        "actor_id",
+        "device_id",
+        "realm_id",
+        "read_scope",
+        "position",
+        "updated_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.read_cursor_update.v1"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Holder whose read position advanced; MUST equal the recipient principal of the enclosing envelope."
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id",
+          "description": "Device that authored the winning advance."
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "read_scope": {
+          "$ref": "./read-cursor.schema.json#/$defs/read_scope"
+        },
+        "position": {
+          "$ref": "./read-cursor.schema.json#/$defs/position"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Envelope created_at of the winning ak.read_cursor.advance Event; derived, never a payload field."
+        }
+      },
+      "additionalProperties": false
     },
     "secret_send_content": {
       "type": "object",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.1",
+  "version": "2026-09-04.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "generated_at": "2026-09-04T23:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3807,7 +3807,7 @@
       "http": "POST /_arkret/self/read-cursors",
       "grpc": "SelfReadCursor/Advance",
       "mq": "self.read_cursor.command.advance",
-      "notes": "Accepts exactly one caller-signed ak.read_cursor.advance actor-private Event. The Event payload is the complete ak.schema.read_cursor.v1 cursor; envelope.actor_id and payload.actor_id MUST equal the authenticated holder, payload.device_id MUST equal the authenticated session device, and envelope.realm_id MUST equal payload.realm_id. The service validates and forwards the exact Event bytes and MUST NOT mint the cursor id, choose updated_at, rebuild the payload or co-sign. Multi-device convergence is causal-first per zh/discovery/read-receipts.md section 6.5: a position that causally dominates the other wins regardless of HLC; HLC max applies only to causally concurrent positions, and device_id lexicographic order only breaks equal HLCs. The cursor is never published into shared Realm history.",
+      "notes": "Accepts exactly one caller-signed ak.read_cursor.advance actor-private Event. The Event payload is the complete ak.schema.read_cursor.v1 cursor; envelope.actor_id and payload.actor_id MUST equal the authenticated holder, payload.device_id MUST equal the authenticated session device, and envelope.realm_id MUST equal payload.realm_id. The service validates and forwards the exact Event bytes and MUST NOT rebuild the payload or co-sign. The cursor object carries neither an id nor an updated_at — a cursor is never updated in place, its identity is the (actor_id, realm_id, read_scope) tuple and there is no read_cursor typed ID kind — so the update time of an advance is the Event envelope created_at, and the read_marker_outcome updated_at is that derived envelope time of the winning advance. Sibling devices observe the winner as the ak.read_cursor.update device message whose content is ak.schema.read_cursor_update.v1. Multi-device convergence is causal-first per zh/discovery/read-receipts.md section 6.5: a position that causally dominates the other wins regardless of HLC; HLC max applies only to causally concurrent positions, and device_id lexicographic order only breaks equal HLCs. The cursor is never published into shared Realm history.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",

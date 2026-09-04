@@ -27,7 +27,6 @@
       "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
       "schemas/contact-operations.schema.json#/$defs/non_empty_string",
       "schemas/device-message.schema.json#/$defs/digest",
-      "schemas/device-message.schema.json#/$defs/realm_id",
       "schemas/event-envelope.schema.json#/$defs/list_space_id",
       "schemas/event-envelope.schema.json#/$defs/relation_id",
       "schemas/event-envelope.schema.json#/$defs/space_id",

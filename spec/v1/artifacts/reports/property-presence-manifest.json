@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9809,
+    "total_properties": 9816,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2686,
+      "optional": 2687,
       "optional_defaulted": 65,
-      "required": 6729,
+      "required": 6735,
       "required_nullable": 122,
       "tristate": 207
     },
@@ -4730,7 +4730,8 @@
     },
     "device-message.schema.json": {
       "schema_ids": [
-        "ak.schema.device_message.v1"
+        "ak.schema.device_message.v1",
+        "ak.schema.read_cursor_update.v1 -> #/$defs/read_cursor_update_content"
       ],
       "properties": {
         "/$defs/key_verification_content/properties/code": "optional",
@@ -4752,6 +4753,13 @@
         "/$defs/key_verification_content/properties/timestamp": "optional",
         "/$defs/key_verification_content/properties/transaction_id": "required",
         "/$defs/key_verification_content/properties/verified_keys": "optional",
+        "/$defs/read_cursor_update_content/properties/actor_id": "required",
+        "/$defs/read_cursor_update_content/properties/device_id": "required",
+        "/$defs/read_cursor_update_content/properties/position": "required",
+        "/$defs/read_cursor_update_content/properties/read_scope": "required",
+        "/$defs/read_cursor_update_content/properties/realm_id": "required",
+        "/$defs/read_cursor_update_content/properties/schema": "required",
+        "/$defs/read_cursor_update_content/properties/updated_at": "required",
         "/$defs/secret_request_content/properties/from_device_id": "required",
         "/$defs/secret_request_content/properties/recipient_hpke_public_key": "required",
         "/$defs/secret_request_content/properties/request_id": "required",
@@ -4767,6 +4775,8 @@
         "/allOf/10/then/properties/content": "optional",
         "/allOf/11/if/properties/kind": "required",
         "/allOf/11/then/properties/content": "optional",
+        "/allOf/12/if/properties/kind": "required",
+        "/allOf/12/then/properties/content": "optional",
         "/allOf/2/if/properties/kind": "required",
         "/allOf/2/then/properties/content": "optional",
         "/allOf/3/if/properties/kind": "required",
@@ -10561,12 +10571,10 @@
         "/$defs/read_scope/properties/track_name": "optional",
         "/properties/actor_id": "required",
         "/properties/device_id": "required",
-        "/properties/id": "required",
         "/properties/position": "required",
         "/properties/read_scope": "required",
         "/properties/realm_id": "required",
-        "/properties/schema": "required",
-        "/properties/updated_at": "required"
+        "/properties/schema": "required"
       },
       "conditionally_required": [
         "/$defs/read_scope/properties/container_ref"

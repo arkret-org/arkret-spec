@@ -41,17 +41,17 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 199,
+    "total_schemas": 200,
     "by_consumer": {
       "declared_wire": 56,
       "event_kind": 3,
       "inbound": 45,
       "outbound": 53,
-      "prose": 113,
+      "prose": 114,
       "prose_only": 2,
-      "schema_reference": 133,
-      "startup_compile": 199,
-      "vectors": 126
+      "schema_reference": 134,
+      "startup_compile": 200,
+      "vectors": 127
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
@@ -1353,6 +1353,7 @@
           "ak.schema.query.v1",
           "ak.schema.read_cursor.v1",
           "ak.schema.read_cursor_operations.v1",
+          "ak.schema.read_cursor_update.v1",
           "ak.schema.read_receipt.v1",
           "ak.schema.realm.v1",
           "ak.schema.realm_genesis.v1",
@@ -2947,6 +2948,22 @@
       }
     },
     {
+      "schema_id": "ak.schema.read_cursor_update.v1",
+      "file": "schemas/device-message.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "fixture"
+      },
+      "fragment": "#/$defs/read_cursor_update_content"
+    },
+    {
       "schema_id": "ak.schema.read_receipt.v1",
       "file": "schemas/read-receipt.schema.json",
       "consumers": {
@@ -3667,7 +3684,8 @@
           "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
           "ak.schema.push_operations.v1",
-          "ak.schema.read_cursor.v1",
+          "ak.schema.read_cursor_operations.v1",
+          "ak.schema.read_cursor_update.v1",
           "ak.schema.realm.v1",
           "ak.schema.realm_join_candidate.v1",
           "ak.schema.realm_link_operations.v1",
