@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-04.1",
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "version": "2026-09-04.2",
+  "generated_at": "2026-09-04T19:33:26+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3848,14 +3848,6 @@
         "state_resolution"
       ],
       "description": "A ak.member.state Move requests a membership FSM transition that is not listed as legal for the member's current state. Reducers MUST reject the Move with failed_precondition. See zh/models/realm-and-space.md §2.7."
-    },
-    {
-      "code": "invalid_task_fsm_transition",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "A transition effect on a profile-declared task/workflow fsm lattice cell declared a from -> to pair that is not a legal transition of that profile-declared state machine, or whose from does not match the cell's current state. v1 core defines no task object; the task/workflow FSM is declared by a Realm profile (e.g. a Jira-style issue-workflow profile) and evaluated by the generic fsm lattice type. The reducer MUST reject the Move instead of coercing the state machine. See zh/authz/event-auth-state-resolution.md §9."
     },
     {
       "code": "invalidated_by_rate_limit",

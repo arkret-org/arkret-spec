@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.1",
+  "version": "2026-09-04.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "generated_at": "2026-09-04T19:33:26+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2563,7 +2563,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
+      "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. v1 has no per-Realm workflow profile carrier: these hard invariants are the complete transition rule and receivers MUST NOT narrow admission from Realm-private configuration (zh/models/common-fields.md §5.3.4).",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_stage_set_payload",
       "id_source": "reference",
       "plane": "control",

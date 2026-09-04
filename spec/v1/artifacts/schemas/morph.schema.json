@@ -127,7 +127,7 @@
         "cancelled",
         "superseded"
       ],
-      "description": "Optional Morph business-progression stage. Orthogonal to top-level 'state' (physical lifecycle). A morph_kind profile MAY require it; generic mirror/data Morphs may omit it. If absent, the first ak.morph.stage.set initializes the axis to any registered value; later changes follow the normal transition rules. ak.morph.update patches on stage / stage_changed_at MUST be rejected. Stage transitions do not carry a reason/note; explanations belong in a referenced Message. See models/common-fields.md §5.3."
+      "description": "Optional Morph business-progression stage. Orthogonal to top-level 'state' (physical lifecycle). Generic mirror/data Morphs may omit it; no v1 carrier can make it required at create time (realm morph_kind_profiles only tighten fields.* / facets / capability actions, see models/morph.md §4). If absent, the first ak.morph.stage.set initializes the axis to any registered value; later changes follow the normal transition rules. ak.morph.update patches on stage / stage_changed_at MUST be rejected. Stage transitions do not carry a reason/note; explanations belong in a referenced Message. See models/common-fields.md §5.3."
     },
     "stage_changed_at": {
       "$ref": "#/$defs/timestamp",

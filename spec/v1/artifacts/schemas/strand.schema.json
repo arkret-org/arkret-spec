@@ -176,7 +176,7 @@
         "cancelled",
         "superseded"
       ],
-      "description": "Optional Strand business-progression stage. Orthogonal to top-level 'state' (physical lifecycle): archive does NOT change stage; stage=done does NOT auto-archive. ak.strand.create MAY omit stage; when present it must be one of the protocol-level enum values and has no protocol-level default. The only wire path that mutates stage after creation is the dedicated ak.strand.stage.set event; ak.strand.update patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the ak.strand.stage.set event log is the audit source, and human-readable explanations belong in a Message on the discussion track that references the event. A per-Realm workflow profile MAY narrow which transitions are legal beyond the core reducer hard invariants (terminal state freeze, non-active reject) defined in models/common-fields.md §5.3.3. See models/strand-and-message.md §3.2 for full semantics and models/common-fields.md §5.3 for the protocol-level enum / bucket mapping."
+      "description": "Optional Strand business-progression stage. Orthogonal to top-level 'state' (physical lifecycle): archive does NOT change stage; stage=done does NOT auto-archive. ak.strand.create MAY omit stage; when present it must be one of the protocol-level enum values and has no protocol-level default. The only wire path that mutates stage after creation is the dedicated ak.strand.stage.set event; ak.strand.update patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the ak.strand.stage.set event log is the audit source, and human-readable explanations belong in a Message on the discussion track that references the event. v1 has no per-Realm workflow profile carrier: the core reducer hard invariants (terminal state freeze, non-active reject) defined in models/common-fields.md §5.3.3 are the complete transition rule, and receivers MUST NOT narrow admission from Realm-private configuration (§5.3.4). See models/strand-and-message.md §3.2 for full semantics and models/common-fields.md §5.3 for the protocol-level enum / bucket mapping."
     },
     "stage_changed_at": {
       "$ref": "#/$defs/timestamp",
@@ -482,6 +482,12 @@
       "description": "Profile-defined Strand metadata fields. Reducer-owned fields are forbidden here to avoid dual sources of truth.",
       "not": {
         "anyOf": [
+          {
+            "$comment": "bare `status` is the most direct sister spelling of the stage concept; forbidden-wire-fields.json entry `metadata.fields.status` is hard_reject with replacement `stage`. Domain data mirrored from an external system MUST use a domain-named key (e.g. fields.jira_status). See zh/models/common-fields.md 5.3.4.",
+            "required": [
+              "status"
+            ]
+          },
           {
             "required": [
               "stage"

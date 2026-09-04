@@ -161,7 +161,7 @@ Schema id: `ak.schema.strand.v1`
 
 **Reducer 硬约束**以 [common-fields.md §5.3.3](./common-fields.md) 为唯一权威。Strand 另有一条对象专属约束：`ak.strand.update` MAY patch `schema_refs`，但 reducer MUST 对 **post-patch 完整对象**重新求值 §3 的双向共现，而不是只看被 patch 的路径；同一 patch 未成对增删 ref 与 profile 子树时 `schema_violation`。携带 profile 子树的 create / update 还 MUST 在 `requirements.schema[]` 绑定同一 schema id，缺绑定时 `schema_violation`。
 
-**与 workflow profile 的关系**：未启用自定义 workflow 时，actor 可直接调用 `ak.strand.stage.set`。启用 workflow profile 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— 携带 `stage` 的 Strand 使用该字段作为 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
+**与本地 workflow 的关系**：v1 没有 Realm workflow profile carrier；actor 直接调用 `ak.strand.stage.set` 推进 stage，reducer 只执行 [common-fields.md §5.3.3](./common-fields.md) 硬约束，不得按任何 Realm 私有配置收紧。产品侧的细粒度 workflow state 是本地语义，按 [common-fields.md §5.3.4](./common-fields.md) 放在 domain-named `metadata.fields.<domain>_status`，并由客户端把粗粒度进度另写为 `stage`——携带 `stage` 的 Strand 以该字段作为跨 Realm dashboard 可聚合的协议级粗投影。
 
 **与 `metadata.fields.*` 的关系**：`metadata.fields.status` 与 `stage` / `stage_reason` / `lifecycle` / `progress_state` 一样是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 `hard_reject` 保留名（`status` 是 stage 概念最直接的同义拼写），出现即 `schema_violation`。fine-grained 业务子状态 MUST 使用领域命名 key（例如 `metadata.fields.jira_status`），并把粗粒度进度映射到顶层 `stage`；stage 本身也**不允许**藏在 `metadata.fields` 下。
 

@@ -212,6 +212,7 @@ from .expanded_projections import check_expanded_projection_registry
 from .ref_overlay_closure import check_schema_ref_overlay_closure
 
 from .psi_class_b import check_psi_class_b_artifact_closure
+from .reason_code_producers import check_reason_code_producer_paths
 
 
 
@@ -368,6 +369,7 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_preimage_event_identity_commitments(lint),
             ),
             ("fsm_reachability", lambda: check_fsm_state_reachability(lint)),
+            ("reason_code_producers", lambda: check_reason_code_producer_paths(lint)),
             ("read_scope", lambda: check_read_scope_schema_closure(lint)),
             ("signed_objects", lambda: check_signed_object_closure(lint)),
             (

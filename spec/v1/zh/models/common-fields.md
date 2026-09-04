@@ -505,7 +505,7 @@ Realm 与 Circle 的 materialized membership 共用唯一状态集 `join / knock
 - **`state`** —— 该轴由本协议**拥有并推进**：轴上每次转换都由已登记的 Arkret Event 或 reducer 派生产生，转换表在本规范内封闭。
 - **`status`** —— 该轴由本协议**观察但不拥有**：真值在外部系统或传输过程中（账号系统、agent session、delivery 尝试、外部 registry 条目），Arkret 只镜像其当前值。
 - **`stage`** 回答“这件事在业务推进上走到哪里”，用于跨 Realm / 跨产品聚合；与 `state` 正交，MUST NOT 互相 implicate。
-- Jira-style workflow status、Trello 自定义列表名、审核节点名等细粒度业务状态 MUST 由 Realm workflow profile 或 schema 字段声明，并映射到 `stage`；不得把它们当作 `state` 或新的协议级 `stage` 枚举。
+- Jira-style workflow status、Trello 自定义列表名、审核节点名等细粒度业务状态是本地产品语义：只能放在 domain-named `metadata.fields.<domain>_status`（bare `status` 是 hard-reject 保留名）或 Morph schema 字段里，不进入 canonical admission；需要跨 Realm 聚合时由客户端映射到 `stage`。不得把它们当作 `state` 或新的协议级 `stage` 枚举；v1 没有 Realm workflow profile carrier（§5.3.4）。
 
 按该判据，Notification（`unread`/`read`/`dismissed`/`archived`）、Invite（邀请流程态）与 Agent Sidecar
 （`active`/`suspended`/`tombstoned`）使用 `state` 是**正确的**，不是命名例外——三者的轴都由 Arkret Event
@@ -609,7 +609,7 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 | 对象 | 是否声明 `stage` | 必填语义 | 触发 event |
 | --- | --- | --- | --- |
 | `Strand` | yes | 可选；`ak.strand.create` MAY 省略，普通业务 Strand SHOULD 填写，DM 主 Strand MAY 省略或选填合法值 | `ak.strand.stage.set` |
-| `Morph` | yes | 可选；generic mirror/data Morph MAY 省略，需要进度轴的 morph_kind profile MAY 收紧为 create 必填 | `ak.morph.stage.set` |
+| `Morph` | yes | 可选；generic mirror/data Morph MAY 省略。v1 没有任何 carrier 能把顶层 `stage` 收紧为 create 必填：Realm `morph_kind_profiles` 只收紧 `fields.*` / facets / capability action（[morph.md §4](./morph.md)），`schema_refs[]` 只验业务字段 | `ak.morph.stage.set` |
 | Realm / Space / Message / Relation / View / Policy / ... | no | — | — |
 
 适用对象自己的 schema MUST 显式枚举允许值；`strand.schema.json` 与 `morph.schema.json` MUST 把 `stage` 声明为可选字段，且 `stage_changed_at` MUST NOT 在缺少 `stage` 时单独出现。Morph 缺失 stage 时，首条 `ak.morph.stage.set` 是初始化而非从某个隐含默认值迁移；可取任一注册值，之后才应用普通转换规则。不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。
@@ -629,11 +629,11 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 
 `bucket`(`todo / doing / closed`)是**派生**分类，不入 wire / canonical bytes / 签名输入;projection 自行映射用于 dashboard / filter。bucket 命名刻意避开 `active`,防止与 `state=active` 撞名。
 
-枚举值在 v1 内**固定**,profile MUST NOT 新增 stage value;细粒度业务状态(`needs_review` / `qa` / `signed_off` 等)走 per-Realm workflow profile 或 `fields.<custom_status>`,**不**在协议级 stage 表达。
+枚举值在 v1 内**固定**，任何 profile MUST NOT 新增 stage value；细粒度业务状态（`needs_review` / `qa` / `signed_off` 等）只能放在 domain-named `fields.<domain>_status`（bare `status` 是 hard-reject 保留名），是本地产品语义，**不**在协议级 stage 表达，也**不**参与 canonical admission（§5.3.4）。
 
 #### 5.3.3 转换规则（reducer-enforced 硬约束)
 
-`stage` 的细粒度 transition matrix 由 per-Realm workflow profile(profile-level)声明;**核心 reducer 不强制 stage 之间的方向**(`done → in_progress` 回炉、`cancelled → planned` 复活均合法)。但以下硬约束 MUST 由 core reducer 强制:
+**v1 没有 per-Realm stage transition matrix 的 carrier**：核心 reducer 不强制 stage 之间的方向（`done → in_progress` 回炉、`cancelled → planned` 复活均合法），这就是 stage 转换的全部方向规则；receiver MUST NOT 依据 Realm 私有配置、`metadata.fields.*` 取值、部署配置或服务端硬编码矩阵收紧 `ak.<kind>.stage.set` 的 admission（§5.3.4）。以下硬约束 MUST 由 core reducer 强制：
 
 1. **物理终态优先**:对象 `state ∈ {redacted, tombstoned, deleted}` 时,`ak.<kind>.stage.set` MUST 返回 `failed_precondition`,`reason="<kind>_already_terminal"`。
 2. **non-active 拒写**:对象 `state=archived` 时,`ak.<kind>.stage.set` MUST 返回 `failed_precondition`,`reason="<kind>_not_active"`(与 §5.1 update on non-active 同语义);想推进 stage 必须先 `ak.<kind>.restore`。
@@ -642,17 +642,15 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 5. **stage 变更不携带 reason 字段**:`ak.<kind>.stage.set` payload **不**定义 reason / note / explanation 字段。需要解释时 SHOULD 在该对象的 discussion track 发 Message 并通过 Relation `references` 指向本次 stage event;事件日志本身的 `created_by` / `created_at` 已经是审计归属真源。reserved-name guard:对象顶层与 `fields.*` 上 `stage_reason` / `stage_note` / `stage_explanation` / `stage_comment` MUST 被 forbidden-wire-fields 拒绝。
 6. **`ak.<kind>.update` 禁写 stage**:patch path `stage` / `stage_changed_at` MUST 被 forbidden-wire-fields 拒绝(单源:stage 变更只能走 `ak.<kind>.stage.set`)。
 
-#### 5.3.4 与 workflow profile 的关系
+#### 5.3.4 与本地 workflow 的关系（normative）
 
-未启用 workflow profile 的 Realm:actor 通过 `ak.<kind>.stage.set` 直接推进 stage,reducer 只走 §5.3.3 硬约束。
+**v1 不提供可互操作的 Realm workflow profile。** 没有 profile object、安装 / 更新 Event、capability、cell family 或 `fsm_contracts` 条目能声明 workflow state、state 到 stage 的映射或 transition matrix；实现 MUST NOT 把 Realm 私有 metadata key、部署配置文件、数据库表或服务端硬编码 transition matrix 当作这样的 carrier——它们没有 signed authority、CBA basis、版本与跨 Station 语义，两个 conforming 实现据此会对同一条 `ak.<kind>.stage.set` 得出不同 admission 结果。
 
-启用 workflow profile 的 Realm(profile-level,non-core):
+- actor 通过 `ak.<kind>.stage.set` 直接推进 stage，reducer 只执行 §5.3.3 硬约束；本节不给任何实现“按 profile 收紧”的许可。
+- 细粒度 workflow state（“In Dev / Reviewing / QA”等）是本地产品关注点：放在 domain-named `metadata.fields.<domain>_status`（bare `status` 是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 hard-reject 保留名）或 Morph schema 字段里，不进入 canonical Event admission，跨实现不保证一致解释。
+- 跨 Realm / 跨实现只认 8 值 `stage`：维护本地细粒度状态的产品 SHOULD 在本地状态变化时由客户端另发 `ak.<kind>.stage.set` 写入对应粗粒度值；dashboard 只聚合 `stage`（同一个 `stage=in_progress` bucket 涵盖各产品自定义的“In Dev / Reviewing / QA”）。
 
-- 每个 workflow state SHOULD 声明 `stage_category`(取上面 8 值之一);
-- workflow 推进 event 在变更 `workflow_state_ref` 时,reducer SHOULD 派生写入对应 `stage`;
-- 客户端直接发 `ak.<kind>.stage.set` 仍合法，但 profile MAY 收紧为只允许 workflow event 路径(profile-defined,非 core)。
-
-携带 `stage` 的对象使用该字段作为 workflow 的协议级粗投影，跨 Realm dashboard 可聚合(同一个 `stage=in_progress` bucket 涵盖各 Realm 自定义的"In Dev / Reviewing / QA"等 fine-grained state)。
+Rationale（informative）：数据驱动的 per-Realm 状态机要求 Realm 在运行期声明 cell family、transition matrix 与 producer Event kind，而 v1 的 event kind、cell family 与 `fsm_contracts` 都在注册期冻结，extension cell family 没有任何 registered producer（[`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md)）；[`morph.md` §4](./morph.md) 对唯一已登记的 per-Realm 收紧 carrier `morph_kind_profiles` 已作同样裁决：“确需状态机时必须由具名具体 reducer 冻结”。
 
 ## 6. 通用对象 ID 约定
 

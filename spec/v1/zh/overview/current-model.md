@@ -23,7 +23,7 @@ Arkret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 | 聊天群、即时通讯群组、频道 | `Realm` 提供成员与历史边界；一个或多个 `Strand(tracks.discussion)` 承载对话 | `Message` 本身不是房间；`discussion` track 也不是独立 ACL。 |
 | 房间式协作场景 | 通常拆为 `Realm`（状态、成员与历史边界）+ `Strand/Message`（协作主题与消息）+ `View`（时间线 / 话题投影） | v1 core 不使用通用 `Room` 对象根。 |
 | Trello Board / List / Card | `Space(kind=board)` / `Space(kind=list)` / `Strand`，位置由 `ak.strand.move` 与派生 `contains` Relation 表达 | View renderer 不是对象真相；拖拽不能只改 View。 |
-| Jira issue / workflow status / issue links | `Strand` / `stage` + workflow profile / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`；`metadata.fields.status` 也不是互操作真相。 |
+| Jira issue / workflow status / issue links | `Strand` / 顶层 `stage`（8 值）+ 本地 `metadata.fields.<domain>_status` / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`；`metadata.fields.status` 也不是互操作真相。 |
 | Watchers、订阅、勿扰 | `ak.strand.watch.set` cell + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
 | 小程序 / Bot / 集成服务 | Applet、Agent、Ghost Actor、Morph / Relation 扩展 | 安装一个客户端或插件不等于创建 protocol principal。 |
 | 用户与自己 AI Agents 的 Realm-context 私密工作区 | 独立 `Agent Sidecar` 对象与 native Sidecar scope；desired roster 由 controller 与其 active owned Agents 中当前 Realm active members 派生，独立 MLS 直接绑定 Sidecar | Sidecar 不是普通 Circle、Circle profile、Direct Conversation 或第四个 Track。 |
@@ -38,7 +38,7 @@ Arkret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 - `state`（active/archived/redacted）= 物理生命周期；`stage`（draft/proposed/planned/in_progress/blocked/done/cancelled/superseded，可选）= 业务进度。两者正交，分别由 `ak.strand.archive` 家族与 `ak.strand.stage.set` 维护。详见 [`models/common-fields.md` §5.3](../models/common-fields.md)。
 - 业务语义通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 表达
 
-Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review、Ready for release）不是新的协议字段。跨实现互操作在 Strand 携带 `stage` 时只依赖 8 个粗粒度值；细粒度状态应由 Realm workflow profile、`metadata.fields` 或 Morph schema 声明，并在需要跨 Realm dashboard 聚合时映射回 `stage`。
+Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review、Ready for release）不是新的协议字段。跨实现互操作在 Strand 携带 `stage` 时只依赖 8 个粗粒度值；细粒度状态是本地产品语义，由 domain-named `metadata.fields.<domain>_status` 或 Morph schema 字段承载（v1 没有 Realm workflow profile carrier，见 [`models/common-fields.md` §5.3.4](../models/common-fields.md)），并在需要跨 Realm dashboard 聚合时由客户端映射回 `stage`。
 
 ## 3. Strand 的标准 Track
 
