@@ -17,7 +17,7 @@ def event_evidence(preimages, carried_ids, *, injected_digest=None, prerequisite
         if actual != carried:
             return "event_id_digest_mismatch", False
         if not prerequisites:
-            return "invalid_proof", False
+            return "proof_invalid", False
         if actual in verified and verified[actual] != preimage:
             return "witness_disagreement", True
         verified[actual] = preimage

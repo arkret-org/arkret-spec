@@ -394,7 +394,9 @@ AccountId 和独立 claim，不能只更换显示 handle。
 
 verifier MUST 验证 canonical handle、closed AccountId、issuer authority、proof、audience、created_at/expires_at、撤销状态
 与 intent disclosure policy。任一 AccountId 分量缺失或不匹配、同 core 但 server 不同、unknown JSON member、claim
-过期或 issuer 无权时 MUST fail closed。通过这些检查仍只得到寻址结果，不能直接写 membership。
+过期或 issuer 无权时 MUST fail closed。解析返回的 AccountId 与预期 applicant、member 或 invitee 账号不一致时，
+reducer 与客户端 MUST 以 `handle_subject_mismatch` 拒绝该候选，不得据其构造 invite 或 join 材料。
+通过这些检查仍只得到寻址结果，不能直接写 membership。
 ### 3.8 Mention Reference 与 Display Snapshot（normative）
 
 事件内对某 subject 的引用，其**权威引用字段** MUST 使用完整 `AccountId`（`subject_account_id`），不得用裸 DID、`did_core_id` 或 handle 字符串作为 actor 归因、授权判断、解析路径的唯一来源。

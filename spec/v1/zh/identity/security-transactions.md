@@ -148,6 +148,11 @@ submit_reanchor_unit -> issue_terminal_receipt
 两条 Event。Account Authority/transport signature 不构成内容 authority；coordinator 不持有 recovery/device
 private key，不生成、更改或代签 Event。
 
+`ak.root.identity.recovery_session.command.submit_proof.v1` 与新 RecoveryTransaction 的 session 绑定都以
+session FSM 为准：目标 session 不在 `pending` 状态——无论已 `verified` 还是已 terminal
+（`completed` / `rejected` / `expired`）——MUST 以顶层 `recovery_session_not_pending`（409）拒绝并零副作用。
+terminal session 不可变；该判定是 session 状态门，不携带独立 reason code。
+
 coordinator 在 terminal receipt 接受与完成 ledger 同一原子提交中生成
 `ak.schema.recovery_completion_attestation.v1`。其 Ed25519 签名输入固定为
 `RFC8785_JCS({schema, transaction_id, transaction_request_digest, prepared_plan_digest, account_id,

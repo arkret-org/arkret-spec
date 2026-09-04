@@ -1974,7 +1974,6 @@
         "prev_refs": [],
         "refs": [],
         "payload": {
-          "id": "ak:read_cursor:019a6aa0-1000-7000-8000-000000000000",
           "schema": "ak.schema.read_cursor.v1",
           "actor_id": {
             "kind": "service",
@@ -1990,8 +1989,7 @@
           "position": {
             "event_id": "ak:event:ATDWRN2VCXoxR8tRKT1K8M6W3bKna0Er_24h7OdWxGEp",
             "hlc": "01970e589d21-0001-a13f9c2e"
-          },
-          "updated_at": "2026-05-20T00:00:00.000Z"
+          }
         },
         "proofs": [
           {
@@ -6233,6 +6231,128 @@
       ],
       "expect_valid": false,
       "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "read_cursor_object_without_updated_at_is_valid",
+      "schema_ref": "schemas/read-cursor.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.read_cursor.v1",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "device_id": "ak:device:019a6aa0-2000-7000-8000-000000000000",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "read_scope": {
+          "kind": "strand",
+          "container_ref": "ak:strand:AUjQOkLyzEQGCJTWHmQyMqli5lwdcZUJMninMCOpBzEn",
+          "track_name": "discussion"
+        },
+        "position": {
+          "event_id": "ak:event:ATDWRN2VCXoxR8tRKT1K8M6W3bKna0Er_24h7OdWxGEp",
+          "hlc": "01970e589d21-0001-a13f9c2e"
+        }
+      }
+    },
+    {
+      "name": "read_cursor_object_rejects_updated_at",
+      "schema_ref": "schemas/read-cursor.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.read_cursor.v1",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "device_id": "ak:device:019a6aa0-2000-7000-8000-000000000000",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "read_scope": {
+          "kind": "strand",
+          "container_ref": "ak:strand:AUjQOkLyzEQGCJTWHmQyMqli5lwdcZUJMninMCOpBzEn",
+          "track_name": "discussion"
+        },
+        "position": {
+          "event_id": "ak:event:ATDWRN2VCXoxR8tRKT1K8M6W3bKna0Er_24h7OdWxGEp",
+          "hlc": "01970e589d21-0001-a13f9c2e"
+        },
+        "updated_at": "2026-05-20T00:00:00.000Z"
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('updated_at' was unexpected)"
+    },
+    {
+      "name": "read_cursor_object_rejects_id",
+      "schema_ref": "schemas/read-cursor.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "id": "legacy-read-cursor-object-id",
+        "schema": "ak.schema.read_cursor.v1",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "device_id": "ak:device:019a6aa0-2000-7000-8000-000000000000",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "read_scope": {
+          "kind": "strand",
+          "container_ref": "ak:strand:AUjQOkLyzEQGCJTWHmQyMqli5lwdcZUJMninMCOpBzEn",
+          "track_name": "discussion"
+        },
+        "position": {
+          "event_id": "ak:event:ATDWRN2VCXoxR8tRKT1K8M6W3bKna0Er_24h7OdWxGEp",
+          "hlc": "01970e589d21-0001-a13f9c2e"
+        }
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('id' was unexpected)"
+    },
+    {
+      "name": "read_cursor_update_content_valid",
+      "schema_ref": "schemas/device-message.schema.json#/$defs/read_cursor_update_content",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.read_cursor_update.v1",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "device_id": "ak:device:019a6aa0-2000-7000-8000-000000000000",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "read_scope": {
+          "kind": "strand",
+          "container_ref": "ak:strand:AUjQOkLyzEQGCJTWHmQyMqli5lwdcZUJMninMCOpBzEn",
+          "track_name": "discussion"
+        },
+        "position": {
+          "event_id": "ak:event:ATDWRN2VCXoxR8tRKT1K8M6W3bKna0Er_24h7OdWxGEp",
+          "hlc": "01970e589d21-0001-a13f9c2e"
+        },
+        "updated_at": "2026-05-20T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "read_cursor_update_content_rejects_payload_object_schema_id",
+      "schema_ref": "schemas/device-message.schema.json#/$defs/read_cursor_update_content",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.read_cursor.v1",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "device_id": "ak:device:019a6aa0-2000-7000-8000-000000000000",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "read_scope": {
+          "kind": "strand",
+          "container_ref": "ak:strand:AUjQOkLyzEQGCJTWHmQyMqli5lwdcZUJMninMCOpBzEn",
+          "track_name": "discussion"
+        },
+        "position": {
+          "event_id": "ak:event:ATDWRN2VCXoxR8tRKT1K8M6W3bKna0Er_24h7OdWxGEp",
+          "hlc": "01970e589d21-0001-a13f9c2e"
+        },
+        "updated_at": "2026-05-20T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:was expected"
     }
   ]
 }

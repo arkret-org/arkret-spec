@@ -65,8 +65,9 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
-| `ak:read_cursor:` | Read Cursor | actor-private 已读位置 | [private-objects.md](./private-objects.md) |
 | `ak:notification:` | Notification | inbox projection | [private-objects.md](./private-objects.md) |
+
+Read Cursor（actor-private 已读位置，[private-objects.md](./private-objects.md)）**没有 typed ID**：身份是 `(actor_id, realm_id, read_scope)` 三元组，`ak.read_cursor.advance` 的 `id_source` 为 `not_an_object_id`。
 
 ### 2.4 内容 / 媒体 / 扩展对象
 

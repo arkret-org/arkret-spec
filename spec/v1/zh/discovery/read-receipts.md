@@ -142,11 +142,10 @@ Read Cursor 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 ### 3.2 格式
 
-Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中；wire 对象的 `id` MUST 使用 `ak:read_cursor:<uuid7>` typed ID。实现 MAY 为 account data 使用本地存储 key，但该 key 不得替代 wire 对象 `id`。Read Cursor 按 §6.1 / §6.6 绑定 `(actor_id, realm_id, read_scope, position, hlc, device_id)`：
+Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中。wire 对象**没有 typed ID 也没有 `updated_at`**：它不是可原地更新的对象，身份是 `(actor_id, realm_id, read_scope)` 三元组，更新时间是承载它的 `ak.read_cursor.advance` 信封 `created_at`（§6.1）。实现 MAY 为本地存储自选 key，该 key 不进入 wire。Read Cursor 按 §6.1 / §6.6 绑定 `(actor_id, realm_id, read_scope, position, hlc, device_id)`：
 
 ```json
 {
-  "id": "ak:read_cursor:01964137-0000-7000-8000-000000000001",
   "schema": "ak.schema.read_cursor.v1",
   "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
@@ -159,8 +158,7 @@ Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 
   "position": {
     "event_id": "ak:event:AXrw54_r8iPVFSBGJhTZduzx5vRg62wu8bdDrUhCm9hR",
     "hlc": "01970e589d21-0004-a13f9c2e"
-  },
-  "updated_at": "2026-04-26T10:00:00Z"
+  }
 }
 ```
 
@@ -213,12 +211,13 @@ Read Cursor 是 actor-private 状态。最小结构示例：
   "position": {
     "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
     "hlc": "01970e589d21-0004-a13f9c2e"
-  },
-  "updated_at": "2026-04-26T00:00:00Z"
+  }
 }
 ```
 
 字段层级约束以 [`../models/private-objects.md` §2](../models/private-objects.md) 为准。
+
+Read Cursor 对象 MUST NOT 携带 `id`，也 MUST NOT 携带 `updated_at`。没有 read cursor typed ID（id-kind-registry 中不存在 `read_cursor` kind）：对象身份是 `(actor_id, realm_id, read_scope)` 三元组，`ak.read_cursor.advance` 的 `id_source` 是 `not_an_object_id`。它不是可原地更新的对象（没有 revision / CAS），一次「更新」就是 author 一条新的 `ak.read_cursor.advance`，因此该次更新的时间就是那条 Event 信封的 `created_at`。`ak.self.read_cursor.command.advance.v1` 的响应 `read_marker_outcome.updated_at` 与跨设备下发的 actor-private read cursor 更新都是**派生视图**，其 `updated_at` MUST 取当前按 §6.5 胜出的那条 advance 的信封 `created_at`；服务端 MUST NOT 由此反推或要求 payload 携带任何时间字段。
 
 ### 6.2 Receipt 公开形态
 
@@ -314,12 +313,12 @@ state=unread, cursor=<cursor>, limit=<int>
 
 ### 6.6 跨设备同步语义
 
-`ak.read_cursor.advance` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer frontier。其 payload MUST 使用 `ak.schema.read_cursor.v1` 的 Read Cursor 对象形态；该对象仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、read_scope、position、HLC 和 device id。
+`ak.read_cursor.advance` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer frontier。其 payload MUST 使用 `ak.schema.read_cursor.v1` 的 Read Cursor 对象形态；该对象仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、read_scope、position、HLC 和 device id；该对象不含 `updated_at`（§6.1）。
 
 跨设备已读同步流程：
 
-1. 设备本地读到某个 read_scope 的位置后，author 并签名完整 actor-private `ak.read_cursor.advance`，通过 `ak.self.read_cursor.command.advance.v1` 的 `advance_event: EventInitialSubmission` 原样提交；服务端不得从旧 DTO 重建或代签。
-2. Station / Station sync surface 只向同一 principal 的授权设备返回该 read cursor，可通过 `account_data` 或 `receipts` stream 增量同步。
+1. 设备本地读到某个 read_scope 的位置后，author 并签名完整 actor-private `ak.read_cursor.advance`，通过 `ak.self.read_cursor.command.advance.v1` 的 `advance_event: EventInitialSubmission` 原样提交；服务端不得从旧 DTO 重建或代签。设备读到该位置的时间由信封 `created_at` 承载（§6.1），payload 内不存在第二份时间字段。
+2. Station / Station sync surface 只向同一 principal 的授权设备返回该 read cursor，可通过 `account_data` 或 `receipts` stream 增量同步。下发形态是 `ak.read_cursor.update` device message，其 content MUST 是 `ak.schema.read_cursor_update.v1`（`device-message.schema.json#/$defs/read_cursor_update_content`）：按 §6.5 胜出的 advance 的派生投影，`updated_at` 取该 advance 的信封 `created_at`；它不是 `ak.schema.read_cursor.v1` 对象，MUST NOT 以该 schema id 自述。
 3. 每个设备按 §6.5 规则合并同一 read_scope 的 marker，重新派生本地 notification state、unread count 和 push suppression state。
 4. 派生 notification 的 `state=read/unread` 不得作为共享 Realm 事实写回；需要公开已读回执时，必须使用 Realm policy 允许的 `ak.receipt.read` ephemeral / receipt stream，并与 private read cursor 分开授权。
 5. 当 read cursor 指向的 target event 对某设备不可见、缺失或被 redacted，客户端 MUST 保留 read cursor 但把对应 projection 标记为 `target_missing` / `redacted`，不得回退到更早 read cursor 造成未读计数反弹。

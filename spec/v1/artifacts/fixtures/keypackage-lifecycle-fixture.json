@@ -847,6 +847,37 @@
         "the claim signer is an accepted current-generation requester device",
         "a mismatch is rejected before decrypting or accepting the Welcome"
       ]
+    },
+    {
+      "name": "welcome_capabilities_digest_mismatch",
+      "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
+      "kind": "welcome_capabilities_digest_binding",
+      "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "keypackage_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
+      "capabilities_digest": "sha256:5bc109a59cd6e594bbe6acf4d54bad93c45ba091d03d8c677b93e706c11313ff",
+      "mismatched_capabilities_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "claim_id": "mls-keypackage-claim-normal-1",
+      "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "requester_actor_id": {
+        "kind": "service",
+        "service_id": "ak:did_core:webvh:z6mkfixture"
+      },
+      "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+      "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+      "device_authorization_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+      "model_generation_ref": 1,
+      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
+      "welcome_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
+      "expected": {
+        "reject_before_decrypt": true,
+        "reason": "welcome_capability_mismatch",
+        "all_digest_fields_equal": false
+      },
+      "assertions": [
+        "Welcome claim_ref.capabilities_digest must match the digest recomputed from the claimed KeyPackage capabilities",
+        "a Welcome requiring capabilities outside the claimed subset is rejected with the same reason",
+        "a mismatch is rejected before decrypting or accepting the Welcome"
+      ]
     }
   ]
 }

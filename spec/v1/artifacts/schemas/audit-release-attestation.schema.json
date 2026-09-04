@@ -28,15 +28,18 @@
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
-      "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_digest values across Realms do not make evidence portable."
+      "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_digest values across Realms do not make evidence portable.",
+      "$comment": "Verifier MUST require an exact match with the active ak.audit.applet_binding; a field-level mismatch with the active binding is rejected with reason audit_release_attestation_mismatch. See zh/crypto-media/audited-e2ee.md §6."
     },
     "audit_actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
-      "description": "Stable did_core_id of the audit release service / applet actor whose controlled output path this evidence attests. MUST match the approved_recipient_audit_actor_id derived from the accepted ak.audit.session.authorize record, or the service actor accepted by the active ak.audit.applet_binding."
+      "description": "Stable did_core_id of the audit release service / applet actor whose controlled output path this evidence attests. MUST match the approved_recipient_audit_actor_id derived from the accepted ak.audit.session.authorize record, or the service actor accepted by the active ak.audit.applet_binding.",
+      "$comment": "Verifier MUST require an exact match with the active ak.audit.applet_binding; a field-level mismatch with the active binding is rejected with reason audit_release_attestation_mismatch. See zh/crypto-media/audited-e2ee.md §6."
     },
     "service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Stable operating service did_core_id hosting the audit applet or release service. MUST match the service_id in the active ak.audit.applet_binding / ak.audit.release chain."
+      "description": "Stable operating service did_core_id hosting the audit applet or release service. MUST match the service_id in the active ak.audit.applet_binding / ak.audit.release chain.",
+      "$comment": "Verifier MUST require an exact match with the active ak.audit.applet_binding; a field-level mismatch with the active binding is rejected with reason audit_release_attestation_mismatch. See zh/crypto-media/audited-e2ee.md §6."
     },
     "platform": {
       "type": "object",
@@ -96,7 +99,8 @@
           "description": "Optional REPORTDATA-equivalent that binds the attestation to the release service public key or output-encryption key. Lowercase hex encoding of a 32–64 byte byte-string (pattern enforces an even hex length: each byte is exactly two hex characters; total 64–128 hex characters). Receivers MUST validate this binding when present."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "$comment": "Evidence failing validation here (trust root not in the Realm-declared trust root list, validity window, format, or measurement not allowed by the active release policy) is rejected with reason audit_release_attestation_invalid. See zh/crypto-media/audited-e2ee.md §6."
     },
     "attestation_chains": {
       "type": "array",
@@ -129,7 +133,8 @@
           }
         },
         "additionalProperties": false
-      }
+      },
+      "$comment": "Evidence failing validation here (trust root not in the Realm-declared trust root list, validity window, format, or measurement not allowed by the active release policy) is rejected with reason audit_release_attestation_invalid. See zh/crypto-media/audited-e2ee.md §6."
     },
     "attestation_key": {
       "type": "object",
@@ -177,7 +182,8 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "$comment": "Evidence failing validation here (trust root not in the Realm-declared trust root list, validity window, format, or measurement not allowed by the active release policy) is rejected with reason audit_release_attestation_invalid. See zh/crypto-media/audited-e2ee.md §6."
     },
     "revocation": {
       "type": "object",

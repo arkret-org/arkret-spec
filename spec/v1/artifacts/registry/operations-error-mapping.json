@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-04.1",
+  "version": "2026-09-04.3",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "generated_at": "2026-09-04T23:55:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -39,7 +39,8 @@
         "signature_window_invalid",
         "duplicate_conflict",
         "applet_registration_unauthorized",
-        "applet_namespace_mismatch"
+        "applet_namespace_mismatch",
+        "queue_full"
       ],
       "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or receiver-derived delivery_authentication_record_digest, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1."
     },
@@ -224,7 +225,8 @@
       "http_alias": "POST /_arkret/find/directory/resolve-handle",
       "operation_specific": [
         "not_found",
-        "handle_unverified"
+        "handle_unverified",
+        "handle_subject_mismatch"
       ]
     },
     {
@@ -550,7 +552,8 @@
       "operation_specific": [
         "http_signature_required",
         "http_signature_invalid",
-        "signature_window_invalid"
+        "signature_window_invalid",
+        "egress_policy_denied"
       ],
       "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason."
     },
@@ -718,7 +721,13 @@
         "realm_frozen",
         "quarantine",
         "membership_compensation_conflict",
-        "peer_stale"
+        "peer_stale",
+        "direct_conversation_binding_invalid",
+        "direct_conversation_invite_forbidden",
+        "direct_conversation_member_count_invalid",
+        "relation_kind_contains_derived",
+        "relation_kind_watches_derived",
+        "unknown_event_kind"
       ],
       "description": "Federated Event submission uses only registered Event kinds. membership_compensation_conflict rejects an invalid, changed, expired or consumed compensation carrier without writing or deleting a newer membership incarnation. Direct Conversations have one scope-derived MLS group and ordinary same-group Commit repair; no dedicated repair carrier or candidate-fanout error exists."
     },
@@ -774,7 +783,8 @@
         "frontier_unavailable",
         "state_mismatch",
         "signature_invalid",
-        "limit_exceeded"
+        "limit_exceeded",
+        "ttl_expired"
       ]
     },
     {
@@ -1644,7 +1654,15 @@
         "quarantine",
         "membership_compensation_conflict",
         "device_revocation_pending",
-        "device_revoked"
+        "device_revoked",
+        "member_identity_state_mismatch",
+        "direct_conversation_binding_invalid",
+        "direct_conversation_invite_forbidden",
+        "direct_conversation_member_count_invalid",
+        "relation_kind_contains_derived",
+        "relation_kind_watches_derived",
+        "agent_reply_not_permitted",
+        "unknown_event_kind"
       ],
       "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these registered codes. membership_compensation_conflict rejects an invalid, changed, expired or consumed compensation carrier without writing or deleting a newer membership incarnation. Direct Conversations have one scope-derived MLS group and do not submit group-generation activation candidates."
     },
@@ -1744,7 +1762,8 @@
         "frontier_unavailable",
         "state_mismatch",
         "signature_invalid",
-        "limit_exceeded"
+        "limit_exceeded",
+        "ttl_expired"
       ]
     },
     {
@@ -1833,7 +1852,8 @@
         "recovery_evidence_unbound",
         "backup_frontier_stale",
         "series_chain_broken",
-        "signature_invalid"
+        "signature_invalid",
+        "untrusted_backup_signature"
       ]
     },
     {
@@ -1860,7 +1880,8 @@
         "key_backup_wire_schema_required",
         "series_chain_broken",
         "series_seq_not_monotonic",
-        "series_predecessor_not_found"
+        "series_predecessor_not_found",
+        "unsupported_aead_profile"
       ]
     },
     {

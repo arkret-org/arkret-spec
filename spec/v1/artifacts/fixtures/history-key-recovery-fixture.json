@@ -1,6 +1,6 @@
 {
   "profile": "ak.feature.history_key_recovery.v1",
-  "version": "2026-09-02",
+  "version": "2026-09-05",
   "suite": "history_key_recovery",
   "runner": {
     "kind": "named_suite",
@@ -136,6 +136,15 @@
             "name": "frozen_traversal_anchor_replaces_manifest",
             "code": "failed_precondition",
             "reason_code": "history_traversal_anchor_unreachable",
+            "disposition": "replace_manifest",
+            "attempt_status_after": "permanently_rejected",
+            "new_manifest_count": 1,
+            "old_attempt_marked_completed": false
+          },
+          {
+            "name": "expired_staged_bytes_replace_manifest",
+            "code": "failed_precondition",
+            "reason_code": "ttl_expired",
             "disposition": "replace_manifest",
             "attempt_status_after": "permanently_rejected",
             "new_manifest_count": 1,
@@ -614,7 +623,7 @@
         "name": "wrong_holder_proof_domain",
         "target": "/events/register/payload/holder_acceptance/holder_proof",
         "mutation": "verify under a non-registered proof context",
-        "expected": "invalid_proof"
+        "expected": "proof_invalid"
       },
       {
         "name": "holder_tuple_mismatch",

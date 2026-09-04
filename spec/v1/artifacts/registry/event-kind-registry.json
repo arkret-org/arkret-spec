@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.3",
+  "version": "2026-09-05.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-04T20:06:13+08:00",
+  "generated_at": "2026-09-05T06:58:34+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -663,7 +663,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm join rule (public/invite/knock/restricted/knock_restricted/closed)",
+      "payload": "Realm join rule (public/invite/knock/restricted/knock_restricted/closed) When the accepted join_policy component is structurally inconsistent with this join_rule (restricted/knock_restricted without at least one auto_resolve gate, or a combinator that degenerates the gate set), the reducer MUST reject with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_join_rule_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
@@ -1004,7 +1004,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Enabled Realm policy components set, written wholesale into the cas_register cell (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision.",
+      "payload": "Enabled Realm policy components set, written wholesale into the cas_register cell (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision. A bundle whose join_policy component conflicts with the accepted join_rule (restricted/knock_restricted without at least one auto gate, or a degenerate combinator) MUST be rejected with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
@@ -1319,7 +1319,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
+      "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5. A create that binds durability_policy.mode != none onto a scope whose content_scheme is not mls_exporter_aead_v1 MUST be rejected with failed_precondition reason=durability_scheme_incompatible. See zh/models/realm-and-space.md §2.3.1.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_create_payload",
       "id_source": "event_derived",
       "id_kind": "circle",
@@ -2388,7 +2388,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics.",
+      "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics. The event always enters the append-only log: proof and replacement validation are consumption/verification-surface semantics, not reducer rejection. When the MemberIdentity proof fails validation (payload_digest mismatch, signature failure, or verification_method not controlled by subject_id), receivers surface reason=member_identity_proof_invalid and MUST NOT promote the event to a verified display identity. When a replaces[] entry payload_digest or (realm_id, member_id, segment) does not match, only that replacement edge is invalid (surface member_identity_replacement_digest_mismatch); receivers MUST NOT remove the referenced event from the effective set on that basis. Only the optional expected_state_digest guard retains reducer semantics: when expected_state_digest does not equal the current effective-set digest, the server/reducer MUST reject or quarantine the event with reason=member_identity_state_mismatch. See zh/sync/client-sync.md §8.1.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/member_identity_update_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
@@ -5212,7 +5212,7 @@
         }
       ],
       "concurrency_class": "security_barrier",
-      "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence."
+      "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence. A Genesis targeting a group whose genesis state is already durably accepted MUST be rejected with reason=mls_genesis_already_exists, preserving the existing group state."
     },
     {
       "event_kind": "ak.mls.commit",
@@ -5221,7 +5221,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS commit",
+      "payload": "MLS commit The governance_binding MUST NOT change content_scheme after Genesis; such a Commit MUST be rejected with reason=mls_content_scheme_immutable. A Commit whose governance_binding drifts the create-fixed durability_policy onto a scope whose content_scheme is not mls_exporter_aead_v1 MUST be rejected with reason=durability_scheme_incompatible. See zh/models/realm-and-space.md §2.3.1.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_commit_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
@@ -5764,7 +5764,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Sealed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref. Same-basis close dominates release and rejects the release.",
+      "payload": "Sealed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref. Same-basis close dominates release and rejects the release. A release targeting the current active MLS epoch MUST be rejected with reason audit_release_current_epoch_forbidden. See zh/crypto-media/audited-e2ee.md §4.4 / §5.2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_release_payload",
       "parameters": {
         "required_session_state": "notice",

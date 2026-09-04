@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-05.2",
-  "generated_at": "2026-09-05T10:20:00+08:00",
+  "version": "2026-09-05.3",
+  "generated_at": "2026-09-05T14:21:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1239,14 +1239,6 @@
       "title": "Unsupported feature"
     },
     {
-      "code": "unsupported_operation_binding",
-      "http_status": 422,
-      "scope": "endpoint",
-      "description": "The caller and role-scoped ServiceDescribe have no exact operation carrier/schema intersection. This disables only the selected operation and MUST NOT be translated to an authorization, account, Realm, or service-wide failure. Dual-registered as a top-level service code and a reason_code (see reason_codes[]).",
-      "type_uri": "https://arkret.org/problems/unsupported_operation_binding",
-      "title": "Unsupported operation binding"
-    },
-    {
       "code": "unsupported_event_kind",
       "http_status": 501,
       "scope": "both",
@@ -2321,13 +2313,6 @@
   ],
   "reason_codes": [
     {
-      "code": "abuse_cluster",
-      "applies_to": [
-        "moderation_decision"
-      ],
-      "description": "Multiple reports clustered together for triage; not finalized."
-    },
-    {
       "code": "abuse_network",
       "applies_to": [
         "moderation_decision"
@@ -2562,6 +2547,30 @@
       "description": "The immutable provision ceiling and accepted Agent key authorization both contain every operation required by the selected runtime capability, but the requested or current session scope omits one or more. The operation fails with failed_precondition and recovery is a new session constrained by both upper ceilings. See zh/identity/key-management.md §3.6.1 and agent-runtime-scope-registry.json."
     },
     {
+      "code": "applet_managed_actor_provision_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An ak.applet.managed_actor.provision Event in the closed Applet managed-actor creation aggregate does not satisfy its binding rules: actor_id.account_id.station_id is not the receiving Station, the actor collides with the service or controller principal, or the provisioned actor is not the registration's declared bot_actor_id. See zh/extensions/applet-integration.md."
+    },
+    {
+      "code": "applet_managed_pcr_genesis_invalid",
+      "applies_to": [
+        "pcr_genesis",
+        "event_envelope"
+      ],
+      "description": "The purpose=applet_managed_control PCR genesis Event in the Applet managed-actor creation aggregate does not cross-bind its provision Event, initial_resolution, Applet, grant and service verbatim. See zh/extensions/applet-integration.md."
+    },
+    {
+      "code": "applet_managed_pcr_genesis_requires_closed_aggregate",
+      "applies_to": [
+        "pcr_genesis",
+        "federation_transaction"
+      ],
+      "description": "A purpose=applet_managed_control PCR genesis arrived outside the closed Applet install / Ghost provisioning aggregate - an ordinary submit, a Realm bootstrap batch, or ak.peer.events.command.submit.v1. Transport and proof validity do not make it an AppletFormal admission. See zh/extensions/applet-integration.md."
+    },
+    {
       "code": "applet_namespace_mismatch",
       "applies_to": [
         "state_resolution",
@@ -2610,54 +2619,6 @@
         "service_call"
       ],
       "description": "A proof, token, Auth Server verification result, invite claim, KeyPackage claim, or signed handoff was presented to a Realm / service / audience different from the one bound into the signed material. Receivers MUST reject rather than reinterpret the audience. See zh/conformance/conformance-vectors.md."
-    },
-    {
-      "code": "audit_agent_attestation_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "audit_decision"
-      ],
-      "description": "Audit Agent attestation evidence does not match the expected binding: realm_id, service_id, audit_actor_id, measurement, audit_purpose, policy digest, validity, or operator DID diverge from the registered audit binding. Join and release paths MUST fail closed. See zh/crypto-media/audited-e2ee.md §6 and artifacts/schemas/audit-release-attestation.schema.json."
-    },
-    {
-      "code": "audit_agent_destruction_not_paired_with_remove",
-      "applies_to": [
-        "event_envelope",
-        "audit_decision"
-      ],
-      "description": "A key-destruction attestation for an Audit Agent was submitted standalone, without the paired remove (membership end) it must accompany. Destruction evidence MUST be bound to the corresponding remove; receivers MUST reject the unpaired attestation. See zh/crypto-media/audited-e2ee.md."
-    },
-    {
-      "code": "audit_agent_destruction_proof_not_enclave_signed",
-      "applies_to": [
-        "event_envelope",
-        "audit_decision"
-      ],
-      "description": "The key-destruction proof for an Audit Agent was not signed by the attested enclave (TEE / HSM) key bound in the agent's attestation evidence. Software- or operator-signed destruction claims MUST be rejected under attested_hardware profiles. See zh/crypto-media/audited-e2ee.md §2 and artifacts/schemas/audit-release-attestation.schema.json."
-    },
-    {
-      "code": "audit_agent_epoch_range_incomplete",
-      "applies_to": [
-        "event_envelope",
-        "audit_decision"
-      ],
-      "description": "The epoch range covered by an Audit Agent key-destruction attestation does not cover every sealed epoch the agent had access to. Gaps MUST cause rejection of the attestation (and any paired remove) instead of partial acceptance. See zh/crypto-media/audited-e2ee.md."
-    },
-    {
-      "code": "audit_agent_key_destruction_attestation_missing",
-      "applies_to": [
-        "event_envelope",
-        "audit_decision"
-      ],
-      "description": "An Audit Agent lifecycle transition that ends its access to sealed epoch key material lacks the required key-destruction attestation for the epoch secrets the agent held. Receivers MUST fail closed rather than treat missing destruction evidence as destroyed. See zh/crypto-media/audited-e2ee.md and artifacts/schemas/audit-release-attestation.schema.json."
-    },
-    {
-      "code": "audit_agent_remove_requires_paired_destruction_attestation",
-      "applies_to": [
-        "event_envelope",
-        "audit_decision"
-      ],
-      "description": "A remove ending an Audit Agent's membership in an audited group / Realm was submitted without the paired key-destruction attestation covering the epoch secrets the agent held. The remove MUST be rejected until the paired destruction attestation is presented. See zh/crypto-media/audited-e2ee.md."
     },
     {
       "code": "audit_capability_incomplete",
@@ -2753,13 +2714,6 @@
         "auth_decision"
       ],
       "description": "The audit request / authorization / notice / release effective_scope does not match the active binding or attempts to cover a Circle without a Circle-scoped binding."
-    },
-    {
-      "code": "auth_incomplete",
-      "applies_to": [
-        "auth_decision"
-      ],
-      "description": "Required refs[role=authorized_by] are not yet accepted at the local frontier; the event MUST be parked until the missing refs converge."
     },
     {
       "code": "authority_cycle",
@@ -2902,14 +2856,6 @@
       "description": "A `ak.call.summary` event was rejected because its `final_state` is not a terminal call state, the referenced `call_id` has no terminal `ak.call.state` head, or a divergent summary already exists for the call (the summary cell is write-once). Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md §7."
     },
     {
-      "code": "cardinality_violation",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "An event violates a declared relation / cell cardinality constraint."
-    },
-    {
       "code": "causal_refs_too_large",
       "applies_to": [
         "schema_validation",
@@ -2947,7 +2893,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A challenge proof was submitted whose issuance is older than `max_proof_age`. The reducer MUST reject with failed_precondition and MUST NOT auto-renew; the applicant must obtain a fresh challenge_id. See zh/governance/join-policy.md §11."
+      "description": "A challenge proof was submitted whose issuance is older than `max_proof_age`. The reducer MUST reject with failed_precondition and MUST NOT auto-renew; the applicant must obtain a fresh challenge_id. See zh/governance/join-policy.md §3.1 and §4."
     },
     {
       "code": "challenge_failed",
@@ -2963,7 +2909,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A runtime challenge proof attached to `ak.member.state{join}.gate_proofs[]` fails verification (signature / freshness / verifier domain)."
+      "description": "A runtime challenge proof attached to `ak.member.state{join}.gate_proofs[]` fails verification (signature / freshness / verifier domain). Freshness here is the replay/binding freshness carried by the proof itself; a proof issued beyond max_proof_age is challenge_expired instead, and the two reasons are mutually exclusive. See zh/governance/join-policy.md §4."
     },
     {
       "code": "circle_already_terminal",
@@ -3042,14 +2988,6 @@
       "description": "A claim, attestation, or invite / binding proof submitted for membership or invitation admission is malformed, unverifiable, or fails policy checks."
     },
     {
-      "code": "claim_rate_limited",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "Per-(requester, target, intended_realm_id) KeyPackage / one-time-key claim rate limit hit; caller MUST back off before retrying. Distinct from the global `rate_limited` HTTP code because the limit is keyed on the (target, intended use) tuple, not the caller alone."
-    },
-    {
       "code": "e2ee_relaxed_audit_binding_conflict",
       "applies_to": [
         "event_envelope",
@@ -3095,14 +3033,6 @@
       "description": "A receipted Control Move proposal reached its signed decision_due_at without include, signed-reject, or a valid bounded signed-defer, or exhausted its immutable absolute_due_at / maximum defer count without include or signed-reject. This is a governance health and censorship-evidence fault, not an acceptance or Seal-finality result: a later cryptographically valid Seal remains acceptable and the fault stays auditable. See zh/authz/event-auth-state-resolution.md section 7.2."
     },
     {
-      "code": "counter_bound_exceeded",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "A counter-lattice inc / dec op would move the cell's cumulative value past `parameters.max` (or below `parameters.min`) declared in the cell schema. The op MUST be rejected at validate_op / verify_move time with top-level `failed_precondition` carrying this reason_code; it never enters the join. See zh/authz/event-auth-state-resolution.md §9.3."
-    },
-    {
       "code": "covered_set_mismatch",
       "applies_to": [
         "event_auth_state",
@@ -3139,14 +3069,6 @@
         "auth_decision"
       ],
       "description": "A structural `contains` Relation was submitted that would cross Realm boundaries. Structural containment (Board → List → Strand / Space hierarchy) MUST stay within a single Realm; cross-Realm links use the dedicated `ak.relation.*` non-structural kinds. See zh/models/relation.md §4."
-    },
-    {
-      "code": "cross_space_structural_relation",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "A structural containment write would span incompatible Space container hierarchies - e.g. adding a Strand positioned under one Board to a List belonging to a different Board / Space tree. Structural containment MUST stay within a single container hierarchy; the reducer MUST reject failed_precondition. (Crossing a Realm boundary uses the more specific cross_realm_structural_relation.) See zh/models/relation.md §4.4 and zh/models/realm-and-space.md §3.6."
     },
     {
       "code": "cursor_expired",
@@ -3239,7 +3161,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A non-bootstrap ak.device.authorize event was submitted outside the principal's bound principal_control Realm, or the Realm purpose/profile/created_by does not match the device owner and issuer principal. Reducer MUST fail closed. See zh/identity/key-management.md §5.0.3."
+      "description": "A non-bootstrap ak.device.authorize event was submitted outside the principal's bound principal_control Realm, or the Realm purpose/profile/created_by does not match the device owner and issuer principal. Reducer MUST fail closed. See zh/identity/key-management.md §4.1."
     },
     {
       "code": "device_generation_fenced",
@@ -3398,7 +3320,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a ak.realm.policy_bundle write declares durability_policy.mode != none on a Realm whose content_scheme is not mls_exporter_aead_v1. mls_rfc9420 Realms have no deliverable history_secret, so Realm History Recovery Key (RHRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10.8."
+      "description": "Sub-reason for failed_precondition when a create-time binding (ak.realm.create or ak.circle.create) declares durability_policy.mode != none on a scope whose content_scheme is not mls_exporter_aead_v1, or when an ak.mls.commit governance_binding drifts the create-fixed durability_policy onto such a scope. mls_rfc9420 scopes have no deliverable history_secret, so Realm History Recovery Key (RHRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10."
     },
     {
       "code": "e2ee_key_source_unauthorised",
@@ -3437,7 +3359,7 @@
         "federation_transaction",
         "service_call"
       ],
-      "description": "An outbound Applet, MIMI, or federation transfer would emit plaintext or derived content without the egress grant, data-class allowance, or destination policy required for that transfer. The sender MUST reject the transfer before releasing content."
+      "description": "An outbound Applet, MIMI, or federation transfer would emit plaintext or derived content without the egress grant, data-class allowance, or destination policy required for that transfer. It also covers SSRF address-class denial: a server-side fetch whose resolved target (after redirect / Alt-Svc) hits a forbidden address class such as cloud metadata, internal, or loopback is rejected with this reason, for example MIMI proxy_download. The sender MUST reject the transfer before releasing content. See zh/sync/api-conventions.md §11.2 and zh/extensions/mimi-interop.md §11."
     },
     {
       "code": "epoch_update_required",
@@ -3515,14 +3437,6 @@
       "description": "A moderation evidence package's encrypted_to recipient does not match the declared recipient_public_key_ref binding. The submission MUST reject. See governance/content-moderation.md."
     },
     {
-      "code": "executed_by_missing",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "An Event whose envelope signature was produced by an applet / delegated agent key but whose `actor_id` points to a different (native) principal DID is missing the mandatory `executed_by` / `authorization_ref` / `applet_id` fields. Reducer MUST schema_violation per zh/extensions/applet-integration.md §11."
-    },
-    {
       "code": "expired_invite_token",
       "applies_to": [
         "state_resolution"
@@ -3589,13 +3503,6 @@
         "state_resolution"
       ],
       "description": "External applicant-facing generic join gate failure. Wire response MUST NOT reveal whether a claim was absent, revoked, issuer-unreachable, parent-membership-missing, or challenge-invalid; detailed diagnostics are audit/reviewer-only. See zh/governance/join-policy.md §5."
-    },
-    {
-      "code": "genesis_created_at_too_old",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "Sub-reason for schema_violation when ak.realm.create is submitted through the self events surface with a created_at older than the deployment genesis submit window. The self surface never accepts federation peer wire, so a locally authored Realm genesis is always being created now; this bound does not and cannot apply to backfill."
     },
     {
       "code": "genesis_seal_invalid",
@@ -3760,6 +3667,14 @@
       "description": "An identity-link resolution was invalidated because the governing visibility / link policy was tightened after the link was cached. See zh/conformance/conformance-vectors.md §9 (ak.vector.identity_link.policy_tightening_invalidation.v1)."
     },
     {
+      "code": "identity_method_evidence_invalid",
+      "applies_to": [
+        "identity_resolution",
+        "auth_decision"
+      ],
+      "description": "Submitted method_history_evidence fails independent verification: broken inception/current hash chain, SCID mismatch, invalid controller proof, unmet witness threshold, or stale evidence. An Applet-managed principal MUST carry a complete webvh_log; did:web snapshots, did:key expansion and service attestation are not substitutes. See zh/extensions/applet-integration.md."
+    },
+    {
       "code": "illegal",
       "applies_to": [
         "moderation_report"
@@ -3902,14 +3817,6 @@
       "description": "An out-of-band invite code was rejected because its entropy is below the required floor. See zh/conformance/conformance-vectors.md §9 (ak.vector.invite.oob_code_entropy.v1)."
     },
     {
-      "code": "join_authorisation_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A `ak.member.state{membership=join}` event's `join_authorisation` proof (the equivalent of Matrix `join_authorised_via_users_server`) does not verify against the cited reviewer's capability state at the citing frontier. See zh/governance/join-policy.md §6."
-    },
-    {
       "code": "join_policy_duplicate_gate_id",
       "applies_to": [
         "schema_validation",
@@ -3923,15 +3830,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Realm `ak.realm.join_rule` and `ak.realm.policy_bundle` declare conflicting join modes (e.g., `restricted` with no gate configuration, or `knock_restricted` with all-auto gates degrading to `restricted`). See zh/governance/join-policy.md §4."
-    },
-    {
-      "code": "join_rule_tightened",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "An in-flight pending member application (knock / awaiting_review / changes_requested) was terminated to a terminal leave because the Realm `default_join_rule` was tightened to `closed` or `invite`, which no longer accepts the knock / application path. Does not count toward cooldown. Applications already accepted with a committed ak.invite.create are unaffected. See zh/governance/join-policy.md §4."
+      "description": "Realm `ak.realm.join_rule` and `ak.realm.policy_bundle` declare conflicting join modes (e.g., `restricted` with no gate configuration, or `knock_restricted` with all-auto gates degrading to `restricted`). See zh/governance/join-policy.md §2."
     },
     {
       "code": "key_backup_wire_schema_required",
@@ -4008,14 +3907,6 @@
       "description": "Requested operation targets a blob / object currently under legal hold. ak.self.blob.command.presign.v1 / ak.blob.delete / redaction-equivalent operations MUST be rejected with this code; legal hold takes precedence over capability and TTL. See zh/crypto-media/media-and-blob.md §5.4.4.1."
     },
     {
-      "code": "lite_profile_writes_disallowed_event_kind",
-      "applies_to": [
-        "event_envelope",
-        "policy_decision"
-      ],
-      "description": "A writer operating under a lite / reduced-surface conformance profile submitted an event kind outside the write surface its declared profile covers. Undeclared profile surface MUST be rejected (unsupported_feature / policy-denied semantics), not silently accepted. See zh/conformance/conformance-profiles.md."
-    },
-    {
       "code": "media_negotiation_timeout",
       "applies_to": [
         "event_envelope",
@@ -4075,7 +3966,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A ak.member.identity.update replaces[] entry references an event whose payload.identity_payload carrier digest does not equal the declared payload_digest, or references an event under a different (realm_id, actor_id, segment). The replacement edge is invalid; receivers MUST NOT remove the referenced event from the effective set on its basis. See zh/sync/client-sync.md §8.1."
+      "description": "A ak.member.identity.update replaces[] entry references an event whose payload.identity_payload carrier digest does not equal the declared payload_digest, or references an event under a different (realm_id, member_id, segment). The replacement edge is invalid; receivers MUST NOT remove the referenced event from the effective set on its basis. See zh/sync/client-sync.md §8.1."
     },
     {
       "code": "member_identity_state_mismatch",
@@ -4083,7 +3974,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "The optional expected_state_digest optimistic-concurrency guard on ak.member.identity.update does not equal the current effective-set digest for the same (realm_id, actor_id, segment). The server / reducer MUST reject or quarantine the event instead of applying it as a valid replacement. See zh/sync/client-sync.md §8.1."
+      "description": "The optional expected_state_digest optimistic-concurrency guard on ak.member.identity.update does not equal the current effective-set digest for the same (realm_id, member_id, segment). The server / reducer MUST reject or quarantine the event instead of applying it as a valid replacement. See zh/sync/client-sync.md §8.1."
     },
     {
       "code": "member_identity_unknown_segment",
@@ -4215,7 +4106,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A policy or group-state transition attempted to change content_scheme after the ordinary Realm/Circle/Sidecar MLS group Genesis. The group scheme is immutable in v1; reducer and receiver MUST reject without creating an implicit second group. See zh/crypto-media/encryption-and-audit.md section 2.10.6."
+      "description": "A policy or group-state transition attempted to change content_scheme after the ordinary Realm/Circle/Sidecar MLS group Genesis. The group scheme is immutable in v1; reducer and receiver MUST reject without creating an implicit second group. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10."
     },
     {
       "code": "history_traversal_anchor_unreachable",
@@ -4236,22 +4127,6 @@
         "auth_decision"
       ],
       "description": "Current MLS epoch's security_frontier_digest does not cover key-access policy components the client wants to act on (for example media_service_decrypts and plaintext_visible_services for a decrypting media service). Receivers MUST refuse to act until a fresh Commit covers the rederived frontier. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §2.5."
-    },
-    {
-      "code": "moderation_control_lifted",
-      "applies_to": [
-        "client_sync",
-        "policy_decision"
-      ],
-      "description": "An sealed moderation quarantine or fast-path quarantine was lifted, and clients viewing the Realm should surface that affected content became visible again."
-    },
-    {
-      "code": "moderation_control_pending",
-      "applies_to": [
-        "client_sync",
-        "policy_decision"
-      ],
-      "description": "A fast-path moderation quarantine signal was recorded but its sealed Control Move has not yet arrived; clients MAY temporarily hide the target and MUST switch display once the sealed decision lands."
     },
     {
       "code": "moderation_control_split",
@@ -4294,25 +4169,11 @@
       "description": "`ak.morph.restore` rejected because the target Morph is not in `archived` state."
     },
     {
-      "code": "naming_convention_violation",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "A registry entry (event_kind / schema_id / typed-id) violates the canonical naming convention (e.g. embedding a `.v<n>` version suffix in the kind name instead of carrying the version via `requirements.features`). Surface as lint output, not as a wire-time reject."
-    },
-    {
       "code": "no_strand_track_message_grant",
       "applies_to": [
         "auth_decision"
       ],
       "description": "No active capability grant authorises ak.message.create on the targeted Strand track for the actor."
-    },
-    {
-      "code": "not_provisioned",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "The requested principal / service / Realm is recognised by the registry but no provisioning exists at this endpoint — caller should bootstrap or pick another host. See zh/sync/service-http-binding.md."
     },
     {
       "code": "nsfw",
@@ -4662,7 +4523,7 @@
       "applies_to": [
         "batch_item"
       ],
-      "description": "Per-event rejection reason in an Applet edge transaction response (rejected[].reason_code) when the receiving applet's inbound processing queue is saturated (backpressure). The push sender MAY re-deliver the rejected events later under the same idempotency identity. See zh/extensions/applet-integration.md §7.3."
+      "description": "Per-event rejection reason in an Applet edge transaction response (rejected[].reason_code) when the receiving side's inbound processing queue is saturated (backpressure) -- the Applet for node-to-Applet pushes, the Arkret edge for Applet-to-node pushes. The push sender MAY re-deliver the rejected events later under the same idempotency identity. See zh/extensions/applet-integration.md §7.3."
     },
     {
       "code": "quorum_unreachable",
@@ -4939,14 +4800,6 @@
       "description": "A recovery proof echoes a challenge value that does not exactly match the server-issued challenge for the referenced recovery_session_id. Servers MUST reject the proof before completing device recovery. See artifacts/schemas/recovery-session.schema.json and zh/identity/security-transactions.md §2."
     },
     {
-      "code": "recovery_session_terminal",
-      "applies_to": [
-        "device_recovery",
-        "service_call"
-      ],
-      "description": "A recovery-session submit_proof or a new RecoveryTransaction binding targeted a recovery session that is already in a terminal state (`completed` / `rejected` / `expired`). Terminal recovery sessions are immutable; servers MUST reject with top-level `failed_precondition` carrying this reason_code. Recovery sessions have no public complete operation. See artifacts/schemas/recovery-session.schema.json and zh/identity/security-transactions.md §2."
-    },
-    {
       "code": "recovery_target_not_in_bottom",
       "applies_to": [
         "state_resolution",
@@ -5074,13 +4927,6 @@
       "description": "Revocation / grant freshness cannot be established for a high-risk, cross-domain, or delegated action. Receiver MUST fail closed and return freshness diagnostics instead of treating missing revoke evidence as allow."
     },
     {
-      "code": "revoke_order_unknown_requires_backfill_or_review",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Concurrent grant/revoke ordering cannot be deterministically resolved with currently available history; recipient SHOULD backfill or escalate to manual review rather than picking a winner."
-    },
-    {
       "code": "revoke_undo_invalid_signature",
       "applies_to": [
         "authz",
@@ -5125,14 +4971,6 @@
         "schema_validation"
       ],
       "description": "The observed Calendar schedule revision frontier exceeds the 128-entry bound shared with causal_refs, so entry.schedule_basis_refs cannot express it. The producer MUST converge the schedule before responding and MUST NOT truncate the basis. See zh/conformance/scalability-constraints.md. It is raised by the authoring client when the observed frontier itself exceeds the bound; a wire Event that actually carries more than 128 refs is instead rejected by schema maxItems as schema_violation."
-    },
-    {
-      "code": "scope_expansion_forbidden",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A grant or delegation attempted to widen a child's actions[] or resources[] beyond its parent. v1 does not permit scope expansion: capabilities.md 10.1's narrowing invariant is unconditional and there is no wire switch that relaxes it. Reducers MUST reject with schema_violation."
     },
     {
       "code": "scope_incomparable",
@@ -5678,14 +5516,6 @@
         "feature_discovery"
       ],
       "description": "Implementation does not advertise the feature requested; caller SHOULD downgrade or pick another peer."
-    },
-    {
-      "code": "unsupported_operation_binding",
-      "applies_to": [
-        "feature_discovery",
-        "service_call"
-      ],
-      "description": "No exact operation/carrier/schema row is shared by the caller and the role-scoped ServiceDescribe. The failure is operation-local and is never an authorization or Realm-state decision. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "unsupported_hpke_suite",

@@ -165,7 +165,10 @@
     {
       "document": "spec/v1/zh/models/private-objects.md",
       "schema_ref": "read-cursor.schema.json#",
-      "external_field_mentions": []
+      "external_field_mentions": [
+        "created_at",
+        "updated_at"
+      ]
     },
     {
       "document": "spec/v1/zh/models/realm-and-space.md",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.1",
+  "version": "2026-09-04.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "generated_at": "2026-09-04T23:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -705,15 +705,6 @@
       "status": "active",
       "wire_form": "ak:operation:<uuidv7>",
       "description": "Identifier for a durable or reserved multi-phase protocol operation instance. It is allocated at reservation time, before the operation's first Event exists, so it can carry no content binding and MUST NOT be parsed for internal semantics; that is what id_form=producer_allocated means here, not a free-form value space.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "read_cursor",
-      "category": "account_private",
-      "status": "active",
-      "wire_form": "ak:read_cursor:<uuidv7>",
-      "description": "Actor-private read cursor ID",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

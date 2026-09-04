@@ -10,102 +10,52 @@
   "generated_by": "tools/artifact_lint (check_reason_code_producer_paths)",
   "description": "Frozen ledger of reason codes that error-code-registry.json registers but no other machine artifact under spec/v1/artifacts references as a bare token (generated reports excluded). Adopted by ruling 2026-09-04-1752 after invalid_task_fsm_transition was found to describe a state machine that no event kind, cell family or fsm contract could ever produce. The list is a ratchet: check_reason_code_producer_paths fails on any new unreferenced code and on any listed code that gains a reference without being dropped here. removed_reason_codes pins codes a ruling deleted so they cannot return.",
   "unreferenced_reason_codes": [
-    "abuse_cluster",
     "abuse_network",
     "abuse_review",
     "aead_nonce_counter_replay",
-    "aead_nonce_derivation_invalid",
-    "agent_grant_constraint_missing",
-    "agent_participation_ceiling_unresolved",
-    "agent_reply_not_permitted",
     "approval_nonce_reused",
     "attestation_missing",
-    "audit_agent_attestation_mismatch",
-    "audit_agent_destruction_not_paired_with_remove",
-    "audit_agent_destruction_proof_not_enclave_signed",
-    "audit_agent_epoch_range_incomplete",
-    "audit_agent_key_destruction_attestation_missing",
-    "audit_agent_remove_requires_paired_destruction_attestation",
     "audit_capability_incomplete",
-    "audit_release_attestation_invalid",
-    "audit_release_attestation_mismatch",
     "audit_release_binding_inactive",
-    "audit_release_binding_missing",
-    "audit_release_current_epoch_forbidden",
-    "audit_release_notice_missing",
     "audit_release_retroactive_scope_forbidden",
-    "audit_release_scope_mismatch",
-    "auth_incomplete",
     "authority_scope_custom_unsupported",
     "authority_scope_mismatch",
-    "cardinality_violation",
     "cell_in_bottom_state",
-    "challenge_failed",
-    "challenge_proof_invalid",
     "circle_already_terminal",
     "circle_not_archived",
     "circle_short_name_taken",
     "claim_generation_mismatch",
-    "claim_invalid",
-    "claim_rate_limited",
-    "counter_bound_exceeded",
     "created_at_before_basis_seal",
     "created_at_before_causal_predecessor",
     "cross_realm_structural_relation",
-    "cross_space_structural_relation",
     "cursor_unrecognized",
     "deactivation_federation_incomplete",
     "decryption_failed",
     "delegation_revoked",
     "delivery_target_unreachable",
-    "device_authorized_principal_control_realm_mismatch",
-    "direct_conversation_binding_invalid",
-    "direct_conversation_invite_forbidden",
-    "direct_conversation_member_count_invalid",
     "direct_conversation_terminal_forbidden",
-    "durability_scheme_incompatible",
-    "egress_policy_denied",
-    "executed_by_missing",
     "federation_authority_mismatch",
     "federation_trust_domain_mismatch",
-    "genesis_created_at_too_old",
     "genesis_seal_invalid",
-    "governance_binding_mismatch",
     "grant_revoke_not_authorized",
     "grant_revoked_upstream",
     "handle_holder_acceptance_missing",
-    "handle_subject_mismatch",
     "history_access_requires_history_capable_scheme",
     "invalid_membership_transition",
     "invite_already_terminal",
     "invite_event_actor_mismatch",
     "invite_event_unaccepted",
-    "join_authorisation_invalid",
-    "join_rule_policy_mismatch",
-    "join_rule_tightened",
     "keypackage_expired",
-    "lite_profile_writes_disallowed_event_kind",
-    "member_identity_proof_invalid",
-    "member_identity_replacement_digest_mismatch",
-    "member_identity_state_mismatch",
-    "member_identity_unknown_segment",
     "message_already_terminal",
     "mimi_draft_unsupported",
     "mimi_observer_write_forbidden",
     "mimi_provider_unreachable",
-    "mls_content_scheme_immutable",
-    "mls_genesis_already_exists",
-    "moderation_control_lifted",
-    "moderation_control_pending",
-    "naming_convention_violation",
-    "not_provisioned",
     "partial_auth_state",
     "patch_atomic_conflict",
     "pin_target_not_pinned",
     "policy_revision_gap",
     "proof_binding_missing",
     "push_route_registration_rate_limited",
-    "queue_full",
     "reaction_scope_mismatch",
     "reaction_target_unsupported",
     "realm_alias_homograph_forbidden",
@@ -116,14 +66,9 @@
     "recipient_unavailable",
     "recording_state_transition_invalid",
     "recovery_required",
-    "recovery_session_terminal",
     "relation_already_terminal",
-    "relation_kind_contains_derived",
-    "relation_kind_watches_derived",
     "relation_profile_cardinality_conflict",
     "relation_scope_unresolved",
-    "revoke_order_unknown_requires_backfill_or_review",
-    "scope_expansion_forbidden",
     "scope_incomparable",
     "scope_unavailable",
     "segment_aead_failed",
@@ -134,21 +79,14 @@
     "space_parent_chain_in_bottom_state",
     "space_parent_cycle",
     "space_parent_unreadable",
-    "third_party_invite_token_in_query",
     "token_expired",
-    "ttl_expired",
-    "unknown_event_kind",
     "unknown_kind",
-    "unsupported_aead_profile",
-    "unsupported_operation_binding",
-    "untrusted_backup_signature",
     "watch_level_public_must_be_self",
     "watch_must_be_self",
     "watch_muted_must_be_self",
     "watch_set_others_audit_missing",
     "webvh_cache_too_stale",
-    "webvh_cache_unavailable",
-    "welcome_capability_mismatch"
+    "webvh_cache_unavailable"
   ],
   "removed_reason_codes": [
     {
@@ -156,6 +94,156 @@
       "ruling": "2026-09-04-1752 workflow profile stage transition",
       "registry_version": "2026-09-04.2",
       "why": "Described a Realm-profile-declared task/workflow fsm cell that v1 cannot carry: event kinds, cell families and fsm_contracts are frozen at registration time and no registered producer can write a Realm-declared extension family. zh/models/common-fields.md 5.3.4 rules that v1 has no workflow profile carrier."
+    },
+    {
+      "code": "audit_agent_attestation_mismatch",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "join 路径按构造不存在（audit applet 非 MLS 成员）；release 侧由已登记 audit_release_attestation_mismatch 承载。"
+    },
+    {
+      "code": "audit_agent_destruction_not_paired_with_remove",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "v1 无 key-destruction attestation 载体事件（event-kind-registry 无任何 destruction 类 audit kind），校验不存在。"
+    },
+    {
+      "code": "audit_agent_destruction_proof_not_enclave_signed",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "不存在“agent 持有 epoch secret 销毁证明”对象（applet 不持有 epoch key material），校验无附着点。"
+    },
+    {
+      "code": "audit_agent_epoch_range_incomplete",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "新模型审计材料经 sealed release session 输出，无 agent epoch 访问范围概念。"
+    },
+    {
+      "code": "audit_agent_key_destruction_attestation_missing",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "v1 无“agent 持有 epoch 密钥→迁移销毁”状态机；release 输出由 RYW receipt/attestation 门控。"
+    },
+    {
+      "code": "audit_agent_remove_requires_paired_destruction_attestation",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "无 audit-agent 成员资格，remove+destruction 配对校验按构造不可达。"
+    },
+    {
+      "code": "auth_incomplete",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "v1 封闭 defer 集合（dependency_missing/quorum_unreachable/temporarily_unavailable，event-auth-state-resolution.md §:617-618）明文排除；条件由已登记 dependency_missing 承载。"
+    },
+    {
+      "code": "claim_rate_limited",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "同一条件由已登记且已接线的 keypackage_claim_rate_limited 承载（device-lifecycle.md:783 + fixture + soland）。"
+    },
+    {
+      "code": "not_provisioned",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "“认得但不托管”分流在 v1 不存在；由 not_found（反枚举统一桶）与 route-miss pending 语义承载（conformance-vectors.md §35/§36）。"
+    },
+    {
+      "code": "cross_space_structural_relation",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "校验不存在且正文主动排除（relation.md:171）；跨 Realm 情形由已登记 cross_realm_structural_relation 承载。"
+    },
+    {
+      "code": "abuse_cluster",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "v1 举报队列两态，明文禁止中间态（content-moderation.md:209-220）；“clustered”语义由 require_review 承载。"
+    },
+    {
+      "code": "join_authorisation_invalid",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "wire 无 join_authorisation 字段（membership_payload 封闭）；join 证明失败由 gate_check_failed/capability_denied 承载。"
+    },
+    {
+      "code": "join_rule_tightened",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "v1 无收紧触发的隐式终结边（common-fields.md:486-498 逐字禁止隐式边）；后续 join 拒绝由 gate_check_failed 承载。"
+    },
+    {
+      "code": "moderation_control_lifted",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "无独立 lift 信号通道；由 sealed ak.moderation.decision.lift Event 经普通 sync 承载；sync frame 为封闭枚举。"
+    },
+    {
+      "code": "moderation_control_pending",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "跨 peer moderation 只许 sealed 承载（content-moderation.md:80），fast-path quarantine 信号构造不存在。"
+    },
+    {
+      "code": "executed_by_missing",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "校验存在但正文钉给 schema_violation（applet-integration.md:926 normative MUST）；无路径产出此 reason code，产出反违反 §11。"
+    },
+    {
+      "code": "cardinality_violation",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "relation 基数冲突按 on_conflict 收敛不拒绝 event；真实拒绝路径由 relation_conflict_fanout_exceeded/relation_profile_cardinality_conflict/schema_violation 承载。"
+    },
+    {
+      "code": "counter_bound_exceeded",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "v1 无 lattice:“counter” cell family、无 parameters.max/min；escrow equivocation 由 fork-resolution 承载。"
+    },
+    {
+      "code": "genesis_created_at_too_old",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "“genesis submit window” 概念在任何 registry/schema/正文不存在；created_at 过去向漂移按设计不校验。"
+    },
+    {
+      "code": "lite_profile_writes_disallowed_event_kind",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "条件由已接线顶层 code unsupported_event_kind/unsupported_feature 承载（conformance-profiles.md:71, api-conventions.md:408）。"
+    },
+    {
+      "code": "revoke_order_unknown_requires_backfill_or_review",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "grant/revoke 顺序由 or_set observed-remove 与 joined control view 确定性裁决，“不可确定”态按构造不存在。"
+    },
+    {
+      "code": "scope_expansion_forbidden",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "§10.1 收窄违规由已登记且正文已点名的 grant_exceeds_issuer_authority 承载（capabilities.md:165 + soland apply_capability.rs:1046/1105）。"
+    },
+    {
+      "code": "naming_convention_violation",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "lint 发现不是 wire reason code（按构造无 wire 路径）；且描述前提与正文矛盾（api-conventions.md:636/index.md:39 规定版本由 event kind 后缀承载）。"
+    },
+    {
+      "code": "unsupported_operation_binding",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "v1 未定义服务端发射路径（客户端 describe 交集纪律 api-conventions.md:423,638 使请求根本不会发出），交集失败是客户端本地判定，不在 wire 上；codes[] 顶层条目（422/type_uri）一并删除。"
+    },
+    {
+      "code": "recovery_session_terminal",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.4",
+      "why": "承载已由已登记顶层 code recovery_session_not_pending（codes[]，409）覆盖：session 不在 pending 的全部分支（含 terminal 的 completed/rejected/expired）由该顶层判定统一拒绝，v1 无需独立 terminal reason。"
     }
   ]
 }

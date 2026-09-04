@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.sync.core.v1"
   },
   "profile": "ak.vector_group.sync.v1",
-  "version": "2026-08-31",
+  "version": "2026-09-05",
   "schema_validation_cases": [
     {
       "name": "device_message_envelope_with_message_id_valid",
@@ -1966,7 +1966,7 @@
       "real_hash_collision_claimed": false,
       "prerequisites": false,
       "expected": {
-        "reason": "invalid_proof",
+        "reason": "proof_invalid",
         "quarantine": false
       }
     }

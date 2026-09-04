@@ -49,7 +49,7 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
 | `realm_id` | yes | 父 Realm。 |
-| `effective_scope` | yes | `{kind:"realm", realm_id}` 或 `{kind:"circle", realm_id, circle_id}`。Realm-scope binding 只覆盖 Realm-default history；Circle history MUST 有 Circle-scoped binding。 |
+| `effective_scope` | yes | `{kind:"realm", realm_id}` 或 `{kind:"circle", realm_id, circle_id}`。Realm-scope binding 只覆盖 Realm-default history；Circle history MUST 有 Circle-scoped binding。Session / release 声明的 `effective_scope` 与 active binding 不一致、或试图用 Realm-scope binding 覆盖 Circle history 时，receiver MUST 以 `audit_release_scope_mismatch` 拒绝。 |
 | `applet_id` / `service_id` | yes | 审计 applet 与承载服务身份。 |
 | `purpose_kinds` | yes | 允许的审计目的，例如 `legal_compliance`、`regulatory_audit`、`incident_investigation`。 |
 | `allowed_release_modes` | yes | 允许的 release mode；默认 SHOULD 仅含 `targeted_evidence_release`。 |
@@ -123,7 +123,7 @@ Binding policy 的后续变更通过新的 create Event 表达，并遵守同一
   完整 `ak.audit.session.request` payload。它是给 authorize / release 侧引用同一份请求内容的稳定句柄
   （Event id 只在 Event 被接受后才存在），因此不能包含自己，也不能改用 Event digest 代替。
 
-Receiver MUST 校验 request 的 scope、purpose 和 release mode 均被 binding 允许，并且请求范围不早于 binding 的 `first_auditable_epoch` / `activation_frontier_digest`。Target-based request MUST 能证明每个 `target_ref` 在加密时的 eligibility snapshot 允许该 binding 和 release mode；不能证明时按不可审计处理。
+Receiver MUST 校验 request 的 scope、purpose 和 release mode 均被 binding 允许，并且请求范围不早于 binding 的 `first_auditable_epoch` / `activation_frontier_digest`。Target-based request MUST 能证明每个 `target_ref` 在加密时的 eligibility snapshot 允许该 binding 和 release mode；不能证明时按不可审计处理。目标 Realm / Circle `effective_scope` 没有任何 active binding 时，request / authorize / release MUST fail closed，reason 为 `audit_release_binding_missing`；request 声明的 `effective_scope` 与 binding 不一致时 reason 为 `audit_release_scope_mismatch`。
 
 ### 4.2 Authorize
 
@@ -172,7 +172,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 
 Release event MUST 先 accepted，并取得有效 `ak.audit.ryw_receipt` 后，attested release service 才能输出 wrapped material。输出前，release service MUST 从该 session 当前 accepted authorize payload 读取批准的 recipient actor/key，重新解析并验证该 key 仍是该 actor 授权的 audit release 接收 key；不得把 material 加密给未被 authorize 批准、或不属于该审计主体的 key。`disclosed_policy` 也 MUST 按同一顺序记录，但其保证是流程性。
 
-Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。Release 被 accepted 时还 MUST 重新校验 binding 仍为 `active`、session accepted current head 为 `notice`、authorize 未过 expiry、authorize 批准的 recipient key 解析到批准的 recipient actor、notice 已按 scope 留痕且 session 未 close。该拒绝使用 `audit_release_retroactive_scope_forbidden`、`audit_release_manifest_invalid`、`audit_release_binding_inactive`、`auth_expired` 或 `failed_precondition`，取决于错误是越过不可追溯边界、manifest 自身不一致、binding 已暂停 / revoked、授权窗口已过期，还是 session FSM head 不允许 release。
+Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。Release 被 accepted 时还 MUST 重新校验 binding 仍为 `active`、session accepted current head 为 `notice`、authorize 未过 expiry、authorize 批准的 recipient key 解析到批准的 recipient actor、notice 已按 scope 留痕且 session 未 close。该拒绝使用 `audit_release_retroactive_scope_forbidden`、`audit_release_manifest_invalid`、`audit_release_binding_missing`、`audit_release_binding_inactive`、`audit_release_notice_missing`、`audit_release_scope_mismatch`、`audit_release_current_epoch_forbidden`、`auth_expired` 或 `failed_precondition`，取决于错误是越过不可追溯边界、manifest 自身不一致、目标 scope 无 active binding、binding 已暂停 / revoked、缺失有效 notice、scope 与 binding 不符、试图 release 当前 active epoch、授权窗口已过期，还是 session FSM head 不允许 release。
 
 ### 4.5 Close
 
@@ -192,7 +192,7 @@ Session close 后不得追加新的 `ak.audit.release`；需要更多材料必�
 
 `sealed_epoch_key_release` 只适用于明确合规需求。Binding 的 `allowed_release_modes` 未列出该值时，任何此类 request / authorize / release MUST 拒绝。
 
-该模式只能 release 已封口 epoch 的 wrapped material；不得 release 当前 active epoch，也不得为未来 epoch 建立持续访问。若授权窗口覆盖当前 epoch，必须先接受一个新的 `ak.mls.commit`，随后 `sealed_by_commit_ref` 引用该 commit。
+该模式只能 release 已封口 epoch 的 wrapped material；不得 release 当前 active epoch，也不得为未来 epoch 建立持续访问。若授权窗口覆盖当前 epoch，必须先接受一个新的 `ak.mls.commit`，随后 `sealed_by_commit_ref` 引用该 commit。针对当前 active epoch 的 release MUST 以 `audit_release_current_epoch_forbidden` 拒绝，不得由 release service 自行等待或补钉。
 
 实现和 UI MUST 把该模式标为高风险合规 release，不得把它用于普通用户举报、moderation queue 或 Circle 日常治理。
 
@@ -208,7 +208,7 @@ Session close 后不得追加新的 `ak.audit.release`；需要更多材料必�
 - `attested_hardware` release MUST 等待 verifier 从 receipt 的 `witnesses[]`、该 frontier 已接受的 `audit.ryw_witnesses[]` policy 与 operator control chain 计算出 `federation_witness_attested`：至少两个 witness，且 `witness_id`、`verification_method`、`controlling_organization_id` 分别互异；每个 witness 均被 policy 列出，并且不得由 release service、audit actor 或 Realm operator 自己控制。每个 receipt MUST 携带 `realm_operator_organization`，verifier MUST 由 Realm service / operator 的 DID 控制链独立验证该值；任一 witness 的 `controlling_organization_id` 与其相同或同属一个最终控制组织时，receipt MUST `audit_receipt_invalidated` fail closed。producer 不在 wire 上声明该派生 class。
 - `disclosed_policy` MAY 使用 verifier 从单个有效 witness 计算出的 `single_source` receipt，但 issuer 仍不得是 release service / audit actor 本身。
 - Receipt 的 `audit_policy_version_digest` MUST 覆盖 `{realm_id, trust_domain, audit_binding, release_policy, release_window_policy, activation_frontier_digest, first_auditable_epoch}`，并与 `ak.audit.release.eligibility_proof` 一致；policy hash MUST 按本节定义计算，不得引入其他 hash 语义。
-- Remote attestation evidence 绑定的是 release service / applet controlled output path，不是 MLS group membership。Evidence MUST 绑定 `realm_id`、`service_id`、`audit_actor_id`、measurement、purpose、policy digest、validity 和 operator DID。
+- Remote attestation evidence 绑定的是 release service / applet controlled output path，不是 MLS group membership。Evidence MUST 绑定 `realm_id`、`service_id`、`audit_actor_id`、measurement、purpose、policy digest、validity 和 operator DID。证据校验失败按两类 reason code 区分：证据自身不可信——信任根不在 Realm 声明的 trust root list、超出 validity 窗口、格式或 measurement 不符合 active release policy——verifier MUST 以 `audit_release_attestation_invalid` fail closed；证据本身有效但其 `realm_id` / `audit_actor_id` / `service_id` / policy digest 与 active binding 不一致时，verifier MUST 以 `audit_release_attestation_mismatch` 拒绝。前者是证据自身 / 信任根 / 时效问题，后者是与 accepted binding 的字段错配，两者不得互换。
 
 ## 7. 非保证项
 

@@ -35,17 +35,18 @@ Schema id: `ak.schema.read_cursor.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:read_cursor` | `ak:read_cursor:<uuidv7>`。 | 私有状态 ID。 |
 | `schema` | yes | `ak.schema.read_cursor.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did_core_id` | 只对该 actor 生效。 | 读取主体。 |
 | `device_id` | yes | `id:device` | `ak:device:<uuidv7>`。多设备收敛 tiebreaker。 | 来源设备。 |
 | `realm_id` | yes | `id:realm` |  | Realm。 |
 | `read_scope` | yes | `object` | `{kind, container_ref?, track_name?}`。`kind ∈ enum(realm, circle, space, strand, thread)`。`container_ref` 必填规则：`kind=realm` 时 MUST 省略（范围即本对象 `realm_id`）；`kind=circle` 时 MUST 是 `id:circle`；`kind=space` 时 MUST 是 `id:space`；`kind=strand` 时 MUST 是 `id:strand`；`kind=thread` 时 MUST 是 Thread 根消息的 `id:message`（Thread 是 root message 回复子时间线的投影选择器，不是一等协议对象，已读隔离语义见 [`../discovery/read-receipts.md` §5](../discovery/read-receipts.md)）。`track_name` 仅在 `kind=strand` 时 MAY 出现（限定到该 Strand 的某个 track 时间线，省略表示整个 Strand）；其余 kind MUST 省略 `track_name`。Read Receipt 的 `read_scope` 使用 `object_ref`，与本字段共享同一 discriminator 族，但**两者的 `kind` 取值集合并不相交一致**：Read Cursor 支持 `realm` / `circle` / `space` / `strand` / `thread`，Read Receipt 另支持 `view` / `message` / `morph` 但**不**支持 `circle` / `space`。因此 SDK / 实现 **MUST** 按各自 schema 分别校验 `read_scope.kind`，**MUST NOT** 共用单一 enum 类型（共用会让 `circle` 误用于 Receipt、或 `message` 误用于 Cursor 等错配静默通过）；以各自 schema 为字段形状权威。跨对象 kind 可引用类别的机读真相源是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability`：本字段使用 `read_cursor_scope_kind`、`read_cursor_scope_ref` 与 `read_cursor_thread_root` 类别。 | 已读范围。 |
 | `position` | yes | `object` | `{event_id, hlc}`。 | 已读位置。 |
-| `updated_at` | yes | `timestamp` |  | 更新时间。 |
 
 ### 2.3 行为规则
 
+- Read Cursor **不是可原地更新的对象**：它没有 revision / compare-and-set（对照 [account-data.md §5](./account-data.md) 的可变 cell），一次「更新」就是 author 并提交一条新的 `ak.read_cursor.advance`。因此本对象 MUST NOT 携带 `updated_at`：该次更新的时间就是那条 Event 信封的 `created_at`，在 payload 里重述一遍只会制造第二份同源时间且不受签名约束。需要更新时间的派生视图（`read_marker_outcome`、跨设备 actor-private read cursor 更新）MUST 取胜出 advance 的信封 `created_at`。
+- 本对象**没有 typed ID**。身份是 `(actor_id, realm_id, read_scope)` 三元组；`ak.read_cursor.advance` 在 event-kind-registry 中登记为 `id_source=not_an_object_id`，id-kind-registry 中不存在 `read_cursor` typed ID kind，也不存在任何按 id 寻址的读面（[`../authz/resource-selector-grammar.md` §3.1](../authz/resource-selector-grammar.md) 的 selector 只接受 `read_cursor:<realm>:*`）。携带 `id` 的 payload MUST 以 `schema_violation` 拒绝。
+- 跨设备下发的 `ak.read_cursor.update` device message 的 content 是 `ak.schema.read_cursor_update.v1`（[`device-message.schema.json#/$defs/read_cursor_update_content`](../../artifacts/schemas/device-message.schema.json)）：它是当前胜出 advance 的**派生投影**，携带派生的 `updated_at`，MUST NOT 声明自己是 `ak.schema.read_cursor.v1`。
 - Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [strand-and-message.md §9.6](./strand-and-message.md)）。
 - 多设备更新同一 `(actor_id, realm_id, read_scope)` 时，接收方 MUST 按
   [`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md) 的因果优先规则

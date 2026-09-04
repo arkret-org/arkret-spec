@@ -1093,7 +1093,7 @@ def build_rhrk_registration_rotation_kat(
             {"name": "wrong_method_type", "target": "/did_documents/register/verificationMethod/0/type", "value": "JsonWebKey2020", "expected": "durability_recovery_recipient_unverified"},
             {"name": "wrong_key_length", "target": "/did_documents/register/verificationMethod/0/publicKeyMultibase", "mutation": "truncate raw key to 31 bytes", "expected": "durability_recovery_recipient_unverified"},
             {"name": "wrong_controller", "target": "/did_documents/register/verificationMethod/0/controller", "value": "ak:did_core:web:other.example", "expected": "durability_recovery_recipient_unverified"},
-            {"name": "wrong_holder_proof_domain", "target": "/events/register/payload/holder_acceptance/holder_proof", "mutation": "verify under a non-registered proof context", "expected": "invalid_proof"},
+            {"name": "wrong_holder_proof_domain", "target": "/events/register/payload/holder_acceptance/holder_proof", "mutation": "verify under a non-registered proof context", "expected": "proof_invalid"},
             {"name": "holder_tuple_mismatch", "target": "/events/register/payload/holder_acceptance/new_key_tuple/recovery_key_id", "mutation": "change duplicated field", "expected": "failed_precondition"},
             {"name": "register_before_realm_create", "target": "/events/register", "expected": "failed_precondition"},
             {"name": "rotate_before_register", "target": "/events/rotate", "expected": "failed_precondition"},

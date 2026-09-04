@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.1",
+  "version": "2026-09-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T10:20:00+08:00",
+  "generated_at": "2026-09-05T10:21:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -3131,7 +3131,7 @@
           }
         ],
         "concurrency_class": "security_barrier",
-        "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence."
+        "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence. A Genesis targeting a group whose genesis state is already durably accepted MUST be rejected with reason=mls_genesis_already_exists, preserving the existing group state."
       },
       "ak.mls.keypackage": {
         "plane": "control",
@@ -5857,7 +5857,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm join rule (public/invite/knock/restricted/knock_restricted/closed)",
+        "payload": "Realm join rule (public/invite/knock/restricted/knock_restricted/closed) When the accepted join_policy component is structurally inconsistent with this join_rule (restricted/knock_restricted without at least one auto_resolve gate, or a combinator that degenerates the gate set), the reducer MUST reject with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_join_rule_payload",
         "id_source": "not_an_object_id"
       },
@@ -5967,7 +5967,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Enabled Realm policy components set, written wholesale into the cas_register cell (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision.",
+        "payload": "Enabled Realm policy components set, written wholesale into the cas_register cell (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision. A bundle whose join_policy component conflicts with the accepted join_rule (restricted/knock_restricted without at least one auto gate, or a degenerate combinator) MUST be rejected with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
         "id_source": "not_an_object_id"
       },
@@ -6092,7 +6092,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
+        "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5. A create that binds durability_policy.mode != none onto a scope whose content_scheme is not mls_exporter_aead_v1 MUST be rejected with failed_precondition reason=durability_scheme_incompatible. See zh/models/realm-and-space.md §2.3.1.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_create_payload",
         "id_source": "event_derived",
         "id_kind": "circle"
@@ -6450,7 +6450,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics.",
+        "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics. The event always enters the append-only log: proof and replacement validation are consumption/verification-surface semantics, not reducer rejection. When the MemberIdentity proof fails validation (payload_digest mismatch, signature failure, or verification_method not controlled by subject_id), receivers surface reason=member_identity_proof_invalid and MUST NOT promote the event to a verified display identity. When a replaces[] entry payload_digest or (realm_id, member_id, segment) does not match, only that replacement edge is invalid (surface member_identity_replacement_digest_mismatch); receivers MUST NOT remove the referenced event from the effective set on that basis. Only the optional expected_state_digest guard retains reducer semantics: when expected_state_digest does not equal the current effective-set digest, the server/reducer MUST reject or quarantine the event with reason=member_identity_state_mismatch. See zh/sync/client-sync.md §8.1.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/member_identity_update_payload",
         "id_source": "not_an_object_id"
       },
@@ -7425,7 +7425,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "MLS commit",
+        "payload": "MLS commit The governance_binding MUST NOT change content_scheme after Genesis; such a Commit MUST be rejected with reason=mls_content_scheme_immutable. A Commit whose governance_binding drifts the create-fixed durability_policy onto a scope whose content_scheme is not mls_exporter_aead_v1 MUST be rejected with reason=durability_scheme_incompatible. See zh/models/realm-and-space.md §2.3.1.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_commit_payload",
         "id_source": "not_an_object_id"
       },
@@ -7539,7 +7539,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Sealed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref. Same-basis close dominates release and rejects the release.",
+        "payload": "Sealed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref. Same-basis close dominates release and rejects the release. A release targeting the current active MLS epoch MUST be rejected with reason audit_release_current_epoch_forbidden. See zh/crypto-media/audited-e2ee.md §4.4 / §5.2.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_release_payload",
         "parameters": {
           "required_session_state": "notice",
@@ -9642,6 +9642,13 @@
         "file": "schemas/read-cursor.schema.json"
       },
       {
+        "schema_id": "ak.schema.read_cursor_update.v1",
+        "file": "schemas/device-message.schema.json",
+        "fragment": "#/$defs/read_cursor_update_content",
+        "status": "active",
+        "description": "Closed ak.read_cursor.update sibling-device content: the derived projection of the winning ak.read_cursor.advance for one (actor_id, realm_id, read_scope), carrying the winning envelope created_at as updated_at. Not the ak.schema.read_cursor.v1 payload object."
+      },
+      {
         "schema_id": "ak.schema.read_receipt.v1",
         "file": "schemas/read-receipt.schema.json",
         "status": "active",
@@ -10320,7 +10327,7 @@
         }
       }
     ],
-    "version": "2026-09-05.1",
+    "version": "2026-09-05.2",
     "generated_at": "2026-09-05T10:20:00+08:00"
   },
   "id_kind_registry": {
@@ -11029,15 +11036,6 @@
         "identity_authority": "producer_signature"
       },
       {
-        "kind": "read_cursor",
-        "category": "account_private",
-        "status": "active",
-        "wire_form": "ak:read_cursor:<uuidv7>",
-        "description": "Actor-private read cursor ID",
-        "id_form": "producer_allocated",
-        "identity_authority": "producer_signature"
-      },
-      {
         "kind": "policy",
         "category": "policy",
         "status": "active",
@@ -11276,8 +11274,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-09-02.4",
-    "generated_at": "2026-09-02T20:40:00+08:00"
+    "version": "2026-09-04.2",
+    "generated_at": "2026-09-04T23:40:00+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -15083,7 +15081,7 @@
         "http": "POST /_arkret/self/read-cursors",
         "grpc": "SelfReadCursor/Advance",
         "mq": "self.read_cursor.command.advance",
-        "notes": "Accepts exactly one caller-signed ak.read_cursor.advance actor-private Event. The Event payload is the complete ak.schema.read_cursor.v1 cursor; envelope.actor_id and payload.actor_id MUST equal the authenticated holder, payload.device_id MUST equal the authenticated session device, and envelope.realm_id MUST equal payload.realm_id. The service validates and forwards the exact Event bytes and MUST NOT mint the cursor id, choose updated_at, rebuild the payload or co-sign. Multi-device convergence is causal-first per zh/discovery/read-receipts.md section 6.5: a position that causally dominates the other wins regardless of HLC; HLC max applies only to causally concurrent positions, and device_id lexicographic order only breaks equal HLCs. The cursor is never published into shared Realm history.",
+        "notes": "Accepts exactly one caller-signed ak.read_cursor.advance actor-private Event. The Event payload is the complete ak.schema.read_cursor.v1 cursor; envelope.actor_id and payload.actor_id MUST equal the authenticated holder, payload.device_id MUST equal the authenticated session device, and envelope.realm_id MUST equal payload.realm_id. The service validates and forwards the exact Event bytes and MUST NOT rebuild the payload or co-sign. The cursor object carries neither an id nor an updated_at — a cursor is never updated in place, its identity is the (actor_id, realm_id, read_scope) tuple and there is no read_cursor typed ID kind — so the update time of an advance is the Event envelope created_at, and the read_marker_outcome updated_at is that derived envelope time of the winning advance. Sibling devices observe the winner as the ak.read_cursor.update device message whose content is ak.schema.read_cursor_update.v1. Multi-device convergence is causal-first per zh/discovery/read-receipts.md section 6.5: a position that causally dominates the other wins regardless of HLC; HLC max applies only to causally concurrent positions, and device_id lexicographic order only breaks equal HLCs. The cursor is never published into shared Realm history.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -15461,7 +15459,7 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-05.1",
+    "version": "2026-09-05.2",
     "generated_at": "2026-09-05T10:20:00+08:00",
     "deployment_prototypes": [
       {
