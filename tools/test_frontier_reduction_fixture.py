@@ -1,7 +1,11 @@
 import copy
 import json
+import sys
 import unittest
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint.core import Lint
 from tools.artifact_lint.frontier_reduction import check_frontier_reduction_fixture

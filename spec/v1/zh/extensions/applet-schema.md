@@ -126,8 +126,8 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | `widget` | optional | Applet UI widget declaration；若存在，MUST 通过 `ak.schema.applet_widget_declaration.v1`（[`applet-widget-declaration.schema.json`](../../artifacts/schemas/applet-widget-declaration.schema.json)）校验。 |
 | `package_digest` | yes | canonical package hash。 |
 | `registration_epoch` | yes | canonical security epoch hash。 |
-| `created_at` | yes | package 创建时间。 |
 | `expires_at` | optional | package 可安装截止时间。 |
+| `created_at` | yes | package 创建时间。 |
 | `proof` | yes | controller DID detached proof。 |
 
 Package -> registration 派生映射:

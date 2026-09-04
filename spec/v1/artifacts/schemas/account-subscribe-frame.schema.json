@@ -768,14 +768,14 @@
         },
         "identity_events": {
           "type": "array",
-          "description": "Optional inline effective ak.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites. MUST be omitted unless subject_id is disclosed, because plaintext or decryptable identity events can disclose the same member subject.",
+          "description": "Optional inline effective ak.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites. MUST be omitted unless subject_account_id is disclosed, because plaintext or decryptable identity events can disclose the same member subject.",
           "items": {
             "$ref": "./event-envelope.schema.json"
           }
         },
         "handle_claim_digests": {
           "type": "array",
-          "description": "Digests of currently visible effective ak.schema.handle_claim.v1 objects for this member in the current Realm context. MUST be omitted unless subject_id is disclosed, because stable claim digests are linkable across contexts. Absence is not proof that the member has no handle.",
+          "description": "Digests of currently visible effective ak.schema.handle_claim.v1 objects for this member in the current Realm context. MUST be omitted unless subject_account_id is disclosed, because stable claim digests are linkable across contexts. Absence is not proof that the member has no handle.",
           "items": {
             "type": "string",
             "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
@@ -784,7 +784,7 @@
         },
         "handle_claims": {
           "type": "array",
-          "description": "Optional inline signed handle claim status evidence. MUST be omitted unless subject_id is disclosed, and every included status view MUST have claim.subject_account_id.principal_id equal to subject_id. Services may omit this for privacy, size, or freshness. A client may backfill through ak.find.directory.read.list_handles_for_subject.v1 only when it separately knows the exact AccountId; it MUST NOT infer station_id from subject_id.",
+          "description": "Optional inline signed handle claim status evidence. MUST be omitted unless subject_account_id is disclosed, and every included status view MUST have claim.subject_account_id byte-for-byte equal to the entry subject_account_id across both components. Services may omit this for privacy, size, or freshness. A client backfills through ak.find.directory.read.list_handles_for_subject.v1 using that exact AccountId; a claim whose principal_id matches but whose station_id differs MUST be discarded.",
           "items": {
             "$ref": "./handle-claim.schema.json"
           }

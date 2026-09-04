@@ -203,8 +203,8 @@ Schema id: `ak.schema.invite.v1`
 | `introduction_evidence_digest` | conditional | hash | 直接账号邀请中若出现 `invitee_account_id` 且不是 `third_party_invite` 分支，则 MUST 出现；不得包含 raw locator token。 | 私有 `introduction_evidence` 的审计摘要。 |
 | `third_party_invite` | no | `object` | 见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。 | 邮箱/手机号等外部标识证明。 |
 | `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效；每项 MUST 以 `ak:grant:` 开头，不得指向 `ak:capability:`。 | 关联授权。 |
-| `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD be no greater than 24 小时。 | 过期时间。 |
 | `state` | yes | `enum(pending, accepted, rejected, revoked, expired, claimed, send_failed, revoked_by_capability_loss, revoked_by_inviter_left, invalidated_by_rate_limit)` | Invite 的流程对象状态。按 [`common-fields.md` §5](./common-fields.md) 的所有权判据，该轴由 Arkret Event 封闭推进，故用 `state` 而非 `status`；它不是通用对象的 §5.1 lifecycle 轴，不参与 archive / restore / tombstone 模板。 | 邀请状态。 |
+| `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD be no greater than 24 小时。 | 过期时间。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `ActorId` | 最近一次 invite state update 的 actor。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |

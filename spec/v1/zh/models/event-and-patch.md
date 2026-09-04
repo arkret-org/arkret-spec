@@ -60,9 +60,8 @@ Schema id: `ak.schema.event.v1`
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在计算 Event digest 与签名之前截断到毫秒，不得使用 `+00:00`；不能单独决定因果。 | 创建时间。 |
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Control Move precondition 或 Seal finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
 | `prev_refs` | yes | `array<EventId>` | 可为空。每项是完整 suite-tagged Event ID，仅承载 actor event chain causal predecessors；suite code 与全部 digest bytes 进入本 Event digest preimage。 | Actor event chain 前序的完整密码学身份。 |
-| `causal_refs` | conditional | `array<digest>` | 携带 `payload.patch` 的 DataEvent MUST 为每个 registry 目标 cell 精确引用一个 accepted base-head event digest，见 §4.3.1；其余 DataEvent 可用于声明业务因果。它不提供全局完整性证明。 | 数据面因果前驱。 |
 | `refs` | yes | `array<SemanticRef>` | 默认 `[]`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 语义引用集合。 |
-| `requirements` | no | `object` | `requirements.{schema[], features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / feature / critical extension）。Reducer profile 从 Event 的 CBA governance basis 读取，不在 Event 中声明。 |
+| `causal_refs` | conditional | `array<digest>` | 携带 `payload.patch` 的 DataEvent MUST 为每个 registry 目标 cell 精确引用一个 accepted base-head event digest，见 §4.3.1；其余 DataEvent 可用于声明业务因果。它不提供全局完整性证明。 | 数据面因果前驱。 |
 | `preconditions` | conditional | `array<Predicate>` | 仅 Control Move 携带；在 `seal_basis` 治理 view 下求值。DataEvent MUST 省略。 | 控制面原子条件。 |
 | `seal_ref` | conditional | `id:seal` | DataEvent 必填；指向已接受控制面 Seal，作为授权验证基线。 | 数据面授权基准。 |
 | `auth_context` | conditional | `object` | DataEvent 必填；pin DID/key epoch。有效 capability 集合从 `seal_ref` 治理状态派生，producer 不提交重复引用。 | 数据面签名密钥上下文。 |
@@ -70,6 +69,7 @@ Schema id: `ak.schema.event.v1`
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个 producer proof；origin Station 完成本地准入后最多追加一个 `station_admission`。 | producer 签名与 origin admission 证明。 |
+| `requirements` | no | `object` | `requirements.{schema[], features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / feature / critical extension）。Reducer profile 从 Event 的 CBA governance basis 读取，不在 Event 中声明。 |
 
 #### 2.2.1 Wire Event 与 producer 的已验证提交态（normative）
 

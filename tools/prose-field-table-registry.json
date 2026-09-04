@@ -1,0 +1,274 @@
+{
+  "version": 1,
+  "source_of_truth": false,
+  "narrative_source": "spec/v1/zh",
+  "$comment": "Bindings between a normative prose field table and the schema object it documents. check_prose_field_tables requires the table rows and the schema properties to carry the same names in the same order, and requires every field name mentioned in the object own descriptions to be either declared by that object or listed in external_field_mentions.",
+  "bindings": [
+    {
+      "document": "spec/v1/zh/conformance/encoding.md",
+      "schema_ref": "cursor.schema.json#",
+      "external_field_mentions": [
+        "account_id",
+        "device_id",
+        "next_cursor",
+        "prev_cursor",
+        "principal_id",
+        "service_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/crypto-media/call-state.md",
+      "schema_ref": "event-payload.schema.json#/$defs/call_summary_payload",
+      "external_field_mentions": [
+        "actor_id",
+        "device_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "keys-operations.schema.json#/$defs/keys_upload_request_body",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/discovery/discovery-directory.md",
+      "schema_ref": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
+      "external_field_mentions": [
+        "discovery_event_id",
+        "resource_id",
+        "resource_kind",
+        "source_refs"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/discovery/discovery-directory.md",
+      "schema_ref": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/discovery/profiles-presence.md",
+      "schema_ref": "presence-preference.schema.json#",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/discovery/push-notifications.md",
+      "schema_ref": "push-operations.schema.json#/$defs/push_register_device_request_body",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/discovery/push-notifications.md",
+      "schema_ref": "push-operations.schema.json#/$defs/push_register_device_outcome",
+      "external_field_mentions": [
+        "account_id",
+        "device_id",
+        "salt_epoch_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/discovery/push-notifications.md",
+      "schema_ref": "push-operations.schema.json#/$defs/push_unregister_device_request_body",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/discovery/read-receipts.md",
+      "schema_ref": "event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/extensions/applet-schema.md",
+      "schema_ref": "applet-package.schema.json#",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/governance/join-policy.md",
+      "schema_ref": "event-payload.schema.json#/$defs/join_policy_component",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/calendar-event.md",
+      "schema_ref": "calendar-event.schema.json#",
+      "external_field_mentions": [
+        "actor_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/circle.md",
+      "schema_ref": "circle.schema.json#/$defs/display",
+      "external_field_mentions": [
+        "realm_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/content-types.md",
+      "schema_ref": "event-payload.schema.json#/$defs/content_block_long_text/oneOf/0",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/event-and-patch.md",
+      "schema_ref": "event-envelope.schema.json#",
+      "external_field_mentions": [
+        "authorized_by",
+        "event_digest",
+        "inclusion_proof",
+        "registration_epoch",
+        "sidecar_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/file-transfer.md",
+      "schema_ref": "file-transfer.schema.json#",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/governance-objects.md",
+      "schema_ref": "policy.schema.json#",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/governance-objects.md",
+      "schema_ref": "invite.schema.json#",
+      "external_field_mentions": [
+        "introduction_evidence"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/morph.md",
+      "schema_ref": "morph.schema.json#",
+      "external_field_mentions": [
+        "effective_scope",
+        "event_id",
+        "metadata_encryption_floor",
+        "morph_kind_profiles"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/private-objects.md",
+      "schema_ref": "read-cursor.schema.json#",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/private-objects.md",
+      "schema_ref": "notification.schema.json#",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/realm-and-space.md",
+      "schema_ref": "space.schema.json#",
+      "external_field_mentions": [
+        "event_id",
+        "view_id",
+        "wip_limit",
+        "wip_limit_enforcement"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/realm-and-space.md",
+      "schema_ref": "event-payload.schema.json#/$defs/strand_move_payload",
+      "external_field_mentions": [
+        "list_space_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/relation.md",
+      "schema_ref": "relation.schema.json#",
+      "external_field_mentions": [
+        "event_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/relation.md",
+      "schema_ref": "realm.schema.json#/properties/relation_profiles/items",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/sidecar.md",
+      "schema_ref": "agent-sidecar.schema.json#",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "strand.schema.json#",
+      "external_field_mentions": [
+        "effective_scope",
+        "encryption_profile",
+        "event_id",
+        "is_primary",
+        "metadata_encryption_floor"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "strand.schema.json#/$defs/strand_track",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "event-payload.schema.json#/$defs/strand_watch_set_payload",
+      "external_field_mentions": [
+        "access_kind"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "message.schema.json#",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "event-payload.schema.json#/$defs/reaction_payload",
+      "external_field_mentions": [
+        "actor_id",
+        "effective_scope"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/strand-and-message.md",
+      "schema_ref": "event-payload.schema.json#/$defs/reaction_encrypted_payload_plaintext",
+      "external_field_mentions": [
+        "actor_id",
+        "target_ref"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/views.md",
+      "schema_ref": "view.schema.json#",
+      "external_field_mentions": [
+        "event_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/models/views.md",
+      "schema_ref": "view.schema.json#/$defs/collection_config",
+      "external_field_mentions": []
+    },
+    {
+      "document": "spec/v1/zh/sync/client-sync.md",
+      "schema_ref": "account-subscribe-frame.schema.json#/$defs/member_roster_entry",
+      "external_field_mentions": [
+        "principal_id",
+        "station_id"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/sync/federation.md",
+      "schema_ref": "service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
+      "external_field_mentions": [
+        "snapshot_bootstrap"
+      ]
+    },
+    {
+      "document": "spec/v1/zh/sync/websocket-binding.md",
+      "schema_ref": "websocket-dpop-proof.schema.json#/$defs/claims",
+      "external_field_mentions": []
+    }
+  ]
+}

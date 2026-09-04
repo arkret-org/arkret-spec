@@ -40,6 +40,12 @@
       },
       {
         "required": [
+          "track_name"
+        ],
+        "$comment": "track_name is a payload-only field of message_create_payload; the materialized Message resolves its track through the referenced Strand and MUST NOT duplicate it. See zh/models/strand-and-message.md 9.1 and forbidden-wire-fields.json `track_name/message`."
+      },
+      {
+        "required": [
           "fields"
         ],
         "$comment": "forbidden Message extension metadata; canonical path is metadata.fields or encrypted_metadata"

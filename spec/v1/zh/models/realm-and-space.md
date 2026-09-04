@@ -544,12 +544,12 @@ Schema id: `ak.schema.space.v1`
 | `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement 的 reducer-enforced 约束。 |
 | `parent_space_id` | no | `id:space` | MAY 指向任意 Space；跨 Realm parent 仅表示导航，不级联权限。 | 结构层级父。 |
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`；profile 可注册新 kind。 | Space 类型。 |
-| `title` | yes | `string` | 1..256 chars。 | 显示名。 |
-| `summary` | no | `string` | <= 2048 chars。 | 简短说明。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。 | 在 parent 内的位置。MUST 出现在 Space 顶层，**不**得作为 `fields.rank` 嵌套字段（与 [`relation.md` §2](./relation.md) 对 Relation 的相同约束对齐；wire 上 `fields.rank` MUST 被拒绝为 `schema_violation`，详见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
 | `schema_refs` | no | `array<string>` | 可选 schema/profile 引用。 | 约束本 Space 容纳的资源类型 / fields。 |
-| `fields` | no | `object` | kind-specific 字段。 | 扩展字段。 |
+| `title` | yes | `string` | 1..256 chars。 | 显示名。 |
+| `summary` | no | `string` | <= 2048 chars。 | 简短说明。 |
 | `labels` | no | `array<string>` |  | 用户/系统标签。 |
+| `fields` | no | `object` | kind-specific 字段。 | 扩展字段。 |
 | `avatar_blob_ref` | no | `id:blob` |  | Space 图标。 |
 | `state` | no | `enum(active, archived, tombstoned)` | 默认 `active`。 | Space 生命周期状态。 |
 | `state_changed_at` | no | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |

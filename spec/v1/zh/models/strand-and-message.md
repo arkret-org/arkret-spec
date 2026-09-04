@@ -570,6 +570,16 @@ Message 是 Strand `discussion` track 时间线中的原子消息对象。
 携带并校验 discussion track，不能从物化对象字段反向替代该签名事实。需要其它 timeline 语义的
 profile MUST 注册独立对象/event profile。
 
+该禁止是机读的，不依赖读者自觉：[`message.schema.json`](../../artifacts/schemas/message.schema.json)
+顶层用 `unevaluatedProperties: false` 闭合（顶层 `oneOf` 分支会贡献 evaluated properties，所以这里
+刻意不用 `additionalProperties`），并在顶层 `not.anyOf` 中与 `track` 并列显式列出 `track_name`；
+[`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的
+`track_name/message` 是同一条规则的注册形态。物化对象上出现该字段 MUST `schema_violation`。
+消费者需要 track 维度时按 [`../discovery/push-notifications.md` §4.3.1](../discovery/push-notifications.md)
+的派生表从已验证 Event 与 Strand state 推导；v1 中 Message payload 的 `track_name` 本身是
+`const "discussion"`（[`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json)
+`#/$defs/track_name`），因此物化一份拷贝不携带任何信息，只会制造第二个真相源。
+
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
 `ak.message.create` 只有一个内容派生创建身份：Event wire 的
@@ -593,6 +603,7 @@ Schema id: `ak.schema.message.v1`
 | `schema` | yes | `ak.schema.message.v1` | const。 | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `strand_id` | yes | `id:strand` |  | 所属 Strand。 |
+| `effective_scope` | materialized | `EffectiveScope` | 只读投影，MUST 等于签名 `Event.scope_ref`；actor 的 content payload 不重复携带，accepted 后 immutable。 | Message 的实际可见与授权边界。 |
 | `content` | conditional | `object` | 富文本/parts 见 `content-types.md`；`state=active` 且未加密时必填。effective `content_encryption_floor=e2ee_required` scope 下 MUST 改用 `encrypted_content`,plaintext `content` 由 reducer 拒绝(`content_encryption_floor_violation`)——单对象 schema 不感知 Realm floor，通过校验不代表合法。 | 消息正文。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；`content_type` MUST 精确为 `application/vnd.arkret.message+json`，见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件 ContentBlock。 |
 | `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. `sidecar_exchange_binding`（`ak.schema.agent_sidecar_event_exchange_binding.v1`）只能出现在 Sidecar-scoped Event 的 `encrypted_metadata` plaintext 中；明文 `metadata` 或 shared scope 携带 MUST `schema_violation` 拒绝（见 [`sidecar.md` §8](./sidecar.md) 与 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
@@ -602,12 +613,10 @@ Schema id: `ak.schema.message.v1`
 | `revision_root_id` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root_id` 下的 revision 形成有序 chain，由 `ak.message.revise` reducer 维护。**`ak.message.create` 的 payload MUST NOT 携带 `revision_root_id` 字段**（即使值与 `id` 相同）——首次创建时 reducer 自行初始化 `revision_root_id = id`；只有 `ak.message.revise` 与后续 revise event 才允许携带 `revision_root_id`，且其值 MUST 等于 chain 起点 message 的 `id`。create payload 出现 `revision_root_id` MUST 触发 `schema_violation`（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | revision chain 起点（顶层 schema-validated）。 |
 | `edited_at` | no | `timestamp` | 取 §9.5.1 默认展示 revision 对应 revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。**仅为展示派生时间戳**；并发 revision 没有 canonical winner，全部 heads 都保留。 | 默认展示 revision 的编辑时间。 |
 | `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `ak.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
-| `attachments` | no | `array` | 最多 32 项；item 形态按 profile 声明，通常通过 Relation `attached_to` 表达。 | 附件 hint。 |
 | `created_by` | yes | `ActorId` |  | 发送者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `ActorId` | 由最近一次 revise / redact 等 materialized update 的 Event actor 派生。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
-| `effective_scope` | materialized | `EffectiveScope` | 只读投影，MUST 等于签名 `Event.scope_ref`；actor 的 content payload 不重复携带，accepted 后 immutable。 | Message 的实际可见与授权边界。 |
 
 > `revision_root_id` 字段位于对象顶层，**不**藏在 `metadata.fields` 黑盒中；可见性由顶层 `state` 枚举（`active` / `redacted`）表达，不存在独立的 `visible_state` 顶层字段。`metadata.fields.revision_root_id` / `metadata.fields.visible_state` / `metadata.fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
 

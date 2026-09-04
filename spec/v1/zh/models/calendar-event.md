@@ -114,17 +114,17 @@ Calendar schedule projection MUST 暴露 canonical `schedule_revision_heads[]` �
 | 变化字段 | instance RSVP | series RSVP | schedule notification |
 | --- | --- | --- | --- |
 | `start` | `stale_orphaned` | `needs_reconfirmation` | 是 |
-| `timezone` | `stale_orphaned` | `needs_reconfirmation` | 是 |
-| `all_day` | `stale_orphaned` | `needs_reconfirmation` | 是 |
-| `recurrence` | `stale_orphaned` | `needs_reconfirmation` | 是 |
 | `end` | `needs_reconfirmation` | `needs_reconfirmation` | 是 |
+| `timezone` | `stale_orphaned` | `needs_reconfirmation` | 是 |
+| `tzdb_version` | 仅当该 occurrence 的派生 instant 或 end 实际变化时 `needs_reconfirmation`，否则不变 | 同左 | 仅在同一条件下 |
+| `all_day` | `stale_orphaned` | `needs_reconfirmation` | 是 |
 | `status` | `needs_reconfirmation` | `needs_reconfirmation` | 是 |
+| `recurrence` | `stale_orphaned` | `needs_reconfirmation` | 是 |
 | `location` | `needs_reconfirmation` | `needs_reconfirmation` | 是 |
 | `call_id` | `needs_reconfirmation` | `needs_reconfirmation` | 是 |
-| `tzdb_version` | 仅当该 occurrence 的派生 instant 或 end 实际变化时 `needs_reconfirmation`，否则不变 | 同左 | 仅在同一条件下 |
 | `attendees` | 不变 | 不变 | 是，但只对被增删的 actor |
 
-前四行是 **identity-affecting fields**：它们改变 occurrence key 本身，因此旧 instance RSVP MUST 保留审计并标记 `stale_orphaned`，MUST NOT 自动迁移到新 key；series RSVP 的 subject 不含 occurrence，故不 orphan，只需重新确认。
+`start`、`timezone`、`all_day`、`recurrence` 四行是 **identity-affecting fields**：它们改变 occurrence key 本身，因此旧 instance RSVP MUST 保留审计并标记 `stale_orphaned`，MUST NOT 自动迁移到新 key；series RSVP 的 subject 不含 occurrence，故不 orphan，只需重新确认。
 
 投影 MUST 暴露 current frontier、每条 RSVP 的 entry basis、逐 ref 因果关系与 stale / reconfirmation 原因，MUST NOT 把旧回应静默显示为新 occurrence 的当前回应。
 

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-04.2",
-  "generated_at": "2026-09-04T19:33:26+08:00",
+  "version": "2026-09-05.1",
+  "generated_at": "2026-09-05T00:40:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4059,7 +4059,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "The MemberIdentity object carried by ak.member.identity.update failed proof validation: proof.payload_digest does not equal the sha256 of the proof-less MemberIdentity RFC 8785 JCS canonical bytes, the signature does not verify under proof.verification_method, or the method is not controlled by the disclosed subject_id. The event MUST NOT be promoted to a verified display identity. See zh/sync/client-sync.md §8.1."
+      "description": "The MemberIdentity object carried by ak.member.identity.update failed proof validation: proof.payload_digest does not equal the sha256 of the proof-less MemberIdentity RFC 8785 JCS canonical bytes, the signature does not verify under proof.verification_method, or the method is not controlled by the disclosed subject_actor_id. The event MUST NOT be promoted to a verified display identity. See zh/sync/client-sync.md §8.1."
     },
     {
       "code": "member_identity_replacement_digest_mismatch",

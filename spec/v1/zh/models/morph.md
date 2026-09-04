@@ -33,6 +33,7 @@ Schema id: `ak.schema.morph.v1`
 | `id` | yes | `id:morph` | 以 `ak:morph:` 开头。 | Morph ID。 |
 | `schema` | yes | `ak.schema.morph.v1` | const。 | 容器 self-schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
+| `scope_circle_id` | no | `id:circle` | scope 派生、CBA 基线校验、签名 `scope_ref` 对照与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
 | `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 结构验证的权威 schema 集合；`morph_kind` / `facets` 不能替代。 |
 | `morph_kind` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ak.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。`facets` map 的总 canonical size **计入** Morph 对象的 256 KiB 上限（与 `fields` 同一 budget，见 [`../conformance/scalability-constraints.md` §2](../conformance/scalability-constraints.md)）；不另设独立 facet 条数上限，超出对象总上限 MUST reject（`payload_too_large` / `schema_violation`）。 | Morph 暴露哪些已声明能力 hint。 |
@@ -41,7 +42,6 @@ Schema id: `ak.schema.morph.v1`
 | `content` | no | `object` | 富文本/parts 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_content` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
-| `scope_circle_id` | no | `id:circle` | scope 派生、CBA 基线校验、签名 `scope_ref` 对照与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
 | `state` | no | `enum(active, archived, redacted)` | lifecycle 转换与 reason_code 以 [common-fields.md §5.1](./common-fields.md) 的 Morph 行为唯一权威；`archived` 可逆，唯一不可逆终态是 `redacted`。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | 枚举、唯一写入路径、reserved-name guard 与 reducer 规则以 [common-fields.md §5.3](./common-fields.md) 为唯一权威。generic Morph 可省略；需要进度轴的 `morph_kind` profile MAY 收紧为 create 必填，缺失时首条 `ak.morph.stage.set` 可初始化为任一合法值。 | 可选业务进度阶段（与 `state` 正交）。 |

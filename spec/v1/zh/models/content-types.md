@@ -18,7 +18,7 @@ Arkret 的 `message` 标准对象、Strand Description、Strand synthesis / disc
 
 - 所有客户端能够以一致的方式渲染各种消息类型
 - 不支持某种内容类型的客户端能通过 `fallback_text` 优雅降级
-- E2EE 场景下加密信封 (`encrypted_content`) 只包裹 Message 顶层的 `content`（即整个 Content Block 对象，包括其内部的 `body` 字段）和 `attachments` 等业务字段，`strand_id` / `created_by` 等路由与归因 metadata 保持明文
+- E2EE 场景下加密信封 (`encrypted_content`) 只包裹 Message 顶层的 `content`——即整个 Content Block 对象，连同它内部的 `body`、`attachments` 等业务字段；`strand_id` / `created_by` 等路由与归因 metadata 保持明文。`attachments` 是 Content Block 的字段，物化 Message 顶层没有该属性（`message.schema.json` 顶层 `unevaluatedProperties: false`）
 
 ## 2. 设计原则
 
@@ -140,9 +140,9 @@ final 不同不构成 Content schema 错误。
 | `kind` | const | MUST | `ak.content.long_text` |
 | `body` | string | MUST | fallback，≤ **4 KiB UTF-8 bytes（4,096）** |
 | `body_kind` | enum | MUST | 闭集 `prefix` \| `summary` |
+| `line_count` | uint64 | MAY | 按 §4.1.2 计算 |
 | `blob_ref` | hash blob ref | MUST | 完整 UTF-8 正文字节的内容地址，形如 `ak:blob:(sha256\|blake3):<64 hex>` |
 | `size_bytes` | uint64 | MUST | §4.1.2 规范化后完整 UTF-8 正文字节数 |
-| `line_count` | uint64 | MAY | 按 §4.1.2 计算 |
 | `media_type` | enum | MUST | 闭集 `text/plain` \| `text/markdown`；完整正文的唯一媒体类型及渲染判别字段 |
 
 shape MUST 是 `additionalProperties=false` 的闭合对象，MUST NOT 携带 `format`。完整正文只允许 `text/plain` 或 `text/markdown`；结构化富文本应使用独立 Content Block/schema。

@@ -209,6 +209,7 @@ from .schema_roots import check_schema_root_reachability
 from .constructability import check_schema_constructability
 from .derived_wire_removals import check_derived_wire_field_removals
 from .expanded_projections import check_expanded_projection_registry
+from .prose_field_tables import check_prose_field_tables
 from .ref_overlay_closure import check_schema_ref_overlay_closure
 
 from .psi_class_b import check_psi_class_b_artifact_closure
@@ -547,6 +548,7 @@ def main(argv: list[str] | None = None) -> int:
             ("slug_field_closure", lambda: check_slug_field_closure(lint)),
             ("profile_graph", lambda: check_profile_dependency_graph(lint)),
             ("field_matrix", lambda: check_common_object_field_matrix(lint)),
+            ("prose_field_tables", lambda: check_prose_field_tables(lint)),
             ("keypackage_claim_proof_shape", lambda: check_keypackage_claim_proof_shape(lint)),
             ("event_proof_digest", lambda: check_event_proof_digest_shape(lint)),
             ("digest_alias", lambda: check_canonical_digest_alias(lint)),

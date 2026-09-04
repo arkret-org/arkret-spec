@@ -600,9 +600,9 @@ POST /_arkret/self/keys/claim
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
 | `device_id` | body | `id:device` | required | 当前上传设备。 |
+| `device_signature` | body | `signature` | required | 当前设备签名；`kid` MUST 为 PCR current accepted-device 投影中的规范设备 method。canonical 签名输入见下方 §8.1。 |
 | `one_time_keys` | body | `object` | optional | 算法名到 one-time key 的映射。 |
 | `fallback_keys` | body | `object` | optional | 算法名到 fallback key 的映射。 |
-| `device_signature` | body | `signature` | required | 当前设备签名；`kid` MUST 为 PCR current accepted-device 投影中的规范设备 method。canonical 签名输入见下方 §8.1。 |
 
 响应字段：`one_time_key_counts: object` required；`fallback_keys: object` optional。
 
@@ -761,8 +761,8 @@ lookup 前拒绝。不确定结果必须使用原 `claim_request_id + request_di
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、完整 `keypackage` bytes、closed endpoint binding、expiry 与 capabilities。upload endpoint signature 只在发布准入时验证；claim record 不复制无法从该 record 重建前像的签名。 |
 | `claim_request_id` | `base64url` | required | 与 request/receipt 一致。 |
+| `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、完整 `keypackage` bytes、closed endpoint binding、expiry 与 capabilities。upload endpoint signature 只在发布准入时验证；claim record 不复制无法从该 record 重建前像的签名。 |
 | `claim_receipt` | `peer_keypackage_claim_receipt` | required | destination authority 签名；local source/destination 相等。 |
 
 `consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理且新的 MLS group state 已 durable 持久化后调用。command required 且仅有单数 `claim_id`、`recipient_durable_receipt` 与 `signature`；owner principal、KeyPackage、Welcome、Realm、MLS group、epoch、recipient service 与 closed device/Agent/minimal-metadata-pairwise signer branch 全部从签名覆盖的 nested durable receipt 读取，Strand 从 accepted Welcome/Realm governance 派生，不得在 command 另设 selector 或坐标镜像。`user_session` 只承担 endpoint 访问控制与限流：human device 与 Agent branch 的 session actor 必须匹配 nested recipient principal；minimal-metadata pairwise branch 的 session actor 无需等于 pairwise actor，其 authority 必须完全由 nested endpoint、command signature 与 current Realm joined-member ActorId routing authority 建立，且不得解释为 account/device。consume admission MUST 逐字绑定 consume signer、durable receipt、Welcome recipient、exact claim record、KeyPackage signer 与 endpoint authority。`keypackage_consume_receipt` 顶层只携 service 新生成的 `request_digest + claim_id + consumed_at`、完整 `recipient_durable_receipt` 与 service signature；普通包只有在single-use claim转入consumed后签发，last-resort包则只终结该exact claim audit并保持KeyPackage published。`keypackages_consume_outcome` 只返回完整 signed `consume_receipt`。若持久化失败，runtime MUST NOT 调用 consume；若 consume 响应丢失，必须以同一 signed typed request 幂等重试。服务端 MUST 从 durable terminal ledger 返回首次签发的同一 receipt，不得重新签名；完整 request digest 不同即冲突。对于 Direct Conversation，服务端还必须从 accepted Welcome 与 immutable binding 重新派生 Realm、Strand、MLS group 与 epoch；任何不一致均 fail closed。`revoke` request MUST validate `#/$defs/keypackages_revoke_request_body`，可由设备、principal controller 或 policy 授权服务发起。

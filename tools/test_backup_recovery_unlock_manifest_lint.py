@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import copy
 import json
+import sys
 import unittest
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint.fixtures import (
     backup_recovery_unlock_manifest_contract_errors,

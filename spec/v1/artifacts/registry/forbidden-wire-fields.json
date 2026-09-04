@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 37,
+  "version": 38,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -3027,6 +3027,18 @@
       "notes": "Wire fields that carry one concrete Strand.tracks map key use `track_name`. The plural `tracks` map and `allowed_tracks` capability constraint remain valid collection names."
     },
     {
+      "id": "track_name",
+      "context": "message",
+      "since_revision": "2026-09-05",
+      "rejection_level": "hard_reject",
+      "replacement": "derive from the referenced Strand.tracks and the ak.schema.message.v1 discussion identity",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "track_name is a payload-only field of message_create_payload. The materialized Message resolves its track through the referenced Strand, so a copy on the object would be a second truth source for a value that is const discussion in v1. Consumers derive it with the table in zh/discovery/push-notifications.md 4.3.1. See zh/models/strand-and-message.md 9.1."
+    },
+    {
       "id": "tree_size",
       "context": "all_arkret_owned_wire_contexts",
       "since_revision": "2026-07-26",
@@ -3133,5 +3145,5 @@
       "notes": "Arkret v1 HTTP success bodies use operation-specific semantics; HTTP failures use RFC 9457 Problem Details. A generic ok discriminator is forbidden in either response shape."
     }
   ],
-  "generated_at": "2026-09-02T20:08:22Z"
+  "generated_at": "2026-09-04T16:40:00Z"
 }

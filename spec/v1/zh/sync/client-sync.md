@@ -395,7 +395,7 @@ event_id ASC
 
 成员展示信息由两类 source 合成：
 
-- `ak.member.identity.update`：Realm-scoped display/subject projection。它表达 `actor_id -> subject_id` 披露、display name、avatar 等 UI profile 信息；它不是 handle lifecycle 的权威源。
+- `ak.member.identity.update`：Realm-scoped display/subject projection。它表达 `actor_id -> subject_actor_id` 披露、display name、avatar 等 UI profile 信息；它不是 handle lifecycle 的权威源。
 - `ak.schema.handle_claim.v1`：handle 授权事实。handle 的分配、重分配、撤销和过期由 Station / Organization / Directory issuer 签发的 claim 决定，用户 profile 或 MemberIdentity event 不能单方面声明 handle。
 
 `ak.member.identity.update` 不是 `ak.profile.update` 的字段级 delta；它是 append-only 的 **segment replacement event**：新事件通过 `payload.replaces[]` 明确声明自己替代哪些旧身份事件。旧事件仍然保留在历史中，只是不再进入当前 display projection。管理员后期修改或新增用户 handle 时，不需要也不得伪造用户的 `ak.member.identity.update`；服务端和客户端通过刷新当前 handle-claim set 更新显示。
@@ -413,9 +413,14 @@ event_id ASC
         }
       },
       "membership": "join",
+      "subject_account_id": {
+        "principal_id": "ak:did_core:webvh:zQmPr8...",
+        "station_id": "ak:did_core:webvh:z6MkStation..."
+      },
       "identity_event_ids": [
         "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
       ],
+      "member_display_state_digest": "sha256:...",
       "handle_claim_digests": [
         "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       ],
@@ -427,7 +432,7 @@ event_id ASC
             "handle": "alice:acme.example",
             "handle_aliases": [],
             "subject_account_id": {
-              "principal_id": "ak:did_core:key:z6MkRealmPairwise...",
+              "principal_id": "ak:did_core:webvh:zQmPr8...",
               "station_id": "ak:did_core:webvh:z6MkStation..."
             },
             "issuer_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
@@ -447,8 +452,7 @@ event_id ASC
           "fresh_until": "2026-05-27T00:06:00.000Z",
           "status_proof": "status_attestation proof"
         }
-      ],
-      "member_display_state_digest": "sha256:..."
+      ]
       }
     ],
     "limited": false
@@ -462,15 +466,17 @@ event_id ASC
 | --- | --- | --- | --- |
 | `actor_id` | `ActorId` | MUST | 等于当前 effective `ak.member.state` cell subject / `payload.member_id`，按完整 Actor（包括 AccountId 的 principal 与 Station 分量）比较，不能降格为裸 DID。高隐私 Realm 中 principal 分量 MAY 使用 Realm-scoped pairwise DID；作为**长期 membership key** 的 pairwise DID MUST 由 `did:webvh` 派生（可持久解析 / 轮换 / 撤销）或在部署 `method_policy` 中显式豁免，MUST NOT 使用被标为 `ephemeral_only` 的 `did:key`（见 [`sovereign-deployment.md` §3.1](./sovereign-deployment.md)）。真实 principal 的披露由当前 effective `ak.member.identity.update` events 决定。 |
 | `membership` | enum | MUST | 当前 effective membership，取 `join` / `knock`。leave / ban 不进入 roster；Invite 不产生 roster entry。 |
-| `subject_id` | `DidCoreId` | MAY | handle claim `claim.subject_account_id.principal_id` 对应的 holder / principal 稳定投影，不是完整账号，也不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal 分量时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略；解密得到裸 subject 后仍不得猜 Station，只有另有 exact AccountId 才能走 `ak.find.directory.read.list_handles_for_subject.v1`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
+| `subject_account_id` | `AccountId` | MAY | 该 member 的完整 durable 账号标识，principal 与 Station 两个分量都在。它不是 Realm `actor_id`：高隐私 Realm 中 `actor_id` 的 principal 分量可能是 Realm-scoped pairwise DID，而本字段始终是 handle claim 所绑定的 exact AccountId。当当前响应已按 Realm disclosure policy 向调用方披露该 member 的 subject 时返回；subject 仅在 encrypted MemberIdentity 中披露时 MUST 省略本字段。本字段就是 [`identity/identity-handles.md` §3.2](../identity/identity-handles.md) 要求的 `ActorId -> AccountId` 显示投影在 roster 上的承载，比较 MUST 逐字比较两个分量，MUST NOT 降格为 principal core。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
 | `identity_event_ids` | event id array | MAY | 当前 effective `ak.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` 或 `state.events`。 |
-| `handle_claim_digests` | hash array | MAY | 当前对调用方可见且可用于该 Realm context 的 effective handle claims 的 canonical digest 集合。每个 digest 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 的 `claim_digest(c)` 定义计算。该字段是跨上下文稳定标识，MUST NOT 在 `subject_id` 未披露时返回。 |
-| `handle_claims` | handle claim array | MAY | 可选内联的完整 `ak.schema.handle_claim.v1` status views。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_id` 未披露时返回；若返回，每个 `claim.claim.subject_account_id.principal_id` MUST 等于 `subject_id`。服务端 MAY 因隐私、体积或 freshness 省略；客户端只有在另有 exact AccountId 时才能调用 `ak.find.directory.read.list_handles_for_subject.v1` 补拉，不得从裸 `subject_id` 猜 Station。 |
-| `handle_claims_limited` | boolean | MAY | `true` 表示 `handle_claims[]` 被截断或仅含 digest hints；客户端 MUST NOT 把缺失 claim 解释为该 subject 没有 handle。该字段只在 `subject_id` 已披露且 handle claim set 对调用方可见时返回。 |
 | `member_display_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}], handle_claims:[{claim_digest,status,revocation_digest,fresh_until}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序，`handle_claims` 按 `(claim_digest)` 排序。用于 roster display cache 失效和重复响应去重；不同于本地从 `ak.member.identity.update.payload.identity_payload` 推导的 carrier digest。 |
-| `identity_events` | Event array | MAY | 可选内联的原始 `ak.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。该字段可能明文或可解密地披露同一 member `subject_id`，因此 `subject_id` 未披露时 MUST 省略。 |
+| `identity_events` | Event array | MAY | 可选内联的原始 `ak.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。该字段可能明文或可解密地披露同一 member 的 `MemberIdentity.subject_actor_id`，因此 `subject_account_id` 未披露时 MUST 省略。 |
+| `handle_claim_digests` | hash array | MAY | 当前对调用方可见且可用于该 Realm context 的 effective handle claims 的 canonical digest 集合。每个 digest 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 的 `claim_digest(c)` 定义计算。该字段是跨上下文稳定标识，MUST NOT 在 `subject_account_id` 未披露时返回。 |
+| `handle_claims` | handle claim array | MAY | 可选内联的完整 `ak.schema.handle_claim.v1` status views。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_account_id` 未披露时返回；若返回，每个 `claim.claim.subject_account_id` MUST 逐字等于同一 entry 的 `subject_account_id`（两个分量都相等）。服务端 MAY 因隐私、体积或 freshness 省略；客户端需要补拉时直接用本字段的 exact AccountId 调用 `ak.find.directory.read.list_handles_for_subject.v1`。 |
+| `handle_claims_limited` | boolean | MAY | `true` 表示 `handle_claims[]` 被截断或仅含 digest hints；客户端 MUST NOT 把缺失 claim 解释为该 subject 没有 handle。该字段只在 `subject_account_id` 已披露且 handle claim set 对调用方可见时返回。 |
 
-`handle_claim_digests[]` 是跨上下文稳定的 claim identifier；完整 `handle_claims[]` 又直接携带 `claim.subject_account_id`，`identity_events[]` 也可能披露 `MemberIdentity.subject_id`。因此，当 `subject_id` 因 Realm disclosure policy 未披露时，服务端 MUST 同时省略 `identity_events`、`handle_claim_digests`、`handle_claims` 和 `handle_claims_limited`，不得把 digest hint 或原始 identity event 当作隐私安全的替代披露。返回完整 `handle_claims[]` 时，服务端 MUST 确保每个 `claim.claim.subject_account_id.principal_id` 等于同一 roster entry 的 `subject_id`；不匹配的 claim MUST 被丢弃或导致该 roster entry 失败 closed。裸 `subject_id` 不足以重建完整 AccountId。
+`handle_claim_digests[]` 是跨上下文稳定的 claim identifier；完整 `handle_claims[]` 又直接携带 `claim.subject_account_id`，`identity_events[]` 也可能披露 `MemberIdentity.subject_actor_id`。因此，当 `subject_account_id` 因 Realm disclosure policy 未披露时，服务端 MUST 同时省略 `identity_events`、`handle_claim_digests`、`handle_claims` 和 `handle_claims_limited`，不得把 digest hint 或原始 identity event 当作隐私安全的替代披露；这四项对 `subject_account_id` 的依赖同时由 [`account-subscribe-frame.schema.json`](../../artifacts/schemas/account-subscribe-frame.schema.json) `#/$defs/member_roster_entry` 的 `dependentRequired` 机械保证。返回完整 `handle_claims[]` 时，服务端 MUST 确保每个 `claim.claim.subject_account_id` 逐字等于同一 roster entry 的 `subject_account_id`；只有 principal 分量相等的 claim MUST 被丢弃或导致该 roster entry 失败 closed，这与 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) 对 `ak.find.directory.read.list_handles_for_subject.v1` 的「不得把同 principal 的另一 Station 账号合并」是同一条规则。
+
+本字段与 MemberIdentity 的 `subject_actor_id` 承担不同角色，不是同一次改名留下的两个形态：MemberIdentity 披露的是完整 `ActorId`（`account` 或 `service` 分支）的 durable subject；roster 的 `subject_account_id` 承担的是 subject 披露开关与 handle claim evidence 的锚点，而 `ak.schema.handle_claim_core.v1` 只绑定 `AccountId`，因此 `service` 分支的 subject 既不产生本字段也不产生 `handle_claims[]`。roster subject 披露与否只由 Realm disclosure policy 决定；一旦披露即为完整账号，规范不提供"只披露 principal 分量"的中间档——`handle_claims[]` 内的 `claim.subject_account_id` 本身就携带 `station_id`，任何只省略 roster 字段的做法都不能减少已披露信息。
 
 `member_display_state_digest` 覆盖 effective identity event references 与当前可见 HandleClaim status view 的 `status` / `fresh_until`，以及从其 `claim` 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 重算的 `claim_digest` 和从其 `revocation` 重算的 `revocation_digest`（`revocation=null` 时为 `null`）；这两个 digest 只是摘要输入的派生值，status view wire 本身不携带它们。只重打包等价 proof 不改变它；重新签发 freshness、状态迁移或撤销都会改变它，使 roster display cache 不能越过 signed `fresh_until` 继续复用。`binding_state` 不是该摘要的独立投影，也不得从本地数据库行补造。
 
@@ -532,7 +538,13 @@ MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `en
       "station_id": "ak:did_core:webvh:z6MkStation..."
     }
   },
-  "subject_id": "ak:did_core:webvh:zQmPr8...",
+  "subject_actor_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:webvh:zQmPr8...",
+      "station_id": "ak:did_core:webvh:z6MkStation..."
+    }
+  },
   "display_profile": {
     "display_name": "Alice Zhang",
     "avatar_blob_ref": "ak:blob:sha256:..."
@@ -554,19 +566,19 @@ MemberIdentity replacement 规则：
 - 更窄且互不重叠的 segment（例如 `display_profile` / `subject_disclosure`）需要后续 schema / profile revision 扩展 `segment` 枚举或定义新的 payload schema；v1 receiver MUST reject unknown segment values。扩展后的每个 segment 内仍然是完整替换：如果一个新事件替代某个旧 segment event，它必须包含该 segment 的所有数据，即使本次只改变其中一个字段。
 - v1 MemberIdentity payload MUST NOT carry `primary_handle`、`handles[]` 或其它 handle 字符串字段。handle 是 issuer claim lifecycle 的输出，不是用户 profile / identity event 的输入；客户端需要展示 `@alice:acme.example` 时，MUST 从当前可见 `ak.schema.handle_claim.v1` set 运行 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) primary handle selection。
 - canonical handle string 仍为 `alice:acme.example`；`@alice:acme.example` 的 `@` 是 mention/UI sigil，不属于 handle。`alice@acme.example` 只可作为输入别名，normalize 后不得进入签名 transcript、claim、cache key 或 MemberIdentity。
-- MemberIdentity 只负责 Realm-scoped display projection：`subject_id` 披露、display name、avatar 和其它未来 display-profile segment。mention / reply / quote 等 actor 引用字段 MUST 按 [`identity/identity-handles.md` §3.8](../identity/identity-handles.md) 使用 `subject_id` 而不是 handle 字符串；handle claim 只影响显示和可读寻址，不影响 grant subject、actor attribution、membership key、delivery 决策或 audit attribution。
+- MemberIdentity 只负责 Realm-scoped display projection：`subject_actor_id` 披露、display name、avatar 和其它未来 display-profile segment。`subject_actor_id` 是完整 `ActorId`，account 分支保留 Station 分量；mention / reply / quote 等 actor 引用字段 MUST 使用 [`identity/identity-handles.md` §3.8](../identity/identity-handles.md) 定义的权威 subject 引用字段而不是 handle 字符串；handle claim 只影响显示和可读寻址，不影响 grant subject、actor attribution、membership key、delivery 决策或 audit attribution。
 - handle、display name 和 avatar 只用于 UI / mention / member picker，不得用于 grant subject、actor 归因、membership key、delivery 决策或 audit attribution。
 - `ak.profile.update` 继续表示 principal-scoped actor profile 的字段级 delta；`ak.profile.realm_override` 继续表示 Realm-scoped profile override。二者 MAY 作为客户端构造 MemberIdentity display fields 的输入；handle fields MUST 来自当前 effective handle claims。
 - `identity_payload.encrypted_payload` MUST 复用 [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)。明文 MemberIdentity 是 `ciphertext` 解密结果；`content_type` SHOULD 使用 `application/vnd.arkret.member-identity+json`。
 - 加密 MemberIdentity MUST 由成员设备或被 Realm policy 授权的身份 issuer 设备生成。Sync / Principal / Federation Service MUST 存储和返回原始 encrypted payload 或其事件引用，不得因客户端查询而重加密、重封包或推进 MLS sender generation。
 - 客户端解密时按 `group_id`、`epoch` 和 `key_ref.group_state_ref` 查找本地 MLS group state；缺少 epoch 时按 §15 标记 `decryption_pending` 并补拉 `ak.mls.*` state / Welcome / winning Commit / 授权 history key material。
-- 客户端 MUST 验证 MemberIdentity 的 `realm_id`、`actor_id`、`subject_id`、`proof.payload_digest`、签名链和 Realm disclosure policy；`proof.payload_digest` MUST 等于移除顶层 `proof` 字段后的 MemberIdentity 对象的 RFC 8785 JCS canonical JSON bytes 的 `sha256` digest，签名也 MUST 覆盖同一 canonical bytes。任一失败时不得把该 event 提升为 verified display identity。
+- 客户端 MUST 验证 MemberIdentity 的 `realm_id`、`actor_id`、`subject_actor_id`、`proof.payload_digest`、签名链和 Realm disclosure policy；`proof.payload_digest` MUST 等于移除顶层 `proof` 字段后的 MemberIdentity 对象的 RFC 8785 JCS canonical JSON bytes 的 `sha256` digest，签名也 MUST 覆盖同一 canonical bytes。任一失败时不得把该 event 提升为 verified display identity。
 
 Handle claim 获取与刷新规则：
 
 - 注册、邀请链接、管理员预分配、管理员后期修改、重签和撤销 handle 都落到 issuer / Auth Server / 部署本地 `ak.schema.handle_claim.v1` lifecycle。Arkret v1 core 不定义用户如何申请、管理员如何收到通知、谁有权审批、审批状态如何流转或客户端如何在 bootstrap 中领取自己的 claim。
 - 客户端不得通过 `ak.profile.update`、`ak.profile.realm_override` 或 `ak.member.identity.update` 自行设置 handle。无论 claim 来自 Auth Server bootstrap、issuer 本地 API、设备迁移恢复、Directory resolve 还是 roster 内联，客户端只有在 schema、issuer trust、proof、audience、expiry 和 revocation 状态验证通过后，才能把它作为 handle 授权事实。
-- 已知 exact `AccountId`、需要渲染 Realm member 当前 handle 时，客户端调用 `ak.find.directory.read.list_handles_for_subject.v1`，或使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`。只知道裸 `subject_id` 时不得猜测 Station，应等待 AccountId disclosure 或使用已内联 evidence。已知 handle 字符串、需要解析到账号或投递绑定时，继续使用 `ak.find.directory.read.resolve_handle.v1`。
+- 需要渲染 Realm member 当前 handle 时，客户端使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`，或用同一 entry 的 `subject_account_id` 调用 `ak.find.directory.read.list_handles_for_subject.v1`。roster 未披露 `subject_account_id`（或 MemberIdentity 的 `subject_actor_id` 落在 `service` 分支）时，没有可用于该 subject 的 handle claim 查询输入，客户端 MUST 等待 subject disclosure 或使用已内联 evidence，MUST NOT 用 Realm `actor_id`、pairwise principal 或任何单分量拼装查询参数。已知 handle 字符串、需要解析到账号或投递绑定时，继续使用 `ak.find.directory.read.resolve_handle.v1`。
 - roster / member picker / mention autocomplete 的当前 handle projection MUST 由当前可见 handle-claim set + Realm policy 运行 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 得出。`ak.member.identity.update` 事件的 churn 不应成为 handle 更新传播的必要条件。
 - 若 `member_display_state_digest` 因 handle-claim set 变化而改变，服务端 SHOULD 在下一次 `/_arkret/self/account/subscribe` delta 中发送新的 roster entry 或使客户端相关 cache 失效；无法内联完整 claims 时，MUST 至少让 `handle_claim_digests` 或 digest 缺失状态发生可观察变化。
 
