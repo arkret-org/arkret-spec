@@ -650,7 +650,7 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 - 细粒度 workflow state（“In Dev / Reviewing / QA”等）是本地产品关注点：放在 domain-named `metadata.fields.<domain>_status`（bare `status` 是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 hard-reject 保留名）或 Morph schema 字段里，不进入 canonical Event admission，跨实现不保证一致解释。
 - 跨 Realm / 跨实现只认 8 值 `stage`：维护本地细粒度状态的产品 SHOULD 在本地状态变化时由客户端另发 `ak.<kind>.stage.set` 写入对应粗粒度值；dashboard 只聚合 `stage`（同一个 `stage=in_progress` bucket 涵盖各产品自定义的“In Dev / Reviewing / QA”）。
 
-Rationale（informative）：数据驱动的 per-Realm 状态机要求 Realm 在运行期声明 cell family、transition matrix 与 producer Event kind，而 v1 的 event kind、cell family 与 `fsm_contracts` 都在注册期冻结，extension cell family 没有任何 registered producer（[`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md)）；[`morph.md` §4](./morph.md) 对唯一已登记的 per-Realm 收紧 carrier `morph_kind_profiles` 已作同样裁决：“确需状态机时必须由具名具体 reducer 冻结”。
+Rationale（informative）：数据驱动的 per-Realm 状态机要求 Realm 在运行期声明 cell family、transition matrix 与 producer Event kind，而 v1 的 event kind、cell family 与 `fsm_contracts` 都在注册期冻结，且该选择"不是 Realm policy 或 `cell_lattices` 的动态开关"（[`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md)）——`cell_lattices` 能登记的 Realm-specific extension family 也无处被写入，因为 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 每个 kind 的 `cell_writes[]` 目标都是静态字面量；[`morph.md` §4](./morph.md) 对唯一已登记的 per-Realm 收紧 carrier `morph_kind_profiles` 已作同样裁决：“确需状态机时必须由具名具体 reducer 冻结”。
 
 ## 6. 通用对象 ID 约定
 
