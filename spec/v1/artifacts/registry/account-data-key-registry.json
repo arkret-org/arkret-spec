@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.1",
+  "version": "2026-09-04.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "generated_at": "2026-09-04T09:45:16+08:00",
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
     "writer_authorities is a non-empty unique array over the closed v1 set holder_event | station_cas. holder_event requires non-empty write_event_kinds; station_cas requires plaintext_account_data plus plaintext_schema and does not mint an Event.",
@@ -188,8 +188,9 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
+      "encrypted_value_schema": "schemas/presence-visibility.schema.json",
       "deletion_mode": "physical_delete",
-      "description": "Principal-private sender-side presence visibility policy. Station sync surfaces MUST NOT project or read presence_visibility; encrypted Signal fanout is selected by the sender according to profiles-presence.md section 3.4.",
+      "description": "Principal-private sender-side presence visibility policy. Decrypted plaintext validates as the closed presence-visibility schema. Station sync surfaces MUST NOT project or read presence_visibility; encrypted Signal fanout is selected by the sender according to profiles-presence.md section 3.4.",
       "source_refs": [
         "spec/v1/zh/discovery/profiles-presence.md",
         "spec/v1/zh/sync/client-sync.md"
@@ -205,8 +206,9 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
+      "encrypted_value_schema": "schemas/presence-preference.schema.json",
       "deletion_mode": "physical_delete",
-      "description": "Principal-private manual presence preference: pinned manual_state (online/idle/dnd), temporary status_message override, and clears_at expiry. Enforced client-side at send time across all of the principal's devices; services MUST NOT require plaintext or a projection of this key and MUST NOT treat it as a policy projection surface.",
+      "description": "Principal-private manual presence preference whose decrypted plaintext validates as the closed presence-preference schema: pinned manual_state (online/idle/dnd), temporary status_message override, and clears_at expiry. Enforced client-side at send time across all of the principal's devices; services MUST NOT require plaintext or a projection of this key and MUST NOT treat it as a policy projection surface.",
       "source_refs": [
         "spec/v1/zh/discovery/profiles-presence.md"
       ]

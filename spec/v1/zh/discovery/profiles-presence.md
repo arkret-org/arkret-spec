@@ -266,9 +266,9 @@ Station sync surface 不得解密、聚合或投影 presence 内容。
 
 用户可以控制 Presence 的可见范围：
 
-该策略的标准存储位置是 actor-private Account Data key `ak.presence.visibility`（见 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)）。写入通过 `ak.account_data.set` 完成，payload MUST 是下列形态；缺省等价于 `{ "presence_visibility": "public" }`。
+该策略的标准存储位置是 actor-private Account Data key `ak.presence.visibility`（见 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)）。写入通过 `ak.account_data.set` 完成；解密后的 payload MUST 通过闭合的 [`presence-visibility.schema.json`](../../artifacts/schemas/presence-visibility.schema.json)，缺省等价于 `{ "presence_visibility": "public" }`。
 
-```json
+```json schema=schemas/presence-visibility.schema.json
 {
   "presence_visibility": "contacts_only"
 }
@@ -315,13 +315,13 @@ plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Station sync sur
 
 ### 3.6 手动状态偏好 (Manual Presence Preference)
 
-自动状态判定（前台活跃 → `online`、无操作超时 → `idle`、断连 / TTL 过期 → `offline`）覆盖大多数场景，但用户还需要能把自己的状态主动固定为某个值（例如切到 `dnd` 开会），且该选择要跨设备、跨重连生效。presence 广播本身是 Signal（§3.1），不承担持久化；手动偏好的标准存储位置是 actor-private Account Data key `ak.presence.preference`（见 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)），通过 `ak.account_data.set` 写入，payload 形态：
+自动状态判定（前台活跃 → `online`、无操作超时 → `idle`、断连 / TTL 过期 → `offline`）覆盖大多数场景，但用户还需要能把自己的状态主动固定为某个值（例如切到 `dnd` 开会），且该选择要跨设备、跨重连生效。presence 广播本身是 Signal（§3.1），不承担持久化；手动偏好的标准存储位置是 actor-private Account Data key `ak.presence.preference`（见 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)），通过 `ak.account_data.set` 写入。解密后的 payload MUST 通过闭合的 [`presence-preference.schema.json`](../../artifacts/schemas/presence-preference.schema.json)：
 
-```json
+```json schema=schemas/presence-preference.schema.json
 {
   "manual_state": "dnd",
   "status_message": "开会中，稍后回复",
-  "clears_at": "2026-07-03T12:00:00Z"
+  "clears_at": "2026-07-03T12:00:00.000Z"
 }
 ```
 
@@ -329,7 +329,7 @@ plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Station sync sur
 |------|------|------|------|
 | `manual_state` | enum | 可选 | `online`、`idle` 或 `dnd`（§3.2 闭集去掉 `offline`）。缺省表示恢复自动判定。"隐身"不是 `manual_state` 值，MUST 通过 `ak.presence.visibility="nobody"`（§3.4）实现；`offline` 由停止广播 / TTL 过期自然表达，不作为可固定值。 |
 | `status_message` | string | 可选 | 临时状态消息覆盖值，作为该 principal 各设备广播 `ak.presence` 时 payload `status_message` 的来源；长度与规范化约束同 §3.3（≤256 字符、NFC、控制字符限制）。 |
-| `clears_at` | timestamp | 可选 | 过期时间（RFC 3339 UTC）。到期后整份偏好等价于缺省：客户端 MUST 恢复自动状态判定并停止广播其中的临时 `status_message`。缺省表示手动偏好持续生效，直到被显式改写或清除。 |
+| `clears_at` | timestamp | 可选 | 过期时间（canonical RFC 3339 UTC，固定三位毫秒）。到期后整份偏好等价于缺省：客户端 MUST 恢复自动状态判定并停止广播其中的临时 `status_message`。缺省表示手动偏好持续生效，直到被显式改写或清除。 |
 
 规则（normative）：
 

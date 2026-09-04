@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/presence-visibility.schema.json",
+  "title": "Arkret Presence Visibility Account Data",
+  "description": "Closed decrypted plaintext shape for the principal-private ak.presence.visibility account-data value. The sending client applies this policy before encrypted Signal fanout; services MUST NOT require its plaintext or project it into server-readable policy state.",
+  "type": "object",
+  "required": [
+    "presence_visibility"
+  ],
+  "properties": {
+    "presence_visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "contacts_only",
+        "nobody"
+      ],
+      "description": "Closed sender-side visibility policy. public permits effective-scope fanout, contacts_only permits fanout only when every active scope member is an accepted contact, and nobody suppresses presence sends."
+    }
+  },
+  "additionalProperties": false
+}

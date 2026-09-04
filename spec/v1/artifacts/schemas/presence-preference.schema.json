@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/presence-preference.schema.json",
+  "title": "Arkret Manual Presence Preference Account Data",
+  "description": "Closed decrypted plaintext shape for the principal-private ak.presence.preference account-data value. The sending client applies an unexpired preference to all of the principal's devices; services MUST NOT require its plaintext or project it into server-readable policy state.",
+  "type": "object",
+  "properties": {
+    "manual_state": {
+      "type": "string",
+      "enum": [
+        "online",
+        "idle",
+        "dnd"
+      ],
+      "description": "Optional pinned broadcast state. offline is expressed by stopping broadcasts and TTL expiry; invisibility is expressed by ak.presence.visibility=nobody."
+    },
+    "status_message": {
+      "type": "string",
+      "maxLength": 256,
+      "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\u007F-\\u009F]*$",
+      "description": "Optional NFC status-message override, at most 256 Unicode code points. U+0009 and U+000A are the only permitted control characters; all other C0/C1 controls are rejected. NFC normalization is a semantic validation step in addition to this schema."
+    },
+    "clears_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp",
+      "description": "Optional expiry instant. At or after this instant the complete preference is equivalent to absence and the sending client resumes automatic state selection without the temporary status-message override."
+    }
+  },
+  "additionalProperties": false
+}

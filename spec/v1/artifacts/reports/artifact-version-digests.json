@@ -9,9 +9,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
-      "version": "2026-09-04.1",
-      "generated_at": "2026-09-04T00:28:18+08:00",
-      "content_digest": "sha256:4e067c8dd00e2bd602acb83a10782394d0ef48204ce9bfff8034325f1c72dea1"
+      "version": "2026-09-04.2",
+      "generated_at": "2026-09-04T09:45:16+08:00",
+      "content_digest": "sha256:882408124a74ec6216e7a0e8889ad0bb8517b844ed62e19a02bc86df5f1805f8"
     },
     {
       "path": "spec/v1/artifacts/registry/account-status-replica-decision-table.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-04.4",
-      "generated_at": "2026-09-04T08:33:13+08:00",
-      "content_digest": "sha256:cd741332b06f1cbe4e0c7488eaa1ab499e282a9bcf01a23f5539ade406446811"
+      "version": "2026-09-04.5",
+      "generated_at": "2026-09-04T09:49:59+08:00",
+      "content_digest": "sha256:b0073b258465fb41de0dcac26589c5c87c958cf44ab587b5402fadd79420ec9f"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",

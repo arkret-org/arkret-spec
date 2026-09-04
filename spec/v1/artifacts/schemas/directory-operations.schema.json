@@ -904,9 +904,10 @@
             "joined",
             "invited",
             "knocked",
-            "left_ids",
+            "left",
             "unknown"
-          ]
+          ],
+          "description": "Directory-local membership display hint for the requested realm context. Values describe one membership state; left is the exact wire value and is not an id-list field name. This hint never grants authorization, admission, or delivery authority."
         },
         "verified": {
           "type": "boolean"

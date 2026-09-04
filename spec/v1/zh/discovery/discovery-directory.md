@@ -767,6 +767,8 @@ POST /_arkret/find/directory/push/register
 | `ak.find.directory.command.withdraw.v1` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdrawal_ref: string`; `acked_at: timestamp` | `withdrawal_ref` 是 Directory-local audit reference，不是注册 typed ID；见 §8.7。 |
 | `ak.find.directory.push.command.register.v1` | `subscriber_id: did_core_id`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
 
+`search_users` 的 `users[].membership` 若出现，MUST 是闭集 `joined | invited | knocked | left | unknown` 中的一值。它描述请求 `realm_id` 上下文中的单个成员状态，因此离开状态的精确 wire 值是 `left`；`left_ids` 是设备列表等对象中的 id 数组字段名，不是成员状态。该字段仅供本地展示，MUST NOT 作为授权、准入或投递依据。
+
 **Plaintext query 跨请求关联（normative）**：上表 `query` 脱敏约束（不进入 URL / Referer / 未脱敏 access log）只堵旁路面；受托 Directory（半受信第三方）还 MUST NOT 在应用层把 `(requester_actor_id, query_term, realm_id, timestamp)` 跨请求持久关联用于重建 requester 画像（"谁在找谁、对哪些 Realm 成员感兴趣"）。`search_users` / `search_actors` / `search_realms` 的 plaintext `query` 留存 MUST 有界并 SHOULD 脱敏 / 仅保留聚合反滥用指标；高隐私部署 SHOULD 走客户端本地索引或 §6 PSI / blind index 路径而非把 raw query 交给 Directory。口径对齐 §6 对 raw identifier 的保护与 [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) 对 access pattern 的风险登记。
 
 ### 9.0 Handle 解析（normative）

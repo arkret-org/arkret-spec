@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-04.4",
-  "generated_at": "2026-09-04T08:33:13+08:00",
+  "version": "2026-09-04.5",
+  "generated_at": "2026-09-04T09:49:59+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -117,7 +117,7 @@
     },
     {
       "operation_id": "ak.find.directory.read.search_users.v1",
-      "sha256": "sha256:2b501de5f1bf5e56f42650c4292e96c77ef506e9810685719b11734a4310204f"
+      "sha256": "sha256:daa7a3fcc4bcfa8accfc7f4f1f54a4b049cdc5a7996c90208b09e2c01946751e"
     },
     {
       "operation_id": "ak.gate.account.command.abandon_identity_creation.v1",
