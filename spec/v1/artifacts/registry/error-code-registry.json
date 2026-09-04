@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-04.4",
-  "generated_at": "2026-09-04T23:55:00+08:00",
+  "version": "2026-09-05.1",
+  "generated_at": "2026-09-05T14:20:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2547,6 +2547,30 @@
       "description": "The immutable provision ceiling and accepted Agent key authorization both contain every operation required by the selected runtime capability, but the requested or current session scope omits one or more. The operation fails with failed_precondition and recovery is a new session constrained by both upper ceilings. See zh/identity/key-management.md §3.6.1 and agent-runtime-scope-registry.json."
     },
     {
+      "code": "applet_managed_actor_provision_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An ak.applet.managed_actor.provision Event in the closed Applet managed-actor creation aggregate does not satisfy its binding rules: actor_id.account_id.station_id is not the receiving Station, the actor collides with the service or controller principal, or the provisioned actor is not the registration's declared bot_actor_id. See zh/extensions/applet-integration.md."
+    },
+    {
+      "code": "applet_managed_pcr_genesis_invalid",
+      "applies_to": [
+        "pcr_genesis",
+        "event_envelope"
+      ],
+      "description": "The purpose=applet_managed_control PCR genesis Event in the Applet managed-actor creation aggregate does not cross-bind its provision Event, initial_resolution, Applet, grant and service verbatim. See zh/extensions/applet-integration.md."
+    },
+    {
+      "code": "applet_managed_pcr_genesis_requires_closed_aggregate",
+      "applies_to": [
+        "pcr_genesis",
+        "federation_transaction"
+      ],
+      "description": "A purpose=applet_managed_control PCR genesis arrived outside the closed Applet install / Ghost provisioning aggregate - an ordinary submit, a Realm bootstrap batch, or ak.peer.events.command.submit.v1. Transport and proof validity do not make it an AppletFormal admission. See zh/extensions/applet-integration.md."
+    },
+    {
       "code": "applet_namespace_mismatch",
       "applies_to": [
         "state_resolution",
@@ -3641,6 +3665,14 @@
         "identity_resolution"
       ],
       "description": "An identity-link resolution was invalidated because the governing visibility / link policy was tightened after the link was cached. See zh/conformance/conformance-vectors.md §9 (ak.vector.identity_link.policy_tightening_invalidation.v1)."
+    },
+    {
+      "code": "identity_method_evidence_invalid",
+      "applies_to": [
+        "identity_resolution",
+        "auth_decision"
+      ],
+      "description": "Submitted method_history_evidence fails independent verification: broken inception/current hash chain, SCID mismatch, invalid controller proof, unmet witness threshold, or stale evidence. An Applet-managed principal MUST carry a complete webvh_log; did:web snapshots, did:key expansion and service attestation are not substitutes. See zh/extensions/applet-integration.md."
     },
     {
       "code": "illegal",
