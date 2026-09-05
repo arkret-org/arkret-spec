@@ -1,20 +1,26 @@
-"""Guards for how ``artifact_pipeline.py`` reports a failing run.
+"""Guards for how the artifact tooling reports failure and writes files.
 
-``check`` streams each step's output, and the steps that happen to run last
-end on reassuring lines. A run that already failed still finished with
-``0 error(s), 0 warning(s)`` and ``registry diff: clean``, so reading the tail
-— by eye or through ``| tail`` — reported green on a non-zero exit.
+Three merge-time traps live here, all of them about signal rather than
+content:
 
-``refresh-operation-closure-locks`` advanced ``version`` but copied
-``generated_at`` from the source catalog, which is routinely older than the
-lock being replaced. The timestamp went backwards and
-``check_artifact_versions.py --write-reference`` then refused the result.
+1. ``artifact_pipeline.py check`` streams each step's output, and the steps
+   that happen to run last end on reassuring lines. A run that already failed
+   still finished with ``0 error(s), 0 warning(s)`` and ``registry diff:
+   clean``, so reading the tail reported green on a non-zero exit.
+2. ``refresh-operation-closure-locks`` advanced ``version`` but copied
+   ``generated_at`` from the source catalog, which is routinely older than the
+   lock being replaced. The timestamp went backwards and
+   ``check_artifact_versions.py --write-reference`` then refused the result.
+3. Writers that omit ``newline`` inherit the platform line ending, so the same
+   generator produced CRLF on Windows and LF elsewhere against a repository
+   pinned to ``eol=lf``.
 """
 
 from __future__ import annotations
 
 import io
 import json
+import re
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -24,6 +30,28 @@ from unittest.mock import Mock, patch
 import artifact_pipeline
 import check_operation_closure_locks
 from check_operation_closure_locks import next_generated_at, refresh_candidate_lock
+
+
+TOOLS = Path(__file__).resolve().parent
+ROOT = TOOLS.parent
+ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
+
+
+def call_arguments(source: str, opener: str) -> list[str]:
+    """Return the argument text of every ``opener`` call in ``source``."""
+
+    calls: list[str] = []
+    for match in re.finditer(re.escape(opener), source):
+        index = match.end()
+        depth = 1
+        while index < len(source) and depth:
+            if source[index] == "(":
+                depth += 1
+            elif source[index] == ")":
+                depth -= 1
+            index += 1
+        calls.append(source[match.end() : index])
+    return calls
 
 
 class CheckVerdictTest(unittest.TestCase):
@@ -177,6 +205,32 @@ class ClosureLockGeneratedAtTest(unittest.TestCase):
         self.assertEqual(summary["changed"], ["ak.realm.create"])
         self.assertEqual(written["version"], "2026-09-05.2")
         self.assertGreater(written["generated_at"], existing["generated_at"])
+
+
+class GeneratedFileNewlineTest(unittest.TestCase):
+    def test_every_tool_writer_pins_lf(self) -> None:
+        offenders: list[str] = []
+        for path in sorted(TOOLS.rglob("*.py")):
+            if path.name.startswith("test_"):
+                continue
+            source = path.read_text(encoding="utf-8")
+            for call in call_arguments(source, ".write_text("):
+                if "newline=" not in call:
+                    offenders.append(f"{path.relative_to(ROOT).as_posix()}: write_text")
+            for call in call_arguments(source, "open("):
+                if re.search(r"""["'][wa]\+?["']""", call) and "newline=" not in call:
+                    offenders.append(f"{path.relative_to(ROOT).as_posix()}: open")
+        self.assertEqual(offenders, [])
+
+    def test_no_tracked_artifact_carries_crlf(self) -> None:
+        offenders = [
+            path.relative_to(ROOT).as_posix()
+            for path in sorted(ARTIFACTS.rglob("*"))
+            if path.is_file()
+            and path.suffix in {".json", ".yaml", ".yml", ".md"}
+            and b"\r\n" in path.read_bytes()
+        ]
+        self.assertEqual(offenders, [])
 
 
 class ModuleImportTest(unittest.TestCase):

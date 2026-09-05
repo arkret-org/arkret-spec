@@ -1686,7 +1686,7 @@ def main() -> int:
             return 1
         print(f"generated fixture is current: {OUTPUT.relative_to(ROOT)}")
         return 0
-    OUTPUT.write_text(output, encoding="utf-8")
+    OUTPUT.write_text(output, encoding="utf-8", newline="\n")
     print(f"updated {OUTPUT.relative_to(ROOT)}")
     return 0
 

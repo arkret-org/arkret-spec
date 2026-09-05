@@ -236,7 +236,11 @@ def next_generated_at(previous: Any, candidate: Any) -> Any:
 def verify_or_append(path: Path, expected: dict[str, Any], generate: bool) -> list[str]:
     if not path.exists():
         if generate:
-            path.write_text(json.dumps(expected, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            path.write_text(
+                json.dumps(expected, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
             return []
         return [f"missing closure lock: {path.relative_to(ROOT).as_posix()}"]
     actual = load(path)
@@ -265,7 +269,11 @@ def verify_or_append(path: Path, expected: dict[str, Any], generate: bool) -> li
         actual["generated_at"] = next_generated_at(
             actual.get("generated_at"), expected.get("generated_at")
         )
-        path.write_text(json.dumps(actual, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        path.write_text(
+            json.dumps(actual, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
     elif additions:
         errors.append(f"{path.name}: new identities are not locked: {additions}")
     return errors
