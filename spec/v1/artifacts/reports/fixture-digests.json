@@ -278,7 +278,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "580ad08f464a930f4f10e44fd2cc7f0138de3b44101a322bf4d3aeefe3d0aee0"
+      "sha256": "ae4eac055b49d5e43f4e5b130fb953dec9133a76c4fe1123f8b4dc958cd76a44"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
