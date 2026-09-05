@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-05.7",
-  "generated_at": "2026-09-05T15:30:03+08:00",
+  "version": "2026-09-05.8",
+  "generated_at": "2026-09-05T21:40:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -25,7 +25,7 @@
     },
     {
       "operation_id": "ak.edge.applet.read.describe.v1",
-      "sha256": "sha256:8ef02d2ca22139089d8b5998dbef32dda2a912ef241850d3b88b7dd357f48770"
+      "sha256": "sha256:3276885d524f7c96ffd9b4a6330dde739b4082bb0fa2454cd6f9db87400bdaa8"
     },
     {
       "operation_id": "ak.edge.applet.read.ping.v1",
@@ -73,7 +73,7 @@
     },
     {
       "operation_id": "ak.find.directory.read.describe.v1",
-      "sha256": "sha256:b94dd91face7be653d8defbd9fc45730859235f8b170c3b8c1b3532a028be771"
+      "sha256": "sha256:148a4f04e3bcfbce2deacf8c3a0dcb9cfd7fe3d588b3036f59300005efa862f9"
     },
     {
       "operation_id": "ak.find.directory.read.list_handles_for_subject.v1",
@@ -441,7 +441,7 @@
     },
     {
       "operation_id": "ak.root.identity.registry.read.describe.v1",
-      "sha256": "sha256:1fe4eaac8c60b8241b10a90d5a6456abc86f774119e8b39f9d1664c82f27eb1b"
+      "sha256": "sha256:a58d7ee23ef0fbf1795f987432231086c49a5777ee04b70fa8d92170ae08e79f"
     },
     {
       "operation_id": "ak.root.identity.service_registration.command.ensure.v1",
@@ -461,7 +461,7 @@
     },
     {
       "operation_id": "ak.self.account.read.describe.v1",
-      "sha256": "sha256:7e53b8f526d55270090b0487094172b98ec0985a4622d04e1eadfd5c51048e0f"
+      "sha256": "sha256:984d8368aa5286168d055b54b5ebb2f3ed1bac26fa89fe8a6dc8686e09aead2e"
     },
     {
       "operation_id": "ak.self.account.read.viewer.v1",
@@ -717,7 +717,7 @@
     },
     {
       "operation_id": "ak.self.events.read.describe.v1",
-      "sha256": "sha256:75b7727ac13f7f86df2fb7de7a4aaa37dfcc7fffae559ab4337ee8c3cedb1960"
+      "sha256": "sha256:ae4ecd9b51ddc9439a09c1bd3029f4aad526b445b9037801b6c7848bcd55ab45"
     },
     {
       "operation_id": "ak.self.events.read.frontier.v1",
@@ -777,11 +777,11 @@
     },
     {
       "operation_id": "ak.self.invite_receive_policy.resource.get.v1",
-      "sha256": "sha256:e72361f24ef57d07fca297a8d552bc53394e98bd1f0ed3747ac16b8ca2a50eb6"
+      "sha256": "sha256:dc7c292e7723c7915624d29786e3e0d6311a564fc23b5418a6d19bbc56a30621"
     },
     {
       "operation_id": "ak.self.invite_receive_policy.resource.replace.v1",
-      "sha256": "sha256:d521c876425259f19659b5a56afcb49436cd10a428b75701ab3ae258106a5abc"
+      "sha256": "sha256:e2f6048571744c40e49ae35cfa00bffea2344da9be588a7c98bd559d10534dd0"
     },
     {
       "operation_id": "ak.self.invites.command.dispatch.v1",
@@ -949,7 +949,7 @@
     },
     {
       "operation_id": "ak.server.read.describe.v1",
-      "sha256": "sha256:00750f4b3df327103dbafd075bf5ac8189db0d7d923ebcba050f747eefa2ab37"
+      "sha256": "sha256:38beb2bc52f01483ec4d831a7ed00f90c85f1cce3a1225eca4e869c82e7d964e"
     }
   ]
 }
