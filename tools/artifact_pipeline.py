@@ -34,6 +34,7 @@ import json
 import re
 import subprocess
 import sys
+from collections.abc import Sequence
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -1303,15 +1304,39 @@ def cmd_generate(_: argparse.Namespace) -> int:
     coverage_status = run_schema_consumer_coverage("generate")
     string_classification_status = run_operation_string_classification("generate")
     print_contract_status()
-    return (
-        selector_status
-        or closure_status
-        or completeness_status
-        or event_reference_status
-        or presence_status
-        or coverage_status
-        or string_classification_status
+    return verdict(
+        "generate",
+        [
+            name
+            for name, status in (
+                ("openapi operation selector", selector_status),
+                ("operation closure locks", closure_status),
+                ("operation completeness report", completeness_status),
+                ("event reference inventory", event_reference_status),
+                ("property presence manifest", presence_status),
+                ("schema consumer coverage", coverage_status),
+                ("operation string classification", string_classification_status),
+            )
+            if status
+        ],
     )
+
+
+def verdict(command: str, failed: Sequence[str]) -> int:
+    """Print the pass/fail verdict as the very last line and return the status.
+
+    Every step here streams its own output, and the steps that run last happen
+    to end on reassuring lines ("0 error(s), 0 warning(s)", "registry diff:
+    clean") even when an earlier step already failed. Reading the tail — by eye
+    or through `| tail` — then reports green on a run that exits non-zero. The
+    verdict repeats the outcome after everything else has spoken, so the last
+    line is always the answer.
+    """
+    if failed:
+        print(f"FAILED: {command}: {len(failed)} failing step(s): {', '.join(failed)}")
+        return 1
+    print(f"PASSED: {command}: all steps clean")
+    return 0
 
 
 def cmd_check(_: argparse.Namespace) -> int:
@@ -1328,31 +1353,31 @@ def cmd_check(_: argparse.Namespace) -> int:
         print("contract policy: active-contract checks only")
         print(profile_summary_text())
         print(f"registry diff: {len(errors)} pre-lint pipeline error(s)")
-        return 1
+        return verdict("check", ["pre-lint pipeline"])
     print_contract_status()
     checks = (
-        lambda: run_openapi_operation_selector("check"),
-        lambda: run_operation_closure_locks("check"),
-        lambda: run_operation_completeness_report("check"),
-        lambda: run_event_reference_inventory("check"),
-        run_payload_validator_profile_check,
-        run_event_kind_vector_gap_check,
-        lambda: run_property_presence_manifest("check"),
-        lambda: run_schema_consumer_coverage("check"),
-        lambda: run_operation_string_classification("check"),
-        run_operation_string_classification_test,
-        run_long_text_schema_test,
-        run_schema_constructability_test,
-        run_fixture_digest_check,
-        run_session_grant_kat_check,
-        run_contact_round_kat_check,
-        run_handle_claim_kat_check,
-        run_artifact_version_check,
-        run_lint,
-        run_prose_lint,
+        ("openapi operation selector", lambda: run_openapi_operation_selector("check")),
+        ("operation closure locks", lambda: run_operation_closure_locks("check")),
+        ("operation completeness report", lambda: run_operation_completeness_report("check")),
+        ("event reference inventory", lambda: run_event_reference_inventory("check")),
+        ("payload validator profile", run_payload_validator_profile_check),
+        ("event kind vector gap", run_event_kind_vector_gap_check),
+        ("property presence manifest", lambda: run_property_presence_manifest("check")),
+        ("schema consumer coverage", lambda: run_schema_consumer_coverage("check")),
+        ("operation string classification", lambda: run_operation_string_classification("check")),
+        ("operation string classification test", run_operation_string_classification_test),
+        ("long text schema test", run_long_text_schema_test),
+        ("schema constructability test", run_schema_constructability_test),
+        ("fixture digests", run_fixture_digest_check),
+        ("session grant KAT", run_session_grant_kat_check),
+        ("contact round KAT", run_contact_round_kat_check),
+        ("handle claim KAT", run_handle_claim_kat_check),
+        ("artifact versions", run_artifact_version_check),
+        ("artifact lint", run_lint),
+        ("prose lint", run_prose_lint),
     )
-    statuses = tuple(check() for check in checks)
-    return int(any(statuses))
+    failed = [name for name, check in checks if check()]
+    return verdict("check", failed)
 
 
 def cmd_snapshot(_: argparse.Namespace) -> int:
@@ -1361,7 +1386,8 @@ def cmd_snapshot(_: argparse.Namespace) -> int:
 
 
 def cmd_refresh_operation_closure_locks(_: argparse.Namespace) -> int:
-    return run_operation_closure_locks("refresh-candidate")
+    status = run_operation_closure_locks("refresh-candidate")
+    return verdict("refresh-operation-closure-locks", ["operation closure locks"] if status else [])
 
 
 def build_parser() -> argparse.ArgumentParser:
