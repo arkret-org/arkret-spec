@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.3",
+  "version": "2026-09-05.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T17:30:00+08:00",
+  "generated_at": "2026-09-05T20:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1378,7 +1378,7 @@
       "applies_to_fixtures": [
         "cba-lattice-fixture.json"
       ],
-      "description": "cas_register writes on non-initial state require an explicit CBA basis: Control Move preconditions or equivalent DataEvent causal/lattice proof; null-basis blind overwrites fail closed.",
+      "description": "cas_register admission derives a full active-head identity guard from each write's own signed seal_basis and compares H_c(B) to the frozen predecessor H_c(P) at Seal acceptance: a write with no reconstructable basis fails closed, a write whose basis heads equal the frozen baseline is accepted, a stale ABA write whose business settled value is byte-identical (null before and after a claim/release round) is rejected because its head identities differ, and a self-derived target cell whose subject comes from the Event's own event_id is accepted without any wire head_eq, since demanding one would make the signed preimage hash-self-referential.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -3988,7 +3988,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cba_lattice.v1"
       ],
-      "description": "cas_register join is the pure maximal-chain function over set ops carrying from: a sequential governance lifecycle (declaration -> whole-value head_eq tombstone -> re-declaration) joins to the single terminal value instead of bottom; two ops with the same from and different values form two maximal chains and join to bottom; a non-initial op whose from matches no covered value is a dangling supersession and fails closed to bottom; duplicate (value, from) sets are idempotent; supersession binds by value, so ABA reuse is the documented value-CAS semantic and families needing generational distinction embed a monotonic component in the value.",
+      "description": "cas_register join is the causal-identity function over the verified covered set: an unwritten cell has no head and reads null; each write is identified by its EventId and supersedes exactly the heads it observed in its own signed seal_basis; a release write is set null and keeps its own head, so an unwritten cell and a released cell are distinguishable in the state commitment; A->null->A reads A and A->B->A->B reads B, which the deleted value-edge maximal-chain definition could not distinguish; concurrent writes with different values leave two heads and the bottom=reject cell materializes failed_bottom; concurrent writes with the same value keep both identities; exact replay of the same identity and effect is idempotent; the two-state merge is associative, commutative and idempotent and agrees with a full causal-history oracle; and Bottom is a function of the view, not a sticky local flag.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
         "spec/v1/zh/authz/event-auth-state-resolution.md"

@@ -15,20 +15,20 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9863,
+    "total_properties": 9859,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2701,
+      "optional": 2700,
       "optional_defaulted": 65,
-      "required": 6763,
+      "required": 6761,
       "required_nullable": 122,
-      "tristate": 212
+      "tristate": 211
     },
-    "tristate_occurrences": 212,
-    "tristate_audit_targets": 153,
+    "tristate_occurrences": 211,
+    "tristate_audit_targets": 152,
     "tristate_sdk_dispositions": {
       "absent_null_equivalent": 142,
-      "condition_guarded": 10,
+      "condition_guarded": 9,
       "distinct": 1
     }
   },
@@ -177,7 +177,6 @@
     "realm-genesis.schema.json/allOf/3/then/properties/initial_resolution",
     "realm-genesis.schema.json/allOf/4/then/properties/initial_resolution",
     "realm-organization-operations.schema.json/$defs/realm_organization_relationship_row/properties/expires_at",
-    "realm.schema.json/$defs/cell_lattice/properties/initial_value",
     "realm.schema.json/allOf/1/then/properties/notary",
     "realm.schema.json/allOf/2/then/properties/notary",
     "realm.schema.json/allOf/3/then/properties/schema_refs",
@@ -1241,16 +1240,6 @@
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "realm.schema.json",
-      "shape": "/$defs/cell_lattice",
-      "instance_path": "/initial_value",
-      "occurrences": [
-        "/$defs/cell_lattice/properties/initial_value"
-      ],
-      "sdk_disposition": "condition_guarded",
-      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -10884,17 +10873,13 @@
         "/$defs/cell_lattice/allOf/0/then/properties/plane": "required",
         "/$defs/cell_lattice/allOf/1/if/properties/sealed": "required",
         "/$defs/cell_lattice/allOf/1/then/properties/plane": "required",
-        "/$defs/cell_lattice/allOf/2/then/properties/lattice": "required",
-        "/$defs/cell_lattice/allOf/3/then/properties/lattice": "required",
         "/$defs/cell_lattice/properties/bottom": "required",
         "/$defs/cell_lattice/properties/cell_family": "required",
         "/$defs/cell_lattice/properties/cell_role": "required",
-        "/$defs/cell_lattice/properties/initial_value": "tristate",
         "/$defs/cell_lattice/properties/lattice": "required",
         "/$defs/cell_lattice/properties/parameters": "optional",
         "/$defs/cell_lattice/properties/plane": "required",
         "/$defs/cell_lattice/properties/sealed": "optional",
-        "/$defs/cell_lattice/properties/sentinel_writers": "optional",
         "/$defs/notary_configuration/oneOf/0/properties/controller_organization_id": "optional",
         "/$defs/notary_configuration/oneOf/0/properties/kind": "required",
         "/$defs/notary_configuration/oneOf/0/properties/recovery_controller_organization_ids": "optional",
@@ -11040,7 +11025,6 @@
         "/properties/updated_by": "optional"
       },
       "conditionally_required": [
-        "/$defs/cell_lattice/properties/initial_value",
         "/properties/content_encryption_floor",
         "/properties/content_scheme",
         "/properties/durability_policy",

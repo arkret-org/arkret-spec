@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-24.3",
+  "version": "2026-09-05.1",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -16,24 +16,95 @@
     ]
   },
   "uncovered_event_kinds": [
-    {"event_kind": "ak.realm.set_default_strand", "priority": "normal", "rationale": "Default-Strand state selection lacks a directly searchable vector."},
-    {"event_kind": "ak.realm.notary", "priority": "critical", "rationale": "Notary-policy control state lacks a directly searchable vector."},
-    {"event_kind": "ak.realm.read_receipt_policy", "priority": "high", "rationale": "Read-receipt privacy policy lacks a directly searchable vector."},
-    {"event_kind": "ak.realm.plaintext_visible_services", "priority": "critical", "rationale": "Plaintext service visibility and bootstrap gating lack a directly searchable vector."},
-    {"event_kind": "ak.realm.inheritance_policy", "priority": "high", "rationale": "Realm inheritance policy lacks a directly searchable vector."},
-    {"event_kind": "ak.realm.archive", "priority": "normal", "rationale": "Realm archival transition lacks a directly searchable vector."},
-    {"event_kind": "ak.circle.history_access", "priority": "high", "rationale": "Circle history-access transition lacks a directly searchable vector."},
-    {"event_kind": "ak.schema.define", "priority": "high", "rationale": "Open schema-definition value selection lacks a directly searchable vector."},
-    {"event_kind": "ak.notary.fault.censorship", "priority": "critical", "rationale": "Censorship-fault evidence lacks a directly searchable vector."},
-    {"event_kind": "ak.member.identity.update", "priority": "high", "rationale": "Membership identity update lacks a directly searchable vector."},
-    {"event_kind": "ak.strand.restore", "priority": "normal", "rationale": "Strand restore transition lacks a directly searchable vector."},
-    {"event_kind": "ak.strand.watch.set", "priority": "normal", "rationale": "Strand watch-state update lacks a directly searchable vector."},
-    {"event_kind": "ak.morph.restore", "priority": "normal", "rationale": "Morph restore transition lacks a directly searchable vector."},
-    {"event_kind": "ak.morph.stage.set", "priority": "normal", "rationale": "Morph stage transition lacks a directly searchable vector."},
-    {"event_kind": "ak.container.move_item", "priority": "normal", "rationale": "Container item movement lacks a directly searchable vector."},
-    {"event_kind": "ak.view.reconcile", "priority": "normal", "rationale": "View reconciliation lacks a directly searchable vector."},
-    {"event_kind": "ak.profile.realm_override", "priority": "high", "rationale": "Realm profile override lacks a directly searchable vector."},
-    {"event_kind": "ak.moderation.decision.lift", "priority": "high", "rationale": "Moderation decision lifting lacks a directly searchable vector."},
-    {"event_kind": "ak.call.create", "priority": "normal", "rationale": "Call creation lacks a directly searchable vector."}
+    {
+      "event_kind": "ak.realm.set_default_strand",
+      "priority": "normal",
+      "rationale": "Default-Strand state selection lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.realm.notary",
+      "priority": "critical",
+      "rationale": "Notary-policy control state lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.realm.read_receipt_policy",
+      "priority": "high",
+      "rationale": "Read-receipt privacy policy lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.realm.plaintext_visible_services",
+      "priority": "critical",
+      "rationale": "Plaintext service visibility and bootstrap gating lack a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.realm.inheritance_policy",
+      "priority": "high",
+      "rationale": "Realm inheritance policy lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.realm.archive",
+      "priority": "normal",
+      "rationale": "Realm archival transition lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.circle.history_access",
+      "priority": "high",
+      "rationale": "Circle history-access transition lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.schema.define",
+      "priority": "high",
+      "rationale": "Open schema-definition value selection lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.notary.fault.censorship",
+      "priority": "critical",
+      "rationale": "Censorship-fault evidence lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.member.identity.update",
+      "priority": "high",
+      "rationale": "Membership identity update lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.strand.restore",
+      "priority": "normal",
+      "rationale": "Strand restore transition lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.strand.watch.set",
+      "priority": "normal",
+      "rationale": "Strand watch-state update lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.morph.restore",
+      "priority": "normal",
+      "rationale": "Morph restore transition lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.morph.stage.set",
+      "priority": "normal",
+      "rationale": "Morph stage transition lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.container.move_item",
+      "priority": "normal",
+      "rationale": "Container item movement lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.view.reconcile",
+      "priority": "normal",
+      "rationale": "View reconciliation lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.profile.realm_override",
+      "priority": "high",
+      "rationale": "Realm profile override lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.moderation.decision.lift",
+      "priority": "high",
+      "rationale": "Moderation decision lifting lacks a directly searchable vector."
+    }
   ]
 }

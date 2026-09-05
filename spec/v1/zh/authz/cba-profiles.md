@@ -43,18 +43,42 @@ open-set vectors。
 一个额外的 protocol-singleton barrier cell（那需要一个未登记的 cell family 与一个未登记的信封字段，
 两者都不存在，因此该形态无法被任何实现或门禁验证）。每个 `security_barrier` Move MUST：
 
-1. 对它写入的**每一个** cell 携带 `preconditions[]` 条目，`predicate.op="head_eq"`，`value` 是该 cell
-   在 Move 的 CBA basis 上的当前 head；缺少任一目标 cell 的 `head_eq` 即 `failed_precondition`；
-2. 携带同一 barrier authority set 的 k-of-n attestations，且 `2k > n`——任意两个并发 barrier
-   quorum 因此至少共享一个 signer；
-3. 让每个 attestation 只签 `control_move_digest` 与该 Move 的 `preconditions[]`（即 `(cell, expected_head)`
-   对的 canonical 序列），不引入第二套 parent 表达；
-4. 由 signer 持久化 `(authority_set_ref, cell, expected_head, control_move_digest)`，并拒绝为同一
-   `(authority_set_ref, cell, expected_head)` 签第二个不同 `control_move_digest`。
+1. 对它写入的**每一个**注册目标 cell **派生并执行身份守卫**：从该 Move 自身签名的 `seal_basis` 重建该 cell
+   的完整活跃 head 身份集合（[`event-auth-state-resolution.md` §9.3.1.1](./event-auth-state-resolution.md)），
+   并在 Seal 准入时按 §9.3.1.3 第 3 项与冻结 predecessor 基线逐身份比较。
+   **本条 MUST NOT 被读成「每个目标 cell 都要在 wire 携带一条 `head_eq`」**：`ak.audit.applet_binding.create`
+   与 `ak.call.create` 的目标 cell subject 派生自本 Event 自己的 `event_id`，把该 `cell_id` 写进被 digest
+   覆盖的 `preconditions[]` 会形成哈希自引用（§9.3.1.3「自派生目标的守卫形态」）。已登记的业务
+   `head_eq` 条件仍 MUST 签名并执行；`preconditions[]` 为空数组不代表绕过 barrier；
+2. 携带同一 barrier authority set 的 k-of-n attestations，且满足下面「容错假设与相交不等式」一段的约束；
+3. 让每个 attestation 只签 `control_move_digest` 与该 Move 的 `preconditions[]` 的 canonical 序列，
+   不引入第二套 parent 表达；签名 transcript 沿用已绑定 `seal_basis` 的 `control_move_digest` + `preconditions`，
+   MUST NOT 新增第二套 parent 字段；
+4. 由 signer 持久化 `(Realm, authority_set_ref, cell, canonical sorted head identities, control_move_digest)`，
+   并拒绝为同一 `(Realm, authority_set_ref, cell, canonical sorted head identities)` 签第二个不同的
+   `control_move_digest`。多目标 cell 的锁定与签名持久化 MUST 原子执行。
+
+**锁键 MUST 是 head 身份集合（normative）**：signer MUST NOT 以业务值
+`(authority_set_ref, cell, expected_head 业务值)` 作锁键——在「空位 → 占用 → 释放回空位」之后，下一轮
+**合法**请求的业务 expected head 与上一轮相同，会被误判成双签。signer 同样 MUST NOT 改用整个 basis leaf
+digest 作锁键：只要多覆盖一个无关 Seal 就改变键，同一 cell 状态因此可能获得第二套签名。head **身份**集合
+只在该 cell 真正被写过之后才改变，因此它是唯一满足两侧要求的键：同一状态只签同一 digest；一次新的释放
+Event 产生新的 head 身份，下一轮可以再次签名。
+signer MUST 从已验证 basis 派生完整 head 身份，MUST NOT 相信调用方自报的 head token。
+非 `cas_register` 的 `security_barrier` cell 同样 MUST 使用稳定的因果状态身份作锁键，MUST NOT 只修
+`cas_register` 而给 `fsm` 保留业务值锁。
+
+**容错假设与相交不等式（normative）**：大小为 `k` 的两个集合在 `n` 个 signer 中至少交于 `2k-n` 个。
+若最多 `f` 个 signer 可能双签，要保证任意两个 quorum 的交集中**至少有一个诚实 signer**，需要 `2k > n + f`；
+只写 `2k > n` 仅保证存在共同 signer，而那个唯一的共同人可能恰是恶意 signer（例如 `n=3, k=2`）。
+若同时要求 `f` 个 signer 不可达时仍能凑齐 quorum，则需 `k ≤ n - f`；两者同时满足要求 `n ≥ 3f + 1`。
+`open_set` barrier policy **MUST** 明确声明其容错假设 `f` 并满足上述不等式；未声明或不满足时
+**MUST NOT** 宣称该部署具有 Byzantine 串行化保证。这是计数证明，不由测试数量替代；本节不要求为 CAS
+引入任何新的共识实现。
 
 第 2 条的 quorum 相交与第 4 条的 signer 单调性合起来给出与单链 predecessor 等价的效果：两个针对同一
-cell head 的并发 barrier Move 必然有一个共同 signer，而该 signer 只会为该 head 签一个 digest。不同 cell
-上的并发 barrier Move 本就互不相关，`security_barrier` 的登记语义（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)
+cell head 身份集合的并发 barrier Move 必然有一个共同 signer，而该 signer 只会为该身份集合签一个 digest。
+不同 cell 上的并发 barrier Move 本就互不相关，`security_barrier` 的登记语义（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)
 `concurrency_class_definitions`）也只要求它对**同一 signed scope** 内的并发 barrier 串行化。
 
 `authority_set_ref` 在所有 CBA authority/quorum 场景中统一为
@@ -69,6 +93,13 @@ policy bytes。需要跨服务或离线验证的对象 MUST 携带完整
 barrier attestation 没有独立 height、state root、历史日志或可被 DataEvent 引用的 id；它随
 Control Move 被 Seal 覆盖，不构成第二套 checkpoint。有效双签是可归责 equivocation，相关
 分支 MUST fail closed 并进入 recovery。
+
+**authority set 换届与「签了但未获 Seal」的锁（normative）**：authority set 切换 MUST 按已登记的
+generation / fence 规则验证，**MUST NOT** 通过更换 `authority_set_ref` 清空旧锁却继续宣称同一 quorum 的
+证明仍然适用——跨配置的安全性需要单独证明「旧配置已关闭、新配置已启用」。此外，一条已被 signer 签名
+但最终没有获得 Seal 覆盖的 proposal 会占住它那把锁。**超时清锁不安全**：旧签名仍可流通。因此实现 MUST
+维持现有显式 recovery / fence 的失效路径；没有可验证的失效证据就 MUST NOT 解锁，也 MUST NOT 承诺该
+barrier 无条件可用。CAS 合并的收敛性（§9.3.1.4）不等于无冲突线性化、分区期间可用，或所有治理操作一定完成。
 
 “子集继续工作”只无条件适用于 `merge_safe`。不得宣传所有 open-set 治理操作都可在 quorum
 不可达时继续。

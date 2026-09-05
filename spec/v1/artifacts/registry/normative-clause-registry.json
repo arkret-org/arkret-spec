@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.5",
+  "version": "2026-09-05.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T12:40:00+08:00",
+  "generated_at": "2026-09-05T21:10:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -214,7 +214,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:b4d591b7555b17c6be9a261a3eee0283bffe2bb455a5b3832d874e6363ecffcb",
+      "section_digest": "sha256:7dfacf461910eb936a0525e8a927d00426d06a704b6933eac9941999a1cb872e",
       "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. Ordinary Collaboration bootstrap uses the ordered machine-registry facet closure with an explicit final creator membership and no implicit creator membership. The mutually exclusive Direct Conversation branch is exactly create, explicit peer membership, one basis-free main ak.strand.create, then explicit founder membership with head_eq null. Batch admission MUST reject both no-basis shapes anywhere else.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -232,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:a0903c1c6adab97b241e6f026aa3c2425eed8363b2fef08170cd1a8aa5281e5e",
+      "section_digest": "sha256:c1d209c0a9d58d8d47f82611aab32419b420247488823e9853ba57acd8a6e534",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest. Availability admission is authorized only by the joined predecessor state: genesis has no such authority, commits no AvailabilityReceipt, and materializes policy only for successor Seals.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -279,8 +279,8 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:f78f65310393fc2af80edf0db7333b0d77f894d15b50d076e3be39650c8f0322",
-      "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
+      "section_digest": "sha256:0f32848aa28461dbfd6b67f009f2da93c265d6daf10c68e042adde5d1d51345d",
+      "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC. cas_register is a causal register: an unwritten cell reads null, every write is identified by its EventId and supersedes exactly the heads it observed in its own signed seal_basis, a release is an explicit set null that keeps its own head, and the two-state merge over (covered set, active heads) is the least upper bound and agrees with the full causal history. Bottom is a function of the view, not a sticky local flag.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.lattice.mv_register_join.v1",
@@ -344,7 +344,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:249cea8d7e70c39233bc5eb78c1a54c0a1090999465ced4f88277ee1d74ac9c9",
+      "section_digest": "sha256:06440e3a7213540b5b90000d5ba8ffbff60b77afbaa72ccb3606a6cea84e1a03",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the claimed lifecycle transition is atomic with its subject-bound membership proposal; only invite acceptance writes member state. Directed invite live uniqueness is carried by the registered ak.component.invite.live_target.v1 slot: create claims it under a head_eq __unset__ precondition, every transition leaving the live set releases it under a head_eq create_event_id precondition, send_failed keeps it claimed, and a duplicate create is rejected with failed_precondition and invite_live_target_occupied at zero writes.",
       "testability_grade": "vector",
       "evidence_refs": [

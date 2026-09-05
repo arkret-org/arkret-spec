@@ -584,10 +584,10 @@
       },
       "assertions": [
         "the only source of truth for directed invite live uniqueness is ak.component.invite.live_target.v1 whose subject is the single-component composite over canonical_json(payload.invitee_account_id) and never contains realm_id",
-        "ak.invite.create carries head_eq __unset__ for that cell; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no cell write",
+        "ak.invite.create carries head_eq null for that cell and the Seal additionally derives the full head-identity guard for it; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no cell write",
         "the rejection details are closed to reason_code, invite_id and create_event_id and MUST NOT be reported as cas_conflict",
         "two concurrent directed creates contend on the same cell so exactly one wins under the CBA basis and the loser is rejected, independent of any implementation-private index or insertion order",
-        "a terminal invite releases the slot and a later create for the same account is accepted",
+        "a terminal invite releases the slot with an explicit set null write that keeps its own head, and a later create for the same account is accepted; a create whose basis is pinned to an earlier free state is still rejected because the head identities differ even though both settle to null",
         "reaching expires_at does not release the slot; only a registered Move does, so the slot stays claimed until ak.invite.revoke with target_state expired is accepted",
         "send_failed keeps the slot claimed and the payload schema forbids invitee_account_id there, so the client must revoke before creating a replacement invite",
         "a third-party invite whose revoke payload carries a forged invitee_account_id fails stored_field_matches_payload with reducer_projection_failed and releases no slot",

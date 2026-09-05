@@ -1198,18 +1198,6 @@
         },
         "parameters": {
           "type": "object"
-        },
-        "initial_value": {
-          "description": "Optional cell schema initial value (cas_register only). When defined, the cas_register `join` algorithm initialises `current` to this value (rather than null) before applying any Move. Combined with a `head_eq: <initial_value>` predicate on the first set Move, this implements singleton-once-set cells via the empty sentinel pattern. See event-auth-state-resolution.md §9.3.1."
-        },
-        "sentinel_writers": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-          },
-          "uniqueItems": true,
-          "description": "Optional companion to `initial_value` (cas_register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent check. See event-auth-state-resolution.md §9.3.1."
         }
       },
       "additionalProperties": false,
@@ -1263,43 +1251,6 @@
             },
             "required": [
               "plane"
-            ]
-          }
-        },
-        {
-          "$comment": "initial_value is only defined for cas_register (see event-auth-state-resolution.md §9.3.1). Other lattices reject the field.",
-          "if": {
-            "required": [
-              "initial_value"
-            ]
-          },
-          "then": {
-            "properties": {
-              "lattice": {
-                "const": "cas_register"
-              }
-            },
-            "required": [
-              "lattice"
-            ]
-          }
-        },
-        {
-          "$comment": "sentinel_writers is the companion of initial_value; it only makes sense on a cas_register cell that has declared initial_value. Reject declarations on other lattices, and reject declarations on cas_register cells that lack initial_value (since there is no sentinel to authorise writing back).",
-          "if": {
-            "required": [
-              "sentinel_writers"
-            ]
-          },
-          "then": {
-            "properties": {
-              "lattice": {
-                "const": "cas_register"
-              }
-            },
-            "required": [
-              "lattice",
-              "initial_value"
             ]
           }
         }

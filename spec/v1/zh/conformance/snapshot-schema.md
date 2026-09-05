@@ -115,6 +115,22 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 - `items` MUST 按 `(kind, id)` canonical byte order 排序。
 - `object` 是该 reducer profile 在 snapshot frontier 下的 materialized canonical object，包括 active object、active Relation、以及 reducer profile 声明需要保留的 tombstone / redaction verification stub。
 - `source_event_id` 是产生该 materialized object 当前版本的最后 accepted Event；字段级 merge 时 MAY 指向最后改变该对象任一字段的 Event。
+
+**`cas_register` control cell item 分支（normative）**：`items[]` 是一个封闭的类型联合，其第二个分支承载 `cas_register` control cell 的完整状态：
+
+```json
+{
+  "kind": "cas_cell",
+  "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+  "state": {"heads": [{"event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-", "value": null}]}
+}
+```
+
+- `kind` 逐字为 `"cas_cell"`，`id` 是完整 canonical cell 引用 `ak:cell:<component>:<subject>`；`state` 逐字是 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的 `cas_register` `state_object`，`heads[]` 的排序规则与该节一致（解码后 33-octet token 的 unsigned lexicographic 升序）。
+- 本分支 **MUST NOT** 携带 `object` 或 `source_event_id`：写入身份已经在 `heads[]` 内，**单个 `source_event_id` 表达不了多个活跃写入**，实现 MUST NOT 从中挑最后一个。
+- 成员判据与 §6.2.1 一致：`heads` 非空的 cell MUST 出现（含业务值为 `null` 与异值 `⊥` 的 cell），未写入的 cell MUST NOT 出现。
+- 排序、chunk 边界、摘要管线与 `state_digest` 的 leaf 规则完全沿用本节与 §4 的既有管线；实现 MUST NOT 为 CAS 另建私有快照格式。
+- **恢复后仍须能精确回答 membership（normative）**：从 snapshot 恢复的 receiver MUST 仍能精确回答「某个旧 Event 是否属于该 view 的覆盖集 `C`」，否则 §9.3.1.4 的合并式无法对迟到分支求值（迟到分支会被误当作「对方从没见过」而复活已取代的写入）。实现 MUST 保留共享 membership 索引，或按现有 root 取得有效证明；缺证据时 MUST hold / fail closed，MUST NOT 当成 `false`。未经有权 fence，实现 MUST NOT 只保留最近 N 次写入、删除 `value=null` 的 head，或删除「该 Event 曾被覆盖」这一事实。
 - content-addressed `chunk_ref` 的内嵌 suite/digest MUST 覆盖 chunk payload 的 canonical JSON bytes，是该 bytes 的唯一 wire commitment；descriptor 不携 sibling `digest`。Manifest `state_digest` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
 - `conflict_records`、`soft_failed` 和 `quarantined` 可为空，但 high-assurance snapshot MUST 通过 manifest `verification_hints` 提交这些集合的 digest，不能静默隐藏影响授权、可见性、E2EE epoch 或对象状态的非 accepted 输入。
 
@@ -132,7 +148,13 @@ Leaf hash：
 sha256(kind || ":" || id || ":" || sha256(canonical_json(object)))
 ```
 
-Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排序使用 `(kind, id)` canonical byte order；同一 `(kind,id)` 不得出现多个 leaf。空 Realm 或空 reducer output MAY 产生 `covered_event_count = 0` 与空 `frontier.event_ids`；此时 `state_digest` MUST 使用上文空 leaf 集合 root。不同 reducer profile 产生的 `state_digest` 不保证可比较，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 equivalent profile。
+`kind="cas_cell"` 分支没有 `object`，其 leaf hash 的内层原像与 §6.2.1 `state_root` 的 `leaf_preimage` 同源：
+
+```text
+sha256(kind || ":" || id || ":" || sha256(canonical_json({"cell": <id>, "state": <state_object>})))
+```
+
+Leaf 集合 MUST 与所有 chunk `items[]` 一一对应（`object` 分支取 `items[].object`，`cas_cell` 分支取上式）。Merkle leaf 排序使用 `(kind, id)` canonical byte order；同一 `(kind,id)` 不得出现多个 leaf。空 Realm 或空 reducer output MAY 产生 `covered_event_count = 0` 与空 `frontier.event_ids`；此时 `state_digest` MUST 使用上文空 leaf 集合 root。不同 reducer profile 产生的 `state_digest` 不保证可比较，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 equivalent profile。
 
 ## 5. Snapshot Signature
 

@@ -74,10 +74,15 @@
         "vector_id": "ak.vector.lattice.cas_register_supersession.v1",
         "lattice": "cas_register",
         "assertions": [
-          "a single maximal supersession chain resolves to its terminal value",
-          "same-from divergent successors resolve to bottom",
-          "a dangling non-initial supersession resolves to bottom",
-          "duplicate value/from operations are idempotent"
+          "an unwritten cell has no head and reads null",
+          "each write is identified by its EventId and supersedes exactly the heads observed in its own signed seal_basis",
+          "a release write is set null, keeps its own head, and stays distinguishable from an unwritten cell",
+          "A -> null -> A reads A, and A -> B -> A -> B reads B",
+          "concurrent writes with different values leave two heads and a bottom=reject cell materializes failed_bottom",
+          "concurrent writes with the same value keep both head identities and a successor that saw only one of them removes only that one",
+          "exact replay of the same identity and canonical effect is idempotent",
+          "merging two verified (covered set, heads) states is associative, commutative, idempotent and agrees with a full causal-history oracle",
+          "Bottom is recomputed per view, so a receiver that later observes the missing leaf converges with one that saw the full history"
         ]
       },
       {
@@ -410,15 +415,20 @@
     },
     {
       "name": "cas_mixed_basis",
-      "description": "cas_register writes on a non-initial settled value require an explicit CBA basis; null-basis blind overwrites fail closed.",
+      "description": "cas_register admission derives the full active-head identity guard from each write's own signed seal_basis and compares it to the frozen predecessor heads at Seal acceptance; equal business values are not enough.",
       "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
       "cell_lattice": {
         "plane": "control",
         "lattice": "cas_register",
-        "initial_value": null,
         "bottom": "reject"
       },
       "pre_state": {
+        "heads": [
+          {
+            "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+            "value": "v1"
+          }
+        ],
         "settled_value": "v1",
         "settled_by_seal": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
       },
@@ -444,30 +454,23 @@
             "result": "failed_precondition",
             "cell_value": "v1",
             "atomic_rejects_all_projected_writes": true,
-            "defensive_join_result": "bottom"
+            "note": "With no reconstructable signed basis the reducer cannot derive H_c(B); it MUST fail closed rather than degrade to an unconditional overwrite."
           }
         },
         {
-          "name": "control_move_with_head_eq_basis",
+          "name": "basis_heads_match_frozen_predecessor",
           "control_move": {
             "id": "ak:event:AeaeicCk67PpTYiIvF-BvVd3TUktGqz3d9DhGtTf_YzV",
             "plane": "control",
-            "preconditions": [
-              {
-                "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
-                "predicate": {
-                  "op": "head_eq",
-                  "value": "v1"
-                }
-              }
+            "basis_heads": [
+              "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
             ],
             "projected_writes": [
               {
                 "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
                   "kind": "set",
-                  "value": "v2",
-                  "from": "v1"
+                  "value": "v2"
                 }
               }
             ]
@@ -475,8 +478,69 @@
           "expected": {
             "result": "accept_after_valid_seal",
             "cell_value": "v2",
+            "heads_after": [
+              {
+                "event_id": "ak:event:AeaeicCk67PpTYiIvF-BvVd3TUktGqz3d9DhGtTf_YzV",
+                "value": "v2"
+              }
+            ],
             "replay_order_independent": true,
-            "note": "Per event-auth-state-resolution.md section 9.3.1 the projector copies the whole-value head_eq into op.from, so the join sees the v1 -> v2 supersession chain and settles on v2 instead of bottom. The blind write above deliberately has no from: it forms a second chain head and the defensive join stays bottom."
+            "note": "H_c(B) equals the frozen predecessor H_c(P), so the automatically derived identity guard passes. No wire head_eq is required for this cell."
+          }
+        },
+        {
+          "name": "stale_aba_basis_rejected",
+          "history": [
+            {
+              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+              "value": "v1"
+            },
+            {
+              "event_id": "ak:event:AS2Vj6xTGoP9uYq0mHkRz8fLwCd3NbXeAiKtQrSuVwY1",
+              "value": null
+            },
+            {
+              "event_id": "ak:event:AT7Hn4dQzLm2XcVbNa9KjPwEoRyUiTsGfDhJkLzXcVb2",
+              "value": "v3"
+            },
+            {
+              "event_id": "ak:event:AUq1WeRtYuIoPaSdFgHjKlZxCvBnM3456789012345Ab",
+              "value": null
+            }
+          ],
+          "control_move": {
+            "id": "ak:event:AVbNm4LkJhGfDsAqWeRtYuIoPzXcVbNm1234567890Cd",
+            "plane": "control",
+            "basis_heads": [
+              "ak:event:AS2Vj6xTGoP9uYq0mHkRz8fLwCd3NbXeAiKtQrSuVwY1"
+            ],
+            "projected_writes": [
+              {
+                "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
+                "op": {
+                  "kind": "set",
+                  "value": "v4"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "result": "failed_precondition",
+            "note": "Both the stale basis and the frozen predecessor settle to null, so a whole-value comparison would pass. The head identities differ, so the identity guard rejects the write. This is the ABA case the deleted value-edge join could not express."
+          }
+        },
+        {
+          "name": "self_derived_target_needs_no_wire_head_eq",
+          "control_move": {
+            "id": "ak:event:AWc5TgYhUjIkOlPmQnRsBtCvDwExFyGzHaIbJcKdLeM7",
+            "kind": "ak.call.create",
+            "plane": "control",
+            "preconditions": [],
+            "note": "The focus cell subject is derived from this Event's own event_id, so writing that cell_id into the digest-covered preconditions would be hash-self-referential."
+          },
+          "expected": {
+            "result": "accept_after_valid_seal",
+            "note": "The reducer derives the identity guard after the EventId is computed. Rejecting because preconditions[] carries no head_eq for this cell is non-conforming."
           }
         }
       ],
@@ -1193,7 +1257,7 @@
         },
         {
           "name": "resolution_state_witness_role_rejected",
-          "description": "state_witness attests a cell's legal value before Bottom; the fork-resolution cell is __unset__ before its first write, so the role has no referent here.",
+          "description": "state_witness attests a cell's legal value before Bottom; the fork-resolution cell has no active head before its first write (it reads null), so the role has no referent here.",
           "event_kind": "ak.fork.resolution",
           "critical_ref_roles": [
             "recovery_capability",
@@ -1702,7 +1766,7 @@
     },
     {
       "name": "conflict_recovery_move",
-      "description": "A bottom=reject control cell recovers only through a sealed ak.conflict.recovery Control Move with recovery_capability and a pre-conflict state_witness. The recovered value is the signed payload.resolved_value, projected by the registered cell_ref + reset form; no other kind may declare that form.",
+      "description": "A bottom=reject control cell recovers only through a sealed ak.conflict.recovery Control Move projected by the registered cell_ref + reset form; no other kind may declare that form. For fsm cells the pre-conflict state_witness family of requirements applies. For cas_register cells (event-auth-state-resolution.md section 9.5.1) the reset is a new identity write: the signed basis must show divergent heads, the state_witness inclusion requirement and its freshness window do not apply, recovery supersedes only the heads it observed, and arrival-order truncation is forbidden.",
       "cell": "ak:cell:ak.component.realm.policy.v1:null",
       "pre_conflict_value": {
         "policy_revision": 7
@@ -1836,7 +1900,18 @@
           }
         }
       ],
-      "vector_id": "ak.vector.cba_lattice.conflict_recovery_move.v1"
+      "vector_id": "ak.vector.cba_lattice.conflict_recovery_move.v1",
+      "cas_register_recovery": {
+        "cell": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+        "assertions": [
+          "the signed seal_basis MUST show divergent heads on the target cell; a recovery against a non-divergent cell is failed_precondition",
+          "no state_witness ref is required and recovery_witness_freshness_window_ms does not apply on this path",
+          "the recovery capability is still verified against its registered authority path, including revocation, scope and authority generation",
+          "the covering Seal still compares full heads H_c(B) = H_c(P); a branch that entered P forces a new recovery",
+          "a late branch the recovery basis never covered still merges, and two concurrent divergent recoveries still conflict",
+          "implementations MUST NOT truncate the op history at the last reset by arrival order"
+        ]
+      }
     },
     {
       "name": "same_seal_bottom_reject_serialization",

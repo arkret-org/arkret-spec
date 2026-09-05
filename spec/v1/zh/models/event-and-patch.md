@@ -224,8 +224,11 @@ Receiver MUST 在解析任何验签 key 前先确定唯一 signer regime，不�
 
 每个 `status=active && reducer_input=true` 的 durable Event kind MUST 在 `event-kind-registry.json`
 声明完整 reducer contract。`plane` / `sealed` 固定 CBA 路由；`cell_writes[]` 是 reducer 内部目标集合，
-每项固定 `cell_family`、`cell_subject` 派生式、`lattice`、`bottom`、可选 `initial_value`、可选
-`condition` 与必需 `effect_projection`。`condition` 是对已签名 Event 的封闭纯函数：payload 条件只允许
+每项固定 `cell_family`、`cell_subject` 派生式、`lattice`、`bottom`、可选
+`condition` 与必需 `effect_projection`。**registry MUST NOT 声明 `initial_value` / `sentinel_writers`
+（并因此不存在 `initial_value_reserved` 拒绝分支）**：`cas_register` 未写入初始态在全协议恒为 `null`
+（[`../authz/event-auth-state-resolution.md` §9.3.1.2](../authz/event-auth-state-resolution.md)），
+需要「空位」的 family 用一次显式 `set null` 释放写表达，其身份由该释放 Event 承载。`condition` 是对已签名 Event 的封闭纯函数：payload 条件只允许
 `field_present | field_absent | field_equals | any_field_present`；需要由 critical semantic ref 选择投影时只允许
 `critical_ref_role_exact_count{role,count}`，它精确统计 `refs[]` 中 `critical=true` 且 role 相等的元素。不得读取
 unsigned、服务本地 row、到达顺序或外部 lookup 决定某项 registered write 是否存在。这些声明不出现在 Event wire，

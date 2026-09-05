@@ -1228,7 +1228,7 @@ ak.vector.lattice.fsm_join.v1
 
 向量名称 `ak.vector.seal.same_batch_bottom_reject_serialization.v1`。构造两条基于同一 frozen predecessor、命中同一 `cas_register` 或 `fsm` `bottom=reject` cell 且 projected writes 互斥的 Control Move。Case A 的 notary 只 include 一条并对另一条 signed-reject `cas_conflict`（或 defer）；Seal MUST accept。Case B 的同一 Seal `delta[]` include 两条；`apply_seal` MUST 拒绝整个 Seal 为 `rejected_seal`，不得物化 `failed_bottom`。Case C 把两条 Move 放在不可达的并发 Seal leaf；joined view 仍 MUST 按 lattice 返回 `Bottom{kind="conflict"}`，证明排重义务不改变真正跨 leaf 并发语义。
 
-### 2.12 Vector: `cas_register` 混合 basis（非初始态盲写拒绝）
+### 2.12 Vector: `cas_register` 因果身份守卫（stale basis 与 ABA 拒绝）
 
 向量名称：
 
@@ -1236,24 +1236,28 @@ ak.vector.lattice.fsm_join.v1
 ak.vector.cba_lattice.cas_mixed_basis.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 的 **Basis 强制（normative）**：“cas_register 的 set write 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带针对本 cell 的 `head_eq` precondition；DataEvent MUST 通过 causal refs 与 lattice 规则表达同等 CAS 约束。缺失时，receiver MUST 以 `failed_precondition` 拒绝该 write，并按多 cell 原子性拒绝整个 reducer input，不接受‘无 CAS 强制写’。”
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1.3 的写入准入：每个 `cas_register` 写入的基线是它**自身签名的 `seal_basis`**，Seal 准入按 §6.3 step 8b 比较该 cell 的**完整活跃 head 身份集合** `H_c(B) = H_c(P)`。该守卫对每个注册目标自动派生，不要求 wire 重复携带 `head_eq`；业务另行登记的 `head_eq` 继续签名并执行。
 
-输入（cas_register cell，未声明 `initial_value`，初值 `null`；前置 Seal 已把 settled 值推进到 `value_1`，即非初始态）：
+输入（`cas_register` cell，未写入初始态为 `null`；前置 Seal 已由 Event `E1` 写入 `value_1`，因此 `H = {E1: "value_1"}`）：
 
-- **Case A — 非初始态盲写**：一条 set Event 写入 `value_2`，**不带**针对本 cell 的 basis 证明（null basis）。
-- **Case B — 正确 basis 收敛**：一条 set Control Move 写入 `value_2`，携带 `head_eq: "value_1"`（与 settled pre-state 一致）。
+- **Case A — 无 basis 的盲写**：一条声明使用 CAS 语义的 DataEvent 写入 `value_2`，没有可重建的签名 basis。
+- **Case B — 基线正确的写入**：一条 Control Move 写入 `value_2`，其签名 `seal_basis` 重建出的 `H_c(B) = {E1}`，与冻结 predecessor 基线一致。
+- **Case C — stale ABA**：`E1` 之后由 `E2` 释放（`set null`，`H = {E2: null}`），再由 `E3` 占用（`H = {E3: ...}`），最后由 `E4` 再次释放（`H = {E4: null}`）。此时提交一条**基线停留在 `H = {E2}`** 的写入：它的业务 settled value（`null`）与冻结基线的业务 settled value（同为 `null`）**逐字节相同**。
+- **Case D — 自派生目标**：`ak.call.create` 写入其 focus cell，该 cell 的 subject 派生自本 Event 自己的 `event_id`，因此 `preconditions[]` 内**没有**该 cell 的 `head_eq` 条目。
 
 期望：
 
-- **Case A**：receiver MUST 以 `failed_precondition` 拒绝整个 Event（多 cell 原子性，不得部分应用其余 projected writes）；cell 保持 `value_1`。若此类 Event 越过验证进入 join（防御性路径），join MUST 返回 ⊥，MUST NOT 把 null-basis 盲写当作合法覆盖。
-- **Case B**：Control Move 接受并在被 accepted Seal 覆盖后使 cell 收敛到 `value_2`；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
-- “无条件覆盖”语义 MUST 通过 profile 显式注册的专门高权限 event kind 或 §8 conflict-recovery 路径表达，不得通过省略普通 set Control Move 的 `head_eq` 实现。
+- **Case A**：receiver MUST 以 `failed_precondition` 拒绝整个 Event（多 cell 原子性，不得部分应用其余 projected writes）；cell 保持 `value_1`。缺 basis 就无法派生 `H_c(B)`，MUST NOT 退化成无条件覆盖。
+- **Case B**：Control Move 接受并在被 accepted Seal 覆盖后使 cell 收敛到 `value_2`，`H = {E_B: "value_2"}`；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
+- **Case C**：MUST 以 `failed_precondition` 拒绝——`H_c(B) = {E2} ≠ {E4} = H_c(P)`。**业务值相等不足以通过**：这是身份守卫封闭的 stale ABA，whole-value 比较无法表达它。
+- **Case D**：MUST 接受。守卫由 reducer 在 EventId 算出后自动派生并执行，实现 MUST NOT 因为 `preconditions[]` 里缺该 cell 的 `head_eq` 而拒绝它，也 MUST NOT 要求 producer 把自身 `event_id` 派生的 `cell_id` 写进被 digest 覆盖的签名前像（哈希自引用，§9.3.1.3）。
 
 失败条件：
 
-- Case A 被当作 first set 放行（settled 非初始态时 null basis 仅在 settled == initial 时合法）。
-- Case A 在 join 阶段被静默接受为 last-write-wins 覆盖。
-- Case B 因实现把 basis 校验错误地提前到与 Case A 相同的拒绝路径而被误拒。
+- Case A 被当作 first set 放行。
+- Case C 因两边业务 settled value 都是 `null` 而被放行（**本向量的核心负例**）。
+- Case D 因「每个目标 cell 都必须有 wire `head_eq`」的旧读法被拒。
+- 任何实现保留按 `(value, from)` 接边、pair 去重或极大链枚举的 CAS join（§9.3.1.4 已整体删除该定义）。
 
 ### 2.13 Vector: `ordered_log` sparse actor sequence
 
@@ -5629,10 +5633,10 @@ Steps:
 
 Expected:
 
-- 正例：`ak.invite.create` 携带 `ak.component.invite.live_target.v1` 的 `head_eq:"__unset__"`，原子写 lifecycle 与 slot；slot subject 是 `canonical_json(payload.invitee_account_id)` 的单分量 composite，**不含 `realm_id`**。
+- 正例：`ak.invite.create` 携带 `ak.component.invite.live_target.v1` 的 `head_eq: null`，原子写 lifecycle 与 slot；slot subject 是 `canonical_json(payload.invitee_account_id)` 的单分量 composite，**不含 `realm_id`**。
 - 负例：第 1 步的第二条 create MUST `failed_precondition` + `reason_code="invite_live_target_occupied"`，不进 canonical history、零 cell write、零投影、零通知；`error.details` 严格通过 [`service-operation-dtos.schema.json#/$defs/InviteLiveTargetOccupiedProblem`](../../artifacts/schemas/service-operation-dtos.schema.json)，即只含 `reason_code` / `invite_id` / `create_event_id`。MUST NOT 返回 `cas_conflict`，MUST NOT 作为幂等成功返回既有 `invite_id`。
 - 正例：第 2 步的两条并发 create 争用同一个 cell，恰好一条获胜，结果由 CBA basis 唯一确定，与任何实现私有唯一索引或数据库插入先后无关。
-- 正例：第 3 步的重新邀请被接受（终态 Move 已释放格子）。
+- 正例：第 3 步的重新邀请被接受（终态 Move 已释放格子）。释放写是 `set null`；新 create 的 `head_eq: null` 再次成立，同时 Seal 准入按 §6.3 step 8b 要求它的基线 heads 等于释放写的身份——**一条基线停留在更早那次空格上的 create MUST 被拒**，即使两次的业务值同为 `null`。
 - 负例：第 4 步的新 create 仍 MUST `invite_live_target_occupied`——`expires_at` 到达不释放格子，只有已登记的 `ak.invite.revoke(target_state="expired")` 才释放。
 - 负例：第 5 步直接重发 create MUST `invite_live_target_occupied`；先 `ak.invite.revoke(target_state="revoked")` 再 create MUST 被接受。`send_failed` 分支的 `ak.invite.revoke` payload MUST NOT 携带 `invitee_account_id`（schema `if/then`），因而不派生 slot 释放写。
 - 负例：第 6 步两种形态 MUST 都以 `failed_precondition` + `reducer_projection_failed` 原子拒绝（`stored_field_matches_payload` 的两个方向）。前者保证 3PID invite 不能释放别人的 direct slot，后者保证 direct invite 不能靠省略字段把格子永久占住。
@@ -6207,25 +6211,26 @@ runner MUST 执行 `privacy-security-fixture.json` 的 Actor Profile accountabil
   条目的 Profile 写入必须拒绝；
 - 任何“接受 Event，但从数组剔除无 grant 条目后再写入”的结果均不符合本向量。
 
-## 30. cas_register supersession join closure vector
+## 30. cas_register 因果 heads join closure vector
 
 `vector_id`: `ak.vector.lattice.cas_register_supersession.v1`
 
-规则正文见 [`../authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md)。
+规则正文见 [`../authz/event-auth-state-resolution.md` §9.3.1.1 至 §9.3.1.4](../authz/event-auth-state-resolution.md)。
 
 Runner MUST 覆盖：
 
-1. 顺序治理生命周期 declaration → whole-value `head_eq` tombstone → 再 declaration 的三个
-   set op join 到单一终值，不落 `⊥`；
-2. 同一前驱（相同 `from`）上的两个不同值 set 形成两条极大链，join 为 `⊥`，`bottom=reject`
-   cell 物化 `failed_bottom`；
-3. 非链首 op 的 `from` 不匹配集合内任何 op 的 value（悬空取代）时 join 为 `⊥` fail closed；
-4. 同 `(value, from)` 的重复 set 幂等去重，不产生第二条链；
-5. value 复用（ABA）按 value 绑定语义收敛到最长链终值；带单调分量（如 `policy_revision`）
-   的 family 不产生歧义；
-6. 任意 prefix-closed 覆盖子集重算 join 得到该子集的确定性历史 view。
+1. **未写入读 `null`**：空 heads 的 cell settled value 是 `null`，且该 cell 不占 `state_root` leaf；
+2. **线性生命周期**：declaration → tombstone → 再 declaration，每次写入取代它在自身签名 basis 下观察到的全部 heads，最终只剩一个 head，不落 `⊥`；
+3. **释放为 `null` 是一次有身份的写入**：`set null` 之后 heads 非空、业务读 `null`、且该 cell **仍在** `state_root` 中，与「从未写入」可区分；
+4. **ABA / ABAB 可区分**：`A → null → A` 读 `A`；`A → B → A` 与 `A → B → A → B` 分别读 `A` 与 `B`（按 value 接边求值会在这两组输入上给出相同答案，因此这样的实现 MUST 失败）；
+5. **并发异值落 `⊥`**：两个互不可见的写入产生两个异值 head，`bottom=reject` cell 物化 `failed_bottom`；
+6. **同值并发保留全部身份**：两个互不可见的写入产生同值的两个 head 时，业务读该值，但两个 EventId MUST 都保留在 heads 与 `state_root` leaf 中；随后只观察到其中一个分支的后继 MUST NOT 删掉它没见过的那个 head；
+7. **exact replay 幂等**：同身份、同 canonical effect 的重复投影不产生第二个 head；同身份、不同 effect MUST 走验证错误 / §6.3.3 碰撞路径，MUST NOT 交给 lattice 选一个；
+8. **合并的 ACI**：对任意两/三个已验证状态 `(C,H)`，§9.3.1.4 的合并式满足结合律、交换律、幂等性，且与「对完整因果历史求活跃写入集合」的独立 oracle 逐例一致；
+9. **`⊥` 非粘滞**：并发分支各写 `A`、`B` 后各自在未见对方时续写同一个 `T`；只观察到部分 leaf 的 receiver 与观察到完整历史的 receiver MUST 在补齐 leaf 后收敛到同一结果（读 `T`）；
+10. **任意 prefix-closed 覆盖子集**重算得到该子集的确定性历史 view。
 
-## 31. Key backup delete authority closure vector
+## 31. Key backup delete authority closure vector## 31. Key backup delete authority closure vector
 
 `vector_id`: `ak.vector.key_backup.delete_authority.v1`
 

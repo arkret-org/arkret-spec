@@ -256,6 +256,8 @@ verify_control_move(M, pre_state):
   4. 验 refs[] 中所有 critical ref 已知且 valid。
   5. 对每个 precondition 读取 pre_state 并判定。
   6. 从 kind + payload 派生全部 write，对每项执行 lattice validate_op 与 authz check；DM profile 还必须在同一 seal_basis joined view 求值 participant source 与 root-owner phase mask。
+  6b. 对每个命中 cas_register cell 的注册写入，从本 Move 自身签名 seal_basis 重建的 view 派生该 cell 的完整活跃 heads H_c(B)（§9.3.1.1）。
+      这是自动派生的身份守卫，不要求 wire 重复携带 head_eq；它在 Seal 接受时按 §6.3 step 8b 与冻结 predecessor 基线逐身份比较。
   7. PASS / FAIL。
 ```
 
@@ -361,6 +363,8 @@ Seal MUST 签 `control_event_set_root`。默认 root 是对 canonical 升序 `co
 
 `control_event_set_root` 是 Seal、控制面 receipt obligation、inclusion list、censorship evidence 与 seal transparency 的共同锚点。`delta[]` 只是本批新增集合；Control Move 仅用 `seal_basis.leaves[]` 引用该承诺；root 承诺的是递归覆盖集。Compaction Seal MAY 显式携带 `covered_event_digests[]`，但 receiver MUST 验证它等于 `delta[]` 与所有 predecessor 覆盖集的并集。
 
+**compaction 不消除精确 membership 的信息量（normative）**：累计覆盖集 root 压缩的是**承诺**，不是任意 Event 的成员关系。`cas_register` 的合并式（§9.3.1.4）需要判断某个身份是否属于对端的 `C`，因此实现 MUST 在本地索引、共享索引或可验证证明中保留足以精确回答该 membership 的信息；MUST NOT 宣称「只保留一个 root 就能以常数空间精确回答任意 membership」。缺证据时 MUST hold / fail closed，MUST NOT 把「查不到」当成 `false`。
+
 **Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_signer` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ak.vector.cba_lattice.seal_compaction_interval_enforced.v1` 固定。
 
 ### 6.2.1 治理 `state_root` 的 Merkle 计算规则（normative）
@@ -370,10 +374,23 @@ Seal 顶层的治理 `state_root`（§6 Seal schema、§6.3 step 10 "重算治�
 leaf 集合与顺序：
 
 - **成员（单一判据）**：一个 control cell 进入 `state_root` leaf 集合，当且仅当它被 `covered(L)` 中某个 Control Move 的注册 reducer contract 命中，且在 joined 治理视图下得到 non-`⊥` 的确定值。data plane cell 不进入 `state_root`。
+  - **`cas_register` 例外（normative）**：`cas_register` cell 的成员判据是「该 cell 在 `covered(L)` 下的活跃 heads 集合 `H_c` 非空」。**未写入的 cell 不占 leaf；一旦发生过写入，即使业务值是 `null`、即使 heads 异值处于 `⊥`，该 leaf 也 MUST 出现在 `state_root` 中。** 理由是 §9.3.1.2 把「从未写入」与「释放为 `null`」定义成两个不同的写入状态，而单纯的 non-membership proof 无法区分它们；把 `⊥` 排除在 root 之外同样会让「未写入」与「冲突」不可区分。
   - **`state_root` 只承认注册 reducer 输出（normative）**：未在 canonical reducer contract `cell_writes[]` 登记的隐含写入 MUST NOT 进入 `state_root`、inclusion proof 或轻客户端授权判据。散文中的“顺带写入”没有规范效力。
 - **每个 cell 的 leaf 输入**：`leaf_preimage = canonical_json({ "cell": "<cell_wire_id>", "state": <state_object> })`，其中
   - `<cell_wire_id>` 是该 cell 的 canonical tuple 引用 `ak:cell:<component>:<subject>`（[`conformance/encoding.md` §4](../conformance/encoding.md)）；
-  - `<state_object>` 在 cell 物化为具体值时为 `{ "value": <lattice_value> }`。`⊥`（`failed_bottom`，§9.1.1）cell **一律不进入** `state_root` leaf 集；它通过失败状态、冲突 heads 与 §9.5 recovery witness 暴露，不作为治理 root 成员编码。
+  - `<state_object>` 在 cell 物化为具体值时为 `{ "value": <lattice_value> }`。非 `cas_register` 的 `⊥`（`failed_bottom`，§9.1.1）cell **一律不进入** `state_root` leaf 集；它通过失败状态、冲突 heads 与 §9.5 recovery witness 暴露，不作为治理 root 成员编码。
+  - **`cas_register` 的 `state_object`（normative）**：`cas_register` cell 的 `<state_object>` 是完整活跃 heads 的封闭形态
+
+    ```json
+    {"heads":[{"event_id":"<EventId>","value":null}]}
+    ```
+
+    - `heads[]` 按每个 `event_id` 解码后的 33-octet token（[`../conformance/encoding.md` §4](../conformance/encoding.md)：suite code 字节后接完整 digest 字节）作 unsigned lexicographic 升序排列，身份在数组内唯一；`value` 是该写入的完整 canonical JSON 值。MUST NOT 直接比较 `ak:event:` wire string。该顺序只固定 bytes，MUST NOT 被用来在 heads 之间挑选 winner——异值 heads 一律按 §9.3.1.2 落 `⊥`。
+    - MUST NOT 另存冗余的 `settled_value` / `bottom` 字段：业务 settled value 与 `⊥` 判定按 §9.3.1.2 从 `heads` 唯一派生。空 `heads` 不是合法 leaf（未写入的 cell 不占 leaf），因此它与「释放为 `null`」不会混淆。
+    - `leaf_preimage`、`canonical_json` 口径与 leaf hash 规则不变；只有 `<state_object>` 的形状与上一条的成员判据改变。
+    - 业务读接口 MUST 返回派生的业务值，MUST NOT 把内部 `heads` 数组当作领域值直接返回。
+    - 一份有效的完整 CAS state leaf 证明认证的是**完整 heads**；单个 Event 的 inclusion proof 只证明它曾被覆盖，MUST NOT 被用来断言它仍是当前 head。对 multi-leaf view，MUST 先证明每个输入 view 的完整 state 与 `C` membership，再按 §9.3.1.4 重建。
+    - 承诺只能检测篡改，不能单独证明计算正确：Seal / snapshot 的接受仍须复算，或满足已登记且明确的验证 / 信任路径。一个 producer 签下任意 `heads` 并不使其成为有效状态。
   - `canonical_json` 按 [`conformance/encoding.md` §2](../conformance/encoding.md)（RFC 8785 JCS 同口径）。
 - **leaf hash**：`leaf = H(0x00 || leaf_preimage_utf8_bytes)`（§6.2.2；先取 canonical JSON 的 UTF-8 字节，再前缀 `0x00`）。
 - **leaf 顺序**：按 `<cell_wire_id>` 的 Unicode code point 升序排列；树构造本身不再排序（§6.2.2）。
@@ -413,6 +430,10 @@ apply_seal(A):
   8. 在 predecessor joined governance state 下批量 verify_control_move(delta[])
      （"批量"= delta[] 内每个 Move 的 preconditions[] 均对**同一冻结 predecessor 基线**求值，
       同批前序 Move 的 projected write MUST NOT 提前进入后续 Move 的 precondition 基线；与 §6.3.1 step 3 同一 frozen-baseline 规则）。
+   8b. 对 delta[] 中每个命中 `cas_register` cell 的注册写入，按 §9.3.1.3 第 3 项执行**完整 heads 守卫**：
+      该 Move 自身签名 `seal_basis` 重建的 `H_c(B)` MUST 逐身份等于冻结 predecessor 基线的 `H_c(P)`；
+      不相等即 stale，MUST 以 `failed_precondition` 拒绝该 Move（并按 step 9 拒绝整个 Seal），
+      即使两边业务 settled value 相同。该守卫对每个注册目标自动派生，不要求 wire 重复携带 `head_eq`。
   9. 任一 Control Move 失败则拒绝整个 Seal。
   10. 原子应用由 Control Move kind + payload 派生的注册 reducer writes，重算治理 state_root。
   11. state_root 匹配则接受；否则拒绝并生成 seal fault 诊断。
@@ -436,7 +457,9 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
    - **precondition 求值基线（frozen predecessor，normative）**:每个 Move `M` 的 `preconditions[]` **MUST** 对 `M` 在 `covered(L)` 内**因果前驱**的 joined 治理状态求值——即冻结在"`M` 及所有与 `M` 并发的 Move 尚未应用"的那个 predecessor 基线上；线性化中排在 `M` 之前的**并发** Move 的 projected writes **MUST NOT** 进入 `M` 的 precondition 求值基线。这与全协议 CBA basis 规则同一（`ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`）:同批 / 并发前序 writes 只提供原子提交便利，不自我满足后续 precondition。
    - **对强一致 cell 的后果**:因此同一 `cas_register` / `fsm` cell 上的两个并发互斥写**都**通过各自 precondition（都看见同一冻结基线），在 step 4 join 到 `⊥`——枚举顺序 **MUST NOT** 被用来给任何治理或数据 domain 静默选出单一 winner。
    - **同 Seal 排重义务（normative）**：notary 能同时观察同一拟议 `delta[]`，因此对命中同一 `bottom=reject` cell、且在冻结基线下 projected writes 互斥的 Move，MUST 至多 include 一条；其余 MUST signed-reject（`reason_code="cas_conflict"`）或 defer 到后续 Seal 重新按新 basis admission。`apply_seal` MUST 重算此条件；同一 Seal 覆盖两条此类互斥 Move 时整个 Seal MUST `rejected_seal`，不得先把 cell join 到 `⊥`。该义务不为 Move 选择协议 winner：notary 可以拒绝全部，也可以依其公开调度 policy 选择至多一条；跨不可达 Seal leaf 的真正并发仍按 step 4 / §9.5 产生 `⊥`。
-4. **per-cell Lattice join**:每个 control cell 按其声明的 lattice（§9）合并 `covered(L)` 中所有命中该 cell 的 Move 效果；`cas_register` / `fsm` 等强一致 cell 上的并发互斥写按 §9.1.1 进入 `⊥`（`bottom=reject` 则该 cell 物化为 `failed_bottom`，依赖它的后续 Move fail closed，按 §9.5 conflict-recovery 解析）。落 `⊥` 的 cell 是治理终态，**不进入** `state_root`（§6.2.1）;它**不能**被普通后续 Control Move 收敛，唯一出路是 §9.5 的 conflict-recovery Move。
+4. **per-cell Lattice join**:每个 control cell 按其声明的 lattice（§9）合并 `covered(L)` 中所有命中该 cell 的 Move 效果；`cas_register` / `fsm` 等强一致 cell 上的并发互斥写按 §9.1.1 进入 `⊥`（`bottom=reject` 则该 cell 物化为 `failed_bottom`，依赖它的后续 Move fail closed，按 §9.5 conflict-recovery 解析）。
+   - **`cas_register` 的合并形态（normative）**：本步对 `cas_register` 求值的是 §9.3.1.1 的完整状态 `(C, H_c)`，多 leaf 之间按 §9.3.1.4 的合并式求最小上界，**不是**对业务值或 Bottom 标签取并。写过的 `cas_register` cell（含业务 `null` 与异值 `⊥`）按 §6.2.1 的 `cas_register` 例外**进入** `state_root`。`⊥` 状态下**普通** Control Move 仍不能写该 cell（§9.3.1.3 与 §9.1.1「`⊥` 不是本地粘滞标志」一段：普通写入不得以含异值 heads 的签名 basis 写入），唯一出路是 §9.5.1 的 conflict-recovery Move；但一个只观察到部分分支的 receiver **MUST NOT** 把 `⊥` 记成永久标志——它在补齐 leaf 后按本式重新求值。
+   - **其它 `bottom=reject` lattice（典型 `fsm`）**：落 `⊥` 的 cell 是治理终态，**不进入** `state_root`（§6.2.1）;它**不能**被普通后续 Control Move 收敛，唯一出路是 §9.5 的 conflict-recovery Move。
 5. **结果**:`J(L)` 是所有 control cell 的 join 结果集合；它就是 receiver 在 step 8 `verify_control_move` 与所有授权判定（capability / membership / policy）所用的 "predecessor joined governance state"。
 
 `J(L)` 是 `L` 的纯函数（不依赖到达顺序、本地时钟或接收方身份），因此观察到相同 leaf 集的 receiver 得到逐 cell 相同的治理状态；leaf 集不同的 receiver 在缺失 leaf 补齐后收敛到同一 `J`。compaction Seal（§6.2）把 `covered(L)` 物化为有界 bootstrap 点，使新 verifier 无需重放全链即可重建 `J`。
@@ -447,7 +470,7 @@ accepted Seal 的 `covered_set`、`control_event_set_root`、`completeness_root`
 
 唯一 DID-root recovery 例外：合法 `ak.device.reanchor` 的 `pre_fence_seal_frontier` predecessor closure 内的历史 Seal/Event 完整保留；closure 外、仅由旧 device generation 签发的 Event/Seal 保留原始 bytes 但进入 `fork_quarantine`，不得进入当前 joined view。该例外改变的是旧 generation 对**当前** view 的贡献，不改写 closure 内任何 accepted Seal 承诺。首个新-generation Seal 必须以 `pre_fence_seal_frontier` leaves 为精确 predecessors，delta 覆盖 re-anchor unit；不满足不得成为 accepted Seal。
 
-该状态下 receiver MUST 对受影响 `(actor_id, actor_seq)` 之后的 Control Move fail closed，直到有 fork-resolution capability 的主体按 federation §4.5 证据签发 recovery / fork-resolution compaction Seal。该 Seal 的 `delta[]` MUST 覆盖唯一的 `ak.fork.resolution` Control Move；其 closed payload 由三部分构成：`subject` 是被裁决的争议对象、`conflict_evidence` 是证明该对象确实处于争议的**有界最小证据集**、`verdict` 是 `canonical_winner` 或 `void_all`。`subject` MUST 是整个 `(realm_id, actor_id, actor_seq)` 位置（`event_sibling_position`，Realm 取自本 Event envelope）或一个碰撞 `event_id`；`prev_frontier_digest` 属于 evidence，MUST NOT 进入 subject——否则同一位置的单桶越界与跨桶越界会形成两个可给出不同 winner 的 resolution cell。证据集的基数由 v1 上限唯一决定：单桶越界恰 17 条 `event_ids[]`，跨桶越界恰 65 条，领域不可 join 为 2..64 条并携已登记 `cell_family`（receiver 从 registry 取该 family 的 lattice 重跑不可 join 事实，不信任 producer 自报）。**授权唯一 MUST 是恰一个 critical `refs[]` `role=recovery_capability`**，其 action 精确为 `ak.fork.resolution`；可选 `attestation` / `inclusion_proof` refs MAY 作为补充证据；`role=state_witness` MUST 被拒绝——它在 §9.5 的语义是"见证 cell 在 `⊥` 之前的合法单值"，而本 cell 首次写入前为 `__unset__`，不存在可见证的冲突前单值，因此 MUST NOT 复用 `recovery_witness_missing` 等 §9.5 reason。该 Move 按普通 `apply_seal` 与 `verify_control_move` 管线写入 `ak.component.fork_resolution.v1` cas-register cell，`cell_subject` 只由 `subject` 决定；不得扩展 Seal 顶层或新增独立 clear authority。sibling winner MUST 以 `event_id` 指认且 MUST 属于本 Move 自身的证据集；`void_all` 使该 Realm 内该位置的全部当前及未来变体终局作废，后到变体 MUST NOT 复活它——该 actor 的 authoring chain 因此停在被作废位置之下，所以 `void_all` 只在不存在任何合法变体时正确。归一结果从 predecessor 已承诺状态写入后继，不能声称旧 Seal 从未覆盖原 Move。notary 在签发普通 Seal 前 SHOULD 检查 `delta[]` 中每个 Move 的已知 sibling 桶和跨桶累计计数，已越界者 MUST NOT 纳入普通 Seal。
+该状态下 receiver MUST 对受影响 `(actor_id, actor_seq)` 之后的 Control Move fail closed，直到有 fork-resolution capability 的主体按 federation §4.5 证据签发 recovery / fork-resolution compaction Seal。该 Seal 的 `delta[]` MUST 覆盖唯一的 `ak.fork.resolution` Control Move；其 closed payload 由三部分构成：`subject` 是被裁决的争议对象、`conflict_evidence` 是证明该对象确实处于争议的**有界最小证据集**、`verdict` 是 `canonical_winner` 或 `void_all`。`subject` MUST 是整个 `(realm_id, actor_id, actor_seq)` 位置（`event_sibling_position`，Realm 取自本 Event envelope）或一个碰撞 `event_id`；`prev_frontier_digest` 属于 evidence，MUST NOT 进入 subject——否则同一位置的单桶越界与跨桶越界会形成两个可给出不同 winner 的 resolution cell。证据集的基数由 v1 上限唯一决定：单桶越界恰 17 条 `event_ids[]`，跨桶越界恰 65 条，领域不可 join 为 2..64 条并携已登记 `cell_family`（receiver 从 registry 取该 family 的 lattice 重跑不可 join 事实，不信任 producer 自报）。**授权唯一 MUST 是恰一个 critical `refs[]` `role=recovery_capability`**，其 action 精确为 `ak.fork.resolution`；可选 `attestation` / `inclusion_proof` refs MAY 作为补充证据；`role=state_witness` MUST 被拒绝——它在 §9.5 的语义是"见证 cell 在 `⊥` 之前的合法单值"，而本 cell 首次写入前没有任何活跃 head（§9.3.1.2 读作 `null`），不存在可见证的冲突前单值，因此 MUST NOT 复用 `recovery_witness_missing` 等 §9.5 reason。该拒绝与 §9.5.1 删除 `cas_register` recovery 的 witness 强制依赖同向。该 Move 按普通 `apply_seal` 与 `verify_control_move` 管线写入 `ak.component.fork_resolution.v1` cas-register cell，`cell_subject` 只由 `subject` 决定；不得扩展 Seal 顶层或新增独立 clear authority。sibling winner MUST 以 `event_id` 指认且 MUST 属于本 Move 自身的证据集；`void_all` 使该 Realm 内该位置的全部当前及未来变体终局作废，后到变体 MUST NOT 复活它——该 actor 的 authoring chain 因此停在被作废位置之下，所以 `void_all` 只在不存在任何合法变体时正确。归一结果从 predecessor 已承诺状态写入后继，不能声称旧 Seal 从未覆盖原 Move。notary 在签发普通 Seal 前 SHOULD 检查 `delta[]` 中每个 Move 的已知 sibling 桶和跨桶累计计数，已越界者 MUST NOT 纳入普通 Seal。
 
 #### 6.3.3 已 Seal Control Move 的完整 digest collision（normative）
 
@@ -457,8 +480,12 @@ accepted Seal 的 `covered_set`、`control_event_set_root`、`completeness_root`
 
 1. **归一裁决 MUST 按 canonical bytes 指认，不得按 digest 指认。** `subject.kind=event_id_collision` 时，`conflict_evidence.kind` MUST 是 `full_hash_collision` 且恰含两个 locator；两个 locator 解出的完整 canonical Event bytes MUST byte-distinct、各自独立通过结构 / suite / proof 前置检查并重算为同一完整 `event_id`。locator 是封闭 XOR：`inline_canonical_bytes` 直接内联，或 `collision_variant_record` 引用 `ak.schema.collision_variant_record.v1`。**reference 分支是必需的而非便利**：接近 1 MiB 上限的原 Event 再经 base64 内联必然使 resolution Event 自身越过 §2.1.1 的 1 MiB 边界，那样的碰撞将不可裁决。引用时 payload 签入 `collision_variant_record_id` 与 `collision_variant_record_digest`；receiver MUST 经 `ak.self.seals.read.governance_dependencies.v1` / `ak.peer.seals.read.governance_dependencies.v1` 的 `collision_variant_record` selector 取得完整 record，重算 `collision_variant_record_digest = <Realm active suite>(JCS(record))`——原像是**含 `proof` 的完整 canonical record**，与 proof 自身的 `payload_digest`（其原像删去 `proof`）是两个不同摘要，不得互相代入——并与 locator 签入的值逐字比对；随后校验其 proof（context `ak.collision_variant_record_proof.v1`，controller 等于本 Move 的 `executed_by ?? actor_id` 且为已验证 recovery-capability 持有者）、`realm_id` 等于本 Event Realm、解码 bytes 长度与 `canonical_event_size_bytes` 一致、并独立重算出 `collision_event_id` 后，才可继续 `apply_seal`；record 缺失是 typed dependency missing，record 非法则拒绝 Seal。record 不进入 Seal `covered_set`——Seal 覆盖的是引用它的 resolution Move。`verdict.kind=canonical_winner` MUST 以 `winner_index ∈ {0,1}` 指向同一 Move 的 `conflict_evidence.variants[winner_index]`；该 locator 解出的完整 bytes 就是 winner，verdict 不得再携第三份 locator 或 preimage。`void_all` 明确作废本 Realm 内整组。receiver MUST 拒绝仅以 `event_id` / `event_digest`、另一 suite discriminator、长度或局部 byte slice 指认胜出变体的 Move，reason code `witness_disagreement`：在碰撞 suite 下这样的裁决没有指称。碰撞组可能跨 Realm；本 Move 只治理其 envelope `realm_id` 内的投影，winner MUST 是其 canonical bytes 内 `realm_id` 等于本 Realm 的变体，其它 Realm 由各自恢复权威独立裁决。
 2. **不得事后重算历史 Seal 输入。** receiver MUST 把该 Seal 已物化的确定性 reducer 输出与它当初实际应用的 canonical bytes 一起钉住，并 MUST NOT 在检出碰撞后用任一变体重新推导它。未保留当初 bytes 的 receiver MUST 把该 Seal 覆盖区间视为不可验证并 fail closed，直到归一裁决到达；它 MUST NOT 用任取一个变体重算出的 `state_root` 冒充原承诺。
-3. **碰撞区间不得被 compaction 跨越。** compaction Seal 的意义是给新 verifier 一个有界 bootstrap 物化点（§6.2）。区间内存在未归一的完整 digest collision 时，notary MUST NOT 签发跨越该区间的 compaction Seal——新 verifier 无法从 digest 重建被覆盖的 preimage，物化点因此不可复现。归一裁决自身承载 canonical bytes，可以是 compaction Seal。
-4. **跨 suite discriminator 只是诊断。** 实现 MAY 对同一 canonical preimage 另算一个**不同** active suite 的 digest 作为紧凑区分符；由于 `blake3` 是 profile-gated 的 `v1_optional_interop`（[`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)），它 MUST NOT 成为裁决的唯一指称，也 MUST NOT 成为对端验证该裁决的前提。
+3. **accepted `canonical_winner` 是 winner bytes 的准入 authority（normative）**：该 Move 由 recovery capability 授权、被 accepted Seal 覆盖，并逐字承载 winner 的完整 canonical bytes，因此它自身就是准入依据。receiver（包括**只持有 loser** 的 receiver）MUST 在应用该 resolution 时，把 `conflict_evidence.variants[winner_index]` 解出的完整 canonical bytes 作为该 `event_id` 在本 Realm 的 accepted 变体，MUST NOT 因为本地已存在另一份同 `event_id` 的 bytes 而报 `witness_disagreement` 或再次整组 quarantine。准入前 MUST 独立重跑该 winner 自身的完整前置检查：结构与 schema、Realm 声明的 suite、producer proof、`realm_id` 等于本 Realm、以及重算出的 `event_id` 逐字等于被裁决的 ID；任一项不成立 MUST 拒绝该 resolution 并保持原状态，MUST NOT 部分应用。loser bytes MUST 作为 forensic 变体保留在碰撞 bucket 内，MUST NOT 进入 accepted 读取面；loser 派生的 writes 按 [`../sync/operations-sync.md` §12](../sync/operations-sync.md) 的既有移除规则处置。该准入不重算任何历史 Seal 的 `state_root` 或 reducer 输出（第 2 点）。已持有 winner 的 receiver 应用同一裁决是幂等 no-op。`void_all` 裁决后该 `event_id` 在本 Realm **没有** accepted 变体，后到的任一变体 MUST NOT 复活它。
+
+   本条明确**不**采用两条替代方案：MUST NOT 让 receiver 经 peer 回填 winner bytes 再自行覆写（回填路径会先触发 §12 的碰撞检测，且各实现对 `received_at` / outbox / projection 的处置必然分叉），也 MUST NOT 把 collision 分型的 alignment 收缩为「只对原本就持有 winner 的 peer 可判定」（那会让 [`../sync/federation.md` §4.5.3](../sync/federation.md) 第二阶段对该分型形同虚设，只剩 operator 手工解除）。**准入的确定性元数据（normative）**：这样准入的 Event 的本地接收时间戳 MUST 取该 resolution Move 所在 Seal 的 `sealed_at`，其派生 projection MUST 与「本地一直持有 winner」的 receiver 逐字节一致——准入结果因此是 `(winner bytes, resolution Seal)` 的纯函数，不依赖本地历史。
+
+4. **碰撞区间不得被 compaction 跨越。** compaction Seal 的意义是给新 verifier 一个有界 bootstrap 物化点（§6.2）。区间内存在未归一的完整 digest collision 时，notary MUST NOT 签发跨越该区间的 compaction Seal——新 verifier 无法从 digest 重建被覆盖的 preimage，物化点因此不可复现。归一裁决自身承载 canonical bytes，可以是 compaction Seal。
+5. **跨 suite discriminator 只是诊断。** 实现 MAY 对同一 canonical preimage 另算一个**不同** active suite 的 digest 作为紧凑区分符；由于 `blake3` 是 profile-gated 的 `v1_optional_interop`（[`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)），它 MUST NOT 成为裁决的唯一指称，也 MUST NOT 成为对端验证该裁决的前提。
 
 ### 6.4 数据面观测承诺
 
@@ -777,6 +804,8 @@ AvailabilityReceipt {
 
 > `bottom=reject` cell 进入 `⊥` 后的恢复路径由 §9.5 control cell `⊥` recovery 定义（conflict-recovery Move）。
 
+**`⊥` 是状态的函数，不是本地粘滞标志（normative）**：一个 cell 是否为 `⊥`，MUST 由该 view 下 §9.3.1.2 的读取规则重新求值，MUST NOT 由「本 receiver 曾经观察到 `⊥`」这一事实锁死。反例：两个并发分支各写 `A`、`B`，随后各自在**尚未观察到对方**时合法续写同一个 `T`；完整 view 的两个活跃 head 都是 `T`，读作 `T`。若只先收到 `A` / `B` 的 receiver 把 `⊥` 记成永久标志，它与先收到完整历史的 receiver 会给出不同终态，违反 §6.3.1「`J(L)` 是 `L` 的纯函数、与到达顺序无关」。因此：先前在无冲突分支中合法产生的后继照常参与合并；而**普通写入 MUST NOT 以包含异值 heads 的签名 basis 写该 cell**（§9.3.1.3），那样的写入只能由 §9.5 的有权 recovery 发起。因此实现 MUST NOT 把「见过 Bottom 即永久死」当作本节语义。
+
 ### 9.2 Data plane 冲突
 
 数据面相同 cell 上的有效并发写按该 cell Lattice join：
@@ -799,34 +828,7 @@ AvailabilityReceipt {
 本节是 Control Move `preconditions[]` 中 `Predicate` 与 core lattice join 规则的散文权威；schema 只给字段形状，不能替代本节的求值语义。
 
 - **`head_eq`**：完整 `preconditions[]` 条目的 wire 形态为 `{cell_id:"ak:cell:...", predicate:{op:"head_eq", value:<json>}}`。Reducer MUST 在该 Move 的 `seal_basis` 治理 view 下读取目标 cell 的 settled value，并按 canonical JSON whole-value compare 与 `predicate.value` 比较；二者 bit-exact 相等时通过。cell 缺失时 settled value 为 `null`，因此省略业务字段与显式缺省不得被当作匹配。若目标 cell 在该 basis 下为 `⊥`，`head_eq` MUST fail closed（failure status `failed_bottom`，`reason=cell_in_bottom_state`，见 §13）。
-- **`cas_register`**：set write 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带命中本 cell 的 `head_eq` precondition；DataEvent 若声明使用 CAS 语义，MUST 通过 causal refs 与领域 lattice 规则表达同等约束。缺失 CAS basis 时 receiver MUST 以 `failed_precondition` 拒绝该 write，并按多 cell 原子性拒绝整个 reducer input，不得实现无条件覆盖。
-
-  **projected write 携带前驱（normative）**：`cas_register` 的注册 `set` effect 投影为 lattice
-  op 时，projector MUST 把该 Move 命中本 cell 的 whole-value `head_eq` precondition 的
-  `value` 复制进 `op.from`（与 `fsm` 声明 `from` / `to` 对称；`LatticeOp` 已有该字段）；
-  无该 precondition 的初始写入 `op.from` 缺省。本规则对全部 `cas_register` cell family
-  全局生效，不逐 family 登记。
-
-  **join（normative，纯函数）**：join 的输入是 `covered(L)` 中命中该 cell 的 set op 集合，
-  求值只依赖 op 自身：
-
-  1. 按 canonical `(value, from)` 去重；同 `(value, from)` 的重复 set 幂等；
-  2. `from` 缺省的 op 是**链首**；op `X` 到 op `Y` 存在取代边当且仅当
-     `Y.from == X.value`（canonical whole-value 相等）；
-  3. **极大链** = 从某链首出发、每个 op 至多使用一次、无法再延长的取代路径；
-  4. 所有极大链的终值去重后：恰一个值 → 该值即 settled value；多于一个 → `⊥`；存在
-     非链首 op 其 `from` 不匹配集合内任何 op 的 `value`（悬空取代——prefix-closed
-     coverage 下不可达，只可能来自损坏或不完整的 store）→ `⊥` fail closed；空集合 →
-     初始态。
-
-  取代按 **value** 绑定（与 `head_eq` 的 whole-value 比较同源），因此 value 复用（ABA）
-  不可区分是本 lattice 的既定语义；需要区分「同值不同世代」的 cell family MUST 在 value
-  内自带单调分量（如 `policy_bundle` 的 `policy_revision`）。由此：顺序替换（后继 `from`
-  命中前驱 value，含 declaration → tombstone → 再 declaration 的治理生命周期）join 到单一
-  终值，**不再**落 `⊥`；并发且互不可达的 set 落在同一前驱上且写不同值时形成多条极大链 →
-  `⊥`。§9.5 conflict-recovery 的入口条件不变（`⊥` = 多终值或悬空取代）；`state_root` leaf
-  仍取 joined settled value，历史 view 按任意 prefix-closed 覆盖集重算本 join 即可重建。
-  conformance 入口：`ak.vector.lattice.cas_register_supersession.v1`。
+- **`cas_register`**：`cas_register` 是**因果寄存器**：它的内部状态是一组仍然活跃的写入身份，业务读取才收敛为单值。定义、准入与合并规则见下面四节；`head_eq` 比较的始终是本节 §9.3.1.2 派生出的业务 settled value，不是内部 heads 数组。
 - **`fsm`**：transition write MUST 声明 `from` 与 `to`。同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 `⊥`。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。
 - **`ordered_log`**：每个 reducer-projected `op.kind="append"` write MUST 携带 `issuer_seq`，且其值 MUST 逐字等于 envelope `actor_seq`；其它 op kind 禁止该字段。`issuer_seq` 是为 self-contained projected op 保留的 issuer 因果坐标，不是 cell-local counter。对同一 `(write.cell, actor_id)`，它允许因 actor 在其它 cell 写入而产生任意非负间隔；不得要求从 0 开始连续，也不得把间隔后的 entry 留在 pending。
 
@@ -838,6 +840,77 @@ AvailabilityReceipt {
 
 `ak.realm.create` 的 append 同样携带从 envelope `actor_seq` 投影的 `issuer_seq=0`；它不是本 lattice 的特殊计数规则。
 - **`or_set` / `counter` / `mv_register`**：`or_set` 按 observed-remove dot 集合 join；`counter` 只在 §9.3 允许的 issuer-local 切片内求和；`mv_register` 暴露并发 heads 而不产生 `⊥`。领域文档可进一步收窄这些 lattice 的合法 projected writes，但不得改变交换、结合、幂等的 core join 要求。
+
+
+#### 9.3.1.1 `cas_register` 的状态：Event 身份与活跃 heads（normative）
+
+固定一个 Realm 与一个已验证治理 view `V`。令 `C(V)` 为 `V` 的 Control Move 覆盖集（§6.2 递归 `covered_set` 的并集，按 Event 身份去重；多个 Seal 覆盖同一 Event 只计一次）。构造 `C(V)` 与下述状态之前 MUST 先完成 signed basis 验证、注册投影、授权、依赖闭包与 §6.3.3 碰撞归一验证。
+
+对一个 `cas_register` cell `c`，其状态 `H_c(V)` 是一个从 **EventId 到 canonical JSON value** 的有限映射，记录**仍活跃、尚未被因果后继取代**的写入：
+
+- **写入身份就是已有的 EventId**；cell 与 Realm 是外层上下文，MUST NOT 为此新增 op 序号、parent 字段或业务世代。
+- 一个 Event 对同一个具体 cell MUST 最多产生一个最终 CAS 写。条件投影 MUST 先求值再检验此约束：互斥条件的两行不是两次写（`ak.watch.set` 即此形态）；`patch` 的若干子操作在签名基线执行后 MUST 只派生一个最终写值。同一个 Event 对**不同** cell 各写一次是允许的。
+- 同身份、同 canonical effect 是 **exact replay**，幂等；同身份、不同 effect 是验证错误或 §6.3.3 碰撞路径，MUST NOT 交给 lattice 选一个。碰撞隔离完成前不满足本节的身份唯一假设。
+- `H_c(V)` 是**验证后派生**的 reducer 状态并进入状态承诺（§6.2.1），**不是 producer 自报 effects**。receiver MUST NOT 信任调用方自报的 head 集合。
+- `C` 按 Realm/view 共享，**MUST NOT 每个 cell 复制一份历史覆盖集**。持久化时 `C` 的更新与该 Event 全部 cell heads 的更新 MUST 原子提交；MUST NOT 先暴露「已覆盖 Event」，稍后才补其投影。
+
+历史 Seal 保留它当初实际应用的 canonical bytes 与 effect；receiver MUST NOT 用一份归一裁决选出的 winner 字典重算这些旧根（§6.3.3 第 2 点）。本代数只合并**同一已验证贡献规则**下的 view：`ak.device.reanchor` fence 或 §6.3.2 fork-resolution 若改变哪些历史分支可进入当前 view，MUST 先按其注册规则重建相应状态，MUST NOT 把 fence 前后的缓存无条件套入集合并。
+
+#### 9.3.1.2 读取、`null` 与 `⊥`（normative）
+
+业务读取仍是单值 CAS，由 `H_c(V)` 唯一派生：
+
+- `H_c(V)` 为空：该 cell **未写入**，settled value 为 `null`。
+- `H_c(V)` 的全部 canonical value 相等：settled value 即该值，**包括 `null`**。
+- `H_c(V)` 含两个及以上不同 canonical value：`⊥`（`failed_bottom`，§9.1.1）。`bottom=reject` 时业务读取与所有依赖它的 Move precondition fail closed。
+
+由此：
+
+- **不存在 per-family 的 registered initial value**。`cas_register` 未写入初始态在全协议恒为 `null`。registry MUST NOT 声明 `initial_value` 或 `sentinel_writers`，reducer 也 MUST NOT 派生 `initial_value_reserved` 拒绝分支；每个 cell family 的真实初始化数据由它注册的 create / genesis 写入承载。本条不取消对象领域默认值，也不改 `fsm` 的注册初始状态。
+- **同值并发 heads MUST 保留全部 EventId**，MUST NOT 压成一个无身份的 value：否则只观察过分支 `x` 的后继会误删它从未见过的 `y`。
+- **释放是一次新的写入 `value=null`，其 head 必须保留**。MUST NOT 删除 cell 后宣称它从未被写过：空 heads 与「释放为 null」在状态承诺里必须可区分（§6.2.1）。
+- `failed_bottom` 与合法 JSON `null` 在 SDK 类型与 wire 解析中 MUST 区分。
+
+#### 9.3.1.3 写入、Seal 准入与同批（normative）
+
+普通 `cas_register` 写入 `w` 按以下唯一规则执行：
+
+1. **基线来自 `w` 自身签名的 `seal_basis`**：从它重建已验证 view `B`。所有实际 CAS 写入自动派生**完整 heads 比较守卫**（目标 cell 在 `B` 下的 `H_c(B)`）；业务条款另行要求的 `head_eq` 在同一个 `B` 上求值（例如 `ak.invite.create` 对其 slot 的显式 `head_eq: null`，[`../models/governance-objects.md` §5.3](../models/governance-objects.md)）。**MUST NOT 要求所有 CAS 写入都在 wire 重复携带旧业务值或目标 cell 的 `head_eq`**：签名 basis 已固定完整前态。
+2. 注册 patch / effect MUST 只在 `B` 上派生一次，MUST NOT 随「哪一个 Seal 先覆盖它」重新解释；生成式 effects 与 producer 自报 effects MUST NOT 混用。
+3. 对拟覆盖 `w` 的 Seal 的冻结 predecessor view `P`（§6.3 step 8 / §6.3.1 step 3 的同一冻结基线），继续执行既有授权与生命周期重验，并 MUST 要求每个被写 CAS cell 的**完整 heads 相等**：`H_c(B) = H_c(P)`（身份集合相等，值已由身份唯一确定）。不相等即 stale，MUST 以 `failed_precondition` 拒绝，**即使两边的业务 settled value 相同**。本条 MUST NOT 被放宽成「整个 Realm basis leaves 相等」：无关 cell 的变化不使本次 CAS 失效。
+4. `w` 成为新 head，并取代该 cell 在 `B` 中的**全部** heads。因第 3 项，这也正是 `P` 的全部 heads。
+5. 一个 Seal 的同批写全部针对冻结的 `P`，MUST NOT 靠 `delta[]` 数组顺序满足另一条写入的前置条件。同批命中 `bottom=reject` cell 的**异值**互斥写按 §6.3.1 step 3「同 Seal 排重义务」拒绝整个 Seal；**同值**写允许保留多个身份。合法并发 Seal 的结果按 §9.3.1.4 合并；同一个 Event 被多个并发 Seal 覆盖仍只是一次写入。
+
+第 3 项封闭 stale ABA：一个基线停在某次空位上的写入，即使目标 cell 在被占用又释放之后重新读到同一个业务值，也 MUST NOT 因此通过——业务值相等不足以通过，head 身份集合必须相等。
+
+**自派生目标的守卫形态（normative）**：`ak.audit.applet_binding.create` 的 binding cell 与 `ak.call.create` 的 focus cell，其 `cell_subject` 直接派生自本 Event 的 `event_id`。若强制这类 Event 把该具体 `cell_id` 写进被 digest 覆盖的 `preconditions[]`，就会形成「Event digest → 自己的 cell_id → 被 digest 覆盖的 preconditions → Event digest」的哈希自引用，而 `preconditions[].cell_id` 只允许具体字符串、没有待求值的 self target。因此规范 MUST NOT 泛化「所有 CAS 写都在 wire 显式 `head_eq`」；守卫一律采用第 1 项的**自动派生身份守卫**——在 EventId 算出后派生目标 cell 并读取 `B` / `P` 即可，不引入新 placeholder、预计算 ID 或首写免检通道。已登记的业务 `head_eq` 条件 MUST 继续签名并执行，MUST NOT 被静默删除。
+
+**两类无 `seal_basis` anchor unit 例外（normative，封闭）**：Realm genesis 的空治理基线，以及 `ak.device.reanchor` 由签名 `pre_fence_seal_frontier` / 原子 replacement unit 固定的基线。它们 MUST 经各自既有的闭合验证派生确定上下文；该例外 MUST NOT 被扩成「新 cell 或首写一律免检」的通用例外。
+
+#### 9.3.1.4 两个已验证状态的合并（normative）
+
+对两个已验证状态 `(C1,H1)`、`(C2,H2)`（同一 cell、同一 Realm、同一贡献规则），合并按**身份**求值；相同身份的值已由身份唯一性保证一致：
+
+```text
+C = C1 ∪ C2
+H = (H1 ∩ H2)
+    ∪ { h ∈ H1 | id(h) ∉ C2 }
+    ∪ { h ∈ H2 | id(h) ∉ C1 }
+```
+
+即：另一边**从没见过**的 head 必须保留；另一边**见过却已不把它当 head**，说明它已被取代。实现 MUST NOT 只对 heads 取并集，也 MUST NOT 仅凭单个 Event 的 inclusion proof 就断言它仍是完整当前 heads。
+
+该合并满足结合律、交换律与幂等性：令 `R = C \ ids(H)` 为「已知但不活跃」的身份（含不写本 cell 的 Event），则 `(C,H)` 与 `(C,R)` 一一对应，上式等价于 `C = C1 ∪ C2`、`R = R1 ∪ R2`、`ids(H) = C \ R`，三者都是集合并；按 `(C,R)` 的分量包含关系它就是最小上界。新写入只增大 `C` 与 `R`，MUST NOT 复活旧身份。**可合并的是完整状态 `(C,H)`**，不是丢掉 `C`/`H` 之后的业务值或 Bottom 标签。
+
+对因果闭合 view，写入 `e` 活跃当且仅当 view 内没有任何写入 `f` 的签名写入基线包含 `e`；对两个这样的 view 取并，`e` 不活跃当且仅当至少一个 view 已使它不活跃——这恰是 `R` 的并。因此**增量合并等价于对完整因果历史求极大活跃写入集合**，不需要枚举任何路径。
+
+**MUST NOT 按业务值绑定取代关系（normative）**：实现 MUST NOT 按 `(value, from)` 去重、MUST NOT 把 `Y.from == X.value` 当作取代边、MUST NOT 枚举极大链取终值，也 MUST NOT 要求 projector 把 `head_eq` 的 `value` 复制进 `op.from`。按值绑定的 join 与该投影规则 MUST NOT 作为可选语义并存：按值接边无法区分 `A→B→A` 与 `A→B→A→B`（两者产生相同的去重 `(value,from)` 集合，却应分别读 `A` 和 `B`），并在合法值复用下产生阶乘条极大链。`fsm` 合法使用的 `from` / `to` 不受本条约束。
+
+**Bottom 不是本地粘滞标志（normative）**：见 §9.5。普通写入 MUST NOT 以**包含异值 heads** 的签名 basis 写该 cell；先前在无冲突分支中合法产生的后继，仍按其实际因果上下文参与合并。
+
+**取证只走已登记的精确披露面（normative）**：合并式需要的三类输入——对端 view 的完整 CAS state leaf、某个身份是否属于对端 `C`、以及碰撞归一依赖——MUST 通过已登记的读取面与证明取得：完整 state leaf 与 membership 走 §6.2.1 的 `state_root` inclusion / non-membership proof 与 §6.2 的 `control_event_set_root`；碰撞变体走 §6.3.3 的 `collision_variant_record` selector；`event_sibling_position` 的穷尽性走 [`../sync/federation.md` §4.5.1](../sync/federation.md) 的 `ak.peer.events.read.sibling_positions.v1`。实现 MUST NOT 为 CAS 新增私有下载接口、operator 命令或数据库直读来补齐这些输入；缺证据时 MUST hold / fail closed，MUST NOT 把「查不到」当成「对方没见过」——后者会让已被取代的写入复活。
+
+conformance 入口：`ak.vector.lattice.cas_register_supersession.v1`（join 与合并闭合）与 `ak.vector.cba_lattice.cas_mixed_basis.v1`（写入准入、stale ABA 与自派生目标）。
 
 ### 9.3.2 digest suite transition Seal（normative）
 
@@ -875,6 +948,8 @@ payload 为 `{target_cell_id, resolved_value, reason?}`。它在 registry 中登
 不得用 `refs[]` role、producer 自报 effects 或未注册 kind 替代。识别不只依赖
 kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接受它。
 
+**lattice 分型（normative）**：下面第 1 至 5 项的 `state_witness` 家族要求**只适用于非 `cas_register` 的 `bottom=reject` cell**（典型 `fsm`）。`cas_register` 的 recovery 准入改按 §9.5.1 求值：它的目标冲突由**当前签名 basis 下的完整 heads** 证明，不再依赖「冲突前合法值」的 inclusion witness。第 6 项（必须 sealed）与「recovery capability 来源」一段对两者同样适用。
+
 它 MUST 满足：
 
 1. **携带 recovery 授权与见证 ref**：`refs[]` MUST 含 `role=recovery_capability`（critical，授权本次 recovery 的 grant）与至少一个 `role=state_witness`（critical，见证 `⊥` 之前该 cell 合法单值的 frontier + inclusion proof）。缺 `state_witness` MUST `recovery_witness_missing`。这两个 role 已登记于 [`event-and-patch.md` §2.2](../models/event-and-patch.md) 的 `SemanticRef.role`。
@@ -885,6 +960,20 @@ kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接�
 6. **必须 sealed**：conflict-recovery Move 是控制面 Move，MUST 经控制面 Seal 接受（继承 Seal finality），使"从 `⊥` 恢复到的单值"跨 receiver canonical 一致——与 §7.1 fork-resolution 的跨 receiver 确定性同纪律。reducer 在 cell 处于 `⊥` 时，**仅**接受满足上述全部条件的 conflict-recovery Move 写入该 cell（这是 `bottom=reject` cell 在 `⊥` 下对 `failed_bottom` 的唯一例外），把 cell 解析为该 Move 声明的单一合法值。
 
 **recovery capability 来源**：`recovery_capability` 由 Realm 的恢复权威持有——即 §7.2 闭环里的 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）所辖的 recovery / fork-resolution 授权；它与 §7.1 的 fork-resolution、[`event-and-patch.md` §2.6](../models/event-and-patch.md) over-fork repair 复用同一恢复权威，不引入新授权主体。`single_signer` 且未声明可用 recovery 路径的 Realm，control cell `⊥` 是诚实的死状态（与 §7.2 第 2 点"证据可流转但不可生效"同一限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一）。
+
+#### 9.5.1 `cas_register` 的 recovery（normative）
+
+对 `cas_register`，`ak.conflict.recovery` 仍是已注册的有权 Control Move，但它的 `reset` **派生为一次新的身份写入**（写入身份仍是该 recovery Event 的 EventId），而不是一个抹掉历史的开关：
+
+1. **目标冲突由签名 basis 证明**：recovery Move 的签名 `seal_basis` MUST 证明目标 cell 在该 basis 下确有**异值 heads**（§9.3.1.2 第三种情形）。recovery 取代的对象就是这些**完整 heads**。
+2. **授权仍独立验证**：授权 MUST 由已登记的 recovery authority / capability 路径验证（本节「recovery capability 来源」一段）。MUST NOT 因为目标处于 `⊥` 就放过 capability 撤销、作用域或 authority generation 验证。若恢复权威本身不可验证，MUST 走既有 Realm recovery / fence 路径或保持 fail closed，MUST NOT 自签解锁。
+3. **Seal 准入仍比较完整 heads**：覆盖该 recovery 的 Seal 仍按 §9.3.1.3 第 3 项要求 `H_c(B) = H_c(P)`。任一新分支已进入 `P` 时，MUST 重新生成并授权一条新的 recovery。
+4. **recovery 只取代自己见过的 heads**：迟到的、recovery basis 未覆盖的分支仍按 §9.3.1.4 参与合并；两条并发且异值的 recovery 仍然冲突。
+5. **禁止按到达顺序截断历史**：实现 MUST NOT 用「日志里最后一次 reset 之后的 op」这类接收顺序切片实现本节（例如对 op 序列取 `rposition(reset)` 再截断），也 MUST NOT 把恢复解释成「遗忘此前所有分支」。历史 view 仍按 §9.3.1.4 从已承诺输入重建。
+
+**`state_witness` 在本路径不是准入条件（normative）**：`cas_register` recovery MUST NOT 要求「目标 cell 冲突前合法值的 inclusion witness」，且 `recovery_witness_freshness_window_ms` 对本路径不适用。两条理由：首次写入就冲突时目标此前根本不存在，不存在可见证的冲突前单值；冲突长期未修时，旧 witness 过期不应剥夺**仍然有效**的恢复权威修复该 cell 的能力。目标冲突由第 1 项证明，恢复权威有效性由第 2 项证明，两者分开。MUST NOT 借「删除目标旧值 witness」绕过第 2 项的任何一项验证。
+
+`fsm` MUST NOT 直接套用本节的寄存器转移证明：状态机的 reset 需要独立的转移代数验证；但第 5 项「禁止按接收顺序截断」对 `fsm` 同样适用。
 
 **与 §7.1 的层次区分**：§7.1 恢复的是 **Seal-DAG 分叉**（equivocation / `fork_quarantine`）；本节恢复的是**未分叉治理状态内单个 cell 的 `⊥`**。两者由同一恢复权威书写、都经 Seal 接受，但作用对象不同，不可互相替代。该恢复路径由 conformance vector `ak.vector.cba_lattice.conflict_recovery_move.v1` 固定。
 

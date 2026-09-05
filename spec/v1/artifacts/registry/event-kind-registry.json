@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.3",
+  "version": "2026-09-05.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T15:30:00+08:00",
+  "generated_at": "2026-09-05T20:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -94,7 +94,7 @@
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
     "lifecycle_modality applies to physical object lifecycle writes, identified mechanically by an fsm_contract whose axis is object_lifecycle, plus explicitly registered reversible Realm lifecycle facets. Every active event kind that writes such a family MUST declare lifecycle_modality. Use reversible for a reversible facet or either member of an archive/restore pair, and terminal for an irreversible transition. Workflow, membership, status, audit, key-material and OR-Set revocation axes are excluded. Reducers and SDKs MUST read this field and MUST NOT infer modality from event-kind spelling.",
-    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a canonical_json descriptor for a closed structured identifier (key bytes are its RFC 8785 JCS bytes), a coalesce descriptor, or a composite descriptor whose structured components use the same canonical_json descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells. A contract MAY also declare pre_state_requirements[]: each entry names a cell_family, a subject, an optional condition drawn from the same closed payload-condition grammar as cell_writes[].condition, a closed stored-field predicate (stored_field_present, stored_field_equals_payload, or stored_field_matches_payload, which holds when the stored field and the payload field are both absent or both present and byte-identical), and the exact failure code/reason_code. A requirement whose condition does not hold is not evaluated; a failing requirement rejects the whole Move with zero cell writes.",
+    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a canonical_json descriptor for a closed structured identifier (key bytes are its RFC 8785 JCS bytes), a coalesce descriptor, or a composite descriptor whose structured components use the same canonical_json descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. There is no initial_value or sentinel_writers declaration: a cas_register cell with no active head reads null protocol-wide (zh/authz/event-auth-state-resolution.md section 9.3.1.2), and a family that needs a reusable free slot registers an explicit `set null` release write whose write identity is carried by that release Event. A contract MAY also declare pre_state_requirements[]: each entry names a cell_family, a subject, an optional condition drawn from the same closed payload-condition grammar as cell_writes[].condition, a closed stored-field predicate (stored_field_present, stored_field_equals_payload, or stored_field_matches_payload, which holds when the stored field and the payload field are both absent or both present and byte-identical), and the exact failure code/reason_code. A requirement whose condition does not hold is not evaluated; a failing requirement rejects the whole Move with zero cell writes.",
     "The ak.component.agent.status.v1 lifecycle cell is keyed only by the complete Agent account ActorId: agent-control ak.realm.create and every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate write MUST use the identical single-component composite canonical_json(envelope.actor_id) subject. The Agent actor MUST be the account variant; a service actor is invalid. The Agent principal component is derived only from envelope.actor_id and the controller principal only from envelope.executed_by; the lifecycle payloads carry no duplicate agent or controller coordinate. These writes are delegated controller writes: executed_by and its paired authorization_ref MUST be present for agent-control ak.realm.create and for every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate, enforced by the registered event-kind admission rule (and its Event Envelope schema lock), never only by the generic optional envelope schema. A missing executor pair, a service actor, or a missing exact Station binding fails closed, and Account ActorIds with the same principal_id at different station_id values MUST derive different subjects.",
     "Every lattice=fsm cell write MUST resolve by cell_family to exactly one fsm_contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
     "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBA fields, reducer_input, or shared cell_contracts.",
@@ -226,7 +226,6 @@
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -334,7 +333,6 @@
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "condition": {
             "kind": "field_present",
             "field": "payload.object.initial_resolution"
@@ -376,7 +374,6 @@
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -389,7 +386,6 @@
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -402,7 +398,6 @@
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "value_projection": {
             "kind": "object",
             "members": [
@@ -733,7 +728,6 @@
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -2069,7 +2063,6 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -2209,7 +2202,6 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -5142,7 +5134,6 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -5212,7 +5203,6 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -6038,7 +6028,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite create. Directed v1 genesis payloads carry the exact invitee_account_id, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Delivery resolves invitee_account_id.station_id outside durable Realm state. Raw locator tokens, route material and invite_receive_policy state MUST NOT enter the durable Realm event. The Move atomically claims the Realm live-target slot ak.component.invite.live_target.v1 keyed by canonical_json(payload.invitee_account_id) and MUST carry that cell's head_eq \"__unset__\" precondition; a second live directed invite for the same account is rejected with failed_precondition and reason_code invite_live_target_occupied, writes nothing and does not enter canonical history.",
+      "payload": "Invite create. Directed v1 genesis payloads carry the exact invitee_account_id, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Delivery resolves invitee_account_id.station_id outside durable Realm state. Raw locator tokens, route material and invite_receive_policy state MUST NOT enter the durable Realm event. The Move atomically claims the Realm live-target slot ak.component.invite.live_target.v1 keyed by canonical_json(payload.invitee_account_id) and MUST carry that cell's head_eq null precondition; a second live directed invite for the same account is rejected with failed_precondition and reason_code invite_live_target_occupied, writes nothing and does not enter canonical history.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_create_payload",
       "id_source": "event_derived",
       "id_kind": "invite",
@@ -6076,7 +6066,6 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -6128,11 +6117,10 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
-              "const": "__unset__"
+              "const": null
             }
           }
         }
@@ -6231,11 +6219,10 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
-              "const": "__unset__"
+              "const": null
             }
           },
           "condition": {
@@ -6410,11 +6397,10 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
-              "const": "__unset__"
+              "const": null
             }
           },
           "condition": {
@@ -6617,7 +6603,6 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -6732,7 +6717,6 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -6790,7 +6774,6 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__",
           "effect_projection": {
             "kind": "set",
             "value": {
