@@ -6286,7 +6286,7 @@ Runner MUST 覆盖：
 9. **`⊥` 非粘滞**：并发分支各写 `A`、`B` 后各自在未见对方时续写同一个 `T`；只观察到部分 leaf 的 receiver 与观察到完整历史的 receiver MUST 在补齐 leaf 后收敛到同一结果（读 `T`）；
 10. **任意 prefix-closed 覆盖子集**重算得到该子集的确定性历史 view。
 
-## 31. Key backup delete authority closure vector## 31. Key backup delete authority closure vector
+## 31. Key backup delete authority closure vector
 
 `vector_id`: `ak.vector.key_backup.delete_authority.v1`
 

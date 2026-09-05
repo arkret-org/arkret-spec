@@ -550,7 +550,7 @@ Equivocation evidence 是普通 Control Move，event kind 为 **`ak.notary.fault
 
   该处理与 §4.3 撤销新鲜度判定正交（前者针对控制面分叉，后者针对单链撤销），与 [`../sync/operations-sync.md`](../sync/operations-sync.md) 的 observed-only / backfill 保持语义（observed-only 的 DataEvent 不进 canonical join），不引入新状态。
 
-Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ak.vector.cba_lattice.threshold_forensic_attribution.v1` 固定。
+Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ak.vector.cba_lattice.threshold_forensic_attribution.v1` 固定。本条判据是**事后指认**：`2k>n` 保证共同成员存在且必然双签，共同成员是否诚实不影响可指认性。[`cba-profiles.md` §2](./cba-profiles.md) 的 barrier 串行化另有更强的 `2k > n + f`，要求交集中至少有一个**诚实** signer；两条不等式服务于不同断言，MUST NOT 互相代入，也 MUST NOT 因为一方不成立而放松另一方。
 
 ### 7.2 控制面 Control Proposal Ack 与 inclusion obligation
 

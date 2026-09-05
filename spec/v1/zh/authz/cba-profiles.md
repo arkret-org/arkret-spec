@@ -76,6 +76,15 @@ signer MUST 从已验证 basis 派生完整 head 身份，MUST NOT 相信调用�
 **MUST NOT** 宣称该部署具有 Byzantine 串行化保证。这是计数证明，不由测试数量替代；本节不要求为 CAS
 引入任何新的共识实现。
 
+**本条不取代 forensic attribution 的 `2k > n`（normative）**：
+[`event-auth-state-resolution.md` §7.1](./event-auth-state-resolution.md) 的
+`notary.forensic_attribution` 判据是 `2k > n`，两条不等式各自成立、**不得互相代入**。它们断言的不是
+同一件事：`2k > n` 保证任意两个 quorum 有共同成员，因此该成员**必然**双签，可被**事后指认**——这在
+共同成员恰是恶意 signer 时仍然成立，恰恰是那时才有指认对象。`2k > n + f` 保证交集中至少有一个**诚实**
+signer，因此并发 barrier Move **事前**无法各自凑齐 quorum——这是安全性，不是问责。实现 MUST NOT 因为
+一个 Realm 满足 `2k > n` 就宣称它具备 barrier 串行化保证，也 MUST NOT 因为一个部署未声明 `f` 就削弱
+`forensic_attribution` 的既有算术校验。
+
 第 2 条的 quorum 相交与第 4 条的 signer 单调性合起来给出与单链 predecessor 等价的效果：两个针对同一
 cell head 身份集合的并发 barrier Move 必然有一个共同 signer，而该 signer 只会为该身份集合签一个 digest。
 不同 cell 上的并发 barrier Move 本就互不相关，`security_barrier` 的登记语义（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)
