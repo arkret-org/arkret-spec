@@ -1368,13 +1368,33 @@
       ]
     },
     {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_snapshot_core/properties/authority_id",
+      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state/properties/authority_id",
       "property_name": "authority_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_lease/properties/authority_id",
+      "property_name": "authority_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_lease/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
       ]
     },
     {
@@ -1385,26 +1405,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_snapshot_lease/properties/authority_id",
-      "property_name": "authority_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_snapshot_lease/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
       ]
     },
     {

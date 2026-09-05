@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.1",
+  "version": "2026-09-06.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T20:40:00+08:00",
+  "generated_at": "2026-09-06T23:40:00+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -36,19 +36,19 @@
       "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.agent_signer_evidence_current_observation_agent_snapshot_digest.v1",
+      "exemption_id": "ak.exemption.sibling_digest.agent_signer_evidence_current_observation_agent_authority_state_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
         "schema_file": "schemas/agent-signer-evidence.schema.json",
         "json_path": "$.$defs.current_observation.properties",
-        "digest_field": "agent_snapshot_digest",
+        "digest_field": "agent_authority_state_digest",
         "content_addressed_refs": [
           "agent_key_seal_id",
           "agent_status_seal_id"
         ]
       },
-      "preimage": "SHA-256(JCS(agent_authority_snapshot)) frozen for this admission; not a Seal",
+      "preimage": "SHA-256(JCS(agent_authority_state_evidence.state)) frozen for this admission; not a Seal. The digest covers the authority state view alone, which is what the schema and every implementation compute; naming the wrapper here was wrong and would have justified a second, incompatible reading",
       "spec_anchor": "spec/v1/zh/identity/key-management.md"
     },
     {

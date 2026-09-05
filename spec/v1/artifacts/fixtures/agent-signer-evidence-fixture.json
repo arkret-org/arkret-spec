@@ -62,7 +62,7 @@
       "reason": "agent_signing_key_mismatch"
     },
     {
-      "name": "current_snapshot_digest_mix_and_match_rejected",
+      "name": "current_authority_state_digest_mix_and_match_rejected",
       "verification_mode": "current_admission",
       "observation_basis_matches_admission_evidence": false,
       "expected": "rejected",
@@ -106,7 +106,7 @@
       "expected": "verified"
     },
     {
-      "name": "historical_current_snapshot_substitution_rejected",
+      "name": "historical_current_authority_state_substitution_rejected",
       "verification_mode": "historical_event",
       "event_admission_receipt_present": false,
       "current_observation_present": true,

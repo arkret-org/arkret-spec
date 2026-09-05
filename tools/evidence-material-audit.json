@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 367,
+  "audited_occurrence_count": 369,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -136,6 +136,18 @@
         "commitment"
       ],
       "reason": "Closed historical-mode aggregate containing the destination-signed admission receipt and its exact admission-time evidence."
+    },
+    {
+      "file": "agent-signer-evidence.schema.json",
+      "key": "agent_authority_state_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed composite of one Agent's authority state view and the authority-signed lease over its digest. The state itself spans more than two material families before the lease is counted: a signing key binding, a capability authorization, a key state witness, a key transition witness, an Agent lifecycle witness and the Seal lineage closure that ties them to one frontier."
     },
     {
       "file": "applet-install-authoring.schema.json",

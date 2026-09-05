@@ -225,14 +225,14 @@ digest不一致必须拒绝，service不得替换disclosure或代controller补�
 
 `ak.schema.agent_signer_evidence.v1` 是 structural XOR：顶层只能是 `verification_mode=current_admission` 或
 `verification_mode=historical_event` 两种 closed object 之一，二者字段集合不同，不能通过改 tag 或增删一个
-frontier 互换。共享 `admission_evidence` 只含 `agent_authority_snapshot`、隐私最小化的
+frontier 互换。共享 `admission_evidence` 只含 `agent_authority_state_evidence`、隐私最小化的
 `controller_account_gate_attestation` 及无自引用的 `admission_evidence_digest`。raw public key不是秘密；Agent/controller
 private key、MLS private state、服务本地 `account_id` 与 raw account cell 永不进入 portable evidence。
 
-`agent_authority_snapshot.core` 在 Agent Principal Control Realm 的一个 exact signed Seal view 中同时承载完整
+`agent_authority_state_evidence.core` 在 Agent Principal Control Realm 的一个 exact signed Seal view 中同时承载完整
 `signing_key_binding`、key authorization、key state witness 和 Agent lifecycle witness。`snapshot_digest` 只对 core
 做 RFC 8785/JCS SHA-256；`lease` 由该 PCR 的权威 service DID 在独立 domain
-`ak.agent_authority_snapshot.v1` 下签名并逐字绑定 authority、verification method、snapshot digest 与时窗。
+`ak.agent_authority_state_evidence.v1` 下签名并逐字绑定 authority、verification method、snapshot digest 与时窗。
 snapshot core 的 `seal_lineage[]` 必须是把 key/status witness Seal 连接到 `frontier_seal_id` 的完整、无重复
 predecessor closure；unknown、fork、跨 Realm、缺 predecessor 或签名无效均拒绝。
 
