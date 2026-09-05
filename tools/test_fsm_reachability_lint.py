@@ -95,6 +95,45 @@ class FsmReachabilityLintTest(unittest.TestCase):
         errors = self._run(mutate=mutate)
         self.assertTrue(any("unknown keys" in e for e in errors), errors)
 
+    def test_transition_out_of_a_terminal_state_fails(self) -> None:
+        # `terminal_states` is declared by every fsm contract and read by no
+        # implementation: the SDK's `Fsm` carries only the transition table and
+        # the initial state. So terminality holds exactly as far as the table
+        # does, and an edge leaving a terminal state would simply be taken.
+        def mutate(contract):
+            family = contract["event_kind_registry"]["fsm_contracts"][AGENT_FAMILY]
+            family["allowed_transitions"].append(["deactivated", "active"])
+
+        errors = self._run(mutate=mutate)
+        self.assertTrue(
+            any("terminal state has an outgoing transition" in e for e in errors),
+            errors,
+        )
+
+    def test_a_terminal_self_loop_stays_legal(self) -> None:
+        # A self-loop out of a terminal state is a repeated declaration, not an
+        # escape; `ak.component.realm.link.v1` relies on exactly that so a
+        # redeclared tombstone is idempotent rather than a sibling conflict.
+        def mutate(contract):
+            family = contract["event_kind_registry"]["fsm_contracts"][AGENT_FAMILY]
+            family["allowed_transitions"].append(["deactivated", "deactivated"])
+
+        errors = self._run(mutate=mutate)
+        self.assertFalse(
+            any("terminal state has an outgoing transition" in e for e in errors),
+            errors,
+        )
+
+    def test_a_terminal_state_outside_states_fails(self) -> None:
+        def mutate(contract):
+            family = contract["event_kind_registry"]["fsm_contracts"][AGENT_FAMILY]
+            family["terminal_states"].append("retired")
+
+        errors = self._run(mutate=mutate)
+        self.assertTrue(
+            any("terminal state retired not in states" in e for e in errors), errors
+        )
+
     def test_write_outside_allowed_transitions_fails(self) -> None:
         def mutate(contract):
             writes = contract["event_kind_registry"]["cell_contracts"][

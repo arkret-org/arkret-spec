@@ -345,6 +345,13 @@ Realm / Circle membership 共用同一 materialized membership 状态图，invit
 参数、未知状态或未列边均 MUST fail closed。same-state 是否可用也完全由解析后的
 `allowed_transitions` 决定，不存在跨所有 FSM 的隐含禁止或隐含 no-op。
 
+**`terminal_states` 由转移表本身兑现（normative）**：`terminal_states` 中的每个状态 MUST 出现在
+`states` 里，且 `allowed_transitions` MUST NOT 含有从终态出发、指向**其它**状态的边。
+终态自环（`(X, X)`）仍合法——它表达的是可重复声明的幂等写入，不是逃逸。这条是表级封闭而不是运行时
+检查：reducer 解析出的状态机只带 `states` / `initial_state(s)` / `allowed_transitions`，
+终态若在表里有出边就会被直接走掉，`terminal_states` 的声明将没有任何效力。机器门禁是
+`tools/artifact_lint` 的 `fsm_reachability`。
+
 **Actor-private 状态合约（normative）**：`wire_scope="actor_private_event"` 的 Event 不进入共享
 Data/Control reducer，因而 MUST NOT 声明共享 `plane`、`sealed`、CBA 或
 `cell_contracts`。其 durable 投影必须在

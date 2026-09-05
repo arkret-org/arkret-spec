@@ -4761,6 +4761,33 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             tuple(_FSM_ABSENT if value is None else value for value in pair)
             for pair in contract_view.get("allowed_transitions") or []
         }
+        # A terminal state has to be terminal in the table, not just by
+        # convention. Nothing reads `terminal_states` at runtime — the SDK's
+        # `Fsm` holds only the transition table and the initial state — so if
+        # the table carried an edge out of a terminal state, the machine would
+        # take it and the declaration would be decoration. Self-loops stay
+        # legal: `ak.component.realm.link.v1` declares `(tombstoned,
+        # tombstoned)` so a repeated declaration is idempotent rather than a
+        # sibling conflict.
+        terminal_states = list(contract_view.get("terminal_states") or [])
+        for state in terminal_states:
+            if state not in states:
+                lint.fail(
+                    registry_path,
+                    f"fsm_contracts.{family}: terminal state {state} not in states",
+                )
+        escaping = sorted(
+            f"{source} -> {target}"
+            for source, target in allowed
+            if source in terminal_states and target != source
+        )
+        if escaping:
+            lint.fail(
+                registry_path,
+                f"fsm_contracts.{family}: terminal state has an outgoing transition "
+                f"{escaping}; terminality is enforced by the table alone, so an edge "
+                "out of a terminal state makes the declaration meaningless",
+            )
         instance_parameters = declared.get("instance_parameters") or {}
         for conditional in contract_view.get("conditional_transitions") or []:
             condition = conditional.get("when") or {}
