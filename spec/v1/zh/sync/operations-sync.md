@@ -284,7 +284,7 @@ Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明以
 - `id`（snapshot 自身 id）
 - `realm_id`
 - `reducer_profile` 与 `schema_profile_refs`（reducer / schema profile refs）
-- `state_digest`（投影状态根：data projection root 或 control `state_root`，按 `security_class` 确定，**必填**）
+- `state_digest`（**必填**）——语义只有一个，由 [`../conformance/snapshot-schema.md` §4](../conformance/snapshot-schema.md) 给出：对该 Snapshot 全部 chunk `items[]` 一一对应的 canonical reducer 输出 leaf 求 RFC 6962 Merkle root，`object` 与 `cas_cell` 两个分支各有自己的 leaf 原像。`security_class` **MUST NOT** 切换该摘要的算法或承诺对象，也 MUST NOT 把它替换成 Seal 的治理 `state_root`：后者按 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 覆盖的是控制面 cell 集合，与本字段承诺的 reducer 输出集合不是同一件事。`state_digest`、`control_event_set_root` 与下面的 `event_set_commitment` 三者承诺三个不同对象，MUST 分别校验，MUST NOT 互相代入。
 - `event_set_commitment`（绑定"哪些事件产生该状态"的承诺，与 `state_digest` 各自独立、**均必填**；客户端采用前 MUST 验证它，见下）
 - `frontier`（covered Event frontier / Seal basis）
 - `chunks`（chunk digests）
