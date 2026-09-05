@@ -1676,6 +1676,301 @@
       }
     }
   ],
+  "station_cas_account_data": {
+    "vector_id": "ak.vector.sync.station_cas_account_data.v1",
+    "runner": "cotest::conformance::sync::run_station_cas_account_data_vector",
+    "operations": [
+      "ak.self.account.stream.subscribe.v1"
+    ],
+    "account_data_keys": [
+      "ak.account.invite_delivery",
+      "ak.account.holder_quarantine"
+    ],
+    "cases": [
+      {
+        "name": "initial_baseline_is_complete_and_removal_free",
+        "station_cas": {
+          "complete": true,
+          "upserts": [
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 7,
+              "content": {
+                "fixture_value": "q7"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            },
+            {
+              "account_data_key": "ak.account.invite_delivery",
+              "revision": 3,
+              "content": {
+                "fixture_value": "d3"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            }
+          ],
+          "removals": []
+        },
+        "expected": {
+          "result": "accept",
+          "local_live_keys": [
+            "ak.account.invite_delivery",
+            "ak.account.holder_quarantine"
+          ]
+        },
+        "note": "client-sync.md section 9: initial sync returns every holder-readable Station-CAS live row with complete=true and an empty removals list."
+      },
+      {
+        "name": "zero_row_baseline_is_still_a_complete_container",
+        "station_cas": {
+          "complete": true,
+          "upserts": [],
+          "removals": []
+        },
+        "expected": {
+          "result": "accept",
+          "local_live_keys": []
+        },
+        "note": "A holder with no live row still receives the empty complete container so a stale local projection is cleared rather than retained."
+      },
+      {
+        "name": "filter_must_not_truncate_the_baseline",
+        "station_cas": {
+          "complete": true,
+          "upserts": [
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 7,
+              "content": {
+                "fixture_value": "q7"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            }
+          ],
+          "removals": []
+        },
+        "expected": {
+          "result": "reject",
+          "trace_violation": "baseline_truncated_by_filter"
+        },
+        "note": "A live ak.account.invite_delivery row exists for this holder but the request filter omitted it. section 13 forbids the filter from trimming this set."
+      },
+      {
+        "name": "complete_baseline_carrying_removals_is_rejected",
+        "station_cas": {
+          "complete": true,
+          "upserts": [
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 7,
+              "content": {
+                "fixture_value": "q7"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            }
+          ],
+          "removals": [
+            {
+              "account_data_key": "ak.account.invite_delivery",
+              "revision": 4,
+              "updated_at": "2026-09-05T00:00:10.000Z"
+            }
+          ]
+        },
+        "expected": {
+          "result": "reject",
+          "trace_violation": "complete_baseline_carries_removals"
+        },
+        "note": "complete=true means the client clears its local live set first, so a removal in the same frame has no defined meaning."
+      },
+      {
+        "name": "incremental_upsert_advances_the_key_revision",
+        "station_cas": {
+          "complete": false,
+          "upserts": [
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 8,
+              "content": {
+                "fixture_value": "q8"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            }
+          ],
+          "removals": []
+        },
+        "expected": {
+          "result": "accept",
+          "local_revision": {
+            "ak.account.holder_quarantine": 8
+          }
+        },
+        "note": "Applied over the case 1 baseline: a higher revision for one key advances only that key."
+      },
+      {
+        "name": "incremental_removal_clears_only_that_key",
+        "station_cas": {
+          "complete": false,
+          "upserts": [],
+          "removals": [
+            {
+              "account_data_key": "ak.account.invite_delivery",
+              "revision": 4,
+              "updated_at": "2026-09-05T00:00:10.000Z"
+            }
+          ]
+        },
+        "expected": {
+          "result": "accept",
+          "local_live_keys": [
+            "ak.account.holder_quarantine"
+          ]
+        },
+        "note": "A removal carries account_data_key, revision and updated_at, and leaves every other key untouched."
+      },
+      {
+        "name": "absence_from_an_incremental_delta_is_not_deletion",
+        "station_cas": {
+          "complete": false,
+          "upserts": [
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 8,
+              "content": {
+                "fixture_value": "q8"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            }
+          ],
+          "removals": []
+        },
+        "expected": {
+          "result": "accept",
+          "local_live_keys": [
+            "ak.account.invite_delivery",
+            "ak.account.holder_quarantine"
+          ]
+        },
+        "note": "Applied over the case 1 baseline: ak.account.invite_delivery is absent from this delta and MUST be retained. Only complete=true or an explicit removal drops a key."
+      },
+      {
+        "name": "lower_revision_fails_closed",
+        "station_cas": {
+          "complete": false,
+          "upserts": [
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 6,
+              "content": {
+                "fixture_value": "q6"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            }
+          ],
+          "removals": []
+        },
+        "expected": {
+          "result": "reject",
+          "trace_violation": "revision_regression"
+        },
+        "note": "Applied over the case 1 baseline (revision 7). A client MUST accept only a higher revision per key."
+      },
+      {
+        "name": "same_revision_with_a_different_value_is_a_sync_conflict",
+        "station_cas": {
+          "complete": false,
+          "upserts": [
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 7,
+              "content": {
+                "fixture_value": "q7-divergent"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            }
+          ],
+          "removals": []
+        },
+        "expected": {
+          "result": "reject",
+          "trace_violation": "same_revision_value_conflict",
+          "client_action": "resync"
+        },
+        "note": "Applied over the case 1 baseline. A same-revision different value or tombstone is a synchronisation conflict, not a no-op."
+      },
+      {
+        "name": "same_key_coalesces_to_the_last_item_in_the_window",
+        "station_cas": {
+          "complete": false,
+          "upserts": [
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 8,
+              "content": {
+                "fixture_value": "q8"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            },
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 9,
+              "content": {
+                "fixture_value": "q9"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            }
+          ],
+          "removals": []
+        },
+        "expected": {
+          "result": "accept",
+          "local_revision": {
+            "ak.account.holder_quarantine": 9
+          }
+        },
+        "note": "Incremental frames may coalesce one key to its last item inside the cursor window; the final revision is what the client applies."
+      },
+      {
+        "name": "a_station_cas_row_synthesised_as_a_holder_event_is_rejected",
+        "station_cas": {
+          "complete": false,
+          "upserts": [
+            {
+              "account_data_key": "ak.account.holder_quarantine",
+              "revision": 8,
+              "content": {
+                "fixture_value": "q8"
+              },
+              "updated_at": "2026-09-05T00:00:00.000Z"
+            }
+          ],
+          "removals": []
+        },
+        "expected": {
+          "result": "reject",
+          "trace_violation": "station_cas_row_in_account_data_events"
+        },
+        "note": "The same row is also emitted inside account_data.events[] as a synthesised ak.account_data.set. The two truth sources MUST NOT be mirrored into each other."
+      },
+      {
+        "name": "an_unfillable_cursor_gap_drops_or_resyncs",
+        "station_cas": {
+          "complete": false,
+          "upserts": [],
+          "removals": []
+        },
+        "expected": {
+          "result": "reject",
+          "trace_violation": "silent_gap_skip",
+          "required_frame_kinds": [
+            "dropped",
+            "resync_required"
+          ]
+        },
+        "note": "The change record retention window no longer covers the requested after position. The server MUST answer dropped or resync_required instead of emitting an incremental frame that silently skips the gap."
+      }
+    ]
+  },
   "actor_frontier_digest": {
     "vector_id": "ak.vector.actor_frontier.realm_scoped.v1",
     "transcript_label_utf8_nul": "ak-realm-actor-frontier-v1\u0000",

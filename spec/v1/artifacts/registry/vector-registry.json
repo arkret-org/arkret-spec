@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.1",
+  "version": "2026-09-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T10:20:00+08:00",
+  "generated_at": "2026-09-05T17:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -6939,6 +6939,20 @@
       "description": "Account and events NDJSON stream trace conformance: catchup completion ordering, cursor-bearing frame closure, dropped-versus-resync branching, and reconnect position advancement are evaluated over complete traces rather than isolated frame schemas.",
       "source_refs": [
         "spec/v1/zh/sync/transport-bindings.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.station_cas_account_data.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_vector_groups": [
+        "ak.vector_group.sync.v1"
+      ],
+      "description": "Station-CAS holder-private account-data projection over account subscribe: the initial complete=true baseline carries every holder-readable live row with no removals, a filter may not truncate it, absence from an incremental frame is not deletion, per-key revision is strictly monotonic with same-revision divergence forcing resync, one key coalesces to the last item in the cursor window, the row is never mirrored into account_data.events[], and an unfillable cursor gap answers dropped or resync_required instead of silently skipping.",
+      "source_refs": [
+        "spec/v1/zh/sync/client-sync.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/sync-fixture.json"
       ]

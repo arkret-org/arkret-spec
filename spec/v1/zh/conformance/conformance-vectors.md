@@ -2786,6 +2786,45 @@ Expected：
 - key 内嵌完整 typed id 带来的存在性泄露是 registry 已接受的取舍（与 `ak.tags.realm.<realm_id>`
   同级）；实现 MUST NOT 再往 key 里追加 `realm_id`、`title` 或其派生物扩大泄露面。
 
+### 5.12 Vector: Station-CAS Account Data 的 baseline 与增量
+
+`vector_id`: `ak.vector.sync.station_cas_account_data.v1`
+
+机器 fixture：`sync-fixture.json#station_cas_account_data`；执行入口以 fixture `runner` 元数据为准。
+唯一真源是 [`../sync/client-sync.md` §9](../sync/client-sync.md) 的 `account_data.station_cas` 段与
+[§13](../sync/client-sync.md) 的 initial baseline 义务。本向量固化的是 CAS-only holder-private cell
+（当前是 `ak.account.invite_delivery` 与 `ak.account.holder_quarantine`）经 account subscribe 的
+投影语义——它们不是 holder-authored Event，account-data 诊断面与本 frame 是同一权威 revision 的两个读取形态。
+
+Cases：
+
+1. **initial baseline 完整且无 removals**：`complete=true` 的 baseline MUST 含当前 registry 中**全部**
+   holder-readable Station-CAS live row，`removals` MUST 为空。
+2. **零行也必须是 complete container**：holder 当前没有任何 live row 时仍 MUST 返回空的 `complete=true`
+   容器，使客户端能清除陈旧本地投影，而不是把「没有该字段」当作「无变化」。
+3. **filter 不得裁掉 baseline**：请求 filter 省略了一个确实存在的 live row 时，该 trace MUST 判为
+   conformance failure。
+4. **complete baseline 不得携带 removals**：`complete=true` 语义是客户端先清空本地 live set 再应用
+   `upserts`，同帧内的 removal 没有已定义含义。
+5. **增量 upsert 只推进该 key**：更高 revision 的 upsert 只改该 key。
+6. **增量 removal 只清该 key**：removal 携带 `account_data_key` / `revision` / `updated_at`。
+7. **缺席不是删除**：增量帧里没出现的 key MUST 保留本地值。只有 `complete=true` 或显式 removal 才能丢弃一个 key。
+8. **更低 revision fail closed**：客户端对每个 key 只接受更高 revision。
+9. **同 revision 不同 value 是同步冲突**：MUST 触发 resync，MUST NOT 当作 no-op 或静默覆盖。
+10. **同 key 窗口内合并到最后一项**：增量帧可把同一 key 合并为 cursor 窗口内的最后一项，客户端应用的是最终 revision。
+11. **Station-CAS 行不得合成为 holder Event**：同一行同时出现在 `account_data.events[]` 里的合成
+    `ak.account_data.set` MUST 判为 conformance failure。两类真相源不得互相合成或镜像。
+12. **填不满的 cursor 区间必须 drop / resync**：变更记录保留期不再覆盖请求的 `after` 位置时，服务端 MUST
+    返回 `dropped` 或 `resync_required`，MUST NOT 发一个静默跳过该区间的增量帧。
+
+Expected：
+
+- server runner MUST 证明 accepted Station-CAS 写入、该 key 的投影位置推进与可重放变更记录在同一事务内，
+  且 cursor 覆盖该位置；client runner MUST 证明 revision 单调性与 baseline 清理语义。
+- 单帧均通过 `account-subscribe-frame.schema.json`、但整体语义违反任一 case 的 trace，仍视为 conformance failure。
+- `to_device` 里的 `ak.account_data.update` 只是低延迟唤醒，MUST NOT 被当作第三个真相源，也不得代替
+  baseline 与增量；只实现唤醒路径的客户端 MUST 判为 conformance failure。
+
 ## 6. Space Lifecycle Vectors
 
 ### 6.1 目标

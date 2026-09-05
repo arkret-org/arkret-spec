@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.2",
+  "version": "2026-09-05.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T06:58:34+08:00",
+  "generated_at": "2026-09-05T16:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2199,8 +2199,13 @@
         {
           "cell_family": "ak.component.fork_resolution.v1",
           "cell_subject": {
-            "kind": "canonical_json",
-            "field": "payload.subject"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.subject"
+              }
+            ]
           },
           "lattice": "cas_register",
           "bottom": "reject",
@@ -4896,8 +4901,13 @@
         {
           "cell_family": "ak.component.device.reanchor.v1",
           "cell_subject": {
-            "field": "payload.account_id",
-            "kind": "canonical_json"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.account_id"
+              }
+            ]
           },
           "lattice": "ordered_log",
           "bottom": "reject",

@@ -2249,24 +2249,16 @@ def check_composite_subject_terminal_types(
             subject_kind = subject.get("kind")
             subject_ref = f"{kind} cell_writes[{write_index}].cell_subject"
             if subject_kind == "canonical_json":
-                source = subject.get("field")
-                if not isinstance(source, str) or not source.startswith("payload."):
-                    lint.fail(
-                        event_registry_path,
-                        f"{subject_ref} canonical_json subject must name one payload field",
-                    )
-                    continue
-                resolved, resolved_types = resolved_terminal_types(kind, source)
-                if not resolved:
-                    lint.fail(
-                        event_registry_path,
-                        f"{subject_ref} endpoint {source!r} has no schema endpoint",
-                    )
-                elif resolved_types != {"object"}:
-                    lint.fail(
-                        event_registry_path,
-                        f"{subject_ref} canonical_json endpoint {source!r} must be a closed object, got {sorted(resolved_types) or ['untyped']}",
-                    )
+                # encoding.md 4.1 has no embedding row for a top-level
+                # canonical_json subject: it is a components[] descriptor. The
+                # single-component composite spelling is the only one with a
+                # defined subject encoding, so reject rather than validate here.
+                lint.fail(
+                    event_registry_path,
+                    f"{subject_ref} canonical_json is a components[] descriptor; "
+                    f'spell it as {{"kind":"composite","components":[{{"kind":"canonical_json",'
+                    f'"field":{subject.get("field")!r}}}]}}',
+                )
                 continue
             if subject_kind == "coalesce":
                 fields = subject.get("fields")

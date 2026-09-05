@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-03.1",
+  "version": "2026-09-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-03T06:40:00+08:00",
+  "generated_at": "2026-09-05T16:55:00+08:00",
   "lock_kind": "fixture_schema_instance_bindings",
   "description": "Fixture objects that are real wire instances but carry no `schema` discriminator, bound by exact JSON Pointer to the schema that owns them. check_declared_schema_fixture_instances only claims objects that name their own schema, so an instance without that member has no schema landing point at all: it survives every field deletion its schema makes, and the drift surfaces only when a downstream deny_unknown_fields type finally parses it. Each row makes one such object validate in the artifact pipeline instead.",
   "registry_rules": [
@@ -23,6 +23,18 @@
       "schema_ref": "schemas/file-transfer.schema.json",
       "decode": "json_string",
       "why": "The record is carried as an embedded JSON string, which is opaque to both the schema walk and additionalProperties. It kept a content_digest sibling that encoding.md 4.0.1 had already deleted from the schema, in the very commit that deleted it."
+    },
+    {
+      "fixture": "privacy-security-fixture.json",
+      "pointer": "/cases/3/input/private_contact_discovery_config",
+      "schema_ref": "schemas/service-describe.schema.json#/properties/private_contact_discovery",
+      "why": "The describe response carries this object inline with no schema member, and every parameter the profile identity fixes is deliberately absent from the closed schema. Without a landing point the golden sample kept echoing oprf_mode, ciphersuite, derived_prefix_bytes, proof_shape and response_size_buckets_bytes, and the drift only surfaced when the SDK's deny_unknown_fields PrivateContactDiscovery finally parsed it. Review 2026-09-05-0210."
+    },
+    {
+      "fixture": "privacy-security-fixture.json",
+      "pointer": "/cases/4/input/private_contact_discovery_config",
+      "schema_ref": "schemas/service-describe.schema.json#/properties/private_contact_discovery",
+      "why": "The describe response carries this object inline with no schema member, and every parameter the profile identity fixes is deliberately absent from the closed schema. Without a landing point the golden sample kept echoing oprf_mode, ciphersuite, derived_prefix_bytes, proof_shape and response_size_buckets_bytes, and the drift only surfaced when the SDK's deny_unknown_fields PrivateContactDiscovery finally parsed it. Review 2026-09-05-0210."
     }
   ]
 }

@@ -6,6 +6,8 @@ from .core import (
     ARTIFACTS,
     Any,
     CELL_FAMILY_RE,
+    CELL_SUBJECT_COMPONENT_ONLY_KINDS,
+    CELL_SUBJECT_KINDS,
     CELL_WRITE_DERIVATIONS,
     CONFLICT_RECOVERY_KIND,
     Counter,
@@ -421,6 +423,43 @@ def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> 
         f"{' / '.join(ENVELOPE_SUBJECT_SOURCES)} source: {value!r}",
     )
 
+
+
+def _lint_cell_subject_kind(lint: Lint, path: Path, ref: str, subject: object) -> None:
+    """Pin `cell_subject.kind` to the closed set of encoding.md 4.1.
+
+    That table names itself the complete list of legal `cell_subject` shapes and
+    forbids two rows applying to one field. `canonical_json` and
+    `string_set_digest` are `components[]` descriptors with no row of their own,
+    so a structured single-field subject MUST be a one-component composite; the
+    top-level spelling would have no defined embedding at all.
+    """
+    if subject is None:
+        # A JSON `null` subject is the registered per-Realm singleton form.
+        return
+    if not isinstance(subject, dict):
+        lint.fail(path, f"{ref}.cell_subject must be an object or JSON null")
+        return
+    subject_kind = subject.get("kind")
+    if subject_kind in CELL_SUBJECT_COMPONENT_ONLY_KINDS:
+        field = subject.get("field")
+        spelled = (
+            f'{{"kind":"composite","components":[{{"kind":{subject_kind!r},"field":{field!r}}}]}}'
+        )
+        lint.fail(
+            path,
+            f"{ref}.cell_subject.kind {subject_kind!r} is a components[] descriptor, "
+            f"not a top-level subject kind; spell it as {spelled}",
+        )
+        return
+    if isinstance(subject_kind, str) and subject_kind.startswith("id:"):
+        return
+    if subject_kind not in CELL_SUBJECT_KINDS:
+        lint.fail(
+            path,
+            f"{ref}.cell_subject.kind must be one of "
+            f"{sorted(CELL_SUBJECT_KINDS)} or id:<object kind>: {subject_kind!r}",
+        )
 
 
 def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: object) -> None:
@@ -1112,7 +1151,11 @@ def check_state_contract_closure(lint: Lint) -> None:
     for kind, contract in contracts.items():
         if not isinstance(contract, dict):
             continue
-        for write in contract.get("cell_writes", []):
+        for write_index, write in enumerate(contract.get("cell_writes", [])):
+            if isinstance(write, dict):
+                _lint_cell_subject_kind(
+                    lint, path, f"{kind} cell_writes[{write_index}]", write.get("cell_subject")
+                )
             if not isinstance(write, dict) or write.get("lattice") != "fsm":
                 continue
             family = write.get("cell_family")

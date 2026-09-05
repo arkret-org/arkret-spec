@@ -5251,6 +5251,102 @@
       }
     },
     {
+      "name": "strand_create_time_board_space_id_in_metadata_fields_is_rejected",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:$.metadata.fields: {'board_space_id': 'ak:space:Aepgr15HbtERKfqPAh9SrfWBdihSvX_c94JvujvBS2f-'} should not be valid under",
+      "instance": {
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "content": {
+          "kind": "ak.content.text",
+          "body": "Description remains a Strand body even on a discussion-only Strand."
+        },
+        "tracks": {
+          "discussion": {
+            "is_primary": true
+          }
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "created_at": "2026-08-18T00:00:00.000Z",
+        "metadata": {
+          "fields": {
+            "board_space_id": "ak:space:Aepgr15HbtERKfqPAh9SrfWBdihSvX_c94JvujvBS2f-"
+          }
+        }
+      }
+    },
+    {
+      "name": "strand_create_time_list_space_id_in_metadata_fields_is_rejected",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:$.metadata.fields: {'list_space_id': 'ak:space:AQM8rE4gp8l4axkSbbb9_dkqwWE8ZPYHwFsC24o2mrIL'} should not be valid under",
+      "instance": {
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "content": {
+          "kind": "ak.content.text",
+          "body": "Description remains a Strand body even on a discussion-only Strand."
+        },
+        "tracks": {
+          "discussion": {
+            "is_primary": true
+          }
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "created_at": "2026-08-18T00:00:00.000Z",
+        "metadata": {
+          "fields": {
+            "list_space_id": "ak:space:AQM8rE4gp8l4axkSbbb9_dkqwWE8ZPYHwFsC24o2mrIL"
+          }
+        }
+      }
+    },
+    {
+      "name": "strand_create_time_rank_in_metadata_fields_is_rejected",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:$.metadata.fields: {'rank': 'U'} should not be valid under",
+      "instance": {
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "content": {
+          "kind": "ak.content.text",
+          "body": "Description remains a Strand body even on a discussion-only Strand."
+        },
+        "tracks": {
+          "discussion": {
+            "is_primary": true
+          }
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "created_at": "2026-08-18T00:00:00.000Z",
+        "metadata": {
+          "fields": {
+            "rank": "U"
+          }
+        }
+      }
+    },
+    {
       "name": "ingress_receipt_six_field_multi_proof_valid",
       "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt",
       "expect_valid": true,

@@ -184,6 +184,23 @@ REGISTRY_BOTTOMS = {"reject", "expose", "inert"}
 
 REGISTRY_PLANES = {"data", "control"}
 
+# zh/conformance/encoding.md 4.1 closes the set of top-level `cell_subject`
+# kinds. `canonical_json` and `string_set_digest` are `components[]`
+# descriptors: a structured single-field subject MUST be spelled as a
+# one-component composite so exactly one embedding row applies to it.
+CELL_SUBJECT_KINDS = {
+    "did",
+    "typed_id",
+    "string",
+    "uri",
+    "coalesce",
+    "composite",
+    "tuple",
+}
+
+CELL_SUBJECT_COMPONENT_ONLY_KINDS = {"canonical_json", "string_set_digest"}
+
+
 CELL_FAMILY_RE = re.compile(r"^ak\.component\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
 
 

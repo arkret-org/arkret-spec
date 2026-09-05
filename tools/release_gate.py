@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,6 +26,21 @@ except ImportError:  # Direct script execution: python tools/release_gate.py
     from release_metadata import current_release_tag
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# The artifacts, the tools and every progress line they print are UTF-8. On a
+# host whose console codepage is not (Windows ships GBK for zh-CN), the default
+# locale encoding applies twice: a child encodes its Chinese lint headings as
+# GBK into the pipe, and this process then fails to re-emit them. Pin both ends
+# to UTF-8 so the gate reports its verdict instead of dying on an encode error.
+CHILD_ENV = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+
+
+def _pin_stdio_to_utf8() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
+
 
 CHECKS: list[tuple[str, list[str]]] = [
     ("artifact pipeline", [sys.executable, "tools/artifact_pipeline.py", "check"]),
@@ -90,6 +106,7 @@ def check_stable_promotion_evidence() -> str | None:
 
 
 def main(argv: list[str]) -> int:
+    _pin_stdio_to_utf8()
     strict = "--strict" in argv
     checks = CHECKS.copy()
     if strict:
@@ -114,6 +131,7 @@ def main(argv: list[str]) -> int:
                 text=True,
                 encoding="utf-8",
                 errors="replace",
+                env=CHILD_ENV,
             )
         except OSError as exc:
             print(f"unable to start {cmd[0]!r} for {label}: {exc}")

@@ -614,6 +614,8 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 每个 upsert 逐字复用 `account-data-operations.schema.json#/$defs/account_data_entry`；remove 携带 `account_data_key`、`revision`、`updated_at`。客户端对每个 key 只接受更高 revision；更低 revision MUST fail closed，同 revision 的不同 value / tombstone MUST 视为同步冲突并触发 resync。服务端 MUST 把 accepted Station-CAS 写入、该 key 的投影位置推进与可重放变更记录放在同一事务；cursor 必须覆盖该位置。变更记录保留期 MUST 不短于 cursor TTL 与 `account_data_tombstone_retention_ms` 的较大者；无法填满 `after` 到当前 frontier 的区间时必须返回 `dropped` / `resync_required`，不得静默跳过。`to_device` 中的 `ak.account_data.update` 仅是低延迟唤醒/加速器，不是第三个真相源，也不能代替上述 baseline 与增量。
 
+本段的 baseline 完整性、缺席不等于删除、revision 单调性、同 key 窗口合并、两类真相源不得互相合成，以及填不满区间必须 `dropped` / `resync_required` 这几条，由 `ak.vector.sync.station_cas_account_data.v1` 固化（[`../conformance/conformance-vectors.md` §5.12](../conformance/conformance-vectors.md)）。
+
 ## 10. To-Device Delivery
 
 `to_device.messages` MUST 只包含当前 session credential 对应 device 的消息。
