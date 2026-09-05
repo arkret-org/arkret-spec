@@ -67,7 +67,9 @@
         "lattice": "fsm",
         "assertions": [
           "duplicate_same_transition_idempotent",
-          "same_from_different_to_returns_bottom"
+          "same_from_different_to_returns_bottom",
+          "reentered_transition_is_a_new_occurrence",
+          "registered_self_loop_does_not_consume_its_state"
         ]
       },
       {

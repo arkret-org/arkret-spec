@@ -1211,18 +1211,28 @@ ak.vector.lattice.fsm_join.v1
 
 - **Case A — 幂等收敛**：同一 CBA basis 内两条并发 Event 各自对同一 fsm cell 提交 transition `(from="invited", to="join")`（相同 `(from,to)`，不同 actor / event id / HLC）。
 - **Case B — 并发冲突 ⊥**：同一 CBA basis 内两条并发 Event 分别提交 `(from="invited", to="join")` 与 `(from="invited", to="decline")`（同 `from` 不同 `to`）。
+- **Case C — 重入不是重放**：可逆 family（`allowed_transitions` 含 `(active,archived)` 与 `(archived,active)`）上依次提交 `active→archived`、`archived→active`、`active→archived` 三条**因果有序**的 transition。
+- **Case D — 已登记 self-loop 不吃掉后继**：`allowed_transitions` 含 `(active,active)` 的 family 上依次提交 `active→active` 与 `active→tombstoned`。
 
 期望：
 
 - **Case A**：join 收敛到 `state == "join"`，MUST NOT 返回 ⊥；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
 - **Case B**：join MUST 返回 ⊥；`query(cell)` 返回 structured `Bottom{kind="conflict"}` 诊断。该 cell 配置 `bottom=reject`，后续依赖该 cell 的 Event MUST `failed_bottom`，直到 §8 conflict-recovery 路径修复。
-- 两个 case 中实现均 MUST NOT 用 HLC、actor id、event id 或本地接收顺序选择状态机 winner。
+- **Case C**：读 `archived`。**幂等判据 MUST NOT 只看 `(from,to)` 对**：cell 合法回到 `active` 后就重新站在该状态的出边起点上，此时同一 `(active,archived)` 是一次**新的**转移而不是第一条的重放。只按 `(from,to)` 去重的实现会把第三条折掉并读出 `active`——这与 §9.3.1.4 为 `cas_register` 删除值接边 join 时点名的 `A→B→A` / `A→B→A→B` 是同一个失效，在每个可逆 `object_lifecycle` family 与 membership 上都可达。
+- **Case D**：读 `tombstoned`。已登记的 self-loop 是合法的重复声明，MUST NOT 被记成「该状态唯一的出边」，否则随后一条 registry 明确允许的转移会被误判成 `same_from_different_to` 冲突。
+- 四个 case 中实现均 MUST NOT 用 HLC、actor id、event id 或本地接收顺序选择状态机 winner。
 
 失败条件：
 
 - Case A 把幂等重复 transition 错判为冲突返回 ⊥。
 - Case B 选出任一 `to` 作为 winner 继续推进，或冲突诊断在两个 reducer 间不一致。
+- Case C 读出 `active`（把重入当成重放）。
+- Case D 返回 ⊥（把 self-loop 当成该状态已用掉的出边）。
 - transition `(from,to)` 不在 `allowed_transitions` 表内却未返回 ⊥ / 未被 validate_op 拒绝。
+
+**本向量当前不固定「不同到达顺序得到同一结果」**：上文 Case A 的期望里写了这条，但它对 `fsm`
+整体成立需要一个 `cas_register` 尚未拥有的对应物——状态机自己的转移代数。缺口与三个已定位的实现
+缺陷记在 `arkret-work/review/spec-open/2026-09-06-1610`，裁决落地前 runner MUST NOT 声明它已被执行。
 
 #### 2.11.1 Vector: same-Seal `bottom=reject` 排重
 
