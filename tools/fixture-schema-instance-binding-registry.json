@@ -28,13 +28,13 @@
       "fixture": "privacy-security-fixture.json",
       "pointer": "/cases/3/input/private_contact_discovery_config",
       "schema_ref": "schemas/service-describe.schema.json#/properties/private_contact_discovery",
-      "why": "Vector input that is a real ServiceDescribe private_contact_discovery instance but sits inside a case input, so it names no schema member. Review 2026-09-05-0210: it carried a distribution member (and five profile-fixed parameters) that the closed describe schema rejects; the profile identity fixes those values, so they are not describe fields."
+      "why": "A vector case input, so it carries no schema member and no schema_validation_cases entry; check_declared_schema_fixture_instances cannot claim it. It shipped six members the closed describe object forbids -- distribution inside anti_enumeration_delay plus oprf_mode, ciphersuite, derived_prefix_bytes, proof_shape and response_size_buckets_bytes -- which are exactly the parameters the profile description fixes to the profile identity instead of a describe field. Nothing caught it until the SDK's deny_unknown_fields type parsed the fixture."
     },
     {
       "fixture": "privacy-security-fixture.json",
       "pointer": "/cases/4/input/private_contact_discovery_config",
       "schema_ref": "schemas/service-describe.schema.json#/properties/private_contact_discovery",
-      "why": "Vector input that is a real ServiceDescribe private_contact_discovery instance but sits inside a case input, so it names no schema member. Review 2026-09-05-0210: it carried a distribution member (and five profile-fixed parameters) that the closed describe schema rejects; the profile identity fixes those values, so they are not describe fields."
+      "why": "A vector case input, so it carries no schema member and no schema_validation_cases entry; check_declared_schema_fixture_instances cannot claim it. It shipped six members the closed describe object forbids -- distribution inside anti_enumeration_delay plus oprf_mode, ciphersuite, derived_prefix_bytes, proof_shape and response_size_buckets_bytes -- which are exactly the parameters the profile description fixes to the profile identity instead of a describe field. Nothing caught it until the SDK's deny_unknown_fields type parsed the fixture."
     }
   ]
 }

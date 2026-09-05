@@ -80,7 +80,7 @@ def main(argv: list[str]) -> int:
     if mode != "generate":
         print(f"unsupported mode: {mode}", file=sys.stderr)
         return 2
-    OUTPUT.write_text(rendered, encoding="utf-8")
+    OUTPUT.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"updated {OUTPUT.relative_to(ROOT).as_posix()} ({len(payload['fields'])} fields)")
     return 0
 

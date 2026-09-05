@@ -141,7 +141,7 @@ def main() -> int:
     args = parser.parse_args()
     expected = expected_text()
     if args.mode == "generate":
-        OPENAPI.write_text(expected, encoding="utf-8")
+        OPENAPI.write_text(expected, encoding="utf-8", newline="\n")
     errors = validate(expected if args.mode == "generate" else OPENAPI.read_text(encoding="utf-8"))
     if args.mode == "check" and OPENAPI.read_text(encoding="utf-8") != expected:
         errors.append("OpenAPI selector projection drift; run this tool in generate mode")
