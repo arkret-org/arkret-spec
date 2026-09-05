@@ -14,7 +14,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "90a385e1757a0779d1a41ab336bb94ca4d033bffd256660d2b05dd5dd37cb149"
+      "sha256": "79e9d6c9de7fa23ca6d07f2b2d58626fac4e1a5ef636afc453263e795627c46f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
@@ -91,6 +91,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
       "sha256": "2bfd886c1cc35b2a6a461b74d32f2b76279dc2931616ac1d1b88dad6c8130668"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/contact-remark-fixture.json",
+      "sha256": "58047adbe48fb1a3d09462f66f328deeab83ffc76062a1c714649c47b31d830a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/contact-round-kat.json",
@@ -242,7 +246,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-      "sha256": "71eb3920e393056f968a30e794c31674770248836756005f87a76f77dcb7f55a"
+      "sha256": "e2ff86e7881985e0714072c7cbf20901730cbc42c16252531109ce70ba1c62e7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
@@ -294,7 +298,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "2f821a4f04dba62d3f84fad6e74c845b8c3c563921ec7668af89b6202d6586b1"
+      "sha256": "99cde229c4ab87234ba332d976d0396a82529a10e04a9622ea3121a6c2ddba6c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

@@ -93,7 +93,23 @@ Schema id: `ak.schema.actor_profile.v1`
 - **显式 cascade（normative）**：controller terminal transition 的实际签名者必须为 terminal pre-state 中的全部 active controlled Agent 提交 `membership_cause="controller_membership_ended"` 的 leave Events；每条 Agent Event 的 `actor_id` 是 Agent，`executed_by` 是 terminal transition 的实际 initiator，并以 `agent_controller_binding.controller_terminal_event_ref` 绑定该 terminal Event。receiver 从 terminal pre-state 机械得到按 `agent_id` 排序的 exact set，禁止缺失、多余、重复、换 Realm、换 controller pair/generation、换 signer 或非 leave Event。
 - self leave 使用 `unit_kind="agent_membership_cascade"`、`cascade_mode="atomic_self_leave"` 的完整原子 batch；任一 Event 或 exact-set 检查失败时 controller 与全部 Agent transition 一起回滚。第三方紧急 ban/remove 使用 `cascade_mode="emergency_terminal"` 先原子接受 terminal Event并建立 durable exact-set cleanup intent，权限立即失效；随后同一 initiator 用 `cascade_mode="emergency_cleanup"` 提交完整集合，全部验证后一次性落地 Agent transitions。同 intent exact replay 幂等，异内容拒绝。durable/wire record 不保存 pending/completed/overdue status；`completed_at` 与完整 `agent_transition_event_ids` 共同存在即 completed，否则 incomplete，incomplete record 在 `cleanup_due_at <= observation_time` 时才是 computed overdue view。超时只告警，不恢复权限，也不得由服务端代签。outcome 必须区分 `terminal_applied_cleanup_pending` 与 `cleanup_completed`。
 - `membership_cause` 是 closed lifecycle cause，仅作审计分类，不授予 authority；安全 provenance 来自 terminal Event、exact controller binding、实际 signer、pre-state exact set 与原子提交。自由文本 `reason` 最长 256 个 Unicode scalar values，不得作为 cascade 成立的证据。
-- `agent_slug` 只为 Agent 的 **controller-scoped mention selector** 服务。它与 controller handle 组合成输入 token `@<controller-handle>/<agent_slug>`，发送前必须解析为 Agent `principal_id`。权威绑定来自 `ak.schema.agent_selector_claim.v1`，而不是 DID path 或 Actor Profile 字面值；Actor Profile 上的 `agent_slug` 只是 list/get、roster、mention picker 可用的投影 hint。`agent_slug` 本身 MUST NOT 进入 grant subject、actor attribution、membership key、delivery decision、公开 Directory search/list key 或 audit attribution。Reducer / profile projection 在同一 verified controller principal 下发现多个 active Agents 使用同一有效 selector claim 时，MUST 把该 selector 解析为 ambiguous 并 fail closed；实现 MAY 拒绝造成冲突的 `ak.profile.create` / `ak.profile.update` 或 selector claim。`agent_slug` 变化只影响未来输入解析，历史 mention 仍按已持久化的 `subject_account_id` 指向原 Agent。
+- `agent_slug` 只为 Agent 的 **controller-scoped mention selector** 服务。它与 controller handle 组合成输入 token `@<controller-handle>/<agent_slug>`，发送前必须解析为 Agent 的完整 `subject_account_id`。权威绑定来自 `ak.schema.agent_selector_claim.v1`，而不是 DID path 或 Actor Profile 字面值；Actor Profile 上的 `agent_slug` 只是 list/get、roster、mention picker 可用的投影 hint。`agent_slug` 本身 MUST NOT 进入 grant subject、actor attribution、membership key、delivery decision、公开 Directory search/list key 或 audit attribution。Reducer / profile projection 在同一 verified controller principal 下发现多个 active Agents 使用同一有效 selector claim 时，MUST 把该 selector 解析为 ambiguous 并 fail closed；实现 MAY 拒绝造成冲突的 `ak.profile.create` / `ak.profile.update` 或 selector claim。`agent_slug` 变化只影响未来输入解析，历史 mention 仍按已持久化的 `subject_account_id` 指向原 Agent。
+
+- **两类 registered writer 必须产出同一个语义目标（normative）**：`ak.component.agent.selector_claim.v1`
+  这个 cell family 有两个写入方——独立的 `ak.agent.selector_claim` 与 `ak.agent.provision` 的 selector 投影。
+  cell namespace 两侧都保持 principal 级 `(controller principal, agent_slug)`，**不加 Station**；
+  被选中的目标两侧都必须是同一个完整 AccountId。
+  - 独立 claim 验它自己的 `ak.agent_selector_claim_proof.v1`：`subject_account_id` 是 binding field，
+    换 Station 而复用原 proof MUST 验签失败。
+  - provision 投影**没有**内层 selector proof，也 MUST NOT 为此新增一套签名或再复制一遍 agent principal。
+    它的目标只能从已签名的 `payload.agent_id`、该 provision Event 的 exact controller account / Station
+    与既有同 Station admission 规则派生，并在 Agent genesis / binding 完成后与
+    `genesis.actor_id.account_id` 精确核对。**这不是取调用方当次的 Station。**
+    provision 未完成（Agent PCR genesis 未 accepted）之前，该 Agent MUST NOT 被当作 active 可解析目标。
+  - 无内层 proof 的投影 MUST NOT 被伪造成独立签名 claim。要求返回 `selector_claim.proofs` 的 portable
+    响应，必须拿到真实 controller 或授权 issuer 签名的 claim；拿不到就不能广告 / 返回该成功面，
+    服务端 MUST NOT 补签，也 MUST NOT 公开 private provision 材料来填满 DTO。
+
 - Event Envelope 在 reducer 接受时 stamp `actor_kind` projection(见 [`event-and-patch.md`](./event-and-patch.md) §2.2),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可分类 event。该字段是 reducer-managed immutable,actor 提交侧 MUST NOT 携带。
 
 ### 3.3.1 `accountable_principal_ids` 的可验证性（normative）

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/contact-remark.schema.json",
+  "title": "Arkret Contact Remark Account Data",
+  "description": "Closed decrypted plaintext shape for the principal-private ak.contacts.actor.<principal_key> account-data value described by zh/discovery/client-preferences.md section 3.6. A producer validates the final plaintext before it encrypts and signs; a consumer validates after it opens the AEAD and before it applies the value. The recipient Station holds no key and cannot validate this shape, so nothing here is a server-side admission check. Structural validity proves nothing about where a name came from: the display-name confirmation evidence, the tag namespace and the storage-key binding are domain rules the same client also enforces.",
+  "type": "object",
+  "required": [
+    "version",
+    "subject",
+    "saved_at"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Value format version of this remark. v1 has exactly one value, so a different number is a rejected value rather than a negotiated variant."
+    },
+    "subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "principal_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "human",
+          "description": "Aligned with the human branch of the Contact list. Organization, device, service and Realm actors MUST NOT reuse this record."
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "The human Contact peer this remark is about. After decryption the consumer recomputes the storage key from this value and the holder namespace key, and rejects the value when the recomputed key does not equal the key it was read from."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Closed identity of the remarked Contact. It is principal-scoped on purpose: a remark is holder-private display data and never takes part in authorization or subject equality, so it carries no Station or actor role."
+    },
+    "petname": {
+      "$ref": "./string-profiles.schema.json#/$defs/display_text_128",
+      "description": "Holder-authored global alias for this Contact. Absence means no alias; an empty string is not the way to clear one, because the display profile rejects it."
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 4096,
+      "description": "Free-form holder note, at most 4096 Unicode code points. It may be empty and it may span lines, so it does not reuse the single-line display profile."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Private grouping tags. The reserved and vendor namespace rule of section 3.1 governs the values, and a client validates it as a domain rule: an array of strings passing this schema is not evidence that the namespace rule holds."
+    },
+    "pinned": {
+      "type": "boolean",
+      "description": "Whether the holder pinned this Contact in local ordering."
+    },
+    "verified_handle_at_save": {
+      "$ref": "./string-profiles.schema.json#/$defs/canonical_handle",
+      "description": "Canonical wire form of the verified handle seen when the remark was written or last updated, kept for anti-impersonation comparison. The typed input form with a leading marker is not stored."
+    },
+    "confirmed_display_name": {
+      "$ref": "./string-profiles.schema.json#/$defs/display_text_128",
+      "description": "Profile display text the holder saw the last time it explicitly confirmed this Contact identity. It shares one display profile with the Actor Profile field it snapshots, so the two can never drift to different limits. An ordinary petname, note, tag or pin edit preserves it; only an explicit confirmation refreshes it."
+    },
+    "saved_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp",
+      "description": "When the remark was first saved."
+    },
+    "updated_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp",
+      "description": "When the remark was last modified."
+    }
+  },
+  "additionalProperties": false
+}

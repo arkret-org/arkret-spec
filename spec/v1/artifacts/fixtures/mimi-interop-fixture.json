@@ -17,7 +17,8 @@
     "ak.vector.mimi.consent_isolation.v1",
     "ak.vector.mimi.proxy_download_policy.v1",
     "ak.vector.mimi.provider_directory_signature.v1",
-    "ak.vector.mimi.unsupported_draft_fail_closed.v1"
+    "ak.vector.mimi.unsupported_draft_fail_closed.v1",
+    "ak.vector.mimi.consent_correlation_identity.v1"
   ],
   "drafts": {
     "protocol": "draft-ietf-mimi-protocol-06",
@@ -291,6 +292,388 @@
         "protocol_draft": "draft-ietf-mimi-protocol-99"
       },
       "expected": "reject_or_negotiate_new_profile_without_mutating_reducer_profile"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "cross_station_requester_accepted",
+      "note": "The requester is hosted on a different Station from the holder. The request names it in full, so the correlation freezes an ActorId that update_consent compares byte for byte with no facade filling in a Station.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "correlation": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message"
+      },
+      "update": {
+        "grant_peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+              "station_id": "ak:did_core:web:mimi.example.com"
+            }
+          }
+        },
+        "grant_consent_scope": "direct_message",
+        "holder_actor": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+            "station_id": "ak:did_core:web:acme.example"
+          }
+        }
+      },
+      "expected": "accept"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "first_consent_needs_no_prior_grant",
+      "note": "A first request from an authenticated requester is legal: the identifier mapping, the account binding and the consent are three different facts. Nothing here requires a prior consent or Realm membership.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "prior_consent": null,
+      "requester_realm_membership": "none",
+      "expected": "accept"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "pseudonymous_account_requester_accepted",
+      "note": "A verifiable pseudonymous Account uses the ordinary actor branch. It is not the consent-model pairwise_principal branch, and section 10 must not be read as excluding it.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimipseudonym",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "expected": "accept"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "ephemeral_pairwise_peer_rejected",
+      "note": "A Realm-local ephemeral pairwise actor has no ordinary account authority, so a pairwise_principal peer never matches a MIMI correlation. Rejection is by profile and authority check, not by the JSON enum alone: a value shaped like an account Actor must still be refused.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "update": {
+        "grant_peer": {
+          "kind": "pairwise_principal",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "principal_id": "ak:did_core:key:z6MkfixtureEphemeralPairwise"
+        }
+      },
+      "expected": "reject"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "same_principal_other_station_holder_rejected",
+      "note": "The holder core matches but the Station does not. Section 6.1.1.2 keys the holder dimension on the complete AccountId, so this is a different holder.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "update": {
+        "holder_actor": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+            "station_id": "ak:did_core:web:other.example"
+          }
+        }
+      },
+      "expected": "reject"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "same_principal_other_station_requester_rejected",
+      "note": "Mirror of the holder case on the peer side: comparing the requester by principal core would let another Station account inherit this consent.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "update": {
+        "grant_peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+              "station_id": "ak:did_core:web:other.example"
+            }
+          }
+        }
+      },
+      "expected": "reject"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "provider_supplied_station_rejected",
+      "note": "The facade must not accept a provider-asserted account binding and must not substitute its own Station for a missing one. With the full ActorId on the wire there is nothing left to fill in.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "facade_substituted_station": "ak:did_core:web:mimi.example.com",
+      "update": {
+        "grant_peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+              "station_id": "ak:did_core:web:other.example"
+            }
+          }
+        }
+      },
+      "expected": "reject"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "unknown_holder_not_enumerable",
+      "note": "Creating the correlation queries no consent cell. A syntactically valid, authenticated request for a holder that does not exist returns the same opaque consent_id as one for a holder that does; the correlation may freeze a target nobody can legitimately accept.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemiminobody",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "expected": "accept_opaque",
+      "expected_response_indistinguishable_from": "cross_station_requester_accepted"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "foreign_source_or_expired_correlation_not_found",
+      "note": "Unknown, expired, other-source and invisible correlations share one failure shape and one disclosure level; the reply must not say which.",
+      "update": {
+        "source_service_class": "other_facade"
+      },
+      "expected": "not_found"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "scope_any_does_not_substitute_for_a_named_scope",
+      "note": "purpose any and a concrete scope do not stand in for each other in either direction.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "any",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "update": {
+        "grant_consent_scope": "voice_call"
+      },
+      "expected": "reject"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "revoke_without_active_dots_rejected",
+      "note": "Revoke reconciles against the holder current accepted cell. With no matching active observed dots there is nothing to revoke and the facade must not synthesise a success or co-sign an Event.",
+      "update": {
+        "decision": "revoke",
+        "active_observed_dots": []
+      },
+      "expected": "not_found"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "exact_event_replay_returns_same_result",
+      "note": "A byte-identical replay of the same legal Event returns the accepted result even after the first revoke consumed the dots; the replay still passes the identity, source and disclosure checks, so knowing an Event ID alone does not query a private outcome.",
+      "update": {
+        "decision": "revoke",
+        "replay_of": "first_revoke",
+        "authenticated_as": "same_holder_same_source"
+      },
+      "expected": "accept_same_result"
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "name": "request_uncertain_outcome_is_manual",
+      "note": "A request whose response was lost cannot be recovered from ak.self.consent.read.list.v1: no Event exists yet, so the correlation is not in that list. The registered strategy is manual_confirmation, and a second request is a new correlation rather than a safe retry.",
+      "request": {
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturemimirequester",
+            "station_id": "ak:did_core:web:mimi.example.com"
+          }
+        },
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturemimiholder",
+          "station_id": "ak:did_core:web:acme.example"
+        },
+        "purpose": "direct_message",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemimirequester:mimi.example.com#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z"
+          }
+        ]
+      },
+      "response": "lost",
+      "expected_recovery_strategy": "manual_confirmation"
     }
   ]
 }

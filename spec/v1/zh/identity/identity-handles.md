@@ -56,7 +56,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 | --- | --- | --- | --- |
 | Connection Identifier | 关系私有；仅在发现 / 邀请 / consent 阶段使用 | provider 可达性证明 + invite / consent 流程 | 否 |
 | Handle | 公开或受限；用于 @mention / 邀请 / 成员添加 / 跨上下文可读寻址 | Directory / Station / Organization authority 签发的 handle claim（canonical `user:domain` + `acct:` alias），按披露策略解析为 exact `subject_account_id`；proof 的 DID URL 独立承载签名 key | 否 |
-| Agent Selector | 默认受限；仅用于 controller-scoped Agent @mention 输入别名 | controller handle claim + `ak.schema.agent_selector_claim.v1`，解析为 agent `subject did_core_id` | 否 |
+| Agent Selector | 默认受限；仅用于 controller-scoped Agent @mention 输入别名 | controller handle claim + `ak.schema.agent_selector_claim.v1`，解析为 agent `subject_account_id`（完整 AccountId） | 否 |
 | Administrative Identifier | 组织本地；不出协议线 | 组织 governance / 内部 Directory | 否 |
 | Display Name | UI 展示 | 无 | 否 |
 | Principal DID | 公开或 pairwise；按 disclosure policy 控制 | DID resolver + 签名 | 是 |

@@ -351,7 +351,7 @@ MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对�
 {
   "context": "<该对象族在 proof-context-registry 中登记的 context>",
   "payload_digest": "sha256:<lowercase-hex>",
-  "issuer": "<request.actor_id | request.requester | request.requester_id>",
+  "issuer": "<request.actor_id | request.requester | request.requester_actor_id>",
   "operation_id": "<由 schema ref 在 operation-registry 中连接到的 operation>",
   "verification_method": "<proof.verification_method>",
   "created_at": "<proof.created_at>",
@@ -360,7 +360,7 @@ MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对�
 }
 ```
 
-transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`：`issuer` 只在该对象族的 wire 形态定义了发起方字段时出现（`mimi_key_material_request_body.requester`、`mimi_request_consent_request_body.requester_id`、`mimi_update_consent_request_body.actor_id` MUST 出现；`mimi_identifier_query_request_body.requester` 可缺席，缺席时 transcript MUST 同时省略 `issuer`），outcome 族的签发方身份只由 `verification_method` 承载。除公共字段外还 MUST 逐字加入该族的目标标识：`mimi_key_material_request_body` 加 `strand_id` 与 `device_id`；`mimi_request_consent_request_body` 加 `target` 与 `purpose`；`mimi_update_consent_request_body` 加 `consent_id` 与 `decision`。
+transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`：`issuer` 只在该对象族的 wire 形态定义了发起方字段时出现（`mimi_key_material_request_body.requester`、`mimi_request_consent_request_body.requester_actor_id`、`mimi_update_consent_request_body.actor_id` MUST 出现；`mimi_identifier_query_request_body.requester` 可缺席，缺席时 transcript MUST 同时省略 `issuer`），outcome 族的签发方身份只由 `verification_method` 承载。除公共字段外还 MUST 逐字加入该族的目标标识：`mimi_key_material_request_body` 加 `strand_id` 与 `device_id`；`mimi_request_consent_request_body` 加 `holder_account_id` 与 `purpose`；`mimi_update_consent_request_body` 加 `consent_id` 与 `decision`。
 
 字段顺序不影响 canonical JSON；`audience` 也可为至少覆盖目标 service DID 的非空无重复字符串数组。接收方 MUST 重算 unsigned body digest，验证 `issuer` 等于该族的发起方字段、当前 DID Document 授权的 `verification_method`、`kind=detached_jws`、`alg=Ed25519`、精确的 context/operation/domain/audience 绑定和 JWS。**接收方 MUST 拒绝 context 与本 operation 对象族不一致的 proof**：在一个族下有效的签名不得被另一个族接受，跨 operation 与 request/outcome 方向的重放由 context 本身阻断，不依赖 `operation_id` 是否被某个实现纳入 transcript。`created_at` MUST 位于接收方当前时钟前后 300 秒内。proof 失败 MUST 在写 consent state 之前拒绝；同一 proof 只能随其已绑定的完整 body 使用。相同 `consent_event.event.event_id` 与 byte-identical Event 的请求重放是 §10 定义的 retry-safe 例外，MUST 返回原 accepted Event ref；若 carried Event ID 不等于当前 canonical Event bytes 的重算值，MUST 以 `event_id_digest_mismatch` 拒绝且不得提前泄露 holder state；只有不同 canonical preimage 各自重算为同一个完整 EventId 时才按 `witness_disagreement` 隔离。
 
@@ -514,9 +514,51 @@ MIMI identifier MUST NOT 被直接作为 Arkret actor。映射规则：
 
 `ak.open.mimi.read.identifiers.v1` SHOULD 调用 `ak.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6 的 PSI-only 边界），facade 实现 MUST NOT 复活它。`ak.open.mimi.command.request_consent.v1` / `ak.open.mimi.command.update_consent.v1` MUST 映射为 Arkret 的 holder-private consent state（`ak.consent.grant` / `ak.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
 
-`request_consent` 返回 `consent_id` 前 MUST 持久保存仅服务本地可见的 correlation：`(consent_id, requester_id, target, purpose, strand_id?, authenticated source service/session class, created_at, expires_at?)`。该记录不是 Event、cell、授权或可对外查询的 pending consent state。`update_consent` 必须在验证 transport 与 actor proof 后，将 actor、来源、Event 解析得到的 holder/peer/scope 与该 correlation 逐字对账；`target.kind != did` 只有在目标侧 claim/identifier binding 已解析到同一 holder 时才可继续，否则 fail closed。未知、过期、属于其它来源/holder 或调用方不可见的 correlation，以及 revoke/deny 找不到匹配 active observed dots，统一返回相同的 `not_found` 失败形态与披露等级，不得说明记录是否存在、目标是谁或 holder 是否已有 consent cell。
+**`request_consent` 的不确定结果不可自动重放（normative）**：它仍是 `idempotency_mechanism=none`、
+`retry_safe=false`，不因 correlation 精确化就获得重试幂等性。尚未写 Event 的私有 correlation **不在**
+`ak.self.consent.read.list.v1` 里，因此不能用该列表恢复丢失的 `consent_id`；恢复策略是
+`manual_confirmation`。**不新增** correlation 查询端点或可枚举 pending 状态：既有请求保持结果未知，
+再发一次是**新的** correlation，不得被说成原请求的安全自动重放。
 
-`update_consent` **MUST** 携带完整 `consent_event: EventInitialSubmission`：`decision=accept` 对应 `event.kind=ak.consent.grant`，`decision=deny|revoke` 对应 `event.kind=ak.consent.revoke`。`event.actor_id` 必须等于请求 `actor_id` 与私有 correlation 的 holder，且 Event actor 与认证 holder 必须是该 holder Principal Control Realm 当前 authority-root controller；grant payload 的 `consent_id`、peer 与 scope 必须等于 facade 私有 correlation，revoke payload 的 `consent_id` 与 active `observed_dot_ids` 必须解析到该 correlation 的同一 holder/peer/scope cell。facade 同时验证覆盖完整 unsigned body 的 detached operation signature；`authorization_ref` 必须绑定当前 authority-root 授权。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持由不同主体独立 managed-behalf，也不接受 `consent_write` 委派；普通 PCR write、co-owner grant、controller / agent automation 或 payload approval evidence 均不能替代。facade 只能把 exact submission 交给 ordinary Event admission，**MUST NOT** 代签、重建或合成 Event。deny/revoke 没有可枚举的 active observed dots 时必须用不泄露 holder 状态的拒绝结束，不能写“成功但无 Event”的本地状态。成功响应必须返回 `status=accepted` 与唯一 `event_ref`；相同 Event ID 的逐字节重放返回同一结果。
+`holder_account_id` 是 requester 签名选择的收件对象，**不是** holder 已同意、存在或可见的证明。
+创建 correlation 不查询也不公开 holder consent cell：对语法合法且 requester 已认证的请求，
+MUST NOT 因 holder 不存在 / 不可见 / 未同意而产生可区分结果，一律回同一 opaque `consent_id`。
+correlation 可以冻结一个最终无人能合法接受的目标——它没有授权效力。
+
+`request_consent` 的请求体**直接写完整身份**：`requester_actor_id` 是 exact ActorId（含 Station 与 role），
+`holder_account_id` 是 exact AccountId，`proofs` 必填。返回 `consent_id` 前 MUST 持久保存仅服务本地可见的
+correlation：`(consent_id, requester_actor_id, holder_account_id, purpose, strand_id?, authenticated source
+service/session class, created_at, expires_at?)`。该记录不是 Event、cell、授权或可对外查询的 pending consent state。
+
+**为什么不再存裸 requester 与 `target`（normative）**：[`identity/consent-model.md` §6.1](../identity/consent-model.md)
+的查询步骤 1 要求普通 peer 按**完整 ActorId** 比较并禁止降维到裸 principal，§6.1.1.2 的 holder 维度同样是完整
+AccountId。correlation 若只冻结 principal core，`update_consent` 的「逐字对账」在 v1 里就没有可实施口径：
+facade 要么降维比较（违反 §6.1），要么自己补一个 Station——那个 Station 不是任何一方声明的事实，
+只是本 facade 当次的身份，换一个 facade 就换一个答案。因此本 operation 收窄为
+**对已明确选定的 Arkret 身份请求同意**，不兼任别名解析：外部 identifier 到既有身份的映射仍按本节
+目标侧 consent proof / holder claim 规则在**调用本 operation 之前**完成，映射不出来的外部用户维持 pending
+handoff，MUST NOT 冒充既有账号。`target` 在其它 MIMI identifier / 发现操作里的用途不受影响。
+
+`update_consent` 必须在验证 transport 与 actor proof 后，把 Event 解析得到的 holder/peer/scope 与该
+correlation **按结构逐字相等**比较，不重新解析原目标：
+
+```text
+body.actor_id == event.actor_id == AccountActor(correlation.holder_account_id)
+grant.peer     == ActorPeer(correlation.requester_actor_id)
+grant.consent_scope == correlation.purpose
+grant.consent_id    == body.consent_id == correlation.consent_id
+```
+
+correlation 缓存不代替当前授权：认证 holder、PCR lineage、`root_control_only` 与来源 service/session class
+仍逐项匹配当前 accepted 状态。`purpose="any"` 与具体 scope **不互相替代**。
+
+**本 facade 不接受 Realm-local ephemeral pairwise actor（normative）**：它没有本 operation 要求的普通账号
+authority，因此 `peer.kind="pairwise_principal"` 永远不匹配任何 MIMI correlation；即使 wire 外观能装进 account
+Actor，也 MUST 按 profile / authority 检查拒绝，不能只靠 JSON enum 挡。普通 pseudonymous Account 走
+`{kind:"actor"}` 分支，**不在**此禁令内，且**不要求**它先获得正在请求的 consent 或先加入 Realm——
+映射的 holder claim、账号身份绑定与同意是三件不同的事实。未知、过期、属于其它来源/holder 或调用方不可见的 correlation，以及 revoke/deny 找不到匹配 active observed dots，统一返回相同的 `not_found` 失败形态与披露等级，不得说明记录是否存在、目标是谁或 holder 是否已有 consent cell。
+
+`update_consent` **MUST** 携带完整 `consent_event: EventInitialSubmission`：`decision=accept` 对应 `event.kind=ak.consent.grant`，`decision=deny|revoke` 对应 `event.kind=ak.consent.revoke`。`event.actor_id` 必须等于请求 `actor_id` 与私有 correlation 的 holder，且 Event actor 与认证 holder 必须是该 holder Principal Control Realm 当前 authority-root controller；grant payload 的 `consent_id`、peer 与 scope 必须**逐字等于** facade 私有 correlation 冻结的那三个值（peer 由 `correlation.requester_actor_id` 唯一派生为 `{kind:"actor", actor_id:…}`，correlation 不另存第三份同内容真相），revoke payload 的 `consent_id` 与 active `observed_dot_ids` 必须解析到该 correlation 的同一 holder/peer/scope cell。facade 同时验证覆盖完整 unsigned body 的 detached operation signature；`authorization_ref` 必须绑定当前 authority-root 授权。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持由不同主体独立 managed-behalf，也不接受 `consent_write` 委派；普通 PCR write、co-owner grant、controller / agent automation 或 payload approval evidence 均不能替代。facade 只能把 exact submission 交给 ordinary Event admission，**MUST NOT** 代签、重建或合成 Event。deny/revoke 没有可枚举的 active observed dots 时必须用不泄露 holder 状态的拒绝结束，不能写“成功但无 Event”的本地状态。成功响应必须返回 `status=accepted` 与唯一 `event_ref`；相同 Event ID 的逐字节重放返回同一结果。
 
 ## 11. Abuse Report And Proxy Download
 

@@ -627,7 +627,7 @@
       "declared_binding_fields": [
         "payload_digest",
         "controller_subject_id",
-        "subject_id",
+        "subject_account_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -657,11 +657,14 @@
         "controller_subject_id": "controller_subject_id-fixture-value",
         "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "schema": "ak.schema.agent_selector_claim.v1",
-        "subject_id": "ak:did_core:webvh:z6mkfixture",
+        "subject_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
         "visibility": "public"
       },
-      "unsigned_jcs": "{\"agent_slug\":\"summary\",\"binding_state\":\"pending\",\"controller_subject_id\":\"controller_subject_id-fixture-value\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureregistryexample\",\"schema\":\"ak.schema.agent_selector_claim.v1\",\"subject_id\":\"ak:did_core:webvh:z6mkfixture\",\"visibility\":\"public\"}",
-      "unsigned_digest": "sha256:2140796178cc87f917551eddca1ec5cf359098a133000083d97c6fc07b6e8c6a",
+      "unsigned_jcs": "{\"agent_slug\":\"summary\",\"binding_state\":\"pending\",\"controller_subject_id\":\"controller_subject_id-fixture-value\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureregistryexample\",\"schema\":\"ak.schema.agent_selector_claim.v1\",\"subject_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"visibility\":\"public\"}",
+      "unsigned_digest": "sha256:8bb471e79185528543432cbf3ce2d692abdd6776a0f12d73517e9d33397e19c6",
       "digest_binding_field": "payload_digest",
       "protected_header": {
         "alg": "Ed25519"
@@ -669,9 +672,12 @@
       "protected_header_jcs": "{\"alg\":\"Ed25519\"}",
       "binding_object": {
         "context": "ak.agent_selector_claim_proof.v1",
-        "payload_digest": "sha256:2140796178cc87f917551eddca1ec5cf359098a133000083d97c6fc07b6e8c6a",
+        "payload_digest": "sha256:8bb471e79185528543432cbf3ce2d692abdd6776a0f12d73517e9d33397e19c6",
         "controller_subject_id": "controller_subject_id-fixture-value",
-        "subject_id": "ak:did_core:webvh:z6mkfixture",
+        "subject_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
         "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
         "created_at": "2026-05-02T00:00:00.000Z",
         "audience": [
@@ -679,10 +685,10 @@
           "ak:did_core:webvh:z6mkfixtureprincipalacmeexample"
         ]
       },
-      "binding_jcs": "{\"audience\":[\"ak:did_core:webvh:z6mkfixturepairexample\",\"ak:did_core:webvh:z6mkfixtureprincipalacmeexample\"],\"context\":\"ak.agent_selector_claim_proof.v1\",\"controller_subject_id\":\"controller_subject_id-fixture-value\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"payload_digest\":\"sha256:2140796178cc87f917551eddca1ec5cf359098a133000083d97c6fc07b6e8c6a\",\"subject_id\":\"ak:did_core:webvh:z6mkfixture\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
-      "signing_input_ascii": "eyJhbGciOiJFZDI1NTE5In0.eyJhdWRpZW5jZSI6WyJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXBhaXJleGFtcGxlIiwiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVwcmluY2lwYWxhY21lZXhhbXBsZSJdLCJjb250ZXh0IjoiYWsuYWdlbnRfc2VsZWN0b3JfY2xhaW1fcHJvb2YudjEiLCJjb250cm9sbGVyX3N1YmplY3RfaWQiOiJjb250cm9sbGVyX3N1YmplY3RfaWQtZml4dHVyZS12YWx1ZSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwLjAwMFoiLCJwYXlsb2FkX2RpZ2VzdCI6InNoYTI1NjoyMTQwNzk2MTc4Y2M4N2Y5MTc1NTFlZGRjYTFlYzVjZjM1OTA5OGExMzMwMDAwODNkOTdjNmZjMDdiNmU4YzZhIiwic3ViamVjdF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
-      "signature": "_qE51c2347J1B87chU3LIed58ZlK9QJ6b-g7mK26FgWHlSZwchCseJJPhK3yqurdJdrxW87-Gmcl2_V5RUMWDw",
-      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0.._qE51c2347J1B87chU3LIed58ZlK9QJ6b-g7mK26FgWHlSZwchCseJJPhK3yqurdJdrxW87-Gmcl2_V5RUMWDw",
+      "binding_jcs": "{\"audience\":[\"ak:did_core:webvh:z6mkfixturepairexample\",\"ak:did_core:webvh:z6mkfixtureprincipalacmeexample\"],\"context\":\"ak.agent_selector_claim_proof.v1\",\"controller_subject_id\":\"controller_subject_id-fixture-value\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"payload_digest\":\"sha256:8bb471e79185528543432cbf3ce2d692abdd6776a0f12d73517e9d33397e19c6\",\"subject_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
+      "signing_input_ascii": "eyJhbGciOiJFZDI1NTE5In0.eyJhdWRpZW5jZSI6WyJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXBhaXJleGFtcGxlIiwiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVwcmluY2lwYWxhY21lZXhhbXBsZSJdLCJjb250ZXh0IjoiYWsuYWdlbnRfc2VsZWN0b3JfY2xhaW1fcHJvb2YudjEiLCJjb250cm9sbGVyX3N1YmplY3RfaWQiOiJjb250cm9sbGVyX3N1YmplY3RfaWQtZml4dHVyZS12YWx1ZSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwLjAwMFoiLCJwYXlsb2FkX2RpZ2VzdCI6InNoYTI1Njo4YmI0NzFlNzkxODU1Mjg1NDM0MzJjYmYzY2UyZDY5MmFiZGQ2Nzc2YTBmMTJkNzM1MTdlOWQzMzM5N2UxOWM2Iiwic3ViamVjdF9hY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbiJ9LCJ2ZXJpZmljYXRpb25fbWV0aG9kIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ",
+      "signature": "JTzS1-Y6s9KfwjvOu19427dJoAqNe3R2PN52LhlYhTzoyHhTGp-ZAD1CuJyWRBDgElIjx5QYoq0LMgLW6ZRiBw",
+      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..JTzS1-Y6s9KfwjvOu19427dJoAqNe3R2PN52LhlYhTzoyHhTGp-ZAD1CuJyWRBDgElIjx5QYoq0LMgLW6ZRiBw",
       "expected_result": "accept"
     },
     {
@@ -2644,7 +2650,7 @@
         "payload_digest",
         "issuer",
         "operation_id",
-        "target",
+        "holder_account_id",
         "purpose",
         "verification_method",
         "created_at",
@@ -2668,14 +2674,23 @@
         }
       },
       "unsigned_object": {
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
         "purpose": "invite",
-        "requester_id": "requester_id-fixture-value",
-        "target": "opaque-bridge-target",
+        "requester_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestation"
+          }
+        },
         "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "operation_id": "ak.peer.events.command.submit.v1"
       },
-      "unsigned_jcs": "{\"issuer\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"operation_id\":\"ak.peer.events.command.submit.v1\",\"purpose\":\"invite\",\"requester_id\":\"requester_id-fixture-value\",\"target\":\"opaque-bridge-target\"}",
-      "unsigned_digest": "sha256:e3c41ad7fa3144dd7b2b763f5b5e157c9c4c1dcf32175be56107440bdff28e2e",
+      "unsigned_jcs": "{\"holder_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"issuer\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"operation_id\":\"ak.peer.events.command.submit.v1\",\"purpose\":\"invite\",\"requester_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}}",
+      "unsigned_digest": "sha256:fa1d92960c1043528b9786d4f69d51652888ecb06418d7b34acb7e6d1eaef0db",
       "digest_binding_field": "payload_digest",
       "protected_header": {
         "alg": "Ed25519"
@@ -2683,20 +2698,23 @@
       "protected_header_jcs": "{\"alg\":\"Ed25519\"}",
       "binding_object": {
         "context": "ak.mimi_request_consent_request_proof.v1",
-        "payload_digest": "sha256:e3c41ad7fa3144dd7b2b763f5b5e157c9c4c1dcf32175be56107440bdff28e2e",
+        "payload_digest": "sha256:fa1d92960c1043528b9786d4f69d51652888ecb06418d7b34acb7e6d1eaef0db",
         "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "operation_id": "ak.peer.events.command.submit.v1",
-        "target": "opaque-bridge-target",
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
         "purpose": "invite",
         "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
         "created_at": "2026-05-02T00:00:00.000Z",
         "domain": "arkret-event-v1",
         "audience": "ak:did_core:webvh:z6mkfixturepairexample"
       },
-      "binding_jcs": "{\"audience\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"context\":\"ak.mimi_request_consent_request_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"issuer\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"operation_id\":\"ak.peer.events.command.submit.v1\",\"payload_digest\":\"sha256:e3c41ad7fa3144dd7b2b763f5b5e157c9c4c1dcf32175be56107440bdff28e2e\",\"purpose\":\"invite\",\"target\":\"opaque-bridge-target\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
-      "signing_input_ascii": "eyJhbGciOiJFZDI1NTE5In0.eyJhdWRpZW5jZSI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlcGFpcmV4YW1wbGUiLCJjb250ZXh0IjoiYWsubWltaV9yZXF1ZXN0X2NvbnNlbnRfcmVxdWVzdF9wcm9vZi52MSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwLjAwMFoiLCJkb21haW4iOiJhcmtyZXQtZXZlbnQtdjEiLCJpc3N1ZXIiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZWFjbWVleGFtcGxlIiwib3BlcmF0aW9uX2lkIjoiYWsucGVlci5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJwYXlsb2FkX2RpZ2VzdCI6InNoYTI1NjplM2M0MWFkN2ZhMzE0NGRkN2IyYjc2M2Y1YjVlMTU3YzljNGMxZGNmMzIxNzViZTU2MTA3NDQwYmRmZjI4ZTJlIiwicHVycG9zZSI6Imludml0ZSIsInRhcmdldCI6Im9wYXF1ZS1icmlkZ2UtdGFyZ2V0IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
-      "signature": "JmkqtEr9xCFfTggTD9hmsKACEEUqBtE8yLzppySQOVFpRhW2dkvlfi3ySyc9bOMe27hGt1W6KwLevfDuUWJ0Aw",
-      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..JmkqtEr9xCFfTggTD9hmsKACEEUqBtE8yLzppySQOVFpRhW2dkvlfi3ySyc9bOMe27hGt1W6KwLevfDuUWJ0Aw",
+      "binding_jcs": "{\"audience\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"context\":\"ak.mimi_request_consent_request_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"holder_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"issuer\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"operation_id\":\"ak.peer.events.command.submit.v1\",\"payload_digest\":\"sha256:fa1d92960c1043528b9786d4f69d51652888ecb06418d7b34acb7e6d1eaef0db\",\"purpose\":\"invite\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
+      "signing_input_ascii": "eyJhbGciOiJFZDI1NTE5In0.eyJhdWRpZW5jZSI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlcGFpcmV4YW1wbGUiLCJjb250ZXh0IjoiYWsubWltaV9yZXF1ZXN0X2NvbnNlbnRfcmVxdWVzdF9wcm9vZi52MSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwLjAwMFoiLCJkb21haW4iOiJhcmtyZXQtZXZlbnQtdjEiLCJob2xkZXJfYWNjb3VudF9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZSIsInN0YXRpb25faWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXN0YXRpb24ifSwiaXNzdWVyIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVhY21lZXhhbXBsZSIsIm9wZXJhdGlvbl9pZCI6ImFrLnBlZXIuZXZlbnRzLmNvbW1hbmQuc3VibWl0LnYxIiwicGF5bG9hZF9kaWdlc3QiOiJzaGEyNTY6ZmExZDkyOTYwYzEwNDM1MjhiOTc4NmQ0ZjY5ZDUxNjUyODg4ZWNiMDY0MThkN2IzNGFjYjdlNmQxZWFlZjBkYiIsInB1cnBvc2UiOiJpbnZpdGUiLCJ2ZXJpZmljYXRpb25fbWV0aG9kIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ",
+      "signature": "_2OBQ52paaS3GfCIYpYtPwnvENSVxqrr1U-yG-V_Z8sPICqD8FOYWhXDH1FE3H76qG-kvSKxEQDKXkCfnjisDg",
+      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0.._2OBQ52paaS3GfCIYpYtPwnvENSVxqrr1U-yG-V_Z8sPICqD8FOYWhXDH1FE3H76qG-kvSKxEQDKXkCfnjisDg",
       "expected_result": "accept"
     },
     {
@@ -5281,9 +5299,9 @@
       "registered_context": "ak.agent_selector_claim_proof.v1",
       "substituted_context": "ak.applet_managed_actor_authoring_request_proof.v1",
       "substituted_object_family": "applet_managed_actor_authoring_request",
-      "signed_binding_jcs": "{\"audience\":[\"ak:did_core:webvh:z6mkfixturepairexample\",\"ak:did_core:webvh:z6mkfixtureprincipalacmeexample\"],\"context\":\"ak.applet_managed_actor_authoring_request_proof.v1\",\"controller_subject_id\":\"controller_subject_id-fixture-value\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"payload_digest\":\"sha256:2140796178cc87f917551eddca1ec5cf359098a133000083d97c6fc07b6e8c6a\",\"subject_id\":\"ak:did_core:webvh:z6mkfixture\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
-      "signature": "me1rTxqmIw-uo2kBirIXEVF-26jVGqhwDay3MIr9o8kPVwXg0tCWhz53HlSQ8Ki8bpD2c5szrs3JdoaSAVsDBw",
-      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..me1rTxqmIw-uo2kBirIXEVF-26jVGqhwDay3MIr9o8kPVwXg0tCWhz53HlSQ8Ki8bpD2c5szrs3JdoaSAVsDBw",
+      "signed_binding_jcs": "{\"audience\":[\"ak:did_core:webvh:z6mkfixturepairexample\",\"ak:did_core:webvh:z6mkfixtureprincipalacmeexample\"],\"context\":\"ak.applet_managed_actor_authoring_request_proof.v1\",\"controller_subject_id\":\"controller_subject_id-fixture-value\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"payload_digest\":\"sha256:8bb471e79185528543432cbf3ce2d692abdd6776a0f12d73517e9d33397e19c6\",\"subject_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
+      "signature": "i4FxMFV07XrJQ3zIOOCcyTbE1R5tChod9OrfM2ip74USAWslccNNpd50-LNKlZ_Cj2TjZbEt_GlfOkVMlWmHDA",
+      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..i4FxMFV07XrJQ3zIOOCcyTbE1R5tChod9OrfM2ip74USAWslccNNpd50-LNKlZ_Cj2TjZbEt_GlfOkVMlWmHDA",
       "expected_result": "reject",
       "expected_reason": "signature_invalid"
     },
@@ -5671,9 +5689,9 @@
       "registered_context": "ak.mimi_request_consent_request_proof.v1",
       "substituted_context": "ak.mimi_update_consent_request_proof.v1",
       "substituted_object_family": "mimi_update_consent_request",
-      "signed_binding_jcs": "{\"audience\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"context\":\"ak.mimi_update_consent_request_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"issuer\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"operation_id\":\"ak.peer.events.command.submit.v1\",\"payload_digest\":\"sha256:e3c41ad7fa3144dd7b2b763f5b5e157c9c4c1dcf32175be56107440bdff28e2e\",\"purpose\":\"invite\",\"target\":\"opaque-bridge-target\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
-      "signature": "nq6fodlskyqumhG2StuMaMDvPYvc78Uq7qdlgeI7AKaJqqWWwDOZo0ii5Kw2Npv3pBEkRZGM5YAMvyGjSDr5BA",
-      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..nq6fodlskyqumhG2StuMaMDvPYvc78Uq7qdlgeI7AKaJqqWWwDOZo0ii5Kw2Npv3pBEkRZGM5YAMvyGjSDr5BA",
+      "signed_binding_jcs": "{\"audience\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"context\":\"ak.mimi_update_consent_request_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"holder_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"issuer\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"operation_id\":\"ak.peer.events.command.submit.v1\",\"payload_digest\":\"sha256:fa1d92960c1043528b9786d4f69d51652888ecb06418d7b34acb7e6d1eaef0db\",\"purpose\":\"invite\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
+      "signature": "jtKriMEXBaFMnsyEp1SaIQRJK1_bnF2YRx-ZxwNH2UQewLXNBHScS0H3HaeW7tuo_P8NCE5MNEZa8homV_8lAw",
+      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..jtKriMEXBaFMnsyEp1SaIQRJK1_bnF2YRx-ZxwNH2UQewLXNBHScS0H3HaeW7tuo_P8NCE5MNEZa8homV_8lAw",
       "expected_result": "reject",
       "expected_reason": "signature_invalid"
     },

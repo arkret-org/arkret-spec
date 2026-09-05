@@ -229,7 +229,7 @@ storage_key = "ak.contacts.actor." || principal_key
 
 `derive_account_data_key` 与 holder 的 `account_data_namespace_key` 定义见 [`../models/account-data.md` §2](../models/account-data.md)。`principal_key` 必须是 32-byte HMAC 输出的无 padding base64url（43 个 ASCII 字符）；服务端只能看到不透明尾段。
 
-```json
+```json schema=schemas/contact-remark.schema.json
 {
   "version": 1,
   "subject": {
@@ -238,30 +238,48 @@ storage_key = "ak.contacts.actor." || principal_key
   },
   "petname": "老王（前同事）",
   "note": "2024 年 ArkretCon 认识",
-  "tags": ["work", "favorite"],
+  "tags": ["org.example.work", "ak.favorite"],
   "pinned": true,
-  "verified_handle_at_save": "wang.example.com",
+  "verified_handle_at_save": "wang:example.com",
   "confirmed_display_name": "Wang Wei",
-  "saved_at": "2026-05-08T10:00:00Z",
-  "updated_at": "2026-05-08T10:00:00Z"
+  "saved_at": "2026-05-08T10:00:00.000Z",
+  "updated_at": "2026-05-08T10:00:00.000Z"
 }
 ```
 
-字段：
+字段（顺序与 [`contact-remark.schema.json`](../../artifacts/schemas/contact-remark.schema.json) 的属性顺序一致，
+由正文字段表门禁机械比对）：
 
 | 字段 | 类型 | 必需 | 说明 |
 | --- | --- | --- | --- |
-| `version` | `int` | yes | schema 版本，当前为 `1`。 |
-| `subject.kind` | `const("human")` | yes | 与 Contact human branch 对齐；Organization、设备、service 或 Realm actor 不得复用该记录。 |
-| `subject.principal_id` | `did_core_id` | yes | `ak.self.contact.read.list.v1` human row 的 `peer.principal_id`；解密后 MUST 用它重算 `<principal_key>` 并精确匹配当前 storage key。 |
-| `petname` | `string` | no | holder 为该稳定联系人主体保存的全局备注名，最大 128 个 Unicode code point；UI 中文称“备注名”。按 `arkret_single_line_display_text` 验证，跨所有 Realm 生效。 |
-| `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
-| `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Realm tags（`ak.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。 |
+| `version` | `int` | yes | 值格式版本，v1 恒为 `1`。取别的值是被拒绝的值，不是可协商的变体。 |
+| `subject` | `object` | yes | 封闭对象，展开见下表。principal 级作用域是刻意的：备注是 holder 私有展示数据，不参与授权或主体相等，因此不带 Station / actor role。 |
+| `petname` | `display_text_128` | no | holder 为该稳定联系人主体保存的全局备注名，最大 128 个 Unicode code point；UI 中文称“备注名”。跨所有 Realm 生效。缺省表示没有备注名；**不得**用空串清除（display profile 会拒绝空串）。 |
+| `note` | `string` | no | 自由文本笔记，最大 4096 个 Unicode code point。可以为空，也可以跨行，因此不复用单行 display profile。 |
+| `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Realm tags（`ak.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。schema 只校验 array-of-string；命名空间由客户端按 §3.1 作为领域规则校验，schema 通过**不**等于命名空间合法。 |
 | `pinned` | `bool` | no | 是否置顶。 |
-| `verified_handle_at_save` | `string` | no | 保存或最近一次更新时该 DID 的 verified handle 快照，用于反冒充比对。 |
-| `confirmed_display_name` | `string` | no | holder 最近一次显式确认联系人身份时所见的 verified PCR `actor_profile.display_name`；与 Profile 共用 `display_text_128`（最大 128 个 Unicode code point）。不得写入 Realm override、MemberIdentity display、Directory 裸结果、OIDC `name` 或其它 fallback。 |
+| `verified_handle_at_save` | `canonical_handle` | no | 保存或最近一次更新时该 DID 的 verified handle 快照，用于反冒充比对。存 wire canonical form（`<localpart>:<domain>`），不含输入用的前缀标记。 |
+| `confirmed_display_name` | `display_text_128` | no | holder 最近一次显式确认联系人身份时所见的 verified PCR `actor_profile.display_name`；与 Profile **共用同一个** `display_text_128`（最大 128 个 Unicode code point），两侧不可能漂移到不同上限。不得写入 Realm override、MemberIdentity display、Directory 裸结果、OIDC `name` 或其它 fallback。 |
 | `saved_at` | `timestamp` | yes | 首次保存时间。 |
 | `updated_at` | `timestamp` | no | 最近修改时间。 |
+
+`subject` 的两个成员（封闭对象，`additionalProperties:false`）：
+
+- `kind`：`const("human")`，与 Contact human branch 对齐；Organization、设备、service 或 Realm actor 不得复用该记录。
+- `principal_id`：`did_core_id`，取 `ak.self.contact.read.list.v1` human row 的 `peer.principal_id`；
+  解密后 MUST 用它与 holder namespace key 重算 `<principal_key>` 并精确匹配当前 storage key。
+
+`optional` 表示成员**缺失**，不是 `null`。裸 `{}` 不能冒充删除（`version` / `subject` / `saved_at` 是必需的），
+物理删除的 tombstone 也不按本 schema 校验。petname 与 `confirmed_display_name` 同时缺失是合法值：
+没有 Profile evidence 不阻断 Contact accept。
+
+跨实现向量是 `ak.vector.contacts.remark_value.v1`（fixture `contact-remark-fixture.json`），
+结构半与领域半必须都过，见 [`../conformance/conformance-vectors.md` §5.13](../conformance/conformance-vectors.md)。
+
+**校验点（normative）**：producer 在**加密与签名之前**校验最终待写明文（含 CAS 重试时合并出的那一版），
+consumer 在 **AEAD 解密之后、应用之前**校验。承载该 key 的 Station 没有密钥，
+MUST NOT 因此要求明文、明文镜像或服务端 validator。结构校验只证明形状：
+storage key 绑定、显式确认证据与 tag 命名空间是同一客户端另行执行的领域规则。
 
 规则：
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.3",
+  "version": "2026-09-05.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T15:30:00+08:00",
+  "generated_at": "2026-09-05T21:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -544,6 +544,17 @@
       "file": "schemas/contact-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for the Contact lifecycle: request, respond, reject, scope replacement, tombstone, the portable Contact round evidence bundle, acceptance receipts and the peer Contact carrier, plus the contact-list projection."
+    },
+    {
+      "schema_id": "ak.schema.contact_remark.v1",
+      "file": "schemas/contact-remark.schema.json",
+      "status": "active",
+      "description": "Closed decrypted plaintext shape of the principal-private ak.contacts.actor.<principal_key> account-data value: holder-authored petname, explicitly confirmed display-name baseline, note, tags, pin, verified handle snapshot and timestamps for one accepted human Contact. Producers validate the final plaintext before encrypting; consumers validate after decrypting. The Station holds no key and never validates it.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.contacts.actor.<principal_key>",
+        "normative_ref": "zh/discovery/client-preferences.md"
+      }
     },
     {
       "schema_id": "ak.schema.direct_conversation_operations.v1",

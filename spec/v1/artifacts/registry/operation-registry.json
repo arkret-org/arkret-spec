@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.3",
+  "version": "2026-09-05.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T15:30:00+08:00",
+  "generated_at": "2026-09-05T15:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1460,8 +1460,7 @@
       "idempotency_mechanism": "none",
       "retry_safe": false,
       "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.consent.read.list.v1"
+        "strategy": "manual_confirmation"
       },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome",

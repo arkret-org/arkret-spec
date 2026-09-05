@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.4",
+  "version": "2026-09-05.13",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T20:10:00+08:00",
+  "generated_at": "2026-09-06T00:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1713,6 +1713,20 @@
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/zh/sync/service-http-binding.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.contacts.remark_value.v1",
+      "status": "active",
+      "domain": "contacts",
+      "applies_to_fixtures": [
+        "contact-remark-fixture.json"
+      ],
+      "description": "Decrypted ak.contacts.actor.<principal_key> plaintext: the closed value shape, the display profile shared with the Actor Profile display name, the canonical handle wire form, and the domain half a schema cannot state -- storage-key recomputation, explicit-confirmation-only refresh of the display-name baseline, the section 3.1 tag namespace, retention across a suspended Contact, and an unreadable value never overwriting a verified local record.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/contact-remark-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/discovery/client-preferences.md"
       ]
     },
     {
@@ -4211,6 +4225,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/poll-reducer-fixture.json",
         "spec/v1/zh/models/content-types.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mimi.consent_correlation_identity.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_fixtures": [
+        "mimi-interop-fixture.json"
+      ],
+      "description": "MIMI request_consent signs the complete requester ActorId and holder AccountId, the facade freezes exactly those, and update_consent is a byte comparison: a cross-Station requester and a first consent are accepted, an ordinary pseudonymous Account is accepted while a Realm-local ephemeral pairwise peer never matches, same-principal-other-Station holders and requesters are rejected, a provider-supplied or facade-substituted Station is rejected, an unknown holder stays indistinguishable, foreign or expired correlations share one not_found shape, purpose any does not substitute for a named scope, a revoke with no active dots fails, an exact Event replay returns the same result, and a lost request response recovers by manual_confirmation rather than by querying the consent list.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json"
       ]
     },
     {
@@ -6945,20 +6971,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.sync.stream_frame_sequence.v1",
-      "status": "active",
-      "domain": "sync",
-      "applies_to_vector_groups": [
-        "ak.vector_group.sync.v1"
-      ],
-      "description": "Account and events NDJSON stream trace conformance: catchup completion ordering, cursor-bearing frame closure, dropped-versus-resync branching, and reconnect position advancement are evaluated over complete traces rather than isolated frame schemas.",
-      "source_refs": [
-        "spec/v1/zh/sync/transport-bindings.md",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/sync-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.sync.station_cas_account_data.v1",
       "status": "active",
       "domain": "sync",
@@ -6968,6 +6980,20 @@
       "description": "Station-CAS holder-private account-data projection over account subscribe: the initial complete=true baseline carries every holder-readable live row with no removals, a filter may not truncate it, absence from an incremental frame is not deletion, per-key revision is strictly monotonic with same-revision divergence forcing resync, one key coalesces to the last item in the cursor window, the row is never mirrored into account_data.events[], and an unfillable cursor gap answers dropped or resync_required instead of silently skipping.",
       "source_refs": [
         "spec/v1/zh/sync/client-sync.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.stream_frame_sequence.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_vector_groups": [
+        "ak.vector_group.sync.v1"
+      ],
+      "description": "Account and events NDJSON stream trace conformance: catchup completion ordering, cursor-bearing frame closure, dropped-versus-resync branching, and reconnect position advancement are evaluated over complete traces rather than isolated frame schemas.",
+      "source_refs": [
+        "spec/v1/zh/sync/transport-bindings.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/sync-fixture.json"
       ]

@@ -2829,6 +2829,36 @@ Expected：
 - `to_device` 里的 `ak.account_data.update` 只是低延迟唤醒，MUST NOT 被当作第三个真相源，也不得代替
   baseline 与增量；只实现唤醒路径的客户端 MUST 判为 conformance failure。
 
+### 5.13 Vector: ContactRemark 明文值的结构与领域校验
+
+`vector_id`: `ak.vector.contacts.remark_value.v1`
+
+机器 fixture：`contact-remark-fixture.json`；执行入口以 fixture `runner` 元数据为准。唯一真源是
+[`../discovery/client-preferences.md` §3.6](../discovery/client-preferences.md) 与
+[`../artifacts/schemas/contact-remark.schema.json`](../../artifacts/schemas/contact-remark.schema.json)。
+
+本向量分两半，实现 **MUST** 两半都过；只过其中一半的实现 MUST 判为 conformance failure：
+
+- **结构半**（`schema_validation_cases`）：封闭形状、`version` 常量、`subject` 封闭对象、
+  `petname` 与 `confirmed_display_name` 共用同一个 `display_text_128`（同一个 129 码点值在两侧都必须被拒）、
+  128 码点边界按 **Unicode code point** 而非 UTF-8 字节或 UTF-16 code unit 计数、
+  `note` 4096 上限且允许空串、`verified_handle_at_save` 只接受 canonical `<localpart>:<domain>` wire form、
+  未知成员 / `null` / 裸 `{}` / 错误 `subject.kind` / 控制字符与 bidi override 一律拒绝。
+- **领域半**（`semantic_cases`）：schema 通过**不**等于值可用。解密后 MUST 用
+  `subject.principal_id` 与 holder namespace key 重算 `<principal_key>` 并与读到的 storage key 精确比较；
+  AAD / namespace key 不符或 AEAD open 失败时 MUST 保留本地已验证记录、且不得阻断同批其它 key；
+  `confirmed_display_name` 只能由用户当场显式确认刷新，普通 petname / note / tags / pin 编辑 MUST 保留它，
+  也 MUST NOT 借 optional 悄悄清除；没有 Profile evidence 的 Contact accept 产出的是**没有**确认基准的合法值，
+  不得回退到 Realm override / MemberIdentity display / Directory 裸结果 / OIDC `name`；
+  `tags` 的命名空间按 §3.1 作为领域规则校验（array-of-string 通过 schema 不代表命名空间合法），
+  未识别的 `ak.*` tag MUST 原样保留回写；Contact tombstone / suspended 期间备注 MUST 保留，
+  同一 `peer.principal_id` 重新 accepted 时继续使用原记录、不重键。
+
+**校验点（normative）**：producer 在加密与签名之前校验最终待写明文（含 CAS 重试合并出的那一版），
+consumer 在 AEAD 解密之后、应用之前校验。承载该 key 的 Station 没有密钥，
+MUST NOT 因本向量要求明文、明文镜像或服务端 validator。
+
+
 ## 6. Space Lifecycle Vectors
 
 ### 6.1 目标
@@ -3894,17 +3924,32 @@ Preconditions:
 
 - Alice 拥有 verified handle claim `alice:acme.example`，`subject=AliceDID`。
 - Alice 拥有 active Agent `AgentS`，其 Actor Profile `actor_kind="agent"`、`agent_slug="summary"`、`principal_id=AgentSDID`，且有 active `ak.identity.accountability_grant{issuer=AliceDID, subject=AgentSDID}`。
-- Alice 或授权 issuer 签发 current `ak.schema.agent_selector_claim.v1{controller_subject=AliceDID, agent_slug="summary", subject=AgentSDID, binding_state="verified", visibility="restricted", audience=<RealmR>}`。
+- AgentS 的账号是 `{principal_id:AgentSDID, station_id:AgentSStation}`，由一条 accepted `ak.agent.provision`
+  建立：该 provision 的 signed `payload.agent_id` 是 `AgentSDID`，其 controller account / Station 与随后
+  accepted 的 Agent PCR `genesis.actor_id.account_id` 精确一致，`AgentSStation` **由此派生**，
+  不是 fixture 常量、也不是任何解析方当次的 Station。
+- Alice 或授权 issuer 签发 current
+  `ak.schema.agent_selector_claim.v1{controller_subject_id=AliceDID, agent_slug="summary",
+  subject_account_id={principal_id:AgentSDID, station_id:AgentSStation}, binding_state="verified",
+  visibility="restricted", audience=<RealmR>}`。**selector namespace 仍是 principal 级
+  `(controller_subject_id, agent_slug)`；被签名的目标是上面那个完整 AccountId。**
 - 同一 Realm 中 Bob 可见 Alice 的 handle claim、AgentS 的 Actor Profile、selector claim 与 accountability evidence。
 
 Steps:
 
 1. Bob 在 message composer 输入 `@alice:acme.example/summary`。
-2. 客户端从本地 Realm roster / actor profile / handle claim cache 解析 controller handle → `AliceDID`，再验证 selector claim `(AliceDID, "summary")` → 唯一 active `AgentSDID`。
-3. 客户端提交 Message content AST，其中 mention node `subject_account_id={principal_id:AgentSDID, station_id:AgentSStation}`，并可携带 `controller_subject_account_id={principal_id:AliceDID, station_id:AliceStation}`、`controller_handle_at_time="alice:acme.example"`、`agent_slug_at_time="summary"`、`mention_text_original="@alice:acme.example/summary"`。
+2. 客户端从本地 Realm roster / actor profile / handle claim cache 解析 controller handle → controller 完整 AccountId，只取其 principal 分量 `AliceDID` 用于 namespace 比较；再验证 selector claim `(AliceDID, "summary")` → 唯一 active `subject_account_id={principal_id:AgentSDID, station_id:AgentSStation}`。**`AgentSStation` 来自这条已签名 claim，不是从 roster 反查、也不是补出来的。**
+3. 客户端提交 Message content AST，其中 mention node 的 `subject_account_id` **逐字节复制**第 2 步已验证 claim 的同名字段，并可携带 `controller_subject_account_id={principal_id:AliceDID, station_id:AliceStation}`、`controller_handle_at_time="alice:acme.example"`、`agent_slug_at_time="summary"`、`mention_text_original="@alice:acme.example/summary"`。
 4. Alice 之后把 `AgentS.slug` 改为 `sum` 并更新对应 selector claim 的 `agent_slug`，或把 `summary` 分配给另一个新 agent `AgentT`。
 5. 另一次测试中，Alice 同时存在两个 current valid selector claims 绑定 `(AliceDID, "summary")` 到不同 active agents，或 Bob 不可见 selector claim / accountability evidence。
 6. 另一次测试中，同一 `AgentSDID` principal 在另一个 Station 上另有一个账号 `{principal_id:AgentSDID, station_id:OtherStation}`，且该账号也是本 Realm 成员。
+7. 另一次测试中：(a) 把 claim 的 `subject_account_id.station_id` 换成 `OtherStation` 而复用原 proof；
+   (b) Directory outcome 的 `subject_account_id` 与 `selector_claim.subject_account_id` 不相等；
+   (c) 存在两条 current valid claim，分别指向同 principal 的两个 Station 账号；
+   (d) 请求携带 `expected_actor_id` 为 service Actor，或用它去挑 (c) 的赢家；
+   (e) 解析方只有本地已授权 cache、没有 Directory；(f) 目标 agent 已获授权但**不在**当前 Realm roster；
+   (g) provision 尚未完成（Agent PCR genesis 未 accepted）就被当作可解析 Agent；
+   (h) 服务端为填满 DTO 自行补签 `selector_claim.proofs` 或公开 private provision 材料。
 
 Expected:
 
@@ -3912,6 +3957,17 @@ Expected:
 - 第 3 步的 `controller_*` 与 `agent_slug_at_time` 只作 audit / search / fallback metadata；reducer、dispatcher、policy engine MUST 忽略这些字段做授权和投递决策。
 - 第 4 步 MUST NOT 改写历史 mention target；旧消息仍指向同一个完整 `subject_account_id`。
 - 第 5 步 MUST fail closed：客户端不得构造 mention node；实现可提示 picker 选择或把输入保留为普通文本。服务端若收到仅靠 metadata 声称 selector 的事件，也必须只按 `subject_account_id` 和已验证 agent state 判定。
+- **第 7 步（负例与正例，normative）**：(a) 换 Station 复用原 proof MUST 验签失败——
+  `subject_account_id` 是 `ak.agent_selector_claim_proof.v1` 的 binding field，改它必然让原 proof 失效；
+  (b) outcome 与 claim 不等 MUST 判不合规，Directory 是投影方不是选择方；
+  (c) 同 principal 双 Station 的两条 current claim 是 **ambiguous**，MUST fail closed，
+  不得按 principal 去重后当成唯一；(d) `expected_actor_id` 是一致性断言，service Actor 永不匹配，
+  也 MUST NOT 用来从 ambiguous 里挑赢家；(e) 与 (f) 是**正例**：只有本地已授权 cache 也必须解析成功，
+  目标不在当前 Realm roster 也不阻断解析——本裁决不新增 membership 前置，也不授予非成员读取 / 通知 / 参与权限，
+  可见性与 Agent/profile/accountability/provisioning 条件仍需全部满足；
+  (g) 未完成 provision MUST NOT 提前作为 active 可解析 Agent；
+  (h) 服务端补签或泄露 private provision 材料 MUST 判不合规——拿不到真实 controller / 授权 issuer 签名的 claim
+  就不能广告或返回该成功面。拒绝时一律不得泄露 Station。
 - **第 6 步（负例，normative）**：另一 Station 上同 principal 的账号 MUST NOT 命中该 mention——不产生 `notification_kind=mention`、不进入授权判定、不参与 §3.8.2 的 MemberIdentity 联接。实现若按 `subject_account_id.principal_id` 单独比较即为不合规；比较 MUST 覆盖 `principal_id` 与 `station_id` 两个分量（[`../identity/identity-handles.md` §3.8](../identity/identity-handles.md)、[`../discovery/discovery-directory.md` §9](../discovery/discovery-directory.md)）。
 
 ### 11.1.2 Vector: Agent PCR Genesis 前向声明与反查

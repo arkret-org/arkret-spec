@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-selector-claim.schema.json",
   "title": "Arkret Agent Selector Claim",
-  "description": "Signed claim binding a controller-scoped Agent selector slug to an agent principal DID. It powers @<controller-handle>/<agent_slug> compose-time resolution without making the agent carry a public handle.",
+  "description": "Signed claim binding a controller-scoped Agent selector slug to one exact Agent AccountId. It powers @<controller-handle>/<agent_slug> compose-time resolution without making the agent carry a public handle. The selector namespace is principal-scoped and the resolved target is account-scoped; the two are different responsibilities and neither is derived from the other.",
   "type": "object",
   "required": [
     "schema",
     "controller_subject_id",
     "agent_slug",
-    "subject_id",
+    "subject_account_id",
     "issuer_id",
     "binding_state",
     "visibility",
@@ -27,9 +27,9 @@
       "$ref": "#/$defs/agent_slug",
       "description": "Controller-scoped slug used as the right-hand side of @<controller-handle>/<agent_slug>."
     },
-    "subject_id": {
-      "$ref": "#/$defs/did_core_id",
-      "description": "Agent principal DID selected by (controller_subject, agent_slug)."
+    "subject_account_id": {
+      "$ref": "#/$defs/account_id",
+      "description": "Exact Agent AccountId this selector resolves to, principal and Station component both. The namespace stays principal-scoped -- (controller_subject_id, agent_slug) -- but the target the controller signs is one account: a valid controller signature does not authorise pointing the slug at an arbitrary account that happens to share the agent principal. A consumer copies this value verbatim into the mention node; it MUST NOT rebuild it from a bare principal, the controller handle's Station, a DID default Station or the resolving facade."
     },
     "issuer_id": {
       "$ref": "#/$defs/did_core_id",
@@ -101,6 +101,9 @@
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
     }
   },
   "additionalProperties": false

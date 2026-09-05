@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9859,
-    "total_schema_documents": 165,
+    "total_properties": 9869,
+    "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2700,
+      "optional": 2706,
       "optional_defaulted": 65,
-      "required": 6761,
+      "required": 6765,
       "required_nullable": 122,
       "tristate": 211
     },
@@ -2720,7 +2720,7 @@
         "/properties/proofs": "required",
         "/properties/schema": "required",
         "/properties/source_refs": "optional",
-        "/properties/subject_id": "required",
+        "/properties/subject_account_id": "required",
         "/properties/verified_at": "optional",
         "/properties/visibility": "required",
         "/properties/vouching_id": "optional"
@@ -4600,6 +4600,25 @@
         "/$defs/request_acceptance_receipt_core/properties/slot_predecessor"
       ]
     },
+    "contact-remark.schema.json": {
+      "schema_ids": [
+        "ak.schema.contact_remark.v1"
+      ],
+      "properties": {
+        "/properties/confirmed_display_name": "optional",
+        "/properties/note": "optional",
+        "/properties/petname": "optional",
+        "/properties/pinned": "optional",
+        "/properties/saved_at": "required",
+        "/properties/subject": "required",
+        "/properties/subject/properties/kind": "required",
+        "/properties/subject/properties/principal_id": "required",
+        "/properties/tags": "optional",
+        "/properties/updated_at": "optional",
+        "/properties/verified_handle_at_save": "optional",
+        "/properties/version": "required"
+      }
+    },
     "content-block-poll.schema.json": {
       "schema_ids": [
         "ak.schema.content_block_poll.v1"
@@ -5144,7 +5163,7 @@
         "/$defs/directory_agent_selector_resolution_outcome/properties/expires_at": "optional",
         "/$defs/directory_agent_selector_resolution_outcome/properties/selector_claim": "required",
         "/$defs/directory_agent_selector_resolution_outcome/properties/source_refs": "optional",
-        "/$defs/directory_agent_selector_resolution_outcome/properties/subject_id": "required",
+        "/$defs/directory_agent_selector_resolution_outcome/properties/subject_account_id": "required",
         "/$defs/directory_handle_resolution_outcome/properties/account_id": "required",
         "/$defs/directory_handle_resolution_outcome/properties/claims": "optional",
         "/$defs/directory_handle_resolution_outcome/properties/expires_at": "optional",
@@ -9764,8 +9783,6 @@
         "/$defs/ciphertext/properties/ciphertext_digest": "required",
         "/$defs/ciphertext/properties/content_type": "required",
         "/$defs/ciphertext/properties/payload": "required",
-        "/$defs/consent_target/properties/id": "required",
-        "/$defs/consent_target/properties/kind": "required",
         "/$defs/failure/properties/reason_code": "required",
         "/$defs/failure/properties/retry_after_ms": "optional",
         "/$defs/failure/properties/target_ref": "optional",
@@ -9835,11 +9852,11 @@
         "/$defs/mimi_request_consent_outcome/properties/challenge": "optional",
         "/$defs/mimi_request_consent_outcome/properties/consent_id": "required",
         "/$defs/mimi_request_consent_request_body/properties/expires_at": "optional",
-        "/$defs/mimi_request_consent_request_body/properties/proofs": "optional",
+        "/$defs/mimi_request_consent_request_body/properties/holder_account_id": "required",
+        "/$defs/mimi_request_consent_request_body/properties/proofs": "required",
         "/$defs/mimi_request_consent_request_body/properties/purpose": "required",
-        "/$defs/mimi_request_consent_request_body/properties/requester_id": "required",
+        "/$defs/mimi_request_consent_request_body/properties/requester_actor_id": "required",
         "/$defs/mimi_request_consent_request_body/properties/strand_id": "optional",
-        "/$defs/mimi_request_consent_request_body/properties/target": "required",
         "/$defs/mimi_room_update_outcome/properties/accepted": "required",
         "/$defs/mimi_room_update_outcome/properties/rejections": "optional",
         "/$defs/mimi_room_update_outcome/properties/room_state_ref": "optional",

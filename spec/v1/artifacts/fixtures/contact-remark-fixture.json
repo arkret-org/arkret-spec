@@ -1,0 +1,579 @@
+{
+  "suite": "contact_remark_account_data",
+  "fixture_kind": "schema_and_semantic",
+  "version": "2026-09-05.1",
+  "spec_anchor": "spec/v1/zh/discovery/client-preferences.md",
+  "covers_vectors": [
+    "ak.vector.contacts.remark_value.v1"
+  ],
+  "source_refs": [
+    "spec/v1/artifacts/schemas/contact-remark.schema.json",
+    "spec/v1/zh/discovery/client-preferences.md",
+    "spec/v1/zh/models/account-data.md"
+  ],
+  "description": "Executable positive and negative cases for the ak.contacts.actor.<principal_key> decrypted plaintext value. The schema cases pin the closed shape, the shared 128 code point display profile and the canonical handle form. The semantic cases pin what the schema structurally cannot: the storage-key recomputation, the explicit-confirmation rule for the display-name baseline, the section 3.1 tag namespace, and that an unreadable value never overwrites a verified local record.",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ],
+    "semantic_assertion_fields": [
+      "semantic_outcome",
+      "expected_reason_code"
+    ]
+  },
+  "schema_validation_cases": [
+    {
+      "name": "minimal_value_valid",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "note": "A saved Contact with no petname and no confirmed baseline is a legal value: absent Profile evidence must not block Contact accept.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z"
+      }
+    },
+    {
+      "name": "full_value_valid",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "petname": "老王（前同事）",
+        "note": "2024 年 ArkretCon 认识",
+        "tags": [
+          "org.example.work",
+          "ak.favorite"
+        ],
+        "pinned": true,
+        "verified_handle_at_save": "wang:example.com",
+        "confirmed_display_name": "Wang Wei",
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "updated_at": "2026-05-08T10:00:00.000Z"
+      }
+    },
+    {
+      "name": "empty_note_valid",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "note": "note may be empty; it does not reuse the single-line display profile, whose minLength is 1.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "note": ""
+      }
+    },
+    {
+      "name": "petname_128_code_points_valid",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "note": "128 astral-plane code points. The limit counts Unicode code points, not UTF-8 bytes or UTF-16 code units; this value is 512 UTF-8 bytes and 256 UTF-16 code units.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+      }
+    },
+    {
+      "name": "confirmed_display_name_128_code_points_valid",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "note": "The confirmed baseline shares one display profile with the Actor Profile field it snapshots, so it accepts exactly the same boundary.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "confirmed_display_name": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+      }
+    },
+    {
+      "name": "petname_129_code_points_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:is too long",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+      }
+    },
+    {
+      "name": "confirmed_display_name_129_code_points_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:is too long",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "Proves the two display fields cannot drift to different limits: the same 129 value fails on both.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "confirmed_display_name": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+      }
+    },
+    {
+      "name": "petname_control_character_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": "Wang\u0007Wei"
+      }
+    },
+    {
+      "name": "petname_bidi_override_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "A right-to-left override is the impersonation shape the display profile exists to refuse.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": "Wang‮Wei"
+      }
+    },
+    {
+      "name": "petname_empty_string_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:should be non-empty",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "Clearing a petname omits the member; an empty string is not the clear operation.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": ""
+      }
+    },
+    {
+      "name": "petname_null_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not of type",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "optional means the member is absent, not present and null.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": null
+      }
+    },
+    {
+      "name": "wrong_version_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:was expected",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "v1 has exactly one value; a different number is a rejected value, not a negotiated variant.",
+      "instance": {
+        "version": 2,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z"
+      }
+    },
+    {
+      "name": "subject_kind_organization_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:was expected",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "organization",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z"
+      }
+    },
+    {
+      "name": "subject_extra_member_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "The remark is principal-scoped: a Station component has no place in it even as an extra member.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z"
+      }
+    },
+    {
+      "name": "unknown_top_level_member_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      }
+    },
+    {
+      "name": "missing_saved_at_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        }
+      }
+    },
+    {
+      "name": "empty_object_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "A bare {} cannot masquerade as a delete; physical deletion writes a versioned tombstone that is not validated against this schema.",
+      "instance": {}
+    },
+    {
+      "name": "note_over_4096_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:is too long",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "note": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+      }
+    },
+    {
+      "name": "bare_domain_handle_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "wang.example.com has no localpart separator. This is the shape the section 3.6 example itself carried before this ruling bound the fence.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "verified_handle_at_save": "wang.example.com"
+      }
+    },
+    {
+      "name": "typed_input_handle_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "The stored form is the canonical wire form; the typed input marker is not part of it.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "verified_handle_at_save": "@wang:example.com"
+      }
+    },
+    {
+      "name": "invalid_saved_at_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not a",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08 10:00:00"
+      }
+    },
+    {
+      "name": "tags_non_string_rejected",
+      "schema_ref": "schemas/contact-remark.schema.json#",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not of type",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "tags": [
+          {
+            "name": "work"
+          }
+        ]
+      }
+    }
+  ],
+  "semantic_cases": [
+    {
+      "name": "storage_key_recomputation_mismatch_rejected",
+      "semantic_rule": "contact_remark_subject_binds_storage_key",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "The value validates structurally. After decryption the consumer recomputes principal_key from subject.principal_id and the holder namespace key; a value read from another Contact's key must not be applied and must not overwrite the local verified record.",
+      "read_from_subject_principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontactpeerexample"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": "Wang Wei"
+      }
+    },
+    {
+      "name": "wrong_namespace_key_recomputation_rejected",
+      "semantic_rule": "contact_remark_subject_binds_storage_key",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "Recomputing with a namespace key that is not the holder's yields a different principal_key, so the exact storage-key comparison fails even though subject.principal_id is the right peer.",
+      "namespace_key_owner": "another_holder",
+      "read_from_subject_principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": "Wang Wei"
+      }
+    },
+    {
+      "name": "undecryptable_value_does_not_overwrite_verified_record",
+      "semantic_rule": "contact_remark_failed_open_preserves_local_record",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "AEAD open or AAD verification failure ends the read. The previously verified local record stays, and one invalid key must not stall the other keys in the same sync batch.",
+      "envelope_defect": "aad_mismatch",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": "Wang Wei"
+      }
+    },
+    {
+      "name": "ordinary_edit_preserves_confirmed_display_name",
+      "semantic_rule": "contact_remark_confirmation_baseline_is_explicit_only",
+      "semantic_outcome": "accept",
+      "note": "A petname, note, tag or pin edit merges into the current value and carries confirmed_display_name and saved_at forward. optional must not be used to drop the baseline through an ordinary edit.",
+      "prior": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "confirmed_display_name": "Wang Wei",
+        "saved_at": "2026-05-08T10:00:00.000Z"
+      },
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "petname": "老王（前同事）",
+        "confirmed_display_name": "Wang Wei",
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "updated_at": "2026-05-09T09:00:00.000Z"
+      }
+    },
+    {
+      "name": "ordinary_edit_dropping_confirmed_display_name_rejected",
+      "semantic_rule": "contact_remark_confirmation_baseline_is_explicit_only",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "Structurally legal, domain-illegal: the same edit as above with the baseline silently removed.",
+      "prior": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "confirmed_display_name": "Wang Wei",
+        "saved_at": "2026-05-08T10:00:00.000Z"
+      },
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "petname": "老王（前同事）",
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "updated_at": "2026-05-09T09:00:00.000Z"
+      }
+    },
+    {
+      "name": "contact_accept_without_profile_evidence_sets_no_baseline",
+      "semantic_rule": "contact_remark_confirmation_baseline_is_explicit_only",
+      "semantic_outcome": "accept",
+      "note": "Accepting a Contact with no verified PCR Profile evidence displayed produces a value with no confirmed_display_name and no petname; it must not fall back to a Realm override, MemberIdentity display, a bare Directory result or an OIDC name.",
+      "profile_evidence": "absent",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z"
+      }
+    },
+    {
+      "name": "tag_outside_registered_namespace_rejected",
+      "semantic_rule": "contact_remark_tags_follow_section_3_1_namespace",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "note": "The schema only sees an array of strings, so this case exists to prove the domain validator runs: work is neither a registered ak.* tag nor a reverse-domain vendor tag.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "tags": [
+          "work",
+          "favorite"
+        ]
+      }
+    },
+    {
+      "name": "unknown_reserved_tag_preserved",
+      "semantic_rule": "contact_remark_tags_follow_section_3_1_namespace",
+      "semantic_outcome": "accept",
+      "note": "An unrecognised ak.* tag is stored and written back unchanged; a client may decline to render it but must not drop it.",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "tags": [
+          "ak.future_standard_tag"
+        ]
+      }
+    },
+    {
+      "name": "suspended_contact_remark_retained",
+      "semantic_rule": "contact_remark_survives_non_accepted_contact",
+      "semantic_outcome": "accept",
+      "note": "A tombstoned or suspended Contact keeps its remark; only its use as the primary label on live identity surfaces pauses. Re-acceptance of the same peer.principal_id reuses this record rather than rekeying it.",
+      "contact_state": "suspended",
+      "instance": {
+        "version": 1,
+        "subject": {
+          "kind": "human",
+          "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
+        },
+        "saved_at": "2026-05-08T10:00:00.000Z",
+        "petname": "老王（前同事）"
+      }
+    }
+  ]
+}

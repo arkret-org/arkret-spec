@@ -40,6 +40,11 @@
       "external_field_mentions": []
     },
     {
+      "document": "spec/v1/zh/discovery/client-preferences.md",
+      "schema_ref": "contact-remark.schema.json#",
+      "external_field_mentions": []
+    },
+    {
       "document": "spec/v1/zh/discovery/discovery-directory.md",
       "schema_ref": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
       "external_field_mentions": []

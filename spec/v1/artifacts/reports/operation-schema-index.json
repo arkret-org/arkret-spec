@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.4",
+  "version": "2026-09-05.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T20:10:00+08:00",
+  "generated_at": "2026-09-05T21:40:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -677,13 +677,13 @@
         "schema_kind": "object",
         "required": [
           "controller_subject_id",
-          "subject_id",
+          "subject_account_id",
           "agent_slug",
           "selector_claim"
         ],
         "properties": [
           "controller_subject_id",
-          "subject_id",
+          "subject_account_id",
           "agent_slug",
           "selector_claim",
           "source_refs",
@@ -2309,13 +2309,14 @@
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
         "schema_kind": "object",
         "required": [
-          "requester_id",
-          "target",
-          "purpose"
+          "requester_actor_id",
+          "holder_account_id",
+          "purpose",
+          "proofs"
         ],
         "properties": [
-          "requester_id",
-          "target",
+          "requester_actor_id",
+          "holder_account_id",
           "purpose",
           "strand_id",
           "expires_at",

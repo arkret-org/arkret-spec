@@ -1058,7 +1058,7 @@
       "description": "Success outcome of ak.find.directory.read.resolve_agent_selector.v1. Its presence in a 2xx envelope is the verification result; every unverified, unauthorized, invisible or ambiguous case is an error reply indistinguishable from not-found, so no verified flag is carried.",
       "required": [
         "controller_subject_id",
-        "subject_id",
+        "subject_account_id",
         "agent_slug",
         "selector_claim"
       ],
@@ -1067,9 +1067,9 @@
           "$ref": "#/$defs/did_core_id",
           "description": "Controller principal DID resolved from controller_handle and verified against the selector claim."
         },
-        "subject_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Agent principal DID selected by (controller_subject, agent_slug)."
+        "subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact Agent AccountId selected by (controller_subject_id, agent_slug). It MUST equal the verified selector_claim.subject_account_id byte for byte: this outcome is a projection of that one signed claim, and a Directory MUST NOT substitute another Station. When the request carried expected_actor_id it MUST be the account Actor of this AccountId; a service Actor never matches, and the assertion cannot be used to pick a winner out of an otherwise ambiguous selector."
         },
         "agent_slug": {
           "$ref": "#/$defs/agent_slug"

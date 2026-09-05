@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 203,
+    "total_schemas": 204,
     "by_consumer": {
-      "declared_wire": 57,
+      "declared_wire": 58,
       "event_kind": 3,
       "inbound": 47,
       "outbound": 55,
       "prose": 114,
       "prose_only": 2,
       "schema_reference": 136,
-      "startup_compile": 203,
+      "startup_compile": 204,
       "vectors": 128
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 75,
+    "without_vector_coverage": 76,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -95,6 +95,7 @@
     "ak.schema.common_ids.v1",
     "ak.schema.consent_operations.v1",
     "ak.schema.contact_operations.v1",
+    "ak.schema.contact_remark.v1",
     "ak.schema.contact_scope_update.v1",
     "ak.schema.content_block_poll.v1",
     "ak.schema.control_proposal_decision.v1",
@@ -1289,6 +1290,7 @@
           "ak.schema.collision_variant_record.v1",
           "ak.schema.consent_operations.v1",
           "ak.schema.contact_operations.v1",
+          "ak.schema.contact_remark.v1",
           "ak.schema.contact_scope_update.v1",
           "ak.schema.content_block_poll.v1",
           "ak.schema.control_proposal_decision.v1",
@@ -1450,6 +1452,25 @@
           "ak.self.contact.read.list.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      }
+    },
+    {
+      "schema_id": "ak.schema.contact_remark.v1",
+      "file": "schemas/contact-remark.schema.json",
+      "consumers": {
+        "declared_wire": "account_data_plaintext",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "account_data_plaintext",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.contacts.actor.<principal_key>",
+        "normative_ref": "zh/discovery/client-preferences.md"
       }
     },
     {
@@ -3689,6 +3710,7 @@
           "ak.schema.collision_variant_record.v1",
           "ak.schema.consent_operations.v1",
           "ak.schema.contact_operations.v1",
+          "ak.schema.contact_remark.v1",
           "ak.schema.contact_scope_update.v1",
           "ak.schema.control_proposal_decision.v1",
           "ak.schema.controller_account_gate_attestation.v1",

@@ -101,7 +101,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 7
+        "did_core_id": 5
       },
       "reason": "Contact concurrency requires exact actor identity while claims and selectors intentionally identify stable principals."
     }
@@ -1158,13 +1158,13 @@
       ]
     },
     {
-      "schema_path": "agent-selector-claim.schema.json#/properties/subject_id",
-      "property_name": "subject_id",
+      "schema_path": "agent-selector-claim.schema.json#/properties/subject_account_id",
+      "property_name": "subject_account_id",
       "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
+      "representation_profile": "account_id",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:did_core_id"
+        "ref:account_id"
       ]
     },
     {
@@ -2549,6 +2549,16 @@
       ]
     },
     {
+      "schema_path": "contact-remark.schema.json#/properties/subject/properties/principal_id",
+      "property_name": "principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "content-block-poll.schema.json#/$defs/reply_context/properties/sender_actor_id",
       "property_name": "sender_actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -2959,13 +2969,13 @@
       ]
     },
     {
-      "schema_path": "directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome/properties/subject_id",
-      "property_name": "subject_id",
+      "schema_path": "directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome/properties/subject_account_id",
+      "property_name": "subject_account_id",
       "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
+      "representation_profile": "account_id",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:did_core_id"
+        "ref:account_id"
       ]
     },
     {
@@ -6629,13 +6639,23 @@
       ]
     },
     {
-      "schema_path": "mimi-operations.schema.json#/$defs/mimi_request_consent_request_body/properties/requester_id",
-      "property_name": "requester_id",
+      "schema_path": "mimi-operations.schema.json#/$defs/mimi_request_consent_request_body/properties/holder_account_id",
+      "property_name": "holder_account_id",
       "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
+      "representation_profile": "account_id",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:did_core_id"
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "mimi-operations.schema.json#/$defs/mimi_request_consent_request_body/properties/requester_actor_id",
+      "property_name": "requester_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
       ]
     },
     {
@@ -9432,6 +9452,18 @@
       "account_scoped": false,
       "required_evidence": [
         "verified_w3c_method_controller"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "mimi-operations.schema.json#/$defs/mimi_request_consent_request_body/properties/holder_account_id",
+      "property_name": "holder_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_ownership_binding"
       ]
     },
     {

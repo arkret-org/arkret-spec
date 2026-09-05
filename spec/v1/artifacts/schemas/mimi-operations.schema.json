@@ -565,42 +565,23 @@
       },
       "additionalProperties": false
     },
-    "consent_target": {
-      "type": "object",
-      "required": [
-        "kind",
-        "id"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "did",
-            "mimi_uri",
-            "handle",
-            "provider_user"
-          ]
-        },
-        "id": {
-          "$ref": "#/$defs/non_empty_string"
-        }
-      },
-      "additionalProperties": false
-    },
     "mimi_request_consent_request_body": {
       "type": "object",
       "x-arkret-proof-context": "ak.mimi_request_consent_request_proof.v1",
       "required": [
-        "requester_id",
-        "target",
-        "purpose"
+        "requester_actor_id",
+        "holder_account_id",
+        "purpose",
+        "proofs"
       ],
       "properties": {
-        "requester_id": {
-          "$ref": "#/$defs/did_core_id"
+        "requester_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Exact Actor the requester is asking as, Station and actor role included. It replaces the bare requester DID: consent-model.md section 6.1 compares an ordinary peer by complete ActorId and forbids falling back to a bare principal, so a correlation frozen on a principal core could never be reconciled without one side reducing dimensions. The operation proof and the transport proof MUST both authenticate this exact Actor; proving key control under some principal does not authorise acting for an arbitrary account of that principal."
         },
-        "target": {
-          "$ref": "#/$defs/consent_target"
+        "holder_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact Account the request is addressed to, chosen and signed by the requester. It is not evidence that the holder exists, is visible or has consented: creating the private correlation queries no consent cell, and a request that is syntactically valid and authenticated MUST produce an indistinguishable opaque outcome whether or not the holder exists. A correlation may freeze a target nobody can legitimately accept; it carries no authority. This operation resolves no aliases -- the external identifier to Arkret identity mapping happens before it, under the section 10 rules."
         },
         "purpose": {
           "type": "string",
@@ -614,7 +595,8 @@
           ]
         },
         "strand_id": {
-          "$ref": "#/$defs/strand_id"
+          "$ref": "#/$defs/strand_id",
+          "description": "Optional interop context. It grants no Realm authority and neither widens nor narrows the consent scope; when present it is covered by the unsigned-body digest like every other member."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -624,10 +606,12 @@
           "items": {
             "$ref": "#/$defs/proof"
           },
-          "minItems": 1
+          "minItems": 1,
+          "description": "Requester operation proof over ak.mimi_request_consent_request_proof.v1. Required: section 5.1 already mandates an actor proof for this operation, and the correlation is only as strong as the signature that froze it."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Request that a named Arkret holder grant consent to a named Arkret Actor. The signed request writes both identities in full and the facade freezes exactly those into its private correlation, so update_consent is a byte comparison rather than a re-resolution against whatever the facade's current Station or alias table happens to say."
     },
     "mimi_request_consent_outcome": {
       "type": "object",
