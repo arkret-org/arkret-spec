@@ -4302,8 +4302,13 @@ def check_history_scale_fixture(lint: Lint) -> None:
             }]
             if rotate.get("preconditions") != expected_precondition:
                 lint.fail(path, "RHRK rotate must carry the exact whole-value signed head_eq")
-            if not isinstance(projected_op, dict) or projected_op.get("from") != prior_tuple:
-                lint.fail(path, "RHRK production projection KAT must copy head_eq value to op.from")
+            # event-auth-state-resolution.md section 9.3.1.4 deleted the rule that
+            # copied a Move's head_eq into `op.from`, so a projected cas_register
+            # set MUST NOT carry a predecessor value at all. Causality travels as
+            # the head identities the Seal admission path derives from the Move's
+            # own signed basis. The signed business head_eq above is unaffected.
+            if not isinstance(projected_op, dict) or "from" in projected_op:
+                lint.fail(path, "a projected cas_register set MUST NOT carry op.from")
             seal_ref_value = (
                 seal.get("seal_id") if isinstance(seal, dict) else None
             )

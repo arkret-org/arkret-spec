@@ -474,23 +474,6 @@
     },
     "projected_rotate_op": {
       "cell_id": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
-      "from": {
-        "key_tuple": {
-          "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000121",
-          "method_controller_principal_id": "ak:did_core:web:rhrk-holder.example",
-          "holder_service_id": "ak:did_core:web:rhrk-holder.example",
-          "key_agreement_ref": "did:web:rhrk-holder.example#x25519-1",
-          "holder_signing_ref": "did:web:rhrk-holder.example#ed25519-1",
-          "hpke_suite": "ak.hpke_x25519_aead_chacha20poly1305.v1",
-          "frozen_public_key_b64u": "e06Qm75__kTEZaIgA31gjuNYl9Me-XLwf3SJLLD3PxM"
-        },
-        "accepted_key_evidence_ref": "ak:event:Ac60vA-6AmdyYkXYLfK7uebwaiAlHOIo6bsCqk0G7CfX",
-        "holder_trusted_basis": {
-          "leaves": [
-            "ak:seal:sha256:29fcaaa6c472cdc227da6dfefae6b7e8329656ee5a576553f5687394f3e231a7"
-          ]
-        }
-      },
       "to": {
         "key_tuple": {
           "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000122",
@@ -507,7 +490,8 @@
             "ak:seal:sha256:5a82e691c5c5b480d3ac762a78cfe9c2f24071a7471dcb025caf3a300b060bbe"
           ]
         }
-      }
+      },
+      "superseded_head_note": "event-auth-state-resolution.md section 9.3.1.4 deleted the rule that copied this Move's head_eq into op.from. A projected cas_register set carries no predecessor value; the rotate supersedes the register write by identity, derived at Seal admission from the rotate's own signed seal_basis (section 9.3.1.3 items 1 and 4)."
     },
     "reducer_effective_tuples": [
       {
