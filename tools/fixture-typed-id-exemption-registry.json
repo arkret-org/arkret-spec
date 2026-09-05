@@ -33,18 +33,32 @@
       "reason": "The field states the accepted blob-ref shape rather than one blob ref; the alternation and the <64 lowercase hex> placeholder are template syntax, and the registered value space it restates is special_forms[blob].payload_pattern."
     },
     {
-      "pointer": "schema-validation-fixture.json#/schema_validation_cases/150/instance/cell_ids/0",
+      "pointer": "schema-validation-fixture.json#/schema_validation_cases/157/instance/cell_ids/0",
       "position": "value",
       "value": "ak:cell:ak.component.member.state.v1:did:web:host%3",
       "category": "deliberate_negative_vector",
       "reason": "Case cell_ref_with_malformed_percent_escape_rejected declares expect_valid false; the truncated percent-escape is exactly what bottom.schema.json must reject."
     },
     {
-      "pointer": "schema-validation-fixture.json#/schema_validation_cases/151/instance/cell_ids/0",
+      "pointer": "schema-validation-fixture.json#/schema_validation_cases/158/instance/cell_ids/0",
       "position": "value",
       "value": "ak:cell:message:019640ed-8000-7000-8000-000000000000",
       "category": "deliberate_negative_vector",
       "reason": "Case cell_ref_without_complete_ak_component_family_rejected declares expect_valid false; the missing ak.component.<facet-path>.v<n> family is exactly what bottom.schema.json must reject."
+    },
+    {
+      "pointer": "schema-validation-fixture.json#/schema_validation_cases/128/instance/items/0/id",
+      "position": "value",
+      "value": "ak:cell:ak.private.account_data.v1:ak.account_data.theme",
+      "category": "deliberate_negative_vector",
+      "reason": "Case snapshot_chunk_actor_private_family_rejected declares expect_valid false; an actor-private ak.private.* family is exactly what snapshot-chunk.schema.json cell_ref must reject (snapshot-schema.md section 3: actor-private cells are not Realm consensus state)."
+    },
+    {
+      "pointer": "sync-fixture.json#/snapshot_state_digest/cases/15/chunks/0/items/6/id",
+      "position": "value",
+      "value": "ak:cell:ak.private.account_data.v1:ak.account_data.theme",
+      "category": "deliberate_negative_vector",
+      "reason": "Case actor_private_family_is_rejected of ak.vector.snapshot.state_digest_recompute.v1 expects reject; the ak.private.* family only exists in the vector to be refused."
     }
   ]
 }

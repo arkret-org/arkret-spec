@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.sync.core.v1"
   },
   "profile": "ak.vector_group.sync.v1",
-  "version": "2026-09-05",
+  "version": "2026-09-06",
   "schema_validation_cases": [
     {
       "name": "device_message_envelope_with_message_id_valid",
@@ -1524,6 +1524,2100 @@
         ],
         "expected_error": "schema_violation",
         "note": "rows MUST be sorted by witness_id UTF-8 byte order; a receiver rejects the unsorted list and MUST NOT normalize it first"
+      }
+    ]
+  },
+  "snapshot_state_digest": {
+    "vector_id": "ak.vector.snapshot.state_digest_recompute.v1",
+    "manifest": {
+      "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+      "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+      "reducer_profile": "ak.reducer.core.v1"
+    },
+    "assertions": [
+      "items_are_reducer_cells_with_the_section_6_2_1_state_object",
+      "leaf_is_h_of_0x00_and_the_cell_state_preimage_bytes",
+      "leaves_are_ordered_by_cell_id_code_point_and_unique_across_chunks",
+      "root_uses_rfc6962_node_prefix_and_odd_tail_promotion",
+      "digest_suite_is_the_realm_live_suite",
+      "materialized_object_and_cas_cell_branches_are_rejected",
+      "state_shape_must_match_the_registered_lattice",
+      "bottom_cells_and_erasure_stubs_are_not_leaves",
+      "chunk_boundaries_are_transparent_to_state_digest"
+    ],
+    "leaves": [
+      {
+        "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc\",\"state\":{\"heads\":[{\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"value\":null},{\"event_id\":\"ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY\",\"value\":\"ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY\"}]}}",
+        "leaf": "sha256:0011324605e4d21a9f48ea34fe344cf04a50828afee5e2f00f0b2d4d51f5e945"
+      },
+      {
+        "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF\",\"state\":{\"value\":[{\"tag\":\"ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0\",\"value\":{\"key\":\"thumbs_up\",\"target_ref\":\"ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF\"}}]}}",
+        "leaf": "sha256:7bf6e777dacc558b840341070c3471316c9b635e6718b033d0d2383326bc3af0"
+      },
+      {
+        "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.realm.reducer_profile.v1:null\",\"state\":{\"heads\":[{\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"value\":\"ak.reducer.core.v1\"}]}}",
+        "leaf": "sha256:61c0fd399207a63049807a3f0812af8fb6ab3b3d14ff103ffc567daeabff87ce"
+      },
+      {
+        "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS\",\"state\":{\"value\":[{\"event_digest\":\"sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixture\",\"issuer_seq\":100,\"value\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS\",\"track_name\":\"discussion\"}}]}}",
+        "leaf": "sha256:c41dd5a4b3fad77ce0c33bfcafc3d0f1496439f3ce764af97878070f275a2df5"
+      },
+      {
+        "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS\",\"state\":{\"value\":\"archived\"}}",
+        "leaf": "sha256:ba7d9932cf7b74750d9871bfd1a5177ac27d9ed103db8b70dedb52c927af21ec"
+      },
+      {
+        "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS\",\"state\":{\"value\":{\"created_at\":\"2026-06-01T00:00:00.000Z\",\"created_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"metadata\":{\"title\":\"Weekly sync\"},\"realm_id\":\"ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"synthesis\":{\"enabled\":true,\"is_primary\":true}}}}}",
+        "leaf": "sha256:a30b76f24bccd47494b1731c5da33b117139e6d244531702a9bf5d6918a1c224"
+      }
+    ],
+    "state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0",
+    "cases": [
+      {
+        "name": "canonical_chunk_recomputes_state_digest",
+        "expected": "accept",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0"
+      },
+      {
+        "name": "chunk_boundaries_do_not_change_state_digest",
+        "expected": "accept",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          },
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 1,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          },
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 2,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0"
+      },
+      {
+        "name": "state_digest_follows_the_realm_digest_suite",
+        "expected": "accept",
+        "digest_algorithm": "blake3",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "blake3:4a8df31fc0b651b01c9c3ae4690f876410601e0c91a4263a0b50d1dae33fb406"
+      },
+      {
+        "name": "empty_reducer_output_is_the_empty_tree_root",
+        "expected": "accept",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "bottom_cell_is_a_conflict_record_not_a_leaf",
+        "expected": "accept",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [
+              {
+                "kind": "bottom_cell",
+                "cell_ref": "ak:cell:ak.component.space.lifecycle.v1:ak:space:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
+              }
+            ],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0",
+        "expected_conflict_records_digest": "sha256:0b26cf4c4f63cdea27e916b8f959867ff762e90092a91496e91809ebd631a2ed"
+      },
+      {
+        "name": "erasure_stub_is_committed_by_its_own_digest_not_a_leaf",
+        "expected": "accept",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          },
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 1,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": [
+              {
+                "cell_ref": "ak:cell:ak.component.strand.object.v1:ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
+                "stub": {
+                  "stub_schema": "ak.schema.erasure_verification_stub.v1",
+                  "subject": {
+                    "kind": "event",
+                    "subject_ref": "ak:event:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj"
+                  },
+                  "scope": {
+                    "storage_boundary": "projection_store",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+                  },
+                  "redaction_authorization_ref": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka",
+                  "receipt_id": "ak:receipt:01970e58-0004-7000-8000-0000000005a3",
+                  "trigger": {
+                    "kind": "event",
+                    "event_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka"
+                  },
+                  "completed_at": "2026-04-26T00:05:00.000Z"
+                }
+              }
+            ]
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0",
+        "expected_erasure_stubs_digest": "sha256:49cb91604d2fd7f8c1603e5f02fb5a3d34467229607cb6ebf2d03e49864c6b02"
+      },
+      {
+        "name": "declared_state_digest_mismatch_is_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:4a8df31fc0b651b01c9c3ae4690f876410601e0c91a4263a0b50d1dae33fb406"
+      },
+      {
+        "name": "materialized_object_branch_is_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "strand",
+                "id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "object": {
+                  "schema": "ak.schema.strand.v1",
+                  "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                  "metadata": {
+                    "title": "Weekly sync"
+                  },
+                  "tracks": {
+                    "synthesis": {
+                      "enabled": true,
+                      "is_primary": true
+                    }
+                  },
+                  "created_by": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixture",
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                    }
+                  },
+                  "created_at": "2026-06-01T00:00:00.000Z",
+                  "id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS"
+                },
+                "source_event_id": "ak:event:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS"
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0"
+      },
+      {
+        "name": "cas_cell_literal_is_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cas_cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0"
+      },
+      {
+        "name": "cas_register_cell_with_value_state_is_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "value": "ak.reducer.core.v1"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:d23931b6363119b89299de630497d19c8e3a8529b32b1b8159becdec5afe0c39"
+      },
+      {
+        "name": "non_cas_register_cell_with_heads_state_is_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "archived"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:af8b293e32e62923b4d3f86d9ee13d69a27fbd68fc0c3781a71a143f5eacc5d3"
+      },
+      {
+        "name": "empty_head_set_is_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": []
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:695fae5606120b39d121d94e6e89fd870219cb46f95ee4c583da5ab5e765ab2c"
+      },
+      {
+        "name": "unsorted_heads_are_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    },
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0"
+      },
+      {
+        "name": "unsorted_items_are_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0"
+      },
+      {
+        "name": "duplicate_cell_across_chunks_is_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          },
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 1,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0"
+      },
+      {
+        "name": "actor_private_family_is_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.core.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.private.account_data.v1:ak.account_data.theme",
+                "state": {
+                  "value": "dark"
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0"
+      },
+      {
+        "name": "reducer_profile_drift_between_chunk_and_manifest_is_rejected",
+        "expected": "reject",
+        "digest_algorithm": "sha256",
+        "chunks": [
+          {
+            "chunk_kind": "snapshot_chunk",
+            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "index": 0,
+            "reducer_profile": "ak.reducer.other.v1",
+            "items": [
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": null
+                    },
+                    {
+                      "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+                      "value": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                "state": {
+                  "value": [
+                    {
+                      "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
+                      "value": {
+                        "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
+                        "key": "thumbs_up"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+                "state": {
+                  "heads": [
+                    {
+                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                      "value": "ak.reducer.core.v1"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": [
+                    {
+                      "issuer_id": "ak:did_core:webvh:z6mkfixture",
+                      "issuer_seq": 100,
+                      "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
+                      "value": {
+                        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                        "track_name": "discussion",
+                        "content": {
+                          "kind": "ak.content.text",
+                          "body": "hello"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": "archived"
+                }
+              },
+              {
+                "kind": "cell",
+                "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+                "state": {
+                  "value": {
+                    "schema": "ak.schema.strand.v1",
+                    "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                    "metadata": {
+                      "title": "Weekly sync"
+                    },
+                    "tracks": {
+                      "synthesis": {
+                        "enabled": true,
+                        "is_primary": true
+                      }
+                    },
+                    "created_by": {
+                      "kind": "account",
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      }
+                    },
+                    "created_at": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            ],
+            "conflict_records": [],
+            "soft_failed": [],
+            "quarantined": [],
+            "erasure_stubs": []
+          }
+        ],
+        "declared_state_digest": "sha256:b6ef201b609a312120e3ebb8d0255fe335ab750b2e2445c3299289a765494aa0"
       }
     ]
   },

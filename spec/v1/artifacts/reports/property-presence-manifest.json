@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9869,
-    "total_schema_documents": 166,
+    "total_properties": 9897,
+    "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2706,
+      "optional": 2707,
       "optional_defaulted": 65,
-      "required": 6765,
-      "required_nullable": 122,
+      "required": 6790,
+      "required_nullable": 124,
       "tristate": 211
     },
     "tristate_occurrences": 211,
@@ -13040,6 +13040,40 @@
         "/properties/typing": "required"
       }
     },
+    "snapshot-chunk.schema.json": {
+      "schema_ids": [
+        "ak.schema.snapshot_chunk.v1"
+      ],
+      "properties": {
+        "/$defs/bottom_cell_record/properties/cell_ref": "required",
+        "/$defs/bottom_cell_record/properties/kind": "required",
+        "/$defs/cas_head/properties/event_id": "required",
+        "/$defs/cas_head/properties/value": "required_nullable",
+        "/$defs/cell_item/properties/id": "required",
+        "/$defs/cell_item/properties/kind": "required",
+        "/$defs/cell_item/properties/state": "required",
+        "/$defs/conflicting_input_record/properties/actor_id": "required",
+        "/$defs/conflicting_input_record/properties/actor_seq": "required",
+        "/$defs/conflicting_input_record/properties/event_id": "required",
+        "/$defs/conflicting_input_record/properties/kind": "required",
+        "/$defs/erasure_stub_record/properties/cell_ref": "required",
+        "/$defs/erasure_stub_record/properties/stub": "required",
+        "/$defs/heads_state/properties/heads": "required",
+        "/$defs/non_accepted_input/properties/actor_id": "required",
+        "/$defs/non_accepted_input/properties/actor_seq": "required",
+        "/$defs/non_accepted_input/properties/event_id": "required",
+        "/$defs/value_state/properties/value": "required_nullable",
+        "/properties/chunk_kind": "required",
+        "/properties/conflict_records": "required",
+        "/properties/erasure_stubs": "required",
+        "/properties/index": "required",
+        "/properties/items": "required",
+        "/properties/quarantined": "required",
+        "/properties/reducer_profile": "required",
+        "/properties/snapshot_ref": "required",
+        "/properties/soft_failed": "required"
+      }
+    },
     "snapshot.schema.json": {
       "schema_ids": [
         "ak.schema.snapshot.v1"
@@ -13084,6 +13118,7 @@
         "/properties/verification_hints": "optional",
         "/properties/verification_hints/properties/challenge_window_seconds": "optional",
         "/properties/verification_hints/properties/conflict_records_digest": "optional",
+        "/properties/verification_hints/properties/erasure_stubs_digest": "optional",
         "/properties/verification_hints/properties/inclusion_proof_url": "optional",
         "/properties/verification_hints/properties/quarantined_digest": "optional",
         "/properties/verification_hints/properties/soft_failed_digest": "optional",

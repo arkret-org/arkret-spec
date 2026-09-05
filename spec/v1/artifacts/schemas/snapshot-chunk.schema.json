@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/snapshot-chunk.schema.json",
+  "title": "Arkret Snapshot Chunk Payload",
+  "description": "Canonical JSON payload behind one snapshot manifest chunks[].chunk_ref (zh/conformance/snapshot-schema.md section 3). It carries the Realm reducer state itself: every item is one written Realm-scope reducer cell with the exact state_object that event-auth-state-resolution.md section 6.2.1 gives the governance state_root leaf, so the snapshot state_digest leaves and the Seal state_root leaves are the same bytes. There is no materialized-object branch: canonical objects are derived locally from these cells, never shipped as a second, renderer-dependent form.",
+  "type": "object",
+  "required": [
+    "chunk_kind",
+    "snapshot_ref",
+    "index",
+    "reducer_profile",
+    "items",
+    "conflict_records",
+    "soft_failed",
+    "quarantined",
+    "erasure_stubs"
+  ],
+  "properties": {
+    "chunk_kind": {
+      "const": "snapshot_chunk"
+    },
+    "snapshot_ref": {
+      "type": "string",
+      "pattern": "^ak:snapshot:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "The manifest this chunk belongs to (the manifest's own primary identity is `id`; chunks point back with `snapshot_ref`)."
+    },
+    "index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Position of this chunk in manifest chunks[]; the leaf sequence of state_digest is the concatenation of items[] across chunks in ascending index order."
+    },
+    "reducer_profile": {
+      "type": "string",
+      "pattern": "^ak\\.reducer(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
+      "description": "MUST equal the manifest reducer_profile byte for byte."
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/cell_item"
+      },
+      "description": "Written Realm-scope reducer cells, sorted by id in Unicode code point ascending order with no duplicate id across the whole snapshot. Membership is section 3 of snapshot-schema.md: cas_register cells with a non-empty active head set, every other cell with a determinate non-bottom joined value. Never-written cells, non-cas_register bottom cells (see conflict_records), actor-private ak.private.* families and cells written under a Circle or Sidecar scope_ref MUST NOT appear."
+    },
+    "conflict_records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/conflict_record"
+      },
+      "description": "Undecided or conflicting material the reducer output cannot represent as a leaf: non-cas_register cells in bottom, and non-accepted Event inputs. Committed through manifest verification_hints.conflict_records_digest."
+    },
+    "soft_failed": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/non_accepted_input"
+      },
+      "description": "Accepted-but-soft-failed Event inputs inside the snapshot frontier. Committed through manifest verification_hints.soft_failed_digest."
+    },
+    "quarantined": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/non_accepted_input"
+      },
+      "description": "Quarantined Event inputs inside the snapshot frontier. Committed through manifest verification_hints.quarantined_digest."
+    },
+    "erasure_stubs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/erasure_stub_record"
+      },
+      "description": "Cells whose canonical value the issuer can no longer reproduce because a hard erasure (a storage act, not an Event) removed it. They are not state_digest leaves; each row carries the ak.schema.erasure_verification_stub.v1 bound by the erasure receipt. Committed through manifest verification_hints.erasure_stubs_digest."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "cell_ref": {
+      "$ref": "./event-envelope.schema.json#/$defs/cell_ref"
+    },
+    "event_id": {
+      "$ref": "./common-ids.schema.json#/$defs/event_id"
+    },
+    "actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
+    },
+    "cell_item": {
+      "type": "object",
+      "description": "One written reducer cell. `state` is exactly the section 6.2.1 state_object of that cell's registered lattice: {\"heads\": [...]} for cas_register, {\"value\": <joined lattice value>} for every other lattice. The two shapes are mutually exclusive and neither may carry extra members, so a cell's snapshot state and its state_root leaf preimage {\"cell\": id, \"state\": state} are one definition.",
+      "required": [
+        "kind",
+        "id",
+        "state"
+      ],
+      "properties": {
+        "kind": {
+          "const": "cell"
+        },
+        "id": {
+          "$ref": "#/$defs/cell_ref",
+          "description": "Canonical cell tuple reference ak:cell:<component>:<subject> (encoding.md section 4). It is the leaf sort key."
+        },
+        "state": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/value_state"
+            },
+            {
+              "$ref": "#/$defs/heads_state"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "value_state": {
+      "type": "object",
+      "description": "state_object of a materialized non-cas_register cell: the joined lattice value under the snapshot frontier, verbatim. Encrypted envelopes projected from Event payloads stay envelopes; the issuer never decrypts, re-encrypts or substitutes.",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "heads_state": {
+      "type": "object",
+      "description": "state_object of a written cas_register cell: the complete active head set, sorted by the decoded 33-octet event_id token in unsigned lexicographic ascending order, identities unique. Empty heads is not a legal leaf (an unwritten cell is not a member); a null value or diverging values are members.",
+      "required": [
+        "heads"
+      ],
+      "properties": {
+        "heads": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/cas_head"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "cas_head": {
+      "type": "object",
+      "required": [
+        "event_id",
+        "value"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "conflict_record": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/bottom_cell_record"
+        },
+        {
+          "$ref": "#/$defs/conflicting_input_record"
+        }
+      ]
+    },
+    "bottom_cell_record": {
+      "type": "object",
+      "description": "A written non-cas_register cell whose join under the snapshot frontier is bottom. It has no state_digest leaf (section 6.2.1) but MUST be listed so a receiver restoring from the snapshot fails closed on it instead of reading it as never written.",
+      "required": [
+        "kind",
+        "cell_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bottom_cell"
+        },
+        "cell_ref": {
+          "$ref": "#/$defs/cell_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "conflicting_input_record": {
+      "type": "object",
+      "description": "An Event input inside the frontier whose admission is still undecided (for example an unresolved full-hash collision variant).",
+      "required": [
+        "kind",
+        "event_id",
+        "actor_id",
+        "actor_seq"
+      ],
+      "properties": {
+        "kind": {
+          "const": "event"
+        },
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/actor_id"
+        },
+        "actor_seq": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "non_accepted_input": {
+      "type": "object",
+      "description": "One non-accepted Event input, addressable by the (actor_id, actor_seq) coordinates that snapshot-schema.md section 6 gap attribution uses.",
+      "required": [
+        "event_id",
+        "actor_id",
+        "actor_seq"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/actor_id"
+        },
+        "actor_seq": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "erasure_stub_record": {
+      "type": "object",
+      "required": [
+        "cell_ref",
+        "stub"
+      ],
+      "properties": {
+        "cell_ref": {
+          "$ref": "#/$defs/cell_ref"
+        },
+        "stub": {
+          "$ref": "./erasure-verification-stub.schema.json"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

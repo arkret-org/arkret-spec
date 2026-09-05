@@ -2025,6 +2025,29 @@ ak.vector.snapshot.inclusion_challenge.v1
 - `gap_attribution` 为空但声明范围内确有缺口时，MUST 视为 completeness 未证明（set-bound commitment 只给 integrity，不给 completeness）。
 - 两个 conformant verifier 对同一 fixture MUST 得到相同 accept/reject 结论。
 
+### 3.7 Vector: snapshot state digest recompute
+
+向量名称：
+
+```text
+ak.vector.snapshot.state_digest_recompute.v1
+```
+
+本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §3 / §4：chunk payload（`ak.schema.snapshot_chunk.v1`）的 `items[]` 是 reducer cell，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`state_digest` 是这些 leaf 的 RFC 6962 root。机器 fixture 是 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_state_digest` 块，由 `ak.suite.sync.core.v1` runner 承载；fixture 里每个 digest 都由 fixture 自身的 bytes 重算得到，不存在占位值。
+
+输入：
+
+1. 一组 `ak.schema.snapshot_chunk.v1` payload，其 `items[]` 覆盖 `cas_register`（含业务值 `null` 与异值 `⊥` 的 heads）、`mv_register`、`fsm`、`or_set`、`ordered_log` 五种 lattice 的 cell；`leaves[]` 逐 item 给出 `leaf_preimage` 与 `leaf`。
+2. `digest_algorithm`——该 Realm 的 live digest suite；`sha256` 与 `blake3` 各至少一例。
+3. 声明的 `state_digest`；含 `conflict_records` / `erasure_stubs` 的 case 另给出期望的 `verification_hints.*_digest`。
+
+期望：
+
+- verifier MUST 对每个 item 重算 `H(0x00 || canonical_json({"cell": id, "state": state}))`，按 `items` 顺序（跨 chunk 按 `index` 升序拼接）以 `H(0x01 || left || right)` 与奇数层提升组合，得到与声明相同的 `state_digest`；chunk 边界不同不改变结果；空 `items` 得到 `H` over 空字节。
+- `kind` 不是 `"cell"` 的 item——包括旧 `object` 分支与 `cas_cell` 字面——MUST 拒绝。`state` 形状与 registry 登记的 lattice 不符（`cas_register` 带 `value`、其它 lattice 带 `heads`）、空 `heads`、`heads` 未按解码 token 升序、`items` 未按 `id` code point 升序、跨 chunk 重复 `id`、`ak.private.*` family、chunk `reducer_profile` 与 manifest 不符，MUST 分别拒绝。
+- `⊥` cell 作为 `conflict_records[]` 的 `bottom_cell` 行、erasure stub 作为 `erasure_stubs[]` 行时，`state_digest` 不变；对应的 `verification_hints.conflict_records_digest` / `erasure_stubs_digest` 按 §3 的列表 digest 规则重算一致。
+- 声明的 `state_digest` 与重算值不一致 MUST 拒绝；两个 conformant verifier 对同一 fixture MUST 得到相同 accept / reject 结论。
+
 ## 4. Capability Vectors
 
 ### 4.1 目标

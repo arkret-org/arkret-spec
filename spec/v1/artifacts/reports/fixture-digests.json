@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "f40a6d8471d4e9d3f81b24d0c82030120941ff504e21aebe4b438798e1e22f84"
+      "sha256": "ff4f4adffe3c2d3b3fdd968bd68539017ffd6e76e489633f609547116efa511a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -410,7 +410,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "3e427116227bdd69a33171625be08cd70874a7f6cc611830e0789ff5e44e5f68"
+      "sha256": "b27e300452b36e24d81aa775ac67b5ed7d6c800aa09d51345abe375415512878"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

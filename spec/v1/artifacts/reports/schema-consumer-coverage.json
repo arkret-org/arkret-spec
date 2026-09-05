@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 204,
+    "total_schemas": 205,
     "by_consumer": {
-      "declared_wire": 58,
+      "declared_wire": 59,
       "event_kind": 3,
       "inbound": 47,
       "outbound": 55,
-      "prose": 114,
+      "prose": 115,
       "prose_only": 2,
       "schema_reference": 136,
-      "startup_compile": 204,
+      "startup_compile": 205,
       "vectors": 128
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 76,
+    "without_vector_coverage": 77,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -143,6 +143,7 @@
     "ak.schema.service_identity_bundle.v1",
     "ak.schema.signal_presence.v1",
     "ak.schema.signal_typing.v1",
+    "ak.schema.snapshot_chunk.v1",
     "ak.schema.time.v1"
   ],
   "unresolved_vector_disposition": [],
@@ -1385,6 +1386,7 @@
           "ak.schema.signal_presence.v1",
           "ak.schema.signal_relay.v1",
           "ak.schema.snapshot.v1",
+          "ak.schema.snapshot_chunk.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
           "ak.schema.view.v1",
@@ -3614,6 +3616,26 @@
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      }
+    },
+    {
+      "schema_id": "ak.schema.snapshot_chunk.v1",
+      "file": "schemas/snapshot-chunk.schema.json",
+      "consumers": {
+        "declared_wire": "standalone_schema_alias",
+        "prose": "normative_text",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "standalone_schema_alias",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "snapshot manifest chunks[].chunk_ref content-addressed payload",
+        "normative_ref": "zh/conformance/snapshot-schema.md"
       }
     },
     {

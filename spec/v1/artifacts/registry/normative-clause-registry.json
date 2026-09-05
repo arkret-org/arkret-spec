@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-06.2",
+  "version": "2026-09-06.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-06T21:00:00+08:00",
+  "generated_at": "2026-09-06T22:30:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -484,6 +484,30 @@
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.redaction.event_target_does_not_drive_object_state.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-035",
+      "status": "active",
+      "category": "reducer",
+      "source_anchor": "spec/v1/zh/conformance/snapshot-schema.md#3-chunk-descriptor",
+      "section_digest": "sha256:7bb8b1f15df7d6617beaa0ab174367ebd937fc53541deb13e82539d2cb4dfe42",
+      "requirement": "A snapshot chunk payload (ak.schema.snapshot_chunk.v1) carries Realm-scope reducer cells, never materialized objects: every items[] element is {kind:\"cell\", id:<ak:cell:…>, state:<section 6.2.1 state_object>} whose state shape follows the cell's registered lattice ({heads} for cas_register, {value} otherwise); membership is a non-empty active head set for cas_register and a determinate non-bottom joined value otherwise; never-written cells, actor-private ak.private.* families and cells written under a Circle or Sidecar scope_ref MUST NOT appear; non-cas_register bottom cells go to conflict_records[] and hard-erased cells to erasure_stubs[], each committed through its own verification_hints digest; items are sorted by id code point and unique across chunks; encrypted envelopes stay verbatim and no per-caller field filtering is applied.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.snapshot.state_digest_recompute.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-036",
+      "status": "active",
+      "category": "reducer",
+      "source_anchor": "spec/v1/zh/conformance/snapshot-schema.md#4-state-hash",
+      "section_digest": "sha256:c2d48bc3dbc0a35c25f4b225705d4140247d8e6c18b9a6f77a3d4cc28b9dfc51",
+      "requirement": "state_digest is the RFC 6962 root over the snapshot's cell items where each leaf is byte-identical to the section 6.2.1 state_root leaf, leaf = H(0x00 || canonical_json({cell: id, state: state_object})), node = H(0x01 || left || right), odd tail promoted, leaves in items order (id code point ascending, chunks concatenated by index), H = the Realm's live digest suite, the empty output being H over empty bytes; the legacy kind:id:sha256(object) double wrapping and any composition without the 0x00/0x01 domain separation MUST be rejected as a root mismatch.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.snapshot.state_digest_recompute.v1"
       ]
     }
   ]

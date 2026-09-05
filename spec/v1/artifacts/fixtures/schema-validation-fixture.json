@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-03.1",
+  "version": "2026-09-06.1",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -2876,6 +2876,201 @@
         "size_bytes": 128
       },
       "first_expected_error": "contains:digest"
+    },
+    {
+      "name": "snapshot_chunk_cell_items_valid",
+      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "chunk_kind": "snapshot_chunk",
+        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "index": 0,
+        "reducer_profile": "ak.reducer.core.v1",
+        "items": [
+          {
+            "kind": "cell",
+            "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+            "state": {
+              "heads": [
+                {
+                  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                  "value": null
+                }
+              ]
+            }
+          },
+          {
+            "kind": "cell",
+            "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
+            "state": {
+              "value": "archived"
+            }
+          }
+        ],
+        "conflict_records": [
+          {
+            "kind": "bottom_cell",
+            "cell_ref": "ak:cell:ak.component.space.lifecycle.v1:ak:space:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
+          }
+        ],
+        "soft_failed": [],
+        "quarantined": [],
+        "erasure_stubs": []
+      }
+    },
+    {
+      "name": "snapshot_chunk_materialized_object_branch_rejected",
+      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "chunk_kind": "snapshot_chunk",
+        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "index": 0,
+        "reducer_profile": "ak.reducer.core.v1",
+        "items": [
+          {
+            "kind": "strand",
+            "id": "ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
+            "object": {
+              "schema": "ak.schema.strand.v1"
+            },
+            "source_event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+            "state": {
+              "value": {
+                "schema": "ak.schema.strand.v1"
+              }
+            }
+          }
+        ],
+        "conflict_records": [],
+        "soft_failed": [],
+        "quarantined": [],
+        "erasure_stubs": []
+      },
+      "first_expected_error": "contains:object"
+    },
+    {
+      "name": "snapshot_chunk_cas_cell_literal_rejected",
+      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "chunk_kind": "snapshot_chunk",
+        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "index": 0,
+        "reducer_profile": "ak.reducer.core.v1",
+        "items": [
+          {
+            "kind": "cas_cell",
+            "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+            "state": {
+              "heads": [
+                {
+                  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                  "value": null
+                }
+              ]
+            }
+          }
+        ],
+        "conflict_records": [],
+        "soft_failed": [],
+        "quarantined": [],
+        "erasure_stubs": []
+      },
+      "first_expected_error": "contains:kind"
+    },
+    {
+      "name": "snapshot_chunk_empty_heads_rejected",
+      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "chunk_kind": "snapshot_chunk",
+        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "index": 0,
+        "reducer_profile": "ak.reducer.core.v1",
+        "items": [
+          {
+            "kind": "cell",
+            "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
+            "state": {
+              "heads": []
+            }
+          }
+        ],
+        "conflict_records": [],
+        "soft_failed": [],
+        "quarantined": [],
+        "erasure_stubs": []
+      },
+      "first_expected_error": "contains:heads"
+    },
+    {
+      "name": "snapshot_chunk_mixed_state_shape_rejected",
+      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "chunk_kind": "snapshot_chunk",
+        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "index": 0,
+        "reducer_profile": "ak.reducer.core.v1",
+        "items": [
+          {
+            "kind": "cell",
+            "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
+            "state": {
+              "value": "archived",
+              "heads": []
+            }
+          }
+        ],
+        "conflict_records": [],
+        "soft_failed": [],
+        "quarantined": [],
+        "erasure_stubs": []
+      },
+      "first_expected_error": "contains:state"
+    },
+    {
+      "name": "snapshot_chunk_actor_private_family_rejected",
+      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "chunk_kind": "snapshot_chunk",
+        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "index": 0,
+        "reducer_profile": "ak.reducer.core.v1",
+        "items": [
+          {
+            "kind": "cell",
+            "id": "ak:cell:ak.private.account_data.v1:ak.account_data.theme",
+            "state": {
+              "value": "dark"
+            }
+          }
+        ],
+        "conflict_records": [],
+        "soft_failed": [],
+        "quarantined": [],
+        "erasure_stubs": []
+      },
+      "first_expected_error": "contains:does not match"
+    },
+    {
+      "name": "snapshot_chunk_type_field_rejected",
+      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "index": 0,
+        "reducer_profile": "ak.reducer.core.v1",
+        "items": [],
+        "conflict_records": [],
+        "soft_failed": [],
+        "quarantined": [],
+        "erasure_stubs": [],
+        "type": "snapshot_chunk"
+      },
+      "first_expected_error": "contains:chunk_kind"
     },
     {
       "name": "agent_provision_requested_scope_global_ceiling_valid",

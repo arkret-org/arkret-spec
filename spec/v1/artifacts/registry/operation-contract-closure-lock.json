@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-05.17",
-  "generated_at": "2026-09-05T22:35:01+08:00",
+  "version": "2026-09-05.18",
+  "generated_at": "2026-09-05T22:35:02+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -937,7 +937,7 @@
     },
     {
       "operation_id": "ak.self.snapshot.read.manifest_head.v1",
-      "sha256": "sha256:4507d3e209fe13d28f388973fe3b0ec92f8307723aa04672f98fdc4e587bb385"
+      "sha256": "sha256:b8d9e89796799e97b3c5030a1fef68f019876739a98b5295e5e5e2c2eb4c8461"
     },
     {
       "operation_id": "ak.self.space.read.list.v1",

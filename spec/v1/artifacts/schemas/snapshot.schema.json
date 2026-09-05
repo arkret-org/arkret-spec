@@ -102,7 +102,7 @@
     "state_digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-      "description": "RFC 6962 domain-separated Merkle root of the canonical reducer-derived state at the snapshot frontier (Lattice cell values keyed by cell_family/cell_subject, plus reducer_profile / schema_profile_refs): leaf=H(0x00||leaf_data), node=H(0x01||left||right), odd tail promoted. This binds *what the state is*. Paired with event_set_commitment which binds *which events produced it*: a verifier replays the events covered by event_set_commitment under reducer_profile and MUST obtain the same state_digest. The two digests are independent and BOTH required — state_digest alone cannot detect missing-event tampering, event_set_commitment alone cannot detect reducer divergence."
+      "description": "RFC 6962 domain-separated Merkle root of the Realm-scope reducer cells carried by the chunk payloads (ak.schema.snapshot_chunk.v1). Each leaf is byte-identical to the governance state_root leaf of event-auth-state-resolution.md section 6.2.1: leaf=H(0x00 || canonical_json({\"cell\": id, \"state\": state_object})), node=H(0x01||left||right), odd tail promoted, leaves ordered by cell id code point, H = the Realm's live digest suite. reducer_profile and schema_profile_refs are bound by the manifest signature, not by leaves. This binds *what the state is*. Paired with event_set_commitment which binds *which events produced it*: a verifier replays the events covered by event_set_commitment under reducer_profile and MUST obtain the same state_digest. The two digests are independent and BOTH required — state_digest alone cannot detect missing-event tampering, event_set_commitment alone cannot detect reducer divergence."
     },
     "frontier": {
       "type": "object",
@@ -216,12 +216,18 @@
         "quarantined_digest": {
           "type": "string",
           "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+        },
+        "erasure_stubs_digest": {
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+          "description": "Digest of the erasure_stubs[] rows concatenated across chunk payloads in ascending chunk index order (snapshot-schema.md section 3). MUST be present when any chunk carries an erasure stub; erased cells are not state_digest leaves, so this is their only commitment."
         }
       },
       "additionalProperties": true
     },
     "chunks": {
       "type": "array",
+      "description": "Content-addressed descriptors of the chunk payloads. Each chunk_ref resolves to the canonical JSON bytes of one ak.schema.snapshot_chunk.v1 payload (snapshot-chunk.schema.json); the descriptor carries no sibling digest.",
       "items": {
         "type": "object",
         "required": [

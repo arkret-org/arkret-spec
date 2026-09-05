@@ -755,6 +755,9 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
         "sha256_hex",
         "\x00",
     ),
+    # Snapshot state_digest KAT: the section 6.2.1 cell leaf H(0x00 || preimage),
+    # spelled as canonical JSON text beside the leaf it must hash to.
+    ("leaf_preimage", "leaf", "utf8", "sha256_hex", "\x00"),
     (
         "identity_link_proof_preimage_hex",
         "identity_link_proof_payload_digest",
