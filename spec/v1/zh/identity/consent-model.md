@@ -305,7 +305,7 @@ Peer 发送 invite Control Move 时，consent gate 在 **holder 的 Station** �
   **wire 落点（normative）**：在 peer invite delivery 与 contact delivery 面上，该等价类的 wire 形态固定为 `status="deferred"` 且**不携带** `disclosed_outcome`；`disclosed_outcome` 的枚举因此封闭为 `delivered | blocked`，`quarantined` 不是可回送值。详见 [`../sync/invite-addressing.md` §5.1](../sync/invite-addressing.md)。高信任 introduction evidence（`locator_ref` / `consent_grant` / `shared_realm`）**不构成**放宽理由：它只说明 requester 已知 holder 存在，而这里泄露的是 consent 状态而非 existence。
 
   requester 只有在 holder 显式 review 接受并构造 grant Control Move(本节 review 后转换 (a))后，才 MAY 从正常 active-grant 路径观察到可联系状态。否则 quarantine 暂存本身会成为"holder 真实存在且 inbox 可达"的可联系侧信道，违背 consent gate 的"非授权即不可联系"语义。
-- **反滥用限速（normative）**：为闭合"换 pairwise DID 即重新入列"的骚扰放大面，服务端对写入同一 holder quarantine inbox 的**新来源**（此前未见过的 peer pairwise DID）首次接触项 MUST 施加 per-holder 速率与总量上限。承载、identity key、算法、ledger 与原子性由 §6.1.1.1–§6.1.1.4 唯一定义；超过上限的新来源接触 MUST 被静默丢弃——不入列、不向 requester 暴露任何送达 / 可联系信号（遵守上一条不可区分要求）。该限速仅针对"新陌生 pairwise 首次接触"；已被 holder grant 过、走正常 active-grant 路径的 peer 结构上不进入 quarantine 路径，因而不受此限。
+- **反滥用限速（normative）**：为闭合"换一个 principal 即重新入列"的骚扰放大面，服务端对**新来源**（此前未见过的 peer，identity key 由 §6.1.1.2 唯一定义）向同一 holder 的首次接触 MUST 施加 per-holder 速率与总量上限。**范围是 §6.1.1.3 chokepoint 上的三条 first-contact 面**——invite delivery、contact delivery 与 §6.1.2 consent request——**不是"写入 quarantine inbox 的项"**：contact 首次接触照常计费却从不产生 quarantine entry（[`contact-and-direct-conversation.md` §1.1](./contact-and-direct-conversation.md)），按 carrier 划范围会把它整条漏掉。承载、identity key、算法、ledger 与原子性由 §6.1.1.1–§6.1.1.4 唯一定义；超过上限的新来源接触 MUST 被静默丢弃——**被丢弃的是本面的 carrier 写入**（invite delivery 与 consent request 是 quarantine entry，contact delivery 是 `pending_incoming` row 的建立，见 §6.1.1.3），且不向 requester 暴露任何送达 / 可联系信号（遵守上一条不可区分要求）。该限速仅针对"陌生人首次接触"；已被 holder grant 过、走正常 active-grant 路径的 peer 结构上不进入本节的陌生人首次接触路径，因而不受此限。
 
 ##### 6.1.1.1 Quota carrier 与 effective 值（normative）
 
@@ -326,6 +326,14 @@ Peer 发送 invite Control Move 时，consent gate 在 **holder 的 Station** �
   default_new_sources_per_retention`；`retention_seconds ≥ window_seconds`；部署侧全部字段 ≥ 1。
   违反 MUST 以 `schema_violation` 拒绝该 constraints 对象，不得取部分字段继续求值。
   SHOULD：`*_per_retention ≥ *_per_window`。
+- **`applies_to` MUST NOT 筛选该对象（normative）**：`receive_policy_constraints.applies_to` 只筛选同一
+  constraints 对象里的 introduction-evidence 与分级披露类成员。`new_source_quota` 是 §6.1.1.3 holder
+  admission chokepoint 的阈值，三条面共用同一份 ledger 与同一组阈值，因此无论 `applies_to` 取何值
+  （含只写 `["invite_delivery"]`、只写 `["contact_request"]`，或整个省略），本对象都对三条面**无条件生效**。
+  把它按面筛选会让同一份 ledger 出现两组阈值，与本节 §6.1.1.3 直接矛盾。`applies_to` 的封闭枚举也因此
+  **不**为 consent request 面新增取值：该面按 §6.1.2 不携带 `introduction_kind` / `effective_kind` /
+  `trust_tier`，也不参与 [`../sync/invite-addressing.md` §5.1](../sync/invite-addressing.md) 的分级披露，
+  其余成员在该面上没有可筛选的对象。
 
 ##### 6.1.1.2 "新来源"的 identity key（normative）
 
