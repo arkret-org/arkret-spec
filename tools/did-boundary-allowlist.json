@@ -140,6 +140,10 @@
       "category": "resolution_or_did_document"
     },
     {
+      "pointer": "invite.schema.json#/$defs/third_party_invite_present_request_body/properties/subject_did/$ref",
+      "category": "registration_or_binding"
+    },
+    {
       "pointer": "offline-publication.schema.json#/$defs/ingress_receipt/properties/qualified_ingress_did/$ref",
       "category": "resolution_or_did_document"
     },

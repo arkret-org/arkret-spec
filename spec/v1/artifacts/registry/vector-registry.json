@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.1",
+  "version": "2026-09-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T10:20:00+08:00",
+  "generated_at": "2026-09-05T15:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3717,7 +3717,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.invite.membership_transition_atomicity.v1",
+      "vector_id": "ak.vector.invite.live_target_uniqueness.v1",
       "status": "active",
       "domain": "invite",
       "scope": "universal",
@@ -3727,7 +3727,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.invite.live_target_uniqueness.v1",
+      "vector_id": "ak.vector.invite.membership_transition_atomicity.v1",
       "status": "active",
       "domain": "invite",
       "scope": "universal",
@@ -5353,6 +5353,21 @@
       "description": "Transcript KAT for ak.ingress_receipt_proof.v1: the six-field receipt digest projection deletes `proofs`, authority_set_ref is supplied only by the exact companion AuthorizationLease outside the receipt body, and canonical binding bytes plus detached JWS are frozen.",
       "covers_proof_contexts": [
         "ak.ingress_receipt_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.join_gate_proof.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.join_gate_proof.v1: digest input deletes `proofs`; canonical binding bytes carry gate_id, realm_id, applicant_actor_id and policy_digest beside payload_digest, detached JWS, and the same unsigned body replayed under ak.realm_join_candidate_proof.v1 rejected.",
+      "covers_proof_contexts": [
+        "ak.join_gate_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"

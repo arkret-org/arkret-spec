@@ -90,7 +90,7 @@ https://app.arkret.example/invite#token=<invite_token>
 >
 > 任何不能满足以上 (1) 或 (2) 全部条件的 OOB code 不得作为生产 wire 形态。conformance vector `ak.vector.invite.oob_code_entropy.v1` 覆盖短熵 OOB code claim 被拒、lookup 形态超限被 invalidate 两种情况。
 
-**禁止形态**（验证服务的 token 出示端点 MUST 拒绝以上述来源出示的 token，reason code 为 `third_party_invite_token_in_query`；明文 token 不上 wire，reducer 只见 `token_commitment`（见 §4.2），因此该拒绝发生在出示端点而非 reducer）：
+**禁止形态**（验证服务的 token 出示端点 `ak.open.third_party_invite.command.present_token.v1`（§4.1）MUST 拒绝任何把 `invite_token` 放在请求 URL query string 或 path segment 中的请求，reason code 为 `third_party_invite_token_in_query`，且 SHOULD 立即作废该 token；这是端点在读取 body 之前对自己收到的 URL 做的判定，不依赖客户端自述来源。明文 token 不上 Event wire，reducer 只见 `token_commitment`（见 §4.2），因此该拒绝发生在出示端点而非 reducer）：
 
 ```text
 forbidden: https://app.arkret.example/invite?token=<invite_token>&realm=ak:realm:...    token in query
@@ -105,8 +105,8 @@ forbidden: https://app.arkret.example/invite/<invite_token>                     
 
 ### 4.1 出示 Token 与绑定
 
-Bob 的客户端将 `invite_token`、自己的 `did_core_id`、用于独立验证的 `did`、设备证明和 intended Realm 提交给 Alice 的身份验证服务。
-身份验证服务验证 token、过期时间、claim 次数和 Realm 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，声明：
+Bob 的客户端通过 `ak.open.third_party_invite.command.present_token.v1`（`POST /_arkret/open/third-party-invites/present`，request body 为 [`invite.schema.json#/$defs/third_party_invite_present_request_body`](../../artifacts/schemas/invite.schema.json)）将 `invite_token`、intended `realm_id`、要绑定的 `subject_account_id`、用于独立验证的完整 `subject_did` 与客户端生成的 `claim_nonce` 提交给 Alice 的身份验证服务；token 只能在 JSON body 中出现（§3.2）。这是 v1 唯一的出示面：验证服务无论是 Station、组织 IVS 还是第三方服务，都 MUST 以该 operation 接收出示，客户端 MUST NOT 依赖私有端点。
+身份验证服务验证 token、过期时间、claim 次数和 Realm 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，随 `invite_id` 与 `token_commitment` 一起返回（response 为 [`invite.schema.json#/$defs/third_party_invite_present_outcome`](../../artifacts/schemas/invite.schema.json)）；`binding_proof` 的形态是 [`event-payload.schema.json#/$defs/invite_claim_binding_proof`](../../artifacts/schemas/event-payload.schema.json)，与 §4.2 claim payload 中的 `binding_proof` 是同一个定义。Bob 对 `subject_account_id` 的控制权由 §4.2 的 `subject_proof` 证明，出示请求不另带设备证明。该证明声明：
 “持有该 Token 的人现在对应的稳定业务身份是 `ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z`”。
 
 **投递目标可审计（normative）**：由于验证服务是受信第三方（见 §2.1），其签发 `binding_proof` 时 MUST 在自身审计记录中记录该 token 在 §3.2 实际投递目标的 digest（例如 `delivery_target_digest = SHA-256(salt || canonical(3pid))`，使用与 `token_salt` 同级或独立的高熵 salt / pepper）。该 digest 不得写入公开持久化 Event（避免 3PID 枚举，与 §6 一致），但 MUST 进入验证服务的加密审计记录，使事后审计可以核对"该 token 是否被投递给 invite 声明的那个 3PID"。这样当验证服务被怀疑把 token 绑定到非声明 3PID（即把邀请重定向给攻击者）时，审计方可凭 invite 中声明的 3PID 重算 digest 与审计记录比对，检出该错配。

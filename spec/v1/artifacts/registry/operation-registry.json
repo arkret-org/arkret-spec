@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.2",
+  "version": "2026-09-05.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T10:21:00+08:00",
+  "generated_at": "2026-09-05T15:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -429,6 +429,13 @@
       "surface": "invite_locator_handoff",
       "operations": [
         "ak.open.invite_locator.read.resolve.v1"
+      ],
+      "surface_class": "extension"
+    },
+    {
+      "surface": "third_party_invite_handoff",
+      "operations": [
+        "ak.open.third_party_invite.command.present_token.v1"
       ],
       "surface_class": "extension"
     },
@@ -1358,6 +1365,28 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
       "response_schema_ref": "schemas/principal-locator.schema.json"
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.command.present_token.v1",
+      "http": "POST /_arkret/open/third-party-invites/present",
+      "grpc": "OpenThirdPartyInvite/PresentToken",
+      "mq": "open.third_party_invite.command.present_token",
+      "notes": "Token presentation surface of the 3PID invite verification service (third-party-invites.md section 4.1). The invitee's client submits invite_token, realm_id, subject_account_id, subject_did and a client claim_nonce in the JSON body; the service validates token, expiry, claim count and Realm binding, atomically consumes the token, signs the ak.invite.claim.binding_proof.v1 transcript with the invite's verification_public_key and returns invite_id, token_commitment and binding_proof. invite_token in the URL query string or path segment is rejected with third_party_invite_token_in_query and the token SHOULD be invalidated; a knock_restricted Realm is rejected with unsupported_join_rule; every other failure is non-enumerable (section 6). A consumed token MUST NOT be re-bound to a different subject; the same (realm_id, subject_account_id, claim_nonce) MAY be answered with the same binding_proof inside the recoverable window (section 6.1).",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "request_id",
+      "retry_safe": true,
+      "uncertain_outcome": {
+        "strategy": "replay_same_operation",
+        "operation_id": "ak.open.third_party_invite.command.present_token.v1",
+        "requires_same_request_identity_and_canonical_intent": true
+      },
+      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_request_body",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
     },
     {
       "operation_id": "ak.open.mimi.command.notify.v1",
@@ -4198,6 +4227,7 @@
         "history_key_recovery",
         "mimi_interop",
         "push",
+        "third_party_invite_handoff",
         "tus_upload",
         "websocket"
       ]
@@ -4787,6 +4817,19 @@
         },
         {
           "operation_id": "ak.open.device_pairing.read.status.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_handoff.v1",
+      "service_kind": "station",
+      "deployment_evidence": [
+        "ak.deployment_prototype.soland_station.v1#third_party_invite_handoff"
+      ],
+      "members": [
+        {
+          "operation_id": "ak.open.third_party_invite.command.present_token.v1",
           "binding_kind": "http_json"
         }
       ]

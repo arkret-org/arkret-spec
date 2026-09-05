@@ -21,7 +21,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 37
+        "did_core_id": 38
       },
       "reason": "The enclosing schema decides whether issuer authority requires an exact routed actor or a stable DID core; each occurrence remains closed to one carrier."
     },
@@ -3989,7 +3989,7 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/invite_claim_payload/properties/binding_proof/properties/subject_account_id",
+      "schema_path": "event-payload.schema.json#/$defs/invite_claim_binding_proof/properties/subject_account_id",
       "property_name": "subject_account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "account_id",
@@ -3999,7 +3999,7 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/invite_claim_payload/properties/binding_proof/properties/verification_id",
+      "schema_path": "event-payload.schema.json#/$defs/invite_claim_binding_proof/properties/verification_id",
       "property_name": "verification_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
@@ -4009,7 +4009,7 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/invite_claim_payload/properties/binding_proof/properties/verification_method",
+      "schema_path": "event-payload.schema.json#/$defs/invite_claim_binding_proof/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",
@@ -4056,6 +4056,36 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "event-payload.schema.json#/$defs/join_gate_proof/properties/applicant_actor_id",
+      "property_name": "applicant_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "event-payload.schema.json#/$defs/join_gate_proof/properties/issuer_id",
+      "property_name": "issuer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "event-payload.schema.json#/$defs/join_policy_gate/oneOf/0/allOf/1/properties/trusted_issuer_ids",
+      "property_name": "trusted_issuer_ids",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
       ]
     },
     {
@@ -5806,6 +5836,26 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "invite.schema.json#/$defs/third_party_invite_present_request_body/properties/subject_account_id",
+      "property_name": "subject_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "invite.schema.json#/$defs/third_party_invite_present_request_body/properties/subject_did",
+      "property_name": "subject_did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
       ]
     },
     {

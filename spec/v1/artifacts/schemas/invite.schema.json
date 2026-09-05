@@ -209,6 +209,69 @@
         }
       ],
       "$comment": "Token sourcing is closed: the invite_token MUST come from the URL fragment or an out-of-band code. A claim whose token was sourced from a URL query string or path segment MUST be rejected with reason third_party_invite_token_in_query (zh/sync/third-party-invites.md §3.2). That rejection is produced by the verification-service token presentation endpoint; operation-registry.json registers no operation for it, so this schema note is the machine carrier of the reason code."
+    },
+    "third_party_invite_present_request_body": {
+      "type": "object",
+      "description": "Request body of ak.open.third_party_invite.command.present_token.v1 (zh/sync/third-party-invites.md section 4.1). The invitee's client presents the out-of-band invite_token together with the exact account it wants bound and the intended Realm; the verification service atomically consumes the token and returns the binding_proof the client then carries into ak.invite.claim. invite_token MUST travel only in this JSON body: a request that carries it in the URL query string or path segment is rejected with third_party_invite_token_in_query before any lookup.",
+      "required": [
+        "invite_token",
+        "realm_id",
+        "subject_account_id",
+        "subject_did",
+        "claim_nonce"
+      ],
+      "properties": {
+        "invite_token": {
+          "type": "string",
+          "minLength": 22,
+          "maxLength": 512,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "Raw invite token read from the URL fragment or entered as an out-of-band code, with any user-facing separators removed. Offline tokens are >= 128 bits of entropy; lookup short codes are validated against the service-private lookup table (section 3.2)."
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Intended Realm. MUST equal the Realm the pending ak.invite.third_party belongs to; the service binds it into binding_proof.realm_id."
+        },
+        "subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact account to bind. Copied verbatim into binding_proof.subject_account_id; the invitee later proves control of it with subject_proof in ak.invite.claim."
+        },
+        "subject_did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Complete method-native DID whose projection MUST equal subject_account_id.principal_id; lets the verification service resolve the DID independently before signing."
+        },
+        "claim_nonce": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "description": "Client-generated one-time nonce; bound into binding_proof.claim_nonce and reused as ak.invite.claim claim_nonce. Re-presenting the same consumed token with the same (realm_id, subject_account_id, claim_nonce) MAY return the same binding_proof within the service's recoverable window (section 6.1); any other tuple MUST be refused."
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_invite_present_outcome": {
+      "type": "object",
+      "description": "Success body of ak.open.third_party_invite.command.present_token.v1: everything the invitee's client needs to author ak.invite.claim besides its own subject_proof. Failure responses are non-enumerable (section 6): they MUST NOT reveal whether the token, invite or Realm exists.",
+      "required": [
+        "invite_id",
+        "token_commitment",
+        "binding_proof"
+      ],
+      "properties": {
+        "invite_id": {
+          "type": "string",
+          "pattern": "^ak:invite:[A-Za-z0-9_-]{44}$"
+        },
+        "token_commitment": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "The pending invite cell's salted commitment, copied into ak.invite.claim token_commitment."
+        },
+        "binding_proof": {
+          "$ref": "./event-payload.schema.json#/$defs/invite_claim_binding_proof"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "patternProperties": {

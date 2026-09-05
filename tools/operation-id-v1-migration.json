@@ -260,6 +260,10 @@
       "new": "ak.open.service.read.resolution.v1"
     },
     {
+      "old": "ak.open.third_party_invite.command.present_token",
+      "new": "ak.open.third_party_invite.command.present_token.v1"
+    },
+    {
       "old": "ak.peer.account_status.command.submit",
       "new": "ak.peer.account_status.command.submit.v1"
     },
@@ -664,10 +668,6 @@
       "new": "ak.self.contact.read.list.v1"
     },
     {
-      "old": "ak.self.current_signer_evidence.read.resolve",
-      "new": "ak.self.current_signer_evidence.read.resolve.v1"
-    },
-    {
       "old": "ak.self.control_proposal_acks.command.issue",
       "new": "ak.self.control_proposal_acks.command.issue.v1"
     },
@@ -678,6 +678,10 @@
     {
       "old": "ak.self.control_proposal_decisions.read.get",
       "new": "ak.self.control_proposal_decisions.read.get.v1"
+    },
+    {
+      "old": "ak.self.current_signer_evidence.read.resolve",
+      "new": "ak.self.current_signer_evidence.read.resolve.v1"
     },
     {
       "old": "ak.self.device_messages.command.ack",

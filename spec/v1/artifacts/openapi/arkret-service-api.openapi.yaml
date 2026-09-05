@@ -1983,6 +1983,10 @@ components:
     StrandId:
       type: string
       pattern: ^ak:strand:[A-Za-z0-9_-]{44}$
+    ThirdPartyInvitePresentOutcome:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_present_outcome
+    ThirdPartyInvitePresentRequestBody:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_present_request_body
     TimelineProjectionRow:
       type: object
       required:
@@ -7435,6 +7439,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PrincipalLocator'
+  /_arkret/open/third-party-invites/present:
+    post:
+      operationId: ak.open.third_party_invite.command.present_token
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.open.third_party_invite.command.present_token.v1
+      security: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Present a third-party invite token and obtain its binding proof.
+      description: |
+        Token presentation surface of the 3PID invite verification service
+        (third-party-invites.md section 4.1). The invitee's client submits the
+        invite_token read from the notification URL fragment or out-of-band code,
+        the intended realm_id, the exact subject_account_id to bind, its full
+        subject_did and a client claim_nonce in the JSON body. The service
+        validates token, expiry, claim count and Realm binding, atomically
+        consumes the token and returns invite_id, token_commitment and the
+        binding_proof the client carries into ak.invite.claim. A request that
+        carries invite_token in the URL query string or path segment is rejected
+        with third_party_invite_token_in_query before any lookup; every
+        existence failure is non-enumerable (section 6).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThirdPartyInvitePresentRequestBody'
+      responses:
+        '200':
+          description: Binding proof for the presented token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThirdPartyInvitePresentOutcome'
   /_arkret/open/agent-pairing/resolve:
     post:
       operationId: ak.open.agent_pairing.read.resolve

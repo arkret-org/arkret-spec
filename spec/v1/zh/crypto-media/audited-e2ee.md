@@ -59,6 +59,7 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 | `first_auditable_epoch` | yes | 第一个可以被该 binding 审计的 MLS epoch；MUST 是覆盖 `activation_frontier_digest` 的 `ak.mls.commit` 之后的 epoch。 |
 | `release_window_policy` | yes | 最大审计窗口和 release 限制。`retroactive_release` MUST 固定为 `forbidden`；可选 `max_lookback_ms` / `max_epoch_span` 只能收窄未来 release。 |
 | `policy_version_digest` | yes | Realm-bound policy hash，覆盖 binding、scope、purpose、notice、approver 与 release-mode policy。 |
+| `attestation_policy` | conditional | `audit_assurance_class="attested_hardware"` 时必填，`disclosed_policy` 时 MUST 省略。即 §6 所说的「Realm 声明的 trust root list」与允许的 measurement 集合：`trust_root_digests[]`（attestation chain 根证书 bytes 的 sha256）、`allowed_code_digests[]`、`allowed_policy_versions[]`。与其它 policy 字段一样不可编辑，放宽需要新 binding。 |
 | `not_before` / `expires_at` | no | Binding 有效窗口。 |
 
 ### 3.1 Binding FSM（normative）
@@ -169,6 +170,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 | `eligibility_proof` | yes | 证明 release 范围未早于 binding activation frontier，且每个 target / epoch 在加密时允许该 release mode。 |
 | `sealed_by_commit_ref` | conditional | 若 release 涉及 MLS epoch，MUST 引用把 active epoch 推进后的 `ak.mls.commit`。 |
 | `wrapped_material_digest[]` | yes | 已输出材料的 digest 列表；不内联明文。 |
+| `release_attestation` | conditional | active binding 为 `attested_hardware` 时必填、`disclosed_policy` 时 MUST 省略；形态是 [`audit-release-attestation.schema.json`](../../artifacts/schemas/audit-release-attestation.schema.json) 的完整对象。它是 §6 attestation 校验的唯一载体，在 Event admission 时按 active binding 的 `attestation_policy` 与 accepted authorize 校验。 |
 
 Release event MUST 先 accepted，并取得有效 `ak.audit.ryw_receipt` 后，attested release service 才能输出 wrapped material。输出前，release service MUST 从该 session 当前 accepted authorize payload 读取批准的 recipient actor/key，重新解析并验证该 key 仍是该 actor 授权的 audit release 接收 key；不得把 material 加密给未被 authorize 批准、或不属于该审计主体的 key。`disclosed_policy` 也 MUST 按同一顺序记录，但其保证是流程性。
 
@@ -208,7 +210,7 @@ Session close 后不得追加新的 `ak.audit.release`；需要更多材料必�
 - `attested_hardware` release MUST 等待 verifier 从 receipt 的 `witnesses[]`、该 frontier 已接受的 `audit.ryw_witnesses[]` policy 与 operator control chain 计算出 `federation_witness_attested`：至少两个 witness，且 `witness_id`、`verification_method`、`controlling_organization_id` 分别互异；每个 witness 均被 policy 列出，并且不得由 release service、audit actor 或 Realm operator 自己控制。每个 receipt MUST 携带 `realm_operator_organization`，verifier MUST 由 Realm service / operator 的 DID 控制链独立验证该值；任一 witness 的 `controlling_organization_id` 与其相同或同属一个最终控制组织时，receipt MUST `audit_receipt_invalidated` fail closed。producer 不在 wire 上声明该派生 class。
 - `disclosed_policy` MAY 使用 verifier 从单个有效 witness 计算出的 `single_source` receipt，但 issuer 仍不得是 release service / audit actor 本身。
 - Receipt 的 `audit_policy_version_digest` MUST 覆盖 `{realm_id, trust_domain, audit_binding, release_policy, release_window_policy, activation_frontier_digest, first_auditable_epoch}`，并与 `ak.audit.release.eligibility_proof` 一致；policy hash MUST 按本节定义计算，不得引入其他 hash 语义。
-- Remote attestation evidence 绑定的是 release service / applet controlled output path，不是 MLS group membership。Evidence MUST 绑定 `realm_id`、`service_id`、`audit_actor_id`、measurement、purpose、policy digest、validity 和 operator DID。证据校验失败按两类 reason code 区分：证据自身不可信——信任根不在 Realm 声明的 trust root list、超出 validity 窗口、格式或 measurement 不符合 active release policy——verifier MUST 以 `audit_release_attestation_invalid` fail closed；证据本身有效但其 `realm_id` / `audit_actor_id` / `service_id` / policy digest 与 active binding 不一致时，verifier MUST 以 `audit_release_attestation_mismatch` 拒绝。前者是证据自身 / 信任根 / 时效问题，后者是与 accepted binding 的字段错配，两者不得互换。
+- Remote attestation evidence 绑定的是 release service / applet controlled output path，不是 MLS group membership。Evidence MUST 绑定 `realm_id`、`service_id`、`audit_actor_id`、measurement、purpose、policy digest、validity 和 operator DID。它的唯一 wire 载体是 `ak.audit.release` 的 `release_attestation`（§4.4）；「Realm 声明的 trust root list」与允许的 measurement 集合是 active binding 的 `attestation_policy`（§3）。校验发生在 `ak.audit.release` 的 Event admission，verifier 即 reducer；时效判定用该 Event 已签名的 `created_at`，不用本地时钟。证据校验失败按两类 reason code 区分：证据自身不可信——chain 根证书 digest 不在 `attestation_policy.trust_root_digests[]`、`created_at` 不在 `validity` 窗口内或窗口超过 90 天、格式 / `platform.family` 不可接受（含 `software_test_only`）、`measurement.code_digest` / `policy_version` 不在允许集合——reducer MUST 以 `audit_release_attestation_invalid` fail closed；证据本身有效但其 `realm_id` / `service_id` / `audit_policy_version_digest` 与 active binding、或 `audit_actor_id` 与该 session accepted authorize 的 `approved_recipient_audit_actor_id` 不一致时，reducer MUST 以 `audit_release_attestation_mismatch` 拒绝。前者是证据自身 / 信任根 / 时效问题，后者是与 accepted binding 的字段错配，两者不得互换。`attested_hardware` binding 下缺少 `release_attestation`、或 `disclosed_policy` binding 下出现它，都是 `schema_violation`。
 
 ## 7. 非保证项
 

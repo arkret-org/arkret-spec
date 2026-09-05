@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.2",
+  "version": "2026-09-05.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T10:21:00+08:00",
+  "generated_at": "2026-09-05T15:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 234,
+    "total_operations": 235,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 232
+      "typed_schema": 233
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 147
+        "typed_schema": 148
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -922,6 +922,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.command.present_token.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/open/third-party-invites/present",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_request_body",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ThirdPartyInvitePresentRequestBody",
+        "response": "#/components/schemas/ThirdPartyInvitePresentOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.peer.account_status.command.submit.v1",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.2",
+  "version": "2026-09-05.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T10:21:00+08:00",
+  "generated_at": "2026-09-05T15:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2168,6 +2168,44 @@
           "locator_ref_digest",
           "display_hint",
           "proofs"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.command.present_token.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_request_body",
+        "schema_kind": "object",
+        "required": [
+          "invite_token",
+          "realm_id",
+          "subject_account_id",
+          "subject_did",
+          "claim_nonce"
+        ],
+        "properties": [
+          "invite_token",
+          "realm_id",
+          "subject_account_id",
+          "subject_did",
+          "claim_nonce"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_outcome",
+        "schema_kind": "object",
+        "required": [
+          "invite_id",
+          "token_commitment",
+          "binding_proof"
+        ],
+        "properties": [
+          "invite_id",
+          "token_commitment",
+          "binding_proof"
         ],
         "closed": true
       }

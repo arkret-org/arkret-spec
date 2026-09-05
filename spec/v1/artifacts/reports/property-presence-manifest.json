@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9826,
+    "total_properties": 9854,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2695,
+      "optional": 2701,
       "optional_defaulted": 65,
-      "required": 6736,
+      "required": 6758,
       "required_nullable": 122,
       "tristate": 208
     },
@@ -4598,7 +4598,9 @@
       }
     },
     "control-proposal-decision.schema.json": {
-      "schema_ids": [],
+      "schema_ids": [
+        "ak.schema.control_proposal_decision.v1"
+      ],
       "properties": {
         "/$defs/control_proposal_ack/properties/absolute_due_at": "required",
         "/$defs/control_proposal_ack/properties/authority_acks": "required",
@@ -6248,10 +6250,15 @@
         "/$defs/audit_accessed_payload/properties/target_cell_id": "optional",
         "/$defs/audit_accessed_payload/properties/target_ref": "required",
         "/$defs/audit_accessed_payload/properties/writer_actor_id": "required",
+        "/$defs/audit_applet_binding_create_payload/allOf/0/if/properties/audit_assurance_class": "required",
         "/$defs/audit_applet_binding_create_payload/properties/activation_frontier_digest": "required",
         "/$defs/audit_applet_binding_create_payload/properties/allowed_release_modes": "required",
         "/$defs/audit_applet_binding_create_payload/properties/applet_id": "required",
         "/$defs/audit_applet_binding_create_payload/properties/approver_policy": "optional",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy": "optional",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy/properties/allowed_code_digests": "required",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy/properties/allowed_policy_versions": "required",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy/properties/trust_root_digests": "required",
         "/$defs/audit_applet_binding_create_payload/properties/audit_assurance_class": "required",
         "/$defs/audit_applet_binding_create_payload/properties/effective_scope": "required",
         "/$defs/audit_applet_binding_create_payload/properties/expires_at": "tristate",
@@ -6292,6 +6299,7 @@
         "/$defs/audit_release_payload/properties/policy_version_digest": "required",
         "/$defs/audit_release_payload/properties/purpose_kind": "required",
         "/$defs/audit_release_payload/properties/realm_id": "required",
+        "/$defs/audit_release_payload/properties/release_attestation": "optional",
         "/$defs/audit_release_payload/properties/release_mode": "required",
         "/$defs/audit_release_payload/properties/released_at": "required",
         "/$defs/audit_release_payload/properties/seal_ref": "required",
@@ -6746,15 +6754,15 @@
         "/$defs/invite_cancel_payload/properties/reason": "optional",
         "/$defs/invite_cancel_payload/properties/reason_code": "optional",
         "/$defs/invite_cancel_payload/properties/target_state": "required",
+        "/$defs/invite_claim_binding_proof/properties/audience": "required",
+        "/$defs/invite_claim_binding_proof/properties/claim_nonce": "required",
+        "/$defs/invite_claim_binding_proof/properties/expires_at": "required",
+        "/$defs/invite_claim_binding_proof/properties/realm_id": "required",
+        "/$defs/invite_claim_binding_proof/properties/signature": "required",
+        "/$defs/invite_claim_binding_proof/properties/subject_account_id": "required",
+        "/$defs/invite_claim_binding_proof/properties/verification_id": "required",
+        "/$defs/invite_claim_binding_proof/properties/verification_method": "required",
         "/$defs/invite_claim_payload/properties/binding_proof": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/audience": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/claim_nonce": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/expires_at": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/realm_id": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/signature": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/subject_account_id": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/verification_id": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/verification_method": "required",
         "/$defs/invite_claim_payload/properties/claim_nonce": "required",
         "/$defs/invite_claim_payload/properties/invite_id": "required",
         "/$defs/invite_claim_payload/properties/subject_account_id": "required",
@@ -6775,6 +6783,19 @@
         "/$defs/invite_revoke_payload/properties/target_state": "required",
         "/$defs/invite_third_party_create_payload/properties/expires_at": "required",
         "/$defs/invite_third_party_create_payload/properties/third_party_invite": "required",
+        "/$defs/join_gate_proof/allOf/0/if/properties/kind": "required",
+        "/$defs/join_gate_proof/allOf/1/if/properties/kind": "required",
+        "/$defs/join_gate_proof/properties/applicant_actor_id": "required",
+        "/$defs/join_gate_proof/properties/challenge_id": "optional",
+        "/$defs/join_gate_proof/properties/challenge_kind": "optional",
+        "/$defs/join_gate_proof/properties/claims": "optional",
+        "/$defs/join_gate_proof/properties/created_at": "required",
+        "/$defs/join_gate_proof/properties/gate_id": "required",
+        "/$defs/join_gate_proof/properties/issuer_id": "optional",
+        "/$defs/join_gate_proof/properties/kind": "required",
+        "/$defs/join_gate_proof/properties/policy_digest": "required",
+        "/$defs/join_gate_proof/properties/proofs": "required",
+        "/$defs/join_gate_proof/properties/realm_id": "required",
         "/$defs/join_policy_component/properties/combinator": "required",
         "/$defs/join_policy_component/properties/directory_hint": "optional",
         "/$defs/join_policy_component/properties/directory_hint/properties/challenge_kinds_displayed": "optional",
@@ -6782,6 +6803,7 @@
         "/$defs/join_policy_component/properties/gates": "required",
         "/$defs/join_policy_gate/oneOf/0/allOf/1/properties/kind": "required",
         "/$defs/join_policy_gate/oneOf/0/allOf/1/properties/required_claims": "required",
+        "/$defs/join_policy_gate/oneOf/0/allOf/1/properties/trusted_issuer_ids": "required",
         "/$defs/join_policy_gate/oneOf/1/allOf/1/properties/challenge_kinds": "required",
         "/$defs/join_policy_gate/oneOf/1/allOf/1/properties/kind": "required",
         "/$defs/join_policy_gate/oneOf/1/allOf/1/properties/max_proof_age": "required",
@@ -7525,6 +7547,7 @@
         "/$defs/audit_accessed_payload/properties/paired_event_id",
         "/$defs/audit_accessed_payload/properties/target_actor_id",
         "/$defs/audit_accessed_payload/properties/target_cell_id",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy",
         "/$defs/audit_release_payload/properties/sealed_by_commit_ref",
         "/$defs/audit_release_payload/properties/sealed_epoch_range",
         "/$defs/audit_release_payload/properties/target_refs",
@@ -7547,6 +7570,10 @@
         "/$defs/device_list_update_payload/properties/device_list_digest",
         "/$defs/device_list_update_payload/properties/left_ids",
         "/$defs/device_reanchor_payload/properties/did_root_evidence_digest",
+        "/$defs/join_gate_proof/properties/challenge_id",
+        "/$defs/join_gate_proof/properties/challenge_kind",
+        "/$defs/join_gate_proof/properties/claims",
+        "/$defs/join_gate_proof/properties/issuer_id",
         "/$defs/join_policy_gate/oneOf/3/allOf/1/properties/allowed_account_ids",
         "/$defs/join_policy_gate/oneOf/3/allOf/1/properties/allowed_actor_ids",
         "/$defs/join_policy_gate/oneOf/3/allOf/1/properties/allowed_did_methods",
@@ -8909,6 +8936,14 @@
         "/$defs/third_party_invite/properties/token_salt_id": "optional",
         "/$defs/third_party_invite/properties/verification_id": "required",
         "/$defs/third_party_invite/properties/verification_public_key": "required",
+        "/$defs/third_party_invite_present_outcome/properties/binding_proof": "required",
+        "/$defs/third_party_invite_present_outcome/properties/invite_id": "required",
+        "/$defs/third_party_invite_present_outcome/properties/token_commitment": "required",
+        "/$defs/third_party_invite_present_request_body/properties/claim_nonce": "required",
+        "/$defs/third_party_invite_present_request_body/properties/invite_token": "required",
+        "/$defs/third_party_invite_present_request_body/properties/realm_id": "required",
+        "/$defs/third_party_invite_present_request_body/properties/subject_account_id": "required",
+        "/$defs/third_party_invite_present_request_body/properties/subject_did": "required",
         "/properties/capability_grant_refs": "optional",
         "/properties/created_at": "required",
         "/properties/expires_at": "required",
@@ -10235,7 +10270,9 @@
       ]
     },
     "presence-preference.schema.json": {
-      "schema_ids": [],
+      "schema_ids": [
+        "ak.schema.presence_preference.v1"
+      ],
       "properties": {
         "/properties/clears_at": "optional",
         "/properties/manual_state": "optional",
@@ -10243,7 +10280,9 @@
       }
     },
     "presence-visibility.schema.json": {
-      "schema_ids": [],
+      "schema_ids": [
+        "ak.schema.presence_visibility.v1"
+      ],
       "properties": {
         "/properties/presence_visibility": "required"
       }

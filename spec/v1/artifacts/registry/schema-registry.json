@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.2",
+  "version": "2026-09-05.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T10:21:00+08:00",
+  "generated_at": "2026-09-05T15:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -246,6 +246,28 @@
         "kind": "account_data_plaintext",
         "selector": "ak.dnd_schedule",
         "normative_ref": "zh/discovery/push-notifications.md#7"
+      }
+    },
+    {
+      "schema_id": "ak.schema.presence_visibility.v1",
+      "file": "schemas/presence-visibility.schema.json",
+      "status": "active",
+      "description": "Closed decrypted plaintext shape of the principal-private ak.presence.visibility account-data value. The sending client applies it before encrypted Signal fanout; services MUST NOT require its plaintext or project it into server-readable policy state.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.presence.visibility",
+        "normative_ref": "zh/discovery/profiles-presence.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.presence_preference.v1",
+      "file": "schemas/presence-preference.schema.json",
+      "status": "active",
+      "description": "Closed decrypted plaintext shape of the principal-private ak.presence.preference account-data value: pinned manual_state, temporary status_message override and clears_at expiry, enforced client-side across the principal's devices.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.presence.preference",
+        "normative_ref": "zh/discovery/profiles-presence.md"
       }
     },
     {
@@ -875,6 +897,12 @@
       "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
     },
     {
+      "schema_id": "ak.schema.control_proposal_decision.v1",
+      "file": "schemas/control-proposal-decision.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for quorum-capable Control Proposal Acks and signed reject/defer decisions (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
+    },
+    {
       "schema_id": "ak.schema.grant_constraint.v1",
       "file": "schemas/grant-constraint.schema.json"
     },
@@ -912,11 +940,8 @@
     {
       "schema_id": "ak.schema.audit_release_attestation.v1",
       "file": "schemas/audit-release-attestation.schema.json",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "ak.audit.release attestation evidence schema",
-        "normative_ref": "zh/crypto-media/audited-e2ee.md#6"
-      }
+      "status": "active",
+      "description": "Remote attestation evidence for an attested_hardware audit release service. Carried inline as audit_release_payload.release_attestation on every ak.audit.release under a binding whose audit_assurance_class is attested_hardware; verified at admission against the binding's attestation_policy (audit_release_attestation_invalid) and the active binding fields (audit_release_attestation_mismatch). See zh/crypto-media/audited-e2ee.md §6."
     },
     {
       "schema_id": "ak.schema.applet.v1",
