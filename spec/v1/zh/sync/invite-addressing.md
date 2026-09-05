@@ -340,9 +340,14 @@ MUST `failed_precondition` / `invite_event_actor_mismatch`。两类拒绝 MUST N
 `invite_address.account_id.station_id` 等于本机 service id 时，服务端 MUST 从下述接收验证的**第 4 步**开始执行同一套
 验证、receive policy 与 holder-private projection；第 1–3 步是 service-to-service 专属绑定，本地分支
 MUST 以"已认证 self session + 上述两条 accepted-event 前置"作为等价绑定，MUST NOT 合成 federation
-trust header、伪造 peer session 或自签 S2S 认证材料来走 peer 路径。目标为其它 Station 时，
-服务端 MUST 把 exact canonical request body 交给下述 peer operation，并以 body 内 `idempotency_key`
-绑定 durable retry / outbox。客户端在投递结果不确定时 MUST 用同一 body 与同一 `idempotency_key`
+trust header、伪造 peer session 或自签 S2S 认证材料来走 peer 路径。本地分支的第 4 步使用**同一个验证器**，
+只是闭包来自本机 accepted state 而不是 `cba_proof_bundles`——两条分支交给验证器的是同一组由
+`seal_basis.leaves` 唯一确定的对象，只有字节来源不同，而 bundle 内每个对象本来就要独立验证，
+所以来源不改变结论。本地分支 MUST NOT 为"形状统一"先把本机状态序列化成 bundle 再验（那不增加任何保证），
+也同样 MUST NOT 读 `realm_state.owner` 一类投影镜像。目标为其它 Station 时，
+服务端 MUST 用持久化 Event 与**自己**已接受的 Realm state 构造 exact canonical request body
+（含下述第 4 步所需的 `cba_proof_bundles`——邀请方是该 Realm 成员，构造闭包是本地操作，不需要新的读面），
+交给下述 peer operation，并以 body 内 `idempotency_key` 绑定 durable retry / outbox。客户端在投递结果不确定时 MUST 用同一 body 与同一 `idempotency_key`
 重试，不得替换 evidence 或 `invite_event_id`。
 
 邀请方 Station 使用：
@@ -357,7 +362,49 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 1. 验证 service-to-service authentication，绑定 Source/Destination service `did_core_id`、trust domain、Content-Digest 与 idempotency key；接收方从已验证的 exact canonical body bytes 内部计算 request digest。
 2. 验证 `Destination-Service-ID == invite_address.account_id.station_id`。
 3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 等于 `invite_address.account_id.station_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
-4. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
+4. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、`invite_id` 与 `realm_id`，
+   随后以 `cba_proof_bundles` 为闭包来源执行**与成员 Station 接纳该 Control Move 完全相同**的授权求值。
+   这一步不为 invite 定义第二套授权判据：
+
+   - 每个 bundle 的 `target_seal_ref` MUST 是 `invite_event.seal_basis.leaves[]` 的成员，且每个 leaf
+     MUST 至少被一个 bundle 覆盖；指向 leaves 之外 Seal 的 bundle 是 `schema_violation`
+     （[`../authz/cba-profiles.md` §5](../authz/cba-profiles.md) 的「不可达对象是过度披露与放大输入」同一条）。
+   - bundle 按 §5 的固定顺序验证，直到最后一步「引用 target 的 Event authorization」；授权在
+     `seal_basis` 的 deterministic joined control view 下求值
+     （[`../authz/event-auth-state-resolution.md` §6.3.1](../authz/event-auth-state-resolution.md)），
+     reducer profile 取自该 basis 内的 `ak.component.realm.reducer_profile.v1` cell。
+   - 授权来源只能是 [`../authz/capabilities.md` §3.2](../authz/capabilities.md) 的封闭列表：
+     `realm_authority_root_ref` 分支使用 authority-root cell 在同一 Seal basis 下的 registered inclusion
+     proof，`grant_ref` 分支使用该 grant 及其 inclusion proof。**MUST NOT** 回退到 `realm_state.owner`、
+     membership 或 `created_by`——接收方不是该 Realm 成员并不放宽这一条。
+   - 接收方 **MUST NOT** 因此产生任何 accepted state：不物化 Realm、不写 projection、不进 frontier。
+     bundle 本身不是权威的；实现 MAY 缓存已独立验证的原始对象，但缓存不是 accepted state。
+   - 接收方 **MUST NOT** 为补齐闭包发起 peer dependency fetch：它不在该 Realm 的 federation visibility
+     内，`ak.peer.seals.read.*` / `ak.peer.events.read.resolve.v1` 对它本就 fail closed。闭包只能来自请求。
+   - 本步**不要求**证明该 invite Move 已被 accepted Seal 覆盖。delivery 是通知载体；invite 的 durable
+     acceptance 由被邀请方日后按普通 Realm sync 取得并验证。
+
+   **求值顺序与独立性（normative）**：第 4 步 MUST 在第 5 步之前完整求值，且其结果 MUST 只是
+   `(invite_event, cba_proof_bundles)` 的函数——不读 holder 是否存在、不读 `invite_receive_policy`、
+   不查 consent cell、不计 §6.1.1 quota。第 4 步拒绝时 MUST 零 holder-private 写入、零 outbox 入队、
+   零 quota 计费。正因为它不依赖任何 holder 状态，它的失败**不属于** §5.1 与
+   [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的不可区分等价类：
+   它回答的是邀请方**自己那个 Realm** 的事实，而构成该回答的每一个字节邀请方作为成员早已持有。
+   失败结果封闭为（全部是已登记 code，不新增）：
+
+   | 情形 | 结果 |
+   | --- | --- |
+   | bundle 结构 / canonical order / 重复 / 跨 Realm 对象 / `target_seal_ref` 不在 leaves 内 | `schema_violation` |
+   | 超 bundle 数量、proof 合计、路径深度上限 | `limit_exceeded` |
+   | 请求体超 8 MiB（[`../conformance/scalability-constraints.md` §2.1.2](../conformance/scalability-constraints.md)） | `payload_too_large` |
+   | 闭包不足 | HTTP 409 `dependency_missing` + `EventsDependencyMissingProblem`，携精确、UTF-8 bytewise 排序、去重的 `missing_seal_refs[]` / `missing_event_digests[]` |
+   | reducer profile 本地未实现 | `unsupported_profile` |
+   | 对象完整但授权失败 | 已登记的最窄 capability / policy reason（如 `missing_capability`、`realm_authority_root_missing`、`realm_authority_controller_mismatch`）；无更窄者才 `policy_denied` |
+
+   收到 `dependency_missing` 后，发送方补齐 bundle 再投递 MUST 使用**新的** `idempotency_key`
+   （§5 的「收到任何 submit 响应后，后续求值必须使用新的 Idempotency-Key」）。本节下文「投递结果不确定时
+   MUST 用同一 body 与同一 `idempotency_key` 重试」只覆盖**完全未收到响应**的逐字节 transport retry，
+   两条不冲突。
 5. 验证 `invite_event.payload.invitee_account_id == invite_address.account_id`，必须比较完整 AccountId。
 6. 验证 durable invite Event 未携带独立 route material；可选 `route_assistance` 只存在于 delivery transport，MUST NOT 要求它写入或匹配 durable Event，也 MUST NOT 把它当作授权证据。
 7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定 `invite_address.account_id`、issuer / Directory trust、domain allowlist、expiry 与 audience。分类顺序固定为：有效高信任 evidence，其次有效 `handle_claim`，其次接收端派生 `same_station`，最后 `explicit_address`。派生 `same_station` 只比较已验 invite Event account Actor 的 `account_id.station_id` 与 `invite_address.account_id.station_id`，不得使用 `Source-Service-ID` 或实际 ingress service。证据无效且不满足同 Station 时降级为低信任 `explicit_address`，不得直接通知或物化 membership。

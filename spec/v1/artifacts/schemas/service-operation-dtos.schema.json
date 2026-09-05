@@ -4991,6 +4991,31 @@
     "ProjectionMorphRow": {
       "type": "object",
       "additionalProperties": false,
+      "allOf": [
+        {
+          "$comment": "common-fields.md 5.3.1: stage_changed_at MUST NOT appear without stage. Tested on the string form because the nullable convention lets both members be present-and-null.",
+          "if": {
+            "required": [
+              "stage_changed_at"
+            ],
+            "properties": {
+              "stage_changed_at": {
+                "type": "string"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "stage"
+            ],
+            "properties": {
+              "stage": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
       "required": [
         "morph_id",
         "realm_id",
@@ -5028,6 +5053,31 @@
         },
         "state_changed_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp"
+        },
+        "stage": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "draft",
+                "proposed",
+                "planned",
+                "in_progress",
+                "blocked",
+                "done",
+                "cancelled",
+                "superseded"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Business-progression stage projected from ak.component.<kind>.stage.v1; null or absent when the object has never been written by ak.<kind>.stage.set. Orthogonal to the physical lifecycle in state (common-fields.md 5.3)."
+        },
+        "stage_changed_at": {
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp",
+          "description": "Reducer-derived timestamp of the most recent stage transition; MUST NOT be present without stage (common-fields.md 5.3.1)."
         },
         "created_by": {
           "oneOf": [
@@ -5180,6 +5230,31 @@
     "ProjectionStrandRow": {
       "type": "object",
       "additionalProperties": false,
+      "allOf": [
+        {
+          "$comment": "common-fields.md 5.3.1: stage_changed_at MUST NOT appear without stage. Tested on the string form because the nullable convention lets both members be present-and-null.",
+          "if": {
+            "required": [
+              "stage_changed_at"
+            ],
+            "properties": {
+              "stage_changed_at": {
+                "type": "string"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "stage"
+            ],
+            "properties": {
+              "stage": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
       "required": [
         "strand_id",
         "realm_id",
@@ -5204,6 +5279,31 @@
         },
         "state_changed_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp"
+        },
+        "stage": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "draft",
+                "proposed",
+                "planned",
+                "in_progress",
+                "blocked",
+                "done",
+                "cancelled",
+                "superseded"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Business-progression stage projected from ak.component.<kind>.stage.v1; null or absent when the object has never been written by ak.<kind>.stage.set. Orthogonal to the physical lifecycle in state (common-fields.md 5.3)."
+        },
+        "stage_changed_at": {
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp",
+          "description": "Reducer-derived timestamp of the most recent stage transition; MUST NOT be present without stage (common-fields.md 5.3.1)."
         },
         "title": {
           "oneOf": [

@@ -181,6 +181,7 @@ from .safety import (
     check_model_required_field_table_coverage,
     check_openapi_no_floating_number,
     check_operations_error_mapping_closure,
+    check_repeated_enum_drift,
     check_service_kind_registry,
 )
 
@@ -595,6 +596,7 @@ def main(argv: list[str] | None = None) -> int:
             ("field_order", lambda: check_field_order(lint)),
             ("required_field_tables", lambda: check_model_required_field_table_coverage(lint)),
             ("exporter_labels", lambda: check_exporter_label_registry(lint)),
+            ("repeated_enums", lambda: check_repeated_enum_drift(lint)),
             ("algs", lambda: check_alg_registry(lint)),
             (
                 "applet_install_epoch_evidence",

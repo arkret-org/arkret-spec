@@ -1457,3 +1457,102 @@ def check_device_messages_cursor_binding(lint: Lint) -> None:
             for pattern in legacy_patterns:
                 if pattern.search(text):
                     lint.fail(path, f"device_messages uses forbidden cursor alias: {pattern.pattern}")
+
+
+def _registered_enum_values(node: Any) -> list[Any] | None:
+    """Return the enum a registered location carries, or None.
+
+    A nullable site spells the enum inside a ``oneOf`` whose other branch is
+    ``{"type": "null"}`` (the convention the projection row DTOs already use for
+    ``title`` and ``summary``). Resolving that here keeps the registry pointing
+    at the property itself, so the registry stays readable and does not have to
+    encode branch indices that shift when a schema is edited.
+    """
+
+    if not isinstance(node, dict):
+        return None
+    if isinstance(node.get("enum"), list):
+        return node["enum"]
+    branches = node.get("oneOf")
+    if not isinstance(branches, list):
+        return None
+    carrying = [b for b in branches if isinstance(b, dict) and isinstance(b.get("enum"), list)]
+    if len(carrying) != 1:
+        return None
+    return carrying[0]["enum"]
+
+
+def check_repeated_enum_drift(lint: Lint) -> None:
+    """Pin enums that v1 spells out at more than one schema location.
+
+    There is no shared enum ``$def`` anywhere under ``artifacts/schemas``: every
+    enum is repeated literally at each site, which is the established
+    convention. The failure mode that convention has is silent divergence -- a
+    value added to the object schema and forgotten in the payload schema yields
+    two implementations that disagree while both still validate.
+
+    ``registry/repeated-enum-registry.json`` names the enums that are genuinely
+    one enum and every location that must spell them identically. Value set and
+    order are both enforced: a reordered copy is drift too, because the registry
+    is what a generator would read. A location that no longer carries an enum is
+    an error rather than a silent pass, so moving or renaming a property has to
+    update the registry instead of quietly dropping coverage.
+
+    A nullable site registers the non-null branch of its ``oneOf`` rather than
+    the property itself, so every registered pointer resolves to a bare value
+    list. That is also what ``check_naming_conventions`` requires of ``stage``:
+    a null inside the enum itself would read as a ninth value on the axis.
+    """
+
+    path = ARTIFACTS / "registry" / "repeated-enum-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        lint.fail(path, "repeated-enum-registry.json must be a JSON object")
+        return
+    entries = data.get("enums")
+    if not isinstance(entries, list) or not entries:
+        lint.fail(path, "repeated-enum-registry.json: enums MUST be a non-empty list")
+        return
+
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            lint.fail(path, f"enums[{index}] must be an object")
+            continue
+        name = entry.get("name")
+        values = entry.get("values")
+        locations = entry.get("locations")
+        if not isinstance(name, str) or not name:
+            lint.fail(path, f"enums[{index}] missing name")
+            continue
+        if not isinstance(values, list) or not values:
+            lint.fail(path, f"{name}: values MUST be a non-empty list")
+            continue
+        if not isinstance(locations, list) or len(locations) < 2:
+            lint.fail(
+                path,
+                f"{name}: locations MUST list at least two sites; a single-site enum needs no registry entry",
+            )
+            continue
+        for location in locations:
+            if not isinstance(location, str) or "#" not in location:
+                lint.fail(path, f"{name}: location MUST be '<artifact path>#<json pointer>': {location!r}")
+                continue
+            relative, _, pointer = location.partition("#")
+            target = ARTIFACTS / relative
+            if not target.is_file():
+                lint.fail(path, f"{name}: location file does not exist: {relative}")
+                continue
+            document = load_json(lint, target)
+            node = json_pointer_get(document, pointer)
+            if node is None:
+                lint.fail(target, f"{name}: registered location no longer resolves: {pointer}")
+                continue
+            found = _registered_enum_values(node)
+            if found is None:
+                lint.fail(target, f"{name}: registered location carries no enum: {pointer}")
+                continue
+            if found != values:
+                lint.fail(
+                    target,
+                    f"{name}: {pointer} enum drifted from the registry; expected {values} got {found}",
+                )

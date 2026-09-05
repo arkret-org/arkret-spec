@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-05.4",
-      "generated_at": "2026-09-05T15:30:00+08:00",
-      "content_digest": "sha256:f2ad5bafbe026af58cec0cb9b174408d2985b294d57da1c14093f3c74805dd52"
+      "version": "2026-09-05.6",
+      "generated_at": "2026-09-05T15:30:02+08:00",
+      "content_digest": "sha256:7f884d292106717eea4f45ccde5a4ea779102f2ffe792ad2683d945fb3cf14d4"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -321,15 +321,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
-      "version": "2026-09-02.2",
-      "generated_at": "2026-09-02T23:35:00+08:00",
-      "content_digest": "sha256:760a814cb3536ad9f506c8677b5fad552dd1b4c32cfe9d410de9f56fb5f415c2"
+      "version": "2026-09-05.1",
+      "generated_at": "2026-09-05T21:30:00+08:00",
+      "content_digest": "sha256:c7d68e1370cfb08e93edbd3290a31b1391eb1b14f66ca4b63a7edc187de23d53"
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",
       "version": "2026-08-31.1",
       "generated_at": null,
       "content_digest": "sha256:9fd02be52dac36a506a22c34846e3a0c0b19ec5a3a39a4ab753a0696b6d81375"
+    },
+    {
+      "path": "spec/v1/artifacts/registry/repeated-enum-registry.json",
+      "version": "2026-09-05.1",
+      "generated_at": "2026-09-05T21:30:00+08:00",
+      "content_digest": "sha256:3065b11667674b2ba9f0ac35c6f37ab6398e544c5680cfae917b5d7817797bd3"
     },
     {
       "path": "spec/v1/artifacts/registry/request-material-supply-exemption-registry.json",

@@ -1,0 +1,32 @@
+{
+  "version": "2026-09-05.1",
+  "generated_at": "2026-09-05T21:30:00+08:00",
+  "$comment": "Authoritative value list for every enum that v1 spells out at more than one schema location, plus each site that must spell it identically. There is no shared enum $def anywhere under artifacts/schemas: every enum is repeated literally, which is the established convention, and its failure mode is silent divergence -- a value added to the object schema and forgotten in the payload schema yields two implementations that disagree while both still validate. check_repeated_enum_drift treats this file as the baseline and enforces the value list and its order at every registered location; a location that no longer carries an enum is an error, so a rename or a move must update this registry rather than silently drop coverage. A nullable site spells the enum inside a oneOf branch and is resolved automatically -- the null branch is never part of the value list, because a null inside the enum itself would read as an extra value on the axis and the naming lint rejects it. Only enums that are genuinely one enum belong here: the object `state` field is NOT registered because its value sets differ per object by design (Strand/Morph active|archived|redacted, Space/Circle active|archived|tombstoned, Relation active|tombstoned, Message active|redacted); registering those together would invite a future editor to unify them, which would widen Message's lifecycle.",
+  "source_of_truth": true,
+  "narrative_source": "spec/v1/zh/models/common-fields.md",
+  "enums": [
+    {
+      "name": "object_stage",
+      "narrative_ref": "zh/models/common-fields.md#532",
+      "rationale": "Business-progression stage. common-fields.md 5.3.2 freezes it at 8 values and 1752 ruled it the only cross-implementation carrier in v1, so a drifted copy is an interoperability break rather than a cosmetic one.",
+      "values": [
+        "draft",
+        "proposed",
+        "planned",
+        "in_progress",
+        "blocked",
+        "done",
+        "cancelled",
+        "superseded"
+      ],
+      "locations": [
+        "schemas/strand.schema.json#/properties/stage",
+        "schemas/morph.schema.json#/properties/stage",
+        "schemas/event-payload.schema.json#/$defs/strand_stage_set_payload/properties/stage",
+        "schemas/event-payload.schema.json#/$defs/morph_stage_set_payload/properties/stage",
+        "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandRow/properties/stage",
+        "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphRow/properties/stage"
+      ]
+    }
+  ]
+}
