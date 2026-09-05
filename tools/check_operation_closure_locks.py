@@ -15,6 +15,7 @@ import copy
 import hashlib
 import json
 import re
+from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -202,6 +203,36 @@ def next_lock_version(path: Path, actual: dict[str, Any]) -> str:
     return f"{match.group(1)}.{int(match.group(2)) + 1}"
 
 
+def parse_generated_at(value: Any) -> datetime | None:
+    if not isinstance(value, str):
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def next_generated_at(previous: Any, candidate: Any) -> Any:
+    """Return a ``generated_at`` that is strictly later than ``previous``.
+
+    The candidate is copied from the source catalog, which is regenerated on
+    its own schedule and is routinely older than the lock being replaced. A
+    refresh that took it verbatim wrote the timestamp backwards, and then
+    ``check_artifact_versions.py --write-reference`` refused the result with
+    ``content changed without generated_at advance`` — leaving the timestamp to
+    be repaired by hand after every refresh. Falling back to one second past
+    the previous value keeps the advance without reaching for a wall clock, so
+    the refresh stays reproducible from its inputs.
+    """
+    previous_dt = parse_generated_at(previous)
+    if previous_dt is None:
+        return candidate
+    candidate_dt = parse_generated_at(candidate)
+    if candidate_dt is not None and candidate_dt > previous_dt:
+        return candidate
+    return (previous_dt + timedelta(seconds=1)).isoformat()
+
+
 def verify_or_append(path: Path, expected: dict[str, Any], generate: bool) -> list[str]:
     if not path.exists():
         if generate:
@@ -231,6 +262,9 @@ def verify_or_append(path: Path, expected: dict[str, Any], generate: bool) -> li
             key=lambda row: row[key],
         )
         actual["version"] = next_lock_version(path, actual)
+        actual["generated_at"] = next_generated_at(
+            actual.get("generated_at"), expected.get("generated_at")
+        )
         path.write_text(json.dumps(actual, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     elif additions:
         errors.append(f"{path.name}: new identities are not locked: {additions}")
@@ -258,6 +292,9 @@ def refresh_candidate_lock(
         refreshed = copy.deepcopy(expected)
         if path.exists():
             refreshed["version"] = next_lock_version(path, actual)
+            refreshed["generated_at"] = next_generated_at(
+                actual.get("generated_at"), refreshed.get("generated_at")
+            )
         path.write_text(
             json.dumps(refreshed, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",

@@ -4,16 +4,26 @@
 end on reassuring lines. A run that already failed still finished with
 ``0 error(s), 0 warning(s)`` and ``registry diff: clean``, so reading the tail
 — by eye or through ``| tail`` — reported green on a non-zero exit.
+
+``refresh-operation-closure-locks`` advanced ``version`` but copied
+``generated_at`` from the source catalog, which is routinely older than the
+lock being replaced. The timestamp went backwards and
+``check_artifact_versions.py --write-reference`` then refused the result.
 """
 
 from __future__ import annotations
 
 import io
+import json
+import tempfile
 import unittest
 from contextlib import redirect_stdout
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import artifact_pipeline
+import check_operation_closure_locks
+from check_operation_closure_locks import next_generated_at, refresh_candidate_lock
 
 
 class CheckVerdictTest(unittest.TestCase):
@@ -123,6 +133,56 @@ class CheckVerdictTest(unittest.TestCase):
             status = artifact_pipeline.cmd_check(None)
         self.assertEqual(status, 1)
         self.assertTrue(stream.getvalue().splitlines()[-1].startswith("FAILED: check:"))
+
+
+class ClosureLockGeneratedAtTest(unittest.TestCase):
+    def test_stale_candidate_timestamp_is_advanced(self) -> None:
+        self.assertEqual(
+            next_generated_at("2026-09-05T12:00:00+08:00", "2026-09-05T10:21:00+08:00"),
+            "2026-09-05T12:00:01+08:00",
+        )
+
+    def test_equal_timestamp_still_advances(self) -> None:
+        self.assertEqual(
+            next_generated_at("2026-09-05T12:00:00+08:00", "2026-09-05T12:00:00+08:00"),
+            "2026-09-05T12:00:01+08:00",
+        )
+
+    def test_fresher_candidate_is_kept_verbatim(self) -> None:
+        self.assertEqual(
+            next_generated_at("2026-09-05T10:21:00+08:00", "2026-09-05T12:00:00+08:00"),
+            "2026-09-05T12:00:00+08:00",
+        )
+
+    def test_refresh_advances_both_version_and_generated_at(self) -> None:
+        existing = {
+            "version": "2026-09-05.1",
+            "generated_at": "2026-09-05T12:00:00+08:00",
+            "identity_key": "operation",
+            "closures": [{"operation": "ak.realm.create", "sha256": "old"}],
+        }
+        # The catalog the payload copies its timestamp from is older than the
+        # lock being replaced, which is what wrote the timestamp backwards.
+        expected = {
+            "version": "2026-08-27.1",
+            "generated_at": "2026-09-05T10:21:00+08:00",
+            "identity_key": "operation",
+            "closures": [{"operation": "ak.realm.create", "sha256": "new"}],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "operation-contract-closure-lock.json"
+            path.write_text(json.dumps(existing), encoding="utf-8", newline="\n")
+            summary = refresh_candidate_lock(path, expected)
+            written = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(summary["changed"], ["ak.realm.create"])
+        self.assertEqual(written["version"], "2026-09-05.2")
+        self.assertGreater(written["generated_at"], existing["generated_at"])
+
+
+class ModuleImportTest(unittest.TestCase):
+    def test_closure_lock_helpers_are_exported(self) -> None:
+        self.assertTrue(hasattr(check_operation_closure_locks, "next_generated_at"))
+        self.assertTrue(hasattr(check_operation_closure_locks, "parse_generated_at"))
 
 
 if __name__ == "__main__":
