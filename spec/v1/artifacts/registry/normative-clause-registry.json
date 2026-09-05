@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.10",
+  "version": "2026-09-06.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-06T10:00:00+08:00",
+  "generated_at": "2026-09-06T18:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -232,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:61a5f186b48be12a9d04e7160ba6931ecd1bd7934cee8d02683d66abe1446342",
+      "section_digest": "sha256:041c3fb8279b76700a2230a5a925f30371655683b3f4e0a8ed14767e7e44567d",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest. Availability admission is authorized only by the joined predecessor state: genesis has no such authority, commits no AvailabilityReceipt, and materializes policy only for successor Seals.",
       "testability_grade": "vector",
       "evidence_refs": [

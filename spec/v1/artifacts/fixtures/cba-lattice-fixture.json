@@ -920,6 +920,98 @@
           "expected": "accept_and_project_exact_scope"
         },
         {
+          "name": "resolution_admits_winner_on_loser_only_receiver",
+          "description": "The receiver holds variant_b and the verdict names variant_a. Section 6.3.3 point 3 makes the accepted resolution itself the admission authority, so the receiver adopts the winner preimage instead of staying unable to answer for this identity.",
+          "event_kind": "ak.fork.resolution",
+          "receiver_state_before": {
+            "held_variant": "variant_b",
+            "quarantine_group": "active"
+          },
+          "fork_resolution_identifies_winner_by": "canonical_bytes",
+          "expected": "admit_winner",
+          "expected_receiver_state_after": {
+            "accepted_variant": "variant_a",
+            "accepted_variant_bytes_taken_from": "the winner locator, verbatim",
+            "proofs_actor_kind_and_unsigned": "reused_from_the_already_verified_local_event",
+            "received_at": "resolution_seal_sealed_at",
+            "loser_retention": "variant_b_kept_as_forensic_variant_outside_the_accepted_read_surface",
+            "loser_derived_writes": "removed",
+            "recompute_sealed_state_root": "forbidden",
+            "witness_disagreement_on_local_byte_difference": "forbidden"
+          }
+        },
+        {
+          "name": "resolution_admission_is_a_pure_function_of_winner_bytes_and_seal",
+          "description": "Two receivers that reach the same verdict from different local histories must end up with the same admitted Event, so the admission may not read a local clock or local arrival order.",
+          "event_kind": "ak.fork.resolution",
+          "receivers": [
+            "held_variant_a_all_along",
+            "held_variant_b_until_the_verdict"
+          ],
+          "expected": "identical_admitted_event_and_projection",
+          "expected_divergent_inputs_rejected": [
+            "local_wall_clock_received_at",
+            "local_first_seen_order",
+            "peer_backfill_of_winner_bytes"
+          ]
+        },
+        {
+          "name": "resolution_admission_is_idempotent_on_winner_holder",
+          "description": "A receiver that already holds the winner applies the same verdict as a no-op.",
+          "event_kind": "ak.fork.resolution",
+          "receiver_state_before": {
+            "held_variant": "variant_a"
+          },
+          "replay_count": 2,
+          "expected": "admit_winner",
+          "expected_store_transitions": 0
+        },
+        {
+          "name": "resolution_admission_rejects_winner_failing_its_own_precheck",
+          "description": "The winner bytes are re-checked on their own before admission. A recomputed event_id that differs from the adjudicated identity rejects the whole resolution; no part of it may be applied.",
+          "event_kind": "ak.fork.resolution",
+          "winner_precheck_failure": "event_id_recompute_mismatch",
+          "expected": "reject",
+          "reason_code": "event_id_digest_mismatch",
+          "expected_receiver_state_after": "unchanged_and_still_quarantined",
+          "partial_application": "forbidden"
+        },
+        {
+          "name": "resolution_void_all_admits_no_variant",
+          "description": "void_all leaves this event_id with no accepted variant in this Realm, and a later arrival of either variant must not revive it.",
+          "event_kind": "ak.fork.resolution",
+          "payload": {
+            "subject": {
+              "kind": "event_id_collision",
+              "event_id": "ak:event:AQ506zK_96xEWJvc7d4u0hiKVyAzNqoxVKHViNxStymJ"
+            },
+            "conflict_evidence": {
+              "kind": "full_hash_collision",
+              "variants": [
+                {
+                  "kind": "inline_canonical_bytes",
+                  "canonical_event_bytes_b64u": "dmFyaWFudC1h"
+                },
+                {
+                  "kind": "inline_canonical_bytes",
+                  "canonical_event_bytes_b64u": "dmFyaWFudC1i"
+                }
+              ]
+            },
+            "verdict": {
+              "kind": "void_all"
+            }
+          },
+          "critical_ref_roles": [
+            "recovery_capability"
+          ],
+          "expected": "accept_and_project_exact_scope",
+          "expected_receiver_state_after": {
+            "accepted_variant": null,
+            "late_arriving_variant": "must_not_revive"
+          }
+        },
+        {
           "name": "resolution_collision_missing_variant_record_is_dependency_missing",
           "event_kind": "ak.fork.resolution",
           "unresolvable_dependency": "collision_variant_record",
