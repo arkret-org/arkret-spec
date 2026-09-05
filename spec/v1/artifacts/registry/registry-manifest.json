@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.2",
+  "version": "2026-09-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-02T23:35:00+08:00",
+  "generated_at": "2026-09-05T21:30:00+08:00",
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
@@ -85,6 +85,14 @@
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical registry of media-key MLS-Exporter labels (Context field shape, output length, applicable profiles, grandfathering, no-reuse rules)."
+    },
+    {
+      "name": "repeated_enums",
+      "file": "registry/repeated-enum-registry.json",
+      "kind": "repeated_enum_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Authoritative value list for each enum that v1 spells out at more than one schema location, and every site that must spell it identically."
     },
     {
       "name": "signature_algorithms",

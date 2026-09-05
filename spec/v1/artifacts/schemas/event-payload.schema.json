@@ -1696,6 +1696,48 @@
         "policy_version_digest": {
           "$ref": "#/$defs/digest"
         },
+        "attestation_policy": {
+          "type": "object",
+          "description": "The Realm-declared trust root list and allowed measurement set that every ak.audit.release release_attestation under this binding is verified against (zh/crypto-media/audited-e2ee.md section 6). Present exactly when audit_assurance_class is attested_hardware. Immutable like every other policy field: widening it requires a new binding genesis.",
+          "required": [
+            "trust_root_digests",
+            "allowed_code_digests",
+            "allowed_policy_versions"
+          ],
+          "properties": {
+            "trust_root_digests": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/digest"
+              },
+              "description": "sha256 over the decoded bytes_b64u of the last attestation_chains[] item (the vendor root). Evidence whose chain root is not listed is audit_release_attestation_invalid."
+            },
+            "allowed_code_digests": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/digest"
+              },
+              "description": "Allowed measurement.code_digest values of the release service image."
+            },
+            "allowed_policy_versions": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "description": "Allowed measurement.policy_version values of the release service."
+            }
+          },
+          "additionalProperties": false
+        },
         "not_before": {
           "$ref": "#/$defs/timestamp"
         },
@@ -1703,6 +1745,32 @@
           "$ref": "#/$defs/nullable_timestamp"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "audit_assurance_class": {
+                "const": "attested_hardware"
+              }
+            },
+            "required": [
+              "audit_assurance_class"
+            ]
+          },
+          "then": {
+            "required": [
+              "attestation_policy"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "attestation_policy"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "audit_applet_binding_state_payload": {
@@ -1883,6 +1951,10 @@
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "release_attestation": {
+          "$ref": "./audit-release-attestation.schema.json",
+          "description": "Remote attestation evidence of the release service's controlled output path. Required when the active binding's audit_assurance_class is attested_hardware and forbidden under disclosed_policy; that conditional depends on accepted state, so it is an admission check, not a schema keyword. Admission verifies it against the binding's attestation_policy (audit_release_attestation_invalid) and against the active binding / accepted authorize fields (audit_release_attestation_mismatch); see zh/crypto-media/audited-e2ee.md section 6."
         },
         "released_at": {
           "$ref": "#/$defs/timestamp"
@@ -5187,6 +5259,58 @@
       },
       "additionalProperties": false
     },
+    "invite_claim_binding_proof": {
+      "type": "object",
+      "description": "Verification-service proof for ak.invite.claim. Reducers verify signature over the ak.invite.claim.binding_proof.v1 transcript against the invite's verification_public_key and current Realm verification_id allowlist before accepting a claimed transition.",
+      "$comment": "A malformed or unverifiable binding proof is recorded with the authorized audit reason claim_invalid; external responses stay non-enumerable (see zh/sync/third-party-invites.md §4.3 / §6).",
+      "required": [
+        "verification_id",
+        "verification_method",
+        "subject_account_id",
+        "realm_id",
+        "audience",
+        "claim_nonce",
+        "expires_at",
+        "signature"
+      ],
+      "properties": {
+        "verification_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Verification service DID. Realm reducers MUST re-check this DID against the current effective Realm allowlist and any service DID pinned by the original invite."
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL with required key fragment. Method-name normalized to lowercase per W3C DID 1.0; matches the strict form used by $defs/verification_method elsewhere in this schema."
+        },
+        "subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact account being bound by the verification service. MUST equal the payload top-level subject_account_id."
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Realm bound into the verification-service proof. MUST equal the Event envelope realm_id."
+        },
+        "audience": {
+          "const": "arkret.invite.claim"
+        },
+        "claim_nonce": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "description": "Nonce bound into the verification-service proof. MUST equal the payload top-level claim_nonce."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Proof expiration. Reducers MUST reject expired proofs and MUST also enforce the invite cell expires_at."
+        },
+        "signature": {
+          "$ref": "#/$defs/signature_material",
+          "description": "Signature over utf8(\"ak.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_account_id, token_commitment, verification_id}); unsigned_binding_proof is this object without signature."
+        }
+      },
+      "additionalProperties": false
+    },
     "invite_claim_payload": {
       "type": "object",
       "required": [
@@ -5217,56 +5341,7 @@
           "description": "One-time nonce scoped to (invite_id, token_commitment). Reducers MUST reject nonce replay while preserving non-enumerable external responses."
         },
         "binding_proof": {
-          "type": "object",
-          "description": "Verification-service proof for ak.invite.claim. Reducers verify signature over the ak.invite.claim.binding_proof.v1 transcript against the invite's verification_public_key and current Realm verification_id allowlist before accepting a claimed transition.",
-          "$comment": "A malformed or unverifiable binding proof is recorded with the authorized audit reason claim_invalid; external responses stay non-enumerable (see zh/sync/third-party-invites.md §4.3 / §6).",
-          "required": [
-            "verification_id",
-            "verification_method",
-            "subject_account_id",
-            "realm_id",
-            "audience",
-            "claim_nonce",
-            "expires_at",
-            "signature"
-          ],
-          "properties": {
-            "verification_id": {
-              "$ref": "#/$defs/did_core_id",
-              "description": "Verification service DID. Realm reducers MUST re-check this DID against the current effective Realm allowlist and any service DID pinned by the original invite."
-            },
-            "verification_method": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-              "description": "DID URL with required key fragment. Method-name normalized to lowercase per W3C DID 1.0; matches the strict form used by $defs/verification_method elsewhere in this schema."
-            },
-            "subject_account_id": {
-              "$ref": "./common-ids.schema.json#/$defs/account_id",
-              "description": "Exact account being bound by the verification service. MUST equal the payload top-level subject_account_id."
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id",
-              "description": "Realm bound into the verification-service proof. MUST equal the Event envelope realm_id."
-            },
-            "audience": {
-              "const": "arkret.invite.claim"
-            },
-            "claim_nonce": {
-              "type": "string",
-              "minLength": 16,
-              "maxLength": 128,
-              "description": "Nonce bound into the verification-service proof. MUST equal the payload top-level claim_nonce."
-            },
-            "expires_at": {
-              "$ref": "#/$defs/timestamp",
-              "description": "Proof expiration. Reducers MUST reject expired proofs and MUST also enforce the invite cell expires_at."
-            },
-            "signature": {
-              "$ref": "#/$defs/signature_material",
-              "description": "Signature over utf8(\"ak.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_account_id, token_commitment, verification_id}); unsigned_binding_proof is this object without signature."
-            }
-          },
-          "additionalProperties": false
+          "$ref": "#/$defs/invite_claim_binding_proof"
         },
         "subject_proof": {
           "type": "object",
@@ -5307,6 +5382,155 @@
       },
       "additionalProperties": false
     },
+    "join_gate_proof": {
+      "type": "object",
+      "description": "Closed applicant-supplied proof for one automatic join gate (zh/governance/join-policy.md section 4 rule 4). The binding tuple gate_id / realm_id / applicant_actor_id / policy_digest / created_at is carried as wire members and covered by the detached proof, so a proof replayed across Realms, applicants or policy revisions fails by field comparison before any signature is checked. realm_id MUST equal the enclosing membership_payload.realm_id and applicant_actor_id MUST equal member_id; policy_digest is sha256 over the canonical JSON of the accepted join_policy component the reducer evaluates against. Freshness is judged against the enclosing Event's signed created_at, never a receiver clock: created_at + max_proof_age < event created_at is challenge_expired, created_at > event created_at is challenge_proof_invalid.",
+      "$comment": "proofs[] is the shared detached-proof leaf under the registered context ak.join_gate_proof.v1 (proof-context-registry.json); payload_digest is sha256 over this object without proofs. For kind=challenge_response the signing verification_method MUST resolve, through the registered DID method adapter, to a key controlled by the gate's provider_did; for kind=claim_required it MUST resolve to a key controlled by issuer_id, and issuer_id MUST be listed in the gate's trusted_issuer_ids. parent_membership, principal_admission and cooldown gates take no proof item; a proof whose kind differs from the referenced gate's kind, or whose gate_id names no gate in the accepted policy, fails as gate_check_failed for a non-member caller.",
+      "required": [
+        "gate_id",
+        "kind",
+        "realm_id",
+        "applicant_actor_id",
+        "policy_digest",
+        "created_at",
+        "proofs"
+      ],
+      "properties": {
+        "gate_id": {
+          "$ref": "#/$defs/join_policy_gate_id"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "challenge_response",
+            "claim_required"
+          ]
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "applicant_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "policy_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "challenge_kind": {
+          "type": "string",
+          "enum": [
+            "captcha",
+            "pow",
+            "attested_human",
+            "idp_oidc"
+          ],
+          "description": "challenge_response only. MUST be one of the referenced gate's challenge_kinds[]."
+        },
+        "challenge_id": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ],
+          "maxLength": 128,
+          "description": "challenge_response only. Provider-scoped identifier of the solved challenge; the provider MUST treat it as single-use."
+        },
+        "issuer_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "claim_required only. Issuer of the presented claims; MUST be listed in the referenced gate's trusted_issuer_ids."
+        },
+        "claims": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "description": "claim_required only. Claim names the issuer attests for applicant_actor_id; MUST be a superset of the referenced gate's required_claims[]."
+        },
+        "proofs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/proof"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "challenge_response"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "challenge_kind",
+              "challenge_id"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "issuer_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "claims"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "claim_required"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "issuer_id",
+              "claims"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "challenge_kind"
+                  ]
+                },
+                {
+                  "required": [
+                    "challenge_id"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
     "join_policy_gate_common": {
       "type": "object",
       "required": [
@@ -5336,7 +5560,8 @@
               "type": "object",
               "required": [
                 "kind",
-                "required_claims"
+                "required_claims",
+                "trusted_issuer_ids"
               ],
               "properties": {
                 "kind": {
@@ -5350,6 +5575,16 @@
                   "items": {
                     "$ref": "#/$defs/non_empty_string"
                   }
+                },
+                "trusted_issuer_ids": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 16,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "#/$defs/did_core_id"
+                  },
+                  "description": "Issuer boundary of the claim presentation, same carrier name as grant-constraint required_claims[].trusted_issuer_ids (authz/capabilities.md). A join_gate_proof for this gate MUST name an issuer_id in this list; a gate without an issuer boundary is not verifiable and is therefore not constructible."
                 }
               }
             }
@@ -5598,7 +5833,7 @@
     "join_policy_gate_id": {
       "type": "string",
       "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,64}$",
-      "description": "Stable gate identifier, unique within one join policy gates[]. Both the definition site and every reference site (gate_proofs[].gate_id, Answer.gate_id) MUST use this one definition so the two lexical spaces cannot drift. The pattern is the document_local_symbol floor of common-fields.md 2.1: it mechanically excludes the ak: namespace that typed_object_id and responsibility_did own exclusively, and it admits the runtime:<challenge_id> spelling used by challenge gate proofs. See zh/governance/join-policy.md 3.1."
+      "description": "Stable gate identifier, unique within one join policy gates[]. Both the definition site and the reference site join_gate_proof.gate_id MUST use this one definition so the two lexical spaces cannot drift; a proof's gate_id MUST equal the gate_id of a gate in the accepted policy. The pattern is the document_local_symbol floor of common-fields.md 2.1: it mechanically excludes the ak: namespace that typed_object_id and responsibility_did own exclusively. See zh/governance/join-policy.md 3.1."
     },
     "key_backup_active_series_payload": {
       "description": "Payload for ak.key_backup.active_series. The standalone ak.schema.key_backup_active_series.v1 schema carries the authoritative signed active-series record shape.",
@@ -5723,10 +5958,10 @@
           "type": "array",
           "maxItems": 16,
           "items": {
-            "type": "object"
+            "$ref": "#/$defs/join_gate_proof"
           },
-          "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join. maxItems aligns with the gates 1..16 bound in join_policy_component; see zh/conformance/scalability-constraints.md.",
-          "$comment": "Gate failures are reported to a non-member caller uniformly as gate_check_failed in response.rejected[] (see governance/join-policy.md §4). The authorized audit reasons are challenge_failed (answer verification failed) and challenge_proof_invalid (proof signature, verifier-domain binding, or replay freshness failed; exceeding max_proof_age is challenge_expired instead). These audit reasons MUST NOT appear in response.rejected[]."
+          "description": "Closed join-policy gate proofs evaluated by governance/join-policy.md section 4 before accepting membership=join. At most one item per gate_id (a duplicate gate_id is schema_violation); only challenge_response and claim_required gates take an applicant-supplied proof, the other three kinds are replayed from accepted state. maxItems aligns with the gates 1..16 bound in join_policy_component; see zh/conformance/scalability-constraints.md.",
+          "$comment": "Gate failures are reported to a non-member caller uniformly as gate_check_failed in response.rejected[] (see governance/join-policy.md §4). The authorized audit reasons are challenge_failed (answer verification failed, or no proof item for a challenge_response gate), claim_invalid (claim presentation failed, or no proof item for a claim_required gate) and challenge_proof_invalid (proof signature, binding tuple, or issuer/provider key resolution failed; exceeding max_proof_age is challenge_expired instead). These audit reasons MUST NOT appear in response.rejected[]."
         },
         "reason": {
           "type": "string",

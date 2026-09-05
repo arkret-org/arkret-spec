@@ -148,6 +148,19 @@
   },
   "allOf": [
     {
+      "$comment": "common-fields.md 5.3.1: stage_changed_at MUST NOT appear without stage.",
+      "if": {
+        "required": [
+          "stage_changed_at"
+        ]
+      },
+      "then": {
+        "required": [
+          "stage"
+        ]
+      }
+    },
+    {
       "if": {
         "properties": {
           "state": {

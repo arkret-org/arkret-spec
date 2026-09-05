@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 363,
+  "audited_occurrence_count": 365,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1105,7 +1105,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 35,
+      "occurrences": 36,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -1126,7 +1126,7 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 35,
+      "occurrences": 36,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },

@@ -1,7 +1,7 @@
 {
   "version": "2026-09-05.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-05T16:40:00+08:00",
+  "generated_at": "2026-09-05T15:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -5600,6 +5600,9 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_applet_binding_create_payload",
       "id_source": "event_derived",
       "id_kind": "audit_binding",
+      "admission_checks": [
+        "attestation_policy is present exactly when audit_assurance_class is attested_hardware; it is the Realm-declared trust root list and allowed measurement set that ak.audit.release release_attestation is verified against"
+      ],
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5783,6 +5786,11 @@
       },
       "id_source": "event_derived",
       "id_kind": "audit_release",
+      "admission_checks": [
+        "the active binding resolved for binding_id declares audit_assurance_class; attested_hardware requires payload.release_attestation and disclosed_policy forbids it (schema_violation when the member is present or absent against that class)",
+        "release_attestation trust root, validity window, format, platform family and measurement validate against the binding's attestation_policy: attestation_chains root digest is listed in trust_root_digests, measurement.code_digest in allowed_code_digests, measurement.policy_version in allowed_policy_versions, platform.family is not software_test_only, and validity.not_before <= envelope created_at < validity.expires_at with a window of at most 90 days; any failure is audit_release_attestation_invalid",
+        "release_attestation realm_id, service_id and audit_policy_version_digest equal the active binding's realm_id, service_id and policy_version_digest, and audit_actor_id equals the approved_recipient_audit_actor_id of the session's accepted authorize; any mismatch is audit_release_attestation_mismatch"
+      ],
       "plane": "control",
       "sealed": true,
       "cell_writes": [

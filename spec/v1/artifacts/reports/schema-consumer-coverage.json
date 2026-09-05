@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 200,
+    "total_schemas": 203,
     "by_consumer": {
-      "declared_wire": 56,
+      "declared_wire": 57,
       "event_kind": 3,
-      "inbound": 45,
-      "outbound": 53,
+      "inbound": 47,
+      "outbound": 55,
       "prose": 114,
       "prose_only": 2,
-      "schema_reference": 134,
-      "startup_compile": 200,
+      "schema_reference": 136,
+      "startup_compile": 203,
       "vectors": 128
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 72,
+    "without_vector_coverage": 75,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -97,6 +97,7 @@
     "ak.schema.contact_operations.v1",
     "ak.schema.contact_scope_update.v1",
     "ak.schema.content_block_poll.v1",
+    "ak.schema.control_proposal_decision.v1",
     "ak.schema.current_signer_evidence_query_outcome.v1",
     "ak.schema.current_signer_evidence_query_request.v1",
     "ak.schema.device_pairing_bootstrap.v1",
@@ -122,6 +123,8 @@
     "ak.schema.object_addressing.v1",
     "ak.schema.offline_publication.v1",
     "ak.schema.patch.v1",
+    "ak.schema.presence_preference.v1",
+    "ak.schema.presence_visibility.v1",
     "ak.schema.public_key.v1",
     "ak.schema.push_operations.v1",
     "ak.schema.query.v1",
@@ -901,19 +904,17 @@
       "schema_id": "ak.schema.audit_release_attestation.v1",
       "file": "schemas/audit-release-attestation.schema.json",
       "consumers": {
-        "declared_wire": "dynamic_schema_ref",
+        "schema_reference": "exact",
         "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "dynamic_schema_ref",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
-      },
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "ak.audit.release attestation evidence schema",
-        "normative_ref": "zh/crypto-media/audited-e2ee.md#6"
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.event_payload.v1",
+          "ak.schema.resource_discovery_state.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
     },
     {
@@ -1290,6 +1291,7 @@
           "ak.schema.contact_operations.v1",
           "ak.schema.contact_scope_update.v1",
           "ak.schema.content_block_poll.v1",
+          "ak.schema.control_proposal_decision.v1",
           "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
           "ak.schema.controller_account_gate_attestation_issue_request.v1",
@@ -1492,6 +1494,26 @@
         "kind": "dynamic_schema_ref",
         "selector": "content block type poll or poll_response",
         "normative_ref": "zh/conformance/schema-registry.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.control_proposal_decision.v1",
+      "file": "schemas/control-proposal-decision.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.control_proposal_acks.command.issue.v1",
+          "ak.self.control_proposal_decisions.command.submit.v1",
+          "ak.self.control_proposal_decisions.read.get.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
     },
     {
@@ -2238,6 +2260,8 @@
       "schema_id": "ak.schema.invite.v1",
       "file": "schemas/invite.schema.json",
       "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
@@ -2722,6 +2746,7 @@
         "owners": [
           "ak.schema.authority_set_policy.v1",
           "ak.schema.backup_series_erase_confirmation.v1",
+          "ak.schema.control_proposal_decision.v1",
           "ak.schema.keys_operations.v1",
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_session.v1",
@@ -2809,6 +2834,44 @@
         "kind": "dynamic_schema_ref",
         "selector": "schema-selected Realm policy object",
         "normative_ref": "zh/models/governance-objects.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.presence_preference.v1",
+      "file": "schemas/presence-preference.schema.json",
+      "consumers": {
+        "declared_wire": "account_data_plaintext",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "account_data_plaintext",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.presence.preference",
+        "normative_ref": "zh/discovery/profiles-presence.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.presence_visibility.v1",
+      "file": "schemas/presence-visibility.schema.json",
+      "consumers": {
+        "declared_wire": "account_data_plaintext",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "account_data_plaintext",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.presence.visibility",
+        "normative_ref": "zh/discovery/profiles-presence.md"
       }
     },
     {
@@ -3627,6 +3690,7 @@
           "ak.schema.consent_operations.v1",
           "ak.schema.contact_operations.v1",
           "ak.schema.contact_scope_update.v1",
+          "ak.schema.control_proposal_decision.v1",
           "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.current_signer_evidence_query_outcome.v1",
           "ak.schema.current_signer_evidence_query_request.v1",
@@ -3678,6 +3742,7 @@
           "ak.schema.offline_publication.v1",
           "ak.schema.personal_productivity.v1",
           "ak.schema.policy.v1",
+          "ak.schema.presence_preference.v1",
           "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
           "ak.schema.push_operations.v1",

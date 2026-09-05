@@ -197,6 +197,19 @@
   },
   "allOf": [
     {
+      "$comment": "common-fields.md 5.3.1: stage_changed_at MUST NOT appear without stage.",
+      "if": {
+        "required": [
+          "stage_changed_at"
+        ]
+      },
+      "then": {
+        "required": [
+          "stage"
+        ]
+      }
+    },
+    {
       "$comment": "The container self-schema is not a business schema and MUST NOT appear in schema_refs (same rule as morph.md).",
       "if": {
         "required": [

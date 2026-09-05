@@ -308,6 +308,8 @@ grpc:
       Resolution: ak.open.service.read.resolution.v1
     OpenInviteLocator:
       Resolve: ak.open.invite_locator.read.resolve.v1
+    OpenThirdPartyInvite:
+      PresentToken: ak.open.third_party_invite.command.present_token.v1
     SelfInviteLocator:
       Issue: ak.self.invite_locator.command.issue.v1
       Rotate: ak.self.invite_locator.command.rotate.v1
@@ -495,6 +497,7 @@ mq:
     open.mimi.command.report_abuse: ak.open.mimi.command.report_abuse.v1
     open.mimi.command.proxy_download: ak.open.mimi.command.proxy_download.v1
     open.invite_locator.query.resolve: ak.open.invite_locator.read.resolve.v1
+    open.third_party_invite.command.present_token: ak.open.third_party_invite.command.present_token.v1
     open.agent_pairing.query.resolve: ak.open.agent_pairing.read.resolve.v1
     open.agent_pairing.command.submit_runtime_key_request: ak.open.agent_pairing.command.submit_runtime_key_request.v1
     open.agent_pairing.query.runtime_key_request_status: ak.open.agent_pairing.read.runtime_key_request_status.v1

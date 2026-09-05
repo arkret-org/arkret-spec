@@ -2249,15 +2249,15 @@ def check_composite_subject_terminal_types(
             subject_kind = subject.get("kind")
             subject_ref = f"{kind} cell_writes[{write_index}].cell_subject"
             if subject_kind == "canonical_json":
-                # encoding.md 4.1 has no embedding row for a top-level
-                # canonical_json subject: it is a components[] descriptor. The
-                # single-component composite spelling is the only one with a
-                # defined subject encoding, so reject rather than validate here.
+                # Ruling 2026-09-05-1200: canonical_json is only a components[]
+                # descriptor (encoding.md 9.5.1). A top-level use has no row in the
+                # 4.1 closed embedding table, so its wire id is undefined; spell it
+                # as a single-component composite instead.
                 lint.fail(
                     event_registry_path,
-                    f"{subject_ref} canonical_json is a components[] descriptor; "
-                    f'spell it as {{"kind":"composite","components":[{{"kind":"canonical_json",'
-                    f'"field":{subject.get("field")!r}}}]}}',
+                    f"{subject_ref} uses canonical_json as a top-level subject kind; "
+                    "wrap it as {\"kind\": \"composite\", \"components\": [{\"kind\": "
+                    "\"canonical_json\", \"field\": ...}]}",
                 )
                 continue
             if subject_kind == "coalesce":

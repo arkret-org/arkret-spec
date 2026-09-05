@@ -41,6 +41,18 @@ from .core import (
 )
 
 
+# encoding.md 4.1 closed subject dispatch table (ruling 2026-09-05-1200). A
+# top-level cell_subject.kind MUST be one of these or the `id:<object kind>`
+# form; canonical_json and string_set_digest are components[] descriptors only.
+CELL_SUBJECT_KINDS = frozenset(
+    {"did", "typed_id", "string", "uri", "coalesce", "composite", "tuple"}
+)
+CELL_SUBJECT_ID_KIND_RE = re.compile(r"^id:[a-z][a-z0-9_]*$")
+
+
+def is_registered_cell_subject_kind(kind: str) -> bool:
+    return kind in CELL_SUBJECT_KINDS or CELL_SUBJECT_ID_KIND_RE.fullmatch(kind) is not None
+
 
 def unique_values(lint: Lint, path: Path, rows: Any, key: str) -> set[str]:
     values: set[str] = set()
@@ -1366,6 +1378,20 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         subject_kind = subject.get("kind")
                         if not isinstance(subject_kind, str) or not subject_kind:
                             lint.fail(event_path, f"{write_ref}.cell_subject.kind must be a non-empty string")
+                        elif not is_registered_cell_subject_kind(subject_kind):
+                            # encoding.md 4.1 is a closed dispatch table; a kind outside it
+                            # has no embedding rule, so the cell wire id is undefined.
+                            # canonical_json in particular is a components[] descriptor
+                            # only (ruling 2026-09-05-1200): a structured single-field
+                            # subject is spelled as a single-component composite.
+                            lint.fail(
+                                event_path,
+                                f"{write_ref}.cell_subject.kind {subject_kind!r} is not in the "
+                                "encoding.md 4.1 closed subject table "
+                                f"({', '.join(sorted(CELL_SUBJECT_KINDS))}, id:<object kind>); "
+                                "canonical_json is a composite component descriptor, not a "
+                                "top-level subject kind",
+                            )
                         if subject_kind == "composite":
                             parts = subject.get("components")
                             if not isinstance(parts, list) or not parts:
@@ -1677,6 +1703,25 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         schema_path,
                         f"{schema_id} has unknown consumer_binding kind {binding_kind!r}",
                     )
+
+    # Reverse closure (ruling 2026-09-05-0245): every schema file under
+    # artifacts/schemas is the `file` of at least one schema-registry row. The
+    # forward check above only proves rows point at files; a renamed or newly
+    # added file that no row names has a $id and a $ref audience but no
+    # schema_id, so consumers that walk the registry never see it.
+    registered_files = {
+        row.get("file")
+        for row in schema_rows
+        if isinstance(row, dict) and isinstance(row.get("file"), str)
+    }
+    for schema_file in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
+        file_ref = f"schemas/{schema_file.name}"
+        if file_ref not in registered_files:
+            lint.fail(
+                schema_path,
+                f"{file_ref} exists but no schema-registry row names it; "
+                "register a schema_id for it or delete the file",
+            )
 
     id_rows = id_registry.get("id_kinds", [])
     id_kinds = unique_values(lint, id_path, id_rows, "kind")
@@ -2561,8 +2606,8 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if canonical_members != sorted(set(canonical_members)):
             lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
 
-    if len(bundle_ids) != 35:
-        lint.fail(operation_path, f"operation_bundles must contain the 35 evidenced v1 bundles, got {len(bundle_ids)}")
+    if len(bundle_ids) != 36:
+        lint.fail(operation_path, f"operation_bundles must contain the 36 evidenced v1 bundles, got {len(bundle_ids)}")
     describe_pair = ("ak.server.read.describe.v1", "http_json")
     for service_kind in sorted(service_kinds):
         describe_bundle_id = f"ak.operation_bundle.{service_kind}.describe.v1"

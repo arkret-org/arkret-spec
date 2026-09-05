@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 637,
-    "typed_object_id": 928,
+    "responsibility_identity_material": 641,
+    "typed_object_id": 931,
     "registry_catalog_symbol": 21
   },
   "pending_rename_convergence": [],
@@ -161,6 +161,14 @@
       "occurrences": 6,
       "example_path": "account-operations.schema.json#/$defs/account_registration_control_proof/properties/challenge_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
+    },
+    {
+      "name": "challenge_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 1,
+      "example_path": "event-payload.schema.json#/$defs/join_gate_proof/properties/challenge_id",
+      "reason": "Provider-scoped single-use coordinate of a solved join gate challenge; it carries no authority by itself (join-policy.md section 4)."
     },
     {
       "name": "channel_id",
@@ -395,7 +403,7 @@
       "name": "gate_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,64}$\"]]",
       "category": "document_local_symbol",
-      "occurrences": 1,
+      "occurrences": 2,
       "example_path": "event-payload.schema.json#/$defs/join_policy_component/properties/gates/items/properties/gate_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },

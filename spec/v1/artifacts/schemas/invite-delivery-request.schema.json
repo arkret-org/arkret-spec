@@ -9,6 +9,7 @@
     "invite_event",
     "invite_address",
     "introduction_evidence",
+    "cba_proof_bundles",
     "idempotency_key"
   ],
   "properties": {
@@ -17,13 +18,23 @@
     },
     "invite_event": {
       "$ref": "./event-envelope.schema.json",
-      "description": "The ak.invite.create EventEnvelope or equivalent accepted event view being delivered."
+      "description": "The ak.invite.create EventEnvelope being delivered. The inviter-side Station reads it from its own accepted, persisted canonical bytes; it is never rebuilt, re-signed or projected into another shape."
     },
     "invite_address": {
       "$ref": "#/$defs/invite_address"
     },
     "introduction_evidence": {
       "$ref": "#/$defs/introduction_evidence"
+    },
+    "cba_proof_bundles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./cba-proof-bundle.schema.json"
+      },
+      "description": "Receiver-relative CBA dependency bundles proving the invite Event's Realm capability. The receiving Station is by definition not yet a federation peer of that Realm, so it cannot resolve the authority closure itself and MUST NOT attempt a peer dependency fetch; the closure travels with the request. Each bundle serves exactly one target_seal_ref, which MUST be a member of invite_event.seal_basis.leaves, and every leaf MUST be covered by some bundle. Bundles are transport material: they carry no authority of their own, enter no signed digest, and MUST NOT be materialised into the Invite object, Realm state or any holder-private cell."
     },
     "idempotency_key": {
       "type": "string",
@@ -34,6 +45,7 @@
   "additionalProperties": false,
   "$defs": {
     "self_invite_dispatch_request_body": {
+      "$comment": "Deliberately carries no cba_proof_bundles. The authenticated inviter submits only an event id; the inviter-side Station is a member of that Realm and builds the bundles from its own accepted state before constructing the peer body.",
       "type": "object",
       "required": [
         "schema",

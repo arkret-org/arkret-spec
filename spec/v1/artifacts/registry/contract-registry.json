@@ -1,7 +1,7 @@
 {
   "version": "2026-09-05.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T16:40:00+08:00",
+  "generated_at": "2026-09-05T15:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -7495,7 +7495,10 @@
         "payload": "Audit Applet Binding genesis. binding_id is omitted and derived by retyping event_id. Declares immutable scope and release policy; initial lifecycle state is active.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_applet_binding_create_payload",
         "id_source": "event_derived",
-        "id_kind": "audit_binding"
+        "id_kind": "audit_binding",
+        "admission_checks": [
+          "attestation_policy is present exactly when audit_assurance_class is attested_hardware; it is the Realm-declared trust root list and allowed measurement set that ak.audit.release release_attestation is verified against"
+        ]
       },
       {
         "event_kind": "ak.audit.applet_binding.state",
@@ -7557,7 +7560,12 @@
           "within_seal_order": "event_digest_lexicographic"
         },
         "id_source": "event_derived",
-        "id_kind": "audit_release"
+        "id_kind": "audit_release",
+        "admission_checks": [
+          "the active binding resolved for binding_id declares audit_assurance_class; attested_hardware requires payload.release_attestation and disclosed_policy forbids it (schema_violation when the member is present or absent against that class)",
+          "release_attestation trust root, validity window, format, platform family and measurement validate against the binding's attestation_policy: attestation_chains root digest is listed in trust_root_digests, measurement.code_digest in allowed_code_digests, measurement.policy_version in allowed_policy_versions, platform.family is not software_test_only, and validity.not_before <= envelope created_at < validity.expires_at with a window of at most 90 days; any failure is audit_release_attestation_invalid",
+          "release_attestation realm_id, service_id and audit_policy_version_digest equal the active binding's realm_id, service_id and policy_version_digest, and audit_actor_id equals the approved_recipient_audit_actor_id of the session's accepted authorize; any mismatch is audit_release_attestation_mismatch"
+        ]
       },
       {
         "event_kind": "ak.audit.session.close",
@@ -9118,6 +9126,28 @@
         }
       },
       {
+        "schema_id": "ak.schema.presence_visibility.v1",
+        "file": "schemas/presence-visibility.schema.json",
+        "status": "active",
+        "description": "Closed decrypted plaintext shape of the principal-private ak.presence.visibility account-data value. The sending client applies it before encrypted Signal fanout; services MUST NOT require its plaintext or project it into server-readable policy state.",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "account_data key ak.presence.visibility",
+          "normative_ref": "zh/discovery/profiles-presence.md"
+        }
+      },
+      {
+        "schema_id": "ak.schema.presence_preference.v1",
+        "file": "schemas/presence-preference.schema.json",
+        "status": "active",
+        "description": "Closed decrypted plaintext shape of the principal-private ak.presence.preference account-data value: pinned manual_state, temporary status_message override and clears_at expiry, enforced client-side across the principal's devices.",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "account_data key ak.presence.preference",
+          "normative_ref": "zh/discovery/profiles-presence.md"
+        }
+      },
+      {
         "schema_id": "ak.schema.file_transfer.v1",
         "file": "schemas/file-transfer.schema.json",
         "status": "active",
@@ -9744,6 +9774,12 @@
         "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
       },
       {
+        "schema_id": "ak.schema.control_proposal_decision.v1",
+        "file": "schemas/control-proposal-decision.schema.json",
+        "status": "active",
+        "description": "Closed request/response DTO bundle for quorum-capable Control Proposal Acks and signed reject/defer decisions (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
+      },
+      {
         "schema_id": "ak.schema.grant_constraint.v1",
         "file": "schemas/grant-constraint.schema.json"
       },
@@ -9781,11 +9817,8 @@
       {
         "schema_id": "ak.schema.audit_release_attestation.v1",
         "file": "schemas/audit-release-attestation.schema.json",
-        "consumer_binding": {
-          "kind": "dynamic_schema_ref",
-          "selector": "ak.audit.release attestation evidence schema",
-          "normative_ref": "zh/crypto-media/audited-e2ee.md#6"
-        }
+        "status": "active",
+        "description": "Remote attestation evidence for an attested_hardware audit release service. Carried inline as audit_release_payload.release_attestation on every ak.audit.release under a binding whose audit_assurance_class is attested_hardware; verified at admission against the binding's attestation_policy (audit_release_attestation_invalid) and the active binding fields (audit_release_attestation_mismatch). See zh/crypto-media/audited-e2ee.md §6."
       },
       {
         "schema_id": "ak.schema.applet.v1",
@@ -10337,8 +10370,8 @@
         }
       }
     ],
-    "version": "2026-09-05.2",
-    "generated_at": "2026-09-05T10:20:00+08:00"
+    "version": "2026-09-05.3",
+    "generated_at": "2026-09-05T15:30:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -11717,6 +11750,13 @@
         "surface_class": "extension"
       },
       {
+        "surface": "third_party_invite_handoff",
+        "operations": [
+          "ak.open.third_party_invite.command.present_token.v1"
+        ],
+        "surface_class": "extension"
+      },
+      {
         "surface": "identity_resolution",
         "operations": [
           "ak.open.identity.read.resolution.v1",
@@ -12642,6 +12682,28 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
         "response_schema_ref": "schemas/principal-locator.schema.json"
+      },
+      {
+        "operation_id": "ak.open.third_party_invite.command.present_token.v1",
+        "http": "POST /_arkret/open/third-party-invites/present",
+        "grpc": "OpenThirdPartyInvite/PresentToken",
+        "mq": "open.third_party_invite.command.present_token",
+        "notes": "Token presentation surface of the 3PID invite verification service (third-party-invites.md section 4.1). The invitee's client submits invite_token, realm_id, subject_account_id, subject_did and a client claim_nonce in the JSON body; the service validates token, expiry, claim count and Realm binding, atomically consumes the token, signs the ak.invite.claim.binding_proof.v1 transcript with the invite's verification_public_key and returns invite_id, token_commitment and binding_proof. invite_token in the URL query string or path segment is rejected with third_party_invite_token_in_query and the token SHOULD be invalidated; a knock_restricted Realm is rejected with unsupported_join_rule; every other failure is non-enumerable (section 6). A consumed token MUST NOT be re-bound to a different subject; the same (realm_id, subject_account_id, claim_nonce) MAY be answered with the same binding_proof inside the recoverable window (section 6.1).",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true,
+        "uncertain_outcome": {
+          "strategy": "replay_same_operation",
+          "operation_id": "ak.open.third_party_invite.command.present_token.v1",
+          "requires_same_request_identity_and_canonical_intent": true
+        },
+        "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_request_body",
+        "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.mimi.command.notify.v1",
@@ -15469,8 +15531,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-05.2",
-    "generated_at": "2026-09-05T10:20:00+08:00",
+    "version": "2026-09-05.3",
+    "generated_at": "2026-09-05T15:30:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -15484,6 +15546,7 @@
           "history_key_recovery",
           "mimi_interop",
           "push",
+          "third_party_invite_handoff",
           "tus_upload",
           "websocket"
         ]
@@ -16073,6 +16136,19 @@
           },
           {
             "operation_id": "ak.open.device_pairing.read.status.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_handoff.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "ak.deployment_prototype.soland_station.v1#third_party_invite_handoff"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.open.third_party_invite.command.present_token.v1",
             "binding_kind": "http_json"
           }
         ]

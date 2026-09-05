@@ -294,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "355eca98a81369137add309fc9c2fa11b757a2d2d93bd9cd55c14a9f5ba014fa"
+      "sha256": "2f821a4f04dba62d3f84fad6e74c845b8c3c563921ec7668af89b6202d6586b1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

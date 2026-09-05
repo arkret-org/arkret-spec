@@ -891,6 +891,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ak.gate.account.command.register.v1",
         "ak.gate.account.command.issue_session_grant.v1",
         "ak.open.invite_locator.read.resolve.v1",
+        "ak.open.third_party_invite.command.present_token.v1",
         "ak.open.agent_pairing.read.resolve.v1",
         "ak.open.agent_pairing.command.submit_runtime_key_request.v1",
         "ak.open.agent_pairing.read.runtime_key_request_status.v1",

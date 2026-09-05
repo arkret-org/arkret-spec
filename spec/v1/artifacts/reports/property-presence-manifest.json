@@ -15,20 +15,20 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9826,
+    "total_properties": 9863,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2695,
+      "optional": 2701,
       "optional_defaulted": 65,
-      "required": 6736,
+      "required": 6763,
       "required_nullable": 122,
-      "tristate": 208
+      "tristate": 212
     },
-    "tristate_occurrences": 208,
-    "tristate_audit_targets": 149,
+    "tristate_occurrences": 212,
+    "tristate_audit_targets": 153,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 140,
-      "condition_guarded": 8,
+      "absent_null_equivalent": 142,
+      "condition_guarded": 10,
       "distinct": 1
     }
   },
@@ -218,6 +218,8 @@
     "service-operation-dtos.schema.json/$defs/MembershipCompensationCarrierPresence/if/properties/event",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/created_at",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/created_by",
+    "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/stage",
+    "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/stage_changed_at",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/state_changed_at",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/title",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/updated_at",
@@ -232,6 +234,8 @@
     "service-operation-dtos.schema.json/$defs/ProjectionStrandRow/properties/created_by",
     "service-operation-dtos.schema.json/$defs/ProjectionStrandRow/properties/list_space_id",
     "service-operation-dtos.schema.json/$defs/ProjectionStrandRow/properties/rank",
+    "service-operation-dtos.schema.json/$defs/ProjectionStrandRow/properties/stage",
+    "service-operation-dtos.schema.json/$defs/ProjectionStrandRow/properties/stage_changed_at",
     "service-operation-dtos.schema.json/$defs/ProjectionStrandRow/properties/state_changed_at",
     "service-operation-dtos.schema.json/$defs/ProjectionStrandRow/properties/summary",
     "service-operation-dtos.schema.json/$defs/ProjectionStrandRow/properties/title",
@@ -244,7 +248,7 @@
     "service-operation-dtos.schema.json/$defs/SessionGrantIntrospectGrant/allOf/0/then/properties/holder_binding",
     "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/else/properties/holder_binding",
     "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/then/properties/holder_binding",
-    "strand.schema.json/allOf/1/then/properties/metadata",
+    "strand.schema.json/allOf/2/then/properties/metadata",
     "view.schema.json/$defs/query/properties/relation"
   ],
   "tristate_audit_targets": [
@@ -1547,6 +1551,26 @@
     {
       "schema_file": "service-operation-dtos.schema.json",
       "shape": "/$defs/ProjectionMorphRow",
+      "instance_path": "/stage",
+      "occurrences": [
+        "/$defs/ProjectionMorphRow/properties/stage"
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionMorphRow",
+      "instance_path": "/stage_changed_at",
+      "occurrences": [
+        "/$defs/ProjectionMorphRow/properties/stage_changed_at"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionMorphRow",
       "instance_path": "/state_changed_at",
       "occurrences": [
         "/$defs/ProjectionMorphRow/properties/state_changed_at"
@@ -1687,6 +1711,26 @@
     {
       "schema_file": "service-operation-dtos.schema.json",
       "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/stage",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/stage"
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/stage_changed_at",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/stage_changed_at"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
       "instance_path": "/state_changed_at",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/state_changed_at"
@@ -1782,7 +1826,7 @@
       "shape": "#",
       "instance_path": "/metadata",
       "occurrences": [
-        "/allOf/1/then/properties/metadata"
+        "/allOf/2/then/properties/metadata"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4598,7 +4642,9 @@
       }
     },
     "control-proposal-decision.schema.json": {
-      "schema_ids": [],
+      "schema_ids": [
+        "ak.schema.control_proposal_decision.v1"
+      ],
       "properties": {
         "/$defs/control_proposal_ack/properties/absolute_due_at": "required",
         "/$defs/control_proposal_ack/properties/authority_acks": "required",
@@ -6248,10 +6294,15 @@
         "/$defs/audit_accessed_payload/properties/target_cell_id": "optional",
         "/$defs/audit_accessed_payload/properties/target_ref": "required",
         "/$defs/audit_accessed_payload/properties/writer_actor_id": "required",
+        "/$defs/audit_applet_binding_create_payload/allOf/0/if/properties/audit_assurance_class": "required",
         "/$defs/audit_applet_binding_create_payload/properties/activation_frontier_digest": "required",
         "/$defs/audit_applet_binding_create_payload/properties/allowed_release_modes": "required",
         "/$defs/audit_applet_binding_create_payload/properties/applet_id": "required",
         "/$defs/audit_applet_binding_create_payload/properties/approver_policy": "optional",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy": "optional",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy/properties/allowed_code_digests": "required",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy/properties/allowed_policy_versions": "required",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy/properties/trust_root_digests": "required",
         "/$defs/audit_applet_binding_create_payload/properties/audit_assurance_class": "required",
         "/$defs/audit_applet_binding_create_payload/properties/effective_scope": "required",
         "/$defs/audit_applet_binding_create_payload/properties/expires_at": "tristate",
@@ -6292,6 +6343,7 @@
         "/$defs/audit_release_payload/properties/policy_version_digest": "required",
         "/$defs/audit_release_payload/properties/purpose_kind": "required",
         "/$defs/audit_release_payload/properties/realm_id": "required",
+        "/$defs/audit_release_payload/properties/release_attestation": "optional",
         "/$defs/audit_release_payload/properties/release_mode": "required",
         "/$defs/audit_release_payload/properties/released_at": "required",
         "/$defs/audit_release_payload/properties/seal_ref": "required",
@@ -6746,15 +6798,15 @@
         "/$defs/invite_cancel_payload/properties/reason": "optional",
         "/$defs/invite_cancel_payload/properties/reason_code": "optional",
         "/$defs/invite_cancel_payload/properties/target_state": "required",
+        "/$defs/invite_claim_binding_proof/properties/audience": "required",
+        "/$defs/invite_claim_binding_proof/properties/claim_nonce": "required",
+        "/$defs/invite_claim_binding_proof/properties/expires_at": "required",
+        "/$defs/invite_claim_binding_proof/properties/realm_id": "required",
+        "/$defs/invite_claim_binding_proof/properties/signature": "required",
+        "/$defs/invite_claim_binding_proof/properties/subject_account_id": "required",
+        "/$defs/invite_claim_binding_proof/properties/verification_id": "required",
+        "/$defs/invite_claim_binding_proof/properties/verification_method": "required",
         "/$defs/invite_claim_payload/properties/binding_proof": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/audience": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/claim_nonce": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/expires_at": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/realm_id": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/signature": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/subject_account_id": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/verification_id": "required",
-        "/$defs/invite_claim_payload/properties/binding_proof/properties/verification_method": "required",
         "/$defs/invite_claim_payload/properties/claim_nonce": "required",
         "/$defs/invite_claim_payload/properties/invite_id": "required",
         "/$defs/invite_claim_payload/properties/subject_account_id": "required",
@@ -6775,6 +6827,19 @@
         "/$defs/invite_revoke_payload/properties/target_state": "required",
         "/$defs/invite_third_party_create_payload/properties/expires_at": "required",
         "/$defs/invite_third_party_create_payload/properties/third_party_invite": "required",
+        "/$defs/join_gate_proof/allOf/0/if/properties/kind": "required",
+        "/$defs/join_gate_proof/allOf/1/if/properties/kind": "required",
+        "/$defs/join_gate_proof/properties/applicant_actor_id": "required",
+        "/$defs/join_gate_proof/properties/challenge_id": "optional",
+        "/$defs/join_gate_proof/properties/challenge_kind": "optional",
+        "/$defs/join_gate_proof/properties/claims": "optional",
+        "/$defs/join_gate_proof/properties/created_at": "required",
+        "/$defs/join_gate_proof/properties/gate_id": "required",
+        "/$defs/join_gate_proof/properties/issuer_id": "optional",
+        "/$defs/join_gate_proof/properties/kind": "required",
+        "/$defs/join_gate_proof/properties/policy_digest": "required",
+        "/$defs/join_gate_proof/properties/proofs": "required",
+        "/$defs/join_gate_proof/properties/realm_id": "required",
         "/$defs/join_policy_component/properties/combinator": "required",
         "/$defs/join_policy_component/properties/directory_hint": "optional",
         "/$defs/join_policy_component/properties/directory_hint/properties/challenge_kinds_displayed": "optional",
@@ -6782,6 +6847,7 @@
         "/$defs/join_policy_component/properties/gates": "required",
         "/$defs/join_policy_gate/oneOf/0/allOf/1/properties/kind": "required",
         "/$defs/join_policy_gate/oneOf/0/allOf/1/properties/required_claims": "required",
+        "/$defs/join_policy_gate/oneOf/0/allOf/1/properties/trusted_issuer_ids": "required",
         "/$defs/join_policy_gate/oneOf/1/allOf/1/properties/challenge_kinds": "required",
         "/$defs/join_policy_gate/oneOf/1/allOf/1/properties/kind": "required",
         "/$defs/join_policy_gate/oneOf/1/allOf/1/properties/max_proof_age": "required",
@@ -7525,6 +7591,7 @@
         "/$defs/audit_accessed_payload/properties/paired_event_id",
         "/$defs/audit_accessed_payload/properties/target_actor_id",
         "/$defs/audit_accessed_payload/properties/target_cell_id",
+        "/$defs/audit_applet_binding_create_payload/properties/attestation_policy",
         "/$defs/audit_release_payload/properties/sealed_by_commit_ref",
         "/$defs/audit_release_payload/properties/sealed_epoch_range",
         "/$defs/audit_release_payload/properties/target_refs",
@@ -7547,6 +7614,10 @@
         "/$defs/device_list_update_payload/properties/device_list_digest",
         "/$defs/device_list_update_payload/properties/left_ids",
         "/$defs/device_reanchor_payload/properties/did_root_evidence_digest",
+        "/$defs/join_gate_proof/properties/challenge_id",
+        "/$defs/join_gate_proof/properties/challenge_kind",
+        "/$defs/join_gate_proof/properties/claims",
+        "/$defs/join_gate_proof/properties/issuer_id",
         "/$defs/join_policy_gate/oneOf/3/allOf/1/properties/allowed_account_ids",
         "/$defs/join_policy_gate/oneOf/3/allOf/1/properties/allowed_actor_ids",
         "/$defs/join_policy_gate/oneOf/3/allOf/1/properties/allowed_did_methods",
@@ -8816,6 +8887,7 @@
         "/$defs/shared_realm_evidence/properties/inviter_member_ref": "required",
         "/$defs/shared_realm_evidence/properties/kind": "required",
         "/$defs/shared_realm_evidence/properties/realm_id": "required",
+        "/properties/cba_proof_bundles": "required",
         "/properties/idempotency_key": "required",
         "/properties/introduction_evidence": "required",
         "/properties/invite_address": "required",
@@ -8909,6 +8981,14 @@
         "/$defs/third_party_invite/properties/token_salt_id": "optional",
         "/$defs/third_party_invite/properties/verification_id": "required",
         "/$defs/third_party_invite/properties/verification_public_key": "required",
+        "/$defs/third_party_invite_present_outcome/properties/binding_proof": "required",
+        "/$defs/third_party_invite_present_outcome/properties/invite_id": "required",
+        "/$defs/third_party_invite_present_outcome/properties/token_commitment": "required",
+        "/$defs/third_party_invite_present_request_body/properties/claim_nonce": "required",
+        "/$defs/third_party_invite_present_request_body/properties/invite_token": "required",
+        "/$defs/third_party_invite_present_request_body/properties/realm_id": "required",
+        "/$defs/third_party_invite_present_request_body/properties/subject_account_id": "required",
+        "/$defs/third_party_invite_present_request_body/properties/subject_did": "required",
         "/properties/capability_grant_refs": "optional",
         "/properties/created_at": "required",
         "/properties/expires_at": "required",
@@ -10007,8 +10087,8 @@
         "/$defs/content_block/properties/parts": "optional",
         "/$defs/morph_metadata/properties/summary": "optional",
         "/$defs/morph_metadata/properties/title": "optional",
-        "/allOf/0/if/properties/state": "required",
         "/allOf/1/if/properties/state": "required",
+        "/allOf/2/if/properties/state": "required",
         "/properties/content": "optional",
         "/properties/created_at": "required",
         "/properties/created_by": "required",
@@ -10235,7 +10315,9 @@
       ]
     },
     "presence-preference.schema.json": {
-      "schema_ids": [],
+      "schema_ids": [
+        "ak.schema.presence_preference.v1"
+      ],
       "properties": {
         "/properties/clears_at": "optional",
         "/properties/manual_state": "optional",
@@ -10243,7 +10325,9 @@
       }
     },
     "presence-visibility.schema.json": {
-      "schema_ids": [],
+      "schema_ids": [
+        "ak.schema.presence_visibility.v1"
+      ],
       "properties": {
         "/properties/presence_visibility": "required"
       }
@@ -12526,11 +12610,15 @@
         "/$defs/ProjectionMorphList/properties/next_cursor": "optional",
         "/$defs/ProjectionMorphList/properties/realm_id": "required",
         "/$defs/ProjectionMorphList/properties/total": "required",
+        "/$defs/ProjectionMorphRow/allOf/0/if/properties/stage_changed_at": "required",
+        "/$defs/ProjectionMorphRow/allOf/0/then/properties/stage": "required",
         "/$defs/ProjectionMorphRow/properties/created_at": "tristate",
         "/$defs/ProjectionMorphRow/properties/created_by": "tristate",
         "/$defs/ProjectionMorphRow/properties/morph_id": "required",
         "/$defs/ProjectionMorphRow/properties/morph_kind": "required",
         "/$defs/ProjectionMorphRow/properties/realm_id": "required",
+        "/$defs/ProjectionMorphRow/properties/stage": "tristate",
+        "/$defs/ProjectionMorphRow/properties/stage_changed_at": "tristate",
         "/$defs/ProjectionMorphRow/properties/state": "required",
         "/$defs/ProjectionMorphRow/properties/state_changed_at": "tristate",
         "/$defs/ProjectionMorphRow/properties/title": "tristate",
@@ -12556,6 +12644,8 @@
         "/$defs/ProjectionStrandList/properties/realm_id": "required",
         "/$defs/ProjectionStrandList/properties/strands": "required",
         "/$defs/ProjectionStrandList/properties/total": "required",
+        "/$defs/ProjectionStrandRow/allOf/0/if/properties/stage_changed_at": "required",
+        "/$defs/ProjectionStrandRow/allOf/0/then/properties/stage": "required",
         "/$defs/ProjectionStrandRow/properties/assigned_actor_ids": "optional",
         "/$defs/ProjectionStrandRow/properties/assigned_to_relations": "optional",
         "/$defs/ProjectionStrandRow/properties/board_space_id": "tristate",
@@ -12565,6 +12655,8 @@
         "/$defs/ProjectionStrandRow/properties/list_space_id": "tristate",
         "/$defs/ProjectionStrandRow/properties/rank": "tristate",
         "/$defs/ProjectionStrandRow/properties/realm_id": "required",
+        "/$defs/ProjectionStrandRow/properties/stage": "tristate",
+        "/$defs/ProjectionStrandRow/properties/stage_changed_at": "tristate",
         "/$defs/ProjectionStrandRow/properties/state": "required",
         "/$defs/ProjectionStrandRow/properties/state_changed_at": "tristate",
         "/$defs/ProjectionStrandRow/properties/strand_id": "required",
@@ -12808,6 +12900,8 @@
         "/$defs/OrganizationControlProof/properties/quorum_threshold",
         "/$defs/PeerEventsResolveRequestBody/properties/event_digests",
         "/$defs/PeerEventsResolveRequestBody/properties/event_ids",
+        "/$defs/ProjectionMorphRow/properties/stage",
+        "/$defs/ProjectionStrandRow/properties/stage",
         "/$defs/SessionGrantIntrospectGrant/properties/device_binding",
         "/$defs/SessionGrantIntrospectGrant/properties/device_id",
         "/$defs/SessionGrantIntrospectOutcome/properties/grant",
@@ -13055,17 +13149,17 @@
         "/$defs/strand_track/properties/metadata": "optional",
         "/$defs/strand_track/properties/profile": "optional",
         "/$defs/strand_track/properties/template": "optional",
-        "/allOf/0/then/properties/schema_refs": "optional",
-        "/allOf/1/if/properties/schema_refs": "required_nullable",
-        "/allOf/1/then/properties/metadata": "tristate",
-        "/allOf/1/then/properties/metadata/properties/fields": "required_nullable",
-        "/allOf/2/if/properties/metadata": "required_nullable",
-        "/allOf/2/if/properties/metadata/properties/fields": "required_nullable",
-        "/allOf/2/then/properties/schema_refs": "required_nullable",
-        "/allOf/3/if/properties/state": "required",
+        "/allOf/1/then/properties/schema_refs": "optional",
+        "/allOf/2/if/properties/schema_refs": "required_nullable",
+        "/allOf/2/then/properties/metadata": "tristate",
+        "/allOf/2/then/properties/metadata/properties/fields": "required_nullable",
+        "/allOf/3/if/properties/metadata": "required_nullable",
+        "/allOf/3/if/properties/metadata/properties/fields": "required_nullable",
+        "/allOf/3/then/properties/schema_refs": "required_nullable",
         "/allOf/4/if/properties/state": "required",
-        "/allOf/4/then/not/anyOf/2/properties/tracks": "required_nullable",
-        "/allOf/4/then/not/anyOf/2/properties/tracks/properties/synthesis": "required_nullable",
+        "/allOf/5/if/properties/state": "required",
+        "/allOf/5/then/not/anyOf/2/properties/tracks": "required_nullable",
+        "/allOf/5/then/not/anyOf/2/properties/tracks/properties/synthesis": "required_nullable",
         "/properties/agent_participation": "optional",
         "/properties/agent_participation/properties/agent": "required",
         "/properties/content": "optional",
