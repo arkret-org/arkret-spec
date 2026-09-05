@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-05.18",
-  "generated_at": "2026-09-05T22:35:02+08:00",
+  "version": "2026-09-06.1",
+  "generated_at": "2026-09-06T23:10:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -189,7 +189,7 @@
     },
     {
       "operation_id": "ak.gate.account.read.onboarding.v1",
-      "sha256": "sha256:d6d1ad46e8a37924725c3cda949dcdf0a2e600029d717138ab8f7b323069868e"
+      "sha256": "sha256:337816a533a43e6c5523b1e1936da093f8b49fd15d9e6b8265aef31571959ab5"
     },
     {
       "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request.v1",

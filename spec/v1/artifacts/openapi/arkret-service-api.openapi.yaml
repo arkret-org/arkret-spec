@@ -311,8 +311,8 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome
     AccountLogoutRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody
-    AccountOnboardingSnapshot:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_onboarding_snapshot
+    AccountOnboardingState:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_onboarding_state
     AccountRegisterOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_outcome
     AccountRegisterRequestBody:
@@ -9533,7 +9533,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountOnboardingSnapshot'
+                $ref: '#/components/schemas/AccountOnboardingState'
   /_arkret/gate/account/identity-binding-challenges:
     servers:
     - url: https://{host}

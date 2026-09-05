@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-06.1",
-      "generated_at": "2026-09-06T22:30:00+08:00",
-      "content_digest": "sha256:3b600233af3cfbf9d494405fa07890639c3841c4211f61272401e42270392434"
+      "version": "2026-09-06.2",
+      "generated_at": "2026-09-06T23:10:00+08:00",
+      "content_digest": "sha256:cb7685ef8c3e2fe5812ee175d43ef91bd22574e2b12e51ab9579b3445230ea1c"
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
@@ -243,15 +243,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-05.18",
-      "generated_at": "2026-09-05T22:35:02+08:00",
-      "content_digest": "sha256:c875ac4a25834fd811b9fd127a520a657a9c32ef0d25752fa5b5e02d53d9884f"
+      "version": "2026-09-06.1",
+      "generated_at": "2026-09-06T23:10:00+08:00",
+      "content_digest": "sha256:930c316354db55d1b674a131e4edb429526ed14ede8a06d781893943db1ad41a"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-05.4",
-      "generated_at": "2026-09-05T15:40:00+08:00",
-      "content_digest": "sha256:22668dd37d91bed5471a41a7d68b26f60c784a3c0f62559df55f51f4700a3812"
+      "version": "2026-09-06.1",
+      "generated_at": "2026-09-06T23:10:00+08:00",
+      "content_digest": "sha256:168b62e74e4fe4eeee6dbe8d15349054adb6fbcf3ef6225d4ab789fca6323ae7"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",

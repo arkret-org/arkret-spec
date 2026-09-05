@@ -14,7 +14,7 @@
       "$ref": "#/$defs/account_handoff_outcome"
     },
     {
-      "$ref": "#/$defs/account_onboarding_snapshot"
+      "$ref": "#/$defs/account_onboarding_state"
     },
     {
       "$ref": "#/$defs/identity_binding_challenge_request_body"
@@ -762,7 +762,7 @@
         }
       ]
     },
-    "account_onboarding_snapshot": {
+    "account_onboarding_state": {
       "type": "object",
       "required": [
         "handoff_request_id",

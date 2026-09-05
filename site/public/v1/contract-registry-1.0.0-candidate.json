@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-06.1",
+  "version": "2026-09-06.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-06T22:30:00+08:00",
+  "generated_at": "2026-09-06T23:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -12568,7 +12568,7 @@
         "notes": "Read-only DPoP-bound projection of the current Account Authority identity-creation lease or established binding. The response is rebuilt from durable server state on every call and accepts no client-authored phase, goal, checkpoint, or recovery material. Clients use it to reconcile local onboarding artifacts after reload, callback, process restart, or an uncertain command result.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_onboarding_snapshot",
+        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_onboarding_state",
         "durable_effect": {
           "kind": "none",
           "rationale": "reads_only_the_current_service_local_account_onboarding_projection"
