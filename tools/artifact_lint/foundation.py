@@ -10,6 +10,7 @@ from .core import (
     CELL_SUBJECT_KINDS,
     CELL_WRITE_DERIVATIONS,
     CONFLICT_RECOVERY_KIND,
+    TOOLS_ROOT,
     NOTARY_CELL_FAMILY,
     Counter,
     EFFECT_PROJECTION_ENVELOPE_FIELDS,
@@ -1359,6 +1360,58 @@ def _cell_subject_sources(subject: object) -> set[str]:
     return sources
 
 
+def check_apply_patch_base_producers(lint: Lint, event_registry: dict, event_path: Path) -> None:
+    """An apply_patch needs a base value, and only a registered write can supply it.
+
+    zh/authz/event-auth-state-resolution.md section 9.3.1.2 closes the other door:
+    a family may not declare an initial_value, so the base has to come from a
+    registered create or genesis write. A family whose only writer is the patch
+    itself therefore has no defined pre-state, and the first patch silently
+    becomes the object's definition. The four families that are in that state
+    today are frozen in tools/patch-base-producer-baseline.json; the list only
+    shrinks.
+    """
+    producers: dict[str, set[str]] = {}
+    patchers: dict[str, set[str]] = {}
+    for row in event_registry.get("event_kinds") or []:
+        if not isinstance(row, dict):
+            continue
+        kind = row.get("event_kind")
+        for write in row.get("cell_writes") or []:
+            if not isinstance(write, dict):
+                continue
+            family = write.get("cell_family")
+            if not isinstance(family, str):
+                continue
+            projection_kind = (write.get("effect_projection") or {}).get("kind")
+            if projection_kind == "apply_patch":
+                patchers.setdefault(family, set()).add(kind)
+            elif projection_kind in ("set", "append", "transition"):
+                producers.setdefault(family, set()).add(kind)
+    unproduced = {family for family in patchers if not producers.get(family)}
+
+    baseline_path = TOOLS_ROOT / "patch-base-producer-baseline.json"
+    baseline = load_json(lint, baseline_path) or {}
+    known = {
+        entry.get("cell_family")
+        for entry in baseline.get("families_without_base_producer") or []
+        if isinstance(entry, dict)
+    }
+    for family in sorted(unproduced - known):
+        lint.fail(
+            event_path,
+            f"{family} is the target of apply_patch write(s) {sorted(patchers[family])} but no "
+            "registered write produces a base value for it; a patch has no pre-state and section "
+            "9.3.1.2 forbids closing the gap with a registered initial_value",
+        )
+    for family in sorted(known - unproduced):
+        lint.fail(
+            baseline_path,
+            f"{family} now has a registered base-value producer; remove it from "
+            "families_without_base_producer (the baseline only shrinks)",
+        )
+
+
 def check_concurrency_class_closure(lint: Lint, event_registry: dict, event_path: Path) -> None:
     """zh/authz/cba-profiles.md section 2: concurrency_class carries safety.
 
@@ -1430,6 +1483,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     constraint_schema = load_json(lint, constraint_schema_path) or {}
 
     check_concurrency_class_closure(lint, event_registry, event_path)
+    check_apply_patch_base_producers(lint, event_registry, event_path)
 
     event_rows = event_registry.get("event_kinds", [])
     event_kinds = unique_values(lint, event_path, event_rows, "event_kind")
