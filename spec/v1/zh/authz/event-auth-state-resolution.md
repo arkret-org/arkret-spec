@@ -1054,6 +1054,8 @@ kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接�
 
 **lattice 分型（normative）**：下面第 1 至 5 项的 `state_witness` 家族要求**只适用于非因果寄存器的 `bottom=reject` cell**（registry 中今天是 `ordered_log`）。**因果寄存器（`cas_register` 与 `fsm`，§9.3.1.1–§9.3.1.8）的 recovery 准入一律按 §9.5.1 求值**：它们的目标冲突由**当前签名 basis 下的完整 heads** 证明，不依赖「冲突前合法值」的 inclusion witness。第 6 项（必须 sealed）与「recovery capability 来源」一段对两类同样适用。
 
+**op 形态由目标 cell 的 lattice 决定（normative）**：`ak.conflict.recovery` 的注册 contract 不声明目标 lattice，因此 `reset` 派生成哪一种 lattice op 由目标 cell 自己的 lattice 决定——`cas_register` 是 `set`，`fsm` 是只带 `to` 的 `transition`（§9.5.1）。目标 cell 的 lattice 无法表达「收敛到单一合法值」这件事时，该 reset **不可投影**，receiver MUST 以 schema violation 拒绝整条 Move，MUST NOT 退化成任何一种该 lattice 恰好接受的 op。这是 fail-closed 方向：recovery 的授权很强，它写不进去总好过写成别的东西。
+
 它 MUST 满足：
 
 1. **携带 recovery 授权与见证 ref**：`refs[]` MUST 含 `role=recovery_capability`（critical，授权本次 recovery 的 grant）与至少一个 `role=state_witness`（critical，见证 `⊥` 之前该 cell 合法单值的 frontier + inclusion proof）。缺 `state_witness` MUST `recovery_witness_missing`。这两个 role 已登记于 [`event-and-patch.md` §2.2](../models/event-and-patch.md) 的 `SemanticRef.role`。
@@ -1077,7 +1079,30 @@ kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接�
 
 **`state_witness` 在本路径不是准入条件（normative）**：`cas_register` recovery MUST NOT 要求「目标 cell 冲突前合法值的 inclusion witness」，且 `recovery_witness_freshness_window_ms` 对本路径不适用。两条理由：首次写入就冲突时目标此前根本不存在，不存在可见证的冲突前单值；冲突长期未修时，旧 witness 过期不应剥夺**仍然有效**的恢复权威修复该 cell 的能力。目标冲突由第 1 项证明，恢复权威有效性由第 2 项证明，两者分开。MUST NOT 借「删除目标旧值 witness」绕过第 2 项的任何一项验证。
 
-**`fsm` 的附加准入（normative）**：`fsm` 的 recovery 写入除上述五项外，还 MUST 通过 §9.3.1.7 的转移准入——它携带的 `to` MUST ∈ 登记的 `states`，且该写入自身签名 basis 下的 `from` MUST 是登记的 `allowed_transitions` 允许的来源；registry 声明 `terminal_states` 时，从终态出发的 recovery MUST 被拒绝。准入之外它与 `cas_register` 的 recovery 逐字相同：同一条身份写入、同一套 heads 取代关系、同一条 §9.3.1.8 合并式，因此第 5 项「禁止按接收顺序截断」对 `fsm` 一样是 MUST，MUST NOT 用 `rposition(reset)` 之类的到达序切片实现它。
+**`fsm` 的写入形态与附加准入（normative）**：`ak.conflict.recovery` 的注册 contract 不声明目标 lattice
+（目标由 `payload.target_cell_id` 指认），因此它的 `reset` 派生成哪一种 op 由**目标 cell 自己的 lattice**
+决定：`cas_register` 派生为 `set`，`fsm` MUST 派生为一条**只携带 `to = resolved_value` 的 `transition`**。
+
+该 recovery transition **MUST NOT 携带 `from`**。目标处于 `⊥` 意味着 `H_c(B)` 至少有两个不同的 `to`
+（§9.3.1.6），这条写入一次取代它们全部，因此它离开的来源是一个**集合**，没有任何单一状态能代表它。
+实现 MUST NOT 从中挑一个（末位 head、最小 head、冲突前的旧值都不行）——那是一个 producer 不可见、
+两个 receiver 可以做出不同选择的裁决。
+
+准入按该集合逐个求值：对 `H_c(B)` 的**每一个** head `h`，`(h.to, resolved_value)` MUST ∈ 登记的
+`allowed_transitions`；任一不成立 MUST 拒绝该 Event。`H_c(B)` 为空时 MUST 拒绝——空 heads 不构成
+§9.5.1 第 1 项要求的目标冲突证明。该逐 head 检查覆盖另两条要求，不需要额外查表：`allowed_transitions`
+只指名登记的 `states`，故 `resolved_value ∈ states` 由它蕴含；而登记为 `terminal_states` 的状态在
+`allowed_transitions` 里 MUST NOT 有除已登记 self-loop 之外的出边（见下），故「从终态出发的 recovery
+MUST 被拒绝，已登记 self-loop 除外」同样由它蕴含。
+
+**registry 不变式（normative）**：`terminal_states` 的每个成员在同一 family 的 `allowed_transitions`
+中 MUST NOT 作为 `from` 出现，除非该条目是 `s → s` 的已登记 self-loop（§9.3.1.6）。上一段的等价性
+依赖这条不变式，因此它 MUST 由 artifacts 门禁强制，MUST NOT 只作为编写约定。
+
+准入之外它与 `cas_register` 的 recovery 逐字相同：同一条身份写入、同一套 heads 取代关系、同一条
+§9.3.1.8 合并式，因此第 5 项「禁止按接收顺序截断」对 `fsm` 一样是 MUST，MUST NOT 用 `rposition(reset)`
+之类的到达序切片实现它。恢复写入本身也 MUST 保持可被取代：它成为该 cell 的一个普通 head，后继合法
+transition 以它为 `from` 继续推进，未被其 basis 覆盖的迟到分支仍按 §9.3.1.8 参与合并。
 
 **与 §7.1 的层次区分**：§7.1 恢复的是 **Seal-DAG 分叉**（equivocation / `fork_quarantine`）；本节恢复的是**未分叉治理状态内单个 cell 的 `⊥`**。两者由同一恢复权威书写、都经 Seal 接受，但作用对象不同，不可互相替代。该恢复路径由 conformance vector `ak.vector.cba_lattice.conflict_recovery_move.v1` 固定。
 

@@ -1860,7 +1860,7 @@
     },
     {
       "name": "conflict_recovery_move",
-      "description": "A bottom=reject control cell recovers only through a sealed ak.conflict.recovery Control Move projected by the registered cell_ref + reset form; no other kind may declare that form. For fsm cells the pre-conflict state_witness family of requirements applies. For cas_register cells (event-auth-state-resolution.md section 9.5.1) the reset is a new identity write: the signed basis must show divergent heads, the state_witness inclusion requirement and its freshness window do not apply, recovery supersedes only the heads it observed, and arrival-order truncation is forbidden.",
+      "description": "A bottom=reject control cell recovers only through a sealed ak.conflict.recovery Control Move projected by the registered cell_ref + reset form; no other kind may declare that form. The registered contract names no lattice, so the target cell decides both which conditions apply and what op the reset becomes. For the causal registers (cas_register and fsm, event-auth-state-resolution.md section 9.5.1) the reset is a new identity write: the signed basis must show divergent heads, the state_witness inclusion requirement and its freshness window do not apply, recovery supersedes only the heads it observed, and arrival-order truncation is forbidden. The remaining bottom=reject lattices keep the pre-conflict state_witness family of requirements below.",
       "cell": "ak:cell:ak.component.realm.policy.v1:null",
       "pre_conflict_value": {
         "policy_revision": 7
@@ -1987,6 +1987,26 @@
           "a late branch the recovery basis never covered still merges, and two concurrent divergent recoveries still conflict",
           "implementations MUST NOT truncate the op history at the last reset by arrival order"
         ]
+      },
+      "fsm_recovery": {
+        "cell": "ak:cell:ak.component.agent.status.v1:ak:agent:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
+        "assertions": [
+          "the reset projects as a transition carrying only to = payload.resolved_value; a set MUST be rejected because fsm accepts no set",
+          "the recovery transition MUST NOT carry a from; under bottom it supersedes two or more divergent heads at once and no single state names them",
+          "admission runs the registered allowed_transitions from every superseded head's to into resolved_value; any head with no such edge rejects the Event",
+          "an empty head set rejects: empty heads are not the divergent-heads proof section 9.5.1 item 1 requires",
+          "a terminal state stays terminal because it carries no outgoing edge but its registered self-loop, so no separate terminal_states lookup is needed",
+          "resolved_value in states follows from the same table membership and needs no separate check",
+          "the recovery head is superseded like any other write: a later registered transition authored against the recovered state moves the cell on"
+        ],
+        "shared_with_cas_register": [
+          "no state_witness ref is required and recovery_witness_freshness_window_ms does not apply on this path",
+          "the recovery capability is still verified against its registered authority path, including revocation, scope and authority generation",
+          "the covering Seal still compares full heads H_c(B) = H_c(P)",
+          "a late branch the recovery basis never covered still merges, and two concurrent divergent recoveries still conflict",
+          "implementations MUST NOT truncate the op history at the last reset by arrival order"
+        ],
+        "executed_by": "ak.vector.lattice.fsm_causal_heads.v1 cases recovery_lifts_the_cell_out_of_bottom, a_recovery_head_is_superseded_like_any_other and concurrent_different_to_recovery_still_conflicts"
       }
     },
     {
@@ -2475,7 +2495,7 @@
     {
       "vector_id": "ak.vector.lattice.fsm_causal_heads.v1",
       "name": "fsm_causal_heads",
-      "description": "`fsm` is a causal register whose active heads carry the transition's `to`. `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis; they are never join-time edges, and the op list is never read as a path.",
+      "description": "`fsm` is a causal register whose active heads carry the transition's `to`. `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis; they are never join-time edges, and the op list is never read as a path. A §9.5.1 recovery write is one of these heads: it carries only `to`, supersedes exactly the divergent heads its basis observed, and is itself superseded by a later transition.",
       "cell": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
       "cell_lattice": "fsm",
       "registered": {
@@ -2526,6 +2546,8 @@
         "exact_replay_dedupes_by_identity",
         "a_late_branch_merges_by_the_section_9_3_1_8_formula",
         "a_missing_dependency_holds_rather_than_trusting_an_unverified_to",
+        "a_recovery_carries_only_to_and_supersedes_every_divergent_head",
+        "a_recovery_head_is_superseded_by_a_later_ordinary_transition",
         "concurrent_different_to_recovery_still_conflicts",
         "the_mls_membership_consumer_reads_the_same_state_as_the_lattice"
       ],
@@ -2923,6 +2945,92 @@
           }
         },
         {
+          "name": "recovery_lifts_the_cell_out_of_bottom",
+          "writes": [
+            {
+              "id": "ak:event:AZ9y0YEnB1QYNTiOxfybgpHqxpfEsFRVJdLKQuemxSDL",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:AeMd1QeUAfLc5oxeYOr4EaWLdN1DHfhY8gnwUvL2DFBs",
+              "from": "active",
+              "to": "active",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:AXQIhstHIQiLuOU4NObSQBmTgSpb4jmJ4qXA_qtn10rF",
+              "to": "active",
+              "supersedes": [
+                "ak:event:AZ9y0YEnB1QYNTiOxfybgpHqxpfEsFRVJdLKQuemxSDL",
+                "ak:event:AeMd1QeUAfLc5oxeYOr4EaWLdN1DHfhY8gnwUvL2DFBs"
+              ],
+              "recovery": true
+            }
+          ],
+          "recovery_writes": [
+            "r3"
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:AXQIhstHIQiLuOU4NObSQBmTgSpb4jmJ4qXA_qtn10rF",
+                "to": "active"
+              }
+            ],
+            "settled": "active",
+            "note": "The `fsm` escape from `⊥`. The recovery carries only `to`; it supersedes both divergent heads and becomes the cell's single head. It is not a truncation: the two superseded writes stay in the log and stay superseded."
+          }
+        },
+        {
+          "name": "a_recovery_head_is_superseded_like_any_other",
+          "writes": [
+            {
+              "id": "ak:event:AZ9y0YEnB1QYNTiOxfybgpHqxpfEsFRVJdLKQuemxSDL",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:AeMd1QeUAfLc5oxeYOr4EaWLdN1DHfhY8gnwUvL2DFBs",
+              "from": "active",
+              "to": "active",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:AXQIhstHIQiLuOU4NObSQBmTgSpb4jmJ4qXA_qtn10rF",
+              "to": "active",
+              "supersedes": [
+                "ak:event:AZ9y0YEnB1QYNTiOxfybgpHqxpfEsFRVJdLKQuemxSDL",
+                "ak:event:AeMd1QeUAfLc5oxeYOr4EaWLdN1DHfhY8gnwUvL2DFBs"
+              ],
+              "recovery": true
+            },
+            {
+              "id": "ak:event:AbYqLtSXbCUWJEcCr3lFcz4hcm6Bl_S9zFEnpNjFN5MK",
+              "from": "active",
+              "to": "archived",
+              "supersedes": [
+                "ak:event:AXQIhstHIQiLuOU4NObSQBmTgSpb4jmJ4qXA_qtn10rF"
+              ]
+            }
+          ],
+          "recovery_writes": [
+            "r3"
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:AbYqLtSXbCUWJEcCr3lFcz4hcm6Bl_S9zFEnpNjFN5MK",
+                "to": "archived"
+              }
+            ],
+            "settled": "archived",
+            "note": "Recovery does not freeze the cell. An ordinary transition authored against the recovered state supersedes the recovery head and moves on, which is only expressible because the recovery is a head rather than a boundary."
+          }
+        },
+        {
           "name": "concurrent_different_to_recovery_still_conflicts",
           "writes": [
             {
@@ -2934,26 +3042,26 @@
             {
               "id": "ak:event:Aa4xMEBTnUukZb7tIYWiP9688uvDHsP4gEiu7YsCVN0G",
               "from": "active",
-              "to": "tombstoned",
+              "to": "active",
               "supersedes": []
             },
             {
               "id": "ak:event:AcwR2PHnZO8FG8QwylQFQJ-oy__my0JFeCZ34vAoegOs",
-              "from": "active",
-              "to": "archived",
+              "to": "tombstoned",
               "supersedes": [
                 "ak:event:AUHojdIc1-e1M_WWBEoVtsCtWK3gcma1cb7lRr3YpeFG",
                 "ak:event:Aa4xMEBTnUukZb7tIYWiP9688uvDHsP4gEiu7YsCVN0G"
-              ]
+              ],
+              "recovery": true
             },
             {
               "id": "ak:event:AcAwBGtrGojF5vWNhyqhLjExbGx5Xo42Fpcdz5_l9-Sv",
-              "from": "active",
               "to": "active",
               "supersedes": [
                 "ak:event:AUHojdIc1-e1M_WWBEoVtsCtWK3gcma1cb7lRr3YpeFG",
                 "ak:event:Aa4xMEBTnUukZb7tIYWiP9688uvDHsP4gEiu7YsCVN0G"
-              ]
+              ],
+              "recovery": true
             }
           ],
           "recovery_writes": [
@@ -2968,12 +3076,12 @@
               },
               {
                 "event_id": "ak:event:AcwR2PHnZO8FG8QwylQFQJ-oy__my0JFeCZ34vAoegOs",
-                "to": "archived"
+                "to": "tombstoned"
               }
             ],
             "settled": "failed_bottom",
             "bottom_reason": "same_from_different_to",
-            "note": "Two authorised recoveries, each superseding the same conflicting pair, disagree on `to`. Recovery is an ordinary identity write, so it conflicts like any other; arrival order MUST NOT settle it."
+            "note": "Two authorised recoveries, each superseding the same conflicting pair, disagree on `to`. Recovery is an ordinary identity write carrying only its `to`, so it conflicts like any other; arrival order MUST NOT settle it."
           }
         }
       ]

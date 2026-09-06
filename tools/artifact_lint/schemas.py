@@ -4769,6 +4769,13 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         # legal: `ak.component.realm.link.v1` declares `(tombstoned,
         # tombstoned)` so a repeated declaration is idempotent rather than a
         # sibling conflict.
+        #
+        # `event-auth-state-resolution.md` §9.5.1 names this check as the
+        # registry invariant its fsm recovery admission rests on: that admission
+        # checks only `allowed_transitions` membership out of each superseded
+        # head, and "a recovery out of a terminal state is refused" is equivalent
+        # to it *because* this lint holds. Relaxing this would silently let a
+        # recovery walk a cell out of `deactivated` / `revoked` / `tombstoned`.
         terminal_states = list(contract_view.get("terminal_states") or [])
         for state in terminal_states:
             if state not in states:
