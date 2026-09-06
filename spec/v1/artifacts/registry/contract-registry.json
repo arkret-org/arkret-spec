@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.7",
+  "version": "2026-09-07.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T11:00:00+08:00",
+  "generated_at": "2026-09-07T16:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -3317,7 +3317,7 @@
             }
           }
         ],
-        "concurrency_class": "merge_safe"
+        "concurrency_class": "security_barrier"
       },
       "ak.moderation.decision.lift": {
         "plane": "control",
@@ -3339,7 +3339,7 @@
             }
           }
         ],
-        "concurrency_class": "merge_safe"
+        "concurrency_class": "security_barrier"
       },
       "ak.moderation.franking_proof": {
         "plane": "data",

@@ -61,6 +61,22 @@ class ConcurrencyClassClosureTest(unittest.TestCase):
             any("opposite serialization promises" in f for f in failures), failures
         )
 
+    def test_moderation_writes_are_barriers_because_authorization_reads_them(self) -> None:
+        """cba-profiles.md section 2: authorization reads it, so it is a barrier.
+
+        capabilities.md 18.1 lets a grant subject be a condition selector over
+        moderation state, so a merge_safe classification would let a moderation
+        decision share a frozen predecessor with a write its own outcome governs.
+        """
+        for kind in ("ak.moderation.decision", "ak.moderation.decision.lift"):
+            row = _row(self.registry, kind)
+            self.assertEqual(row["concurrency_class"], "security_barrier", kind)
+            self.assertEqual(
+                [write["cell_family"] for write in row["cell_writes"]],
+                ["ak.component.moderation_state.v1"],
+                kind,
+            )
+
     def test_object_genesis_barrier_is_exempt(self) -> None:
         """ak.call.create is a barrier genesis keyed by its own event id."""
         families = {

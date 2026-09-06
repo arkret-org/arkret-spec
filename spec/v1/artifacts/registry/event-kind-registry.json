@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.7",
+  "version": "2026-09-07.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-07T11:00:00+08:00",
+  "generated_at": "2026-09-07T16:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -5991,7 +5991,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.moderation.decision.lift",
@@ -6022,7 +6022,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.read_cursor.advance",

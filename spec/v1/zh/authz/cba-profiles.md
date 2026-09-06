@@ -50,6 +50,28 @@ MUST NOT 只作为审阅习惯：
    barrier 写要求对同 scope 的并发 barrier 串行，非 barrier 写明确声明不要求全局串行，
    而它们落在同一个 cell 上。
 
+**分类判据：授权判定读它，就必须是 `security_barrier`（normative）**：
+一个 control kind 若写入**任何一个可能被授权 allow/deny 求值读取的 cell family**，
+它 MUST 登记为 `security_barrier`，MUST NOT 登记为 `exclusive` 或 `merge_safe`。
+理由是写偏差：非 barrier 分类向调用方承诺「不需要与无关操作串行」，
+于是它可以与另一条写共享同一个冻结前态；若那条写的授权恰好读它写的 cell，
+两条都在旧前态通过，结果是被本次决定降权的主体仍以降权前的基线行使了权限——
+与 `remove(A)` / `grant(admin,A)` 的写偏差同型。
+lattice 的可交换性不提供保护：写偏差不是 join 的性质，是两条写共享过期前态的性质。
+
+v1 中命中该判据的是 `ak.moderation.decision` 与 `ak.moderation.decision.lift`
+（写 `ak.component.moderation_state.v1`）。[`capabilities.md` §18.1](./capabilities.md)
+允许 grant 的 `subject` 是引用 moderation state 字段的 condition selector，
+也允许 typed constraint 引用该 cell，因此授权判定确实读它。
+二者据此登记为 `security_barrier`。该 cell 的 subject 是 `payload.target_ref`，
+逐 moderation 目标一个 cell，所以串行化只发生在**同一目标**上，
+不同目标的并发 moderation 决定互不影响。
+
+**这不改变 moderation 的定位。**它仍是 deny / quarantine 后置层，不是 capability 来源：
+`depends_on_moderation_state` 依旧只是缓存失效 hint（[`constraint-schema.md` §18.1.1](./constraint-schema.md)），
+真正的依赖仍落在 condition selector 与 typed constraint 上。
+本条约束的是**写入方的并发类别**，不是 moderation 在授权链里的位置。
+
 **object-genesis 例外（normative，封闭）**：当某 family 上的**全部** barrier 写入的
 `cell_subject` 都只从 `envelope.event_id` 派生时，第 2 条不适用。这类写入只能创建一个
 以本 Event 身份命名的**新** cell，因此它与后续针对既有 subject 的非 barrier 写入
