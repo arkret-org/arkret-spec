@@ -1230,13 +1230,71 @@ ak.vector.lattice.fsm_join.v1
 - Case D 返回 ⊥（把 self-loop 当成该状态已用掉的出边）。
 - transition `(from,to)` 不在 `allowed_transitions` 表内却未返回 ⊥ / 未被 validate_op 拒绝。
 
-**本向量当前不固定「不同到达顺序得到同一结果」**：上文 Case A 的期望里写了这条，但它对 `fsm`
-整体成立需要一个 `cas_register` 尚未拥有的对应物——状态机自己的转移代数。缺口与三个已定位的实现
-缺陷记在 `arkret-work/review/spec-open/2026-09-06-1610`，裁决落地前 runner MUST NOT 声明它已被执行。
+**「不同到达顺序得到同一结果」由 §2.11.2 承载**：它需要一个 `cas_register` 早已拥有、
+而 `fsm` 直到 §9.3.1.5–§9.3.1.8 才获得的对应物——按写入身份而非按输入序列定义的状态。
+本节固定转移表准入与同 basis 冲突判定；顺序无关性、ABA、迟到分支与并发 recovery 在 §2.11.2。
 
 #### 2.11.1 Vector: same-Seal `bottom=reject` 排重
 
 向量名称 `ak.vector.seal.same_batch_bottom_reject_serialization.v1`。构造两条基于同一 frozen predecessor、命中同一 `cas_register` 或 `fsm` `bottom=reject` cell 且 projected writes 互斥的 Control Move。Case A 的 notary 只 include 一条并对另一条 signed-reject `cas_conflict`（或 defer）；Seal MUST accept。Case B 的同一 Seal `delta[]` include 两条；`apply_seal` MUST 拒绝整个 Seal 为 `rejected_seal`，不得物化 `failed_bottom`。Case C 把两条 Move 放在不可达的并发 Seal leaf；joined view 仍 MUST 按 lattice 返回 `Bottom{kind="conflict"}`，证明排重义务不改变真正跨 leaf 并发语义。
+
+#### 2.11.2 Vector: `fsm` 因果 heads（顺序无关性与迟到分支）
+
+向量名称：
+
+```text
+ak.vector.lattice.fsm_causal_heads.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md` §9.3.1.5–§9.3.1.8](../authz/event-auth-state-resolution.md)：
+`fsm` 与 `cas_register` 是同一套因果状态，每个活跃 head 携带该写入的 `to`；`from`、`states` 与
+`allowed_transitions` 是写入对**自身签名 basis** 的准入断言，不是 join 时的接边依据。上一节
+§2.11 固定的是转移表准入与同 basis 的冲突判定，本节固定的是**状态代数**——它才是「不同到达顺序
+得到同一结果」的来源。机器 fixture 是
+[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) 的
+`ak.vector.lattice.fsm_causal_heads.v1` 块。
+
+输入：每个 case 给出一组写入 `{id, from, to, supersedes[]}`，其中 `supersedes` 是该写入自身已验证
+basis 观察到的完整 head 身份集合（reducer 派生，不上 wire）；`registered` 给出该 family 的
+`initial_state` / `states` / `allowed_transitions` / `terminal_states`。
+
+期望：
+
+- **未写入**读登记的 `initial_state`，且不占 `state_root` leaf。这是 `fsm` 与 `cas_register`
+  唯一的状态差别。
+- **顺序置换与分批合并**：`linear_chain_leaves_only_its_terminal_write`、
+  `input_order_permutation_is_one_result`、`batch_split_is_one_result` 三个 case MUST 得到同一
+  heads 与同一 settled 值。按输入顺序折叠的实现在第二个 case 上就会分叉。
+- **ABA**：`aba_is_distinguished_from_abab` 读 `active`，`abab_reads_archived` 读 `archived`。
+  按 `(from,to)` 去重的实现两个都读 `active`。
+- **已登记 self-loop**：`a_registered_self_loop_leaves_later_transitions_legal` 读 `tombstoned`。
+  把 self-loop 记成「该状态唯一出边」的实现会把后继判成冲突。
+- **同值并发与重放**：`concurrent_same_to_keeps_every_identity` 保留**两个** head 并读同值；
+  `exact_replay_dedupes_by_identity` 只保留**一个**。两者 MUST NOT 被合并成同一条判据——
+  前者是两个真实并发写入，后者是同一个写入到达两次。
+- **异值并发**：`concurrent_different_to_reads_failed_bottom` 读 `failed_bottom`，Bottom 诊断
+  reason 为 `same_from_different_to`，且该 cell **仍占 `state_root` leaf**（§6.2.1）。
+- **迟到分支**：`late_branch_merges_by_the_formula` MUST 按 §9.3.1.8 的合并式求值——
+  取 heads 的并集会把已被取代的 `g1` 复活，取交集会丢掉对方从没见过的 `g3`；两者都错。
+- **缺依赖**：`missing_dependency_holds` MUST hold 或 fail closed，MUST NOT 因为写入自称
+  `from=archived` 就采信它的 `to`。
+- **并发 recovery**：`concurrent_different_to_recovery_still_conflicts` 仍读 `failed_bottom`。
+  recovery 是一次有权的新身份写入，不因「它是 recovery」而免于冲突，更不由到达顺序裁定。
+
+失败条件：
+
+- 任意两个只在输入顺序或分批方式上不同的 case 得到不同结果。
+- `aba_is_distinguished_from_abab` 与 `abab_reads_archived` 读出相同 settled 值。
+- `concurrent_same_to_keeps_every_identity` 只保留一个 head，或
+  `exact_replay_dedupes_by_identity` 保留两个。
+- `⊥` 的 `fsm` cell 未进入 `state_root`。
+- 迟到分支合并用了并集或交集。
+- `missing_dependency_holds` 物化出 `tombstoned`。
+
+**消费面一并覆盖（normative）**：MLS membership、governance proof 与 Station notary 各自持有的
+membership transition 折叠是本 lattice 的消费者。runner MUST 对这些消费面执行同一组 case——
+保留一份按 `(from,to)` 去重或按 `recovery_reset` 切片的并行实现，等于让同一个 cell 在两个消费面上
+读出不同状态（§9.3.1.8）。
 
 ### 2.12 Vector: `cas_register` 因果身份守卫（stale basis 与 ABA 拒绝）
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.2",
+  "version": "2026-09-07.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T01:10:00+08:00",
+  "generated_at": "2026-09-07T03:50:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -232,8 +232,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:041c3fb8279b76700a2230a5a925f30371655683b3f4e0a8ed14767e7e44567d",
-      "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest. Availability admission is authorized only by the joined predecessor state: genesis has no such authority, commits no AvailabilityReceipt, and materializes policy only for successor Seals.",
+      "section_digest": "sha256:ce957f93ead3481cd62f9a363ab6485cd1e4e44a49b93368597443b8a25b9a33",
+      "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest. A written causal-register cell always occupies a state_root leaf - cas_register and fsm alike, including one whose heads disagree - because absent from the root a conflicted cell and a never-written one are indistinguishable under a non-membership proof while reading differently; every other bottom=reject lattice stays out. Availability admission is authorized only by the joined predecessor state: genesis has no such authority, commits no AvailabilityReceipt, and materializes policy only for successor Seals.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.seal_canonical_no_self_reference.v1",
@@ -279,18 +279,19 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:783dce420c680e845d98f4f475a5cc7f8f0e6e779b3abeb1725d6519ee58e397",
-      "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC. cas_register is a causal register: an unwritten cell reads null, every write is identified by its EventId and supersedes exactly the heads it observed in its own signed seal_basis, a release is an explicit set null that keeps its own head, and the two-state merge over (covered set, active heads) is the least upper bound and agrees with the full causal history. Bottom is a function of the view, not a sticky local flag.",
+      "section_digest": "sha256:42d7fec5f2f1021093f86db517d1f2e11ac9461f4889db152246dea1ae9ee715",
+      "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC. cas_register is a causal register: an unwritten cell reads null, every write is identified by its EventId and supersedes exactly the heads it observed in its own signed seal_basis, a release is an explicit set null that keeps its own head, and the two-state merge over (covered set, active heads) is the least upper bound and agrees with the full causal history. fsm is the same causal register with `to` on each head: `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis and never join-time edges, the registered initial state is what an unwritten cell reads, two different identities writing one `(from,to)` stay two heads while a replayed identity is one, and the same two-state merge applies - so the result does not depend on input order, ABA is distinguished from ABAB, and a registered self-loop leaves later registered transitions legal. Bottom is a function of the view, not a sticky local flag.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.lattice.mv_register_join.v1",
-        "ak.vector.lattice.counter_join.v1",
-        "ak.vector.lattice.ordered_log_join.v1",
-        "ak.vector.lattice.fsm_join.v1",
-        "ak.vector.lattice.cas_register_supersession.v1",
-        "ak.vector.lattice.ordered_log_gap.v1",
+        "ak.vector.cba_lattice.cas_mixed_basis.v1",
         "ak.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
-        "ak.vector.cba_lattice.cas_mixed_basis.v1"
+        "ak.vector.lattice.cas_register_supersession.v1",
+        "ak.vector.lattice.counter_join.v1",
+        "ak.vector.lattice.fsm_causal_heads.v1",
+        "ak.vector.lattice.fsm_join.v1",
+        "ak.vector.lattice.mv_register_join.v1",
+        "ak.vector.lattice.ordered_log_gap.v1",
+        "ak.vector.lattice.ordered_log_join.v1"
       ]
     },
     {

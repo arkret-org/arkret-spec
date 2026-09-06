@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.cba_lattice.v1"
   },
   "profile": "ak.vector_group.cba_lattice.v1",
-  "version": "2026-07-30",
+  "version": "2026-09-07",
   "notes": [
     "These vectors pin CBA dual-plane semantics. DataEvent vectors use signed kind + payload + scope_ref + seal_ref and never use preconditions. Control Move vectors use signed kind + payload + scope_ref + seal_basis and may use preconditions. Every cell write is receiver-projected from the registered reducer contract.",
     "Seal delta entries reference only newly sealed control-plane event digests. Cumulative coverage is derived from predecessor_refs[] plus delta[]. DataEvent digests may appear in data_event_set_root / data_view_root observations, but those roots do not confer control-plane finality.",
@@ -2487,6 +2487,512 @@
             "evidence_scope": "unresolved"
           },
           "note": "Accepted resolution, global root equality, an ordinary successful exchange and another peer having aligned are all insufficient."
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.lattice.fsm_causal_heads.v1",
+      "name": "fsm_causal_heads",
+      "description": "`fsm` is a causal register whose active heads carry the transition's `to`. `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis; they are never join-time edges, and the op list is never read as a path.",
+      "cell": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+      "cell_lattice": "fsm",
+      "registered": {
+        "initial_state": "active",
+        "states": [
+          "active",
+          "archived",
+          "tombstoned"
+        ],
+        "allowed_transitions": [
+          [
+            "active",
+            "active"
+          ],
+          [
+            "active",
+            "archived"
+          ],
+          [
+            "archived",
+            "active"
+          ],
+          [
+            "active",
+            "tombstoned"
+          ],
+          [
+            "archived",
+            "tombstoned"
+          ],
+          [
+            "tombstoned",
+            "tombstoned"
+          ]
+        ],
+        "terminal_states": [
+          "tombstoned"
+        ]
+      },
+      "assertions": [
+        "state_is_active_write_identities_each_carrying_to",
+        "from_is_admission_against_the_writes_own_basis_not_a_join_edge",
+        "input_order_and_batch_split_do_not_change_the_result",
+        "aba_is_distinguished_from_abab",
+        "a_registered_self_loop_leaves_later_registered_transitions_legal",
+        "concurrent_same_to_writes_keep_every_identity",
+        "concurrent_different_to_writes_read_failed_bottom",
+        "exact_replay_dedupes_by_identity",
+        "a_late_branch_merges_by_the_section_9_3_1_8_formula",
+        "a_missing_dependency_holds_rather_than_trusting_an_unverified_to",
+        "concurrent_different_to_recovery_still_conflicts",
+        "the_mls_membership_consumer_reads_the_same_state_as_the_lattice"
+      ],
+      "cases": [
+        {
+          "name": "unwritten_cell_reads_its_registered_initial_state",
+          "writes": [],
+          "expected": {
+            "heads": [],
+            "settled": "active",
+            "occupies_state_root_leaf": false,
+            "note": "The one state difference from `cas_register`: an unwritten `fsm` cell reads the registered initial state, not `null`. It still occupies no leaf."
+          }
+        },
+        {
+          "name": "linear_chain_leaves_only_its_terminal_write",
+          "writes": [
+            {
+              "id": "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn",
+              "from": "archived",
+              "to": "active",
+              "supersedes": [
+                "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP"
+              ]
+            },
+            {
+              "id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
+              "from": "active",
+              "to": "tombstoned",
+              "supersedes": [
+                "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn"
+              ]
+            }
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
+                "to": "tombstoned"
+              }
+            ],
+            "settled": "tombstoned",
+            "occupies_state_root_leaf": true
+          }
+        },
+        {
+          "name": "input_order_permutation_is_one_result",
+          "writes": [
+            {
+              "id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
+              "from": "active",
+              "to": "tombstoned",
+              "supersedes": [
+                "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn"
+              ]
+            },
+            {
+              "id": "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn",
+              "from": "archived",
+              "to": "active",
+              "supersedes": [
+                "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP"
+              ]
+            }
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
+                "to": "tombstoned"
+              }
+            ],
+            "settled": "tombstoned",
+            "same_as_case": "linear_chain_leaves_only_its_terminal_write",
+            "note": "A sequential fold reading the op list as a path answers differently here; the causal state does not, because supersession comes from each write's own basis rather than from its neighbour in the list."
+          }
+        },
+        {
+          "name": "batch_split_is_one_result",
+          "batches": [
+            [
+              {
+                "id": "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP",
+                "from": "active",
+                "to": "archived",
+                "supersedes": []
+              }
+            ],
+            [
+              {
+                "id": "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn",
+                "from": "archived",
+                "to": "active",
+                "supersedes": [
+                  "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP"
+                ]
+              },
+              {
+                "id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
+                "from": "active",
+                "to": "tombstoned",
+                "supersedes": [
+                  "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn"
+                ]
+              }
+            ]
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
+                "to": "tombstoned"
+              }
+            ],
+            "settled": "tombstoned",
+            "same_as_case": "linear_chain_leaves_only_its_terminal_write"
+          }
+        },
+        {
+          "name": "aba_is_distinguished_from_abab",
+          "writes": [
+            {
+              "id": "ak:event:ARNkN5uyAqEKjWnEEYIyjv5iTzF9fA2o-k5oI8Timp6J",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:Af4XyTzGgspCeY9971Jbl_2exvGlgiAYoC9F6-x7XpdA",
+              "from": "archived",
+              "to": "active",
+              "supersedes": [
+                "ak:event:ARNkN5uyAqEKjWnEEYIyjv5iTzF9fA2o-k5oI8Timp6J"
+              ]
+            }
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:Af4XyTzGgspCeY9971Jbl_2exvGlgiAYoC9F6-x7XpdA",
+                "to": "active"
+              }
+            ],
+            "settled": "active",
+            "contrast_case": "abab_reads_archived"
+          }
+        },
+        {
+          "name": "abab_reads_archived",
+          "writes": [
+            {
+              "id": "ak:event:ARNkN5uyAqEKjWnEEYIyjv5iTzF9fA2o-k5oI8Timp6J",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:Af4XyTzGgspCeY9971Jbl_2exvGlgiAYoC9F6-x7XpdA",
+              "from": "archived",
+              "to": "active",
+              "supersedes": [
+                "ak:event:ARNkN5uyAqEKjWnEEYIyjv5iTzF9fA2o-k5oI8Timp6J"
+              ]
+            },
+            {
+              "id": "ak:event:AWJ_EpARzoN5FYR7zda2iv_hzhylOKDVVIEioKSkbzWR",
+              "from": "active",
+              "to": "archived",
+              "supersedes": [
+                "ak:event:Af4XyTzGgspCeY9971Jbl_2exvGlgiAYoC9F6-x7XpdA"
+              ]
+            }
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:AWJ_EpARzoN5FYR7zda2iv_hzhylOKDVVIEioKSkbzWR",
+                "to": "archived"
+              }
+            ],
+            "settled": "archived",
+            "note": "Deduplicating on `(from,to)` collapses this to the same pair as the ABA case and reads `active`. The identities are what tell them apart."
+          }
+        },
+        {
+          "name": "a_registered_self_loop_leaves_later_transitions_legal",
+          "writes": [
+            {
+              "id": "ak:event:AcQyZXE30Xm1yjgmJE63kx0n9CBJ8nEGHIIxIMASw9Rr",
+              "from": "active",
+              "to": "active",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:Af05dsQw0sWqeDwAeflmCDeY6h3UlWxt9nz7hOFYw5lj",
+              "from": "active",
+              "to": "tombstoned",
+              "supersedes": [
+                "ak:event:AcQyZXE30Xm1yjgmJE63kx0n9CBJ8nEGHIIxIMASw9Rr"
+              ]
+            }
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:Af05dsQw0sWqeDwAeflmCDeY6h3UlWxt9nz7hOFYw5lj",
+                "to": "tombstoned"
+              }
+            ],
+            "settled": "tombstoned",
+            "note": "`c2` is a registered edge out of `active` and its basis observed only `c1`. Reading the self-loop as `active`'s single out-edge rejects it as a `same_from_different_to` conflict, which is the defect this pins."
+          }
+        },
+        {
+          "name": "concurrent_same_to_keeps_every_identity",
+          "writes": [
+            {
+              "id": "ak:event:AWUV5sLfBQZE2PTAVeVB1s8RT_ZUyfgvTFwIqjMNz-K1",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:AUEv7uCdpimS1oLvrXig40jQC_cqe5UxbECMv4cJAmot",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            }
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:AUEv7uCdpimS1oLvrXig40jQC_cqe5UxbECMv4cJAmot",
+                "to": "archived"
+              },
+              {
+                "event_id": "ak:event:AWUV5sLfBQZE2PTAVeVB1s8RT_ZUyfgvTFwIqjMNz-K1",
+                "to": "archived"
+              }
+            ],
+            "settled": "archived",
+            "note": "Two identities, one settled state. Collapsing them loses the head a peer that only saw `d1` must still be told about."
+          }
+        },
+        {
+          "name": "concurrent_different_to_reads_failed_bottom",
+          "writes": [
+            {
+              "id": "ak:event:Af4PSmFSCNeZdRhP9_6xvGxJzk3F-3PTxrhrs2ebyeyw",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:AYXuS_cUDRxRCC7pZ4EiGaT8XRTn4DQRxijgm-eUsZg0",
+              "from": "active",
+              "to": "tombstoned",
+              "supersedes": []
+            }
+          ],
+          "expected": {
+            "settled": "failed_bottom",
+            "bottom_reason": "same_from_different_to",
+            "heads": [
+              {
+                "event_id": "ak:event:AYXuS_cUDRxRCC7pZ4EiGaT8XRTn4DQRxijgm-eUsZg0",
+                "to": "tombstoned"
+              },
+              {
+                "event_id": "ak:event:Af4PSmFSCNeZdRhP9_6xvGxJzk3F-3PTxrhrs2ebyeyw",
+                "to": "archived"
+              }
+            ],
+            "occupies_state_root_leaf": true,
+            "note": "A written cell in `⊥` keeps its leaf, for the same reason a `cas_register` one does: absent from the root, `⊥` and never-written are indistinguishable under a non-membership proof, and they read differently."
+          }
+        },
+        {
+          "name": "exact_replay_dedupes_by_identity",
+          "writes": [
+            {
+              "id": "ak:event:AW4SZfI08xfE3DGRgC58uFt1NhnFdxrB-URiLcNb_gyH",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:AW4SZfI08xfE3DGRgC58uFt1NhnFdxrB-URiLcNb_gyH",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            }
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:AW4SZfI08xfE3DGRgC58uFt1NhnFdxrB-URiLcNb_gyH",
+                "to": "archived"
+              }
+            ],
+            "settled": "archived",
+            "contrast_case": "concurrent_same_to_keeps_every_identity",
+            "note": "Same identity, same canonical effect: one head. Two different identities with the same `(from,to)` are two heads. The two cases must not be conflated."
+          }
+        },
+        {
+          "name": "late_branch_merges_by_the_formula",
+          "merge": {
+            "left": {
+              "covered": [
+                "g1",
+                "g2"
+              ],
+              "writes": [
+                {
+                  "id": "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF",
+                  "from": "active",
+                  "to": "archived",
+                  "supersedes": []
+                },
+                {
+                  "id": "ak:event:AT5UhoHgELlDQz-0XI8nXZpvMmsfT8kMfEeiRrbwY3my",
+                  "from": "archived",
+                  "to": "active",
+                  "supersedes": [
+                    "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF"
+                  ]
+                }
+              ]
+            },
+            "right": {
+              "covered": [
+                "g1",
+                "g3"
+              ],
+              "writes": [
+                {
+                  "id": "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF",
+                  "from": "active",
+                  "to": "archived",
+                  "supersedes": []
+                },
+                {
+                  "id": "ak:event:ARZh-8tivxKKrx56VUM2e2GdBlmVLUfxefJ1heRKXC3n",
+                  "from": "active",
+                  "to": "archived",
+                  "supersedes": []
+                }
+              ]
+            }
+          },
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:ARZh-8tivxKKrx56VUM2e2GdBlmVLUfxefJ1heRKXC3n",
+                "to": "archived"
+              },
+              {
+                "event_id": "ak:event:AT5UhoHgELlDQz-0XI8nXZpvMmsfT8kMfEeiRrbwY3my",
+                "to": "active"
+              }
+            ],
+            "settled": "failed_bottom",
+            "bottom_reason": "same_from_different_to",
+            "note": "`g1` is superseded on the left and covered on the right, so it drops. `g3` is unknown to the left, so it survives. Union-of-heads would keep `g1` and intersection would drop `g3`; only the section 9.3.1.8 formula is right."
+          }
+        },
+        {
+          "name": "missing_dependency_holds",
+          "writes": [
+            {
+              "id": "ak:event:Acw0I7mKZXU2a3Yf_SllOc3xUG-DjPZ-BmyFh8QCZ2wx",
+              "from": "archived",
+              "to": "tombstoned",
+              "supersedes": []
+            }
+          ],
+          "unreconstructable_basis": true,
+          "expected": {
+            "result": "hold",
+            "settled": "active",
+            "note": "The write claims `from=archived` but its basis cannot be rebuilt, so the reducer cannot check the admission. It holds; it MUST NOT adopt `to` on the strength of an unverified `from`."
+          }
+        },
+        {
+          "name": "concurrent_different_to_recovery_still_conflicts",
+          "writes": [
+            {
+              "id": "ak:event:AUHojdIc1-e1M_WWBEoVtsCtWK3gcma1cb7lRr3YpeFG",
+              "from": "active",
+              "to": "archived",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:Aa4xMEBTnUukZb7tIYWiP9688uvDHsP4gEiu7YsCVN0G",
+              "from": "active",
+              "to": "tombstoned",
+              "supersedes": []
+            },
+            {
+              "id": "ak:event:AcwR2PHnZO8FG8QwylQFQJ-oy__my0JFeCZ34vAoegOs",
+              "from": "active",
+              "to": "archived",
+              "supersedes": [
+                "ak:event:AUHojdIc1-e1M_WWBEoVtsCtWK3gcma1cb7lRr3YpeFG",
+                "ak:event:Aa4xMEBTnUukZb7tIYWiP9688uvDHsP4gEiu7YsCVN0G"
+              ]
+            },
+            {
+              "id": "ak:event:AcAwBGtrGojF5vWNhyqhLjExbGx5Xo42Fpcdz5_l9-Sv",
+              "from": "active",
+              "to": "active",
+              "supersedes": [
+                "ak:event:AUHojdIc1-e1M_WWBEoVtsCtWK3gcma1cb7lRr3YpeFG",
+                "ak:event:Aa4xMEBTnUukZb7tIYWiP9688uvDHsP4gEiu7YsCVN0G"
+              ]
+            }
+          ],
+          "recovery_writes": [
+            "i3",
+            "i4"
+          ],
+          "expected": {
+            "heads": [
+              {
+                "event_id": "ak:event:AcAwBGtrGojF5vWNhyqhLjExbGx5Xo42Fpcdz5_l9-Sv",
+                "to": "active"
+              },
+              {
+                "event_id": "ak:event:AcwR2PHnZO8FG8QwylQFQJ-oy__my0JFeCZ34vAoegOs",
+                "to": "archived"
+              }
+            ],
+            "settled": "failed_bottom",
+            "bottom_reason": "same_from_different_to",
+            "note": "Two authorised recoveries, each superseding the same conflicting pair, disagree on `to`. Recovery is an ordinary identity write, so it conflicts like any other; arrival order MUST NOT settle it."
+          }
         }
       ]
     }

@@ -378,7 +378,7 @@ leaf 集合与顺序：
   - **`state_root` 只承认注册 reducer 输出（normative）**：未在 canonical reducer contract `cell_writes[]` 登记的隐含写入 MUST NOT 进入 `state_root`、inclusion proof 或轻客户端授权判据。散文中的“顺带写入”没有规范效力。
 - **每个 cell 的 leaf 输入**：`leaf_preimage = canonical_json({ "cell": "<cell_wire_id>", "state": <state_object> })`，其中
   - `<cell_wire_id>` 是该 cell 的 canonical tuple 引用 `ak:cell:<component>:<subject>`（[`conformance/encoding.md` §4](../conformance/encoding.md)）；
-  - `<state_object>` 在 cell 物化为具体值时为 `{ "value": <lattice_value> }`。非 `cas_register` 的 `⊥`（`failed_bottom`，§9.1.1）cell **一律不进入** `state_root` leaf 集；它通过失败状态、冲突 heads 与 §9.5 recovery witness 暴露，不作为治理 root 成员编码。
+  - `<state_object>` 在 cell 物化为具体值时为 `{ "value": <lattice_value> }`。`fsm` 与 `cas_register` 一样是因果寄存器（§9.3.1.5），因此**写过的 `fsm` cell 一律进入** `state_root`——包括 heads 异 `to` 处于 `⊥` 的那些——其 `<state_object>` 与 `cas_register` 同形为 `{ "heads": […] }`；未写入的 cell 不占 leaf。其余 `bottom=reject` lattice（`or_set` / `counter` / `mv_register` / `ordered_log` 各自的 `⊥` 形态）落 `failed_bottom`（§9.1.1）的 cell **一律不进入** `state_root` leaf 集；它通过失败状态、冲突 heads 与 §9.5 recovery witness 暴露，不作为治理 root 成员编码。
   - **`cas_register` 的 `state_object`（normative）**：`cas_register` cell 的 `<state_object>` 是完整活跃 heads 的封闭形态
 
     ```json
@@ -831,7 +831,7 @@ AvailabilityReceipt {
 
 - **`head_eq`**：完整 `preconditions[]` 条目的 wire 形态为 `{cell_id:"ak:cell:...", predicate:{op:"head_eq", value:<json>}}`。Reducer MUST 在该 Move 的 `seal_basis` 治理 view 下读取目标 cell 的 settled value，并按 canonical JSON whole-value compare 与 `predicate.value` 比较；二者 bit-exact 相等时通过。cell 缺失时 settled value 为 `null`，因此省略业务字段与显式缺省不得被当作匹配。若目标 cell 在该 basis 下为 `⊥`，`head_eq` MUST fail closed（failure status `failed_bottom`，`reason=cell_in_bottom_state`，见 §13）。
 - **`cas_register`**：`cas_register` 是**因果寄存器**：它的内部状态是一组仍然活跃的写入身份，业务读取才收敛为单值。定义、准入与合并规则见下面四节；`head_eq` 比较的始终是本节 §9.3.1.2 派生出的业务 settled value，不是内部 heads 数组。
-- **`fsm`**：transition write MUST 声明 `from` 与 `to`。同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 `⊥`。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。
+- **`fsm`**：`fsm` 与 `cas_register` 同为**因果寄存器**，只是每个活跃 head 携带的值是该写入的目标状态 `to`，且写入要额外通过转移表准入。transition write MUST 声明 `from` 与 `to`；`from` 是对写入自身签名 basis 的准入断言，不进入状态、也不是 join 的接边依据。定义、读取、准入与合并规则见下面 §9.3.1.5–§9.3.1.8；实现 MUST NOT 把 op 序列按到达顺序解释成一条转移路径。
 - **`ordered_log`**：每个 reducer-projected `op.kind="append"` write MUST 携带 `issuer_seq`，且其值 MUST 逐字等于 envelope `actor_seq`；其它 op kind 禁止该字段。`issuer_seq` 是为 self-contained projected op 保留的 issuer 因果坐标，不是 cell-local counter。对同一 `(write.cell, actor_id)`，它允许因 actor 在其它 cell 写入而产生任意非负间隔；不得要求从 0 开始连续，也不得把间隔后的 entry 留在 pending。
 
   joined value 是全部已验证 append Event 的 grow-only 集合。entry identity 由 Event identity 决定；reducer 以 `(actor_id, issuer_seq, event_digest)` 承载并按该三元组 canonical 升序序列化，其中 digest 比较遵守 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的 decoded-octets 规则。该排序只固定 bytes，**不选择 winner**。相同 `(actor_id, issuer_seq)` 的多个合法 sibling 全部进入 cell value；同一 Event 的 exact replay 幂等去重。不同 canonical Event preimage 得到同一 Event identity/digest 属于 hash collision，必须在 Event acceptance 层整组 quarantine，不能由 lattice 选边；仅 `proofs` / reducer stamps 不同且 producer digest preimage 相同仍是同一 Event 内容。
@@ -913,6 +913,108 @@ H = (H1 ∩ H2)
 **取证只走已登记的精确披露面（normative）**：合并式需要的三类输入——对端 view 的完整 CAS state leaf、某个身份是否属于对端 `C`、以及碰撞归一依赖——MUST 通过已登记的读取面与证明取得：完整 state leaf 与 membership 走 §6.2.1 的 `state_root` inclusion / non-membership proof 与 §6.2 的 `control_event_set_root`；碰撞变体走 §6.3.3 的 `collision_variant_record` selector；`event_sibling_position` 的穷尽性走 [`../sync/federation.md` §4.5.1](../sync/federation.md) 的 `ak.peer.events.read.sibling_positions.v1`。实现 MUST NOT 为 CAS 新增私有下载接口、operator 命令或数据库直读来补齐这些输入；缺证据时 MUST hold / fail closed，MUST NOT 把「查不到」当成「对方没见过」——后者会让已被取代的写入复活。
 
 conformance 入口：`ak.vector.lattice.cas_register_supersession.v1`（join 与合并闭合）与 `ak.vector.cba_lattice.cas_mixed_basis.v1`（写入准入、stale ABA 与自派生目标）。
+
+#### 9.3.1.5 `fsm` 的状态：Event 身份与活跃 transition heads（normative）
+
+`fsm` 与 `cas_register` 是**同一套因果状态**，只是每个 head 携带的值是它写入的目标状态 `to`，并且
+写入要额外通过一层转移表准入。§9.3.1.1 的取值范围、身份唯一性、验证前置与 `C` 共享规则**逐条**
+对 `fsm` 生效，本节只写它与 `cas_register` 的差别。
+
+固定一个 Realm 与一个已验证治理 view `V`，`C(V)` 同 §9.3.1.1。对一个 `fsm` cell `c`，其状态
+`H_c(V)` 是一个从 **EventId 到该写入的 `to` 值**的有限映射，记录**仍活跃、尚未被因果后继取代**的
+transition 写入。
+
+- **`from` 不进入状态**。`from` 是写入时对自己签名 basis 的**准入断言**（§9.3.1.7 第 2 项），
+  不是 head 的成员，也不是 join 时的接边依据。实现 MUST NOT 按 `(from,to)` 去重、
+  MUST NOT 把 `Y.from == X.to` 当作取代边、MUST NOT 按输入顺序把 op 序列解释成一条路径。
+  §9.3.1.4 对 `cas_register` 写的那条「按值接边无法区分 `A→B→A` 与 `A→B→A→B`」
+  **对 `fsm` 同样成立**，且此处更易触发：四个可逆 lifecycle family 与 membership 都会复用值。
+- **注册初始状态保留**。这是 `fsm` 与 `cas_register` 的唯一状态差别：`H_c(V)` 为空时该 cell
+  未写入，settled value 是它在 reducer contract 里登记的初始状态，而不是 `null`。
+  §9.3.1.2 那条「不存在 per-family 的 registered initial value」只约束 `cas_register`。
+- **同一写入的重投与同一 basis 的两个写入是两回事**。同身份、同 canonical effect 是 exact
+  replay，按身份幂等去重成一个 head；两个**不同身份**的写入即使 basis 相同、`(from,to)` 相同，
+  也各自是一个 head——它们是两个真实的并发写入，压成一个会让只见过其中之一的后继误删另一个。
+
+#### 9.3.1.6 读取、初始态与 `⊥`（normative）
+
+业务读取由 `H_c(V)` 唯一派生：
+
+- `H_c(V)` 为空：cell 未写入，settled value 为该 family 登记的初始状态。
+- `H_c(V)` 的全部 `to` 相等：settled value 即该状态，**并发的多个同值写入身份 MUST 全部保留**。
+- `H_c(V)` 含两个及以上不同 `to`：`⊥`（`failed_bottom`，§9.1.1）。`bottom=reject` 时业务读取与
+  依赖它的 Move precondition fail closed。
+
+**写过的 `fsm` cell 进入 `state_root`（normative）**：与 §6.2.1 的 `cas_register` 例外同源同理。
+一旦 `H_c(V)` 非空，该 cell 的 leaf MUST 出现在 `state_root` 中，**即使它处于 `⊥`**；未写入的
+cell 不占 leaf。理由与 `cas_register` 逐字相同：把 `⊥` 排除在 root 之外会让「从未写入」与「冲突」
+在 non-membership proof 下不可区分，而这两者在本节里是不同的状态——前者读初始态，后者 fail
+closed。§6.2.1 原先「非 `cas_register` 的 `⊥` cell 一律不进入 `state_root`」对 `fsm` 不再适用；
+其余 `bottom=reject` lattice 不变。
+
+**`terminal_states` 与已登记 self-loop（normative）**：终态是转移表的性质，不是 join 的性质。
+一个已登记的 `s→s` self-loop 在终态 `s` 上**合法**，它写入一个新身份、`to` 仍是 `s`，读取不变；
+从终态 `s` 出发指向 `s` 以外任何状态的转移**非法**，在准入期拒绝。实现 MUST NOT 把「终态上的
+任何 transition 都非法」当作等价简化，也 MUST NOT 在 join 期靠 self-loop 的存在改变后继转移的
+合法性——一次合法 self-loop 之后，从 `s` 出发的其它已登记转移仍然合法。
+
+#### 9.3.1.7 写入、Seal 准入与同批（normative）
+
+普通 `fsm` 写入 `w`（声明 `from`、`to`）按以下唯一规则执行。第 1、3、4、5 项与 §9.3.1.3 逐条相同，
+第 2 项是 `fsm` 独有的转移表准入：
+
+1. **基线来自 `w` 自身签名的 `seal_basis`**，从它重建已验证 view `B`；目标 cell 的完整 heads
+   `H_c(B)` 是自动派生的身份守卫，不要求在 wire 上重复携带。
+2. **转移表准入在 `B` 上求值**：`from` MUST 逐字等于 `H_c(B)` 派生出的 settled value
+   （空 heads 时为登记初始状态）；`from` 与 `to` MUST 都属于登记的 `states`；`(from,to)` MUST
+   属于登记的 `allowed_transitions`；`from` 为终态时只允许已登记的 `from→from` self-loop。
+   任一项不成立 MUST 以 `failed_precondition` 拒绝该 Event。`H_c(B)` 为 `⊥` 时 settled value
+   不存在，普通写入 MUST fail closed（唯一出路是 §9.5 的 conflict-recovery Move）。
+   **准入结论 MUST NOT 从未经验证的 `to` 反推**：缺少验证写入路径、basis 或授权所需的依赖或证明时
+   MUST pending 或 fail closed，MUST NOT 先采信 `to` 再补验证。
+3. 对拟覆盖 `w` 的 Seal 的冻结 predecessor view `P`，MUST 要求 `H_c(B) = H_c(P)`（身份集合相等）。
+   不相等即 stale，MUST 以 `failed_precondition` 拒绝，**即使两边的 settled 状态相同**——这正是
+   `A→B→A` 之后重新读到 `A` 的那条 stale ABA。
+4. `w` 成为新 head，并取代该 cell 在 `B` 中的**全部** heads。因第 3 项，这也正是 `P` 的全部 heads。
+5. 同批写全部针对冻结的 `P`。同批命中同一 cell 的**异 `to`** 写按 §6.3.1 step 3「同 Seal 排重
+   义务」拒绝整个 Seal；**同 `to`** 写允许保留多个身份。
+
+**同批拒绝与 `⊥` 不是同一件事（normative）**：同批异 `to` 写是**准入期**的确定性拒绝，只发生在第 5 项那一种情形——同一个 Seal 的同一批里出现异 `to` 写，此时 Seal 尚未接受，以 `rejected_seal` 拒绝整个 Seal，对所有 receiver 给出相同结论。`⊥` 则是**合并期**的状态：分别落在合法并发 Seal 里的异 `to` 写都已被接受，cell 读作 `failed_bottom`（Bottom 诊断 reason 为 `same_from_different_to`）。两者 MUST NOT 互相代入，各 family 现有的冲突枚举文案 MUST 逐族核对后才收敛。实现 MUST NOT 用「先到者赢」拒绝无法因果排序的合法并发写入——那会让结果取决于投递顺序，违反 §6.3.1 的 `J(L)` 纯函数要求。
+只发生在第 5 项那一种情形——同一个 Seal 的同一批里出现异 `to` 写，此时 Seal 尚未接受，拒绝整个
+Seal 对所有 receiver 给出相同结论。后者是**合并期**的状态：分别落在合法并发 Seal 里的异 `to` 写
+都已被接受，cell 读作 `⊥`。实现 MUST NOT 用「先到者赢」拒绝无法因果排序的合法并发写入——那会让
+结果取决于投递顺序，违反 §6.3.1 的 `J(L)` 纯函数要求。
+
+#### 9.3.1.8 两个已验证状态的合并（normative）
+
+合并式与 §9.3.1.4 **逐字相同**，只是 `H` 的值域是 `to`：
+
+```text
+C = C1 ∪ C2
+H = (H1 ∩ H2)
+    ∪ { h ∈ H1 | id(h) ∉ C2 }
+    ∪ { h ∈ H2 | id(h) ∉ C1 }
+```
+
+§9.3.1.4 给出的结合律、交换律、幂等性与最小上界证明只用到「身份集合的并」这一个性质，与 head 携带
+的是业务值还是 `to` 无关，因此**对 `fsm` 原样成立**；迟到分支的论证同理——`e` 不活跃当且仅当至少
+一个 view 已使它不活跃。实现 MUST NOT 为 `fsm` 另立一套按到达顺序的折叠语义。
+
+由此，§9.5.1 item 5 禁止的那条「按最后一个 `recovery_reset` 截断 op 序列」对 `fsm` 与
+`cas_register` 一样**不再需要**：recovery 是一次有权的新身份写入，只取代自身 basis 覆盖的完整
+heads（§9.5.1）。未被该 recovery 覆盖的迟到分支继续参与合并；两个并发的异 `to` recovery 仍然
+冲突，MUST NOT 由到达顺序裁定。
+
+**共享 membership 折叠 MUST 与本节同义（normative）**：MLS membership、governance proof 与
+Station notary 各自持有的 membership transition 折叠是本 lattice 的消费者，不是它的第二种语义。
+它们 MUST 按本节求值；保留一份按 `(from,to)` 去重或按 `recovery_reset` 切片的并行实现，等于让
+同一个 cell 在两个消费面上读出不同状态。
+
+actor-private 的 `fsm_cas` 保留它自己在 `actor_private_contracts` 下的 revision 与私有作用域合同；
+它 MAY 共享本节的合法边校验，MUST NOT 被强制采用共享面的 Seal heads 算法。
+
+conformance 入口：`ak.vector.lattice.fsm_causal_heads.v1`（顺序置换、分批合并、ABA、self-loop、
+同值多身份、缺依赖、迟到分支与并发 recovery，并覆盖 MLS membership 消费面）。
 
 ### 9.3.2 digest suite transition Seal（normative）
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.2",
+  "version": "2026-09-07.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T01:10:00+08:00",
+  "generated_at": "2026-09-07T03:40:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4018,6 +4018,20 @@
       "description": "counter join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.lattice.fsm_causal_heads.v1",
+      "status": "active",
+      "domain": "lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
+      "description": "The fsm lattice is a causal register whose active heads carry the transition's `to`: `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis, never join-time edges. Covers input-order permutation and batched merge giving one result, ABA reuse distinguishing A->B->A from A->B->A->B, a registered self-loop on a terminal state leaving later registered transitions legal, concurrent same-`to` writes keeping every identity, a missing dependency holding rather than trusting an unverified `to`, a late branch merging after the fact, concurrent different-`to` recovery still conflicting, and the MLS membership consumer reading the same state as the lattice.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
+        "spec/v1/zh/authz/event-auth-state-resolution.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
