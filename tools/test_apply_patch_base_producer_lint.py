@@ -58,6 +58,29 @@ class ApplyPatchBaseProducerTest(unittest.TestCase):
         for entry in baseline["resolved_families"]:
             self.assertTrue(entry.get("resolution"), entry["cell_family"])
 
+    def test_a_producer_addressing_another_subject_shape_fails(self) -> None:
+        """0029 section 3.2: present is not the same as usable as this base."""
+
+        def mutate(registry: dict) -> None:
+            write = _row(registry, "ak.space.create")["cell_writes"][0]
+            write["cell_subject"] = {"kind": "string", "field": "payload.space_id"}
+
+        failures = self._lint(mutate)
+        self.assertTrue(
+            any("same object the patch addresses" in f for f in failures), failures
+        )
+
+    def test_an_append_only_producer_cannot_be_a_patch_base(self) -> None:
+        def mutate(registry: dict) -> None:
+            write = _row(registry, "ak.space.create")["cell_writes"][0]
+            write["effect_projection"] = {
+                "kind": "append",
+                "value": {"field": "payload.object"},
+            }
+
+        failures = self._lint(mutate)
+        self.assertTrue(any("whole value" in f for f in failures), failures)
+
     def test_a_new_unproduced_family_fails(self) -> None:
         def mutate(registry: dict) -> None:
             write = _row(registry, "ak.space.update")["cell_writes"][0]

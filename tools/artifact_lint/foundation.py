@@ -1398,8 +1398,19 @@ def check_apply_patch_base_producers(lint: Lint, event_registry: dict, event_pat
     today are frozen in tools/patch-base-producer-baseline.json; the list only
     shrinks.
     """
+    def subject_shape(write: dict) -> str:
+        subject = write.get("cell_subject")
+        if subject is None:
+            return "null"
+        if isinstance(subject, dict):
+            return str(subject.get("kind"))
+        return str(subject)
+
     producers: dict[str, set[str]] = {}
+    producer_shapes: dict[str, set[str]] = {}
+    non_set_producers: dict[str, set[str]] = {}
     patchers: dict[str, set[str]] = {}
+    patcher_shapes: dict[str, set[str]] = {}
     for row in event_registry.get("event_kinds") or []:
         if not isinstance(row, dict):
             continue
@@ -1413,9 +1424,33 @@ def check_apply_patch_base_producers(lint: Lint, event_registry: dict, event_pat
             projection_kind = (write.get("effect_projection") or {}).get("kind")
             if projection_kind == "apply_patch":
                 patchers.setdefault(family, set()).add(kind)
-            elif projection_kind in ("set", "append", "transition"):
+                patcher_shapes.setdefault(family, set()).add(subject_shape(write))
+            elif projection_kind == "set":
                 producers.setdefault(family, set()).add(kind)
+                producer_shapes.setdefault(family, set()).add(subject_shape(write))
+            elif projection_kind in ("append", "transition"):
+                non_set_producers.setdefault(family, set()).add(kind)
     unproduced = {family for family in patchers if not producers.get(family)}
+
+    # decisions/0029 section 3.2: a producer has to be usable as this patch's
+    # base, not merely present. An append or a transition writes no whole value,
+    # and a producer that addresses a different subject shape names a different
+    # object, so neither supplies a base the patch can apply to.
+    for family in sorted(set(patchers) - unproduced):
+        if not patcher_shapes[family] <= producer_shapes[family]:
+            lint.fail(
+                event_path,
+                f"{family} is patched on subject shape(s) {sorted(patcher_shapes[family])} but its "
+                f"set producer(s) address {sorted(producer_shapes[family])}; a base value has to be "
+                "written to the same object the patch addresses",
+            )
+    for family in sorted(unproduced & set(non_set_producers)):
+        lint.fail(
+            event_path,
+            f"{family} has only append/transition writer(s) {sorted(non_set_producers[family])}; "
+            "neither writes a whole value, so neither can be the base an apply_patch resolves "
+            "against",
+        )
 
     baseline_path = TOOLS_ROOT / "patch-base-producer-baseline.json"
     baseline = load_json(lint, baseline_path) or {}

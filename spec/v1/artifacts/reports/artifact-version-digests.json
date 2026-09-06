@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
-      "version": "2026-09-05.1",
+      "version": "2026-09-07.1",
       "generated_at": null,
-      "content_digest": "sha256:d839e8828e6cc0b433e74b0214622f89be875eaee043aebcb1dad77c0c890ced"
+      "content_digest": "sha256:02f7f8b6c0111e834d673e2d83b68674265a9bd01038b0ab07853080dc1fdb64"
     },
     {
       "path": "spec/v1/artifacts/registry/exporter-label-registry.json",
@@ -381,9 +381,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-07.4",
-      "generated_at": "2026-09-07T05:00:00+08:00",
-      "content_digest": "sha256:168be75e0a920ea317d40e88fd2f09a40e0ab72f5ee41fd24b558e681d9ae017"
+      "version": "2026-09-07.5",
+      "generated_at": "2026-09-07T19:30:00+08:00",
+      "content_digest": "sha256:21c73efc1cde2f123d2e4e503f525261a7129501cbe9ce8c6b6724a89b282a2e"
     }
   ]
 }

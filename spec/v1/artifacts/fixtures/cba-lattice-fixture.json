@@ -3220,6 +3220,267 @@
           }
         }
       ]
+    },
+    {
+      "vector_id": "ak.vector.lattice.apply_patch_base.v1",
+      "name": "apply_patch_base",
+      "description": "An apply_patch resolves against a real object base written by a registered set, or it is refused. event-auth-state-resolution.md section 9.3.1.2 leaves no other way to obtain one: a family may not declare an initial_value, so null is not an implicit initialization and the first patch never becomes the object definition. The base must also be usable -- written by a set on the same family and addressing the same subject, since an append or a transition writes no whole value and another subject shape names another object.",
+      "cases": [
+        {
+          "name": "create_then_first_patch_keeps_untouched_fields",
+          "family": "ak.component.space.metadata.v1",
+          "sequence": [
+            "ak.space.create sets payload.object",
+            "ak.space.update patches one field"
+          ],
+          "expected": {
+            "result": "accept_after_valid_seal",
+            "untouched_fields": "preserved from the create value",
+            "note": "the patch composes onto the created object, so fields the patch does not mention keep the values create wrote."
+          }
+        },
+        {
+          "name": "patch_without_a_create_is_refused",
+          "family": "ak.component.space.metadata.v1",
+          "cell_state_before": "unwritten",
+          "operation": "ak.space.update",
+          "expected": {
+            "result": "failed_precondition",
+            "stored_effects": "none",
+            "note": "no real object base is reachable in the signed basis. The reducer must not treat null or an empty object as an implicit initialization, and must not store a partial effect."
+          }
+        },
+        {
+          "name": "patch_on_a_different_subject_is_a_different_object",
+          "family": "ak.component.space.metadata.v1",
+          "created_subject": "id:space(create.event_id)",
+          "patched_subject": "id:space(other_space_id)",
+          "expected": {
+            "result": "failed_precondition",
+            "note": "the base belongs to the object the create addressed; a patch aimed elsewhere has no base of its own."
+          }
+        },
+        {
+          "name": "patch_from_another_realm_is_refused",
+          "family": "ak.component.space.metadata.v1",
+          "expected": {
+            "result": "failed_precondition",
+            "note": "cells are Realm-scoped, so a same-named cell in another Realm is not this object base."
+          }
+        },
+        {
+          "name": "circle_create_writes_metadata_atomically_with_its_governance_effects",
+          "family": "ak.component.circle.metadata.v1",
+          "sequence": [
+            "ak.circle.create appends the create log, sets metadata and transitions history_access"
+          ],
+          "expected": {
+            "result": "all_or_nothing",
+            "note": "the metadata base is one of the create unit effects. If any required write fails the whole unit rolls back; the governance effects are not dropped to make one object hold one cell."
+          }
+        },
+        {
+          "name": "circle_update_before_create_is_refused",
+          "family": "ak.component.circle.metadata.v1",
+          "cell_state_before": "unwritten",
+          "operation": "ak.circle.update",
+          "expected": {
+            "result": "failed_precondition",
+            "note": "this family is cas_register with bottom=reject; an unwritten cell reads null and a patch has no base."
+          }
+        },
+        {
+          "name": "strand_update_and_tracks_update_share_one_base",
+          "family": "ak.component.strand.object.v1",
+          "sequence": [
+            "ak.strand.create sets payload.object",
+            "ak.strand.update patches a content path",
+            "ak.strand.tracks.update patches a track path"
+          ],
+          "expected": {
+            "result": "accept_after_valid_seal",
+            "evaluated_against": "the complete post-patch Strand",
+            "authorization": "content paths stay bound by allowed_write_fields; track management stays with ak.strand.tracks.update",
+            "note": "both patches compose on the object create wrote, so neither initializes a second authority for the same Strand."
+          }
+        },
+        {
+          "name": "concurrent_metadata_and_track_patches_expose_mv_heads",
+          "family": "ak.component.strand.object.v1",
+          "expected": {
+            "result": "multi_head",
+            "note": "mv_register exposes both heads over one explicit base; the contract promises causal supersession, not automatic field merging."
+          }
+        },
+        {
+          "name": "reordered_replay_reaches_the_same_state",
+          "family": "ak.component.strand.object.v1",
+          "expected": {
+            "result": "order_independent",
+            "note": "J(L) is a pure function of the dependency set, so delivery order must not change the joined value."
+          }
+        },
+        {
+          "name": "view_update_cannot_create_a_view",
+          "family": "ak.component.view.v1",
+          "cell_state_before": "unwritten",
+          "operation": "ak.view.update",
+          "expected": {
+            "result": "failed_precondition",
+            "note": "create is the only writer that may mint a View; update and reconcile address an existing one."
+          }
+        },
+        {
+          "name": "view_reconcile_cannot_create_a_view",
+          "family": "ak.component.view.v1",
+          "cell_state_before": "unwritten",
+          "operation": "ak.view.reconcile",
+          "expected": {
+            "result": "failed_precondition",
+            "note": "reconcile is a whole-value set, but it is still not a genesis: it republishes a definition for a View that already exists."
+          }
+        },
+        {
+          "name": "view_cell_stores_no_self_reported_id",
+          "family": "ak.component.view.v1",
+          "expected": {
+            "stored_value": "carries no id member",
+            "note": "the id is derived from the subject on read. create and reconcile would otherwise leave two value shapes in one cell."
+          }
+        },
+        {
+          "name": "view_reconcile_preserves_identity_and_privacy",
+          "family": "ak.component.view.v1",
+          "attempts": [
+            "change realm_id",
+            "change created_by",
+            "change created_at",
+            "turn shared into private",
+            "self-report state_changed_at"
+          ],
+          "expected": {
+            "result": "failed_precondition",
+            "note": "reconcile republishes the definition; it is not a channel for rewriting identity, ownership or reducer-derived fields."
+          }
+        },
+        {
+          "name": "view_reconcile_cannot_cross_the_terminal_gate",
+          "family": "ak.component.view.v1",
+          "cell_state_before": "tombstoned",
+          "operation": "ak.view.reconcile",
+          "expected": {
+            "result": "failed_precondition",
+            "reason": "view_already_terminal",
+            "note": "tombstone travels only through update. A late or concurrent active definition must not revive a terminal View."
+          }
+        },
+        {
+          "name": "view_reconcile_supersedes_only_observed_heads",
+          "family": "ak.component.view.v1",
+          "expected": {
+            "result": "multi_head",
+            "note": "a whole-value set on mv_register replaces the heads its basis observed; an unobserved concurrent branch stays exposed. A known-good definition is not a privilege to overwrite state it never saw."
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.accountability_record_sources.v1",
+      "name": "accountability_record_sources",
+      "description": "ak.component.identity.accountability.v1 carries one accountability record with two registered writers: the standalone ak.identity.accountability_grant and the atomic projection ak.agent.provision writes in its controller PCR. Both key the cell by issuer principal, subject principal and the digested scope set, and both project one closed value, so the same endorsement from either source is one cell and one value rather than two.",
+      "cell_subject": "composite(issuer principal, subject principal, string_set_digest(accountability_scope, ak.accountability_scope_set.v1))",
+      "canonical_value_members": [
+        "issuer_id",
+        "subject_id",
+        "accountability_scope",
+        "not_before",
+        "expires_at?",
+        "grant_status"
+      ],
+      "cases": [
+        {
+          "name": "both_sources_address_one_cell",
+          "expected": {
+            "cell_id": "identical",
+            "note": "the provision pins accountability_scope to a const and the grant may carry a string or an array; the shared digest context normalizes both, so a bare string is the one-element set."
+          }
+        },
+        {
+          "name": "equivalent_scope_spellings_are_one_cell",
+          "inputs": [
+            "agent_operator as a bare string",
+            "agent_operator as a one-element array"
+          ],
+          "expected": {
+            "cell_id": "identical",
+            "note": "normalization deduplicates and sorts, so spelling does not fork the record."
+          }
+        },
+        {
+          "name": "same_decision_from_either_source_is_one_value",
+          "expected": {
+            "projected_value": "identical",
+            "note": "neither source puts its event reference or inner proof into the value. Otherwise two endorsements that mean the same thing would differ only by origin and drive a bottom=reject cell into conflict."
+          }
+        },
+        {
+          "name": "provision_derives_not_before_from_the_envelope",
+          "expected": {
+            "not_before": "envelope.created_at",
+            "expires_at": "absent",
+            "grant_status": "active",
+            "note": "expires_at is omitted rather than written as JSON null, and the server receive time is never used."
+          }
+        },
+        {
+          "name": "provision_payload_created_at_must_match_the_envelope",
+          "expected": {
+            "result": "rejected",
+            "note": "the projection reads not_before off the envelope, so two signed times that disagree are refused at admission rather than silently resolved."
+          }
+        },
+        {
+          "name": "a_later_grant_revokes_the_provisioned_record",
+          "sequence": [
+            "ak.agent.provision projects the record",
+            "ak.identity.accountability_grant with grant_status revoked on the same cell"
+          ],
+          "expected": {
+            "grant_status": "revoked",
+            "agent_lifecycle": "unchanged",
+            "note": "revocation invalidates the dependent binding; it is not an Agent lifecycle transition."
+          }
+        },
+        {
+          "name": "a_grant_in_another_realm_is_another_record",
+          "expected": {
+            "revokes_original": false,
+            "note": "cells are Realm-scoped. Amending a provisioned accountability means writing the original controller PCR cell; elsewhere is a separate record."
+          }
+        },
+        {
+          "name": "same_principal_different_station_is_not_the_same_account",
+          "expected": {
+            "authorization": "evaluated independently",
+            "note": "the subject components are principals, but the full AccountId authorization, Station binding and issuer signature checks still run. Principal equality never implies Account equality."
+          }
+        },
+        {
+          "name": "provision_replay_does_not_resurrect_a_revoked_record",
+          "expected": {
+            "result": "idempotent_by_event_id",
+            "grant_status": "stays revoked",
+            "note": "an exact replay is the same write identity, so it does not supersede the revocation that causally followed it."
+          }
+        },
+        {
+          "name": "actor_profile_accepts_both_sources_as_endorsement",
+          "expected": {
+            "result": "accept_after_valid_seal",
+            "note": "actor.md 3.3.1 requires accountable_principal_ids to be backed by an active record from either writer; searching only the general kind would reject a legitimately provisioned Agent."
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.4",
+  "version": "2026-09-07.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T05:00:00+08:00",
+  "generated_at": "2026-09-07T19:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3340,6 +3340,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.accountability_record_sources.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
+      "description": "One accountability record has two registered writers, the standalone grant and the projection an agent provision writes in its controller PCR. Both key the cell by issuer principal, subject principal and the digested scope set and project one closed value, so equivalent scope spellings and equivalent decisions land on one cell and one value. Covers the provision deriving not_before from the envelope it must also match in its payload, omitting expires_at and being active, a later grant revoking the record without moving the Agent lifecycle, a grant in another Realm being a separate record, principal equality never implying Account equality, an exact provision replay not resurrecting a revoked record, and an Actor Profile accepting either source as endorsement.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.identity.accountability_scope_set_subject.v1",
       "status": "active",
       "domain": "identity",
@@ -3993,6 +4005,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.lattice.apply_patch_base.v1",
+      "status": "active",
+      "domain": "lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
+      "description": "An apply_patch resolves against a real object base written by a registered set on the same family and subject, or the Move is refused with no stored effect: null is never an implicit initialization and the first patch never becomes the object definition. Covers create-then-patch field preservation, patch without a create, wrong subject and wrong Realm, the Circle create unit writing its metadata base atomically with its governance effects, Strand content and track patches sharing one base while keeping their authorization split, and the View rules that update and reconcile may not mint a View, that no self-reported id is stored, that reconcile preserves identity and privacy, may not cross the tombstone gate, and supersedes only the heads it observed.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
