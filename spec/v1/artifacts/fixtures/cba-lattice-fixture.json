@@ -142,7 +142,7 @@
           "every_declared_transition_is_accepted",
           "undeclared_transition_rejects_with_realm_link_invalid_transition",
           "tombstoned_is_terminal_except_byte_equivalent_replay",
-          "same_status_same_basis_replay_is_idempotent",
+          "same_event_identity_replay_is_idempotent",
           "same_basis_different_status_siblings_return_bottom",
           "general_graph_cycles_are_not_an_admission_error",
           "self_reference_rejects_with_realm_link_self_reference"

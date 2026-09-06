@@ -4746,6 +4746,31 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         if not states:
             lint.fail(registry_path, f"fsm_contracts.{family}: states must be non-empty")
             continue
+        # One vocabulary for the whole control plane. These two fields are read
+        # by nobody at runtime, which is how four spellings of one rule and one
+        # unimplementable rule accumulated: `same_transition_same_basis_noop`
+        # (plus `_status_`, `_stage_`, `_to_state_`) named `(from,to)` + basis,
+        # while `event-auth-state-resolution.md` §9.3.1.5 dedupes by Event
+        # identity and keeps two same-`(from,to)` identities as two heads; and
+        # `identical_transition_only_otherwise_reject` promised a rejection the
+        # lattice cannot deliver, because §9.3.1.7 item 5 rejects only inside one
+        # Seal batch and genuinely concurrent different-`to` writes are `⊥`.
+        # A documentary field that contradicts the section it documents is worse
+        # than none, so the values are pinned here.
+        if contract_view.get("idempotent_replay") != "same_event_identity_replay_noop":
+            lint.fail(
+                registry_path,
+                f"fsm_contracts.{family}: idempotent_replay must be "
+                "same_event_identity_replay_noop; replay is deduplicated by Event identity "
+                "(section 9.3.1.5), not by (from,to) or by basis",
+            )
+        if contract_view.get("concurrent_sibling_conflict") != "bottom":
+            lint.fail(
+                registry_path,
+                f"fsm_contracts.{family}: concurrent_sibling_conflict must be bottom; "
+                "section 9.3.1.7 item 5 rejects only same-batch different-to writes, and "
+                "genuinely concurrent ones resolve to bottom rather than to a winner",
+            )
         entry_states = []
         if contract_view.get("initial_state") in states:
             entry_states.append(contract_view["initial_state"])

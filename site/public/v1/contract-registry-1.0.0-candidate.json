@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.3",
+  "version": "2026-09-07.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T05:00:00+08:00",
+  "generated_at": "2026-09-07T07:40:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -7905,7 +7905,7 @@
         ],
         "initial_state": "leave",
         "terminal_states": [],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -7960,8 +7960,8 @@
         "terminal_states": [
           "since_join"
         ],
-        "idempotent_replay": "same_transition_same_basis_noop",
-        "concurrent_sibling_conflict": "identical_transition_only_otherwise_reject",
+        "idempotent_replay": "same_event_identity_replay_noop",
+        "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
             null,
@@ -7987,8 +7987,8 @@
         "terminal_states": [
           "since_join"
         ],
-        "idempotent_replay": "same_transition_same_basis_noop",
-        "concurrent_sibling_conflict": "identical_transition_only_otherwise_reject",
+        "idempotent_replay": "same_event_identity_replay_noop",
+        "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
             null,
@@ -8015,7 +8015,7 @@
         "terminal_states": [
           "deactivated"
         ],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8051,7 +8051,7 @@
         "terminal_states": [
           "revoked"
         ],
-        "idempotent_replay": "same_status_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8086,7 +8086,7 @@
         "terminal_states": [
           "close"
         ],
-        "idempotent_replay": "same_stage_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8126,7 +8126,7 @@
           "ready",
           "failed"
         ],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8168,7 +8168,7 @@
           "failed",
           "cancelled"
         ],
-        "idempotent_replay": "same_to_state_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8250,7 +8250,7 @@
           "ready",
           "failed"
         ],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8281,7 +8281,7 @@
           "archived"
         ],
         "terminal_states": [],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8323,7 +8323,7 @@
           "revoked_by_inviter_left",
           "invalidated_by_rate_limit"
         ],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8432,7 +8432,7 @@
           "revoked",
           "retired"
         ],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8473,7 +8473,7 @@
           "archived"
         ],
         "terminal_states": [],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8497,7 +8497,7 @@
         "terminal_states": [
           "tombstoned"
         ],
-        "idempotent_replay": "same_status_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8544,7 +8544,7 @@
         "terminal_states": [
           "tombstoned"
         ],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8564,7 +8564,7 @@
         "terminal_states": [
           "tombstoned"
         ],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8593,7 +8593,7 @@
           "archived"
         ],
         "terminal_states": [],
-        "idempotent_replay": "same_transition_same_basis_noop",
+        "idempotent_replay": "same_event_identity_replay_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
           [
@@ -8638,7 +8638,7 @@
               "rejected",
               "published"
             ],
-            "idempotent_replay": "same_transition_same_basis_noop",
+            "idempotent_replay": "same_candidate_revision_noop",
             "concurrent_sibling_conflict": "bottom",
             "allowed_transitions": [
               [

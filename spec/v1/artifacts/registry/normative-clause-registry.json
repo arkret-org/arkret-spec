@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.8",
+  "version": "2026-09-07.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T07:30:00+08:00",
+  "generated_at": "2026-09-07T07:50:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -346,7 +346,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:06440e3a7213540b5b90000d5ba8ffbff60b77afbaa72ccb3606a6cea84e1a03",
+      "section_digest": "sha256:dd799377050eee7cddb22e55e8a76ca0455d64a66e31a40601fa9cc87ce67789",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the claimed lifecycle transition is atomic with its subject-bound membership proposal; only invite acceptance writes member state. Directed invite live uniqueness is carried by the registered ak.component.invite.live_target.v1 slot: create claims it under a head_eq null precondition, an unwritten cell reading null rather than a sentinel, every transition leaving the live set releases it under a head_eq create_event_id precondition, send_failed keeps it claimed, and a duplicate create is rejected with failed_precondition and invite_live_target_occupied at zero writes.",
       "testability_grade": "vector",
       "evidence_refs": [
