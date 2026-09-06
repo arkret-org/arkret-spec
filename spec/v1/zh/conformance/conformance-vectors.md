@@ -1311,7 +1311,7 @@ ak.vector.cba_lattice.cas_mixed_basis.v1
 - **Case A — 无 basis 的盲写**：一条声明使用 CAS 语义的 DataEvent 写入 `value_2`，没有可重建的签名 basis。
 - **Case B — 基线正确的写入**：一条 Control Move 写入 `value_2`，其签名 `seal_basis` 重建出的 `H_c(B) = {E1}`，与冻结 predecessor 基线一致。
 - **Case C — stale ABA**：`E1` 之后由 `E2` 释放（`set null`，`H = {E2: null}`），再由 `E3` 占用（`H = {E3: ...}`），最后由 `E4` 再次释放（`H = {E4: null}`）。此时提交一条**基线停留在 `H = {E2}`** 的写入：它的业务 settled value（`null`）与冻结基线的业务 settled value（同为 `null`）**逐字节相同**。
-- **Case D — 自派生目标**：`ak.call.create` 写入其 focus cell，该 cell 的 subject 派生自本 Event 自己的 `event_id`，因此 `preconditions[]` 内**没有**该 cell 的 `head_eq` 条目。
+- **Case D — 自派生目标**：`ak.audit.applet_binding.create` 写入其 binding cell，该 cell 的 subject 派生自本 Event 自己的 `event_id`，因此 `preconditions[]` 内**没有**该 cell 的 `head_eq` 条目。`ak.call.create` 写入的 call state cell 同理，只是 lattice 为 `fsm`（§2.11.2）——两者同为因果寄存器，守卫形态一致。
 
 期望：
 

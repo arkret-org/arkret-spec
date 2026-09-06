@@ -535,10 +535,10 @@
           "name": "self_derived_target_needs_no_wire_head_eq",
           "control_move": {
             "id": "ak:event:AWc5TgYhUjIkOlPmQnRsBtCvDwExFyGzHaIbJcKdLeM7",
-            "kind": "ak.call.create",
+            "kind": "ak.audit.applet_binding.create",
             "plane": "control",
             "preconditions": [],
-            "note": "The focus cell subject is derived from this Event's own event_id, so writing that cell_id into the digest-covered preconditions would be hash-self-referential."
+            "note": "The binding cell subject is derived from this Event's own event_id, so writing that cell_id into the digest-covered preconditions would be hash-self-referential."
           },
           "expected": {
             "result": "accept_after_valid_seal",

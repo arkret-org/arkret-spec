@@ -885,7 +885,7 @@ AvailabilityReceipt {
 
 第 3 项封闭 stale ABA：一个基线停在某次空位上的写入，即使目标 cell 在被占用又释放之后重新读到同一个业务值，也 MUST NOT 因此通过——业务值相等不足以通过，head 身份集合必须相等。
 
-**自派生目标的守卫形态（normative）**：`ak.audit.applet_binding.create` 的 binding cell 与 `ak.call.create` 的 focus cell，其 `cell_subject` 直接派生自本 Event 的 `event_id`。若强制这类 Event 把该具体 `cell_id` 写进被 digest 覆盖的 `preconditions[]`，就会形成「Event digest → 自己的 cell_id → 被 digest 覆盖的 preconditions → Event digest」的哈希自引用，而 `preconditions[].cell_id` 只允许具体字符串、没有待求值的 self target。因此规范 MUST NOT 泛化「所有 CAS 写都在 wire 显式 `head_eq`」；守卫一律采用第 1 项的**自动派生身份守卫**——在 EventId 算出后派生目标 cell 并读取 `B` / `P` 即可，不引入新 placeholder、预计算 ID 或首写免检通道。已登记的业务 `head_eq` 条件 MUST 继续签名并执行，MUST NOT 被静默删除。
+**自派生目标的守卫形态（normative）**：`ak.audit.applet_binding.create` 的 binding cell 与 `ak.call.create` 的 call state cell，其 `cell_subject` 直接派生自本 Event 的 `event_id`（前者 `cas_register`，后者 `fsm`；两者同为因果寄存器，守卫形态一致）。若强制这类 Event 把该具体 `cell_id` 写进被 digest 覆盖的 `preconditions[]`，就会形成「Event digest → 自己的 cell_id → 被 digest 覆盖的 preconditions → Event digest」的哈希自引用，而 `preconditions[].cell_id` 只允许具体字符串、没有待求值的 self target。因此规范 MUST NOT 泛化「所有 CAS 写都在 wire 显式 `head_eq`」；守卫一律采用第 1 项的**自动派生身份守卫**——在 EventId 算出后派生目标 cell 并读取 `B` / `P` 即可，不引入新 placeholder、预计算 ID 或首写免检通道。已登记的业务 `head_eq` 条件 MUST 继续签名并执行，MUST NOT 被静默删除。
 
 **两类无 `seal_basis` anchor unit 例外（normative，封闭）**：Realm genesis 的空治理基线，以及 `ak.device.reanchor` 由签名 `pre_fence_seal_frontier` / 原子 replacement unit 固定的基线。它们 MUST 经各自既有的闭合验证派生确定上下文；该例外 MUST NOT 被扩成「新 cell 或首写一律免检」的通用例外。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.4",
+  "version": "2026-09-07.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T05:00:00+08:00",
+  "generated_at": "2026-09-07T06:20:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -279,7 +279,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:42d7fec5f2f1021093f86db517d1f2e11ac9461f4889db152246dea1ae9ee715",
+      "section_digest": "sha256:8d6a5f09face9668566d0136720b712e885b5e37f0fe10edcef94e7f051ba8fb",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC. cas_register is a causal register: an unwritten cell reads null, every write is identified by its EventId and supersedes exactly the heads it observed in its own signed seal_basis, a release is an explicit set null that keeps its own head, and the two-state merge over (covered set, active heads) is the least upper bound and agrees with the full causal history. fsm is the same causal register with `to` on each head: `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis and never join-time edges, the registered initial state is what an unwritten cell reads, two different identities writing one `(from,to)` stay two heads while a replayed identity is one, and the same two-state merge applies - so the result does not depend on input order, ABA is distinguished from ABAB, and a registered self-loop leaves later registered transitions legal. Bottom is a function of the view, not a sticky local flag.",
       "testability_grade": "vector",
       "evidence_refs": [
