@@ -13,7 +13,7 @@ from .core import (
     DID_LEGACY_PREFIX_PATTERN,
     DID_URL_PROFILE_PATTERN,
     KIND_PAYLOAD_RENAME_EXEMPTIONS,
-    LEGACY_SHARED_PAYLOAD_DISPATCH,
+    SHARED_PAYLOAD_DISPATCH,
     Lint,
     PAYLOAD_DISPATCH_REF_RE,
     PREIMAGE_EXEMPTION_ID_RE,
@@ -2674,7 +2674,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
                     f"but dispatches to {class_name!r}",
                 )
             continue
-        if (kind, class_name) in LEGACY_SHARED_PAYLOAD_DISPATCH:
+        if (kind, class_name) in SHARED_PAYLOAD_DISPATCH:
             continue
         last_segment = kind.rsplit(".", 1)[-1].lower()
         if last_segment not in class_name.lower():
@@ -2684,13 +2684,13 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
                 f"whose name does not contain the kind's last segment "
                 f"{last_segment!r}; likely a mis-routed $ref. If this rename "
                 f"is intentional, add the (kind, class) pair to "
-                f"LEGACY_SHARED_PAYLOAD_DISPATCH or KIND_PAYLOAD_RENAME_EXEMPTIONS "
+                f"SHARED_PAYLOAD_DISPATCH or KIND_PAYLOAD_RENAME_EXEMPTIONS "
                 f"in tools/artifact_lint/schemas.py.",
             )
-    for kind, class_name in sorted(LEGACY_SHARED_PAYLOAD_DISPATCH - seen_pairs):
+    for kind, class_name in sorted(SHARED_PAYLOAD_DISPATCH - seen_pairs):
         lint.fail(
             path,
-            "stale LEGACY_SHARED_PAYLOAD_DISPATCH entry has no matching dispatch: "
+            "stale SHARED_PAYLOAD_DISPATCH entry has no matching dispatch: "
             f"({kind!r}, {class_name!r})",
         )
 

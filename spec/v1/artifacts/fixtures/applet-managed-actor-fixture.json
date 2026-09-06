@@ -54,8 +54,8 @@
       "expect": "accepted"
     },
     {
-      "name": "ghost_external_tuple_rejects_legacy_or_extra_mirrors",
-      "mutation": "add top-level protocol/tenant/external_user_id or external_ref.unknown",
+      "name": "ghost_external_tuple_rejects_extra_mirrors",
+      "mutation": "add a top-level protocol/tenant/external_user_id mirror or external_ref.unknown",
       "expect": "schema_violation"
     },
     {

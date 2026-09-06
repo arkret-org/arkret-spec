@@ -1290,7 +1290,7 @@
         {
           "op": "add",
           "path": "/auth_metadata/read",
-          "value": "legacy"
+          "value": "vendor"
         }
       ],
       "expect_valid": false,
@@ -5595,32 +5595,6 @@
       }
     },
     {
-      "name": "ingress_receipt_legacy_single_signature_fields_rejected",
-      "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt",
-      "expect_valid": false,
-      "first_expected_error": "contains:Additional properties are not allowed",
-      "instance": {
-        "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
-        "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
-        "qualified_ingress_did": "did:webvh:z6mkfixture:ingress.example",
-        "received_at": "2026-08-24T08:14:00.000Z",
-        "ingress_frontier": [
-          "ak:event:AUTTW11VHiB1CyE9I304vg0i43r0udn-PTMgwXCFGYrG"
-        ],
-        "proofs": [
-          {
-            "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:ingress.example#key-1",
-            "payload_digest": "sha256:1717171717171717171717171717171717171717171717171717171717171717",
-            "created_at": "2026-08-24T08:14:00.000Z",
-            "jws": "a..b"
-          }
-        ],
-        "issuer_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
-        "signature": "legacy-single-signature"
-      }
-    },
-    {
       "name": "history_source_agent_observation_missing_required_field_is_rejected",
       "schema_ref": "schemas/history-key.schema.json#/$defs/history_source_agent_observation_input",
       "expect_valid": false,
@@ -6099,7 +6073,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:'mode' does not match any of the regexes",
       "instance": {
-        "mode": "legacy"
+        "mode": "vendor"
       }
     },
     {
@@ -6108,7 +6082,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:'read' does not match any of the regexes",
       "instance": {
-        "read": "legacy"
+        "read": "vendor"
       }
     },
     {
@@ -6121,7 +6095,7 @@
         "grant_exchange": {
           "kind": "account_handoff"
         },
-        "mode": "legacy"
+        "mode": "vendor"
       }
     },
     {
@@ -6131,7 +6105,7 @@
       "first_expected_error": "contains:'mode' does not match any of the regexes",
       "instance": {
         "kind": "account_handoff",
-        "mode": "legacy"
+        "mode": "vendor"
       }
     },
     {
@@ -6265,7 +6239,7 @@
         "transport_bindings": [],
         "rate_limit_policy": {},
         "supported_receipts": [
-          "legacy"
+          "vendor"
         ]
       }
     },
@@ -6576,7 +6550,7 @@
       "schema_ref": "schemas/read-cursor.schema.json",
       "expect_valid": false,
       "instance": {
-        "id": "legacy-read-cursor-object-id",
+        "id": "unstructured-read-cursor-object-id",
         "schema": "ak.schema.read_cursor.v1",
         "actor_id": {
           "kind": "service",

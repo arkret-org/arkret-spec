@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.3",
+  "version": "2026-09-07.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T03:40:00+08:00",
+  "generated_at": "2026-09-07T05:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1789,7 +1789,7 @@
         "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json"
       ],
-      "description": "KeyPackage upload, entry upload, minimal consume command, consume service receipt, and revoke signatures use byte-exact domain-separated typed JCS transcripts. Consume authority and all owner/KeyPackage/Welcome/service coordinates have one carrier in recipient_durable_receipt; wrapper mirrors and legacy selectors fail closed."
+      "description": "KeyPackage upload, entry upload, minimal consume command, consume service receipt, and revoke signatures use byte-exact domain-separated typed JCS transcripts. Consume authority and all owner/KeyPackage/Welcome/service coordinates have one carrier in recipient_durable_receipt; wrapper mirrors and non-canonical selectors fail closed."
     },
     {
       "vector_id": "ak.vector.cursor.revoke_high_assurance.v1",

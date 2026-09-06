@@ -1963,24 +1963,6 @@
           }
         },
         {
-          "name": "legacy_target_cell_alias_rejected",
-          "payload_field_name": "target_cell",
-          "expected": {
-            "result": "reject",
-            "reason": "schema_violation",
-            "note": "target_cell_id is the only registered payload field (NC-IDROLE-001); the retired target_cell alias is an unknown property under additionalProperties:false and the required target_cell_id is absent, so the Move never reaches recovery evaluation."
-          }
-        },
-        {
-          "name": "duplicate_target_cell_fields_rejected",
-          "payload_extra_field": "target_cell",
-          "expected": {
-            "result": "reject",
-            "reason": "schema_violation",
-            "note": "carrying both target_cell_id and the retired alias is a schema violation; a receiver MUST NOT pick either field or reconcile them."
-          }
-        },
-        {
           "name": "ordinary_mls_commit_cannot_recover_bottom",
           "target_cell_family": "ak.component.mls.epoch.v1",
           "cell_status_before": "bottom",

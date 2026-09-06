@@ -379,7 +379,7 @@
       "instance": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8"
     },
     {
-      "name": "legacy_short_push_target_id_is_invalid",
+      "name": "short_push_target_id_is_invalid",
       "schema_ref": "schemas/common-ids.schema.json#/$defs/push_target_id",
       "expect_valid": false,
       "first_expected_error": "contains:does not match",

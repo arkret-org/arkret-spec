@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.3",
+  "version": "2026-09-07.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T03:50:00+08:00",
+  "generated_at": "2026-09-07T05:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -505,7 +505,7 @@
       "category": "reducer",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#4-state-hash",
       "section_digest": "sha256:c2d48bc3dbc0a35c25f4b225705d4140247d8e6c18b9a6f77a3d4cc28b9dfc51",
-      "requirement": "state_digest is the RFC 6962 root over the snapshot's cell items where each leaf is byte-identical to the section 6.2.1 state_root leaf, leaf = H(0x00 || canonical_json({cell: id, state: state_object})), node = H(0x01 || left || right), odd tail promoted, leaves in items order (id code point ascending, chunks concatenated by index), H = the Realm's live digest suite, the empty output being H over empty bytes; the legacy kind:id:sha256(object) double wrapping and any composition without the 0x00/0x01 domain separation MUST be rejected as a root mismatch.",
+      "requirement": "state_digest is the RFC 6962 root over the snapshot's cell items where each leaf is byte-identical to the section 6.2.1 state_root leaf, leaf = H(0x00 || canonical_json({cell: id, state: state_object})), node = H(0x01 || left || right), odd tail promoted, leaves in items order (id code point ascending, chunks concatenated by index), H = the Realm's live digest suite, the empty output being H over empty bytes; the kind:id:sha256(object) double wrapping and any composition without the 0x00/0x01 domain separation MUST be rejected as a root mismatch.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.realm_state_snapshot.state_digest_recompute.v1"

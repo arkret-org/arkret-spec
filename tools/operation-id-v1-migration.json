@@ -1,6 +1,6 @@
 {
   "schema": "arkret.source_migration.operation_id_v1.v1",
-  "description": "Source-only clean-break rename map. These legacy spellings are not wire aliases and MUST NOT be accepted at runtime.",
+  "description": "Source-only clean-break rename map. The pre-.v1 spellings are not wire aliases and MUST NOT be accepted at runtime.",
   "runtime_aliases": false,
   "mappings": [
     {

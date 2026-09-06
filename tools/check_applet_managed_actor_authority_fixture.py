@@ -18,7 +18,7 @@ EXPECTED: dict[str, tuple[str, Any]] = {
     "bot_exact_pair_and_initial_resolution": ("expect", "accepted"),
     "ghost_namespace_matches_verified_did": ("expect", "accepted"),
     "ghost_external_tuple_is_single_closed_carrier": ("expect", "accepted"),
-    "ghost_external_tuple_rejects_legacy_or_extra_mirrors": ("expect", "schema_violation"),
+    "ghost_external_tuple_rejects_extra_mirrors": ("expect", "schema_violation"),
     "ghost_provision_requires_registration_service_signature": ("expect", "http_signature_required_or_invalid"),
     "remote_station_claim": ("expect", "applet_managed_actor_provision_invalid"),
     "actor_reuses_service_or_controller": ("expect", "applet_managed_actor_provision_invalid"),

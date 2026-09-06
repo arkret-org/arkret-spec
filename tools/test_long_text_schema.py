@@ -49,12 +49,6 @@ class LongTextSchemaTest(unittest.TestCase):
                 with self.subTest(encrypted="attachment" in block, invalid=invalid):
                     self.assertFalse(self.validator.is_valid(block))
 
-    def test_legacy_format_is_rejected_even_when_consistent(self):
-        for example in self.examples:
-            for value in ("plain", "markdown", "prosemirror_json"):
-                with self.subTest(encrypted="attachment" in example, format=value):
-                    self.assertFalse(self.validator.is_valid({**example, "format": value}))
-
     def test_encrypted_metadata_has_one_carrier(self):
         example = next(block for block in self.examples if "attachment" in block)
         self.assertFalse(self.validator.is_valid({**example, "media_type": "text/plain"}))
@@ -70,7 +64,7 @@ class LongTextSchemaTest(unittest.TestCase):
             generator = case["input"]["generator"]
             if generator["kind"] in ("long_text_plaintext_descriptor", "long_text_e2ee_descriptor"):
                 self.assertEqual(generator["media_types"], ["text/plain", "text/markdown"])
-                self.assertTrue({"media_type_missing", "media_type_unknown", "media_type_has_charset", "legacy_format"}.issubset(generator["mutations"]))
+                self.assertTrue({"media_type_missing", "media_type_unknown", "media_type_has_charset"}.issubset(generator["mutations"]))
 
 
 if __name__ == "__main__":

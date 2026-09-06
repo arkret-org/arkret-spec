@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.2",
+  "version": "2026-09-07.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T02:00:00+08:00",
+  "generated_at": "2026-09-07T05:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -14036,7 +14036,7 @@
         "http": "GET /_arkret/self/authz/effective-grants",
         "grpc": "SelfAuthz/GetEffectiveGrants",
         "mq": "self.authz.grants.query.effective",
-        "notes": "Query parameters are realm_id, optional subject_actor_id and optional at. subject_actor_id is a percent-encoded canonical JSON ActorId, including Account and Service branches. Omission selects the authenticated credential's exact ActorId. Reject legacy subject, subject_station_id and subject_account_id aliases; no principal-only, local-service, bearer-service, DID-document or inferred-routing fallback is allowed.",
+        "notes": "Query parameters are realm_id, optional subject_actor_id and optional at. subject_actor_id is a percent-encoded canonical JSON ActorId, including Account and Service branches. Omission selects the authenticated credential's exact ActorId. subject_actor_id is the only accepted subject parameter, so subject, subject_station_id and subject_account_id are invalid; no principal-only, local-service, bearer-service, DID-document or inferred-routing fallback is allowed.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList"
@@ -15516,8 +15516,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-05.3",
-    "generated_at": "2026-09-05T15:30:00+08:00",
+    "version": "2026-09-07.4",
+    "generated_at": "2026-09-07T05:00:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

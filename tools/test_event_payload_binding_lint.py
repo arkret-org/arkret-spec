@@ -156,13 +156,13 @@ class EventPayloadBindingLintTest(unittest.TestCase):
 
     def test_stale_shared_dispatch_allowlist_fails(self) -> None:
         probe = ("ak.message.create", "stale_probe_payload")
-        schemas.LEGACY_SHARED_PAYLOAD_DISPATCH.add(probe)
+        schemas.SHARED_PAYLOAD_DISPATCH.add(probe)
         try:
             errors = self._lint()
         finally:
-            schemas.LEGACY_SHARED_PAYLOAD_DISPATCH.remove(probe)
+            schemas.SHARED_PAYLOAD_DISPATCH.remove(probe)
         self.assertTrue(
-            any("stale LEGACY_SHARED_PAYLOAD_DISPATCH" in error for error in errors),
+            any("stale SHARED_PAYLOAD_DISPATCH" in error for error in errors),
             errors,
         )
 

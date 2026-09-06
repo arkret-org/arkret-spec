@@ -191,7 +191,7 @@
             "tracks.discussion[key=id].enabled",
             "items.0.name",
             "metadata..title",
-            "`legacy-field`"
+            "`quoted-field`"
           ]
         }
       },

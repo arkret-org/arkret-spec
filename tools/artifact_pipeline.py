@@ -19,7 +19,7 @@ This pipeline owns three responsibilities:
   check      verify generated/public drift, fixture digests, artifact versions,
              then run lints
 
-The legacy "sync canonical files into zh/ mirrors" and "rewrite generated
+The "sync canonical files into zh/ mirrors" and "rewrite generated
 markdown tables inside zh/sync/service-api-schema.{md,mdx}" responsibilities
 are gone. The site renders machine artifacts directly via MDX components
 (<EventKindTable/>, <OperationTable/>, <SchemaViewer/>, ...), so duplicating

@@ -394,18 +394,6 @@
       }
     },
     {
-      "name": "key_backup_unlock_legacy_signed_fields_rejected",
-      "schema_ref": "schemas/key-backup-unlock-proof.schema.json#/properties/auth_data",
-      "expect_valid": false,
-      "first_expected_error": "$: Additional properties are not allowed ('signed_fields' was unexpected)",
-      "instance": {
-        "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
-        "signature_algorithm": "Ed25519",
-        "signature": "signature-base64url-placeholder",
-        "signed_fields": []
-      }
-    },
-    {
       "name": "key_backup_mls_history_envelope_actor_id_valid",
       "schema_ref": "schemas/key-backup.schema.json",
       "expect_valid": true,

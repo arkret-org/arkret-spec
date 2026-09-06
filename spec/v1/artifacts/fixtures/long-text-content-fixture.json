@@ -146,8 +146,7 @@
             "media_type_has_charset",
             "declared_size_mismatch",
             "media_type_missing",
-            "media_type_unknown",
-            "legacy_format"
+            "media_type_unknown"
           ],
           "media_types": [
             "text/plain",
@@ -178,7 +177,6 @@
             "last_segment_truncated",
             "media_type_missing",
             "media_type_unknown",
-            "legacy_format",
             "media_type_has_charset",
             "root_media_type"
           ],

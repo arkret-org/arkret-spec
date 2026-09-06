@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.1",
+  "version": "2026-09-07.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T00:20:00+08:00",
+  "generated_at": "2026-09-07T05:00:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -18,7 +18,7 @@
     "A schema node MAY project its single context as x-arkret-proof-context; when both the annotation and a registry row exist they MUST agree byte-for-byte",
     "A shared-proof use point whose enclosing top-level $defs entry is reached by $ref from more than one other top-level $defs entry of the same file is a packed leaf. Unless every covering row declares its own consumer_operation, each object family MUST hold its own proof node and its own row; one row MUST NOT stand for several request/outcome families",
     "domain_separations rows MUST have unique domain and object_family values, MUST NOT reuse a label or object_family already registered in contexts[], and MUST declare a primitive from the closed set canonical_json_sha256, merkle_leaf_sha256, merkle_node_sha256, merkle_root_sha256, detached_signature, http_message_signature, hpke_info, replay_cache_namespace",
-    "Every contexts[].context and domain_separations[].domain MUST match ak.<dot-separated snake_case symbol path>.v1. A dot separates naming levels, an underscore joins words inside one level, and a label MUST occur in exactly one array; the array and primitive, not delimiter spelling, determine its semantics. Legacy ak.<kebab-case>-proof-v1 spelling is invalid and is not an alias",
+    "Every contexts[].context and domain_separations[].domain MUST match ak.<dot-separated snake_case symbol path>.v1. A dot separates naming levels, an underscore joins words inside one level, and a label MUST occur in exactly one array; the array and primitive, not delimiter spelling, determine its semantics. The ak.<kebab-case>-proof-v1 spelling is invalid and is not an alias",
     "A replay_cache_namespace row MUST declare defined_in, and the normative document it names MUST contain the domain literal. Every fixture field named replay_cache_namespace MUST carry a registered replay_cache_namespace domain, and every fixture field named proof_context MUST carry a registered proof context"
   ],
   "contexts": [

@@ -296,7 +296,7 @@
       }
     },
     {
-      "name": "relation_assignment_legacy_did_endpoint_rejected",
+      "name": "relation_assignment_bare_did_endpoint_rejected",
       "schema_ref": "schemas/relation.schema.json",
       "expect_valid": false,
       "instance": {

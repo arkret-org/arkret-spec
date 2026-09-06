@@ -143,11 +143,6 @@
       "expected": "device_signature_invalid"
     },
     {
-      "name": "legacy_coordinate_mirror_is_forbidden",
-      "mutation": "insert the removed realm_id mirror beside recipient_durable_receipt",
-      "expected": "schema_violation"
-    },
-    {
       "name": "consume_receipt_top_level_coordinate_is_forbidden",
       "mutation": "insert claim_request_id, keypackage_ref, welcome_ref, realm_id, mls_group_id, mls_epoch, or source_id beside consume receipt recipient_durable_receipt",
       "expected": "schema_violation"

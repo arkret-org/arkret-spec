@@ -68,10 +68,10 @@ def load_schema_ids() -> dict[tuple[str, str], list[str]]:
         file_ref = row.get("file")
         if not isinstance(schema_id, str) or not isinstance(file_ref, str):
             continue
-        document, separator, legacy_fragment = file_ref.partition("#")
+        document, separator, inline_fragment = file_ref.partition("#")
         fragment = row.get("fragment")
         if not isinstance(fragment, str):
-            fragment = f"#{legacy_fragment}" if separator else "#"
+            fragment = f"#{inline_fragment}" if separator else "#"
         key = (Path(document).name, fragment)
         bindings.setdefault(key, []).append(schema_id)
     return {key: sorted(value) for key, value in bindings.items()}
