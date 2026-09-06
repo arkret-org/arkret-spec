@@ -65,7 +65,7 @@
     "account_id": {
       "type": "object",
       "x-arkret-composite-identifier": true,
-      "description": "Complete protocol identity for a principal at one Station, including human, Agent, Applet-managed Ghost and integration accounts. It does not imply a human login, provisioning workflow, credential class or authorization. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key.",
+      "description": "Complete protocol identity for a principal at one Station, including human, Agent, Applet-managed Ghost and integration accounts. It does not imply a human login, provisioning workflow, credential class or authorization. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key. Accounts with the same principal_id at different station_id values are permanently distinct. Principal equality MUST NOT establish account equivalence or any permission inheritance, merging, delegation, substitution or recovery relationship. Account-scoped authority requires independent authorization for the exact AccountId. Permanent loss of a Station does not permit its accounts or PCR lineages to migrate to or revive at another Station; Realm takeover and Seal recovery do not waive this boundary. See models/common-fields.md section 4.2.",
       "required": [
         "principal_id",
         "station_id"
@@ -82,7 +82,7 @@
     },
     "actor_id": {
       "x-arkret-composite-identifier": true,
-      "description": "Complete protocol identity for an Event author or Realm member: account carries the exact AccountId for every Station-hosted principal; service identifies a service acting as itself. The discriminator is validated against accepted registration and admission evidence; it never authorizes itself. Account and service are distinct, and no comparison may fall back to a bare principal_id. Agent and integration classification, provisioning, controller binding and credential authorization are independently verified facts, not identity variants.",
+      "description": "Complete protocol identity for an Event author or Realm member: account carries the exact AccountId for every Station-hosted principal; service identifies a service acting as itself. The discriminator is validated against accepted registration and admission evidence; it never authorizes itself. Account and service are distinct, and no comparison may fall back to a bare principal_id. Agent and integration classification, provisioning, controller binding and credential authorization are independently verified facts, not identity variants. Account actors at different Stations MUST NOT share or inherit authority merely because their principal_id, DID controller or signing key matches, including membership, capability, notary signing and recovery authority.",
       "oneOf": [
         {
           "type": "object",

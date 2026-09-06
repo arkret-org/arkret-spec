@@ -50,7 +50,7 @@ see_also:
 | Organization | 组织 | 可治理主体的一类 Principal，通常由组织 DID 标识。 |
 | Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
 | Handle | 人类可读地址 | 面向用户的可读入口，统一 canonical handle `user:domain`。账号解析结果在授权披露时是 exact AccountId；handle 不是协议主体、membership grant 或授权主键。 |
-| AccountId | 完整账号身份 | Closed canonical JSON `{principal_id, station_id}`；两个 canonical DID Core ID 分量共同决定账号，相等性不得退化为裸 `principal_id`。 |
+| AccountId | 完整账号身份 | Closed canonical JSON `{principal_id, station_id}`；不同 Station 上即使 principal 相同也是永远独立的账号，不因 principal 相同产生任何权限关系，也不能跨 Station 迁移或复活。相等性与授权不得退化为裸 `principal_id`；见 [账号隔离铁律](../models/common-fields.md#42-主体引用字段)。 |
 | ActorId | 完整 Actor 身份 | Closed union：account 分支携 AccountId（包括人类、Agent、Ghost 与 integration），service 分支携 `service_id`；不同分支永不相等。 |
 | Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Realm history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |

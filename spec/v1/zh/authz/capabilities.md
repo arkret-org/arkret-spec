@@ -29,6 +29,13 @@ grant 的 `issuer_id` 与具体主体分支的 `subject` MUST 使用闭合 `Acto
 
 Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主体主键。
 
+**跨 Station 无 principal 授权关联（normative）**：遵守 [`common-fields.md` §4.2](../models/common-fields.md#42-主体引用字段)
+的账号隔离铁律。授予 `{P,S1}` 的权限对 `{P,S2}` 没有任何效力；接收方 MUST NOT 因二者 principal、
+DID 控制者或签名公钥相同而匹配 grant subject、补足 issuer authority、继承 owner/admin/notary/recovery
+角色，或替代已离线、注销或永久失去 Station 的账号。condition selector 的匹配同样 MUST NOT 将同
+principal 的另一账号所持 membership、grant 或账号级 claim 当作当前账号的授权证据。其他账号只能
+凭独立有效的授权行动，不能将身份相似性作为 delegation、Realm 接管或 Seal 恢复依据。
+
 ### 2.2 权限必须显式表达
 
 实现 MUST NOT 依赖以下隐式假设：

@@ -1175,6 +1175,13 @@ Recovery policy 是 PCR control state。Genesis policy 只能由 founding accept
 
 ### 8.1 Policy 生命周期
 
+**账号边界（normative）**：recovery policy、proof、session 与 device re-anchor 只恢复其绑定的 exact
+AccountId，MUST 遵守 [`common-fields.md` §4.2](../models/common-fields.md#42-主体引用字段)。另一 Station
+上相同 principal 的账号、设备授权、PCR 或 session 没有替代效力；持有相同 DID control key 也不产生
+跨账号恢复权。显式启用的 DID-root proof 仍须完整满足目标 Account 自己的已接受 policy 与 transcript，
+MUST NOT 将其解释为另一账号的权限继承或跨 Station 迁移。原 Station 永久停止服务不提供跨 Station
+re-anchor 出口。
+
 Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。签名设备必须满足 `device_generation_status="active"`、`authorized_generation_ref == current_device_generation_ref` 与未撤销状态；quorum 更新还必须满足旧 policy 的门限和 ratchet：
 
 Policy 签名输入固定为 `UTF8("ak.identity.recovery_policy.signature.v1\n") || RFC8785_JCS(policy 的全部实际存在顶层成员，排除 auth_data)`。schema 允许的 optional 成员出现时自动进入投影，缺席时省略；只有 schema 明确允许 `null` 的位置才能保留 `null`。wire 上不携字段名清单，receiver 不得按调用方自报清单缩小投影。

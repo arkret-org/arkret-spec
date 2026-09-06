@@ -403,11 +403,28 @@ value category，不会自动触发 DID Document 解析或在线验证。
 
 ### 4.2 主体引用字段
 
+**Account 身份与权限隔离铁律（normative）**：`AccountId={principal_id,station_id}` 是不可拆分的账号身份。
+对 `A={principal_id:P,station_id:S1}` 与 `B={principal_id:P,station_id:S2}`，只要 `S1 != S2`，
+`A` 与 `B` 就永远是两个独立 Account，account 分支的 ActorId 也永不相等。相同 principal、DID
+控制者、公钥、登录用户或组织归属 MUST NOT 建立账号等价、权限关联、继承、合并、代理或恢复关系。
+该规则不因任一 Station 离线、永久停止服务、账号恢复、Realm 接管、Seal 冲突或灾难恢复而改变。
+
+账号级 membership、capability、owner/admin/notary/recovery authority、设备授权、PCR、session 与 MLS
+授权 MUST 绑定并验证完整 AccountId；MUST NOT 通过只比较 `principal_id`、替换 `station_id` 或查询
+同 principal 的另一账号来补足授权。另一账号如需参与同一 Realm，MUST 以其自身完整 ActorId 独立
+满足该操作的授权规则；同 principal 这一事实没有任何授权效力。独立、显式授权不构成账号等价，
+也不转移原账号的身份、PCR 或未被该授权授予的权限。
+
+Station 永久停止服务时，其 Account 与 PCR 不提供跨 Station 延续、迁移或复活路径；在另一 Station
+注册同 principal 只会建立独立 Account。历史 Event / Seal 的验证与保留不恢复死亡账号的当前行动权。
+同一 Station service DID core 的 endpoint 更新不改变 AccountId，不属于跨 Station 账号替换。
+生命周期边界见 [`../identity/account-lifecycle.md` §2](../identity/account-lifecycle.md#2-分层)。
+
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
 | `actor_id` | Event Envelope、membership 与通用 actor-scoped 状态 | 完整 ActorId closed union；account 分支携带 exact AccountId（包括人类、Agent、Ghost 与 integration），service 分支携带 `service_id`。不得用并列 `actor_kind` 或裸 DID 补足语义。 |
 | `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 ActorId；字段名说明角色，值形态仍使用同一个 closed union。若专属 schema 明确只允许某一 DID-core 角色，必须使用该专属角色名而不是泛化 `actor_id`。 |
-| `principal_id` | Actor Profile | Profile 对应的 principal `did_core_id`；稳定权限主体引用。 |
+| `principal_id` | Actor Profile | Profile 对应的密码学 principal `did_core_id`；不是完整账号身份，不产生跨 Station 权限关系。账号授权使用完整 AccountId / ActorId。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的完整 ActorId，由 reducer 从 Event `actor_id` 原样派生；不得只保存其中的 principal DID。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing actor 语义。 |
 | `issuer_id` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim、SessionGrant | 签发授权、receipt、claim 或 credential 的主体 `did_core_id`；必须持有签发权限。 |
 | `subject` | Capability Grant | 唯一登记的 closed polymorphic subject：principal `did_core_id` 或带 discriminator 的 condition selector。裸名表示整个闭合 union，不是稳定 ID 的别名。 |

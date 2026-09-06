@@ -36,11 +36,20 @@ Applet-managed Ghost 与 integration。`ActorId` 只允许 `account`（内嵌完
 session 或业务关系；只有显式 current external claim、resolution successor 或启用的 DID-root recovery
 消费 current DID state。
 
+**Station 生命周期边界（normative）**：本文件所有账号找回与 reactivation 只作用于原 exact
+AccountId 和原 PCR lineage，MUST 遵守 [`common-fields.md` §4.2 的账号隔离铁律](../models/common-fields.md#42-主体引用字段)。
+Station 永久停止服务，其上的 Account 与 PCR 随之终止；协议不定义将其迁移或复活到另一 Station
+的路径。相同 principal 在另一 Station 的注册是独立账号创建，MUST NOT 继承原账号的 membership、
+grant、owner/admin/notary/recovery authority、设备授权或 PCR。Realm 的其他参与者只能凭自身有效
+授权继续治理或执行已定义的恢复流程，MUST NOT 以同 principal 账号替代死亡账号。
+网络超时或暂时离线不构成可验证的永久死亡证明，MUST NOT 单凭不可达自动签发账号终止事实、转移权限
+或创建替代账号；同一 Station 恢复服务后仍按原 AccountId 的已接受状态处理。
+
 ## 2.1 服务账号登录与找回
 
 服务账号 MAY 使用用户名/密码、passkey、WebAuthn、OAuth/OIDC、企业 SSO 或类似集中认证服务的登录方式。它们只证明调用方通过了某个 account service 的认证，不能直接证明 DID principal 所有权。
 
-登录成功后，account service / auth service MUST 将会话绑定到 principal `did_core_id` 与设备，例如签发短期 `ak.session.grant`、登记 device binding，或要求客户端提交 identity control proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。`ak.session.grant` 是 Account Authority issuer-ledger credential，不是 Event：issuer 从 closed immutable `ak.session_grant.issuance.v1` preimage 派生 33-octet / 44-character suite-tagged full-digest token，签 JWT，并要求 JWT `jti` 逐字节等于该 typed ID。其 ID derivation、canonical JWK、nonce 与 verifier 规则见 [`key-management.md` §6](./key-management.md)。这个 ID 不是 Event ID，也不是 `ak:grant:` Capability GrantId；三者的 parser、存储索引与 API strong type MUST 分开。
+登录成功后，account service / auth service MUST 将会话绑定到完整 `AccountId={principal_id,station_id}` 与该账号的设备，例如签发短期 `ak.session.grant`、登记 device binding，或要求客户端提交 identity control proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。`ak.session.grant` 是 Account Authority issuer-ledger credential，不是 Event：issuer 从 closed immutable `ak.session_grant.issuance.v1` preimage 派生 33-octet / 44-character suite-tagged full-digest token，签 JWT，并要求 JWT `jti` 逐字节等于该 typed ID。其 ID derivation、canonical JWK、nonce 与 verifier 规则见 [`key-management.md` §6](./key-management.md)。这个 ID 不是 Event ID，也不是 `ak:grant:` Capability GrantId；三者的 parser、存储索引与 API strong type MUST 分开。
 
 ### 2.1.1 Account-first onboarding
 
@@ -55,7 +64,7 @@ Account Authority 必须使用 holder-bound handoff；普通 OAuth token、OIDC 
 1. 客户端只向 `POST /_arkret/gate/account/authentication-handoffs` 提交 OIDC code exchange proof 与 RFC 9449 DPoP；这是 current-v1 唯一 authorization-code consumer。Account Authority 验 issuer/client/redirect/nonce/PKCE 与账号绑定并返回最多 1 hour 的 opaque `account_handoff_grant` 与 deployment-local `account_subject`；外部 OP callback 的 `state` 由实际持有 redirect transaction 的客户端验证，只有 Account Authority 自己持有该 transaction 时才由它权威验证。handoff 本身不是 SessionGrant、没有 refresh 语义，不能直接访问 `/_arkret/self/*`；其闭合权限集是 issue identity-binding challenge、issue DID-binding challenge、issue identity-abandonment challenge、abandon identity creation、register、issue session grant 与 issue recovery-completion grant。两个 identity-abandonment 成员在列，是因为 PCR 从未 accepted 时用户没有 principal，不可能有绑定 principal 的 session grant 来承载它们。对已绑定账号，`account_handoff` 只有在调用方同时证明 accepted device 私钥持有且 origin current-device gate 返回 `allow` 时才能换取 Standard SessionGrant；仅窃取账号因子、handoff 与旧 `device_id` 必须得到零 grant。deployment policy 允许 reactivation 时，fresh account auth MAY 为 `deactivated` 原账号返回 `binding.state=bound` 的 recovery candidate handoff，但该 handoff 本身不改变 account status，普通 issue/register/refresh 仍必须 `account_deactivated`；只有 §3 的 recovery-completion operation 可消费完整 PCR recovery closure 并原子恢复账号。policy deny 时 handoff 创建即返回 `account_deactivated` 且零恢复写入。
 `binding.state="bound"` 后不得进入 identity onboarding，也不得从一个巨型 UI 状态机直接猜 continuation。客户端必须先执行不产生远程副作用的本地证据规范化：等待 account-scoped secure-store hydration 完成，验证 account/principal/device/key 一致性，仅从当前 transaction 输入删除已证明过期或 terminal 的临时 checkpoint；跨账号材料、长期 key、多个有效 candidate 与 storage error 只能隔离到 diagnostics，不得静默修剪成“无设备”。输出闭合为：
 
-- `ReturningDevice`：恰有一个与 bound principal 匹配且 private/public key 自证一致的 accepted-device candidate；
+- `ReturningDevice`：恰有一个与 bound exact AccountId 匹配且 private/public key 自证一致的 accepted-device candidate；
 - `NoReturningDevice`：hydration 已明确完成但没有可用旧 device key；
 - `LocalEvidenceUnavailable`：存储未就绪、读取失败或候选矛盾。
 

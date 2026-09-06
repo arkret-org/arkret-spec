@@ -432,6 +432,13 @@ controller terminal transition 不再隐式改写 Agent canonical member cell。
 
 ### 2.8 Realm 角色分类（normative）
 
+**Account 与 Realm 的生存边界（normative）**：所有 Realm 均遵守
+[`common-fields.md` §4.2 的账号隔离铁律](./common-fields.md#42-主体引用字段)。PCR 绑定完整 AccountId，
+原 Station 永久停止服务时不能由另一 Station 上同 principal 的 Account 接续。Collaboration Realm
+的创建者、管理员或 notary 账号失效，不会把其权力赋予同 principal 的另一账号；Realm 是否能继续推进
+由其已接受治理状态及已定义恢复授权决定。Seal signer、恢复签名者与管理员的 account 身份比较 MUST
+包含 `station_id`，历史签名验证成功不构成账号替换或当前治理授权。
+
 schema 层只有一个 `ak.schema.realm.v1`；按 **用途** 把 Realm 分成两大类，Collaboration 再按 **成员是否跨信任域** 分两类。所有 Realm 共享同一组生命周期 event（`ak.realm.create` / `ak.realm.tombstone` / `ak.realm.destroy`）与同一套 reducer 规则；下面的分类影响的是 marker 字段、policy 字段默认值与允许的 event kind 集合。
 
 ```

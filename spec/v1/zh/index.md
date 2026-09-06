@@ -27,12 +27,17 @@ MLS scope 提供端到端加密，服务器无需读取正文即可完成验证�
 为让这些能力跨客户端、跨服务商长期互操作，协议把协作写入定义为可验证 Event，并把聊天、看板、文档、
 日历、通话等产品形态定义为同一协作对象图的不同投影：
 
-- 身份主键：DID principal
+- 身份主键：完整 ActorId；账号为不可拆分的 AccountId `{principal_id, station_id}`，DID principal 仅为密码学身份锚点
 - 数据主语（核心对象导览）：Realm / Circle / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
 - 审计主语：signed Event + per-actor event chain
 - 权限主语：capability
 - 呈现主语：views / projection
 - 扩展承载：Morph（同时是上面 canonical 对象清单中的开放对象）+ schema / profile-defined facets
+
+**账号隔离铁律**：不同 Station 上的相同 `principal_id` 永远是不同 Account，MUST NOT 因 principal
+相同而继承、合并、代理或恢复彼此的权限。Station 永久停止服务不触发账号跨 Station 迁移或复活；
+Realm 的延续只能依据其他参与者自身有效的授权。完整规则见
+[`models/common-fields.md` §4.2](./models/common-fields.md#42-主体引用字段)。
 
 > 上面“数据主语”只用于快速建立核心模型，不是完整 canonical kind 清单。canonical materialized object 的分类与文档索引以 [`models/overview.md`](./models/overview.md) 为准；所有 typed-id kind 与 wire form 的完整机器真相源是 [`artifacts/registry/id-kind-registry.json`](../artifacts/registry/id-kind-registry.json)。Morph 既是其中的开放对象，也充当 schema / profile 扩展承载，两处指的是同一对象，不是两类东西。
 

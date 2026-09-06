@@ -3251,6 +3251,21 @@ handle、本地数据库键，或从请求上下文推断任一分量时，MUST 
 membership cell。一个 AccountId 的 join、leave、grant、MLS ownership 与邀请接受 MUST NOT 影响另一个。
 相等性 MUST 比较两个 typed 分量，不得比较原始 JSON 文本，也不得只比较 `principal_id`。
 
+测试器 MUST 进一步令 `A={P,S1}`、`B={P,S2}`，`S1 != S2`，覆盖以下隔离场景
+（[`common-fields.md` §4.2](../models/common-fields.md#42-主体引用字段)）：
+
+1. 只向 A 授予成员资格、capability 或 owner/admin/notary/recovery authority。B 即使使用相同 DID
+   或公钥，仍 MUST NOT 获得相应授权；grant subject、issuer authority 链与 condition selector
+   MUST NOT 通过 principal 相等借用 A 的账号级事实。
+2. 使用 A 的设备授权、PCR、session 或恢复 transcript 请求操作 B，或将材料中的 Station 替换为 S2，
+   MUST 在任何授权状态写入前拒绝；A 的恢复结果 MUST NOT 修改 B 的设备 generation 或 PCR。
+3. 令 S1 永久不可用，保持 S2 与 B 可用。MUST NOT 自动把 A 的 membership、权限、PCR 或 notary slot
+   重新绑定到 B；Realm 接管与恢复 Seal MUST NOT 因 B 与 A 同 principal 而获得授权。
+4. 对 B 通过既有合法流程独立授予某项 Realm 权限后，B 只能按该授权操作；A 的原有授权、PCR 与
+   历史 ActorId 保持独立。该正例不得被实现为 A 到 B 的身份迁移或权限继承。
+5. 仅更新 S1 的已验证 endpoint、保持 Station service DID core 不变时，A 的 AccountId 不变；
+   endpoint 刷新 MUST NOT 被误判为跨 Station 新账号或恢复 B 的依据。
+
 ### 7.3 AccountId 单点变异失败
 
 从有效的 signed AccountId transcript 出发，分别改变 `principal_id`、改变 `station_id`、删除任一成员、
