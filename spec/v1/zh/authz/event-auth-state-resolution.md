@@ -1052,7 +1052,7 @@ payload 为 `{target_cell_id, resolved_value, reason?}`。它在 registry 中登
 不得用 `refs[]` role、producer 自报 effects 或未注册 kind 替代。识别不只依赖
 kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接受它。
 
-**lattice 分型（normative）**：下面第 1 至 5 项的 `state_witness` 家族要求**只适用于非 `cas_register` 的 `bottom=reject` cell**（典型 `fsm`）。`cas_register` 的 recovery 准入改按 §9.5.1 求值：它的目标冲突由**当前签名 basis 下的完整 heads** 证明，不再依赖「冲突前合法值」的 inclusion witness。第 6 项（必须 sealed）与「recovery capability 来源」一段对两者同样适用。
+**lattice 分型（normative）**：下面第 1 至 5 项的 `state_witness` 家族要求**只适用于非因果寄存器的 `bottom=reject` cell**（registry 中今天是 `ordered_log`）。**因果寄存器（`cas_register` 与 `fsm`，§9.3.1.1–§9.3.1.8）的 recovery 准入一律按 §9.5.1 求值**：它们的目标冲突由**当前签名 basis 下的完整 heads** 证明，不依赖「冲突前合法值」的 inclusion witness。第 6 项（必须 sealed）与「recovery capability 来源」一段对两类同样适用。
 
 它 MUST 满足：
 
@@ -1065,11 +1065,11 @@ kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接�
 
 **recovery capability 来源**：`recovery_capability` 由 Realm 的恢复权威持有——即 §7.2 闭环里的 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）所辖的 recovery / fork-resolution 授权；它与 §7.1 的 fork-resolution、[`event-and-patch.md` §2.6](../models/event-and-patch.md) over-fork repair 复用同一恢复权威，不引入新授权主体。`single_signer` 且未声明可用 recovery 路径的 Realm，control cell `⊥` 是诚实的死状态（与 §7.2 第 2 点"证据可流转但不可生效"同一限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一）。
 
-#### 9.5.1 `cas_register` 的 recovery（normative）
+#### 9.5.1 因果寄存器（`cas_register` / `fsm`）的 recovery（normative）
 
-对 `cas_register`，`ak.conflict.recovery` 仍是已注册的有权 Control Move，但它的 `reset` **派生为一次新的身份写入**（写入身份仍是该 recovery Event 的 EventId），而不是一个抹掉历史的开关：
+对因果寄存器，`ak.conflict.recovery` 仍是已注册的有权 Control Move，但它的 `reset` **派生为一次新的身份写入**（写入身份仍是该 recovery Event 的 EventId），而不是一个抹掉历史的开关：
 
-1. **目标冲突由签名 basis 证明**：recovery Move 的签名 `seal_basis` MUST 证明目标 cell 在该 basis 下确有**异值 heads**（§9.3.1.2 第三种情形）。recovery 取代的对象就是这些**完整 heads**。
+1. **目标冲突由签名 basis 证明**：recovery Move 的签名 `seal_basis` MUST 证明目标 cell 在该 basis 下确有**异值 heads**（`cas_register` 见 §9.3.1.2 第三种情形，`fsm` 见 §9.3.1.6 的同 `from` 异 `to`）。recovery 取代的对象就是这些**完整 heads**。
 2. **授权仍独立验证**：授权 MUST 由已登记的 recovery authority / capability 路径验证（本节「recovery capability 来源」一段）。MUST NOT 因为目标处于 `⊥` 就放过 capability 撤销、作用域或 authority generation 验证。若恢复权威本身不可验证，MUST 走既有 Realm recovery / fence 路径或保持 fail closed，MUST NOT 自签解锁。
 3. **Seal 准入仍比较完整 heads**：覆盖该 recovery 的 Seal 仍按 §9.3.1.3 第 3 项要求 `H_c(B) = H_c(P)`。任一新分支已进入 `P` 时，MUST 重新生成并授权一条新的 recovery。
 4. **recovery 只取代自己见过的 heads**：迟到的、recovery basis 未覆盖的分支仍按 §9.3.1.4 参与合并；两条并发且异值的 recovery 仍然冲突。
@@ -1077,7 +1077,7 @@ kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接�
 
 **`state_witness` 在本路径不是准入条件（normative）**：`cas_register` recovery MUST NOT 要求「目标 cell 冲突前合法值的 inclusion witness」，且 `recovery_witness_freshness_window_ms` 对本路径不适用。两条理由：首次写入就冲突时目标此前根本不存在，不存在可见证的冲突前单值；冲突长期未修时，旧 witness 过期不应剥夺**仍然有效**的恢复权威修复该 cell 的能力。目标冲突由第 1 项证明，恢复权威有效性由第 2 项证明，两者分开。MUST NOT 借「删除目标旧值 witness」绕过第 2 项的任何一项验证。
 
-`fsm` MUST NOT 直接套用本节的寄存器转移证明：状态机的 reset 需要独立的转移代数验证；但第 5 项「禁止按接收顺序截断」对 `fsm` 同样适用。
+**`fsm` 的附加准入（normative）**：`fsm` 的 recovery 写入除上述五项外，还 MUST 通过 §9.3.1.7 的转移准入——它携带的 `to` MUST ∈ 登记的 `states`，且该写入自身签名 basis 下的 `from` MUST 是登记的 `allowed_transitions` 允许的来源；registry 声明 `terminal_states` 时，从终态出发的 recovery MUST 被拒绝。准入之外它与 `cas_register` 的 recovery 逐字相同：同一条身份写入、同一套 heads 取代关系、同一条 §9.3.1.8 合并式，因此第 5 项「禁止按接收顺序截断」对 `fsm` 一样是 MUST，MUST NOT 用 `rposition(reset)` 之类的到达序切片实现它。
 
 **与 §7.1 的层次区分**：§7.1 恢复的是 **Seal-DAG 分叉**（equivocation / `fork_quarantine`）；本节恢复的是**未分叉治理状态内单个 cell 的 `⊥`**。两者由同一恢复权威书写、都经 Seal 接受，但作用对象不同，不可互相替代。该恢复路径由 conformance vector `ak.vector.cba_lattice.conflict_recovery_move.v1` 固定。
 
