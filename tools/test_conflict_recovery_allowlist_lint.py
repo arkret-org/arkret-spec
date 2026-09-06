@@ -12,6 +12,7 @@ not exist. The list never restricts which cells a recovery may target.
 from __future__ import annotations
 
 import copy
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -25,9 +26,12 @@ EVENT_REGISTRY = ROOT / "spec" / "v1" / "artifacts" / "registry" / "event-kind-r
 RECOVERY_KIND = core.CONFLICT_RECOVERY_KIND
 EXPECTED_ALLOWLIST = [
     "ak.component.fork_resolution.v1",
+    "ak.component.identity.resolution.v1",
     "ak.component.invite.live_target.v1",
     "ak.component.mls.epoch.v1",
     "ak.component.realm.authority_root.v1",
+    "ak.component.realm.organization_recovery_key.v1",
+    "ak.component.realm.reducer_profile.v1",
 ]
 
 
@@ -37,22 +41,48 @@ def _recovery_write(registry: dict) -> dict:
 
 
 class ShippedAllowlistTest(unittest.TestCase):
-    def test_shipped_list_is_the_registered_four(self) -> None:
+    def test_shipped_list_is_the_registered_seven(self) -> None:
         registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
         self.assertEqual(
             _recovery_write(registry)["sole_recovery_families"], EXPECTED_ALLOWLIST
         )
 
-    def test_every_allowlisted_family_is_a_written_causal_register(self) -> None:
+    def test_every_listed_family_is_a_written_cas_register(self) -> None:
+        """The list is the cas_register half only.
+
+        Every fsm family is sole-recovery by construction: section 9.3.1.7 item 2
+        makes an ordinary transition's `from` equal the settled value, which does
+        not exist under Bottom. Listing one would suggest this registry is the
+        source of truth for fsm too, so an fsm family here is a defect.
+        """
         registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
-        causal = {
-            write["cell_family"]
-            for row in registry["event_kinds"]
-            for write in row.get("cell_writes") or []
-            if write.get("lattice") in ("cas_register", "fsm") and write.get("cell_family")
-        }
+        by_lattice: dict[str, set[str]] = {}
+        for row in registry["event_kinds"]:
+            for write in row.get("cell_writes") or []:
+                family = write.get("cell_family")
+                if family and write.get("lattice") in ("cas_register", "fsm"):
+                    by_lattice.setdefault(write["lattice"], set()).add(family)
         for family in _recovery_write(registry)["sole_recovery_families"]:
-            self.assertIn(family, causal, family)
+            self.assertIn(family, by_lattice["cas_register"], family)
+            self.assertNotIn(family, by_lattice["fsm"], family)
+
+    def test_every_cas_family_with_a_self_reading_writer_is_listed(self) -> None:
+        """The audit that produced the list, kept executable.
+
+        A cas_register family whose every writer declares a head_eq on that same
+        family has no ordinary-write exit once it is in Bottom, because head_eq
+        fails closed there. Such a family must be listed or it becomes a dead cell.
+        """
+        registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
+        writers: dict[str, list[dict]] = {}
+        for row in registry["event_kinds"]:
+            for write in row.get("cell_writes") or []:
+                if write.get("lattice") == "cas_register" and write.get("cell_family"):
+                    writers.setdefault(write["cell_family"], []).append(row)
+        listed = set(_recovery_write(registry)["sole_recovery_families"])
+        for family, rows in writers.items():
+            if all("head_eq" in json.dumps(row, ensure_ascii=False) for row in rows):
+                self.assertIn(family, listed, family)
 
     def test_notary_cell_is_not_allowlisted(self) -> None:
         registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))

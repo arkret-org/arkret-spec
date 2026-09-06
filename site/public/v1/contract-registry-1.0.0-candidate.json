@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.6",
+  "version": "2026-09-07.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T10:10:00+08:00",
+  "generated_at": "2026-09-07T11:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -5272,9 +5272,12 @@
             },
             "sole_recovery_families": [
               "ak.component.fork_resolution.v1",
+              "ak.component.identity.resolution.v1",
               "ak.component.invite.live_target.v1",
               "ak.component.mls.epoch.v1",
-              "ak.component.realm.authority_root.v1"
+              "ak.component.realm.authority_root.v1",
+              "ak.component.realm.organization_recovery_key.v1",
+              "ak.component.realm.reducer_profile.v1"
             ],
             "effect_projection": {
               "kind": "reset",
