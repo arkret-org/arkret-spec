@@ -1574,7 +1574,7 @@ ak.vector.circle.lifecycle_basis_and_archive_freshness.v1
 ak.vector.cba_lattice.conflict_recovery_move.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.5：`bottom=reject` control cell 进入 `⊥` 后，只能由满足 recovery 授权、pre-conflict witness、sealed finality 与撤销新鲜度要求的 conflict-recovery Move 恢复为单值。
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.5 与 §9.3.1.4：`bottom=reject` control cell 进入 `⊥` 后如何回到单值。**出路按 cell family 分层**——已登记 `sole_recovery_families` 的 family 没有普通写出路，只能由 conflict-recovery Move 恢复；其余因果寄存器 family 还可以由一次对该 action 本来就有权的普通写自愈。conflict-recovery Move 本身对任何处于 `⊥` 的因果寄存器 cell 都可用，清单 MUST NOT 被实现成对目标的限制。pre-conflict `state_witness` 与撤销新鲜度这一族要求只适用于**非**因果寄存器的 `bottom=reject` lattice（registry 中今天是 `ordered_log`），因此下面 Case A–E 跑在 `ak.component.audit.release.v1` 上；因果寄存器按 §9.5.1 求值，不要求 witness。
 
 输入（fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `conflict_recovery_move`）：
 
@@ -1584,6 +1584,11 @@ ak.vector.cba_lattice.conflict_recovery_move.v1
 - **Case D**：`recovery_capability` 未 sealed、未出现在 witness state root 中，或 local frontier 已观察到晚于 witness 的 revoke / supersede。
 - **Case E**：recovery Move 未经控制面 Seal 接受。
 - **Case F — MLS 普通 Commit 绕过**：`ak.component.mls.epoch.v1` 已因并发 Commit 进入 `⊥`，producer 再提交普通 `ak.mls.commit` 试图直接推进 epoch。
+- **Case G — 清单外 family 的普通写自愈**：`ak.component.realm.profile.v1` 处于 `⊥`，一个对 `ak.realm.profile` 本来就有权、且自身 precondition 不读该 cell 的主体提交普通写。
+- **Case H — 无权主体不因 `⊥` 获得写入权**：同 Case G，但主体对该 action 无权。
+- **Case I — 清单内 family 无普通写出路**：`ak.component.realm.authority_root.v1` 处于 `⊥`，当前 controller 提交 `ak.realm.owner.transfer`。
+- **Case J — recovery 不受清单限制**：conflict-recovery Move 指向清单外的 `ak.component.realm.profile.v1`。
+- **Case K — notary cell 没有任何出路**：conflict-recovery Move 指向 `ak.component.notary.v1`。
 
 期望：
 
@@ -1592,9 +1597,14 @@ ak.vector.cba_lattice.conflict_recovery_move.v1
 - Case C：MUST 拒绝（`recovery_witness_post_conflict`）。
 - Case D：MUST 拒绝（`recovery_capability_not_sealed` / `recovery_witness_revoke_lagging`）。
 - Case E：MUST 拒绝；unsealed recovery Move 不得改变 `⊥` cell。
-- Case F：MUST `failed_bottom`，epoch cell 保持 `⊥`，application send gate 保持关闭；MLS 不得另设恢复入口。
+- Case F：MUST `failed_bottom`，epoch cell 保持 `⊥`，application send gate 保持关闭；MLS 不得另设恢复入口。该 family 正因为此才登记进 `sole_recovery_families`——它的 base-epoch 业务 precondition 读的就是这个待恢复的 cell。
+- Case G：MUST 接受并取代该 cell 的**全部** heads，cell 回到单值；不需要 recovery capability，也 MUST NOT 为它另造 reset 通道或按到达顺序截断历史。
+- Case H：MUST 拒绝。自愈只解除「目标恰好处于 `⊥`」这一项额外阻断，其余授权、生命周期与业务 precondition 全部照旧。
+- Case I：MUST `failed_bottom`。authority-root 是授权图的唯一 genesis base case，`⊥` 下它自身的授权读取即 fail closed，因此没有任何主体能 author 这条普通写。
+- Case J：MUST 接受。`sole_recovery_families` 只说明「哪些 family 没有普通写出路」，把它实现成对 recovery 目标的拒绝条件会让尚未逐条审计的 family 变成永久死格。
+- Case K：MUST 不存在可被接受的 recovery Seal——验签任何 Seal 都要先读该 cell 的已接受 notary 配置。该 family 因此 MUST NOT 出现在 `sole_recovery_families` 里：列进去等于宣称一条并不存在的出路。
 
-失败条件：普通 Control Move（包括 `ak.mls.commit`）在 `⊥` 下绕过 recovery 例外；post-conflict witness 被接受；recovery capability 未 sealed 或已撤销仍生效；未 sealed 的 recovery Move 改变 canonical state；同一 fixture 用重复 `vector_id` 另行表达 MLS 特例。
+失败条件：清单内 family 的普通 Control Move（包括 `ak.mls.commit`、`ak.realm.owner.transfer`）在 `⊥` 下被接受；清单外 family 的合法自愈写被拒；无权主体因目标处于 `⊥` 而获得写入权；把 `sole_recovery_families` 实现成 recovery 目标的拒绝条件；`ak.component.notary.v1` 出现在该清单中；对因果寄存器 recovery 强制要求 `state_witness` 或套用新鲜度窗口；post-conflict witness 被接受；recovery capability 未 sealed 或已撤销仍生效；未 sealed 的 recovery Move 改变 canonical state；同一 fixture 用重复 `vector_id` 另行表达 MLS 特例。
 
 ### 2.21 Vector: `ordered_log` sibling-set join
 

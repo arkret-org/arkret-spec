@@ -1860,10 +1860,12 @@
     },
     {
       "name": "conflict_recovery_move",
-      "description": "A bottom=reject control cell recovers only through a sealed ak.conflict.recovery Control Move projected by the registered cell_ref + reset form; no other kind may declare that form. The registered contract names no lattice, so the target cell decides both which conditions apply and what op the reset becomes. For the causal registers (cas_register and fsm, event-auth-state-resolution.md section 9.5.1) the reset is a new identity write: the signed basis must show divergent heads, the state_witness inclusion requirement and its freshness window do not apply, recovery supersedes only the heads it observed, and arrival-order truncation is forbidden. The remaining bottom=reject lattices keep the pre-conflict state_witness family of requirements below.",
-      "cell": "ak:cell:ak.component.realm.policy.v1:null",
+      "description": "A bottom=reject control cell recovers only through a sealed ak.conflict.recovery Control Move projected by the registered cell_ref + reset form; no other kind may declare that form. The registered contract names no lattice, so the target cell decides both which conditions apply and what op the reset becomes. For the causal registers (cas_register and fsm, event-auth-state-resolution.md section 9.5.1) the reset is a new identity write: the signed basis must show divergent heads, the state_witness inclusion requirement and its freshness window do not apply, recovery supersedes only the heads it observed, and arrival-order truncation is forbidden. The remaining bottom=reject lattices keep the pre-conflict state_witness family of requirements below, so the top-level cases here run on an ordered_log bottom=reject cell rather than on a causal register. Section 9.3.1.4 layers the exit from Bottom: the registered sole_recovery_families have no ordinary-write exit and recovery is their only one, while every other causal-register family also heals through an ordinary write that already holds authority for its action. The list never restricts which cells a recovery may target.",
+      "cell": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
+      "cell_lattice": "ordered_log",
+      "cell_bottom": "reject",
       "pre_conflict_value": {
-        "policy_revision": 7
+        "release_revision": 7
       },
       "bottom_state": {
         "status": "bottom",
@@ -1872,9 +1874,9 @@
       "valid_recovery_move": {
         "kind": "ak.conflict.recovery",
         "payload": {
-          "target_cell_id": "ak:cell:ak.component.realm.policy.v1:null",
+          "target_cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
           "resolved_value": {
-            "policy_revision": 8
+            "release_revision": 8
           }
         },
         "plane": "control",
@@ -1899,7 +1901,7 @@
             "result": "accept_after_valid_seal",
             "cell_status": "value",
             "recovered_value": {
-              "policy_revision": 8
+              "release_revision": 8
             }
           }
         },
@@ -1955,7 +1957,7 @@
         },
         {
           "name": "target_cell_mismatch",
-          "payload_target_cell_id": "ak:cell:ak.component.realm.notary.v1:null",
+          "payload_target_cell_id": "ak:cell:ak.component.realm.freeze.v1:null",
           "expected": {
             "result": "failed_precondition",
             "reason": "recovery_witness_invalid",
@@ -1972,7 +1974,68 @@
           "expected": {
             "result": "failed_bottom",
             "cell_remains": "bottom",
-            "application_send_gate": "blocked"
+            "application_send_gate": "blocked",
+            "note": "ak.component.mls.epoch.v1 is a registered sole_recovery_families member precisely because this ordinary write reads the cell it would have to heal: the base-epoch precondition fails closed under Bottom, so no Commit can ever advance the epoch again."
+          }
+        },
+        {
+          "name": "ordinary_write_heals_a_family_outside_sole_recovery",
+          "target_cell_family": "ak.component.realm.profile.v1",
+          "cell_status_before": "bottom",
+          "operation": "ak.realm.profile",
+          "writer_holds_action_authority": true,
+          "write_precondition_reads_target_cell": false,
+          "expected": {
+            "result": "accept_after_valid_seal",
+            "cell_status": "value",
+            "supersedes": "all_divergent_heads",
+            "note": "section 9.3.1.4: outside sole_recovery_families an authorized ordinary write supersedes every head and converges the cell; it needs no recovery capability and MUST NOT be given a separate reset channel."
+          }
+        },
+        {
+          "name": "unauthorized_ordinary_write_still_cannot_heal",
+          "target_cell_family": "ak.component.realm.profile.v1",
+          "cell_status_before": "bottom",
+          "operation": "ak.realm.profile",
+          "writer_holds_action_authority": false,
+          "expected": {
+            "result": "failed_precondition",
+            "cell_remains": "bottom",
+            "note": "self-healing lifts only the extra block that the target sits in Bottom; every other authorization, lifecycle and business precondition still applies."
+          }
+        },
+        {
+          "name": "ordinary_write_cannot_heal_a_sole_recovery_family",
+          "target_cell_family": "ak.component.realm.authority_root.v1",
+          "cell_status_before": "bottom",
+          "operation": "ak.realm.owner.transfer",
+          "writer_holds_action_authority": true,
+          "expected": {
+            "result": "failed_bottom",
+            "cell_remains": "bottom",
+            "note": "the authority root is the sole genesis base case of the authorization graph, so its own authorization read fails closed under Bottom and nobody is left to author an ordinary write; only ak.conflict.recovery applies."
+          }
+        },
+        {
+          "name": "recovery_targets_a_family_outside_the_list",
+          "target_cell_family": "ak.component.realm.profile.v1",
+          "cell_status_before": "bottom",
+          "operation": "ak.conflict.recovery",
+          "expected": {
+            "result": "accept_after_valid_seal",
+            "cell_status": "value",
+            "note": "sole_recovery_families names where recovery is the ONLY exit; it MUST NOT be implemented as a restriction on which cells a recovery may target, which would strand families that have not been audited."
+          }
+        },
+        {
+          "name": "notary_cell_has_no_recovery_at_all",
+          "target_cell_family": "ak.component.notary.v1",
+          "cell_status_before": "bottom",
+          "operation": "ak.conflict.recovery",
+          "expected": {
+            "result": "no_acceptable_seal",
+            "cell_remains": "bottom",
+            "note": "verifying any Seal first reads the accepted notary configuration, so a recovery Seal for that cell can never be accepted. It is deliberately absent from sole_recovery_families because listing it would imply an exit that does not exist."
           }
         }
       ],
@@ -2471,6 +2534,78 @@
             "resolution_fanout_exempt_from_peer_stale": true
           },
           "note": "The recovery Seal and its covered resolution Move remain deliverable while the peer is stale; otherwise the responder could never satisfy the disclosure gate and the second phase would not terminate."
+        },
+        {
+          "name": "settled_subject_refuses_a_second_resolution",
+          "adjudication_history": [
+            {
+              "verdict": {
+                "kind": "canonical_winner",
+                "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+              },
+              "accepted": true
+            },
+            {
+              "verdict": {
+                "kind": "void_all"
+              },
+              "basis_contains_prior_resolution": true,
+              "accepted": false
+            }
+          ],
+          "expected": {
+            "second_resolution": "failed_precondition",
+            "cell_value": "unchanged",
+            "alignment": "unchanged",
+            "peer_stale": "unchanged"
+          },
+          "note": "event-auth-state-resolution.md 6.3.2: ak.fork.resolution carries head_eq null for its target cell, so a causal successor cannot re-adjudicate. The automatic complete-heads guard does not catch this, because a successor whose basis already contains the first resolution satisfies H_c(B) = H_c(P)."
+        },
+        {
+          "name": "settled_void_all_cannot_be_reopened",
+          "adjudication_history": [
+            {
+              "verdict": {
+                "kind": "void_all"
+              },
+              "accepted": true
+            },
+            {
+              "verdict": {
+                "kind": "canonical_winner",
+                "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+              },
+              "basis_contains_prior_resolution": true,
+              "accepted": false
+            }
+          ],
+          "expected": {
+            "second_resolution": "failed_precondition",
+            "cell_value": "unchanged",
+            "voided_position": "stays_void"
+          },
+          "note": "The other direction of the same rule. Without it, void_all would not be the final state event-and-patch.md 2.6 says it is, and an actor chain stopped below a voided position could be restarted with no new evidence."
+        },
+        {
+          "name": "exact_replay_of_the_accepted_resolution_is_idempotent",
+          "adjudication_history": [
+            {
+              "verdict": {
+                "kind": "canonical_winner",
+                "winner_event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE"
+              },
+              "accepted": true
+            },
+            {
+              "same_event_id_as_prior": true,
+              "accepted": true
+            }
+          ],
+          "expected": {
+            "second_resolution": "idempotent",
+            "cell_value": "unchanged"
+          },
+          "note": "head_eq null refuses a new adjudication, not a replay of the accepted one: identity dedupe happens by EventId before the precondition matters."
         },
         {
           "name": "another_peer_alignment_does_not_clear_this_peer",
