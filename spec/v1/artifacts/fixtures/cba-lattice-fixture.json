@@ -2848,8 +2848,8 @@
           "merge": {
             "left": {
               "covered": [
-                "g1",
-                "g2"
+                "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF",
+                "ak:event:AT5UhoHgELlDQz-0XI8nXZpvMmsfT8kMfEeiRrbwY3my"
               ],
               "writes": [
                 {
@@ -2870,8 +2870,8 @@
             },
             "right": {
               "covered": [
-                "g1",
-                "g3"
+                "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF",
+                "ak:event:ARZh-8tivxKKrx56VUM2e2GdBlmVLUfxefJ1heRKXC3n"
               ],
               "writes": [
                 {

@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9897,
+    "total_properties": 9900,
     "total_schema_documents": 167,
     "by_presence_class": {
       "optional": 2707,
       "optional_defaulted": 65,
-      "required": 6790,
+      "required": 6793,
       "required_nullable": 124,
       "tristate": 211
     },
@@ -2966,6 +2966,9 @@
         "/$defs/agent_lifecycle_witness/allOf/3/then/properties/cell_value": "optional",
         "/$defs/agent_lifecycle_witness/properties/accepted_status_event": "required",
         "/$defs/agent_lifecycle_witness/properties/agent_id": "required",
+        "/$defs/agent_lifecycle_witness/properties/cell_heads": "required",
+        "/$defs/agent_lifecycle_witness/properties/cell_heads/items/properties/event_id": "required",
+        "/$defs/agent_lifecycle_witness/properties/cell_heads/items/properties/value": "required",
         "/$defs/agent_lifecycle_witness/properties/cell_ref": "required",
         "/$defs/agent_lifecycle_witness/properties/cell_value": "required",
         "/$defs/agent_lifecycle_witness/properties/component": "required",

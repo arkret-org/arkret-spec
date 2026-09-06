@@ -848,6 +848,7 @@
         "seal",
         "cell_ref",
         "cell_value",
+        "cell_heads",
         "leaf_digest",
         "leaf_index",
         "leaf_count",
@@ -899,6 +900,33 @@
             "paused",
             "deactivated"
           ]
+        },
+        "cell_heads": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "description": "The cell's complete active head set, in the `event-auth-state-resolution.md` section 6.2.1 order. `ak.component.agent.status.v1` is an `fsm` and therefore a causal register (section 9.3.1.5), so its `state_root` leaf hashes `{\"heads\":[...]}` rather than the settled value: a verifier cannot rebuild `leaf_digest` from `cell_value` alone. `cell_value` stays required and MUST equal the state these heads settle to, so the two cannot disagree.",
+          "items": {
+            "type": "object",
+            "required": [
+              "event_id",
+              "value"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "event_id": {
+                "$ref": "./common-ids.schema.json#/$defs/event_id"
+              },
+              "value": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "paused",
+                  "deactivated"
+                ]
+              }
+            }
+          }
         },
         "leaf_digest": {
           "$ref": "#/$defs/digest"
