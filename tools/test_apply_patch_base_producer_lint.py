@@ -22,7 +22,7 @@ from tools.artifact_lint import core, foundation
 
 EVENT_REGISTRY = ROOT / "spec" / "v1" / "artifacts" / "registry" / "event-kind-registry.json"
 BASELINE = ROOT / "tools" / "patch-base-producer-baseline.json"
-KNOWN = {
+RESOLVED = {
     "ak.component.circle.metadata.v1",
     "ak.component.strand.metadata.v1",
     "ak.component.strand.tracks.v1",
@@ -49,12 +49,14 @@ class ApplyPatchBaseProducerTest(unittest.TestCase):
     def test_shipped_registry_matches_the_baseline(self) -> None:
         self.assertEqual(self._lint(), [])
 
-    def test_baseline_lists_exactly_the_known_four(self) -> None:
+    def test_baseline_is_empty_and_records_what_each_fix_was(self) -> None:
+        """decisions/0029 section 3 closed all four; the ledger only shrinks."""
         baseline = core.parse_json_text(BASELINE.read_text(encoding="utf-8"))
-        listed = {
-            entry["cell_family"] for entry in baseline["families_without_base_producer"]
-        }
-        self.assertEqual(listed, KNOWN)
+        self.assertEqual(baseline["families_without_base_producer"], [])
+        resolved = {entry["cell_family"] for entry in baseline["resolved_families"]}
+        self.assertEqual(resolved, RESOLVED)
+        for entry in baseline["resolved_families"]:
+            self.assertTrue(entry.get("resolution"), entry["cell_family"])
 
     def test_a_new_unproduced_family_fails(self) -> None:
         def mutate(registry: dict) -> None:
@@ -66,16 +68,30 @@ class ApplyPatchBaseProducerTest(unittest.TestCase):
             any("ak.component.space.patch_only.v1" in f for f in failures), failures
         )
 
-    def test_a_family_that_gains_a_producer_must_leave_the_baseline(self) -> None:
-        def mutate(registry: dict) -> None:
-            _row(registry, "ak.strand.create")["cell_writes"][0]["cell_family"] = (
-                "ak.component.strand.metadata.v1"
-            )
+    def test_a_stale_baseline_entry_is_rejected(self) -> None:
+        """The shrink-only direction still has to be enforced once it is empty."""
+        registry = copy.deepcopy(self.registry)
+        lint = core.Lint()
+        original = foundation.load_json
 
-        failures = self._lint(mutate)
+        def load_with_stale_baseline(inner_lint, path):
+            if path.name == "patch-base-producer-baseline.json":
+                return {
+                    "families_without_base_producer": [
+                        {"cell_family": "ak.component.view.v1"}
+                    ]
+                }
+            return original(inner_lint, path)
+
+        foundation.load_json = load_with_stale_baseline
+        try:
+            foundation.check_apply_patch_base_producers(lint, registry, EVENT_REGISTRY)
+        finally:
+            foundation.load_json = original
+        failures = [str(error) for error in lint.errors]
         self.assertTrue(any("only shrinks" in f for f in failures), failures)
 
-    def test_the_healthy_pairs_stay_healthy(self) -> None:
+    def test_every_patch_target_now_has_a_base_producer(self) -> None:
         producers: dict[str, set[str]] = {}
         patchers: dict[str, set[str]] = {}
         for row in self.registry["event_kinds"]:
@@ -89,9 +105,15 @@ class ApplyPatchBaseProducerTest(unittest.TestCase):
                 elif kind in ("set", "append", "transition"):
                     producers.setdefault(family, set()).add(row["event_kind"])
         produced = {f for f in patchers if producers.get(f)}
-        self.assertEqual(set(patchers) - produced, KNOWN)
-        self.assertIn("ak.component.space.metadata.v1", produced)
-        self.assertIn("ak.component.realm.authority_root.v1", produced)
+        self.assertEqual(set(patchers) - produced, set(), "every patch target has a base now")
+        for family in (
+            "ak.component.space.metadata.v1",
+            "ak.component.realm.authority_root.v1",
+            "ak.component.circle.metadata.v1",
+            "ak.component.strand.object.v1",
+            "ak.component.view.v1",
+        ):
+            self.assertIn(family, produced, family)
 
 
 if __name__ == "__main__":

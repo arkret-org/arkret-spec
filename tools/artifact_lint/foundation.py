@@ -1405,10 +1405,15 @@ def check_apply_patch_base_producers(lint: Lint, event_registry: dict, event_pat
             "9.3.1.2 forbids closing the gap with a registered initial_value",
         )
     for family in sorted(known - unproduced):
+        detail = (
+            "now has a registered base-value producer"
+            if family in patchers
+            else "is no longer the target of any apply_patch write"
+        )
         lint.fail(
             baseline_path,
-            f"{family} now has a registered base-value producer; remove it from "
-            "families_without_base_producer (the baseline only shrinks)",
+            f"{family} {detail}; remove it from families_without_base_producer "
+            "(the baseline only shrinks)",
         )
 
 

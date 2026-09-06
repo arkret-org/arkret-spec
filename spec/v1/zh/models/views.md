@@ -148,14 +148,30 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ### 3.2 三个 View event 的写入语义（normative）
 
-三个 kind 写**三个不同的 cell**，subject 都是 `payload.view_id`，lattice 都是 `mv_register`、
-`bottom=expose`：
+三个 kind 写**同一个 cell family** `ak.component.view.v1`（`mv_register`、`bottom=expose`）。
+subject 一律是 `id:view` 编码：create 由 `envelope.event_id` 唯一派生该 View 的 id，
+update / reconcile 用 `payload.view_id`，两者归一到同一个 cell。
 
-| kind | cell family | 写入 | payload |
-| --- | --- | --- | --- |
-| `ak.view.create` | `ak.component.view.create.v1` | `set` 整个 `payload.object` | 创建时的 object snapshot |
-| `ak.view.update` | `ak.component.view.update.v1` | 对冻结前态 `apply_patch` `payload.patch` | 增量 patch |
-| `ak.view.reconcile` | `ak.component.view.reconcile.v1` | `set` 整个 `payload.definition` | `{view_id, definition}` |
+| kind | cell family | subject | 写入 | payload |
+| --- | --- | --- | --- | --- |
+| `ak.view.create` | `ak.component.view.v1` | `id:view(envelope.event_id)` | `set` 整个 `payload.object` | 创建时的 object snapshot |
+| `ak.view.update` | `ak.component.view.v1` | `id:view(payload.view_id)` | 对冻结前态 `apply_patch` `payload.patch` | 增量 patch |
+| `ak.view.reconcile` | `ak.component.view.v1` | `id:view(payload.view_id)` | `set` 整个 `payload.definition` | `{view_id, definition}` |
+
+**为什么是一个 family（normative）**：`definition` 引用的就是完整 `view.schema.json`，
+它不是另一种业务对象。三条 Event 的载荷区别可以保留，但没有理由为同一个 View 维护三条
+权威状态链——那样 `ak.view.update` 的 `apply_patch` 会打在一个**从未被写过**的 cell 上，
+而 §9.3.1.2 禁止用 registered `initial_value` 补这个洞：基值只能来自注册的 create / genesis 写入。
+
+由此产生三条约束：
+
+- **update / reconcile MUST NOT 创造不存在的 View。**目标 cell 在签名 basis 下没有真实对象基值时
+  MUST 拒绝，MUST NOT 把 `null` 或空对象当作隐式初始化，也不得存储任何部分效果。
+- **三条写入采用同一 canonical 对象值口径。**cell 中 MUST NOT 保存可自报的 `id`，
+  读取时由 subject 派生；`reconcile.definition` 同样 MUST NOT 携带 `id`，
+  否则 create 与 reconcile 会在同一个 cell 里留下两种值形状。
+- **reconcile 的 whole-value `set` 只按 MV 因果关系取代它已观察到的 heads。**
+  并发但未被观察的分支仍按 §9.2 暴露；「已知良好的定义」不是无条件覆盖全部并发状态的特权。
 
 `ak.view.reconcile` 用于把 View 定义**整体**重新同步到一个已知良好的 `ak.schema.view.v1`
 对象——典型场景是 schema 演进后重新发布定义。它与另外两者的分工是封闭的：create 只在
@@ -169,6 +185,14 @@ View 首次出现时携带 object snapshot；update 携带增量 patch，无法�
 reconcile 不改变 §3.1 的终态规则：目标 View 的 accepted lifecycle state 为 `tombstoned` 时，
 reconcile MUST 以 `failed_precondition`、`reason_code="view_already_terminal"` 拒绝。
 reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1）。
+tombstone 只走既有 update 路径：reconcile MUST NOT 把 `active` 改成 `tombstoned`，
+也 MUST NOT 复活 terminal View；存在已接受的终态事实时，迟到或并发的 active definition
+MUST NOT 绕过该终态 gate。
+
+reconcile 还 MUST 保留目标 View 的 `realm_id`、`created_by`、`created_at` 与身份：
+MUST NOT 跨 Realm、MUST NOT 把 `shared` 改成 `private`、
+MUST NOT 自报 reducer-derived 的 `state_changed_at`。
+其完整 `definition` 要通过与 create / update **相同**的 schema、scope 与内容授权校验。
 
 ### 3.3 `CollectionConfig`
 

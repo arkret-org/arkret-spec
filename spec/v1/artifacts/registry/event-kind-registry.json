@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.8",
+  "version": "2026-09-07.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-07T16:30:00+08:00",
+  "generated_at": "2026-09-07T17:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1336,6 +1336,21 @@
           }
         },
         {
+          "cell_family": "ak.component.circle.metadata.v1",
+          "cell_subject": {
+            "field": "envelope.event_id",
+            "kind": "id:circle"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          }
+        },
+        {
           "cell_family": "ak.component.circle.history_access.v1",
           "cell_subject": {
             "field": "envelope.event_id",
@@ -2478,7 +2493,7 @@
       "sealed": false,
       "cell_writes": [
         {
-          "cell_family": "ak.component.strand.metadata.v1",
+          "cell_family": "ak.component.strand.object.v1",
           "cell_subject": {
             "field": "payload.target_ref",
             "kind": "id:strand"
@@ -2612,7 +2627,7 @@
       "sealed": false,
       "cell_writes": [
         {
-          "cell_family": "ak.component.strand.tracks.v1",
+          "cell_family": "ak.component.strand.object.v1",
           "cell_subject": {
             "field": "payload.target_ref",
             "kind": "id:strand"
@@ -3793,7 +3808,7 @@
       "sealed": false,
       "cell_writes": [
         {
-          "cell_family": "ak.component.view.create.v1",
+          "cell_family": "ak.component.view.v1",
           "cell_subject": {
             "kind": "id:view",
             "field": "envelope.event_id"
@@ -3823,10 +3838,10 @@
       "sealed": false,
       "cell_writes": [
         {
-          "cell_family": "ak.component.view.update.v1",
+          "cell_family": "ak.component.view.v1",
           "cell_subject": {
             "field": "payload.view_id",
-            "kind": "string"
+            "kind": "id:view"
           },
           "lattice": "mv_register",
           "bottom": "expose",
@@ -3856,10 +3871,10 @@
       "sealed": false,
       "cell_writes": [
         {
-          "cell_family": "ak.component.view.reconcile.v1",
+          "cell_family": "ak.component.view.v1",
           "cell_subject": {
             "field": "payload.view_id",
-            "kind": "string"
+            "kind": "id:view"
           },
           "lattice": "mv_register",
           "bottom": "expose",

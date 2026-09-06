@@ -1143,7 +1143,7 @@ ak.vector.strand_tracks_update.atomic.v1
 判定要求：
 
 - patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`——selector segment 不是 `ak.schema.patch.v1` 的一部分（§4.2.1）。
-- `ak.strand.tracks.update` 写入的 cell 是 `ak:cell:ak.component.strand.tracks.v1:<strand_id>`（mv_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
+- `ak.strand.tracks.update` 写入的 cell 是 `ak:cell:ak.component.strand.object.v1:<strand_id>`（mv_register）——与 `ak.strand.create` / `ak.strand.update` 同一个 cell，因为 patch 需要一个由注册 create 写入的真实对象基值（[`../authz/event-auth-state-resolution.md` §9.3.1.2](../authz/event-auth-state-resolution.md)）。reducer 校验合并后 invariant 在 cell update 之前完成，并对**完整** post-patch Strand 求值。两条 Event 的授权区别保留：内容路径受 `allowed_write_fields` 约束，track 管理路径仍由 `ak.strand.tracks.update` 管辖。
 
 失败条件：
 
