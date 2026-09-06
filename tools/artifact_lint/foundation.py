@@ -827,6 +827,17 @@ def lint_effect_projection(
             lint.fail(path, f"{ref} requires patch and/or increment_members")
         elif "patch" in projection:
             lint_effect_source(lint, path, f"{ref}.patch", projection["patch"])
+        # `event-and-patch.md` §2.4.2: an `mv_register` keeps every concurrent
+        # write, so its frozen pre-state is not single-valued and nothing but
+        # the binding says which head the patch was computed against.
+        # `cas_register` needs no such declaration — there the write supersedes
+        # exactly what its own basis observed.
+        if lattice == "mv_register" and "expected_prestate" not in projection:
+            lint.fail(
+                path,
+                f"{ref} on an mv_register requires expected_prestate; without it the head "
+                f"this patch applies to is undefined",
+            )
         if increment_members is not None:
             if lattice != "cas_register":
                 lint.fail(path, f"{ref}.increment_members requires cas_register")

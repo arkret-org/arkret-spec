@@ -262,11 +262,32 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   实现 MUST NOT 改从别处猜测 binding 字段名，也 MUST NOT 在 registry 未登记本成员时凭空施加
   binding。
 
-  该 source 的路径不存在时**不** fail closed，而是表示本次 write 不携带 binding：这是本节
-  source 求值规则的**唯一登记例外**，因为 binding 按各 kind 的 payload 契约是可选的乐观并发
-  守卫，而不是必填字段。并发安全本身由 lattice 承担——`cas_register` 在非初始态上按 §9.3.1
-  必须携带命中该 cell 的 `head_eq` precondition，`mv_register` 暴露并发 heads；
-  `expected_prestate` 是在此之上的额外守卫，不是替代品。
+  `cas_register` 上该 source 的路径不存在时**不** fail closed，而是表示本次 write 不携带
+  binding：这是本节 source 求值规则的**唯一登记例外**，因为在该 lattice 上 binding 是可选的
+  乐观并发守卫而不是必填字段——并发安全由 §9.3.1 承担，非初始态上的写入必须携带命中该 cell 的
+  `head_eq` precondition，而写入取代的正是它自己 basis 观察到的那些 head。`expected_prestate`
+  是在此之上的额外守卫，不是替代品。
+
+  **`mv_register` 上它是必填（normative）**：该 lattice 保留全部并发写入，因此「冻结前态」在
+  它上面**不是单值**——两个并发 head 各是一个合法前态，而 `apply_patch` 必须应用到其中确定的
+  一个。`cas_register` 靠写入自己 basis 派生的取代关系钉住这件事，`mv_register` 没有对应物：
+  暴露并发 heads 说的是**状态**是什么，没说 patch 算在哪个 head 上。这条义务分两层：
+
+  1. **登记层**：`mv_register` 的 `apply_patch` MUST 在 reducer contract 里登记
+     `expected_prestate`。缺失是 registry 缺陷，由 artifact lint 拒绝。
+  2. **运行层**：reducer 解析该 write 时，binding path MUST 求值出一个 hash；求值不出时 MUST 以
+     `failed_precondition` 拒绝整个 Event，MUST NOT 回退成「本次 write 不携带 binding」，也
+     MUST NOT 自选一个 head 当前态。
+
+  这不是为快照加的额外要求，而是这条 write 本来就欠一个定义：没有 binding 时，两个都
+  conformant 的 reducer 对同一 frontier 会把同一个 patch 算在不同 head 上，得到不同的 cell 值。
+  [`../conformance/realm-state-snapshot-schema.md` §3](../conformance/realm-state-snapshot-schema.md)
+  要求两个 issuer 对同一 frontier 算出逐字节相同的 leaf，那里是这条不确定性最先暴露的地方。
+
+  第 2 条的执行点是**解析 `apply_patch` 的那一处**，而 v1 目前还没有任何实现解析
+  `mv_register` 上的 `apply_patch`（全部 6 条登记都在数据面，而数据面 cell 至今未被物化）。
+  它随该 resolver 一起落地；在此之前第 1 条已由 lint 守住，producer 侧也因此不会先被要求
+  携带一个它还无法计算的 digest。
 - `{"kind":"append","value":source,"issuer_seq":source}` 只用于 `ordered_log`，精确派生 `{"kind":"append","value":...,"issuer_seq":...}`；`issuer_seq` 必须求值为无符号整数。
 - `{"kind":"or_set_delta","selector":"payload.<path>","branches":{...}}` 只用于 `or_set`。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
 - `or_set_add` 产生一个 add。v1 active reducer contract 不登记 producer array 到多条 OR-Set add
