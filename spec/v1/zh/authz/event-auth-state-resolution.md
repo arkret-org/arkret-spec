@@ -530,6 +530,23 @@ KeyView {
 
 每个 Realm 恰有一个 protocol-singleton cell `ak:cell:ak.component.notary.v1:null`，其 value shape 与 `realm.schema.json` 的 `notary` 相同，lattice=`cas_register`、bottom=`reject`、plane=`control`。genesis value 由 `ak.realm.create` 的注册 reducer projection 从 `payload.object.notary` 写入；后继值只能由 `ak.realm.notary` Control Move 写入，并以当前 head 作 CAS。实现不得通过未登记 kind、部署私有端点或数据库直写改变该 cell。
 
+**genesis 默认与 owner 的关系（normative）**：collaboration Realm 的 genesis `notary` **SHOULD**
+取创建时 root controller Account 的 `station_id` 所属服务身份作为 signer；该默认值 MUST 在
+genesis 的 `notary` 配置里**显式落定**，MUST NOT 在验签时临时查当前 owner 再推导 signer。
+root 为 service Actor 的分支不存在可提取的 `Account.station_id`，创建者 MUST 显式选择服务。
+
+这条默认值**不**把 Realm 绑定到某台服务器，也不给该 Station 任何 Realm 治理权：
+它只决定谁签 Seal（§6.3 step 2b 的 frozen signer descriptor），
+授权仍全部来自 `ak.component.realm.authority_root.v1` 与 capability 链。
+
+**owner transfer 与 notary change 相互独立（normative）**：
+`ak.realm.owner.transfer` **MUST NOT** 隐式改变 `ak.component.notary.v1`，
+`ak.realm.notary` 也 **MUST NOT** 隐式改变 authority root。
+两者各自按自己的 CAS 与授权规则执行。理由是两个方向都要封闭：
+已有服务副本在 owner 变更后仍能继续处理有权操作，不因换 owner 而失去签名资格；
+而新 owner 也不能仅凭自身身份跳过旧 notary 配置的确认，直接签出一条新的「权威链」。
+实现 MUST NOT 从 owner 推导 signer，也 MUST NOT 从 notary 推导 controller。
+
 ### 6.6 Realm reducer-profile control cell（normative）
 
 每个 Realm 恰有一个 protocol-singleton cell `ak:cell:ak.component.realm.reducer_profile.v1:null`，value 是 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 中 active `ak.reducer.*` profile ID，lattice=`cas_register`、bottom=`reject`、plane=`control`。
