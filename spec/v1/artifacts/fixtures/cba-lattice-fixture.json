@@ -3481,6 +3481,139 @@
           }
         }
       ]
+    },
+    {
+      "vector_id": "ak.vector.cba_lattice.seal_delta_concurrency_class.v1",
+      "name": "seal_delta_concurrency_class",
+      "description": "A Seal's control delta is one of two shapes and never a mixture: exactly one security_barrier transaction, or a set of non-barrier writes on pairwise disjoint cells. The frozen-predecessor rule means a non-barrier write batched beside a barrier is still judged on the state before that barrier took effect, so at-most-one-barrier would leave the dangerous combination open. The class read is the registered one; it is never switched per request.",
+      "cases": [
+        {
+          "name": "one_barrier_transaction_alone_is_accepted",
+          "delta": [
+            "ak.realm.owner.transfer"
+          ],
+          "expected": {
+            "result": "accept",
+            "note": "shape 1: exactly one barrier and nothing else."
+          }
+        },
+        {
+          "name": "registered_atomic_unit_counts_as_the_one_barrier_transaction",
+          "delta": [
+            "ak.realm.create bootstrap unit"
+          ],
+          "expected": {
+            "result": "accept",
+            "note": "a registered bootstrap or re-anchor unit is one transaction, not several writes that happen to travel together."
+          }
+        },
+        {
+          "name": "disjoint_non_barrier_writes_batch",
+          "delta": [
+            "ak.realm.profile on realm A",
+            "ak.strand.stage.set on strand S"
+          ],
+          "expected": {
+            "result": "accept",
+            "note": "shape 2: every member is exclusive or merge_safe and the target cells are disjoint."
+          }
+        },
+        {
+          "name": "barrier_mixed_with_an_ordinary_write_is_refused",
+          "delta": [
+            "ak.moderation.decision",
+            "ak.strand.update authorized by a moderation-dependent grant"
+          ],
+          "expected": {
+            "result": "rejected_seal",
+            "partial_acceptance": "none",
+            "note": "the ordinary write would be judged on the pre-decision baseline, so the actor the decision demotes would still act. The whole Seal is refused rather than one member dropped."
+          }
+        },
+        {
+          "name": "two_barrier_transactions_in_one_seal_are_refused",
+          "delta": [
+            "ak.realm.owner.transfer",
+            "ak.realm.authority.reset"
+          ],
+          "expected": {
+            "result": "rejected_seal",
+            "note": "shape 1 admits exactly one. Two barriers would each be judged before the other took effect."
+          }
+        },
+        {
+          "name": "non_barrier_writes_on_one_cell_are_refused",
+          "delta": [
+            "ak.strand.move on strand S",
+            "ak.strand.reorder on strand S"
+          ],
+          "expected": {
+            "result": "rejected_seal",
+            "note": "same cell, so the second would be judged on a pre-state the first has already superseded."
+          }
+        },
+        {
+          "name": "class_is_read_from_the_registry_not_from_the_request",
+          "expected": {
+            "result": "rejected_seal",
+            "note": "ak.moderation.decision is security_barrier whether or not this particular request happens to touch a moderation-dependent grant. An implementation must not downgrade it per request to make a batch fit."
+          }
+        },
+        {
+          "name": "cyclic_read_write_dependency_between_two_moderators",
+          "pre_state": "A and B are both unmarked; the moderation write permission requires the author to be unmarked",
+          "delta": [
+            "W1: A marks B, reads moderation(A), writes moderation(B)",
+            "W2: B marks A, reads moderation(B), writes moderation(A)"
+          ],
+          "expected": {
+            "result": "rejected_seal",
+            "note": "the targets are disjoint and both pass at P, but in either serial order the second author is already disabled by the first. This is a genuine cyclic read-write dependency, so no serialization of the pair exists and the batch must not be accepted. Both writes are security_barrier, so shape 1 already refuses the Seal."
+          }
+        },
+        {
+          "name": "the_same_pair_across_two_seals_is_legal_in_either_order",
+          "sequence": [
+            "Seal 1 carries W1",
+            "Seal 2 carries W2"
+          ],
+          "expected": {
+            "result": "first_accepted_second_refused",
+            "note": "ordering is what makes the pair decidable: whichever lands first disables the other's author, and the second is refused on its own authorization rather than by a batching rule."
+          }
+        },
+        {
+          "name": "lift_restores_the_author_for_a_later_seal",
+          "sequence": [
+            "ak.moderation.decision marks A",
+            "ak.moderation.decision.lift clears A",
+            "A authors a moderation write"
+          ],
+          "expected": {
+            "result": "accept",
+            "note": "lift is a barrier too, so it travels in its own Seal; afterwards A's authorization reads clean."
+          }
+        },
+        {
+          "name": "add_lift_add_does_not_reuse_a_head_identity",
+          "sequence": [
+            "mark A",
+            "lift A",
+            "mark A again"
+          ],
+          "expected": {
+            "head_identities": "three distinct",
+            "note": "the or_set state returns to a business value it held before, but the write identities differ. A barrier signer keying its double-sign lock on the business value would refuse the third legal write; the key must be the causal state identity."
+          }
+        },
+        {
+          "name": "a_refused_seal_rolls_back_whole",
+          "expected": {
+            "stored_effects": "none",
+            "note": "no member of a refused delta is applied, and no cell is driven to Bottom on the way: the refusal happens at admission, before any join."
+          }
+        }
+      ]
     }
   ]
 }

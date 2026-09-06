@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.5",
+  "version": "2026-09-07.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T19:30:00+08:00",
+  "generated_at": "2026-09-07T20:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1526,6 +1526,18 @@
       "applies_to_fixtures": [
         "cba-lattice-fixture.json"
       ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.cba_lattice.seal_delta_concurrency_class.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
+      "description": "A Seal's control delta is exactly one security_barrier transaction or a set of non-barrier writes on pairwise disjoint cells, never a mixture, and the class comes from the registry rather than from what a request happens to touch. Covers a lone barrier, a registered atomic unit as that one transaction, a disjoint non-barrier batch, and the refusals: a barrier mixed with an ordinary write, two barriers, two non-barrier writes on one cell, and a per-request class downgrade. Also fixes the cyclic read-write dependency between two moderators that no serial order satisfies, the same pair being legal across two Seals in either order, lift restoring the author, add-lift-add producing three distinct head identities so a signer lock keyed on the business value would wrongly refuse the third write, and a refused delta storing nothing.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]

@@ -457,6 +457,17 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
    - **precondition 求值基线（frozen predecessor，normative）**:每个 Move `M` 的 `preconditions[]` **MUST** 对 `M` 在 `covered(L)` 内**因果前驱**的 joined 治理状态求值——即冻结在"`M` 及所有与 `M` 并发的 Move 尚未应用"的那个 predecessor 基线上；线性化中排在 `M` 之前的**并发** Move 的 projected writes **MUST NOT** 进入 `M` 的 precondition 求值基线。这与全协议 CBA basis 规则同一（`ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`）:同批 / 并发前序 writes 只提供原子提交便利，不自我满足后续 precondition。
    - **对强一致 cell 的后果**:因此同一 `cas_register` / `fsm` cell 上的两个并发互斥写**都**通过各自 precondition（都看见同一冻结基线），在 step 4 join 到 `⊥`——枚举顺序 **MUST NOT** 被用来给任何治理或数据 domain 静默选出单一 winner。
    - **同 Seal 排重义务（normative）**：notary 能同时观察同一拟议 `delta[]`，因此对命中同一 `bottom=reject` cell、且在冻结基线下 projected writes 互斥的 Move，MUST 至多 include 一条；其余 MUST signed-reject（`reason_code="cas_conflict"`）或 defer 到后续 Seal 重新按新 basis admission。`apply_seal` MUST 重算此条件；同一 Seal 覆盖两条此类互斥 Move 时整个 Seal MUST `rejected_seal`，不得先把 cell join 到 `⊥`。该义务不为 Move 选择协议 winner：notary 可以拒绝全部，也可以依其公开调度 policy 选择至多一条；跨不可达 Seal leaf 的真正并发仍按 step 4 / §9.5 产生 `⊥`。
+   - **控制 delta 的并发类构成（normative）**：一张 Seal 的控制 `delta[]` MUST 是下列两种形态之一，二者 **MUST NOT** 混装：
+     1. **恰一个** `concurrency_class = security_barrier` 的控制事务——一条普通 barrier Control Move，或 registry 已登记的原子 bootstrap / re-anchor unit；该 Seal MUST NOT 再携带任何其它控制写。
+     2. **一组非 barrier 控制写**（`concurrency_class ∈ {exclusive, merge_safe}`），且它们命中的 cell 两两不相交；该 Seal MUST NOT 携带任何 barrier 写。
+
+     判据是写入方登记的 `concurrency_class`（[`cba-profiles.md` §2](./cba-profiles.md)），**不是**某次请求是否恰好命中某个 constraint；实现 MUST NOT 按请求内容动态切换某个 kind 的并发类。违反本条的 Seal MUST `rejected_seal`，MUST NOT 先接受一部分。
+
+     **为什么必须是「二选一」而不是「至多一个 barrier」**：写偏差不是 join 的性质，是两条写共享同一个**过期前态**的性质。上面的 frozen predecessor 规则已经保证同批写都在 `M` 的因果前驱上求值，因此一条 barrier 与一条普通写同批时，那条普通写的授权仍以 barrier **生效前**的状态判定。若 barrier 改变的正是该授权读取的 cell，二者一起被接受就等于让被降权的主体以降权前的基线完成了动作。`remove(A)` 与 `grant(admin, A)` 是这一形状的原型；`ak.moderation.decision` 与一条其授权读 `ak.component.moderation_state.v1` 的写是同一形状——后者正是那两个 kind 登记为 `security_barrier` 的原因。允许「至多一个 barrier + 若干普通写」不能封闭它，因为危险的组合恰好只有一个 barrier。
+
+     **形态 2 的两两不相交要求也不能省**：同一 cell 上的两条写即使都是非 barrier，也会让后一条以前一条尚未生效的前态求值；`bottom=reject` cell 上的异值同批写已由上一条排重义务整份拒绝，本条把它推广到全部非 barrier 写。
+
+     **本条不改变跨 Seal 的语义**：分两张 Seal 顺序接受的同一对写入照常合法，顺序决定各自在哪个前态验证。它约束的只是**同一张 Seal 内**能放什么。
 4. **per-cell Lattice join**:每个 control cell 按其声明的 lattice（§9）合并 `covered(L)` 中所有命中该 cell 的 Move 效果；`cas_register` / `fsm` 等强一致 cell 上的并发互斥写按 §9.1.1 进入 `⊥`（`bottom=reject` 则该 cell 物化为 `failed_bottom`，依赖它的后续 Move fail closed，按 §9.5 conflict-recovery 解析）。
    - **`cas_register` 的合并形态（normative）**：本步对 `cas_register` 求值的是 §9.3.1.1 的完整状态 `(C, H_c)`，多 leaf 之间按 §9.3.1.4 的合并式求最小上界，**不是**对业务值或 Bottom 标签取并。写过的 `cas_register` cell（含业务 `null` 与异值 `⊥`）按 §6.2.1 的 `cas_register` 例外**进入** `state_root`。`⊥` 状态下**普通** Control Move 仍不能写该 cell（§9.3.1.3 与 §9.1.1「`⊥` 不是本地粘滞标志」一段：普通写入不得以含异值 heads 的签名 basis 写入），唯一出路是 §9.5.1 的 conflict-recovery Move；但一个只观察到部分分支的 receiver **MUST NOT** 把 `⊥` 记成永久标志——它在补齐 leaf 后按本式重新求值。
    - **其它 `bottom=reject` lattice（典型 `fsm`）**：落 `⊥` 的 cell 是治理终态，**不进入** `state_root`（§6.2.1）;它**不能**被普通后续 Control Move 收敛，唯一出路是 §9.5 的 conflict-recovery Move。

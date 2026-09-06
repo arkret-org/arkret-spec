@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-07.1",
+  "version": "2026-09-07.2",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -95,11 +95,6 @@
       "event_kind": "ak.profile.realm_override",
       "priority": "high",
       "rationale": "Realm profile override lacks a directly searchable vector."
-    },
-    {
-      "event_kind": "ak.moderation.decision.lift",
-      "priority": "high",
-      "rationale": "Moderation decision lifting lacks a directly searchable vector."
     }
   ]
 }
