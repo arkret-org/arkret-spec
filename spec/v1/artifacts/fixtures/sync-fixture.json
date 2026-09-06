@@ -174,14 +174,14 @@
       }
     },
     {
-      "name": "peer_events_query_outcome_snapshot_bootstrap_rejected",
+      "name": "peer_events_query_outcome_realm_state_snapshot_bootstrap_rejected",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
       "expect_valid": false,
-      "first_expected_error": "contains:snapshot_bootstrap",
+      "first_expected_error": "contains:realm_state_snapshot_bootstrap",
       "instance": {
         "events": [],
         "has_more": false,
-        "snapshot_bootstrap": {}
+        "realm_state_snapshot_bootstrap": {}
       }
     }
   ],
@@ -462,7 +462,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "recovery": {
-        "call": "ak.self.snapshot.read.manifest_head.v1",
+        "call": "ak.self.realm_state_snapshot.read.manifest_head.v1",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       }
     }
@@ -485,8 +485,8 @@
           "catchup": true
         },
         {
-          "branch": "snapshot_bootstrap",
-          "call": "ak.self.snapshot.read.manifest_head.v1",
+          "branch": "realm_state_snapshot_bootstrap",
+          "call": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         }
       ],
@@ -506,8 +506,8 @@
       ]
     }
   },
-  "snapshot_frontier_recovery": {
-    "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+  "realm_state_snapshot_frontier_recovery": {
+    "realm_state_snapshot_ref": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
     "state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "frontier": {
       "event_ids": [
@@ -532,7 +532,7 @@
     }
   },
   "snapshot_inclusion_challenge": {
-    "vector_id": "ak.vector.snapshot.inclusion_challenge.v1",
+    "vector_id": "ak.vector.realm_state_snapshot.inclusion_challenge.v1",
     "assertions": [
       "event_id_sample_count_at_least_max_20_log2_covered_count",
       "actor_seq_range_samples_cover_three_actors",
@@ -544,7 +544,7 @@
       "issuer_only_ranges_cannot_prove_an_entire_actor_was_not_omitted"
     ],
     "manifest": {
-      "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000001",
+      "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000001",
       "security_class": "high_assurance",
       "created_at": "2026-04-26T00:00:00.000Z",
       "event_set_commitment": {
@@ -1133,9 +1133,9 @@
     ]
   },
   "snapshot_witness_quorum": {
-    "vector_id": "ak.vector.snapshot.witness_quorum_attestation.v1",
-    "proof_context": "ak.snapshot_witness_attestation_proof.v1",
-    "manifest_proof_context": "ak.snapshot_proof.v1",
+    "vector_id": "ak.vector.realm_state_snapshot.witness_quorum_attestation.v1",
+    "proof_context": "ak.realm_state_snapshot_witness_attestation_proof.v1",
+    "manifest_proof_context": "ak.realm_state_snapshot_proof.v1",
     "assertions": [
       "witness_attestations_are_a_typed_object_family_not_a_bare_proof_list",
       "witness_projection_excludes_every_signature_and_proof_field",
@@ -1179,7 +1179,7 @@
       ]
     },
     "manifest": {
-      "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000002",
+      "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000002",
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "reducer_profile": "ak.reducer.core.v1",
       "schema_profile_refs": [
@@ -1219,7 +1219,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
+              "payload_digest": "sha256:c40c3f218aaefe8a4ca8dd3e302589424a5d7ff446679764a0ee357e29259a8d",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1229,7 +1229,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
-              "payload_digest": "sha256:069066b85592f2622acacf47aa2880e1fc1f0ecc29957aeac785630415ac77c2",
+              "payload_digest": "sha256:83856e112f0341ed5aecd0a6a0523834758b7be9cbfd359802108df42124c63b",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1238,9 +1238,9 @@
       }
     },
     "canonical_input": {
-      "context": "ak.snapshot_witness_attestation_proof.v1",
+      "context": "ak.realm_state_snapshot_witness_attestation_proof.v1",
       "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
-      "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
+      "realm_state_snapshot_id": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000002",
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "reducer_profile": "ak.reducer.core.v1",
       "schema_profile_refs": [
@@ -1271,9 +1271,9 @@
       "auth_frontier": [
         "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
       ],
-      "snapshot_created_at": "2026-04-26T00:00:00.000Z"
+      "realm_state_snapshot_created_at": "2026-04-26T00:00:00.000Z"
     },
-    "expected_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
+    "expected_digest": "sha256:c40c3f218aaefe8a4ca8dd3e302589424a5d7ff446679764a0ee357e29259a8d",
     "cases": [
       {
         "name": "valid_quorum_accepted",
@@ -1283,7 +1283,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
+              "payload_digest": "sha256:c40c3f218aaefe8a4ca8dd3e302589424a5d7ff446679764a0ee357e29259a8d",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1293,7 +1293,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
-              "payload_digest": "sha256:069066b85592f2622acacf47aa2880e1fc1f0ecc29957aeac785630415ac77c2",
+              "payload_digest": "sha256:83856e112f0341ed5aecd0a6a0523834758b7be9cbfd359802108df42124c63b",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1315,7 +1315,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
+              "payload_digest": "sha256:c40c3f218aaefe8a4ca8dd3e302589424a5d7ff446679764a0ee357e29259a8d",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1325,7 +1325,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-2",
-              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
+              "payload_digest": "sha256:c40c3f218aaefe8a4ca8dd3e302589424a5d7ff446679764a0ee357e29259a8d",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1343,7 +1343,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
+              "payload_digest": "sha256:c40c3f218aaefe8a4ca8dd3e302589424a5d7ff446679764a0ee357e29259a8d",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1353,14 +1353,14 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessd:witness-d.example#snapshot-witness-1",
-              "payload_digest": "sha256:7b63d015b61dc0193d2f56ad41a5e881cd076dabbd31a2fe6430ada826bb9141",
+              "payload_digest": "sha256:c0f3f36fd2d256a17a543ea896b415cec5fd9683ce5fcf54e01040d264c3ba1e",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
           }
         ],
         "deduplicated_valid_witness_count": 1,
-        "expected_error": "snapshot_authority_unverified"
+        "expected_error": "realm_state_snapshot_authority_unverified"
       },
       {
         "name": "revoked_witness_not_counted",
@@ -1370,7 +1370,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
+              "payload_digest": "sha256:c40c3f218aaefe8a4ca8dd3e302589424a5d7ff446679764a0ee357e29259a8d",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1380,15 +1380,15 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessc:witness-c.example#snapshot-witness-1",
-              "payload_digest": "sha256:fd2e835b5102e2775c5c2b805654d940e29ba842091dd9d2e7b1f9524b66c180",
+              "payload_digest": "sha256:e38343f34b7371400ee04c794bbb9d314ba2917f9dc3e741efbee2134f6c1537",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
           }
         ],
         "deduplicated_valid_witness_count": 1,
-        "expected_error": "snapshot_authority_unverified",
-        "note": "witness C was revoked at 2026-04-25T00:00:00.000Z, strictly before snapshot_created_at"
+        "expected_error": "realm_state_snapshot_authority_unverified",
+        "note": "witness C was revoked at 2026-04-25T00:00:00.000Z, strictly before realm_state_snapshot_created_at"
       },
       {
         "name": "below_threshold_rejected",
@@ -1398,21 +1398,21 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
+              "payload_digest": "sha256:c40c3f218aaefe8a4ca8dd3e302589424a5d7ff446679764a0ee357e29259a8d",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
           }
         ],
         "deduplicated_valid_witness_count": 1,
-        "expected_error": "snapshot_authority_unverified"
+        "expected_error": "realm_state_snapshot_authority_unverified"
       },
       {
         "name": "wrong_context_rejected",
         "canonical_input": {
-          "context": "ak.snapshot_proof.v1",
+          "context": "ak.realm_state_snapshot_proof.v1",
           "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
-          "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
+          "realm_state_snapshot_id": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000002",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "reducer_profile": "ak.reducer.core.v1",
           "schema_profile_refs": [
@@ -1443,18 +1443,18 @@
           "auth_frontier": [
             "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
           ],
-          "snapshot_created_at": "2026-04-26T00:00:00.000Z"
+          "realm_state_snapshot_created_at": "2026-04-26T00:00:00.000Z"
         },
-        "expected_digest": "sha256:08fc2aa7473e4d25e6fc23096d1bdc6a27383c21f4fefe88ac302d5951d522fb",
+        "expected_digest": "sha256:c55e977c68cd70ffdc5bd1d8d38784510c3094cf47b32cbc1841a1eb5ea37507",
         "expected_error": "signature_invalid",
         "note": "reusing the manifest context yields a different transcript digest and MUST be rejected even when the JWS verifies"
       },
       {
         "name": "wrong_projection_rejected",
         "canonical_input": {
-          "context": "ak.snapshot_witness_attestation_proof.v1",
+          "context": "ak.realm_state_snapshot_witness_attestation_proof.v1",
           "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
-          "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
+          "realm_state_snapshot_id": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000002",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "reducer_profile": "ak.reducer.core.v1",
           "schema_profile_refs": [
@@ -1485,9 +1485,9 @@
           "auth_frontier": [
             "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
           ],
-          "snapshot_created_at": "2026-04-26T00:00:00.000Z"
+          "realm_state_snapshot_created_at": "2026-04-26T00:00:00.000Z"
         },
-        "expected_digest": "sha256:e99bf7dd566f28177aa2ee902759142d583000eb72a430b4ccb1395e7f58902e",
+        "expected_digest": "sha256:34c412fd5ac545f692da89e4dfe9aed5607f478bce7ae622d304472ce9e5583d",
         "expected_error": "signature_invalid"
       },
       {
@@ -1528,9 +1528,9 @@
     ]
   },
   "snapshot_state_digest": {
-    "vector_id": "ak.vector.snapshot.state_digest_recompute.v1",
+    "vector_id": "ak.vector.realm_state_snapshot.state_digest_recompute.v1",
     "manifest": {
-      "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+      "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
       "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
       "reducer_profile": "ak.reducer.core.v1"
     },
@@ -1585,8 +1585,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -1703,8 +1703,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -1746,8 +1746,8 @@
             "erasure_stubs": []
           },
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 1,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -1791,8 +1791,8 @@
             "erasure_stubs": []
           },
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 2,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -1845,8 +1845,8 @@
         "digest_algorithm": "blake3",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -1963,8 +1963,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [],
@@ -1982,8 +1982,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -2106,8 +2106,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -2161,8 +2161,8 @@
             "erasure_stubs": []
           },
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 1,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -2259,8 +2259,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -2377,8 +2377,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -2522,8 +2522,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -2640,8 +2640,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -2753,8 +2753,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -2876,8 +2876,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -2989,8 +2989,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -3107,8 +3107,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -3225,8 +3225,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -3335,8 +3335,8 @@
             "erasure_stubs": []
           },
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 1,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -3382,8 +3382,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.core.v1",
             "items": [
@@ -3507,8 +3507,8 @@
         "digest_algorithm": "sha256",
         "chunks": [
           {
-            "chunk_kind": "snapshot_chunk",
-            "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000003",
+            "chunk_kind": "realm_state_snapshot_chunk",
+            "realm_state_snapshot_ref": "ak:realm_state_snapshot:01965000-0000-7000-8000-000000000003",
             "index": 0,
             "reducer_profile": "ak.reducer.other.v1",
             "items": [

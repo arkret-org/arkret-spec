@@ -236,7 +236,7 @@ sidebar:
 - `../sync/api-conventions.md`（统一错误码、重放控制与出站网络目标策略）
 - `../discovery/discovery-directory.md`（发现防枚举）
 - `../identity/identity-did.md`（resolver trust）
-- `../conformance/snapshot-schema.md`（snapshot integrity）
+- `../conformance/realm-state-snapshot-schema.md`（snapshot integrity）
 - `../sync/third-party-invites.md`（邀请令牌生命周期）
 - `../identity/account-lifecycle.md`（设备与会话撤销）
 - `../crypto-media/encryption-and-audit.md`（MLS epoch 与移除成员控制）

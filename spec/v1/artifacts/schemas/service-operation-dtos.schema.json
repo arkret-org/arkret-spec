@@ -3021,7 +3021,7 @@
           "type": "boolean",
           "description": "True if more events remain in the `prev_cursor` (older) direction; SHOULD ignore `next_cursor` direction (subscribe / poll instead)."
         },
-        "snapshot_bootstrap": {
+        "realm_state_snapshot_bootstrap": {
           "$ref": "#/$defs/SnapshotBootstrap"
         }
       },
@@ -3029,7 +3029,7 @@
     },
     "PeerEventsQueryOutcome": {
       "type": "object",
-      "description": "Best-effort Event scan page for ak.peer.events.read.scan.v1. This closed peer response intentionally excludes self-only snapshot_bootstrap and does not promise an immutable generation or historical completeness.",
+      "description": "Best-effort Event scan page for ak.peer.events.read.scan.v1. This closed peer response intentionally excludes self-only realm_state_snapshot_bootstrap and does not promise an immutable generation or historical completeness.",
       "required": [
         "events",
         "has_more"
@@ -7096,26 +7096,26 @@
     },
     "SnapshotBootstrap": {
       "type": "object",
-      "description": "Optional ak.self.events.read.scan.v1 acceleration hint for the authenticated self surface only. It is forbidden in ak.peer.events.read.scan.v1. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
+      "description": "Optional ak.self.events.read.scan.v1 acceleration hint for the authenticated self surface only. It is forbidden in ak.peer.events.read.scan.v1. realm_state_snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, realm_state_snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/realm-state-snapshot.schema.json).",
       "required": [
-        "snapshot_ref",
+        "realm_state_snapshot_ref",
         "state_digest",
-        "snapshot_frontier",
+        "realm_state_snapshot_frontier",
         "created_by",
         "created_at",
         "authority_binding",
         "signature"
       ],
       "properties": {
-        "snapshot_ref": {
+        "realm_state_snapshot_ref": {
           "type": "string",
-          "description": "External pointer to the Snapshot manifest; MUST equal schemas/snapshot.schema.json#/properties/id."
+          "description": "External pointer to the Snapshot manifest; MUST equal schemas/realm-state-snapshot.schema.json#/properties/id."
         },
         "state_digest": {
           "type": "string",
           "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
-        "snapshot_frontier": {
+        "realm_state_snapshot_frontier": {
           "type": "array",
           "items": {
             "type": "string"
@@ -7132,7 +7132,7 @@
         "authority_binding": {
           "type": "object",
           "additionalProperties": true,
-          "description": "Snapshot issuer authority evidence bound by the manifest signature transcript; mirrors schemas/snapshot.schema.json#/properties/authority_binding."
+          "description": "Snapshot issuer authority evidence bound by the manifest signature transcript; mirrors schemas/realm-state-snapshot.schema.json#/properties/authority_binding."
         },
         "signature": {
           "type": "object"

@@ -7089,6 +7089,56 @@
       ]
     },
     {
+      "schema_path": "realm-state-snapshot-chunk.schema.json#/$defs/conflicting_input_record/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "realm-state-snapshot-chunk.schema.json#/$defs/non_accepted_input/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "realm-state-snapshot.schema.json#/$defs/realm_state_snapshot_witness_attestation/properties/witness_id",
+      "property_name": "witness_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "realm-state-snapshot.schema.json#/properties/created_by",
+      "property_name": "created_by",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "realm-state-snapshot.schema.json#/properties/event_set_commitment/properties/actor_seq_ranges/items/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "realm.schema.json#/$defs/notary_configuration/oneOf/0/properties/controller_organization_id",
       "property_name": "controller_organization_id",
       "semantic_category": "responsibility_identity_material",
@@ -8880,56 +8930,6 @@
     },
     {
       "schema_path": "signal-presence.schema.json#/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "snapshot-chunk.schema.json#/$defs/conflicting_input_record/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "snapshot-chunk.schema.json#/$defs/non_accepted_input/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "snapshot.schema.json#/$defs/snapshot_witness_attestation/properties/witness_id",
-      "property_name": "witness_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "snapshot.schema.json#/properties/created_by",
-      "property_name": "created_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "snapshot.schema.json#/properties/event_set_commitment/properties/actor_seq_ranges/items/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",

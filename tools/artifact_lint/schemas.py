@@ -3241,7 +3241,7 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("media-metadata.schema.json", ("properties", "thumbnails", "items"), "thumbnail_blob_ref", "thumbnail_ciphertext_digest"),
     ("call-recording-artifact.schema.json", (), "blob_ref", "content_digest"),
     ("call-recording-artifact.schema.json", (), "blob_ref", "ciphertext_digest"),
-    ("snapshot.schema.json", ("properties", "chunks", "items"), "chunk_ref", "digest"),
+    ("realm-state-snapshot.schema.json", ("properties", "chunks", "items"), "chunk_ref", "digest"),
     ("event-payload.schema.json", ("$defs", "mls_commit_payload"), "commit_message_ref", "commit_digest"),
     ("event-payload.schema.json", ("$defs", "agent_key_authorize_payload", "properties", "runtime_attestation"), "attestation_ref", "attestation_digest"),
     ("agent-membership-cascade.schema.json", ("$defs", "agent_cleanup_record"), "controller_terminal_event_id", "controller_terminal_event_digest"),

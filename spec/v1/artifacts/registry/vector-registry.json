@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-06.1",
+  "version": "2026-09-07.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-06T22:30:00+08:00",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5658,6 +5658,36 @@
       ]
     },
     {
+      "vector_id": "ak.vector.proof_context.transcript.realm_state_snapshot.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.realm_state_snapshot_proof.v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm_state_snapshot_witness_attestation_proof.v1 rejected.",
+      "covers_proof_contexts": [
+        "ak.realm_state_snapshot_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.realm_state_snapshot_witness_attestation.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.realm_state_snapshot_witness_attestation_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.account_binding_receipt_proof.v1 rejected.",
+      "covers_proof_contexts": [
+        "ak.realm_state_snapshot_witness_attestation_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.proof_context.transcript.registration_did_evidence_control.v1",
       "status": "active",
       "domain": "proof_context",
@@ -5751,39 +5781,9 @@
       "vector_id": "ak.vector.proof_context.transcript.signal_envelope.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.signal_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.snapshot_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.signal_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm_state_snapshot_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.signal_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.snapshot.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.snapshot_proof.v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.snapshot_witness_attestation_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.snapshot_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.snapshot_witness_attestation.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.snapshot_witness_attestation_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.account_binding_receipt_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.snapshot_witness_attestation_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -5997,6 +5997,45 @@
       ]
     },
     {
+      "vector_id": "ak.vector.realm_state_snapshot.inclusion_challenge.v1",
+      "status": "active",
+      "domain": "realm_state_snapshot",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
+      "description": "High-assurance snapshot inclusion-challenge sampling verifies sufficient event_id and actor_seq_range coverage, recomputes the RFC 6962 domain-separated event-set Merkle root (0x00 leaf / 0x01 node), rejects the unprefixed root, rejects commitment-root mismatch, and rejects silent actor sequence gaps.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/sync-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.realm_state_snapshot.state_digest_recompute.v1",
+      "status": "active",
+      "domain": "realm_state_snapshot",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
+      "description": "Snapshot chunk items are reducer cells whose leaf is byte-identical to the section 6.2.1 state_root leaf H(0x00 || canonical_json({cell,state})); state_digest is their RFC 6962 root under the Realm's live digest suite, transparent to chunk boundaries, with the materialized-object and cas_cell branches, lattice-shape drift, empty or unsorted heads, unsorted or duplicate items, actor-private families, reducer_profile drift and declared-digest mismatch all rejected, and bottom cells / erasure stubs committed through their own verification_hints digests rather than as leaves.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/sync-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.realm_state_snapshot.witness_quorum_attestation.v1",
+      "status": "active",
+      "domain": "realm_state_snapshot",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
+      "description": "Snapshot witness attestations are a typed object family signed under ak.realm_state_snapshot_witness_attestation_proof.v1 over the signature-free canonical projection: missing attestations under authority_kind=witness_quorum, a duplicate signer, an unauthorized or revoked witness, a deduplicated count below the policy threshold, the manifest context reused as the witness context, a mutated projection, and a rewritten or reordered witness list MUST all be rejected, while a valid quorum is accepted and the top-level issuer signature binds the final sorted witness set.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/sync-fixture.json",
+        "spec/v1/zh/conformance/realm-state-snapshot-schema.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.redaction.event_target_does_not_drive_object_state.v1",
       "status": "active",
       "domain": "redaction",
@@ -6061,7 +6100,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.redaction.snapshot_pruning_stub.v1",
+      "vector_id": "ak.vector.redaction.realm_state_snapshot_pruning_stub.v1",
       "status": "active",
       "domain": "redaction",
       "applies_to_fixtures": [
@@ -6868,45 +6907,6 @@
         "spec/v1/zh/sync/signal.md"
       ],
       "description": "Signal payload_sequence is a durable per-device/per-canonical-scope u64 high-water: forward gaps from reservation/crash/failure are accepted, repeat or rollback is stale, exact envelope replay is diagnosed separately, and scopes remain independent."
-    },
-    {
-      "vector_id": "ak.vector.snapshot.inclusion_challenge.v1",
-      "status": "active",
-      "domain": "snapshot",
-      "applies_to_fixtures": [
-        "sync-fixture.json"
-      ],
-      "description": "High-assurance snapshot inclusion-challenge sampling verifies sufficient event_id and actor_seq_range coverage, recomputes the RFC 6962 domain-separated event-set Merkle root (0x00 leaf / 0x01 node), rejects the unprefixed root, rejects commitment-root mismatch, and rejects silent actor sequence gaps.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/sync-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.snapshot.state_digest_recompute.v1",
-      "status": "active",
-      "domain": "snapshot",
-      "applies_to_fixtures": [
-        "sync-fixture.json"
-      ],
-      "description": "Snapshot chunk items are reducer cells whose leaf is byte-identical to the section 6.2.1 state_root leaf H(0x00 || canonical_json({cell,state})); state_digest is their RFC 6962 root under the Realm's live digest suite, transparent to chunk boundaries, with the materialized-object and cas_cell branches, lattice-shape drift, empty or unsorted heads, unsorted or duplicate items, actor-private families, reducer_profile drift and declared-digest mismatch all rejected, and bottom cells / erasure stubs committed through their own verification_hints digests rather than as leaves.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/sync-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.snapshot.witness_quorum_attestation.v1",
-      "status": "active",
-      "domain": "snapshot",
-      "applies_to_fixtures": [
-        "sync-fixture.json"
-      ],
-      "description": "Snapshot witness attestations are a typed object family signed under ak.snapshot_witness_attestation_proof.v1 over the signature-free canonical projection: missing attestations under authority_kind=witness_quorum, a duplicate signer, an unauthorized or revoked witness, a deduplicated count below the policy threshold, the manifest context reused as the witness context, a mutated projection, and a rewritten or reordered witness list MUST all be rejected, while a valid quorum is accepted and the top-level issuer signature binds the final sorted witness set.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/sync-fixture.json",
-        "spec/v1/zh/conformance/snapshot-schema.md"
-      ]
     },
     {
       "vector_id": "ak.vector.state_root.incremental.v1",

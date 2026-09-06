@@ -423,7 +423,7 @@
     },
     {
       "name": "snapshot_pruning_stub",
-      "vector_id": "ak.vector.redaction.snapshot_pruning_stub.v1",
+      "vector_id": "ak.vector.redaction.realm_state_snapshot_pruning_stub.v1",
       "input": "redacted_payload_pruned_after_snapshot",
       "expected": "snapshot_and_backfill_retain_verification_stub",
       "event": {

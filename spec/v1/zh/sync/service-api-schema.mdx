@@ -75,7 +75,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | Federation peer events | `ak.peer.events.*` | `/_arkret/peer/events/*` |
 | 加密信号扩展 | `ak.self.signal.command.send.v1`、`ak.self.signal.stream.subscribe.v1`、可选 `ak.peer.signal.command.relay.v1` | `/_arkret/self/signal*`、`/_arkret/peer/signal` |
 | 账号自服务与聚合同步 | `ak.self.account.read.viewer.v1`、`ak.self.account.command.update_profile.v1`、`ak.self.account.stream.subscribe.v1`、`ak.self.account.read.describe.v1`、`ak.self.account.command.revoke_cursor.v1` | `/_arkret/self/account/*` |
-| Realm snapshot 入口 | `ak.self.snapshot.*` | `/_arkret/self/snapshot/*` |
+| Realm snapshot 入口 | `ak.self.realm_state_snapshot.*` | `/_arkret/self/realm-state-snapshot/*` |
 | Federation peer snapshot 入口 | `ak.peer.snapshot.*` | `/_arkret/peer/snapshot/*` |
 | 目录发现 | `ak.find.directory.*` | `/_arkret/find/directory/*` |
 | Blob / media | `ak.self.blob.*` | `/_arkret/self/blob/*` |
@@ -196,9 +196,9 @@ paths:
   /_arkret/self/account/cursor/revoke:
     post:
       operationId: ak.self.account.command.revoke_cursor
-  /_arkret/self/snapshot/head:
+  /_arkret/self/realm-state-snapshot/head:
     get:
-      operationId: ak.self.snapshot.read.manifest_head
+      operationId: ak.self.realm_state_snapshot.read.manifest_head
 
   /_arkret/find/directory/describe:
     get:
@@ -385,7 +385,7 @@ paths:
 | `ak.self.signal.command.send.v1` | `POST /_arkret/self/signal` | gRPC `SelfSignal/Send` / MQ `self.signal.command.send`；承载 `ak.schema.signal_envelope.v1`，不写 durable Event |
 | `ak.self.signal.stream.subscribe.v1` | `GET /_arkret/self/signal/subscribe` | gRPC `SelfSignal/Subscribe` / MQ `self.signal.stream.subscribe`；encrypted-only live receive rail，无 backfill / durable delivery |
 | `ak.peer.signal.command.relay.v1` | `POST /_arkret/peer/signal` | gRPC `PeerSignal/Relay` / MQ `peer.signal.command.relay`；可选 profile 的单跳 encrypted relay，opaque outcome、无 durable state、无自动重试 |
-| `ak.self.snapshot.read.manifest_head.v1` | `GET /_arkret/self/snapshot/head` | snapshot manifest |
+| `ak.self.realm_state_snapshot.read.manifest_head.v1` | `GET /_arkret/self/realm-state-snapshot/head` | snapshot manifest |
 | `ak.self.space.read.list.v1` / `ak.self.strand.read.list.v1` / `ak.self.morph.read.list.v1` / `ak.self.morph.resource.get.v1` | `GET /_arkret/self/realms/{realm_id}/spaces`, `GET /_arkret/self/realms/{realm_id}/strands`, `GET /_arkret/self/realms/{realm_id}/morphs`, `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}` | gRPC `SelfSpace/List` / `SelfStrand/List` / `SelfMorph/List` / `SelfMorph/Get`; MQ `self.space.query.list` / `self.strand.query.list` / `self.morph.query.list` / `self.morph.resource.get` |
 | `ak.find.directory.read.search_*` / `ak.find.directory.read.resolve_*` / `ak.find.directory.read.list_handles_for_subject.v1` | `POST /_arkret/find/directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
 | `ak.find.directory.command.announce.v1` / `ak.find.directory.command.withdraw.v1` / `ak.find.directory.push.command.register.v1` | `POST /_arkret/find/directory/announce`, `POST /_arkret/find/directory/withdraw`, `POST /_arkret/find/directory/push/register` | gRPC Discovery Ingest Service |

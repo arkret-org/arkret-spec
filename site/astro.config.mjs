@@ -374,7 +374,7 @@ document.addEventListener("astro:after-swap", boot);
                 "encoding",
                 "schema-registry",
                 "query-schema",
-                "snapshot-schema",
+                "realm-state-snapshot-schema",
                 "conformance-vectors",
                 "scalability-constraints",
                 "conformance-suite",

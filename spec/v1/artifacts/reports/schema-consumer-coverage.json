@@ -134,6 +134,7 @@
     "ak.schema.realm_link_operations.v1",
     "ak.schema.realm_organization_operations.v1",
     "ak.schema.realm_read_operations.v1",
+    "ak.schema.realm_state_snapshot_chunk.v1",
     "ak.schema.recovery_completion_attestation.v1",
     "ak.schema.registration_did_evidence.v1",
     "ak.schema.resource_discovery_state.v1",
@@ -143,7 +144,6 @@
     "ak.schema.service_identity_bundle.v1",
     "ak.schema.signal_presence.v1",
     "ak.schema.signal_typing.v1",
-    "ak.schema.snapshot_chunk.v1",
     "ak.schema.time.v1"
   ],
   "unresolved_vector_disposition": [],
@@ -1366,6 +1366,8 @@
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_profile.v1",
           "ak.schema.realm_read_operations.v1",
+          "ak.schema.realm_state_snapshot.v1",
+          "ak.schema.realm_state_snapshot_chunk.v1",
           "ak.schema.recovery_completion_attestation.v1",
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",
@@ -1385,8 +1387,6 @@
           "ak.schema.signal_envelope.v1",
           "ak.schema.signal_presence.v1",
           "ak.schema.signal_relay.v1",
-          "ak.schema.snapshot.v1",
-          "ak.schema.snapshot_chunk.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
           "ak.schema.view.v1",
@@ -3179,6 +3179,41 @@
       }
     },
     {
+      "schema_id": "ak.schema.realm_state_snapshot.v1",
+      "file": "schemas/realm-state-snapshot.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "prose": "normative_text",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      }
+    },
+    {
+      "schema_id": "ak.schema.realm_state_snapshot_chunk.v1",
+      "file": "schemas/realm-state-snapshot-chunk.schema.json",
+      "consumers": {
+        "declared_wire": "standalone_schema_alias",
+        "prose": "normative_text",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "standalone_schema_alias",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "snapshot manifest chunks[].chunk_ref content-addressed payload",
+        "normative_ref": "zh/conformance/realm-state-snapshot-schema.md"
+      }
+    },
+    {
       "schema_id": "ak.schema.recovery_completion_attestation.v1",
       "file": "schemas/recovery-authority.schema.json",
       "consumers": {
@@ -3604,41 +3639,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.snapshot.v1",
-      "file": "schemas/snapshot.schema.json",
-      "consumers": {
-        "outbound": "exact",
-        "prose": "normative_text",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      }
-    },
-    {
-      "schema_id": "ak.schema.snapshot_chunk.v1",
-      "file": "schemas/snapshot-chunk.schema.json",
-      "consumers": {
-        "declared_wire": "standalone_schema_alias",
-        "prose": "normative_text",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "standalone_schema_alias",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
-      },
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "snapshot manifest chunks[].chunk_ref content-addressed payload",
-        "normative_ref": "zh/conformance/snapshot-schema.md"
-      }
-    },
-    {
       "schema_id": "ak.schema.space.v1",
       "file": "schemas/space.schema.json",
       "consumers": {
@@ -3797,6 +3797,7 @@
           "ak.schema.realm_link_operations.v1",
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_read_operations.v1",
+          "ak.schema.realm_state_snapshot.v1",
           "ak.schema.recovery_completion_attestation.v1",
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",
@@ -3814,7 +3815,6 @@
           "ak.schema.service_operation_dtos.v1",
           "ak.schema.signal_envelope.v1",
           "ak.schema.signal_presence.v1",
-          "ak.schema.snapshot.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
           "ak.schema.view.v1",

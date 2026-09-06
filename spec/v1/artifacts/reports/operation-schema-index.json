@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-06.2",
+  "version": "2026-09-07.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-06T23:10:00+08:00",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7602,7 +7602,7 @@
           "prev_cursor",
           "next_cursor",
           "has_more",
-          "snapshot_bootstrap"
+          "realm_state_snapshot_bootstrap"
         ],
         "closed": true
       }
@@ -9092,10 +9092,10 @@
       }
     },
     {
-      "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+      "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
       "success_shape_kind": "schema_resource",
       "response": {
-        "schema_ref": "schemas/snapshot.schema.json",
+        "schema_ref": "schemas/realm-state-snapshot.schema.json",
         "schema_kind": "object",
         "required": [
           "id",

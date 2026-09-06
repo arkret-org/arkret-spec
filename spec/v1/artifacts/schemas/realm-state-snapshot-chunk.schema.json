@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/v1/schemas/snapshot-chunk.schema.json",
+  "$id": "https://arkret.org/v1/schemas/realm-state-snapshot-chunk.schema.json",
   "title": "Arkret Snapshot Chunk Payload",
-  "description": "Canonical JSON payload behind one snapshot manifest chunks[].chunk_ref (zh/conformance/snapshot-schema.md section 3). It carries the Realm reducer state itself: every item is one written Realm-scope reducer cell with the exact state_object that event-auth-state-resolution.md section 6.2.1 gives the governance state_root leaf, so the snapshot state_digest leaves and the Seal state_root leaves are the same bytes. There is no materialized-object branch: canonical objects are derived locally from these cells, never shipped as a second, renderer-dependent form.",
+  "description": "Canonical JSON payload behind one snapshot manifest chunks[].chunk_ref (zh/conformance/realm-state-snapshot-schema.md section 3). It carries the Realm reducer state itself: every item is one written Realm-scope reducer cell with the exact state_object that event-auth-state-resolution.md section 6.2.1 gives the governance state_root leaf, so the snapshot state_digest leaves and the Seal state_root leaves are the same bytes. There is no materialized-object branch: canonical objects are derived locally from these cells, never shipped as a second, renderer-dependent form.",
   "type": "object",
   "required": [
     "chunk_kind",
-    "snapshot_ref",
+    "realm_state_snapshot_ref",
     "index",
     "reducer_profile",
     "items",
@@ -17,12 +17,12 @@
   ],
   "properties": {
     "chunk_kind": {
-      "const": "snapshot_chunk"
+      "const": "realm_state_snapshot_chunk"
     },
-    "snapshot_ref": {
+    "realm_state_snapshot_ref": {
       "type": "string",
-      "pattern": "^ak:snapshot:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "The manifest this chunk belongs to (the manifest's own primary identity is `id`; chunks point back with `snapshot_ref`)."
+      "pattern": "^ak:realm_state_snapshot:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "The manifest this chunk belongs to (the manifest's own primary identity is `id`; chunks point back with `realm_state_snapshot_ref`)."
     },
     "index": {
       "type": "integer",
@@ -39,7 +39,7 @@
       "items": {
         "$ref": "#/$defs/cell_item"
       },
-      "description": "Written Realm-scope reducer cells, sorted by id in Unicode code point ascending order with no duplicate id across the whole snapshot. Membership is section 3 of snapshot-schema.md: cas_register cells with a non-empty active head set, every other cell with a determinate non-bottom joined value. Never-written cells, non-cas_register bottom cells (see conflict_records), actor-private ak.private.* families and cells written under a Circle or Sidecar scope_ref MUST NOT appear."
+      "description": "Written Realm-scope reducer cells, sorted by id in Unicode code point ascending order with no duplicate id across the whole snapshot. Membership is section 3 of realm-state-snapshot-schema.md: cas_register cells with a non-empty active head set, every other cell with a determinate non-bottom joined value. Never-written cells, non-cas_register bottom cells (see conflict_records), actor-private ak.private.* families and cells written under a Circle or Sidecar scope_ref MUST NOT appear."
     },
     "conflict_records": {
       "type": "array",
@@ -207,7 +207,7 @@
     },
     "non_accepted_input": {
       "type": "object",
-      "description": "One non-accepted Event input, addressable by the (actor_id, actor_seq) coordinates that snapshot-schema.md section 6 gap attribution uses.",
+      "description": "One non-accepted Event input, addressable by the (actor_id, actor_seq) coordinates that realm-state-snapshot-schema.md section 6 gap attribution uses.",
       "required": [
         "event_id",
         "actor_id",

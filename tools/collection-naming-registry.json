@@ -92,14 +92,14 @@
       "reason": "registered ordered collection clause grammar; item_order_by names the whole ordered clause"
     },
     {
-      "file": "snapshot-chunk.schema.json",
+      "file": "realm-state-snapshot-chunk.schema.json",
       "pointer": "/properties/soft_failed",
-      "reason": "role stem pinned by the manifest's verification_hints.soft_failed_digest and by the snapshot-schema.md section 6 gap_attribution category literal soft_failed; each row is one non_accepted_input reference, and a second spelling such as soft_failed_inputs would split one wire vocabulary in two"
+      "reason": "role stem pinned by the manifest's verification_hints.soft_failed_digest and by the realm-state-snapshot-schema.md section 6 gap_attribution category literal soft_failed; each row is one non_accepted_input reference, and a second spelling such as soft_failed_inputs would split one wire vocabulary in two"
     },
     {
-      "file": "snapshot-chunk.schema.json",
+      "file": "realm-state-snapshot-chunk.schema.json",
       "pointer": "/properties/quarantined",
-      "reason": "role stem pinned by the manifest's verification_hints.quarantined_digest and by the snapshot-schema.md section 6 gap_attribution category literal quarantined; each row is one non_accepted_input reference"
+      "reason": "role stem pinned by the manifest's verification_hints.quarantined_digest and by the realm-state-snapshot-schema.md section 6 gap_attribution category literal quarantined; each row is one non_accepted_input reference"
     }
   ],
   "pagination_objects": [

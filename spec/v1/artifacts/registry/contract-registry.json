@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-06.2",
+  "version": "2026-09-07.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-06T23:10:00+08:00",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -9331,18 +9331,18 @@
         }
       },
       {
-        "schema_id": "ak.schema.snapshot.v1",
-        "file": "schemas/snapshot.schema.json"
+        "schema_id": "ak.schema.realm_state_snapshot.v1",
+        "file": "schemas/realm-state-snapshot.schema.json"
       },
       {
-        "schema_id": "ak.schema.snapshot_chunk.v1",
-        "file": "schemas/snapshot-chunk.schema.json",
+        "schema_id": "ak.schema.realm_state_snapshot_chunk.v1",
+        "file": "schemas/realm-state-snapshot-chunk.schema.json",
         "status": "active",
         "description": "Snapshot chunk payload: the Realm reducer cells behind one manifest chunks[].chunk_ref, whose leaves are the state_root leaves of event-auth-state-resolution.md section 6.2.1",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "snapshot manifest chunks[].chunk_ref content-addressed payload",
-          "normative_ref": "zh/conformance/snapshot-schema.md"
+          "normative_ref": "zh/conformance/realm-state-snapshot-schema.md"
         }
       },
       {
@@ -10887,10 +10887,10 @@
       },
       {
         "kind": "chunk",
-        "category": "snapshot",
+        "category": "chunk",
         "status": "active",
         "wire_form": "ak:chunk:<uuidv7>",
-        "description": "Snapshot/blob chunk ID",
+        "description": "Realm state snapshot or blob chunk ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
       },
@@ -11205,11 +11205,11 @@
         "identity_authority": "producer_signature"
       },
       {
-        "kind": "snapshot",
-        "category": "snapshot",
+        "kind": "realm_state_snapshot",
+        "category": "realm_state_snapshot",
         "status": "active",
-        "wire_form": "ak:snapshot:<uuidv7>",
-        "description": "Snapshot manifest ID",
+        "wire_form": "ak:realm_state_snapshot:<uuidv7>",
+        "description": "Realm state snapshot manifest ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
       },
@@ -11452,7 +11452,7 @@
           "ak.self.actor_profile.read.resolve.v1",
           "ak.self.account.stream.subscribe.v1",
           "ak.self.account.command.revoke_cursor.v1",
-          "ak.self.snapshot.read.manifest_head.v1"
+          "ak.self.realm_state_snapshot.read.manifest_head.v1"
         ],
         "surface_class": "core"
       },
@@ -13072,7 +13072,7 @@
         "http": "QUERY /_arkret/peer/events",
         "grpc": "PeerEvents/Scan",
         "mq": "peer.events.read.scan",
-        "notes": "Authorized federation peer Event scan with self-equivalent selectors and cursor ordering, but a peer-only closed response that excludes snapshot_bootstrap. This is a small-history or operator-triggered best-effort fallback; it does not promise an immutable generation, deterministic long-history completion, or historical completeness.",
+        "notes": "Authorized federation peer Event scan with self-equivalent selectors and cursor ordering, but a peer-only closed response that excludes realm_state_snapshot_bootstrap. This is a small-history or operator-triggered best-effort fallback; it does not promise an immutable generation, deterministic long-history completion, or historical completeness.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
@@ -15305,13 +15305,13 @@
         "response_schema_ref": "schemas/signal-stream-frame.schema.json"
       },
       {
-        "operation_id": "ak.self.snapshot.read.manifest_head.v1",
-        "http": "GET /_arkret/self/snapshot/head",
-        "grpc": "SelfSnapshot/Head",
-        "mq": "self.snapshot.query.manifest_head",
+        "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
+        "http": "GET /_arkret/self/realm-state-snapshot/head",
+        "grpc": "SelfRealmStateSnapshot/Head",
+        "mq": "self.realm_state_snapshot.query.manifest_head",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
-        "response_schema_ref": "schemas/snapshot.schema.json"
+        "response_schema_ref": "schemas/realm-state-snapshot.schema.json"
       },
       {
         "operation_id": "ak.self.space.read.list.v1",
@@ -16770,6 +16770,10 @@
             "binding_kind": "http_json"
           },
           {
+            "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
             "binding_kind": "http_json"
           },
@@ -16799,10 +16803,6 @@
           },
           {
             "operation_id": "ak.self.signal.stream.subscribe.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.snapshot.read.manifest_head.v1",
             "binding_kind": "http_json"
           },
           {
@@ -18824,7 +18824,7 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
-        "action": "ak.self.snapshot.read.manifest_head.v1",
+        "action": "ak.self.realm_state_snapshot.read.manifest_head.v1",
         "category": "service",
         "risk_tier": "low",
         "required_constraints": [],
@@ -20082,13 +20082,13 @@
         "conflicts": []
       },
       {
-        "feature_id": "ak.feature.snapshot.v1",
+        "feature_id": "ak.feature.realm_state_snapshot.v1",
         "status": "active",
         "defined_in": "zh/sync/service-surface.md",
         "service_kinds": [],
         "required_operation_pairs": [
           {
-            "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+            "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
             "binding_kind": "http_json"
           }
         ],

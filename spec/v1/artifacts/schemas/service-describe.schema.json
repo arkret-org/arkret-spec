@@ -425,7 +425,7 @@
               "did_resolution",
               "federation",
               "media_fetch",
-              "snapshot_fetch",
+              "realm_state_snapshot_fetch",
               "webhook",
               "applet",
               "agent",

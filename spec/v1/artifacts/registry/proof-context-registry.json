@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-06.1",
+  "version": "2026-09-07.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-06T23:40:00+08:00",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1122,33 +1122,33 @@
       ]
     },
     {
-      "context": "ak.snapshot_proof.v1",
-      "object_family": "snapshot",
+      "context": "ak.realm_state_snapshot_proof.v1",
+      "object_family": "realm_state_snapshot",
       "binding_fields": [
         "payload_digest",
-        "snapshot_id",
+        "realm_state_snapshot_id",
         "realm_id",
         "verification_method",
         "created_at",
         "domain?",
         "audience?"
       ],
-      "defined_in": "zh/conformance/snapshot-schema.md",
-      "schema_ref": "schemas/snapshot.schema.json",
+      "defined_in": "zh/conformance/realm-state-snapshot-schema.md",
+      "schema_ref": "schemas/realm-state-snapshot.schema.json",
       "injected_fields": [
         {
-          "field": "snapshot_id",
+          "field": "realm_state_snapshot_id",
           "source": "snapshot.id"
         }
       ]
     },
     {
-      "context": "ak.snapshot_witness_attestation_proof.v1",
-      "object_family": "snapshot_witness_attestation",
+      "context": "ak.realm_state_snapshot_witness_attestation_proof.v1",
+      "object_family": "realm_state_snapshot_witness_attestation",
       "binding_fields": [
         "payload_digest",
         "witness_id",
-        "snapshot_id",
+        "realm_state_snapshot_id",
         "realm_id",
         "reducer_profile",
         "schema_profile_refs",
@@ -1160,18 +1160,18 @@
         "authority_kind",
         "auth_state_digest",
         "auth_frontier",
-        "snapshot_created_at",
+        "realm_state_snapshot_created_at",
         "verification_method",
         "created_at"
       ],
-      "defined_in": "zh/conformance/snapshot-schema.md",
-      "schema_ref": "schemas/snapshot.schema.json#/$defs/snapshot_witness_attestation",
+      "defined_in": "zh/conformance/realm-state-snapshot-schema.md",
+      "schema_ref": "schemas/realm-state-snapshot.schema.json#/$defs/realm_state_snapshot_witness_attestation",
       "transcript_schema_refs": [
-        "schemas/snapshot.schema.json"
+        "schemas/realm-state-snapshot.schema.json"
       ],
       "injected_fields": [
         {
-          "field": "snapshot_id",
+          "field": "realm_state_snapshot_id",
           "source": "snapshot.id"
         },
         {
@@ -1191,7 +1191,7 @@
           "source": "snapshot.authority_binding.auth_frontier"
         },
         {
-          "field": "snapshot_created_at",
+          "field": "realm_state_snapshot_created_at",
           "source": "snapshot.created_at"
         }
       ]
@@ -2081,8 +2081,8 @@
       ]
     },
     {
-      "domain": "ak.snapshot.auth_state.issuer_local.v1",
-      "object_family": "snapshot_auth_state_issuer_local",
+      "domain": "ak.realm_state_snapshot.auth_state.issuer_local.v1",
+      "object_family": "realm_state_snapshot_auth_state_issuer_local",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
         "issuer",

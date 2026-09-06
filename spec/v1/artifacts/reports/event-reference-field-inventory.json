@@ -937,6 +937,24 @@
       "classification": "complete_event_id"
     },
     {
+      "schema": "realm-state-snapshot-chunk.schema.json",
+      "json_pointer": "/$defs/cas_head/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "realm-state-snapshot-chunk.schema.json",
+      "json_pointer": "/$defs/conflicting_input_record/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "realm-state-snapshot-chunk.schema.json",
+      "json_pointer": "/$defs/non_accepted_input/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
       "schema": "recovery-authority.schema.json",
       "json_pointer": "/$defs/issue_recovery_completion_grant_request/properties/device_authorization_event_id",
       "field": "device_authorization_event_id",
@@ -1174,24 +1192,6 @@
       "schema": "service-operation-dtos.schema.json",
       "json_pointer": "/$defs/SessionGrantDeviceBinding/properties/authorization_event_id",
       "field": "authorization_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "snapshot-chunk.schema.json",
-      "json_pointer": "/$defs/cas_head/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "snapshot-chunk.schema.json",
-      "json_pointer": "/$defs/conflicting_input_record/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "snapshot-chunk.schema.json",
-      "json_pointer": "/$defs/non_accepted_input/properties/event_id",
-      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

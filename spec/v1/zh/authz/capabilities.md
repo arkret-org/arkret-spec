@@ -269,7 +269,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | `stream` | 长连接订阅 | `ak.self.events.stream.subscribe.v1`、`ak.self.account.stream.subscribe.v1` |
 | `upload` | 分片上传会话 | `ak.self.blob.upload.create.v1` |
 
-`<sub_entity>` 只能出现在 `<entity>` 与 `<surface_class>` 之间（`ak.self.agent.participation.resource.replace.v1`），MUST NOT 占据 `<surface_class>` 槽。末段 MUST 是动词：`ak.self.snapshot.read.manifest_head.v1` 的末段是名词，属**已登记的历史例外**，新增 action MUST NOT 沿用该形态。
+`<sub_entity>` 只能出现在 `<entity>` 与 `<surface_class>` 之间（`ak.self.agent.participation.resource.replace.v1`），MUST NOT 占据 `<surface_class>` 槽。末段 MUST 是动词：`ak.self.realm_state_snapshot.read.manifest_head.v1` 的末段是名词，属**已登记的历史例外**，新增 action MUST NOT 沿用该形态。
 
 **C. 限定词位置**：作用域限定词 MUST 作为**后缀**出现（`.own` / `.others`，见 §5.0 的 action 后缀约定）。`ak.member.compensate.leave` / `ak.member.compensate.remove` 把限定词放在动词之前，属**已登记的历史例外**——`compensate` 在此是补偿事务的语义前缀而非作用域限定词；新增作用域限定 MUST 用后缀形态。
 

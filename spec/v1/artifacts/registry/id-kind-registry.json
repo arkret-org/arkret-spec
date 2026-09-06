@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.2",
+  "version": "2026-09-07.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-04T23:40:00+08:00",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -512,10 +512,10 @@
     },
     {
       "kind": "chunk",
-      "category": "snapshot",
+      "category": "chunk",
       "status": "active",
       "wire_form": "ak:chunk:<uuidv7>",
-      "description": "Snapshot/blob chunk ID",
+      "description": "Realm state snapshot or blob chunk ID",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },
@@ -830,11 +830,11 @@
       "identity_authority": "producer_signature"
     },
     {
-      "kind": "snapshot",
-      "category": "snapshot",
+      "kind": "realm_state_snapshot",
+      "category": "realm_state_snapshot",
       "status": "active",
-      "wire_form": "ak:snapshot:<uuidv7>",
-      "description": "Snapshot manifest ID",
+      "wire_form": "ak:realm_state_snapshot:<uuidv7>",
+      "description": "Realm state snapshot manifest ID",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

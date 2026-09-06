@@ -279,12 +279,12 @@ DataEvent 的 `causal_refs[]` 可以帮助投影层稳定排序和诊断缺依�
 
 ## 10. Snapshot
 
-Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明以下字段（权威必填集见 [`../conformance/snapshot-schema.md`](../conformance/snapshot-schema.md) 与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 的 `required`，本清单与之等价）：
+Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明以下字段（权威必填集见 [`../conformance/realm-state-snapshot-schema.md`](../conformance/realm-state-snapshot-schema.md) 与 [`realm-state-snapshot.schema.json`](../../artifacts/schemas/realm-state-snapshot.schema.json) 的 `required`，本清单与之等价）：
 
 - `id`（snapshot 自身 id）
 - `realm_id`
 - `reducer_profile` 与 `schema_profile_refs`（reducer / schema profile refs）
-- `state_digest`（**必填**）——语义只有一个，由 [`../conformance/snapshot-schema.md` §4](../conformance/snapshot-schema.md) 给出：对该 Snapshot 全部 chunk `items[]`（封闭的单一 `cell` 分支，每个 item 是一个 Realm-scope reducer cell 与其 §6.2.1 `state_object`）求 RFC 6962 Merkle root，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`H` 随 Realm 的 live digest suite。`security_class` **MUST NOT** 切换该摘要的算法或承诺对象，也 MUST NOT 把它替换成 Seal 的治理 `state_root`：leaf 定义相同，但 leaf **集合**不同——`state_root` 只覆盖控制面 cell，`state_digest` 覆盖 Realm-scope 的控制面与数据面全部已写入 cell。`state_digest`、`control_event_set_root` 与下面的 `event_set_commitment` 三者承诺三个不同对象，MUST 分别校验，MUST NOT 互相代入。
+- `state_digest`（**必填**）——语义只有一个，由 [`../conformance/realm-state-snapshot-schema.md` §4](../conformance/realm-state-snapshot-schema.md) 给出：对该 Snapshot 全部 chunk `items[]`（封闭的单一 `cell` 分支，每个 item 是一个 Realm-scope reducer cell 与其 §6.2.1 `state_object`）求 RFC 6962 Merkle root，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`H` 随 Realm 的 live digest suite。`security_class` **MUST NOT** 切换该摘要的算法或承诺对象，也 MUST NOT 把它替换成 Seal 的治理 `state_root`：leaf 定义相同，但 leaf **集合**不同——`state_root` 只覆盖控制面 cell，`state_digest` 覆盖 Realm-scope 的控制面与数据面全部已写入 cell。`state_digest`、`control_event_set_root` 与下面的 `event_set_commitment` 三者承诺三个不同对象，MUST 分别校验，MUST NOT 互相代入。
 - `event_set_commitment`（绑定"哪些事件产生该状态"的承诺，与 `state_digest` 各自独立、**均必填**；客户端采用前 MUST 验证它，见下）
 - `frontier`（covered Event frontier / Seal basis）
 - `chunks`（chunk digests）

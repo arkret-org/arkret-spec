@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-06.1",
+  "version": "2026-09-07.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-06T22:30:00+08:00",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -471,18 +471,18 @@
       }
     },
     {
-      "schema_id": "ak.schema.snapshot.v1",
-      "file": "schemas/snapshot.schema.json"
+      "schema_id": "ak.schema.realm_state_snapshot.v1",
+      "file": "schemas/realm-state-snapshot.schema.json"
     },
     {
-      "schema_id": "ak.schema.snapshot_chunk.v1",
-      "file": "schemas/snapshot-chunk.schema.json",
+      "schema_id": "ak.schema.realm_state_snapshot_chunk.v1",
+      "file": "schemas/realm-state-snapshot-chunk.schema.json",
       "status": "active",
       "description": "Snapshot chunk payload: the Realm reducer cells behind one manifest chunks[].chunk_ref, whose leaves are the state_root leaves of event-auth-state-resolution.md section 6.2.1",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "snapshot manifest chunks[].chunk_ref content-addressed payload",
-        "normative_ref": "zh/conformance/snapshot-schema.md"
+        "normative_ref": "zh/conformance/realm-state-snapshot-schema.md"
       }
     },
     {

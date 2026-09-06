@@ -831,7 +831,7 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
             lint.fail(openapi_path, "events subscribe actor_ids must use repeated percent-encoded JCS ActorId values")
     expect_param_ref("ak.self.events.stream.subscribe.v1", "after", "#/components/schemas/Cursor")
     expect_param_ref("ak.self.events.resource.get.v1", "event_id", "#/components/schemas/EventId")
-    expect_param_ref("ak.self.snapshot.read.manifest_head.v1", "realm_id", "#/components/schemas/RealmId")
+    expect_param_ref("ak.self.realm_state_snapshot.read.manifest_head.v1", "realm_id", "#/components/schemas/RealmId")
 
     query_body = op("ak.self.events.read.scan.v1")
     if query_body is not None:

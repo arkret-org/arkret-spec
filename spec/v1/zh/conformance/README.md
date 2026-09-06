@@ -24,7 +24,7 @@ conformance 目录只引用 canonical machine artifact，不保存 schema / fixt
 - `conformance-profiles.md`：实现 profile 与一致性测试范围。
 - `conformance-suite.md`：自动化互操作 suite、向量优先级、组件测试矩阵。
 - `query-schema.md`：View / Search / Inbox 可复用查询形状。
-- `snapshot-schema.md`：Snapshot manifest、chunk、signature、encrypted envelope。
+- `realm-state-snapshot-schema.md`：Snapshot manifest、chunk、signature、encrypted envelope。
 
 ## 机器构件入口
 

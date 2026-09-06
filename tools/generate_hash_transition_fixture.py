@@ -159,7 +159,7 @@ def main() -> None:
         "state_root": "sha256:" + "4" * 64,
     }
     snapshot_bytes = jcs(snapshot)
-    snapshot_commitment = sha256(snapshot_bytes.encode())
+    realm_state_snapshot_commitment = sha256(snapshot_bytes.encode())
     transition = {
         "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 1,
@@ -168,8 +168,8 @@ def main() -> None:
         "payload": {
             "from_digest_algorithm": "sha256",
             "to_digest_algorithm": "blake3",
-            "transition_snapshot_ref": "ak:snapshot:01989123-4567-7abc-8def-0123456789ab",
-            "snapshot_commitment": snapshot_commitment,
+            "transition_realm_state_snapshot_ref": "ak:realm_state_snapshot:01989123-4567-7abc-8def-0123456789ab",
+            "realm_state_snapshot_commitment": realm_state_snapshot_commitment,
         },
         "prev_refs": [source["cases"][1]["derived_event_id"]],
         "realm_id": realm_id,
@@ -283,7 +283,7 @@ def main() -> None:
                 "old_suite": "sha256",
                 "new_suite": "blake3",
                 "snapshot_canonical_bytes_utf8": snapshot_bytes,
-                "snapshot_commitment": snapshot_commitment,
+                "realm_state_snapshot_commitment": realm_state_snapshot_commitment,
                 "transition_event_digest_preimage_canonical_bytes_utf8": transition_bytes,
                 "transition_event_digest": transition_digest,
                 "transition_event_id": transition_event_id,
@@ -320,7 +320,7 @@ def main() -> None:
                     "transition_completeness_root_uses_old_suite", "mixed_predecessor_live_suites",
                     "transition_seal_is_not_compaction", "transition_seal_contains_multiple_transition_moves",
                     "transition_seal_mixes_ordinary_move", "genesis_live_suite_inferred_from_create_event_digest",
-                    "snapshot_commitment_mismatch", "suite_identity_mismatch", "strength_downgrade",
+                    "realm_state_snapshot_commitment_mismatch", "suite_identity_mismatch", "strength_downgrade",
                     "previous_state_root_on_non_transition_seal", "old_suite_digest_after_transition",
                 ],
                 "expected": {"decision": "rejected_seal", "atomic": True, "state_unchanged": True},

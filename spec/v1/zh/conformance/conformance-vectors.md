@@ -1589,7 +1589,7 @@ ak.vector.lattice.ordered_log_join.v1
 
 ```text
 ak.vector.redaction.<scenario>.v1
-ak.vector.snapshot.<scenario>.v1
+ak.vector.realm_state_snapshot.<scenario>.v1
 ```
 
 ### 3.2 Vector: 字段保留规则
@@ -1985,7 +1985,7 @@ ak.vector.redaction.hard_erasure_receipt.v1
 向量名称：
 
 ```text
-ak.vector.redaction.snapshot_pruning_stub.v1
+ak.vector.redaction.realm_state_snapshot_pruning_stub.v1
 ```
 
 输入：
@@ -2006,10 +2006,10 @@ ak.vector.redaction.snapshot_pruning_stub.v1
 向量名称：
 
 ```text
-ak.vector.snapshot.inclusion_challenge.v1
+ak.vector.realm_state_snapshot.inclusion_challenge.v1
 ```
 
-本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。该向量已在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中注册为 active，并由 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_inclusion_challenge` 机器 fixture 及其 registered runner 承载。实现 MUST 执行该 fixture-backed gate，并按本节 prose 与 fixture 固化的规则校验 high-assurance bootstrap。
+本向量固化 [`realm-state-snapshot-schema.md`](./realm-state-snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。该向量已在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中注册为 active，并由 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_inclusion_challenge` 机器 fixture 及其 registered runner 承载。实现 MUST 执行该 fixture-backed gate，并按本节 prose 与 fixture 固化的规则校验 high-assurance bootstrap。
 
 输入：
 
@@ -2030,14 +2030,14 @@ ak.vector.snapshot.inclusion_challenge.v1
 向量名称：
 
 ```text
-ak.vector.snapshot.state_digest_recompute.v1
+ak.vector.realm_state_snapshot.state_digest_recompute.v1
 ```
 
-本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §3 / §4：chunk payload（`ak.schema.snapshot_chunk.v1`）的 `items[]` 是 reducer cell，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`state_digest` 是这些 leaf 的 RFC 6962 root。机器 fixture 是 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_state_digest` 块，由 `ak.suite.sync.core.v1` runner 承载；fixture 里每个 digest 都由 fixture 自身的 bytes 重算得到，不存在占位值。
+本向量固化 [`realm-state-snapshot-schema.md`](./realm-state-snapshot-schema.md) §3 / §4：chunk payload（`ak.schema.realm_state_snapshot_chunk.v1`）的 `items[]` 是 reducer cell，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`state_digest` 是这些 leaf 的 RFC 6962 root。机器 fixture 是 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_state_digest` 块，由 `ak.suite.sync.core.v1` runner 承载；fixture 里每个 digest 都由 fixture 自身的 bytes 重算得到，不存在占位值。
 
 输入：
 
-1. 一组 `ak.schema.snapshot_chunk.v1` payload，其 `items[]` 覆盖 `cas_register`（含业务值 `null` 与异值 `⊥` 的 heads）、`mv_register`、`fsm`、`or_set`、`ordered_log` 五种 lattice 的 cell；`leaves[]` 逐 item 给出 `leaf_preimage` 与 `leaf`。
+1. 一组 `ak.schema.realm_state_snapshot_chunk.v1` payload，其 `items[]` 覆盖 `cas_register`（含业务值 `null` 与异值 `⊥` 的 heads）、`mv_register`、`fsm`、`or_set`、`ordered_log` 五种 lattice 的 cell；`leaves[]` 逐 item 给出 `leaf_preimage` 与 `leaf`。
 2. `digest_algorithm`——该 Realm 的 live digest suite；`sha256` 与 `blake3` 各至少一例。
 3. 声明的 `state_digest`；含 `conflict_records` / `erasure_stubs` 的 case 另给出期望的 `verification_hints.*_digest`。
 

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-04.1",
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "version": "2026-09-07.1",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1143,7 +1143,7 @@
       "required_schemas": [
         "ak.schema.account_subscribe_frame.v1",
         "ak.schema.cursor.v1",
-        "ak.schema.snapshot.v1"
+        "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
         "sync-fixture.json",
@@ -1170,7 +1170,7 @@
         },
         {
           "direction": "consume",
-          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         }
       ]
@@ -1850,7 +1850,7 @@
       ],
       "optional_extensions": [
         "event_batch_receipt",
-        "snapshot_bootstrap"
+        "realm_state_snapshot_bootstrap"
       ],
       "feature_discovery": {
         "required": [
@@ -2006,7 +2006,7 @@
       ],
       "optional_extensions": [
         "discussion_track",
-        "snapshot_bootstrap"
+        "realm_state_snapshot_bootstrap"
       ],
       "feature_discovery": {
         "required": [
@@ -2641,7 +2641,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         },
         {
@@ -2719,7 +2719,7 @@
       "required_schemas": [
         "ak.schema.identity_resolution.v1",
         "ak.schema.account_subscribe_frame.v1",
-        "ak.schema.snapshot.v1",
+        "ak.schema.realm_state_snapshot.v1",
         "ak.schema.invite.v1",
         "ak.schema.capability.v1",
         "ak.schema.grant_constraint.v1",
@@ -5170,7 +5170,7 @@
       "operation_requirements": [
         {
           "direction": "provide",
-          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         },
         {
@@ -5190,7 +5190,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.snapshot.v1",
+        "ak.schema.realm_state_snapshot.v1",
         "ak.schema.encrypted_envelope.v1",
         "ak.schema.moderation_queue_item.v1",
         "ak.schema.key_transparency.v1"
@@ -5276,7 +5276,7 @@
       "required_schemas": [
         "ak.schema.policy.v1",
         "ak.schema.capability.v1",
-        "ak.schema.snapshot.v1"
+        "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -5336,7 +5336,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.encrypted_envelope.v1",
-        "ak.schema.snapshot.v1",
+        "ak.schema.realm_state_snapshot.v1",
         "ak.schema.mls_governance_proof_bundle.v1",
         "ak.schema.service_operation_dtos.v1"
       ],
@@ -5678,7 +5678,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -5687,7 +5687,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.seal.v1",
-        "ak.schema.snapshot.v1"
+        "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"
@@ -5715,7 +5715,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -5724,7 +5724,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.seal.v1",
-        "ak.schema.snapshot.v1"
+        "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"
@@ -5752,7 +5752,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -5761,7 +5761,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.seal.v1",
-        "ak.schema.snapshot.v1"
+        "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"
@@ -5789,7 +5789,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -5798,7 +5798,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.seal.v1",
-        "ak.schema.snapshot.v1"
+        "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"

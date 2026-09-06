@@ -39,6 +39,7 @@
       "operation",
       "policy",
       "presentation",
+      "realm_state_snapshot",
       "receipt",
       "recovery_key",
       "recovery_session",
@@ -46,7 +47,6 @@
       "rtc_participant",
       "scheduled_send",
       "service_route_handover",
-      "snapshot",
       "subscription",
       "transaction"
     ]

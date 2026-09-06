@@ -38,7 +38,7 @@ frame_schemas:
   sse:
     event_types:
       - sync.event
-      - sync.snapshot
+      - sync.realm_state_snapshot
       - sync.heartbeat
       - applet.ack
       - agent.status
@@ -336,8 +336,8 @@ grpc:
       UpdateProfile: ak.self.account.command.update_profile.v1
       Subscribe: ak.self.account.stream.subscribe.v1
       CursorRevoke: ak.self.account.command.revoke_cursor.v1
-    SelfSnapshot:
-      Head: ak.self.snapshot.read.manifest_head.v1
+    SelfRealmStateSnapshot:
+      Head: ak.self.realm_state_snapshot.read.manifest_head.v1
 mq:
   envelope:
     required:

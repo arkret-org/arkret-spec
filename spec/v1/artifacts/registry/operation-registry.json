@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-06.1",
+  "version": "2026-09-07.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-06T23:10:00+08:00",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -130,7 +130,7 @@
         "ak.self.actor_profile.read.resolve.v1",
         "ak.self.account.stream.subscribe.v1",
         "ak.self.account.command.revoke_cursor.v1",
-        "ak.self.snapshot.read.manifest_head.v1"
+        "ak.self.realm_state_snapshot.read.manifest_head.v1"
       ],
       "surface_class": "core"
     },
@@ -1750,7 +1750,7 @@
       "http": "QUERY /_arkret/peer/events",
       "grpc": "PeerEvents/Scan",
       "mq": "peer.events.read.scan",
-      "notes": "Authorized federation peer Event scan with self-equivalent selectors and cursor ordering, but a peer-only closed response that excludes snapshot_bootstrap. This is a small-history or operator-triggered best-effort fallback; it does not promise an immutable generation, deterministic long-history completion, or historical completeness.",
+      "notes": "Authorized federation peer Event scan with self-equivalent selectors and cursor ordering, but a peer-only closed response that excludes realm_state_snapshot_bootstrap. This is a small-history or operator-triggered best-effort fallback; it does not promise an immutable generation, deterministic long-history completion, or historical completeness.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
@@ -3983,13 +3983,13 @@
       "response_schema_ref": "schemas/signal-stream-frame.schema.json"
     },
     {
-      "operation_id": "ak.self.snapshot.read.manifest_head.v1",
-      "http": "GET /_arkret/self/snapshot/head",
-      "grpc": "SelfSnapshot/Head",
-      "mq": "self.snapshot.query.manifest_head",
+      "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
+      "http": "GET /_arkret/self/realm-state-snapshot/head",
+      "grpc": "SelfRealmStateSnapshot/Head",
+      "mq": "self.realm_state_snapshot.query.manifest_head",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
-      "response_schema_ref": "schemas/snapshot.schema.json"
+      "response_schema_ref": "schemas/realm-state-snapshot.schema.json"
     },
     {
       "operation_id": "ak.self.space.read.list.v1",
@@ -5446,6 +5446,10 @@
           "binding_kind": "http_json"
         },
         {
+          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        },
+        {
           "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
           "binding_kind": "http_json"
         },
@@ -5475,10 +5479,6 @@
         },
         {
           "operation_id": "ak.self.signal.stream.subscribe.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         },
         {

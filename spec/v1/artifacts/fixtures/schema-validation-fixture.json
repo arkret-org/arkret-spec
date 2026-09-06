@@ -2858,8 +2858,8 @@
       "first_expected_error": "contains:does not match"
     },
     {
-      "name": "snapshot_chunk_content_addressed_ref_valid",
-      "schema_ref": "schemas/snapshot.schema.json#/properties/chunks/items",
+      "name": "realm_state_snapshot_chunk_content_addressed_ref_valid",
+      "schema_ref": "schemas/realm-state-snapshot.schema.json#/properties/chunks/items",
       "expect_valid": true,
       "instance": {
         "chunk_ref": "ak:blob:sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
@@ -2867,8 +2867,8 @@
       }
     },
     {
-      "name": "snapshot_chunk_sibling_digest_rejected",
-      "schema_ref": "schemas/snapshot.schema.json#/properties/chunks/items",
+      "name": "realm_state_snapshot_chunk_sibling_digest_rejected",
+      "schema_ref": "schemas/realm-state-snapshot.schema.json#/properties/chunks/items",
       "expect_valid": false,
       "instance": {
         "chunk_ref": "ak:blob:sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
@@ -2878,12 +2878,12 @@
       "first_expected_error": "contains:digest"
     },
     {
-      "name": "snapshot_chunk_cell_items_valid",
-      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "name": "realm_state_snapshot_chunk_cell_items_valid",
+      "schema_ref": "schemas/realm-state-snapshot-chunk.schema.json",
       "expect_valid": true,
       "instance": {
-        "chunk_kind": "snapshot_chunk",
-        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "chunk_kind": "realm_state_snapshot_chunk",
+        "realm_state_snapshot_ref": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
         "index": 0,
         "reducer_profile": "ak.reducer.core.v1",
         "items": [
@@ -2919,12 +2919,12 @@
       }
     },
     {
-      "name": "snapshot_chunk_materialized_object_branch_rejected",
-      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "name": "realm_state_snapshot_chunk_materialized_object_branch_rejected",
+      "schema_ref": "schemas/realm-state-snapshot-chunk.schema.json",
       "expect_valid": false,
       "instance": {
-        "chunk_kind": "snapshot_chunk",
-        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "chunk_kind": "realm_state_snapshot_chunk",
+        "realm_state_snapshot_ref": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
         "index": 0,
         "reducer_profile": "ak.reducer.core.v1",
         "items": [
@@ -2950,12 +2950,12 @@
       "first_expected_error": "contains:object"
     },
     {
-      "name": "snapshot_chunk_cas_cell_literal_rejected",
-      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "name": "realm_state_snapshot_chunk_cas_cell_literal_rejected",
+      "schema_ref": "schemas/realm-state-snapshot-chunk.schema.json",
       "expect_valid": false,
       "instance": {
-        "chunk_kind": "snapshot_chunk",
-        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "chunk_kind": "realm_state_snapshot_chunk",
+        "realm_state_snapshot_ref": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
         "index": 0,
         "reducer_profile": "ak.reducer.core.v1",
         "items": [
@@ -2980,12 +2980,12 @@
       "first_expected_error": "contains:kind"
     },
     {
-      "name": "snapshot_chunk_empty_heads_rejected",
-      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "name": "realm_state_snapshot_chunk_empty_heads_rejected",
+      "schema_ref": "schemas/realm-state-snapshot-chunk.schema.json",
       "expect_valid": false,
       "instance": {
-        "chunk_kind": "snapshot_chunk",
-        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "chunk_kind": "realm_state_snapshot_chunk",
+        "realm_state_snapshot_ref": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
         "index": 0,
         "reducer_profile": "ak.reducer.core.v1",
         "items": [
@@ -3005,12 +3005,12 @@
       "first_expected_error": "contains:heads"
     },
     {
-      "name": "snapshot_chunk_mixed_state_shape_rejected",
-      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "name": "realm_state_snapshot_chunk_mixed_state_shape_rejected",
+      "schema_ref": "schemas/realm-state-snapshot-chunk.schema.json",
       "expect_valid": false,
       "instance": {
-        "chunk_kind": "snapshot_chunk",
-        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "chunk_kind": "realm_state_snapshot_chunk",
+        "realm_state_snapshot_ref": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
         "index": 0,
         "reducer_profile": "ak.reducer.core.v1",
         "items": [
@@ -3031,12 +3031,12 @@
       "first_expected_error": "contains:state"
     },
     {
-      "name": "snapshot_chunk_actor_private_family_rejected",
-      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "name": "realm_state_snapshot_chunk_actor_private_family_rejected",
+      "schema_ref": "schemas/realm-state-snapshot-chunk.schema.json",
       "expect_valid": false,
       "instance": {
-        "chunk_kind": "snapshot_chunk",
-        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "chunk_kind": "realm_state_snapshot_chunk",
+        "realm_state_snapshot_ref": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
         "index": 0,
         "reducer_profile": "ak.reducer.core.v1",
         "items": [
@@ -3056,11 +3056,11 @@
       "first_expected_error": "contains:does not match"
     },
     {
-      "name": "snapshot_chunk_type_field_rejected",
-      "schema_ref": "schemas/snapshot-chunk.schema.json",
+      "name": "realm_state_snapshot_chunk_type_field_rejected",
+      "schema_ref": "schemas/realm-state-snapshot-chunk.schema.json",
       "expect_valid": false,
       "instance": {
-        "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+        "realm_state_snapshot_ref": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
         "index": 0,
         "reducer_profile": "ak.reducer.core.v1",
         "items": [],
@@ -3068,7 +3068,7 @@
         "soft_failed": [],
         "quarantined": [],
         "erasure_stubs": [],
-        "type": "snapshot_chunk"
+        "type": "realm_state_snapshot_chunk"
       },
       "first_expected_error": "contains:chunk_kind"
     },

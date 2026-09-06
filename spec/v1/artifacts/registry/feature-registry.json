@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-09-07.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-30T23:30:00+08:00",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical exact feature identities advertised only through ServiceDescribe.supported_features.",
@@ -315,13 +315,13 @@
       "conflicts": []
     },
     {
-      "feature_id": "ak.feature.snapshot.v1",
+      "feature_id": "ak.feature.realm_state_snapshot.v1",
       "status": "active",
       "defined_in": "zh/sync/service-surface.md",
       "service_kinds": [],
       "required_operation_pairs": [
         {
-          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         }
       ],

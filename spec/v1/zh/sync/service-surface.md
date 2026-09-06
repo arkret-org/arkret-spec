@@ -246,7 +246,7 @@ GET /_arkret/describe
   "supported_features": [
     "ak.feature.invite_addressing.v1",
     "ak.feature.notifications.v1",
-    "ak.feature.snapshot.v1",
+    "ak.feature.realm_state_snapshot.v1",
     "ak.feature.sync_stream.v1",
     "ak.feature.blob.resumable_upload.tus.v1",
     "ak.feature.history_key_recovery.v1",
@@ -304,7 +304,7 @@ GET /_arkret/describe
     "device_message_max_ttl_seconds": 86400,
     "read_cursor_debounce_ms": 1000,
     "dangling_redaction_min_retention_days": 30,
-    "snapshot_retention_heads": 2,
+    "realm_state_snapshot_retention_heads": 2,
     "resumable_upload_incomplete_ttl_seconds": 86400
   },
   "plaintext_visibility": {
@@ -681,7 +681,7 @@ Account Aggregate / Snapshot Surface 是 Station 提供的 **账号视角聚合*
 - `GET /_arkret/self/account/subscribe`：客户端账号视角聚合同步（`ak.self.account.stream.subscribe.v1`），见 `client-sync.md`。
 - `GET /_arkret/self/account/describe`：account aggregate service describe（`ak.self.account.read.describe.v1`）。
 - `POST /_arkret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ak.self.account.command.revoke_cursor.v1`）。
-- `GET /_arkret/self/snapshot/head`：snapshot manifest 入口。
+- `GET /_arkret/self/realm-state-snapshot/head`：snapshot manifest 入口。
 
 `ak.self.account.command.update_profile.v1` 的 accepted Profile effect 恰好一次推进该 account pair 的 account-aggregate projection/cursor，使同一 pair 的其它绑定设备在 PCR Realm delta 中观察 canonical Event / Profile；exact replay 不产生第二条 delta，account-scoped wakeup 也不是真相源。
 
@@ -704,10 +704,10 @@ POST /_arkret/self/account/cursor/revoke
 ### 5.2 snapshot 入口
 
 ```text
-GET /_arkret/self/snapshot/head?realm_id=<id>
+GET /_arkret/self/realm-state-snapshot/head?realm_id=<id>
 ```
 
-用于拿到当前推荐 snapshot manifest：响应即完整 `ak.schema.snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ak.self.snapshot.read.manifest_head.v1` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
+用于拿到当前推荐 snapshot manifest：响应即完整 `ak.schema.realm_state_snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ak.self.realm_state_snapshot.read.manifest_head.v1` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
 
 ### 5.3 Event / Seal 状态与 Bottom 暴露
 
@@ -1005,7 +1005,7 @@ Arkret v1 的首次加入流程：
 3. 从 Realm link / invite / ActorId routing projection / locator / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `did_core_id` 的首跳 `did` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Station / identity registry / events / account / snapshot / blob / authz 能力
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Station sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。`authority_kind="witness_quorum"` 时，`authority_binding.witness_attestations[]` 是 v1 唯一的 quorum 证据载体：客户端 MUST 按 [`snapshot-schema.md` §5.1](../conformance/snapshot-schema.md) 逐行重算 `ak.snapshot_witness_attestation_proof.v1` canonical projection 验签，并只以 `created_at` 时点的 accepted Realm auth/policy state 判定授权 witness set、key validity、撤销新鲜度与 threshold（按 `witness_id` 去重）。不存在"等价 quorum proof"：缺失、未达阈值或使用任何未登记的替代载体时 MUST 以 `snapshot_authority_unverified` 拒绝，不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan.v1`，JSON content 携带 `before`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Station sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`realm-state-snapshot.schema.json`](../../artifacts/schemas/realm-state-snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。`authority_kind="witness_quorum"` 时，`authority_binding.witness_attestations[]` 是 v1 唯一的 quorum 证据载体：客户端 MUST 按 [`realm-state-snapshot-schema.md` §5.1](../conformance/realm-state-snapshot-schema.md) 逐行重算 `ak.realm_state_snapshot_witness_attestation_proof.v1` canonical projection 验签，并只以 `created_at` 时点的 accepted Realm auth/policy state 判定授权 witness set、key validity、撤销新鲜度与 threshold（按 `witness_id` 去重）。不存在"等价 quorum proof"：缺失、未达阈值或使用任何未登记的替代载体时 MUST 以 `realm_state_snapshot_authority_unverified` 拒绝，不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan.v1`，JSON content 携带 `before`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read cursor、notification cursor 等个人状态

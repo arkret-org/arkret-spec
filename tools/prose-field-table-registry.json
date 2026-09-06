@@ -277,7 +277,7 @@
       "document": "spec/v1/zh/sync/federation.md",
       "schema_ref": "service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
       "external_field_mentions": [
-        "snapshot_bootstrap"
+        "realm_state_snapshot_bootstrap"
       ]
     },
     {

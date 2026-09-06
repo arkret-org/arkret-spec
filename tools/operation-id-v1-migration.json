@@ -928,8 +928,8 @@
       "new": "ak.self.signal.stream.subscribe.v1"
     },
     {
-      "old": "ak.self.snapshot.read.manifest_head",
-      "new": "ak.self.snapshot.read.manifest_head.v1"
+      "old": "ak.self.realm_state_snapshot.read.manifest_head",
+      "new": "ak.self.realm_state_snapshot.read.manifest_head.v1"
     },
     {
       "old": "ak.self.space.read.list",

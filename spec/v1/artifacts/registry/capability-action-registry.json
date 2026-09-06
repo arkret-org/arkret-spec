@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-02.8",
+  "version": "2026-09-07.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-02T20:40:00+08:00",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1893,7 +1893,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.snapshot.read.manifest_head.v1",
+      "action": "ak.self.realm_state_snapshot.read.manifest_head.v1",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],

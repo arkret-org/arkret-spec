@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-05.3",
-  "generated_at": "2026-09-05T14:21:00+08:00",
+  "version": "2026-09-07.1",
+  "generated_at": "2026-09-07T00:20:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1167,19 +1167,19 @@
       "title": "Quarantine"
     },
     {
-      "code": "snapshot_authority_unverified",
+      "code": "realm_state_snapshot_authority_unverified",
       "http_status": 403,
       "scope": "endpoint",
       "description": "The snapshot issuer, witness quorum, or signing authority cannot be verified for the requested Realm and manifest time.",
-      "type_uri": "https://arkret.org/problems/snapshot_authority_unverified",
+      "type_uri": "https://arkret.org/problems/realm_state_snapshot_authority_unverified",
       "title": "Snapshot authority unverified"
     },
     {
-      "code": "snapshot_unavailable",
+      "code": "realm_state_snapshot_unavailable",
       "http_status": 503,
       "scope": "endpoint",
       "description": "The requested snapshot head or snapshot artifact is not currently available from this service.",
-      "type_uri": "https://arkret.org/problems/snapshot_unavailable",
+      "type_uri": "https://arkret.org/problems/realm_state_snapshot_unavailable",
       "title": "Snapshot unavailable"
     },
     {
@@ -2255,11 +2255,11 @@
       "title": "Mls genesis already exists"
     },
     {
-      "code": "snapshot_chunk_digest_mismatch",
+      "code": "realm_state_snapshot_chunk_digest_mismatch",
       "http_status": 400,
       "scope": "endpoint",
       "description": "A conformance snapshot chunk digest does not match the declared digest.",
-      "type_uri": "https://arkret.org/problems/snapshot_chunk_digest_mismatch",
+      "type_uri": "https://arkret.org/problems/realm_state_snapshot_chunk_digest_mismatch",
       "title": "Snapshot chunk digest mismatch"
     },
     {
@@ -3693,7 +3693,7 @@
       "code": "inclusion_proof_failed",
       "applies_to": [
         "client_sync",
-        "snapshot_verification"
+        "realm_state_snapshot_verification"
       ],
       "description": "Snapshot inclusion / omission challenge failed: issuer could not produce a valid Merkle branch or ordered-set slice for a sampled Event ID / actor sequence range against the manifest's event_set_commitment.root, OR the proof's root differs, OR an actor sequence gap is not reflected in soft_failed/quarantined digests. Client MUST quarantine or reject the snapshot and fall back to raw Event replay."
     },
@@ -3708,7 +3708,7 @@
       "code": "insufficient_challenge_samples",
       "applies_to": [
         "client_sync",
-        "snapshot_verification"
+        "realm_state_snapshot_verification"
       ],
       "description": "A high-assurance range/challenge attestation does not carry the required minimum number of event_id (or equivalent) samples. The challenge MUST reject. See sync/client-sync.md and fixtures/sync-fixture.json."
     },
@@ -5241,10 +5241,10 @@
       "description": "Sub-reason for failed_precondition when any plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/crypto-media/encryption-and-audit.md section 2.9.1."
     },
     {
-      "code": "snapshot_issuer_revoked",
+      "code": "realm_state_snapshot_issuer_revoked",
       "applies_to": [
         "client_sync",
-        "snapshot_verification"
+        "realm_state_snapshot_verification"
       ],
       "description": "Snapshot signer's authority (Realm owner / admin / trusted snapshot issuer / witness quorum membership) was revoked at or before the manifest's `created_at`, or revoke freshness cannot be sealed within the verifier's revocation_freshness_window_ms. Client MUST quarantine or reject the snapshot. A revoke that takes effect strictly after `created_at` does not retroactively invalidate a previously valid snapshot."
     },

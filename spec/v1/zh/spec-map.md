@@ -253,7 +253,7 @@ see_also:
 | `conformance/conformance-vectors.md` | 一致性测试向量的人类阅读入口；完整 active vector 集合以 `artifacts/registry/vector-registry.json` 及其 `source_refs` 为准。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
 | `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
-| `conformance/snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
+| `conformance/realm-state-snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
 | `conformance/scalability-constraints.md` | v1 wire、授权、CBA/Lattice、Board/Relation/View 和 E2EE 的规模上限。 |
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance/conformance-profiles.md` | 实现 profile 与一致性测试范围。 |

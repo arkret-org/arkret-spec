@@ -199,9 +199,9 @@ class ProofContextClosureLintTest(unittest.TestCase):
         """A fragment that names no node used to pass: only the file part was checked."""
 
         def break_fragment(document) -> None:
-            self._row(document, "ak.snapshot_witness_attestation_proof.v1")[
+            self._row(document, "ak.realm_state_snapshot_witness_attestation_proof.v1")[
                 "schema_ref"
-            ] = "schemas/snapshot.schema.json#/$defs/no_such_family"
+            ] = "schemas/realm-state-snapshot.schema.json#/$defs/no_such_family"
 
         errors = self._run_with_mutations({REGISTRY: break_fragment})
         self.assertAnyContains(errors, "schema_ref fragment does not resolve to a schema node")
@@ -211,32 +211,32 @@ class ProofContextClosureLintTest(unittest.TestCase):
         errors = self._run_with_mutations(
             {
                 REGISTRY: lambda doc: self._drop_row(
-                    doc, "ak.snapshot_witness_attestation_proof.v1"
+                    doc, "ak.realm_state_snapshot_witness_attestation_proof.v1"
                 )
             }
         )
         self.assertAnyContains(
-            errors, "names an unregistered proof context: ak.snapshot_witness_attestation_proof.v1"
+            errors, "names an unregistered proof context: ak.realm_state_snapshot_witness_attestation_proof.v1"
         )
 
     def test_witness_context_cannot_be_registered_as_a_second_file_level_row(self) -> None:
         """Two rows on one anchor are a multi-consumer family, not a silent alias."""
 
         def flatten(document) -> None:
-            self._row(document, "ak.snapshot_witness_attestation_proof.v1")[
+            self._row(document, "ak.realm_state_snapshot_witness_attestation_proof.v1")[
                 "schema_ref"
-            ] = "schemas/snapshot.schema.json"
+            ] = "schemas/realm-state-snapshot.schema.json"
 
         errors = self._run_with_mutations({REGISTRY: flatten})
         self.assertAnyContains(errors, "is claimed by 2 contexts")
 
     def test_annotation_must_match_the_registry_row(self) -> None:
         def drift(document) -> None:
-            document["$defs"]["snapshot_witness_attestation"][
+            document["$defs"]["realm_state_snapshot_witness_attestation"][
                 "x-arkret-proof-context"
-            ] = "ak.snapshot_proof.v1"
+            ] = "ak.realm_state_snapshot_proof.v1"
 
-        errors = self._run_with_mutations({SCHEMAS / "snapshot.schema.json": drift})
+        errors = self._run_with_mutations({SCHEMAS / "realm-state-snapshot.schema.json": drift})
         self.assertAnyContains(errors, "but the registry binds")
 
     def test_second_consumer_of_a_shared_leaf_needs_its_own_operation(self) -> None:

@@ -410,7 +410,7 @@ v1 的 peer pull **只有**这一种带 JSON body 的 `QUERY` 形态，没有无
 | `next_cursor` | `cursor` | optional | 朝**更新事件**方向的延续位置；下次请求传入 `after=<next_cursor>` 继续 catch-up。 |
 | `has_more` | `boolean` | required | 是否仍有可拉取的 Event；客户端到达 oldest accessible event 时 `false`。 |
 
-peer scan response MUST NOT 携带 `snapshot_bootstrap`；v1 core 没有 peer snapshot manifest、签名、chunk 或失败回退合同。若接收方需要直接按 event id / digest 补洞或把 scan 候选送入本地 admission，必须使用 `QUERY /_arkret/peer/events/resolve`（`ak.peer.events.read.resolve.v1`），不得改用 self surface。resolve 的 `events[]` 元素是 `EventFederationSubmission`：source 从首次 durable acceptance 原样投影独立 Control Proposal Ack、membership compensation carrier、Ack-less human self-principal 的 stable admission evidence 以及可选 delayed-publication lease/receipt；receiver 复用 push admission。source 不得在 read 时补签或按当前状态重建这些证据。Ack-less evidence 必须与 Ack 互斥；receiver 必须按 origin-authority replay 规则验证 Event、source Station、producer device、accepted device-authorize dependency、device generation 与 signed Seal basis，不能只信 sidecar 字段。其它需要 Ack 的 Control Move 缺 Ack 必须 fail closed。覆盖 Seal 证明 effectiveness，不替代首次 publication evidence，也不把 pending Move 自动降格为 historical-only acceptance。
+peer scan response MUST NOT 携带 `realm_state_snapshot_bootstrap`；v1 core 没有 peer snapshot manifest、签名、chunk 或失败回退合同。若接收方需要直接按 event id / digest 补洞或把 scan 候选送入本地 admission，必须使用 `QUERY /_arkret/peer/events/resolve`（`ak.peer.events.read.resolve.v1`），不得改用 self surface。resolve 的 `events[]` 元素是 `EventFederationSubmission`：source 从首次 durable acceptance 原样投影独立 Control Proposal Ack、membership compensation carrier、Ack-less human self-principal 的 stable admission evidence 以及可选 delayed-publication lease/receipt；receiver 复用 push admission。source 不得在 read 时补签或按当前状态重建这些证据。Ack-less evidence 必须与 Ack 互斥；receiver 必须按 origin-authority replay 规则验证 Event、source Station、producer device、accepted device-authorize dependency、device generation 与 signed Seal basis，不能只信 sidecar 字段。其它需要 Ack 的 Control Move 缺 Ack 必须 fail closed。覆盖 Seal 证明 effectiveness，不替代首次 publication evidence，也不把 pending Move 自动降格为 historical-only acceptance。
 
 **Pull 授权 freshness（normative，与 §8.5.1 互补）**：§8.5.1 处理的是 push 路径——把 service key state 一起进入 idempotency cache key，从而在 cache hit 时仍重做授权检查；而 pull 路径根本**不进幂等缓存**：无 body 的 `GET` pull 省略 `Content-Digest`（§3.2），因此不像 push 那样把 receiver-computed canonical body digest 纳入幂等缓存键。两条路径用**不同机制**关闭同一个"撤销后重放"窗口（push 靠 cache-key 绑定 + cache hit 重校验，pull 靠每次请求强制重新解析 service binding freshness），互为补充而非镜像对称。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-ID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-ID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
 
@@ -880,9 +880,9 @@ managed/Agent Event 与其它普通 Event 使用相同 in-envelope Station admis
 
 ### 9.1 联邦级 Snapshot（未来扩展）
 
-v1 core 的联邦恢复只依赖已注册的 Event push/pull、Event frontier、Seal frontier 与精确 resolve 操作，不定义独立 peer snapshot manifest endpoint；`ak.peer.events.read.scan.v1` 的 closed response 因此禁止 `snapshot_bootstrap`。首次加入或大范围缺失可能退化为 operator-triggered、best-effort 的分段历史回放，这是当前互操作 floor 的明确取舍，不是确定性长历史恢复保证。self snapshot 合同保持独立，不受本节影响。
+v1 core 的联邦恢复只依赖已注册的 Event push/pull、Event frontier、Seal frontier 与精确 resolve 操作，不定义独立 peer snapshot manifest endpoint；`ak.peer.events.read.scan.v1` 的 closed response 因此禁止 `realm_state_snapshot_bootstrap`。首次加入或大范围缺失可能退化为 operator-triggered、best-effort 的分段历史回放，这是当前互操作 floor 的明确取舍，不是确定性长历史恢复保证。self snapshot 合同保持独立，不受本节影响。
 
-未来若增加 snapshot-assisted bootstrap，必须作为完整扩展 profile 同时定义 manifest 签名、authority binding、chunk 获取、frontier 锚定、失败回退、SDK 与 conformance；实现不得把本地 `/_soland/` 快照或 `ak.self.snapshot.read.manifest_head.v1` 直接暴露为 peer 协议。
+未来若增加 snapshot-assisted bootstrap，必须作为完整扩展 profile 同时定义 manifest 签名、authority binding、chunk 获取、frontier 锚定、失败回退、SDK 与 conformance；实现不得把本地 `/_soland/` 快照或 `ak.self.realm_state_snapshot.read.manifest_head.v1` 直接暴露为 peer 协议。
 ### 9.2 多 Station 的 Gossip / 批量同步（增强项）
 
 该方向用于性能和可靠性提升，不是签名真实性的前提条件。最小实现可直接使用本文件 4/7 节的 push + pull。实现支持时应遵循：

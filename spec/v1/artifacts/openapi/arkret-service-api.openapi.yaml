@@ -36,7 +36,7 @@ info:
 
     read.scan, read.frontier}`, `ak.peer.events.{command.submit, read.resolve, read.scan,
     read.frontier}`, `ak.self.account.{read.viewer, stream.subscribe,
-    command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.snapshot.read.manifest_head.v1`,
+    command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.realm_state_snapshot.read.manifest_head.v1`,
 
     `ak.root.identity.{read.resolve, document.resource.get, receipts.read.list, command.submit_did_operation}`, `ak.self.authz.{read.check,
 
@@ -1794,21 +1794,21 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome
     SnapshotBootstrap:
       type: object
-      description: Optional ak.peer.events.read.scan.v1 acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, and created_at before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json). Snapshot authority issuer is projected from created_by.
+      description: Optional ak.peer.events.read.scan.v1 acceleration hint for federation pull / backfill. realm_state_snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, realm_state_snapshot_frontier, chunk digests, created_by, and created_at before use (manifest fields are bound by the manifest signature transcript — see schemas/realm-state-snapshot.schema.json). Snapshot authority issuer is projected from created_by.
       required:
-      - snapshot_ref
+      - realm_state_snapshot_ref
       - state_digest
-      - snapshot_frontier
+      - realm_state_snapshot_frontier
       - created_by
       - created_at
       - signature
       properties:
-        snapshot_ref:
+        realm_state_snapshot_ref:
           type: string
-          description: External pointer to the Snapshot manifest; MUST equal schemas/snapshot.schema.json#/properties/id.
+          description: External pointer to the Snapshot manifest; MUST equal schemas/realm-state-snapshot.schema.json#/properties/id.
         state_digest:
           type: string
-        snapshot_frontier:
+        realm_state_snapshot_frontier:
           type: array
           items:
             type: string
@@ -5826,9 +5826,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectConversationResolveOutcome'
-  /_arkret/self/snapshot/head:
+  /_arkret/self/realm-state-snapshot/head:
     get:
-      operationId: ak.self.snapshot.read.manifest_head
+      operationId: ak.self.realm_state_snapshot.read.manifest_head
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5842,7 +5842,7 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.snapshot.read.manifest_head.v1
+          const: ak.self.realm_state_snapshot.read.manifest_head.v1
       - name: realm_id
         in: query
         required: true
@@ -5861,7 +5861,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../schemas/snapshot.schema.json
+                $ref: ../schemas/realm-state-snapshot.schema.json
   /_arkret/self/realms/{realm_id}/spaces:
     get:
       operationId: ak.self.space.read.list
