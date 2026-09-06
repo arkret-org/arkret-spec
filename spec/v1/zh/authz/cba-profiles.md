@@ -38,6 +38,27 @@ open-set vectors。
 | `exclusive` | 单值 policy/lifecycle；并发不可比较写进入 `⊥`，依赖方 fail closed，随后走显式 recovery。 |
 | `security_barrier` | authority、membership、device revoke、MLS epoch 等；open-set 必须有相交 quorum。 |
 
+**该分类是安全承载字段，由门禁强制（normative）**：`concurrency_class` 不是编写约定。
+它划出的是「哪些 Move 之间必须串行」，任何按它放宽串行化的规则（例如按类别决定一张 Seal
+能携带几个控制事务）都直接依赖它的正确性，因此下面两条 MUST 由 artifact 门禁执行，
+MUST NOT 只作为审阅习惯：
+
+1. **每个 `sealed=true` 的 control event kind MUST 声明 `concurrency_class`。**
+   缺失即门禁失败；实现 MUST NOT 从 kind 拼写、category 或 payload 形状推断它。
+2. **同一个 cell family MUST NOT 同时被 `security_barrier` kind 与非 barrier kind 写入**，
+   唯一例外是下面的 object-genesis 形态。否则该 family 会出现两种互相矛盾的串行化承诺：
+   barrier 写要求对同 scope 的并发 barrier 串行，非 barrier 写明确声明不要求全局串行，
+   而它们落在同一个 cell 上。
+
+**object-genesis 例外（normative，封闭）**：当某 family 上的**全部** barrier 写入的
+`cell_subject` 都只从 `envelope.event_id` 派生时，第 2 条不适用。这类写入只能创建一个
+以本 Event 身份命名的**新** cell，因此它与后续针对既有 subject 的非 barrier 写入
+在结构上不可能落到同一个 cell：genesis 被接受之前该 cell 不存在，之后 genesis 也无法重放到
+同一 subject。v1 中唯一命中该例外的是 `ak.component.call.state.v1`
+（`ak.call.create` 是 barrier genesis，`ak.call.state` 是 `exclusive` 转移）。
+例外的判据是 subject 来源，不是 kind 名单；新增 genesis/operate 形态自动适用，
+而任何**不**从 `envelope.event_id` 派生 subject 的 barrier 写入都必须重新满足第 2 条。
+
 在 `single_signer`、`threshold`、`mixed` 的单链中，Seal predecessor 顺序提供 barrier。
 `open_set` Realm 没有单链顺序，barrier 由**目标 cell 自身的 CAS 加相交 quorum**提供；v1 **不**引入
 一个额外的 protocol-singleton barrier cell（那需要一个未登记的 cell family 与一个未登记的信封字段，

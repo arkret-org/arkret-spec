@@ -1346,6 +1346,72 @@ def check_state_contract_closure(lint: Lint) -> None:
 
 
 
+def _cell_subject_sources(subject: object) -> set[str]:
+    """Every payload/envelope field path a cell subject is derived from."""
+    sources: set[str] = set()
+    if isinstance(subject, dict):
+        field = subject.get("field")
+        if isinstance(field, str):
+            sources.add(field)
+        for key in ("components", "options"):
+            for part in subject.get(key) or []:
+                sources |= _cell_subject_sources(part)
+    return sources
+
+
+def check_concurrency_class_closure(lint: Lint, event_registry: dict, event_path: Path) -> None:
+    """zh/authz/cba-profiles.md section 2: concurrency_class carries safety.
+
+    Rules that relax serialization read this field, so it must be present on
+    every sealed control kind, and a family must not carry both a barrier and a
+    non-barrier promise -- the two say opposite things about the same cell. The
+    one registered exception is an object genesis whose subject comes from the
+    Event's own id: such a write can only ever mint a fresh cell, so it can never
+    land on the same cell as a later write against an existing subject.
+    """
+    barrier: dict[str, list[tuple[str, frozenset[str]]]] = {}
+    other: dict[str, list[str]] = {}
+    for row in event_registry.get("event_kinds") or []:
+        if not isinstance(row, dict):
+            continue
+        kind = row.get("event_kind")
+        if row.get("sealed") and not row.get("concurrency_class"):
+            lint.fail(
+                event_path,
+                f"{kind} is a sealed control kind without a concurrency_class; the field carries "
+                "safety and MUST NOT be inferred from spelling (cba-profiles.md section 2)",
+            )
+        if row.get("plane") != "control":
+            continue
+        is_barrier = row.get("concurrency_class") == "security_barrier"
+        for write in row.get("cell_writes") or []:
+            if not isinstance(write, dict):
+                continue
+            family = write.get("cell_family")
+            if not isinstance(family, str):
+                continue
+            if is_barrier:
+                barrier.setdefault(family, []).append(
+                    (kind, frozenset(_cell_subject_sources(write.get("cell_subject"))))
+                )
+            else:
+                other.setdefault(family, []).append(kind)
+    for family, barrier_writes in sorted(barrier.items()):
+        non_barrier = other.get(family)
+        if not non_barrier:
+            continue
+        if all(sources == frozenset({"envelope.event_id"}) for _, sources in barrier_writes):
+            continue
+        lint.fail(
+            event_path,
+            f"{family} is written by security_barrier kind(s) "
+            f"{sorted(kind for kind, _ in barrier_writes)} and non-barrier kind(s) "
+            f"{sorted(set(non_barrier))}; the two make opposite serialization promises about the "
+            "same cell. Only an object-genesis barrier write whose cell_subject comes solely from "
+            "envelope.event_id is exempt (cba-profiles.md section 2)",
+        )
+
+
 def check_registries(lint: Lint) -> dict[str, set[str]]:
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     schema_path = ARTIFACTS / "registry" / "schema-registry.json"
@@ -1362,6 +1428,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     operation_registry = load_json(lint, operation_path) or {}
     profile_registry = load_json(lint, profile_path) or {}
     constraint_schema = load_json(lint, constraint_schema_path) or {}
+
+    check_concurrency_class_closure(lint, event_registry, event_path)
 
     event_rows = event_registry.get("event_kinds", [])
     event_kinds = unique_values(lint, event_path, event_rows, "event_kind")
