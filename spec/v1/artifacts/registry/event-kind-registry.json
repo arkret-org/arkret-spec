@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.5",
+  "version": "2026-09-07.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-07T09:40:00+08:00",
+  "generated_at": "2026-09-07T10:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2253,9 +2253,10 @@
             "kind": "cell_ref",
             "field": "payload.target_cell_id"
           },
-          "target_cell_family_allowlist": [
+          "sole_recovery_families": [
             "ak.component.fork_resolution.v1",
             "ak.component.invite.live_target.v1",
+            "ak.component.mls.epoch.v1",
             "ak.component.realm.authority_root.v1"
           ],
           "effect_projection": {

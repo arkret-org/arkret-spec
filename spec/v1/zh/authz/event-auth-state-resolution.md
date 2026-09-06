@@ -912,11 +912,12 @@ H = (H1 ∩ H2)
 
 **含异值 heads 的 basis 写入按 family 分层（normative）**：`⊥` 之后能否由一次普通写恢复，取决于**写该 cell 所需的授权与 precondition 闭包是否读它自己**。闭包自指的 family 在 `⊥` 之后不存在任何可被授权的主体，重试多少张 Seal 都无效，只能由独立恢复权威修复；闭包不自指的 family 没有这个障碍，禁止普通写只会把一个可自愈的 cell 变成死格。因此：
 
-- **recovery-restricted family（封闭清单）**：`ak.component.realm.authority_root.v1`、`ak.component.invite.live_target.v1`、`ak.component.fork_resolution.v1`。对这三个 family，普通写入 MUST NOT 以包含异值 heads 的签名 basis 写该 cell；唯一出路是 §9.5 的 `ak.conflict.recovery`。该清单的机器可读真相是 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中 `ak.conflict.recovery` 写入的 `target_cell_family_allowlist`；清单是封闭的，新增成员等同新增 normative 规则。
+- **sole-recovery family（已登记清单）**：`ak.component.fork_resolution.v1`、`ak.component.invite.live_target.v1`、`ak.component.mls.epoch.v1`、`ak.component.realm.authority_root.v1`。对这些 family，普通写入 MUST NOT 以包含异值 heads 的签名 basis 写该 cell；唯一出路是 §9.5 的 `ak.conflict.recovery`。该清单的机器可读真相是 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中 `ak.conflict.recovery` 写入的 `sole_recovery_families`。清单只描述「哪些 family 没有普通写出路」，**不**限制 recovery 能针对哪些 cell：`ak.conflict.recovery` 对任何处于 `⊥` 的因果寄存器 cell 仍然可用（§9.5.1）。清单成员可以增加，因为增加只会收紧自愈、不会去掉任何 cell 的出路；成员减少等同新增 normative 规则，必须逐条论证该 family 的写入闭包确实不自指。
   - `ak.component.realm.authority_root.v1`：[`capabilities.md` §5](./capabilities.md) 把 root authority 定义为该 cell 的 current controller，且 operational authorization MUST 使用该 cell 在同一 Seal basis 下的 inclusion proof、MUST NOT 回退到 `realm_state.owner` / membership / `created_by`；§6 又把它定为 v1 授权图的唯一 genesis base case。
   - `ak.component.invite.live_target.v1`：四个写入方都携带该 slot 的业务 `head_eq`，而 §9.3.1 规定 `head_eq` 在 `⊥` 下 MUST fail closed。
   - `ak.component.fork_resolution.v1`：§6.3.2 禁止在已 settled 的 subject 上再写一条 resolution，因此它也没有普通写出路。
-- **其余因果寄存器 family**：`⊥` 之后，一次**对该 action 本来就有权**的普通写 MAY 以包含异值 heads 的签名 basis 写该 cell，并按第 4 项取代该 cell 的全部 heads，使其收敛回单值。该写入 MUST 通过它自身全部既有的授权、生命周期与业务 precondition；本条只解除「目标恰好处于 `⊥`」这一项额外阻断，MUST NOT 被用来放宽任何其它检查。它在 lattice 层与 §9.5.1 的 recovery 写同形，因此实现 MUST NOT 为它另造 op、另设 reset 通道，或按到达顺序截断历史（§9.5.1 第 5 项同样适用）。
+  - `ak.component.mls.epoch.v1`：`ak.mls.commit` 的 base-epoch 业务 precondition 读该 cell，`⊥` 下 fail closed，普通 Commit 因此永远推不动 epoch。
+- **其余因果寄存器 family**：`⊥` 之后，一次**对该 action 本来就有权**的普通写 MAY 以包含异值 heads 的签名 basis 写该 cell，并按第 4 项取代该 cell 的全部 heads，使其收敛回单值。该写入 MUST 通过它自身全部既有的授权、生命周期与业务 precondition；本条只解除「目标恰好处于 `⊥`」这一项额外阻断，MUST NOT 被用来放宽任何其它检查。特别地，若该写入自身的某个 `head_eq` 或业务 precondition 读的正是这个 cell，它按 §9.3.1 在 `⊥` 下仍然 fail closed——本条不会给它开口子，只是没有为它额外加一道禁令。它在 lattice 层与 §9.5.1 的 recovery 写同形，因此实现 MUST NOT 为它另造 op、另设 reset 通道，或按到达顺序截断历史（§9.5.1 第 5 项同样适用）。
 
 自愈写与 recovery 写都只取代**自己见过的** heads：basis 未覆盖的分支仍按本节合并式参与合并，两条并发且异值的自愈写仍然冲突。
 
@@ -1050,7 +1051,7 @@ Realm genesis 另有一次非 transition 的固定桥接：`ak.realm.create` Eve
 
 ### 9.5 control cell `⊥` recovery（normative）
 
-`bottom=reject` 的控制面 cell（典型 `cas_register` / `fsm`）join 到 `⊥`（§9.1.1）后，所有依赖它的 Control Move precondition、DataEvent 授权判定与读路径 fail closed（`failed_bottom`）。把该 cell 从 `⊥` 拉回单一合法值的途径**按 §9.3.1.4 的 family 分层**：recovery-restricted 封闭清单内的 family 只能由本节定义的 **conflict-recovery Move** 修复；清单外的因果寄存器 family 由一次对该 action 本来就有权的普通写自愈，不需要 recovery capability，也 MUST NOT 为它们另造 reset 通道。`bottom=expose` cell 的 `⊥` 暴露多 heads、由后续普通 Move 收敛，**不**适用本节、也不需要 recovery capability。
+`bottom=reject` 的控制面 cell（典型 `cas_register` / `fsm`）join 到 `⊥`（§9.1.1）后，所有依赖它的 Control Move precondition、DataEvent 授权判定与读路径 fail closed（`failed_bottom`）。把该 cell 从 `⊥` 拉回单一合法值有两条途径，**本节定义的 conflict-recovery Move 对任何处于 `⊥` 的因果寄存器 cell 都可用**；此外，§9.3.1.4 的 sole-recovery 清单**之外**的因果寄存器 family 还可以由一次对该 action 本来就有权的普通写自愈，那条路径不需要 recovery capability，也 MUST NOT 为它另造 reset 通道。清单内的 family 没有普通写出路，recovery 是其唯一途径。`bottom=expose` cell 的 `⊥` 暴露多 heads、由后续普通 Move 收敛，**不**适用本节、也不需要 recovery capability。
 
 **`ak.component.notary.v1` 的 `⊥` 构造性不可恢复（normative）**：它不在 recovery-restricted 清单内，且 MUST NOT 被加入——一次 conflict-recovery Move 本身需要一张被接受的 Seal，而验证 Seal 必须先读该 cell 的已接受 notary 配置；该 cell 处于 `⊥` 时读路径 fail closed，因此任何恢复 Seal 都无法被接受。实现与后续规范修订 MUST NOT 为该 cell 发明救援路径；保证它不进入 `⊥` 的是 §6.3 的单控制谱系与本节其余准入，不是事后恢复。
 
@@ -1085,7 +1086,7 @@ kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接�
 
 1. **目标冲突由签名 basis 证明**：recovery Move 的签名 `seal_basis` MUST 证明目标 cell 在该 basis 下确有**异值 heads**（`cas_register` 见 §9.3.1.2 第三种情形，`fsm` 见 §9.3.1.6 的同 `from` 异 `to`）。recovery 取代的对象就是这些**完整 heads**。
 2. **授权仍独立验证**：授权 MUST 由已登记的 recovery authority / capability 路径验证（本节「recovery capability 来源」一段）。MUST NOT 因为目标处于 `⊥` 就放过 capability 撤销、作用域或 authority generation 验证。若恢复权威本身不可验证，MUST 走既有 Realm recovery / fence 路径或保持 fail closed，MUST NOT 自签解锁。
-2b. **目标 family MUST 属于 recovery-restricted 封闭清单**：`payload.target_cell_id` 解析出的 cell family MUST 出现在 `ak.conflict.recovery` 写入登记的 `target_cell_family_allowlist` 中；清单外的目标 MUST 以 `failed_precondition` 拒绝，即使该 cell 确实处于 `⊥`、即使 recovery capability 有效。清单外 family 的 `⊥` 按 §9.3.1.4 由有权普通写自愈，MUST NOT 借 recovery 绕过它自身的授权与业务 precondition。
+2b. **目标不限于 sole-recovery 清单**：`payload.target_cell_id` 可以指向任何处于 `⊥` 的因果寄存器 cell；`ak.conflict.recovery` 写入登记的 `sole_recovery_families` 只说明哪些 family **没有**普通写出路（§9.3.1.4），MUST NOT 被实现成对清单外目标的拒绝条件——那会把尚未逐条审计的 family 变成永久死格。限制 recovery 不被当作通用覆盖通道的是本节既有的两条：目标 MUST 已处于 `⊥`，且授权 MUST 由已登记 recovery authority 验证。
 3. **Seal 准入仍比较完整 heads**：覆盖该 recovery 的 Seal 仍按 §9.3.1.3 第 3 项要求 `H_c(B) = H_c(P)`。任一新分支已进入 `P` 时，MUST 重新生成并授权一条新的 recovery。
 4. **recovery 只取代自己见过的 heads**：迟到的、recovery basis 未覆盖的分支仍按 §9.3.1.4 参与合并；两条并发且异值的 recovery 仍然冲突。
 5. **禁止按到达顺序截断历史**：实现 MUST NOT 用「日志里最后一次 reset 之后的 op」这类接收顺序切片实现本节（例如对 op 序列取 `rposition(reset)` 再截断），也 MUST NOT 把恢复解释成「遗忘此前所有分支」。历史 view 仍按 §9.3.1.4 从已承诺输入重建。

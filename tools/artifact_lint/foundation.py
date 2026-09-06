@@ -417,44 +417,46 @@ def lint_conflict_recovery_write(lint, event_path, write_ref, kind, write):
                 f"{write_ref} MUST NOT declare {forbidden}: the target family, its lattice "
                 "and its bottom belong to the cell being recovered, not to this kind",
             )
-    # zh/authz/event-auth-state-resolution.md sections 9.3.1.4 and 9.5.1 item 2b:
-    # the exit from Bottom is layered by family. Only families whose write
-    # authorization or business precondition reads the cell itself have nobody
-    # left to authorize an ordinary write, so only those may be recovered; every
-    # other causal-register family heals through an ordinary authorized write.
-    # The list is closed, so it lives in the registry rather than in prose alone.
-    allowlist = write.get("target_cell_family_allowlist")
+    # zh/authz/event-auth-state-resolution.md section 9.3.1.4: the exit from
+    # Bottom is layered by family. Families whose write authorization or business
+    # precondition reads the cell itself leave nobody able to author an ordinary
+    # write once it is in Bottom, so recovery is their only exit; every other
+    # causal-register family heals through an ordinary authorized write. The list
+    # names only that first group -- it never restricts which cells a recovery
+    # may target, because that would strand families not yet audited.
+    allowlist = write.get("sole_recovery_families")
     if not isinstance(allowlist, list) or not allowlist:
         lint.fail(
             event_path,
-            f"{write_ref} must declare a non-empty target_cell_family_allowlist "
-            "(event-auth-state-resolution.md section 9.5.1 item 2b)",
+            f"{write_ref} must declare a non-empty sole_recovery_families "
+            "(event-auth-state-resolution.md section 9.3.1.4)",
         )
         return
     if not all(isinstance(entry, str) for entry in allowlist):
-        lint.fail(event_path, f"{write_ref}.target_cell_family_allowlist entries must be strings")
+        lint.fail(event_path, f"{write_ref}.sole_recovery_families entries must be strings")
         return
     for entry in allowlist:
         if CELL_FAMILY_RE.fullmatch(entry) is None:
             lint.fail(
                 event_path,
-                f"{write_ref}.target_cell_family_allowlist entry {entry!r} must use canonical "
+                f"{write_ref}.sole_recovery_families entry {entry!r} must use canonical "
                 "ak.component.<facet-path>.v<n> form",
             )
     if len(set(allowlist)) != len(allowlist):
-        lint.fail(event_path, f"{write_ref}.target_cell_family_allowlist must not repeat a family")
+        lint.fail(event_path, f"{write_ref}.sole_recovery_families must not repeat a family")
     if allowlist != sorted(allowlist):
         lint.fail(
             event_path,
-            f"{write_ref}.target_cell_family_allowlist must be sorted so the closed list has one "
+            f"{write_ref}.sole_recovery_families must be sorted so the closed list has one "
             "canonical form",
         )
     if NOTARY_CELL_FAMILY in allowlist:
         lint.fail(
             event_path,
-            f"{write_ref}.target_cell_family_allowlist MUST NOT contain {NOTARY_CELL_FAMILY}: "
-            "verifying any Seal reads that cell, so a recovery Seal targeting it can never be "
-            "accepted (event-auth-state-resolution.md section 9.5)",
+            f"{write_ref}.sole_recovery_families MUST NOT contain {NOTARY_CELL_FAMILY}: "
+            "verifying any Seal reads that cell, so no recovery Seal for it can ever be accepted "
+            "and listing it would imply an exit that does not exist "
+            "(event-auth-state-resolution.md section 9.5)",
         )
 
 

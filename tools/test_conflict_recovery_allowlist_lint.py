@@ -1,11 +1,12 @@
-"""Mutation tests for the closed recovery-restricted family allowlist.
+"""Mutation tests for the registered sole-recovery family list.
 
-zh/authz/event-auth-state-resolution.md sections 9.3.1.4 and 9.5.1 item 2b make
-the exit from Bottom layered by family: only families whose write authorization
-or business precondition reads the cell itself have nobody left to authorize an
-ordinary write, so only those may be recovered. The list is closed, lives in the
-registry, and must not silently grow -- least of all to the notary cell, whose
-recovery Seal could never be accepted because verifying any Seal reads it.
+zh/authz/event-auth-state-resolution.md section 9.3.1.4 makes the exit from
+Bottom layered by family: where the write's own authorization or business
+precondition reads the cell itself, Bottom leaves nobody able to author an
+ordinary write, so recovery is the only exit. The list names that group, lives in
+the registry rather than in prose alone, and must keep the notary cell out --
+verifying any Seal reads that cell, so listing it would imply an exit that does
+not exist. The list never restricts which cells a recovery may target.
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ RECOVERY_KIND = core.CONFLICT_RECOVERY_KIND
 EXPECTED_ALLOWLIST = [
     "ak.component.fork_resolution.v1",
     "ak.component.invite.live_target.v1",
+    "ak.component.mls.epoch.v1",
     "ak.component.realm.authority_root.v1",
 ]
 
@@ -35,10 +37,10 @@ def _recovery_write(registry: dict) -> dict:
 
 
 class ShippedAllowlistTest(unittest.TestCase):
-    def test_shipped_allowlist_is_the_closed_three(self) -> None:
+    def test_shipped_list_is_the_registered_four(self) -> None:
         registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
         self.assertEqual(
-            _recovery_write(registry)["target_cell_family_allowlist"], EXPECTED_ALLOWLIST
+            _recovery_write(registry)["sole_recovery_families"], EXPECTED_ALLOWLIST
         )
 
     def test_every_allowlisted_family_is_a_written_causal_register(self) -> None:
@@ -49,13 +51,13 @@ class ShippedAllowlistTest(unittest.TestCase):
             for write in row.get("cell_writes") or []
             if write.get("lattice") in ("cas_register", "fsm") and write.get("cell_family")
         }
-        for family in _recovery_write(registry)["target_cell_family_allowlist"]:
+        for family in _recovery_write(registry)["sole_recovery_families"]:
             self.assertIn(family, causal, family)
 
     def test_notary_cell_is_not_allowlisted(self) -> None:
         registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
         self.assertNotIn(
-            core.NOTARY_CELL_FAMILY, _recovery_write(registry)["target_cell_family_allowlist"]
+            core.NOTARY_CELL_FAMILY, _recovery_write(registry)["sole_recovery_families"]
         )
 
 
@@ -75,19 +77,19 @@ class AllowlistLintTest(unittest.TestCase):
 
     def test_missing_allowlist_fails(self) -> None:
         failures = self._lint_mutated_write(
-            lambda write: write.pop("target_cell_family_allowlist")
+            lambda write: write.pop("sole_recovery_families")
         )
-        self.assertTrue(any("target_cell_family_allowlist" in f for f in failures), failures)
+        self.assertTrue(any("sole_recovery_families" in f for f in failures), failures)
 
     def test_empty_allowlist_fails(self) -> None:
         failures = self._lint_mutated_write(
-            lambda write: write.update(target_cell_family_allowlist=[])
+            lambda write: write.update(sole_recovery_families=[])
         )
         self.assertTrue(any("non-empty" in f for f in failures), failures)
 
     def test_notary_family_is_rejected(self) -> None:
         def mutate(write: dict) -> None:
-            write["target_cell_family_allowlist"] = sorted(
+            write["sole_recovery_families"] = sorted(
                 [*EXPECTED_ALLOWLIST, core.NOTARY_CELL_FAMILY]
             )
 
@@ -96,21 +98,21 @@ class AllowlistLintTest(unittest.TestCase):
 
     def test_unsorted_allowlist_fails(self) -> None:
         failures = self._lint_mutated_write(
-            lambda write: write.update(target_cell_family_allowlist=list(reversed(EXPECTED_ALLOWLIST)))
+            lambda write: write.update(sole_recovery_families=list(reversed(EXPECTED_ALLOWLIST)))
         )
         self.assertTrue(any("sorted" in f for f in failures), failures)
 
     def test_duplicate_family_fails(self) -> None:
         failures = self._lint_mutated_write(
             lambda write: write.update(
-                target_cell_family_allowlist=[EXPECTED_ALLOWLIST[0], *EXPECTED_ALLOWLIST]
+                sole_recovery_families=[EXPECTED_ALLOWLIST[0], *EXPECTED_ALLOWLIST]
             )
         )
         self.assertTrue(any("repeat" in f for f in failures), failures)
 
     def test_non_canonical_family_fails(self) -> None:
         failures = self._lint_mutated_write(
-            lambda write: write.update(target_cell_family_allowlist=["realm.authority_root"])
+            lambda write: write.update(sole_recovery_families=["realm.authority_root"])
         )
         self.assertTrue(any("canonical" in f for f in failures), failures)
 
