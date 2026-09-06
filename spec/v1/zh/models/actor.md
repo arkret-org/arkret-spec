@@ -110,6 +110,24 @@ Schema id: `ak.schema.actor_profile.v1`
     响应，必须拿到真实 controller 或授权 issuer 签名的 claim；拿不到就不能广告 / 返回该成功面，
     服务端 MUST NOT 补签，也 MUST NOT 公开 private provision 材料来填满 DTO。
 
+- **为什么该 cell 是 `mv_register` 而不是 `cas_register`（normative rationale）**：
+  这个 family 承载的是一个 selector 的**占位声明**，占位语义通常会让人推断它应该是 CAS。
+  规范选择 `mv_register` 是有意的，实现 MUST NOT 「顺手改成 CAS」：
+  - **排他性不在 lattice 层，而在解析层。** 同一 verified controller principal 下出现多个有效 claim 时，
+    上一条已经要求解析为 ambiguous 并 fail closed。这条领域规则提供的排他保证与 CAS 相同，
+    却不会把 cell 本身推进不可写状态。
+  - **`mv_register` 的因果取代给了 CAS 没有的活性。** 并发的两条 claim 在 MV 下是两个 heads，
+    一条因果覆盖二者的后继 claim 会取代它们并自动收敛；同样的并发在 `cas_register` +
+    `bottom=reject` 下会把 cell 打成 `⊥`，而按
+    [`../authz/event-auth-state-resolution.md` §9.3.1.4](../authz/event-auth-state-resolution.md)
+    该 family 的写入 precondition 读的正是它自己，`⊥` 之后没有主体能 author 普通写——
+    一次 selector 竞争就会永久占死一个 slug。
+  - **它不违反 §9.1 「`mv_register` 在 control plane 禁止作为授权根」。** `agent_slug` 已被上一条
+    禁止进入 grant subject、actor attribution、membership key、delivery decision 与 audit attribution；
+    它只参与 compose-time 的输入别名解析，解析结果还必须另行验证 Agent Actor Profile 与
+    accountability grant。授权根仍是完整 AccountId 与既有 grant 链，不是这个 cell。
+  - 因此本 family 的 `bottom=expose` 只表示读路径暴露多 heads，不构成 `⊥`（§9.1.1）。
+
 - Event Envelope 在 reducer 接受时 stamp `actor_kind` projection(见 [`event-and-patch.md`](./event-and-patch.md) §2.2),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可分类 event。该字段是 reducer-managed immutable,actor 提交侧 MUST NOT 携带。
 
 ### 3.3.1 `accountable_principal_ids` 的可验证性（normative）
