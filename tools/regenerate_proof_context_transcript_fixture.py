@@ -755,12 +755,16 @@ def build_document() -> dict[str, Any]:
             "spec/v1/zh/conformance/encoding.md",
         ],
         "description": (
-            "Byte-level detached-JWS transcript KAT for every row of proof-context-registry.json. "
-            "Each case pins the unsigned projection, its JCS bytes and digest, the canonical "
-            "binding object built under encoding.md section 6.0.2, the JWS signing input and the "
-            "Ed25519 signature over the shared conformance test key. Each negative case replays "
-            "the same unsigned body under the adjacent object family's context and MUST be "
-            "rejected."
+            "Byte-level detached-JWS transcript KAT for every contexts[] row of "
+            "proof-context-registry.json. Each case pins the unsigned projection, its JCS bytes "
+            "and digest, the canonical binding object built under encoding.md section 6.0.2, the "
+            "JWS signing input and the Ed25519 signature over the shared conformance test key. "
+            "Each negative case replays the same unsigned body under the adjacent object family's "
+            "context and MUST be rejected. The registry's domain_separations[] rows are out of "
+            "scope by construction and their absence here is not a coverage gap: a contexts[] row "
+            "is a terminal use point of the one shared event-envelope proof leaf, which is what "
+            "lets a single generator build its transcript, while a domain-separation row anchors "
+            "its own local signature leaf whose shape this generator cannot derive."
         ),
         "transcript_rules": {
             "unsigned_projection": (
