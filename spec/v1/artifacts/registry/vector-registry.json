@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.1",
+  "version": "2026-09-07.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T00:20:00+08:00",
+  "generated_at": "2026-09-07T01:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -6007,6 +6007,20 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/sync-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.realm_state_snapshot.restore_covered_membership.v1",
+      "status": "active",
+      "domain": "realm_state_snapshot",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
+      "description": "A receiver restored from a snapshot answers covered-set membership three ways and only three: covered for a frontier head or an entry proven under the manifest's own event_set_commitment root, not_covered only once the complete committed index has been admitted by recomputing that root at the committed count, and hold whenever it has neither - a missing-evidence answer of not_covered is rejected because section 9.3.1.4 would then revive superseded writes on a late branch. Covers committed-index prefix and mutation rejection, a merkle_event_set_v1 branch verified at the wrong leaf index, the absence of any per-entry branch under ordered_event_id_sha256_v1, and the rule that one admitted branch does not make the set complete.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/sync-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/realm-state-snapshot-schema.md"
       ]
     },
     {

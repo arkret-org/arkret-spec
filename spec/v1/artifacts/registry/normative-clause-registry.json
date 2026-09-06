@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.1",
+  "version": "2026-09-07.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T00:20:00+08:00",
+  "generated_at": "2026-09-07T01:10:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -491,7 +491,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
-      "section_digest": "sha256:a5aa0ce5fc5f93f8392b36991346d91551170937ce91c2a037a8822ff55e0940",
+      "section_digest": "sha256:da164f1ecb6863a5c00f994601100a4ebf561a6636fc645385bd0753b7b7bca6",
       "requirement": "A snapshot chunk payload (ak.schema.realm_state_snapshot_chunk.v1) carries Realm-scope reducer cells, never materialized objects: every items[] element is {kind:\"cell\", id:<ak:cell:…>, state:<section 6.2.1 state_object>} whose state shape follows the cell's registered lattice ({heads} for cas_register, {value} otherwise); membership is a non-empty active head set for cas_register and a determinate non-bottom joined value otherwise; never-written cells, actor-private ak.private.* families and cells written under a Circle or Sidecar scope_ref MUST NOT appear; non-cas_register bottom cells go to conflict_records[] and hard-erased cells to erasure_stubs[], each committed through its own verification_hints digest; items are sorted by id code point and unique across chunks; encrypted envelopes stay verbatim and no per-caller field filtering is applied.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -508,6 +508,18 @@
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.realm_state_snapshot.state_digest_recompute.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-037",
+      "status": "active",
+      "category": "distributed_write",
+      "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
+      "section_digest": "sha256:da164f1ecb6863a5c00f994601100a4ebf561a6636fc645385bd0753b7b7bca6",
+      "requirement": "A receiver restored from a Realm state snapshot MUST still answer exactly whether an old Event belongs to that view's covered set C, and MUST hold or fail closed when it has no evidence rather than answering false - a false answer makes section 9.3.1.4 treat a late branch as unseen and revive superseded writes. Evidence is one of two paths only: retaining the shared membership index, admitted solely when recomputing event_set_commitment.root over it under the declared algorithm reproduces the manifest root at covered_event_count, or obtaining a valid per-entry proof under that same existing root. Absent a fenced authority, an implementation MUST NOT keep only the last N writes, drop value=null heads, or drop the fact that an Event was once covered.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.realm_state_snapshot.restore_covered_membership.v1"
       ]
     }
   ]

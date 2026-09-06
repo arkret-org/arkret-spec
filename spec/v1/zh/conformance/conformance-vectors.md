@@ -2048,6 +2048,47 @@ ak.vector.realm_state_snapshot.state_digest_recompute.v1
 - `⊥` cell 作为 `conflict_records[]` 的 `bottom_cell` 行、erasure stub 作为 `erasure_stubs[]` 行时，`state_digest` 不变；对应的 `verification_hints.conflict_records_digest` / `erasure_stubs_digest` 按 §3 的列表 digest 规则重算一致。
 - 声明的 `state_digest` 与重算值不一致 MUST 拒绝；两个 conformant verifier 对同一 fixture MUST 得到相同 accept / reject 结论。
 
+### 3.8 Vector: snapshot restore covered membership
+
+向量名称：
+
+```text
+ak.vector.realm_state_snapshot.restore_covered_membership.v1
+```
+
+本向量固化 [`realm-state-snapshot-schema.md`](./realm-state-snapshot-schema.md) §3
+「恢复后仍须能精确回答 membership」：从 snapshot 恢复的 receiver 对「某个旧 Event 是否属于该 view 的
+覆盖集 `C`」只有三种合法答复——`covered`、`not_covered`、以及**缺证据时的 hold**。把 hold 折成
+`not_covered` 会让 [`../authz/event-auth-state-resolution.md` §9.3.1.4](../authz/event-auth-state-resolution.md)
+的合并式把迟到分支当作「对方从没见过」，复活已被取代的写入；这条向量正是把该折叠固定为拒绝。机器 fixture 是
+[`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_restore_covered_membership` 块，
+由 `ak.suite.sync.core.v1` runner 承载。它的 `event_set_source` 指向同文件的 `snapshot_inclusion_challenge`：
+两个向量共用同一份 committed entry 集合与同一个 `event_set_commitment.root`，因此 §6 的挑战与本节的
+membership 判定不可能各自漂移。
+
+输入：
+
+1. 一个 manifest 的 `event_set_commitment`（`algorithm`、`root`、`covered_event_count`）与 `frontier.event_ids`。
+2. 三类证据之一：`none`（只有 manifest）、`committed_index`（完整 committed entry 列表）、
+   `inclusion_proof`（单条 entry 加其在同一 root 下的 audit path 与 leaf index）。
+3. 被查询的 `event_id`，包含一个不在 committed 集合内的 `absent_event_id`。
+
+期望：
+
+- 只有 manifest 时：`frontier.event_ids` 中的 Event MUST 判为 `covered`（它按构造在 `C` 内）；其余任何
+  `event_id`——含 committed 集合内的与完全陌生的——MUST 判为 hold，MUST NOT 判为 `not_covered`。
+- `committed_index` MUST 在其按 `algorithm` 重算的 root 等于 manifest `root`、且长度等于 `covered_event_count`
+  时才被采纳。前缀（长度不足）与任一 entry 被改动的列表 MUST 以 `inclusion_proof_failed` 拒绝，且拒绝后
+  该 receiver MUST 仍处于「不完整」状态——不得因为看过一份被拒的列表就开始回答 `not_covered`。
+- 采纳完整 committed index 后，列表内的 Event MUST 判为 `covered`，列表外的 MUST 判为 `not_covered`。
+- `inclusion_proof`：`merkle_event_set_v1` 下，entry 的 audit path 在其真实 leaf index 上验证通过时该 entry
+  MUST 判为 `covered`；同一条 path 在**另一个** leaf index 上验证 MUST 拒绝（§6.2 的挑战响应体不携带 index，
+  实现 MUST 从自己的排序副本取得它，MUST NOT 接受「哪个位置能对上就算哪个」）。单条证明不使集合完整：其余
+  `event_id` MUST 仍为 hold。
+- `ordered_event_id_sha256_v1` 对整个排序后的 entry array 一次求值，不存在逐条 audit path；在该 algorithm 下
+  提交单条 inclusion proof MUST 以 `inclusion_proof_failed` 拒绝，调用方只能改用 committed index。
+- 两个 conformant 实现对同一 fixture MUST 得到相同的 `covered` / `not_covered` / hold / reject 结论。
+
 ## 4. Capability Vectors
 
 ### 4.1 目标

@@ -3621,6 +3621,173 @@
       }
     ]
   },
+  "snapshot_restore_covered_membership": {
+    "vector_id": "ak.vector.realm_state_snapshot.restore_covered_membership.v1",
+    "event_set_source": "snapshot_inclusion_challenge",
+    "event_set_commitment": {
+      "algorithm": "merkle_event_set_v1",
+      "root": "sha256:3712b0de544873450e9f546f4cdbba233b71b15e37ad427a8c1f2da02d7f5630",
+      "covered_event_count": 20
+    },
+    "frontier": {
+      "event_ids": [
+        "ak:event:Ab5GLkaoAxsaecOj33pa72mGJ8OmttYm2PoEdZSYdvs0",
+        "ak:event:AX-TJxDp4Ve7G4V1Gnb-LxSBY-V34fj6sL3LkE9P5D7S",
+        "ak:event:AW-AT0_FtZSq4Vlw3pcTQgogU0NBHPiBInJXzvf5f7bM"
+      ],
+      "timeline_hlc": "01970e589d21-0004-a13f9c2e"
+    },
+    "absent_event_id": "ak:event:AV-nSA7KvfRCnU4V_JF0fuIhHkOab6dBCH-PIJSCS-cE",
+    "assertions": [
+      "a_frontier_head_is_covered_with_no_further_evidence",
+      "an_event_with_no_evidence_holds_and_is_never_answered_not_covered",
+      "a_committed_index_is_admitted_only_when_it_recomputes_the_manifest_root",
+      "a_committed_index_whose_length_differs_from_covered_event_count_is_rejected",
+      "only_an_admitted_committed_index_may_answer_not_covered",
+      "a_merkle_event_set_v1_branch_admits_one_entry_under_the_manifest_root",
+      "a_branch_verified_at_a_different_leaf_index_is_rejected",
+      "one_admitted_branch_does_not_make_the_set_complete",
+      "ordered_event_id_sha256_v1_offers_no_per_entry_branch"
+    ],
+    "cases": [
+      {
+        "name": "frontier_head_is_covered_without_evidence",
+        "evidence": {
+          "kind": "none"
+        },
+        "query_event_id": "ak:event:Ab5GLkaoAxsaecOj33pa72mGJ8OmttYm2PoEdZSYdvs0",
+        "expected": {
+          "outcome": "covered"
+        }
+      },
+      {
+        "name": "committed_member_without_evidence_holds",
+        "evidence": {
+          "kind": "none"
+        },
+        "query_event_id": "ak:event:Ac42hj9Rtrr50WOX_7Ppr1BrKEqBb3LUh-VZQ8H9l01t",
+        "expected": {
+          "outcome": "unknown"
+        }
+      },
+      {
+        "name": "absent_event_without_evidence_holds_rather_than_answering_not_covered",
+        "evidence": {
+          "kind": "none"
+        },
+        "query_event_id": "ak:event:AV-nSA7KvfRCnU4V_JF0fuIhHkOab6dBCH-PIJSCS-cE",
+        "expected": {
+          "outcome": "unknown"
+        }
+      },
+      {
+        "name": "committed_index_admits_and_absence_becomes_provable",
+        "evidence": {
+          "kind": "committed_index",
+          "entries": "all"
+        },
+        "query_event_id": "ak:event:AV-nSA7KvfRCnU4V_JF0fuIhHkOab6dBCH-PIJSCS-cE",
+        "expected": {
+          "outcome": "not_covered",
+          "complete": true
+        }
+      },
+      {
+        "name": "committed_index_admits_and_membership_becomes_exact",
+        "evidence": {
+          "kind": "committed_index",
+          "entries": "all"
+        },
+        "query_event_id": "ak:event:Ac42hj9Rtrr50WOX_7Ppr1BrKEqBb3LUh-VZQ8H9l01t",
+        "expected": {
+          "outcome": "covered",
+          "complete": true
+        }
+      },
+      {
+        "name": "committed_index_prefix_is_rejected",
+        "evidence": {
+          "kind": "committed_index",
+          "entries": "prefix",
+          "count": 19
+        },
+        "query_event_id": "ak:event:AV-nSA7KvfRCnU4V_JF0fuIhHkOab6dBCH-PIJSCS-cE",
+        "expected": {
+          "outcome": "reject",
+          "error_code": "inclusion_proof_failed",
+          "complete": false
+        }
+      },
+      {
+        "name": "committed_index_with_an_altered_entry_is_rejected",
+        "evidence": {
+          "kind": "committed_index",
+          "entries": "all",
+          "mutate": {
+            "index": 1,
+            "field": "actor_seq",
+            "value": 999
+          }
+        },
+        "query_event_id": "ak:event:AV-nSA7KvfRCnU4V_JF0fuIhHkOab6dBCH-PIJSCS-cE",
+        "expected": {
+          "outcome": "reject",
+          "error_code": "inclusion_proof_failed",
+          "complete": false
+        }
+      },
+      {
+        "name": "inclusion_proof_admits_one_entry_under_the_manifest_root",
+        "evidence": {
+          "kind": "inclusion_proof",
+          "leaf_index": 7
+        },
+        "query_event_id": "ak:event:AbTj0U51GSeeajUvd211qQWp3pon79ttgC_k5wAiSt4u",
+        "expected": {
+          "outcome": "covered",
+          "complete": false
+        }
+      },
+      {
+        "name": "one_admitted_branch_leaves_every_other_event_holding",
+        "evidence": {
+          "kind": "inclusion_proof",
+          "leaf_index": 7
+        },
+        "query_event_id": "ak:event:AV-nSA7KvfRCnU4V_JF0fuIhHkOab6dBCH-PIJSCS-cE",
+        "expected": {
+          "outcome": "unknown",
+          "complete": false
+        }
+      },
+      {
+        "name": "branch_verified_at_the_wrong_leaf_index_is_rejected",
+        "evidence": {
+          "kind": "inclusion_proof",
+          "leaf_index": 7,
+          "verify_at_leaf_index": 8
+        },
+        "query_event_id": "ak:event:AbTj0U51GSeeajUvd211qQWp3pon79ttgC_k5wAiSt4u",
+        "expected": {
+          "outcome": "reject",
+          "error_code": "inclusion_proof_failed"
+        }
+      },
+      {
+        "name": "ordered_event_id_sha256_v1_has_no_per_entry_branch",
+        "evidence": {
+          "kind": "inclusion_proof",
+          "leaf_index": 7,
+          "algorithm": "ordered_event_id_sha256_v1"
+        },
+        "query_event_id": "ak:event:AbTj0U51GSeeajUvd211qQWp3pon79ttgC_k5wAiSt4u",
+        "expected": {
+          "outcome": "reject",
+          "error_code": "inclusion_proof_failed"
+        }
+      }
+    ]
+  },
   "account_subscribe_schema_cases": [
     {
       "name": "typed_device_list_delta_valid",
