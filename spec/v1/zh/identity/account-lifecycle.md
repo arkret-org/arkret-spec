@@ -166,6 +166,10 @@ lease/fence 授权当前 holder 冻结 reservation 并发起 holder-originated c
 
 `AccountId` 与创建它的 Station 数据谱系永久绑定。同一 `principal_id` 在另一 Station 上注册会形成新的 `AccountId`、新的账号和新的 PCR lineage，绝不是原账号的搬迁、恢复、接管、合并或别名。原 Station 上的 Event、PCR、投影、设备上下文、session、cursor、to-device queue、push registration、admission 与审计谱系 MUST NOT 迁移、合并、由另一 Station 接管、继承或改写为另一 `station_id`；DID 表示、DID Document、handle 或 resolution 变化不改变该绑定。Station 的进程、数据库、存储副本或同一运营方基础设施 MAY 做运维迁移/复制，但该操作不得改变 wire `AccountId`、权威历史或数据所有权。
 
+**跨 Station 权限隔离（normative）**：即使 `principal_id` 完全相同，只要 `station_id` 不同，就是两个不同的 Account；二者之间 MUST NOT 因 principal 相等而产生任何隐式授权、权限继承、代行或恢复关系。任何 membership、capability、Realm root controller 或 recovery trustee 对 Account 的匹配 MUST 使用完整 `AccountId`。两个 Account 之间的显式授权也必须分别满足所用授权合同，不能由共同 principal 代替。
+
+**Station 永久失效边界（normative）**：如果承载该 Account 的 Station 及其原有权威谱系已永久不可恢复，该 Account 与 PCR 就不可恢复；协议 MUST NOT 通过另一个 Station 延续或复活它们。暂时离线或同一 Station 谱系内的运维恢复不属于此情形。Realm 本身不绑定服务器。普通 Realm 的 Seal 确认服务故障切换或 root controller 变更必须满足各自独立的已登记授权与状态连续性合同；它们 MUST NOT 复活失效 Account，也不得把该 Account 的权限赋给另一 Station 上的同 principal Account。
+
 同一 Station 对同一 `AccountId` MUST 终身只创建一个 service-local account binding 与一条 PCR genesis lineage，并在 hard erasure 后保留 uniqueness tombstone，禁止 replacement `AccountId`、第二条 PCR lineage或重新 registration。该 create-once 约束不把既有 account 的 `active` status 变成一次性资源：§3 允许 deployment policy 门控的原 account reactivation。device、recovery、session、resolution、KeyPackage、secret storage 与 account status 可按本地 PCR lineage 分区，但 PCR id、genesis receipt 与 frontier 不得进入 membership、grant、Contact、Event 或 cache/query 的外部 identity。
 
 注册后的 resolution 变更 MUST 由该 PCR 中的 `ak.identity.resolution.update` 提交，不能直接覆写 profile 或账号表。Event 以 previous Event ref / previous history head 做 CAS，reducer 更新 `ak.component.identity.resolution.v1`；Profile 只公开其 current projection。current holder MAY 请求 Event、receipt 与 accepted Seal 组成的选择性历史 evidence，并用注册 reducer 重放 current projection，不另造 resolution 专用 proof。其他 Station 不要求持久保存该用户的 resolution；敏感操作发生时必须重新取得最新 evidence 并独立验证，短 TTL cache 只能优化读取，不能成为授权依据。
