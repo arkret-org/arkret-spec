@@ -136,12 +136,47 @@ Schema id: `ak.schema.actor_profile.v1`
 
 因此 reducer **MUST** 校验:
 
-1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时，reducer MUST 对数组中**每个** DID 检查是否存在已 sealed 的 `ak.identity.accountability_grant` event，其 `issuer = <该 DID>`、`subject = profile.principal_id`、`grant_status = "active"`、`not_before <= now`，且若声明了 `expires_at` 则 `now <= expires_at`。grant proof 使用 accepted auth-state / issuer key binding 验证；只有首次接受新 issuer / key、binding invalidation 或显式 freshness 触发时才解析 DID，不得在每次 profile replay 时在线解析。
+1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时，reducer MUST 对数组中**每个** DID 检查是否存在已 sealed 的问责记录，其 `issuer_id = <该 DID>`、`subject_id = profile.principal_id`、`grant_status = "active"`、`not_before <= now`，且若声明了 `expires_at` 则 `now <= expires_at`。**该记录有两个已登记来源，MUST 同时接受**（见下面的「问责记录只有一条，来源有两个」）：独立的 `ak.identity.accountability_grant`，以及 `ak.agent.provision` 的原子问责投影。MUST NOT 只搜索通用 kind。grant proof 使用 accepted auth-state / issuer key binding 验证；只有首次接受新 issuer / key、binding invalidation 或显式 freshness 触发时才解析 DID，不得在每次 profile replay 时在线解析。
 2. 任一 DID 条目不存在对应 active grant 时，reducer MUST 以 `failed_precondition`
    reason=`accountability_grant_missing` 拒绝整个 `ak.profile.create` / `ak.profile.update`
    Event，且不得写入或裁剪后写入 Actor Profile cell。该判定只依赖签名 payload 与冻结的
    control-plane basis，所有 verifier 必须得到相同结果。
 3. accountability grant 被签发方 revoke 后,reducer **SHOULD** 在 freshness 窗口(默认 ≤ 1 小时)内把对应 actor profile 的 `accountable_principal_ids[]` 中该条目降级为 `unverified`(projection 层标记),并在下次 actor profile update 时移除。
+
+**问责记录只有一条，来源有两个（normative）**：
+`ak.component.identity.accountability.v1` 承载的是**同一条**问责记录，
+它有两个已登记写入方——独立的 `ak.identity.accountability_grant`，
+以及 `ak.agent.provision` 在 controller PCR 内的原子问责投影
+（[`../identity/key-management.md` §3.6](../identity/key-management.md)：
+provision 原子投影问责事实，**后续独立变更仍使用通用 accountability Event**）。
+
+- **cell 身份**是 `(Realm, issuer principal, subject principal, 归一化 exact scope set)`。
+  两侧第三个 subject 分量 MUST 都是
+  `string_set_digest(payload.accountability_scope, ak.accountability_scope_set.v1)`：
+  裸 string 按 singleton set 解释，数组按既有 UTF-8 string-set 规则归一化。
+  provision 的 scope 是固定 const，仍走同一归一化，二者因此落在同一个 cell。
+- **修改 provision 问责的通用 grant MUST 写入原 controller PCR 的同一个 cell。**
+  写入其它 Realm 是另一条记录，**不能**撤销原记录。完整 AccountId 的授权、Station 绑定与
+  issuer 签名检查仍各自独立执行；MUST NOT 用 principal 相同推导 Account 等价。
+- **canonical 业务值**固定为
+  `{issuer_id, subject_id, accountability_scope（归一化排序数组）, not_before, expires_at?, grant_status}`。
+  provision 映射 `controller_principal_id` / `agent_id`，通用 grant 映射 `issuer_id` / `subject_id`。
+  两侧 MUST 使用显式登记的 `value_projection` 产出该形状，
+  MUST NOT 在普通 `effect_projection.value.field` 路径里暗加改名或裁剪。
+- **provision 派生值**：`not_before = envelope.created_at`，且 admission MUST 校验
+  `payload.created_at == envelope.created_at`，避免两个签名时间产生歧义；
+  `expires_at` **省略**（含义是不设时间到期，MUST NOT 写 JSON `null`，
+  MUST NOT 采用服务器接收时间）；`grant_status = "active"`。
+  时间条件成立不代表尚未 accepted 的 provision 可以提前生效。
+- **`source_event_ref` 与内层 `proof` MUST NOT 进入业务值。**来源身份已由该 cell 的 head Event
+  及其 accepted 证明承载；把 `event_id` 放进值会让语义完全相同的两个背书因来源不同变成异值，
+  从而在同一个 `bottom=reject` cell 上制造假冲突。读取与快照 MUST 保留 head 到源 Event 的
+  可验证关联，MUST NOT 丢掉证据或任选一个来源。
+- 通用 grant 仍验证内层 issuer proof 与 Event proof；provision 只验证其已登记的 controller Event proof，
+  MUST NOT 伪造 detached accountability proof，也 MUST NOT 把 provision 冒充独立 grant Event。
+
+统一形状只消除**结构性伪差异**。不同 `not_before`、`expires_at` 或 `grant_status`
+仍是真实不同的决定，按 `cas_register` 的正常规则处理。
 
 `ak.identity.accountability_grant` 字段:
 

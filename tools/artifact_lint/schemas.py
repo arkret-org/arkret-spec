@@ -2065,10 +2065,24 @@ def check_composite_subject_terminal_types(
                 f"{component_ref} field {source!r} has no schema endpoint",
             )
             return
-        if {next(iter(types)) for types, *_ in typed if len(types) == 1} != {
-            "string",
-            "array",
-        } or any(len(types) != 1 for types, *_ in typed):
+        present = {next(iter(types)) for types, *_ in typed if len(types) == 1}
+        if any(len(types) != 1 for types, *_ in typed) or not present <= {"string", "array"}:
+            lint.fail(
+                event_registry_path,
+                f"{component_ref} field {source!r} must resolve only to string or "
+                "array<string>",
+            )
+            return
+        if present == {"string"}:
+            # A scope that is always one value -- ak.agent.provision pins
+            # accountability_scope to the agent_operator const -- is the
+            # narrowest case of the string branch, and normalization reads a
+            # bare string as the one-element set. Requiring the array branch
+            # here would force a union the payload never uses, purely to satisfy
+            # a shape check. The two writers still agree on the set, which is
+            # what the shared digest context is for.
+            return
+        if present != {"string", "array"}:
             lint.fail(
                 event_registry_path,
                 f"{component_ref} field {source!r} must be a closed string | array<string> union",

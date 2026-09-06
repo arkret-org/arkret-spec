@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.13",
+  "version": "2026-09-07.14",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T11:00:00+08:00",
+  "generated_at": "2026-09-07T18:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -411,8 +411,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/models/actor.md#331-accountable_principal_ids-的可验证性normative",
-      "section_digest": "sha256:3a1bf0cb6a5ad62ad4d02761e7652942ee867fab488e6863c1123ae97d79cf9d",
-      "requirement": "Every accountable principal on an Actor Event must have an active matching accountability grant; any missing grant rejects the whole Event without a stripped projection.",
+      "section_digest": "sha256:e53b2379f454ac64f35f454a1b408223efcaacfd0de316ff3555b3b76c45e96b",
+      "requirement": "Every accountable principal on an Actor Event must have an active matching accountability grant; any missing grant rejects the whole Event without a stripped projection. One accountability record has two registered sources -- the standalone grant and the atomic projection an agent provision writes in its controller PCR -- and a verifier must accept both rather than searching only the general kind. Both key the cell by issuer principal, subject principal and the normalized scope set, and both project the same closed value of issuer, subject, normalized scope, not_before, optional expires_at and grant_status; a provision derives not_before from the envelope creation time it also has to match in its payload, omits expires_at rather than writing null, and is active. Neither source may put its event reference or inner proof into the value, because two endorsements that mean the same thing would then differ only by origin and collide on a reject cell.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.actor.accountability_grant_required.v1"

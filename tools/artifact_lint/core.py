@@ -400,6 +400,15 @@ VALUE_PROJECTION_DIGEST_INPUTS = {
 }
 
 
+# The normalization contexts a projected member may apply to a string set. It is
+# the same normalization the `string_set_digest` cell-subject component uses, so
+# a family that keys its cell by a scope set and also projects that set into the
+# value cannot disagree with itself about what the set is.
+NORMALIZED_STRING_SET_CONTEXTS = {
+    "ak.accountability_scope_set.v1",
+}
+
+
 VALUE_PROJECTION_DERIVATIONS = {
     "event_digest_from_event_id",
     "mls_commit_transition_digest",

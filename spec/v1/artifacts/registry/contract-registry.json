@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.9",
+  "version": "2026-09-07.11",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T17:10:00+08:00",
+  "generated_at": "2026-09-07T18:40:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -597,15 +597,47 @@
               "components": [
                 "payload.controller_principal_id",
                 "payload.agent_id",
-                "payload.accountability_scope"
+                {
+                  "kind": "string_set_digest",
+                  "field": "payload.accountability_scope",
+                  "context": "ak.accountability_scope_set.v1"
+                }
               ]
             },
             "lattice": "cas_register",
             "bottom": "reject",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "issuer_id",
+                  "field": "payload.controller_principal_id"
+                },
+                {
+                  "name": "subject_id",
+                  "field": "payload.agent_id"
+                },
+                {
+                  "name": "accountability_scope",
+                  "normalized_string_set": {
+                    "field": "payload.accountability_scope",
+                    "context": "ak.accountability_scope_set.v1"
+                  }
+                },
+                {
+                  "name": "not_before",
+                  "envelope_field": "created_at"
+                },
+                {
+                  "name": "grant_status",
+                  "literal": "active"
+                }
+              ]
+            },
             "effect_projection": {
               "kind": "set",
               "value": {
-                "field": "payload"
+                "projected_value": true
               }
             }
           },
@@ -2154,10 +2186,43 @@
             },
             "lattice": "cas_register",
             "bottom": "reject",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "issuer_id",
+                  "field": "payload.issuer_id"
+                },
+                {
+                  "name": "subject_id",
+                  "field": "payload.subject_id"
+                },
+                {
+                  "name": "accountability_scope",
+                  "normalized_string_set": {
+                    "field": "payload.accountability_scope",
+                    "context": "ak.accountability_scope_set.v1"
+                  }
+                },
+                {
+                  "name": "not_before",
+                  "field": "payload.not_before"
+                },
+                {
+                  "name": "expires_at",
+                  "field": "payload.expires_at",
+                  "optional": true
+                },
+                {
+                  "name": "grant_status",
+                  "field": "payload.grant_status"
+                }
+              ]
+            },
             "effect_projection": {
               "kind": "set",
               "value": {
-                "field": "payload"
+                "projected_value": true
               }
             }
           }
@@ -6987,6 +7052,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
+        "admission_checks": [
+          "payload.created_at equals envelope.created_at byte-for-byte; the accountability projection derives not_before from the envelope, so two signed times must not disagree",
+          "payload.accountability_scope normalizes to the same string set the cell subject digests, so this projection and a later ak.identity.accountability_grant address one cell"
+        ],
         "payload": "Controller-authored Agent Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
         "payload_schema_ref": "schemas/agent-provision.schema.json",
         "id_source": "reference"

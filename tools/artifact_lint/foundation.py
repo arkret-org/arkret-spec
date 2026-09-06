@@ -29,6 +29,7 @@ from .core import (
     SCHEMA_ID_RE,
     SPEC_ROOT,
     VALUE_PROJECTION_DIGEST_INPUTS,
+    NORMALIZED_STRING_SET_CONTEXTS,
     VALUE_PROJECTION_DERIVATIONS,
     VALUE_PROJECTION_IDENTITY_SUBJECTS,
     json,
@@ -634,6 +635,7 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
                 "select",
                 "derivation",
                 "digest_of",
+                "normalized_string_set",
             )
             if key in member
         ]
@@ -641,10 +643,35 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
             lint.fail(
                 path,
                 f"{member_ref} must declare exactly one of "
-                "literal/field/envelope_field/select/derivation/digest_of",
+                "literal/field/envelope_field/select/derivation/digest_of/normalized_string_set",
             )
             continue
         source = sources[0]
+        if source == "normalized_string_set":
+            # Same normalization as the string_set_digest cell-subject
+            # component: a bare string is the one-element set, an array is
+            # deduplicated and sorted. Registering it here rather than hiding it
+            # behind a plain `field` keeps the reshaping visible and closed.
+            descriptor = member["normalized_string_set"]
+            if not isinstance(descriptor, dict):
+                lint.fail(path, f"{member_ref}.normalized_string_set must be an object")
+                continue
+            unknown = set(descriptor) - {"field", "context"}
+            if unknown:
+                lint.fail(
+                    path,
+                    f"{member_ref}.normalized_string_set has unknown member(s) {sorted(unknown)}",
+                )
+            lint_field_path(
+                lint, path, f"{member_ref}.normalized_string_set.field", descriptor.get("field")
+            )
+            if descriptor.get("context") not in NORMALIZED_STRING_SET_CONTEXTS:
+                lint.fail(
+                    path,
+                    f"{member_ref}.normalized_string_set.context must be one of "
+                    f"{sorted(NORMALIZED_STRING_SET_CONTEXTS)}",
+                )
+            continue
         if source == "field":
             lint_field_path(lint, path, f"{member_ref}.field", member["field"])
         elif source == "envelope_field":
