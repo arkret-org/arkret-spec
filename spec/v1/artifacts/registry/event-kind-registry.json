@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.4",
+  "version": "2026-09-07.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-07T07:40:00+08:00",
+  "generated_at": "2026-09-07T09:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2182,9 +2182,14 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Authorized event sibling-bucket or full-hash collision resolution. The recovery Seal covers this Control Move in delta; the typed payload identifies the original evidence scope and either one canonical winner or void_all. Authorization is carried only by critical recovery_capability and witness refs.",
+      "payload": "Authorized event sibling-bucket or full-hash collision resolution. The recovery Seal covers this Control Move in delta; the typed payload identifies the original evidence scope and either one canonical winner or void_all. Authorization is carried only by critical recovery_capability and witness refs. The Move MUST carry a head_eq: null precondition for the ak.component.fork_resolution.v1 cell its subject addresses, so an already settled adjudication cannot be silently re-adjudicated by a causal successor.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/fork_resolution_payload",
       "admission": "capability_gated",
+      "admission_checks": [
+        "the Move carries a head_eq precondition equal to null for the ak.component.fork_resolution.v1 cell keyed by canonical_json(payload.subject); a settled value in the write basis rejects the Move with failed_precondition, while an exact replay of the same Event stays idempotent by EventId",
+        "authorization is exactly one critical refs[] role=recovery_capability whose action is ak.fork.resolution; role=state_witness is rejected",
+        "a canonical_winner verdict names an event_id that belongs to this Move's own conflict_evidence set"
+      ],
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -2248,6 +2253,11 @@
             "kind": "cell_ref",
             "field": "payload.target_cell_id"
           },
+          "target_cell_family_allowlist": [
+            "ak.component.fork_resolution.v1",
+            "ak.component.invite.live_target.v1",
+            "ak.component.realm.authority_root.v1"
+          ],
           "effect_projection": {
             "kind": "reset",
             "value": {

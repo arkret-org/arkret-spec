@@ -10,6 +10,7 @@ from .core import (
     CELL_SUBJECT_KINDS,
     CELL_WRITE_DERIVATIONS,
     CONFLICT_RECOVERY_KIND,
+    NOTARY_CELL_FAMILY,
     Counter,
     EFFECT_PROJECTION_ENVELOPE_FIELDS,
     ENVELOPE_SUBJECT_SOURCES,
@@ -416,6 +417,45 @@ def lint_conflict_recovery_write(lint, event_path, write_ref, kind, write):
                 f"{write_ref} MUST NOT declare {forbidden}: the target family, its lattice "
                 "and its bottom belong to the cell being recovered, not to this kind",
             )
+    # zh/authz/event-auth-state-resolution.md sections 9.3.1.4 and 9.5.1 item 2b:
+    # the exit from Bottom is layered by family. Only families whose write
+    # authorization or business precondition reads the cell itself have nobody
+    # left to authorize an ordinary write, so only those may be recovered; every
+    # other causal-register family heals through an ordinary authorized write.
+    # The list is closed, so it lives in the registry rather than in prose alone.
+    allowlist = write.get("target_cell_family_allowlist")
+    if not isinstance(allowlist, list) or not allowlist:
+        lint.fail(
+            event_path,
+            f"{write_ref} must declare a non-empty target_cell_family_allowlist "
+            "(event-auth-state-resolution.md section 9.5.1 item 2b)",
+        )
+        return
+    if not all(isinstance(entry, str) for entry in allowlist):
+        lint.fail(event_path, f"{write_ref}.target_cell_family_allowlist entries must be strings")
+        return
+    for entry in allowlist:
+        if CELL_FAMILY_RE.fullmatch(entry) is None:
+            lint.fail(
+                event_path,
+                f"{write_ref}.target_cell_family_allowlist entry {entry!r} must use canonical "
+                "ak.component.<facet-path>.v<n> form",
+            )
+    if len(set(allowlist)) != len(allowlist):
+        lint.fail(event_path, f"{write_ref}.target_cell_family_allowlist must not repeat a family")
+    if allowlist != sorted(allowlist):
+        lint.fail(
+            event_path,
+            f"{write_ref}.target_cell_family_allowlist must be sorted so the closed list has one "
+            "canonical form",
+        )
+    if NOTARY_CELL_FAMILY in allowlist:
+        lint.fail(
+            event_path,
+            f"{write_ref}.target_cell_family_allowlist MUST NOT contain {NOTARY_CELL_FAMILY}: "
+            "verifying any Seal reads that cell, so a recovery Seal targeting it can never be "
+            "accepted (event-auth-state-resolution.md section 9.5)",
+        )
 
 
 

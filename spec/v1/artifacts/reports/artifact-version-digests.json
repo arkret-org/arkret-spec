@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-07.4",
-      "generated_at": "2026-09-07T07:40:00+08:00",
-      "content_digest": "sha256:09b6a0f77c2ef7ad0f51ec169a0fbc4407f8fc38a2d561ef0452abb7bd0e09a9"
+      "version": "2026-09-07.5",
+      "generated_at": "2026-09-07T09:40:00+08:00",
+      "content_digest": "sha256:679677e9fafb9c47f3e3ee9a010beb753417699e4c5d2656e8204b0b7fc89c6f"
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-07.4",
-      "generated_at": "2026-09-07T07:40:00+08:00",
-      "content_digest": "sha256:30ba8998ed98ec836f1be2dfe8d008f292c2283a26ee2f4b5e22b1c34314f7d7"
+      "version": "2026-09-07.5",
+      "generated_at": "2026-09-07T09:40:00+08:00",
+      "content_digest": "sha256:ce3020d8e5c353253588ffff25c953595e006a0921ce9c1b67bafb2ac302de34"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -225,9 +225,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-07.9",
-      "generated_at": "2026-09-07T07:50:00+08:00",
-      "content_digest": "sha256:a95dd140f90f1f3e10d308aa8518ed22ee1f1c238b160fb731228c8a3b7f8bb4"
+      "version": "2026-09-07.11",
+      "generated_at": "2026-09-07T09:40:00+08:00",
+      "content_digest": "sha256:bfc48f3d585eba1d1c2ee459274ff70c9f83a1d87daa3bc1717337c469e4bc79"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",

@@ -445,6 +445,9 @@ FIELD_PATH_RE = re.compile(
 
 
 CONFLICT_RECOVERY_KIND = "ak.conflict.recovery"
+# The notary configuration cell is deliberately outside the recovery allowlist:
+# verifying any Seal reads it, so a recovery Seal targeting it can never be accepted.
+NOTARY_CELL_FAMILY = "ak.component.notary.v1"
 
 
 
