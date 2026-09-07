@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-07.8",
-  "generated_at": "2026-09-07T18:40:02+08:00",
+  "version": "2026-09-07.10",
+  "generated_at": "2026-09-07T18:40:04+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -237,7 +237,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.request_consent.v1",
-      "sha256": "sha256:2e9bccf137d73b7d1e74395b445e66c8593303b5ea599c67238b01b37ebfc811"
+      "sha256": "sha256:ac5fd9769f3e76b77cdfb473e77a227266e93246c62d6deeef92bad5c2a89bb1"
     },
     {
       "operation_id": "ak.open.mimi.command.submit_message.v1",
@@ -245,7 +245,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.update_consent.v1",
-      "sha256": "sha256:0da361cc3b2239851c1bf16a9c3f26e127d0a38f46ed9a9722f76db6ccd4996b"
+      "sha256": "sha256:2d664d729187c9eba2e3a931e528b004d29f4843c4cd0d048c82896f1a808483"
     },
     {
       "operation_id": "ak.open.mimi.command.update_room.v1",

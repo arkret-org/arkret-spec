@@ -577,7 +577,7 @@
       "properties": {
         "requester_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id",
-          "description": "Exact Actor the requester is asking as, Station and actor role included. It replaces the bare requester DID: consent-model.md section 6.1 compares an ordinary peer by complete ActorId and forbids falling back to a bare principal, so a correlation frozen on a principal core could never be reconciled without one side reducing dimensions. The operation proof and the transport proof MUST both authenticate this exact Actor; proving key control under some principal does not authorise acting for an arbitrary account of that principal."
+          "description": "Exact Actor the requester is asking as, Station and actor role included. consent-model.md section 6.1 compares an ordinary peer by complete ActorId and forbids falling back to a bare principal. The operation proof MUST authenticate this exact Actor through its current accepted authority. Transport authentication MUST bind the complete request and authenticated source; a provider transport signature authenticates only that service and does not authorize the Actor. Proving key control under some principal does not authorize an arbitrary account of that principal."
         },
         "holder_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -607,7 +607,7 @@
             "$ref": "#/$defs/proof"
           },
           "minItems": 1,
-          "description": "Requester operation proof over ak.mimi_request_consent_request_proof.v1. Required: section 5.1 already mandates an actor proof for this operation, and the correlation is only as strong as the signature that froze it."
+          "description": "Required requester operation proof over ak.mimi_request_consent_request_proof.v1. Resolve the exact Actor's current accepted Account device generation or Agent runtime authorization under mimi-interop.md section 5.1; DID controller key possession and provider transport signatures do not authorize an Actor. Agent runtime requires current controller/lifecycle, provision and key ceilings and operation-scoped authenticated runtime authority. No generic remote PCR disclosure carrier is registered for this request: missing authorized current evidence MUST fail closed before correlation creation or holder lookup."
         }
       },
       "additionalProperties": false,
@@ -630,7 +630,7 @@
     },
     "mimi_update_consent_request_body": {
       "type": "object",
-      "description": "Carries the caller-authored, caller-signed Arkret consent Control Move. The facade verifies the detached MIMI operation signature over the complete unsigned body, then submits consent_event unchanged through ordinary Event admission. decision=accept requires ak.consent.grant; decision=deny or revoke requires ak.consent.revoke. The facade MUST NOT synthesize, rebuild or co-sign the Event.",
+      "description": "Carries the caller-authored, caller-signed Arkret consent Control Move. The facade verifies the detached MIMI operation signature over the complete unsigned body using the exact holder Account's current accepted PCR device generation and revocation state, not DID Document controller keys, then submits consent_event unchanged through ordinary Event admission. decision=accept requires ak.consent.grant; decision=deny or revoke requires ak.consent.revoke. The authority-root controller restriction remains mandatory. The facade MUST NOT synthesize, rebuild or co-sign the Event.",
       "x-arkret-proof-context": "ak.mimi_update_consent_request_proof.v1",
       "required": [
         "consent_id",
