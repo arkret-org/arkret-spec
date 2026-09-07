@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.2",
+  "version": "2026-09-07.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T05:00:00+08:00",
+  "generated_at": "2026-09-07T17:49:46+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -184,44 +184,6 @@
       ],
       "defined_in": "zh/identity/key-management.md",
       "schema_ref": "schemas/agent-selector-claim.schema.json"
-    },
-    {
-      "context": "ak.applet_managed_actor_authoring_request_proof.v1",
-      "object_family": "applet_managed_actor_authoring_request",
-      "binding_fields": [
-        "context",
-        "payload_digest",
-        "verification_method",
-        "created_at",
-        "audience"
-      ],
-      "defined_in": "zh/extensions/applet-schema.md",
-      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/authoring_request",
-      "injected_fields": [
-        {
-          "field": "context",
-          "source": "constant ak.applet_managed_actor_authoring_request_proof.v1"
-        }
-      ]
-    },
-    {
-      "context": "ak.applet_managed_actor_bundle_proof.v1",
-      "object_family": "applet_managed_actor_bundle",
-      "binding_fields": [
-        "context",
-        "payload_digest",
-        "verification_method",
-        "created_at",
-        "audience"
-      ],
-      "defined_in": "zh/extensions/applet-schema.md",
-      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_bundle",
-      "injected_fields": [
-        {
-          "field": "context",
-          "source": "constant ak.applet_managed_actor_bundle_proof.v1"
-        }
-      ]
     },
     {
       "context": "ak.applet_package_proof.v1",
@@ -2100,6 +2062,52 @@
         "jti"
       ],
       "defined_in": "zh/sync/websocket-binding.md#31-challenge_dpop_session_v1-proofnormative"
+    },
+    {
+      "domain": "ak.applet_managed_actor_authoring_request_proof.v1",
+      "object_family": "applet_managed_actor_authoring_request",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "context",
+        "payload_digest",
+        "verification_method",
+        "created_at",
+        "audience_id"
+      ],
+      "defined_in": "zh/extensions/applet-schema.md",
+      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/authoring_request",
+      "injected_fields": [
+        {
+          "field": "context",
+          "source": "constant ak.applet_managed_actor_authoring_request_proof.v1"
+        }
+      ],
+      "transcript_schema_refs": [
+        "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_proof"
+      ]
+    },
+    {
+      "domain": "ak.applet_managed_actor_bundle_proof.v1",
+      "object_family": "applet_managed_actor_bundle",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "context",
+        "payload_digest",
+        "verification_method",
+        "created_at",
+        "audience_id"
+      ],
+      "defined_in": "zh/extensions/applet-schema.md",
+      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_bundle",
+      "injected_fields": [
+        {
+          "field": "context",
+          "source": "constant ak.applet_managed_actor_bundle_proof.v1"
+        }
+      ],
+      "transcript_schema_refs": [
+        "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_proof"
+      ]
     }
   ]
 }

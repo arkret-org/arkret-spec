@@ -8,7 +8,7 @@ import hashlib
 import json
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -104,6 +104,17 @@ def load_reference() -> dict[str, Any] | None:
     return data
 
 
+def repairs_future_generated_at(old: Any, new: Any, now: datetime) -> bool:
+    if not isinstance(old, str) or not isinstance(new, str):
+        return False
+    try:
+        old_dt = datetime.fromisoformat(old.replace("Z", "+00:00"))
+        new_dt = datetime.fromisoformat(new.replace("Z", "+00:00"))
+        return old_dt > now >= new_dt and new_dt.tzinfo is not None
+    except (ValueError, TypeError):
+        return False
+
+
 def transition_errors(old: dict[str, Any], new: dict[str, Any]) -> list[str]:
     path = new["path"]
     content_changed = old.get("content_digest") != new.get("content_digest")
@@ -130,7 +141,14 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="write the current metadata/content reference after validating advances",
     )
+    parser.add_argument(
+        "--repair-future-generated-at",
+        action="store_true",
+        help="with --write-reference, correct an existing future timestamp to a real past/present instant",
+    )
     args = parser.parse_args(argv)
+    if args.repair_future_generated_at and not args.write_reference:
+        parser.error("--repair-future-generated-at requires --write-reference")
 
     try:
         rows = artifact_rows()
@@ -152,7 +170,15 @@ def main(argv: list[str] | None = None) -> int:
                 old = old_by_path.get(row["path"])
                 if not old:
                     continue
-                errors.extend(transition_errors(old, row))
+                row_errors = transition_errors(old, row)
+                if args.repair_future_generated_at and repairs_future_generated_at(
+                    old.get("generated_at"), row.get("generated_at"), datetime.now(timezone.utc)
+                ):
+                    timestamp_error = f"{row['path']}: content changed without generated_at advance"
+                    if timestamp_error in row_errors:
+                        row_errors.remove(timestamp_error)
+                        print(f"corrected future generated_at: {row['path']}")
+                errors.extend(row_errors)
             if errors:
                 for error in errors:
                     print(error, file=sys.stderr)

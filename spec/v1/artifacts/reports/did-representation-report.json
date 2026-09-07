@@ -1688,6 +1688,26 @@
       ]
     },
     {
+      "schema_path": "applet-install-authoring.schema.json#/$defs/managed_actor_proof/properties/audience_id",
+      "property_name": "audience_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "applet-install-authoring.schema.json#/$defs/managed_actor_proof/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "applet-install-operations.schema.json#/$defs/applet_install_outcome/properties/bot_actor_id",
       "property_name": "bot_actor_id",
       "semantic_category": "responsibility_identity_material",

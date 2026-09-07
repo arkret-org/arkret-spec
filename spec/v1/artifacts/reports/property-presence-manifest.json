@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9895,
+    "total_properties": 9901,
     "total_schema_documents": 167,
     "by_presence_class": {
       "optional": 2708,
       "optional_defaulted": 65,
-      "required": 6785,
+      "required": 6791,
       "required_nullable": 126,
       "tristate": 211
     },
@@ -3272,6 +3272,12 @@
         "/$defs/managed_actor_bundle/properties/profile_event/allOf/1/properties/kind": "required",
         "/$defs/managed_actor_bundle/properties/proof": "required",
         "/$defs/managed_actor_bundle/properties/schema": "required",
+        "/$defs/managed_actor_proof/properties/audience_id": "required",
+        "/$defs/managed_actor_proof/properties/created_at": "required",
+        "/$defs/managed_actor_proof/properties/jws": "required",
+        "/$defs/managed_actor_proof/properties/kind": "required",
+        "/$defs/managed_actor_proof/properties/payload_digest": "required",
+        "/$defs/managed_actor_proof/properties/verification_method": "required",
         "/$defs/registration_event/allOf/1/properties/kind": "required",
         "/$defs/registration_event/allOf/1/properties/payload": "required",
         "/$defs/registration_event/allOf/1/properties/payload/properties/manifest": "required",

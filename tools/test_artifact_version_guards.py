@@ -3,14 +3,47 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from unittest.mock import patch
 from pathlib import Path
 
 from artifact_pipeline import preserve_artifact_metadata_when_semantics_match
-from check_artifact_versions import ARTIFACTS, semantic_content_digest, transition_errors
+from check_artifact_versions import ARTIFACTS, main, repairs_future_generated_at, semantic_content_digest, transition_errors
 
 
 class ArtifactVersionGuardTest(unittest.TestCase):
+    def test_future_timestamp_repair_is_explicit_and_still_requires_version_advance(self) -> None:
+        old = {"path": "registry/example.json", "version": 1,
+               "generated_at": "2099-01-01T00:00:00Z", "content_digest": "sha256:old"}
+        new = {**old, "generated_at": "2001-01-01T00:00:00Z", "content_digest": "sha256:new"}
+        with tempfile.TemporaryDirectory() as directory:
+            reference = Path(directory) / "reference.json"
+            with patch("check_artifact_versions.artifact_rows", return_value=[new]), \
+                 patch("check_artifact_versions.load_reference", return_value={"artifacts": [old]}), \
+                 patch("check_artifact_versions.REFERENCE", reference), \
+                 patch("check_artifact_versions.ROOT", Path(directory)):
+                self.assertEqual(main(["--write-reference", "--repair-future-generated-at"]), 1)
+                self.assertFalse(reference.exists())
+                new["version"] = 2
+                self.assertEqual(main(["--write-reference"]), 1)
+                self.assertFalse(reference.exists())
+                self.assertEqual(main(["--write-reference", "--repair-future-generated-at"]), 0)
+                self.assertEqual(json.loads(reference.read_text())["artifacts"], [new])
+
+    def test_future_timestamp_repair_cannot_backdate_an_ordinary_transition(self) -> None:
+        now = datetime(2026, 9, 7, 10, tzinfo=timezone.utc)
+        self.assertTrue(repairs_future_generated_at(
+            "2026-09-07T20:20:00+08:00", "2026-09-07T18:00:00+08:00", now
+        ))
+        for old, new in [
+            ("2026-09-07T09:00:00Z", "2026-09-07T08:00:00Z"),
+            ("2026-09-07T12:00:00Z", "2026-09-07T11:00:00Z"),
+            ("invalid", "2026-09-07T10:00:00Z"),
+            ("2026-09-07T12:00:00Z", "2026-09-07T10:00:00"),
+        ]:
+            with self.subTest(old=old, new=new):
+                self.assertFalse(repairs_future_generated_at(old, new, now))
+
     def test_every_versioned_artifact_excludes_release_metadata_from_semantics(self) -> None:
         paths = sorted(
             [

@@ -42,6 +42,20 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
+    "managed_actor_proof": {
+      "type": "object",
+      "description": "Closed Applet managed-actor request/bundle proof. audience_id is the exact recipient service DidCoreId: basis.service_id for the request and basis.target_station_id for the bundle. It is an identity binding, not a generic string or multi-audience selector.",
+      "required": ["kind", "verification_method", "payload_digest", "created_at", "audience_id", "jws"],
+      "properties": {
+        "kind": { "const": "detached_jws" },
+        "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
+        "payload_digest": { "$ref": "#/$defs/digest" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "audience_id": { "$ref": "#/$defs/did_core_id" },
+        "jws": { "type": "string", "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$" }
+      },
+      "additionalProperties": false
+    },
     "ghost_external_tuple": {
       "type": "object",
       "required": ["protocol", "instance_id", "external_id"],
@@ -314,7 +328,7 @@
     },
     "authoring_request": {
       "type": "object",
-      "x-arkret-proof-context": "ak.applet_managed_actor_authoring_request_proof.v1",
+      "x-arkret-signature-domain": "ak.applet_managed_actor_authoring_request_proof.v1",
       "required": ["schema", "purpose", "basis", "hosting_notary", "issued_at", "expires_at", "proof"],
       "properties": {
         "schema": { "const": "ak.schema.applet_managed_actor_authoring_request.v1" },
@@ -329,7 +343,7 @@
         "hosting_notary": { "$ref": "./realm.schema.json#/$defs/notary_signer_descriptor" },
         "issued_at": { "$ref": "#/$defs/timestamp" },
         "expires_at": { "$ref": "#/$defs/timestamp" },
-        "proof": { "$ref": "./event-envelope.schema.json#/$defs/proof" }
+        "proof": { "$ref": "#/$defs/managed_actor_proof" }
       },
       "allOf": [
         {
@@ -410,7 +424,7 @@
     },
     "managed_actor_bundle": {
       "type": "object",
-      "x-arkret-proof-context": "ak.applet_managed_actor_bundle_proof.v1",
+      "x-arkret-signature-domain": "ak.applet_managed_actor_bundle_proof.v1",
       "required": [
         "schema",
         "authoring_request_digest",
@@ -500,7 +514,7 @@
           ]
         },
         "proof": {
-          "$ref": "./event-envelope.schema.json#/$defs/proof"
+          "$ref": "#/$defs/managed_actor_proof"
         }
       },
       "additionalProperties": false

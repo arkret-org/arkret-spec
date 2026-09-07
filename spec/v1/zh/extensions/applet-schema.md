@@ -204,6 +204,13 @@ PCR genesis/Profile 使用 service `executed_by`，不得新增预生效 Bot 直
 request/bundle proof 分别使用
 `ak.applet_managed_actor_authoring_request_proof.v1` 与
 `ak.applet_managed_actor_bundle_proof.v1`；context 是 canonical binding object 常量，不是 wire 字段。
+这两个 proof MUST 使用 `applet-install-authoring.schema.json#/$defs/managed_actor_proof` 的 closed
+形态：`kind`、`verification_method`、`payload_digest`、`created_at`、`audience_id`、`jws`。
+`audience_id` 是单一责任主体的 `DidCoreId`：request MUST 等于 `basis.service_id`，bundle MUST 等于
+已绑定 request 的 `basis.target_station_id`；MUST NOT 使用 URL、裸 DID、数组或通用 `audience` 别名。
+两者的 canonical signing binding 都依次包含 `context`、`payload_digest`、`verification_method`、
+`created_at`、`audience_id`，验证时 MUST 同时检查受众与对应 branch 的身份逐字相等。
+该专用身份字段遵循 `common-fields.md` §2.1 的 `_id` 规则，不继承通用 proof 的自由字符串受众形态。 专用 proof 的两个签名域登记于 `proof-context-registry.json` 的 `domain_separations[]`（`primitive=detached_signature`），schema 使用 `x-arkret-signature-domain`；它们不再属于仅服务通用 proof leaf 的 `contexts[]`，既有签名域常量和 `context` binding 字段保持不变。
 Applet service 必须在响应前按 branch subject 与 request digest 原子保存 exact request/bundle、actor key
 handle、method history 与 provision state。restart 后 exact replay 返回原 bytes；不得从 request 确定性派生
 私钥或依赖易失内存 cache。
