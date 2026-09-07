@@ -10211,7 +10211,7 @@
           "properties": {
             "consent_required": {
               "type": "boolean",
-              "description": "When true, every invite into this Realm MUST pass the holder consent admission gate in identity/consent-model.md section 6.1 before the invite Control Move is submitted. It MUST NOT be read as permission for a cross-Realm CBA precondition."
+              "description": "When true, every invite into this Realm MUST pass the holder consent admission gate in identity/consent-model.md section 6.1 before the invite Control Move is submitted. It MUST NOT be read as permission for a cross-Realm CBS precondition."
             }
           },
           "additionalProperties": false

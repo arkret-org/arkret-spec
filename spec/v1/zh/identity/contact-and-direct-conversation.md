@@ -309,7 +309,7 @@ member，普通 Realm 可见性结构上给不出它；`ak.peer.contacts.command
   receipt，都不是 verified mirror。可见性检查本身只做
   字段比对，**MUST NOT** 被解释为"检查时验签即可"；未经 ingest 验证的本地行 **MUST NOT** 被当作 mirror。
 - mirror 是 principal-private 旁路存储：**MUST NOT** 进入接收方的 canonical realm event store，**MUST NOT** 推进任何
-  reducer、Seal、CBA frontier 或 `state_root`。
+  reducer、Seal、CBS frontier 或 `state_root`。
 - 客户端取得该 exact Event 的**唯一**入口是 `ak.self.events.read.resolve.v1` 的 Contact mirror 分支（合同见
   [`../sync/service-http-binding.md`](../sync/service-http-binding.md)）：它只从 mirror 取 bytes、只在 contact row
   处于 `pending_incoming` 时开放、**MUST NOT** 返回任何 Seal。实现 **MUST NOT** 改为经
@@ -559,7 +559,7 @@ founder **MUST** 一次提交恰好四条 Event：
 重算这两个坐标，**MUST NOT** 采信请求中另行携带的坐标字段，也 **MUST NOT** 接受任何声称先分配后签名的
 提交形态。本段任一条件不成立 **MUST** 以 `direct_conversation_founding_unit_invalid` 整组零写入拒绝。
 
-四条的 CBA basis 形态是封闭的：`ak.realm.create` 用 genesis bootstrap shape；两条 `ak.member.state{join}` 与
+四条的 CBS basis 形态是封闭的：`ak.realm.create` 用 genesis bootstrap shape；两条 `ak.member.state{join}` 与
 `ak.strand.create` 在**且仅在**该 exact unit 内使用 bootstrap no-basis shape（既不携 `seal_basis`，也不携
 `seal_ref`/`auth_context`），并叠加同批 staged authority-root proof。两者的免 basis 落点分别登记在
 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md) 与
@@ -584,7 +584,7 @@ DC 不存在第二套 profile-fixed history sharing 对象。Exact-peer-only 来
 membership gate，不来自 key-source allowlist。DC 的 `history_access` 永久为 `since_join` 且不存在 update/widen 分支。Exporter DC 的历史 secret delivery 只按 receipt-bound direct Seal replay 得到的 winning transition、recipient current incarnation/join floor 与首次入队 T1 gate 执行；provisional epoch 是否可交付也由这些事实机械决定，
 不得再引入 `pre_join_history` 或公开 provisional key-share 特例。
 
-notary value 与 CBA profile **MUST** 从 trust domain 已 accepted 的 DM deployment policy 与 founder current service binding 确定性派生，caller **MUST NOT** 自选。单侧创建只保证不依赖 peer 设备与 peer Station；若所选普通 notary profile 本身需要其它不可达 signer，创建仍按普通 CBA 规则 pending。
+notary value 与 CBS profile **MUST** 从 trust domain 已 accepted 的 DM deployment policy 与 founder current service binding 确定性派生，caller **MUST NOT** 自选。单侧创建只保证不依赖 peer 设备与 peer Station；若所选普通 notary profile 本身需要其它不可达 signer，创建仍按普通 CBS 规则 pending。
 
 ## 7. 首次物化：bootstrap authority 与唯一 MLS group
 
@@ -620,7 +620,7 @@ DM Realm 与所有其它 MLS-backed effective scope 使用同一规则：
 首次 `ak.mls.genesis` 是 create-once；不存在第二个 group、候选 group、epoch reset 或额外 group selector。
 
 Founding、peer Add 和以后 repair 都只通过该 group 的 ordinary winning Commit 推进。只要至少一个 current authorized live member
-持有 private state，它可 author Remove/re-add Commit 和 Welcome；所有 reducer、CBA 与 security-frontier 规则与普通 MLS Commit 相同，
+持有 private state，它可 author Remove/re-add Commit 和 Welcome；所有 reducer、CBS 与 security-frontier 规则与普通 MLS Commit 相同，
 不得为 DC 新增 winner、barrier 或 quorum。Message 必须引用 event-time exact winning group state，后续 Commit 不追溯否定旧 Message。
 
 若所有成员均丢失该 group 的 private state，则旧 encrypted DC scope 永久终结：不得用同一 derived group id 重放 Genesis、把 epoch

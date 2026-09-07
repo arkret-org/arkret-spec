@@ -182,7 +182,7 @@ base 到达的并发 branch、missing object 或 fork-quarantine 均 fail closed
 客户端/服务使用 SQLite 或等价 disk-backed work queue+visited set，从 target 反向发现完整 cut，再按拓扑 base→target 运行标准 `apply_seal`。
 direct traversal 只消费 Seal 与其 `delta[]` 唯一发现的 Control Move；普通 Message/reaction 等 DataEvent 的 digest 不得进入 `delta[]`，也不因
 某个 Seal 的 optional data observation root 出现它而取得控制面 finality。resolve 必须返回该 accepted Seal 在 acceptance 时实际 pin 的
-exact canonical Control Move bytes，并同时提供 registered `apply_seal` 所需的 historical signer evidence、AvailabilityReceipt 及其它 CBA
+exact canonical Control Move bytes，并同时提供 registered `apply_seal` 所需的 historical signer evidence、AvailabilityReceipt 及其它 CBS
 依赖。每个 Seal 的 notary、predecessor、delta、control_event_set_root、completeness_root、state_root、frozen-predecessor admission、
 Bottom/recovery 与 joined state 都按核心规则重算。
 
@@ -305,7 +305,7 @@ archive tuple digest、完整 holder trusted basis 与有效期。外层 `Source
 
 Source 先分配全部 chunk response ids，再冻结 descriptors
 `{chunk_response_id,chunk_index,covered_epoch_range}`。每个 chunk 恰覆盖一条连续 inclusive epoch range，且该 range 是 request 已授权 ranges 的
-canonical subset；manifest 不枚举 proof bytes 或 `CbaProofBundle`，也不得用一个 descriptor 代表离散 range。
+canonical subset；manifest 不枚举 proof bytes 或 `CbsProofBundle`，也不得用一个 descriptor 代表离散 range。
 Manifest 不得承诺 chunk
 ciphertext、enc、最终 size 或 release proof。每个 chunk 使用 request 中的同一 recipient public key 但独立 HPKE
 encapsulation。唯一 info/AAD context 是下面的 canonical bytes；发送方必须把同一份 bytes 同时作为 RFC 9180

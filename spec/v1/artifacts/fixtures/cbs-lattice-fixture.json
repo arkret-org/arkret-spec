@@ -1,18 +1,18 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "ak.suite.authz.cba_lattice.v1"
+    "entrypoint": "ak.suite.authz.cbs_lattice.v1"
   },
-  "profile": "ak.vector_group.cba_lattice.v1",
+  "profile": "ak.vector_group.cbs_lattice.v1",
   "version": "2026-09-07",
   "notes": [
-    "These vectors pin CBA dual-plane semantics. DataEvent vectors use signed kind + payload + scope_ref + seal_ref and never use preconditions. Control Move vectors use signed kind + payload + scope_ref + seal_basis and may use preconditions. Every cell write is receiver-projected from the registered reducer contract.",
+    "These vectors pin CBS dual-plane semantics. DataEvent vectors use signed kind + payload + scope_ref + seal_ref and never use preconditions. Control Move vectors use signed kind + payload + scope_ref + seal_basis and may use preconditions. Every cell write is receiver-projected from the registered reducer contract.",
     "Seal delta entries reference only newly sealed control-plane event digests. Cumulative coverage is derived from predecessor_refs[] plus delta[]. DataEvent digests may appear in data_event_set_root / data_view_root observations, but those roots do not confer control-plane finality.",
     "Cell ids follow ak:cell:ak.component.<facet-path>.v<n>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous."
   ],
   "lattice_round_trip": {
-    "description": "SDK lattice round-trip runner coverage for CBA lattice family vectors exercised through any conforming local lattice implementation.",
-    "runner": "ak.suite.authz.cba_lattice.round_trip.v1",
+    "description": "SDK lattice round-trip runner coverage for CBS lattice family vectors exercised through any conforming local lattice implementation.",
+    "runner": "ak.suite.authz.cbs_lattice.round_trip.v1",
     "covers_vectors": [
       "ak.vector.lattice.mv_register_join.v1",
       "ak.vector.lattice.counter_join.v1",
@@ -184,7 +184,7 @@
         "fanout_allowed": true,
         "seal_required_for_accept": false
       },
-      "vector_id": "ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1"
+      "vector_id": "ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1"
     },
     {
       "name": "data_event_observation_does_not_seal",
@@ -204,7 +204,7 @@
         "data_event_state": "data_observed",
         "must_not_report_sealed": true
       },
-      "vector_id": "ak.vector.cba_lattice.data_event_observation_does_not_seal.v1"
+      "vector_id": "ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1"
     },
     {
       "name": "control_move_requires_seal_basis_and_seal",
@@ -246,7 +246,7 @@
       "expected_after_valid_seal": {
         "event_state": "control_sealed"
       },
-      "vector_id": "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1"
+      "vector_id": "ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1"
     },
     {
       "name": "same_batch_does_not_advance_authorization_basis",
@@ -278,7 +278,7 @@
         "reason": "capability_denied",
         "same_batch_resolution_only": true
       },
-      "vector_id": "ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1"
+      "vector_id": "ak.vector.cbs_lattice.same_batch_does_not_advance_authorization_basis.v1"
     },
     {
       "name": "data_plane_conflict_returns_bottom_without_winner",
@@ -309,7 +309,7 @@
         },
         "dependent_write_result": "failed_bottom"
       },
-      "vector_id": "ak.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1"
+      "vector_id": "ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1"
     },
     {
       "name": "seal_delta_excludes_data_event_digest",
@@ -329,7 +329,7 @@
         "event_state": "rejected_seal",
         "reason": "delta_contains_data_event"
       },
-      "vector_id": "ak.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1"
+      "vector_id": "ak.vector.cbs_lattice.seal_delta_excludes_data_event_digest.v1"
     },
     {
       "name": "open_set_compaction_preserves_control_roots",
@@ -355,7 +355,7 @@
         "preserves_signature_chain": true,
         "compaction_without_signature": "reject"
       },
-      "vector_id": "ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1"
+      "vector_id": "ak.vector.cbs_lattice.open_set_compaction_preserves_control_roots.v1"
     },
     {
       "name": "seal_canonical_no_self_reference",
@@ -413,7 +413,7 @@
           "reason": "schema_violation"
         }
       ],
-      "vector_id": "ak.vector.cba_lattice.seal_canonical_no_self_reference.v1"
+      "vector_id": "ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1"
     },
     {
       "name": "cas_mixed_basis",
@@ -546,7 +546,7 @@
           }
         }
       ],
-      "vector_id": "ak.vector.cba_lattice.cas_mixed_basis.v1"
+      "vector_id": "ak.vector.cbs_lattice.cas_mixed_basis.v1"
     },
     {
       "name": "auth_context_epoch_pinning_reject",
@@ -647,7 +647,7 @@
           }
         }
       ],
-      "vector_id": "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1"
+      "vector_id": "ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1"
     },
     {
       "name": "seal_compaction_interval_enforced",
@@ -708,7 +708,7 @@
           }
         }
       ],
-      "vector_id": "ak.vector.cba_lattice.seal_compaction_interval_enforced.v1"
+      "vector_id": "ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1"
     },
     {
       "name": "inclusion_list_obligation",
@@ -774,7 +774,7 @@
         }
       ],
       "single_signer_profile_expected": "unavailable",
-      "vector_id": "ak.vector.cba_lattice.inclusion_list_obligation.v1"
+      "vector_id": "ak.vector.cbs_lattice.inclusion_list_obligation.v1"
     },
     {
       "name": "notary_fault_equivocation_quarantine",
@@ -817,12 +817,12 @@
           "result": "failed_precondition"
         }
       },
-      "vector_id": "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1"
+      "vector_id": "ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1"
     },
     {
       "name": "sealed_control_move_full_digest_collision",
       "description": "Two different canonical preimages recompute to the same event_id under one suite, and the colliding Control Move is already covered by an accepted Seal. Unlike notary equivocation, the sibling event_digest values are byte-identical, so no digest can name the winner.",
-      "vector_id": "ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1",
+      "vector_id": "ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1",
       "colliding_identity": {
         "event_id": "ak:event:AUl7i16DNG_PX5V_-ud5fDx65PwcMpaj4uSW2K4C0Ev9",
         "digest_suite": "sha256",
@@ -1587,7 +1587,7 @@
           }
         }
       ],
-      "vector_id": "ak.vector.cba_lattice.threshold_forensic_attribution.v1"
+      "vector_id": "ak.vector.cbs_lattice.threshold_forensic_attribution.v1"
     },
     {
       "name": "open_set_concurrent_revocation_fail_closed",
@@ -1717,7 +1717,7 @@
           }
         }
       ],
-      "vector_id": "ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1"
+      "vector_id": "ak.vector.cbs_lattice.open_set_concurrent_revocation_fail_closed.v1"
     },
     {
       "name": "actor_chain_realm_scope",
@@ -2039,7 +2039,7 @@
           }
         }
       ],
-      "vector_id": "ak.vector.cba_lattice.conflict_recovery_move.v1",
+      "vector_id": "ak.vector.cbs_lattice.conflict_recovery_move.v1",
       "cas_register_recovery": {
         "cell": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
         "assertions": [
@@ -2300,7 +2300,7 @@
     },
     {
       "name": "fork_resolution_peer_alignment",
-      "vector_id": "ak.vector.cba_lattice.fork_resolution_peer_alignment.v1",
+      "vector_id": "ak.vector.cbs_lattice.fork_resolution_peer_alignment.v1",
       "description": "Second-phase per-peer alignment of sync/federation.md 4.5.3. Local normalization alone never clears peer_stale; the challenged peer has to disclose, at the exact adjudicated position, a canonical sibling set equal to the verdict. The disclosure face is bounded by the request, so alignment is decidable independently of how long the actor history is.",
       "disclosure_faces": {
         "event_sibling_position": "ak.peer.events.read.sibling_positions.v1",
@@ -3483,7 +3483,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.seal_delta_concurrency_class.v1",
+      "vector_id": "ak.vector.cbs_lattice.seal_delta_concurrency_class.v1",
       "name": "seal_delta_concurrency_class",
       "description": "A Seal's control delta is one of two shapes and never a mixture: exactly one security_barrier transaction, or a set of non-barrier writes on pairwise disjoint cells. The frozen-predecessor rule means a non-barrier write batched beside a barrier is still judged on the state before that barrier took effect, so at-most-one-barrier would leave the dangerous combination open. The class read is the registered one; it is never switched per request.",
       "cases": [

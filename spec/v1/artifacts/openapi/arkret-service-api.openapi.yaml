@@ -4266,7 +4266,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsSubmitOutcome'
         '409':
-          description: Registered atomic federation unit rejected with zero writes because exact Event or CBA dependencies are missing. error.code is dependency_missing and error.details conforms to EventsDependencyMissingProblem.
+          description: Registered atomic federation unit rejected with zero writes because exact Event or CBS dependencies are missing. error.code is dependency_missing and error.details conforms to EventsDependencyMissingProblem.
           content:
             application/problem+json:
               schema:

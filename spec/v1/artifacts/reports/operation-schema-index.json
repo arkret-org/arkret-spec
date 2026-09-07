@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.12",
+  "version": "2026-09-08.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-07T21:45:00+08:00",
+  "generated_at": "2026-09-08T05:55:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2286,7 +2286,7 @@
         "properties": [
           "reporter_authority",
           "report_event",
-          "cba_proof_bundles"
+          "cbs_proof_bundles"
         ],
         "closed": true
       },
@@ -3104,7 +3104,7 @@
         "properties": [
           "service_binding_ref",
           "events",
-          "cba_proof_bundles",
+          "cbs_proof_bundles",
           "unit_kind",
           "source_acceptance_receipt",
           "founding_authority_evidence",
@@ -3125,7 +3125,7 @@
             "properties": [
               "service_binding_ref",
               "events",
-              "cba_proof_bundles"
+              "cbs_proof_bundles"
             ],
             "closed": true
           },
@@ -3143,7 +3143,7 @@
               "events",
               "source_acceptance_receipt",
               "founding_authority_evidence",
-              "cba_proof_bundles"
+              "cbs_proof_bundles"
             ],
             "closed": true
           },
@@ -3164,7 +3164,7 @@
               "controller_transition",
               "agent_transitions",
               "cleanup_intent_digest",
-              "cba_proof_bundles"
+              "cbs_proof_bundles"
             ],
             "closed": true
           }
@@ -3404,7 +3404,7 @@
           "invite_event",
           "invite_address",
           "introduction_evidence",
-          "cba_proof_bundles",
+          "cbs_proof_bundles",
           "idempotency_key"
         ],
         "properties": [
@@ -3412,7 +3412,7 @@
           "invite_event",
           "invite_address",
           "introduction_evidence",
-          "cba_proof_bundles",
+          "cbs_proof_bundles",
           "idempotency_key"
         ],
         "closed": true
@@ -6747,7 +6747,7 @@
         "properties": [
           "event",
           "authorization_lease",
-          "cba_proof_bundles"
+          "cbs_proof_bundles"
         ],
         "closed": true
       },
@@ -7054,7 +7054,7 @@
         "properties": [
           "event",
           "authorization_lease",
-          "cba_proof_bundles",
+          "cbs_proof_bundles",
           "control_proposal_ack",
           "membership_compensation_evidence",
           "events",
@@ -7076,7 +7076,7 @@
             "properties": [
               "event",
               "authorization_lease",
-              "cba_proof_bundles",
+              "cbs_proof_bundles",
               "control_proposal_ack",
               "membership_compensation_evidence"
             ],
@@ -7105,7 +7105,7 @@
               "unit_kind",
               "idempotency_key",
               "events",
-              "cba_proof_bundles"
+              "cbs_proof_bundles"
             ],
             "closed": true
           },
@@ -7991,7 +7991,7 @@
           "erase_confirmation_digest",
           "series",
           "authorization_lease",
-          "cba_proof_bundles"
+          "cbs_proof_bundles"
         ],
         "closed": true
       },

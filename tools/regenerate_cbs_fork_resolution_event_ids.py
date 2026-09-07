@@ -1,4 +1,4 @@
-"""Regenerate valid Event IDs in the CBA fork-resolution fixture cases."""
+"""Regenerate valid Event IDs in the CBS fork-resolution fixture cases."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+FIXTURE = ROOT / "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
 
 TARGET_CARDINALITIES = {
     "resolution_voids_complete_sibling_position": 17,

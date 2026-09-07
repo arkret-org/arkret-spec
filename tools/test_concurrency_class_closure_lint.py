@@ -1,4 +1,4 @@
-"""Mutation tests for the concurrency_class closure gate (cba-profiles.md section 2).
+"""Mutation tests for the concurrency_class closure gate (cbs-profiles.md section 2).
 
 concurrency_class stops being an editing convention once a rule relaxes
 serialization by reading it. Two things then have to hold mechanically: every
@@ -62,7 +62,7 @@ class ConcurrencyClassClosureTest(unittest.TestCase):
         )
 
     def test_moderation_writes_are_barriers_because_authorization_reads_them(self) -> None:
-        """cba-profiles.md section 2: authorization reads it, so it is a barrier.
+        """cbs-profiles.md section 2: authorization reads it, so it is a barrier.
 
         capabilities.md 18.1 lets a grant subject be a condition selector over
         moderation state, so a merge_safe classification would let a moderation

@@ -613,7 +613,7 @@ Content-Type: application/json
 POST /_arkret/self/events
 ```
 
-请求体是一个 `EventInitialSubmission {event, authorization_lease?, cba_proof_bundles[]?}`，
+请求体是一个 `EventInitialSubmission {event, authorization_lease?, cbs_proof_bundles[]?}`，
 或 `{events: EventInitialSubmission[]}`。发布证据不进入 Event digest-preimage canonical bytes。
 
 要求：
@@ -622,7 +622,7 @@ POST /_arkret/self/events
   `proofs` / `unsigned` 等 excluded 字段不同不构成 hash collision，仍须按各自字段合同验证。
 - 同一个 `event_id` 若 digest-preimage canonical bytes 不同 MUST 整组 quarantine，并以
   `witness_disagreement` 记录完整 hash collision evidence。
-- 服务 MUST 验证 Event 签名、actor DID、device/session、AuthorizationLease、CBA basis、
+- 服务 MUST 验证 Event 签名、actor DID、device/session、AuthorizationLease、CBS basis、
   capability、Realm policy、`actor_seq` 和因果依赖，并在 lease 到期前持久化签发 IngressReceipt。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Realm frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
 

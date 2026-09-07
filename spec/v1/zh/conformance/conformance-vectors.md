@@ -11,7 +11,7 @@ updated: 2026-08-11
 `ak.vector.identity.station_admission.v1` 覆盖 `AccountId` 终身单 account / 单 PCR genesis 唯一性：deactivation 后同一 Station replacement account 仍拒绝；deployment policy 可拒绝 reactivation，policy allow 也必须在 completed PCR recovery closure 后只恢复原 account/PCR 并绑定更高 device generation；另一 Station 完整 onboarding 是独立选择而非强制恢复路径。该向量还覆盖 Event 完整 `ActorId` 的 producer 签名、由实际 author ActorId 唯一导出的 origin service、producer proof 精确绑定、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `station-admission-fixture.json` 的全部 semantic cases；任何以裸 principal/PCR identifier 比较外部 account equality、deactivation 后释放同 pair uniqueness、用 account auth/admin 绕过 PCR recovery、复活旧 generation 资源、接收服务重签或独立 signer-evidence sidecar 都不合格。
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
-2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
+2. CBS · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
 3. Redaction（约束与可见性）
 4. Capability（authority chain、revoke、approval）
 5. Sync（client sync、pagination、snapshot、MLS epoch backfill）
@@ -38,7 +38,7 @@ MIMI Provider Facade 的 active interop vector 集合与数量以 [`vector-regis
 
 形式化 proof obligations 至少 SHOULD 覆盖：
 
-- CBA / open_set 多 leaf 下 per-cell lattice join `J(L)` 是纯函数，且与输入顺序、接收方、墙钟无关；所有 conformant reducer 对同一 accepted Seal frontier 收敛到同一 cell value。
+- CBS / open_set 多 leaf 下 per-cell lattice join `J(L)` 是纯函数，且与输入顺序、接收方、墙钟无关；所有 conformant reducer 对同一 accepted Seal frontier 收敛到同一 cell value。
 - 并发分支撤销 fail closed：grant / capability revoke 与被授权 Event 并发时，joined control view MUST 重判并拒绝不再满足授权的 Event。
 - Capability authority 单调衰减：`child.actions ⊆ issuer authority actions`、resource selector 不放宽、约束不放宽、`authority_expiry_seal` 只能收窄或固定，不能被 child grant 延长。
 - Authority graph 无环，且环检测在并发分支合并、离线 replay 与 migration context 下结果一致。
@@ -821,13 +821,13 @@ Expected：`expected_multibase` / `expected_principal_id_key` MUST byte-for-byte
 
 同一 vector 还 MUST 覆盖 stateless exact query：`profile=group_security_frontier`、scope/group、调用方本机已验证 current/pending group state 的 every-and-only、按 `leaf_index` 严格递增排列的 `local_mls_leaves[]`、完整 canonical `proof_base_basis`/`proof_target_basis` Seal 反链、`frontier_purpose` 及其 closed 字段和 `byte_limit` 全部进入 canonical query；空 leaves、重复 leaf index、重复 credential、伪造 principal 以及任何 result-set/cursor/continuation 或 epoch-range profile 字段都必须拒绝。pre-Genesis 0→0 必须携 `proposed_group_genesis_binding`，并分别覆盖 `mls_rfc9420`、exporter+none、exporter+organization recovery；不同 proposal 必须产生不同 query digest/cache entry 与 every-and-only cell set。缺 proposal 返回 `mls_genesis_binding_proposal_required`；proposal/真正 Genesis mismatch、并发 Genesis 输家、accepted 后仍携 proposal均返回 `mls_genesis_binding_proposal_mismatch` 且零写入；accepted 0→0 refresh 必须无 proposal并读取 immutable winner，伪造 `base_group_state_ref` 拒绝。`base == target` 零过渡与 base 为 target ancestor 都是正例；已证明并发/不可达必须返回 `mls_governance_anchor_unreachable`，必需 Seal/Event/witness 缺失导致无法判定时必须返回 `frontier_unavailable`，两者均不得等待、选 common descendant 或替换 basis。响应只携 exact `query_digest` 而不重复完整 leaves，且必须完整覆盖该 purpose 的 registered frontier projection；超界返回 `mls_governance_proof_bounds_exceeded`，不得截断或拆 cell。相同 query 与相同 accepted material 必须生成相同 canonical 响应和 `page_digest = SHA-256(UTF8("ak.mls-governance-proof-page-v1") || 0x00 || UTF8(query_digest) || 0x00 || JCS(page_body))`。Prefix witness 还必须覆盖空 prefix、左右 state edge、neighbor inclusion、缺 entry、错 leaf index 与多余 sibling。该近端响应不是 `ak:snapshot`，不含 Snapshot manifest/chunks 或 bootstrap authority；批量/旧历史只走 receipt-bound direct accepted-Seal traversal 与标准 Event/Seal/dependency resolve。
 
-## 2. CBA · Lattice Vectors
+## 2. CBS · Lattice Vectors
 
-> 来源：`cba-lattice-fixture.json`。
+> 来源：`cbs-lattice-fixture.json`。
 
 ### 2.1 目标
 
-本节把 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA、Seal 与 Lattice 规则转成可复现向量。实现必须对每个向量输出：
+本节把 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBS、Seal 与 Lattice 规则转成可复现向量。实现必须对每个向量输出：
 
 - `vector_id`
 - DataEvent / Control Move 验证结果
@@ -840,7 +840,7 @@ Expected：`expected_multibase` / `expected_principal_id_key` MUST byte-for-byte
 向量名称：
 
 ```text
-ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1
+ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1
 ```
 
 输入：
@@ -859,7 +859,7 @@ ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.data_event_observation_does_not_seal.v1
+ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1
 ```
 
 输入：
@@ -878,7 +878,7 @@ ak.vector.cba_lattice.data_event_observation_does_not_seal.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1
+ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1
 ```
 
 输入：
@@ -896,7 +896,7 @@ ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1
+ak.vector.cbs_lattice.same_batch_does_not_advance_authorization_basis.v1
 ```
 
 输入：
@@ -995,7 +995,7 @@ Expected：
 [`sdk-event-type-axes-fixture.json`](../../artifacts/fixtures/sdk-event-type-axes-fixture.json)。它至少证明：
 
 - `ControlMove` 缺 `seal_basis`、`DataEvent` 缺 `seal_ref/auth_context` 无法产生可提交值；
-- 普通 raw Event batch 不能因 CBA 条件字段缺失而被推断为 `AnchorUnit`；
+- 普通 raw Event batch 不能因 CBS 条件字段缺失而被推断为 `AnchorUnit`；
 - `MlsCommitPayload` 缺完整 Commit bytes、epoch 或 `security_frontier_digest` 无法构造；
 - plain application payload 不能误走 MLS Commit validator，`MlsEncryptedPayload<T>` 不能序列化为 plain payload；
 - SDK 生成的 immutable verified submission bytes 逐字通过服务端同一 Event schema、canonicalization 与 proof transcript 验证。
@@ -1008,7 +1008,7 @@ Expected：
 向量名称：
 
 ```text
-ak.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1
+ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1
 ```
 
 输入：
@@ -1027,7 +1027,7 @@ ak.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1
+ak.vector.cbs_lattice.seal_delta_excludes_data_event_digest.v1
 ```
 
 输入：
@@ -1046,7 +1046,7 @@ ak.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1
+ak.vector.cbs_lattice.open_set_compaction_preserves_control_roots.v1
 ```
 
 输入与期望（多 case 矩阵）：
@@ -1062,7 +1062,7 @@ ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.seal_canonical_no_self_reference.v1
+ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1
 ```
 
 输入与期望（多 case 矩阵）：
@@ -1205,12 +1205,12 @@ runner MUST 从
 ak.vector.lattice.fsm_join.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `fsm` lattice 的 join 规则：“同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 ⊥。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。”
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `fsm` lattice 的 join 规则：“同一 CBS basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 ⊥。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。”
 
 输入（cell schema：`fsm`，`bottom=reject`，`parameters.initial_state="invited"`，`allowed_transitions` 含 `(invited,join)`、`(invited,decline)`）：
 
-- **Case A — 幂等收敛**：同一 CBA basis 内两条并发 Event 各自对同一 fsm cell 提交 transition `(from="invited", to="join")`（相同 `(from,to)`，不同 actor / event id / HLC）。
-- **Case B — 并发冲突 ⊥**：同一 CBA basis 内两条并发 Event 分别提交 `(from="invited", to="join")` 与 `(from="invited", to="decline")`（同 `from` 不同 `to`）。
+- **Case A — 幂等收敛**：同一 CBS basis 内两条并发 Event 各自对同一 fsm cell 提交 transition `(from="invited", to="join")`（相同 `(from,to)`，不同 actor / event id / HLC）。
+- **Case B — 并发冲突 ⊥**：同一 CBS basis 内两条并发 Event 分别提交 `(from="invited", to="join")` 与 `(from="invited", to="decline")`（同 `from` 不同 `to`）。
 - **Case C — 重入不是重放**：可逆 family（`allowed_transitions` 含 `(active,archived)` 与 `(archived,active)`）上依次提交 `active→archived`、`archived→active`、`active→archived` 三条**因果有序**的 transition。
 - **Case D — 已登记 self-loop 不吃掉后继**：`allowed_transitions` 含 `(active,active)` 的 family 上依次提交 `active→active` 与 `active→tombstoned`。
 
@@ -1251,7 +1251,7 @@ ak.vector.lattice.fsm_causal_heads.v1
 `allowed_transitions` 是写入对**自身签名 basis** 的准入断言，不是 join 时的接边依据。上一节
 §2.11 固定的是转移表准入与同 basis 的冲突判定，本节固定的是**状态代数**——它才是「不同到达顺序
 得到同一结果」的来源。机器 fixture 是
-[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) 的
+[`cbs-lattice-fixture.json`](../../artifacts/fixtures/cbs-lattice-fixture.json) 的
 `ak.vector.lattice.fsm_causal_heads.v1` 块。
 
 输入：每个 case 给出一组写入 `{id, from, to, supersedes[]}`，其中 `supersedes` 是该写入自身已验证
@@ -1301,7 +1301,7 @@ membership transition 折叠是本 lattice 的消费者。runner MUST 对这些�
 向量名称：
 
 ```text
-ak.vector.cba_lattice.cas_mixed_basis.v1
+ak.vector.cbs_lattice.cas_mixed_basis.v1
 ```
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1.3 的写入准入：每个 `cas_register` 写入的基线是它**自身签名的 `seal_basis`**，Seal 准入按 §6.3 step 8b 比较该 cell 的**完整活跃 head 身份集合** `H_c(B) = H_c(P)`。该守卫对每个注册目标自动派生，不要求 wire 重复携带 `head_eq`；业务另行登记的 `head_eq` 继续签名并执行。
@@ -1358,7 +1358,7 @@ ak.vector.lattice.ordered_log_gap.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1
+ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1
 ```
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.1：verifier MUST NOT 只查"当前 DID 文档"，key / credential epoch 的有效性以 `seal_ref` 时点为准。
@@ -1385,7 +1385,7 @@ data-cell join 输入。Case A 的 reject 与 hide 只允许改变本地保留/�
 向量名称：
 
 ```text
-ak.vector.cba_lattice.seal_compaction_interval_enforced.v1
+ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1
 ```
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2 的结构性义务与 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `seal_compaction_max_interval_ms`。
@@ -1410,7 +1410,7 @@ ak.vector.cba_lattice.seal_compaction_interval_enforced.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.inclusion_list_obligation.v1
+ak.vector.cbs_lattice.inclusion_list_obligation.v1
 ```
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.3 与 [`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-list.schema.json)。
@@ -1438,7 +1438,7 @@ ak.vector.cba_lattice.inclusion_list_obligation.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1
+ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1
 ```
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.1 与 `ak.notary.fault.equivocation` event kind。
@@ -1462,7 +1462,7 @@ ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1
+ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1
 ```
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.3.3 与
@@ -1491,7 +1491,7 @@ ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.threshold_forensic_attribution.v1
+ak.vector.cbs_lattice.threshold_forensic_attribution.v1
 ```
 
 本向量固化 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `notary.forensic_attribution` 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.1 的算术规则。
@@ -1516,12 +1516,12 @@ ak.vector.cba_lattice.threshold_forensic_attribution.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1
+ak.vector.cbs_lattice.open_set_concurrent_revocation_fail_closed.v1
 ```
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 与 §6.3：`open_set` notary profile 下，撤销 Seal 与 DataEvent 的 `seal_ref` 并发时，receiver 必须按 joined control view 重判授权，不能因为二者互不可达而把撤销窗口当成未发生。
 
-输入（fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `open_set_concurrent_revocation_fail_closed`）：
+输入（fixture：[`cbs-lattice-fixture.json`](../../artifacts/fixtures/cbs-lattice-fixture.json) `open_set_concurrent_revocation_fail_closed`）：
 
 - **Case A**：两个并发 Seal leaf 中，一个覆盖 capability grant，另一个覆盖同一 grant 的 revoke；DataEvent 的 `seal_ref` 指向 grant leaf。
 - **Case B**：承载授权判定的 control cell 在并发 join 后进入 `⊥`，且 `bottom=reject`。
@@ -1545,7 +1545,7 @@ ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1
 ak.vector.circle.lifecycle_basis_and_archive_freshness.v1
 ```
 
-本向量固化 [`circle.md`](../models/circle.md) §6.1 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3：Circle `state=active` 是事件 CBA 基线中的授权输入，不能读取 receiver 当前 projection 代替；线性 archive、并发 archive、tombstone 与 restore barrier 必须得到唯一分类。
+本向量固化 [`circle.md`](../models/circle.md) §6.1 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3：Circle `state=active` 是事件 CBS 基线中的授权输入，不能读取 receiver 当前 projection 代替；线性 archive、并发 archive、tombstone 与 restore barrier 必须得到唯一分类。
 
 输入（fixture：[`circle-scope-fixture.json`](../../artifacts/fixtures/circle-scope-fixture.json) `lifecycle_basis_cases`）：
 
@@ -1562,7 +1562,7 @@ ak.vector.circle.lifecycle_basis_and_archive_freshness.v1
 - Case B：窗口内 MUST 接受并进入 data-cell join 输入；超窗 MUST 拒绝或隐藏，code=`seal_ref_stale`。后继 archive 不得被误报为基线内 `circle_not_active`。
 - Case C / D：MUST 立即拒绝或隐藏，code=`seal_ref_stale`，`freshness_window_applies=false`；轻客户端无法验证 joined view 时只能 pending 或 fail closed。
 - Case E：restore MUST NOT 追溯恢复旧 `seal_ref`；producer 必须换用包含 restore 的新 active 基线。
-- Case F：admission 与 Seal 重验都只读取登记的 CBA 基线，不读取本地当前 projection。
+- Case F：admission 与 Seal 重验都只读取登记的 CBS 基线，不读取本地当前 projection。
 
 失败条件：相同事件因 receiver 当前 Circle projection 不同而一方接受、一方 `circle_not_active`；并发 archive 获得 freshness window；tombstone 获得宽限；restore 后接受 archive 前的旧基线；Control Move 不在 `seal_basis` / Seal frozen predecessor view 中重验。
 
@@ -1571,12 +1571,12 @@ ak.vector.circle.lifecycle_basis_and_archive_freshness.v1
 向量名称：
 
 ```text
-ak.vector.cba_lattice.conflict_recovery_move.v1
+ak.vector.cbs_lattice.conflict_recovery_move.v1
 ```
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.5 与 §9.3.1.4：`bottom=reject` control cell 进入 `⊥` 后如何回到单值。**出路按 cell family 分层**——已登记 `sole_recovery_families` 的 family 没有普通写出路，只能由 conflict-recovery Move 恢复；其余因果寄存器 family 还可以由一次对该 action 本来就有权的普通写自愈。conflict-recovery Move 本身对任何处于 `⊥` 的因果寄存器 cell 都可用，清单 MUST NOT 被实现成对目标的限制。pre-conflict `state_witness` 与撤销新鲜度这一族要求只适用于**非**因果寄存器的 `bottom=reject` lattice（registry 中今天是 `ordered_log`），因此下面 Case A–E 跑在 `ak.component.audit.release.v1` 上；因果寄存器按 §9.5.1 求值，不要求 witness。
 
-输入（fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `conflict_recovery_move`）：
+输入（fixture：[`cbs-lattice-fixture.json`](../../artifacts/fixtures/cbs-lattice-fixture.json) `conflict_recovery_move`）：
 
 - **Case A**：合法 recovery Move，`refs[]` 同时携带 critical `recovery_capability` 与 `state_witness`，witness 可重建 pre-conflict `state_root`，recovery capability 已 sealed 且未被撤销。
 - **Case B**：缺失 `state_witness` 或 witness inclusion proof 无法重建 `state_root`。
@@ -1616,7 +1616,7 @@ ak.vector.lattice.ordered_log_join.v1
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 的 grow-only Event-set join；[`encoding.md` §4.2](./encoding.md) 只稳定序列化顺序，不产生 winner。
 
-输入（ordered_log cell，`bottom=inert`；fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `ak.vector.lattice.ordered_log_join.v1`）：
+输入（ordered_log cell，`bottom=inert`；fixture：[`cbs-lattice-fixture.json`](../../artifacts/fixtures/cbs-lattice-fixture.json) `ak.vector.lattice.ordered_log_join.v1`）：
 
 - **Case A — sparse per-issuer 顺序**：两个 issuer 各自提交任意递增 `actor_seq`，到达顺序交错且允许 per-cell 间隔。
 - **Case B — exact replay**：同一 Event identity 与完整 canonical `write.op` 重复到达。
@@ -3901,7 +3901,7 @@ Expected：
 
 - 第 2 步 MUST fail closed；实现不得用本地布尔缓存替代以 S 或其后继 Seal view 的判定。
 - 第 3 步 Commit MUST reject，且 current winning MLS group state 不得推进；后续 E2EE DataEvent 继续被 security frontier gate 阻塞。
-- 第 4 步客户端 MUST fail closed，不得伪造 `seal_basis`；缺失或不一致 basis 的 Control Move 按 `ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1` 拒收。
+- 第 4 步客户端 MUST fail closed，不得伪造 `seal_basis`；缺失或不一致 basis 的 Control Move 按 `ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1` 拒收。
 
 ### 10.9.2 Vector: Device Revocation Pending State
 
@@ -4032,7 +4032,7 @@ Expected：
 - 第 1–3 步依次接受，accepted revision 为 1、2、3；rotation 是 whole-value successor，revoke schema 不接受任何 active secret 字段。
 - 第 4 步全部 fail closed：缺字段是 `schema_violation`，其余是 `cas_conflict`，且 revision 与 durable value 均不改变。
 - 第 5 步仍返回 `cas_conflict`、revision 保持 3；实现只保留不可恢复旧 target 的 subject digest / revision / outcome 最小状态。
-- 任一实现不得使用 CBA `preconditions`、arrival-order LWW、`cas_register` Bottom 或 `push_gateway_did` 私有别名替代本向量。
+- 任一实现不得使用 CBS `preconditions`、arrival-order LWW、`cas_register` Bottom 或 `push_gateway_did` 私有别名替代本向量。
 
 ## 11. Agent & Sidecar Vectors
 
@@ -5029,7 +5029,7 @@ Expected:
 Steps:
 
 1. 同一 `call_id` 当前 accepted state 为 `ringing`。
-2. 在同一 CBA basis 上并发提交 sibling transition A: `ringing -> active` 与 B: `ringing -> missed`。
+2. 在同一 CBS basis 上并发提交 sibling transition A: `ringing -> active` 与 B: `ringing -> missed`。
 
 Expected:
 
@@ -5353,7 +5353,7 @@ Expected：
 
 `vector_id`: `ak.vector.federation.reducer_profile_resolution.v1`
 
-本向量验证联邦 receiver 对每个 Event 从其认证 CBA governance basis 读取 Realm reducer-profile singleton cell；普通 Event 与 federation service binding 均不声明 reducer identity。执行数据见 [`federation-fixture.json`](../../artifacts/fixtures/federation-fixture.json)。
+本向量验证联邦 receiver 对每个 Event 从其认证 CBS governance basis 读取 Realm reducer-profile singleton cell；普通 Event 与 federation service binding 均不声明 reducer identity。执行数据见 [`federation-fixture.json`](../../artifacts/fixtures/federation-fixture.json)。
 
 Steps：
 
@@ -5362,7 +5362,7 @@ Steps：
 3. 将 settled profile 与 receiver 的 `supported_reducer_profiles[]` 比较。
 4. 对 `ak.realm.upgrade`，先由 source profile 验证 Event，再检查 target registry row 与 source→target edge。
 
-Expected：支持 `ak.reducer.core.v1` 时普通 Event 继续 admission；本地未实现 settled profile 时返回 `unsupported_profile`；target row 未注册时 upgrade 返回 `unsupported_profile`。任何实现不得用本地默认 profile、latest Realm state 或请求字段替代 Event 自身的 CBA basis。
+Expected：支持 `ak.reducer.core.v1` 时普通 Event 继续 admission；本地未实现 settled profile 时返回 `unsupported_profile`；target row 未注册时 upgrade 返回 `unsupported_profile`。任何实现不得用本地默认 profile、latest Realm state 或请求字段替代 Event 自身的 CBS basis。
 
 ## 16. Streaming Chunked AEAD Attachment Vectors
 
@@ -5837,7 +5837,7 @@ Expected:
 Steps:
 
 1. 同一 Realm 内对同一 `invitee_account_id` 顺序提交两条不同的、各自 schema-valid 的 `ak.invite.create`。
-2. 在同一 CBA basis 上并发提交两条 `ak.invite.create`，目标同一 `invitee_account_id`。
+2. 在同一 CBS basis 上并发提交两条 `ak.invite.create`，目标同一 `invitee_account_id`。
 3. 让第一条 invite 进入终态（`ak.invite.cancel` 或 `ak.invite.revoke`），随后重新邀请同一账号。
 4. 让一条 invite 到达 `expires_at` 但不提交任何 Move，再提交一条新的 create。
 5. 让一条 direct invite 进入 `send_failed`，随后分别尝试直接重发 create、以及先 revoke 再 create。
@@ -5848,7 +5848,7 @@ Expected:
 
 - 正例：`ak.invite.create` 携带 `ak.component.invite.live_target.v1` 的 `head_eq: null`，原子写 lifecycle 与 slot；slot subject 是 `canonical_json(payload.invitee_account_id)` 的单分量 composite，**不含 `realm_id`**。
 - 负例：第 1 步的第二条 create MUST `failed_precondition` + `reason_code="invite_live_target_occupied"`，不进 canonical history、零 cell write、零投影、零通知；`error.details` 严格通过 [`service-operation-dtos.schema.json#/$defs/InviteLiveTargetOccupiedProblem`](../../artifacts/schemas/service-operation-dtos.schema.json)，即只含 `reason_code` / `invite_id` / `create_event_id`。MUST NOT 返回 `cas_conflict`，MUST NOT 作为幂等成功返回既有 `invite_id`。
-- 正例：第 2 步的两条并发 create 争用同一个 cell，恰好一条获胜，结果由 CBA basis 唯一确定，与任何实现私有唯一索引或数据库插入先后无关。
+- 正例：第 2 步的两条并发 create 争用同一个 cell，恰好一条获胜，结果由 CBS basis 唯一确定，与任何实现私有唯一索引或数据库插入先后无关。
 - 正例：第 3 步的重新邀请被接受（终态 Move 已释放格子）。释放写是 `set null`；新 create 的 `head_eq: null` 再次成立，同时 Seal 准入按 §6.3 step 8b 要求它的基线 heads 等于释放写的身份——**一条基线停留在更早那次空格上的 create MUST 被拒**，即使两次的业务值同为 `null`。
 - 负例：第 4 步的新 create 仍 MUST `invite_live_target_occupied`——`expires_at` 到达不释放格子，只有已登记的 `ak.invite.revoke(target_state="expired")` 才释放。
 - 负例：第 5 步直接重发 create MUST `invite_live_target_occupied`；先 `ak.invite.revoke(target_state="revoked")` 再 create MUST 被接受。`send_failed` 分支的 `ak.invite.revoke` payload MUST NOT 携带 `invitee_account_id`（schema `if/then`），因而不派生 slot 释放写。
@@ -5861,7 +5861,7 @@ Expected:
 
 Steps:
 
-1. 两个 moderator 在同一 CBA basis 上分别用单项 `moderation_delta` 并发 ban 不同目标。
+1. 两个 moderator 在同一 CBS basis 上分别用单项 `moderation_delta` 并发 ban 不同目标。
 2. 在同一段捕获上并发写 `recording_transition` 的冲突 `to`，随后用 `state_transition` 推进通话主状态到 `ended`。
 3. 分别提交只携带一个 `roster_delta`、`moderation_delta` 或 `mute_override` 的 `ak.call.state`，并对 reducer 实现做错误 tag / value / op kind 的 projection mutation。
 4. 提交含 `recording_transition.result` 的 ready transition，并分别 mutation FSM transition write 与独立 result-cell set write 的派生逻辑。
@@ -6057,11 +6057,11 @@ Expected:
 - payload 中出现同名 `actor_id` 不得遮蔽 `envelope.actor_id`；components 重排 MUST 产生不同 subject。
 - 因果后继 status 支配旧 head；真正并发的不同 status 暴露多个 heads。交换两条并发 Event 的 HLC 大小不得改变 join 结果。
 
-### 23.12 Federation CBA 前置闭包、dependency resolve 与 partial retry
+### 23.12 Federation CBS 前置闭包、dependency resolve 与 partial retry
 
 `vector_id`: `ak.vector.federation.seal_prerequisite_closure.v1`、
 `ak.vector.federation.seal_partial_retry.v1`、
-`ak.vector.federation.cba_dependency_resolve.v1`
+`ak.vector.federation.cbs_dependency_resolve.v1`
 
 Steps:
 
@@ -6609,7 +6609,7 @@ Runner MUST 覆盖：
 
 ## Account status issuer ledger
 
-`ak.vector.account_status.issuer_ledger.v1` MUST 覆盖：account binding 与 `status_seq=1,active` record、account row、audit、outbox 原子提交，PCR 尚无 Seal 也成功；record id 与 proof 对同一 closed unsigned core 做 JCS/SHA-256 闭合，proof controller 必须是 Account Authority；successor 严格执行 `seq=current+1` 与 exact predecessor CAS，exact replay byte-identical、同 request identity 异 intent 零写入冲突；receiver 区分 accepted/duplicate/stale/gap/fork，且分类基线只有 durable replica head——在连续 replica 上重投一条低于 head 且与本地仍保留的同 `status_seq` 历史行逐字节相同的 record，MUST 得到 `failed_precondition` + `account_status_record_stale`（`retryable=false`、零写入），MUST NOT 降级为 `duplicate`；gap 返回 exact required seq 并通过 bounded resolve 取得连续原始 records；holder offline/revoked/hostile 时 Account Authority 仍可 final `locked/suspended/deactivated/erasure_pending`；receiver 接受 exact、连续且验签有效的 `deactivated → active` successor，authoring conformance 则必须证明它只来自 deployment-policy allow + completed PCR recovery closure，并与原 account row、audit、outbox、exact新 generation grant 原子提交；普通 admin/login/refresh、policy deny 或缺 recovery closure 均 `account_deactivated` 且零权威写入；`erasure_pending` 的任何 successor 继续以 `erasure_pending_is_terminal` 拒绝；receipted fanout 保留原 record bytes，receipt 精确绑定 record，超窗 flag 不回写 record；不存在 Event、Seal、CBA、frontier 或 `pending_seal` 路径。
+`ak.vector.account_status.issuer_ledger.v1` MUST 覆盖：account binding 与 `status_seq=1,active` record、account row、audit、outbox 原子提交，PCR 尚无 Seal 也成功；record id 与 proof 对同一 closed unsigned core 做 JCS/SHA-256 闭合，proof controller 必须是 Account Authority；successor 严格执行 `seq=current+1` 与 exact predecessor CAS，exact replay byte-identical、同 request identity 异 intent 零写入冲突；receiver 区分 accepted/duplicate/stale/gap/fork，且分类基线只有 durable replica head——在连续 replica 上重投一条低于 head 且与本地仍保留的同 `status_seq` 历史行逐字节相同的 record，MUST 得到 `failed_precondition` + `account_status_record_stale`（`retryable=false`、零写入），MUST NOT 降级为 `duplicate`；gap 返回 exact required seq 并通过 bounded resolve 取得连续原始 records；holder offline/revoked/hostile 时 Account Authority 仍可 final `locked/suspended/deactivated/erasure_pending`；receiver 接受 exact、连续且验签有效的 `deactivated → active` successor，authoring conformance 则必须证明它只来自 deployment-policy allow + completed PCR recovery closure，并与原 account row、audit、outbox、exact新 generation grant 原子提交；普通 admin/login/refresh、policy deny 或缺 recovery closure 均 `account_deactivated` 且零权威写入；`erasure_pending` 的任何 successor 继续以 `erasure_pending_is_terminal` 拒绝；receipted fanout 保留原 record bytes，receipt 精确绑定 record，超窗 flag 不回写 record；不存在 Event、Seal、CBS、frontier 或 `pending_seal` 路径。
 
 ## Personal blocklist revision and delivery semantics
 
@@ -6695,7 +6695,7 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
    callback 均不提交（为派生历史 state 而完成的 Genesis 临时 replay 不算违规）；同一 claimed digest 对应两份不同 digest-preimage Event 的
    resolver response 必须在选边及 replay 前整次拒绝，replayed Seal 计数为零。该 collision 是 ingestion seam 的符号化注入，不宣称制造真实
    SHA-256 collision；这些 case name 不是 wire reason code。普通 DataEvent 不进入 `Seal.delta`，已 Seal 历史后来发现 collision 的不回滚规则复用
-   `ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1`，不得在本向量另造 first-seen 或 Realm 失效语义。
+   `ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1`，不得在本向量另造 first-seen 或 Realm 失效语义。
 4. 规模 recipe 不生成额外历史证明 carrier 或 O(N) fixture 数组；26,298 与 65,536 两条路径只冻结实际遍历的
    Seal/Event/dependency counts、canonical descriptor stream aggregate digest、总字节和单对象最大字节。work queue/visited set 落临时 SQLite，
    内存只保留当前 descriptor 与常数个 hash accumulator。

@@ -252,7 +252,7 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 
 当 grant / revoke / claim status / policy component / membership frontier 变化时，受影响的 capability snapshot MUST 立即标记 stale。stale snapshot 不得继续用于新的写入 allow 决策。
 
-## 4. CBA / Lattice 上限
+## 4. CBS / Lattice 上限
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
@@ -262,8 +262,8 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | 单个 Event 的 reducer-projected cell write 数 | 128 | receiver 从 registry 重算；与 Event Envelope `cell_writes.maxItems=128` 使用同一上限。任何 projection（包括 `ak.patch.apply` 的 cell 展开）超过时 MUST `reducer_projection_failed`，协议设计者需拆成多个 Event 或使用已注册的 typed control transaction；registry 不得给某 kind 登记更高局部上限。 |
 | 单个 Seal 新增 Control Move 数 | 1,000 | 超过时 MUST 拆分 Seal；接收方 MAY 返回 `rate_limited` 或 `temporarily_unavailable`。 |
 | Seal DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Seal；查询可使用 deterministic Seal view。 |
-| 单个 `CbaProofBundle` canonical bytes | 8 MiB | 超过时 MUST `limit_exceeded`；不得截断或产生部分 accepted state。 |
-| 单个 `CbaProofBundle` 对象数 | 256 Seals；1,024 Control Moves；两类 proof 合计 2,048 | 与 `cba-proof-bundle.schema.json` 及 `cba-profiles.md` §5 同值。 |
+| 单个 `CbsProofBundle` canonical bytes | 8 MiB | 超过时 MUST `limit_exceeded`；不得截断或产生部分 accepted state。 |
+| 单个 `CbsProofBundle` 对象数 | 256 Seals；1,024 Control Moves；两类 proof 合计 2,048 | 与 `cbs-proof-bundle.schema.json` 及 `cbs-profiles.md` §5 同值。 |
 | 单条 target→genesis dependency path | 4,096 | 超过时 MUST 使用合法 compaction/state-root-assisted recovery，不得无界递归。 |
 | peer dependency resolve 连续轮次 | 8 | 每一成功轮 MUST 严格缩小 typed missing sets；第 9 轮进入 operator diagnostic。 |
 | 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |
@@ -274,15 +274,15 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | `proposal_absolute_deadline_ms` | 90,000 ms（90s，default）；`minimum=1`；`maximum=259,200,000`（72h） | `realm.schema.json`；从 Ack signed `received_at` 起不可延长的决议绝对窗口。defer 必须原样保留 `absolute_due_at`；与 decision window 的相对约束见上一行。 |
 | 单个 pending Control Move 累计 defer 数（`max_proposal_defers`）| 2（default 与 protocol maximum）| `realm.schema.json`；每次 defer 绑定原 Ack、closed reason 与递增 deadline；两窗口相等时 MUST 为 `0`，否则不存在合法的递增 deadline。超过仍未 include / signed-reject 构成 decision-overdue / censorship evidence（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。 |
 
-CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
+CBS fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
 
 同一资源的上限只能有一个 canonical 数值：通用 Event 上限约束所有具体 Event kind，具体
 projection / patch / profile 只能声明相同或更低的值，不得扩大它。发布门禁 MUST 解析 registry
 中所有 `apply_patch.max_cell_writes` 并验证其不超过本节 128。
 
-### 4.1 Progressive CBA Backfill Profile
+### 4.1 Progressive CBS Backfill Profile
 
-实现声称支持 `full_client`、`e2ee_client` 或 `station` profile 时，MUST 支持渐进式 CBA 恢复，而不是要求一次性拉完整历史：
+实现声称支持 `full_client`、`e2ee_client` 或 `station` profile 时，MUST 支持渐进式 CBS 恢复，而不是要求一次性拉完整历史：
 
 | 项 | v1 默认上限 / 建议 | 规则 |
 | --- | ---: | --- |
@@ -297,7 +297,7 @@ projection / patch / profile 只能声明相同或更低的值，不得扩大它
 1. **Seal probe**：先查询 Realm Seal leaves、可用 snapshot manifest 和缺失 ref 的 source。
 2. **Targeted dependency fetch**：按精确 missing DataEvent、Control Move、Seal predecessor 与 critical refs 拉取；允许有界可验证超集，不把传输优化算法变成共识规则。
 3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 DataEvent 与 Control Move。
-4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 CBA query basis 的只读 projection，并显式标记 query basis incomplete。
+4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 CBS query basis 的只读 projection，并显式标记 query basis incomplete。
 5. **Write revalidation**：任何新 Control Move 必须在提交前以最新 Seal view 重新验证 preconditions；DataEvent 必须以最新可用 `seal_ref` 重新验证授权 freshness；不得继承 partial view 的乐观允许结果。
 
 长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Seal DAG 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Event / Seal。

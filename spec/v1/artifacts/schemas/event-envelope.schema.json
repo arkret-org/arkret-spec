@@ -434,7 +434,7 @@
       }
     },
     {
-      "$comment": "Known active non-reducer Event kinds MUST NOT carry CBA fields: preconditions/seal_ref/auth_context/seal_basis.",
+      "$comment": "Known active non-reducer Event kinds MUST NOT carry CBS fields: preconditions/seal_ref/auth_context/seal_basis.",
       "if": {
         "properties": {
           "kind": {

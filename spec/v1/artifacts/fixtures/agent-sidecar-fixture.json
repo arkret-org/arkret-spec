@@ -59,7 +59,7 @@
           "event_schema",
           "producer_digest",
           "reducer_derived_scope",
-          "cba_and_seal",
+          "cbs_and_seal",
           "mls_aad",
           "delivery_gate"
         ],

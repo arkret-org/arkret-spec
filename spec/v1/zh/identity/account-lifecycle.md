@@ -289,7 +289,7 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
 
 ### 3.1 Account Authority issuer ledger 与复制载体（normative）
 
-Account lifecycle 不属于 Principal Control Realm finality domain。`AccountStatusRecord` 不是 Event，不进入 Realm timeline、actor frontier、Seal、CBA、Control Proposal、pending Control index 或 lattice reducer。`principal_control_realm_id` 仅是已验证 account binding coordinate；holder device 或 PCR notary 对 Account Authority 的 deny transition 没有签名或最终否决权。
+Account lifecycle 不属于 Principal Control Realm finality domain。`AccountStatusRecord` 不是 Event，不进入 Realm timeline、actor frontier、Seal、CBS、Control Proposal、pending Control index 或 lattice reducer。`principal_control_realm_id` 仅是已验证 account binding coordinate；holder device 或 PCR notary 对 Account Authority 的 deny transition 没有签名或最终否决权。
 
 Account Authority 的本地 issuer ledger 是该 `account_id` 的唯一 lifecycle 真相源：
 

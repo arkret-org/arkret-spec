@@ -1480,7 +1480,7 @@ def check_apply_patch_base_producers(lint: Lint, event_registry: dict, event_pat
 
 
 def check_concurrency_class_closure(lint: Lint, event_registry: dict, event_path: Path) -> None:
-    """zh/authz/cba-profiles.md section 2: concurrency_class carries safety.
+    """zh/authz/cbs-profiles.md section 2: concurrency_class carries safety.
 
     Rules that relax serialization read this field, so it must be present on
     every sealed control kind, and a family must not carry both a barrier and a
@@ -1499,7 +1499,7 @@ def check_concurrency_class_closure(lint: Lint, event_registry: dict, event_path
             lint.fail(
                 event_path,
                 f"{kind} is a sealed control kind without a concurrency_class; the field carries "
-                "safety and MUST NOT be inferred from spelling (cba-profiles.md section 2)",
+                "safety and MUST NOT be inferred from spelling (cbs-profiles.md section 2)",
             )
         if row.get("plane") != "control":
             continue
@@ -1528,7 +1528,7 @@ def check_concurrency_class_closure(lint: Lint, event_registry: dict, event_path
             f"{sorted(kind for kind, _ in barrier_writes)} and non-barrier kind(s) "
             f"{sorted(set(non_barrier))}; the two make opposite serialization promises about the "
             "same cell. Only an object-genesis barrier write whose cell_subject comes solely from "
-            "envelope.event_id is exempt (cba-profiles.md section 2)",
+            "envelope.event_id is exempt (cbs-profiles.md section 2)",
         )
 
 

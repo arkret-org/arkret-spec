@@ -1035,7 +1035,7 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.cba_proof_bundle.v1",
+          "ak.schema.cbs_proof_bundle.v1",
           "ak.schema.service_operation_dtos.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
@@ -1173,8 +1173,8 @@
       }
     },
     {
-      "schema_id": "ak.schema.cba_proof_bundle.v1",
-      "file": "schemas/cba-proof-bundle.schema.json",
+      "schema_id": "ak.schema.cbs_proof_bundle.v1",
+      "file": "schemas/cbs-proof-bundle.schema.json",
       "consumers": {
         "schema_reference": "exact",
         "startup_compile": "exact",

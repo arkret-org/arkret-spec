@@ -18,7 +18,7 @@
   },
   "covers_vectors": [
     "ak.vector.seals.submit_admission.v1",
-    "ak.vector.cba.proposal_bounded_decision.v1"
+    "ak.vector.cbs.proposal_bounded_decision.v1"
   ],
   "schema_validation_cases": [
     {

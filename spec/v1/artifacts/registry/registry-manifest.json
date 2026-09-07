@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.1",
+  "version": "2026-09-08.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T21:30:00+08:00",
+  "generated_at": "2026-09-08T05:55:00+08:00",
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
@@ -186,7 +186,7 @@
       "kind": "authority_set_policy_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical authority-set symbols and deterministic policy projections from accepted CBA control state."
+      "description": "Canonical authority-set symbols and deterministic policy projections from accepted CBS control state."
     },
     {
       "name": "mls_ciphersuites",

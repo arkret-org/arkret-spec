@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-30
+updated: 2026-09-08
 see_also:
   - ../index.md
   - architecture.md
@@ -86,8 +86,8 @@ see_also:
 | Wire fact | 线路事实 | 在协议线上以 canonical bytes + proof 承诺、可被接收方验证并作为 reducer / audit truth source 的规范事实。v1 不定义独立的 `wire_fact` 对象；除 Wire Event / Event Envelope 外，Operation、SDK builder / draft、receipt object 与 projection 都不是共享 wire fact，除非它们以 registered Event kind 的 payload 进入 Event Envelope。 |
 | Signal Extension | 信号扩展 | 可选 encrypted-only live rail。presence、typing、read receipt 与 call signaling 的精确 kind、target 和内容位于 `SignalEnvelope.encrypted_payload`，外层只暴露 scope、sender、Seal basis 与三值 `signal_class`。它不进入 Event history、cell、Seal coverage、state_root 或 backfill。 |
 | Signal（消歧） | 信号（消歧） | 本规范中未加限定的 “Signal” 一律指本协议的 Signal 平面（`SignalEnvelope` / `signal_class` / `ak.self.signal.*`）。引用同名即时通讯产品的设计时 MUST 使用全称并带产品限定，例如 “Signal SVR”、“Signal SealedSession”，不得写作裸 “Signal”。 |
-| Kernel | 协议内核 | Arkret v1 的安全与收敛原语层，只包含 identity proof、scope/lifecycle、CBA、授权、MLS/key delivery、审计承诺、邀请与设备/账号安全。Kernel 不依赖 Collaboration Base 或任何 Extension。 |
-| Collaboration Base | 协作基础包 | 官方基础协作层，包含 Strand、Message/Content、Relation、View 与 long text 等通用协作对象；依赖 Kernel，但不属于 Kernel。不得缩写为 CBA。 |
+| Kernel | 协议内核 | Arkret v1 的安全与收敛原语层，只包含 identity proof、scope/lifecycle、CBS、授权、MLS/key delivery、审计承诺、邀请与设备/账号安全。Kernel 不依赖 Collaboration Base 或任何 Extension。 |
+| Collaboration Base | 协作基础包 | 官方基础协作层，包含 Strand、Message/Content、Relation、View 与 long text 等通用协作对象；依赖 Kernel，但不属于 Kernel。本术语不得缩写：`CBS` 是控制面基线承诺封存的专用缩写，其已废止拼写 `CBA` 同样不得用于指代本术语。 |
 | Extension | 协议扩展 | 通过 Extension Manifest 声明 schema、reducer、action、transport rail、资源上限和 conformance vectors 的可选协议层。裸 “Extension” 仅表示本分层概念；产品扩展必须使用限定名称。 |
 | Extension Manifest | 扩展清单 | 扩展装载、依赖闭包、隔离、资源约束与 conformance 绑定的唯一机器入口；它是签名声明性数据，不是可执行代码或 reducer DSL。 |
 | Device Message | 设备消息 | 可靠的点对点设备队列消息，用于 key verification、secret 分发和 Realm key 请求。它使用 `DeviceMessageEnvelope`，既不是 Event 也不是 Signal。 |
@@ -127,12 +127,12 @@ see_also:
 | Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值；只可用于 timeline 诊断，不参与协议状态 winner。 |
 | Data Plane | 数据面 | 普通协作写入所在平面：消息、reaction、对象字段、排序、协作文本、计数等。DataEvent 签名与授权验证通过后按 Lattice / CRDT 本地接受；Seal 只可对其作观测承诺。 |
 | Control Plane | 控制面 | 治理写入所在平面：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 声明 `sealed=true` 的对象。Control Move 只有被 Seal 覆盖并进入控制面 `state_root` 后才 `sealed`。 |
-| CBA | 控制面基线承诺封存 | `Control-plane Basis-committed Sealing` 的唯一缩写。DataEvent 按自身 `seal_ref` 验证，Control Move 按自身 `seal_basis` 验证并由 Seal 取得 finality。CBA 不表示 Collaboration Base。 |
-| Authority Set | 权威集合 | 在某个 CBA basis 下决定 signer、quorum、delegation 与 revocation authority 的已接受 policy。wire 引用统一为 `{authority_set_id, authority_set_digest}`，不得只按可变名称解析。 |
+| CBS | 控制面基线承诺封存 | `Control-plane Basis-committed Sealing` 的唯一缩写，逐词取首字母 **C**ontrol-plane / **B**asis-committed / **S**ealing。DataEvent 按自身 `seal_ref` 验证，Control Move 按自身 `seal_basis` 验证并由 Seal 取得 finality。`CBA` 是本术语在 v1 定稿前的已废止拼写，normative 文本、wire 名称与实现标识符 MUST NOT 再使用；CBS 也不表示 Collaboration Base。 |
+| Authority Set | 权威集合 | 在某个 CBS basis 下决定 signer、quorum、delegation 与 revocation authority 的已接受 policy。wire 引用统一为 `{authority_set_id, authority_set_digest}`，不得只按可变名称解析。 |
 | DataEvent | 数据事件 | 数据面 reducer-input Event；携带签名 `scope_ref`、`seal_ref` 与 `auth_context`，writes 由 kind + payload 派生。 |
 | Control Move | 控制动作 | 控制面 reducer-input Event；携带签名 `scope_ref` 与 `seal_basis`，可携带 `preconditions[]`，writes 由 kind + payload 派生。 |
-| CbaProofBundle | CBA 依赖证明包 | 不签名、不创建身份的 receiver-relative dependency bundle；携带目标 Seal、Control Move、inclusion proof 与 availability proof 的有界可验证超集。receiver 必须独立验签、重算 root 与 reducer 输出。 |
-| AuthorizationLease | 授权租约 | 绑定 accepted CBA basis、主体、设备、scope、action、risk tier 与短期有效期的签名发布许可；它只能收窄既有授权，不能创建 capability。 |
+| CbsProofBundle | CBS 依赖证明包 | 不签名、不创建身份的 receiver-relative dependency bundle；携带目标 Seal、Control Move、inclusion proof 与 availability proof 的有界可验证超集。receiver 必须独立验签、重算 root 与 reducer 输出。 |
+| AuthorizationLease | 授权租约 | 绑定 accepted CBS basis、主体、设备、scope、action、risk tier 与短期有效期的签名发布许可；它只能收窄既有授权，不能创建 capability。 |
 | IngressReceipt | 入口签收回执 | ingress 对某个 Event digest 在 AuthorizationLease 有效期内到达的签名确认；不证明 reducer acceptance、投影可见性或 Seal finality。 |
 | Control Proposal Ack | 控制提案签收 | 当前 authority set 对某个 exact Control Move proposal digest 的带签名签收（schema [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json) `$defs/control_proposal_ack`，wire `kind="signed_ack"`）。它固定首轮决议期限 `decision_due_at`、绝对期限 `absolute_due_at` 与 `authority_set_ref`，由 quorum 内每个真实 signer 的 Control Proposal Authority Ack（`authority_acks[]`）组装。**Ack 存在不等于 proposal 已被接受**：proposal 仍为 pending，只有 digest 被 accepted Seal 覆盖才获得控制面 finality；后续可能是 `signed_reject` 或 `signed_defer`。任何实现不得把它呈现为 accepted / approved / committed / sealed / finalized。它不是 IngressReceipt（网络到达）、不是 Event Batch Receipt（投递 / commit ack）、不是 Read Receipt（用户读位置信号），也不是任何 finality proof。详见 [`../authz/event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)。 |
 | SecurityTransaction | 安全事务资源 | 可查询、可幂等续跑的闭合跨服务安全过程；v1 仅允许 RecoveryTransaction 与 SecurityRotationTransaction，不是通用 Saga/Plan DSL。 |
@@ -158,7 +158,7 @@ see_also:
 | Notary Cell | 锚定者 Cell | 定义下一批 Seal 由谁授权的 `cas_register + bottom=reject` cell；冲突时产生 Realm-wide Seal pause。 |
 | Consent | 同意 | Holder-private 决策：“我同意接收来自 X 的某种不以 Contact 为授权依据的动作”。表达为 consent Event 的签名 `kind + payload`，并由 registered reducer projection 写入 consent cell。Consent 可服务 invite 等非 Contact 路径，但不得参与 Contact-based create/send或Personal DM；后二者只读取双方 holder-signed directional Contact heads。 |
 | Consent Scope | 同意范围 | Consent grant 适用的联系类型枚举：`invite` / `direct_message` / `voice_call` / `video_call` / `presence` / `any`。 |
-| Contact Round | Contact 轮次 | 一对 principal 之间由 immutable `contact_round` 建轮核心唯一标识、并由双方 directional lineages 从建立演进到 terminal 的一轮 Contact 生命周期。`contact_round_id` 是该核心的 domain-separated digest `H("ak.contact.round.v1", contact_round)`；scope replacement 与 tombstone 只推进 lineages，不改写核心或 ID。逐字节 KAT 见 [`contact-round-kat.json`](../../artifacts/fixtures/contact-round-kat.json)。它既不是 CBA `seal_basis`，也不是信任 anchor；tombstone 后 recontact **MUST** 建立全新 round，并以 `previous_terminal_contact_round_id` 链回紧邻上一轮 terminal round。详见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) §2、§5.3。 |
+| Contact Round | Contact 轮次 | 一对 principal 之间由 immutable `contact_round` 建轮核心唯一标识、并由双方 directional lineages 从建立演进到 terminal 的一轮 Contact 生命周期。`contact_round_id` 是该核心的 domain-separated digest `H("ak.contact.round.v1", contact_round)`；scope replacement 与 tombstone 只推进 lineages，不改写核心或 ID。逐字节 KAT 见 [`contact-round-kat.json`](../../artifacts/fixtures/contact-round-kat.json)。它既不是 CBS `seal_basis`，也不是信任 anchor；tombstone 后 recontact **MUST** 建立全新 round，并以 `previous_terminal_contact_round_id` 链回紧邻上一轮 terminal round。详见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) §2、§5.3。 |
 | Contact Relation | 联系人关系 | Principal-scoped双边关系投影；request receipt(s)机械派生normal/glare Contact round，双方各自holder-signed directional lineage以scope replacement/tombstone演进。它不是`ak.contacts.*` account-data、`ak.relation.*`或consent cell，也不存在跨双方pair CAS。详见[`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。 |
 | Contact Founder | Contact 创始方 | 从根 Contact round 机械派生、仅用于 Direct Conversation founding authority 的 pair member：normal 分支取 responder，glare 分支取 canonical `requests[0]` 的 issuer。它不创建持续的 pair controller 权，也不得由服务端或客户端偏好选择。详见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) §4。 |
 | Contact Glare | Contact 并发竞争 | pair 双方在互不可见的条件下并发签发兼容 Contact request，且双方 request receipts、causal frontier/completeness proofs 与 concurrency attestations 齐备时机械派生同一 Contact round 的分支。该分支不生成 response/reject，也不合成 `ak.contact.accepted` Event；双方各自的 request head 是本地 lineage 的 bootstrap predecessor。详见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) §2–§3。 |
@@ -249,3 +249,117 @@ see_also:
   | `Recovery Service` | — |
   | `MIMI Provider Facade` | — |
 - **to-device（CC-06）**：正文 prose 写小写 `to-device`；**章节标题 / title-case 语境写 `To-Device`（连字符两侧首字母大写），句首可作 `To-device`**；schema / 类型名用 `DeviceMessageEnvelope`；wire path / 字段用 `device_messages` / `to_device`。
+
+## 4. 缩写与专有名词索引
+
+本节是全规范缩写的**导航索引**：为每个在 `spec/v1/zh/` 正文中出现的缩写登记唯一展开形式，并指向该术语的权威定义位置。它按 §1 的“指针型条目”规则工作——除 §4.1 与 §4.3 明确标注的部分外，本节不承载 normative 语义定义，语义以“权威出处”列指向的文档为准。
+
+索引维护规则：
+
+- 同一个缩写在本规范中 MUST 只有一种展开形式；出现同形异义时 MUST 在 §4.3 显式登记消歧条件，不得依赖读者按上下文猜测。
+- 新增缩写进入 normative 正文时 MUST 同步登记进本节，并按 §3 的通用规则在 prose 中全大写、在 wire 形态中保持 snake_case 小写。
+- 本节不是 wire 契约：某个缩写能否出现在 schema property、type、enum 或 registry symbol 上，由 [`canonical-lexeme-registry.json`](../../artifacts/registry/canonical-lexeme-registry.json) 的 `abbreviation_authorities` 裁决。
+
+### 4.1 Arkret 自有缩写（normative）
+
+本表是 [`canonical-lexeme-registry.json`](../../artifacts/registry/canonical-lexeme-registry.json) `abbreviation_authorities` 中 `arkret_glossary_initialism` authority class 所指的封闭清单：只有本表登记的缩写符合该 class，未登记的 Arkret 域名词 MUST 保持完整拼写。全称与缩写的对应关系由本表规定；各术语的完整语义定义在“权威出处”列。
+
+| 缩写 | 全称 | 中文 | 权威出处 |
+| --- | --- | --- | --- |
+| `CBS` | Control-plane Basis-committed Sealing | 控制面基线承诺封存 | §2 `CBS` 条目；[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) |
+| `PCR` | Principal Control Realm | 主体控制 Realm | §2 `Principal Control Realm` 条目；[`../identity/key-management.md` §4.1](../identity/key-management.md) |
+| `RHRK` | Realm History Recovery Key | Realm 历史恢复密钥 | [`../identity/identity-did.md` §8.3](../identity/identity-did.md)；使用面见 [`../governance/history-visibility.md` §6](../governance/history-visibility.md) |
+| `E2EE` | End-to-End Encryption | 端到端加密 | §3 CC-04（大小写规则）；[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
+| `DM` | Direct Message | 直接会话 | [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) |
+| `3PID` | Third-Party Identifier | 第三方标识符 | §2 `3PID` 条目；[`../sync/third-party-invites.md`](../sync/third-party-invites.md) |
+| `HLC` | Hybrid Logical Clock | 混合逻辑时钟 | §2 `HLC` 条目；[`../conformance/encoding.md` §7](../conformance/encoding.md) |
+
+### 4.2 外部标准与算法缩写（informative）
+
+本表登记正文引用的外部标准、协议与算法缩写。它们符合 `external_standard_initialism` authority class；**权威定义在外部标准本身**，本表只固定展开形式并给出本规范的主要使用位置。
+
+| 缩写 | 全称 | 外部锚点 | 本规范主要使用位置 |
+| --- | --- | --- | --- |
+| `DID` | Decentralized Identifier | W3C DID Core | [`../identity/identity-did.md`](../identity/identity-did.md) |
+| `VC` | Verifiable Credential | W3C VC Data Model | [`../identity/identity-handles.md`](../identity/identity-handles.md) |
+| `SCID` | Self-Certifying Identifier | `did:webvh` | [`../identity/identity-did.md`](../identity/identity-did.md) |
+| `KERI` | Key Event Receipt Infrastructure | KERI / ToIP | [`../identity/identity-did.md`](../identity/identity-did.md) |
+| `TSP` | Trust Spanning Protocol | ToIP TSP | [`../identity/tsp-integration.md`](../identity/tsp-integration.md) |
+| `VID` | Verifiable Identifier | ToIP TSP | [`../identity/tsp-integration.md`](../identity/tsp-integration.md)；与 DID 的边界见 [`../identity/did-usage-and-verification.md` §2.4](../identity/did-usage-and-verification.md) |
+| `MLS` | Messaging Layer Security | RFC 9420 | [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
+| `PCS` | Post-Compromise Security | MLS 安全属性 | [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
+| `OTK` | One-Time Key | Matrix/Olm 对照术语 | [`../guides/migrating-from-matrix.md`](../guides/migrating-from-matrix.md) |
+| `MIMI` | More Instant Messaging Interoperability | IETF MIMI 工作组 | [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md) |
+| `JCS` | JSON Canonicalization Scheme | RFC 8785 | [`../conformance/encoding.md` §2](../conformance/encoding.md) |
+| `CBOR` | Concise Binary Object Representation | RFC 8949 | [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) |
+| `COSE` | CBOR Object Signing and Encryption | RFC 9052 | [`../conformance/encoding.md`](../conformance/encoding.md) |
+| `JOSE` | JSON Object Signing and Encryption | IETF JOSE 系列 | [`../conformance/encoding.md`](../conformance/encoding.md) |
+| `JWS` | JSON Web Signature | RFC 7515 | [`../conformance/encoding.md`](../conformance/encoding.md) |
+| `JWK` | JSON Web Key | RFC 7517 | [`../sync/service-http-binding.md`](../sync/service-http-binding.md) |
+| `JWT` | JSON Web Token | RFC 7519 | [`../identity/key-management.md`](../identity/key-management.md) |
+| `JWE` | JSON Web Encryption | RFC 7516 | [`../identity/identity-handles.md`](../identity/identity-handles.md) |
+| `DPoP` | Demonstrating Proof of Possession | RFC 9449 | [`../sync/service-http-binding.md`](../sync/service-http-binding.md) |
+| `JKT` | JWK Thumbprint | RFC 7638；`jkt` 确认值见 RFC 9449 | [`../sync/service-http-binding.md`](../sync/service-http-binding.md) |
+| `OIDC` | OpenID Connect | OpenID Connect Core | [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) |
+| `HPKE` | Hybrid Public Key Encryption | RFC 9180 | [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) |
+| `KEM` | Key Encapsulation Mechanism | RFC 9180 | [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
+| `AEAD` | Authenticated Encryption with Associated Data | RFC 5116 | [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) |
+| `AAD` | Additional Authenticated Data | RFC 5116 | [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) |
+| `KDF` | Key Derivation Function | — | [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
+| `HKDF` | HMAC-based Key Derivation Function | RFC 5869 | [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) |
+| `HMAC` | Hash-based Message Authentication Code | RFC 2104 | [`../sync/third-party-invites.md`](../sync/third-party-invites.md) |
+| `PBKDF2` | Password-Based Key Derivation Function 2 | RFC 8018 | [`../identity/key-management.md`](../identity/key-management.md) |
+| `I2OSP` | Integer-to-Octet-String Primitive | RFC 8017 | [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) |
+| `OPRF` | Oblivious Pseudorandom Function | RFC 9497 | [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) |
+| `VOPRF` | Verifiable Oblivious Pseudorandom Function | RFC 9497 | [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) |
+| `PSI` | Private Set Intersection | — | [`../identity/consent-model.md`](../identity/consent-model.md) |
+| `PIR` | Private Information Retrieval | — | [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) |
+| `ORAM` | Oblivious RAM | — | [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) |
+| `OHTTP` | Oblivious HTTP | RFC 9458 | [`../security/server-threat-model.md`](../security/server-threat-model.md) |
+| `UCAN` | User Controlled Authorization Network | UCAN 规范 | [`../authz/capabilities.md`](../authz/capabilities.md) |
+| `IDNA` | Internationalized Domain Names in Applications | RFC 5890 系列 | [`../conformance/encoding.md`](../conformance/encoding.md) |
+| `UTS` | Unicode Technical Standard | Unicode UTS 系列 | [`../conformance/encoding.md`](../conformance/encoding.md) |
+| `NFC` / `NFKC` | Normalization Form C / Normalization Form KC | Unicode UAX #15 | [`../conformance/encoding.md`](../conformance/encoding.md) |
+| `BOM` | Byte Order Mark | Unicode | [`../conformance/encoding.md`](../conformance/encoding.md) |
+| `UUID` | Universally Unique Identifier | RFC 9562 | [`../conformance/encoding.md`](../conformance/encoding.md) |
+| `URI` / `URL` | Uniform Resource Identifier / Uniform Resource Locator | RFC 3986 | [`../sync/api-conventions.md`](../sync/api-conventions.md) |
+| `NDJSON` | Newline-Delimited JSON | — | [`../sync/service-http-binding.md`](../sync/service-http-binding.md) |
+| `WebRTC` | Web Real-Time Communication | W3C WebRTC | [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) |
+| `ICE` | Interactive Connectivity Establishment | RFC 8445 | [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) |
+| `STUN` | Session Traversal Utilities for NAT | RFC 8489 | [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) |
+| `TURN` | Traversal Using Relays around NAT | RFC 8656 | [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) |
+| `SDP` | Session Description Protocol | RFC 8866 | [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) |
+| `RTP` | Real-time Transport Protocol | RFC 3550 | [`../crypto-media/bindings/arkret-native.md`](../crypto-media/bindings/arkret-native.md) |
+| `SFU` | Selective Forwarding Unit | WebRTC 部署形态 | [`../crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md) |
+| `MCU` | Multipoint Control Unit | WebRTC 部署形态 | [`../crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md) |
+| `MIME` | Multipurpose Internet Mail Extensions | RFC 2045 系列 | [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) |
+| `FCM` / `APNs` | Firebase Cloud Messaging / Apple Push Notification service | 厂商推送通道 | [`../discovery/push-notifications.md`](../discovery/push-notifications.md) |
+| `TZDB` | Time Zone Database | IANA TZDB | [`../models/calendar-event.md`](../models/calendar-event.md) |
+
+### 4.3 通用工程缩写在本规范中的固定含义（normative 消歧）
+
+下列缩写在业界有多种展开。本表固定它们在 `spec/v1/zh/` 中的**唯一**含义；正文使用这些缩写时 MUST 按本表理解，需要表达其它含义时 MUST 写全称。
+
+| 缩写 | 在本规范中的含义 | 消歧说明 |
+| --- | --- | --- |
+| `CAS` | compare-and-swap | 指条件写守卫与 `cas_register` lattice（[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。**不表示** content-addressed storage；内容寻址一律写完整的 content-addressed。 |
+| `SSE` | Server-Sent Events | 见 [`../sync/transport-bindings.md`](../sync/transport-bindings.md)。唯一例外是 [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) 中与 PIR / ORAM 并列的 “Forward-private SSE”，该处指 Searchable Symmetric Encryption；该展开只在该上下文成立。 |
+| `DAG` | Directed Acyclic Graph | 指 `prev_refs` 因果图（[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。 |
+| `FSM` | Finite State Machine | 指 lattice `fsm` 族与生命周期状态机。 |
+| `CRDT` | Conflict-free Replicated Data Type | 见 [`../models/crdt-text-extension.md`](../models/crdt-text-extension.md)。 |
+| `LWW` | Last-Writer-Wins | 仅用于对照说明；v1 数据面冲突不隐式选 winner。 |
+| `RYW` | Read-Your-Writes | 见 §2 与 [`../sync/operations-sync.md`](../sync/operations-sync.md)。 |
+| `KAT` | Known-Answer Test | 指逐字节固定的 fixture 向量集。 |
+| `MTI` | Mandatory-To-Implement | 指 v1 core 必须实现的套件 / 方法。 |
+| `DTO` | Data Transfer Object | 指 operation 请求 / 响应体形状；DTO **不是** wire fact，见 §2 `Wire fact` 条目。 |
+| `TTL` | Time To Live | 缓存 / 凭证有效期，不表示 IP 报文跳数限制。 |
+| `ACL` | Access Control List | 仅用于对照外部系统；v1 授权模型是 capability + constraint。 |
+| `GC` | Garbage Collection | 指历史 / blob / 派生数据的回收，不表示编程语言运行时。 |
+| `OOB` | out-of-band | 指协议信道之外的带外传递（邀请码、验证码等）。 |
+| `DND` | Do Not Disturb | 通知抑制状态，见 [`../discovery/push-notifications.md`](../discovery/push-notifications.md)。 |
+| `S2S` / `P2P` | server-to-server / peer-to-peer | 分别指联邦服务间调用与端到端直连媒体路径。 |
+| `TEE` / `HSM` | Trusted Execution Environment / Hardware Security Module | 部署侧密钥保护形态，不是协议必需组件。 |
+| `SSRF` | Server-Side Request Forgery | 出站抓取面的威胁类别，见 [`../sync/service-surface.md`](../sync/service-surface.md)。 |
+| `CSPRNG` | Cryptographically Secure Pseudorandom Number Generator | 随机源要求。 |
+| `SLA` | Service Level Agreement | 部署侧承诺，不构成 wire contract。 |
+| `CI` | Continuous Integration | 指仓库门禁流水线，不表示任何 conformance 概念。 |

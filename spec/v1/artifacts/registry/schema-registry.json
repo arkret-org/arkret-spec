@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.1",
+  "version": "2026-09-08.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-07T00:20:00+08:00",
+  "generated_at": "2026-09-08T05:55:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -640,16 +640,16 @@
       "description": "Closed data/control frame union for ak.self.signal.stream.subscribe.v1."
     },
     {
-      "schema_id": "ak.schema.cba_proof_bundle.v1",
-      "file": "schemas/cba-proof-bundle.schema.json",
+      "schema_id": "ak.schema.cbs_proof_bundle.v1",
+      "file": "schemas/cbs-proof-bundle.schema.json",
       "status": "active",
-      "description": "Unsigned, independently verified CBA dependency bundle."
+      "description": "Unsigned, independently verified CBS dependency bundle."
     },
     {
       "schema_id": "ak.schema.authority_set_policy.v1",
       "file": "schemas/authority-set-policy.schema.json",
       "status": "active",
-      "description": "Canonical concrete authority policy rederived from accepted CBA control state and bound by AuthoritySetRef.",
+      "description": "Canonical concrete authority policy rederived from accepted CBS control state and bound by AuthoritySetRef.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "schemas/offline-publication.schema.json#/$defs/authority_set_policy",

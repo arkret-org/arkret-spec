@@ -755,7 +755,7 @@
         },
         "acceptance_basis_ref": {
           "$ref": "./offline-publication.schema.json#/$defs/lease_basis_ref",
-          "description": "Immutable accepted CBA basis whose control state commits this exact recovery policy version."
+          "description": "Immutable accepted CBS basis whose control state commits this exact recovery policy version."
         },
         "recovery_policy_ref": {
           "$ref": "#/$defs/recovery_policy_ref",
@@ -888,7 +888,7 @@
         },
         "acceptance_basis_ref": {
           "$ref": "./offline-publication.schema.json#/$defs/lease_basis_ref",
-          "description": "Immutable accepted CBA basis whose control state commits this exact recovery policy version."
+          "description": "Immutable accepted CBS basis whose control state commits this exact recovery policy version."
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"

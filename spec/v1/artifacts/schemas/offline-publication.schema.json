@@ -66,7 +66,7 @@
         },
         "authority_set_policy": {
           "$ref": "#/$defs/authority_set_policy",
-          "description": "Portable concrete policy bytes. authority_set_id MUST equal authority_set_ref.authority_set_id and SHA-256(JCS(this object)) MUST equal authority_set_ref.authority_set_digest. Verifiers MUST additionally rederive this policy from basis_ref and the submitted CBA closure."
+          "description": "Portable concrete policy bytes. authority_set_id MUST equal authority_set_ref.authority_set_id and SHA-256(JCS(this object)) MUST equal authority_set_ref.authority_set_digest. Verifiers MUST additionally rederive this policy from basis_ref and the submitted CBS closure."
         },
         "proofs": {
           "type": "array",
@@ -197,7 +197,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Immutable reference to the CBA authority-set policy resolved at basis_ref. authority_set_digest binds the canonical policy bytes so a mutable registry lookup cannot change quorum, delegation, or revocation semantics."
+      "description": "Immutable reference to the CBS authority-set policy resolved at basis_ref. authority_set_digest binds the canonical policy bytes so a mutable registry lookup cannot change quorum, delegation, or revocation semantics."
     },
     "authority_set_policy": {
       "type": "object",

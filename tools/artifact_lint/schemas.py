@@ -3887,7 +3887,7 @@ def check_classification_context_paths(lint: Lint) -> None:
 
 
 def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
-    """Pin Circle lifecycle evaluation to the Event CBA basis and freshness rules."""
+    """Pin Circle lifecycle evaluation to the Event CBS basis and freshness rules."""
     path = ARTIFACTS / "fixtures" / "circle-scope-fixture.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):

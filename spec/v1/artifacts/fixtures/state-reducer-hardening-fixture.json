@@ -1,5 +1,5 @@
 {
-  "profile": "ak.vector_group.cba_lattice.v1",
+  "profile": "ak.vector_group.cbs_lattice.v1",
   "version": "2026-08-17",
   "suite": "state_reducer_hardening",
   "runner": {

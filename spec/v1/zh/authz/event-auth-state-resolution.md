@@ -1,5 +1,5 @@
 ---
-title: Event Auth、CBA 双平面与状态收敛
+title: Event Auth、CBS 双平面与状态收敛
 status: candidate
 normative: true
 stability: v1
@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）**：
+Arkret v1 的一致性层采用 **CBS（Control-plane Basis-committed Sealing）**：
 
 - **数据面**（data plane）承载消息、内容、reaction、计数、协作文本、草稿和默认业务对象。数据面 Event 是签名因果 hash-DAG + Lattice / CRDT 输入；验签、授权与 `seal_ref` 验证通过后即可本地投影、转发和参与 join。数据面没有事件级 Seal finality 字段、没有 pending→effective 状态机、没有全局排序闸门。
 - **控制面**（control plane）承载 membership、capability、policy、notary、lifecycle、MLS epoch / governance binding 以及显式 `sealed=true` 的对象。控制面 Move 由 Seal 裁决，提供 finality、治理 `state_root`、问责与 transparency。
@@ -187,9 +187,9 @@ Control Move 生命周期，`fork_quarantine` 是分支处置；这些概念不�
 
 **高风险 capability 的撤销即时性（normative）**：对 `risk_tier=high` capability（`risk_tier` 的权威源是 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)，散文镜像见 [`capabilities.md`](./capabilities.md)）授权的 DataEvent，撤销**不享受**新鲜度窗口宽限：receiver 一旦观察到覆盖该 capability 的撤销 Seal `R`，MUST 对 `seal_ref` 早于 `R` 的此类 DataEvent fail closed（等效 `revocation_freshness_window_ms = 0`），无论 `distance`。承载此类 capability 授权判定的 cell family MUST 声明 `cell_role=authorization_root` 且 `plane=control`；若复用一个原本 data-like 的 cell family 作为该授权输入，则还 MUST 显式 `sealed=true` 升控制面，否则 Realm schema / reducer MUST 拒绝该声明。中低风险 DataEvent 仍按上面的窗口判定。
 
-这里的“即时”严格表示 **`R` 已成为 receiver 可验证控制面视图的一部分之后零宽限**，不表示追溯否定 `R` 之前或与 `R` 并发、且按自身合法旧 CBA basis 已授权的操作。同一 ordered submit batch 也不产生隐式因果顺序：revoke 与依赖旧 grant 的 Event 若都指向 revoke 前 basis，后者仍按该 basis 判定；`sealed=true` 提供控制面 finality 与后继顺序，但不会把同批数组顺序改写为授权因果。需要阻断 compromised runtime 的部署 MUST 同时使用 session/introspection pause、ingress deny 或等价的运行时 kill switch；只有后续 Event 改用包含 `R` 的新 basis 后，协议内 capability revoke 才能证明性阻断它。producer 在本地已观察到 `R` 后仍用早于 `R` 的 `seal_ref` 继续签发 DataEvent，receiver / audit **SHOULD** 将其记录为 audit-loggable 可疑信号（stale-after-observed），供事后问责。
+这里的“即时”严格表示 **`R` 已成为 receiver 可验证控制面视图的一部分之后零宽限**，不表示追溯否定 `R` 之前或与 `R` 并发、且按自身合法旧 CBS basis 已授权的操作。同一 ordered submit batch 也不产生隐式因果顺序：revoke 与依赖旧 grant 的 Event 若都指向 revoke 前 basis，后者仍按该 basis 判定；`sealed=true` 提供控制面 finality 与后继顺序，但不会把同批数组顺序改写为授权因果。需要阻断 compromised runtime 的部署 MUST 同时使用 session/introspection pause、ingress deny 或等价的运行时 kill switch；只有后续 Event 改用包含 `R` 的新 basis 后，协议内 capability revoke 才能证明性阻断它。producer 在本地已观察到 `R` 后仍用早于 `R` 的 `seal_ref` 继续签发 DataEvent，receiver / audit **SHOULD** 将其记录为 audit-loggable 可疑信号（stale-after-observed），供事后问责。
 
-**Scope lifecycle 也是授权输入（normative）**：Realm / Circle lifecycle 与 capability 撤销使用同一 CBA 基线纪律。Circle-scoped DataEvent 的 `state=active` 必须在事件 `seal_ref` view 中求值；不得以 receiver 当前 projection 替代。基线后的线性 Circle archive 复用上述 `distance` / `revocation_freshness_window_ms`，tombstone 与 `open_set` 并发 archive / tombstone 等效 window=0；后续 restore 不追溯恢复跨过 archive barrier 的旧 `seal_ref`。Control Move 在其 `seal_basis` joined view admission，并由 `apply_seal` step 8 在冻结 predecessor joined governance state 重验。完整错误映射与 restore barrier 见 [`../models/circle.md` §6.1](../models/circle.md)。
+**Scope lifecycle 也是授权输入（normative）**：Realm / Circle lifecycle 与 capability 撤销使用同一 CBS 基线纪律。Circle-scoped DataEvent 的 `state=active` 必须在事件 `seal_ref` view 中求值；不得以 receiver 当前 projection 替代。基线后的线性 Circle archive 复用上述 `distance` / `revocation_freshness_window_ms`，tombstone 与 `open_set` 并发 archive / tombstone 等效 window=0；后续 restore 不追溯恢复跨过 archive barrier 的旧 `seal_ref`。Control Move 在其 `seal_basis` joined view admission，并由 `apply_seal` step 8 在冻结 predecessor joined governance state 重验。完整错误映射与 restore barrier 见 [`../models/circle.md` §6.1](../models/circle.md)。
 
 Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制面 seal 后再签 data write。治理低频，等待 seal 是可接受成本。
 
@@ -265,8 +265,8 @@ verify_control_move(M, pre_state):
 
 ## 6. Seal
 
-Finality profile、控制并发类别、非空 genesis、proposal 有界决议与 `CbaProofBundle` 的权威合同见
-[`cba-profiles.md`](./cba-profiles.md)。本文件只定义 Seal 的编码、root 与 reducer 计算。
+Finality profile、控制并发类别、非空 genesis、proposal 有界决议与 `CbsProofBundle` 的权威合同见
+[`cbs-profiles.md`](./cbs-profiles.md)。本文件只定义 Seal 的编码、root 与 reducer 计算。
 
 Seal 是唯一控制状态接受事实。submitted/pending/receipt、snapshot、transparency、
 availability 与 compaction 均不得创建第二种 finality。
@@ -365,7 +365,7 @@ Seal MUST 签 `control_event_set_root`。默认 root 是对 canonical 升序 `co
 
 **compaction 不消除精确 membership 的信息量（normative）**：累计覆盖集 root 压缩的是**承诺**，不是任意 Event 的成员关系。`cas_register` 的合并式（§9.3.1.4）需要判断某个身份是否属于对端的 `C`，因此实现 MUST 在本地索引、共享索引或可验证证明中保留足以精确回答该 membership 的信息；MUST NOT 宣称「只保留一个 root 就能以常数空间精确回答任意 membership」。缺证据时 MUST hold / fail closed，MUST NOT 把「查不到」当成 `false`。
 
-**Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_signer` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ak.vector.cba_lattice.seal_compaction_interval_enforced.v1` 固定。
+**Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_signer` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1` 固定。
 
 ### 6.2.1 治理 `state_root` 的 Merkle 计算规则（normative）
 
@@ -454,14 +454,14 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
 1. **覆盖集并集**:`covered(L) = ⋃_i covered_set(S_i)`（§6.2 递归覆盖集的并集）。因 `covered_set` 仅取并集、Control Move digest 内容寻址，`covered(L)` 与 leaf 到达顺序无关。
 2. **Move 应用偏序**:`covered(L)` 内的 Control Move 按其 Seal DAG 因果序构成偏序；线性（有因果先后）的 Move 按因果序应用。
 3. **并发 Move 的 canonical 枚举顺序**:对偏序中**互不可达**（并发）的 Control Move，按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的 producer-biased canonical presentation order 升序枚举。该顺序只固定重放与诊断 bytes；per-cell join 的输入仍是完整 Move 集，任何读路径都不得据此选择“最大 head”。
-   - **precondition 求值基线（frozen predecessor，normative）**:每个 Move `M` 的 `preconditions[]` **MUST** 对 `M` 在 `covered(L)` 内**因果前驱**的 joined 治理状态求值——即冻结在"`M` 及所有与 `M` 并发的 Move 尚未应用"的那个 predecessor 基线上；线性化中排在 `M` 之前的**并发** Move 的 projected writes **MUST NOT** 进入 `M` 的 precondition 求值基线。这与全协议 CBA basis 规则同一（`ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`）:同批 / 并发前序 writes 只提供原子提交便利，不自我满足后续 precondition。
+   - **precondition 求值基线（frozen predecessor，normative）**:每个 Move `M` 的 `preconditions[]` **MUST** 对 `M` 在 `covered(L)` 内**因果前驱**的 joined 治理状态求值——即冻结在"`M` 及所有与 `M` 并发的 Move 尚未应用"的那个 predecessor 基线上；线性化中排在 `M` 之前的**并发** Move 的 projected writes **MUST NOT** 进入 `M` 的 precondition 求值基线。这与全协议 CBS basis 规则同一（`ak.vector.cbs_lattice.same_batch_does_not_advance_authorization_basis.v1`）:同批 / 并发前序 writes 只提供原子提交便利，不自我满足后续 precondition。
    - **对强一致 cell 的后果**:因此同一 `cas_register` / `fsm` cell 上的两个并发互斥写**都**通过各自 precondition（都看见同一冻结基线），在 step 4 join 到 `⊥`——枚举顺序 **MUST NOT** 被用来给任何治理或数据 domain 静默选出单一 winner。
    - **同 Seal 排重义务（normative）**：notary 能同时观察同一拟议 `delta[]`，因此对命中同一 `bottom=reject` cell、且在冻结基线下 projected writes 互斥的 Move，MUST 至多 include 一条；其余 MUST signed-reject（`reason_code="cas_conflict"`）或 defer 到后续 Seal 重新按新 basis admission。`apply_seal` MUST 重算此条件；同一 Seal 覆盖两条此类互斥 Move 时整个 Seal MUST `rejected_seal`，不得先把 cell join 到 `⊥`。该义务不为 Move 选择协议 winner：notary 可以拒绝全部，也可以依其公开调度 policy 选择至多一条；跨不可达 Seal leaf 的真正并发仍按 step 4 / §9.5 产生 `⊥`。
    - **控制 delta 的并发类构成（normative）**：一张 Seal 的控制 `delta[]` MUST 是下列两种形态之一，二者 **MUST NOT** 混装：
      1. **恰一个** `concurrency_class = security_barrier` 的控制事务——一条普通 barrier Control Move，或 registry 已登记的原子 bootstrap / re-anchor unit；该 Seal MUST NOT 再携带任何其它控制写。
      2. **一组非 barrier 控制写**（`concurrency_class ∈ {exclusive, merge_safe}`），且它们命中的 cell 两两不相交；该 Seal MUST NOT 携带任何 barrier 写。
 
-     判据是写入方登记的 `concurrency_class`（[`cba-profiles.md` §2](./cba-profiles.md)），**不是**某次请求是否恰好命中某个 constraint；实现 MUST NOT 按请求内容动态切换某个 kind 的并发类。违反本条的 Seal MUST `rejected_seal`，MUST NOT 先接受一部分。
+     判据是写入方登记的 `concurrency_class`（[`cbs-profiles.md` §2](./cbs-profiles.md)），**不是**某次请求是否恰好命中某个 constraint；实现 MUST NOT 按请求内容动态切换某个 kind 的并发类。违反本条的 Seal MUST `rejected_seal`，MUST NOT 先接受一部分。
 
      **为什么必须是「二选一」而不是「至多一个 barrier」**：写偏差不是 join 的性质，是两条写共享同一个**过期前态**的性质。上面的 frozen predecessor 规则已经保证同批写都在 `M` 的因果前驱上求值，因此一条 barrier 与一条普通写同批时，那条普通写的授权仍以 barrier **生效前**的状态判定。若 barrier 改变的正是该授权读取的 cell，二者一起被接受就等于让被降权的主体以降权前的基线完成了动作。`remove(A)` 与 `grant(admin, A)` 是这一形状的原型；`ak.moderation.decision` 与一条其授权读 `ak.component.moderation_state.v1` 的写是同一形状——后者正是那两个 kind 登记为 `security_barrier` 的原因。允许「至多一个 barrier + 若干普通写」不能封闭它，因为危险的组合恰好只有一个 barrier。
 
@@ -578,11 +578,11 @@ Equivocation evidence 是普通 Control Move，event kind 为 **`ak.notary.fault
 
   该处理与 §4.3 撤销新鲜度判定正交（前者针对控制面分叉，后者针对单链撤销），与 [`../sync/operations-sync.md`](../sync/operations-sync.md) 的 observed-only / backfill 保持语义（observed-only 的 DataEvent 不进 canonical join），不引入新状态。
 
-Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ak.vector.cba_lattice.threshold_forensic_attribution.v1` 固定。本条判据是**事后指认**：`2k>n` 保证共同成员存在且必然双签，共同成员是否诚实不影响可指认性。[`cba-profiles.md` §2](./cba-profiles.md) 的 barrier 串行化另有更强的 `2k > n + f`，要求交集中至少有一个**诚实** signer；两条不等式服务于不同断言，MUST NOT 互相代入，也 MUST NOT 因为一方不成立而放松另一方。
+Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ak.vector.cbs_lattice.threshold_forensic_attribution.v1` 固定。本条判据是**事后指认**：`2k>n` 保证共同成员存在且必然双签，共同成员是否诚实不影响可指认性。[`cbs-profiles.md` §2](./cbs-profiles.md) 的 barrier 串行化另有更强的 `2k > n + f`，要求交集中至少有一个**诚实** signer；两条不等式服务于不同断言，MUST NOT 互相代入，也 MUST NOT 因为一方不成立而放松另一方。
 
 ### 7.2 控制面 Control Proposal Ack 与 inclusion obligation
 
-除 [`cba-profiles.md` §4](./cba-profiles.md) 定义的 authority-authored human
+除 [`cbs-profiles.md` §4](./cbs-profiles.md) 定义的 authority-authored human
 self-principal PCR Move 外，控制面 pending Control Move MUST 在 `proposal_intake_sla_ms` 内得到签名
 Control Proposal Ack（控制提案签收）或签名 rejection。该例外已由 current accepted device 作为
 exact Move 的 author/authority，不产生第二份 Ack 或 decision deadline，但仍必须进入 pending Control
@@ -654,13 +654,13 @@ author 将互异 authority Ack 按 `signature.verification_method` canonical 升
 
 `EventInitialSubmission.control_proposal_ack` 与
 `EventFederationSubmission.control_proposal_ack` 是该证据的唯一输入位置，只允许 Control
-Move；DataEvent携带时必须 schema/admission拒绝。`cba_proof_bundles[]`只补basis closure，不得
+Move；DataEvent携带时必须 schema/admission拒绝。`cbs_proof_bundles[]`只补basis closure，不得
 承载或替代Ack。收集未在共同窗口内达到quorum时，本proposal永久不能以零散authority Ack入库；
 producer必须author并签署新的Control Move Event，authority不得为旧digest重新计时。
 `proposal_ack_digest = SHA-256(JCS(the complete canonical ControlProposalAck including
 authority signatures))`；同一有效authority集合只有一种排序和一种digest。
 该外部成员签发、共同窗口、quorum、duplicate/equivocation与decision-set binding由
-`ak.vector.cba.external_control_proposal_ack_quorum.v1`固定。
+`ak.vector.cbs.external_control_proposal_ack_quorum.v1`固定。
 
 每个决议窗口到期前，authority MUST 产生以下之一：
 
@@ -704,7 +704,7 @@ signed-reject 时：
 rejected 两种终态。协议不能强迫停机或恶意 authority 接受 proposal；它能保证的是合规
 authority 给出有界、可验证的决议，并为失约提供 health/fault/recovery/rotation 入口。
 上述 Ack、两次 defer 上界、绝对期限与迟到 Seal 规则由 conformance vector
-`ak.vector.cba.proposal_bounded_decision.v1` 固定。
+`ak.vector.cbs.proposal_bounded_decision.v1` 固定。
 
 `ak.self.seals.read.frontier.v1` 与 `ak.peer.seals.read.frontier.v1` 的 Realm current Seal discovery MUST 返回同一 closed
 `RealmSealFrontierView`：`seal_basis.leaves[]` 是 canonical bytewise sorted、duplicate-free 的完整 non-quarantined accepted
@@ -807,7 +807,7 @@ Wire schema：[`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-l
 4. 自 list 被观察起的 `expiry_seal_count` 个后续 Seal 内（默认 1），每个列出 digest MUST 被 include、signed-reject 或附 batch pre-state 验证失败证明；任一 digest 三者皆无 → receiver MUST 拒绝该 Seal（`rejected_seal`，reason=`inclusion_list_violation`）；
 5. inclusion list 自身不是 Seal，不推进治理状态；它只是问责对象。
 
-该义务由 conformance vector `ak.vector.cba_lattice.inclusion_list_obligation.v1` 固定。
+该义务由 conformance vector `ak.vector.cbs_lattice.inclusion_list_obligation.v1` 固定。
 
 ### 7.4 Seal transparency
 
@@ -1000,7 +1000,7 @@ H = (H1 ∩ H2)
 
 **取证只走已登记的精确披露面（normative）**：合并式需要的三类输入——对端 view 的完整 CAS state leaf、某个身份是否属于对端 `C`、以及碰撞归一依赖——MUST 通过已登记的读取面与证明取得：完整 state leaf 与 membership 走 §6.2.1 的 `state_root` inclusion / non-membership proof 与 §6.2 的 `control_event_set_root`；碰撞变体走 §6.3.3 的 `collision_variant_record` selector；`event_sibling_position` 的穷尽性走 [`../sync/federation.md` §4.5.1](../sync/federation.md) 的 `ak.peer.events.read.sibling_positions.v1`。实现 MUST NOT 为 CAS 新增私有下载接口、operator 命令或数据库直读来补齐这些输入；缺证据时 MUST hold / fail closed，MUST NOT 把「查不到」当成「对方没见过」——后者会让已被取代的写入复活。
 
-conformance 入口：`ak.vector.lattice.cas_register_supersession.v1`（join 与合并闭合）与 `ak.vector.cba_lattice.cas_mixed_basis.v1`（写入准入、stale ABA 与自派生目标）。
+conformance 入口：`ak.vector.lattice.cas_register_supersession.v1`（join 与合并闭合）与 `ak.vector.cbs_lattice.cas_mixed_basis.v1`（写入准入、stale ABA 与自派生目标）。
 
 #### 9.3.1.5 `fsm` 的状态：Event 身份与活跃 transition heads（normative）
 
@@ -1200,7 +1200,7 @@ fork/quarantine 规则隔离，不作为两个普通合法 Seal 自动 join。no
 之类的到达序切片实现它。恢复写入本身也 MUST 保持可被取代：它成为该 cell 的一个普通 head，后继合法
 transition 以它为 `from` 继续推进，未被其 basis 覆盖的迟到分支仍按 §9.3.1.8 参与合并。
 
-**与 §7.1 的层次区分**：§7.1 恢复的是 **Seal-DAG 分叉**（equivocation / `fork_quarantine`）；本节恢复的是**未分叉治理状态内单个 cell 的 `⊥`**。两者由同一恢复权威书写、都经 Seal 接受，但作用对象不同，不可互相替代。该恢复路径由 conformance vector `ak.vector.cba_lattice.conflict_recovery_move.v1` 固定。
+**与 §7.1 的层次区分**：§7.1 恢复的是 **Seal-DAG 分叉**（equivocation / `fork_quarantine`）；本节恢复的是**未分叉治理状态内单个 cell 的 `⊥`**。两者由同一恢复权威书写、都经 Seal 接受，但作用对象不同，不可互相替代。该恢复路径由 conformance vector `ak.vector.cbs_lattice.conflict_recovery_move.v1` 固定。
 
 ## 10. 查询语义
 

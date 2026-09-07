@@ -395,7 +395,7 @@ class HashWordBoundaryTest(MutationHarness):
     def test_words_are_split_in_every_casing_style(self) -> None:
         self.assertEqual(split_name_words("nextKeyHashes"), ["next", "key", "hashes"])
         self.assertEqual(split_name_words("confirmed_transcript_hash"), ["confirmed", "transcript", "hash"])
-        self.assertEqual(split_name_words("CBAProofBundle"), ["cba", "proof", "bundle"])
+        self.assertEqual(split_name_words("CBSProofBundle"), ["cbs", "proof", "bundle"])
 
     def test_camel_case_hash_spellings_are_rejected(self) -> None:
         for candidate in ("nextKeyHashes", "NextKeyHash", "hashAlgorithm", "transcript_hash", "hashes"):

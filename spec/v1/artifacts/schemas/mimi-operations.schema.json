@@ -871,14 +871,14 @@
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
           "description": "Exact caller-authored and caller-signed ak.self.moderation.report Event admitted as the durable effect. Realm, Strand/scope, target, reason, description, evidence, franking and MIMI provenance are read only from this signed Event; its actor MUST equal reporter_authority.actor_id and its payload source_provider_id MUST equal the authenticated transport Provider-ID."
         },
-        "cba_proof_bundles": {
+        "cbs_proof_bundles": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
+            "$ref": "./cbs-proof-bundle.schema.json"
           },
-          "description": "Optional receiver-relative CBA dependency bundles. They are transport evidence covered by reporter_authority.proof but are not Event members."
+          "description": "Optional receiver-relative CBS dependency bundles. They are transport evidence covered by reporter_authority.proof but are not Event members."
         }
       },
       "additionalProperties": false
@@ -886,7 +886,7 @@
     "mimi_reporter_authority": {
       "type": "object",
       "x-arkret-signature-domain": "ak.mimi_reporter_authority_proof.v1",
-      "description": "Holder-signed, short-lived binding from the external reporter to one complete current Arkret ActorId. The proof transcript covers the compact report body with only reporter_authority.proof omitted: reporter_authority, report_event and any cba_proof_bundles. The verifier independently resolves the proof key from the exact Actor current device or registered authorized proxy state, cross-checks report_event.event.actor_id, authenticates the provider at the transport layer, and verifies both referenced Events remain the unique current accepted participation/binding; carrier fields never self-authorize.",
+      "description": "Holder-signed, short-lived binding from the external reporter to one complete current Arkret ActorId. The proof transcript covers the compact report body with only reporter_authority.proof omitted: reporter_authority, report_event and any cbs_proof_bundles. The verifier independently resolves the proof key from the exact Actor current device or registered authorized proxy state, cross-checks report_event.event.actor_id, authenticates the provider at the transport layer, and verifies both referenced Events remain the unique current accepted participation/binding; carrier fields never self-authorize.",
       "required": [
         "actor_id",
         "membership_event_id",

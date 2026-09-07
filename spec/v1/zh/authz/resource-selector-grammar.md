@@ -489,7 +489,7 @@ function matches(target, selector):
             if selector.match_scope == "exact":
                 return selector.space_id == target.id
             # children / subtree：target.parent_space_id / target.ancestor_space_ids
-            # MUST 在被授权操作的 CBA basis 下确定性解析；parent cell 多 head / ⊥ 时
+            # MUST 在被授权操作的 CBS basis 下确定性解析；parent cell 多 head / ⊥ 时
             # MUST fail closed（failed_bottom，space_parent_chain_in_bottom_state），
             # 不得任取一个 head。见本节 match_scope 表后的 normative 段。
             if selector.match_scope == "children":
@@ -535,7 +535,7 @@ function matches(target, selector):
 
 **`children` / `subtree` 的 ancestor chain 确定性锚定（normative，防 split authz）**：`children` 的 `target.parent_space_id` 与 `subtree` 的 `target.ancestor_space_ids`（Space parent chain）在并发 reparent 下可能出现多 head（同一 Space 的 parent cell 在不同 head 上指向不同 parent），若授权判定任取一个 head 解析 ancestor chain，则不同节点对"该 Space 是否落在 subtree 内"得出分歧（split authz）。为关闭该面：
 
-- `children` / `subtree` match_scope 的 parent / ancestor chain **MUST** 在**被授权操作的 CBA basis**（DataEvent 的 `seal_ref` 指向的控制面 view，或 Control Move 的 `seal_basis` 指向的控制面 view；见 [`event-auth-state-resolution.md`](./event-auth-state-resolution.md)）下**确定性解析**。给定该 basis，目标 Space 的 parent chain 有唯一解，授权判定 MUST 用该唯一解，MUST NOT 用任意本地最新 head 或其他 basis 解析的 chain。
+- `children` / `subtree` match_scope 的 parent / ancestor chain **MUST** 在**被授权操作的 CBS basis**（DataEvent 的 `seal_ref` 指向的控制面 view，或 Control Move 的 `seal_basis` 指向的控制面 view；见 [`event-auth-state-resolution.md`](./event-auth-state-resolution.md)）下**确定性解析**。给定该 basis，目标 Space 的 parent chain 有唯一解，授权判定 MUST 用该唯一解，MUST NOT 用任意本地最新 head 或其他 basis 解析的 chain。
 - 当目标 Space（或其 ancestor chain 上任一 Space）的 parent cell 在该 basis 下处于**多 head / `⊥`**（并发 reparent 未收敛、fork quarantine 等）时，该 `subtree` / `children` 授权分支 **MUST fail closed**：`matches` 对该目标返回不命中（授权按 deny 处理），相关 DataEvent / Control Move MUST `failed_bottom`（`reason="space_parent_chain_in_bottom_state"`），**MUST NOT** 任取一个 head 作为 parent 来判定命中。这与 §6 matches 算法对非法 match_scope 组合的 fail-closed 裁决一致：宁可拒绝也不在歧义 parent chain 下静默放行。
 - `exact` match_scope 不解析 ancestor chain，不受本规则约束；`realm_wide` 按 `realm_id` 命中、亦不依赖 parent chain。
 

@@ -19,7 +19,7 @@ updated: 2026-08-13
 - **Field Patch (`ak.schema.patch.v1`)**：非 create 类更新的标准字段增量格式。
 - **Event Batch Receipt**（`ak:receipt:`）：可选审计 / 同步加速对象。
 
-CBA 双平面、DataEvent、Control Move、Seal、Lattice、cell 模型、authority chain 与 state 收敛细节由 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 承担；本文聚焦对象级 schema、字段、reducer 总则与 patch 语义。
+CBS 双平面、DataEvent、Control Move、Seal、Lattice、cell 模型、authority chain 与 state 收敛细节由 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 承担；本文聚焦对象级 schema、字段、reducer 总则与 patch 语义。
 
 公共字段见 [`common-fields.md`](./common-fields.md)。
 
@@ -31,14 +31,14 @@ CBA 双平面、DataEvent、Control Move、Seal、Lattice、cell 模型、author
 
 Event 是 reducer 输入和审计事实。所有协作变化最终都落为签名 `event`。Event 是审计根和 reducer 输入；当前态只是 Event 集合在某个 reducer profile 下的物化结果。
 
-Reducer-input event 按 CBA 分为两类：
+Reducer-input event 按 CBS 分为两类：
 
 - DataEvent：顶层带 `seal_ref` / `auth_context`，不带 `seal_basis` / `preconditions[]`。
 - Control Move：顶层带 `seal_basis`，可带 `preconditions[]`，不带 `seal_ref` / `auth_context`。
 
 非 reducer event 不带这些 reducer 字段。
 
-Event Envelope 是 kind-routed payload 承载层。v1 的协议状态收敛以 CBA 双平面、Seal、Lattice 与注册 reducer 纯函数为准；`kind + payload` 是唯一业务事实源。
+Event Envelope 是 kind-routed payload 承载层。v1 的协议状态收敛以 CBS 双平面、Seal、Lattice 与注册 reducer 纯函数为准；`kind + payload` 是唯一业务事实源。
 
 ### 2.2 Schema 与字段
 
@@ -69,7 +69,7 @@ Schema id: `ak.schema.event.v1`
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个 producer proof；origin Station 完成本地准入后最多追加一个 `station_admission`。 | producer 签名与 origin admission 证明。 |
-| `requirements` | no | `object` | `requirements.{schema[], features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / feature / critical extension）。Reducer profile 从 Event 的 CBA governance basis 读取，不在 Event 中声明。 |
+| `requirements` | no | `object` | `requirements.{schema[], features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / feature / critical extension）。Reducer profile 从 Event 的 CBS governance basis 读取，不在 Event 中声明。 |
 
 #### 2.2.1 Wire Event 与 producer 的已验证提交态（normative）
 
@@ -77,7 +77,7 @@ Schema id: `ak.schema.event.v1`
 `genesis` / `commit` / `welcome`、携带 MLS 加密正文的 `ak.message.create` 与明文允许的
 Event 都使用同一组 envelope 字段；它们由 `kind` 与注册 payload schema 区分。内容是否由
 MLS 保护是 payload protection 维度，不是第二种 Event envelope。SDK / 实现 MUST NOT 定义
-字段规则不同的通用 `MlsEvent` wire 类型，或因 payload 已加密而省略该 Event 所属 CBA plane
+字段规则不同的通用 `MlsEvent` wire 类型，或因 payload 已加密而省略该 Event 所属 CBS plane
 的字段。特别地，加密 `ak.message.create` 仍是 DataEvent，仍 MUST 携带 `seal_ref +
 auth_context`。
 
@@ -97,15 +97,15 @@ MUST 使用 `MlsEncryptedPayload<MessageMetadata>`，不得用 ContentBlock wrap
 
 通用 wire `Event` 为支持解析全部 plane，可以把 `seal_ref`、`auth_context`、`seal_basis`
 表示为条件字段；但 producer SDK MUST 将“可解析 wire object”与“可提交 Event”建模为不同
-状态。普通首发 / lease / submit API MUST 只接受一个已经通过完整 Event schema 与 CBA shape
+状态。普通首发 / lease / submit API MUST 只接受一个已经通过完整 Event schema 与 CBS shape
 校验、且不能再原地修改 envelope 的已验证提交态，其 closed variant 至少区分：
 
 - DataEvent：`seal_ref + auth_context` 必填，`seal_basis + preconditions` 禁止；
 - Control Move：`seal_basis` 必填，`seal_ref + auth_context` 禁止；
-- non-reducer Event：全部 CBA reducer 字段禁止。
+- non-reducer Event：全部 CBS reducer 字段禁止。
 
 Anchor Unit 是显式、闭合且有序的 batch protocol，MUST 由对应 bootstrap / re-anchor unit
-validator 构造；SDK MUST NOT 用“一个或一批 Event 的 CBA 条件字段均为空”推断它是 Anchor
+validator 构造；SDK MUST NOT 用“一个或一批 Event 的 CBS 条件字段均为空”推断它是 Anchor
 Unit。raw `Event` MAY 用于反序列化、检查或草稿中间态，但 MUST NOT 绕过上述
 转换直接进入 publication-evidence 或 submit 网络边界。转换失败 MUST 在发起网络请求前
 fail closed。
@@ -126,7 +126,7 @@ Strand、KeyPackage claim 或 MLS Commit draft。
 `deactivate_agent` 只 author 一个 controller-signed terminal lifecycle Event；
 `prepare_mls_security_commit` 从 accepted state 重算当前 `security_frontier_digest` 并构造含完整 RFC 9420
 Commit bytes 的 `MlsCommitPayload`。所有高层入口最终都必须返回 §2.2.1 的 immutable verified
-submission；任何返回 raw mutable map、让调用方补 CBA 字段或自行拼 transcript 的 API 不合规。
+submission；任何返回 raw mutable map、让调用方补 CBS 字段或自行拼 transcript 的 API 不合规。
 该边界由 `ak.vector.sdk.event_type_axes.v1` 的 compile-fail/type-error suite 固定。
 
 Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。`effects`、`conflict_keys_digest` 与 producer-selected `auth_context.capability_refs` 均不是 v1 wire 字段；遇到它们 MUST `schema_violation`。扩展字段不得直接加在顶层；非关键扩展只能放入 payload schema 明确声明的 `x_*` 槽。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的扩展字段；关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。
@@ -197,7 +197,7 @@ Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State converge
 
 - `payload.type` 不得重复写入 `ak.*` Event kind。
 - Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ak:strand:` 等）即对象种类，不写单独的 `payload.object.type`。
-- `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent / applet / delegated service principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 accountable principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation，以及对应 Agent key authorization 或 Applet registration / registration_epoch 绑定之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 CBA basis 校验。
+- `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent / applet / delegated service principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 accountable principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation，以及对应 Agent key authorization 或 Applet registration / registration_epoch 绑定之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 CBS basis 校验。
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
 - 启用 `ak.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` 必须是 canonical pairwise `did_core_id`：每个 `(Realm,endpoint incarnation)` 唯一，同一 endpoint 可在该 Realm-default group 与其 Circles 中复用，禁止 Circle-local rotation 或跨 Realm 复用。其与真实 principal 的可选映射只存在于成员可解密的 `identity_link`/claim；服务端不得聚合推断，也不得把非 `did_core_id` pseudonym 写入 `actor_id`。旧 actor 的 Realm membership 被 winning leave/remove 终结时，Realm 及全部 Circle 必须立即停止授权该 actor；新 endpoint 使用新 actor 按普通 join 与各 group 的普通 MLS Remove/Add 独立收敛。v1 没有独立 replacement Event、old-to-new mapping 或跨 group 原子事务；父 Realm rejoin 不自动加入 Circle，也不复活旧 Circle leaf。
 
@@ -223,7 +223,7 @@ Receiver MUST 在解析任何验签 key 前先确定唯一 signer regime，不�
 #### 2.4.2 Event kind cell contract（normative）
 
 每个 `status=active && reducer_input=true` 的 durable Event kind MUST 在 `event-kind-registry.json`
-声明完整 reducer contract。`plane` / `sealed` 固定 CBA 路由；`cell_writes[]` 是 reducer 内部目标集合，
+声明完整 reducer contract。`plane` / `sealed` 固定 CBS 路由；`cell_writes[]` 是 reducer 内部目标集合，
 每项固定 `cell_family`、`cell_subject` 派生式、`lattice`、`bottom`、可选
 `condition` 与必需 `effect_projection`。**registry MUST NOT 声明 `initial_value` / `sentinel_writers`
 （并因此不存在 `initial_value_reserved` 拒绝分支）**：`cas_register` 未写入初始态在全协议恒为 `null`
@@ -300,7 +300,7 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   **逐字节相等**的存活 add dot。`element_field` 是**元素值**上的点分具名路径，
   不是 Event 根路径——这是它与 `condition.field` 的关键区别；路径不存在的元素不参与移除。
 
-  该形态的确定性来自 CBA basis：Control Move 的 `seal_basis` 已经把 frontier 钉死，
+  该形态的确定性来自 CBS basis：Control Move 的 `seal_basis` 已经把 frontier 钉死，
   因此"冻结前态下的存活 add dot 集合"在所有实现上相同，无需 producer 在 payload 中枚举 dot。
   它是规范既有语义的机器可读形式，参见
   [`../identity/key-management.md`](../identity/key-management.md) §3.6.1
@@ -374,7 +374,7 @@ Realm / Circle membership 共用同一 materialized membership 状态图，invit
 `tools/artifact_lint` 的 `fsm_reachability`。
 
 **Actor-private 状态合约（normative）**：`wire_scope="actor_private_event"` 的 Event 不进入共享
-Data/Control reducer，因而 MUST NOT 声明共享 `plane`、`sealed`、CBA 或
+Data/Control reducer，因而 MUST NOT 声明共享 `plane`、`sealed`、CBS 或
 `cell_contracts`。其 durable 投影必须在
 `event_kind_registry.actor_private_contracts.event_writes` 中精确登记，并解析到一个
 `ak.private.*` family；family 的合并语义只可引用同处登记的 `merge_definitions`。
@@ -484,7 +484,7 @@ Create 类 Event 的 `payload.object` MAY 使用其登记的对象或 genesis sc
 
 ### 2.5.1 `created_at` 下界（normative）
 
-`event_id` 不再包含时间段。本节下界仅证明因果单调性、CBA basis 时序与 future-skew admission，不给完整 256-bit digest 增加额外密码学位数，也不能阻止攻击者为可预测的未来时间预计算。真正限制预计算需要事前不可预测的 recent Seal/head/beacon 加可信首次准入窗口；本节不声称单独提供该性质。
+`event_id` 不再包含时间段。本节下界仅证明因果单调性、CBS basis 时序与 future-skew admission，不给完整 256-bit digest 增加额外密码学位数，也不能阻止攻击者为可预测的未来时间预计算。真正限制预计算需要事前不可预测的 recent Seal/head/beacon 加可信首次准入窗口；本节不声称单独提供该性质。
 
 判据 (a) / (b) 是**签名值对签名值的比较，不使用本地时钟**；(c) 是既有的未来一侧 skew 上界，它按定义使用 receiver 本地时钟，因此只作用于 admission 窗口，不参与因果或收敛判定，因此无时钟依赖、跨 receiver 收敛、与到达顺序无关，且对经 submit 还是 federation 路径到达的 Event 一律成立：
 
@@ -502,7 +502,7 @@ Create 类 Event 的 `payload.object` MAY 使用其登记的对象或 genesis sc
 - **(b)** 绑定所有主体，包括在该 Realm 内 `actor_seq=0` 的新成员——他们仍然必须绑定一个已接受的 Seal。`revocation_freshness_window_ms` 只约束旧 basis Seal 与后继撤销 Seal 之间的 notary-committed Seal distance；它不是从 Event 签发、首次出现或 receiver 接收时刻开始倒计时的 TTL，也不会因现实时间流逝而自行耗尽。安全部署若需要现实时间有界的在线阻断，必须使用独立的 session/introspection、ingress deny 或运行时 kill switch。
 - **(b)** 的比较跨两台机器的墙钟，MUST 允许 `hard_future_skew_ms` 的对称容差；MUST NOT 为此新增阈值。
 
-**anchor unit 例外（normative）**：`ak.realm.create` 与 `ak.device.reanchor` 无 `seal_ref` / `seal_basis`，(b) 不适用；`ak.realm.create` 的 `prev_refs` 为空，(a) 也不适用。这只是因果/CBA 时间约束例外，不改变 §4.0 的完整 256-bit digest identity 强度。genesis 批次内免 `seal_basis` 的白名单 follow-up 因 `actor_seq > 0` 且 `prev_refs` 非空，仍受 (a) 覆盖。
+**anchor unit 例外（normative）**：`ak.realm.create` 与 `ak.device.reanchor` 无 `seal_ref` / `seal_basis`，(b) 不适用；`ak.realm.create` 的 `prev_refs` 为空，(a) 也不适用。这只是因果/CBS 时间约束例外，不改变 §4.0 的完整 256-bit digest identity 强度。genesis 批次内免 `seal_basis` 的白名单 follow-up 因 `actor_seq > 0` 且 `prev_refs` 非空，仍受 (a) 覆盖。
 
 **producer 义务**：
 
@@ -826,7 +826,7 @@ Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部�
 
 冻结 pre-state 的唯一求值规则：
 
-- Control Move 的 pre-state 是 `seal_basis` 所承诺的目标 cell settled value，按 CBA frozen-baseline 规则读取。
+- Control Move 的 pre-state 是 `seal_basis` 所承诺的目标 cell settled value，按 CBS frozen-baseline 规则读取。
 - 携带 patch 的 DataEvent MUST 在 `causal_refs[]` 中为每个目标 cell 精确引用一个 accepted base-head event digest；该 Event 的 reducer contract 必须写同一 cell。receiver 从该 base head 的完整 post-state恢复 pre-state，不读取本地当前 head、到达顺序或墙钟。依赖未取得时保持 `dependency_missing` pending。
 - 目标 cell 当前已有多个并发 head 不影响某个基于旧 head 的 DataEvent 被验证：它形成新的并发 head并由 `mv_register` 暴露。producer 若要显式收敛多个 head，MUST 使用该 cell family 注册的 resolution Event / per-object sequencer；通用 patch 不得任意选择本地 winner。create 类无 pre-state 的 Event 不使用本 patch 规则。
 - `causal_refs[]` 中没有命中目标 cell 的 base、命中多个 base、base Event reducer 未写该 cell，或 base post-state 无法重建时，receiver MUST `schema_violation` / `reducer_projection_failed`；不得回退到当前 state。

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-31.1",
+  "version": "2026-09-08.1",
   "source_of_truth": true,
   "schema_ref": "schemas/history-key.schema.json#/$defs/history_release_attestation",
   "wire_registry_binding": "HistoryReleaseAttestation.verifier_profile_id is ak.history_release_predicates.v1. The enclosing HistoryKeyResponseRecord.service_proof covers the complete attestation. An unsupported verifier profile is rejected only for the affected object and is never translated to an authorization failure.",
@@ -100,7 +100,7 @@
       "closed_predicates": [
         "release service verifies the exact requester pairwise ActorId is the current active Realm/Circle membership subject and projects its destination service from that ActorId"
       ],
-      "note": "The release service does not maintain or apply the MLS public tree. The receiver verifies its own exact active pairwise leaf in its current local group state; source identity is verified against the exact historical group-state material. Neither leaf fact is claimed as a service CBA proof or directory lookup."
+      "note": "The release service does not maintain or apply the MLS public tree. The receiver verifies its own exact active pairwise leaf in its current local group state; source identity is verified against the exact historical group-state material. Neither leaf fact is claimed as a service CBS proof or directory lookup."
     }
   },
   "source_branches": {

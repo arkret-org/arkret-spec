@@ -97,7 +97,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 - `conformance-vectors.md` 与 `sync-fixture.json`：timeline 顺序、分页缺口、snapshot frontier、`event_set_commitment`、MLS 回填、decryption_pending。
 - `conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
-- `conformance-vectors.md` 与 `cba-lattice-fixture.json`：CBA 双平面、DataEvent acceptance、Control Move Seal finality、Lattice bottom、同批授权不可提前推进与 Seal covered_set 的收敛向量。
+- `conformance-vectors.md` 与 `cbs-lattice-fixture.json`：CBS 双平面、DataEvent acceptance、Control Move Seal finality、Lattice bottom、同批授权不可提前推进与 Seal covered_set 的收敛向量。
 - `conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Strand discussion track 不继承 Strand synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
@@ -107,13 +107,13 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。以下为优先必测项：
 
-- `ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1`
+- `ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1`
   - 输入带有效 `seal_ref` 与 `auth_context` 的 DataEvent。
   - 期望 reducer 输出：本地接受、可投影、无需被 Seal 覆盖。
-- `ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1`
+- `ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1`
   - 输入带有效 `seal_basis` 的 Control Move 及缺失/错误 basis 的负向样例。
   - 期望输出：Control Move 先 pending，只有被有效 Seal 覆盖并重算 `state_root` 后进入 `sealed`。
-- `ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`
+- `ak.vector.cbs_lattice.same_batch_does_not_advance_authorization_basis.v1`
   - 输入同一 ordered submit batch 内相互依赖的 Control Move。
   - 期望输出：同批前序 projected write 不提前成为后续授权 basis，依赖方必须等待后续 Seal。
 
@@ -194,7 +194,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 | --- | --- | --- |
 | `v1.0.0` | 对外发布稳定规范基线。 | MUST 满足 [`release-readiness.md` §5](../overview/release-readiness.md) 的全部 stable promotion gate；该节是唯一权威清单。 |
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
-| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、CBA/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；并且 profile operation closure 中每个 endpoint 的全部 active `AK-OP-NNN` clause 均有不可变证据。英文或其他翻译不得作为 stale source of truth 发布。 |
+| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、CBS/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；并且 profile operation closure 中每个 endpoint 的全部 active `AK-OP-NNN` clause 均有不可变证据。英文或其他翻译不得作为 stale source of truth 发布。 |
 
 当前仓库仍是 candidate，尚未发布 `v1.0.0` 稳定基线。只有 §6.1 的 stable gate 全部通过并完成显式发布后，仓库才可切换为 `v1.0.0`；在此之前实现只能声明“试验性支持某些 v1 profile”，不得声明稳定规范兼容或 `v1-conformance-certified`。
 

@@ -87,7 +87,7 @@ sidebar:
 
 `ak.realm.media_service` 的 `service_id`、`ice_config_endpoint` 与 `foci[].token_endpoint` 是媒体 token / TURN credential 签发权与 issuer DID 锚定的**信任根**(见 §3 / §7 与 [`call-state.md` §4.1](./call-state.md))。为保证"谁担保该 `service_id` / endpoint 列表未被篡改",本节固定:
 
-- `ak.realm.media_service` state Event（含 `service_id`、`ice_config_endpoint` 与全部 `foci[].token_endpoint`）MUST 通过普通 Event proof、CBA admission 与 accepted Seal state 物化；客户端不得接受未进入当前 accepted policy projection 的本地/OOB endpoint。
+- `ak.realm.media_service` state Event（含 `service_id`、`ice_config_endpoint` 与全部 `foci[].token_endpoint`）MUST 通过普通 Event proof、CBS admission 与 accepted Seal state 物化；客户端不得接受未进入当前 accepted policy projection 的本地/OOB endpoint。
 - 客户端在把这些字段锚定为 credential issuer DID 前，MUST 从当前 accepted Seal view 验证该 exact cell value 与 Event proof；缺失或 stale 时 fail closed（`media_service_binding_uncovered`）。普通 endpoint 变更不改变 MLS key 持有人，因此不得仅为它强制 rekey。
 - 只有 `media_service_decrypts` 或 `plaintext_visible_services` 的 accepted effect 改变媒体明文/密钥接收者时，才按 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md) 进入 `security_frontier_digest` 并等待新 Commit。
 

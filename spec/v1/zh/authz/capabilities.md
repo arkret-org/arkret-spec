@@ -363,7 +363,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 Strand 权限只覆盖 Strand 自身字段、track entry 和 position / relation 管理。`ak.strand.update` 的 `allowed_write_fields` MUST 把 Strand Description（`content` / `encrypted_content`）与 Synthesis track 正文（`tracks.synthesis.content` / `tracks.synthesis.encrypted_content`）当作互不蕴含的独立路径：允许写其中一组 MUST NOT 自动允许另一组。`ak.strand.tracks.update` 只管理 track 的启用、primary、profile、template 与 track-local metadata，MUST NOT 用来写 Description 或 Synthesis 正文。Message 正文权限按 Strand 的 effective scope 判断：`Strand.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
-若 Circle membership control cell 在当前 CBA basis 下为 `⊥`（`fsm, bottom=reject`），上述两层 AND 的 membership 分支 MUST fail closed：授权结果为 deny，后续依赖该 cell 的 DataEvent / Control Move MUST 返回 `failed_bottom`（`reason=cell_in_bottom_state`），而 `failed_precondition` 仅用于 predicate 本身不成立（cell 持有明确 value 但 predicate 求值为 false）的情形；实现 MUST NOT 把 `⊥` 当作非成员、空成员集或任一候选 membership 状态来继续授权。
+若 Circle membership control cell 在当前 CBS basis 下为 `⊥`（`fsm, bottom=reject`），上述两层 AND 的 membership 分支 MUST fail closed：授权结果为 deny，后续依赖该 cell 的 DataEvent / Control Move MUST 返回 `failed_bottom`（`reason=cell_in_bottom_state`），而 `failed_precondition` 仅用于 predicate 本身不成立（cell 持有明确 value 但 predicate 求值为 false）的情形；实现 MUST NOT 把 `⊥` 当作非成员、空成员集或任一候选 membership 状态来继续授权。
 
 Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.morph.update` 对应 `ak.strand.read` / `ak.strand.create` / `ak.strand.update`),通过 `allowed_morph_kinds` constraint 进一步限定可创建或操作的 `morph_kind`。
 
@@ -912,7 +912,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 ### 18.2 撤销新鲜度 (Revocation Freshness)
 
-授权判定要回答两个问题：①当前 CBA basis 下，subject 是否被 grant？②该 basis 是否足够新，以至于"还没看到的 revoke"概率足够低？open_set / threshold Notary profile 下 ②不能凭单节点状态独立断言——必须显式建模 freshness 不确定性。
+授权判定要回答两个问题：①当前 CBS basis 下，subject 是否被 grant？②该 basis 是否足够新，以至于"还没看到的 revoke"概率足够低？open_set / threshold Notary profile 下 ②不能凭单节点状态独立断言——必须显式建模 freshness 不确定性。
 
 **Freshness 状态分级**：节点对自己当前 frontier 的新鲜度判定 MUST 落入以下三个状态之一：
 

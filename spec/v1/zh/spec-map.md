@@ -53,7 +53,7 @@ see_also:
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Strand 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/strand-and-message.md` 等专项文件，理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/security-transactions.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、安全事务、consent gate、联系人关系和 1:1 私聊入口。
-6. `authz/capabilities.md`、`authz/cba-profiles.md`、`authz/event-auth-state-resolution.md`、`authz/offline-publication.md`：理解权限、CBA 授权形态、Realm 状态机和离线发布。
+6. `authz/capabilities.md`、`authz/cbs-profiles.md`、`authz/event-auth-state-resolution.md`、`authz/offline-publication.md`：理解权限、CBS 授权形态、Realm 状态机和离线发布。
 7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/signal.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解 durable 写入、同步、加密实时 rail 和服务面。
 8. `governance/history-visibility.md`：理解历史可见性、preview / peek、public plaintext Realm 和 E2EE history key share 的共同边界。
 9. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
@@ -124,7 +124,7 @@ see_also:
 | `overview/protocol-layers.md` | Kernel、Collaboration Base 与 Extension 的协议边界、依赖方向和演进规则。 |
 | `overview/current-model.md` | Strand / track / Board / List / View 的统一模型说明。 |
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
-| `overview/glossary.md` | 全局术语表。 |
+| `overview/glossary.md` | 全局术语表；§4 是全规范缩写与专有名词的索引（展开形式、外部锚点与同形异义消歧）。 |
 | `overview/evolution-and-compatibility.md` | 协议演进与 current-wire 边界：版本承载、加性演进、profile / capability 协商和 fail-closed 的整体入口（被 `conformance/conformance-profiles.md`、`conformance/encoding.md`、`sync/service-http-binding.md` 引用为演进导航入口）。 |
 | `guides/migrating-from-matrix.md` | 与 Matrix 的核心区别、边界和取舍（informative 对照，非真相源，详见 §4.10 实现指南组说明）。 |
 
@@ -178,7 +178,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
-| `authz/cba-profiles.md` | CBA 授权集合 profile、并发类别、genesis ingress authority 与 proof bundle；提案有界决议和终态见 `authz/event-auth-state-resolution.md` §7.2。 |
+| `authz/cbs-profiles.md` | CBS 授权集合 profile、并发类别、genesis ingress authority 与 proof bundle；提案有界决议和终态见 `authz/event-auth-state-resolution.md` §7.2。 |
 | `authz/offline-publication.md` | AuthorizationLease、IngressReceipt 与离线发布窗口。 |
 | `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |
 | `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |
@@ -254,7 +254,7 @@ see_also:
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
 | `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
 | `conformance/realm-state-snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
-| `conformance/scalability-constraints.md` | v1 wire、授权、CBA/Lattice、Board/Relation/View 和 E2EE 的规模上限。 |
+| `conformance/scalability-constraints.md` | v1 wire、授权、CBS/Lattice、Board/Relation/View 和 E2EE 的规模上限。 |
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance/conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
 

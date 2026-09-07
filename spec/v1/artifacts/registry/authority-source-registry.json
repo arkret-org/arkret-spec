@@ -1,13 +1,13 @@
 {
-  "version": "2026-09-07.11",
+  "version": "2026-09-07.12",
   "source_of_truth": false,
-  "generated_at": "2026-09-07T18:40:00+08:00",
+  "generated_at": "2026-09-07T21:45:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
   "registry_rules": [
     "A non-grant authorization source is active only when one exact active row is selected by authority_source_id; syntax or an arbitrary Event/cell reference never creates authority.",
-    "The evaluator MUST rederive all activation, actor, resource and lifecycle predicates from accepted signed evidence at the Event CBA basis or the current non-event request basis and MUST fail closed on missing, conflicting, non-canonical or freshness-unknown dependencies.",
+    "The evaluator MUST rederive all activation, actor, resource and lifecycle predicates from accepted signed evidence at the Event CBS basis or the current non-event request basis and MUST fail closed on missing, conflicting, non-canonical or freshness-unknown dependencies.",
     "Profile-scoped sources do not enter issuer_authority_refs, cannot authorize ak.capability.grant, and cannot be widened by Realm owner/admin aggregation.",
     "When an Event is directly participant-authored, authorization_ref uses the source wire_ref and refs contains the registered binding_ref_role. When executed_by is present, authorization_ref continues to bind the delegated executor grant/delegation; the profile source is an independent conjunctive evaluator gate and is never replaced by that delegation."
   ],

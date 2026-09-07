@@ -1809,12 +1809,12 @@
           "$ref": "#/$defs/DirectConversationFoundingAuthorityEvidence",
           "description": "Source-projected cross-trust-domain evidence, carried explicitly by this federation branch only. Unlike the self founding submission, the receiver is a different Station that cannot read the source Contact round or Agent provision state, so it verifies this member independently and never trusts the relayed copy as authority. The source Station projects it on the server-to-server hop; the founder client never relays it."
         },
-        "cba_proof_bundles": {
+        "cbs_proof_bundles": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
+            "$ref": "./cbs-proof-bundle.schema.json"
           }
         }
       },
@@ -1846,12 +1846,12 @@
           },
           "description": "Exactly four founder-signed Events in fixed wire order: ak.realm.create with an omitted realm_id and a realm_genesis scope_ref, the peer participant's ak.member.state{join}, ak.strand.create with an omitted strand_id, then the founder's explicit ak.member.state{join} genesis write carrying head_eq null. Reordering, a fifth Event, either missing member join and a missing Strand each reject the whole unit."
         },
-        "cba_proof_bundles": {
+        "cbs_proof_bundles": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
+            "$ref": "./cbs-proof-bundle.schema.json"
           },
           "description": "Optional receiver-relative dependency bundles for the unit's seal_ref or seal_basis leaves. Bundles are transport evidence, not Event fields."
         }
@@ -2416,7 +2416,7 @@
     },
     "EventFederationSubmission": {
       "type": "object",
-      "description": "Event publication transported between peers. Online federation carries an empty ingress_receipts array and no authorization_lease; explicit delayed/offline federation carries its lease and one or more lease-bound receipts. A membership-compensation Event carries the exact accepted transport-only evidence from self admission. The receiving peer independently revalidates the Event, current admission, optional delayed evidence, compensation evidence and CBA closure.",
+      "description": "Event publication transported between peers. Online federation carries an empty ingress_receipts array and no authorization_lease; explicit delayed/offline federation carries its lease and one or more lease-bound receipts. A membership-compensation Event carries the exact accepted transport-only evidence from self admission. The receiving peer independently revalidates the Event, current admission, optional delayed evidence, compensation evidence and CBS closure.",
       "required": [
         "event",
         "ingress_receipts"
@@ -2501,12 +2501,12 @@
         "authorization_lease": {
           "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
         },
-        "cba_proof_bundles": {
+        "cbs_proof_bundles": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
+            "$ref": "./cbs-proof-bundle.schema.json"
           },
           "description": "Optional receiver-relative dependency bundles for the Event seal_ref or seal_basis. Bundles are transport evidence, not Event fields."
         },
@@ -3361,12 +3361,12 @@
         "cleanup_intent_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
-        "cba_proof_bundles": {
+        "cbs_proof_bundles": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
+            "$ref": "./cbs-proof-bundle.schema.json"
           }
         }
       },
@@ -3529,14 +3529,14 @@
           },
           "description": "One Realm-scoped federation transaction. Every nested event.realm_id MUST equal service_binding_ref.realm_id. Control-plane Events MUST precede data-plane Events; relative order within each phase is preserved."
         },
-        "cba_proof_bundles": {
+        "cbs_proof_bundles": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
+            "$ref": "./cbs-proof-bundle.schema.json"
           },
-          "description": "Receiver-relative CBA dependency bundles rooted at nested Events' seal_ref or seal_basis leaves. Each bundle MAY be a bounded verifiable superset; the receiver independently validates all objects and reports exact missing dependencies."
+          "description": "Receiver-relative CBS dependency bundles rooted at nested Events' seal_ref or seal_basis leaves. Each bundle MAY be a bounded verifiable superset; the receiver independently validates all objects and reports exact missing dependencies."
         }
       },
       "additionalProperties": false
@@ -3747,7 +3747,7 @@
     },
     "EventsSubmitRejectedRow": {
       "type": "object",
-      "description": "One rejected submission. When the reason is a missing CBA dependency the receiver reports the exact shortfall so the sender can extend one bundle instead of guessing; a bundle MAY be a bounded verifiable superset, so the receiver never asks for a byte-minimal bundle.",
+      "description": "One rejected submission. When the reason is a missing CBS dependency the receiver reports the exact shortfall so the sender can extend one bundle instead of guessing; a bundle MAY be a bounded verifiable superset, so the receiver never asks for a byte-minimal bundle.",
       "required": [
         "id",
         "reason_code"
@@ -4734,7 +4734,7 @@
     },
     "PeerEventsResolveOutcome": {
       "type": "object",
-      "description": "Read-only federation Event dependency response. Every Event selector is fully accounted for by a matching EventFederationSubmission or same-type missing bucket. The submission carries the byte-identical publication evidence retained at first acceptance, so a puller can run the same federation admission as push without minting or reconstructing authority evidence. Event proof signer evidence is resolved through the typed governance-dependency surface; Control-Move effectiveness is checked through the separate Seal frontier/resolve closure. This response never duplicates CBA proof bundles or covering/first-activation Seal evidence.",
+      "description": "Read-only federation Event dependency response. Every Event selector is fully accounted for by a matching EventFederationSubmission or same-type missing bucket. The submission carries the byte-identical publication evidence retained at first acceptance, so a puller can run the same federation admission as push without minting or reconstructing authority evidence. Event proof signer evidence is resolved through the typed governance-dependency surface; Control-Move effectiveness is checked through the separate Seal frontier/resolve closure. This response never duplicates CBS proof bundles or covering/first-activation Seal evidence.",
       "required": [
         "events",
         "missing_event_ids",

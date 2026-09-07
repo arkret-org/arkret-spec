@@ -29,7 +29,7 @@ updated: 2026-05-25
 - `artifacts/bindings/non-http-bindings.yaml`
   - gRPC / WS / SSE / MQ / libp2p 等 binding extension profile 概要。
 - `artifacts/fixtures/*.json`
-  - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、CBA/Lattice、capability、sync、privacy/security、federation、MIMI 等）。
+  - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、CBS/Lattice、capability、sync、privacy/security、federation、MIMI 等）。
 - `artifacts/deployment-probes.json`
   - 部署层机器探针，覆盖 TLS 握手、运维 posture 等不属于 object-model conformance vector 的可验收要求。
 - `artifacts/reports/*`

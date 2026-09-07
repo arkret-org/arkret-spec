@@ -492,7 +492,7 @@ def build_traversal_replay_kat() -> dict[str, Any]:
             },
         ],
         "wire_reason_code": None,
-        "late_collision_policy_vector": "ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1",
+        "late_collision_policy_vector": "ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1",
         "data_events_in_delta": False,
     }
 

@@ -21,7 +21,7 @@ see_also:
 
 Arkret 是面向协作对象的分布式发布、传播、查询与收敛协议。同步层的目标是让各副本在不依赖全局共识链的前提下，验证事件来源、传播可合并状态、暴露冲突，并对治理状态提供可审计 finality。
 
-Arkret v1 采用 **CBA**（Control-plane Basis-committed Sealing）：
+Arkret v1 采用 **CBS**（Control-plane Basis-committed Sealing）：
 
 - 数据面事件（DataEvent）解决普通协作写入：消息、reaction、read cursor 的持久投影、协作对象字段、排序、计数等。DataEvent 由 actor 签名、按 `seal_ref` 验证授权，通过 cell Lattice / CRDT 收敛；它不等待 Seal 才成为本地可接受事实。
 - 控制面事件（Control Move）解决治理写入：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 明确声明 `sealed=true` 的对象。Control Move 由 Seal 覆盖后才取得 `sealed` finality。
@@ -39,7 +39,7 @@ Reducer-input Event 分为两类，二者 wire shape 互斥：
 | --- | --- | --- | --- |
 | DataEvent | `scope_ref`、`seal_ref`、`auth_context` | `preconditions`、`seal_basis` | reducer 从 kind + payload 派生 data-plane writes；签名、actor chain、授权与 Lattice 验证通过即可本地接受。 |
 | Control Move | `scope_ref`、`seal_basis` | `seal_ref`、`auth_context` | reducer 派生 control-plane writes；进入 pending control set，直到被有效 Seal 覆盖才生效。 |
-| Anchor Unit | `scope_ref`；kind 仅限 `ak.realm.create` genesis bootstrap 与 `ak.device.reanchor` recovery unit | `seal_ref`、`auth_context`、`seal_basis` | 封闭例外；必须按 CBA 非空 genesis / transaction 规则验证。 |
+| Anchor Unit | `scope_ref`；kind 仅限 `ak.realm.create` genesis bootstrap 与 `ak.device.reanchor` recovery unit | `seal_ref`、`auth_context`、`seal_basis` | 封闭例外；必须按 CBS 非空 genesis / transaction 规则验证。 |
 
 `preconditions[]` 仅属于 Control Move。DataEvent 不使用全局 CAS precondition；需要强单值、硬配额、跨 cell 原子性或不可自动合并语义的对象，MUST 在 Realm schema 中声明为 control plane（或使用专门 per-object sequencer），不得伪装成轻量数据面写入。
 
@@ -81,7 +81,7 @@ encrypted-only `SignalEnvelope`；key verification、secret 与 Realm key 请求
 | `wire_scope` | 允许 schema | 允许提交路径 |
 | --- | --- | --- |
 | `durable_event` | `ak.schema.event.v1` | `ak.self.events.command.submit.v1`、`ak.peer.events.command.submit.v1` |
-| `actor_private_event` | `ak.schema.event.v1`，但不得携带 CBA reducer 字段 | `ak.self.events.command.submit.v1` 的 actor 私有路径 |
+| `actor_private_event` | `ak.schema.event.v1`，但不得携带 CBS reducer 字段 | `ak.self.events.command.submit.v1` 的 actor 私有路径 |
 
 Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_scope` 值。`wire_scope`
 只分类 signed Event Envelope。
@@ -96,7 +96,7 @@ Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_sco
 4. `actor_seq`、`prev_refs[]` 与 actor chain 连续性验证。
 5. `realm_id`、kind registry、payload schema、critical extension 与 reducer profile 支持性验证。
 
-通用验证通过后，按 CBA 类型分流。
+通用验证通过后，按 CBS 类型分流。
 
 ### 3.1 DataEvent 验证
 
@@ -333,7 +333,7 @@ Snapshot 后续恢复流程：
 
 ## 13. 授权时序
 
-授权不能只看墙上时钟。CBA 的授权时序规则是：
+授权不能只看墙上时钟。CBS 的授权时序规则是：
 
 - DataEvent 按自身 `seal_ref` 指向的控制面 Seal 验证授权。
 - Control Move 按自身 `seal_basis` 指向的控制面 view 验证授权和 precondition。
@@ -369,7 +369,7 @@ Arkret v1 固定：
 
 ## 16. 规范性引用
 
-- CBA 双平面、Seal、观测证据与 failure state 见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+- CBS 双平面、Seal、观测证据与 failure state 见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - Event Envelope、canonical bytes、Patch 与 proof 见 [`event-and-patch.md`](../models/event-and-patch.md)。
 - HTTP operation binding 见 [`service-http-binding.md`](./service-http-binding.md)。
 - Federation transport 见 [`federation.md`](./federation.md)。

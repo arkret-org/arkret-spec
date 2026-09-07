@@ -40,7 +40,7 @@ authority_set_ref, verification_method, created_at, domain?, audience?})`；proo
 
 `basis_ref` 在普通 `single_signer` / `threshold` / `mixed` 发布下是单个 accepted Seal ref；在
 `open_set` 下必须是只含 canonical sorted `leaves[]` 的完整 `seal_basis`，不能用任一单 leaf 冒充 joined view。issuer 与 verifier 均须解析这些 Seal 并重算 union covered set、joined state 与 roots。lease 只能收窄该 basis 中已存在的
-authorization。verifier MUST 从 accepted CBA basis
+authorization。verifier MUST 从 accepted CBS basis
 验证 issuer/delegation、actor/device、scope、action、risk 与有效期；lease 不能创建 capability，
 不能把 medium/high action 降为 low，也不能跨 scope 使用。
 
@@ -58,7 +58,7 @@ closed unit、root/founding authority proof、creator/session/device、notary de
 chain 与目标 Realm 不存在；提交时 unit、顺序、数量或任一 digest 不同都 MUST 零写入拒绝。
 该例外不得用于普通未接受 Event，也不得把 prospective/fabricated Seal 当作 accepted basis。
 
-`authority_set_ref` 是 CBA 各 authority/quorum 场景共用的闭合对象
+`authority_set_ref` 是 CBS 各 authority/quorum 场景共用的闭合对象
 `{authority_set_id, authority_set_digest}`。`authority_set_id` 必须是登记的
 `ak.authority_set.*.v1` policy symbol；`authority_set_digest` 必须等于该 policy 在 `basis_ref`
 控制面视图中的 canonical digest。verifier MUST 同时校验 id、digest、quorum、delegation 与
@@ -75,7 +75,7 @@ revocation authority，不得只按可变 registry 名称解析当前值。
 3. policy 的 kind、source kind与ordered `authorization_rules[]` MUST 命中
    [`authority-set-policy-registry.json`](../../artifacts/registry/authority-set-policy-registry.json)
    中同 id 的 template；
-4. verifier MUST 使用 `basis_ref` 与 `CbaProofBundle` 重放 accepted control state，重新派生
+4. verifier MUST 使用 `basis_ref` 与 `CbsProofBundle` 重放 accepted control state，重新派生
    source ref/digest/generation、每个rule的issuer methods、scope、actions 与 threshold。
 
 `authorization_rules[]` 是替代分支，不是一个可合并的全局issuer set。每个rule独立固定
@@ -169,18 +169,18 @@ Agent online Event 复用 controller session 的同一 online context，并额�
 
 ### 2.1 提交与重传封装
 
-lease、receipt 与 `CbaProofBundle` 都不是 Event 字段，也不进入 Event digest。普通在线首次提交只要求 `event`，其 authority 来自 §2.0 的 typed request context；显式延迟/离线模式才附加 lease。`EventInitialSubmission` 没有也不得新增 publication authority evidence 字段：
+lease、receipt 与 `CbsProofBundle` 都不是 Event 字段，也不进入 Event digest。普通在线首次提交只要求 `event`，其 authority 来自 §2.0 的 typed request context；显式延迟/离线模式才附加 lease。`EventInitialSubmission` 没有也不得新增 publication authority evidence 字段：
 
 ```text
 EventInitialSubmission {
   event,
   authorization_lease?,
-  cba_proof_bundles?,
+  cbs_proof_bundles?,
   control_proposal_ack?
 }
 ```
 
-ingress 直接验证 Event proof、scope 与当前 CBA basis；携带 lease 时还必须验证 lease。若签发 receipt，则必须把它持久化并通过
+ingress 直接验证 Event proof、scope 与当前 CBS basis；携带 lease 时还必须验证 lease。若签发 receipt，则必须把它持久化并通过
 `EventsSubmitOutcome.ingress_receipts[]` 返回。相同 Event canonical bytes 的幂等重试必须返回
 原 receipt 与首次签发时的 exact companion lease，不得用新的 `received_at` 重签，从而延长已经固定的撤销窗口。
 receipt/lease 的机械配对条件恰为：同一 submission 只有这一份 companion lease、receipt `event_digest` 等于该
@@ -201,7 +201,7 @@ EventFederationSubmission {
 
 普通在线 federation 必须同时省略 lease 并携带空 `ingress_receipts[]`；来源明确声明该 Event 使用
 延迟/离线窗口时，必须同时携带 lease 与至少一个绑定该 lease 的 receipt。receiver 再按目标 Realm
-的 issuer/threshold/transparency policy 判断离线证据是否充分。request 级 `cba_proof_bundles[]`
+的 issuer/threshold/transparency policy 判断离线证据是否充分。request 级 `cbs_proof_bundles[]`
 只负责补齐 basis closure。任何服务都不得把这些
 传输证据复制进 Event，或因本地较晚首次见到而改写 `received_at`。
 transparency 存档、离线转发与 durable idempotency ledger 必须把 receipt 与其首次签发时的 exact companion lease
@@ -209,7 +209,7 @@ transparency 存档、离线转发与 durable idempotency ledger 必须把 recei
 
 `control_proposal_ack` 只允许 Control Move，且必须是
 [`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 canonical
-authority receipt set；DataEvent携带该字段必须拒绝。它不属于通用CBA bundle，也不能由接收
+authority receipt set；DataEvent携带该字段必须拒绝。它不属于通用CBS bundle，也不能由接收
 Station在不持有真实authority key时补签。
 
 ### 2.2 租约签发
@@ -219,7 +219,7 @@ Station在不持有真实authority key时补签。
 `AuthorizationLeaseIssueRequestBody {events: Event[1..500]}` 或
 `AuthorizationLeaseIssueRequestBody {intents: AuthorizationLeaseIssueIntent[1..500]}`。Event 必须已完成最终签名；服务端
 MUST 对其执行与稍后正式提交相同的 actor/session、device generation、proof、registry、Realm
-policy、CBA、capability、frontier 与 closed-unit admission，但不得写 Event、推进 frontier 或
+policy、CBS、capability、frontier 与 closed-unit admission，但不得写 Event、推进 frontier 或
 承诺稍后一定接受。
 
 `AuthorizationLeaseIssueIntent` 只用于 capability registry 中 `target_event_kinds=[]` 的
@@ -244,7 +244,7 @@ read-only admission并取得新lease id/issued_at/expires_at；它不得修改�
 actor/device/scope/action/basis/authority-set digest 分区保存，且在 sign-out、account switch、
 device revocation、generation change或authority-set digest变化时清除。AuthorizationLease是
 离线可验证事实，协议不定义一个能追溯抹除已分发签名bytes的私有revoke endpoint；撤销必须通过
-accepted CBA capability/device/authority policy变化与bounded TTL生效，client cache清除不能
+accepted CBS capability/device/authority policy变化与bounded TTL生效，client cache清除不能
 替代receiver的basis/revocation验证。离线状态只能使用已持有且未过期的 lease，不得
 把无法联机签发降级为裸 Event。
 

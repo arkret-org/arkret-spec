@@ -38,7 +38,7 @@
   },
   "cases": [
     {
-      "name": "ordinary_event_uses_cba_reducer_profile_cell",
+      "name": "ordinary_event_uses_cbs_reducer_profile_cell",
       "vector_id": "ak.vector.federation.reducer_profile_resolution.v1",
       "input": {
         "event_kind": "ak.message.create",
@@ -218,7 +218,7 @@
           "control",
           "data"
         ],
-        "cba_proof_bundle_count_range": [
+        "cbs_proof_bundle_count_range": [
           0,
           64
         ],
@@ -313,8 +313,8 @@
       ]
     },
     {
-      "name": "cba_dependency_resolve",
-      "vector_id": "ak.vector.federation.cba_dependency_resolve.v1",
+      "name": "cbs_dependency_resolve",
+      "vector_id": "ak.vector.federation.cbs_dependency_resolve.v1",
       "request_contract": {
         "single_realm": true,
         "selector_any_of": [

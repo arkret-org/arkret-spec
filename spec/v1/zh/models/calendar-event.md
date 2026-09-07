@@ -185,7 +185,7 @@ RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `mv_r
 
 registry 为该 cell write 登记 `effect_projection = set(payload.entry)`：**整个 entry** 是 lattice set value，因此每个 head 都独立携带 basis 与 response。receiver MUST 从 Event payload 重算 reducer projection；无法唯一投影、写目标数量错误或投影值与 payload entry 不一致，MUST 以 `reducer_projection_failed` 拒绝整个 Event。Event wire 不携带 reducer write。
 
-同一 responder 的因果后继 RSVP 支配旧 head；真正并发且 entry 不同的 RSVP MUST 暴露多个 heads，直到该 actor 以观察到这些 heads 的后续 RSVP 显式解决。并发 join 的结果 MUST NOT 由 HLC、`created_at`、`event_id` 或到达顺序选边。只有整个 entry canonical bytes 相同的重复写才 MAY 作为 value-level no-op；相同 plaintext 经随机化加密后通常不是 byte-equal，canonical CBA MUST NOT 假装已解密去重。
+同一 responder 的因果后继 RSVP 支配旧 head；真正并发且 entry 不同的 RSVP MUST 暴露多个 heads，直到该 actor 以观察到这些 heads 的后续 RSVP 显式解决。并发 join 的结果 MUST NOT 由 HLC、`created_at`、`event_id` 或到达顺序选边。只有整个 entry canonical bytes 相同的重复写才 MAY 作为 value-level no-op；相同 plaintext 经随机化加密后通常不是 byte-equal，canonical CBS MUST NOT 假装已解密去重。
 
 `ak.rsvp.set` 只表达回应，不修改 Strand schedule，不创建 attendees，也不赋予访问权。
 

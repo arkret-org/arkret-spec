@@ -103,7 +103,7 @@ AND，任一失败即拒绝，不受 component `combinator` 影响；其它 gate
 
 ## 4. 评估规则
 
-1. reducer 先验证 Event envelope、producer proof、CBA basis、capability 与目标 Realm。
+1. reducer 先验证 Event envelope、producer proof、CBS basis、capability 与目标 Realm。
 2. 先评估全部 `principal_admission` 和 `cooldown` gate；任一失败即拒绝。
 3. 再按 `combinator` 评估其余自动 gate。`all` 要求全部成功；`any` 要求至少一个成功。
 4. `gate_proofs[]` 的唯一合法项形态是封闭的 [`event-payload.schema.json#/$defs/join_gate_proof`](../../artifacts/schemas/event-payload.schema.json)。每一项以 wire 成员携带绑定元组 `gate_id`、`realm_id`、`applicant_actor_id`、`policy_digest`、`created_at`，并由 `proofs[]`（context `ak.join_gate_proof.v1`，`payload_digest` = 去掉 `proofs` 后本对象的 canonical JSON sha256，登记于 `proof-context-registry.json`）覆盖；reducer MUST 先按字段比较再验签：`realm_id` ≠ 目标 Realm、`applicant_actor_id` ≠ `member_id`、`policy_digest` ≠ 当前 accepted `join_policy` component 的 canonical JSON sha256、`gate_id` 不在 policy 中或 `kind` 与该 gate 的 `kind` 不一致，都是绑定失败。只有 `challenge_response` 与 `claim_required` 两种 gate 接受 proof 项；`parent_membership` / `principal_admission` / `cooldown` 由 reducer 从已接受状态重放，不读 proof。签名 key 的解析路径固定：`challenge_response` 的 `proofs[].verification_method` MUST 经已登记 DID method adapter 解析为 gate `provider_did` 控制的 key；`claim_required` MUST 解析为 `issuer_id` 控制的 key，且 `issuer_id` ∈ `trusted_issuer_ids[]`。freshness 只以该 Event 已签名的 `created_at` 为准，MUST NOT 使用 receiver 本地时钟：`proof.created_at + max_proof_age < event.created_at` 为 `challenge_expired`，`proof.created_at > event.created_at` 或任一绑定 / 签名 / key 解析失败为 `challenge_proof_invalid`；`challenge_failed`（challenge 答案本身核验失败，或 `challenge_response` gate 没有对应 proof 项）与二者互斥，不得混用。policy 含自动 gate 而 Event 未携带对应 proof 项时，结果与 gate 失败相同（对非成员统一 `gate_check_failed`）。同一 `gate_id` 出现两次是 `schema_violation`。
@@ -121,7 +121,7 @@ AND，任一失败即拒绝，不受 component `combinator` 影响；其它 gate
 
 跨域 join Event 只通过普通 Event 提交/转发面传输。`RealmJoinCandidate` 仅是 invitee Station 可使用的有界转发提示，不产生 ingress authority；客户端不得直连候选服务绕过自己的 Station。
 
-接收方 MUST 独立验证 Realm、Event producer、origin Station admission proof、candidate provenance、Join Policy、invite/capability 与 CBA basis。Directory/search projection、裸 URL、部署已知 peer 或 mirror 不得成为额外授权来源。
+接收方 MUST 独立验证 Realm、Event producer、origin Station admission proof、candidate provenance、Join Policy、invite/capability 与 CBS basis。Directory/search projection、裸 URL、部署已知 peer 或 mirror 不得成为额外授权来源。
 
 ## 7. 规范性引用
 

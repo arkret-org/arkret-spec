@@ -1,16 +1,16 @@
 ---
-title: CBA profile、并发类别与终态
+title: CBS profile、并发类别与终态
 status: candidate
 normative: true
 stability: v1
 updated: 2026-07-30
 ---
 
-# CBA profile、并发类别与终态
+# CBS profile、并发类别与终态
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-本章是 CBA finality profile、控制操作并发类别、genesis 及依赖 bundle
+本章是 CBS finality profile、控制操作并发类别、genesis 及依赖 bundle
 的唯一规范来源。Seal 是唯一控制状态接受事实。
 
 ## 1. Finality profile
@@ -133,13 +133,13 @@ cell head 身份集合的并发 barrier Move 必然有一个共同 signer，而�
 不同 cell 上的并发 barrier Move 本就互不相关，`security_barrier` 的登记语义（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)
 `concurrency_class_definitions`）也只要求它对**同一 signed scope** 内的并发 barrier 串行化。
 
-`authority_set_ref` 在所有 CBA authority/quorum 场景中统一为
+`authority_set_ref` 在所有 CBS authority/quorum 场景中统一为
 `{authority_set_id, authority_set_digest}`：id 是登记的 `ak.authority_set.*.v1` policy
-symbol，digest 是该 policy 在当前 CBA basis 中的 canonical digest。任何 signer、lease、
+symbol，digest 是该 policy 在当前 CBS basis 中的 canonical digest。任何 signer、lease、
 receipt 或 barrier verifier 都 MUST 同时校验 id 与 digest，不得用可变名称解析替代 basis-bound
 policy bytes。需要跨服务或离线验证的对象 MUST 携带完整
 `ak.schema.authority_set_policy.v1` concrete policy；接收方按
-`authority-set-policy-registry.json` 的 template 从 accepted basis 与 CBA closure 重新派生，
+`authority-set-policy-registry.json` 的 template 从 accepted basis 与 CBS closure 重新派生，
 并校验 `SHA-256(JCS(policy))`。inline policy 与 registry row 均不得替代 accepted source。
 
 barrier attestation 没有独立 height、state root、历史日志或可被 DataEvent 引用的 id；它随
@@ -265,12 +265,12 @@ censorship evidence、finality 边界与机读合同的唯一规范来源是
 [`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation)。
 本节只定义上述 ingress authority 与 Ack-less 例外，不复述决议参数或 deadline 语义。
 
-## 5. CbaProofBundle
+## 5. CbsProofBundle
 
 peer durable submit 或 dependency response MAY 携带：
 
 ```text
-CbaProofBundle {
+CbsProofBundle {
   target_seal_ref,
   seals[],
   control_moves[],
@@ -313,7 +313,7 @@ Kernel 硬上限：
 - canonical bundle body ≤ 8 MiB；
 - `seals[]` ≤ 256；
 - `control_moves[]` ≤ 1,024；
-- 两类 proof（`inclusion_proofs` 与 `availability_proofs`）**合计** ≤ 2,048。[`cba-proof-bundle.schema.json`](../../artifacts/schemas/cba-proof-bundle.schema.json) 对每个数组单独声明 `maxItems: 2048` 只是粗过滤，合计上界由 receiver 按本条强制；
+- 两类 proof（`inclusion_proofs` 与 `availability_proofs`）**合计** ≤ 2,048。[`cbs-proof-bundle.schema.json`](../../artifacts/schemas/cbs-proof-bundle.schema.json) 对每个数组单独声明 `maxItems: 2048` 只是粗过滤，合计上界由 receiver 按本条强制；
 - 从 target leaf 向 genesis 的单路径深度 ≤ 4,096；
 - dependency fetch 最多连续 8 轮；每轮必须使 missing set 严格缩小。
 

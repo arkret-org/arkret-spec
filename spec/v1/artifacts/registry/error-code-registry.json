@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-07.1",
-  "generated_at": "2026-09-07T00:20:00+08:00",
+  "version": "2026-09-08.1",
+  "generated_at": "2026-09-08T05:55:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1434,7 +1434,7 @@
       "code": "failed_plane",
       "http_status": 412,
       "scope": "both",
-      "description": "CBA plane invariant failed: the registered reducer projection for a Control Move targeted a data-plane cell, or a DataEvent targeted a control-plane cell. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes).",
+      "description": "CBS plane invariant failed: the registered reducer projection for a Control Move targeted a data-plane cell, or a DataEvent targeted a control-plane cell. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes).",
       "type_uri": "https://arkret.org/problems/failed_plane",
       "title": "Failed plane"
     },
@@ -1442,7 +1442,7 @@
       "code": "failed_bottom",
       "http_status": 409,
       "scope": "both",
-      "description": "CBA lattice join produced bottom (irreconcilable state) while applying the reducer-projected writes. Terminal failure state per zh/authz/event-auth-state-resolution.md §13; MUST NOT be reported as cas_conflict.",
+      "description": "CBS lattice join produced bottom (irreconcilable state) while applying the reducer-projected writes. Terminal failure state per zh/authz/event-auth-state-resolution.md §13; MUST NOT be reported as cas_conflict.",
       "type_uri": "https://arkret.org/problems/failed_bottom",
       "title": "Failed bottom"
     },
@@ -1530,7 +1530,7 @@
       "code": "genesis_seal_invalid",
       "http_status": 422,
       "scope": "both",
-      "description": "The first Seal of a Realm did not atomically cover and materialize the complete registered bootstrap unit, or it declared an empty covered set or an empty control_event_set_root. The five ak.realm.create writes are genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots in the same unit. For MLS-backed scope, epoch-0 binding is instead required on the first successor Seal covering ak.mls.genesis, whose seal_basis is the accepted Genesis Seal. Omitted founding state is never repairable by later Seals. See zh/authz/cba-profiles.md section 3.",
+      "description": "The first Seal of a Realm did not atomically cover and materialize the complete registered bootstrap unit, or it declared an empty covered set or an empty control_event_set_root. The five ak.realm.create writes are genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots in the same unit. For MLS-backed scope, epoch-0 binding is instead required on the first successor Seal covering ak.mls.genesis, whose seal_basis is the accepted Genesis Seal. Omitted founding state is never repairable by later Seals. See zh/authz/cbs-profiles.md section 3.",
       "type_uri": "https://arkret.org/problems/genesis_seal_invalid",
       "title": "Genesis seal invalid"
     },
@@ -3038,7 +3038,7 @@
         "event_auth_state",
         "state_resolution"
       ],
-      "description": "A compaction Seal's covered set does not match the deterministic control view of the interval it claims to compact. Mismatched coverage MUST reject; only full-coverage compaction within seal_compaction_max_interval_ms enables bootstrap. See authz/event-auth-state-resolution.md and fixtures/cba-lattice-fixture.json."
+      "description": "A compaction Seal's covered set does not match the deterministic control view of the interval it claims to compact. Mismatched coverage MUST reject; only full-coverage compaction within seal_compaction_max_interval_ms enables bootstrap. See authz/event-auth-state-resolution.md and fixtures/cbs-lattice-fixture.json."
     },
     {
       "code": "created_at_before_basis_seal",
@@ -3145,7 +3145,7 @@
         "event_auth_state",
         "state_resolution"
       ],
-      "description": "A Seal delta contained a data-plane (DataEvent) digest. A Seal delta MUST carry newly sealed control-plane event digests only; including a DataEvent digest is a Seal validation failure and receivers MUST reject the Seal (rejected_seal). See models/event-and-patch.md and fixtures/cba-lattice-fixture.json."
+      "description": "A Seal delta contained a data-plane (DataEvent) digest. A Seal delta MUST carry newly sealed control-plane event digests only; including a DataEvent digest is a Seal validation failure and receivers MUST reject the Seal (rejected_seal). See models/event-and-patch.md and fixtures/cbs-lattice-fixture.json."
     },
     {
       "code": "dependency_missing",
@@ -3487,7 +3487,7 @@
         "event_auth_state",
         "state_resolution"
       ],
-      "description": "A threshold-notary Seal's declared forensic_attribution mode (e.g. waived or quorum_intersection) does not satisfy the Realm's forensic-attribution obligation for the signer set. The Seal MUST reject. See fixtures/cba-lattice-fixture.json."
+      "description": "A threshold-notary Seal's declared forensic_attribution mode (e.g. waived or quorum_intersection) does not satisfy the Realm's forensic-attribution obligation for the signer set. The Seal MUST reject. See fixtures/cbs-lattice-fixture.json."
     },
     {
       "code": "founding_device_commitment_mismatch",
@@ -3510,7 +3510,7 @@
         "seal",
         "state_resolution"
       ],
-      "description": "The first Seal of a Realm did not atomically cover the complete registered bootstrap unit (create writes genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots), or used an empty covered set or empty control_event_set_root. MLS epoch-0 binding is checked on the first successor Seal covering ak.mls.genesis. See zh/authz/cba-profiles.md section 3."
+      "description": "The first Seal of a Realm did not atomically cover the complete registered bootstrap unit (create writes genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots), or used an empty covered set or empty control_event_set_root. MLS epoch-0 binding is checked on the first successor Seal covering ak.mls.genesis. See zh/authz/cbs-profiles.md section 3."
     },
     {
       "code": "governance_binding_mismatch",
@@ -4868,7 +4868,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "The number of concurrent candidates (winner + losers) under a single Relation dedupe key exceeded the conflict fanout limit (v1 public profile: 16, aligned with the sibling fork limit in zh/models/event-and-patch.md §2.6). The reducer rejects the whole candidate group rather than retaining unbounded loser records; reconvergence requires a repair Event/Control Move on the latest CBA query basis. See zh/models/relation.md §6."
+      "description": "The number of concurrent candidates (winner + losers) under a single Relation dedupe key exceeded the conflict fanout limit (v1 public profile: 16, aligned with the sibling fork limit in zh/models/event-and-patch.md §2.6). The reducer rejects the whole candidate group rather than retaining unbounded loser records; reconvergence requires a repair Event/Control Move on the latest CBS query basis. See zh/models/relation.md §6."
     },
     {
       "code": "relation_kind_contains_derived",
@@ -5294,7 +5294,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A `match_scope=subtree` / `children` selector required resolving the target Space's ancestor chain under the authorizing operation's CBA basis, but the `ak.space.parent` cell was in a multi-head / bottom (⊥) state. The subtree authorization branch MUST fail closed rather than pick an arbitrary head, otherwise the same grant could authorize divergently across receivers (split authz). See zh/authz/resource-selector-grammar.md §6."
+      "description": "A `match_scope=subtree` / `children` selector required resolving the target Space's ancestor chain under the authorizing operation's CBS basis, but the `ak.space.parent` cell was in a multi-head / bottom (⊥) state. The subtree authorization branch MUST fail closed rather than pick an arbitrary head, otherwise the same grant could authorize divergently across receivers (split authz). See zh/authz/resource-selector-grammar.md §6."
     },
     {
       "code": "space_parent_cycle",

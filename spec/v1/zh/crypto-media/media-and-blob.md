@@ -644,7 +644,7 @@ Cache-Control: public, immutable, max-age=31536000
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
 - `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Realm SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
 - 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。
-- `ak.realm.asset_privacy_policy` 由它自己的 Event kind 写入 `ak.component.realm.asset_privacy_policy.v1` cell，**不**在 `ak.realm.policy_bundle` payload 内重复声明。该 metadata/下载策略由普通 Event/CBA/Seal admission 保护；它本身不改变 MLS key 持有人，必须排除在 `security_frontier_digest` 外。
+- `ak.realm.asset_privacy_policy` 由它自己的 Event kind 写入 `ak.component.realm.asset_privacy_policy.v1` cell，**不**在 `ak.realm.policy_bundle` payload 内重复声明。该 metadata/下载策略由普通 Event/CBS/Seal admission 保护；它本身不改变 MLS key 持有人，必须排除在 `security_frontier_digest` 外。
 
 ## 7. Safety
 

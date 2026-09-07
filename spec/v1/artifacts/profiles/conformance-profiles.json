@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-07.2",
-  "generated_at": "2026-09-07T05:00:00+08:00",
+  "version": "2026-09-08.1",
+  "generated_at": "2026-09-08T05:55:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -716,7 +716,7 @@
     "ak.vector_group.privacy_security.v1",
     "ak.vector_group.reaction.v1",
     "ak.vector_group.redaction.v1",
-    "ak.vector_group.cba_lattice.v1",
+    "ak.vector_group.cbs_lattice.v1",
     "ak.vector_group.security_transaction.v1",
     "ak.vector_group.sync.v1",
     "ak.vector_group.mimi_interop.v1"
@@ -982,7 +982,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.cba_proof_bundle.v1",
+        "ak.schema.cbs_proof_bundle.v1",
         "ak.schema.event.v1",
         "ak.schema.seal.v1"
       ],
@@ -1212,7 +1212,7 @@
         }
       ]
     },
-    "ak.vector_group.cba_lattice.v1": {
+    "ak.vector_group.cbs_lattice.v1": {
       "required_event_kinds": [
         "ak.member.state",
         "ak.strand.move",
@@ -1226,13 +1226,13 @@
         "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
-        "cba-lattice-fixture.json",
+        "cbs-lattice-fixture.json",
         "control-proposal-ack-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "cba_lattice_vector_runner"
+          "cbs_lattice_vector_runner"
         ],
         "unsupported_optional": "not applicable"
       },
@@ -1910,7 +1910,7 @@
         "sync-fixture.json",
         "redaction-fixture.json",
         "reaction-fixture.json",
-        "cba-lattice-fixture.json",
+        "cbs-lattice-fixture.json",
         "privacy-security-fixture.json",
         "long-text-content-fixture.json"
       ],
@@ -1932,7 +1932,7 @@
           "requirement": "reaction OR-Set",
           "coverage": [
             "reaction-fixture.json",
-            "cba-lattice-fixture.json"
+            "cbs-lattice-fixture.json"
           ]
         },
         {
@@ -2001,7 +2001,7 @@
       ],
       "required_fixtures": [
         "sync-fixture.json",
-        "cba-lattice-fixture.json",
+        "cbs-lattice-fixture.json",
         "capability-fixture.json"
       ],
       "optional_extensions": [
@@ -2159,7 +2159,7 @@
       "required_fixtures": [
         "encoding-fixture.json",
         "sync-fixture.json",
-        "cba-lattice-fixture.json",
+        "cbs-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
@@ -2730,7 +2730,7 @@
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
         "sync-fixture.json",
-        "cba-lattice-fixture.json",
+        "cbs-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json",
         "security-closure-fixture.json",
@@ -2860,7 +2860,7 @@
           "requirement": "bounded exact-scope sibling disclosure for fork-resolution alignment",
           "coverage": [
             "ak.peer.events.read.sibling_positions.v1",
-            "cba-lattice-fixture.json"
+            "cbs-lattice-fixture.json"
           ]
         },
         {
@@ -5064,7 +5064,7 @@
       ],
       "required_fixtures": [
         "sync-fixture.json",
-        "cba-lattice-fixture.json",
+        "cbs-lattice-fixture.json",
         "capability-fixture.json"
       ],
       "optional_extensions": [
@@ -5690,7 +5690,7 @@
         "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -5727,7 +5727,7 @@
         "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -5764,7 +5764,7 @@
         "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -5801,7 +5801,7 @@
         "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -6405,7 +6405,7 @@
         "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {

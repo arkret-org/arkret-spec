@@ -31,7 +31,7 @@ class MimiReportAbuseRequestSchemaTest(unittest.TestCase):
         self.assertEqual(set(request["required"]), {"reporter_authority", "report_event"})
         self.assertEqual(
             set(request["properties"]),
-            {"reporter_authority", "report_event", "cba_proof_bundles"},
+            {"reporter_authority", "report_event", "cbs_proof_bundles"},
         )
 
     def test_signed_event_and_transport_id_have_no_outer_mirrors(self) -> None:
@@ -68,7 +68,7 @@ class MimiReportAbuseRequestSchemaTest(unittest.TestCase):
                 "issuer",
                 "operation_id",
                 "report_event",
-                "cba_proof_bundles?",
+                "cbs_proof_bundles?",
                 "membership_event_id",
                 "room_binding_event_id",
                 "expires_at",

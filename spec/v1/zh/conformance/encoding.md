@@ -675,10 +675,10 @@ Arkret 的 `detached_jws` proof wrapper **不得重复携带算法字段**。算
 
 ## 7. HLC
 
-> **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Control Move precondition 比较、或 Seal finality 判断；这些都由 CBA basis、Control Move `preconditions[]`、Seal coverage 与 Lattice `join` 决定。HLC 在 v1 只有两个规范用途，两者都以**因果不可比**为前提：
+> **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Control Move precondition 比较、或 Seal finality 判断；这些都由 CBS basis、Control Move `preconditions[]`、Seal coverage 与 Lattice `join` 决定。HLC 在 v1 只有两个规范用途，两者都以**因果不可比**为前提：
 >
 > 1. **timeline 派生层**——当两个事件在 `prev_refs` / `refs` 形成的因果图中互不可达时，HLC 作为 `(unix_ms, logical, node_id_hash)` 字典序 tie-breaker 使展示顺序确定。
-> 2. **actor-private 状态的并发 tie-break**——同一 principal 的多设备 read cursor（[`discovery/read-receipts.md` §6.5](../discovery/read-receipts.md)），以及客户端在 Account Data compare-and-set 循环中对解密明文执行的领域合并规则（[`models/account-data.md` §5](../models/account-data.md)），在两个候选值**因果不可比**时 MAY 用 HLC 选出确定性 winner。这些状态只在 holder 自己的设备之间收敛，不进入共享 Realm 状态、CBA basis 或 Lattice join；因果可比时 MUST 取因果支配者，MUST NOT 用 HLC 反转。服务端不参与该 tie-break，它只比较 `expected_revision`。
+> 2. **actor-private 状态的并发 tie-break**——同一 principal 的多设备 read cursor（[`discovery/read-receipts.md` §6.5](../discovery/read-receipts.md)），以及客户端在 Account Data compare-and-set 循环中对解密明文执行的领域合并规则（[`models/account-data.md` §5](../models/account-data.md)），在两个候选值**因果不可比**时 MAY 用 HLC 选出确定性 winner。这些状态只在 holder 自己的设备之间收敛，不进入共享 Realm 状态、CBS basis 或 Lattice join；因果可比时 MUST 取因果支配者，MUST NOT 用 HLC 反转。服务端不参与该 tie-break，它只比较 `expected_revision`。
 >
 > 即便 HLC 进入 canonical event bytes 与 proof `event_digest`，实现 MUST NOT 把 HLC 数值当作可信时间戳，也 MUST NOT 据其反转因果或在共享协议状态中选 winner。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 与 [`sync/operations-sync.md`](../sync/operations-sync.md)。
 
@@ -775,7 +775,7 @@ causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 
 `hlc` 缺省时在该排序键上使用 **absent-last**：缺省值大于任何 schema-valid HLC；两个事件都缺省时继续比较 `actor_id`。实现 MUST NOT 用空字符串、零 HLC、本地接收时间或 `created_at` 代填缺省值。
 
-协议状态 MUST NOT 使用 timeline 排序选择 winner。DataEvent / Control Move 的 CBA basis、Seal coverage 与 Lattice join 决定当前 cell value；并发不可合并时返回 structured bottom。Timeline 展示顺序与 cell value 是两种不同 projection：前者排历史，后者由 Lattice 计算。实现 MUST 在 profile 中明确使用哪一个，MUST NOT 把 timeline 中最后出现的 Event 直接当作状态 value。
+协议状态 MUST NOT 使用 timeline 排序选择 winner。DataEvent / Control Move 的 CBS basis、Seal coverage 与 Lattice join 决定当前 cell value；并发不可合并时返回 structured bottom。Timeline 展示顺序与 cell value 是两种不同 projection：前者排历史，后者由 Lattice 计算。实现 MUST 在 profile 中明确使用哪一个，MUST NOT 把 timeline 中最后出现的 Event 直接当作状态 value。
 
 客户端只有在已知 causal closure 足以判断两个 Event 在 `prev_refs`、`refs[role="after"]`、`causal_refs` 与 payload 物化的 reply/reference edge 图中互不可达时，才可把 HLC 用作最终 timeline tie-breaker。若 backfill、dependency fetch 或 snapshot-assisted verification 尚未补齐到可判断互不可达，客户端 MUST 把排序标记为 provisional（例如 pending/backfilling），或使用 `created_at` / 本地接收序作为临时 UI 占位；MUST NOT 把 HLC 排序结果写入持久 projection、审计导出或任何声称“最终顺序”的视图。
 

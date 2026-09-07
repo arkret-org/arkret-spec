@@ -550,7 +550,7 @@
         },
         "bottoms": {
           "type": "array",
-          "description": "Structured Bottom diagnostics for cells whose effective Lattice join resolved to ⊥ under the current CBA query basis. Each entry pins (cell, status, bottom). See zh/sync/service-surface.md §5.3.",
+          "description": "Structured Bottom diagnostics for cells whose effective Lattice join resolved to ⊥ under the current CBS query basis. Each entry pins (cell, status, bottom). See zh/sync/service-surface.md §5.3.",
           "items": {
             "type": "object",
             "required": [

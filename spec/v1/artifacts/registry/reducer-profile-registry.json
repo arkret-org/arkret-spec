@@ -1,11 +1,11 @@
 {
-  "version": "2026-08-25.1",
-  "generated_at": "2026-08-25T08:10:00+08:00",
+  "version": "2026-09-08.1",
+  "generated_at": "2026-09-08T05:55:00+08:00",
   "source_of_truth": true,
   "description": "Canonical Realm reducer profiles. A Realm selects exactly one profile through its reducer-profile singleton control cell.",
   "registry_rules": [
     "profile_id MUST use the ak.reducer.*.vN namespace and is immutable once stable.",
-    "A receiver selects the profile from the Event's authenticated CBA governance basis. Ordinary Events and federation service bindings do not declare a reducer profile.",
+    "A receiver selects the profile from the Event's authenticated CBS governance basis. Ordinary Events and federation service bindings do not declare a reducer profile.",
     "ak.realm.create supplies the genesis profile. ak.realm.upgrade is interpreted by the source profile and writes the target profile to the same singleton control cell.",
     "An upgrade is valid only when the source profile declares the target in upgrade_edges and the declared deterministic state transition succeeds.",
     "The current v1 registry has no active upgrade edge. ak.realm.upgrade therefore fails with failed_precondition unless and until a successor profile and a source-to-target edge are published.",
@@ -53,7 +53,7 @@
         "ak.vector_group.event_envelope_negative.v1",
         "ak.vector_group.event_kind_lattice_dispatch.v1",
         "ak.vector_group.event_kind_payload_coverage.v1",
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "upgrade_edges": []
     }

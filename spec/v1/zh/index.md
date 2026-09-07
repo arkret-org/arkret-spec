@@ -94,7 +94,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 
 - `overview/protocol-layers.md`：Kernel、Collaboration Base 与 Extension 的稳定边界。
 - `overview/architecture.md`：架构、服务角色、部署与信任边界。
-- `overview/glossary.md`：Principal / Actor / Organization / Realm / Event / Station 等术语。
+- `overview/glossary.md`：Principal / Actor / Organization / Realm / Event / Station 等术语；全规范缩写的展开形式与消歧见 [§4 缩写与专有名词索引](./overview/glossary.md)。
 - `overview/current-model.md`：v1 统一对象模型的关键设计决定（Strand 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 - `models/overview.md`：对象总览、typed-id 一览、设计原则。
 

@@ -33,7 +33,7 @@ Schema id: `ak.schema.morph.v1`
 | `id` | yes | `id:morph` | 以 `ak:morph:` 开头。 | Morph ID。 |
 | `schema` | yes | `ak.schema.morph.v1` | const。 | 容器 self-schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `scope_circle_id` | no | `id:circle` | scope 派生、CBA 基线校验、签名 `scope_ref` 对照与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
+| `scope_circle_id` | no | `id:circle` | scope 派生、CBS 基线校验、签名 `scope_ref` 对照与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
 | `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 结构验证的权威 schema 集合；`morph_kind` / `facets` 不能替代。 |
 | `morph_kind` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ak.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。`facets` map 的总 canonical size **计入** Morph 对象的 256 KiB 上限（与 `fields` 同一 budget，见 [`../conformance/scalability-constraints.md` §2](../conformance/scalability-constraints.md)）；不另设独立 facet 条数上限，超出对象总上限 MUST reject（`payload_too_large` / `schema_violation`）。 | Morph 暴露哪些已声明能力 hint。 |

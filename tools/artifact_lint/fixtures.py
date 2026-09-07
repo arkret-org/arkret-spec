@@ -2143,10 +2143,10 @@ def check_fixture_schema_instance_bindings(lint: Lint) -> None:
         check_json_instance_against_schema(lint, path, pointer, schema_ref, instance)
 
 
-def check_cba_seal_canonical_fixture(lint: Lint) -> None:
+def check_cbs_seal_canonical_fixture(lint: Lint) -> None:
     """Validate the complete signed Seal body and its content-derived identity."""
 
-    path = ARTIFACTS / "fixtures" / "cba-lattice-fixture.json"
+    path = ARTIFACTS / "fixtures" / "cbs-lattice-fixture.json"
     fixture = load_json(lint, path)
     vectors = fixture.get("vectors", []) if isinstance(fixture, dict) else []
     vector = next(
@@ -2183,7 +2183,7 @@ def check_cba_seal_canonical_fixture(lint: Lint) -> None:
     schema_instance = copy.deepcopy(body)
     schema_instance["id"] = seal_id
     schema_instance["notary_signature"] = {
-        "verification_method": "did:key:z6MkCbaFixtureNotary#notary-1",
+        "verification_method": "did:key:z6MkCbsFixtureNotary#notary-1",
         "payload_digest": digest,
         "jws": "eyJhbGciOiJFZERTQSJ9..AA",
     }
@@ -2223,10 +2223,10 @@ def _event_id_validation_error(value: Any, active_suite_codes: set[int]) -> str 
     return None
 
 
-def check_cba_fork_resolution_event_ids(lint: Lint) -> None:
+def check_cbs_fork_resolution_event_ids(lint: Lint) -> None:
     """Validate nested fork-resolution Event IDs beyond their surface regex."""
 
-    path = ARTIFACTS / "fixtures" / "cba-lattice-fixture.json"
+    path = ARTIFACTS / "fixtures" / "cbs-lattice-fixture.json"
     fixture = load_json(lint, path)
     registry_path = ARTIFACTS / "registry" / "digest-suite-registry.json"
     registry = load_json(lint, registry_path)

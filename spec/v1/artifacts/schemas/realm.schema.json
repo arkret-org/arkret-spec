@@ -436,7 +436,7 @@
       "minimum": 300000,
       "maximum": 604800000,
       "default": 86400000,
-      "description": "Structural obligation, not advisory: maximum interval between compaction Seals (Seals carrying covered_event_digests[] or an equivalent verifiable full-coverage manifest). Because the cumulative control-plane covered set is defined recursively from predecessor_refs + delta, compaction Seals are the only bounded bootstrap points for new verifiers; a notary that exceeds this interval degrades bootstrap to walking the chain to genesis. open_set deployments MUST use <= 86400000 (24h); threshold deployments MUST use <= 604800000 (7d); single_signer SHOULD use <= 86400000. Receivers SHOULD raise governance health alarms when the live chain exceeds the declared interval. See authz/event-auth-state-resolution.md section 6.2 and conformance vector ak.vector.cba_lattice.seal_compaction_interval_enforced.v1."
+      "description": "Structural obligation, not advisory: maximum interval between compaction Seals (Seals carrying covered_event_digests[] or an equivalent verifiable full-coverage manifest). Because the cumulative control-plane covered set is defined recursively from predecessor_refs + delta, compaction Seals are the only bounded bootstrap points for new verifiers; a notary that exceeds this interval degrades bootstrap to walking the chain to genesis. open_set deployments MUST use <= 86400000 (24h); threshold deployments MUST use <= 604800000 (7d); single_signer SHOULD use <= 86400000. Receivers SHOULD raise governance health alarms when the live chain exceeds the declared interval. See authz/event-auth-state-resolution.md section 6.2 and conformance vector ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1."
     },
     "max_authority_lifetime_ms": {
       "type": "integer",
@@ -1190,7 +1190,7 @@
             "data",
             "control"
           ],
-          "description": "CBA plane for this cell family. authorization_root / policy_root / notary_root / membership / lifecycle MUST be control. Ordinary content / draft / cosmetic cells SHOULD be data unless sealed=true."
+          "description": "CBS plane for this cell family. authorization_root / policy_root / notary_root / membership / lifecycle MUST be control. Ordinary content / draft / cosmetic cells SHOULD be data unless sealed=true."
         },
         "sealed": {
           "type": "boolean",

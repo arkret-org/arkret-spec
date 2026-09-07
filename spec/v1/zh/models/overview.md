@@ -222,4 +222,4 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 - 标准 event type 注册表见 `../conformance/schema-registry.md`。
 - Reducer conformance vector 见 `../conformance/conformance-vectors.md`。
 - Schema evolution 测试见 `../conformance/conformance-profiles.md`。
-- CBA / Lattice / capability 校验规则见 `../authz/event-auth-state-resolution.md`。
+- CBS / Lattice / capability 校验规则见 `../authz/event-auth-state-resolution.md`。

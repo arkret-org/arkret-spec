@@ -847,12 +847,12 @@
         "authorization_lease": {
           "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
         },
-        "cba_proof_bundles": {
+        "cbs_proof_bundles": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
+            "$ref": "./cbs-proof-bundle.schema.json"
           }
         }
       },

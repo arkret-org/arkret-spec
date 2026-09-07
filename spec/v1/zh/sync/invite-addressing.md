@@ -342,12 +342,12 @@ MUST `failed_precondition` / `invite_event_actor_mismatch`。两类拒绝 MUST N
 验证、receive policy 与 holder-private projection；第 1–3 步是 service-to-service 专属绑定，本地分支
 MUST 以"已认证 self session + 上述两条 accepted-event 前置"作为等价绑定，MUST NOT 合成 federation
 trust header、伪造 peer session 或自签 S2S 认证材料来走 peer 路径。本地分支的第 4 步使用**同一个验证器**，
-只是闭包来自本机 accepted state 而不是 `cba_proof_bundles`——两条分支交给验证器的是同一组由
+只是闭包来自本机 accepted state 而不是 `cbs_proof_bundles`——两条分支交给验证器的是同一组由
 `seal_basis.leaves` 唯一确定的对象，只有字节来源不同，而 bundle 内每个对象本来就要独立验证，
 所以来源不改变结论。本地分支 MUST NOT 为"形状统一"先把本机状态序列化成 bundle 再验（那不增加任何保证），
 也同样 MUST NOT 读 `realm_state.owner` 一类投影镜像。目标为其它 Station 时，
 服务端 MUST 用持久化 Event 与**自己**已接受的 Realm state 构造 exact canonical request body
-（含下述第 4 步所需的 `cba_proof_bundles`——邀请方是该 Realm 成员，构造闭包是本地操作，不需要新的读面），
+（含下述第 4 步所需的 `cbs_proof_bundles`——邀请方是该 Realm 成员，构造闭包是本地操作，不需要新的读面），
 交给下述 peer operation，并以 body 内 `idempotency_key` 绑定 durable retry / outbox。客户端在投递结果不确定时 MUST 用同一 body 与同一 `idempotency_key`
 重试，不得替换 evidence 或 `invite_event_id`。
 
@@ -364,12 +364,12 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 2. 验证 `Destination-Service-ID == invite_address.account_id.station_id`。
 3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 等于 `invite_address.account_id.station_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
 4. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、`invite_id` 与 `realm_id`，
-   随后以 `cba_proof_bundles` 为闭包来源执行**与成员 Station 接纳该 Control Move 完全相同**的授权求值。
+   随后以 `cbs_proof_bundles` 为闭包来源执行**与成员 Station 接纳该 Control Move 完全相同**的授权求值。
    这一步不为 invite 定义第二套授权判据：
 
    - 每个 bundle 的 `target_seal_ref` MUST 是 `invite_event.seal_basis.leaves[]` 的成员，且每个 leaf
      MUST 至少被一个 bundle 覆盖；指向 leaves 之外 Seal 的 bundle 是 `schema_violation`
-     （[`../authz/cba-profiles.md` §5](../authz/cba-profiles.md) 的「不可达对象是过度披露与放大输入」同一条）。
+     （[`../authz/cbs-profiles.md` §5](../authz/cbs-profiles.md) 的「不可达对象是过度披露与放大输入」同一条）。
    - bundle 按 §5 的固定顺序验证，直到最后一步「引用 target 的 Event authorization」；授权在
      `seal_basis` 的 deterministic joined control view 下求值
      （[`../authz/event-auth-state-resolution.md` §6.3.1](../authz/event-auth-state-resolution.md)），
@@ -386,7 +386,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
      acceptance 由被邀请方日后按普通 Realm sync 取得并验证。
 
    **求值顺序与独立性（normative）**：第 4 步 MUST 在第 5 步之前完整求值，且其结果 MUST 只是
-   `(invite_event, cba_proof_bundles)` 的函数——不读 holder 是否存在、不读 `invite_receive_policy`、
+   `(invite_event, cbs_proof_bundles)` 的函数——不读 holder 是否存在、不读 `invite_receive_policy`、
    不查 consent cell、不计 §6.1.1 quota。第 4 步拒绝时 MUST 零 holder-private 写入、零 outbox 入队、
    零 quota 计费。正因为它不依赖任何 holder 状态，它的失败**不属于** §5.1 与
    [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的不可区分等价类：

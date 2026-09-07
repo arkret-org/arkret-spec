@@ -342,7 +342,7 @@ event_id ASC
 各键的精确定义与缺边时行为均以 `encoding.md` §7.3 为准；Station 同步面不得在本节另行扩展 `causal_depth` 边集或定义本地 tie-break。
 - `event_id` 是最终 tie-breaker。
 
-对于协议状态，客户端 MUST 使用 `event-auth-state-resolution.md` 的 CBA query basis 与 Lattice cell value 解释当前态，不得只取 timeline 中最后出现的同 kind Event。
+对于协议状态，客户端 MUST 使用 `event-auth-state-resolution.md` 的 CBS query basis 与 Lattice cell value 解释当前态，不得只取 timeline 中最后出现的同 kind Event。
 
 ## 7. Large Account and Large Realm Sync
 

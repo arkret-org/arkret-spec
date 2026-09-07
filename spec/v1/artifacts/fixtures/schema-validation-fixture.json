@@ -2016,7 +2016,7 @@
       }
     },
     {
-      "name": "event_envelope_rejects_cba_fields_on_erasure_receipt",
+      "name": "event_envelope_rejects_cbs_fields_on_erasure_receipt",
       "schema_ref": "schemas/event-envelope.schema.json",
       "expect_valid": false,
       "first_expected_error": "contains:should not be valid under",

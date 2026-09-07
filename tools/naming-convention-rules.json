@@ -340,7 +340,7 @@
     },
     {
       "rule_id": "NC-TYPE-001",
-      "candidate": "CBAProofBundle",
+      "candidate": "CBSProofBundle",
       "expected": "reject"
     },
     {
@@ -466,7 +466,7 @@
     },
     {
       "rule_id": "NC-TYPE-001",
-      "candidate": "CbaProofBundle",
+      "candidate": "CbsProofBundle",
       "expected": "accept"
     },
     {

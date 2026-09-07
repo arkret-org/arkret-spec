@@ -39,7 +39,7 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 }
 ```
 
-`ak.component.space.parent.v1` 的 cell identity、control-plane CBA、CAS basis、acyclic 检测、不可读 ancestor 的 fail-closed 错误与 root/hidden-parent 规则，其唯一 normative 真源是 [`realm-and-space.md` §3.5](./realm-and-space.md#35-akspaceparent-cas_register-basis)。本文件只定义产品导航与查询语义；实现 MUST NOT 从本节另行派生一套 reducer。
+`ak.component.space.parent.v1` 的 cell identity、control-plane CBS、CAS basis、acyclic 检测、不可读 ancestor 的 fail-closed 错误与 root/hidden-parent 规则，其唯一 normative 真源是 [`realm-and-space.md` §3.5](./realm-and-space.md#35-akspaceparent-cas_register-basis)。本文件只定义产品导航与查询语义；实现 MUST NOT 从本节另行派生一套 reducer。
 
 ## 4. Effective Realm
 

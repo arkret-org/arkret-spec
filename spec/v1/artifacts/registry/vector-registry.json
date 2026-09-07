@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.7",
+  "version": "2026-09-08.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T17:49:47+08:00",
+  "generated_at": "2026-09-08T05:55:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -92,12 +92,12 @@
       "status": "active",
       "domain": "actor_chain",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "Actor-chain sequence and sibling buckets are Realm-scoped; cross-Realm equal sequence values are independent, while same-Realm conflicting siblings fork and cross-Realm predecessor references fail.",
       "source_refs": [
         "spec/v1/zh/models/event-and-patch.md",
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -1323,9 +1323,9 @@
       ]
     },
     {
-      "vector_id": "ak.vector.cba.external_control_proposal_ack_quorum.v1",
+      "vector_id": "ak.vector.cbs.external_control_proposal_ack_quorum.v1",
       "status": "active",
-      "domain": "cba",
+      "domain": "cbs",
       "applies_to_fixtures": [
         "control-proposal-ack-fixture.json"
       ],
@@ -1336,9 +1336,9 @@
       "description": "External authority authority Ack issuance, canonical receipt-set assembly, common-window calculation, threshold deduplication, exact replay and decision-chain binding."
     },
     {
-      "vector_id": "ak.vector.cba.proposal_bounded_decision.v1",
+      "vector_id": "ak.vector.cbs.proposal_bounded_decision.v1",
       "status": "active",
-      "domain": "cba",
+      "domain": "cbs",
       "applies_to_fixtures": [
         "seal-submit-fixture.json"
       ],
@@ -1349,9 +1349,9 @@
       "description": "Control Proposal Ack deadlines, at most two immutable-horizon signed defers, decision-overdue evidence, and acceptance of a later cryptographically valid Seal."
     },
     {
-      "vector_id": "ak.vector.cba.proposal_window_configuration.v1",
+      "vector_id": "ak.vector.cbs.proposal_window_configuration.v1",
       "status": "active",
-      "domain": "cba",
+      "domain": "cbs",
       "applies_to_fixtures": [
         "control-proposal-ack-fixture.json"
       ],
@@ -1361,218 +1361,218 @@
       "description": "Realm proposal decision windows are ordered and realizable: decision <= absolute, equality is accepted only with zero defers, and invalid configurations fail before any Realm state write."
     },
     {
-      "vector_id": "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1",
+      "vector_id": "ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.cas_mixed_basis.v1",
+      "vector_id": "ak.vector.cbs_lattice.cas_mixed_basis.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "cas_register admission derives a full active-head identity guard from each write's own signed seal_basis and compares H_c(B) to the frozen predecessor H_c(P) at Seal acceptance: a write with no reconstructable basis fails closed, a write whose basis heads equal the frozen baseline is accepted, a stale ABA write whose business settled value is byte-identical (null before and after a claim/release round) is rejected because its head identities differ, and a self-derived target cell whose subject comes from the Event's own event_id is accepted without any wire head_eq, since demanding one would make the signed preimage hash-self-referential.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.conflict_recovery_move.v1",
+      "vector_id": "ak.vector.cbs_lattice.conflict_recovery_move.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "bottom=reject control cell recovery accepts only a sealed conflict-recovery Move with valid recovery_capability and pre-conflict state_witness; negative cases pin recovery_witness_* reasons.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
+      "vector_id": "ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1",
+      "vector_id": "ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.data_event_observation_does_not_seal.v1",
+      "vector_id": "ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
+      "vector_id": "ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.fork_resolution_peer_alignment.v1",
+      "vector_id": "ak.vector.cbs_lattice.fork_resolution_peer_alignment.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "second-phase per-peer alignment clears peer_stale only when the challenged peer discloses, at the exact adjudicated position, a canonical sibling set equal to the verdict; winner-only and empty-set align, an extra or missing sibling and an undisclosed position do not, and neither counts a peer failure or produces new fork evidence.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.inclusion_list_obligation.v1",
+      "vector_id": "ak.vector.cbs_lattice.inclusion_list_obligation.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1",
+      "vector_id": "ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1",
+      "vector_id": "ak.vector.cbs_lattice.open_set_compaction_preserves_control_roots.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1",
+      "vector_id": "ak.vector.cbs_lattice.open_set_concurrent_revocation_fail_closed.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "open_set concurrent revocation is evaluated against the joined control view; revoked or bottom authorization cells fail closed without a freshness window.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1",
+      "vector_id": "ak.vector.cbs_lattice.same_batch_does_not_advance_authorization_basis.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.seal_canonical_no_self_reference.v1",
+      "vector_id": "ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "Seal canonical bytes exclude id and notary_signature; verifier recomputes the typed id and signature payload digest from signed top-level fields only.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.seal_compaction_interval_enforced.v1",
+      "vector_id": "ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.seal_delta_concurrency_class.v1",
+      "vector_id": "ak.vector.cbs_lattice.seal_delta_concurrency_class.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "A Seal's control delta is exactly one security_barrier transaction or a set of non-barrier writes on pairwise disjoint cells, never a mixture, and the class comes from the registry rather than from what a request happens to touch. Covers a lone barrier, a registered atomic unit as that one transaction, a disjoint non-barrier batch, and the refusals: a barrier mixed with an ordinary write, two barriers, two non-barrier writes on one cell, and a per-request class downgrade. Also fixes the cyclic read-write dependency between two moderators that no serial order satisfies, the same pair being legal across two Seals in either order, lift restoring the author, add-lift-add producing three distinct head identities so a signer lock keyed on the business value would wrongly refuse the third write, and a refused delta storing nothing.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1",
+      "vector_id": "ak.vector.cbs_lattice.seal_delta_excludes_data_event_digest.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1",
+      "vector_id": "ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cba_lattice.threshold_forensic_attribution.v1",
+      "vector_id": "ak.vector.cbs_lattice.threshold_forensic_attribution.v1",
       "status": "active",
-      "domain": "cba_lattice",
+      "domain": "cbs_lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -1620,7 +1620,7 @@
       "applies_to_fixtures": [
         "circle-scope-fixture.json"
       ],
-      "description": "Circle lifecycle is evaluated at the Event CBA basis; linear archive uses the revocation freshness window, tombstone and concurrent archive fail closed immediately, and restore never rehabilitates a pre-archive basis.",
+      "description": "Circle lifecycle is evaluated at the Event CBS basis; linear archive uses the revocation freshness window, tombstone and concurrent archive fail closed immediately, and restore never rehabilitates a pre-archive basis.",
       "source_refs": [
         "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
@@ -2999,11 +2999,11 @@
       "status": "active",
       "domain": "event_kind",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -3011,12 +3011,12 @@
       "status": "active",
       "domain": "event_kind",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "description": "ak.realm.alias is the only wire carrier of a Realm alias: declaration / tombstone shapes, the create-time bootstrap follow-up and post-bootstrap seal_basis shapes, head_eq rename, issuer-authority binding, namespace occupancy, disjointness from the handle namespace, cas_register bottom on concurrent distinct declarations, and rejection of alias on the closed Realm object or in a PCR.",
       "source_refs": [
         "spec/v1/zh/discovery/object-addressing.md",
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -3024,11 +3024,11 @@
       "status": "active",
       "domain": "event_kind",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -3059,13 +3059,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.federation.cba_dependency_resolve.v1",
+      "vector_id": "ak.vector.federation.cbs_dependency_resolve.v1",
       "status": "active",
       "domain": "federation",
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "The standard peer dependency resolve operation is a bounded read-only Event/CBA fetch surface with canonical sorted exact typed selectors, complete selector accounting, indistinguishable missing and undisclosable results, atomic limit_exceeded on response-budget overflow, bounded verifiable supersets, strict progress, an eight-round automatic-fetch ceiling, and a fresh-key submit after closure completion.",
+      "description": "The standard peer dependency resolve operation is a bounded read-only Event/CBS fetch surface with canonical sorted exact typed selectors, complete selector accounting, indistinguishable missing and undisclosable results, atomic limit_exceeded on response-budget overflow, bounded verifiable supersets, strict progress, an eight-round automatic-fetch ceiling, and a fresh-key submit after closure completion.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -3090,7 +3090,7 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "Each Event selects its Realm reducer from the authenticated CBA governance basis; ordinary Events and federation service bindings carry no reducer identity, unsupported settled profiles fail with unsupported_profile, and an unregistered upgrade target fails closed.",
+      "description": "Each Event selects its Realm reducer from the authenticated CBS governance basis; ordinary Events and federation service bindings carry no reducer identity, unsupported settled profiles fail with unsupported_profile, and an unregistered upgrade target fails closed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -3116,7 +3116,7 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "Federation push carries one Realm's bounded, receiver-verifiable CbaProofBundle superset rooted at DataEvent seal_ref and Control Event seal_basis leaves on the sole peer Event write rail; receivers reject unreachable bundle objects, resolve Control Events and basis Seals topologically before DataEvents, and never grant same-batch unsealed authority or advance actor frontiers from proof transport.",
+      "description": "Federation push carries one Realm's bounded, receiver-verifiable CbsProofBundle superset rooted at DataEvent seal_ref and Control Event seal_basis leaves on the sole peer Event write rail; receivers reject unreachable bundle objects, resolve Control Events and basis Seals topologically before DataEvents, and never grant same-batch unsealed authority or advance actor frontiers from proof transport.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -3356,11 +3356,11 @@
       "status": "active",
       "domain": "identity",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "One accountability record has two registered writers, the standalone grant and the projection an agent provision writes in its controller PCR. Both key the cell by issuer principal, subject principal and the digested scope set and project one closed value, so equivalent scope spellings and equivalent decisions land on one cell and one value. Covers the provision deriving not_before from the envelope it must also match in its payload, omitting expires_at and being active, a later grant revoking the record without moving the Agent lifecycle, a grant in another Realm being a separate record, principal equality never implying Account equality, an exact provision replay not resurrecting a revoked record, and an Actor Profile accepting either source as endorsement.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -4024,11 +4024,11 @@
       "status": "active",
       "domain": "lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "An apply_patch resolves against a real object base written by a registered set on the same family and subject, or the Move is refused with no stored effect: null is never an implicit initialization and the first patch never becomes the object definition. Covers create-then-patch field preservation, patch without a create, wrong subject and wrong Realm, the Circle create unit writing its metadata base atomically with its governance effects, Strand content and track patches sharing one base while keeping their authorization split, and the View rules that update and reconcile may not mint a View, that no self-reported id is stored, that reconcile preserves identity and privacy, may not cross the tombstone gate, and supersedes only the heads it observed.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -4036,11 +4036,11 @@
       "status": "active",
       "domain": "lattice",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "description": "cas_register join is the causal-identity function over the verified covered set: an unwritten cell has no head and reads null; each write is identified by its EventId and supersedes exactly the heads it observed in its own signed seal_basis; a release write is set null and keeps its own head, so an unwritten cell and a released cell are distinguishable in the state commitment; A->null->A reads A and A->B->A->B reads B, which the deleted value-edge maximal-chain definition could not distinguish; concurrent writes with different values leave two heads and the bottom=reject cell materializes failed_bottom; concurrent writes with the same value keep both identities; exact replay of the same identity and effect is idempotent; the two-state merge is associative, commutative and idempotent and agrees with a full causal-history oracle; and Bottom is a function of the view, not a sticky local flag.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
         "spec/v1/zh/authz/event-auth-state-resolution.md"
       ]
     },
@@ -4049,11 +4049,11 @@
       "status": "active",
       "domain": "lattice",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
-      "description": "counter join/validate_op convergence for the same CBA Event set.",
+      "description": "counter join/validate_op convergence for the same CBS Event set.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -4061,11 +4061,11 @@
       "status": "active",
       "domain": "lattice",
       "applies_to_fixtures": [
-        "cba-lattice-fixture.json"
+        "cbs-lattice-fixture.json"
       ],
       "description": "The fsm lattice is a causal register whose active heads carry the transition's `to`: `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis, never join-time edges. Covers input-order permutation and batched merge giving one result, ABA reuse distinguishing A->B->A from A->B->A->B, a registered self-loop on a terminal state leaving later registered transitions legal, concurrent same-`to` writes keeping every identity, a missing dependency holding rather than trusting an unverified `to`, a late branch merging after the fact, concurrent different-`to` recovery still conflicting, and the MLS membership consumer reading the same state as the lattice.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
@@ -4075,11 +4075,11 @@
       "status": "active",
       "domain": "lattice",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "description": "fsm join: identical (from,to) sibling transitions converge idempotently; same-from different-to siblings return bottom (reject path).",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -4099,11 +4099,11 @@
       "status": "active",
       "domain": "lattice",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
-      "description": "mv_register join/validate_op convergence for the same CBA Event set.",
+      "description": "mv_register join/validate_op convergence for the same CBS Event set.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -4111,12 +4111,12 @@
       "status": "active",
       "domain": "lattice",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "description": "ordered_log uses sparse envelope actor_seq coordinates: per-cell gaps are normal, every accepted entry joins immediately, no pending-gap state exists, and recompute is arrival-order independent.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -4124,12 +4124,12 @@
       "status": "active",
       "domain": "lattice",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "description": "ordered_log grow-only Event-set convergence: issuer_seq equals sparse envelope actor_seq, exact Event replay is idempotent, every accepted same-actor_seq sibling enters joined value, decoded digest octets only stabilize serialization order, and Event identity collision fails closed before lattice join.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -5997,12 +5997,12 @@
       "status": "active",
       "domain": "realm_link",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "description": "Realm Link FSM: all declared initial states and transitions are accepted, tombstoned is terminal except byte-equivalent replay, undeclared transitions reject with realm_link_invalid_transition, same-basis divergent siblings return bottom, general graph cycles remain valid, and self-reference rejects with realm_link_self_reference.",
       "source_refs": [
         "spec/v1/zh/models/realm-links.md",
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -6472,12 +6472,12 @@
       "status": "active",
       "domain": "seal",
       "applies_to_vector_groups": [
-        "ak.vector_group.cba_lattice.v1"
+        "ak.vector_group.cbs_lattice.v1"
       ],
       "description": "A proposed Seal may include at most one mutually exclusive write to the same bottom=reject cell; apply_seal rejects a violating Seal, while unreachable Seal leaves retain ordinary bottom conflict semantics.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {

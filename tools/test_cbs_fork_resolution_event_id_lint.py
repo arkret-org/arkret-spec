@@ -1,4 +1,4 @@
-"""Tests for semantic Event-ID checks in CBA fork-resolution payloads."""
+"""Tests for semantic Event-ID checks in CBS fork-resolution payloads."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ def event_id_with_header(header: int) -> str:
     return "ak:event:" + token
 
 
-class CbaForkResolutionEventIdLintTest(unittest.TestCase):
+class CbsForkResolutionEventIdLintTest(unittest.TestCase):
     def test_active_suite_header_passes(self) -> None:
         self.assertIsNone(_event_id_validation_error(event_id_with_header(0x01), {0x01, 0x02}))
 

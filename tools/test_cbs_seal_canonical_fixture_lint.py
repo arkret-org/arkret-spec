@@ -1,4 +1,4 @@
-"""Mutation tests for the CBA canonical Seal body gate."""
+"""Mutation tests for the CBS canonical Seal body gate."""
 
 from __future__ import annotations
 
@@ -12,10 +12,10 @@ sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint import fixtures as lint_artifacts
 
-FIXTURE = ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "cba-lattice-fixture.json"
+FIXTURE = ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "cbs-lattice-fixture.json"
 
 
-class CbaSealCanonicalFixtureLintTest(unittest.TestCase):
+class CbsSealCanonicalFixtureLintTest(unittest.TestCase):
     @staticmethod
     def _vector(fixture):
         return next(
@@ -38,7 +38,7 @@ class CbaSealCanonicalFixtureLintTest(unittest.TestCase):
         lint_artifacts.load_json = load_json_with_mutation
         try:
             lint = lint_artifacts.Lint()
-            lint_artifacts.check_cba_seal_canonical_fixture(lint)
+            lint_artifacts.check_cbs_seal_canonical_fixture(lint)
             return lint.errors
         finally:
             lint_artifacts.load_json = original_load_json
@@ -64,7 +64,7 @@ class CbaSealCanonicalFixtureLintTest(unittest.TestCase):
 
     def test_unmodified_fixture_passes(self) -> None:
         lint = lint_artifacts.Lint()
-        lint_artifacts.check_cba_seal_canonical_fixture(lint)
+        lint_artifacts.check_cbs_seal_canonical_fixture(lint)
         self.assertEqual(lint.errors, [])
 
     def test_missing_required_signed_body_field_fails(self) -> None:

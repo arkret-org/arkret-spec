@@ -444,7 +444,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Account Authority issuer-ledger record locator/digest; never a Realm/CBA proof."
+      "description": "Account Authority issuer-ledger record locator/digest; never a Realm/CBS proof."
     },
     "pcr_device_view_locator": {
       "type": "object",

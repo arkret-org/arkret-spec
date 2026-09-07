@@ -92,7 +92,7 @@ Schema id: `ak.schema.realm.v1`
 | `notary` | yes | closed union | Genesis notary control cell 初值；`kind=single_signer|threshold|open_set|mixed` 是唯一 profile discriminator。每个 slot 是冻结的 signer descriptor（actor did_core_id、DID URL、exact key bytes/digest、JOSE alg）；不存在并行 `notary_profile` 字段。 | 当前与历史 Seal 签发规则。 |
 | `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["seal_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor accepted joined membership 的 ActorId routing-service projection 去重派生。 | bytes availability receipt 门槛。 |
 | `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省时不得采信 Seal transparency auditor attestation。 | Seal transparency auditor allowlist、门限与独立性 policy。 |
-| `revocation_freshness_window_ms` | no | `integer` | 默认 24h；用于 DataEvent `seal_ref` 和 Control Move `seal_basis` 的历史 basis 宽限判定，精确表示旧 basis Seal 与后继撤销 Seal 的 notary-committed Seal distance 上限，不随 Event 签发、首次投递、接收或回放时间老化。高风险写入的 effective 值固定为 0。 | CBA 撤销 Seal-distance grace 上限。 |
+| `revocation_freshness_window_ms` | no | `integer` | 默认 24h；用于 DataEvent `seal_ref` 和 Control Move `seal_basis` 的历史 basis 宽限判定，精确表示旧 basis Seal 与后继撤销 Seal 的 notary-committed Seal distance 上限，不随 Event 签发、首次投递、接收或回放时间老化。高风险写入的 effective 值固定为 0。 | CBS 撤销 Seal-distance grace 上限。 |
 | `recovery_witness_freshness_window_ms` | no | `integer` | 默认 24h，最大 7d；按签名覆盖的 `Seal.sealed_at` DAG 时间差计算。 | conflict-recovery witness freshness 上限。 |
 | `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `authority_expiry_seal`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `bottom_escalation_after_ms` | no | `integer` | cell `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
@@ -600,7 +600,7 @@ bottom  := reject
 value   := id:space | null
 ```
 
-**Plane 裁决（normative，CBA）**：与 §3.6 `ak.component.strand.position.v1` 同型，v1 已把 `ak.space.parent` 冻结为 **`plane := control`（`sealed=true`）**。这保留下表 `cas_register` / `bottom=reject` / `head_eq` CAS basis 的全部语义不变。因此 `ak.space.parent` 是 **Control Move**（携带 `seal_basis`，**不**携带 `seal_ref`，由 Seal 裁决），而非 data-plane DataEvent：按 [`event-and-patch.md` §2.2](./event-and-patch.md) DataEvent MUST NOT 携带 preconditions，且 [`event-auth-state-resolution.md` §9.1](../authz/event-auth-state-resolution.md) 中 `cas_register` 在 data plane 默认不可用、`bottom=reject` 是控制面 / sealed 语义，带 `head_eq` CAS + `bottom=reject` 的 `ak.space.parent` 结构上只能是 Control Move。`event-kind-registry.json` 的静态 `plane` / `sealed` 是内建 family 的机读权威值；Realm `cell_lattices` 只登记 Realm-specific extension family，MUST NOT 覆盖该内建声明。
+**Plane 裁决（normative，CBS）**：与 §3.6 `ak.component.strand.position.v1` 同型，v1 已把 `ak.space.parent` 冻结为 **`plane := control`（`sealed=true`）**。这保留下表 `cas_register` / `bottom=reject` / `head_eq` CAS basis 的全部语义不变。因此 `ak.space.parent` 是 **Control Move**（携带 `seal_basis`，**不**携带 `seal_ref`，由 Seal 裁决），而非 data-plane DataEvent：按 [`event-and-patch.md` §2.2](./event-and-patch.md) DataEvent MUST NOT 携带 preconditions，且 [`event-auth-state-resolution.md` §9.1](../authz/event-auth-state-resolution.md) 中 `cas_register` 在 data plane 默认不可用、`bottom=reject` 是控制面 / sealed 语义，带 `head_eq` CAS + `bottom=reject` 的 `ak.space.parent` 结构上只能是 Control Move。`event-kind-registry.json` 的静态 `plane` / `sealed` 是内建 family 的机读权威值；Realm `cell_lattices` 只登记 Realm-specific extension family，MUST NOT 覆盖该内建声明。
 
 规则：
 
@@ -625,7 +625,7 @@ plane       := control（默认 sealed=true）
 value shape := { "list_space_id": id:space, "rank": string } | null
 ```
 
-**Plane 裁决（normative，CBA）**：`ak.component.strand.position.v1` 是非治理强一致对象；v1 在 [`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md) 的撰写期三选一中已经选择选项 2，并冻结为 `sealed=true` 控制面。这保留上表 cas_register / bottom=reject / `expected_position` CAS basis 的全部既有语义不变，`ak.strand.move` / `ak.strand.reorder` 因此始终是 Control Move（携带 `seal_basis`，由 Seal 裁决）。Realm `cell_lattices` 只登记 Realm-specific extension family，MUST NOT 把该内建 family 改为 data-plane `mv_register` 或 per-object sequencer。v1 不提供 per-Realm 的看板 data-plane 模式。
+**Plane 裁决（normative，CBS）**：`ak.component.strand.position.v1` 是非治理强一致对象；v1 在 [`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md) 的撰写期三选一中已经选择选项 2，并冻结为 `sealed=true` 控制面。这保留上表 cas_register / bottom=reject / `expected_position` CAS basis 的全部既有语义不变，`ak.strand.move` / `ak.strand.reorder` 因此始终是 Control Move（携带 `seal_basis`，由 Seal 裁决）。Realm `cell_lattices` 只登记 Realm-specific extension family，MUST NOT 把该内建 family 改为 data-plane `mv_register` 或 per-object sequencer。v1 不提供 per-Realm 的看板 data-plane 模式。
 
 `ak.strand.move` payload 是 closed object（未知字段 MUST `schema_violation`）：
 
@@ -701,6 +701,6 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 - Realm links：[`realm-links.md`](./realm-links.md)。
 - Strand / Message / track 语义：[strand-and-message.md](./strand-and-message.md)。
 - Relation 基数与跨 Realm 规则：[relation.md](./relation.md)。
-- CBA / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+- CBS / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - `ak.strand.move` / cas_register sync 编译：[`../sync/operations-sync.md`](../sync/operations-sync.md)。
 - Realm genesis/profile/effective projection 与 Space schema：`artifacts/schemas/realm-genesis.schema.json`、`artifacts/schemas/realm-profile.schema.json`、`artifacts/schemas/realm.schema.json`、`artifacts/schemas/space.schema.json`。
