@@ -33,14 +33,6 @@
   "pending_rename_convergence": [],
   "classifications": [
     {
-      "name": "accepted_seal_id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/ControlGovernanceHealth/properties/retained_faults/items/properties/accepted_seal_id",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
-    },
-    {
       "name": "action_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "unregistered_object_identifier",

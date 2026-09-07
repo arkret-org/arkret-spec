@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-04.1",
+  "version": "2026-09-07.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "generated_at": "2026-09-07T06:40:00Z",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
@@ -198,18 +198,6 @@
       "ruling": "2026-09-02-1951 A5",
       "schema": "schemas/service-operation-dtos.schema.json",
       "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
-      "removed": "proposal_digest",
-      "source": {
-        "field": "control_proposal_ack"
-      },
-      "derivation": "proposal_digest := control_proposal_ack.proposal_digest; the array sort key reads the embedded ack",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_retained_proposal_digest.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/retained_faults/items",
       "removed": "proposal_digest",
       "source": {
         "field": "control_proposal_ack"

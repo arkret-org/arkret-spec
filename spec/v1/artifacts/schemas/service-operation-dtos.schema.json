@@ -1335,14 +1335,15 @@
       "required": [
         "status",
         "pending_proposals",
-        "retained_faults"
+        "pending_proposals_complete"
       ],
       "properties": {
         "status": {
           "enum": [
             "healthy",
             "degraded"
-          ]
+          ],
+          "description": "Current decision availability only: degraded iff an included pending proposal is overdue or pending_proposals_complete is false. Resolved historical deadline faults do not affect this status. Healthy is not proof that an MLS scope has usable keys or that no pending tightening gate exists."
         },
         "pending_proposals": {
           "type": "array",
@@ -1401,46 +1402,33 @@
             "additionalProperties": false
           }
         },
-        "retained_faults": {
-          "type": "array",
-          "maxItems": 128,
-          "description": "Deadline faults retained after a late but otherwise valid Seal is accepted. Sorted by (accepted_at, control_proposal_ack.proposal_digest); this is evidence derived from the signed chain, not a second finality source, and proposal_digest is read from the embedded control_proposal_ack rather than carried again.",
-          "items": {
-            "type": "object",
-            "required": [
-              "control_proposal_ack",
-              "decisions",
-              "accepted_seal_id",
-              "accepted_at",
-              "fault_reason"
-            ],
-            "properties": {
-              "control_proposal_ack": {
-                "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
-              },
-              "decisions": {
-                "type": "array",
-                "maxItems": 2,
-                "items": {
-                  "$ref": "./control-proposal-decision.schema.json#/$defs/signed_defer"
-                }
-              },
-              "accepted_seal_id": {
-                "type": "string",
-                "minLength": 1
-              },
-              "accepted_at": {
-                "$ref": "./time.schema.json#/$defs/timestamp"
-              },
-              "fault_reason": {
-                "const": "control_proposal_decision_overdue"
-              }
-            },
-            "additionalProperties": false
-          }
+        "pending_proposals_complete": {
+          "type": "boolean",
+          "description": "True only when pending_proposals contains the complete Ack-required pending set at the observation coordinate. False means the bounded diagnostic sample is incomplete and status MUST be degraded; no consumer may infer absence of a security gate from it. It does not invalidate the independently verified Seal basis. Exact obligations are read through the standard control-proposal decision read operation; enforcement queries the authoritative pending records for the requested action."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "pending_proposals_complete": {
+                "const": false
+              }
+            },
+            "required": [
+              "pending_proposals_complete"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "degraded"
+              }
+            }
+          }
+        }
+      ]
     },
     "Cursor": {
       "$ref": "./authz-operations.schema.json#/$defs/cursor"
@@ -1567,10 +1555,14 @@
         "delivered": {
           "type": "object",
           "description": "Principal-id to device-id map for messages accepted for delivery.",
-          "propertyNames": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+          "propertyNames": {
+            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          },
           "additionalProperties": {
             "type": "object",
-            "propertyNames": {"$ref": "./common-ids.schema.json#/$defs/device_id"},
+            "propertyNames": {
+              "$ref": "./common-ids.schema.json#/$defs/device_id"
+            },
             "additionalProperties": {
               "$ref": "#/$defs/DeviceMessageDeliveredResult"
             }
@@ -1579,10 +1571,14 @@
         "unknown_devices": {
           "type": "object",
           "description": "Principal-id to device-id map for targets that were not deliverable.",
-          "propertyNames": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+          "propertyNames": {
+            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          },
           "additionalProperties": {
             "type": "object",
-            "propertyNames": {"$ref": "./common-ids.schema.json#/$defs/device_id"},
+            "propertyNames": {
+              "$ref": "./common-ids.schema.json#/$defs/device_id"
+            },
             "additionalProperties": {
               "$ref": "#/$defs/DeviceMessageUnknownResult"
             }
@@ -1600,10 +1596,14 @@
         "messages": {
           "type": "object",
           "description": "Station-local did_core_id -> device_id map. The authenticated addressed Station supplies the AccountId Station component; this body carries no cross-Station route and MUST NOT use ActorId JSON as a key.",
-          "propertyNames": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+          "propertyNames": {
+            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          },
           "additionalProperties": {
             "type": "object",
-            "propertyNames": {"$ref": "./common-ids.schema.json#/$defs/device_id"},
+            "propertyNames": {
+              "$ref": "./common-ids.schema.json#/$defs/device_id"
+            },
             "additionalProperties": {
               "$ref": "#/$defs/DeviceMessageTarget"
             }
@@ -2742,13 +2742,29 @@
     "EventsFrontierFederationPeerState": {
       "type": "object",
       "dependentRequired": {
-        "auth_state_root": ["policy_frontier_root", "membership_frontier_root"],
-        "policy_frontier_root": ["auth_state_root", "membership_frontier_root"],
-        "membership_frontier_root": ["auth_state_root", "policy_frontier_root"]
+        "auth_state_root": [
+          "policy_frontier_root",
+          "membership_frontier_root"
+        ],
+        "policy_frontier_root": [
+          "auth_state_root",
+          "membership_frontier_root"
+        ],
+        "membership_frontier_root": [
+          "auth_state_root",
+          "policy_frontier_root"
+        ]
       },
       "x-arkret-signature-transcript": [
-        "domain", "frontier_root", "auth_state_root", "policy_frontier_root",
-        "membership_frontier_root", "realm_id", "issuer_id", "max_hlc", "observed_at"
+        "domain",
+        "frontier_root",
+        "auth_state_root",
+        "policy_frontier_root",
+        "membership_frontier_root",
+        "realm_id",
+        "issuer_id",
+        "max_hlc",
+        "observed_at"
       ],
       "x-arkret-injected-fields": [
         {
@@ -2825,10 +2841,18 @@
           "type": "object",
           "description": "Closed detached-JWS envelope over the exact federation.md section 4.5.1 transcript. The nine-field transcript named by x-arkret-signature-transcript is rebuilt from the outer response only (optional roots and max_hlc enter as null); the envelope carries no transcript mirror, digest, timestamp, typ or scheme, because each would be a second copy of a value the verifier already reconstructs. The algorithm comes from the protected JWS header alone and the freshness window is judged on observed_at.",
           "x-arkret-signature-domain": "ak.events.frontier.signature.v1",
-          "required": ["verification_method", "jws"],
+          "required": [
+            "verification_method",
+            "jws"
+          ],
           "properties": {
-            "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
-            "jws": {"type": "string", "minLength": 1}
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "jws": {
+              "type": "string",
+              "minLength": 1
+            }
           },
           "additionalProperties": false
         }

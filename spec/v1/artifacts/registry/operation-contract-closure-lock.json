@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-07.6",
-  "generated_at": "2026-09-07T14:37:16+08:00",
+  "version": "2026-09-07.7",
+  "generated_at": "2026-09-07T18:40:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -353,7 +353,7 @@
     },
     {
       "operation_id": "ak.peer.seals.read.frontier.v1",
-      "sha256": "sha256:c16bf190ce0aab625f7b88626a0a8a09736ab16ac74246f64e005ca63c269bd1"
+      "sha256": "sha256:7b80321364ae0f6faf61cb8329c4c925888c2cfe89bae7dd7f0bd9a820586148"
     },
     {
       "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
@@ -905,7 +905,7 @@
     },
     {
       "operation_id": "ak.self.seals.read.frontier.v1",
-      "sha256": "sha256:af7d0b9721b67b917583dfbb420bae1ce7c9a2ae5f09df71a0e3fc679d5b54b1"
+      "sha256": "sha256:7b0b7bafc616008371b1d4091989294f493a443466f5f431eae0236dd9859f4f"
     },
     {
       "operation_id": "ak.self.seals.read.governance_dependencies.v1",

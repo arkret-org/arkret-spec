@@ -868,3 +868,19 @@ Routing metadata 不得要求每小时 Commit。Exporter transition 在 accepted
 > **MLS 内容 KEM 边界（normative scoping）**：v1 core MLS active set 仍是 `MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519`；本文件不定义 PQ-MLS negotiation 或 hybrid KeyPackage ciphersuite。MLS group KEM 的新增 suite 只能通过 `mls-ciphersuite-registry.json` 的 active row 与显式 profile gate 加法引入；未登记或 reserved 状态的 MLS suite MUST fail closed。与 HPKE registry 的 PQ 预注册纪律对齐，该 registry 已按 MLS WG `draft-ietf-mls-pq-ciphersuites-06` 登记 `MLS_128_MLKEM768X25519_AES128GCM_SHA256_Ed25519`（status=`reserved`，gate `ak.profile.kem.hybrid_xwing.v1`），并固定 KEM `0x647A`、KDF `0x0001`（HKDF-SHA256）、AEAD `0x0001`、SHA256 与 Ed25519 的 suite mapping。MLS 的 ratchet tree、key schedule 与 secret tree 使用两段式 Extract/Expand，而 `draft-ietf-hpke-pq` 未为 SHAKE 这类 single-stage KDF 定义这两个函数，因此 MLS KDF MUST 使用 HKDF 系列，MUST NOT 使用 HPKE PQ 的 SHAKE256 KDF `0x0011`。`draft-ietf-hpke-pq-05` / CFRG concrete-hybrid-kems 是 KEM 的主标准化路径；X-Wing individual draft 只作为同构造的补充参考。reserved row 在取得 IANA MLS code point、逐字节 conformance vectors 且全部 activation requirements 完成前不得出现在 wire 上，不改变本节 fail-closed 语义。
 >
 > **MLS 认证面 PQ 路线（normative scoping）**：上述 Ed25519 suite 只提供 post-quantum confidentiality，不提供 post-quantum authentication；实现 MUST NOT 宣称 full-PQ MLS。认证面不自行把 Arkret detached-JWS hybrid proof 拼进 MLS credential / LeafNode / KeyPackage。v1 registry 另以 `MLS_128_MLKEM768X25519_CHACHA20POLY1305_SHA384_MLDSA44` reserved row 跟踪 `draft-ietf-mls-pq-ciphersuites-06` 的 PQ/T hybrid KEM + ML-DSA-44 标准路线（KEM `0x647A`、KDF `0x0002`（HKDF-SHA384）、AEAD `0x0003`、SHA384 transcript hash），gate 为 `ak.profile.mls_ciphersuite.pq_auth.v1`。该 row 在 IANA code point、MLS credential / LeafNode / KeyPackage 签名逐字节向量、mixed-member unsupported-suite fail-closed 与新 negotiated contract release 全部就绪前不得激活或出现在 wire 上。后量子认证的优先级低于静态密文与 MLS KEM 的 HNDL 缓解，但它是显式跟踪的后续阶段，不得被误读为已由 `ak.profile.signature.pqc.v1` 自动覆盖。
+
+## 持久恢复的完成条件（normative）
+
+控制服务恢复签发与 MLS scope 恢复收发是不同条件。恢复 MUST 先核实 accepted winning Commit
+链及 durable outcome，再从现行 outbound saga 保存的 exact Commit、Welcome 和 staged state
+续办；结果不明时不得重消耗 KeyPackage 或另造 Commit 身份。Proposal、Welcome、commit_failed
+继续遵守现有 plane、Seal、签名授权与依赖合同；本节不改变 §2.2 的 staged state 安装门槛。
+
+服务恢复、治理资格终止或 epoch 数字改变，都不能替代可用 MLS 私有状态。相关撤销/退出后的
+真实 key-access 缺口仍阻断该 scope 的发送，完成合法移除与换钥后才能解除；无依赖 scope
+按既有授权规则继续工作。notary 不持有群私钥，不能靠修改 epoch cell 恢复群秘密。
+
+声明端到端恢复完成前，MUST 验证既有成员在恢复后实际发送并由另一合法成员解密，受邀 endpoint
+使用绑定 accepted Commit 的有效 Welcome 完成入组，已移除成员不获得移除后 epoch 新密钥。
+接收者长期离线不是要求其确认收件的理由，但现行 durable Welcome 投递责任仍须满足。
+必要私钥或交付材料永久丢失、没有可用恢复权威等情况必须明确报告，不能宣称无损恢复旧密文。

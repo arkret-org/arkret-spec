@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .forbidden_wire import check_forbidden_wire_contexts
+
 from .core import (
     Any,
     Lint,
@@ -283,6 +285,7 @@ def main(argv: list[str] | None = None) -> int:
             ("registry_manifest", lambda: check_registry_manifest(lint)),
             ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
             ("proof_contexts", lambda: check_proof_context_registry(lint)),
+            ("forbidden_wire_contexts", lambda: check_forbidden_wire_contexts(lint)),
             ("pcr_exposures", lambda: check_pcr_exposure_registry(lint)),
             ("event_id_suite_registry", lambda: check_event_id_suite_registry(lint)),
             ("retired_event_id_contract", lambda: check_retired_event_id_contract(lint)),

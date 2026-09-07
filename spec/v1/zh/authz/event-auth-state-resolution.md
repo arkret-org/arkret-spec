@@ -723,12 +723,54 @@ canonical 升序。每个 pending 项只携 `control_proposal_ack`、`decisions[
 `control_proposal_ack`（全链原样保留）；`defer_count = decisions.length`；当前决议期限即 DTO
 语义中的 `current_decision_due_at`，对应 ack / decision 的字段名 `decision_due_at`，取
 `decisions[]` 末项的 `decision_due_at`，无 defer 时取 `control_proposal_ack.decision_due_at`。
-超过读取上限时 readiness MUST fail closed，不能静默截断后报告 `healthy`。该 View 不是新的
-可写真相源。迟到但合法的 Seal 覆盖 proposal 后，proposal 从 `pending_proposals[]` 移除，但失约证据
-MUST 进入 `retained_faults[]`，携带原 Ack、完整 signed-defer chain、accepted Seal id
-与其签名 `sealed_at`；按 `(accepted_at, control_proposal_ack.proposal_digest)` canonical 升序，
-最多 128 项，超限同样 fail closed。只要 pending overdue 或 retained fault 非空，`status` MUST 为
-`degraded`，不得因 proposal 后来取得 finality 而把已发生的 deadline fault 抹除。
+`pending_proposals_complete` MUST 显式说明该数组是否包含此 observation coordinate 的全部
+Ack-required 未决项；超过 128 项时只返回 canonical 前 128 项并置为 false、`status=degraded`。
+这是有明确不完整标记的诊断样本，MUST NOT 被当成安全事项的完整性证明。consumer MUST NOT
+根据未出现于样本中的 digest 推断不存在 pending revoke / ban / notary gate；服务 MUST 从完整
+持久记录按请求的真实授权依赖执行 gate，无法证明无影响的操作仍 fail closed。独立验证过的
+`seal_basis` MUST NOT 因诊断样本超预算而不可读；recovery 与调度 MUST NOT 以 health=healthy
+作为启动前提。Ack-less 项没有决议时钟；不能为使样本完整而补造 Ack。
+
+`status` 仅表示当前决议可用性：样本完整且所有未决项均未 overdue 时为 `healthy`，否则为
+`degraded`。healthy 不等于没有 pending 收紧门，也不等于 MLS 私钥与 Welcome 已恢复。
+迟到但合法的 Seal 覆盖 proposal 后，该 proposal MUST 从 pending 集合移除，历史 deadline fault
+仍 MUST 保留可审计的原 Ack、完整 decision chain 与 covering Seal。历史记录不再内嵌于
+`ControlGovernanceHealth`，MUST NOT 决定当前 status，也 MUST NOT 因数量超过 128 而阻断 frontier。
+
+历史读取复用标准 Event query 的可续接分页和 exact control-proposal decision read：获授权的
+审计者枚举可见控制 Event，按其完整 digest 读取原 Ack/decision/accepted_seal_id，再 resolve 并
+验证 covering Seal 的签名 `sealed_at` 与 covered set。每段 signed-defer 的签名时间是否满足
+前一期 deadline、terminal decision 或 covering Seal 是否迟到，由原签名材料重算；MUST NOT
+用当前墙钟给早已按期终结的事项补造历史 fault。Event query 枚举的是已接受历史，尚未接受或
+已拒绝 proposal 的持有者复用原 Ack 的 digest 做 exact read；这不是面向任意用户的全 Realm
+待办枚举授权。持久问责材料 MUST 按既有审计与授权规则可得；不得为了恢复 healthy 删除记录、
+清除未决 revoke、静默换 Ack authority 或截断签名链。
+
+#### 7.2.1 持久恢复与积压终结（normative）
+
+在当前合法签发或恢复权威、必要持久材料仍可用、故障停止、已准入积压有限且调度公平的条件下，
+实现 MUST 能继续处理受支持控制操作。恢复首先核对持久 frontier、签名位置、原 Ack/decision/
+Seal 与当前 authority/fence；旧进程或轮换前 key 的重新上线不恢复已失去的签发资格。
+`single_signer` 的全部 worker MUST 共用持久 frontier CAS 与原子接受边界。lease 超时只是本地
+调度条件，不授权并发控制谱系；崩溃后先查原 durable outcome，未知结果只精确重投或查询。
+
+已 sealed/rejected 的请求返回原结果；旧 basis 或超出 replay window 的请求经当前已登记的
+合法决议路径终结，不能改写原签名 basis。暂缺 Ack/依赖、损坏记录与已验证不合法的请求 MUST
+区分：隔离单项调度故障、保留安全 gate 与可诊断恢复入口，MUST NOT 伪造 signed-reject。
+同 Realm 已证明无依赖的就绪工作和其他 Realm MUST 获得公平处理机会；扫描预算不是队列总量
+上限，重复重启或固定读取第一页不能使已准入义务永久饿死。安全收紧与合法 recovery 要有处理
+机会，但不得违反 barrier 排批或整张 Seal 的原子验证。
+
+合法准入串行化互斥 CAS/FSM 请求：可以排批、拒绝旧 basis、由有权 author 读取新 heads 后
+重新签署，但 MUST NOT 把普通请求竞争制造成 accepted Bottom。新 Event 自动重试只有在该
+action 的语义、当前权限、目标身份/incarnation 和用户意图均仍成立时才允许；未知语义、值替换
+及外部副作用不得由服务默认覆盖。自动重试不是修改签名事件的通道。原意图已由其他合法操作
+满足时可停止本地动作，但不能声称原 Event 已 accepted。
+
+恢复投影 MUST 用同一已验证历史重建 heads、supersedes 与 roots；缓存损坏产生的假 Bottom
+不能通过签业务 recovery 掩盖。轮换后的旧 Ack 仍绑定原 authority set；当前 signer 不能用新
+key 冒签旧 obligation 的 reject。若没有现行 covering Seal/terminal decision/recovery 的合法
+处置路径，必须明确报告所缺权威或材料，不能把无限 defer 宣称为恢复保证。
 
 **compaction 不承担终局（normative）**：首个 Seal **MUST NOT** 是 compaction Seal；
 compaction 前的普通 signing pass 出现任何硬错误时 compaction **MUST** 停止并上浮；
@@ -1139,6 +1181,15 @@ kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接�
 只指名登记的 `states`，故 `resolved_value ∈ states` 由它蕴含；而登记为 `terminal_states` 的状态在
 `allowed_transitions` 里 MUST NOT 有除已登记 self-loop 之外的出边（见下），故「从终态出发的 recovery
 MUST 被拒绝，已登记 self-loop 除外」同样由它蕴含。
+
+**恢复目标存在性与 profile 范围（normative）**：设 `Next(s)` 为登记的普通转换目标集合，
+本合同的合法恢复目标是完整 heads 上 `Next(h.to)` 的交集。该交集可能为空；拥有 recovery key
+不等于存在合法目标。实现 MUST NOT 为填补空交集而放行任意 `resolved_value`，也 MUST NOT
+引入通用的 ban/leave/join 优先级。对声称支持恢复的每个 profile/family，可达的冲突必须具有
+完整授权与依赖可满足的恢复路径，或者由完整 Event/Seal 准入不变式证明不可达；静态枚举两个
+状态并不足以证明单谱系中可达。当前单权威模型下互斥请求在接受边界串行化，双签分支按既有
+fork/quarantine 规则隔离，不作为两个普通合法 Seal 自动 join。notary 根 Bottom 仍是本节明确
+不可恢复的例外；正常并发、重启和合法轮换不得制造该根死状态。
 
 **registry 不变式（normative）**：`terminal_states` 的每个成员在同一 family 的 `allowed_transitions`
 中 MUST NOT 作为 `from` 出现，除非该条目是 `s → s` 的已登记 self-loop（§9.3.1.6）。上一段的等价性

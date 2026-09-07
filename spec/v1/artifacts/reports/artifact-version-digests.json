@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
-      "version": "2026-09-04.1",
-      "generated_at": "2026-09-04T00:28:18+08:00",
-      "content_digest": "sha256:a20117a9302d0cdb4c4d9b2bbc18973d11c53db6dedab6b07dc5c30d6e3d007e"
+      "version": "2026-09-07.1",
+      "generated_at": "2026-09-07T06:40:00Z",
+      "content_digest": "sha256:93cfd9721fe890ccfbe5990c47b40ad6136553cbdeb86e7c129f191efc4d75ac"
     },
     {
       "path": "spec/v1/artifacts/registry/did-document-contract-registry.json",
@@ -159,9 +159,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 38,
-      "generated_at": "2026-09-04T16:40:00Z",
-      "content_digest": "sha256:1e541b9a9dc6561edfbefaa748e13824eb22a4927ea61bd46851a13e42b85d97"
+      "version": 42,
+      "generated_at": "2026-09-07T07:12:22Z",
+      "content_digest": "sha256:029c8099d458300c88aaeed4bea7d045761613421f2ca902c6fb8e386d5204a2"
     },
     {
       "path": "spec/v1/artifacts/registry/history-key-canonical-binding-registry.json",
@@ -225,9 +225,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-07.16",
-      "generated_at": "2026-09-07T20:40:00+08:00",
-      "content_digest": "sha256:0f98cfc843233f8bd182a0380108e69a11e01b2138a6740b5361239bf75e87fb"
+      "version": "2026-09-07.18",
+      "generated_at": "2026-09-07T20:40:02Z",
+      "content_digest": "sha256:cd13c1c518e72c6fbb80fd5e2a3821e0413ee081f96f905f88f543548e2e0bc8"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-07.6",
-      "generated_at": "2026-09-07T14:37:16+08:00",
-      "content_digest": "sha256:29c1b2c6ef94c4f8366158fcaceb23e89bec400fcda957942cbeab0b91539d0f"
+      "version": "2026-09-07.7",
+      "generated_at": "2026-09-07T18:40:01+08:00",
+      "content_digest": "sha256:570175353e6bd65aa933f8b2f962d23b0beaff694d8a2035128ceec500a12d06"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",

@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 370,
+  "audited_occurrence_count": 372,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1166,6 +1166,20 @@
         "transcript"
       ],
       "reason": "Closed union over two registered material families: committed verified sibling identity sets re-evaluated against a registered cell family lattice, and complete canonical Event variant transcripts carried inline or by collision-variant record reference."
+    },
+    {
+      "file": "forbidden-wire-fields.json",
+      "key": "attestation_evidence",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Context vocabulary key selects an owning schema and instance domain; it is not a wire evidence carrier."
+    },
+    {
+      "file": "forbidden-wire-fields.json",
+      "key": "moderation_queue_item.evidence_policy",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Context vocabulary key selects an owning schema and instance domain; it is not a wire evidence carrier."
     }
   ]
 }

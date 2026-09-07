@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 38,
+  "version": 42,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
-  "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
+  "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
   "rejection_levels": {
     "hard_reject": "Reducer / parser MUST fail with schema_violation when the field appears in the listed context."
   },
@@ -11,6 +11,1119 @@
     "changelog": "Reference in CHANGELOG.",
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
+  },
+  "generated_at": "2026-09-07T07:12:22Z",
+  "context_matching": {
+    "schema_reference_base": "../schemas/",
+    "document_kinds": [
+      "wire",
+      "schema_instance",
+      "event_envelope",
+      "event_payload",
+      "materialized_object",
+      "http_response",
+      "executable_artifact",
+      "duration_value",
+      "lattice_kind_value",
+      "event_kind_value",
+      "capability_action_value",
+      "schema_id_value",
+      "error_code_value",
+      "content_carrier",
+      "proof",
+      "federation_verification",
+      "typed_id_value"
+    ],
+    "selection": "Selectors are alternatives. wire matches all wire documents, including schema_instance. schema_instance matches an exact owning schema_ref (filename plus optional JSON Pointer fragment, normalized without ./). Event payload schema_ref is resolved from event-kind-registry.json, never guessed from field names. Nested typed instances retain their own schema_ref. A consumer MUST supply the semantic document kind from its validated owning contract, never from untrusted payload claims. A definition with status=retired has no selectors and MUST NOT be selected by any active wire caller; it is an explicit empty domain, not an unspecified catch-all.",
+    "instance_pointer": "RFC 6901 tokens relative to the typed instance root; * selects each immediate object member or array element. Empty string selects the instance itself. Missing pointer selects nothing. root compares fields/paths relative to the selected root only; descendants repeats that comparison at every descendant object. Neither mode searches inside encoded ciphertext or free-text string content. patch applies the selected create-context field/path matcher to the canonical patch object at that root: exact/descendant paths and ancestor replacement values are checked. This explicit transform preserves the create domain without inventing a context mapping in consumers.",
+    "entry_matching": "id remains an audit identifier. match.kind selects field (literal member name), path (dot-separated member path relative to root), patch_path (property names of the canonical patch object defined by patch.schema.json), value (exact scalar value), prefix (scalar prefix), or pattern (scalar regular expression). match.values are alternatives. No heuristic interpretation of id is permitted. patch_path rejects its exact path and descendants for every operation. For an ancestor set/add or direct-value replacement, inspect the replacement value at the remaining registered path. A patch is never an array of path/op records. Patch value objects MUST also be checked against their owning create payload contexts; replacing an ancestor does not bypass a nested forbidden path."
+  },
+  "context_definitions": {
+    "account_subscribe_device_message_container": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "account-subscribe-frame.schema.json#/$defs/device_message_container",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "account_subscribe_frame_schema_def": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "account-subscribe-frame.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "actor_profile": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "actor-profile.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "actor_profile.actor_kind": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "actor-profile.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "agent.audit_binding": {
+      "status": "retired",
+      "selectors": [],
+      "retirement_reason": "This historical object has no active v1 owning schema. No current wire instance may claim this context. The historical entry is retained only to explain the removed spelling; current closed schemas and active context guards remain authoritative."
+    },
+    "agent_key_authorize_runtime_attestation": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/agent_key_authorize_payload",
+          "instance_pointer": "/runtime_attestation",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "agent_key_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/agent_key_authorize_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/agent_key_revoke_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "agent_lifecycle_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/agent_pause_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/agent_resume_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/agent_deactivate_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        },
+        {
+          "document_kind": "executable_artifact",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "all_arkret_owned_wire_contexts": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "applet_protocol_metadata": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "applet.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "artifact_dsl": {
+      "selectors": [
+        {
+          "document_kind": "executable_artifact",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "artifact_surface_group": {
+      "selectors": [
+        {
+          "document_kind": "executable_artifact",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "attestation_evidence": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "audit-release-attestation.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "audit_release_attestation": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "audit-release-attestation.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "audit_session_contract": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/audit_session_contract",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "blob_metadata": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "blob.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "blob_upload_metadata": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "blob-operations.schema.json#/$defs/blob_upload_request_body",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "capability_grant_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/capability_grant_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "child_scope_policy.kind": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "space.schema.json#/$defs/child_scope_policy",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "content_block_composite": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/content_block",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "content_carrier_with_content_counterpart": {
+      "selectors": [
+        {
+          "document_kind": "content_carrier",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "crdt_lattice_enum": {
+      "selectors": [
+        {
+          "document_kind": "lattice_kind_value",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "device_authorize_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/device_authorize_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "directory_projection": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "directory-operations.schema.json#/$defs/realm_preview",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "directory-operations.schema.json#/$defs/organization_preview",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "directory-operations.schema.json#/$defs/actor_preview",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "directory-operations.schema.json#/$defs/object_preview",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "directory_query_policy": {
+      "status": "retired",
+      "selectors": [],
+      "retirement_reason": "This historical object has no active v1 owning schema. No current wire instance may claim this context. The historical entry is retained only to explain the removed spelling; current closed schemas and active context guards remain authoritative."
+    },
+    "directory_search_request": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "directory-operations.schema.json#/$defs/directory_search_realms_request_body",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "encrypted_envelope": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "encrypted-envelope.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "error_code": {
+      "selectors": [
+        {
+          "document_kind": "error_code_value",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "event_envelope_or_payload": {
+      "selectors": [
+        {
+          "document_kind": "event_envelope",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "event_payload",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "event_kind": {
+      "selectors": [
+        {
+          "document_kind": "event_kind_value",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "event_kind_or_capability_action": {
+      "selectors": [
+        {
+          "document_kind": "event_kind_value",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        },
+        {
+          "document_kind": "capability_action_value",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "event_payload_or_projection": {
+      "selectors": [
+        {
+          "document_kind": "event_payload",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "materialized_object",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "event_proof": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-envelope.schema.json#/$defs/proof",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "federation_verification_payload": {
+      "selectors": [
+        {
+          "document_kind": "federation_verification",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "file_transfer_payload_or_account_data_value": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "file-transfer.schema.json",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "frontier_object_property": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "generic_proof": {
+      "selectors": [
+        {
+          "document_kind": "proof",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "grant_constraint": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "grant-constraint.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "handle_claim_top_level": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "handle-claim.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "http_response_body": {
+      "selectors": [
+        {
+          "document_kind": "http_response",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "invite_receive_policy_constraints": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "invite-receive-policy.schema.json#/$defs/receive_policy_constraints",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "join_policy_component": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/join_policy_component",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "key_backup.encryption.kdf.params": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "key-backup.schema.json",
+          "instance_pointer": "/encryption/kdf/params",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "key_backup_recovery_auth_data": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "key-backup.schema.json",
+          "instance_pointer": "/auth_data",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "keypackage_upload_entry": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "keypackage-operations.schema.json#/$defs/keypackage_upload_entry",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "keypackages_upload_outcome": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "keypackage-operations.schema.json#/$defs/keypackages_upload_outcome",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "media_metadata.visibility": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "media-metadata.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "media_response_backend_token_roster_binding_sfu_answer_exporter_context_error_code_or_vector_id": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        },
+        {
+          "document_kind": "executable_artifact",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "member_identity.display_profile": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "member-identity.schema.json",
+          "instance_pointer": "/display_profile",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "membership_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/membership_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/circle_member_state_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "message": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "message.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "message_create_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/message_create_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "mimi_request_consent_request_body": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "mimi_update_consent_request_body": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "mls_keypackage_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/mls_keypackage_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "moderation_queue_item": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "moderation-queue-item.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "moderation_queue_item.evidence_policy": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "moderation-queue-item.schema.json",
+          "instance_pointer": "/evidence_policy",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "moderation_queue_item.visibility": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "moderation-queue-item.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "moderation_report_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/moderation_report_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "morph_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/morph_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/morph_update_payload",
+          "instance_pointer": "",
+          "match_scope": "patch"
+        }
+      ]
+    },
+    "morph_update_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/morph_update_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "notification_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "push-operations.schema.json#/$defs/push_notify_request_body",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "notification_projection": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "notification.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "object_lifecycle_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/object_lifecycle_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "object_patch_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/strand_patch_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/morph_update_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/space_patch_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/circle_patch_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "pending_sidecar_access_reconciliation_item": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_item",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "plaintext_metadata_or_shared_scope_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/message_create_payload",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/message_revise_payload",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/strand_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "descendants"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/morph_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "proof_or_cross_signing_payload": {
+      "selectors": [
+        {
+          "document_kind": "proof",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "protocol_subject_field": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "realm_object_or_realm_lifecycle_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "realm.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/realm_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/realm_archive_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/realm_destroy_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/realm_tombstone_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "recovery_policy.share_commitment": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "recovery-policy.schema.json#/$defs/share",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "recovery_transcript": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "recovery-session.schema.json#/$defs/generic_recovery_transcript",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "recovery-session.schema.json#/$defs/did_root_transcript",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "relation_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/relation_create_payload",
+          "instance_pointer": "/relation",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/relation_update_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "retired_device_identity_wire": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "reviewer_quorum": {
+      "status": "retired",
+      "selectors": [],
+      "retirement_reason": "This historical object has no active v1 owning schema. No current wire instance may claim this context. The historical entry is retained only to explain the removed spelling; current closed schemas and active context guards remain authoritative."
+    },
+    "schema_id": {
+      "selectors": [
+        {
+          "document_kind": "schema_id_value",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "seal": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "seal.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "service_describe_verified_profiles": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "service-describe.schema.json",
+          "instance_pointer": "/verified_profiles/*",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "single_kind_identifier_fields": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "snapshot.chunks[]": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "realm-state-snapshot.schema.json",
+          "instance_pointer": "/chunks/*",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "space_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/space_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/space_patch_payload",
+          "instance_pointer": "",
+          "match_scope": "patch"
+        }
+      ]
+    },
+    "strand_or_message_payload_top_level": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/strand_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/message_create_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/message_revise_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "strand_or_morph_payload_top_level": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/strand_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/morph_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "strand_patch_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/strand_patch_payload",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "strand_payload": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/strand_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "root"
+        },
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/strand_patch_payload",
+          "instance_pointer": "",
+          "match_scope": "patch"
+        }
+      ]
+    },
+    "strand_payload.kind": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-payload.schema.json#/$defs/strand_create_payload",
+          "instance_pointer": "/object",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "strand_track_key_field": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "timeline_event_top_level": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "event-envelope.schema.json",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "typed_id_prefix": {
+      "selectors": [
+        {
+          "document_kind": "typed_id_value",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "wire_duration_string": {
+      "selectors": [
+        {
+          "document_kind": "duration_value",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
+    "wire_schema_or_payload": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    }
   },
   "entries": [
     {
@@ -23,7 +1136,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "account_data_type"
+        ]
+      }
     },
     {
       "id": "account_data_types",
@@ -35,7 +1154,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "account_data_types"
+        ]
+      }
     },
     {
       "id": "accountable_actor",
@@ -47,7 +1172,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Accountability in agent key payloads points at a DID-as-principal and therefore uses _id."
+      "notes": "Accountability in agent key payloads points at a DID-as-principal and therefore uses _id.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "accountable_actor"
+        ]
+      }
     },
     {
       "id": "accountable_to",
@@ -59,7 +1190,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Actor Profile accountability targets are a list of responsibility-subject principal DIDs; the field uses the _ids suffix (plural of the scalar accountable_principal_id). The _to preposition suffix is outside the _id/_ref/_did taxonomy and is removed."
+      "notes": "Actor Profile accountability targets are a list of responsibility-subject principal DIDs; the field uses the _ids suffix (plural of the scalar accountable_principal_id). The _to preposition suffix is outside the _id/_ref/_did taxonomy and is removed.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "accountable_to"
+        ]
+      }
     },
     {
       "id": "actor",
@@ -71,7 +1208,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "MIMI consent update request body bare `actor` renamed to actor_id (did_id_suffix rule: protocol responsibility subjects use the _id suffix even when the value is a DID). Scoped to the mimi_update_consent_request_body context (mimi-operations.schema.json); the bare token `actor` remains a legitimate enum value and prose noun elsewhere — literal scanners MUST NOT flag every `actor` token."
+      "notes": "MIMI consent update request body bare `actor` renamed to actor_id (did_id_suffix rule: protocol responsibility subjects use the _id suffix even when the value is a DID). Scoped to the mimi_update_consent_request_body context (mimi-operations.schema.json); the bare token `actor` remains a legitimate enum value and prose noun elsewhere — literal scanners MUST NOT flag every `actor` token.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "actor"
+        ]
+      }
     },
     {
       "id": "actor",
@@ -83,7 +1226,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Agent audit binding subject is a protocol actor DID-as-id."
+      "notes": "Agent audit binding subject is a protocol actor DID-as-id.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "actor"
+        ]
+      }
     },
     {
       "id": "actor_did",
@@ -95,7 +1244,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID."
+      "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "actor_did"
+        ]
+      }
     },
     {
       "id": "actor_kind=agent_ghost",
@@ -107,7 +1262,14 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Ghost Actor is provenance rather than an actor_kind. Agent is reserved for controller-provisioned Agents; Applet-managed automation uses bot."
+      "notes": "Ghost Actor is provenance rather than an actor_kind. Agent is reserved for controller-provisioned Agents; Applet-managed automation uses bot.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "agent_ghost"
+        ],
+        "value_pointer": "/actor_kind"
+      }
     },
     {
       "id": "actor_kind=agent_native",
@@ -119,7 +1281,14 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Agent is the canonical concept and is represented by actor_kind=agent plus the Agent provisioning/accountability state machine; native is not a separate Agent subtype."
+      "notes": "Agent is the canonical concept and is represented by actor_kind=agent plus the Agent provisioning/accountability state machine; native is not a separate Agent subtype.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "agent_native"
+        ],
+        "value_pointer": "/actor_kind"
+      }
     },
     {
       "id": "actor_kind=device",
@@ -131,7 +1300,14 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "A device is not an actor principal and has no DID of its own. Device actions are attributed to the owning principal DID; the device is identified by device_id and registered as a verification method under that principal DID. See zh/models/actor.md and zh/crypto-media/device-lifecycle.md."
+      "notes": "A device is not an actor principal and has no DID of its own. Device actions are attributed to the owning principal DID; the device is identified by device_id and registered as a verification method under that principal DID. See zh/models/actor.md and zh/crypto-media/device-lifecycle.md.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "device"
+        ],
+        "value_pointer": "/actor_kind"
+      }
     },
     {
       "id": "actor_kind=ghost",
@@ -143,7 +1319,14 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Ghost Actor is not a wire actor_kind enum value. External account/integration mirrors use integration; external bot mirrors and Applet-managed automation use bot; they MUST NOT use agent."
+      "notes": "Ghost Actor is not a wire actor_kind enum value. External account/integration mirrors use integration; external bot mirrors and Applet-managed automation use bot; they MUST NOT use agent.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ghost"
+        ],
+        "value_pointer": "/actor_kind"
+      }
     },
     {
       "id": "agent_did",
@@ -155,7 +1338,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Agent key payloads name the agent as a protocol responsibility principal, not raw DID ecosystem material."
+      "notes": "Agent key payloads name the agent as a protocol responsibility principal, not raw DID ecosystem material.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "agent_did"
+        ]
+      }
     },
     {
       "id": "ak.agent.key.authorized",
@@ -167,7 +1356,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Past-participle agent key event kind is removed."
+      "notes": "Past-participle agent key event kind is removed.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ak.agent.key.authorized"
+        ]
+      }
     },
     {
       "id": "ak.agent.key.revoked",
@@ -179,7 +1374,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Past-participle agent key event kind is removed."
+      "notes": "Past-participle agent key event kind is removed.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ak.agent.key.revoked"
+        ]
+      }
     },
     {
       "id": "ak.agent.key.rotate",
@@ -191,7 +1392,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Dedicated agent key rotate event kind is removed; key replacement is expressed exclusively through re-pairing supersede semantics (zh/identity/key-management.md §3.6.1)."
+      "notes": "Dedicated agent key rotate event kind is removed; key replacement is expressed exclusively through re-pairing supersede semantics (zh/identity/key-management.md §3.6.1).",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ak.agent.key.rotate"
+        ]
+      }
     },
     {
       "id": "ak.agent.key.rotated",
@@ -203,7 +1410,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Past-participle agent key event kind is removed."
+      "notes": "Past-participle agent key event kind is removed.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ak.agent.key.rotated"
+        ]
+      }
     },
     {
       "id": "ak.device.authorized",
@@ -215,7 +1428,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Past-participle device event kind is removed."
+      "notes": "Past-participle device event kind is removed.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ak.device.authorized"
+        ]
+      }
     },
     {
       "id": "ak.device.revoked",
@@ -227,7 +1446,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Past-participle device event kind is removed."
+      "notes": "Past-participle device event kind is removed.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ak.device.revoked"
+        ]
+      }
     },
     {
       "id": "ak.read.marker",
@@ -239,7 +1464,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Read position state is read cursor; the canonical event_kind and capability action share the name ak.read_cursor.advance."
+      "notes": "Read position state is read cursor; the canonical event_kind and capability action share the name ak.read_cursor.advance.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ak.read.marker"
+        ]
+      }
     },
     {
       "id": "ak.relation.delete",
@@ -251,7 +1482,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Relation termination uses ak.relation.tombstone."
+      "notes": "Relation termination uses ak.relation.tombstone.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ak.relation.delete"
+        ]
+      }
     },
     {
       "id": "ak.schema.read_marker.v1",
@@ -263,7 +1500,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Read position schema is read cursor."
+      "notes": "Read position schema is read cursor.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ak.schema.read_marker.v1"
+        ]
+      }
     },
     {
       "id": "ak:devmsg:",
@@ -275,7 +1518,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
+      "notes": "Abbreviated typed ID prefixes are not valid v1 wire.",
+      "match": {
+        "kind": "prefix",
+        "values": [
+          "ak:devmsg:"
+        ]
+      }
     },
     {
       "id": "ak:keyevt:",
@@ -287,7 +1536,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
+      "notes": "Abbreviated typed ID prefixes are not valid v1 wire.",
+      "match": {
+        "kind": "prefix",
+        "values": [
+          "ak:keyevt:"
+        ]
+      }
     },
     {
       "id": "ak:modq:",
@@ -299,7 +1554,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
+      "notes": "Abbreviated typed ID prefixes are not valid v1 wire.",
+      "match": {
+        "kind": "prefix",
+        "values": [
+          "ak:modq:"
+        ]
+      }
     },
     {
       "id": "ak:notif:",
@@ -311,7 +1572,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
+      "notes": "Abbreviated typed ID prefixes are not valid v1 wire.",
+      "match": {
+        "kind": "prefix",
+        "values": [
+          "ak:notif:"
+        ]
+      }
     },
     {
       "id": "ak:req:",
@@ -323,7 +1590,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
+      "notes": "Abbreviated typed ID prefixes are not valid v1 wire.",
+      "match": {
+        "kind": "prefix",
+        "values": [
+          "ak:req:"
+        ]
+      }
     },
     {
       "id": "ak:rtcpart:",
@@ -335,7 +1608,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The abbreviated media participant typed ID prefix was expanded to the full snake_case kind. Current v1 wire MUST use ak:rtc_participant:<uuid>; ak:rtcpart:<uuid> is rejected."
+      "notes": "The abbreviated media participant typed ID prefix was expanded to the full snake_case kind. Current v1 wire MUST use ak:rtc_participant:<uuid>; ak:rtcpart:<uuid> is rejected.",
+      "match": {
+        "kind": "prefix",
+        "values": [
+          "ak:rtcpart:"
+        ]
+      }
     },
     {
       "id": "ak:txn:",
@@ -347,7 +1626,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
+      "notes": "Abbreviated typed ID prefixes are not valid v1 wire.",
+      "match": {
+        "kind": "prefix",
+        "values": [
+          "ak:txn:"
+        ]
+      }
     },
     {
       "id": "alias",
@@ -359,7 +1644,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "realm-genesis.schema.json and realm-profile.schema.json are closed objects and have no alias property. A Realm alias has exactly one wire carrier: the ak.realm.alias Event. ak.realm.create payload.object.alias, ak.realm.profile payload.object.alias, and a payload top-level alias / realm_alias on any Realm lifecycle Event MUST all be rejected; accepting several input shapes for one fact is how create-time alias diverged from the closed schema. See zh/discovery/object-addressing.md §3.3."
+      "notes": "realm-genesis.schema.json and realm-profile.schema.json are closed objects and have no alias property. A Realm alias has exactly one wire carrier: the ak.realm.alias Event. ak.realm.create payload.object.alias, ak.realm.profile payload.object.alias, and a payload top-level alias / realm_alias on any Realm lifecycle Event MUST all be rejected; accepting several input shapes for one fact is how create-time alias diverged from the closed schema. See zh/discovery/object-addressing.md §3.3.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "alias"
+        ]
+      }
     },
     {
       "id": "allow_binding_sources",
@@ -370,7 +1661,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this removed binding-source field. No replacement exists: member delivery authority is derived from the exact ActorId rather than a binding-source allowlist."
+      "notes": "Current v1 readers and reducers MUST reject this removed binding-source field. No replacement exists: member delivery authority is derived from the exact ActorId rather than a binding-source allowlist.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_binding_sources"
+        ]
+      }
     },
     {
       "id": "allow_delegated_native_actors",
@@ -382,7 +1679,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_delegated_native_actors"
+        ]
+      }
     },
     {
       "id": "allow_e2ee_join",
@@ -394,7 +1697,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_e2ee_join"
+        ]
+      }
     },
     {
       "id": "allow_ghost_actors",
@@ -406,7 +1715,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_ghost_actors"
+        ]
+      }
     },
     {
       "id": "allow_if_visibility_allows",
@@ -418,7 +1733,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_if_visibility_allows"
+        ]
+      }
     },
     {
       "id": "allow_ipv6",
@@ -430,7 +1751,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_ipv6"
+        ]
+      }
     },
     {
       "id": "allow_last_resort",
@@ -442,7 +1769,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_last_resort"
+        ]
+      }
     },
     {
       "id": "allow_mls_join",
@@ -454,7 +1787,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_mls_join"
+        ]
+      }
     },
     {
       "id": "allow_plaintext_fallback",
@@ -466,7 +1805,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_plaintext_fallback"
+        ]
+      }
     },
     {
       "id": "allow_plaintext_realms",
@@ -478,7 +1823,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_plaintext_realms"
+        ]
+      }
     },
     {
       "id": "allow_redact_after_window",
@@ -490,7 +1841,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_redact_after_window"
+        ]
+      }
     },
     {
       "id": "allow_scope_expansion",
@@ -502,7 +1859,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_scope_expansion"
+        ]
+      }
     },
     {
       "id": "allow_t0_visible_with_current_policy",
@@ -514,7 +1877,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_t0_visible_with_current_policy"
+        ]
+      }
     },
     {
       "id": "allow_tcp",
@@ -526,7 +1895,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_tcp"
+        ]
+      }
     },
     {
       "id": "allow_udp",
@@ -538,7 +1913,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_udp"
+        ]
+      }
     },
     {
       "id": "allow_widget",
@@ -550,7 +1931,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allow_widget"
+        ]
+      }
     },
     {
       "id": "allowed_data_classes",
@@ -562,7 +1949,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allowed_data_classes"
+        ]
+      }
     },
     {
       "id": "allowed_introduction_kinds",
@@ -574,7 +1967,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allowed_introduction_kinds"
+        ]
+      }
     },
     {
       "id": "allowed_morph_types",
@@ -586,7 +1985,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allowed_morph_types"
+        ]
+      }
     },
     {
       "id": "allowed_object_types",
@@ -598,7 +2003,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allowed_object_types"
+        ]
+      }
     },
     {
       "id": "allowed_target_classes",
@@ -610,11 +2021,17 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allowed_target_classes"
+        ]
+      }
     },
     {
       "id": "artifact DSL type",
-      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "context": "artifact_dsl",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
       "replacement": "kind / value_shape",
@@ -622,7 +2039,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "type"
+        ]
+      }
     },
     {
       "id": "audit_agent_did",
@@ -634,7 +2057,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Audit release evidence names the attested release actor with _id; service_id remains the hosting service DID."
+      "notes": "Audit release evidence names the attested release actor with _id; service_id remains the hosting service DID.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "audit_agent_did"
+        ]
+      }
     },
     {
       "id": "avatar",
@@ -646,7 +2075,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Directory / projection rows use canonical avatar_blob_ref, not an avatar alias."
+      "notes": "Directory / projection rows use canonical avatar_blob_ref, not an avatar alias.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "avatar"
+        ]
+      }
     },
     {
       "id": "avatar_ref",
@@ -658,7 +2093,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "MemberIdentity display_profile reuses the canonical avatar_blob_ref name for Blob references."
+      "notes": "MemberIdentity display_profile reuses the canonical avatar_blob_ref name for Blob references.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "avatar_ref"
+        ]
+      }
     },
     {
       "id": "available_count",
@@ -670,7 +2111,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "v1 exposes no remote KeyPackage inventory count or maintenance query; clients maintain an endpoint-scoped local ledger."
+      "notes": "v1 exposes no remote KeyPackage inventory count or maintenance query; clients maintain an endpoint-scoped local ledger.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "available_count"
+        ]
+      }
     },
     {
       "id": "backup_class",
@@ -682,7 +2129,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "backup_class"
+        ]
+      }
     },
     {
       "id": "batch_size",
@@ -694,7 +2147,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "batch_size"
+        ]
+      }
     },
     {
       "id": "blocked_handle_domains",
@@ -706,7 +2165,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Denylist collections use the closed `denied_` prefix."
+      "notes": "Denylist collections use the closed `denied_` prefix.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "blocked_handle_domains"
+        ]
+      }
     },
     {
       "id": "blocked_principal_services",
@@ -718,7 +2183,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Denylist collections use the closed `denied_` prefix."
+      "notes": "Denylist collections use the closed `denied_` prefix.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "blocked_principal_services"
+        ]
+      }
     },
     {
       "id": "blocked_subjects",
@@ -730,7 +2201,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Denylist collections use the closed `denied_` prefix."
+      "notes": "Denylist collections use the closed `denied_` prefix.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "blocked_subjects"
+        ]
+      }
     },
     {
       "id": "blocks",
@@ -742,7 +2219,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Composite Content Block MUST use the field name `parts` (matching schemas/message.schema.json, schemas/event-payload.schema.json, schemas/strand.schema.json, and schemas/morph.schema.json). The temporary `blocks` spelling was rejected because it over-constrained the concept to document layout blocks; the canonical wire name is `parts`, and `blocks` MUST NOT appear in current content_block_composite wire. See zh/models/content-types.md §4.10."
+      "notes": "Composite Content Block MUST use the field name `parts` (matching schemas/message.schema.json, schemas/event-payload.schema.json, schemas/strand.schema.json, and schemas/morph.schema.json). The temporary `blocks` spelling was rejected because it over-constrained the concept to document layout blocks; the canonical wire name is `parts`, and `blocks` MUST NOT appear in current content_block_composite wire. See zh/models/content-types.md §4.10.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "blocks"
+        ]
+      }
     },
     {
       "id": "bootstrap_binding",
@@ -754,7 +2237,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut."
+      "notes": "Removed from current v1 by the PCR genesis clean cut.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "bootstrap_binding"
+        ]
+      }
     },
     {
       "id": "branch",
@@ -766,7 +2255,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The Matrix-style 'branch' top-level field on timeline / Strand events is not v1; the v1 concept is 'track' (a display-only timeline segment identifier). See current-model 'Track 是纯展示 / 时间线分段标识'. The string 'branch' MUST NOT appear as a top-level Event Envelope or payload field name."
+      "notes": "The Matrix-style 'branch' top-level field on timeline / Strand events is not v1; the v1 concept is 'track' (a display-only timeline segment identifier). See current-model 'Track 是纯展示 / 时间线分段标识'. The string 'branch' MUST NOT appear as a top-level Event Envelope or payload field name.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "branch"
+        ]
+      }
     },
     {
       "id": "by_tier_and_class",
@@ -778,7 +2273,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "by_tier_and_class"
+        ]
+      }
     },
     {
       "id": "cache_until",
@@ -790,7 +2291,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Anonymous health frontier cache bound uses cache_expires_at."
+      "notes": "Anonymous health frontier cache bound uses cache_expires_at.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "cache_until"
+        ]
+      }
     },
     {
       "id": "cache_valid_until",
@@ -802,7 +2309,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Cache expiry fields use cache_expires_at."
+      "notes": "Cache expiry fields use cache_expires_at.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "cache_valid_until"
+        ]
+      }
     },
     {
       "id": "capability_tiers",
@@ -814,7 +2327,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "capability_tiers"
+        ]
+      }
     },
     {
       "id": "cas-register",
@@ -826,7 +2345,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "CRDT lattice enum values use snake_case."
+      "notes": "CRDT lattice enum values use snake_case.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "cas-register"
+        ]
+      }
     },
     {
       "id": "changed_at",
@@ -838,7 +2363,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Agent lifecycle payloads mutate the status axis; the transition timestamp must name that axis."
+      "notes": "Agent lifecycle payloads mutate the status axis; the transition timestamp must name that axis.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "changed_at"
+        ]
+      }
     },
     {
       "id": "claim_kind",
@@ -850,7 +2381,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Handle Claim's closed protocol discriminator uses claim_kind. claim_kind remains valid in external credential selector contexts."
+      "notes": "Handle Claim's closed protocol discriminator uses claim_kind. claim_kind remains valid in external credential selector contexts.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "claim_kind"
+        ]
+      }
     },
     {
       "id": "claim_type",
@@ -862,7 +2399,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "claim_type"
+        ]
+      }
     },
     {
       "id": "cleartext_commitment",
@@ -874,7 +2417,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Encrypted Envelope MUST NOT carry `cleartext_commitment`. The bare plaintext hash is dictionary-attackable offline against low-entropy plaintext; v1 E2EE producers MUST NOT emit it and receivers MUST reject any envelope that carries it (top-level `not.required` in schemas/encrypted-envelope.schema.json). Future profiles needing plaintext commitment MUST define a keyed/salted form rather than this bare hash."
+      "notes": "Encrypted Envelope MUST NOT carry `cleartext_commitment`. The bare plaintext hash is dictionary-attackable offline against low-entropy plaintext; v1 E2EE producers MUST NOT emit it and receivers MUST reject any envelope that carries it (top-level `not.required` in schemas/encrypted-envelope.schema.json). Future profiles needing plaintext commitment MUST define a keyed/salted form rather than this bare hash.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "cleartext_commitment"
+        ]
+      }
     },
     {
       "id": "cleartext_sha256",
@@ -886,7 +2435,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "File transfer account-data values MUST NOT carry a bare plaintext file hash. The stored Blob's sole digest source is the content-addressed `blob_ref` per encoding.md 4.0.1; plaintext digest aliases such as `cleartext_sha256`, `plaintext_sha256`, or `plaintext_digest` are rejected, and so is a `content_digest` mirror of `blob_ref`."
+      "notes": "File transfer account-data values MUST NOT carry a bare plaintext file hash. The stored Blob's sole digest source is the content-addressed `blob_ref` per encoding.md 4.0.1; plaintext digest aliases such as `cleartext_sha256`, `plaintext_sha256`, or `plaintext_digest` are rejected, and so is a `content_digest` mirror of `blob_ref`.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "cleartext_sha256"
+        ]
+      }
     },
     {
       "id": "commitment_b64",
@@ -898,7 +2453,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Recovery share commitments use base64url characters and therefore carry _b64u."
+      "notes": "Recovery share commitments use base64url characters and therefore carry _b64u.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "commitment_b64"
+        ]
+      }
     },
     {
       "id": "constraint_type",
@@ -910,7 +2471,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "constraint_type"
+        ]
+      }
     },
     {
       "id": "content_class",
@@ -922,7 +2489,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "content_class"
+        ]
+      }
     },
     {
       "id": "cotest_issuer_did",
@@ -934,7 +2507,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "ServiceDescribe.verified_profiles uses verifier_id and claim_kind=conformance_verified because the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2). Tool-specific issuer fields or claim values are forbidden."
+      "notes": "ServiceDescribe.verified_profiles uses verifier_id and claim_kind=conformance_verified because the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2). Tool-specific issuer fields or claim values are forbidden.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "cotest_issuer_did"
+        ]
+      }
     },
     {
       "id": "cotest_run_id",
@@ -946,7 +2525,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "ServiceDescribe.verified_profiles entry field cotest_run_id renamed to verification_run_id (conformance_verifier_neutralization): the wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2), not to a specific downstream tool name. cotest remains a legitimate informative prose name for the reference verifier implementation — literal scanners MUST NOT flag prose mentions of cotest."
+      "notes": "ServiceDescribe.verified_profiles entry field cotest_run_id renamed to verification_run_id (conformance_verifier_neutralization): the wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2), not to a specific downstream tool name. cotest remains a legitimate informative prose name for the reference verifier implementation — literal scanners MUST NOT flag prose mentions of cotest.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "cotest_run_id"
+        ]
+      }
     },
     {
       "id": "cowrite_policy",
@@ -958,7 +2543,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Both cowrite_policy and co_write_policy are forbidden. Which cell families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry cell_writes contracts and registered atomic units. v1 defines no Realm-configurable co-write whitelist. Any future per-Realm co-write constraint requires complete notary admission and reducer rules and cannot appear as a bare optional field."
+      "notes": "Both cowrite_policy and co_write_policy are forbidden. Which cell families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry cell_writes contracts and registered atomic units. v1 defines no Realm-configurable co-write whitelist. Any future per-Realm co-write constraint requires complete notary admission and reducer rules and cannot appear as a bare optional field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "cowrite_policy"
+        ]
+      }
     },
     {
       "id": "cross_signing_binding",
@@ -970,7 +2561,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut."
+      "notes": "Removed from current v1 by the PCR genesis clean cut.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "cross_signing_binding"
+        ]
+      }
     },
     {
       "id": "data_type",
@@ -982,7 +2579,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "data_type"
+        ]
+      }
     },
     {
       "id": "denied_morph_types",
@@ -994,7 +2597,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "denied_morph_types"
+        ]
+      }
     },
     {
       "id": "denied_object_types",
@@ -1006,7 +2615,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "denied_object_types"
+        ]
+      }
     },
     {
       "id": "deny_redacted_history",
@@ -1018,7 +2633,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "deny_redacted_history"
+        ]
+      }
     },
     {
       "id": "destination_service_type",
@@ -1030,7 +2651,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "destination_service_type"
+        ]
+      }
     },
     {
       "id": "device_key_alg",
@@ -1042,7 +2669,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Custom device key algorithm selector fields use the full _algorithm suffix."
+      "notes": "Custom device key algorithm selector fields use the full _algorithm suffix.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "device_key_alg"
+        ]
+      }
     },
     {
       "id": "device_key_type",
@@ -1054,7 +2687,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "device_key_type"
+        ]
+      }
     },
     {
       "id": "did_service_type",
@@ -1066,7 +2705,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "did_service_type"
+        ]
+      }
     },
     {
       "id": "discussion_space_ref",
@@ -1078,7 +2723,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Strand payload MUST NOT carry 'discussion_space_ref'. Discussion privacy is represented by Circle-scoped Strand objects and confidential_discussion_of Relation facts; the field-level Circle identifier is 'scope_circle_id' (see schemas/strand.schema.json, zh/models/circle.md)."
+      "notes": "Strand payload MUST NOT carry 'discussion_space_ref'. Discussion privacy is represented by Circle-scoped Strand objects and confidential_discussion_of Relation facts; the field-level Circle identifier is 'scope_circle_id' (see schemas/strand.schema.json, zh/models/circle.md).",
+      "match": {
+        "kind": "field",
+        "values": [
+          "discussion_space_ref"
+        ]
+      }
     },
     {
       "id": "duration_compact_mini_dsl",
@@ -1090,7 +2741,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Human-readable policy duration wire values use ISO 8601 (PT24H, P30D, P1Y). The self-invented compact form ^[0-9]+(ms|s|m|h|d)$ (e.g. 24h, 7d, 15m) MUST NOT appear on the wire; see common-fields.md §3.0.2 and constraint-schema.md §3. Machine timing fields continue to use integer _ms / _seconds."
+      "notes": "Human-readable policy duration wire values use ISO 8601 (PT24H, P30D, P1Y). The self-invented compact form ^[0-9]+(ms|s|m|h|d)$ (e.g. 24h, 7d, 15m) MUST NOT appear on the wire; see common-fields.md §3.0.2 and constraint-schema.md §3. Machine timing fields continue to use integer _ms / _seconds.",
+      "match": {
+        "kind": "pattern",
+        "values": [
+          "^[0-9]+(ms|s|m|h|d)$"
+        ]
+      }
     },
     {
       "id": "encrypted_payload",
@@ -1102,7 +2759,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "When the plaintext counterpart is `content`, the encrypted counterpart is `encrypted_content` (Strand, Message, Morph). Generic `encrypted_payload` remains valid for non-content carriers such as identity and reaction payloads."
+      "notes": "When the plaintext counterpart is `content`, the encrypted counterpart is `encrypted_content` (Strand, Message, Morph). Generic `encrypted_payload` remains valid for non-content carriers such as identity and reaction payloads.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "encrypted_payload"
+        ]
+      }
     },
     {
       "id": "enrollment_authority_binding",
@@ -1114,7 +2777,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut."
+      "notes": "Removed from current v1 by the PCR genesis clean cut.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "enrollment_authority_binding"
+        ]
+      }
     },
     {
       "id": "endpoint_signature",
@@ -1126,7 +2795,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The required signature over the complete upload request is the sole upload authorization transcript; entries carry no signature."
+      "notes": "The required signature over the complete upload request is the sole upload authorization transcript; entries carry no signature.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "endpoint_signature"
+        ]
+      }
     },
     {
       "id": "endpoint_signature",
@@ -1138,7 +2813,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "A durable KeyPackage Event cannot reconstruct the complete upload-batch transcript and therefore carries no copied signature."
+      "notes": "A durable KeyPackage Event cannot reconstruct the complete upload-batch transcript and therefore carries no copied signature.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "endpoint_signature"
+        ]
+      }
     },
     {
       "id": "events",
@@ -1150,7 +2831,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Account subscribe to_device container carries DeviceMessageEnvelope objects, not Event envelopes."
+      "notes": "Account subscribe to_device container carries DeviceMessageEnvelope objects, not Event envelopes.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "events"
+        ]
+      }
     },
     {
       "id": "evidence_id",
@@ -1162,7 +2849,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The object carries one audit-release attestation, so the identifier uses the concrete material noun."
+      "notes": "The object carries one audit-release attestation, so the identifier uses the concrete material noun.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "evidence_id"
+        ]
+      }
     },
     {
       "id": "evidence_ref",
@@ -1174,7 +2867,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The runtime branch resolves exactly one attestation material family."
+      "notes": "The runtime branch resolves exactly one attestation material family.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "evidence_ref"
+        ]
+      }
     },
     {
       "id": "expected_classes",
@@ -1186,7 +2885,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "expected_classes"
+        ]
+      }
     },
     {
       "id": "failure_code",
@@ -1198,7 +2903,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "failure_code"
+        ]
+      }
     },
     {
       "id": "field_type",
@@ -1210,7 +2921,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "field_type"
+        ]
+      }
     },
     {
       "id": "field_types",
@@ -1222,7 +2939,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "field_types"
+        ]
+      }
     },
     {
       "id": "fields",
@@ -1234,7 +2957,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Extensible user metadata fields live under metadata.fields, or inside encrypted_metadata when the effective metadata profile requires encryption."
+      "notes": "Extensible user metadata fields live under metadata.fields, or inside encrypted_metadata when the effective metadata profile requires encryption.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "fields"
+        ]
+      }
     },
     {
       "id": "fields.lifecycle",
@@ -1246,7 +2975,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved-name guard mirror for Morph: 'lifecycle' is reserved for the state axis."
+      "notes": "Reserved-name guard mirror for Morph: 'lifecycle' is reserved for the state axis.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "fields.lifecycle"
+        ]
+      }
     },
     {
       "id": "fields.progress_state",
@@ -1258,7 +2993,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved-name guard mirror for Morph."
+      "notes": "Reserved-name guard mirror for Morph.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "fields.progress_state"
+        ]
+      }
     },
     {
       "id": "fields.rank",
@@ -1270,7 +3011,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Relation MUST carry rank at the top level, not nested under fields. The dual-source (top-level rank vs fields.rank) ambiguity is closed: writers MUST emit top-level rank only, and readers MUST reject fields.rank with schema_violation. See zh/models/relation.md §2."
+      "notes": "Relation MUST carry rank at the top level, not nested under fields. The dual-source (top-level rank vs fields.rank) ambiguity is closed: writers MUST emit top-level rank only, and readers MUST reject fields.rank with schema_violation. See zh/models/relation.md §2.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "fields.rank"
+        ]
+      }
     },
     {
       "id": "fields.rank",
@@ -1282,7 +3029,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Space MUST carry rank at the top level. Mirrors the relation_payload constraint; closes the dual-source ambiguity uniformly. See zh/models/realm-and-space.md §3.2."
+      "notes": "Space MUST carry rank at the top level. Mirrors the relation_payload constraint; closes the dual-source ambiguity uniformly. See zh/models/realm-and-space.md §3.2.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "fields.rank"
+        ]
+      }
     },
     {
       "id": "fields.stage",
@@ -1294,7 +3047,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Morph MUST carry stage at the top level (required field). Mirror of the strand_payload fields.stage constraint."
+      "notes": "Morph MUST carry stage at the top level (required field). Mirror of the strand_payload fields.stage constraint.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "fields.stage"
+        ]
+      }
     },
     {
       "id": "fields.stage_changed_at",
@@ -1306,7 +3065,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Morph stage_changed_at is reducer-derived and lives at the top level."
+      "notes": "Morph stage_changed_at is reducer-derived and lives at the top level.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "fields.stage_changed_at"
+        ]
+      }
     },
     {
       "id": "fields.stage_note",
@@ -1318,7 +3083,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved-name sister-guard for Morph fields.stage_reason. Same forbidden surface as Strand."
+      "notes": "Reserved-name sister-guard for Morph fields.stage_reason. Same forbidden surface as Strand.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "fields.stage_note"
+        ]
+      }
     },
     {
       "id": "fields.stage_reason",
@@ -1330,7 +3101,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved-name guard mirror for Morph. Stage transitions carry no reason field; rationale belongs in a discussion-track Message that references the ak.morph.stage.set event."
+      "notes": "Reserved-name guard mirror for Morph. Stage transitions carry no reason field; rationale belongs in a discussion-track Message that references the ak.morph.stage.set event.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "fields.stage_reason"
+        ]
+      }
     },
     {
       "id": "forbidden_introduction_kinds",
@@ -1342,7 +3119,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "forbidden_introduction_kinds"
+        ]
+      }
     },
     {
       "id": "force_turn",
@@ -1354,7 +3137,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "force_turn"
+        ]
+      }
     },
     {
       "id": "frank",
@@ -1366,7 +3155,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Moderation report proof object uses franking_proof."
+      "notes": "Moderation report proof object uses franking_proof.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "frank"
+        ]
+      }
     },
     {
       "id": "frank_only",
@@ -1378,7 +3173,14 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Moderation visibility enum values use the full franking_proof noun."
+      "notes": "Moderation visibility enum values use the full franking_proof noun.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "frank_only"
+        ],
+        "value_pointer": "/visibility"
+      }
     },
     {
       "id": "frank_unavailable",
@@ -1390,7 +3192,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Error code uses the full franking_proof noun."
+      "notes": "Error code uses the full franking_proof noun.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "frank_unavailable"
+        ]
+      }
     },
     {
       "id": "from_tree_size",
@@ -1402,7 +3210,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "from_tree_size"
+        ]
+      }
     },
     {
       "id": "from_type",
@@ -1414,7 +3228,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "from_type"
+        ]
+      }
     },
     {
       "id": "grant_constraint_single_kind_refs_to_ids",
@@ -1426,7 +3246,20 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. The old fields allowed_view_refs, allowed_strand_refs, allowed_circle_refs, denied_strand_refs, allowed_space_refs, denied_space_refs, realm_refs, and approval_actor_refs MUST NOT appear on current v1 wire. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs remain `_refs` because they may identify Space, Strand, or Morph containers."
+      "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. The old fields allowed_view_refs, allowed_strand_refs, allowed_circle_refs, denied_strand_refs, allowed_space_refs, denied_space_refs, realm_refs, and approval_actor_refs MUST NOT appear on current v1 wire. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs remain `_refs` because they may identify Space, Strand, or Morph containers.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "allowed_view_refs",
+          "allowed_strand_refs",
+          "allowed_circle_refs",
+          "denied_strand_refs",
+          "allowed_space_refs",
+          "denied_space_refs",
+          "realm_refs",
+          "approval_actor_refs"
+        ]
+      }
     },
     {
       "id": "hash#key_backup_kdf_params",
@@ -1438,7 +3271,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Key backup KDF params use digest_algorithm for PBKDF2/derived digest selection. The old params.hash selector is ambiguous with digest bytes and MUST NOT appear on current v1 wire."
+      "notes": "Key backup KDF params use digest_algorithm for PBKDF2/derived digest selection. The old params.hash selector is ambiguous with digest bytes and MUST NOT appear on current v1 wire.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "hash"
+        ]
+      }
     },
     {
       "id": "history_access",
@@ -1450,7 +3289,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "History visibility is Realm-scoped. Space payloads MUST NOT carry history_access."
+      "notes": "History visibility is Realm-scoped. Space payloads MUST NOT carry history_access.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "history_access"
+        ]
+      }
     },
     {
       "id": "icon_blob",
@@ -1462,7 +3307,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Applet protocol metadata exposes a Blob reference, so the field carries the _blob_ref suffix."
+      "notes": "Applet protocol metadata exposes a Blob reference, so the field carries the _blob_ref suffix.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "icon_blob"
+        ]
+      }
     },
     {
       "id": "identifier_suffix_ref_to_id_batch",
@@ -1474,7 +3325,18 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Single concrete protocol object identifiers use `_id`; `_ref` is reserved for causal, proof, schema/profile, content-addressed, or polymorphic reference material. Event.scope_ref is a valid polymorphic signed reference. The old fields parent_ref, default_realm_ref, default_scope_ref, retention_policy_ref, disclosure_policy_ref, rate_limit_policy_ref, and Policy-object policy_ref MUST NOT appear on current v1 wire."
+      "notes": "Single concrete protocol object identifiers use `_id`; `_ref` is reserved for causal, proof, schema/profile, content-addressed, or polymorphic reference material. Event.scope_ref is a valid polymorphic signed reference. The old fields parent_ref, default_realm_ref, default_scope_ref, retention_policy_ref, disclosure_policy_ref, rate_limit_policy_ref, and Policy-object policy_ref MUST NOT appear on current v1 wire.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "parent_ref",
+          "default_realm_ref",
+          "default_scope_ref",
+          "retention_policy_ref",
+          "disclosure_policy_ref",
+          "rate_limit_policy_ref"
+        ]
+      }
     },
     {
       "id": "item_object_types",
@@ -1486,7 +3348,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "item_object_types"
+        ]
+      }
     },
     {
       "id": "item_type",
@@ -1498,7 +3366,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "item_type"
+        ]
+      }
     },
     {
       "id": "item_types",
@@ -1510,7 +3384,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "item_types"
+        ]
+      }
     },
     {
       "id": "join_rule",
@@ -1522,7 +3402,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Join policy is Realm-scoped. Space payloads MUST NOT carry join_rule; this closes the current Space container model versus removed pre-inversion payload-shape ambiguity."
+      "notes": "Join policy is Realm-scoped. Space payloads MUST NOT carry join_rule; this closes the current Space container model versus removed pre-inversion payload-shape ambiguity.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "join_rule"
+        ]
+      }
     },
     {
       "id": "kind=room",
@@ -1535,7 +3421,14 @@
         "interop_module",
         "negative_test"
       ],
-      "notes": "Strand payload field 'kind' (or any analogous discriminator) MUST NOT carry the literal value 'room'. Use 'realm' / 'strand' / canonical Realm.kind values. Interop translation lives in an opt-in interop module only."
+      "notes": "Strand payload field 'kind' (or any analogous discriminator) MUST NOT carry the literal value 'room'. Use 'realm' / 'strand' / canonical Realm.kind values. Interop translation lives in an opt-in interop module only.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "room"
+        ],
+        "value_pointer": "/kind"
+      }
     },
     {
       "id": "lattice_types",
@@ -1547,7 +3440,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "lattice_types"
+        ]
+      }
     },
     {
       "id": "link_type",
@@ -1559,7 +3458,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "link_type"
+        ]
+      }
     },
     {
       "id": "message_id",
@@ -1571,7 +3476,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "ak.message.create payload MUST NOT carry a second identity. The reducer materializes Message.id by retyping the creating Event's full 33-byte / 44-character content-bound token. See zh/models/strand-and-message.md §9."
+      "notes": "ak.message.create payload MUST NOT carry a second identity. The reducer materializes Message.id by retyping the creating Event's full 33-byte / 44-character content-bound token. See zh/models/strand-and-message.md §9.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "message_id"
+        ]
+      }
     },
     {
       "id": "metadata.fields.assigned_actor_ids",
@@ -1583,7 +3494,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "assigned_actor_ids is a derived projection field, not Strand object state. Writers MUST NOT persist it under metadata.fields."
+      "notes": "assigned_actor_ids is a derived projection field, not Strand object state. Writers MUST NOT persist it under metadata.fields.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.assigned_actor_ids"
+        ]
+      }
     },
     {
       "id": "metadata.fields.assigned_to",
@@ -1595,7 +3512,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "assigned_to is already the standard Relation kind and MUST NOT be reused as a Strand metadata field."
+      "notes": "assigned_to is already the standard Relation kind and MUST NOT be reused as a Strand metadata field.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.assigned_to"
+        ]
+      }
     },
     {
       "id": "metadata.fields.assignee",
@@ -1607,7 +3530,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Strand assignment is single-sourced by the standard assigned_to Relation. metadata.fields.assignee would create a second truth source and MUST be rejected; UI labels may say Assignee but wire writes create/tombstone assigned_to Relation edges."
+      "notes": "Strand assignment is single-sourced by the standard assigned_to Relation. metadata.fields.assignee would create a second truth source and MUST be rejected; UI labels may say Assignee but wire writes create/tombstone assigned_to Relation edges.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.assignee"
+        ]
+      }
     },
     {
       "id": "metadata.fields.assignees",
@@ -1619,7 +3548,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Plural spelling of the Strand assignment field alias is forbidden for the same reason as metadata.fields.assignee. Multiple assignees are represented by multiple active assigned_to Relation edges."
+      "notes": "Plural spelling of the Strand assignment field alias is forbidden for the same reason as metadata.fields.assignee. Multiple assignees are represented by multiple active assigned_to Relation edges.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.assignees"
+        ]
+      }
     },
     {
       "id": "metadata.fields.lifecycle",
@@ -1631,7 +3566,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved-name guard: 'lifecycle' is reserved terminology for the state axis (archive / restore / tombstone lifecycle events). It MUST NOT appear on the wire as a metadata.fields.* key on Strand. Business-progression goes through the top-level 'stage' field; physical lifecycle through 'state'. See zh/models/common-fields.md §5."
+      "notes": "Reserved-name guard: 'lifecycle' is reserved terminology for the state axis (archive / restore / tombstone lifecycle events). It MUST NOT appear on the wire as a metadata.fields.* key on Strand. Business-progression goes through the top-level 'stage' field; physical lifecycle through 'state'. See zh/models/common-fields.md §5.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.lifecycle"
+        ]
+      }
     },
     {
       "id": "metadata.fields.progress_state",
@@ -1643,7 +3584,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved-name guard: 'progress_state' is a sister name for the stage concept and MUST NOT appear under metadata.fields.*. Implementations expressing business progression MUST use the canonical top-level 'stage' field."
+      "notes": "Reserved-name guard: 'progress_state' is a sister name for the stage concept and MUST NOT appear under metadata.fields.*. Implementations expressing business progression MUST use the canonical top-level 'stage' field.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.progress_state"
+        ]
+      }
     },
     {
       "id": "metadata.fields.stage",
@@ -1655,7 +3602,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Strand MUST carry stage at the top level (required field). The dual-source (top-level stage vs metadata.fields.stage) ambiguity is closed: writers MUST emit top-level stage only, and readers MUST reject metadata.fields.stage with schema_violation. Same constraint as fields.rank in relation_payload / space_payload. See zh/models/strand-and-message.md §3.2 and zh/models/common-fields.md §5.3."
+      "notes": "Strand MUST carry stage at the top level (required field). The dual-source (top-level stage vs metadata.fields.stage) ambiguity is closed: writers MUST emit top-level stage only, and readers MUST reject metadata.fields.stage with schema_violation. Same constraint as fields.rank in relation_payload / space_payload. See zh/models/strand-and-message.md §3.2 and zh/models/common-fields.md §5.3.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.stage"
+        ]
+      }
     },
     {
       "id": "metadata.fields.stage_changed_at",
@@ -1667,7 +3620,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Strand stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under metadata.fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering ak.strand.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
+      "notes": "Strand stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under metadata.fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering ak.strand.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.stage_changed_at"
+        ]
+      }
     },
     {
       "id": "metadata.fields.stage_note",
@@ -1679,7 +3638,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved-name sister-guard for metadata.fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via metadata.fields.*. Same canonical channel: a Message on the discussion track that references the ak.strand.stage.set event."
+      "notes": "Reserved-name sister-guard for metadata.fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via metadata.fields.*. Same canonical channel: a Message on the discussion track that references the ak.strand.stage.set event.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.stage_note"
+        ]
+      }
     },
     {
       "id": "metadata.fields.stage_reason",
@@ -1691,7 +3656,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved-name guard. Strand stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the ak.strand.stage.set payload, nor under metadata.fields.*. Human-readable rationale belongs in a Message on the Strand's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The metadata.fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
+      "notes": "Reserved-name guard. Strand stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the ak.strand.stage.set payload, nor under metadata.fields.*. Human-readable rationale belongs in a Message on the Strand's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The metadata.fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.stage_reason"
+        ]
+      }
     },
     {
       "id": "metadata.fields.status",
@@ -1703,7 +3674,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved-name guard: 'status' is the most direct sister spelling of the stage concept and MUST NOT appear as a metadata.fields.* key on Strand. Business progression goes through the canonical top-level 'stage' field; physical lifecycle through 'state'. Domain data mirrored from external systems MUST use a domain-named key (e.g. fields.jira_status), not bare 'status'."
+      "notes": "Reserved-name guard: 'status' is the most direct sister spelling of the stage concept and MUST NOT appear as a metadata.fields.* key on Strand. Business progression goes through the canonical top-level 'stage' field; physical lifecycle through 'state'. Domain data mirrored from external systems MUST use a domain-named key (e.g. fields.jira_status), not bare 'status'.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "metadata.fields.status"
+        ]
+      }
     },
     {
       "id": "morph_type",
@@ -1715,7 +3692,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "morph_type"
+        ]
+      }
     },
     {
       "id": "morph_types",
@@ -1727,7 +3710,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "morph_types"
+        ]
+      }
     },
     {
       "id": "mv-register",
@@ -1739,7 +3728,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "CRDT lattice enum values use snake_case."
+      "notes": "CRDT lattice enum values use snake_case.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "mv-register"
+        ]
+      }
     },
     {
       "id": "name",
@@ -1751,7 +3746,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Directory / projection rows use canonical title, not a name alias."
+      "notes": "Directory / projection rows use canonical title, not a name alias.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "name"
+        ]
+      }
     },
     {
       "id": "not_after",
@@ -1763,7 +3764,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Validity upper bounds use expires_at. Current writers MUST NOT emit not_after."
+      "notes": "Validity upper bounds use expires_at. Current writers MUST NOT emit not_after.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "not_after"
+        ]
+      }
     },
     {
       "id": "notary.type",
@@ -1775,7 +3782,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "notary.type"
+        ]
+      }
     },
     {
       "id": "notary_sig",
@@ -1787,7 +3800,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Seal signatures use the full signature noun."
+      "notes": "Seal signatures use the full signature noun.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "notary_sig"
+        ]
+      }
     },
     {
       "id": "notary_type",
@@ -1799,7 +3818,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "notary_type"
+        ]
+      }
     },
     {
       "id": "notification.space_name",
@@ -1811,7 +3836,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or plaintext-visible Strand metadata.title (strand_title); both remain forbidden in the ak.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit ak.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
+      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or plaintext-visible Strand metadata.title (strand_title); both remain forbidden in the ak.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit ak.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "notification.space_name"
+        ]
+      }
     },
     {
       "id": "notification_type",
@@ -1823,7 +3854,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "notification_type"
+        ]
+      }
     },
     {
       "id": "object_ref",
@@ -1835,7 +3872,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Generic object_patch_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' and even target-less patches; both shapes are removed. This forbids only the payload property name; event-payload.schema.json $defs.object_ref and selector grammar object_ref remain valid generic reference terms."
+      "notes": "Generic object_patch_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' and even target-less patches; both shapes are removed. This forbids only the payload property name; event-payload.schema.json $defs.object_ref and selector grammar object_ref remain valid generic reference terms.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "object_ref"
+        ]
+      }
     },
     {
       "id": "object_ref",
@@ -1847,7 +3890,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Generic object_lifecycle_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' or even a target-less {target_state} form; both shapes are removed. This forbids only the payload property name; event-payload.schema.json $defs.object_ref and selector grammar object_ref remain valid generic reference terms."
+      "notes": "Generic object_lifecycle_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' or even a target-less {target_state} form; both shapes are removed. This forbids only the payload property name; event-payload.schema.json $defs.object_ref and selector grammar object_ref remain valid generic reference terms.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "object_ref"
+        ]
+      }
     },
     {
       "id": "object_type",
@@ -1859,7 +3908,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "object_type"
+        ]
+      }
     },
     {
       "id": "object_types",
@@ -1871,7 +3926,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "object_types"
+        ]
+      }
     },
     {
       "id": "of",
@@ -1883,7 +3944,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The {threshold, of} reviewer quorum object names the DID list reviewers (mirrors approvers / recovery_members). The two-letter of is not a valid wire field name."
+      "notes": "The {threshold, of} reviewer quorum object names the DID list reviewers (mirrors approvers / recovery_members). The two-letter of is not a valid wire field name.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "of"
+        ]
+      }
     },
     {
       "id": "official_organizations",
@@ -1895,7 +3962,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Directory / projection rows use canonical owning_organization_ids, not an official_organizations alias."
+      "notes": "Directory / projection rows use canonical owning_organization_ids, not an official_organizations alias.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "official_organizations"
+        ]
+      }
     },
     {
       "id": "op_target_type",
@@ -1907,7 +3980,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "op_target_type"
+        ]
+      }
     },
     {
       "id": "or-set",
@@ -1919,7 +3998,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "CRDT lattice enum values use snake_case."
+      "notes": "CRDT lattice enum values use snake_case.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "or-set"
+        ]
+      }
     },
     {
       "id": "ordered-log",
@@ -1931,7 +4016,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "CRDT lattice enum values use snake_case."
+      "notes": "CRDT lattice enum values use snake_case.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "ordered-log"
+        ]
+      }
     },
     {
       "id": "override_requires_organization_approval",
@@ -1943,7 +4034,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "override_requires_organization_approval"
+        ]
+      }
     },
     {
       "id": "parent_realm_id",
@@ -1955,7 +4052,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Directory search context uses source_realm_id."
+      "notes": "Directory search context uses source_realm_id.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "parent_realm_id"
+        ]
+      }
     },
     {
       "id": "parent_space_refs",
@@ -1967,7 +4070,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Membership source evidence is Realm-scoped and not a Space parent relation."
+      "notes": "Membership source evidence is Realm-scoped and not a Space parent relation.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "parent_space_refs"
+        ]
+      }
     },
     {
       "id": "patch:fields.assigned_actor_ids",
@@ -1979,7 +4088,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through fields.* patch paths."
+      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through fields.* patch paths.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "fields.assigned_actor_ids"
+        ]
+      }
     },
     {
       "id": "patch:fields.assigned_to",
@@ -1991,7 +4106,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
+      "notes": "assigned_to is a Relation kind, not a Strand metadata patch path.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "fields.assigned_to"
+        ]
+      }
     },
     {
       "id": "patch:fields.assignee",
@@ -2003,7 +4124,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Strand fields.* patch paths are not the canonical metadata path; assignment is Relation-sourced regardless of spelling."
+      "notes": "Strand fields.* patch paths are not the canonical metadata path; assignment is Relation-sourced regardless of spelling.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "fields.assignee"
+        ]
+      }
     },
     {
       "id": "patch:fields.assignees",
@@ -2015,7 +4142,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The plural assignment patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
+      "notes": "The plural assignment patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "fields.assignees"
+        ]
+      }
     },
     {
       "id": "patch:metadata.fields.assigned_actor_ids",
@@ -2027,7 +4160,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through ak.strand.update."
+      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through ak.strand.update.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "metadata.fields.assigned_actor_ids"
+        ]
+      }
     },
     {
       "id": "patch:metadata.fields.assigned_to",
@@ -2039,7 +4178,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
+      "notes": "assigned_to is a Relation kind, not a Strand metadata patch path.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "metadata.fields.assigned_to"
+        ]
+      }
     },
     {
       "id": "patch:metadata.fields.assignee",
@@ -2051,7 +4196,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "ak.strand.update MUST NOT patch assignment through Strand metadata. Assignment writes create or tombstone assigned_to Relation edges."
+      "notes": "ak.strand.update MUST NOT patch assignment through Strand metadata. Assignment writes create or tombstone assigned_to Relation edges.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "metadata.fields.assignee"
+        ]
+      }
     },
     {
       "id": "patch:metadata.fields.assignees",
@@ -2063,7 +4214,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Plural assignment metadata patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
+      "notes": "Plural assignment metadata patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "metadata.fields.assignees"
+        ]
+      }
     },
     {
       "id": "patch:morph_kind",
@@ -2075,7 +4232,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "ak.morph.update payload's patch MUST NOT include path 'morph_kind'. morph_kind is create-locked by ak.morph.create; attempts to mutate it after create fail closed with reason morph_kind_immutable."
+      "notes": "ak.morph.update payload's patch MUST NOT include path 'morph_kind'. morph_kind is create-locked by ak.morph.create; attempts to mutate it after create fail closed with reason morph_kind_immutable.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "morph_kind"
+        ]
+      }
     },
     {
       "id": "patch:stage",
@@ -2087,7 +4250,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "ak.strand.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ak.strand.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ak.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/strand-and-message.md §3.2 reducer hard constraint 5."
+      "notes": "ak.strand.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ak.strand.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ak.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/strand-and-message.md §3.2 reducer hard constraint 5.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "stage"
+        ]
+      }
     },
     {
       "id": "patch:stage",
@@ -2099,7 +4268,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "ak.morph.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ak.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
+      "notes": "ak.morph.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ak.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2.",
+      "match": {
+        "kind": "patch_path",
+        "values": [
+          "stage"
+        ]
+      }
     },
     {
       "id": "payload_hash",
@@ -2111,7 +4286,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Event proofs MUST bind canonical Event bytes with event_digest. Generic non-Event detached proofs now use payload_digest. payload_hash is forbidden in all wire contexts."
+      "notes": "Event proofs MUST bind canonical Event bytes with event_digest. Generic non-Event detached proofs now use payload_digest. payload_hash is forbidden in all wire contexts.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "payload_hash"
+        ]
+      }
     },
     {
       "id": "payload_hash",
@@ -2123,7 +4304,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Generic detached-JWS proofs over current non-Event canonical payloads (Seal signature, identity-link, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix. Cross-core DID continuity proofs are not a current v1 proof family."
+      "notes": "Generic detached-JWS proofs over current non-Event canonical payloads (Seal signature, identity-link, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix. Cross-core DID continuity proofs are not a current v1 proof family.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "payload_hash"
+        ]
+      }
     },
     {
       "id": "participant_identity",
@@ -2135,7 +4322,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Media participant wire objects, signature transcripts and ak.rtc-frame-key/v1 exporter Context use participant_id. The retired participant_identity spelling is not an alias; accepting it would change canonical JSON/signature or exporter bytes. The old participant_identity_unrecognised error and vector identifiers are retired with the same clean break."
+      "notes": "Media participant wire objects, signature transcripts and ak.rtc-frame-key/v1 exporter Context use participant_id. The retired participant_identity spelling is not an alias; accepting it would change canonical JSON/signature or exporter bytes. The old participant_identity_unrecognised error and vector identifiers are retired with the same clean break.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "participant_identity"
+        ]
+      }
     },
     {
       "id": "permitted_introduction_kinds",
@@ -2147,7 +4340,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "permitted_introduction_kinds"
+        ]
+      }
     },
     {
       "id": "policy_type",
@@ -2159,7 +4358,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "policy_type"
+        ]
+      }
     },
     {
       "id": "principal_did",
@@ -2171,7 +4376,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID."
+      "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "principal_did"
+        ]
+      }
     },
     {
       "id": "profile_tiers",
@@ -2183,7 +4394,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "profile_tiers"
+        ]
+      }
     },
     {
       "id": "proposal_morph_type",
@@ -2195,7 +4412,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "proposal_morph_type"
+        ]
+      }
     },
     {
       "id": "purpose_class",
@@ -2207,7 +4430,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "purpose_class"
+        ]
+      }
     },
     {
       "id": "purpose_classes",
@@ -2219,7 +4448,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "purpose_classes"
+        ]
+      }
     },
     {
       "id": "queue_item_id",
@@ -2231,7 +4466,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Moderation queue item's own typed identifier uses the common id field."
+      "notes": "Moderation queue item's own typed identifier uses the common id field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "queue_item_id"
+        ]
+      }
     },
     {
       "id": "quorum_size",
@@ -2243,7 +4484,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "quorum_size"
+        ]
+      }
     },
     {
       "id": "range_request_same_error_class",
@@ -2255,7 +4502,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "range_request_same_error_class"
+        ]
+      }
     },
     {
       "id": "realm_alias",
@@ -2267,7 +4520,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Prefixed spelling of the forbidden Realm lifecycle alias field. The ak.realm.alias declaration payload field is named alias; there is no realm_alias wire field on any Event payload."
+      "notes": "Prefixed spelling of the forbidden Realm lifecycle alias field. The ak.realm.alias declaration payload field is named alias; there is no realm_alias wire field on any Event payload.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "realm_alias"
+        ]
+      }
     },
     {
       "id": "receipt_type",
@@ -2279,7 +4538,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "receipt_type"
+        ]
+      }
     },
     {
       "id": "recipient_service_type",
@@ -2291,11 +4556,17 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "recipient_service_type"
+        ]
+      }
     },
     {
       "id": "recovery transcript type",
-      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "context": "recovery_transcript",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
       "replacement": "schema",
@@ -2303,7 +4574,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "type"
+        ]
+      }
     },
     {
       "id": "recovery_authority_ticket",
@@ -2315,7 +4592,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut."
+      "notes": "Removed from current v1 by the PCR genesis clean cut.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "recovery_authority_ticket"
+        ]
+      }
     },
     {
       "id": "rejected_input_classes",
@@ -2327,7 +4610,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "rejected_input_classes"
+        ]
+      }
     },
     {
       "id": "rejection_code",
@@ -2339,7 +4628,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "rejection_code"
+        ]
+      }
     },
     {
       "id": "requested_source_class",
@@ -2351,7 +4646,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requested_source_class"
+        ]
+      }
     },
     {
       "id": "requester",
@@ -2363,7 +4664,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "MIMI consent request body bare `requester` renamed to requester_id (did_id_suffix rule: protocol responsibility subjects use the _id suffix even when the value is a DID). Scoped to the mimi_request_consent_request_body context (mimi-operations.schema.json); `requester` remains in use on other interop request bodies (key material, identifier query, proxy download) and as a prose noun — literal scanners MUST NOT flag every `requester` token."
+      "notes": "MIMI consent request body bare `requester` renamed to requester_id (did_id_suffix rule: protocol responsibility subjects use the _id suffix even when the value is a DID). Scoped to the mimi_request_consent_request_body context (mimi-operations.schema.json); `requester` remains in use on other interop request bodies (key material, identifier query, proxy download) and as a prose noun — literal scanners MUST NOT flag every `requester` token.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requester"
+        ]
+      }
     },
     {
       "id": "require_audit_trail",
@@ -2375,7 +4682,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "require_audit_trail"
+        ]
+      }
     },
     {
       "id": "require_consent",
@@ -2387,7 +4700,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "R1 forbids the require_ prefix for obligation booleans. This spelling escaped the earlier requires_consent entry by one character."
+      "notes": "R1 forbids the require_ prefix for obligation booleans. This spelling escaped the earlier requires_consent entry by one character.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "require_consent"
+        ]
+      }
     },
     {
       "id": "require_key_backup",
@@ -2399,7 +4718,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "require_key_backup"
+        ]
+      }
     },
     {
       "id": "require_parent_reference",
@@ -2411,7 +4736,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Every capability grant MUST carry non-empty typed issuer_authority_refs; 'require_parent_reference' is forbidden."
+      "notes": "Every capability grant MUST carry non-empty typed issuer_authority_refs; 'require_parent_reference' is forbidden.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "require_parent_reference"
+        ]
+      }
     },
     {
       "id": "require_scope_ref",
@@ -2423,7 +4754,14 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The child_scope_policy discriminator now names the concrete field it requires: scope_circle_id."
+      "notes": "The child_scope_policy discriminator now names the concrete field it requires: scope_circle_id.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "require_scope_ref"
+        ],
+        "value_pointer": "/kind"
+      }
     },
     {
       "id": "required_constraint_subtypes",
@@ -2435,7 +4773,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "required_constraint_subtypes"
+        ]
+      }
     },
     {
       "id": "required_constraint_types",
@@ -2447,7 +4791,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "required_constraint_types"
+        ]
+      }
     },
     {
       "id": "requires_claims",
@@ -2459,7 +4809,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requires_claims"
+        ]
+      }
     },
     {
       "id": "requires_consent",
@@ -2471,7 +4827,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requires_consent"
+        ]
+      }
     },
     {
       "id": "requires_frank_verification",
@@ -2483,7 +4845,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Moderation evidence policy fields use the full franking_proof noun."
+      "notes": "Moderation evidence policy fields use the full franking_proof noun.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requires_frank_verification"
+        ]
+      }
     },
     {
       "id": "requires_franking_proof_verification",
@@ -2495,7 +4863,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requires_franking_proof_verification"
+        ]
+      }
     },
     {
       "id": "requires_fresh_authentication",
@@ -2507,7 +4881,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "R1 forbids the requires_ prefix for obligation booleans."
+      "notes": "R1 forbids the requires_ prefix for obligation booleans.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requires_fresh_authentication"
+        ]
+      }
     },
     {
       "id": "requires_human_review",
@@ -2519,7 +4899,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requires_human_review"
+        ]
+      }
     },
     {
       "id": "requires_mls_join",
@@ -2531,7 +4917,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requires_mls_join"
+        ]
+      }
     },
     {
       "id": "resource_type",
@@ -2543,7 +4935,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "resource_type"
+        ]
+      }
     },
     {
       "id": "resource_types",
@@ -2555,7 +4953,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "resource_types"
+        ]
+      }
     },
     {
       "id": "retention_policy",
@@ -2567,7 +4971,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Realm-level retention has exactly one wire carrier: Realm.retention_policy_id referencing an ak:policy: Policy object with policy_kind=retention (written via ak.policy.set). An inline retention_policy object at payload top level, on payload.object, or in a Realm patch is not a registered carrier and MUST be rejected; deployment admin-plane retention configuration is local operations tooling, not a protocol object, and never enters Event history. See zh/models/realm-and-space.md §2.3."
+      "notes": "Realm-level retention has exactly one wire carrier: Realm.retention_policy_id referencing an ak:policy: Policy object with policy_kind=retention (written via ak.policy.set). An inline retention_policy object at payload top level, on payload.object, or in a Realm patch is not a registered carrier and MUST be rejected; deployment admin-plane retention configuration is local operations tooling, not a protocol object, and never enters Event history. See zh/models/realm-and-space.md §2.3.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "retention_policy"
+        ]
+      }
     },
     {
       "id": "retention_until",
@@ -2579,7 +4989,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Retention time upper bounds use the canonical expires_at suffix."
+      "notes": "Retention time upper bounds use the canonical expires_at suffix.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "retention_until"
+        ]
+      }
     },
     {
       "id": "revision_root",
@@ -2591,7 +5007,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "ak.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ak.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/strand-and-message.md §9."
+      "notes": "ak.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ak.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/strand-and-message.md §9.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "revision_root"
+        ]
+      }
     },
     {
       "id": "risk_class",
@@ -2603,7 +5025,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "risk_class"
+        ]
+      }
     },
     {
       "id": "room_kind",
@@ -2616,7 +5044,13 @@
         "interop_module",
         "negative_test"
       ],
-      "notes": "Realm is the v1 boundary. 'room_kind' MUST NOT appear on the wire outside an explicit MIMI / Matrix interop module."
+      "notes": "Realm is the v1 boundary. 'room_kind' MUST NOT appear on the wire outside an explicit MIMI / Matrix interop module.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "room_kind"
+        ]
+      }
     },
     {
       "id": "root_hash",
@@ -2628,7 +5062,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "root_hash"
+        ]
+      }
     },
     {
       "id": "same_timing_class",
@@ -2640,7 +5080,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "same_timing_class"
+        ]
+      }
     },
     {
       "id": "security_class",
@@ -2652,7 +5098,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Space is a container, not a security boundary. A space-create / space-update payload carrying Realm-level security_class MUST be rejected; security_class belongs on Realm payload fields."
+      "notes": "Space is a container, not a security boundary. A space-create / space-update payload carrying Realm-level security_class MUST be rejected; security_class belongs on Realm payload fields.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "security_class"
+        ]
+      }
     },
     {
       "id": "segment_size",
@@ -2664,7 +5116,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "segment_size"
+        ]
+      }
     },
     {
       "id": "sender",
@@ -2676,7 +5134,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Sender identity fields must carry the role and id suffix explicitly."
+      "notes": "Sender identity fields must carry the role and id suffix explicitly.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "sender"
+        ]
+      }
     },
     {
       "id": "sender_display_name",
@@ -2688,7 +5152,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Sender display names in projections carry the sender_actor role prefix."
+      "notes": "Sender display names in projections carry the sender_actor role prefix.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "sender_display_name"
+        ]
+      }
     },
     {
       "id": "serviceType",
@@ -2700,7 +5170,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "serviceType"
+        ]
+      }
     },
     {
       "id": "service_type",
@@ -2712,7 +5188,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "service_type"
+        ]
+      }
     },
     {
       "id": "service_types",
@@ -2724,7 +5206,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "service_types"
+        ]
+      }
     },
     {
       "id": "sha256",
@@ -2736,7 +5224,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Snapshot chunk descriptors use digest with an algorithm prefix."
+      "notes": "Snapshot chunk descriptors use digest with an algorithm prefix.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "sha256"
+        ]
+      }
     },
     {
       "id": "sha256",
@@ -2748,7 +5242,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Blob metadata uses content_digest with an algorithm prefix. Content-addressed blob_ref values may still use ak:blob:sha256:<hex>."
+      "notes": "Blob metadata uses content_digest with an algorithm prefix. Content-addressed blob_ref values may still use ak:blob:sha256:<hex>.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "sha256"
+        ]
+      }
     },
     {
       "id": "share_class",
@@ -2760,7 +5260,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "share_class"
+        ]
+      }
     },
     {
       "id": "sidecar_exchange_binding",
@@ -2772,7 +5278,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The Agent Sidecar exchange binding (ak.schema.agent_sidecar_event_exchange_binding.v1), exchange control plaintext (ak.schema.agent_sidecar_exchange_control.v1), and exchange_id are legal only inside MLS-encrypted payload/metadata of events whose effective scope is the native Sidecar. They MUST NOT appear in plaintext metadata, account-data keys, shared Realm/Circle event payloads, publish output, push previews, notifications, telemetry, or any other shared/public surface. Shared-wire-visible occurrences are schema_violation; material decrypted from a non-Sidecar scope is invalid and never rendered or folded. See zh/models/sidecar.md §7.2."
+      "notes": "The Agent Sidecar exchange binding (ak.schema.agent_sidecar_event_exchange_binding.v1), exchange control plaintext (ak.schema.agent_sidecar_exchange_control.v1), and exchange_id are legal only inside MLS-encrypted payload/metadata of events whose effective scope is the native Sidecar. They MUST NOT appear in plaintext metadata, account-data keys, shared Realm/Circle event payloads, publish output, push previews, notifications, telemetry, or any other shared/public surface. Shared-wire-visible occurrences are schema_violation; material decrypted from a non-Sidecar scope is invalid and never rendered or folded. See zh/models/sidecar.md §7.2.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "sidecar_exchange_binding"
+        ]
+      }
     },
     {
       "id": "signal_type",
@@ -2784,7 +5296,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "signal_type"
+        ]
+      }
     },
     {
       "id": "signature_alg",
@@ -2796,7 +5314,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Custom signature algorithm selector fields use the full _algorithm suffix."
+      "notes": "Custom signature algorithm selector fields use the full _algorithm suffix.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "signature_alg"
+        ]
+      }
     },
     {
       "id": "signed_by",
@@ -2808,7 +5332,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Proof signer key material is expressed as verification_method."
+      "notes": "Proof signer key material is expressed as verification_method.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "signed_by"
+        ]
+      }
     },
     {
       "id": "signed_payload_hash",
@@ -2820,7 +5350,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Federation verification payloads use the v1 hash vocabulary: digest fields end in _digest and values use <algo>:<lowercase_hex>."
+      "notes": "Federation verification payloads use the v1 hash vocabulary: digest fields end in _digest and values use <algo>:<lowercase_hex>.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "signed_payload_hash"
+        ]
+      }
     },
     {
       "id": "size",
@@ -2832,7 +5368,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Blob upload request and response byte counts use size_bytes; bare size is not a byte-count field name in v1."
+      "notes": "Blob upload request and response byte counts use size_bytes; bare size is not a byte-count field name in v1.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "size"
+        ]
+      }
     },
     {
       "id": "source_capability",
@@ -2844,7 +5386,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "A capability grant names all issuer authority through typed issuer_authority_refs."
+      "notes": "A capability grant names all issuer authority through typed issuer_authority_refs.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "source_capability"
+        ]
+      }
     },
     {
       "id": "space_bound",
@@ -2856,7 +5404,14 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Media visibility is aligned with Realm / Circle scope; Space is not a security boundary."
+      "notes": "Media visibility is aligned with Realm / Circle scope; Space is not a security boundary.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "space_bound"
+        ],
+        "value_pointer": "/visibility"
+      }
     },
     {
       "id": "space_entry",
@@ -2868,7 +5423,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Account subscribe frames describe Realm sync entries."
+      "notes": "Account subscribe frames describe Realm sync entries.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "space_entry"
+        ]
+      }
     },
     {
       "id": "space_frontier",
@@ -2880,7 +5441,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Audit RYW receipt and POST /events response MUST use 'realm_frontier'. The replication and security boundary covered by this frontier is the Realm, not an in-Realm Space container. 'space_frontier' MUST NOT appear on the current wire as a frontier object property."
+      "notes": "Audit RYW receipt and POST /events response MUST use 'realm_frontier'. The replication and security boundary covered by this frontier is the Realm, not an in-Realm Space container. 'space_frontier' MUST NOT appear on the current wire as a frontier object property.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "space_frontier"
+        ]
+      }
     },
     {
       "id": "ssk_generation",
@@ -2892,7 +5459,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut."
+      "notes": "Removed from current v1 by the PCR genesis clean cut.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "ssk_generation"
+        ]
+      }
     },
     {
       "id": "stage",
@@ -2904,7 +5477,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The reserved stage field is limited to the protocol 8-value Strand/Morph progress axis."
+      "notes": "The reserved stage field is limited to the protocol 8-value Strand/Morph progress axis.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "stage"
+        ]
+      }
     },
     {
       "id": "stage",
@@ -2916,7 +5495,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The reserved stage field is limited to the protocol 8-value Strand/Morph progress axis."
+      "notes": "The reserved stage field is limited to the protocol 8-value Strand/Morph progress axis.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "stage"
+        ]
+      }
     },
     {
       "id": "subject_did",
@@ -2928,7 +5513,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID."
+      "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "subject_did"
+        ]
+      }
     },
     {
       "id": "subtype",
@@ -2940,7 +5531,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "subtype"
+        ]
+      }
     },
     {
       "id": "summary",
@@ -2952,11 +5549,17 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Strand and Morph user-readable summary is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
+      "notes": "Strand and Morph user-readable summary is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "summary"
+        ]
+      }
     },
     {
       "id": "surface group tier",
-      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "context": "artifact_surface_group",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
       "replacement": "surface_class",
@@ -2964,7 +5567,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "tier"
+        ]
+      }
     },
     {
       "id": "thumbnail_ref",
@@ -2976,7 +5585,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Blob metadata thumbnail references use _blob_ref."
+      "notes": "Blob metadata thumbnail references use _blob_ref.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "thumbnail_ref"
+        ]
+      }
     },
     {
       "id": "title",
@@ -2988,7 +5603,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Strand and Morph user-readable title is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
+      "notes": "Strand and Morph user-readable title is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "title"
+        ]
+      }
     },
     {
       "id": "to_tree_size",
@@ -3000,7 +5621,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "to_tree_size"
+        ]
+      }
     },
     {
       "id": "to_type",
@@ -3012,7 +5639,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "to_type"
+        ]
+      }
     },
     {
       "id": "track",
@@ -3024,7 +5657,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Wire fields that carry one concrete Strand.tracks map key use `track_name`. The plural `tracks` map and `allowed_tracks` capability constraint remain valid collection names."
+      "notes": "Wire fields that carry one concrete Strand.tracks map key use `track_name`. The plural `tracks` map and `allowed_tracks` capability constraint remain valid collection names.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "track"
+        ]
+      }
     },
     {
       "id": "track_name",
@@ -3036,7 +5675,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "track_name is a payload-only field of message_create_payload. The materialized Message resolves its track through the referenced Strand, so a copy on the object would be a second truth source for a value that is const discussion in v1. Consumers derive it with the table in zh/discovery/push-notifications.md 4.3.1. See zh/models/strand-and-message.md 9.1."
+      "notes": "track_name is a payload-only field of message_create_payload. The materialized Message resolves its track through the referenced Strand, so a copy on the object would be a second truth source for a value that is const discussion in v1. Consumers derive it with the table in zh/discovery/push-notifications.md 4.3.1. See zh/models/strand-and-message.md 9.1.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "track_name"
+        ]
+      }
     },
     {
       "id": "tree_size",
@@ -3048,7 +5693,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "tree_size"
+        ]
+      }
     },
     {
       "id": "type_restriction",
@@ -3060,7 +5711,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "type_restriction"
+        ]
+      }
     },
     {
       "id": "valid_from",
@@ -3072,7 +5729,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Validity lower bounds use not_before. Current writers MUST NOT emit valid_from."
+      "notes": "Validity lower bounds use not_before. Current writers MUST NOT emit valid_from.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "valid_from"
+        ]
+      }
     },
     {
       "id": "valid_until",
@@ -3084,7 +5747,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Validity upper bounds use expires_at. Current writers MUST NOT emit valid_until."
+      "notes": "Validity upper bounds use expires_at. Current writers MUST NOT emit valid_until.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "valid_until"
+        ]
+      }
     },
     {
       "id": "verified_principal_type",
@@ -3096,7 +5765,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "verified_principal_type"
+        ]
+      }
     },
     {
       "id": "via",
@@ -3107,7 +5782,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Membership has no embedded delivery-routing list. Delivery targets are derived from effective joined ActorIds; no replacement field exists."
+      "notes": "Membership has no embedded delivery-routing list. Delivery targets are derived from effective joined ActorIds; no replacement field exists.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "via"
+        ]
+      }
     },
     {
       "id": "via_ids",
@@ -3118,7 +5799,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Membership has no embedded delivery-routing list. Delivery targets are derived from effective joined ActorIds; no replacement field exists."
+      "notes": "Membership has no embedded delivery-routing list. Delivery targets are derived from effective joined ActorIds; no replacement field exists.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "via_ids"
+        ]
+      }
     },
     {
       "id": "webhook_auth.type",
@@ -3130,7 +5817,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "match": {
+        "kind": "path",
+        "values": [
+          "webhook_auth.type"
+        ]
+      }
     },
     {
       "id": "ok",
@@ -3142,8 +5835,13 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Arkret v1 HTTP success bodies use operation-specific semantics; HTTP failures use RFC 9457 Problem Details. A generic ok discriminator is forbidden in either response shape."
+      "notes": "Arkret v1 HTTP success bodies use operation-specific semantics; HTTP failures use RFC 9457 Problem Details. A generic ok discriminator is forbidden in either response shape.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "ok"
+        ]
+      }
     }
-  ],
-  "generated_at": "2026-09-04T16:40:00Z"
+  ]
 }

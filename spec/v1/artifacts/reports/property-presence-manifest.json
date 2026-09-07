@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9898,
+    "total_properties": 9895,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2707,
+      "optional": 2708,
       "optional_defaulted": 65,
-      "required": 6789,
+      "required": 6785,
       "required_nullable": 126,
       "tristate": 211
     },
@@ -12281,6 +12281,8 @@
         "/$defs/CallMediaTokenExchangeRequestBody/properties/realm_id": "required",
         "/$defs/CollisionVariantRecordSelector/properties/collision_variant_record_id": "required",
         "/$defs/CollisionVariantRecordSelector/properties/kind": "required",
+        "/$defs/ControlGovernanceHealth/allOf/0/if/properties/pending_proposals_complete": "required",
+        "/$defs/ControlGovernanceHealth/allOf/0/then/properties/status": "optional",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals": "required",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals/items/allOf/0/if/properties/decision_state": "optional",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals/items/properties/control_proposal_ack": "required",
@@ -12288,12 +12290,7 @@
         "/$defs/ControlGovernanceHealth/properties/pending_proposals/items/properties/decisions": "required",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals/items/properties/device_revocation_state": "optional",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals/items/properties/fault_reason": "optional",
-        "/$defs/ControlGovernanceHealth/properties/retained_faults": "required",
-        "/$defs/ControlGovernanceHealth/properties/retained_faults/items/properties/accepted_at": "required",
-        "/$defs/ControlGovernanceHealth/properties/retained_faults/items/properties/accepted_seal_id": "required",
-        "/$defs/ControlGovernanceHealth/properties/retained_faults/items/properties/control_proposal_ack": "required",
-        "/$defs/ControlGovernanceHealth/properties/retained_faults/items/properties/decisions": "required",
-        "/$defs/ControlGovernanceHealth/properties/retained_faults/items/properties/fault_reason": "required",
+        "/$defs/ControlGovernanceHealth/properties/pending_proposals_complete": "required",
         "/$defs/ControlGovernanceHealth/properties/status": "required",
         "/$defs/DeviceMessageDeliveredResult/properties/device_message_id": "required",
         "/$defs/DeviceMessageDeliveredResult/properties/status": "required",

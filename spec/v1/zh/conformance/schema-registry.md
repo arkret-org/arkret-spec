@@ -311,3 +311,24 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 - 新增条目 MUST 以 `active`（或 `profile_extension`）登记进 canonical 真源（generated registry 一律经 `contract-registry.json` → pipeline 再生成，见 §1）。
 - schema registry 只包含当前标准面的条目；v1 不含 deprecated schema row、alias 或解析分支。
   历史快照不属于当前 schema registry 的输入，消费者 MUST 只接受当前 registry 声明的 shape。
+
+### 6.2 禁字段的机读上下文（normative）
+
+`forbidden-wire-fields.json` 的 `context_definitions`、`context_matching` 与每条 entry 的
+`match` 是唯一匹配合同。context 选择先于禁字段匹配：以调用面的已知文档类别、owning schema
+引用和实例 JSON Pointer 域选中规则，再按登记的 match_scope 执行；不得在实现中维护另一份
+context 名称到 Event kind 的手写映射。Event payload 的 owning schema 只从 event-kind registry
+的 `payload_schema_ref` 取得。嵌套 typed instance 由 owning schema 确认，不能因为一个对象碰巧
+含 `kind`、`schema` 或 `track_name` 就猜其类型。
+
+root 字段路径只相对于该实例根；descendants 才允许在子对象重复匹配。`match` 明确区分字段、
+路径、patch 路径和标量值；entry id 是审计标识，不是供 consumer 猜测的 DSL。未定义 context、
+不可解析 schema 引用、未知 matcher 均使 artifact 门禁失败。引用类 allowed_contexts 不能豁免
+任何真实提交的 wire 数据。
+
+`patch` scope 显式将 owning create context 的字段／路径规则应用于该更新实例的 canonical patch
+映射，包括 direct value、显式 set/add 与祖先替换中的剩余路径；不是按字段名猜测 create 类型。
+
+`track_name/message` 只禁止物化 Message 对象复制 track；`ak.message.create` payload 的
+`track_name` 仍是必填签名事实。Message 中不相关嵌套用户字段不得被根字段规则误拒。对象整体
+替换和 patch set 的嵌套值仍按其 owning create context 检查，不能通过替换祖先逃过禁字段。
