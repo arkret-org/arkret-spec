@@ -159,9 +159,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 42,
-      "generated_at": "2026-09-07T07:12:22Z",
-      "content_digest": "sha256:029c8099d458300c88aaeed4bea7d045761613421f2ca902c6fb8e386d5204a2"
+      "version": 43,
+      "generated_at": "2026-09-07T17:56:10+08:00",
+      "content_digest": "sha256:cabeb83207d1373815aba3609c798fcfa7463a844e569b4df27dfbc894086de6"
     },
     {
       "path": "spec/v1/artifacts/registry/history-key-canonical-binding-registry.json",
