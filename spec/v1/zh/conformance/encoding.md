@@ -1047,6 +1047,10 @@ nonce = I2OSP(durable_sender_counter, AEAD.Nn)
 ```
 
 `counter` 是 exporter `encryption_context` 内唯一 wire carrier；nonce 不上 wire。Producer 必须用原子 CAS 耐久预留、只增不减；
+该 carrier 是 JSON integer，范围 **MUST** 为 `0..9007199254740991`（含端点），遵循 §1 的 canonical number 规则；
+`encryption_context.epoch` 同样不得超出该范围。`full-width nonce` 指 `I2OSP` 输出的 `AEAD.Nn` 字节宽度，
+不允许扩大 JSON integer 范围，也不允许在 v1 中接受 decimal-string counter 作为兼容分支。
+当下一 counter 超出该范围时，producer **MUST** 先推进 epoch；不得签出无法 canonicalize 的 envelope。
 崩溃可留下 gap。回退、丢失、耗尽或无法证明下一值未使用时必须先推进 epoch，不得 random fallback。Receiver 从 exact
 historical active leaf 取得 sender domain，重算 full-width nonce，并耐久保存
 `(mls_group_id,epoch,sender_domain,counter)->EventId/ciphertext digest`。相同 Event 折叠；同 tuple 的不同 Event/digest

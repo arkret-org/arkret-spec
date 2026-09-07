@@ -85,7 +85,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 6
+        "did_core_id": 7
       },
       "reason": "Contact continuity signs as an exact actor; general proof evidence binds the stable DID core."
     },
@@ -2025,6 +2025,26 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_signer_evidence/properties/signer_id",
+      "property_name": "signer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_signer_evidence/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
       ]
     },
     {

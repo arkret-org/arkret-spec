@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 372,
+  "audited_occurrence_count": 376,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -108,10 +108,15 @@
     },
     {
       "file": "agent-signer-evidence.schema.json",
-      "key": "producer_signer_resolution_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Content-addressed locator paired with the exact producer signer-evidence digest."
+      "key": "agent_authority_state_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed composite of one Agent's authority state view and the authority-signed lease over its digest. The state itself spans more than two material families before the lease is counted: a signing key binding, a capability authorization, a key state witness, a key transition witness, an Agent lifecycle witness and the Seal lineage closure that ties them to one frontier."
     },
     {
       "file": "agent-signer-evidence.schema.json",
@@ -139,15 +144,10 @@
     },
     {
       "file": "agent-signer-evidence.schema.json",
-      "key": "agent_authority_state_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Closed composite of one Agent's authority state view and the authority-signed lease over its digest. The state itself spans more than two material families before the lease is counted: a signing key binding, a capability authorization, a key state witness, a key transition witness, an Agent lifecycle witness and the Seal lineage closure that ties them to one frontier."
+      "key": "producer_signer_resolution_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Content-addressed locator paired with the exact producer signer-evidence digest."
     },
     {
       "file": "applet-install-authoring.schema.json",
@@ -196,6 +196,17 @@
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "account_device_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Retains the signed origin Station device projection with its Service attester closure for ordinary-human history response verification.",
+      "material_families": [
+        "proof",
+        "attestation"
+      ]
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "agent_signer_evidence",
       "occurrences": 2,
       "disposition": "polymorphic_container",
@@ -206,20 +217,9 @@
       "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
     },
     {
-      "file": "moderation-evidence.schema.json",
-      "key": "service_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Returns the historical registered service signer evidence needed to verify the receiving-service franking signature at received_at."
-    },
-    {
       "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "attester_signer_evidence_ref",
-      "occurrences": 2,
+      "occurrences": 3,
       "disposition": "qualifier",
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
@@ -331,10 +331,10 @@
     },
     {
       "file": "contract-registry.json",
-      "key": "evidence_class",
-      "occurrences": 17,
+      "key": "deployment_evidence",
+      "occurrences": 36,
       "disposition": "registry_contract",
-      "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
+      "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
     {
       "file": "contract-registry.json",
@@ -345,10 +345,24 @@
     },
     {
       "file": "contract-registry.json",
-      "key": "route_evidence",
-      "occurrences": 9,
+      "key": "evidence_class",
+      "occurrences": 17,
       "disposition": "registry_contract",
-      "reason": "Names the already-authenticated carrier or route coordinate required before a stable core may enter a registered resolution boundary; it carries no evidence instance."
+      "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "evidence_kind",
+      "occurrences": 5,
+      "disposition": "qualifier",
+      "reason": "Classifies the registered deployment prototype evidence source without carrying evidence material itself."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "evidence_ref",
+      "occurrences": 5,
+      "disposition": "registry_contract",
+      "reason": "Stable reference to the implementation source location used to audit a deployment support vector."
     },
     {
       "file": "contract-registry.json",
@@ -377,6 +391,13 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Names the authorized account-internal resolution audit evaluator contract; it does not carry an evidence instance."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "route_evidence",
+      "occurrences": 9,
+      "disposition": "registry_contract",
+      "reason": "Names the already-authenticated carrier or route coordinate required before a stable core may enter a registered resolution boundary; it carries no evidence instance."
     },
     {
       "file": "current-signer-evidence-operations.schema.json",
@@ -438,6 +459,13 @@
       "reason": "Plural response collection whose items are the closed account-device or Agent current-evidence branches."
     },
     {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Locates the immutable historical signer evidence containing this exact device attestation."
+    },
+    {
       "file": "did-binding-contracts.schema.json",
       "key": "evidence_dependencies",
       "occurrences": 1,
@@ -467,18 +495,18 @@
       "reason": "did:webvh method proof row inside the evidence receipt: witness attestations (witness set sorted by witness_did plus the canonical witness proof set digest) and the verified log head commitment."
     },
     {
-      "file": "did-freshness-profile-registry.json",
-      "key": "evidence_class",
-      "occurrences": 23,
-      "disposition": "registry_contract",
-      "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
-    },
-    {
       "file": "did-evidence-boundary-registry.json",
       "key": "route_evidence",
       "occurrences": 9,
       "disposition": "registry_contract",
       "reason": "Generated view of the closed route-coordinate requirement for each DID evidence boundary; it carries no evidence instance."
+    },
+    {
+      "file": "did-freshness-profile-registry.json",
+      "key": "evidence_class",
+      "occurrences": 23,
+      "disposition": "registry_contract",
+      "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
     },
     {
       "file": "did-freshness-profile-registry.json",
@@ -612,6 +640,17 @@
     },
     {
       "file": "event-payload.schema.json",
+      "key": "conflict_evidence",
+      "occurrences": 3,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "commitment",
+        "transcript"
+      ],
+      "reason": "Closed union over two registered material families: committed verified sibling identity sets re-evaluated against a registered cell family lattice, and complete canonical Event variant transcripts carried inline or by collision-variant record reference."
+    },
+    {
+      "file": "event-payload.schema.json",
       "key": "did_root_evidence_digest",
       "occurrences": 1,
       "disposition": "qualifier",
@@ -686,6 +725,20 @@
         "transcript"
       ],
       "reason": "The signed Applet registration Event manifest carries the single method-native registration-time identity transcript and its accepted key commitments."
+    },
+    {
+      "file": "forbidden-wire-fields.json",
+      "key": "attestation_evidence",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Context vocabulary key selects an owning schema and instance domain; it is not a wire evidence carrier."
+    },
+    {
+      "file": "forbidden-wire-fields.json",
+      "key": "moderation_queue_item.evidence_policy",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Context vocabulary key selects an owning schema and instance domain; it is not a wire evidence carrier."
     },
     {
       "file": "history-key-canonical-binding-registry.json",
@@ -910,6 +963,13 @@
       "reason": "Names a digest of the heterogeneous introduction evidence container, not a material instance."
     },
     {
+      "file": "keys-operations.schema.json",
+      "key": "signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Locates the immutable historical signer evidence containing this exact device attestation."
+    },
+    {
       "file": "moderation-evidence.schema.json",
       "key": "evidence_package",
       "occurrences": 1,
@@ -920,6 +980,17 @@
         "receipt"
       ],
       "reason": "The closed encrypted package may contain content proofs, witness attestations, and handling receipts while binding the exact target, moderator key, ciphertext digest and reporter signature."
+    },
+    {
+      "file": "moderation-evidence.schema.json",
+      "key": "service_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Returns the historical registered service signer evidence needed to verify the receiving-service franking signature at received_at."
     },
     {
       "file": "moderation-queue-item.schema.json",
@@ -951,10 +1022,31 @@
     },
     {
       "file": "operation-registry.json",
+      "key": "deployment_evidence",
+      "occurrences": 36,
+      "disposition": "registry_contract",
+      "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
+    },
+    {
+      "file": "operation-registry.json",
       "key": "evidence_class",
       "occurrences": 13,
       "disposition": "registry_contract",
       "reason": "Generated exact DID-authority call-site classification for registered operations."
+    },
+    {
+      "file": "operation-registry.json",
+      "key": "evidence_kind",
+      "occurrences": 5,
+      "disposition": "qualifier",
+      "reason": "Generated deployment-prototype evidence classification."
+    },
+    {
+      "file": "operation-registry.json",
+      "key": "evidence_ref",
+      "occurrences": 5,
+      "disposition": "registry_contract",
+      "reason": "Generated stable source reference for deployment support-vector audit."
     },
     {
       "file": "principal-operations.schema.json",
@@ -1074,18 +1166,6 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "key": "method_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "DID methods may return history commitments, verification proofs, and witness attestations."
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
       "key": "membership_compensation_evidence",
       "occurrences": 2,
       "disposition": "polymorphic_container",
@@ -1095,6 +1175,18 @@
         "commitment"
       ],
       "reason": "Carries the closed delegation signature, accepted-join attestation, terminal certificate and destination-bound single-use commitment required to validate one compensation submission."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "method_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "DID methods may return history commitments, verification proofs, and witness attestations."
     },
     {
       "file": "service-operation-dtos.schema.json",
@@ -1113,73 +1205,6 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Selects material families from a heterogeneous evidence response."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "deployment_evidence",
-      "occurrences": 36,
-      "disposition": "registry_contract",
-      "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "evidence_kind",
-      "occurrences": 5,
-      "disposition": "qualifier",
-      "reason": "Classifies the registered deployment prototype evidence source without carrying evidence material itself."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "evidence_ref",
-      "occurrences": 5,
-      "disposition": "registry_contract",
-      "reason": "Stable reference to the implementation source location used to audit a deployment support vector."
-    },
-    {
-      "file": "operation-registry.json",
-      "key": "deployment_evidence",
-      "occurrences": 36,
-      "disposition": "registry_contract",
-      "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
-    },
-    {
-      "file": "operation-registry.json",
-      "key": "evidence_kind",
-      "occurrences": 5,
-      "disposition": "qualifier",
-      "reason": "Generated deployment-prototype evidence classification."
-    },
-    {
-      "file": "operation-registry.json",
-      "key": "evidence_ref",
-      "occurrences": 5,
-      "disposition": "registry_contract",
-      "reason": "Generated stable source reference for deployment support-vector audit."
-    },
-    {
-      "file": "event-payload.schema.json",
-      "key": "conflict_evidence",
-      "occurrences": 3,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "commitment",
-        "transcript"
-      ],
-      "reason": "Closed union over two registered material families: committed verified sibling identity sets re-evaluated against a registered cell family lattice, and complete canonical Event variant transcripts carried inline or by collision-variant record reference."
-    },
-    {
-      "file": "forbidden-wire-fields.json",
-      "key": "attestation_evidence",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Context vocabulary key selects an owning schema and instance domain; it is not a wire evidence carrier."
-    },
-    {
-      "file": "forbidden-wire-fields.json",
-      "key": "moderation_queue_item.evidence_policy",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Context vocabulary key selects an owning schema and instance domain; it is not a wire evidence carrier."
     }
   ]
 }

@@ -604,8 +604,14 @@ binding 尚不存在时普通 DM participant authority 未激活，因此 **MUST
 **MUST** 恰好配一条 critical `refs[role=direct_conversation_founding_unit]` 指向该 unit 的 accepted
 `ak.realm.create`；binding 尚不存在，因此该阶段 **MUST NOT** 使用 `direct_conversation_binding` ref role 或
 `ak.authority.direct_conversation_participant.v1`。phase 由 verifier 从 accepted facts 重算，producer 不得在 wire
-上声明。首个合法 binding endorsement accepted 后两 phase **MUST** 永久退出，后续动作只走
+上声明。首个合法 binding endorsement accepted 后两 phase **MUST** 永久退出，后续业务动作只走
 `ak.authority.direct_conversation_participant.v1`。
+
+该退出规则不把 §8.3 的等价背书变成冲突：针对已成立的同一 `binding_digest`，验证方仍 **MUST**
+按原 founding completion 证据检查并接纳兼容 endorsement，包括并发提交的后到者与同 participant 的重复背书。
+这只是既有 binding 的证明累积，不重新激活 bootstrap phase，也不赋予 Message、MLS 写或新 binding 的权限；
+任一语义字段改变的 endorsement **MUST** 在 effect projection 前拒绝。背书继续携原 registered bootstrap
+source 与 exact founding-unit ref，不得为重复背书发明新的 authority source 或兼容 wire 分支。
 
 ### 7.3 唯一 group 与 repair
 
@@ -645,9 +651,9 @@ canonical DM Realm **MUST** 拒绝 `ak.realm.destroy` 与任何 `ak.realm.tombst
 
 ### 8.3 binding 与日常 authority
 
-`ak.direct_conversation.bound` **MUST NOT** 承担阻止第二个 Realm 的职责——唯一性来自 §5.4 的 admission。它是 coordinates 与首次 exact-pair group state 的 participant 可见凭证，wire payload 绑定 `pair_key`、`participants_unordered[2]`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 `authorization_basis` 与 `initial_exact_pair_group_state_ref`。`binding_digest` 是下述内容的 receiver-derived semantic digest，**不是 wire 字段**。
+`ak.direct_conversation.bound` **MUST NOT** 承担阻止第二个 Realm 的职责——唯一性来自 §5.4 的 admission。它是 coordinates 与首次 exact-pair group state 的 participant 可见凭证，wire payload 绑定 `pair_key`、`unordered_participant_ids[2]`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 `authorization_basis` 与 `initial_exact_pair_group_state_ref`。`binding_digest` 是下述内容的 receiver-derived semantic digest，**不是 wire 字段**。
 
-receiver 先必须验证 payload 的每个字段与 accepted founding unit、唯一 main Strand、canonical authorization basis 及该 pair 唯一 group 的 exact-pair winning state 一致，再构造以下唯一 closed object。`p0/p1` 是 `participants_unordered` 中两个 exact `ActorId` 按 unsigned RFC 8785 JCS bytes 升序排列的结果；`e0/e1` 是 `authorization_basis.event_refs` 中两个 accepted Event ref 按 unsigned UTF-8 bytes 排序的结果。排序只用于此派生对象，**MUST NOT** 改写已签名 Event bytes。
+receiver 先必须验证 payload 的每个字段与 accepted founding unit、唯一 main Strand、canonical authorization basis 及该 pair 唯一 group 的 exact-pair winning state 一致，再构造以下唯一 closed object。`p0/p1` 是 wire `unordered_participant_ids` 中两个 exact `ActorId` 按 unsigned RFC 8785 JCS bytes 升序排列的结果；派生对象的字段名固定为 `participants_unordered`，不是 wire 别名。`e0/e1` 是 `authorization_basis.event_refs` 中两个 accepted Event ref 按 unsigned UTF-8 bytes 排序的结果。排序只用于此派生对象，**MUST NOT** 改写已签名 Event bytes。
 
 ```text
 binding_object = {
@@ -669,6 +675,16 @@ binding_digest = H("ak.direct-conversation.binding-digest.v1", binding_object)
 `H` 的精确定义见 §2：实际前像为 `UTF8("ak.direct-conversation.binding-digest.v1\n") || RFC8785_JCS(binding_object)`，结果为 `sha256:<lowercase-hex>`。`created_at`、Event envelope 的 author/proof 与 `binding_digest` 本身都不在 `binding_object` 中，因而不存在“先放入再排除”或自指前像。实现 **MUST** 执行 [`ak.vector.direct_conversation.binding_digest.v1`](../../artifacts/registry/vector-registry.json) 的逐字节 KAT，**MUST NOT** 使用无 domain 的 `SHA256(JCS(payload - created_at))`。
 
 binding cell **MUST** 为 `or_set`，contract concurrency class 为 `merge_safe`。core OR-Set 元素身份仍是 [`../models/event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 Event dot，registry 仍精确投影 `tag={dot:true}, value=payload`；`(binding_digest, envelope.actor_id)` 是 Direct Conversation 领域视图的 **endorsement identity / 去重键**，不是 core OR-Set tag，也不是 wire 字段。同一 participant 对同一 digest 的多条 Event 在领域视图只计一个 endorsement；双方对相同 semantic payload 并发签名是两个兼容 add，**MUST NOT** 产生 `⊥`；不同 digest **MUST** 在 effect projection 前拒绝并触发 `suspended` 诊断。`found` 至少需要一份合法 endorsement；部署 **MAY** 登记要求双方 endorsement 的更高 profile，但 base **MUST NOT** 因两人同时 endorse 而失败。
+
+**发送证据与展示引用（normative）。** `ak.direct_conversation.bound` 是 `sealed=true` 的 Control Move；
+仅存入 ingress 或出现在查询投影中不等于可授权。普通 participant Message 的唯一 critical
+`direct_conversation_binding` ref **MUST** 指向其 `seal_ref` 覆盖的一份合法 endorsement，且该 endorsement
+的 semantic `binding_digest` **MUST** 等于当前无冲突 binding。服务端在列表中选择的代表 Event ref
+不是额外的 authority head：**MUST NOT** 要求 Message 逐字引用该代表，也 **MUST NOT** 因后来出现另一份
+等价 endorsement 而否定先前已覆盖的引用。base 客户端 **MUST NOT** 等待所有可见 endorsement 被覆盖，
+或要求两方各一份确认；一份满足上述条件的证据即可。缺少覆盖时只等待相关 Control Seal，不改变坐标、
+不重建 group、不放松 current Contact、membership、endpoint 或 lifecycle gate。该规则不取代 §7.2
+尚未建立 binding 时的 provisional founder Message authority。
 
 binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 `mls_group_id` 或 consume receipt，也 **MUST NOT** 改变 membership、MLS、policy 或 Realm 坐标；若未来增加此类字段，**MUST** 拆为独立 `security_barrier` Move。
 

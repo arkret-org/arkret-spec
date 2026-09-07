@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.11",
+  "version": "2026-09-07.12",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T18:40:00+08:00",
+  "generated_at": "2026-09-07T21:45:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -225,6 +225,35 @@
       "When an Event is directly participant-authored, authorization_ref uses the source wire_ref and refs contains the registered binding_ref_role. When executed_by is present, authorization_ref continues to bind the delegated executor grant/delegation; the profile source is an independent conjunctive evaluator gate and is never replaced by that delegation."
     ],
     "sources": [
+      {
+        "authority_source_id": "ak.authority.direct_conversation_bootstrap_participant.v1",
+        "status": "active",
+        "profile": "ak.profile.direct_conversation_realm.v1",
+        "wire_ref": "ak.authority.direct_conversation_bootstrap_participant.v1",
+        "binding_event_kind": "ak.realm.create",
+        "binding_ref_role": "direct_conversation_founding_unit",
+        "action_allowlist": [
+          "ak.direct_conversation.bound",
+          "ak.message.create",
+          "ak.mls.commit",
+          "ak.mls.proposal",
+          "ak.mls.welcome"
+        ],
+        "activation_checks": [
+          "accepted_exact_four_event_founding_unit",
+          "no_accepted_binding_endorsement",
+          "unique_scope_derived_group_state_cross_binding_exact",
+          "current_signed_directional_contact_heads_gate_for_send_like_actions",
+          "verifier_derived_provisional_founder_or_exact_pair_completion_phase",
+          "exact_pair_completion_requires_recipient_durable_welcome",
+          "action_specific_endpoint_and_lifecycle_gates"
+        ],
+        "revocation_model": "permanent_exit_on_first_binding_endorsement",
+        "authority_generation_independent": true,
+        "grantable": false,
+        "delegated_event_rule": "conjunctive_with_executor_delegation",
+        "failure_mode": "fail_closed_or_dependency_pending"
+      },
       {
         "authority_source_id": "ak.authority.direct_conversation_participant.v1",
         "status": "active",

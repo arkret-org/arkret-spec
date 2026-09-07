@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9901,
+    "total_properties": 9908,
     "total_schema_documents": 167,
     "by_presence_class": {
       "optional": 2708,
       "optional_defaulted": 65,
-      "required": 6791,
+      "required": 6798,
       "required_nullable": 126,
       "tristate": 211
     },
@@ -3680,6 +3680,11 @@
         "ak.schema.authenticated_signer_resolution_evidence.v1"
       ],
       "properties": {
+        "/$defs/account_device_signer_evidence/properties/attester_signer_evidence_ref": "required",
+        "/$defs/account_device_signer_evidence/properties/device_projection_attestation": "required",
+        "/$defs/account_device_signer_evidence/properties/kind": "required",
+        "/$defs/account_device_signer_evidence/properties/signer_id": "required",
+        "/$defs/account_device_signer_evidence/properties/verification_method": "required",
         "/$defs/agent_signer_evidence/properties/account_authority_signer_evidence_ref": "required",
         "/$defs/agent_signer_evidence/properties/agent_signer_evidence": "required",
         "/$defs/agent_signer_evidence/properties/attester_signer_evidence_ref": "required",
@@ -4752,6 +4757,7 @@
         "/$defs/account_device_evidence/properties/device_id": "required",
         "/$defs/account_device_evidence/properties/device_projection_attestation": "required",
         "/$defs/account_device_evidence/properties/sender_kind": "required",
+        "/$defs/account_device_evidence/properties/signer_evidence_ref": "required",
         "/$defs/account_device_selector/properties/account_id": "required",
         "/$defs/account_device_selector/properties/device_id": "required",
         "/$defs/account_device_selector/properties/sender_kind": "required",
@@ -9594,6 +9600,7 @@
         "/$defs/query_account_device_selectors/items/properties/device_ids": "required",
         "/$defs/query_device_record/properties/algorithms": "required",
         "/$defs/query_device_record/properties/device_projection_attestation": "required",
+        "/$defs/query_device_record/properties/signer_evidence_ref": "required",
         "/$defs/query_device_record/properties/trust_algorithms": "required"
       },
       "conditionally_required": [

@@ -252,11 +252,16 @@
       "type": "object",
       "description": "Per-(principal_id, device_id) entry in keys_query_outcome. principal_id and device_id are the device_keys map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so a relationship-gated third party can verify the row without ever seeing PCR material. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
       "required": [
+        "signer_evidence_ref",
         "algorithms",
         "trust_algorithms",
         "device_projection_attestation"
       ],
       "properties": {
+        "signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Exact account_device signer evidence retained with its Station attester closure before this row is returned. Its embedded attestation equals this row's attestation byte for byte; the ref is not an additional device-authority claim."
+        },
         "algorithms": {
           "$ref": "#/$defs/algorithm_key_records"
         },

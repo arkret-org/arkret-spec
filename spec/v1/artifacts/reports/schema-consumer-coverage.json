@@ -972,6 +972,7 @@
           "ak.schema.agent_signer_evidence_query_outcome.v1",
           "ak.schema.agent_signer_evidence_query_request.v1",
           "ak.schema.availability_receipt.v1",
+          "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
           "ak.schema.controller_account_gate_attestation_issue_request.v1",
@@ -979,6 +980,7 @@
           "ak.schema.current_signer_evidence_query_request.v1",
           "ak.schema.event.v1",
           "ak.schema.history_key.v1",
+          "ak.schema.keys_operations.v1",
           "ak.schema.moderation_evidence.v1",
           "ak.schema.service_operation_dtos.v1"
         ],

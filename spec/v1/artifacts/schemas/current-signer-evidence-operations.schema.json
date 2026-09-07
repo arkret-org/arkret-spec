@@ -210,7 +210,8 @@
         "sender_kind",
         "account_id",
         "device_id",
-        "device_projection_attestation"
+        "device_projection_attestation",
+        "signer_evidence_ref"
       ],
       "properties": {
         "sender_kind": {
@@ -224,6 +225,9 @@
         },
         "device_projection_attestation": {
           "$ref": "./keys-operations.schema.json#/$defs/device_projection_attestation"
+        },
+        "signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
         }
       },
       "additionalProperties": false

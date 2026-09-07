@@ -1262,7 +1262,9 @@ def run_operation_string_classification_test() -> int:
 def run_long_text_schema_test() -> int:
     result = subprocess.run(
         [sys.executable, "-m", "unittest", "tools.test_long_text_schema",
-         "tools.test_private_transfer_and_view_schema"], cwd=ROOT
+         "tools.test_private_transfer_and_view_schema",
+         "tools.test_encrypted_envelope_schema",
+         "tools.test_device_history_evidence_schema"], cwd=ROOT
     )
     return result.returncode
 

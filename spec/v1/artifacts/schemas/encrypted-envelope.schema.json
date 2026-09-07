@@ -27,7 +27,7 @@
       "type": "object",
       "required": ["epoch", "group_state_ref"],
       "properties": {
-        "epoch": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+        "epoch": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
         "group_state_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
         "routing_context": {"$ref": "#/$defs/routing_context"}
       },
@@ -38,13 +38,13 @@
       "type": "object",
       "required": ["epoch", "group_state_ref", "counter"],
       "properties": {
-        "epoch": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+        "epoch": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
         "group_state_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "counter": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+        "counter": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
         "routing_context": {"$ref": "#/$defs/routing_context"}
       },
       "additionalProperties": false,
-      "description": "The required full-width counter is the structural exporter branch. The referenced winning group state MUST have content_scheme=mls_exporter_aead_v1."
+      "description": "The required canonical-JSON-safe counter is the structural exporter branch. The referenced winning group state MUST have content_scheme=mls_exporter_aead_v1."
     },
     "encryption_context": {
       "oneOf": [

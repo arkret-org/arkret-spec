@@ -339,7 +339,20 @@ join/incarnation、current monotone history-access ratchet 及 request/receipt/a
 wire 表示（[`../conformance/encoding.md` §4.0.1](../conformance/encoding.md)）：
 ordinary human、Agent 与 organization-recovery holder 使用 `AuthenticatedSignerResolutionEvidence`，minimal-metadata 使用
 `MinimalMetadataMlsLeafSignerEvidence`。Evidence 必须授权 `source_actor_id`、`source_proof.verification_method` 与
-`source_proof.created_at`。Release service admission 必须完整验证 authenticated branch 及其递归 attester evidence closure；对于只有 receiver
+`source_proof.created_at`。
+
+普通 human 设备使用封闭 `account_device` 分支：`signer_id` 等于 attestation 的 AccountId principal，
+`verification_method` 必须是该 principal DID 加 exact device-id fragment；`source_actor_id` 必须等于完整 attested AccountId，
+`source_sender_domain` 必须等于 exact device ID。该分支携 `device_projection_attestation` 与唯一
+`attester_signer_evidence_ref`，后者必须指向该 AccountId 的 origin Station 的历史 Service evidence。
+origin Station 在 `keys/query` 返回 `query_device_record.signer_evidence_ref` 前必须耐久保存这份内容寻址对象及 attester 闭包；
+对象内 attestation 与 row 中的 attestation 逐字相等。Source 先取该 ref，再在 attestation 有效窗口内签名 response，
+不得从 DID 文档猜设备公钥或把设备伪装成 `principal` 分支。接收方在 `source_proof.created_at` 验证完整闭包、
+正有效期区间、active 状态、签名与 exact actor/device 绑定；后续过期不追溯作废已接受的历史证明。
+首次入队 T1 仍验证 source 的 current exact device authorization/generation 与 membership；历史 attestation 不代替 current gate。
+`account_device` 仅授权普通 human history-response proof，不扩张 Control Event、DID 文档或 notary 的签名权威。
+
+Release service admission 必须完整验证 authenticated branch 及其递归 attester evidence closure；对于只有 receiver
 持有 verified local MLS tree 的 minimal-metadata branch，release service 只验证 content address、closed shape、source relay binding 并原样 pin，
 不得声称自己已验证本地 MLS tree 与加密 IdentityLink 的 authority。两种 branch 的 exact canonical bytes 均随 request retention 保留至 request expiry；
 receiver 使用 `request_receipt` history traversal access 从标准
@@ -357,8 +370,9 @@ history_source_agent_observation_digest = H(
 该独立 digest 域固定其 history response send 用途，并打破 evidence content digest 与 observation request digest 之间的自引用；
 `source_proof` 仍覆盖包含两项 evidence 坐标的完整 signing input。`current_observation.operation_id` 仍是本次操作的
 `ak:operation:<uuidv7>`，不得把 HTTP service operation id 填进 `ProtocolOperationId`。
-Ordinary human、Agent 与 organization-recovery holder source 使用 `AuthenticatedSignerResolutionEvidence`；其中 ordinary human 与
-organization-recovery holder 的 root evidence 必须是 Principal branch，Agent 的 root evidence 必须是 Agent branch；Service branch
+Ordinary human、Agent 与 organization-recovery holder source 使用 `AuthenticatedSignerResolutionEvidence`。
+organization-recovery holder 使用 Principal root evidence；ordinary human 的设备签名必须使用上述 AccountDevice branch，
+其 DID-document method 签名使用 Principal branch。Agent 的 root evidence 必须是 Agent branch；Service branch
 只能作为递归 attester leaf，不得作为 source root。Minimal-metadata source 不得冒充
 Principal，而必须使用 `MinimalMetadataMlsLeafSignerEvidence`。后者绑定 effective scope、canonical MLS group id、epoch、leaf index、
 pairwise/source actor、verification method、独立 Ed25519 response-signing public key/digest、端到端加密取得的 IdentityLink canonical bytes/digest、

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.18",
+  "version": "2026-09-08.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T20:40:02Z",
+  "generated_at": "2026-09-07T20:40:04Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -114,7 +114,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#10-encrypted-envelope-aead",
-      "section_digest": "sha256:588cbc8506f653618d4889b41d46821f32ff670d980ddf1c9a672d4b6d991586",
+      "section_digest": "sha256:db85760b07f0a757a3ed161c008693d833bccb5ccdc6246fe8746e22cfed2b1b",
       "requirement": "Encrypted envelopes carry a pre-encryption immutable header; AAD digest and ciphertext digest are computed over fixed transcripts and any mismatch MUST fail closed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -553,6 +553,36 @@
       "requirement": "Forbidden-wire contexts and matchers are registered and resolved before matching; root fields do not apply to arbitrary descendants or another owning schema. Message.track_name is forbidden while the message-create signed payload retains it.",
       "testability_grade": "audit",
       "test_plan": "Run vocabulary mutation gates plus shared SDK and cotest scanner positives and negatives covering Message versus Event payload, real create object wrappers, nested KDF pointers, literal aggregate matchers and patch descendants."
+    },
+    {
+      "clause_id": "AK-NC-041",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/governance/history-visibility.md#6-private-history-key-delivery",
+      "section_digest": "sha256:c41f22522d273a24c55dd561e8f07c8ef12a0a192a9126d9daa6bd27c423c06d",
+      "requirement": "Ordinary-human device history responses use exact AccountDevice evidence with retained origin-Station signer closure, signed-time validity and exact full AccountId/device binding; first source relay additionally checks current authorization and generation. Device evidence cannot authorize Control Events, notary or organization recovery.",
+      "testability_grade": "audit",
+      "test_plan": "Run device-history schema and SDK evidence/signature negatives for missing refs, mixed branches, actor/device/Station substitution, altered authorization, revoked status and invalid time windows. Exercise source relay revocation/generation changes before first enqueue and historical replay after expiry; run real two-account history request, manifest and chunk delivery with receiver verification."
+    },
+    {
+      "clause_id": "AK-NC-042",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#83-binding-与日常-authority",
+      "section_digest": "sha256:a8cc281c5948a85282684ff907114a413ad6303648916cac95ef9cb48dbd94be",
+      "requirement": "Any equivalent accepted Bound endorsement included in the authorizing Seal closure can establish ordinary participant authority; the display representative is not an authority head. Distinct binding semantics, wrong Strand and insufficient Seal coverage fail closed.",
+      "testability_grade": "audit",
+      "test_plan": "Run Direct Conversation authority and server capability-ref tests with one, repeated and concurrent equivalent endorsements, missing coverage, foreign participants and wrong Strand; execute bidirectional encrypted messages and reload with real accounts."
+    },
+    {
+      "clause_id": "AK-NC-043",
+      "status": "active",
+      "category": "state_machine",
+      "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#72-bootstrap-participant-authority",
+      "section_digest": "sha256:c98ae539887c91b84b747a4599e26552f450f6cc8eba8604c1e7183ffdf8f726",
+      "requirement": "Only the exact founder uses registered provisional message authority before peer durable Welcome, with accepted Genesis and current gates. First accepted Bound permanently exits bootstrap; equivalent later endorsements cannot reactivate it.",
+      "testability_grade": "audit",
+      "test_plan": "Run registered provisional-source policy tests; block exact private Realm claim at epoch 0 and consume after Add, then verify real submitted message epoch, peer since_join boundary and eventual convergence. Test post-Bound rejection of bootstrap authority and equivalent endorsement accumulation."
     }
   ]
 }
