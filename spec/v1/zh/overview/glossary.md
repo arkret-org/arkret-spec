@@ -87,7 +87,7 @@ see_also:
 | Signal Extension | 信号扩展 | 可选 encrypted-only live rail。presence、typing、read receipt 与 call signaling 的精确 kind、target 和内容位于 `SignalEnvelope.encrypted_payload`，外层只暴露 scope、sender、Seal basis 与三值 `signal_class`。它不进入 Event history、cell、Seal coverage、state_root 或 backfill。 |
 | Signal（消歧） | 信号（消歧） | 本规范中未加限定的 “Signal” 一律指本协议的 Signal 平面（`SignalEnvelope` / `signal_class` / `ak.self.signal.*`）。引用同名即时通讯产品的设计时 MUST 使用全称并带产品限定，例如 “Signal SVR”、“Signal SealedSession”，不得写作裸 “Signal”。 |
 | Kernel | 协议内核 | Arkret v1 的安全与收敛原语层，只包含 identity proof、scope/lifecycle、CBS、授权、MLS/key delivery、审计承诺、邀请与设备/账号安全。Kernel 不依赖 Collaboration Base 或任何 Extension。 |
-| Collaboration Base | 协作基础包 | 官方基础协作层，包含 Strand、Message/Content、Relation、View 与 long text 等通用协作对象；依赖 Kernel，但不属于 Kernel。本术语不得缩写：`CBS` 是控制面基线承诺封存的专用缩写，其已废止拼写 `CBA` 同样不得用于指代本术语。 |
+| Collaboration Base | 协作基础包 | 官方基础协作层，包含 Strand、Message/Content、Relation、View 与 long text 等通用协作对象；依赖 Kernel，但不属于 Kernel。不得缩写为 CBS。 |
 | Extension | 协议扩展 | 通过 Extension Manifest 声明 schema、reducer、action、transport rail、资源上限和 conformance vectors 的可选协议层。裸 “Extension” 仅表示本分层概念；产品扩展必须使用限定名称。 |
 | Extension Manifest | 扩展清单 | 扩展装载、依赖闭包、隔离、资源约束与 conformance 绑定的唯一机器入口；它是签名声明性数据，不是可执行代码或 reducer DSL。 |
 | Device Message | 设备消息 | 可靠的点对点设备队列消息，用于 key verification、secret 分发和 Realm key 请求。它使用 `DeviceMessageEnvelope`，既不是 Event 也不是 Signal。 |
@@ -127,7 +127,7 @@ see_also:
 | Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值；只可用于 timeline 诊断，不参与协议状态 winner。 |
 | Data Plane | 数据面 | 普通协作写入所在平面：消息、reaction、对象字段、排序、协作文本、计数等。DataEvent 签名与授权验证通过后按 Lattice / CRDT 本地接受；Seal 只可对其作观测承诺。 |
 | Control Plane | 控制面 | 治理写入所在平面：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 声明 `sealed=true` 的对象。Control Move 只有被 Seal 覆盖并进入控制面 `state_root` 后才 `sealed`。 |
-| CBS | 控制面基线承诺封存 | `Control-plane Basis-committed Sealing` 的唯一缩写，逐词取首字母 **C**ontrol-plane / **B**asis-committed / **S**ealing。DataEvent 按自身 `seal_ref` 验证，Control Move 按自身 `seal_basis` 验证并由 Seal 取得 finality。`CBA` 是本术语在 v1 定稿前的已废止拼写，normative 文本、wire 名称与实现标识符 MUST NOT 再使用；CBS 也不表示 Collaboration Base。 |
+| CBS | 控制面基线承诺封存 | `Control-plane Basis-committed Sealing` 的唯一缩写，逐词取首字母 **C**ontrol-plane / **B**asis-committed / **S**ealing。DataEvent 按自身 `seal_ref` 验证，Control Move 按自身 `seal_basis` 验证并由 Seal 取得 finality。CBS 不表示 Collaboration Base。 |
 | Authority Set | 权威集合 | 在某个 CBS basis 下决定 signer、quorum、delegation 与 revocation authority 的已接受 policy。wire 引用统一为 `{authority_set_id, authority_set_digest}`，不得只按可变名称解析。 |
 | DataEvent | 数据事件 | 数据面 reducer-input Event；携带签名 `scope_ref`、`seal_ref` 与 `auth_context`，writes 由 kind + payload 派生。 |
 | Control Move | 控制动作 | 控制面 reducer-input Event；携带签名 `scope_ref` 与 `seal_basis`，可携带 `preconditions[]`，writes 由 kind + payload 派生。 |
