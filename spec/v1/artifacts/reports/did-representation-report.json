@@ -848,6 +848,26 @@
       ]
     },
     {
+      "schema_path": "agent-operations.schema.json#/$defs/agent_pairing_runtime_identity/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "agent-operations.schema.json#/$defs/agent_pairing_runtime_identity/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "agent-operations.schema.json#/$defs/agent_projection/properties/agent_id",
       "property_name": "agent_id",
       "semantic_category": "responsibility_identity_material",
@@ -9095,6 +9115,18 @@
     {
       "source": "json_schema",
       "schema_path": "agent-membership-cascade.schema.json#/$defs/agent_controller_membership_binding/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_authority_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "agent-operations.schema.json#/$defs/agent_pairing_runtime_identity/properties/controller_account_id",
       "property_name": "controller_account_id",
       "resolved_carrier": "account_id",
       "required_subject_class": "account",

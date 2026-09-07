@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9908,
+    "total_properties": 9911,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2708,
+      "optional": 2709,
       "optional_defaulted": 65,
-      "required": 6798,
+      "required": 6800,
       "required_nullable": 126,
       "tristate": 211
     },
@@ -2494,8 +2494,11 @@
         "/$defs/agent_pairing_bootstrap/properties/pairing_code": "required",
         "/$defs/agent_pairing_bootstrap/properties/pairing_expires_at": "required",
         "/$defs/agent_pairing_bootstrap/properties/pairing_request_id": "required",
+        "/$defs/agent_pairing_bootstrap/properties/runtime_identity": "optional",
         "/$defs/agent_pairing_bootstrap/properties/service_id": "required",
         "/$defs/agent_pairing_resolve_request_body/properties/pairing_token": "required",
+        "/$defs/agent_pairing_runtime_identity/properties/controller_account_id": "required",
+        "/$defs/agent_pairing_runtime_identity/properties/verification_method": "required",
         "/$defs/agent_participation_entry/properties/next_replace_input": "required",
         "/$defs/agent_participation_entry/properties/next_replace_input/properties/expected_version": "required",
         "/$defs/agent_participation_entry/properties/selection": "required",

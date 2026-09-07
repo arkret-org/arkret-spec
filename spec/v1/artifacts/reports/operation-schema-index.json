@@ -1936,7 +1936,8 @@
           "agent_id",
           "pairing_request_id",
           "pairing_code",
-          "pairing_expires_at"
+          "pairing_expires_at",
+          "runtime_identity"
         ],
         "closed": true
       }

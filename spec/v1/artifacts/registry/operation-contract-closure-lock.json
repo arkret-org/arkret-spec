@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-07.11",
-  "generated_at": "2026-09-07T21:45:00+08:00",
+  "version": "2026-09-07.12",
+  "generated_at": "2026-09-07T21:45:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -197,7 +197,7 @@
     },
     {
       "operation_id": "ak.open.agent_pairing.read.resolve.v1",
-      "sha256": "sha256:e473ae569cdfec065dbf95890de7d8afc0f41e55cc0fc3799eb163369b10d7e5"
+      "sha256": "sha256:3c7e699612a36c21eef717e82d3a9e1d6bb01fd3335cb05b442b10d2da6a4e82"
     },
     {
       "operation_id": "ak.open.agent_pairing.read.runtime_key_request_status.v1",

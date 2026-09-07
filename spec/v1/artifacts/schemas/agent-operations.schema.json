@@ -1240,7 +1240,7 @@
     },
     "agent_pairing_bootstrap": {
       "type": "object",
-      "description": "One-time bootstrap material handed to an Agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
+      "description": "One-time bootstrap material handed to an Agent runtime after provisioning. New resolver responses MUST include runtime_identity; its omission is only for reading older stored bootstrap material. This is not a session grant, capability grant or long-term secret.",
       "required": [
         "arkret_base_url",
         "service_id",
@@ -1269,6 +1269,23 @@
         },
         "pairing_expires_at": {
           "$ref": "#/$defs/timestamp"
+        },
+        "runtime_identity": {
+          "$ref": "#/$defs/agent_pairing_runtime_identity"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_pairing_runtime_identity": {
+      "type": "object",
+      "description": "Identity context obtained from the accepted Agent/controller binding. It does not authorize the runtime key. The verification method controller MUST project to bootstrap.agent_id; its fragment is a key label, not a human device identity.",
+      "required": ["controller_account_id", "verification_method"],
+      "properties": {
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
         }
       },
       "additionalProperties": false
