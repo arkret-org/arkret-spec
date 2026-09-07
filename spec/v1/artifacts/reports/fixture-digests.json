@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "9307a45d2a053aa6be00e6922ee50f07d8c28e01a7e86ae658495bc3f07355c5"
+      "sha256": "7955e3390a442e243091cae726d1c556498e7f1aeb1fb040b753561eaddac8d2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "730a45a831afa2aa74936d2e7c6b3e609bb2f792c761d23bac1e32323116478b"
+      "sha256": "895c760b3e9d0e1b4cc7689c1d34f8de205ef03b2c522e1db4d1482a412d9328"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -398,7 +398,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
-      "sha256": "9898fcfb46e3df0ff1bbd8207d4ded793339bedbd59fc76bf51c1efb6ec5ad25"
+      "sha256": "3272f3a10d0225573a5170d0d14a48f5223901529c862dec80d2814c811ef663"
     },
     {
       "path": "spec/v1/artifacts/fixtures/station-admission-fixture.json",
@@ -418,7 +418,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
-      "sha256": "5f99d9fd44bd82dd3ffd64ea3d32209c06c7450eed77f4463556ebe565c1cbe7"
+      "sha256": "f6dd9e3568c6ec8e1e19191a212cb73efdfcd8c8525ac4eeabcce2cc8d9a4713"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

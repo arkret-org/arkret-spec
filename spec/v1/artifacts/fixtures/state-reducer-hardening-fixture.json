@@ -290,31 +290,61 @@
             "cell_subject_field": "payload.strand_id"
           }
         ],
-        "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+        "cell": "ak:cell:ak.component.strand.object.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
         "base_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "base_post_state": {
+          "id": "ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+          "schema": "ak.schema.strand.v1",
+          "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "metadata": {
-            "fields": {
-              "review_status": "pending"
+            "title": "Pending review"
+          },
+          "tracks": {
+            "synthesis": {
+              "enabled": true,
+              "is_primary": true
             }
-          }
+          },
+          "created_by": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "created_at": "2026-06-01T00:00:00.000Z"
         },
         "patch": {
-          "metadata.fields.review_status": {
+          "metadata.title": {
             "$op": "set",
-            "value": "approved"
+            "value": "Approved review"
           }
         },
         "derived_effect": {
-          "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+          "cell": "ak:cell:ak.component.strand.object.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
           "op": {
             "kind": "set",
             "value": {
+              "id": "ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+              "schema": "ak.schema.strand.v1",
+              "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
               "metadata": {
-                "fields": {
-                  "review_status": "approved"
+                "title": "Approved review"
+              },
+              "tracks": {
+                "synthesis": {
+                  "enabled": true,
+                  "is_primary": true
                 }
-              }
+              },
+              "created_by": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                }
+              },
+              "created_at": "2026-06-01T00:00:00.000Z"
             }
           }
         },
@@ -368,11 +398,11 @@
               "sha256:1111111111111111111111111111111111111111111111111111111111111111"
             ],
             "wire_effect": {
-              "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+              "cell": "ak:cell:ak.component.strand.object.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
               "op": {
                 "kind": "set",
                 "value": {
-                  "metadata.fields.review_status": "approved"
+                  "metadata.title": "Approved review"
                 }
               }
             },

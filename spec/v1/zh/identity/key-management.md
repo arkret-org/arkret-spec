@@ -245,6 +245,16 @@ genesis `ak.realm.create` 在 `payload.object.purpose == "agent_control"` 上的
 `envelope.actor_id`，`uninitialized -> active`，见 §3.6.3）；服务私有 row、FSM 默认值或
 organization-governed PCR 都不能合成首次 active witness。
 
+Portable lifecycle provenance 的每个 closed 分支只携对应的 accepted 状态 Event ID：genesis 的
+`realm_create_event_id`、pause 的 `pause_event_id`、resume 的 `resume_event_id`、deactivate 的
+`deactivate_event_id`。不得携 `agent_provision_event_id` 或 `predecessor_*_event_id` 等无独立证明载体的
+历史引用；`prev_refs` 是 actor 因果前沿，不是上一条 lifecycle Event 的专用指针。§3.6.3 的唯一 accepted
+provision 反查仍是 genesis admission 的强制条件。Receiver MUST 验证状态 Event 的 origin Station admission
+绑定与签名，并使用其中冻结的 `producer_signing_key_did` 验 controller producer proof；不得重新用当前
+controller device 状态解析历史签名。随后 MUST 按 registry 从签名 Event 重算 lifecycle cell 与 transition，
+绑定完整 ActorId、cell head/value，以及包含该 Event 的 signed Seal 到目标 frontier 的 ancestry。
+
+
 每个 state witness 都必须携带完整 signed Seal、closed `cell_value`、leaf digest/index/count 与 inclusion proof。
 receiver 验证 Seal id/notary signature/Realm/lineage，以 canonical
 `{"cell":cell_ref,"state":{"value":cell_value}}` 重算 leaf，再按 §6.2.2 odd-tail promotion 重建 `state_root`。
@@ -465,6 +475,16 @@ composite 规则派生 subject；transition 为 `uninitialized -> active`。`ak.
 `deactivate` MUST 使用完全相同的 subject。Agent principal 只由 `envelope.actor_id` 派生，controller 只由
 `executed_by` 派生；lifecycle payload 不携 `agent_id` / `controller_principal_id`。非 `agent_control` 的 create MUST NOT 触发
 该写入。服务私有 row、FSM 默认值或 organization-governed PCR 都不能合成首次 active witness。
+
+Portable lifecycle provenance 的每个 closed 分支只携对应的 accepted 状态 Event ID：genesis 的
+`realm_create_event_id`、pause 的 `pause_event_id`、resume 的 `resume_event_id`、deactivate 的
+`deactivate_event_id`。不得携 `agent_provision_event_id` 或 `predecessor_*_event_id` 等无独立证明载体的
+历史引用；`prev_refs` 是 actor 因果前沿，不是上一条 lifecycle Event 的专用指针。§3.6.3 的唯一 accepted
+provision 反查仍是 genesis admission 的强制条件。Receiver MUST 验证状态 Event 的 origin Station admission
+绑定与签名，并使用其中冻结的 `producer_signing_key_did` 验 controller producer proof；不得重新用当前
+controller device 状态解析历史签名。随后 MUST 按 registry 从签名 Event 重算 lifecycle cell 与 transition，
+绑定完整 ActorId、cell head/value，以及包含该 Event 的 signed Seal 到目标 frontier 的 ancestry。
+
 
 **未完成 provision 不可撤销（normative）**：`ak.agent.provision` 一旦 accepted 就是 controller PCR 中不可删除、
 不可重写的历史事实，其 `agent_slug` 与 `principal_control_realm_id` claim 也不得通过服务私有清理、超时或垃圾回收

@@ -318,11 +318,11 @@
       "expected": "issued"
     },
     {
-      "name": "agent_genesis_active_requires_accepted_provision_declaration",
+      "name": "agent_genesis_active_witness_binds_admitted_genesis",
       "provenance.kind": "delegated_pcr_genesis",
       "genesis_realm_purpose": "agent_control",
-      "accepted_provision_declares_genesis_derived_realm_id": true,
-      "expected": "verified"
+      "expected": "verified",
+      "origin_station_admission_verified": true
     },
     {
       "name": "organization_pcr_cannot_materialize_agent_active",

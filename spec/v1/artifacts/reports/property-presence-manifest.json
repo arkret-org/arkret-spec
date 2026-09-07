@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9900,
+    "total_properties": 9898,
     "total_schema_documents": 167,
     "by_presence_class": {
       "optional": 2707,
       "optional_defaulted": 65,
-      "required": 6793,
-      "required_nullable": 124,
+      "required": 6789,
+      "required_nullable": 126,
       "tristate": 211
     },
     "tristate_occurrences": 211,
@@ -199,10 +199,10 @@
     "security-transaction.schema.json/$defs/security_rotation_progress_contract/allOf/0/then/properties/accepted_steps",
     "security-transaction.schema.json/$defs/security_rotation_progress_contract/allOf/1/then/properties/accepted_steps",
     "security-transaction.schema.json/allOf/1/then/properties/terminal_result",
-    "service-describe.schema.json/allOf/1/then/properties/supported_operation_bundles",
-    "service-describe.schema.json/allOf/3/then/properties/supported_features",
-    "service-describe.schema.json/allOf/4/then/properties/verified_profiles",
-    "service-describe.schema.json/allOf/7/then/properties/auth_metadata",
+    "service-describe.schema.json/allOf/2/then/properties/supported_operation_bundles",
+    "service-describe.schema.json/allOf/4/then/properties/supported_features",
+    "service-describe.schema.json/allOf/5/then/properties/verified_profiles",
+    "service-describe.schema.json/allOf/8/then/properties/auth_metadata",
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/else/properties/agent_transitions",
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/then/properties/agent_transitions",
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeOutcome/allOf/0/then/properties/agent_transition_event_ids",
@@ -1389,7 +1389,7 @@
       "shape": "#",
       "instance_path": "/auth_metadata",
       "occurrences": [
-        "/allOf/7/then/properties/auth_metadata"
+        "/allOf/8/then/properties/auth_metadata"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1399,7 +1399,7 @@
       "shape": "#",
       "instance_path": "/supported_features",
       "occurrences": [
-        "/allOf/3/then/properties/supported_features"
+        "/allOf/4/then/properties/supported_features"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1409,7 +1409,7 @@
       "shape": "#",
       "instance_path": "/supported_operation_bundles",
       "occurrences": [
-        "/allOf/1/then/properties/supported_operation_bundles"
+        "/allOf/2/then/properties/supported_operation_bundles"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1419,7 +1419,7 @@
       "shape": "#",
       "instance_path": "/verified_profiles",
       "occurrences": [
-        "/allOf/4/then/properties/verified_profiles"
+        "/allOf/5/then/properties/verified_profiles"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -2948,8 +2948,6 @@
         "/$defs/agent_authority_state_lease/properties/verification_method": "required",
         "/$defs/agent_deactivate_provenance/properties/deactivate_event_id": "required",
         "/$defs/agent_deactivate_provenance/properties/kind": "required",
-        "/$defs/agent_deactivate_provenance/properties/predecessor_status_event_id": "required",
-        "/$defs/agent_genesis_provenance/properties/agent_provision_event_id": "required",
         "/$defs/agent_genesis_provenance/properties/kind": "required",
         "/$defs/agent_genesis_provenance/properties/realm_create_event_id": "required",
         "/$defs/agent_lifecycle_witness/allOf/0/if/properties/provenance": "tristate",
@@ -2982,9 +2980,7 @@
         "/$defs/agent_lifecycle_witness/properties/state_root": "required",
         "/$defs/agent_pause_provenance/properties/kind": "required",
         "/$defs/agent_pause_provenance/properties/pause_event_id": "required",
-        "/$defs/agent_pause_provenance/properties/predecessor_active_event_id": "required",
         "/$defs/agent_resume_provenance/properties/kind": "required",
-        "/$defs/agent_resume_provenance/properties/predecessor_pause_event_id": "required",
         "/$defs/agent_resume_provenance/properties/resume_event_id": "required",
         "/$defs/authorization/allOf/0/if/properties/status": "required",
         "/$defs/authorization/allOf/1/if/properties/status": "required",
@@ -11932,20 +11928,22 @@
         "/$defs/transport_binding_websocket/properties/max_channels": "required",
         "/$defs/transport_binding_websocket/properties/max_frame_bytes": "required",
         "/allOf/0/if/properties/supported_operation_bundles": "required_nullable",
-        "/allOf/1/then/properties/supported_operation_bundles": "tristate",
-        "/allOf/2/if/properties/supported_features": "required_nullable",
-        "/allOf/3/then/properties/supported_features": "tristate",
-        "/allOf/4/if/properties/development_mode": "required",
-        "/allOf/4/then/properties/verified_profiles": "tristate",
-        "/allOf/5/if/properties/service_kind": "required",
+        "/allOf/0/then/properties/limits": "required_nullable",
+        "/allOf/1/if/properties/supported_operation_bundles": "required_nullable",
+        "/allOf/2/then/properties/supported_operation_bundles": "tristate",
+        "/allOf/3/if/properties/supported_features": "required_nullable",
+        "/allOf/4/then/properties/supported_features": "tristate",
+        "/allOf/5/if/properties/development_mode": "required",
+        "/allOf/5/then/properties/verified_profiles": "tristate",
         "/allOf/6/if/properties/service_kind": "required",
-        "/allOf/6/then/properties/privacy_derivation": "required_nullable",
         "/allOf/7/if/properties/service_kind": "required",
-        "/allOf/7/then/properties/auth_metadata": "tristate",
-        "/allOf/8/if/anyOf/0/properties/claimed_profiles": "required_nullable",
-        "/allOf/8/if/anyOf/0/properties/claimed_profiles/contains/properties/profile_id": "required",
-        "/allOf/8/if/anyOf/1/properties/verified_profiles": "required_nullable",
-        "/allOf/8/if/anyOf/1/properties/verified_profiles/contains/properties/profile_id": "required",
+        "/allOf/7/then/properties/privacy_derivation": "required_nullable",
+        "/allOf/8/if/properties/service_kind": "required",
+        "/allOf/8/then/properties/auth_metadata": "tristate",
+        "/allOf/9/if/anyOf/0/properties/claimed_profiles": "required_nullable",
+        "/allOf/9/if/anyOf/0/properties/claimed_profiles/contains/properties/profile_id": "required",
+        "/allOf/9/if/anyOf/1/properties/verified_profiles": "required_nullable",
+        "/allOf/9/if/anyOf/1/properties/verified_profiles/contains/properties/profile_id": "required",
         "/properties/accept_policy_kind": "optional",
         "/properties/accept_policy_ref": "optional",
         "/properties/accepted_did_methods": "optional",

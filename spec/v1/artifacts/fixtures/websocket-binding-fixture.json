@@ -90,7 +90,11 @@
             "session_grant"
           ]
         },
-        "limits": {},
+        "limits": {
+          "mls_governance_proof": {
+            "max_exact_response_bytes": 1048576
+          }
+        },
         "plaintext_visibility": {},
         "rate_limit_policy": {},
         "claimed_profiles": [],

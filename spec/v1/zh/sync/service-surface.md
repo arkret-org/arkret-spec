@@ -299,6 +299,9 @@ GET /_arkret/describe
     "did_binding_methods": ["session_grant", "did_http_signature"]
   },
   "limits": {
+    "mls_governance_proof": {
+      "max_exact_response_bytes": 1048576
+    },
     "max_body_bytes": 1048576,
     "max_events_per_batch": 100,
     "device_message_max_ttl_seconds": 86400,

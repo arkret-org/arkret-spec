@@ -1047,8 +1047,7 @@
       "type": "object",
       "required": [
         "kind",
-        "realm_create_event_id",
-        "agent_provision_event_id"
+        "realm_create_event_id"
       ],
       "properties": {
         "kind": {
@@ -1057,10 +1056,6 @@
         "realm_create_event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref",
           "description": "Accepted Agent PCR genesis ak.realm.create that materialized the first active status. This evidence object is assembled after both Events are accepted and never enters either digest preimage."
-        },
-        "agent_provision_event_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/event_ref",
-          "description": "Accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(realm_create_event_id). The genesis create carries no reference to it, so a verifier resolves it by that reverse look-up."
         }
       },
       "additionalProperties": false
@@ -1069,17 +1064,13 @@
       "type": "object",
       "required": [
         "kind",
-        "pause_event_id",
-        "predecessor_active_event_id"
+        "pause_event_id"
       ],
       "properties": {
         "kind": {
           "const": "pause_accepted"
         },
         "pause_event_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-        },
-        "predecessor_active_event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         }
       },
@@ -1089,17 +1080,13 @@
       "type": "object",
       "required": [
         "kind",
-        "resume_event_id",
-        "predecessor_pause_event_id"
+        "resume_event_id"
       ],
       "properties": {
         "kind": {
           "const": "resume_accepted"
         },
         "resume_event_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-        },
-        "predecessor_pause_event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         }
       },
@@ -1109,17 +1096,13 @@
       "type": "object",
       "required": [
         "kind",
-        "deactivate_event_id",
-        "predecessor_status_event_id"
+        "deactivate_event_id"
       ],
       "properties": {
         "kind": {
           "const": "deactivate_accepted"
         },
         "deactivate_event_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-        },
-        "predecessor_status_event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         }
       },

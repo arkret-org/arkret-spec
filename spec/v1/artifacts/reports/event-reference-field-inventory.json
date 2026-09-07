@@ -8,7 +8,7 @@
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
     "digest_copy_or_commitment": 17,
-    "complete_event_id": 181,
+    "complete_event_id": 177,
     "external_event_namespace": 1
   },
   "fields": [
@@ -188,18 +188,6 @@
     },
     {
       "schema": "agent-signer-evidence.schema.json",
-      "json_pointer": "/$defs/agent_deactivate_provenance/properties/predecessor_status_event_id",
-      "field": "predecessor_status_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-signer-evidence.schema.json",
-      "json_pointer": "/$defs/agent_genesis_provenance/properties/agent_provision_event_id",
-      "field": "agent_provision_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-signer-evidence.schema.json",
       "json_pointer": "/$defs/agent_genesis_provenance/properties/realm_create_event_id",
       "field": "realm_create_event_id",
       "classification": "complete_event_id"
@@ -214,18 +202,6 @@
       "schema": "agent-signer-evidence.schema.json",
       "json_pointer": "/$defs/agent_pause_provenance/properties/pause_event_id",
       "field": "pause_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-signer-evidence.schema.json",
-      "json_pointer": "/$defs/agent_pause_provenance/properties/predecessor_active_event_id",
-      "field": "predecessor_active_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-signer-evidence.schema.json",
-      "json_pointer": "/$defs/agent_resume_provenance/properties/predecessor_pause_event_id",
-      "field": "predecessor_pause_event_id",
       "classification": "complete_event_id"
     },
     {
