@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.7",
+  "version": "2026-09-08.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-08T16:48:45+08:00",
+  "generated_at": "2026-09-08T19:26:32+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -12060,7 +12060,8 @@
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        }
+        },
+        "notes": " Directional Event proof contract: Applet-to-Station events are producer-only caller submissions; Station-to-Applet events retain one producer and one original station_admission. Installed Applet origin is the exact verified installation target, including direct service actions; accepted admission binds applet_installation_digest resolved as the standard applet_installation_authority governance dependency. HTTP source signature never substitutes for Event producer, exact scope, grant, epoch or native act-on-behalf authority. Signals retain their independent proof regime."
       },
       {
         "operation_id": "ak.edge.applet.read.describe.v1",
@@ -14829,7 +14830,7 @@
         "http": "POST /_arkret/self/seals/governance-dependencies",
         "grpc": "SelfSeals/GovernanceDependencies",
         "mq": "self.seals.read.governance_dependencies",
-        "notes": "Resolve a caller-split batch of exactly four typed non-Event dependency kinds: the content-addressed AvailabilityReceipt, AuthenticatedSignerResolutionEvidence and MinimalMetadataMlsLeafSignerEvidence, plus CollisionVariantRecord selected by collision_variant_record_id and verified against the referencing ak.fork.resolution locator digest. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
+        "notes": "Resolve a caller-split batch of five typed dependency kinds: the content-addressed AvailabilityReceipt, AuthenticatedSignerResolutionEvidence and MinimalMetadataMlsLeafSignerEvidence, plus CollisionVariantRecord selected by collision_variant_record_id and verified against the referencing ak.fork.resolution locator digest. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB. Includes content-addressed applet_installation_authority dependencies containing the original accepted registration_event and capability_grant_event; consumers authenticate both Events and derive the historical install target before verifying an Applet admission controller.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -15609,7 +15610,7 @@
         "http": "POST /_arkret/peer/seals/governance-dependencies",
         "grpc": "PeerSeals/GovernanceDependencies",
         "mq": "peer.seals.read.governance_dependencies",
-        "notes": "Authenticated S2S exact resolve of exactly four content-addressed governance-dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, MinimalMetadataMlsLeafSignerEvidence, and CollisionVariantRecord. Omitted history_traversal_access uses ordinary Realm/federation visibility; the optional pending_archive_replica branch is the sole retained-cut exception. Member request replicas never authorize traversal. Unknown, unauthorized, outside-cut and missing selectors are same-shape; complete bounds failure returns no partial items or cursor.",
+        "notes": "Authenticated S2S exact resolve of five registered governance-dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, MinimalMetadataMlsLeafSignerEvidence, and CollisionVariantRecord. Omitted history_traversal_access uses ordinary Realm/federation visibility; the optional pending_archive_replica branch is the sole retained-cut exception. Member request replicas never authorize traversal. Unknown, unauthorized, outside-cut and missing selectors are same-shape; complete bounds failure returns no partial items or cursor. Includes content-addressed applet_installation_authority dependencies containing the original accepted registration_event and capability_grant_event; consumers authenticate both Events and derive the historical install target before verifying an Applet admission controller.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -15660,8 +15661,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-08.2",
-    "generated_at": "2026-09-08T05:55:00+08:00",
+    "version": "2026-09-08.5",
+    "generated_at": "2026-09-08T19:26:32+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

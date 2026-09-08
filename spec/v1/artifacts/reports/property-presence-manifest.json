@@ -15,16 +15,16 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9798,
+    "total_properties": 9808,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2691,
+      "optional": 2692,
       "optional_defaulted": 61,
-      "required": 6715,
+      "required": 6722,
       "required_nullable": 124,
-      "tristate": 207
+      "tristate": 209
     },
-    "tristate_occurrences": 207,
+    "tristate_occurrences": 209,
     "tristate_audit_targets": 148,
     "tristate_sdk_dispositions": {
       "absent_null_equivalent": 138,
@@ -85,6 +85,8 @@
     "event-envelope.schema.json/allOf/0/then/properties/proofs",
     "event-envelope.schema.json/allOf/124/then/properties/refs",
     "event-envelope.schema.json/allOf/175/then/properties/scope_ref",
+    "event-envelope.schema.json/allOf/176/else/properties/proofs",
+    "event-envelope.schema.json/allOf/176/then/properties/proofs",
     "event-envelope.schema.json/allOf/7/then/properties/payload",
     "event-envelope.schema.json/allOf/8/then/properties/payload",
     "event-payload.schema.json/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at",
@@ -504,7 +506,9 @@
       "shape": "#",
       "instance_path": "/proofs",
       "occurrences": [
-        "/allOf/0/then/properties/proofs"
+        "/allOf/0/then/properties/proofs",
+        "/allOf/176/else/properties/proofs",
+        "/allOf/176/then/properties/proofs"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -5637,6 +5641,7 @@
         "/$defs/semantic_ref_merkle_proof/properties/root_digest": "required",
         "/$defs/semantic_ref_merkle_proof/properties/root_field": "required",
         "/$defs/station_admission_proof/properties/accepted_at": "required",
+        "/$defs/station_admission_proof/properties/applet_installation_digest": "optional",
         "/$defs/station_admission_proof/properties/event_digest": "required",
         "/$defs/station_admission_proof/properties/jws": "required",
         "/$defs/station_admission_proof/properties/kind": "required",
@@ -5846,6 +5851,9 @@
         "/allOf/175/if/properties/kind": "required",
         "/allOf/175/then/properties/scope_ref": "tristate",
         "/allOf/175/then/properties/scope_ref/properties/kind": "required",
+        "/allOf/176/else/properties/proofs": "tristate",
+        "/allOf/176/then/properties/proofs": "tristate",
+        "/allOf/176/then/properties/proofs/items/if/properties/kind": "required",
         "/allOf/18/if/properties/kind": "required",
         "/allOf/18/then/properties/payload": "optional",
         "/allOf/19/if/properties/kind": "required",
@@ -12047,6 +12055,10 @@
         "/$defs/AgentSessionRefreshProof/properties/request_canonical_digest": "required",
         "/$defs/AgentSessionRefreshProof/properties/signature": "required",
         "/$defs/AgentSessionRefreshProof/properties/verification_method": "required",
+        "/$defs/AppletInstallationAuthority/properties/capability_grant_event": "required",
+        "/$defs/AppletInstallationAuthority/properties/registration_event": "required",
+        "/$defs/AppletInstallationAuthoritySelector/properties/content_digest": "required",
+        "/$defs/AppletInstallationAuthoritySelector/properties/kind": "required",
         "/$defs/ArkretNativeMediaBackendToken/properties/kid": "required",
         "/$defs/ArkretNativeMediaBackendToken/properties/payload": "required",
         "/$defs/ArkretNativeMediaBackendToken/properties/payload/properties/call_id": "required",
@@ -12342,6 +12354,8 @@
         "/$defs/GovernanceDependency/oneOf/2/properties/selector": "required",
         "/$defs/GovernanceDependency/oneOf/3/properties/collision_variant_record": "required",
         "/$defs/GovernanceDependency/oneOf/3/properties/selector": "required",
+        "/$defs/GovernanceDependency/oneOf/4/properties/applet_installation_authority": "required",
+        "/$defs/GovernanceDependency/oneOf/4/properties/selector": "required",
         "/$defs/GovernanceDependencyResolveOutcome/properties/items": "required",
         "/$defs/GovernanceDependencyResolveOutcome/properties/missing_selectors": "required",
         "/$defs/GrantList/properties/evaluated_at": "optional",
