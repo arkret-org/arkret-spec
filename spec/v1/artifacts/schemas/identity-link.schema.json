@@ -149,9 +149,6 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },

@@ -1925,9 +1925,6 @@
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "direct_conversation_resolve_request_body": {
-      "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request"
-    },
     "direct_conversation_summary": {
       "type": "object",
       "description": "Contact-list projection of an already materialized stable Direct Conversation. Coordinates and binding identity are immutable; state only says whether the same conversation is currently sendable. Creation progress is exposed only by direct_conversation_resolve_outcome; there is no durable creation operation, draft or reservation.",
@@ -2019,9 +2016,6 @@
       },
       "additionalProperties": false,
       "description": "Source-service-signed evidence for the subject_id -> peer_id direction that both request receipts were accepted while neither request slot had yet been consumed. A glare bundle requires the two opposite directions; issuer_id is the signing service and is never used as the participant discriminator."
-    },
-    "non_empty_string": {
-      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "normal_response_acceptance_receipt": {
       "type": "object",

@@ -78,9 +78,6 @@
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
-    },
     "blob_ref": {
       "$ref": "./common-ids.schema.json#/$defs/blob_ref"
     },
@@ -1626,9 +1623,6 @@
     },
     "agent_participation_scope": {
       "$ref": "./principal-operations.schema.json#/$defs/participation_scope"
-    },
-    "agent_participation_replace_request_body": {
-      "$ref": "./principal-operations.schema.json#/$defs/participation_replace_request"
     },
     "agent_participation_entry": {
       "type": "object",

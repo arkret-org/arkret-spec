@@ -71,9 +71,6 @@
     "handle": {
       "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
     },
-    "digest": {
-      "$ref": "./account-operations.schema.json#/$defs/digest"
-    },
     "event_ref": {
       "$ref": "./account-operations.schema.json#/$defs/event_id"
     },

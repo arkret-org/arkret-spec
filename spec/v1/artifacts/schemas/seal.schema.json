@@ -141,18 +141,12 @@
     }
   ],
   "$defs": {
-    "timestamp": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    },
     "seal_ref": {
       "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
     },
     "event_digest": {
       "type": "string",
       "pattern": "^(?:sha256|blake3):[0-9a-f]{64}$"
-    },
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "hlc": {
       "$ref": "./agent-sidecar-exchange-projection.schema.json#/$defs/hlc"
