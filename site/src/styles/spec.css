@@ -234,6 +234,11 @@ table.ak-table code {
   overflow-wrap: normal;
 }
 
+/* Keep short, intentionally grouped labels such as `S2S / P2P` together. */
+.sl-markdown-content .ak-nowrap {
+  white-space: nowrap;
+}
+
 /* ---------- Mermaid diagram chrome -------------------------------------
  *
  * Keep Mermaid blocks visually aligned with other callout-like embeds and

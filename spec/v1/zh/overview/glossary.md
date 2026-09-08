@@ -319,10 +319,10 @@ see_also:
 | `UCAN` | User Controlled Authorization Network | UCAN 规范 | [`../authz/capabilities.md`](../authz/capabilities.md) |
 | `IDNA` | Internationalized Domain Names in Applications | RFC 5890 系列 | [`../conformance/encoding.md`](../conformance/encoding.md) |
 | `UTS` | Unicode Technical Standard | Unicode UTS 系列 | [`../conformance/encoding.md`](../conformance/encoding.md) |
-| `NFC` / `NFKC` | Normalization Form C / Normalization Form KC | Unicode UAX #15 | [`../conformance/encoding.md`](../conformance/encoding.md) |
+| <span class="ak-nowrap">`NFC` / `NFKC`</span> | Normalization Form C / Normalization Form KC | Unicode UAX #15 | [`../conformance/encoding.md`](../conformance/encoding.md) |
 | `BOM` | Byte Order Mark | Unicode | [`../conformance/encoding.md`](../conformance/encoding.md) |
 | `UUID` | Universally Unique Identifier | RFC 9562 | [`../conformance/encoding.md`](../conformance/encoding.md) |
-| `URI` / `URL` | Uniform Resource Identifier / Uniform Resource Locator | RFC 3986 | [`../sync/api-conventions.md`](../sync/api-conventions.md) |
+| <span class="ak-nowrap">`URI` / `URL`</span> | Uniform Resource Identifier / Uniform Resource Locator | RFC 3986 | [`../sync/api-conventions.md`](../sync/api-conventions.md) |
 | `NDJSON` | Newline-Delimited JSON | — | [`../sync/service-http-binding.md`](../sync/service-http-binding.md) |
 | `WebRTC` | Web Real-Time Communication | W3C WebRTC | [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) |
 | `ICE` | Interactive Connectivity Establishment | RFC 8445 | [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) |
@@ -333,7 +333,7 @@ see_also:
 | `SFU` | Selective Forwarding Unit | WebRTC 部署形态 | [`../crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md) |
 | `MCU` | Multipoint Control Unit | WebRTC 部署形态 | [`../crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md) |
 | `MIME` | Multipurpose Internet Mail Extensions | RFC 2045 系列 | [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) |
-| `FCM` / `APNs` | Firebase Cloud Messaging / Apple Push Notification service | 厂商推送通道 | [`../discovery/push-notifications.md`](../discovery/push-notifications.md) |
+| <span class="ak-nowrap">`FCM` / `APNs`</span> | Firebase Cloud Messaging / Apple Push Notification service | 厂商推送通道 | [`../discovery/push-notifications.md`](../discovery/push-notifications.md) |
 | `TZDB` | Time Zone Database | IANA TZDB | [`../models/calendar-event.md`](../models/calendar-event.md) |
 
 ### 4.3 通用工程缩写在本规范中的固定含义（normative 消歧）
@@ -357,8 +357,8 @@ see_also:
 | `GC` | Garbage Collection | 指历史 / blob / 派生数据的回收，不表示编程语言运行时。 |
 | `OOB` | out-of-band | 指协议信道之外的带外传递（邀请码、验证码等）。 |
 | `DND` | Do Not Disturb | 通知抑制状态，见 [`../discovery/push-notifications.md`](../discovery/push-notifications.md)。 |
-| `S2S` / `P2P` | server-to-server / peer-to-peer | 分别指联邦服务间调用与端到端直连媒体路径。 |
-| `TEE` / `HSM` | Trusted Execution Environment / Hardware Security Module | 部署侧密钥保护形态，不是协议必需组件。 |
+| <span class="ak-nowrap">`S2S` / `P2P`</span> | server-to-server / peer-to-peer | 分别指联邦服务间调用与端到端直连媒体路径。 |
+| <span class="ak-nowrap">`TEE` / `HSM`</span> | Trusted Execution Environment / Hardware Security Module | 部署侧密钥保护形态，不是协议必需组件。 |
 | `SSRF` | Server-Side Request Forgery | 出站抓取面的威胁类别，见 [`../sync/service-surface.md`](../sync/service-surface.md)。 |
 | `CSPRNG` | Cryptographically Secure Pseudorandom Number Generator | 随机源要求。 |
 | `SLA` | Service Level Agreement | 部署侧承诺，不构成 wire contract。 |
