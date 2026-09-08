@@ -433,6 +433,8 @@ checkpoint issuance 复用现有 Contact 机器面而不再建立一套三阶段
 
 `direct_conversation_agent_genesis` 改验 participants 恰为该 controller/Agent、profile 为 DM 而非 PCR、`ak.agent.provision` 已 accepted 且 controller binding current，并令 `founder = controller`。Agent 与第三方之间的 DM 仍 **MUST** 使用该 pair 的 current Contact round，**MUST NOT** 以 provision 绕过第三方 consent。
 
+controller-Agent founding material 的 `controller_binding_digest` MUST 为 accepted `ak.agent.provision` 的完整 typed payload 的 RFC 8785 JCS 字节的 SHA-256（`sha256:<lowercase hex>`）。该 payload 绑定 Agent、controller、PCR、delegation、accountability 与 scope；不得对本地数据库记录、完整 Event envelope 或运行时状态计算该值。resolver 与 admission MUST 使用同一共享 SDK 算法；admission MUST 从本地 accepted provision 重算并比较，不能信任 caller 回传的摘要。current controller binding 仍独立验证，不得用摘要相等代替。
+
 ### 5.5 caller-authored founding unit、source 唯一 slot 与 acceptance receipt
 
 四条 Event 的 ID 都是各自 canonical Event preimage 的完整 digest（[`../conformance/encoding.md` §4.0](../conformance/encoding.md)），`realm_id` 与 `main_strand_id` 又分别是第一条与第三条 Event ID 的重类型（[`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)、[`../models/common-fields.md` §6.0](../models/common-fields.md)）。因此在 canonical preimage 完成之前**没有任何主体能"分配"这两个 ID**：服务端预分配、reserved/materializing draft、coordinator 选举与 caller 自选 ID 全部 **MUST NOT** 出现在本流程。founding **MUST** 采用 caller-authored first-valid unit：
