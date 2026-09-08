@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.3",
+  "version": "2026-09-09.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T21:58:00Z",
+  "generated_at": "2026-09-08T16:09:50+00:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -214,8 +214,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:7dfacf461910eb936a0525e8a927d00426d06a704b6933eac9941999a1cb872e",
-      "requirement": "A Control Move MUST carry a CBS basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. Ordinary Collaboration bootstrap uses the ordered machine-registry facet closure with an explicit final creator membership and no implicit creator membership. The mutually exclusive Direct Conversation branch is exactly create, explicit peer membership, one basis-free main ak.strand.create, then explicit founder membership with head_eq null. Batch admission MUST reject both no-basis shapes anywhere else.",
+      "section_digest": "sha256:7fa4d6e59dca416887d087d95f2ae21506c27856add329387611202fe065e893",
+      "requirement": "A Control Move MUST carry a CBS basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. Ordinary Collaboration bootstrap uses the ordered machine-registry facet closure with an explicit final creator membership and no implicit creator membership. The mutually exclusive Direct Conversation branch is exactly create, explicit founder membership with head_eq null, explicit peer membership, then one basis-free main ak.strand.create. An owned Agent peer join explicitly binds the preceding staged controller join; only the complete atomic unit activates that binding. Batch admission MUST reject both no-basis shapes anywhere else.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1",
@@ -583,6 +583,16 @@
       "requirement": "Only the exact founder uses registered provisional message authority before peer durable Welcome, with accepted Genesis and current gates. First accepted Bound permanently exits bootstrap; equivalent later endorsements cannot reactivate it.",
       "testability_grade": "audit",
       "test_plan": "Run registered provisional-source policy tests; block exact private Realm claim at epoch 0 and consume after Add, then verify real submitted message epoch, peer since_join boundary and eventual convergence. Test post-Bound rejection of bootstrap authority and equivalent endorsement accumulation."
+    },
+    {
+      "clause_id": "AK-NC-044",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
+      "section_digest": "sha256:91755f54c8a20298e95b1e2107b411ae9a2e396149e8d7a1048bdc4394374098",
+      "requirement": "Contact glare requests are exactly two distinct typed EventId wire strings in strict UTF-8 unsigned-byte lexical order, with receipt digests excluded as keys and tiebreakers. Receiving verifiers reject reversed or duplicate refs without normalization before deriving the round ID or founder. Participant ordering separately uses full ActorId RFC 8785 JCS bytes.",
+      "testability_grade": "audit",
+      "test_plan": "Run tools/check_contact_round_kat.py and the SDK Contact round KAT against the same wire-order, digest-order and object-order distinction, reversed input and duplicate refs with equal or different receipt digests. Verify source construction and receiving admission use the same SDK comparison. These checks cover ordering, not a complete two-Station glare flow."
     }
   ]
 }

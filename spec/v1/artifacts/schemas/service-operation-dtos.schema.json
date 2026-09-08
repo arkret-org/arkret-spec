@@ -1822,7 +1822,7 @@
     },
     "DirectConversationFoundingUnitSubmission": {
       "type": "object",
-      "description": "Caller-authored Direct Conversation founding unit submitted to the founder's current Station. The founder authors all four Events itself: realm_id is retype(events[0] Event ID) and main_strand_id is retype(events[2] Event ID), so no party can allocate either coordinate before the canonical preimage exists. The service never allocates, replaces or renegotiates an ID; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically. The closed shape carries no founding_authority_evidence: the founder's current Station verifies the unit against its own current Contact round or Agent provision evidence inside the same admission transaction, so a caller-echoed copy would be neither an idempotency input nor trusted input. See zh/identity/contact-and-direct-conversation.md sections 5.5, 6.1 and 9.1.1.",
+      "description": "Caller-authored Direct Conversation founding unit submitted to the founder's current Station. The founder authors all four Events itself: realm_id is retype(events[0] Event ID) and main_strand_id is retype(events[3] Event ID), so no party can allocate either coordinate before the canonical preimage exists. The service never allocates, replaces or renegotiates an ID; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically. The closed shape carries no founding_authority_evidence: the founder's current Station verifies the unit against its own current Contact round or Agent provision evidence inside the same admission transaction, so a caller-echoed copy would be neither an idempotency input nor trusted input. See zh/identity/contact-and-direct-conversation.md sections 5.5, 6.1 and 9.1.1.",
       "required": [
         "unit_kind",
         "idempotency_key",
@@ -1844,7 +1844,7 @@
           "items": {
             "$ref": "#/$defs/EventInitialSubmission"
           },
-          "description": "Exactly four founder-signed Events in fixed wire order: ak.realm.create with an omitted realm_id and a realm_genesis scope_ref, the peer participant's ak.member.state{join}, ak.strand.create with an omitted strand_id, then the founder's explicit ak.member.state{join} genesis write carrying head_eq null. Reordering, a fifth Event, either missing member join and a missing Strand each reject the whole unit."
+          "description": "Exactly four founder-signed Events in fixed wire order: ak.realm.create with an omitted realm_id and a realm_genesis scope_ref, the founder's explicit ak.member.state{join} genesis write carrying head_eq null, the peer participant's ak.member.state{join}, then ak.strand.create with an omitted strand_id. The owned Agent peer join explicitly binds the preceding founder join Event ID and exact controller AccountId; only the complete atomic unit admits that staged reference. Reordering, a fifth Event, either missing member join and a missing Strand each reject the whole unit."
         },
         "cbs_proof_bundles": {
           "type": "array",

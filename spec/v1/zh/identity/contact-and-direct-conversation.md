@@ -127,7 +127,14 @@ glare  = {kind:"glare", sorted_pair_member_ids,
           requests:[{request_event_ref,request_acceptance_receipt_digest}, ...]}
 ```
 
-pair members 与 glare requests 都按已登记的 UTF-8 unsigned-byte ordering 排序。normal responder 必须在本地
+排序对象与比较键固定如下，构造方与验证方 **MUST** 使用相同规则：
+
+- `sorted_pair_member_ids` 恰含两个不同的完整 `ActorId`，各自序列化为 RFC 8785 JCS UTF-8 bytes，按 unsigned-byte lexicographic order **严格升序**排列。
+- glare 的 `requests` 恰含两个条目；唯一排序键为每项 `request_event_ref` 的完整、已通过 typed EventId 校验的 wire 字符串的 UTF-8 bytes。逐字节按无符号值比较，第一个不同字节较小者在前；若一串是另一串的完整前缀，较短者在前。**MUST NOT** 解码 digest 后比较，不得大小写折叠、使用 locale 排序，或比较整个 request 对象的 JCS bytes。
+- 两个 `request_event_ref` **MUST** 不同且严格升序；相同 ref 无论收据摘要相同还是不同都必须拒绝。`request_acceptance_receipt_digest` 仅绑定该条目的 exact receipt，**不参与排序，也不是平局决胜键**。收据仍须逐项匹配原请求、签名作者与 exact reverse pair。
+- 本地构造 glare core 时可以将两条独立取得的 request refs 按上述规则排序；验证收到的 `contact_round` 时必须先检查其现有数组顺序，乱序或重复一律拒绝。**MUST NOT** 对收到的 round 排序、去重或替换条目后再验证其 ID、证据或 founder。RFC 8785 对对象键的规范化不改变数组顺序。
+
+normal responder 必须在本地
 CAS 点证明自己没有 outgoing request，并签 `normal_response_acceptance_receipt`；该 receipt 绑定 exact request
 receipt、derived normal round 与 CAS/completeness proof。reject 必须同样取得 source-signed
 `reject_acceptance_receipt`，绑定 exact request receipt、slot predecessor、reject Event 与 terminal
@@ -386,7 +393,11 @@ founder(contact_round) =
 
 **normal 分支取 responder 而非 requester 是 normative 选择**：Contact round 由 responder 的 `normal_response_acceptance_receipt` 点亮，该 receipt 证明 responder 在该 round 成立时在线且刚完成签名；requester 可能在数日前发出请求后即长期离线。base v1 不定义 fallback（§5.7），因此把 founder 定为可能不在场的一方会使该 pair 永久无法创建。
 
-glare 分支不存在 responder，`requests[0]` 依 §2 已登记的 canonical ordering 取得，**MUST NOT** 另立排序规则。
+glare 分支不存在 responder；`requests[0]` 是 §2 按完整 `request_event_ref` wire 字符串的 UTF-8 unsigned bytes 严格升序排列后的第一项。founder 是该项引用的 signed request Event 的完整 author `ActorId`，不是 receipt 的 Station `issuer_id`，也不是 `sorted_pair_member_ids[0]`。到达顺序、墙钟时间、请求发起先后及收据摘要都不参与选择，**MUST NOT** 另立排序规则。
+
+以上两条 Contact founder 规则用于 human↔human 和需要 Contact consent 的 Agent↔第三方分支。controller↔自己的 owned Agent 不走 Contact 邀请／接受／glare，按 §5.4 从已接受且 current 的 provision/controller binding 固定 `founder=controller`；Agent 配对只建立 runtime 授权，不创建聊天 Realm。
+
+双方只有各自 outgoing request、尚未取得完整有效 round evidence 时均没有 DM 创建权。normal accept 的本地 slot CAS 必须证明不存在 outgoing request；glare 的双方 causal/completeness evidence 未齐时只可等待，不得按本地可见请求分别建立 normal round。网络超时不得授予另一方 fallback/takeover 创建权。完整证据确定同一 founder 后，才由其 current Station 按 §5.5 原子关闭唯一 founding slot；本地数据库锁本身不承担跨 Station 选择 founder 的职责。
 
 `sorted_pair_member_ids` 不恰为二、request Event author/requester 不属于该 pair、glare requests 未按登记顺序或两个 requester 不构成该 pair 时，founder 派生 **MUST** 失败并整组拒绝，**MUST NOT** 以补集或本地偏好猜测。这里的 author/requester 是 signed Event 的完整 `ActorId`，不是 service-signed proof/receipt 的 `issuer_id`。
 
@@ -437,12 +448,12 @@ controller-Agent founding material 的 `controller_binding_digest` MUST 为 acce
 
 ### 5.5 caller-authored founding unit、source 唯一 slot 与 acceptance receipt
 
-四条 Event 的 ID 都是各自 canonical Event preimage 的完整 digest（[`../conformance/encoding.md` §4.0](../conformance/encoding.md)），`realm_id` 与 `main_strand_id` 又分别是第一条与第三条 Event ID 的重类型（[`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)、[`../models/common-fields.md` §6.0](../models/common-fields.md)）。因此在 canonical preimage 完成之前**没有任何主体能"分配"这两个 ID**：服务端预分配、reserved/materializing draft、coordinator 选举与 caller 自选 ID 全部 **MUST NOT** 出现在本流程。founding **MUST** 采用 caller-authored first-valid unit：
+四条 Event 的 ID 都是各自 canonical Event preimage 的完整 digest（[`../conformance/encoding.md` §4.0](../conformance/encoding.md)），`realm_id` 与 `main_strand_id` 又分别是第一条与第四条 Event ID 的重类型（[`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)、[`../models/common-fields.md` §6.0](../models/common-fields.md)）。因此在 canonical preimage 完成之前**没有任何主体能"分配"这两个 ID**：服务端预分配、reserved/materializing draft、coordinator 选举与 caller 自选 ID 全部 **MUST NOT** 出现在本流程。founding **MUST** 采用 caller-authored first-valid unit：
 
 1. founder caller author `ak.realm.create`（envelope 省略 `realm_id`、`scope_ref` 为 `{"kind":"realm_genesis"}`，payload 省略 object id），完成 canonical preimage 后派生其 Event ID，并重类型得到 `realm_id`；
-2. 以该 `realm_id` author 另一 participant 的 `ak.member.state{join}`；
-3. author `ak.strand.create`（payload 不携 `strand_id`），由其 Event ID 重类型得到 `main_strand_id`；
-4. author founder 自己的 `ak.member.state{join}`，携 member cell 的 `head_eq null` genesis precondition，且 `prev_refs` 引用第 3 条；
+2. 以该 `realm_id` author founder 自己的 `ak.member.state{join}`，携 member cell 的 `head_eq null` genesis precondition；
+3. author 另一 participant 的 `ak.member.state{join}`；controller/Agent 分支显式携带绑定第 2 条的 `agent_controller_binding`；
+4. author `ak.strand.create`（payload 不携 `strand_id`），由其 Event ID 重类型得到 `main_strand_id`；
 5. 四条全部由 founder 签名，按该 wire 顺序构成 exact ordered unit 一次提交；不存在 server-created draft、reserved Event ID 或第二次 authoring 机会；
 6. 网络结果不明时 caller **MUST** 重放逐字节相同的 signed bytes，**MUST NOT** 重新 author 另一组 Event。
 
@@ -451,9 +462,9 @@ controller-Agent founding material 的 `controller_binding_digest` MUST 为 acce
 ```text
 founding_unit_digest = H("ak.direct-conversation.founding-unit.v1",
                          {"event_ids": [realm_create_event_id,
+                                        founder_member_join_event_id,
                                         peer_member_join_event_id,
-                                        strand_create_event_id,
-                                        founder_member_join_event_id]})
+                                        strand_create_event_id]})
 ```
 
 四个 Event ID **MUST** 按 §6.1 的 wire 顺序列出，**MUST NOT** 排序、去重或替换为 digest。该值不进入任一 unit Event 的 preimage，因此不存在自指；receipt 与 `ak.direct_conversation.bound` 只引用它。实现 **MUST** 执行 [`ak.vector.direct_conversation.founding_unit.v1`](../../artifacts/registry/vector-registry.json) 的逐字节 KAT。
@@ -548,15 +559,15 @@ founder **MUST** 一次提交恰好四条 Event：
 
 ```text
 1. ak.realm.create        携 §5.4 的 critical ref；不承载 membership 边
-2. ak.member.state{join}  subject 为另一 participant 的显式 canonical membership
-3. ak.strand.create       main Strand，scope_circle_id=null，primary discussion track
-4. ak.member.state{join}  subject 为 founder 自身；genesis write，head_eq null
+2. ak.member.state{join}  subject 为 founder 自身；genesis write，head_eq null
+3. ak.member.state{join}  subject 为另一 participant 的显式 canonical membership
+4. ak.strand.create       main Strand，scope_circle_id=null，primary discussion track
 ```
 
 四条注册为 `ak.profile.direct_conversation_realm.v1` 的 closed atomic founding unit：按 wire 顺序验证，同一事务零项或四项接受。create-alone、缺 peer join、缺 Strand、缺 founder join、乱序、不同 actor/pair/profile/Realm 或出现第五条 Event **MUST** 拒绝整组。四条 **MUST** 由 founder author，并使用同一分支 context（`direct_conversation_contact_round` 或 `direct_conversation_agent_provision`，exact XOR），叠加同批 staged authority-root proof。
 
 该顺序同时是 §5.5 的派生顺序，不是可选排版：第 2、3、4 条的 `envelope.realm_id` **MUST** 逐字等于
-`retype(第 1 条 event_id, "realm")`，`main_strand_id` **MUST** 逐字等于 `retype(第 3 条 event_id, "strand")`，
+`retype(第 1 条 event_id, "realm")`，`main_strand_id` **MUST** 逐字等于 `retype(第 4 条 event_id, "strand")`，
 第 2 条的 `prev_refs` **MUST** 引用第 1 条、第 3 条 **MUST** 引用第 2 条、第 4 条 **MUST** 引用第 3 条。验证方 **MUST** 从 unit 自身 bytes
 重算这两个坐标，**MUST NOT** 采信请求中另行携带的坐标字段，也 **MUST NOT** 接受任何声称先分配后签名的
 提交形态。本段任一条件不成立 **MUST** 以 `direct_conversation_founding_unit_invalid` 整组零写入拒绝。
@@ -570,6 +581,8 @@ founder **MUST** 一次提交恰好四条 Event：
 拒绝它的 no-basis 形态。
 
 Genesis Seal **MUST** 覆盖四条 Event、普通 Realm create 的全部 required founding writes 与 §6.2 的固定投影；**MUST NOT** 先 Seal create 再补任一 member join 与 Strand。这也是 `ak.strand.create` 必须免 basis 的原因：它被同一张 Seal 覆盖，无法引用那张尚不存在的 Seal。
+
+controller/Agent 分支的第 3 条 Agent join **MUST** 显式携带 `agent_controller_binding`，其 controller AccountId 必须逐字等于 founder，generation ref 必须逐字等于第 2 条 controller join Event ID，且不得携 terminal ref。仅此完整原子 unit 的 admission 可使用同批前序 staged controller join；不得要求第 2 条预先独立 accepted，也不得在整批 accepted 前授予成员资格。receiver **MUST NOT** 推导、补写或替换缺失的 binding。普通 Agent join 仍引用已经 accepted 的 controller join。后续 controller rejoin 不得更新旧绑定或复活旧 Agent join。
 
 ### 6.2 固定 baseline 投影
 
@@ -797,7 +810,7 @@ founding 相关的机读入口是 [`ak.vector.direct_conversation.founding_unit.
 
 Conformance **MUST** 覆盖：
 
-- founder 派生：normal 取 responder、glare 取 `requests[0]` issuer，两侧独立计算一致；把 normal 分支误算为 requester **MUST** 被两侧 admission 拒绝；
+- founder 派生：normal 取根轮次 responder、glare 取 §2 严格排序后 `requests[0].request_event_ref` 的 signed Event author `ActorId`，两侧独立计算一致；把 normal 分支误算为 requester、把 Station receipt issuer 当作 founder、乱序或重复 request refs（即使摘要不同）**MUST** 被两侧 admission 拒绝；反向 receipt 到达顺序、摘要排序与解码后 digest 排序不得改变 founder；
 - 非 founder 提交 founding unit 在 self 与 peer 两条路径均拒绝；
 - caller-authored 派生：`realm_id`、`main_strand_id` 与 `founding_unit_digest` 由两个独立实现从同一 unit bytes 重算得到逐字节相同结果；请求另行携带坐标、服务端预分配 ID、reserved/materializing draft 与 coordinator 选举形态 **MUST** 被拒绝；
 - founder 多设备并发各自 author 出不同 unit 时，同一 Station 的唯一 slot **MUST** 只接受先到的合法 unit，后到者返回 `slot_already_committed` 且零写入，两台设备随后从 resolver 得到同一组坐标；

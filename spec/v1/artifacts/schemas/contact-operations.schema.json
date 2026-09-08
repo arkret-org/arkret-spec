@@ -153,7 +153,7 @@
       ],
       "properties": {
         "signer_id": {
-            "$ref": "#/$defs/actor_id"
+          "$ref": "#/$defs/actor_id"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -453,7 +453,8 @@
               },
               "minItems": 2,
               "maxItems": 2,
-              "uniqueItems": true
+              "uniqueItems": true,
+              "description": "Exactly two distinct full ActorIds, strictly ascending by their RFC 8785 JCS UTF-8 unsigned bytes. Validation rejects noncanonical order without sorting the received array."
             },
             "request_event_ref": {
               "$ref": "#/$defs/event_id"
@@ -482,7 +483,8 @@
               },
               "minItems": 2,
               "maxItems": 2,
-              "uniqueItems": true
+              "uniqueItems": true,
+              "description": "Exactly two distinct full ActorIds, strictly ascending by their RFC 8785 JCS UTF-8 unsigned bytes. Validation rejects noncanonical order without sorting the received array."
             },
             "requests": {
               "type": "array",
@@ -504,7 +506,8 @@
               },
               "minItems": 2,
               "maxItems": 2,
-              "uniqueItems": true
+              "uniqueItems": true,
+              "description": "Exactly two distinct request_event_ref values, strictly ascending by the complete typed EventId wire string UTF-8 unsigned bytes. Receipt digest is not a sort key or tiebreaker. Duplicate refs are invalid even with different digests. Receivers reject unsorted input without normalization. The signed request Event author ActorId of requests[0], not the Station receipt issuer_id, is the root-round founder."
             }
           },
           "additionalProperties": false
@@ -741,7 +744,7 @@
             "handle_claim": {
               "$ref": "./handle-claim.schema.json"
             },
-        "resolved_by": {
+            "resolved_by": {
               "$ref": "#/$defs/did_core_id"
             },
             "resolved_at": {

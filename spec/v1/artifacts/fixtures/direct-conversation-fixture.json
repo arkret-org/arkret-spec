@@ -794,11 +794,11 @@
       "semantic_outcome": "accept",
       "assertions": [
         "state is creation_required and next_founding_input is present",
-        "next_founding_input member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies founding_authority_evidence and origin Station identity from the signed Events across with no renaming map",
+        "next_founding_input informs caller authoring; the self submission forbids founding_authority_evidence and the destination Station reads its own current accepted evidence",
         "exactly one founding_authority_evidence branch is returned for this pair, human for a peer Contact founding and controller_agent for an own-Agent founding",
         "the container carries no Event bytes, no coordinates, no idempotency_key and no receipt: the founder still authors and signs all four Events",
         "a service that cannot assemble or verify the material returns temporarily_unavailable instead of a creation_required outcome without the container",
-        "the submission re-verifies the material against the service's own current state and never trusts the echoed copy"
+        "self admission obtains current evidence locally; a caller-echoed founding_authority_evidence field is rejected"
       ]
     },
     {
@@ -857,11 +857,11 @@
     },
     {
       "name": "founding_coordinates_are_derived_from_unit_bytes",
-      "precondition": "founder authored the four-Event unit in fixed wire order, ending with its explicit head_eq-null membership join",
+      "precondition": "founder authored the four-Event unit in fixed wire order, with its explicit head_eq-null membership join second and the main Strand fourth",
       "action": "submit the direct_conversation_founding branch of ak.self.events.command.submit.v1",
       "semantic_outcome": "accept",
       "assertions": [
-        "realm_id equals retype of the first Event ID and main_strand_id equals retype of the third Event ID",
+        "realm_id equals retype of the first Event ID and main_strand_id equals retype of the fourth Event ID",
         "founding_unit_digest is recomputed from the four ordered Event IDs under the ak.direct-conversation.founding-unit.v1 domain",
         "two independent implementations derive the same coordinates, unit digest and receipt semantics",
         "acceptance fixes the caller-derived coordinates and allocates nothing"
@@ -869,7 +869,7 @@
     },
     {
       "name": "founding_unit_strand_uses_bootstrap_no_basis_shape",
-      "precondition": "the third Event of the founding unit is the Realm's main ak.strand.create and the Genesis Seal covers all four Events",
+      "precondition": "the fourth Event of the founding unit is the Realm's main ak.strand.create and the Genesis Seal covers all four Events",
       "action": "admit the unit",
       "semantic_outcome": "accept",
       "assertions": [

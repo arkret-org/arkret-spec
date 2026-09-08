@@ -130,7 +130,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
 ### 2.1 Identifier 字段命名约定（normative）
 
-本节适用所有持有 protocol identifier、DID material 或 reference material 的 wire 字段。Arkret-owned 字段名由**语义角色**与**表示类别后缀**共同组成；字段名不编码主体类别，也不表达"硬归属 vs 软导航"、权限传播、同步传播、retention 级联或 E2EE key 级联。后者 MUST 由 role、JSON Schema `description`、subject-class 约束和对象专属章节共同定义。
+本节适用所有持有 protocol identifier、DID material 或 reference material 的 wire 字段。Arkret-owned identifier 字段名按 §2.1.3 由**语义角色、可验证主体类别与 carrier 后缀**共同确定；字段名必须如实表达已由 schema/registry/admission evidence 闭合的类别，但不能代替这些约束或证据，也不表达"硬归属 vs 软导航"、权限传播、同步传播、retention 级联或 E2EE key 级联。后者 MUST 由 role、JSON Schema `description`、subject-class 约束和对象专属章节共同定义。
 
 **Identifier value category 表（normative，有限且互斥）**：每个 identifier 字段 MUST 恰好属于下表九类之一。类别的真源是 schema 解析后的 terminal 约束（递归展开本地与跨文件 `$ref`、`oneOf` / `anyOf` 分支与 `pattern`）；字段名只负责如实表达该类别，MUST NOT 反过来决定类别，实现也 MUST NOT 仅凭字段名推断值的种类。
 

@@ -20,6 +20,14 @@ def canonical_json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def canonical_request_order(contact_round: dict) -> bool:
+    requests = contact_round.get("requests")
+    if not isinstance(requests, list) or len(requests) != 2:
+        return False
+    keys = [row["request_event_ref"].encode("utf-8") for row in requests]
+    return keys[0] < keys[1]
+
+
 def main() -> int:
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     domain = fixture.get("domain")
@@ -42,14 +50,7 @@ def main() -> int:
         ):
             raise SystemExit(f"{name}: sorted_pair_member_ids is not canonical and distinct")
         if contact_round.get("kind") == "glare":
-            requests = contact_round.get("requests")
-            if not isinstance(requests, list) or len(requests) != 2:
-                raise SystemExit(f"{name}: glare must carry exactly two requests")
-            request_keys = [
-                (row["request_event_ref"], row["request_acceptance_receipt_digest"])
-                for row in requests
-            ]
-            if request_keys != sorted(set(request_keys)):
+            if not canonical_request_order(contact_round):
                 raise SystemExit(f"{name}: glare requests are not canonical and distinct")
 
         canonical = canonical_json(contact_round)
@@ -61,6 +62,19 @@ def main() -> int:
             raise SystemExit(f"{name}: expected {case['expected_contact_round_id']}, got {actual}")
         round_ids[name] = actual
         round_members[name] = members
+
+    ordering = fixture["request_ordering"]
+    if (
+        ordering["key"] != "request_event_ref"
+        or ordering["encoding"] != "complete_wire_string_utf8"
+        or ordering["comparison"] != "unsigned_byte_lexicographic_strict_ascending"
+        or ordering["receipt_digest_is_tiebreaker"] is not False
+        or ordering["receiver_normalizes"] is not False
+    ):
+        raise SystemExit("request ordering contract drifted")
+    for case in ordering["negative_cases"]:
+        if case["expected"] != "reject" or canonical_request_order(case["contact_round"]):
+            raise SystemExit(f"{case['name']}: noncanonical request order was accepted")
 
     absence = fixture.get("outgoing_slot_absence")
     if not isinstance(absence, dict):
@@ -140,7 +154,8 @@ def main() -> int:
 
     print(
         f"contact round KAT: {len(fixture['cases'])} round cases and "
-        f"{len(expected_negatives)} outgoing-slot negatives OK"
+        f"{len(expected_negatives)} outgoing-slot negatives and "
+        f"{len(ordering['negative_cases'])} request-order negatives OK"
     )
     return 0
 

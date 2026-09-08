@@ -31,7 +31,7 @@
         },
         "controller_membership_generation_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "description": "Exact accepted controller ak.member.state join Event that establishes the bound membership generation. A later rejoin has another Event ID and never revives this binding."
+          "description": "Exact controller ak.member.state join Event that establishes the bound membership generation. It must already be accepted, except that the complete controller-Agent Direct Conversation founding unit explicitly references its preceding staged founder join and activates all four Events atomically. A later rejoin has another Event ID and never revives this binding."
         },
         "controller_terminal_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
