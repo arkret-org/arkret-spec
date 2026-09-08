@@ -12,6 +12,11 @@ updated: 2026-07-30
 
 Arkret v1 的普通在线 Event 不需要预先申请 AuthorizationLease：接收服务在一个 transaction 内按最新 accepted state 完成 admission 与持久化。只有调用方明确请求延迟/离线发布窗口时才使用 basis-bound lease；IngressReceipt 仍是可选 seen/availability evidence，不是 Event 有效性或最终性证明。Event `created_at` 和 verifier 本地首次见到时间均不能创造离线发布权限。
 
+同一边界适用于 Control Move 的 authority Ack intake：普通在线请求显式携带
+`publication_mode=online` 且禁止 `authorization_lease`；只有调用方已明确取得延迟/离线窗口时才携带
+`publication_mode=delayed` 与匹配 lease。无效、过期或不匹配的 delayed lease 必须失败，服务端不得忽略
+lease 后按 online 分支继续。Ack 只是 authority 的持久处理义务，不产生或延长离线窗口，也不替代最终 Seal。
+
 ## 1. AuthorizationLease
 
 ```text

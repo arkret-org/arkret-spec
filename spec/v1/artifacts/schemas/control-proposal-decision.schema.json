@@ -250,14 +250,20 @@
     },
     "control_proposal_ack_issue_request": {
       "type": "object",
-      "description": "Typed authority input used by a local signer or the registered HTTP operation to issue one immutable authority Ack.",
+      "description": "Typed authority input used by a local signer or the registered HTTP operation to issue one immutable authority Ack. Online intake has no lease; delayed intake requires and independently validates one. The explicit mode prevents an invalid delayed request from being silently downgraded to online.",
       "required": [
         "event",
-        "authorization_lease"
+        "publication_mode"
       ],
       "properties": {
         "event": {
           "$ref": "./event-envelope.schema.json"
+        },
+        "publication_mode": {
+          "enum": [
+            "online",
+            "delayed"
+          ]
         },
         "authorization_lease": {
           "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
@@ -271,6 +277,32 @@
           }
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "publication_mode": {
+                "const": "delayed"
+              }
+            },
+            "required": [
+              "publication_mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "authorization_lease"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "authorization_lease"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "control_proposal_ack_issue_outcome": {

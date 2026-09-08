@@ -423,7 +423,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:2ce3c20a257e02baf399cc4fcb010941f839c8894edd12bda7730add9445678f",
+      "section_digest": "sha256:2759b317dc7617d4cfc49d7fe818820f3286853b4ed53b292894fb03ca8c17d2",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -445,7 +445,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:2ce3c20a257e02baf399cc4fcb010941f839c8894edd12bda7730add9445678f",
+      "section_digest": "sha256:2759b317dc7617d4cfc49d7fe818820f3286853b4ed53b292894fb03ca8c17d2",
       "requirement": "An accepted ordinary-Realm or Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -529,7 +529,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:2ce3c20a257e02baf399cc4fcb010941f839c8894edd12bda7730add9445678f",
+      "section_digest": "sha256:2759b317dc7617d4cfc49d7fe818820f3286853b4ed53b292894fb03ca8c17d2",
       "requirement": "Historical deadline faults remain auditable but are not embedded in current frontier health. An incomplete bounded pending sample explicitly carries pending_proposals_complete=false and cannot prove absence of a safety gate; it does not invalidate an independently verified Seal basis.",
       "testability_grade": "audit",
       "test_plan": "Exercise 129 and 1000 late accepted obligations, verify current health and complete paginated retained history; exercise 129 pending obligations and validate explicit incompleteness without deletion. Verify target revoke gates independently of the diagnostic sample."
@@ -593,6 +593,16 @@
       "requirement": "Contact glare requests are exactly two distinct typed EventId wire strings in strict UTF-8 unsigned-byte lexical order, with receipt digests excluded as keys and tiebreakers. Receiving verifiers reject reversed or duplicate refs without normalization before deriving the round ID or founder. Participant ordering separately uses full ActorId RFC 8785 JCS bytes.",
       "testability_grade": "audit",
       "test_plan": "Run tools/check_contact_round_kat.py and the SDK Contact round KAT against the same wire-order, digest-order and object-order distinction, reversed input and duplicate refs with equal or different receipt digests. Verify source construction and receiving admission use the same SDK comparison. These checks cover ordering, not a complete two-Station glare flow."
+    },
+    {
+      "clause_id": "AK-NC-045",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
+      "section_digest": "sha256:2759b317dc7617d4cfc49d7fe818820f3286853b4ed53b292894fb03ca8c17d2",
+      "requirement": "A Control Proposal Ack intake request explicitly selects online or delayed publication. Online forbids an AuthorizationLease and re-evaluates current accepted authority; delayed requires an independently valid Event-bound lease. A malformed, invalid or expired delayed request never downgrades to online, and neither branch turns the Ack into a lease or a Seal.",
+      "testability_grade": "audit",
+      "test_plan": "Validate schema and shared SDK positive cases for online without a lease and delayed with a matching lease; reject online with a lease, delayed without one, invalid or expired leases, mode replacement, Event substitution and cross-actor or cross-scope lease reuse. Verify exact retry preserves the first durable Ack and deadline."
     }
   ]
 }

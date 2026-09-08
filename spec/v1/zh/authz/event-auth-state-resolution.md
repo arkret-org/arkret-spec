@@ -619,11 +619,22 @@ notary authority，或单个 signer 不能满足 threshold/mixed quorum 时，�
 proposal author 必须对每个真实 authority 使用
 `ak.self.control_proposal_acks.command.issue.v1` 的 typed request；本地 Agent/device signer
 使用完全相同的 request、canonical digest 与 outcome transcript，只省略 HTTP hop。每个
-authority 独立验证最终签名 Event、AuthorizationLease、genesis/basis 当前 notary policy、
+authority 独立验证最终签名 Event、genesis/basis 当前 notary policy、
 Realm、`proposal_digest`、signer membership 与 deadlines，随后签发一次
 `ControlProposalAuthorityAck`。同一 `(proposal_digest, authority_set_ref, verification_method)` 的
 byte-identical retry MUST 返回首次持久化的 authority Ack；不同 Event bytes、authority set
 或时间字段 MUST `duplicate_conflict`，不得重签延长期限。
+
+typed request 必须携带显式 `publication_mode=online|delayed`。`online` 分支 MUST 不携带
+`authorization_lease`，authority 按当前 accepted basis、当前权限与最终签名 Event 重新求值；它不产生
+离线窗口。`delayed` 分支 MUST 携带 `authorization_lease`，并独立验证 lease 的 basis、actor/device、
+scope/action、issuer、有效期及与 exact Event 的绑定。字段组合不匹配、lease 无效或过期时 MUST 拒绝，
+不得删除 lease 或替换 mode 后在同一次请求中降级为 online。request canonical digest 覆盖 mode、Event、
+lease（若有）与 proof bundles；HTTP session/DPoP 或 service signature 认证该请求。authority Ack proof 只覆盖
+下述 immutable Ack body 和 proposal identity，不替代 request authentication，也不把 lease 权限扩展到
+Ack deadline。transport outcome 丢失后相同 canonical request 返回首次持久化 Ack；调用方重新在线求值
+必须显式构造新的 `online` request，authority 仍按当前权限校验，且命中同一 proposal/authority 的既有
+Ack 时不得重签或延长期限。
 
 member签名 transcript 是
 `JCS({context:"ak.control_proposal_authority_ack_proof.v1",
