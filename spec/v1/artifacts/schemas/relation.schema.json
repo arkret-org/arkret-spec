@@ -124,7 +124,7 @@
         {"$ref": "#/$defs/object_ref"},
         {"$ref": "./common-ids.schema.json#/$defs/actor_id"}
       ],
-      "description": "A typed object-reference string or a structured full ActorId. Equality and deduplication preserve the complete ActorId including Station; relation profiles name this branch actor."
+      "description": "A typed object-reference string or a structured full ActorId. Equality and deduplication preserve the complete ActorId including Station. This branch represents an actor."
     },
     "rank": {
       "$ref": "./event-envelope.schema.json#/$defs/rank"

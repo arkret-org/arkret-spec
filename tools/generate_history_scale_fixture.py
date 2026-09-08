@@ -187,35 +187,13 @@ def build_signer_evidence(schemas: SchemaSet) -> dict[str, Any]:
         "metadata": {},
         "extensions": [],
     }
-    record = {
-        "record": {
-            "service_id": SERVICE_CORE,
-            "service_kind": "station",
-            "did": SERVICE_DID,
-            "method_history_head": history_head,
-            "version_id": version_id,
-            "resolution_event_ref": "did-key-did-sha256:" + "31" * 32,
-            "record_sequence": 0,
-            "previous_record_digest": None,
-            "current_record_url": "https://service.example/_arkret/open/services/service/resolution",
-            "base_url": "https://service.example/",
-            "describe_digest": digest_marker(0x32),
-            "issued_at": "2026-08-21T00:00:00.000Z",
-            "refresh_after": "2026-08-22T00:00:00.000Z",
-            "expires_at": "2026-08-29T00:00:00.000Z",
-        },
-        "proof": {
-            "verification_method": SERVICE_METHOD,
-            "created_at": "2026-08-21T00:00:00.000Z",
-            "jws": "c2ln",
-        },
-    }
     evidence = {
         "kind": "service",
         "signer_id": SERVICE_CORE,
         "verification_method": SERVICE_METHOD,
         "authenticated_resolution": {
-            "service_resolution_record": record,
+            "service_id": SERVICE_CORE,
+            "service_kind": "station",
             "method_history_evidence": {
                 "evidence_kind": "did_key_expansion",
                 "boundary": {
@@ -1062,7 +1040,6 @@ def build_rhrk_registration_rotation_kat(
         "accepted_key_evidence_seal": accepted_key_evidence_seal,
         "projected_rotate_op": {
             "cell_id": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
-            "from": current_projected_tuple,
             "to": {
                 "key_tuple": rotate_tuple,
                 "accepted_key_evidence_ref": rotate_event["event_id"],

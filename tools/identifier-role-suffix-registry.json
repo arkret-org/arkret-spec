@@ -9,7 +9,10 @@
   "multi_representation_field_contracts": [
     {
       "field": "issuer_id",
-      "representation_profiles": ["actor_id", "did_core_id"],
+      "representation_profiles": [
+        "actor_id",
+        "did_core_id"
+      ],
       "profile_meanings": {
         "actor_id": "Exact account-or-service actor that issued a grant or durable protocol statement.",
         "did_core_id": "Stable principal or service core that issued a proof, receipt, claim, or registry statement."
@@ -18,7 +21,10 @@
     },
     {
       "field": "peer_id",
-      "representation_profiles": ["actor_id", "did_core_id"],
+      "representation_profiles": [
+        "actor_id",
+        "did_core_id"
+      ],
       "profile_meanings": {
         "actor_id": "Exact Contact peer actor, preserving the Station component for an account actor.",
         "did_core_id": "Stable peer service or principal core named by a receipt."
@@ -27,7 +33,10 @@
     },
     {
       "field": "resource_id",
-      "representation_profiles": ["actor_id", "did_core_id"],
+      "representation_profiles": [
+        "actor_id",
+        "did_core_id"
+      ],
       "profile_meanings": {
         "actor_id": "Exact actor resource stored by the actor-discovery projection.",
         "did_core_id": "Stable DID-core branch of the directory withdrawal resource selector."
@@ -36,7 +45,10 @@
     },
     {
       "field": "revoked_by",
-      "representation_profiles": ["actor_id", "did_core_id"],
+      "representation_profiles": [
+        "actor_id",
+        "did_core_id"
+      ],
       "profile_meanings": {
         "actor_id": "Exact account-or-service actor that revoked a capability grant.",
         "did_core_id": "Stable controller principal core that revoked an Agent key."
@@ -45,7 +57,10 @@
     },
     {
       "field": "signer_id",
-      "representation_profiles": ["actor_id", "did_core_id"],
+      "representation_profiles": [
+        "actor_id",
+        "did_core_id"
+      ],
       "profile_meanings": {
         "actor_id": "Exact Contact participant actor bound by a bilateral continuity signature.",
         "did_core_id": "Stable principal or service core selected by a verification method and signer evidence."
@@ -54,7 +69,10 @@
     },
     {
       "field": "subject_id",
-      "representation_profiles": ["actor_id", "did_core_id"],
+      "representation_profiles": [
+        "actor_id",
+        "did_core_id"
+      ],
       "profile_meanings": {
         "actor_id": "Exact Contact participant actor, including Station for account actors.",
         "did_core_id": "Stable claim, mention, selector, or accountability subject core."
@@ -68,49 +86,63 @@
       "terminal_category": "did_core_id",
       "subject_class": "principal",
       "account_scoped": false,
-      "required_evidence": ["verified_holder_principal_authority"]
+      "required_evidence": [
+        "verified_holder_principal_authority"
+      ]
     },
     {
       "field": "holder_service_id",
       "terminal_category": "did_core_id",
       "subject_class": "service",
       "account_scoped": false,
-      "required_evidence": ["verified_holder_service_authority"]
+      "required_evidence": [
+        "verified_holder_service_authority"
+      ]
     },
     {
       "field": "holder_account_id",
       "terminal_category": "account_id",
       "subject_class": "account",
       "account_scoped": true,
-      "required_evidence": ["exact_account_ownership_binding"]
+      "required_evidence": [
+        "exact_account_ownership_binding"
+      ]
     },
     {
       "field": "controller_principal_id",
       "terminal_category": "did_core_id",
       "subject_class": "principal",
       "account_scoped": false,
-      "required_evidence": ["accepted_controller_principal_binding"]
+      "required_evidence": [
+        "accepted_controller_principal_binding"
+      ]
     },
     {
       "field": "method_controller_principal_id",
       "terminal_category": "did_core_id",
       "subject_class": "principal",
       "account_scoped": false,
-      "required_evidence": ["verified_w3c_method_controller"]
+      "required_evidence": [
+        "verified_w3c_method_controller"
+      ]
     },
     {
       "field": "controller_account_id",
       "terminal_category": "account_id",
       "subject_class": "account",
       "account_scoped": true,
-      "required_evidence": ["exact_account_authority_binding"]
+      "required_evidence": [
+        "exact_account_authority_binding"
+      ]
     },
     {
       "field": "controller_actor_id",
       "terminal_category": "actor_id",
       "subject_class": "actor",
       "account_scoped": false,
-      "required_evidence": ["accepted_realm_authority_root"]
+      "required_evidence": [
+        "accepted_realm_authority_root"
+      ]
     }
   ],
   "registered_service_role_fields": [
@@ -185,16 +217,6 @@
       "reason": "complete registered service-resolution carrier role"
     },
     {
-      "field": "service_resolution_record",
-      "role_stem": "service_resolution_record",
-      "reason": "complete registered service-resolution record role"
-    },
-    {
-      "field": "service_route_handover_notice",
-      "role_stem": "service_route_handover_notice",
-      "reason": "complete registered service-route handover artifact role"
-    },
-    {
       "field": "service_scope",
       "role_stem": "service_scope",
       "reason": "registered scope carried by the generic service role"
@@ -215,7 +237,7 @@
       "reason": "release_service is the registered audited-history key release authority role"
     },
     {
-      "field": "release_service_resolution_record_digest",
+      "field": "release_service_resolution_digest",
       "role_stem": "release_service",
       "reason": "digest binds the registered release_service resolution record"
     },
@@ -223,11 +245,6 @@
       "field": "release_service_resolution_ref",
       "role_stem": "release_service",
       "reason": "reference resolves the registered release_service authority"
-    },
-    {
-      "field": "release_service_resolution_sequence",
-      "role_stem": "release_service",
-      "reason": "sequence belongs to the registered release_service resolution lineage"
     },
     {
       "field": "release_service_route_digest",
@@ -251,149 +268,478 @@
     }
   ],
   "registered_provenance_byline_fields": [
-    {"field": "approved_by", "terminal_categories": ["did_core_id"], "reason": "complete approval provenance role"},
-    {"field": "changed_by", "terminal_categories": ["did_core_id"], "reason": "complete change provenance role"},
-    {"field": "created_by", "terminal_categories": ["did_core_id", "actor_id"], "reason": "complete creation byline role"},
-    {"field": "executed_by", "terminal_categories": ["did_core_id", "actor_id"], "reason": "complete delegated-execution provenance role"},
-    {"field": "generated_by", "terminal_categories": ["did_core_id"], "reason": "complete generation provenance role"},
-    {"field": "produced_by", "terminal_categories": ["did_core_id"], "reason": "complete production provenance role"},
-    {"field": "received_by", "terminal_categories": ["did_core_id"], "reason": "complete receipt provenance role"},
-    {"field": "removed_by", "terminal_categories": ["did_core_id"], "reason": "complete removal provenance role"},
-    {"field": "requested_by", "terminal_categories": ["did_core_id"], "reason": "complete request provenance role"},
-    {"field": "resolved_by", "terminal_categories": ["did_core_id"], "reason": "complete resolution provenance role"},
-    {"field": "restored_by", "terminal_categories": ["did_core_id"], "reason": "complete restoration provenance role"},
-    {"field": "revoked_by", "terminal_categories": ["did_core_id", "actor_id"], "reason": "complete revocation provenance role; generic protocol provenance uses ActorId while cryptographic controller records may retain did_core_id"},
-    {"field": "updated_by", "terminal_categories": ["did_core_id", "actor_id"], "reason": "complete update byline role"}
+    {
+      "field": "approved_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "complete approval provenance role"
+    },
+    {
+      "field": "changed_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "complete change provenance role"
+    },
+    {
+      "field": "created_by",
+      "terminal_categories": [
+        "did_core_id",
+        "actor_id"
+      ],
+      "reason": "complete creation byline role"
+    },
+    {
+      "field": "executed_by",
+      "terminal_categories": [
+        "did_core_id",
+        "actor_id"
+      ],
+      "reason": "complete delegated-execution provenance role"
+    },
+    {
+      "field": "generated_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "complete generation provenance role"
+    },
+    {
+      "field": "produced_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "complete production provenance role"
+    },
+    {
+      "field": "received_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "complete receipt provenance role"
+    },
+    {
+      "field": "removed_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "complete removal provenance role"
+    },
+    {
+      "field": "requested_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "complete request provenance role"
+    },
+    {
+      "field": "resolved_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "complete resolution provenance role"
+    },
+    {
+      "field": "restored_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "complete restoration provenance role"
+    },
+    {
+      "field": "revoked_by",
+      "terminal_categories": [
+        "did_core_id",
+        "actor_id"
+      ],
+      "reason": "complete revocation provenance role; generic protocol provenance uses ActorId while cryptographic controller records may retain did_core_id"
+    },
+    {
+      "field": "updated_by",
+      "terminal_categories": [
+        "did_core_id",
+        "actor_id"
+      ],
+      "reason": "complete update byline role"
+    }
   ],
   "registered_network_locator_fields": [
-    {"field": "arkret_base_url", "schemes": ["http", "https"], "reason": "dereferenceable Arkret service base locator"},
-    {"field": "base_url", "schemes": ["http", "https", "wss"], "reason": "dereferenceable or connectable service base locator; each schema narrows the allowed transport"},
-    {"field": "candidate_base_url", "schemes": ["https"], "reason": "dereferenceable handover candidate base locator"},
-    {"field": "candidate_record_url", "schemes": ["https"], "reason": "dereferenceable handover candidate record locator"},
-    {"field": "connect_url", "schemes": ["https", "wss"], "reason": "connectable media transport locator"},
-    {"field": "current_record_url", "schemes": ["https"], "reason": "dereferenceable signed current-record locator"},
-    {"field": "endpoint_url", "schemes": ["https"], "reason": "dereferenceable endpoint hint or revocation locator"},
-    {"field": "gate_account_base_url", "schemes": ["https"], "reason": "dereferenceable Account Authority base locator"},
-    {"field": "inclusion_proof_url", "schemes": ["https"], "reason": "dereferenceable inclusion-proof locator"},
-    {"field": "openid_configuration_url", "schemes": ["https"], "reason": "dereferenceable OpenID Provider metadata locator"},
-    {"field": "public_base_url", "schemes": ["http", "https"], "reason": "dereferenceable public service base locator; HTTP is restricted to explicit development deployments"},
-    {"field": "push_gateway_url", "schemes": ["https"], "reason": "dereferenceable push-gateway locator"},
-    {"field": "retrieval_url", "schemes": ["https"], "reason": "dereferenceable registry-content retrieval hint"},
-    {"field": "source_url", "schemes": ["https"], "reason": "dereferenceable witness-proof source locator"},
-    {"field": "url", "schemes": ["http", "https"], "reason": "complete presigned blob download locator"},
-    {"field": "webhook_url", "schemes": ["https"], "reason": "dereferenceable webhook delivery locator"}
+    {
+      "field": "arkret_base_url",
+      "schemes": [
+        "http",
+        "https"
+      ],
+      "reason": "dereferenceable Arkret service base locator"
+    },
+    {
+      "field": "base_url",
+      "schemes": [
+        "http",
+        "https",
+        "wss"
+      ],
+      "reason": "dereferenceable or connectable service base locator; each schema narrows the allowed transport"
+    },
+    {
+      "field": "connect_url",
+      "schemes": [
+        "https",
+        "wss"
+      ],
+      "reason": "connectable media transport locator"
+    },
+    {
+      "field": "resolution_url",
+      "schemes": [
+        "https"
+      ],
+      "reason": "dereferenceable DID method evidence locator"
+    },
+    {
+      "field": "endpoint_url",
+      "schemes": [
+        "https"
+      ],
+      "reason": "dereferenceable endpoint hint or revocation locator"
+    },
+    {
+      "field": "gate_account_base_url",
+      "schemes": [
+        "https"
+      ],
+      "reason": "dereferenceable Account Authority base locator"
+    },
+    {
+      "field": "inclusion_proof_url",
+      "schemes": [
+        "https"
+      ],
+      "reason": "dereferenceable inclusion-proof locator"
+    },
+    {
+      "field": "openid_configuration_url",
+      "schemes": [
+        "https"
+      ],
+      "reason": "dereferenceable OpenID Provider metadata locator"
+    },
+    {
+      "field": "public_base_url",
+      "schemes": [
+        "http",
+        "https"
+      ],
+      "reason": "dereferenceable public service base locator; HTTP is restricted to explicit development deployments"
+    },
+    {
+      "field": "push_gateway_url",
+      "schemes": [
+        "https"
+      ],
+      "reason": "dereferenceable push-gateway locator"
+    },
+    {
+      "field": "retrieval_url",
+      "schemes": [
+        "https"
+      ],
+      "reason": "dereferenceable registry-content retrieval hint"
+    },
+    {
+      "field": "source_url",
+      "schemes": [
+        "https"
+      ],
+      "reason": "dereferenceable witness-proof source locator"
+    },
+    {
+      "field": "url",
+      "schemes": [
+        "http",
+        "https"
+      ],
+      "reason": "complete presigned blob download locator"
+    },
+    {
+      "field": "webhook_url",
+      "schemes": [
+        "https"
+      ],
+      "reason": "dereferenceable webhook delivery locator"
+    }
   ],
   "registered_uri_reference_fields": [
-    {"field": "gate_audience_uri", "reason": "audience identifier committed into the pairing transcript"},
-    {"field": "geo_uri", "reason": "non-network geo URI reference"},
-    {"field": "issuer_uri", "reason": "issuer URI concept retained by the authentication protocol"},
-    {"field": "mimi_room_uri", "reason": "canonical non-HTTP MIMI room identifier"},
-    {"field": "mimi_uri", "reason": "canonical non-HTTP MIMI identifier"},
-    {"field": "provider_uri", "reason": "provider URI identity retained by the authentication protocol"},
-    {"field": "redirect_uri", "reason": "OAuth registered parameter spelling"},
-    {"field": "uri", "reason": "complete generic URI reference role"}
+    {
+      "field": "gate_audience_uri",
+      "reason": "audience identifier committed into the pairing transcript"
+    },
+    {
+      "field": "geo_uri",
+      "reason": "non-network geo URI reference"
+    },
+    {
+      "field": "issuer_uri",
+      "reason": "issuer URI concept retained by the authentication protocol"
+    },
+    {
+      "field": "mimi_room_uri",
+      "reason": "canonical non-HTTP MIMI room identifier"
+    },
+    {
+      "field": "mimi_uri",
+      "reason": "canonical non-HTTP MIMI identifier"
+    },
+    {
+      "field": "provider_uri",
+      "reason": "provider URI identity retained by the authentication protocol"
+    },
+    {
+      "field": "redirect_uri",
+      "reason": "OAuth registered parameter spelling"
+    },
+    {
+      "field": "uri",
+      "reason": "complete generic URI reference role"
+    }
   ],
   "registered_origin_fields": [
-    {"file": "account-operations.schema.json", "pointer": "/$defs/account_registration_control_proof/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
-    {"file": "account-operations.schema.json", "pointer": "/$defs/identity_binding_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
-    {"file": "account-operations.schema.json", "pointer": "/$defs/identity_creation_control_proof/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
-    {"file": "account-operations.schema.json", "pointer": "/$defs/did_binding_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
-    {"file": "account-operations.schema.json", "pointer": "/$defs/identity_abandonment_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
-    {"file": "applet-widget-declaration.schema.json", "pointer": "/properties/widget_origin", "schemes": ["https"], "reason": "complete HTTPS Web Origin role for an isolated applet widget"},
-    {"file": "service-describe.schema.json", "pointer": "/$defs/account_authority/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
-    {"file": "service-operation-dtos.schema.json", "pointer": "/$defs/OrganizationRegistrationChallenge/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"}
+    {
+      "file": "account-operations.schema.json",
+      "pointer": "/$defs/account_registration_control_proof/properties/origin",
+      "reason": "complete Web Origin role defined by scheme, host and port"
+    },
+    {
+      "file": "account-operations.schema.json",
+      "pointer": "/$defs/identity_binding_challenge_outcome/properties/origin",
+      "reason": "complete Web Origin role defined by scheme, host and port"
+    },
+    {
+      "file": "account-operations.schema.json",
+      "pointer": "/$defs/identity_creation_control_proof/properties/origin",
+      "reason": "complete Web Origin role defined by scheme, host and port"
+    },
+    {
+      "file": "account-operations.schema.json",
+      "pointer": "/$defs/did_binding_challenge_outcome/properties/origin",
+      "reason": "complete Web Origin role defined by scheme, host and port"
+    },
+    {
+      "file": "account-operations.schema.json",
+      "pointer": "/$defs/identity_abandonment_challenge_outcome/properties/origin",
+      "reason": "complete Web Origin role defined by scheme, host and port"
+    },
+    {
+      "file": "applet-widget-declaration.schema.json",
+      "pointer": "/properties/widget_origin",
+      "schemes": [
+        "https"
+      ],
+      "reason": "complete HTTPS Web Origin role for an isolated applet widget"
+    },
+    {
+      "file": "service-describe.schema.json",
+      "pointer": "/$defs/account_authority/properties/origin",
+      "reason": "complete Web Origin role defined by scheme, host and port"
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "pointer": "/$defs/OrganizationRegistrationChallenge/properties/origin",
+      "reason": "complete Web Origin role defined by scheme, host and port"
+    }
   ],
   "generic_grammars": [
     {
       "category": "principal_identity",
-      "terminal_categories": ["did_core_id"],
+      "terminal_categories": [
+        "did_core_id"
+      ],
       "subject_class": "principal",
       "exact_names": [],
-      "suffixes": ["_principal_id", "_principal_ids"]
+      "suffixes": [
+        "_principal_id",
+        "_principal_ids"
+      ]
     },
     {
       "category": "service_identity",
-      "terminal_categories": ["did_core_id"],
+      "terminal_categories": [
+        "did_core_id"
+      ],
       "subject_class": "service",
       "exact_names": [],
-      "suffixes": ["_service_id", "_service_ids"]
+      "suffixes": [
+        "_service_id",
+        "_service_ids"
+      ]
     },
     {
       "category": "station_identity",
-      "terminal_categories": ["did_core_id"],
+      "terminal_categories": [
+        "did_core_id"
+      ],
       "subject_class": "service",
       "service_kind": "station",
       "exact_names": [],
-      "suffixes": ["_station_id", "_station_ids"]
+      "suffixes": [
+        "_station_id",
+        "_station_ids"
+      ]
     },
     {
       "category": "hardware_module_identity",
-      "terminal_categories": ["did_core_id"],
+      "terminal_categories": [
+        "did_core_id"
+      ],
       "subject_class": "hardware_module",
       "required_binding": "hardware_backed_attestation",
       "exact_names": [],
-      "suffixes": ["_hardware_module_id", "_hardware_module_ids"]
+      "suffixes": [
+        "_hardware_module_id",
+        "_hardware_module_ids"
+      ]
     },
     {
       "category": "account_identity",
-      "terminal_categories": ["account_id"],
+      "terminal_categories": [
+        "account_id"
+      ],
       "subject_class": "account",
-      "exact_names": ["account_id"],
-      "suffixes": ["_account_id", "_account_ids"]
+      "exact_names": [
+        "account_id"
+      ],
+      "suffixes": [
+        "_account_id",
+        "_account_ids"
+      ]
     },
     {
       "category": "actor_identity",
-      "terminal_categories": ["actor_id"],
+      "terminal_categories": [
+        "actor_id"
+      ],
       "subject_class": "actor",
-      "exact_names": ["actor_id"],
-      "suffixes": ["_actor_id", "_actor_ids"]
+      "exact_names": [
+        "actor_id"
+      ],
+      "suffixes": [
+        "_actor_id",
+        "_actor_ids"
+      ]
     },
     {
       "category": "primary_or_responsibility_id",
-      "terminal_categories": ["did_core_id", "typed_object_id", "account_id", "actor_id", "composite_identifier"],
-      "exact_names": ["id"],
-      "suffixes": ["_id", "_ids"]
+      "terminal_categories": [
+        "did_core_id",
+        "typed_object_id",
+        "account_id",
+        "actor_id",
+        "composite_identifier"
+      ],
+      "exact_names": [
+        "id"
+      ],
+      "suffixes": [
+        "_id",
+        "_ids"
+      ]
     },
     {
       "category": "reference_material",
-      "terminal_categories": ["did_core_id", "typed_object_id", "did_url"],
+      "terminal_categories": [
+        "did_core_id",
+        "typed_object_id",
+        "did_url"
+      ],
       "exact_names": [],
-      "suffixes": ["_ref", "_refs"]
+      "suffixes": [
+        "_ref",
+        "_refs"
+      ]
     },
     {
       "category": "cursor_coordinate",
-      "terminal_categories": ["typed_object_id"],
-      "exact_names": ["cursor"],
-      "suffixes": ["_cursor"]
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "exact_names": [
+        "cursor"
+      ],
+      "suffixes": [
+        "_cursor"
+      ]
     },
     {
       "category": "frontier_coordinate",
-      "terminal_categories": ["typed_object_id"],
-      "exact_names": ["frontier", "heads", "leaves", "before", "after", "wait_for", "invite", "join", "remove", "share"],
-      "suffixes": ["_frontier"]
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "exact_names": [
+        "frontier",
+        "heads",
+        "leaves",
+        "before",
+        "after",
+        "wait_for",
+        "invite",
+        "join",
+        "remove",
+        "share"
+      ],
+      "suffixes": [
+        "_frontier"
+      ]
     },
     {
       "category": "did_material",
-      "terminal_categories": ["did"],
-      "exact_names": ["did"],
-      "suffixes": ["_did", "_dids"]
+      "terminal_categories": [
+        "did"
+      ],
+      "exact_names": [
+        "did"
+      ],
+      "suffixes": [
+        "_did",
+        "_dids"
+      ]
     },
     {
       "category": "key_selector",
-      "terminal_categories": ["did_url"],
-      "exact_names": ["kid", "verification_method"],
-      "suffixes": ["_kid", "_kids", "_verification_method"]
+      "terminal_categories": [
+        "did_url"
+      ],
+      "exact_names": [
+        "kid",
+        "verification_method"
+      ],
+      "suffixes": [
+        "_kid",
+        "_kids",
+        "_verification_method"
+      ]
     },
     {
       "category": "uri_material",
-      "terminal_categories": ["uri"],
-      "exact_names": ["uri"],
-      "suffixes": ["_uri", "_uris"]
+      "terminal_categories": [
+        "uri"
+      ],
+      "exact_names": [
+        "uri"
+      ],
+      "suffixes": [
+        "_uri",
+        "_uris"
+      ]
     },
     {
       "category": "trust_domain_special_form",
-      "terminal_categories": ["typed_object_id"],
-      "exact_names": ["trust_domain"],
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "exact_names": [
+        "trust_domain"
+      ],
       "suffixes": []
     }
   ],
@@ -401,91 +747,121 @@
     {
       "file": "capability-grant.schema.json",
       "pointer": "/properties/subject",
-      "terminal_categories": ["actor_id"],
+      "terminal_categories": [
+        "actor_id"
+      ],
       "reason": "closed condition-selector union: exact ActorId or discriminator-bearing condition object"
     },
     {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/capability_grant_payload/properties/grant/properties/subject",
-      "terminal_categories": ["actor_id"],
+      "terminal_categories": [
+        "actor_id"
+      ],
       "reason": "exact projection of CapabilityGrant.subject closed ActorId-or-condition union"
     },
     {
       "file": "common-ids.schema.json",
       "pointer": "/$defs/tsp_vid/oneOf/0/properties/value",
-      "terminal_categories": ["did"],
+      "terminal_categories": [
+        "did"
+      ],
       "reason": "value is the payload of the closed tsp_vid union and its sibling kind discriminator selects the DID representation"
     },
     {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/value",
-      "terminal_categories": ["did_url"],
+      "terminal_categories": [
+        "did_url"
+      ],
       "reason": "value is inside the closed account-block target union whose containing branch determines the representation"
     },
     {
       "file": "event-envelope.schema.json",
       "pointer": "/properties/authorization_ref",
-      "terminal_categories": ["mixed[did_url,typed_object_id]"],
+      "terminal_categories": [
+        "mixed[did_url,typed_object_id]"
+      ],
       "reason": "closed, lexically disjoint authorization reference union governed by the independent _ref grammar"
     },
     {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/mls_welcome_payload/properties/recipient_pairwise_actor_id",
-      "terminal_categories": ["did_core_id"],
+      "terminal_categories": [
+        "did_core_id"
+      ],
       "reason": "pairwise_actor is the complete protocol role for the stable pairwise principal core; the _id suffix is the carrier marker"
     },
     {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/mls_welcome_payload/properties/claim_ref/properties/pairwise_actor_id",
-      "terminal_categories": ["did_core_id"],
+      "terminal_categories": [
+        "did_core_id"
+      ],
       "reason": "pairwise_actor is the complete protocol role for the stable pairwise principal core; the _id suffix is the carrier marker"
     },
     {
       "file": "history-key.schema.json",
       "pointer": "/$defs/minimal_metadata_mls_leaf_signer_evidence/properties/pairwise_actor_id",
-      "terminal_categories": ["did_core_id"],
+      "terminal_categories": [
+        "did_core_id"
+      ],
       "reason": "pairwise_actor is the complete protocol role for the stable pairwise principal core; the _id suffix is the carrier marker"
     },
     {
       "file": "identity-link.schema.json",
       "pointer": "/properties/pairwise_actor_id",
-      "terminal_categories": ["did_core_id"],
+      "terminal_categories": [
+        "did_core_id"
+      ],
       "reason": "pairwise_actor is the complete protocol role for the stable pairwise principal core; the _id suffix is the carrier marker"
     },
     {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/MembershipCompensationDelegationCore/properties/authorization_ref",
-      "terminal_categories": ["mixed[did_url,typed_object_id]"],
+      "terminal_categories": [
+        "mixed[did_url,typed_object_id]"
+      ],
       "reason": "exact copy of the accepted join Event authorization_ref; the closed, lexically disjoint union is governed by the independent _ref grammar"
     },
     {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/device_authorize_payload/properties/authorized_by",
-      "terminal_categories": ["mixed[did_core_id,typed_object_id]"],
+      "terminal_categories": [
+        "mixed[did_core_id,typed_object_id]"
+      ],
       "reason": "closed device-or-principal ID union selected by authorization_binding_kind; the complete authorized_by role retains its bare byline spelling"
     },
     {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/device_revoke_payload/properties/revoked_by",
-      "terminal_categories": ["mixed[did_core_id,typed_object_id]"],
+      "terminal_categories": [
+        "mixed[did_core_id,typed_object_id]"
+      ],
       "reason": "closed device-or-principal ID union; the complete revoked_by provenance role retains its bare byline spelling"
     },
     {
       "file": "device-pairing.schema.json",
       "pointer": "/$defs/device_pairing_challenge_proof/properties/kid",
-      "terminal_categories": ["typed_object_id"],
+      "terminal_categories": [
+        "typed_object_id"
+      ],
       "reason": "registered compact proof key-selector member; the sibling transcript discriminator fixes its device-key meaning"
     },
     {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/SignedSessionGrantClaims/properties/jti",
-      "terminal_categories": ["typed_object_id"],
+      "terminal_categories": [
+        "typed_object_id"
+      ],
       "reason": "RFC 7519 registered JWT claim name retained inside the signed claims object"
     },
     {
       "file": "service-describe.schema.json",
       "pointer": "/properties/rate_limit_policy/properties/entries/items/properties/endpoint",
-      "terminal_categories": ["uri"],
+      "terminal_categories": [
+        "uri"
+      ],
       "reason": "closed endpoint selector union: absolute service path or absolute HTTP(S) URL"
     },
     {

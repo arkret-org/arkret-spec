@@ -552,7 +552,7 @@ holder DID Document: subject_account_id → handle   (列入 alsoKnownAs，holde
 | Realm 内投递目标服务 | member `ActorId` 的 `account_id.station_id` |
 | Realm 邀请 / Join Policy | exact `AccountId` + target holder acceptance；handle claim 只提供 issuer/audience 受限的寻址证据 |
 | Actor / 签名归因、审计 | Event envelope 的完整 canonical `ActorId`；签名 key 的 DID/DID URL 独立验证 |
-| endpoint 搬迁、域名变更 | 同一 service DID 的已验证 ServiceResolutionRecord；账号 Station 分量变化是另一 AccountId，不是原账号 route 更新 |
+| endpoint 搬迁、域名变更 | 同一 service DID 的已验证 AuthenticatedServiceResolution；账号 Station 分量变化是另一 AccountId，不是原账号 route 更新 |
 | 受限 handle（组织内部账号） | issuer claim + audience + scope（§3.5 默认不进公开 DID Document） |
 | Pairwise / agent / 临时 DID；设备 verification method | 显式 SHOULD NOT 写入 `alsoKnownAs`（设备自身没有 DID；见上文与 [identity-did.md](./identity-did.md) §6 末段"Pairwise / private DID SHOULD NOT 包含公开 handle"，以及 §9 验证规则） |
 | 跨上下文 unlinkability | pairwise DID 机制，正交于 handle 层（§3.6） |

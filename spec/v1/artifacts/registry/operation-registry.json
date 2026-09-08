@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.1",
+  "version": "2026-09-08.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-08T05:55:00+08:00",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -172,8 +172,6 @@
         "ak.peer.current_signer_evidence.read.resolve.v1",
         "ak.peer.keys.keypackages.command.claim.v1",
         "ak.peer.keys.keypackages.read.claim.v1",
-        "ak.peer.service_resolution.command.publish.v1",
-        "ak.peer.service_resolution.read.resolve.v1",
         "ak.peer.signal.command.relay.v1",
         "ak.peer.principal_genesis.command.submit.v1"
       ],
@@ -903,7 +901,7 @@
       },
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/controller-gate-attestations",
-      "notes": "Account Authority S2S producer operation for Agent signer evidence. The request carries agent_authority_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(did), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Station is the Agent PCR authority under the Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
+      "notes": "Account Authority S2S producer operation for Agent signer evidence. The request carries agent_authority_resolution: the service identity/type, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, current method state, project(did), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Station is the Agent PCR authority under the Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "request_id",
@@ -1350,7 +1348,7 @@
       "http": "GET /_arkret/open/services/{service_id}/resolution",
       "grpc": "OpenService/Resolution",
       "mq": "open.service.query.resolution",
-      "notes": "Returns the current AuthenticatedServiceResolution at the stable current_record_url carried by bootstrap material. TLS is transport only. For did:webvh, method_history_evidence includes the complete gap-free native log from inception through the signed record position and every required witness record; a resolver summary or partial segment is invalid. Consumers independently verify the complete method-native history, terminal DID document, record proof, project(did)=service_id, time ordering, record_sequence/previous_record_digest and describe binding. Same-core successors refresh route caches without Realm rebind; a changed did_core_id requires a new authorized service binding.",
+      "notes": "Returns current AuthenticatedServiceResolution containing service_id, service_kind, complete method_history_evidence and normalized_did_document. Consumers independently verify method-native history, current state, service identity/type, unique canonical HTTPS DID service endpoint and second-hop describe binding. Durable native method state prevents rollback and fork; cache TTL is at most 300 seconds and failed freshness checks never extend it. Endpoint refresh does not require Realm rebind; a changed service core requires a new authorized binding.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution"
@@ -1878,36 +1876,6 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_request",
       "response_schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome"
-    },
-    {
-      "operation_id": "ak.peer.service_resolution.command.publish.v1",
-      "http": "POST /_arkret/peer/service-resolution/publish",
-      "grpc": "PeerServiceResolution/Publish",
-      "mq": "peer.service_resolution.command.publish",
-      "notes": "Realm-scoped service-authenticated publication of exactly one target-signed ServiceResolutionRecord or ServiceRouteHandoverNotice. Idempotency-Key is required, is covered by the HTTP Message Signature, and MUST equal body.request_id. Transport replay is keyed by (Source-Service-ID, realm_id, request_id) and binds the complete canonical request digest: exact replay returns the original ack and a different digest is duplicate_conflict. Artifact integrity is independently keyed by (Source-Service-ID, realm_id, target service_id, artifact family/key/revision): the same artifact key with another digest conflicts with zero overwrite. The receiver validates source peer authority, target visibility, exact artifact_digest, target proof, did-to-core projection, sequential record/notice basis, time rules and hard bounds before writing its service-local mirror ledger. The receiver-signed ack cross-binds both keys, request_digest and accepted time; it proves durable receipt of exact bytes only and never makes a URL authoritative or declares a migration safe unless the deployment-required peer set has all acked.",
-      "body_class": "non_streaming_json",
-      "max_canonical_body_bytes": 65536,
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "idempotency_key",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request",
-      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_outcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "service_local_durable_route_mirror_ledger_and_ack_only_no_realm_event"
-      }
-    },
-    {
-      "operation_id": "ak.peer.service_resolution.read.resolve.v1",
-      "http": "QUERY /_arkret/peer/service-resolution/resolve",
-      "grpc": "PeerServiceResolution/Resolve",
-      "mq": "peer.service_resolution.query.resolve",
-      "notes": "Read-only Realm-scoped recovery of at most 32 continuous target-signed successor records and one active target-signed handover notice within a caller-selected response budget capped at 256 KiB. The authenticated requester must be a current allowed federation peer and must already be authorized to know the target service core through an effective joined-joined-member ActorId routing projection or explicit service delegation. Unknown, unauthorized, invisible, not-held and unavailable are outwardly indistinguishable and query/source/target rate limits prevent enumeration. The responder never returns a mirror-signed bare URL. The requester independently verifies every target proof, exact chain, freshness, method history and describe reverse binding; same sequence with different valid target-signed digests enters route-fork quarantine rather than majority, arrival-order or reachability selection.",
-      "body_class": "non_streaming_json",
-      "max_canonical_body_bytes": 16384,
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_request",
-      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_outcome"
     },
     {
       "operation_id": "ak.peer.signal.command.relay.v1",
@@ -5091,14 +5059,6 @@
         },
         {
           "operation_id": "ak.peer.seals.read.resolve.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.peer.service_resolution.command.publish.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.peer.service_resolution.read.resolve.v1",
           "binding_kind": "http_json"
         },
         {

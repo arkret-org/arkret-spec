@@ -385,7 +385,7 @@ flowchart LR
 - `strand --summarized_from--> message`
 - `strand --promoted_from_discussion--> message`
 
-Checklist / subtask 不在 v1 core 中新增独立顶层对象。需要独立负责人、截止时间、评论、stage 或审计的子项 SHOULD 表达为子 `Strand`，并由 Realm schema/profile 声明 `contains` / `depends_on` / `blocks` 等 RelationProfile；只服务于正文展示的清单项 MAY 留在 `content` 或 profile-defined Morph 内，但不得被当作跨实现可调度对象。
+Checklist / subtask 不在 v1 core 中新增独立顶层对象。需要独立负责人、截止时间、评论、stage 或审计的子项 SHOULD 表达为子 `Strand`，并用 `contains` / `depends_on` / `blocks` 等 Relation 记录关系；只服务于正文展示的清单项 MAY 留在 `content` 或 profile-defined Morph 内，但不得被当作跨实现可调度对象。
 
 `assigned_to` 与 `contains` 的基数和跨 Realm 规则见 [relation.md](./relation.md) §3-§4。
 
@@ -405,11 +405,11 @@ Wire 上 MUST 表达为 active `ak.schema.relation.v1` 对象，且满足：
 
 UI MAY 把该关系显示为 "Assignee" / "Assignees"。`unassigned` 只表示当前 Strand 没有任何 visible active `assigned_to` edge；它是本地显示文案，MUST NOT 作为字符串写入 Strand、Relation 或 projection canonical state。
 
-默认基数按 [relation.md §3.2](./relation.md#32-默认基数表)：一个 Strand MAY 同时分配给多个 Actor。需要 Jira / Kanban 式单负责人时，Realm schema/profile MUST 声明 `relation_kind="assigned_to"` 的 RelationProfile 并收紧 `max_to_per_from=1`（或声明独立 owner relation）。客户端不得仅凭 UI 标签 "Assignee" 推断协议是单值。
+默认基数按 [relation.md §3.2](./relation.md#32-默认基数表)：一个 Strand MAY 同时分配给多个 Actor。分配记录不授予或撤销任何权限。应用的单负责人交互不构成协议约束；客户端不得仅凭 UI 标签 "Assignee" 推断协议是单值。
 
-写入 assignment MUST 使用 `ak.relation.create` 创建 `assigned_to` edge；解除 assignment MUST tombstone 对应 Relation。单负责人 profile 下的更换负责人 MUST 按该 profile 的 `on_conflict` 规则关闭旧 edge 或拒绝并发冲突。`ak.strand.update` 不得修改 assignment。
+写入 assignment MUST 使用 `ak.relation.create` 创建 `assigned_to` edge；解除 assignment MUST tombstone 对应 Relation。更换负责人由应用显式解除旧分配并创建新分配记录；协议不将不同 Actor 的分配视为互斥。`ak.strand.update` 不得修改 assignment。
 
-Strand `metadata.fields` 中的 `assignee` / `assignees` / `assigned_to` / `assigned_actor_ids` / `board_space_id` / `list_space_id` / `rank` 路径是 forbidden-wire reserved names，MUST `schema_violation`。`ak.strand.update` 直接 patch 这些路径、patch 其子路径，或 patch 父 map `metadata.fields` / `metadata` 且 `value` 中包含这些 key，均 MUST `schema_violation`。assignment 名会与 `assigned_to` Relation 及 projection 字段形成双源；三个定位名会与 `ak.component.strand.position.v1` cell 形成双源。字段式 assignment / placement 都不是 profile extension 点。Profile 如需 assignment-specific metadata（例如分配原因、轮值班次、分派来源）应写在对应 Relation 的 `fields` 中，或声明独立 RelationProfile。
+Strand `metadata.fields` 中的 `assignee` / `assignees` / `assigned_to` / `assigned_actor_ids` / `board_space_id` / `list_space_id` / `rank` 路径是 forbidden-wire reserved names，MUST `schema_violation`。`ak.strand.update` 直接 patch 这些路径、patch 其子路径，或 patch 父 map `metadata.fields` / `metadata` 且 `value` 中包含这些 key，均 MUST `schema_violation`。assignment 名会与 `assigned_to` Relation 及 projection 字段形成双源；三个定位名会与 `ak.component.strand.position.v1` cell 形成双源。字段式 assignment / placement 都不是 profile extension 点。Profile 如需 assignment-specific metadata（例如分配原因、轮值班次、分派来源）应写在对应 Relation 的 `fields` 中。
 
 Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor_ids: ActorId[]`，并在需要编辑 assignment 的客户端上提供 `assigned_to_relations: [{ relation_id, actor_id }]`。`assigned_actor_ids` 只来自当前可见 active `assigned_to` Relation 的 `to_ref` 集合；`assigned_to_relations[].relation_id` 是 tombstone 旧 assignment edge 的目标 id，`actor_id` MUST 等于该 Relation 的 `to_ref`。二者均不得从 Strand metadata 读出，也不得扩大访问权。对 Circle-scoped Strand，assignment Relation 的可见性不得宽于 Strand effective scope；非该 scope 成员不得通过 `assigned_actor_ids`、`assigned_to_relations`、计数、排序空洞或 timing 推断隐藏 assignment。
 

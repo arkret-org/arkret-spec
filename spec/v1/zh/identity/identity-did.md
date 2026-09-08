@@ -187,20 +187,20 @@ DID 托管域名、Station 服务域名和 handle 域名是**三个独立的标�
 | 标识层 | 由谁决定 | 解析/验证通道 | 示例 |
 | --- | --- | --- | --- |
 | DID 历史托管域名 | DID method 与 SCID（一旦签发即写入历史链） | `did:webvh` `did.jsonl` + entry hash chain + witness | `did:webvh:<scid>:users.acme.example` |
-| Station 服务域名 | current signed `ServiceResolutionRecord.base_url`，且该 record 的 service control identity 必须经过 method adapter / DID history 验证 | 业务授权的 service binding + current record + describe 第二跳 + `destination` 绑定（见 [federation.md §6](../sync/federation.md)） | `https://principal-7.cluster.acme.example:8443/` |
+| Station 服务域名 | current signed 经 method 验证的 DID 服务入口，且该 record 的 service control identity 必须经过 method adapter / DID history 验证 | 业务授权的 service binding + current record + describe 第二跳 + `destination` 绑定（见 [federation.md §6](../sync/federation.md)） | `https://principal-7.cluster.acme.example:8443/` |
 | Handle 域名 | Holder 选择并通过双向验证发布 | DNS TXT / HTTPS well-known + DID Document `alsoKnownAs` 双向验证（见 [identity-handles.md §5–§6](./identity-handles.md)） | `alice.example.com`、`@alice:example.org` |
 
 要点：
 
 - DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Station，也**不**是用户公开 handle。
-- Station 变更端口、增加 mirror 或切换第三方 host 时，service owner 发布同一 service `did_core_id` 的 signed successor `ServiceResolutionRecord`；调用方验证 record chain、DID method history、proof 与 freshness。这只是同一 `station_id` 的路由刷新，不改变 AccountId。service core 改变则形成新的 AccountId，不能把旧账号的 membership 或数据静默迁移过去。
+- Station 变更端口、增加 mirror 或切换第三方 host 时，service owner 更新 DID Document 的服务入口；调用方按对应 adapter 验证 DID 原生历史、当前状态、endpoint 及防回滚约束。这只是同一 `station_id` 的路由刷新，不改变 AccountId。service core 改变则形成新的 AccountId，不能把旧账号的 membership 或数据静默迁移过去。
 - DID Document 中的 `type="ArkretService", serviceKind="station"` service entry 不是账号选择或 Realm-scoped 路由 authority。membership 直接保存完整 `ActorId`；account 分支已经包含 `principal_id + station_id`，事件、sync、to-device、push 与 KeyPackage 投递据此选择账号及服务路由，不再存在第二套 joined-member ActorId routing projection 状态或 DID Document 默认回退。
 - **DID 只作为 identity anchor。** Principal DID method log 只承载 active update root、pre-rotation commitment、method-native history 与 witness evidence。DID Document 不得用 `service`、verification relationship 或 fragment 指派设备 authority，也不得承载设备、recovery policy、capability 或业务 profile state。
 - **设备密钥不写入 DID method key log。** `device_public_key_did` 只由 PCR accepted `ak.device.authorize` 进入设备集投影。普通业务 Event proof 保留签名时的 DID URL；verifier 以 fragment 选择 accepted PCR device evidence、执行 generation fence，并验证该设备属于 Event `actor_id` 指定的 account / service。不得把 ActorId 当作 DID URL 拼接 fragment，也不得回退到 DID Document verification method 充当设备授权。
 - Genesis/re-anchor verifier 只从对应 DID history 解析 identity root。首设备和 replacement device 的 candidate key来自同批 descriptor/authorize payload，通过 unit-local overlay 验证；DID resolver 不提供该 key。
 - Handle（例如 `@alice:acme.example` / `alice@acme.example`，canonical `alice:acme.example`）属于 Handle 层，不属于 DID method 或 DID Document service discovery。账号 handle claim 直接绑定 exact AccountId；它只用于寻址和 pending invite，不能替目标账号接受 membership。
 - Handle 域名（含品牌域名）与 DID 托管域名可以完全无关。例如品牌持有者可以使用 `alice:alice.example.com` 作为公开 handle，而 DID 仍然由 `users.someprovider.example` 托管，只要 `alsoKnownAs` 与 issuer claim 双向验证一致。
-- [federation.md §6.3](../sync/federation.md) 的 `https://<domain>/.well-known/arkret/server` 仅作为 bootstrap 候选发现 hint，**不是**身份解析必经路径，也不能授权联邦请求；可路由服务必须来自业务授权的 service binding，并通过 current `ServiceResolutionRecord` 独立验证。DID Document 只证明 `did` 的 control/history，不是 `did_core_id -> URL` 的通用首跳。
+- [federation.md §6.3](../sync/federation.md) 的 `https://<domain>/.well-known/arkret/server` 仅作为 bootstrap 候选发现 hint，**不是**身份解析必经路径，也不能授权联邦请求；可路由服务必须来自业务授权的 service binding，并通过 current `AuthenticatedServiceResolution` 独立验证。DID Document 经对应方法验证后同时提供身份控制状态和唯一服务入口；裸 core 字符串不包含方法查询位置，必须结合已绑定 DID 或发现证据。
 - 实现 MUST NOT 引入"DID 字符串 → 实际服务地址"的额外带外重定向（例如类 Matrix `.well-known/matrix/server` 的间接），因为这会把信任根退化到 DNS+TLS 即时强度，与选择 `did:webvh` 而不是 `did:web` 作为 v1 core 默认 principal method 的初衷冲突（见 §3.4）。
 
 ### 3.3 支持要求

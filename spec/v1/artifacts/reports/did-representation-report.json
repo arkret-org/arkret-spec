@@ -2108,7 +2108,7 @@
       ]
     },
     {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/service_resolution_record/properties/record/properties/did",
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/normalized_did_document/properties/did",
       "property_name": "did",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did",
@@ -5559,6 +5559,16 @@
       ]
     },
     {
+      "schema_path": "identity-resolution.schema.json#/$defs/authenticated_service_resolution/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence/properties/account_id",
       "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",
@@ -5621,126 +5631,6 @@
     {
       "schema_path": "identity-resolution.schema.json#/$defs/route_mirror_hint/properties/mirror_id",
       "property_name": "mirror_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_resolution_artifact_key/oneOf/0/properties/service_id",
-      "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_resolution_artifact_key/oneOf/1/properties/service_id",
-      "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_resolution_last_seen_floor/properties/service_id",
-      "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_resolution_publish_ack_core/properties/receiver_id",
-      "property_name": "receiver_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_resolution_publish_ack_core/properties/source_id",
-      "property_name": "source_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_resolution_record_core/properties/did",
-      "property_name": "did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_resolution_record_core/properties/service_id",
-      "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_resolution_resolve_request/properties/target_id",
-      "property_name": "target_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_route_cache_entry/properties/did",
-      "property_name": "did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_route_cache_entry/properties/service_id",
-      "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_route_handover_notice_core/properties/service_id",
-      "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "identity-resolution.schema.json#/$defs/service_route_notice_state/properties/service_id",
-      "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

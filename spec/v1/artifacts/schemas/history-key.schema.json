@@ -105,23 +105,50 @@
     },
     "history_candidate_material_key": {
       "type": "object",
-      "required": ["effective_scope", "mls_group_id", "epoch", "candidate_digest"],
+      "required": [
+        "effective_scope",
+        "mls_group_id",
+        "epoch",
+        "candidate_digest"
+      ],
       "properties": {
-        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
-        "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
-        "epoch": {"type": "integer", "minimum": 0},
-        "candidate_digest": {"$ref": "#/$defs/digest"}
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidate_digest": {
+          "$ref": "#/$defs/digest"
+        }
       },
       "additionalProperties": false,
       "description": "Global received-material identity. Origin is deliberately absent; equal bytes at the same scope/group/epoch deduplicate to one resident material instance."
     },
     "history_candidate_material_record": {
       "type": "object",
-      "required": ["material_key", "secret_b64u", "material_received_sequence"],
+      "required": [
+        "material_key",
+        "secret_b64u",
+        "material_received_sequence"
+      ],
       "properties": {
-        "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
-        "secret_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
-        "material_received_sequence": {"type": "integer", "minimum": 0}
+        "material_key": {
+          "$ref": "#/$defs/history_candidate_material_key"
+        },
+        "secret_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "material_received_sequence": {
+          "type": "integer",
+          "minimum": 0
+        }
       },
       "additionalProperties": false,
       "description": "Device-local resident received bytes. material_received_sequence is assigned once when this byte instance becomes resident and is immutable; adding origin attribution never refreshes it. Eviction removes this record but not bounded attribution tombstones, and refetch creates a new record with a new sequence. local_authoritative uses a separate record class."
@@ -130,82 +157,159 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at"],
+          "required": [
+            "material_key",
+            "origin_domain",
+            "origin_quota_domain",
+            "origin_ref",
+            "first_observed_at"
+          ],
           "properties": {
-            "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
-            "origin_domain": {"const": "response_sender"},
+            "material_key": {
+              "$ref": "#/$defs/history_candidate_material_key"
+            },
+            "origin_domain": {
+              "const": "response_sender"
+            },
             "origin_quota_domain": {
               "type": "object",
-              "required": ["source_sender_domain"],
+              "required": [
+                "source_sender_domain"
+              ],
               "properties": {
-                "source_sender_domain": {"type": "string", "minLength": 1, "maxLength": 512}
+                "source_sender_domain": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 512
+                }
               },
               "additionalProperties": false,
               "description": "Stable quota identity. It equals the verified response source_sender_domain and does not change across response ids or retries."
             },
             "origin_ref": {
               "type": "object",
-              "required": ["response_id", "source_record_digest"],
+              "required": [
+                "response_id",
+                "source_record_digest"
+              ],
               "properties": {
-                "response_id": {"$ref": "./common-ids.schema.json#/$defs/history_response_id"},
-                "source_record_digest": {"$ref": "#/$defs/digest"}
+                "response_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/history_response_id"
+                },
+                "source_record_digest": {
+                  "$ref": "#/$defs/digest"
+                }
               },
               "additionalProperties": false
             },
-            "first_observed_at": {"$ref": "#/$defs/timestamp"}
+            "first_observed_at": {
+              "$ref": "#/$defs/timestamp"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at"],
+          "required": [
+            "material_key",
+            "origin_domain",
+            "origin_quota_domain",
+            "origin_ref",
+            "first_observed_at"
+          ],
           "properties": {
-            "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
-            "origin_domain": {"const": "rhrk_archive"},
+            "material_key": {
+              "$ref": "#/$defs/history_candidate_material_key"
+            },
+            "origin_domain": {
+              "const": "rhrk_archive"
+            },
             "origin_quota_domain": {
               "type": "object",
-              "required": ["method_controller_principal_id", "holder_service_id", "recovery_key_id", "accepted_key_evidence_ref"],
+              "required": [
+                "method_controller_principal_id",
+                "holder_service_id",
+                "recovery_key_id",
+                "accepted_key_evidence_ref"
+              ],
               "properties": {
-                "method_controller_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-                "holder_service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-                "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
-                "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
+                "method_controller_principal_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+                },
+                "holder_service_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+                },
+                "recovery_key_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
+                },
+                "accepted_key_evidence_ref": {
+                  "$ref": "./common-ids.schema.json#/$defs/event_id"
+                }
               },
               "additionalProperties": false,
               "description": "Stable holder/key/effective-rotation quota tuple. accepted_key_evidence_ref is the rotation identity; archive/container retrieval coordinates are deliberately excluded."
             },
             "origin_ref": {
               "type": "object",
-              "required": ["container_event_ref", "archive_digest"],
+              "required": [
+                "container_event_ref",
+                "archive_digest"
+              ],
               "properties": {
-                "container_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-                "archive_digest": {"$ref": "#/$defs/digest"}
+                "container_event_ref": {
+                  "$ref": "./common-ids.schema.json#/$defs/event_id"
+                },
+                "archive_digest": {
+                  "$ref": "#/$defs/digest"
+                }
               },
               "additionalProperties": false
             },
-            "first_observed_at": {"$ref": "#/$defs/timestamp"}
+            "first_observed_at": {
+              "$ref": "#/$defs/timestamp"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at"],
+          "required": [
+            "material_key",
+            "origin_domain",
+            "origin_quota_domain",
+            "origin_ref",
+            "first_observed_at"
+          ],
           "properties": {
-            "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
-            "origin_domain": {"const": "portable_backup"},
+            "material_key": {
+              "$ref": "#/$defs/history_candidate_material_key"
+            },
+            "origin_domain": {
+              "const": "portable_backup"
+            },
             "origin_quota_domain": {
               "type": "object",
-              "required": ["backup_series_id", "producer_actor_id"],
+              "required": [
+                "backup_series_id",
+                "producer_actor_id"
+              ],
               "properties": {
-                "backup_series_id": {"type": "string", "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
-                "producer_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"}
+                "backup_series_id": {
+                  "type": "string",
+                  "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                },
+                "producer_actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                }
               },
               "additionalProperties": false,
               "description": "Stable backup series/producer quota identity. Individual backup envelopes are retrieval coordinates only."
             },
             "origin_ref": {
               "type": "object",
-              "required": ["backup_origin_id"],
+              "required": [
+                "backup_origin_id"
+              ],
               "properties": {
                 "backup_origin_id": {
                   "type": "string",
@@ -215,7 +319,9 @@
               },
               "additionalProperties": false
             },
-            "first_observed_at": {"$ref": "#/$defs/timestamp"}
+            "first_observed_at": {
+              "$ref": "#/$defs/timestamp"
+            }
           },
           "additionalProperties": false
         }
@@ -224,23 +330,57 @@
     },
     "event_candidate_binding": {
       "type": "object",
-      "required": ["event_binding_key", "candidate_digest", "outcome", "first_observed_at"],
+      "required": [
+        "event_binding_key",
+        "candidate_digest",
+        "outcome",
+        "first_observed_at"
+      ],
       "properties": {
         "event_binding_key": {
           "type": "object",
-          "required": ["effective_scope", "mls_group_id", "epoch", "event_id", "verified_sender_domain"],
+          "required": [
+            "effective_scope",
+            "mls_group_id",
+            "epoch",
+            "event_id",
+            "verified_sender_domain"
+          ],
           "properties": {
-            "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
-            "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
-            "epoch": {"type": "integer", "minimum": 0},
-            "event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-            "verified_sender_domain": {"type": "string", "minLength": 1, "maxLength": 512}
+            "effective_scope": {
+              "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+            },
+            "mls_group_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "epoch": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            },
+            "verified_sender_domain": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
           },
           "additionalProperties": false
         },
-        "candidate_digest": {"$ref": "#/$defs/digest"},
-        "outcome": {"enum": ["success", "failure"]},
-        "first_observed_at": {"$ref": "#/$defs/timestamp"}
+        "candidate_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "first_observed_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false,
       "description": "Independent Event binding keyed by (event_binding_key,candidate_digest,outcome). It contains no origin and must not be used to infer one or pin candidate bytes. The fixed expiry is computed as first_observed_at+2592000 seconds and is not stored."
@@ -259,10 +399,19 @@
             "requester_device_generation_ref"
           ],
           "properties": {
-            "kind": {"const": "ordinary_human"},
-            "requester_device_id": {"$ref": "./common-ids.schema.json#/$defs/device_id"},
-            "requester_device_authorize_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-            "requester_device_generation_ref": {"type": "integer", "minimum": 1}
+            "kind": {
+              "const": "ordinary_human"
+            },
+            "requester_device_id": {
+              "$ref": "./common-ids.schema.json#/$defs/device_id"
+            },
+            "requester_device_authorize_event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            },
+            "requester_device_generation_ref": {
+              "type": "integer",
+              "minimum": 1
+            }
           },
           "additionalProperties": false
         },
@@ -275,18 +424,30 @@
             "requester_agent_key_authorize_event_id"
           ],
           "properties": {
-            "kind": {"const": "agent"},
-            "requester_agent_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-            "requester_agent_verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
-            "requester_agent_key_authorize_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
+            "kind": {
+              "const": "agent"
+            },
+            "requester_agent_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "requester_agent_verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "requester_agent_key_authorize_event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind"],
+          "required": [
+            "kind"
+          ],
           "properties": {
-            "kind": {"const": "minimal_metadata"}
+            "kind": {
+              "const": "minimal_metadata"
+            }
           },
           "additionalProperties": false
         }
@@ -305,7 +466,9 @@
         "holder_trusted_basis"
       ],
       "properties": {
-        "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
+        "recovery_key_id": {
+          "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
+        },
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
@@ -339,11 +502,24 @@
         "recipient_authorization_incarnation"
       ],
       "properties": {
-        "kind": {"const": "realm"},
-        "history_access": {"enum": ["since_join", "all_history_for_current_members"]},
-        "realm_tombstoned": {"const": false},
-        "recipient_authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"},
-        "source_authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"}
+        "kind": {
+          "const": "realm"
+        },
+        "history_access": {
+          "enum": [
+            "since_join",
+            "all_history_for_current_members"
+          ]
+        },
+        "realm_tombstoned": {
+          "const": false
+        },
+        "recipient_authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation"
+        },
+        "source_authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation"
+        }
       },
       "additionalProperties": false,
       "description": "Closed Realm current-gate projection. source_authorization_incarnation is required by the registered member-source branch and forbidden by the organization-recovery-holder branch."
@@ -359,13 +535,30 @@
         "recipient_authorization_incarnation"
       ],
       "properties": {
-        "kind": {"const": "circle"},
-        "history_access": {"enum": ["since_join", "all_history_for_current_members"]},
-        "realm_tombstoned": {"const": false},
-        "circle_tombstoned": {"const": false},
-        "membership_reconcile_required": {"const": false},
-        "recipient_authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"},
-        "source_authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"}
+        "kind": {
+          "const": "circle"
+        },
+        "history_access": {
+          "enum": [
+            "since_join",
+            "all_history_for_current_members"
+          ]
+        },
+        "realm_tombstoned": {
+          "const": false
+        },
+        "circle_tombstoned": {
+          "const": false
+        },
+        "membership_reconcile_required": {
+          "const": false
+        },
+        "recipient_authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation"
+        },
+        "source_authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation"
+        }
       },
       "additionalProperties": false,
       "description": "Closed Circle current-gate projection. Each authorization incarnation is the closed Realm+Circle form and therefore binds the parent-Realm intersection. source_authorization_incarnation follows the same member/holder branch rule as Realm."
@@ -381,31 +574,64 @@
         "expires_at"
       ],
       "properties": {
-        "authority_realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
-        "seal_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+        "authority_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
         "current_gate_projection": {
           "oneOf": [
-            {"$ref": "#/$defs/realm_current_gate_projection"},
-            {"$ref": "#/$defs/circle_current_gate_projection"}
+            {
+              "$ref": "#/$defs/realm_current_gate_projection"
+            },
+            {
+              "$ref": "#/$defs/circle_current_gate_projection"
+            }
           ]
         },
-        "authority_sequence": {"type": "integer", "minimum": 0},
-        "observed_at": {"$ref": "#/$defs/timestamp"},
-        "expires_at": {"$ref": "#/$defs/timestamp"}
+        "authority_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false,
       "description": "Honest-service locator for a complete canonical accepted non-quarantined Seal frontier and its closed current gate. open_set uses the full antichain, never a selected leaf. The enqueue CAS re-resolves this exact basis and projection and rejects any known successor or projection change."
     },
     "realm_seal_view_locator": {
       "allOf": [
-        {"$ref": "#/$defs/seal_view_locator"},
-        {"type": "object", "properties": {"current_gate_projection": {"$ref": "#/$defs/realm_current_gate_projection"}}}
+        {
+          "$ref": "#/$defs/seal_view_locator"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "current_gate_projection": {
+              "$ref": "#/$defs/realm_current_gate_projection"
+            }
+          }
+        }
       ]
     },
     "circle_seal_view_locator": {
       "allOf": [
-        {"$ref": "#/$defs/seal_view_locator"},
-        {"type": "object", "properties": {"current_gate_projection": {"$ref": "#/$defs/circle_current_gate_projection"}}}
+        {
+          "$ref": "#/$defs/seal_view_locator"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "current_gate_projection": {
+              "$ref": "#/$defs/circle_current_gate_projection"
+            }
+          }
+        }
       ]
     },
     "account_status_view_locator": {
@@ -682,20 +908,38 @@
     },
     "history_response_capability_plaintext": {
       "type": "object",
-      "required": ["kind", "response_capability_b64u"],
+      "required": [
+        "kind",
+        "response_capability_b64u"
+      ],
       "properties": {
-        "kind": {"const": "ak.history_key.response_capability_plaintext"},
-        "response_capability_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$", "description": "Canonical unpadded base64url of exactly 32 service-generated CSPRNG bytes."}
+        "kind": {
+          "const": "ak.history_key.response_capability_plaintext"
+        },
+        "response_capability_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "Canonical unpadded base64url of exactly 32 service-generated CSPRNG bytes."
+        }
       },
       "additionalProperties": false,
       "description": "The only plaintext admitted by SealedHistoryResponseCapability. HPKE seals the RFC 8785 JCS UTF-8 bytes of this closed object; raw bytes, a bare base64url string and nested JSON text are forbidden."
     },
     "organization_recovery_archive_plaintext": {
       "type": "object",
-      "required": ["kind", "history_secret_b64u"],
+      "required": [
+        "kind",
+        "history_secret_b64u"
+      ],
       "properties": {
-        "kind": {"const": "ak.organization_recovery.archive_plaintext"},
-        "history_secret_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "description": "Unpadded base64url of the exact history_secret for archive.epoch. Its decoded length must equal KDF.Nh of the winning group transition proven for that epoch."}
+        "kind": {
+          "const": "ak.organization_recovery.archive_plaintext"
+        },
+        "history_secret_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "Unpadded base64url of the exact history_secret for archive.epoch. Its decoded length must equal KDF.Nh of the winning group transition proven for that epoch."
+        }
       },
       "additionalProperties": false,
       "description": "The only RHRK archive HPKE plaintext. An opened secret globally deduplicates by HistoryCandidateMaterialKey and gets a separate rhrk_archive CandidateOriginAttribution; it never becomes local_authoritative. Success/failure EventCandidateBinding contains no origin and does not pin bytes. HPKE seals RFC 8785 JCS UTF-8 of this object. It cannot carry active MLS state, counters, policy snapshots, holder claims or another epoch."
@@ -774,42 +1018,78 @@
       "allOf": [
         {
           "if": {
-            "properties": {"requester_author_profile": {"const": "ordinary_human"}},
-            "required": ["requester_author_profile"]
+            "properties": {
+              "requester_author_profile": {
+                "const": "ordinary_human"
+              }
+            },
+            "required": [
+              "requester_author_profile"
+            ]
           },
           "then": {
             "properties": {
               "requester_endpoint_authorization": {
-                "properties": {"kind": {"const": "ordinary_human"}},
-                "required": ["kind"]
+                "properties": {
+                  "kind": {
+                    "const": "ordinary_human"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
               }
             }
           }
         },
         {
           "if": {
-            "properties": {"requester_author_profile": {"const": "agent"}},
-            "required": ["requester_author_profile"]
+            "properties": {
+              "requester_author_profile": {
+                "const": "agent"
+              }
+            },
+            "required": [
+              "requester_author_profile"
+            ]
           },
           "then": {
             "properties": {
               "requester_endpoint_authorization": {
-                "properties": {"kind": {"const": "agent"}},
-                "required": ["kind"]
+                "properties": {
+                  "kind": {
+                    "const": "agent"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
               }
             }
           }
         },
         {
           "if": {
-            "properties": {"requester_author_profile": {"const": "minimal_metadata"}},
-            "required": ["requester_author_profile"]
+            "properties": {
+              "requester_author_profile": {
+                "const": "minimal_metadata"
+              }
+            },
+            "required": [
+              "requester_author_profile"
+            ]
           },
           "then": {
             "properties": {
               "requester_endpoint_authorization": {
-                "properties": {"kind": {"const": "minimal_metadata"}},
-                "required": ["kind"]
+                "properties": {
+                  "kind": {
+                    "const": "minimal_metadata"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
               }
             }
           }
@@ -852,8 +1132,7 @@
         "release_id",
         "release_service_binding_ref",
         "release_service_resolution_ref",
-        "release_service_resolution_sequence",
-        "release_service_resolution_record_digest",
+        "release_service_resolution_digest",
         "release_service_route_digest",
         "history_traversal_retention",
         "accepted_at",
@@ -898,19 +1177,17 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "release_service_resolution_ref": {
-          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_record_core/properties/resolution_event_ref",
-          "description": "Adapter-canonical service resolution reference; it is not an Arkret EventId."
+          "description": "Adapter-canonical service resolution reference; it is not an Arkret EventId.",
+          "type": "string",
+          "pattern": "^(did-webvh-entry-sha256|did-web-document-sha256|did-key-did-sha256):[0-9a-f]{64}$"
         },
-        "release_service_resolution_sequence": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "release_service_resolution_record_digest": {
+        "release_service_resolution_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Digest of the complete signed ServiceResolutionRecord used at request acceptance."
+          "description": "SHA-256 of the complete canonical AuthenticatedServiceResolution retained at request acceptance."
         },
         "release_service_route_digest": {
-          "$ref": "#/$defs/digest"
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256(RFC8785-JCS(ServiceResolutionProjection)) derived from the authenticated DID method state."
         },
         "history_traversal_retention": {
           "$ref": "#/$defs/history_governance_traversal_retention",
@@ -935,30 +1212,68 @@
         {
           "type": "object",
           "required": [
-            "kind", "profile", "effective_scope", "mls_group_id",
-            "trusted_history_base_basis", "trusted_current_basis", "target_basis",
-            "request_digest", "requested_ranges", "authorization_incarnation", "retention"
+            "kind",
+            "profile",
+            "effective_scope",
+            "mls_group_id",
+            "trusted_history_base_basis",
+            "trusted_current_basis",
+            "target_basis",
+            "request_digest",
+            "requested_ranges",
+            "authorization_incarnation",
+            "retention"
           ],
           "properties": {
-            "kind": {"const": "ak.history_governance.traversal_intent"},
-            "profile": {"const": "member_history_delivery"},
-            "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
-            "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
-            "trusted_history_base_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-            "trusted_current_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-            "target_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-            "request_digest": {"$ref": "#/$defs/digest"},
-            "requested_ranges": {
-              "type": "array", "minItems": 1, "maxItems": 64,
-              "items": {"$ref": "#/$defs/epoch_range"}
+            "kind": {
+              "const": "ak.history_governance.traversal_intent"
             },
-            "authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"},
+            "profile": {
+              "const": "member_history_delivery"
+            },
+            "effective_scope": {
+              "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+            },
+            "mls_group_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "trusted_history_base_basis": {
+              "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+            },
+            "trusted_current_basis": {
+              "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+            },
+            "target_basis": {
+              "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+            },
+            "request_digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "requested_ranges": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "items": {
+                "$ref": "#/$defs/epoch_range"
+              }
+            },
+            "authorization_incarnation": {
+              "$ref": "#/$defs/authorization_incarnation"
+            },
             "retention": {
               "type": "object",
-              "required": ["kind", "expires_at"],
+              "required": [
+                "kind",
+                "expires_at"
+              ],
               "properties": {
-                "kind": {"const": "request_expiring"},
-                "expires_at": {"$ref": "#/$defs/timestamp"}
+                "kind": {
+                  "const": "request_expiring"
+                },
+                "expires_at": {
+                  "$ref": "#/$defs/timestamp"
+                }
               },
               "additionalProperties": false
             }
@@ -968,28 +1283,65 @@
         {
           "type": "object",
           "required": [
-            "kind", "profile", "effective_scope", "mls_group_id",
-            "trusted_history_base_basis", "trusted_current_basis", "target_basis",
-            "requested_ranges", "archive_authorization_tuple", "container_event_ref", "retention"
+            "kind",
+            "profile",
+            "effective_scope",
+            "mls_group_id",
+            "trusted_history_base_basis",
+            "trusted_current_basis",
+            "target_basis",
+            "requested_ranges",
+            "archive_authorization_tuple",
+            "container_event_ref",
+            "retention"
           ],
           "properties": {
-            "kind": {"const": "ak.history_governance.traversal_intent"},
-            "profile": {"const": "organization_recovery_archive"},
-            "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
-            "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
-            "trusted_history_base_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-            "trusted_current_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-            "target_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-            "requested_ranges": {
-              "type": "array", "minItems": 1, "maxItems": 1,
-              "items": {"$ref": "#/$defs/epoch_range"}
+            "kind": {
+              "const": "ak.history_governance.traversal_intent"
             },
-            "archive_authorization_tuple": {"$ref": "#/$defs/archive_authorization_tuple"},
-            "container_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+            "profile": {
+              "const": "organization_recovery_archive"
+            },
+            "effective_scope": {
+              "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+            },
+            "mls_group_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "trusted_history_base_basis": {
+              "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+            },
+            "trusted_current_basis": {
+              "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+            },
+            "target_basis": {
+              "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+            },
+            "requested_ranges": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "$ref": "#/$defs/epoch_range"
+              }
+            },
+            "archive_authorization_tuple": {
+              "$ref": "#/$defs/archive_authorization_tuple"
+            },
+            "container_event_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            },
             "retention": {
               "type": "object",
-              "required": ["kind"],
-              "properties": {"kind": {"const": "archive_lifetime"}},
+              "required": [
+                "kind"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "archive_lifetime"
+                }
+              },
               "additionalProperties": false
             }
           },
@@ -1000,9 +1352,14 @@
     },
     "history_governance_traversal_retention": {
       "type": "object",
-      "required": ["traversal_intent", "traversal_intent_digest"],
+      "required": [
+        "traversal_intent",
+        "traversal_intent_digest"
+      ],
       "properties": {
-        "traversal_intent": {"$ref": "#/$defs/history_governance_traversal_intent"},
+        "traversal_intent": {
+          "$ref": "#/$defs/history_governance_traversal_intent"
+        },
         "traversal_intent_digest": {
           "$ref": "#/$defs/digest",
           "description": "SHA-256(UTF8('ak.history-governance-traversal-intent-v1') || 0x00 || JCS(traversal_intent))."
@@ -1015,19 +1372,33 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "request_receipt_digest"],
+          "required": [
+            "kind",
+            "request_receipt_digest"
+          ],
           "properties": {
-            "kind": {"const": "request_receipt"},
-            "request_receipt_digest": {"$ref": "#/$defs/digest"}
+            "kind": {
+              "const": "request_receipt"
+            },
+            "request_receipt_digest": {
+              "$ref": "#/$defs/digest"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "archive_replica_digest"],
+          "required": [
+            "kind",
+            "archive_replica_digest"
+          ],
           "properties": {
-            "kind": {"const": "archive_replica"},
-            "archive_replica_digest": {"$ref": "#/$defs/digest"}
+            "kind": {
+              "const": "archive_replica"
+            },
+            "archive_replica_digest": {
+              "$ref": "#/$defs/digest"
+            }
           },
           "additionalProperties": false
         }
@@ -1038,10 +1409,17 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "pending_archive_replica_digest"],
+          "required": [
+            "kind",
+            "pending_archive_replica_digest"
+          ],
           "properties": {
-            "kind": {"const": "pending_archive_replica"},
-            "pending_archive_replica_digest": {"$ref": "#/$defs/digest"}
+            "kind": {
+              "const": "pending_archive_replica"
+            },
+            "pending_archive_replica_digest": {
+              "$ref": "#/$defs/digest"
+            }
           },
           "additionalProperties": false
         }
@@ -1076,7 +1454,9 @@
         "sealed_history_response_capability"
       ],
       "properties": {
-        "kind": {"const": "ak.history_key.request_accepted"},
+        "kind": {
+          "const": "ak.history_key.request_accepted"
+        },
         "request": {
           "$ref": "#/$defs/history_key_request"
         },
@@ -1307,14 +1687,30 @@
         "expires_at"
       ],
       "properties": {
-        "method_controller_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-        "holder_service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-        "current_holder_signing_ref": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
-        "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "archive_authorization_tuple_digest": {"$ref": "#/$defs/digest"},
-        "holder_trusted_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-        "observed_at": {"$ref": "#/$defs/timestamp"},
-        "expires_at": {"$ref": "#/$defs/timestamp"}
+        "method_controller_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "holder_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "current_holder_signing_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "accepted_key_evidence_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "archive_authorization_tuple_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "holder_trusted_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false,
       "description": "Current source-local RHRK holder authority observation. archive_authorization_tuple_digest binds the immutable historical archive tuple; current_holder_signing_ref, accepted_key_evidence_ref and holder_trusted_basis prove current holder authority and are not required to equal the tuple's historical signing/evidence coordinates. Its registered digest is SHA-256(UTF8('ak.rhrk-holder-authority-observation-v1') || 0x00 || JCS(complete object))."
@@ -1529,7 +1925,11 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["chunk_response_id", "chunk_index", "covered_epoch_range"],
+            "required": [
+              "chunk_response_id",
+              "chunk_index",
+              "covered_epoch_range"
+            ],
             "properties": {
               "chunk_response_id": {
                 "$ref": "#/$defs/history_response_id"
@@ -1563,10 +1963,18 @@
         "manifest_admission_digest"
       ],
       "properties": {
-        "kind": {"const": "ak.history_key.manifest_admission"},
-        "manifest_digest": {"$ref": "#/$defs/digest"},
-        "request_digest": {"$ref": "#/$defs/digest"},
-        "request_receipt_digest": {"$ref": "#/$defs/digest"},
+        "kind": {
+          "const": "ak.history_key.manifest_admission"
+        },
+        "manifest_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "request_receipt_digest": {
+          "$ref": "#/$defs/digest"
+        },
         "traversal_intent_digest": {
           "$ref": "#/$defs/digest",
           "description": "Must equal request_receipt.history_traversal_retention.traversal_intent_digest byte-for-byte."
@@ -1575,10 +1983,14 @@
           "type": "array",
           "minItems": 1,
           "maxItems": 1024,
-          "items": {"$ref": "#/$defs/epoch_range"},
+          "items": {
+            "$ref": "#/$defs/epoch_range"
+          },
           "description": "Canonical sorted, disjoint exact descriptor ranges that passed the current scope history-access ratchet, requester current incarnation and join/profile floor after complete direct Seal replay. It must equal the complete manifest descriptor range union; partial admission is forbidden."
         },
-        "t0_pass": {"const": "all_manifest_ranges_authorized"},
+        "t0_pass": {
+          "const": "all_manifest_ranges_authorized"
+        },
         "manifest_admission_digest": {
           "$ref": "#/$defs/digest",
           "description": "SHA-256(UTF8('ak.history-manifest-admission-v1') || 0x00 || JCS(this object with manifest_admission_digest removed))."
@@ -1639,17 +2051,37 @@
         "content"
       ],
       "properties": {
-        "response_id": {"$ref": "#/$defs/history_response_id"},
-        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
-        "source_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
-        "source_sender_domain": {"type": "string", "minLength": 1, "maxLength": 512},
-        "request_digest": {"$ref": "#/$defs/digest"},
-        "request_receipt_digest": {"$ref": "#/$defs/digest"},
-        "expires_at": {"$ref": "#/$defs/timestamp"},
+        "response_id": {
+          "$ref": "#/$defs/history_response_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+        },
+        "source_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "source_sender_domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "request_receipt_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "content": {
           "oneOf": [
-            {"$ref": "#/$defs/history_response_manifest"},
-            {"$ref": "#/$defs/sealed_history_chunk"}
+            {
+              "$ref": "#/$defs/history_response_manifest"
+            },
+            {
+              "$ref": "#/$defs/sealed_history_chunk"
+            }
           ]
         }
       },
@@ -1733,25 +2165,77 @@
         "authorization_incarnation"
       ],
       "properties": {
-        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
-        "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 512},
-        "epoch": {"type": "integer", "minimum": 0},
-        "leaf_index": {"type": "integer", "minimum": 0},
-        "pairwise_actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-        "source_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
-        "verification_method": {"type": "string", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"},
-        "response_signing_public_key_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
-        "response_signing_public_key_digest": {"$ref": "#/$defs/digest"},
-        "identity_link_canonical_bytes_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 1048576},
-        "identity_link_digest": {"$ref": "#/$defs/digest"},
-        "identity_link_signer_evidence_ref": {"$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref", "description": "Content-addressed Principal signer evidence for the IdentityLink proof verification_method at the link effective_at boundary."},
-        "leaf_node_canonical_bytes_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 1048576},
-        "leaf_node_digest": {"$ref": "#/$defs/digest"},
-        "winning_group_state_transition_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "winning_group_state_event_digest": {"$ref": "#/$defs/digest"},
-        "winning_mls_transition_digest": {"$ref": "#/$defs/digest"},
-        "target_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-        "authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"}
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pairwise_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "source_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "response_signing_public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        },
+        "response_signing_public_key_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "identity_link_canonical_bytes_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 1048576
+        },
+        "identity_link_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "identity_link_signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Content-addressed Principal signer evidence for the IdentityLink proof verification_method at the link effective_at boundary."
+        },
+        "leaf_node_canonical_bytes_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 1048576
+        },
+        "leaf_node_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "winning_group_state_transition_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "winning_group_state_event_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "winning_mls_transition_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "target_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
+        "authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation"
+        }
       },
       "additionalProperties": false,
       "description": "Content-addressed historical signer evidence for a minimal-metadata pairwise actor. The source proof always uses the independent Ed25519 response-signing method/key committed by the end-to-end encrypted IdentityLink; it never treats an MLS ciphersuite signature key as a generic PayloadProof key. The identity_link_signer_evidence pair resolves the exact Principal evidence used to verify the IdentityLink's own proof without consulting a live DID document. The receiver validates that proof, the response key, exact locally received identity-link and RFC MLS LeafNode canonical bytes, winning transition provenance, target Seal basis and authorization incarnation against its independently verified durable MLS state before accepting source_proof. Canonical evidence bytes are limited to 1 MiB."
@@ -2155,7 +2639,9 @@
               "release_attestation"
             ]
           },
-          "required": ["manifest_admission"]
+          "required": [
+            "manifest_admission"
+          ]
         },
         {
           "properties": {
@@ -2180,7 +2666,11 @@
           "required": [
             "release_attestation"
           ],
-          "not": {"required": ["manifest_admission"]}
+          "not": {
+            "required": [
+              "manifest_admission"
+            ]
+          }
         }
       ],
       "additionalProperties": false,
@@ -2232,19 +2722,33 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "record"],
+          "required": [
+            "kind",
+            "record"
+          ],
           "properties": {
-            "kind": {"const": "record"},
-            "record": {"$ref": "#/$defs/history_key_response_record"}
+            "kind": {
+              "const": "record"
+            },
+            "record": {
+              "$ref": "#/$defs/history_key_response_record"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "lost_record"],
+          "required": [
+            "kind",
+            "lost_record"
+          ],
           "properties": {
-            "kind": {"const": "lost"},
-            "lost_record": {"$ref": "#/$defs/history_key_response_lost_record"}
+            "kind": {
+              "const": "lost"
+            },
+            "lost_record": {
+              "$ref": "#/$defs/history_key_response_lost_record"
+            }
           },
           "additionalProperties": false
         }
@@ -2348,25 +2852,63 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "sequence", "response_id", "record_digest", "status"],
+          "required": [
+            "kind",
+            "sequence",
+            "response_id",
+            "record_digest",
+            "status"
+          ],
           "properties": {
-            "kind": {"const": "record"},
-            "sequence": {"type": "integer", "minimum": 0},
-            "response_id": {"$ref": "#/$defs/history_response_id"},
-            "record_digest": {"$ref": "#/$defs/digest"},
-            "status": {"enum": ["installed", "cryptographically_rejected", "superseded_duplicate"]}
+            "kind": {
+              "const": "record"
+            },
+            "sequence": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "response_id": {
+              "$ref": "#/$defs/history_response_id"
+            },
+            "record_digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "status": {
+              "enum": [
+                "installed",
+                "cryptographically_rejected",
+                "superseded_duplicate"
+              ]
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "sequence", "response_id", "lost_record_digest", "status"],
+          "required": [
+            "kind",
+            "sequence",
+            "response_id",
+            "lost_record_digest",
+            "status"
+          ],
           "properties": {
-            "kind": {"const": "lost"},
-            "sequence": {"type": "integer", "minimum": 0},
-            "response_id": {"$ref": "#/$defs/history_response_id"},
-            "lost_record_digest": {"$ref": "#/$defs/digest"},
-            "status": {"const": "service_record_lost"}
+            "kind": {
+              "const": "lost"
+            },
+            "sequence": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "response_id": {
+              "$ref": "#/$defs/history_response_id"
+            },
+            "lost_record_digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "status": {
+              "const": "service_record_lost"
+            }
           },
           "additionalProperties": false
         }
@@ -2488,7 +3030,9 @@
         "effective_scope": {
           "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
         },
-        "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
+        "recovery_key_id": {
+          "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
+        },
         "key_agreement_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },

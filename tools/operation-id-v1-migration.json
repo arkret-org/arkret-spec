@@ -360,14 +360,6 @@
       "new": "ak.peer.seals.read.resolve.v1"
     },
     {
-      "old": "ak.peer.service_resolution.command.publish",
-      "new": "ak.peer.service_resolution.command.publish.v1"
-    },
-    {
-      "old": "ak.peer.service_resolution.read.resolve",
-      "new": "ak.peer.service_resolution.read.resolve.v1"
-    },
-    {
       "old": "ak.peer.signal.command.relay",
       "new": "ak.peer.signal.command.relay.v1"
     },

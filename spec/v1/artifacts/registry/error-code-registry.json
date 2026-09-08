@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-08.1",
-  "generated_at": "2026-09-08T05:55:00+08:00",
+  "version": "2026-09-08.3",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4887,22 +4887,6 @@
       "description": "Sub-reason for schema_violation when a direct ak.relation.create / update / delete targets relation_kind=watches. The watches Relation is a derived projection only: its truth source is the ak.component.strand.watch.v1 cell written via the ak.strand.watch.set durable event, never a direct Relation write. See zh/models/relation.md §3.2 and zh/models/strand-and-message.md §8."
     },
     {
-      "code": "relation_profile_cardinality_conflict",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution"
-      ],
-      "description": "RelationProfile registration/update was rejected because its `cardinality` and `max_to_per_from` / `max_from_per_to` express contradictory bounds (e.g. one_to_one with max_to_per_from > 1, or many_to_one with max_to_per_from > 1), or a `max_*` value is <= 0. `max_*` may only tighten within the direction implied by `cardinality`. See zh/models/relation.md §5."
-    },
-    {
-      "code": "relation_scope_unresolved",
-      "applies_to": [
-        "state_resolution",
-        "service_call"
-      ],
-      "description": "A Relation write with `relation_scope` in {space, board} was rejected because the reducer could not resolve the participating endpoints' owning board/space (`board_space_id`) used as the dedupe/cardinality key — the endpoint belongs to no board/space, or the owning board/space is tombstoned. The reducer MUST NOT silently downgrade to realm-scope dedupe. See zh/models/relation.md §5."
-    },
-    {
       "code": "relaxed_window_exceeds_ceiling",
       "applies_to": [
         "schema_violation",
@@ -5131,68 +5115,12 @@
       "description": "A service did:webvh inception or rotation omitted the sole next-key commitment, supplied more than one update/next key, or failed to open the previous nextKeyHashes commitment. Providers and resolvers MUST fail closed as service_registration_denied."
     },
     {
-      "code": "service_resolution_mirror_response_gap",
-      "applies_to": [
-        "identity_resolution",
-        "federation_transaction"
-      ],
-      "description": "Internal peer-response diagnosis for a non-contiguous successor chain. It is a requester-local validation result and MUST NOT appear in the responder's wire error."
-    },
-    {
-      "code": "service_resolution_mirror_response_limit",
-      "applies_to": [
-        "identity_resolution",
-        "service_call"
-      ],
-      "description": "Internal peer-response diagnosis for the 32-record, 256-KiB or caller-selected budget limit. It MUST NOT be serialized by the blinded peer resolve surface, which uses the universal size failure."
-    },
-    {
       "code": "service_route_fork",
       "applies_to": [
         "identity_resolution",
         "federation_transaction"
       ],
-      "description": "Internal anti-rollback diagnosis for distinct valid target-signed artifacts at the same sequence/revision; the service route is quarantined. It MUST NOT be serialized by the blinded peer resolve surface."
-    },
-    {
-      "code": "service_route_notice_basis_stale",
-      "applies_to": [
-        "identity_resolution",
-        "federation_transaction"
-      ],
-      "description": "Internal route evaluator diagnosis for a notice whose exact record basis is not the receiver's durable floor. It MUST NOT be serialized by ak.peer.service_resolution.read.resolve.v1; the outward response is the blinded not_found/capability-denied or universal failure surface."
-    },
-    {
-      "code": "service_route_notice_cancelled",
-      "applies_to": [
-        "identity_resolution",
-        "service_call"
-      ],
-      "description": "Internal route evaluator diagnosis that a candidate belongs to an accepted cancelled notice. It MUST NOT be serialized by the blinded peer resolve surface."
-    },
-    {
-      "code": "service_route_notice_conflict",
-      "applies_to": [
-        "identity_resolution",
-        "federation_transaction"
-      ],
-      "description": "Internal route evaluator diagnosis for a notice revision/digest fork or duplicate-key conflict. It MUST NOT be serialized by the blinded peer resolve surface."
-    },
-    {
-      "code": "service_route_notice_expired",
-      "applies_to": [
-        "identity_resolution",
-        "service_call"
-      ],
-      "description": "Internal route evaluator diagnosis that the signed handover validity window has expired. It MUST NOT be serialized by the blinded peer resolve surface."
-    },
-    {
-      "code": "service_route_successor_unavailable",
-      "applies_to": [
-        "identity_resolution",
-        "service_call"
-      ],
-      "description": "Internal route evaluator diagnosis that no exact formal successor record is available at the candidate or authorized mirror. It MUST NOT be serialized by the blinded peer resolve surface."
+      "description": "The method-native service evidence conflicts with the durable accepted DID history prefix."
     },
     {
       "code": "session_focus_already_committed",

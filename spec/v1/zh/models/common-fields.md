@@ -222,7 +222,7 @@ expected_<role>_<kind>_id
 
 唯一的词类级裸名规则是已登记的 provenance/byline 角色：`<past-participle>_by` 整体是完整角色词，而不是“角色 + 被遗漏的 identifier 后缀”。`created_by`、`updated_by`、`executed_by`、`generated_by` 等登记字段永远保持裸名，MUST NOT 改成 `*_by_id`、`*_by_did` 或 `*_by_verification_method`；其值仍须按该字段的真实职责精确登记为 `ActorId`、W3C `did`、DID URL，或其它词法互斥的闭合 identifier union。字段名绝不为了保留裸 byline 而降级为 `string`，类型也绝不为了统一而强制成裸 `did_core_id`。该规则不构成任意裸角色白名单：只有 `tools/identifier-role-suffix-registry.json#registered_provenance_byline_fields` 中登记的精确字段名可使用此形态；新增词必须证明它表达 durable provenance/byline、声明 terminal profile，并通过 mutation gate。查询或索引函数中的 `get_by_id` / `*_by_id` 局部变量不属于 wire 字段命名合同。
 
-URI/URL 与上述 identifier profile **正交**。可通过 HTTP(S) 解引用或通过 WS(S) 连接的网络 locator 使用 `_url`；通用 URI identity/reference、`geo:` / `mimi:` 等非网络 scheme、以及 OAuth/OIDC 等外部标准拥有的精确 URI 词法使用 `_uri`。Web Origin 是完整协议角色，使用裸 `origin`。当前闭合网络 locator 集合为 `arkret_base_url`、`base_url`、`candidate_base_url`、`candidate_record_url`、`connect_url`、`current_record_url`、`endpoint_url`、`gate_account_base_url`、`inclusion_proof_url`、`openid_configuration_url`、`public_base_url`、`push_gateway_url`、`retrieval_url`、`source_url`、`webhook_url`，以及 `BlobPresignOutcome.url`；当前 URI identity/reference 集合为 `acct_uri`、`gate_audience_uri`、`geo_uri`、`issuer_uri`、`mimi_room_uri`、`mimi_uri`、`provider_uri`、`redirect_uri` 和完整 generic `uri`。DID 专名 `did_url` / `verification_method` 不进入此集合。rate-limit policy 的 `endpoint` 是闭合 selector（absolute service path 或 absolute HTTP(S) URL），不是纯 locator 字段，保持裸名。所有 `_url` schema terminal MUST 明确收紧到登记的 HTTP(S)/WS(S) scheme；`format: uri` 本身既不能证明它是网络 URL，也不能决定字段后缀。
+URI/URL 与上述 identifier profile **正交**。可通过 HTTP(S) 解引用或通过 WS(S) 连接的网络 locator 使用 `_url`；通用 URI identity/reference、`geo:` / `mimi:` 等非网络 scheme、以及 OAuth/OIDC 等外部标准拥有的精确 URI 词法使用 `_uri`。Web Origin 是完整协议角色，使用裸 `origin`。当前闭合网络 locator 集合为 `arkret_base_url`、`base_url`、`connect_url`、`resolution_url`、`endpoint_url`、`gate_account_base_url`、`inclusion_proof_url`、`openid_configuration_url`、`public_base_url`、`push_gateway_url`、`retrieval_url`、`source_url`、`webhook_url`，以及 `BlobPresignOutcome.url`；当前 URI identity/reference 集合为 `acct_uri`、`gate_audience_uri`、`geo_uri`、`issuer_uri`、`mimi_room_uri`、`mimi_uri`、`provider_uri`、`redirect_uri` 和完整 generic `uri`。DID 专名 `did_url` / `verification_method` 不进入此集合。rate-limit policy 的 `endpoint` 是闭合 selector（absolute service path 或 absolute HTTP(S) URL），不是纯 locator 字段，保持裸名。所有 `_url` schema terminal MUST 明确收紧到登记的 HTTP(S)/WS(S) scheme；`format: uri` 本身既不能证明它是网络 URL，也不能决定字段后缀。
 
 Web Origin 的完整角色名不等于宽松字符串：所有真实 Web Origin occurrence MUST 解析到 `common-ids.schema.json#/$defs/web_origin`。其 wire canonical 形态只允许 lowercase HTTP(S) scheme、host 与可选有效非默认 port；userinfo、任何 path（包括尾 `/`）、query、fragment、显式默认端口和越界端口都 MUST fail closed。`agent-sidecar-exchange-projection.origin` 是 closed provenance enum，不属于此 profile。
 
@@ -440,7 +440,7 @@ ActorId 的服务路由投影是封闭且无状态的：account 分支取
 `account_id.station_id`，service 分支取
 `service_id`。任何需要按托管服务分桶、去重或解析 endpoint 的协议都 MUST 使用这个投影；不得再保存
 member-specific route object、route source、fallback 或 rebind 状态。路由刷新只更新对应 service
-DID core 的 `ServiceResolutionRecord`，不改变 ActorId；service DID core 变化会形成不同 ActorId，必须通过
+DID core 的 `AuthenticatedServiceResolution`，不改变 ActorId；service DID core 变化会形成不同 ActorId，必须通过
 正常 membership / invitation transition 处理。
 
 主体字段新增策略：

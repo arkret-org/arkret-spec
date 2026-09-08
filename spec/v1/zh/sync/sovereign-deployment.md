@@ -187,7 +187,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 - 仅当 policy 允许且权限链已验证时，MAY 为外部协作方接受公共 DID 方法。
 - 当 `public_resolver_allowed:false` 时，`did:plc` 等本质依赖公共 directory 的方法 MUST NOT 直接查询公共 PLC directory；其 DID Document 与操作历史 MUST 经受批准的 PLC mirror、审计日志 source 或离线 bundle 解析（与上条内部主体同一约束）。无可用受批准来源时 MUST fail closed，不得回退到公共 resolver。
 - 涉及关联风险的外部协作 SHOULD 使用 pairwise DID。
-- 指向公共 Station sync surface / Directory 的 `ServiceResolutionRecord.base_url` 或 bootstrap hint 在未 allowlist 时 MUST 被忽略；DID Document service endpoint 也不得绕过该规则。
+- 指向公共 Station sync surface / Directory 的 经 method 验证的 DID 服务入口 或 bootstrap hint 在未 allowlist 时 MUST 被忽略；DID Document service endpoint 也不得绕过该规则。
 
 **`did:key` 的 `ephemeral_only` enforcement 语义（normative）**：`method_policy` 把某 method（默认 `did:key`）设为 `ephemeral_only` 时，该取值是可测试约束而非口号。落入 `ephemeral_only` 的 DID **MUST NOT** 被用作：
 

@@ -194,11 +194,6 @@
     },
     {
       "document": "spec/v1/zh/models/relation.md",
-      "schema_ref": "realm.schema.json#/properties/relation_profiles/items",
-      "external_field_mentions": []
-    },
-    {
-      "document": "spec/v1/zh/models/relation.md",
       "schema_ref": "relation.schema.json#",
       "external_field_mentions": [
         "event_id"

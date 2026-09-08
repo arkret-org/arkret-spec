@@ -867,7 +867,7 @@ profile-gated 动作沿用同一原则：出现在 schedule、roster 或成员�
 11. 若需要 approval，校验 responsible / guardian / controller approval 证据。
 12. 应用 revoke 和 superseding 规则。
 
-Facets 不属于独立授权输入。算法 MUST NOT 在上述步骤之外读取 Morph facets、View renderer 或 track profile 来授予、拒绝或升级权限。第 7 步若检查 Realm schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机、RelationProfile 或 policy 条件；MUST NOT 把 facets 本身当作状态机、动作或授权规则。
+Facets 不属于独立授权输入。算法 MUST NOT 在上述步骤之外读取 Morph facets、View renderer 或 track profile 来授予、拒绝或升级权限。第 7 步若检查 Realm schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机 或 policy 条件；MUST NOT 把 facets 本身当作状态机、动作或授权规则。
 
 ### 18.1 高频交互的 O(1) 快速路径
 

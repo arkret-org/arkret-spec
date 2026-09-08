@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-08.1",
-  "generated_at": "2026-09-08T05:55:00+08:00",
+  "version": "2026-09-08.3",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -405,7 +405,6 @@
     "ak.profile.station.v1",
     "ak.profile.directory_service.v1",
     "ak.profile.federation_minimal.v1",
-    "ak.profile.service_resolution_mirror.v1",
     "ak.profile.signal_peer_relay.v1",
     "ak.profile.signal_message_stream.v1",
     "ak.profile.federation.high_assurance.v1",
@@ -460,7 +459,6 @@
       "ak.profile.station.v1",
       "ak.profile.directory_service.v1",
       "ak.profile.federation_minimal.v1",
-      "ak.profile.service_resolution_mirror.v1",
       "ak.profile.signal_peer_relay.v1",
       "ak.profile.federation.high_assurance.v1",
       "ak.profile.identity_registry.v1",
@@ -576,7 +574,6 @@
     "ak.profile.station.v1": "server",
     "ak.profile.directory_service.v1": "directory",
     "ak.profile.federation_minimal.v1": "server",
-    "ak.profile.service_resolution_mirror.v1": "server",
     "ak.profile.signal_peer_relay.v1": "server",
     "ak.profile.signal_message_stream.v1": "client",
     "ak.profile.federation.high_assurance.v1": "server",
@@ -2902,55 +2899,6 @@
         "downgrade_profile": "ak.profile.e2ee_relaxed.v1",
         "downgrade_admission": "Only closed or restricted federation may accept ak.profile.e2ee_relaxed.v1, and restricted federation MUST satisfy the bounded-SLA federation_guard in that profile. Open and quarantine federation MUST reject the relaxed downgrade.",
         "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or reducer_profile, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/DataEvent before advancing Realm frontier."
-      }
-    },
-    "ak.profile.service_resolution_mirror.v1": {
-      "role": "server",
-      "description": "Optional Realm-scoped route-availability profile. It implements target-signed planned handover publication and authorized peer mirror resolution without becoming service identity or route authority.",
-      "enforcement_phases": [
-        "conformance",
-        "startup_claim_guard"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.service_resolution.command.publish.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.service_resolution.read.resolve.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [
-        "ak.profile.federation_minimal.v1"
-      ],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.identity_resolution.v1"
-      ],
-      "required_fixtures": [
-        "service-route-handover-mirror-fixture.json"
-      ],
-      "optional_extensions": [],
-      "required_features": [
-        "ak.feature.realm_service_resolution_mirror.v1",
-        "ak.feature.service_route_handover.v1"
-      ],
-      "feature_discovery": {
-        "required": [
-          "durable_service_resolution_last_seen_floor",
-          "route_cache_ttl_separate_from_rollback_floor"
-        ],
-        "unsupported_optional": "Omit the profile and both peer operations; normal current-record bootstrap and direct 1:1 handover remain usable when independently implemented, while an unannounced outage without another authorized carrier fails closed."
-      },
-      "additional_requirements": {
-        "target_signature_must": "A mirror returns only byte-exact target-service-signed ServiceResolutionRecord and ServiceRouteHandoverNotice values; its own transport signature can never authorize a bare URL.",
-        "visibility_must": "Requester and target must both be currently visible in the named Realm through effective joined-member binding or explicit delegation; unknown, unauthorized, invisible and not-held responses are indistinguishable. No Realm-level transport endpoint grants visibility.",
-        "durability_must": "Remote record sequence/digest floors, notice revision/digest state and publish acknowledgements survive restart; replaceable TTL route cache is not this safety state.",
-        "bounds_must": "Resolve returns at most 32 continuous records and at most 256 KiB canonical response bytes."
       }
     },
     "ak.profile.signal_message_stream.v1": {

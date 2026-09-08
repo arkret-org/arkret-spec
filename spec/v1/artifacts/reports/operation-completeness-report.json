@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.1",
+  "version": "2026-09-08.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-08T05:55:00+08:00",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 235,
+    "total_operations": 233,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 233
+      "typed_schema": 231
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 148
+        "typed_schema": 146
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -1268,34 +1268,6 @@
       "openapi_component_refs": {
         "request": "../schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
         "response": "../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.peer.service_resolution.command.publish.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/peer/service-resolution/publish",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request",
-      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/ServiceResolutionPublishRequestBody",
-        "response": "#/components/schemas/ServiceResolutionPublishOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.peer.service_resolution.read.resolve.v1",
-      "surface_class": "extension",
-      "http": "QUERY /_arkret/peer/service-resolution/resolve",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_request",
-      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/ServiceResolutionResolveRequestBody",
-        "response": "#/components/schemas/ServiceResolutionResolveOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -6490,58 +6490,9 @@ Runner MUST 加载 [`event-kind-payload-coverage-fixture.json`](../../artifacts/
 - `ak.relation.tombstone` 正例只携带 `relation_id` 与可选 `reason`，并解析到 `relation_tombstone_payload`；携带 `target_ref` / `patch` 的 update 形态 MUST schema-invalid。Registry cell subject 必须由 `payload.relation_id` 解析为 `id:relation`。
 - `ak.moderation.franking_proof` 正例必须通过 `moderation-evidence.schema.json#/$defs/franking_proof`，registry 与 Event Envelope 必须引用同一个 def；只带 `report_id` / `target_ref` 的 report-keyed 形态 MUST schema-invalid。Registry cell subject 必须由目标 `payload.event_id` 解析为 `id:event`，不得使用外层 proof Event 自身的 `event_id`，也不得退回不存在的 report 字段。`verification_method` 必须存在、controller 投影等于 `received_by`，且在 `received_at` 有效。
 - 任一显式 schema ref 不存在、ref fragment 不可解析、Event Envelope 错接到共享 `audit_payload` / `relation_update_payload`、或 cell subject 在所选 payload class 上无可解析标量端点，均 MUST 使本组失败；`event-payload.schema.json` 的定义包根 schema 不能替代上述两条 kind-specific 合同。
-## 35. Service route handover / Realm mirror closure vector
+## 35. DID service route resolution vector
 
-`vector_id`: `ak.vector.service_resolution.handover_mirror.v1`
-
-Runner MUST 加载
-[`service-route-handover-mirror-fixture.json`](../../artifacts/fixtures/service-route-handover-mirror-fixture.json)，
-先按每个 case 的 `schema_ref` 执行
-[`identity-resolution.schema.json`](../../artifacts/schemas/identity-resolution.schema.json) Draft 2020-12
-校验，再执行以下跨对象语义；只验证单个 JSON shape、只验证 target proof 或只验证 URL 可达性均不构成通过：
-
-1. `scheduled` notice 必须满足
-   `issued_at <= not_before <= cutover_at < grace_until <= expires_at`，且
-   `from_record_sequence/from_record_digest` 精确命中 receiver durable current/last-seen floor；任一时间逆序、
-   stale sequence 或异 digest 都必须拒绝，且不得消耗 current record sequence。
-2. 同一 `handover_id` 的 cancellation 必须使用恰高一的 `notice_revision`、精确
-   `previous_notice_digest`，并省略全部 candidate/time 字段；same revision、跳 revision、异 digest 或在正式
-   successor 已接受后试图回滚均拒绝并 quarantine 相应 notice chain。
-3. notice 在任何时刻都不直接授权 Realm Event、to-device、KeyPackage、repair 或其它业务 bytes；
-   `not_before` 前至多允许不更新 route state 的 bounded public resolution/describe preflight。
-4. candidate 只有返回正式、target-signed、同 `service_id + service_kind`、
-   `record_sequence=from_record_sequence+1`、`previous_record_digest=from_record_digest` 的
-   `ServiceResolutionRecord`，并通过 method history、freshness、SSRF 与 describe reverse binding，才能成为
-   effective route。wrong core、sequence gap、wrong predecessor 或 describe mismatch 均 fail closed。
-5. `ak.peer.service_resolution.command.publish.v1` 必须同时验证两个独立 durable 幂等键：transport key 是
-   `(source_id, realm_id, request_id)` 并绑定 complete canonical `request_digest`，HTTP
-   `Idempotency-Key` 必须逐字等于 body `request_id`；artifact integrity key 是
-   `(source_id, realm_id, artifact_key)` 并绑定 `artifact_digest`。同 transport key、同 request digest
-   返回原 ack；任一 key 的 digest 冲突都必须 `duplicate_conflict`、零覆盖。新 `request_id` 发布同一 artifact
-   bytes 可以得到一份与新 request 交叉绑定的新 ack，但不能产生第二份 artifact state。
-6. notice basis 不允许在同一 exact-one publish request 内夹带或隐含 record chain。receiver floor 落后时，
-   publisher 必须按 sequence 逐份 publish 每条缺失 `ServiceResolutionRecord`，逐份取得 durable ack 并推进
-   floor，最后才以新的独立 request publish notice；缺少任一前置 record ack 时 notice 必须
-   `service_route_notice_basis_stale`，且 notice ack 不得被解释为整条 record chain 的原子 ack。
-7. `ak.peer.service_resolution.read.resolve.v1` 最多返回 32 条连续 successor，canonical response 至多
-   256 KiB；33 条与 256 KiB+1 均拒绝或截成仍连续的合法 page，不得跳 gap；
-   `successor_records=[]` 与 `has_more=true` 的组合必须 schema-invalid。认证/当前 peer/target visibility gate
-   失败统一为 `capability_denied`；通过 gate 后的 unknown、invisible、not-held、gap、fork、cancelled、expired
-   统一为 `not_found`。同一 blinded class 的 body、长度与 timing bucket 不可区分，具体原因只进私有审计，
-   不得泄露 Realm topology。
-8. 两个 mirror 对同一 service sequence 返回不同、但均通过 target proof 的 digest 时，必须进入
-   `service_route_fork` quarantine；不得按多数票、到达时间或 URL reachability 选 winner。
-9. record last-seen floor 与 accepted notice state 必须是相互独立的 durable 状态。restart 后 TTL cache 可以
-   完全丢失，但低于 record floor 的 replay 仍拒绝，已接受 cancellation 仍阻止 candidate，same revision 异
-   digest 仍触发 quarantine；notice expiry/completion 也不得降低 record floor。
-10. route cache 必须同时保留 target-signed `expires_at` 与本地 `cache_expires_at`，且本地值不得晚于 signed
-    expiry；任一边界到达即 hard miss。`now == cache_expires_at` 或 `now == expires_at` 均不得继续路由，
-    不得丢弃 signed expiry、以新本地 TTL 延长它、跳过 describe 或把 future notice candidate 当 current route。
-11. same-core 的 DID / URL successor 只推进 route floor 与 cache，不写 Realm membership；candidate
-   指向不同 Station core 时必须作为新 AccountId 独立加入，不能被 notice、mirror 或 cache 当作旧账号接受。
-12. 1:1 双方计划同时迁移时，只有 A durable ack B 的 exact notice 且 B durable ack A 的 exact notice 后，
-    才可报告 cross-ack preannouncement complete 并按共同 cutover/grace 关闭旧入口；任一 ack 缺失、仅内存、
-    digest 不一致或响应不确定时必须保留旧入口或其它已确认恢复面。
+验证经 method adapter 认证的唯一服务入口：相同 DID/入口跨缓存刷新、离线和重启保持可恢复且不创建 DID 更新；原生日志完整但旧 head、fork、缺失原生历史、无效控制证明、错误 core/kind、重复 endpoint、describe 不一致及资源超限均拒绝。合法 WebVH endpoint 更新与保持 SCID 的 portability 迁移可通过补齐原生历史恢复。did:web 必须经当前 DNS/WebPKI 查询，仅承诺 no-history；同 DID endpoint 更新可用，跨 DID 不继承身份，历史 notary 证明不能由当前 did:web 文档代替。
 
 ## 36. Realm fanout route-miss closure vector
 

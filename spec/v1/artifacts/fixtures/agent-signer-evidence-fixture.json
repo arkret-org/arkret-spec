@@ -266,7 +266,7 @@
     {
       "name": "producer_fetches_controller_gate_from_account_authority",
       "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
-      "current_signed_service_resolution_record_verified": true,
+      "current_service_method_evidence_verified": true,
       "method_history_evidence_verified": true,
       "normalized_document_digest_verified": true,
       "rfc9421_covers_method_path_digest_source_destination_operation_request": true,

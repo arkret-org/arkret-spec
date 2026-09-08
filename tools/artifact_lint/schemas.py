@@ -4391,7 +4391,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
         "agent_pcr_genesis",
         "applet_ghost_pcr_genesis",
         "principal_resolution_record",
-        "service_resolution_record",
+        "service_resolution",
         "did_method_evidence",
         "ephemeral_pairwise_mls_credential",
         "third_party_proof",

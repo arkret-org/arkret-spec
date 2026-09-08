@@ -1758,18 +1758,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody
     ServiceRegistrationOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome
-    ServiceResolutionPublishAck:
-      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_ack
-    ServiceResolutionPublishOutcome:
-      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_outcome
-    ServiceResolutionPublishRequestBody:
-      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request
-    ServiceResolutionResolveOutcome:
-      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_outcome
-    ServiceResolutionResolveRequestBody:
-      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_request
-    ServiceRouteHandoverNotice:
-      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_route_handover_notice
     SessionGrantIntrospectOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome
     SessionGrantIntrospectRequestBody:
@@ -4605,101 +4593,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PeerKeyPackagesClaimQueryOutcome'
-  /_arkret/peer/service-resolution/publish:
-    post:
-      operationId: ak.peer.service_resolution.command.publish
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Durably mirror one exact target-signed service route artifact.
-      description: |
-        The authenticated Realm peer publishes exactly one ServiceResolutionRecord
-        or ServiceRouteHandoverNotice. The receiver verifies current peer and target
-        visibility, exact target proof, full-to-core projection, basis/chain/time
-        rules and the 256 KiB body bound before durable acceptance. Idempotency-Key
-        is required, is covered by the HTTP Message Signature and MUST equal body.request_id.
-        Exact transport replay returns the original signed ack; an artifact integrity
-        key reused with different bytes is a zero-overwrite duplicate conflict. The ack
-        binds both keys and is receipt evidence, not URL authority.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.service_resolution.command.publish.v1
-      - name: Idempotency-Key
-        in: header
-        required: true
-        description: MUST equal body.request_id byte-for-byte and be covered by the HTTP Message Signature.
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 256
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceResolutionPublishRequestBody'
-      responses:
-        '200':
-          description: Receiver-signed durable exact-digest acknowledgement.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceResolutionPublishOutcome'
-        '409':
-          description: Duplicate conflict, stale basis, notice conflict or route fork; zero overwrite.
-        '413':
-          description: Canonical request body exceeds 256 KiB.
-  /_arkret/peer/service-resolution/resolve:
-    query:
-      operationId: ak.peer.service_resolution.read.resolve
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.service_resolution.read.resolve.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Resolve bounded continuous target-signed service route successors.
-      description: |
-        Realm-scoped anti-enumeration recovery for a target service core already
-        visible to the authenticated federation peer. The response contains at most
-        32 continuous target-signed successor records, an optional active target-signed
-        notice and no mirror-signed bare URL; canonical response bytes are capped at
-        256 KiB. Unknown, unauthorized, invisible and not-held are indistinguishable.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceResolutionResolveRequestBody'
-      responses:
-        '200':
-          description: Bounded continuous target-signed route material.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceResolutionResolveOutcome'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '413':
-          description: Requested or produced material exceeds the registered response budget.
   /_arkret/peer/current-signer-evidence/query:
     post:
       operationId: ak.peer.current_signer_evidence.read.resolve
@@ -7363,7 +7256,7 @@ paths:
         proof_in_body: false
       summary: Read the current authenticated service-resolution closure.
       description: |
-        Stable refresh surface named by ServiceResolutionRecord.current_record_url.
+        Public current DID method evidence surface.
         The server returns the current AuthenticatedServiceResolution for the exact
         stable service did_core_id. For did:webvh, the response includes the complete
         gap-free native log from inception through the record position and every
@@ -10193,7 +10086,7 @@ paths:
       x-arkret-auth:
         public_metadata: false
         holder_proof: false
-        notes: Authenticated S2S only. The receiver independently verifies the request's current signed ServiceResolutionRecord, method evidence and normalized DID Document before using its active assertion key for RFC 9421. Bearer does not replace the signature. The verified source service must equal request.agent_authority_id and service_id in the controller current AcceptedAtServiceBinding.
+        notes: Authenticated S2S only. The receiver independently verifies the request's service identity and method evidence and normalized DID Document before using its active assertion key for RFC 9421. Bearer does not replace the signature. The verified source service must equal request.agent_authority_id and service_id in the controller current AcceptedAtServiceBinding.
       summary: Issue the Account Authority controller lifecycle gate used in Agent signer evidence.
       description: |
         The Account Authority reads its own current account binding/status

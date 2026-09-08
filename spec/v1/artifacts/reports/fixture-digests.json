@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "7955e3390a442e243091cae726d1c556498e7f1aeb1fb040b753561eaddac8d2"
+      "sha256": "efdc3378ceafa479278782699af04fbd3005cf62791f73214e6fe2267923ca1a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -194,7 +194,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "f471fc467701394a467169e079ec3053ffc8176922bc7242e01541abafd2683a"
+      "sha256": "91cd531f7b4852b344f987ed81d54e45624d3f5e8050f9db852942420dc0e40c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -294,11 +294,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json",
-      "sha256": "904fbea3efedd37e527ae2a0d9db62379e55f7393f6ad591fa381381fb90ccc3"
+      "sha256": "db16090638ae00bc881b9058383cd869af65b4fb0bf5058d50f70989276afd31"
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "63d339ea66951c04f72b819cb90a922801015106208d845b00090b6261493822"
+      "sha256": "6b8da2eb690ca2ef6b993e9b23c2e404bacc1f23f359a551e25bed380759bdb5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "3f659bc3fdac66d7fadbc0649d3e9dccc8cac787c4b0b360fec166407ad3a690"
+      "sha256": "08ca0633a24801f21cf2501dde8fb18fc1dc95904b34dd4cbf912aaf69a3b161"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -375,10 +375,6 @@
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
       "sha256": "8ce2afb43a0041e87d023e830aa50ef9d48150d982ba461d75a003592ce383cc"
-    },
-    {
-      "path": "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",
-      "sha256": "e0603a599ca4cdf33dc8a83870a2b9df4154375d3e1b1b09976ed2edb21d9661"
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",

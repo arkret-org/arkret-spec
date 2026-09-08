@@ -161,7 +161,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 | Facet | 说明 | 典型字段/关系 |
 | --- | --- | --- |
-| `container` | 提示对象可按显式 relation/profile 作为容器投影。 | `child_object_kinds`, `relation_kinds`, `ordering`, `exclusive_scope`。 |
+| `container` | 提示对象可按显式关系记录或容器 profile 作为容器投影。 | `child_object_kinds`, `relation_kinds`, `ordering`, `exclusive_scope`。 |
 | `replyable` | 提示对象可按声明的 reply relation 被回复，形成 thread/discussion。 | `reply_object_kinds`, `reply_relation_kind`, `time_field`, `redaction_policy`。 |
 | `schedulable` | 提示对象有声明的时间窗口，可进入 calendar/gantt 投影。 | `start_field`, `end_field`, `timezone_field`, `dependency_relation_kinds`。 |
 | `assignable` | 提示对象有声明的分配字段或关系。 | `assignee_relation_kind` 或 `assignee_field`。 |
@@ -174,16 +174,16 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 `query.facets`、`collection.item_facets` 和 `graph.node_facets` 的数组语义为 AND：候选对象 MUST 同时具备列出的全部 facet。`container.child_facets` 与 `replyable.reply_facets` 使用 `{all?, any?, none?}` 选择器。
 
-### 5.1 Facet 与 RelationProfile / Schema 约束冲突时的仲裁（normative）
+### 5.1 Facet 与标准 Relation / Schema 约束冲突时的仲裁（normative）
 
-当一个 facet hint 在 cardinality / required-ness / state machine 等维度上与同名概念在 [`relation.md` §5](./relation.md) 的 **RelationProfile** 或 [`common-fields.md` §5`](./common-fields.md) 的标准状态机发生**冲突**时（典型例：`assignable` facet 提示单值分配，但 Realm 注册的 `assigned_to` RelationProfile 声明 `cardinality=many_to_one`），适用以下仲裁规则：
+当一个 facet hint 在 cardinality / required-ness / state machine 等维度上与同名概念在 [`relation.md` §3.2](./relation.md) 的标准关系规则或 [`common-fields.md` §5](./common-fields.md) 的标准状态机发生**冲突**时（例如 `assignable` facet 暗示单负责人，但标准 `assigned_to` 允许多个 Actor），适用以下仲裁规则：
 
-1. **RelationProfile / Schema / Event kind registry / Capability action 在所有 reducer 与 wire 层面胜出**（与 §4.0 决策矩阵一致）：reducer MUST 按这些权威声明评估 cardinality、required-ness、transition、precondition 与 wire 拒绝。
+1. **标准 Relation / Schema / Event kind registry / Capability action 在所有 reducer 与 wire 层面胜出**（与 §4.0 决策矩阵一致）：reducer MUST 按这些权威声明评估 cardinality、required-ness、transition、precondition 与 wire 拒绝。
 2. **Facet 在冲突时降级为 UI 提示**：UI / View / Inbox / 客户端搜索 SHOULD 继续根据 facet 调整渲染或筛选，但 facet 中暗示的约束 MUST NOT 被反向用于授权、Control Move precondition、reducer 接受/拒绝或 wire 校验。
-3. **schema_refs[] 与 morph_kind_profiles 的 facet 声明视为 schema-bound hint**：reducer 不在 facet 层强制相同 facet 在跨 schema / profile 间一致，但 conformance lint SHOULD 标记"facet 与 RelationProfile / Schema 冲突"，提示规范文档维护者澄清意图。
-4. 实现 MUST NOT 把 facet 当作"沉默约束"——即 facet 不出现于 wire 上不代表约束被满足/不满足，约束只由 RelationProfile / Schema 决定。
+3. **schema_refs[] 与 morph_kind_profiles 的 facet 声明视为 schema-bound hint**：reducer 不在 facet 层强制相同 facet 在跨 schema / profile 间一致，但 conformance lint SHOULD 标记"facet 与标准 Relation / Schema 冲突"，提示规范文档维护者澄清意图。
+4. 实现 MUST NOT 把 facet 当作"沉默约束"——即 facet 不出现于 wire 上不代表约束被满足/不满足，约束只由标准 Relation / Schema 决定。
 
-如此 facet 在 UI / hints 域与 RelationProfile 在 normative 域分工明确，避免两套来源静默互相覆盖。
+如此 facet 在 UI / hints 域与标准关系规则在 normative 域分工明确，避免两套来源静默互相覆盖。
 
 ### 5.2 Profile-declared generic container events（normative）
 

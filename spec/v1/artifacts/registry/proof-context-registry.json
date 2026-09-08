@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.1",
+  "version": "2026-09-08.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-08T05:55:00+08:00",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -931,114 +931,6 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationReceipt"
     },
     {
-      "context": "ak.service_resolution_publish_ack_proof.v1",
-      "object_family": "service_resolution_publish_ack",
-      "binding_fields": [
-        "payload_digest",
-        "request_id",
-        "source_id",
-        "receiver_id",
-        "realm_id",
-        "request_digest",
-        "artifact_key",
-        "artifact_digest",
-        "accepted_at",
-        "verification_method",
-        "created_at"
-      ],
-      "defined_in": "zh/sync/federation.md",
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_ack",
-      "injected_fields": [
-        {
-          "field": "payload_digest",
-          "source": "sha256(RFC8785_JCS(service_resolution_publish_ack.ack))"
-        }
-      ]
-    },
-    {
-      "context": "ak.service_resolution_record_proof.v1",
-      "object_family": "service_resolution_record",
-      "binding_fields": [
-        "payload_digest",
-        "service_id",
-        "service_kind",
-        "did",
-        "method_history_head",
-        "version_id",
-        "resolution_event_ref",
-        "record_sequence",
-        "previous_record_digest",
-        "current_record_url",
-        "base_url",
-        "describe_digest",
-        "issued_at",
-        "refresh_after",
-        "expires_at",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/sync/service-surface.md",
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record",
-      "injected_fields": [
-        {
-          "field": "payload_digest",
-          "source": "sha256(RFC8785_JCS(service_resolution_record.record))"
-        },
-        {
-          "field": "domain",
-          "source": "constant ak.service_resolution_record_proof.v1 when domain is present"
-        },
-        {
-          "field": "audience",
-          "source": "verification policy audience bound to service_resolution_record.record.service_id when present"
-        }
-      ]
-    },
-    {
-      "context": "ak.service_route_handover_notice_proof.v1",
-      "object_family": "service_route_handover_notice",
-      "binding_fields": [
-        "payload_digest",
-        "service_id",
-        "service_kind",
-        "handover_id",
-        "notice_revision",
-        "state",
-        "from_record_sequence",
-        "from_record_digest",
-        "candidate_base_url?",
-        "candidate_record_url?",
-        "not_before?",
-        "cutover_at?",
-        "grace_until?",
-        "previous_notice_digest",
-        "issued_at",
-        "expires_at",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/sync/service-surface.md",
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_handover_notice",
-      "injected_fields": [
-        {
-          "field": "payload_digest",
-          "source": "sha256(RFC8785_JCS(service_route_handover_notice.notice))"
-        },
-        {
-          "field": "domain",
-          "source": "constant ak.service_route_handover_notice_proof.v1 when domain is present"
-        },
-        {
-          "field": "audience",
-          "source": "verification policy audience bound to service_route_handover_notice.notice.service_id when present"
-        }
-      ]
-    },
-    {
       "context": "ak.session_grant_accepted_device_possession_proof.v1",
       "object_family": "session_grant_accepted_device_possession",
       "binding_fields": [
@@ -1198,8 +1090,7 @@
         "release_id",
         "release_service_binding_ref",
         "release_service_resolution_ref",
-        "release_service_resolution_sequence",
-        "release_service_resolution_record_digest",
+        "release_service_resolution_digest",
         "release_service_route_digest",
         "history_traversal_retention",
         "accepted_at",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.12",
+  "version": "2026-09-08.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-07T21:45:00+08:00",
+  "generated_at": "2026-09-08T06:42:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -6398,7 +6398,7 @@
         "re-check verification_id against current effective Realm allowlist",
         "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
         "transition invite cell pending -> claimed and materialize subject-bound membership proposal",
-        "expire and clean pending invite material before claim acceptance when expires_at <= now"
+        "reject with expired_invite_token when expires_at <= claim Event.created_at without shared-state writes; expiration requires a separate authorized ak.invite.revoke Control Move"
       ],
       "conformance_vectors": [
         "ak.vector.invite.claim_reducer_state_machine.v1",

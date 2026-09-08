@@ -29,7 +29,7 @@
   "properties": {
     "service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Stable did_core_id of the service making this describe claim. It cannot be resolved without service_resolution or another verified ServiceResolutionRecord."
+      "description": "Stable did_core_id of the service making this describe claim. It cannot be resolved without service_resolution or another verified AuthenticatedServiceResolution."
     },
     "service_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment",

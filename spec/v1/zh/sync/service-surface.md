@@ -143,61 +143,25 @@ Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](.
 - 高安全或主权部署把 Station 与 Identity Resolution、Directory、外部 Blob/Media、Push、Notary、Archive/Recovery 等已委托服务保持在受控 trust domain；公共服务或 federation ingress 只能作为显式授权的互联入口。
 - Applet、MIMI facade、Agent runtime、Moderation、Archive/Recovery 等角色是 service role / capability 组合，不是 deployment profile id；它们只能在已声明 profile 允许的 namespace、capability、Realm policy 与 service describe 范围内工作。
 
-### 2.6 Service `did_core_id` 与首跳路由解析（normative）
+### 2.6 Service DID 权威入口与路由解析（normative）
 
-服务身份与 principal 身份使用同一个二层模型：业务层持久 `service_id: did_core_id`，首次注册或绑定时必须同时提供可验证 `did`，并由 method adapter 验证 `project(did) = service_id`。因此服务端在业务表中只保存 `did_core_id` 不会失去可路由性；发送前通过已验证的 `ServiceResolutionRecord` 将它映射为当前 `did` 和真实 `base_url`。
+服务身份、控制密钥与业务入口 MUST 来自同一经 DID method adapter 独立验证的状态。业务绑定持久 service_id（did_core_id）和预期 service_kind；解析时 MUST 验证 project(did) == service_id，并从该 DID Document 选择唯一对应的 ArkretService entry。entry.id MUST 是该文档 DID 的非空 fragment 标识，type MUST 为 ArkretService，serviceKind MUST 等于预期 service_kind，serviceEndpoint MUST 为 canonical absolute HTTPS base URL。不得在同一 kind 下选择多个 entry，也不得按数组顺序挑选入口。规范化要求 scheme / host 小写、去默认端口、消解 dot segment、无 userinfo / query / fragment、path 恰有一个 trailing slash。入口不规范、歧义、错误 service/core/type 均 MUST 拒绝。
 
-从 remote peer、invite/contact carrier、mirror、DNS、DID Document、HTTP redirect 或本地配置取得的 URL/record bytes 一律只是不可信候选，不因传递者已通过 federation 认证而继承可信度。接受方 MUST 对 target-signed record 本身独立执行：canonical digest 与 proof context 校验；从 `verification_method` 取 bare controller DID；由 active method adapter 验证 inception、连续历史、签发时 control/assertion authorization，并确认 `project(did) == record.service_id`；再检查 record chain、freshness、SSRF policy 及下述 Describe reverse binding。传递者只能证明“谁送来了这些 bytes”，不能替 target service 证明“这个 URL 属于该 core”。TLS/WebPKI 只保护到已验证 record 所绑定 host 的连接，也不能单独建立 `did_core_id` 所有权。
+公开 ak.open.service.read.resolution.v1（GET /_arkret/open/services/{service_id}/resolution）向成员与非成员返回 AuthenticatedServiceResolution：service_id、service_kind、method_history_evidence、normalized_did_document。它是可独立验证的原生证据载体，不是 resolver 的可信声明，也不签发独立地址记录。服务入口、当前 DID、method head / version 和 service control reference 只允许从该证据派生；不得另签地址声明覆盖文档。邀请、配置 URL、inline carrier、镜像和缓存均只提供发现线索，不能单独授予路由或业务权限。
 
-`ServiceResolutionRecord` 是签名的首跳材料，至少绑定 service `did_core_id`、`service_kind`、当前 `did`、method history head / version、服务控制历史引用、`record_sequence` / `previous_record_digest`、`current_record_url`、`base_url`、`describe_digest` 以及 `issued_at` / `refresh_after` / `expires_at`。`resolution_event_ref` MUST 按 active adapter row 从同一个已验证状态确定性映射：`did:webvh` 为 `did-webvh-entry-sha256:<hex>`，`did:web` 为 `did-web-document-sha256:<hex>`，`did:key` 为 `did-key-did-sha256:<hex>`。首条 record 的 sequence 为 `0` 且 predecessor 为 `null`；同一 service `did_core_id` 的每个后继 MUST 恰好加一，并以前一份完整 record（包含 proof）的 `sha256(RFC8785_JCS(...))` 作为 predecessor，禁止跳号、复用或回滚。时间必须满足 `issued_at <= refresh_after < expires_at`。`base_url` MUST 是 canonical absolute HTTPS base：scheme / host 小写、去掉默认端口、消解 dot-segment、禁止 userinfo / query / fragment，规范化 path 并且恰有一个 trailing slash。
+`normalized_did_document` 采用 did-binding-contracts 的闭合规范化投影；原生 entry 的 type、serviceKind 和 serviceEndpoint 分别映射为 services 的 protocol_names、extensions 中对应属性和 endpoint，不能转发另一套原生文档 wire 形状。派生 `ServiceResolutionProjection` 的字段顺序固定为 service_id、service_kind、did、method_history_head、version_id、resolution_event_ref、base_url。resolution_event_ref 使用 adapter 坐标：WebVH 为 did-webvh-entry-sha256:<head hex>，did:web 为 did-web-document-sha256:<document digest hex>，did:key 历史用途为 did-key-did-sha256:<DID digest hex>。历史响应 capability 的 release_service_resolution_digest 固定摘要完整规范化 AuthenticatedServiceResolution；release_service_route_digest 固定为 SHA-256(RFC8785-JCS(ServiceResolutionProjection))。
 
-`describe_digest` 不是对整个动态 `ServiceDescribe` 的摘要，而是
-`sha256(RFC8785_JCS(route_binding_projection))`；`route_binding_projection` 仅含
-`{service_id, service_kind, service_resolution:{did,method_history_head,version_id}, http_json_base_url}`。
-`http_json_base_url` 是对被选中 `transport_bindings[kind=http_json].base_url` 执行上述 canonical URL 规则后的值，不是原始字符串的另一个别名。
-`limits`、rate policy、feature/profile claims、verified artifacts 与 `x_*` 扩展不进入该投影，它们的正常变化不应使路由失效。完整 record 的内容地址摘要固定为 `sha256(RFC8785_JCS(service_resolution_record))`，计算对象包含 `record` 和 `proof`。
+did:webvh MUST 验证从 inception 至目标状态的完整原生日志、SCID、每个适用 update key / nextKeyHashes、控制轮换及 witness policy 所需证据，并比对 exact normalized document。不能只验末条签名。接收方 MUST 持久保存已接受的 method head / version / DID；后续材料必须包含该已接受状态及其连续原生后继。相同版本异 head 是 fork；旧状态回放、缺失已接受状态或无效原生后继 MUST fail closed，并保留 fork 证据。重启和 TTL 淘汰不得降低已接受 method 状态；并发更新须原子比较已接受 method 状态，旧请求不能覆盖新状态。离线节点补齐的是 DID 原生历史，刷新缓存不产生新 DID 版本。
 
-首跳 carrier 可携带 inline signed record，也可携带
-`current_record_url` 与可选 `pinned_record_digest`。该 URL 指向稳定的
-`GET /_arkret/open/services/{service_id}/resolution`（`service_id` 按 RFC 3986 percent-encode）返回完整 `AuthenticatedServiceResolution`，canonical
-operation 是 `ak.open.service.read.resolution.v1`。响应以当前完整签名 `ServiceResolutionRecord` 为核心，并携带验证该版本所需的 exact method-history evidence 与 normalized DID document。对于 `did:webvh`，evidence **MUST** 携带从 inception 到 record 所钉位置的完整无缺口 native log，以及该区间所有 witness policy 所要求的完整 witness records；resolver 生成的摘要、部分区间或仅当前 DID Document 均不构成历史验证材料。旧
-`pinned_record_digest` 只锁定它所属的旧版本，不得用来拒绝在同一 `current_record_url`
-上取得的新版本。新版本 MUST 重新验证完整 record digest、service proof、method history、
-`project(did) == service_id`、`service_kind`、document digest、时间序和 endpoint 绑定后才能入 cache。
-验证成功后，下一次刷新 URL MUST 从新 record 的 canonical `base_url` 加
-`_arkret/open/services/{percent-encoded service_id}/resolution` 重新派生；只有响应中的新 record、完整 method-history evidence 与 normalized DID document 已联合验证时，才能用该派生值替换 cache 中的旧 `current_record_url`。这是服务换 URL 的过渡路径，不依赖 HTTP redirect。裸 record、history summary 或未独立验证的 current DID Document 均不足以冻结 notary signer 或验证历史签名。
+完整旧历史并不证明当前状态。普通路由在首次使用、缓存到期、授权变化或安全敏感操作前，MUST 通过受信任 method resolver 的当前状态查询重新验证当前 head 和 exact document；仅随 resolution 携带的历史、发送者签名、镜像多数或 TLS 可达都不足以证明 freshness。查询失败时不得创建或延长路由缓存；无仍有效缓存时 MUST 拒绝业务投递。缓存最长 300 秒，且不得超过 method evidence、控制授权或绑定的有效边界；本地 verified_at / cache_expires_at 不是可转发的新鲜度凭证。相同 DID 状态的刷新只更新本地验证时间，不能创建额外地址历史。
 
-调用 `GET /_arkret/describe` 已经需要候选 URL，因此 describe 是**二跳确认面**，不是从 `did_core_id` 得到 URL 的首跳 resolver。调用方 MUST 先验证 record，再以 canonical `base_url` 派生 role-scoped describe URL，并确认 describe 的 `route_binding_projection` 与 `describe_digest` 一致。resolution 和 describe 请求 MUST NOT 自动跟随 redirect；如果收到 redirect，调用方只能在另行取得的新签名 record 已绑定新 URL 后重新发起，不得依赖同域名、TLS 或 redirect 自身建立身份。
+did:web 仅在明确启用 no-history 信任配置及角色 policy 允许时可用。adapter MUST 通过 DNS/WebPKI 从 DID 的标准文档位置验证当前文档；携带或缓存的文档不能代替当前查询。相同 DID 下合法的业务 endpoint 更新或机器/IP 调整按该信任模型处理，不伪造历史能力；改变 DID 域名/路径产生另一身份，不能继承原 service core。要求历史证据的 signer / notary 用途 MUST 拒绝仅有当前 did:web 文档。did:key 不提供可变的服务入口。
 
-对 `current_record_url` 的自动抓取属于服务端网络输入，MUST 在 DNS 前后执行 SSRF 防护：默认拒绝 loopback、link-local、private / reserved address、userinfo、非 HTTPS 和 DNS rebinding；只有部署 policy 显式列入的 private service 可例外。解析后地址 MUST 钉住到当次请求，禁止 redirect 与 `Content-Encoding`，响应 canonical bytes MUST 不超过 1 MiB，从连接到读完的总 deadline MUST 不超过 5 秒。超限、超时或地址分类改变均 fail closed。
+获取与跟随所有发现线索时继续执行 canonical HTTPS、SSRF/DNS rebinding 防护、redirect policy、大小及超时限制：resolution 和 describe 各不超过 1 MiB，获取操作不超过 5 秒；原生日志与 witness 各不超过 4096 条，既有更严格 egress policy 继续适用。验证 DID 入口后，MUST 从该入口读取对应 service_kind 的标准 describe，并核对 service_id、service_kind、service_resolution 的 DID / method head / version 和唯一 http_json base URL。describe 不成为 resolver，动态能力、limits 与 rate policy 不需要制造 DID 更新。
 
-`ServiceResolutionRecord` 只表达**当前已经生效**的 route；`refresh_after` 只是刷新提示，MUST NOT 被解释为未来激活时间。计划迁移使用与 current record 分离的 closed、portable、由同一 service control identity 签名的 `ServiceRouteHandoverNotice`：
+WebVH DID 托管位置迁移须满足原生 portability 前置条件并保持 SCID，验证连续日志和适用 alsoKnownAs；新建不同 SCID 属于身份重绑定。业务 endpoint 更新也必须进入经验证的 DID Document。迁移提示即使已签名，也只能协调预检时间，不授权目标入口；业务流量切换必须重新完成当前 DID 状态与 describe 验证。
 
-```text
-ServiceRouteHandoverNotice {
-  service_id, service_kind,
-  handover_id, notice_revision,
-  state,                         // scheduled | cancelled
-  from_record_sequence, from_record_digest,
-  candidate_base_url?, candidate_record_url?,
-  not_before?, cutover_at?, grace_until?,
-  previous_notice_digest?,
-  issued_at, expires_at,
-  proof
-}
-```
-
-同一 `handover_id` 的首份 notice 必须使用 `notice_revision=0` 且 `previous_notice_digest=null`；后继 revision 必须恰好加一，并以前一份完整 notice（含 proof）的 `sha256(RFC8785_JCS(...))` 为 predecessor。`scheduled` 必须携带 candidate 与完整时间窗，并满足 `issued_at <= not_before <= cutover_at < grace_until <= expires_at`；`candidate_record_url` 必须从 canonical `candidate_base_url` 加固定的 percent-encoded service-resolution path 机械派生。`cancelled` 必须省略 candidate 与时间窗，并精确引用同一 handover 的前一 revision；它只能取消尚未被接受正式 successor record 的计划。notice revision 与 `ServiceResolutionRecord.record_sequence` 是两条独立序列，发布、修订或取消 notice 均不得消耗 record sequence。
-
-完整 notice 的 content-addressed digest 固定为 `sha256(RFC8785_JCS(service_route_handover_notice))`，计算对象包含 proof。proof 使用独立 domain context `ak.service_route_handover_notice_proof.v1`；其 `payload_digest` 固定覆盖 proof 之外的全部 notice claims，签名 binding 另含 `verification_method`、proof creation time 及 registry 要求的 domain/audience。`verification_method` 的 bare controller `did` 必须经 adapter 投影为 `service_id`，并且该 key 在 `issued_at` 对应的 method/control state 中被授权用于 service assertion。实现不得复用 current record proof context、HTTP Message Signature 或 mirror 签名充当 notice proof。
-
-接收方只有在 `from_record_sequence/from_record_digest` 已经命中本地 durable last-seen record 时，才能接受 notice。publish request 是 exact-one artifact，MUST NOT 在同一个 notice request 中夹带、隐含或原子接受 record chain。若 receiver 落后，publisher 必须先按 sequence 逐份 publish 缺失的 target-signed `ServiceResolutionRecord`，每一份都取得 durable ack 并推进 receiver floor 后，再用新的 request 单独 publish notice；没有最后一份 record ack 时不得声称 notice basis 已补齐或 preannouncement 原子完成。`not_before` 前只允许对 candidate 执行无 Realm、to-device、KeyPackage、repair 或其它业务 payload 的有界 resolution/describe preflight，且不得更新 effective route。自 `not_before` 起可以尝试读取 candidate；只有 candidate 返回相同 `service_id + service_kind`、`record_sequence=from_record_sequence+1`、`previous_record_digest=from_record_digest` 的正式 current `ServiceResolutionRecord`，并通过 method history、freshness、SSRF 与 describe reverse-binding 验证后，才能切换业务流量。`cutover_at` 是优先切换点，旧入口应继续服务至 `grace_until`；notice 本身、mirror ack、candidate 可达或 TLS 成功均不授权业务投递。正式 successor 已接受后，迟到 cancellation 不得回滚 route；要回到旧 URL 必须再发布连续的新 record。
-
-对每个实际存在业务授权关系的 remote `service_id`，实现 MUST 在独立于 TTL cache 的 durable anti-rollback ledger 中保存至少 `{service_kind,last_seen_record_sequence,last_seen_record_digest}`，并在把新 route 用于业务流量前原子推进该 floor。较低 sequence、相同 sequence 不同 digest、跳号或 predecessor 不连续均 MUST fail closed；两个能通过 target proof 的同 sequence 异 digest 也属于 service-control fork，必须 quarantine，不能按到达时间、URL 可达性或 mirror 多数票选 winner。已接受 active notice 的 `{handover_id,notice_revision,notice_digest,state,expires_at}` 与对外签发/接收的 durable ack 同样必须在依赖它进行安全切换前落盘，并保留到取消、完成或过期。进程重启、cache eviction 或 DNS 变化不得降低 last-seen floor。
-
-若迁移同时改变 `did:webvh` 的域名或路径，route handover 与 DID portability 是两条必须按顺序组合的证明链：初始 WebVH 日志必须已启用 portability；owner 在旧 DID/control state 仍有效时签发并分发 notice；candidate host 上必须发布保留同一 SCID、包含从 inception 起完整历史的合法 successor DID log，并按 WebVH 规则在新 DID Document 的 `alsoKnownAs` 引用旧 DID；随后才签发 `record_sequence + 1` 的正式 `ServiceResolutionRecord`，其中 `did`、`method_history_head`、`current_record_url` 与 `base_url` 全部绑定新位置，且 `previous_record_digest` 连续。WebVH `nextKeyHashes` 只预承诺未来更新 key，不表达切换时间、candidate endpoint 或 Arkret 通知范围，MUST NOT 替代 `ServiceRouteHandoverNotice`。same-SCID 迁移保持同一 service core，按本节刷新 route；新建不同 SCID/core 则是 service identity 变更，必须走 member/service rebind，不能伪装成 URL 刷新。
-
-高频投递实现 MAY 另存 `ServiceRouteCache[service did_core_id] -> {service_kind, did, method_history_head, record_sequence, record_digest, base_url, describe_digest, current_record_url, verified_at, refresh_after, expires_at, cache_expires_at}` 的本地 TTL cache。这里 `expires_at` 是 target-signed record 的硬到期时间，`cache_expires_at` 是实现选择的本地缓存到期时间且 MUST `<= expires_at`；二者不得合并、互相延长或只保存本地 TTL 而丢弃 signed expiry。该 cache 是可丢失、可重建的性能优化；它的存储引擎、淘汰算法和后台刷新属于实现层，但绝不能代替前段 durable anti-rollback ledger。`refresh_after` 到达时 SHOULD 通过 `current_record_url` 异步刷新；`cache_expires_at` 或 signed `expires_at` 任一到达、binding / Realm policy 变化、method head 不一致、route-binding digest 改变、签名/授权失效或安全敏感操作时 MUST 取得并验证最新 record。同一 `did_core_id` 下的 resolution / URL 刷新只更新 durable route floor 与本地 cache，不改变 Realm 授权，不需要 member rebind；service `did_core_id` 改变才必须通过新 ActorId change 重新授权。同一未失效 binding 的普通请求 MAY 复用 cache，不得每次在线 resolve DID。
+服务路由只保留 DID 方法原生状态，不创建额外的地址历史或签名发布状态机。DID method 原生历史及冻结历史 signer evidence 继续保留；可路由不代表 Realm 授权，历史签名必须验证签发位置的密钥与业务权威，不能用当前文档替代。
 
 ## 3. 通用服务描述接口
 
@@ -390,7 +354,7 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 
 完整 role-scoped `ServiceDescribe` 的 canonical response body MUST 不超过 1 MiB（1,048,576 bytes），且 MUST 省略 `Content-Encoding`、禁止 redirect。该上限覆盖完整 `supported_operation_bundles[]` 与 `transport_bindings[]` 闭包；实现不得沿用只适用于旧精简 describe 的 64 KiB 本地限制。超过上限的服务 MUST 收窄其 role surface 或拆分为独立 role-scoped endpoint，不得静默截断 binding rows。
 
-`service_id` MUST 是该逻辑角色的 `did_core_id`，`service_resolution` MUST 投影当前 `did` 与 method history position。这个投影只用于将已选定 endpoint 与首跳 `ServiceResolutionRecord` 交叉确认，不能让 describe 变成 resolver，也不能单独创建 service 授权。
+`service_id` MUST 是该逻辑角色的 `did_core_id`，`service_resolution` MUST 投影当前 `did` 与 method history position。这个投影只用于将已选定 endpoint 与首跳 DID 方法验证结果 交叉确认，不能让 describe 变成 resolver，也不能单独创建 service 授权。
 
 `ServiceDescribe` 顶层以及 schema 明示允许扩展的嵌套对象（当前包括 `auth_metadata`、其
 `account_authority` / `methods[]` / `grant_exchange` 子树以及 `plaintext_visibility`）中的 `x_*`，只允许承载
@@ -1005,7 +969,7 @@ Arkret v1 的首次加入流程：
 
 1. 用户输入 handle、DID 或 Realm link
 2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 Realm link / invite / ActorId routing projection / locator / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `did_core_id` 的首跳 `did` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Station / identity registry / events / account / snapshot / blob / authz 能力
+3. 从 Realm link / invite / ActorId routing projection / locator / peer evidence 携带的 inline 方法证据或 `resolution_url` 得到 service `did_core_id` 的首跳 `did` / `base_url`，验证 method history、当前状态、服务入口与 Realm policy，再以 role-scoped describe 确认 Station / identity registry / events / account / snapshot / blob / authz 能力
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
 6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Station sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`realm-state-snapshot.schema.json`](../../artifacts/schemas/realm-state-snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。`authority_kind="witness_quorum"` 时，`authority_binding.witness_attestations[]` 是 v1 唯一的 quorum 证据载体：客户端 MUST 按 [`realm-state-snapshot-schema.md` §5.1](../conformance/realm-state-snapshot-schema.md) 逐行重算 `ak.realm_state_snapshot_witness_attestation_proof.v1` canonical projection 验签，并只以 `created_at` 时点的 accepted Realm auth/policy state 判定授权 witness set、key validity、撤销新鲜度与 threshold（按 `witness_id` 去重）。不存在"等价 quorum proof"：缺失、未达阈值或使用任何未登记的替代载体时 MUST 以 `realm_state_snapshot_authority_unverified` 拒绝，不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan.v1`，JSON content 携带 `before`）进行原始 Event 历史回放。
@@ -1071,7 +1035,7 @@ Arkret v1 固定：
 - 定义最小 Station / identity registry / events / account / snapshot / blob / authz 服务面
 - v1 core 互操作 transport 锁定为 HTTP/JSON（见 [`transport-bindings.md` §1](./transport-bindings.md)）；gRPC / WebSocket / SSE / MQ / libp2p 等其他 binding 仅为 extension profile，本节列出的 operation 形态与字段以 HTTP/JSON 为唯一权威。其他 binding 必须语义等价但不构成 v1 core 一致性。
 - 写接口必须幂等
-- principal 与 service 的业务引用都使用 `did_core_id`；注册 / resolution 出示 `did`，service 首跳 URL 由签名 `ServiceResolutionRecord` 给出，describe 只做二跳确认
+- principal 与 service 的业务引用都使用 `did_core_id`；注册 / resolution 出示 `did`，service 首跳 URL 来自方法验证后的 DID Document 服务入口，describe 只做二跳确认
 - DID 写入采用多 registry / witness receipt，而不是区块链
 - bootstrap 必须覆盖 invite / grant / snapshot / backfill
 - 服务必须公开 reducer / schema / feature profile

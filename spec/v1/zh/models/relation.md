@@ -93,7 +93,7 @@ summarized_from, promoted_from_discussion, watches,
 confidential_discussion_of
 ```
 
-其中 `summarized_from` 与 `promoted_from_discussion` 是 active 标准 kind 中的 **profile-required typing** 子类：registry 将二者标记为 `weak_semantic=true`，且 from/to 类型 MUST 由 Realm schema 或 RelationProfile 显式声明；未声明时，它们只是不透明弱语义引用边，不提供开箱即用的摘要或讨论升级强语义。
+其中 `summarized_from` 与 `promoted_from_discussion` 是弱语义引用边：registry 将二者标记为 `weak_semantic=true`，端点遵循通用 RelationEndpoint 约束；不提供开箱即用的摘要或讨论升级强语义。
 
 > **未注册的 relation_kind 处理规则**：`produced` / `used` / `triggered_by` / `has_log` 这类名字在 v1 没有 schema / profile / fixture 定义 from/to 类型、基数或 capability action，因此在 v1 wire 上视为**未注册的 relation_kind**——实现遇到时 SHOULD 保留为不透明边并在 projection 层标记 `unknown_relation_kind`，**MUST NOT** 据此自动推断容器、依赖或可见性语义。扩展 profile 注册之前 producer 不应使用。
 
@@ -103,17 +103,17 @@ confidential_discussion_of
 | --- | --- | --- |
 | `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas_register cell `ak:cell:ak.component.space.parent.v1:<list_space_id>`；`ak.space.create` 的 canonical `object.parent_space_id` 是该 cell 的 genesis 写入，后续唯一写入路径是 `ak.space.parent` Move，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`；详见 [realm-and-space.md §3.5](./realm-and-space.md#35-akspaceparent-cas_register-basis)）。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 create genesis 或后续 `ak.space.parent`。 |
 | `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 cas_register cell `ak:cell:ak.component.strand.position.v1:<board_space_id>:<strand_id>`，写入路径是 `ak.strand.move` / `ak.strand.reorder` Move**，不是 `ak.relation.create`。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`，与 `watches` derived Relation 同模式）。 |
-| `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用，Realm schema/profile MUST 声明更严格基数、排序字段和 cascade 规则。这种非派生形态的 `contains` 由 `ak.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
+| `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` | 按完整 tuple 去重；普通包含记录不自动引入额外数量限制或级联规则。这种非派生形态的 `contains` 由 `ak.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
 | `depends_on`, `blocks` | `many_to_many` | 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重；循环检测由 workflow/profile 规则决定。 |
-| `mentions`, `references`, `derived_from`, `attached_to`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；多条语义不同的边必须用 `fields.role`、不同 `relation_kind` 或 profile 声明的 multi-edge key 区分。其中语义性较强的 `summarized_from`(摘要 → 来源)与 `promoted_from_discussion`(正式对象 → 来源 discussion)在 v1 不在本表硬编码 from_kind→to_kind 约束，其 from/to 类型 MUST 由 Realm schema / RelationProfile 显式声明(见 [§5](#5-relationprofile))；未声明 profile 时按通用弱语义引用边处理。 |
-| `assigned_to` | `many_to_many` | Canonical 方向为 `Strand -> ActorId`（`from_ref=<strand_id>`, `to_ref=<ActorId object>`）。默认 `many_to_many`，按完整 tuple `(realm_id, relation_kind, from_ref, to_ref)` 去重(同一 (Strand, Actor) 对至多一条 active edge，即同一 Actor 不重复分配)；一个 Strand MAY 同时分配给多个 Actor。**这是按完整 tuple 去重，不是 per-actor 单值约束。** 需要单负责人语义时，Realm schema/profile MUST 声明 `max_to_per_from=1` 或单独 owner relation——[§5](#5-relationprofile) 的 `many_to_one` 示例即此单负责人 profile 收紧示例，非默认基数。Strand object / `metadata.fields` 不得携带 `assignee` / `assignees` / `assigned_to` 字段作为替代真源；见 [strand-and-message.md §7.1](./strand-and-message.md#71-assignment--assignee-投影)。 |
+| `mentions`, `references`, `derived_from`, `attached_to`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；关系属性写在 `fields` 中，不改变去重键。`summarized_from` 与 `promoted_from_discussion` 按通用弱语义引用边处理。 |
+| `assigned_to` | `many_to_many` | Canonical 方向为 `Strand -> ActorId`（`from_ref=<strand_id>`, `to_ref=<ActorId object>`）。默认 `many_to_many`，按完整 tuple `(realm_id, relation_kind, from_ref, to_ref)` 去重(同一 (Strand, Actor) 对至多一条 active edge，即同一 Actor 不重复分配)；一个 Strand MAY 同时分配给多个 Actor。**这是按完整 tuple 去重，不是 per-actor 单值约束。** 分配仅为关系记录，不改变成员身份、角色或访问权限；应用层单负责人规则见 §5。Strand object / `metadata.fields` 不得携带 `assignee` / `assignees` / `assigned_to` 字段作为替代真源；见 [strand-and-message.md §7.1](./strand-and-message.md#71-assignment--assignee-投影)。 |
 | `watches`：`ActorId -> strand` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是完整 ActorId object，`to_ref` MUST 指向 Strand（或 profile 声明的 watchable 对象）。**Truth source 是 cas_register cell `ak.component.strand.watch.v1`，写入路径是 `ak.strand.watch.set` durable event，不是 `ak.relation.create`**——直接 `ak.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（reason=`relation_kind_watches_derived`；与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ak.strand.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [strand-and-message.md §8](./strand-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 | `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Strand，`to_ref` MUST 是其 public seal Strand。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Strand 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Strand 回到 public seal，而 non-member 不能从 public seal 侧枚举该边。**实现 MUST NOT 在目标公开 Strand 写 target-side reverse relation**。 |
 
-未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，若 relation profile 未声明其它 `on_conflict` 值，reducer MUST 按 §6 的 `require_review` 暴露完整 heads，在显式 resolution 前不得选择 active winner。
+Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer MUST 按 §6 的 `require_review` 暴露完整 heads，在显式 resolution 前不得选择 active winner。
 
 ## 4. 跨 Realm 引用
 
@@ -178,55 +178,16 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 读取实现 MUST 对 projection caller、raw event caller、backfill consumer 与 federation peer 使用同一 reference-disclosure 决策。对 peer 传输 canonical bytes 仅在 peer 本身被授权接收完整 payload 且承诺对其本地 caller 继续执行本节 masking 时允许；否则发送方 MUST 只传 redacted event view / locked stub。签名验证工具需要证明原始事件存在时，服务端 MAY 返回 `payload_digest`、inclusion proof 与 redaction reason，但不得返回被 target policy 禁止的 target ref 明文字段。RedactedEventView 与 ReferenceLockedEventStub 均为 projection / completeness evidence,`reducer_input` MUST 为 `false`；接收方 MUST NOT 把它们作为 reducer input、canonical event bytes、dedupe authority 或 proof.event_digest 重算材料。
 
-## 5. RelationProfile
+## 5. 关系记录与应用规则边界
 
-Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收紧，但不得放宽会破坏互操作 projection 的标准互斥规则（例如同一 Board 内 Strand 只能处于一个 List）。
+v1 不提供 Realm 级关系数量限制配置或注册机制。标准关系按 §3.2 的规则处理；Realm schema、profile 与 UI hint MUST NOT 改写标准关系的基数、去重键或并发冲突处理规则。
 
-`RelationProfile` 最小结构：
-
-| 字段 | 必填 | 类型 | 说明 |
-| --- | --- | --- | --- |
-| `relation_kind` | yes | `string` | 被声明的 relation kind。 |
-| `from_kind` | no | `string` | 起点类型约束，例如 `realm`、`space:board`、`space:list`、`strand`、`message`、`morph:*` 或 `actor`（完整 ActorId 分支）。 |
-| `to_kind` | no | `string` | 终点类型约束。 |
-| `relation_scope` | no | `enum(realm, space, board)` | 基数和去重作用域；默认 `realm`。`space` 表示在某 Space 内、`board` 是 `kind=board` Space 的简写。**没有 `global` scope**：Relation reducer 是 Realm-local 的，跨 Realm 的基数 / 去重没有可求值的状态，登记它只会产生不可强制的 MUST。**scope 解析失败处置（normative）**：当 `relation_scope ∈ {space, board}` 但 reducer 无法解析参与端点所属的 board/space 用作去重 / 基数 key 的 `board_space_id`（端点不隶属任何 board/space，或所属 board/space 已 `tombstoned`），reducer MUST `failed_precondition`（`reason=relation_scope_unresolved`）——MUST NOT 静默降级为 `realm` scope 去重、MUST NOT 跳过基数约束。producer 需重试时应改用可解析的 scope 或显式 `realm` scope 重新提交。 |
-| `cardinality` | yes | `enum(one_to_one, one_to_many, many_to_one, many_to_many)` | `one_to_many` 表示同一 `from_ref` 可有多个 `to_ref`，但同一 `to_ref` 在 scope 内最多一个 active `from_ref`。 |
-| `dedupe_key` | no | `array<string>` | 默认完整 tuple；可声明如 `["board_space_id", "to_ref"]`。 |
-| `max_to_per_from` | no | `integer` | 每个 `from_ref` 的 active `to_ref` 上限。 |
-| `max_from_per_to` | no | `integer` | 每个 `to_ref` 的 active `from_ref` 上限。 |
-| `multi_edge` | no | `boolean` | 只有 true 时允许同一 tuple 多条 active edge。 |
-| `rank_field` | no | `string` | 有序关系的 rank 字段，默认 `rank`（顶层）。仅当 profile 把 rank 显式放在另一字段时声明；MUST NOT 指向 `fields.rank`，该路径在 v1 不合法。 |
-| `on_conflict` | no | `enum(reject, close_previous, require_review)` | 并发冲突处理；默认 `require_review`。并发互斥 heads 全部保留，在显式后继 resolution 前不产生 active winner。 |
-
-```json
-{
-  "relation_kind": "assigned_to",
-  "from_kind": "strand",
-  "to_kind": "actor",
-  "relation_scope": "realm",
-  "cardinality": "many_to_one",
-  "max_to_per_from": 1,
-  "on_conflict": "reject"
-}
-```
-
-声明为 multi-edge 的 relation profile MUST 显式定义去重 key、排序字段和 conflict 处理。
-
-**`cardinality` 与 `max_*` 一致性校验（normative）**：`cardinality`（必填）与 `max_to_per_from` / `max_from_per_to`（可选）可表达互相矛盾的基数。reducer 在 accept RelationProfile（Realm schema / `relation_profiles` 注册或更新）时 MUST 校验三者一致，矛盾 MUST `schema_violation`（`reason=relation_profile_cardinality_conflict`）。一致性判据（`max_*` 只能在 `cardinality` 的方向语义内**收紧**，不得放宽或抵触）：
-
-- `cardinality=one_to_one`：每方向至多 1。声明 `max_to_per_from > 1` 或 `max_from_per_to > 1` MUST reject；`max_to_per_from=1` / `max_from_per_to=1` 允许（冗余但不矛盾）。
-- `cardinality=one_to_many`（同一 `from_ref` 多个 `to_ref`、同一 `to_ref` 至多一个 `from_ref`）：`max_from_per_to` MUST NOT > 1；`max_to_per_from` MAY 为任意正整数（收紧 `to` 侧上限）。
-- `cardinality=many_to_one`（对称于上）：`max_to_per_from` MUST NOT > 1；`max_from_per_to` MAY 为任意正整数。
-- `cardinality=many_to_many`：`max_to_per_from` / `max_from_per_to` MAY 为任意正整数，仅收紧上限，不构成矛盾。
-
-任一 `max_*` 取值 ≤ 0 MUST `schema_violation`。校验在 profile 注册时一次性完成，使后续 Relation 写入只需按已校验一致的 effective 基数判定，不在每次写入时重新比对 `cardinality` 与 `max_*`。
+`assigned_to` 仅记录 Strand 与完整 ActorId 之间的分配事实。一个 Strand MAY 同时分配给多个 Actor；不同 Actor 的分配记录不构成互斥冲突。创建、修改或删除分配记录 MUST NOT 派生 membership、角色、capability 或访问权限变更。应用的单负责人交互属于应用层规则，不构成协议 reducer 的接受或拒绝条件。
 
 ## 6. 冲突处理
 
-Relation conflict 的默认处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。若 relation profile 能用业务 lattice 合并则合并；否则按 `on_conflict` 处理。
+Relation conflict 的处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。并发重复或标准规则下互斥的候选按 `require_review` 处理；不同 Actor 的 `assigned_to` 记录不是互斥候选。
 
-- `on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。
-- `on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 CBS query basis 提交修复 Event 或 Control Move。
 - `require_review` MUST 输出包含全部 heads 的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。后续 resolution Event / Control Move MUST 在 causal basis 中覆盖它要解决的完整 current head set；漏掉任一 current head 时仍保持 `require_review`。
 
 **conflict head 集合上限（normative）**：同一去重 key 下并发候选总数 MUST 受上限约束，复用 sibling fork 上限——v1 无条件上限为 **16**（与 [`event-and-patch.md` §2.6](./event-and-patch.md) 的 `(actor_id, actor_seq, prev_frontier_digest)` sibling 上限同值同范式；数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)）。当同一去重 key 的并发候选数超过 16 时，reducer MUST 对该去重 key 的整组候选 `failed_precondition`（`reason=relation_conflict_fanout_exceeded`）；归一只能由后续基于最新 CBS query basis、覆盖完整 current head set 的修复 Event / Control Move 产生。上限以内全部 heads 都保留，不存在 winner/loser 分类。

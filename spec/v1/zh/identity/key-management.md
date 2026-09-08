@@ -271,7 +271,7 @@ Agent authority **不能自行合成这一层 evidence**。组装 current admiss
 之前，它 MUST 以 authenticated S2S 身份调用
 `ak.gate.account.command.issue_controller_gate_attestation.v1`，提交 closed
 `{request_id, principal_id, agent_authority_id, agent_authority_resolution}`。后者携 current signed
-`ServiceResolutionRecord`、adapter-discriminated method evidence 与其认证的 normalized DID Document；Account Authority
+AuthenticatedServiceResolution 的 adapter-discriminated method evidence 与其认证的 normalized DID Document；Account Authority
 MUST 独立重做 method evidence、document digest、record proof/currentness、`project(did)` 与 active assertion key 校验，
 然后才可用同一 keyid 验 RFC 9421。签名 MUST 覆盖 method、target URI/path、Content-Digest、
 Source/Destination-Service-ID、operation id 与 request id。DidCoreId、URL、bearer 或 caller 自报 public key 均不是验签钥匙来源；
@@ -305,7 +305,7 @@ receiver `accepted_at`、Agent/key method、origin 冻结的
 receipt 的 `receiver_id` MUST 与实际接收并承诺该Event的destination service相同，receipt proof必须由该
 destination 在 `accepted_at` 有效的 registered verification method验证；查询方不得用source service或 current head
 document 中的 method 替代。v1 不新增 historical service-resolution endpoint：既有 current signed
-ServiceResolutionRecord 的 WebVH method-history evidence 已携带完整 log，materializer 与 verifier 必须先验证该完整
+AuthenticatedServiceResolution 的 WebVH method-history evidence 已携带完整 log，materializer 与 verifier 必须先验证该完整
 carrier，再从 log 选择 `accepted_at` 的 exact normalized document；did:key 直接按不可变 identifier 展开，mutable
 did:web 继续 fail closed。current record URL 只是取得完整已签 carrier 的 transport locator，不使 head document 成为
 历史 key 的权威来源。历史 verifier
@@ -327,7 +327,7 @@ Authority proof或receipt proof。直接 evidence query 与 federation transport
 覆盖完整 content digest、operation id与双方 service/session binding，不把 HTTP Signature header 嵌回 body形成环。
 current branch 的 outer 使用 `issued_at/expires_at` 短时窗；historical branch 使用 closed
 `attested_at` 且没有 verifier-now TTL。`attested_at` MUST 是 Agent Authority 实际签署 historical outer 的时刻，
-不得回填为 receipt `accepted_at` 或从 selector 派生。历史 verifier 必须从同一完整 ServiceResolutionRecord carrier
+不得回填为 receipt `accepted_at` 或从 selector 派生。历史 verifier 必须从同一完整 AuthenticatedServiceResolution carrier
 的 method-history evidence 选择 `attested_at` 时 Authority 的 exact document 与 outer method；该 carrier 也必须能够在
 原 snapshot/lease 的签发时刻解析其内层 Authority method，不要求两次 method 相同。之后 key rotation、Agent key
 revoke、Agent pause/deactivate 或 controller account terminal 不得使已经合法组装的 historical root 追溯失效。

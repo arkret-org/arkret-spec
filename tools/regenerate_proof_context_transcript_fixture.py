@@ -202,7 +202,6 @@ VALUE_TABLE: dict[str, Any] = {
     "genesis_unit_kinds": ["ak.realm.create", "ak.device.authorize"],
     "grace_until": "2026-08-11T03:00:00.000Z",
     "handle": "acme",
-    "handover_id": "ak:service_route_handover:019b0000-0000-7000-8000-000000000001",
     "holder_trusted_basis": {
         "leaves": [
             "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -248,7 +247,6 @@ VALUE_TABLE: dict[str, Any] = {
     "recipient_principal_id": "ak:did_core:webvh:z6mkfixture",
     "recipient_id": "ak:did_core:webvh:z6mkfixtureprincipalacmeexample",
     "recipient_verification_method": "did:webvh:z6mkfixturepairexample:pair.example#device-1",
-    "record_sequence": 8,
     "recovery_recipient_id": "ak:did_core:webvh:z6mkfixturepairexample",
     "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-000000000099",
     "reducer_profile": "ak.reducer.core.v1",

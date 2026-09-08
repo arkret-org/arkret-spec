@@ -46,7 +46,6 @@
       "request",
       "rtc_participant",
       "scheduled_send",
-      "service_route_handover",
       "subscription",
       "transaction"
     ]

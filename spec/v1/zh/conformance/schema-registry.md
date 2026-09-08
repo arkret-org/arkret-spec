@@ -126,7 +126,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.realm_state_snapshot_chunk.v1` | Snapshot Chunk Payload（reducer cell items，leaf 与 `state_root` 同源） |
 | `ak.schema.grant_constraint.v1` | Grant Constraint |
 | `ak.schema.resource_selector.v1` | Resource Selector |
-| `ak.schema.identity_resolution.v1` | did_core_id/did resolution、PCR evidence 与 ServiceResolutionRecord |
+| `ak.schema.identity_resolution.v1` | did_core_id/did resolution、PCR evidence 与 AuthenticatedServiceResolution |
 | `ak.schema.identity_receipt.v1` | Identity Receipt |
 | `ak.schema.identity_link.v1` | Minimal-metadata E2EE identity link |
 | `ak.schema.handle_claim.v1` | Handle Claim |

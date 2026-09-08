@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-31.1",
+  "version": "2026-09-08.1",
   "source_of_truth": true,
   "description": "Canonical machine index of the v1 standard relation_kind vocabulary. This registry is the machine source for the kind list, default cardinality class, truth-source class, and writability; detailed dedupe keys, scope rules, and conflict semantics remain normative in zh/models/relation.md sections 3-6.",
   "registry_rules": [
@@ -8,7 +8,7 @@
     "Rows (or shapes) with truth_source_class=derived_projection MUST NOT be written via ak.relation.create / update / delete; the listed write_path Move or durable event is the only truth source and direct Relation writes MUST be rejected with schema_violation.",
     "Every shape_dependent row MUST declare per-shape writability=derived_only or direct. SDK constructors MUST resolve the most-specific matching (canonical_id,from,to) shape before selecting an event path; wildcard fallback applies only when no specific shape matches.",
     "weak_semantic=true rows are non-structural, non-cascading reference edges; they never imply containment, lifecycle coupling, or visibility changes.",
-    "Relations not declared multi-edge dedupe on the full tuple (realm_id, relation_kind, from_ref, to_ref); concurrent duplicate creation defaults to require_review, retains the complete bounded head set, and projects no active winner until an explicit resolution covers every current head."
+    "Relations dedupe on the full tuple (realm_id, relation_kind, from_ref, to_ref); concurrent duplicate creation uses require_review, retains the complete bounded head set, and projects no active winner until an explicit resolution covers every current head."
   ],
   "relation_kinds": [
     {
@@ -36,7 +36,7 @@
         {
           "from": "*",
           "to": "*",
-          "cardinality": "many_to_many unless profiled",
+          "cardinality": "many_to_many",
           "truth_source_class": "canonical",
           "writability": "direct",
           "write_path": "ak.relation.create"
@@ -78,7 +78,7 @@
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
       "weak_semantic": true,
-      "notes": "Canonical direction Strand -> structured ActorId; full-tuple dedupe preserves Station identity, not per-principal single value. Single-owner semantics require a RelationProfile tightening (max_to_per_from=1)."
+      "notes": "Canonical direction Strand -> structured ActorId; full-tuple dedupe preserves Station identity, not per-principal single value. Assignment records do not change membership, roles, capabilities, or access permissions. Single-assignee UI rules are application-local, not reducer constraints."
     },
     {
       "canonical_id": "references",
@@ -110,14 +110,14 @@
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
       "weak_semantic": true,
-      "notes": "from/to types MUST be declared by Realm schema / RelationProfile; without a profile it is a generic weak reference edge."
+      "notes": "Generic weak reference edge with standard RelationEndpoint types."
     },
     {
       "canonical_id": "promoted_from_discussion",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
       "weak_semantic": true,
-      "notes": "Same profile-declared typing rule as summarized_from."
+      "notes": "Same generic weak reference semantics as summarized_from."
     },
     {
       "canonical_id": "watches",

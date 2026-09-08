@@ -87,12 +87,11 @@ anchor 登记，例外不得传播到 Arkret normalized projection、policy 或 
 | 普通 canonical identity object | `id` required | 禁止 |
 | Event、membership、grant、profile、普通主体/service 引用 | 相应 `*_id` required | 禁止 |
 | registration / identity genesis 输入与 accepted evidence | required 或由 DID 唯一投影得到 | required |
-| Identity / Service Resolution Record | `id` 或角色化 `*_id` required | required |
+| Identity resolution / Service DID method evidence | `id` 或角色化 `*_id` required | required |
 | DID method evidence / control proof | 绑定 expected core | required |
 | W3C DID Document literal object | 按外部标准 | 保留标准 `id` |
 
-同一个 identity-bearing object 不得添加通用 optional `did`。可路由 service 必须存在有效 resolution
-record，但普通 service 引用不得内联 DID；human principal 只在注册/genesis 阶段提交并验证 DID，后续普通
+同一个 identity-bearing object 不得添加通用 optional `did`。可路由 service 必须存在经方法验证的当前 DID 状态及唯一服务入口，但普通 service 引用不得内联 DID；human principal 只在注册/genesis 阶段提交并验证 DID，后续普通
 业务对象只使用稳定 `DidCoreId`。每个 `DidCoreId` 创建时必须来自已登记 adapter 对有效 `Did` 的唯一投影；
 从未具有 DID 的主体必须使用其它已登记 ID 类型。
 
@@ -103,7 +102,7 @@ carrier 取得 required `did` / `verification_method`，经 active adapter 验�
 逐字比较。孤立 `did_core_id` 没有 route evidence，**不得**触发 resolver；adapter 不登记 `expand` 或
 `core_to_did`，即使 `did:web` / `did:key` 的字符串看似可逆也不得绕过 carrier 猜测 DID。Identity
 resolution 需要已知 `(principal_id, station_id)` account pair；service resolution 需要 bootstrap
-携带的 `current_record_url` 或已验证的 same-core route。未登记的 route source 一律 fail closed。
+携带的 `resolution_url` 或已验证的 same-core route。未登记的 route source 一律 fail closed。
 
 ### 2.4 TSP VID 不是 DID alias
 
@@ -362,7 +361,7 @@ witness 级失效触发（witness 被撤销、witness 组织归属被合并判�
   device authorization、agent signer evidence 或 pinned historical binding 取得 key。只有缺少
   该绑定且 §4 允许建立新信任时才进入 DID 权威验证；否则 fail closed。
 - Service endpoint 发现与 DID 控制权验证是两件事。完整 AccountId/ActorId 固定目标服务身份，service resolution 携带
-  `ServiceResolutionRecord` / current-record ref；验证 record 后得到 `base_url`，再以 `ServiceDescribe`
+  `AuthenticatedServiceResolution` / current-record ref；验证 record 后得到 `base_url`，再以 `ServiceDescribe`
   作第二跳确认。发现到一个新 endpoint 不会自动证明 service identity 控制权，反过来也不要求每次
   HTTP 请求都重新解析 method history；fresh route cache 是允许的实现优化。
 - 测试 MUST 能证明：普通读写命中已接受 binding 时 resolver 网络调用次数为零；新 DID / 新 key

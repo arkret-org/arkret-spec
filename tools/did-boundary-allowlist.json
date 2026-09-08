@@ -64,11 +64,11 @@
       "category": "resolution_or_did_document"
     },
     {
-      "pointer": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/service_resolution_record/properties/record/properties/did/oneOf/0/$ref",
+      "pointer": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/normalized_did_document/properties/did/oneOf/0/$ref",
       "category": "did_method_log_or_evidence"
     },
     {
-      "pointer": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/service_resolution_record/properties/record/properties/did/oneOf/1/$ref",
+      "pointer": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/normalized_did_document/properties/did/oneOf/1/$ref",
       "category": "did_method_log_or_evidence"
     },
     {
@@ -129,14 +129,6 @@
     },
     {
       "pointer": "identity-resolution.schema.json#/$defs/resolution_projection/properties/did/$ref",
-      "category": "resolution_or_did_document"
-    },
-    {
-      "pointer": "identity-resolution.schema.json#/$defs/service_resolution_record_core/properties/did/$ref",
-      "category": "resolution_or_did_document"
-    },
-    {
-      "pointer": "identity-resolution.schema.json#/$defs/service_route_cache_entry/properties/did/$ref",
       "category": "resolution_or_did_document"
     },
     {

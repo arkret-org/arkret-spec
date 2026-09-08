@@ -1,6 +1,6 @@
 {
   "profile": "ak.feature.history_key_recovery.v1",
-  "version": "2026-09-05",
+  "version": "2026-09-02",
   "suite": "history_key_recovery",
   "runner": {
     "kind": "named_suite",
@@ -490,8 +490,7 @@
             "ak:seal:sha256:5a82e691c5c5b480d3ac762a78cfe9c2f24071a7471dcb025caf3a300b060bbe"
           ]
         }
-      },
-      "superseded_head_note": "event-auth-state-resolution.md section 9.3.1.4 deleted the rule that copied this Move's head_eq into op.from. A projected cas_register set carries no predecessor value; the rotate supersedes the register write by identity, derived at Seal admission from the rotate's own signed seal_basis (section 9.3.1.3 items 1 and 4)."
+      }
     },
     "reducer_effective_tuples": [
       {
@@ -1224,29 +1223,8 @@
       "signer_id": "ak:did_core:key:z6MkfixtureService",
       "verification_method": "did:key:z6MkfixtureService#key-1",
       "authenticated_resolution": {
-        "service_resolution_record": {
-          "record": {
-            "service_id": "ak:did_core:key:z6MkfixtureService",
-            "service_kind": "station",
-            "did": "did:key:z6MkfixtureService",
-            "method_history_head": "did-key-head-fixture",
-            "version_id": "did-key-v1",
-            "resolution_event_ref": "did-key-did-sha256:3131313131313131313131313131313131313131313131313131313131313131",
-            "record_sequence": 0,
-            "previous_record_digest": null,
-            "current_record_url": "https://service.example/_arkret/open/services/service/resolution",
-            "base_url": "https://service.example/",
-            "describe_digest": "sha256:3232323232323232323232323232323232323232323232323232323232323232",
-            "issued_at": "2026-08-21T00:00:00.000Z",
-            "refresh_after": "2026-08-22T00:00:00.000Z",
-            "expires_at": "2026-08-29T00:00:00.000Z"
-          },
-          "proof": {
-            "verification_method": "did:key:z6MkfixtureService#key-1",
-            "created_at": "2026-08-21T00:00:00.000Z",
-            "jws": "c2ln"
-          }
-        },
+        "service_id": "ak:did_core:key:z6MkfixtureService",
+        "service_kind": "station",
         "method_history_evidence": {
           "evidence_kind": "did_key_expansion",
           "boundary": {
@@ -1299,9 +1277,9 @@
         }
       }
     },
-    "evidence_ref": "ak:signer_evidence:sha256:337c298259fd5a09b438b3db5bed77a74e15bcd8df30d98468d054c34307df1e",
-    "evidence_digest": "sha256:337c298259fd5a09b438b3db5bed77a74e15bcd8df30d98468d054c34307df1e",
-    "canonical_bytes": 2081
+    "evidence_ref": "ak:signer_evidence:sha256:f1e37367c9f62438840e22bf812615fac4b8ed53d9cdfa64fbcd7114b17809c9",
+    "evidence_digest": "sha256:f1e37367c9f62438840e22bf812615fac4b8ed53d9cdfa64fbcd7114b17809c9",
+    "canonical_bytes": 1315
   },
   "governance_dependency_resolve_kat": {
     "accepted_event_without_unsigned": {
@@ -1321,51 +1299,30 @@
       "bytes_digest": "sha256:1e3ced5770464815ca4ef738fdc55edd5826eb59eece2e8adff2f03c2c354133",
       "holder_service_id": "ak:did_core:key:z6MkfixtureService",
       "retention_expires_at": "2026-08-28T00:00:00.000Z",
-      "holder_signer_evidence_ref": "ak:signer_evidence:sha256:337c298259fd5a09b438b3db5bed77a74e15bcd8df30d98468d054c34307df1e",
+      "holder_signer_evidence_ref": "ak:signer_evidence:sha256:f1e37367c9f62438840e22bf812615fac4b8ed53d9cdfa64fbcd7114b17809c9",
       "signature": {
         "kind": "detached_jws",
         "verification_method": "did:key:z6MkfixtureService#key-1",
-        "payload_digest": "sha256:8c6777a6f9345641e11e38775dbb0211d28ae08f09c1d5de3e05880f1c6cd1de",
+        "payload_digest": "sha256:c72aa3a6cbbe4244ef12404fb1802deadf4c181c39cefce02a0c00206190caac",
         "created_at": "2026-08-21T00:00:00.000Z",
         "jws": "e30..c2ln"
       }
     },
-    "availability_receipt_digest": "sha256:6f19c9ac6834fc01bdd670f7ab49c856bb1319811b48d9f70bbbfde16dcec870",
+    "availability_receipt_digest": "sha256:4dc36438708724aa1b4b211611a1489a222286de6d96bbb3fbd7509b97a2d9a0",
     "resolve_outcome": {
       "items": [
         {
           "selector": {
             "kind": "authenticated_signer_resolution_evidence",
-            "content_digest": "sha256:337c298259fd5a09b438b3db5bed77a74e15bcd8df30d98468d054c34307df1e"
+            "content_digest": "sha256:f1e37367c9f62438840e22bf812615fac4b8ed53d9cdfa64fbcd7114b17809c9"
           },
           "authenticated_signer_resolution_evidence": {
             "kind": "service",
             "signer_id": "ak:did_core:key:z6MkfixtureService",
             "verification_method": "did:key:z6MkfixtureService#key-1",
             "authenticated_resolution": {
-              "service_resolution_record": {
-                "record": {
-                  "service_id": "ak:did_core:key:z6MkfixtureService",
-                  "service_kind": "station",
-                  "did": "did:key:z6MkfixtureService",
-                  "method_history_head": "did-key-head-fixture",
-                  "version_id": "did-key-v1",
-                  "resolution_event_ref": "did-key-did-sha256:3131313131313131313131313131313131313131313131313131313131313131",
-                  "record_sequence": 0,
-                  "previous_record_digest": null,
-                  "current_record_url": "https://service.example/_arkret/open/services/service/resolution",
-                  "base_url": "https://service.example/",
-                  "describe_digest": "sha256:3232323232323232323232323232323232323232323232323232323232323232",
-                  "issued_at": "2026-08-21T00:00:00.000Z",
-                  "refresh_after": "2026-08-22T00:00:00.000Z",
-                  "expires_at": "2026-08-29T00:00:00.000Z"
-                },
-                "proof": {
-                  "verification_method": "did:key:z6MkfixtureService#key-1",
-                  "created_at": "2026-08-21T00:00:00.000Z",
-                  "jws": "c2ln"
-                }
-              },
+              "service_id": "ak:did_core:key:z6MkfixtureService",
+              "service_kind": "station",
               "method_history_evidence": {
                 "evidence_kind": "did_key_expansion",
                 "boundary": {
@@ -1422,7 +1379,7 @@
         {
           "selector": {
             "kind": "availability_receipt",
-            "content_digest": "sha256:6f19c9ac6834fc01bdd670f7ab49c856bb1319811b48d9f70bbbfde16dcec870"
+            "content_digest": "sha256:4dc36438708724aa1b4b211611a1489a222286de6d96bbb3fbd7509b97a2d9a0"
           },
           "availability_receipt": {
             "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e",
@@ -1430,11 +1387,11 @@
             "bytes_digest": "sha256:1e3ced5770464815ca4ef738fdc55edd5826eb59eece2e8adff2f03c2c354133",
             "holder_service_id": "ak:did_core:key:z6MkfixtureService",
             "retention_expires_at": "2026-08-28T00:00:00.000Z",
-            "holder_signer_evidence_ref": "ak:signer_evidence:sha256:337c298259fd5a09b438b3db5bed77a74e15bcd8df30d98468d054c34307df1e",
+            "holder_signer_evidence_ref": "ak:signer_evidence:sha256:f1e37367c9f62438840e22bf812615fac4b8ed53d9cdfa64fbcd7114b17809c9",
             "signature": {
               "kind": "detached_jws",
               "verification_method": "did:key:z6MkfixtureService#key-1",
-              "payload_digest": "sha256:8c6777a6f9345641e11e38775dbb0211d28ae08f09c1d5de3e05880f1c6cd1de",
+              "payload_digest": "sha256:c72aa3a6cbbe4244ef12404fb1802deadf4c181c39cefce02a0c00206190caac",
               "created_at": "2026-08-21T00:00:00.000Z",
               "jws": "e30..c2ln"
             }

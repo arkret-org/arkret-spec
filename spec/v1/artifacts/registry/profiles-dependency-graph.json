@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-02.2",
+  "version": "2026-09-08.3",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-09-02T15:30:00+08:00",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
@@ -17,6 +17,7 @@
     "ak.profile.agent_auth.v1",
     "ak.profile.agent_delegation_policy.v1",
     "ak.profile.agent_participation_policy.v1",
+    "ak.profile.agent_provisioning.v1",
     "ak.profile.agent_runtime.v1",
     "ak.profile.agent_sidecar.v1",
     "ak.profile.agent_signer_evidence.v1",
@@ -47,10 +48,10 @@
     "ak.profile.draft_sync.v1",
     "ak.profile.e2ee_client.v1",
     "ak.profile.e2ee_relaxed.v1",
-    "ak.profile.ephemeral_pairwise_principal.v1",
     "ak.profile.encoding.cbor.v1",
     "ak.profile.encoding.multihash.v1",
     "ak.profile.enterprise_client.v1",
+    "ak.profile.ephemeral_pairwise_principal.v1",
     "ak.profile.federation.high_assurance.v1",
     "ak.profile.federation_minimal.v1",
     "ak.profile.file_transfer.v1",
@@ -69,8 +70,8 @@
     "ak.profile.matrix_compat.v1",
     "ak.profile.media_service_binding.arkret_native.v1",
     "ak.profile.media_service_binding.livekit.v1",
-    "ak.profile.membership_join_compensation.v1",
     "ak.profile.media_service_binding.v1",
+    "ak.profile.membership_join_compensation.v1",
     "ak.profile.mimi_interop.v1",
     "ak.profile.minimal_client.v1",
     "ak.profile.mls.minimal_metadata_realm.v1",
@@ -81,15 +82,12 @@
     "ak.profile.notary.open_set.v1",
     "ak.profile.notary.single_signer.v1",
     "ak.profile.notary.threshold.v1",
-    "ak.profile.organization_high_assurance_identity.v1",
     "ak.profile.organization.v1",
-    "ak.profile.agent_provisioning.v1",
+    "ak.profile.organization_high_assurance_identity.v1",
     "ak.profile.personal_node.v1",
     "ak.profile.personal_productivity.v1",
     "ak.profile.pinned_items.v1",
     "ak.profile.principal_control_realm.v1",
-    "ak.profile.station.v1",
-    "ak.profile.station_events_api.v1",
     "ak.profile.public_network_identity.v1",
     "ak.profile.push_gateway.blind_wakeup.v1",
     "ak.profile.push_gateway.matrix_passthrough.v1",
@@ -98,7 +96,6 @@
     "ak.profile.search.blind_index.v1",
     "ak.profile.search.client_index.v1",
     "ak.profile.search.forward_private.v1",
-    "ak.profile.service_resolution_mirror.v1",
     "ak.profile.signal_message_stream.v1",
     "ak.profile.signal_peer_relay.v1",
     "ak.profile.signature.ecdsa_p256.v1",
@@ -107,6 +104,8 @@
     "ak.profile.sovereign_client.v1",
     "ak.profile.sovereign_deployment.v1",
     "ak.profile.sovereign_enclave.v1",
+    "ak.profile.station.v1",
+    "ak.profile.station_events_api.v1",
     "ak.profile.traffic_metadata_hardened.v1",
     "ak.profile.ucan_interop.v1",
     "ak.profile.webrtc_media.v1"
@@ -133,13 +132,13 @@
       "kind": "inherits"
     },
     {
-      "from": "ak.profile.agent_sidecar.v1",
-      "to": "ak.profile.agent_provisioning.v1",
+      "from": "ak.profile.agent_provisioning.v1",
+      "to": "ak.profile.agent_runtime.v1",
       "kind": "inherits"
     },
     {
-      "from": "ak.profile.direct_conversation_repair.v1",
-      "to": "ak.profile.direct_conversation_realm.v1",
+      "from": "ak.profile.agent_sidecar.v1",
+      "to": "ak.profile.agent_provisioning.v1",
       "kind": "inherits"
     },
     {
@@ -173,6 +172,11 @@
       "kind": "inherits"
     },
     {
+      "from": "ak.profile.direct_conversation_repair.v1",
+      "to": "ak.profile.direct_conversation_realm.v1",
+      "kind": "inherits"
+    },
+    {
       "from": "ak.profile.disclosed_audit.e2ee.v1",
       "to": "ak.profile.e2ee_client.v1",
       "kind": "inherits"
@@ -198,13 +202,13 @@
       "kind": "mutually_exclusive_with"
     },
     {
-      "from": "ak.profile.ephemeral_pairwise_principal.v1",
-      "to": "ak.profile.e2ee_client.v1",
+      "from": "ak.profile.enterprise_client.v1",
+      "to": "ak.profile.full_client.v1",
       "kind": "inherits"
     },
     {
-      "from": "ak.profile.enterprise_client.v1",
-      "to": "ak.profile.full_client.v1",
+      "from": "ak.profile.ephemeral_pairwise_principal.v1",
+      "to": "ak.profile.e2ee_client.v1",
       "kind": "inherits"
     },
     {
@@ -293,33 +297,8 @@
       "kind": "inherits"
     },
     {
-      "from": "ak.profile.agent_provisioning.v1",
-      "to": "ak.profile.agent_runtime.v1",
-      "kind": "inherits"
-    },
-    {
       "from": "ak.profile.personal_node.v1",
       "to": "ak.profile.station_events_api.v1",
-      "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.station.v1",
-      "to": "ak.profile.chat_mvp.v1",
-      "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.station.v1",
-      "to": "ak.profile.kanban_mvp.v1",
-      "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.station.v1",
-      "to": "ak.profile.station_events_api.v1",
-      "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.station_events_api.v1",
-      "to": "ak.profile.core_event_store.v1",
       "kind": "inherits"
     },
     {
@@ -335,21 +314,16 @@
     {
       "from": "ak.profile.push_gateway.visible_notification.v1",
       "to": "ak.profile.push_gateway.v1",
-      "kind": "depends_on"
+      "kind": "inherits"
     },
     {
       "from": "ak.profile.push_gateway.visible_notification.v1",
       "to": "ak.profile.push_gateway.v1",
-      "kind": "inherits"
+      "kind": "depends_on"
     },
     {
       "from": "ak.profile.search.forward_private.v1",
       "to": "ak.profile.search.blind_index.v1",
-      "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.service_resolution_mirror.v1",
-      "to": "ak.profile.federation_minimal.v1",
       "kind": "inherits"
     },
     {
@@ -385,6 +359,26 @@
     {
       "from": "ak.profile.sovereign_enclave.v1",
       "to": "ak.profile.sovereign_deployment.v1",
+      "kind": "inherits"
+    },
+    {
+      "from": "ak.profile.station.v1",
+      "to": "ak.profile.chat_mvp.v1",
+      "kind": "inherits"
+    },
+    {
+      "from": "ak.profile.station.v1",
+      "to": "ak.profile.kanban_mvp.v1",
+      "kind": "inherits"
+    },
+    {
+      "from": "ak.profile.station.v1",
+      "to": "ak.profile.station_events_api.v1",
+      "kind": "inherits"
+    },
+    {
+      "from": "ak.profile.station_events_api.v1",
+      "to": "ak.profile.core_event_store.v1",
       "kind": "inherits"
     }
   ],

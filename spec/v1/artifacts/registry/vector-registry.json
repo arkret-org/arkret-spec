@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.1",
+  "version": "2026-09-08.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-08T05:55:00+08:00",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5726,54 +5726,9 @@
       "vector_id": "ak.vector.proof_context.transcript.service_registration_receipt.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.service_registration_receipt_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.service_resolution_publish_ack_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.service_registration_receipt_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.session_grant_accepted_device_possession_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.service_registration_receipt_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.service_resolution_publish_ack.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.service_resolution_publish_ack_proof.v1: digest input is the `ack` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.service_resolution_record_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.service_resolution_publish_ack_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.service_resolution_record.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.service_resolution_record_proof.v1: digest input is the `record` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.service_route_handover_notice_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.service_resolution_record_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.service_route_handover_notice.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.service_route_handover_notice_proof.v1: digest input is the `notice` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.signal_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.service_route_handover_notice_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -6555,19 +6510,6 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.service_resolution.handover_mirror.v1",
-      "status": "active",
-      "domain": "service_resolution",
-      "applies_to_fixtures": [
-        "service-route-handover-mirror-fixture.json"
-      ],
-      "description": "FLOW-GAP-015 closure for target-signed planned endpoint handover and Realm-scoped mirror recovery within one unchanged service DID: exact current basis and time ordering, cancellation continuity, no notice-authorized business traffic, same-core formal successor validation, durable publish acknowledgement and replay conflict, bounded visibility-blinded resolve, fork quarantine, durable anti-rollback floor with replaceable TTL cache, and bilateral cross-ack cutover. A change of the ActorId-projected service DID is an identity change and is outside this route-handover flow.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

@@ -107,189 +107,253 @@
       "file": "account-operations.schema.json",
       "pointer": "/$defs/account_status_resolve_outcome",
       "collection_field": "records",
-      "companion_fields": ["has_more"],
+      "companion_fields": [
+        "has_more"
+      ],
       "reason": "has_more describes the returned account-status records"
     },
     {
       "file": "account-subscribe-frame.schema.json",
       "pointer": "/$defs/device_message_container",
       "collection_field": "messages",
-      "companion_fields": ["limited", "next_cursor"],
+      "companion_fields": [
+        "limited",
+        "next_cursor"
+      ],
       "reason": "the named device-message page owns its generic pagination companions"
     },
     {
       "file": "account-subscribe-frame.schema.json",
       "pointer": "/$defs/member_roster_entry",
       "collection_field": "handle_claims",
-      "companion_fields": ["handle_claims_limited"],
+      "companion_fields": [
+        "handle_claims_limited"
+      ],
       "reason": "handle_claims_limited reports truncation of the adjacent handle_claims projection"
     },
     {
       "file": "account-subscribe-frame.schema.json",
       "pointer": "/$defs/timeline",
       "collection_field": "events",
-      "companion_fields": ["limited"],
+      "companion_fields": [
+        "limited"
+      ],
       "reason": "timeline.limited reports truncation of timeline events; ordered_log_siblings is independent diagnostics"
     },
     {
       "file": "account-subscribe-frame.schema.json",
       "pointer": "/$defs/member_roster",
       "collection_field": "entries",
-      "companion_fields": ["limited", "next_cursor"],
+      "companion_fields": [
+        "limited",
+        "next_cursor"
+      ],
       "reason": "member roster is an optional named page inside realm_sync_entry; nesting keeps its collection and pagination state under one semantic root"
     },
     {
       "file": "agent-operations.schema.json",
       "pointer": "/$defs/agent_list",
       "collection_field": "agents",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "agent_list paginates agents"
     },
     {
       "file": "agent-operations.schema.json",
       "pointer": "/$defs/agent_sidecar_list",
       "collection_field": "sidecars",
-      "companion_fields": ["next_cursor"],
+      "companion_fields": [
+        "next_cursor"
+      ],
       "reason": "agent_sidecar_list paginates sidecars"
     },
     {
       "file": "authz-operations.schema.json",
       "pointer": "/$defs/authz_invite_list",
       "collection_field": "invites",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "authz_invite_list paginates invites"
     },
     {
       "file": "contact-operations.schema.json",
       "pointer": "/$defs/contact_list",
       "collection_field": "contacts",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "contact_list paginates contacts"
     },
     {
       "file": "directory-operations.schema.json",
       "pointer": "/$defs/directory_actor_search_outcome",
       "collection_field": "actors",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "directory actor search paginates actor results"
     },
     {
       "file": "directory-operations.schema.json",
       "pointer": "/$defs/directory_organization_search_outcome",
       "collection_field": "organizations",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "directory organization search paginates organization results"
     },
     {
       "file": "directory-operations.schema.json",
       "pointer": "/$defs/directory_realm_search_outcome",
       "collection_field": "realms",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "directory realm search paginates realm results"
     },
     {
       "file": "directory-operations.schema.json",
       "pointer": "/$defs/directory_user_search_outcome",
       "collection_field": "users",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "directory user search paginates user results"
     },
     {
       "file": "history-key.schema.json",
       "pointer": "/$defs/history_key_request_list_outcome",
       "collection_field": "requests",
-      "companion_fields": ["limited"],
+      "companion_fields": [
+        "limited"
+      ],
       "reason": "history-key request list truncation applies to requests"
     },
     {
       "file": "history-key.schema.json",
       "pointer": "/$defs/history_key_response_list_outcome",
       "collection_field": "entries",
-      "companion_fields": ["limited"],
+      "companion_fields": [
+        "limited"
+      ],
       "reason": "entries are true response-log entries and limited reports their truncation"
     },
     {
       "file": "history-key.schema.json",
       "pointer": "/$defs/organization_recovery_archive_list_outcome",
       "collection_field": "items",
-      "companion_fields": ["limited"],
+      "companion_fields": [
+        "limited"
+      ],
       "reason": "the archive list paginates heterogeneous items"
-    },
-    {
-      "file": "identity-resolution.schema.json",
-      "pointer": "/$defs/service_resolution_resolve_outcome",
-      "collection_field": "successor_records",
-      "companion_fields": ["has_more"],
-      "reason": "has_more describes the successor-record continuation set"
     },
     {
       "file": "keys-operations.schema.json",
       "pointer": "/$defs/keys_backups_list",
       "collection_field": "backups",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "key-backup list paginates backups"
     },
     {
       "file": "list-handles-for-subject-response.schema.json",
       "pointer": "",
       "collection_field": "claims",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "the response root paginates handle claims"
     },
     {
       "file": "mimi-operations.schema.json",
       "pointer": "/$defs/mimi_identifier_query_outcome",
       "collection_field": "matches",
-      "companion_fields": ["has_more"],
+      "companion_fields": [
+        "has_more"
+      ],
       "reason": "has_more applies to match results; proofs are verification material for the returned page"
     },
     {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/DeviceMessagesGetOutcome",
       "collection_field": "messages",
-      "companion_fields": ["has_more", "limited", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "limited",
+        "next_cursor"
+      ],
       "reason": "device-message outcome paginates messages"
     },
     {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/EventsQueryOutcome",
       "collection_field": "events",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "event query outcome paginates events"
     },
     {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/PeerEventsQueryOutcome",
       "collection_field": "events",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "peer event query outcome paginates events without the self-only snapshot bootstrap"
     },
     {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/IdentityLogListOutcome",
       "collection_field": "entries",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "identity log entries are true log entries and form the paginated collection"
     },
     {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/ProjectionMorphList",
       "collection_field": "morphs",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "projection morph list paginates morphs"
     },
     {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/ProjectionSpaceList",
       "collection_field": "spaces",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "projection space list paginates spaces"
     },
     {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/ProjectionStrandList",
       "collection_field": "strands",
-      "companion_fields": ["has_more", "next_cursor"],
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
       "reason": "projection strand list paginates strands"
     }
   ]

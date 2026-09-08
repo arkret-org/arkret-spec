@@ -957,7 +957,7 @@
           {
             "mirror_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
             "service_resolution": {
-              "current_record_url": "https://mirror.example.net/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturealiceexamplenet/resolution"
+              "resolution_url": "https://mirror.example.net/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturealiceexamplenet/resolution"
             }
           }
         ]
@@ -973,14 +973,14 @@
           "station_id": "ak:did_core:webvh:z6mkfixturerecipientservice"
         },
         "service_resolution": {
-          "current_record_url": "https://recipient.example.net/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturerecipientservice/resolution"
+          "resolution_url": "https://recipient.example.net/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturerecipientservice/resolution"
         },
         "route_assistance": {
           "mirror_hints": [
             {
               "mirror_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
               "service_resolution": {
-                "current_record_url": "https://mirror.example.net/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturealiceexamplenet/resolution"
+                "resolution_url": "https://mirror.example.net/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturealiceexamplenet/resolution"
               }
             }
           ]
@@ -991,7 +991,7 @@
       "name": "route_assistance_empty_rejected",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/route_assistance",
       "expect_valid": false,
-      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "first_expected_error": "contains:'mirror_hints' is a required property",
       "instance": {}
     },
     {
@@ -1003,7 +1003,7 @@
         "mirror_hints": [
           {
             "mirror_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
-            "current_record_url": "https://mirror.example.net/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturealiceexamplenet/resolution"
+            "resolution_url": "https://mirror.example.net/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturealiceexamplenet/resolution"
           }
         ]
       }

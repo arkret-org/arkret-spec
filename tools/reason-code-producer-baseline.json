@@ -68,8 +68,6 @@
     "recording_state_transition_invalid",
     "recovery_required",
     "relation_already_terminal",
-    "relation_profile_cardinality_conflict",
-    "relation_scope_unresolved",
     "scope_incomparable",
     "scope_unavailable",
     "segment_aead_failed",
@@ -195,7 +193,7 @@
       "code": "cardinality_violation",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "relation 基数冲突按 on_conflict 收敛不拒绝 event；真实拒绝路径由 relation_conflict_fanout_exceeded/relation_profile_cardinality_conflict/schema_violation 承载。"
+      "why": "标准关系冲突由 require_review 收敛；并发候选上限由 relation_conflict_fanout_exceeded 承载。协议不提供关系数量限制配置。"
     },
     {
       "code": "counter_bound_exceeded",
@@ -244,6 +242,18 @@
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.4",
       "why": "承载已由已登记顶层 code recovery_session_not_pending（codes[]，409）覆盖：session 不在 pending 的全部分支（含 terminal 的 completed/rejected/expired）由该顶层判定统一拒绝，v1 无需独立 terminal reason。"
+    },
+    {
+      "code": "relation_profile_cardinality_conflict",
+      "ruling": "2026-09-08-0659",
+      "registry_version": "2026-09-08",
+      "why": "关系数量限制配置不属于协议目标，删除配置及其专属拒绝原因。"
+    },
+    {
+      "code": "relation_scope_unresolved",
+      "ruling": "2026-09-08-0659",
+      "registry_version": "2026-09-08",
+      "why": "关系数量限制配置不属于协议目标，删除配置及其专属拒绝原因。"
     }
   ]
 }

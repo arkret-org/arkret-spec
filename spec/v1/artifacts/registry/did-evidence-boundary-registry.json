@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.8",
+  "version": "2026-09-08.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T18:30:02+08:00",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -49,19 +49,19 @@
       "route_evidence": "known_station_account_pair"
     },
     {
-      "boundary_id": "service_resolution_record",
-      "responsibility": "resolution_record",
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record_core",
-      "did_path": "did",
+      "boundary_id": "service_resolution",
+      "responsibility": "method_evidence",
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution",
+      "did_path": "normalized_did_document.did",
       "did_requirement": "required",
       "expected_core_path": "service_id",
-      "route_evidence": "bootstrap current_record_url or already verified same-core route"
+      "route_evidence": "bootstrap resolution_url or already verified same-core route"
     },
     {
       "boundary_id": "did_method_evidence",
       "responsibility": "method_evidence",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution",
-      "did_path": "service_resolution_record.record.did",
+      "did_path": "normalized_did_document.did",
       "did_requirement": "required",
       "expected_core_path": "enclosing principal_id or service_id",
       "route_evidence": "carrier-specific resolver input"

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-04.1",
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "version": "2026-09-08.3",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "source_of_truth": true,
   "description": "Canonical HPKE (RFC 9180) suite vocabulary for v1 application-layer public-key sealing surfaces that are NOT carried inside MLS: key-backup `recovery_public_key` envelopes, to-device sealed material (`ak.secret.send`), member-application reviewer envelopes and file-transfer key envelopes. An HPKE suite names the (KEM, KDF, AEAD) triple; its canonical_id is the wire scheme / `hpke_suite` selector value. The KEM (DHKEM-X25519-HKDF-SHA256), the KDF (HKDF-SHA256) and the application-layer seal/open transcript are standard RFC 9180 base mode (SetupBaseS / SetupBaseR): the RFC 9180 key_schedule with LabeledExtract / LabeledExpand derives key, base_nonce and exporter_secret from the DHKEM shared secret and the caller `info`, and the AEAD nonce is the internally derived base_nonce XOR seq (single-shot seq=0), NOT carried on the wire. This is the fourth algorithm-agility registry, symmetric to signature-alg-registry.json, digest-suite-registry.json and mls-ciphersuite-registry.json. MLS group messages keep their own HPKE internals via mls-ciphersuite-registry.json and are out of scope here.",
   "suite_id_grammar": "suite_id = 'ak.hpke_' kem_id '_aead_' aead_id '.v' major ; each id segment matches [a-z0-9]+ . The canonical_id is the full wire string; it is NOT freely composed from parts — only suites present as rows below exist, and only status=active rows are valid on wire.",
@@ -27,8 +27,11 @@
       "profile_id": "ak.hpke_surface.history_response_capability.v1",
       "suite_id": "ak.hpke_x25519_aead_chacha20poly1305.v1",
       "mode": "base",
-      "wire_fields": ["enc", "ciphertext"],
-      "info_and_aad": "RFC 8785 JCS bytes of closed {purpose:'history_response_capability',request_digest,response_capability_commitment,effective_scope,release_id,release_service_binding_ref,release_service_resolution_ref,release_service_resolution_sequence,release_service_resolution_record_digest,release_service_route_digest,expires_at}",
+      "wire_fields": [
+        "enc",
+        "ciphertext"
+      ],
+      "info_and_aad": "RFC 8785 JCS bytes of closed {purpose:'history_response_capability',request_digest,response_capability_commitment,effective_scope,release_id,release_service_binding_ref,release_service_resolution_ref,release_service_resolution_digest,release_service_route_digest,expires_at}",
       "plaintext_schema_ref": "schemas/history-key.schema.json#/$defs/history_response_capability_plaintext",
       "encapsulation": "fresh single-shot seq=0; never reused with a history chunk"
     },
@@ -36,7 +39,10 @@
       "profile_id": "ak.hpke_surface.history_secret_chunk.v1",
       "suite_id": "ak.hpke_x25519_aead_chacha20poly1305.v1",
       "mode": "base",
-      "wire_fields": ["enc", "ciphertext"],
+      "wire_fields": [
+        "enc",
+        "ciphertext"
+      ],
       "info_and_aad": "RFC 8785 JCS bytes of closed {purpose:'history_secret_chunk',manifest_admission_digest,chunk_response_id,chunk_index,source_actor_id,source_sender_domain}. manifest_admission_digest commits the exact all-or-nothing T0 admission and its accepted request, receipt, intent, manifest and authorized ranges; the receiver reconstructs those verified values before opening the chunk. No proof/package/page/selection digest or range-index key exists.",
       "plaintext_schema_ref": "schemas/history-key.schema.json#/$defs/history_chunk_plaintext",
       "encapsulation": "fresh independently verifiable single-shot seq=0 per chunk; no cross-chunk state or authorization-basis input"
@@ -45,7 +51,10 @@
       "profile_id": "ak.hpke_surface.organization_recovery_archive.v1",
       "suite_id": "ak.hpke_x25519_aead_chacha20poly1305.v1",
       "mode": "base",
-      "wire_fields": ["enc", "ciphertext"],
+      "wire_fields": [
+        "enc",
+        "ciphertext"
+      ],
       "info_and_aad": "RFC 8785 JCS bytes of every public organization_recovery_archive field except enc and ciphertext, in the closed shape {effective_scope,mls_group_id,epoch,transition_digest,recovery_key_id,method_controller_principal_id,holder_service_id,key_agreement_ref,holder_signing_ref,hpke_suite,frozen_public_key_b64u,accepted_key_evidence_ref,holder_trusted_basis}. transition_digest is the exact mls_transition_digest, never the outer Event digest. holder_trusted_basis is the canonical complete SealBasis object; accepted_key_evidence_ref becomes reducer-effective only by direct Seal traversal replay and no singular activation Seal is carried. hpke_suite is fixed to this profile and frozen_public_key_b64u is canonical unpadded base64url of exactly 32 X25519 bytes. No field may be omitted or caller-selected outside the closed schema.",
       "plaintext_schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_plaintext",
       "encapsulation": "fresh single-shot seq=0 inside the same signed Genesis/Commit Event; EventId and container digest are forbidden pre-encryption inputs"

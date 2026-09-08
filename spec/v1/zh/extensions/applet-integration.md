@@ -222,7 +222,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 ### 4.1 Registration 规则
 
 - `applet_id` MUST 稳定。
-- `service_id` MUST 是稳定 service `did_core_id`；注册时提供的 `did` 必须经 adapter 投影到它，当前 endpoint 通过 verified ServiceResolutionRecord 取得。
+- `service_id` MUST 是稳定 service `did_core_id`；注册时提供的 `did` 必须经 adapter 投影到它，当前 endpoint 通过 经 method 验证的 DID 服务入口 取得。
 - `controller_principal_id` MUST 是 controller `did_core_id`；复制到 registration 的 package proof VM 的 bare `did` 必须经 adapter 投影到它并通过签名验证。
 - `bot_actor_id` 是独立 Bot 的完整 `ActorId`；安装单元的 managed-actor provision payload MUST 逐字等于 registration 的该字段，并携 initial resolution 与 method history evidence。一个 registration 只能接受这一个 Bot ActorId，且 Bot 不得等于 service/controller/Ghost。
 - `claimed_profiles` MUST 从已验证 package 原样复制到 durable registration，至少包含

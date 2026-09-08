@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.1",
+  "version": "2026-09-08.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-07T00:20:00+08:00",
+  "generated_at": "2026-09-08T11:03:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -817,15 +817,6 @@
       "status": "active",
       "wire_form": "ak:request:<uuidv7>",
       "description": "Request/correlation ID",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "service_route_handover",
-      "category": "transport",
-      "status": "active",
-      "wire_form": "ak:service_route_handover:<uuidv7>",
-      "description": "Service-local planned route handover chain ID. The target service allocates it once and reuses it across scheduled updates and cancellation revisions for the same handover.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

@@ -75,7 +75,6 @@ Schema id: `ak.schema.realm.v1`
 | `trust_domain` | yes | `id:trust_domain` | create-locked；必须匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context。 | 跨 deployment replay boundary。 |
 | `owning_organization_ids` | no | `array<did_core_id>` | 每项是 Organization Principal 的稳定身份；仅是 create/update 中的声明或投影，已验证归属必须有 active `ak.realm.organization`。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 `ak.schema.realm.v1`；除 genesis 封闭 allowlist 内的结构角色 profile 外，只允许 `ak.schema.*.vN`。 | 启用 schema，并在 genesis 中承载封闭的结构角色判别式；不是通用 conformance / policy profile 激活面。 |
-| `relation_profiles` | no | `array<RelationProfile>` | 同一 `(relation_kind, from_kind, to_kind, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
 | `policy_id` | no | `id:policy` | reducer 派生。 | 当前 Realm access policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | reducer 派生。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | reducer 派生。 | 默认加入规则。 |
@@ -128,7 +127,7 @@ Realm 结构角色 profile 只允许出现在 `ak.realm.create.payload.object.sc
 v1 不定义 monolithic `ak.realm.update` 或 `ak.component.realm.metadata.v1`。实现 MUST 拒绝这些形态，
 不得建立双写/双读路径，也不得把完整 Realm create object 缓存为第二真相源。
 
-`owning_organization_ids`、`fields`、`relation_profiles`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension/relation projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
+`owning_organization_ids`、`fields`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
 
 跨字段约束（normative）：`history_access` 只有 `since_join` 与 `all_history_for_current_members`。effective `content_scheme=mls_rfc9420` 时 effective `history_access` MUST 为 `since_join`；plaintext 与 `mls_exporter_aead_v1` 可使用二态之一。任何 create/bootstrap 或 facet update 造成其它组合时，reducer MUST `failed_precondition`，reason=`history_access_requires_history_capable_scheme`。
 

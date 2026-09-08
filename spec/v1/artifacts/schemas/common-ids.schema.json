@@ -142,7 +142,7 @@
       "type": "string",
       "pattern": "^ak:did_core:[a-z0-9]+:[^\\s/?#]+$",
       "maxLength": 512,
-      "description": "Canonical stable DID-derived identity core. The lowercase DID method name follows ak:did_core:, and the remaining method-adapter-defined core is opaque to generic consumers. The did:web v1 adapter uses the complete canonical method-specific-id, never a digest or truncated host. Principal-core and service-core equality is byte-for-byte equality of the complete did_core_id. Event actor and Realm membership equality instead use the complete closed ActorId, and account-scoped equality uses the complete AccountId; neither may be reduced to a principal core. A did_core_id is not a DID and cannot be resolved without a did or ServiceResolutionRecord."
+      "description": "Canonical stable DID-derived identity core. The lowercase DID method name follows ak:did_core:, and the remaining method-adapter-defined core is opaque to generic consumers. The did:web v1 adapter uses the complete canonical method-specific-id, never a digest or truncated host. Principal-core and service-core equality is byte-for-byte equality of the complete did_core_id. Event actor and Realm membership equality instead use the complete closed ActorId, and account-scoped equality uses the complete AccountId; neither may be reduced to a principal core. A did_core_id is not a DID and cannot be resolved without a did or AuthenticatedServiceResolution."
     },
     "did": {
       "type": "string",
