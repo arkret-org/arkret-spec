@@ -4363,17 +4363,21 @@ Expected:
 
 Steps:
 
-1. Agent runtime 提交 `ak.gate.account.command.issue_session_grant.v1`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
-2. 第二次提交同样的 proof(同样 challenge / digest / signature)。
+1. Agent runtime 提交 `ak.gate.account.command.issue_session_grant.v1`，使用 key-management §3.6.1 的闭合初次 proof，含必填 issued_at/expires_at，不含额外 nonce。
+2. 使用相同 holder 的新鲜 HTTP DPoP header，原样重传完整 body；分别覆盖并发、重启、commit 后响应丢失，以及原 proof 已过期但原 grant 仍有效。
 3. 提交一份 audience 改成另一 service 的 proof。
 4. 把 proof.signature 改写但 challenge 不变。
 
 Expected:
 
-- 第 1 步 MUST 成功，服务端把 challenge 进入 replay table。
-- 第 2 步 MUST fail closed(challenge 已使用)。
+- 第 1 步 MUST 成功，服务端耐久保存 proof 验证结果和唯一 issuance record。
+- 第 2 步 MUST 返回首次相同 grant ID 和 byte-identical JWT，零新 grant。已使用的旧 HTTP DPoP header 重放仍拒绝；原 body proof 不再次消费。不同 holder、同 identity 改 scope/时间/body JWT 必须拒绝。原 grant 已 expired/revoked/superseded 时按 key-management §6.2 返回对应 terminal outcome。
 - 第 3 步 MUST fail closed(audience mismatch)。
-- 第 4 步 MUST fail closed(signature 不验，且 challenge 仍 burnt)。
+- 第 4 步 MUST fail closed，且不得改变此前成功签发的记录或补发凭证。
+
+Runner 还 MUST 校验 `session-grant-issuance-fixture.json` 的 Agent proof 已知答案，覆盖
+缺时间、额外 nonce、零/负/超过 300 秒窗口、签发时间领先超过 30 秒、expiry 边界与时间篡改。
+原 challenge 已有成功 record 的负例不得修改该 record；首次验证失败不得留下不可恢复的 proof 消费。
 
 ### 11.4 Vector: Controller Deactivate → Agent Session Cascade
 

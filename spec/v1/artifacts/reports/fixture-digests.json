@@ -26,7 +26,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "2e0135d12f04cd165ce25e883a3bfa349cd3a1adbc0485cbae4c4fe8c9593410"
+      "sha256": "5f30c05af0a928c10ac5cb2f84a86a7271ff9e67807209b161ba0a1a87181645"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
@@ -378,7 +378,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
-      "sha256": "9aa18067bc95ab5bb606dbbced034d3e85e463417f1cdeca84f5975bfcc5dbdc"
+      "sha256": "f1e1ffc426b28971bfbb627c006e3002ac651ee70db3ef986e0847c2f0741493"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",

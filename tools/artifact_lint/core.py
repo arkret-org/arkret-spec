@@ -748,6 +748,7 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
     ("canonical_event_payload", "event_digest", "utf8", "sha256_hex", ""),
     ("digest_preimage_canonical_bytes_utf8", "event_digest", "utf8", "sha256_hex", ""),
     ("canonical_preimage_utf8", "sha256_digest_hex", "utf8", "raw_hex", ""),
+    ("request_canonical_bytes_utf8", "request_digest", "utf8", "sha256_hex", ""),
     # PCR genesis receipt device/HPKE key digests: SHA-256 over the canonical
     # multikey, written with the sha256: prefix the receipt schema requires.
     ("preimage_utf8", "expected", "utf8", "sha256_hex", ""),
@@ -784,6 +785,10 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
 # against. Every one needs a reason, because "no digest beside it" is also what a
 # silently deleted digest looks like.
 UNPAIRED_STATED_PREIMAGE_KEYS: dict[str, str] = {
+    "proof_canonical_bytes_utf8": (
+        "Agent initial proof bytes are verified against the fixture Ed25519 signature "
+        "and closed schema by check_session_grant_kat.py; no separate digest is transmitted"
+    ),
     "create_event_digest_preimage_canonical_bytes_utf8": (
         "hash-transition fixture uses a suite-aware Event digest and EventId; the Rust "
         "hash_transition_fixture test recomputes both"

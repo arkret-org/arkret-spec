@@ -597,12 +597,74 @@ def check_documents(
 
 
 def check_repository() -> list[str]:
-    return check_documents(
+    errors = check_documents(
         load_json(FIXTURE_PATH),
         load_json(CONTRACT_PATH),
         load_json(DIGEST_SUITE_PATH),
         load_json(CLAIMS_SCHEMA_PATH),
     )
+    errors.extend(check_agent_initial_proof())
+    return errors
+
+
+def check_agent_initial_proof() -> list[str]:
+    from datetime import datetime, timedelta
+    import jsonschema
+    from referencing import Registry, Resource
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    from cryptography.exceptions import InvalidSignature
+
+    row = load_json(FIXTURE_PATH)["agent_initial_proof"]
+    request = copy.deepcopy(row["request"])
+    schemas = CLAIMS_SCHEMA_PATH.parent
+    registry = Registry().with_resources(
+        (path.as_uri(), Resource.from_contents(load_json(path)))
+        for path in schemas.glob("*.json")
+    )
+    validator = jsonschema.Draft202012Validator(
+        {"$ref": CLAIMS_SCHEMA_PATH.as_uri() + "#/$defs/AgentSessionGrantRequest"},
+        registry=registry,
+    )
+    errors = [f"agent request schema: {e.message}" for e in validator.iter_errors(request)]
+    proof = request["proof"]
+    signature = _strict_base64url(proof.pop("signature"), 64)
+    proof_bytes = jcs_text(proof).encode()
+    if proof_bytes.decode() != row["proof_canonical_bytes_utf8"]:
+        errors.append("agent proof canonical bytes mismatch")
+    public = Ed25519PublicKey.from_public_bytes(_strict_base64url(row["runtime_public_key_b64u"], 32))
+    try:
+        public.verify(signature, proof_bytes)
+    except InvalidSignature:
+        errors.append("agent proof signature invalid")
+    changed = dict(proof, issued_at="2026-09-09T00:00:00.001Z")
+    try:
+        public.verify(signature, jcs_text(changed).encode())
+        errors.append("agent proof accepted a changed signed time")
+    except InvalidSignature:
+        pass
+    digest = proof.pop("request_canonical_digest")
+    canonical_request = jcs_text(request)
+    if canonical_request != row["request_canonical_bytes_utf8"]:
+        errors.append("agent request canonical bytes mismatch")
+    if digest != row["request_digest"] or digest != "sha256:" + hashlib.sha256(canonical_request.encode()).hexdigest():
+        errors.append("agent request digest mismatch")
+    for field in ("issued_at", "expires_at"):
+        invalid = copy.deepcopy(row["request"])
+        del invalid["proof"][field]
+        if validator.is_valid(invalid):
+            errors.append(f"agent schema accepts missing {field}")
+    invalid = copy.deepcopy(row["request"])
+    invalid["proof"]["nonce"] = "forbidden"
+    if validator.is_valid(invalid):
+        errors.append("agent schema accepts extra nonce")
+    for case in row["time_cases"]:
+        issued = datetime.fromisoformat(case.get("issued_at", proof["issued_at"]))
+        expires = datetime.fromisoformat(case.get("expires_at", proof["expires_at"]))
+        now = datetime.fromisoformat(case["now"])
+        accepted = timedelta(0) < expires-issued <= timedelta(seconds=300) and issued <= now+timedelta(seconds=30) and now < expires
+        if accepted != case["accepted"]:
+            errors.append(f"agent time case {case['name']} mismatch")
+    return errors
 
 
 def main() -> int:

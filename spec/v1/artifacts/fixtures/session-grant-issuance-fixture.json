@@ -166,5 +166,73 @@
       ],
       "expected": "signed_claims_schema_invalid"
     }
-  ]
+  ],
+  "agent_initial_proof": {
+    "request": {
+      "principal_id": "ak:did_core:webvh:z6mkagent",
+      "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+      "requested_scope": [
+        "ak.self.account.read.describe.v1"
+      ],
+      "agent_key_authorization_ref": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+      "agent_scope_request": {},
+      "dpop_binding_proof": {
+        "proof_jwt": "eyJhbGciOiJFZERTQSIsImp3ayI6eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IktheTY0VUc4eXZDeUxocVUwMDBMeHpZZVVtMExfaExJbDVTOGt5S1diZGMifSwidHlwIjoiZHBvcCtqd3QifQ.eyJodG0iOiJQT1NUIiwiaHR1IjoiaHR0cHM6Ly9hdXRoLmV4YW1wbGUvX2Fya3JldC9nYXRlL2FjY291bnQvc2Vzc2lvbi1ncmFudHMiLCJpYXQiOjE3ODg5MTIwMDAsImp0aSI6ImZpeHR1cmUtaW5pdGlhbC1ob2xkZXItcHJvb2YifQ.f1lgest-fTwZHdDqxrmc7-_1bfUiz_9a6jFQ9ZUb9GWVBUSVwrQ7J3kBdhP8XHAA2i6QZqqkGcodUTsaLOdiDg"
+      },
+      "proof": {
+        "proof_kind": "agent_key_proof",
+        "challenge": "AAECAwQFBgcICQoLDA0ODw",
+        "audience_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
+        "issued_at": "2026-09-09T00:00:00.000Z",
+        "expires_at": "2026-09-09T00:05:00.000Z",
+        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "request_canonical_digest": "sha256:1c93602cd5338cede5405843a1d2859d9f05df051e69b3035aa2d79e5f4a73c7",
+        "signature": "GXOq04DigWkZKY2H-P2E9RwIth9pX4V0cRRdFiCCJn7DKKZw1h_S7vz-GiZQfBak0-ZG5LnhzwEejsOCzaL2DQ"
+      }
+    },
+    "runtime_public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+    "request_canonical_bytes_utf8": "{\"agent_key_authorization_ref\":\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"agent_scope_request\":{},\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000001\",\"dpop_binding_proof\":{\"proof_jwt\":\"eyJhbGciOiJFZERTQSIsImp3ayI6eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IktheTY0VUc4eXZDeUxocVUwMDBMeHpZZVVtMExfaExJbDVTOGt5S1diZGMifSwidHlwIjoiZHBvcCtqd3QifQ.eyJodG0iOiJQT1NUIiwiaHR1IjoiaHR0cHM6Ly9hdXRoLmV4YW1wbGUvX2Fya3JldC9nYXRlL2FjY291bnQvc2Vzc2lvbi1ncmFudHMiLCJpYXQiOjE3ODg5MTIwMDAsImp0aSI6ImZpeHR1cmUtaW5pdGlhbC1ob2xkZXItcHJvb2YifQ.f1lgest-fTwZHdDqxrmc7-_1bfUiz_9a6jFQ9ZUb9GWVBUSVwrQ7J3kBdhP8XHAA2i6QZqqkGcodUTsaLOdiDg\"},\"principal_id\":\"ak:did_core:webvh:z6mkagent\",\"proof\":{\"audience_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\",\"challenge\":\"AAECAwQFBgcICQoLDA0ODw\",\"expires_at\":\"2026-09-09T00:05:00.000Z\",\"issued_at\":\"2026-09-09T00:00:00.000Z\",\"proof_kind\":\"agent_key_proof\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"},\"requested_scope\":[\"ak.self.account.read.describe.v1\"]}",
+    "proof_canonical_bytes_utf8": "{\"audience_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\",\"challenge\":\"AAECAwQFBgcICQoLDA0ODw\",\"expires_at\":\"2026-09-09T00:05:00.000Z\",\"issued_at\":\"2026-09-09T00:00:00.000Z\",\"proof_kind\":\"agent_key_proof\",\"request_canonical_digest\":\"sha256:1c93602cd5338cede5405843a1d2859d9f05df051e69b3035aa2d79e5f4a73c7\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+    "request_digest": "sha256:1c93602cd5338cede5405843a1d2859d9f05df051e69b3035aa2d79e5f4a73c7",
+    "time_cases": [
+      {
+        "name": "valid",
+        "now": "2026-09-09T00:00:00.000Z",
+        "accepted": true
+      },
+      {
+        "name": "future_boundary",
+        "now": "2026-09-08T23:59:30.000Z",
+        "accepted": true
+      },
+      {
+        "name": "too_far_future",
+        "now": "2026-09-08T23:59:29.999Z",
+        "accepted": false
+      },
+      {
+        "name": "expired",
+        "now": "2026-09-09T00:05:00.000Z",
+        "accepted": false
+      },
+      {
+        "name": "too_long",
+        "now": "2026-09-09T00:00:00.000Z",
+        "expires_at": "2026-09-09T00:05:00.001Z",
+        "accepted": false
+      },
+      {
+        "name": "zero_window",
+        "now": "2026-09-09T00:00:00.000Z",
+        "expires_at": "2026-09-09T00:00:00.000Z",
+        "accepted": false
+      },
+      {
+        "name": "negative_window",
+        "now": "2026-09-09T00:00:00.000Z",
+        "expires_at": "2026-09-08T23:59:59.999Z",
+        "accepted": false
+      }
+    ]
+  }
 }

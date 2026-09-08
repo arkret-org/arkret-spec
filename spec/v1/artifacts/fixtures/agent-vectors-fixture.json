@@ -671,7 +671,7 @@
       "runner": "cotest::conformance::agent_vectors::run_agent_session_grant_replay_vector",
       "assertions": [
         "session grant issue operation id remains ak.gate.account.command.issue_session_grant.v1",
-        "agent_key_proof challenge replay, audience mismatch, and bad signature fail closed",
+        "exact completed Agent issuance replay with fresh matching-holder HTTP DPoP returns the original grant; reused HTTP DPoP, conflicting intent, audience mismatch, and bad signature fail closed",
         "agent session branch rejects invalid proofs, DID mismatch, paused agents, and deactivated agents",
         "accountability grant absence is pinned as accountability_grant_missing"
       ]

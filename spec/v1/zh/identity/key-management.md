@@ -193,6 +193,45 @@ PCR create admission 必须从 durable provisioning 状态读取 prepare 锁定�
 - **High-risk approval**:Auth Server MUST NOT 给 agent runtime 展示 CAPTCHA / OTP 页面；需要人类批准时返回统一错误信封 `error.code=claim_required`，并令 `error.details` 严格匹配 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`：`reason_code=human_approval_required`、`approval_request_id=<opaque>`。Controller 在带外 UI 完成批准，产生 capability / delegation / approval event,agent retry 时引用该 event。该分支由 `ak.vector.agent_auth.human_approval_required.v1` 固化。
 - **E2EE access**（conformance vector `ak.vector.agent.mls_keypackage_authorization.v1`）:Agent MUST 作为独立 MLS member 参与，不得伪装成 controller 的 delegated device。Agent MLS KeyPackage MUST 由其当前 active accepted `ak.agent.key.authorize.verification_method` 对应的同一 Ed25519 key 生成 MLS LeafNode signature key并签署发布 transcript；claim / Welcome 的 claimed-endpoint trust binding MUST 使用 `agent_key_authorize_event_id` 引用该 authorize Event，并携 exact Agent method，且与普通设备使用的 `device_id + device_authorize_event_id` 精确互斥。Agent 分支禁止 `device_id`。authorize 被 revoke、supersede、过期或 key 不匹配时必须使未消费 claim fail closed，从而使 key authorization、session proof 与 MLS membership 落在同一审计链。
 
+##### Agent 初次 session proof、holder 出示与重试（normative）
+
+`AgentSessionGrantRequest.proof` 是闭合对象，字段按顺序为
+`proof_kind`、`challenge`、`request_canonical_digest`、`audience_id`、`issued_at`、
+`expires_at`、`verification_method`、`signature`，全部 required。`proof_kind` 固定为
+`agent_key_proof`；不携额外 `nonce`。runtime 为每次新申请生成至少 128 bit 密码学随机
+challenge，编码为无 padding 的 canonical Base64URL；同一申请的重传保留原值。
+challenge 不是服务端预发凭证，不需要新增 challenge endpoint，也不得复用 pairing handle/code。
+`audience_id` 是已验证的目标 resource service 身份，不得由 HTTP Host 或 caller 自选 verifier 替代。
+
+首次验证必须满足 `0 < expires_at-issued_at <=300s`、`issued_at <= now+30s`、
+`now < expires_at`。30 秒仅容忍签发时间领先，不延长 expiry 或 proof lifetime。
+时间使用 canonical timestamp；缺失值不得补写。该时窗不改变上述独立 session TTL。
+
+令 `R` 为完整 typed 请求 JSON：`request_canonical_digest` 固定为
+`sha256:hex(SHA-256(JCS(R 删除 proof.signature 与 proof.request_canonical_digest)))`。
+所有其它实际存在成员，包括两个时间、challenge、scope、authorization ref、可选 disclosure 与
+body `dpop_binding_proof`，都进入摘要；缺席 optional 不补 `null`。runtime 使用当前 accepted
+Agent key 对 `JCS(proof 删除 signature)` 直接作 Ed25519 签名，signature 使用无 padding 的
+canonical Base64URL 编码的 64-byte raw signature。proof_kind 与 request digest 都在签名内；
+不得套用 Event JWS transcript 或添加私有前缀。接收方从收到的完整 typed 请求独立重算两段 bytes。
+
+body `dpop_binding_proof.proof_jwt` 是冻结申请中的原始 holder proof；HTTP `DPoP` header 是
+每次请求的新鲜 transport proof。首次签发必须分别验证两者签名、method/target、时效及适用的
+DPoP nonce，且两者 public JWK 的 thumbprint 必须相同；同一 HTTP attempt 使用同一个 JWT 时
+只消费一次 JTI。重试必须保留完整 body，不替换 body JWT；header 使用同一 holder key 生成新鲜
+JWT/JTI。两者不要求 JWT 字符串相等。命中 §6.2 已完成 issuance record 后，仅复用原 body proof
+与 runtime one-shot proof 的耐久验证结果，仍重验当前 header 与原 holder JKT、method/target、
+issuer/audience、canonical request digest 及 exact intent。不得把原 body proof 再作为本次 transport
+proof 消费，也不得因原 one-shot proof 已过期而否定尚有效的 exact ledger replay。
+
+Agent 初次签发的 request identity 由完整
+`(principal_id, agent_key_authorization_ref, verification_method, challenge)` 确定，并由 §6.2
+的 issuer/operation namespace 隔离。immutable intent 绑定完整冻结请求和已验证 holder JKT，
+不包含可轮换的 HTTP header JWT。同 identity + 同 intent 只能恢复原结果；不同 intent 必须
+`duplicate_conflict`。初次 proof 消费与 issuance 的事务/恢复必须保证失败或崩溃不会留下无法
+恢复的 burnt challenge；有 pending record 但尚无已验证结果时，不得视作已完成或跳过首次验证。
+已完成结果的 expired/revoked/superseded/indeterminate 处理遵循 §6.2，不重新签发。
+
 ##### Agent signing-key binding 与 portable signer evidence（normative）
 
 每次首次 pairing、replacement pairing 或 same-key re-authorization 接受时，controller MUST 在同一批准动作中签发 `ak.schema.agent_signing_key_binding.v1`。其公开字段只允许 `agent_id`、与 authorize payload byte-identical 的 `agent_key_id`、完整 `verification_method`、raw Ed25519 `public_key`、`public_key_digest`、`agent_key_authorize_event_id`（完整 Event ID）、`issued_at`、仅在授权实际有期限时出现的 `expires_at`、`controller_principal_id` 与 `controller_proof`。authorize Event 的 payload 只承诺排除 `agent_key_authorize_event_id` 与 `controller_proof` 的 binding core digest；receiver 接受并得到完整 Event identity 后才 materialize 这两个字段，禁止在 Event authoring 前预铸本 Event ID。requested scope、`agent_key_scope`、audience selector、pairing code/request、runtime PoP、attestation、session 与 capability material 不得进入公开 binding。

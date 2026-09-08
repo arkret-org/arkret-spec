@@ -6140,7 +6140,7 @@
         "proof_jwt": {
           "type": "string",
           "minLength": 1,
-          "description": "RFC 9449 DPoP proof JWT over the session-grant issuance endpoint. For agent_key_proof issuance this proves possession of the holder key before the Account Authority returns the session grant."
+          "description": "Frozen initial holder proof authenticated by the Agent request digest. HTTP DPoP is fresh per attempt and must bind the same public JWK thumbprint, not necessarily identical JWT bytes. First validation checks both proofs; completed exact ledger replay reuses validated body proof while revalidating fresh HTTP DPoP. See key-management section 3.6.1."
         }
       }
     },
@@ -6890,6 +6890,8 @@
             "challenge",
             "request_canonical_digest",
             "audience_id",
+            "issued_at",
+            "expires_at",
             "verification_method",
             "signature"
           ],
@@ -6899,7 +6901,9 @@
             },
             "challenge": {
               "type": "string",
-              "minLength": 16
+              "minLength": 22,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "description": "Runtime-generated canonical unpadded Base64URL challenge with at least 128 bits of cryptographic randomness. Frozen for exact issuance retry; not a pairing handle or a server-issued challenge."
             },
             "request_canonical_digest": {
               "type": "string",
@@ -6907,7 +6911,10 @@
             },
             "audience_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-              "description": "Stable did_core_id of the resource service issuing the challenge and receiving the session request."
+              "description": "Verified target resource service identity; independent of HTTP Host and transport issuer routing."
+            },
+            "issued_at": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
             },
             "expires_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
@@ -6920,9 +6927,10 @@
             "signature": {
               "type": "string",
               "minLength": 1,
-              "description": "Current Agent runtime-key signature over the canonical request transcript."
+              "description": "Canonical unpadded Base64URL raw Ed25519 signature over RFC 8785 JCS of the entire proof with signature omitted; no Event JWS wrapper or extra prefix."
             }
-          }
+          },
+          "description": "Closed initial Agent proof. Require 0 < expires_at-issued_at <= 300 seconds, issued_at <= now+30 seconds, and now < expires_at for first validation. No additional nonce. Exact completed issuer-ledger replay reuses durable one-shot verification, with fresh matching-holder HTTP DPoP."
         }
       }
     },

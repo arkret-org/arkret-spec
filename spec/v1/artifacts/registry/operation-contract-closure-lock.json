@@ -149,7 +149,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.issue_session_grant.v1",
-      "sha256": "sha256:3c1ef4c74722fe9f24c167a23923a5604000f7dfc966e740f99933a1b2ba654f"
+      "sha256": "sha256:dbd5d7806efe4e89f459746f119f1ed883c8ea290be0817c2326eb6aa0548ed7"
     },
     {
       "operation_id": "ak.gate.account.command.logout.v1",
