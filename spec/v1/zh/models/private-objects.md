@@ -3,7 +3,7 @@ title: Private & Derived Objects
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-09-09
 ---
 
 ## 0. 规范语言
@@ -71,9 +71,9 @@ Schema id: `ak.schema.notification.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:notification` | `ak:notification:<uuidv7>`。 | 通知 ID。 |
+| `id` | yes | `id:notification_projection \| id:notification` | 普通源 Event 分支使用 `ak:notification_projection:<44-char-suite-tagged-full-digest-token>`；仅 Agent approval 专用分支使用 `ak:notification:<uuidv7>`。 | 通知 ID；两个分支的身份权威与校验规则不得混用。 |
 | `schema` | yes | `ak.schema.notification.v1` |  | Schema ID。 |
-| `actor_id` | yes | `did_core_id` | 接收者。 | 通知主体。 |
+| `actor_id` | yes | `ActorId` | 普通源 Event 分支必须是接收者的完整 account ActorId；Agent approval 分支按其专用 controller 绑定。 | 通知主体；不得只保留 principal 分量或从当前 Station 补齐 AccountId。 |
 | `realm_id` | no | `id:realm` |  | 来源 Realm。 |
 | `source_event_id` | conditional | `id:event` | 与 `source_account_artifact` 恰好一个出现。 | durable Realm Event 来源。 |
 | `source_account_artifact` | conditional | `{kind, id}` | 与 `source_event_id` 恰好一个出现；v1 闭合分支仅 `{kind="agent_runtime_approval", id=<approval_request_id>}`。 | 非 Event 的 account-private 短期 artifact 来源。不得伪造 Event id。 |
@@ -89,7 +89,7 @@ Schema id: `ak.schema.notification.v1`
 
 ### 3.3 行为规则
 
-- Notification 是派生 projection；客户端 / 服务端 SHOULD 从 source event + actor preferences 计算，不要把它当作独立真相源持久化为 durable canonical event。
+- Notification 是派生 projection；普通源 Event 分支 MUST 由客户端从已验证的原始 source Event、适用 accepted evidence、当前访问权和 actor-private preferences 本地重建，不得把它当作独立真相源持久化为 durable canonical event。服务端 MAY 从同一事实计算粗粒度 push wakeup，但 MUST NOT 改写 source Event、伪造 recipient-authored Event，或把普通 Notification 放入 `account_data.events[]` / Agent-only `notifications.items`。
 - 每条 Notification 必须恰好选择 `source_event_id` 或 `source_account_artifact`；Agent runtime approval 使用后者、`notification_kind="agent"`，且不得携带 `realm_id`、`source_ref`、`strand_id` 或 `track_name`。`source_account_artifact.id` 是 profile-local 短期 id，不是 durable protocol object ref；Notification 终止后 durable 真相只有 accepted `ak.agent.key.authorize` / lifecycle state。
 - E2EE Realm 中 `preview` 必须由发送者客户端脱敏后置入推送 envelope；服务端不得用明文重新生成 preview。
 - `notification_kind=message` 表示普通 `ak.message.create` 在接收者 effective watch / push rule 允许普通消息提醒时产生的 inbox / push 提醒；默认 `mentions_only` 不得为非定向普通消息产生该类型。当同一 source event 对同一 actor 同时命中 `mention`、`reply`、`assignment` 等更具体原因时，dispatcher MUST NOT 额外产生重复的 `message` notification。
@@ -117,7 +117,7 @@ Schema id: `ak.schema.notification.v1`
 - Relation create 不是现有 active `(realm_id, relation_kind, from_ref, to_ref)` assignment tuple 的 no-op 重放；同一 `(actor_id, source_event_id, notification_kind=assignment)` 最多生成一个 notification。
 - 接收 actor 对该 Strand 的 effective Realm / Circle scope 有读取权，且未被 `level=muted`、blocklist、DND 或 push rule 覆盖抑制。
 
-派生 notification 的 `actor_id` MUST 是 `to_ref`，`realm_id` MUST 是 Relation 所属 Realm，`source_event_id` MUST 是产生该 Relation create 的 Event id，`source_ref` SHOULD 是新增的 Relation id，`strand_id` MUST 是 `from_ref`。若 source Event 无独立 Event id，服务端 MAY 使用承载该 Event 的 operation id 作为本地 `source_event_id` 投影键，但跨服务 wire 输出仍 SHOULD 使用 canonical Event id。
+派生 notification 的 `actor_id` MUST 是 `to_ref`，`realm_id` MUST 是 Relation 所属 Realm，`source_event_id` MUST 是产生该 Relation create 的 canonical Event id，`source_ref` SHOULD 是新增的 Relation id，`strand_id` MUST 是 `from_ref`。缺少可验证 canonical Event id 时不得生成普通 notification projection；OperationId 不是 EventId，也不得作为本地或 wire `source_event_id` 替代品。
 
 解除 assignment（Relation tombstone）默认不产生 `assignment` notification；需要审计或流程提示的产品 MAY 在本地 UI 活动流展示，但不得把 tombstone 当作新的 assignment。发送者自分配默认不通知自己，除非 receiver 私有 push rule 显式 opt-in。
 

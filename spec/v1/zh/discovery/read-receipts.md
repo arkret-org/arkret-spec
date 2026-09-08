@@ -275,6 +275,8 @@ Notification 是派生 projection，不是 canonical truth。schema：`ak.schema
 
 `notification_kind` 是封闭枚举，其权威取值集合以 [`notification.schema.json`](../../artifacts/schemas/notification.schema.json) 为准:`message` / `mention` / `reply` / `assignment` / `schedule` / `invite` / `reaction` / `policy` / `call` / `applet` / `agent` / `moderation` / `system`(共 13 值);取未列值的 notification MUST 视为非法。
 
+普通源 Event 的类别判定必须使用 [`../models/private-objects.md` §3.3–§3.6](../models/private-objects.md) 及对应业务对象章节登记的 receiver-side 规则；枚举成员的存在本身不登记 producer，也不允许实现按 Event kind 名称、UI 文案或未验证 preview 猜测类别。当前 source Event、完整 recipient AccountId、effective scope / access、actor-private watch / block / DND / notification rule 与适用 accepted evidence 共同决定是否生成 projection；其中规则只影响生成与展示，不进入 §6.3 的身份前像。缺少任一必需事实时 MUST fail closed，且不得以服务端缓存的 Notification 行或 account-data 包装补成来源证据。
+
 notification / read scope 的 track 字段统一为 `track_name`，`track` 在 schema 层被拒绝（notification.schema.json 顶层 `not.required:["track"]`）。
 
 ### 6.4 Query 形状
