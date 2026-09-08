@@ -75,17 +75,17 @@ identity root key 表示 DID method 的初始与后继更新控制材料。对 A
 
 - root private key MUST 从生成起冷持有，不得由服务端生成或持有，也不得在任何设备上长期驻留；
 - root public key MUST NOT 出现在 principal DID Document 的 `verificationMethod` 中，root private key MUST NOT 充当 device key、MLS leaf key、KeyPackage key、session key 或入册权威 key；
-- root 的 Event 签名权限是封闭白名单：仅允许签自体 principal 的 PCR genesis `ak.realm.create` 与恢复 `ak.device.reanchor`；其他 Event 即使携带 DID entry ref 也不得启用 root-anchor 验签路径；
-- root 还可签合规 DID log controller proof；除此之外不得签普通 Arkret 操作。因此 root 的签名用途恰为三项：PCR genesis `ak.realm.create`、恢复 `ak.device.reanchor`、DID log controller proof；
+- root 的 Event 签名权限是封闭白名单：仅允许签自体 principal 的 PCR genesis `ak.realm.create`；包括 `ak.device.reanchor` 在内的其它 Event，即使携带 DID entry ref 也不得启用 root-anchor 验签路径；
+- root 还可签合规 DID log controller proof，或在 accepted PCR recovery policy 显式启用 `did_root` factor 时签该 factor 的 recovery-session transcript。后者只满足 policy 条件，不成为 Event signer；恢复 unit 的两条 Event 均由 session 冻结的 replacement device identity key 签署（`crypto-media/device-lifecycle.md` §14）；
 - 每个后继 root 公钥 MUST 不同于全部已激活 root；一代 root 被后继 entry 取代后即 spent，MUST NOT 再出现在任何后继 `updateKeys` 或 `nextKeyHashes` 中。
 
 ### 3.2 Principal High-Privilege Signing
 
-Arkret v1 不定义独立的账户级设备签名层级。高权限 PCR 操作由当前 generation 的 accepted device，或 recovery policy 明确登记的 quorum/signer 签发；identity root 仅承担 §3.1 的封闭 genesis/re-anchor 白名单。任何实现都不得从 DID Document 的普通 verification method 推导设备授权。
+Arkret v1 不定义独立的账户级设备签名层级。高权限 PCR Event 由当前 generation 的 accepted device 签署；全设备丢失时只允许 §14 的 replacement-device-signed recovery unit 特例。recovery policy 的 quorum/signer 验证 session factor，不能代签该 unit。identity root 仅承担 §3.1 的封闭用途。任何实现都不得从 DID Document 的普通 verification method 推导设备授权。
 
 ### 3.3 Recovery Secret 与域分隔子键
 
-用户只保管一个 recovery secret；它是派生源，不是可跨用途复用的一把 recovery private key。Arkret v1 从它派生三个相互隔离的角色：代际 DID update root、稳定 recovery-session proof key、稳定 backup HPKE key。客户端恢复 UI MAY 把 recovery secret 呈现为 24 词 BIP-39 助记词，但 MUST NOT 上传助记词、BIP-39 seed、PRK 或任何派生 private key；本地 MAY 仅保留不可逆指纹用于输入校验。
+recovery secret 是派生源，不是可跨用途复用的一把 recovery private key。Arkret v1 的派生合同隔离代际 DID update root、稳定 recovery-session proof key 与稳定 backup HPKE key。客户端 MAY 在首次配置时由同一 secret 派生这些角色，但 accepted PCR recovery policy MAY 独立登记由另一 secret 派生的 recovery-session proof key；后者不得被要求等于或控制注册 DID 的 root。客户端恢复 UI MAY 把 secret 呈现为 24 词 BIP-39 助记词，但 MUST NOT 上传助记词、BIP-39 seed、PRK 或任何派生 private key；本地 MAY 仅保留不可逆指纹用于输入校验。恢复 policy key 不授予 DID update authority；备份解锁仍须满足该备份自身的 key binding。
 
 24 词助记词与“至少 32-byte 均匀随机 secret”是两条互斥的**本地输入表示路径**，不是两种 wire recovery key。若产品把 raw secret 显示为 Crockford/Base32 等可抄录文本，其 codec MUST 无损往返全部 secret bits，KDF 输入 MUST 是解码后的原始 bytes，MUST NOT 是编码文本的 UTF-8 bytes。`ak.schema.key_backup.v1` 的 `recipient_method="passphrase_kdf"` 所用产品自选 backup passphrase 是另一类本地凭证；实现 MUST NOT 把它命名或解释为本节 identity recovery secret，也 MUST NOT 将其送入本节 identity recovery KDF。标准内容恢复凭证与 backup-HPKE 关系仍以 §7.5.2 为准。
 
@@ -112,7 +112,7 @@ backup_hpke_ikm = HKDF-Expand(PRK,
 
 本节密码学闭包由 `ak.vector.identity.recovery_kdf.v1` 执行验证；recovery secret 换代的全局 index 与崩溃续跑由 `ak.vector.identity.recovery_secret_handoff.v1` 验证。
 
-普通 root 轮换只推进 `root/<i>`。root index 是该 DID canonical history 的**全局**单调计数，不因 recovery secret handoff 归零。recovery secret 疑似泄露时：若没有预先存在且能拒绝“旧 secret 单签”的独立 guardian/witness/组织策略，原 DID MUST 视为不可逆 compromised，停止建立新信任并用新 secret 重铸 DID；旧 DID deactivation 只能 best-effort，不能作为安全迁移前提。若存在独立策略，MUST 走可续跑的两-entry handoff：设当前 entry 激活 `root_i` 且已承诺旧 secret 的 `root_{i+1}`；先确认新 secret 保管；entry i+1 在独立策略批准下激活旧 `root_{i+1}`，并承诺由新 secret 以**全局索引 i+2**派生的 `root'_{i+2}`；entry i+2 激活 `root'_{i+2}`、承诺 `root'_{i+3}`；随后对 entry i+2 执行 §5.0.3 re-anchor、发布新 recovery-proof policy、为所有引用旧 backup-HPKE recipient 的 active envelope 建新 series 并推进 signed active-series pointer，验证后再撤销旧 policy key。不得把新 secret 的局部 `root'_0` 填入既有 DID history；恢复者从 canonical entry 数重建同一全局 index。每一步 MUST 有 durable checkpoint 并支持幂等续跑。
+普通 root 轮换只推进 `root/<i>`。root index 是该 DID canonical history 的**全局**单调计数，不因 recovery secret handoff 归零。recovery secret 疑似泄露时：若没有预先存在且能拒绝“旧 secret 单签”的独立 guardian/witness/组织策略，原 DID MUST 视为不可逆 compromised，停止建立新信任并用新 secret 重铸 DID；旧 DID deactivation 只能 best-effort，不能作为安全迁移前提。若存在独立策略，MUST 走可续跑的两-entry handoff：设当前 entry 激活 `root_i` 且已承诺旧 secret 的 `root_{i+1}`；先确认新 secret 保管；entry i+1 在独立策略批准下激活旧 `root_{i+1}`，并承诺由新 secret 以**全局索引 i+2**派生的 `root'_{i+2}`；entry i+2 激活 `root'_{i+2}`、承诺 `root'_{i+3}`；随后独立按 accepted PCR policy 执行 §5.0.3 recovery unit（不得把 entry i+2 当作恢复授权）、发布新 recovery-proof policy、为所有引用旧 backup-HPKE recipient 的 active envelope 建新 series 并推进 signed active-series pointer，验证后再撤销旧 policy key。不得把新 secret 的局部 `root'_0` 填入既有 DID history；恢复者从 canonical entry 数重建同一全局 index。每一步 MUST 有 durable checkpoint 并支持幂等续跑。
 
 ### 3.4 Device Key
 
@@ -654,13 +654,15 @@ hosting 不等于 control）。是否在部署自有的发现面上标注、hand
 建立 recovery session，提交满足 policy 的 recovery secret、device quorum、trusted recovery service 或
 threshold proof；验证通过后原子提交：
 
-1. policy-authorized `ak.device.reanchor`，携带 `recovery_authority_kind="pcr_policy"`、policy/session ref、
+1. 由 session 冻结的 replacement device identity key 签署的、policy-authorized `ak.device.reanchor`，携带 `recovery_authority_kind="pcr_policy"`、policy/session ref、
    `previous_device_generation`、严格递增的 `new_device_generation` 与 replacement authorize payload digest；
-2. replacement device 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，`prev_refs`
+2. 同一 replacement device identity key 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，`prev_refs`
    只含 re-anchor Event id。
 
 `new_device_generation` 是 PCR-local monotonic generation ref，MUST NOT 等于或派生自 DID `versionId`。
-generation CAS 接受后 fence 全部旧 generation device；resolution cell 不变。
+generation CAS 接受后 fence 全部旧 generation device；resolution cell 不变。两条 Event 共享 session 冻结的
+`requesting_device_public_key_did` 与 unit-local candidate overlay；create-time PoP、factor transcript、
+设备 method 和原子消费规则全部按 `crypto-media/device-lifecycle.md` §14，不能以 root Event proof 替代。
 
 DID-root recovery 是 accepted policy 可显式启用、可撤销的一种 proof factor。只有 adapter 同时满足
 `verifiable_control_history` 与 `pre_rotation_commitment` 时，re-anchor 才可携带
@@ -1223,7 +1225,7 @@ Policy 签名输入固定为 `UTF8("ak.identity.recovery_policy.signature.v1\n")
 - **revoke share**：当某个 share holder 被怀疑泄露时，policy holder 可发布只更新 `threshold.shares[i].revoked_at` 与 `revocation_reason_code` 的 rotate envelope。recovery coordinator MUST 拒绝任何 `revoked_at != null` 的 share，即便 commitment 仍能通过。`reshare_policy.max_share_age_seconds` 到期后未 reshare 的 share 在 coordinator 侧 MUST 被视为 stale，UI MUST 提醒用户。
 - **revoke policy**：用 `expires_at = now`、`allowed_proof_kinds = []`、或专门的 `policy_id` revoke 进入 principal control stream；revoke 之后只有写入新 policy 才能恢复账号——这是高代价动作，必须配 §7.7 UI 警告。
 
-任何允许的恢复方式（did_root / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 create request、session state 与 proof transcript MUST 绑定 exact closed `account_id: AccountId {principal_id, station_id}`，以及 `(policy_id, version, recovery_session_id)`；create wire 不接受旧顶层 `principal_id`。接收方 MUST 要求 `account_id.station_id` 等于自身 authenticated service DID，并以完整 pair 选择唯一 lifetime PCR lineage，unknown/wrong-service/mismatch fail closed。不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 create `request_id`、认证该 create 的 `recovery_session` SessionGrant id、该 grant 的 `cnf.jkt`、`requesting_device_id`、`trust_domain`、`identity_model="pcr_policy"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation，且不得由 DID `versionId` 推导。get、proof submit、backup unlock 与 RecoveryTransaction MUST 出示同一 grant/JKT；transport grant、session state 或 proof transcript 任一 binding 不同都必须 `recovery_evidence_unbound`。`did_root` 仅在冻结 policy 显式启用时成立。
+任何允许的恢复方式（did_root / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 create request、session state 与 proof transcript MUST 绑定 exact closed `account_id: AccountId {principal_id, station_id}`，以及 `(policy_id, version, recovery_session_id)`；create wire 不接受旧顶层 `principal_id`。接收方 MUST 要求 `account_id.station_id` 等于自身 authenticated service DID，并以完整 pair 选择唯一 lifetime PCR lineage，unknown/wrong-service/mismatch fail closed。不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 create `request_id`、认证该 create 的 `recovery_session` SessionGrant id、该 grant 的 `cnf.jkt`、`requesting_device_id`、`requesting_device_public_key_did`、`trust_domain`、`identity_model="pcr_policy"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation，且不得由 DID `versionId` 推导。get、proof submit、backup unlock 与 RecoveryTransaction MUST 出示同一 grant/JKT；transport grant、session state 或 proof transcript 任一 binding 不同都必须 `recovery_evidence_unbound`。`did_root` 仅在冻结 policy 显式启用时成立。
 
 `recovery-session.schema.json#/$defs/publication_authority_context` 的 schema identity 固定
 `pcr_policy` authority model，因此该内嵌 context 不携 `identity_model`；session state 与 proof transcript
@@ -1237,7 +1239,7 @@ share holder 必须由 `holder_kind` 的封闭二分支表达：`personal_princi
 - 在签发 share release 之前 MUST 验证 holder 自己未被 §8.1 revoke，且当前时间在该 share 的 `not_before` / `expires_at` 范围内。
 - share release 的请求方绑定按 `proof_kind` 分流：
   - `device_quorum`：请求方设备的 device key MUST 已绑定到目标 principal control stream 中某个尚未 revoke 的 device record；不满足则拒绝 release。
-  - `threshold_recovery` / `recovery_unlock`：请求方设备 MAY 是尚未授权的新设备。holder MUST 验证 `recovery_session_id`、当前 policy/version、identity model/model generation、requesting device key proof-of-possession、session challenge、`requesting_device_id` 与 share request transcript 一致，并按 policy 要求完成 holder 侧 OOB / announcement / approval 检查；MUST NOT 要求该新设备预先存在于 control stream。若没有 accepted device，恢复完成出口必须按 `crypto-media/device-lifecycle.md` §14 提交 root-signed re-anchor + replacement-device-signed authorize 原子 unit。
+  - `threshold_recovery` / `recovery_unlock`：请求方设备 MAY 是尚未授权的新设备。holder MUST 验证 `recovery_session_id`、当前 policy/version、identity model/model generation、requesting device key proof-of-possession、session challenge、`requesting_device_id` 与冻结的 `requesting_device_public_key_did` 均与 share request transcript 一致，并按 policy 要求完成 holder 侧 OOB / announcement / approval 检查；MUST NOT 要求该新设备预先存在于 control stream。若没有 accepted device，恢复完成出口必须按 `crypto-media/device-lifecycle.md` §14 提交由同一 replacement device identity key 签署两条 Event 的原子 unit；不得追加 DID-root Event 签名条件。
   - 其它 future `proof_kind` 未在 policy 中 active 登记前 MUST fail closed；不得把 `threshold_recovery` 当作 `device_quorum` 的弱化别名。
 - share release transcript MUST 绑定 `(share_id, holder, recovery_session_id, requesting_device_id, audience, issued_at)`，并由 holder 签名；coordinator 在 reconstruction 之前 MUST 重放该 transcript 比对，并 MUST NOT 把同一 transcript 用于两次 reconstruction。
 - holder MAY 引入额外 OOB confirmation（电话回拨、共享密语）；该层不在 protocol normative 之内，但被纳入 holder 自身的安全 surface。

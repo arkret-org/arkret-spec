@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.4",
+  "version": "2026-09-09",
   "source_of_truth": true,
-  "generated_at": "2026-09-08T19:14:31+08:00",
+  "generated_at": "2026-09-08T21:05:59+00:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -285,7 +285,7 @@
       "context": "ak.device_authorize_possession_proof.v1",
       "object_family": "device_authorize_possession",
       "binding_fields": [
-        "principal_id",
+        "account_id",
         "device_id",
         "device_public_key_did",
         "hpke_key",
@@ -293,17 +293,17 @@
         "device_key_algorithm",
         "authorized_by",
         "not_before",
-        "expires_at?",
-        "scopes?",
-        "recovery_session_id?",
+        "expires_at",
+        "scopes",
+        "recovery_session_id",
         "authorization_binding_kind"
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
       "injected_fields": [
         {
-          "field": "principal_id",
-          "source": "containing Event envelope actor_id.account_id.principal_id"
+          "field": "account_id",
+          "source": "containing Event envelope actor_id.account_id, preserving both principal_id and station_id"
         }
       ]
     },
@@ -311,22 +311,25 @@
       "context": "ak.device_authorize_recovery_possession_proof.v1",
       "object_family": "device_authorize_recovery_possession",
       "binding_fields": [
-        "principal_id",
+        "account_id",
         "device_id",
         "device_public_key_did",
         "hpke_key",
         "algorithms",
         "device_key_algorithm",
         "authorized_by",
+        "not_before",
+        "expires_at",
+        "scopes",
         "recovery_session_id",
         "authorization_binding_kind"
       ],
-      "defined_in": "zh/crypto-media/device-lifecycle.md#14-全设备丢失恢复与设备重锚定",
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
       "injected_fields": [
         {
-          "field": "principal_id",
-          "source": "containing Event envelope actor_id.account_id.principal_id"
+          "field": "account_id",
+          "source": "containing Event envelope actor_id.account_id, preserving both principal_id and station_id"
         }
       ]
     },
@@ -1716,6 +1719,7 @@
         "session_grant_cnf_jkt",
         "account_id",
         "requesting_device_id",
+        "requesting_device_public_key_did",
         "trust_domain",
         "policy_id",
         "policy_version",
@@ -2000,6 +2004,24 @@
       "transcript_schema_refs": [
         "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_proof"
       ]
+    },
+    {
+      "domain": "ak.identity.recovery_device_possession.v1",
+      "object_family": "recovery_session_device_possession",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "schema",
+        "request_id",
+        "session_grant_id",
+        "session_grant_cnf_jkt",
+        "account_id",
+        "requesting_device_id",
+        "requesting_device_public_key_did",
+        "trust_domain",
+        "expected_recovery_policy_ref?"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_device_possession_transcript"
     }
   ]
 }

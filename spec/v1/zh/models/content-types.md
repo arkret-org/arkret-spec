@@ -451,7 +451,27 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 响应投票时，客户端发送 `ak.content.poll.response` Content Block，最小形态为 `{ "kind": "ak.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`。`poll_ref` MUST 解析到同一 Realm、同一有效 Circle scope 内已接受且包含目标 `ak.content.poll` block 的 Message；缺失、跨 scope 或不指向 poll 时接收方 MUST 拒绝 response Event。`selections` MUST 非空、无重复，且每个成员都属于该 poll 的闭合 answer-id 集合；去重后的成员数 MUST 不大于 `max_selections`。未知 answer 或超选 MUST 整体拒绝，不得过滤、截断或部分计票。
 
-权威计票由已接受的标准 Message Event 流承担。response Event 保留在 canonical Event log 中作为审计事实，并折叠进目标 poll 的 `PollState`；它不再物化为时间线中的独立 `MessageState`，避免投票动作同时成为第二条可回复 Message。reducer 按 actor 保存一个当前有效 response：若候选的 `causal_refs` 包含当前 response digest，候选替换当前值；若当前 response 的 `causal_refs` 包含候选 digest，保留当前值；否则两者并发，以 canonical Event digest 的 UTF-8 byte order 较大者胜出。该规则与接收顺序无关，重放必须得到相同 tally。poll Morph 或 Relation 只能投影此状态，不得成为第二真相源。canonical block schema 见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/content-block-poll.schema.json`；对应一致性向量为 `ak.vector.message.poll_reducer.v1`。
+权威计票由已接受的标准 Message Event 流承担。response Event 保留在 canonical Event log 中作为审计事实，并折叠进目标 poll 的 `PollState`；它不物化为时间线中的独立 `MessageState`。poll Morph 或 Relation 只能投影此状态，不得成为第二真相源。canonical block schema 见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/content-block-poll.schema.json`；对应一致性向量为 `ak.vector.message.poll_reducer.v1`。
+
+#### 4.9.1 因果响应集合与唯一计票（normative）
+
+分区键为 `(realm_id, effective Circle scope, poll_ref, JCS(Event.actor_id))`；Realm scope 与任一 Circle scope 不同。`actor_id` 保留完整 AccountId：Agent 自身作为 actor 时独立计票；代理写入仍归 `actor_id`，不得按 controller、裸 principal、设备、签名 key 或 `executed_by` 合并或拆分票。minimal-metadata 身份规则不变。
+
+每个分区的输入集合 S 仅含通过上述验证、在当前有效性基线下 accepted 且非 quarantine 的 response Event，按 canonical Event digest 去重。若 Y 的 `causal_refs` 直接包含同分区 X 的 canonical Event digest，建立改票边 X → Y；改票关系为这些边的传递闭包。只有已解析并验证为同分区 response 的引用建立边；其它消息、其它 poll、其它 actor、其它 scope 不建立改票边，也不能作为传递中介。`prev_refs`、`actor_seq`、HLC 和墙钟时间均不额外建立改票边或决定票的优先级。
+
+未解析的 `causal_refs` 必须先取得并验证其引用对象，再判定是否属于本分区；依赖未完成时，该 response 及依赖它的同分区后继不进入有效计票输入，原先可用响应不因此消失。迟到 predecessor 补齐后 MUST 重算受影响分区；不能将未解析引用当成“不存在旧票”而先计为并发。自引用或循环依赖非法，MUST NOT 进入有效计票输入，不得按 digest 打破因果环。本规则不新增通用 Event 接受状态或 wire reason code。
+
+令 H(S) 为依赖已闭合的有效输入中没有因果后继的响应集合。H 为空时该 actor 不计票；否则唯一当前票为 H 中 canonical Event digest 的完整 wire 字符串按 unsigned UTF-8 bytes 严格比较的最大者。完整采用该响应的 `selections`，不得合并多个并发响应的选项。digest 仅用于并发分支破局，不表示实际点击先后。producer 改票 SHOULD 在 `causal_refs` 中引用自己已观察到的本分区全部 heads，包括当前展示中未胜出的并发 head；未观察到的分支不得假定已覆盖。
+
+例如 A、B 并发，C 仅引用 A，且 digest 顺序 A > B > C：H={B,C}，所有合法接收顺序的当前票都是 B。若 D 同时引用 B、C，则只有 D 为 head，即使 D 的 digest 更小。只保存 A/B 的比较赢家再与 C 比较的算法不符合本规范。
+
+#### 4.9.2 状态、合并与重建（normative）
+
+内部状态 MUST 保留响应身份、selections、已验证改票边，以及足以恢复依赖的 canonical Event 资料或索引。当前 winner 与 tally 只是派生缓存；“每 actor 计一票”不是“内部仅存一条响应”。不得删除仅因并发比较落败而尚未被因果覆盖的 head。
+
+同一有效性基线下，副本合并为响应集合与已验证边的并集，然后求依赖闭合的 H 与 winner；此 join 必须满足交换律、结合律、幂等律。边必须由对应 Event 的 `causal_refs` 验证，不能信任对端单独声称的覆盖关系。全量重放、迟到依赖、重复输入及任意分片合并必须得出相同 heads、winner、selections 与 tally。仅对全部输入排序后套用两两 winner comparator 不合格。
+
+追溯 quarantine、fork resolution 等改变 accepted 输入集合时，按既有有效性规则撤除失效输入及处理依赖，再重建 projection；跨有效性基线不能假设输入永远只增不减。snapshot／压缩可以使用 heads 加完整因果上下文，但 MUST 与上述集合语义等价且可恢复依赖，不得仅保存展示 winner 或截断必要祖先。
 
 ### 4.10 复合消息 `ak.content.composite`
 
@@ -504,7 +524,13 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "format": "markdown",
   "reply_context": {
     "message_ref": "ak:message:AREJHXyA5b4XzVmfdrdizHFynW5zdwUwC68C8O1D5B8y",
-    "sender_actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+    "sender_actor_id": {
+      "kind": "account",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+        "station_id": "ak:did_core:web:station.example"
+      }
+    },
     "excerpt": "这个方案可行吗？"
   }
 }

@@ -278,7 +278,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/poll-reducer-fixture.json",
-      "sha256": "8d7dfdc206650372fbb3970785432f98fb9fa7c446879cd9de62de988b67c79c"
+      "sha256": "2127fec6440e1301c9f6e975286690453ebc1c6145547ccb4dc3badaa3aceb18"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

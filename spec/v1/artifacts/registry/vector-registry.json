@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.3",
+  "version": "2026-09-09.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-08T11:03:00+08:00",
+  "generated_at": "2026-09-08T20:58:37+00:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4271,7 +4271,7 @@
       "applies_to_fixtures": [
         "poll-reducer-fixture.json"
       ],
-      "description": "Accepted Message Events are the sole poll definition and response truth source; exact scope, answer closure, selection limit and deterministic per-actor replacement are fail-closed.",
+      "description": "Accepted Message Events are the sole Poll truth source. Full ActorId and Realm/Circle partitions retain causal response sets; closed causal heads select one complete vote by unsigned UTF-8 digest order. Arrival permutations, late dependencies, cycles, invalidation and commutative/associative/idempotent replica union must converge in heads, winner, selections and tally.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/poll-reducer-fixture.json",
         "spec/v1/zh/models/content-types.md"

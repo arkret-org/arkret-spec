@@ -249,7 +249,7 @@ successor 已 expired / revoked / superseded 时，必须返回登记的 `sessio
 
 `display_name` 是用户为该设备指定的人类可读名称（如 "Alice iPhone"），用于在设备列表 / 验证 / 撤销 UI 中区分同一 principal 名下的多台设备。它是 optional、可变、UI-only 字段，无唯一性约束，不参与任何 capability、reducer 或加密信任决策；设备的协议层唯一标识始终是 `device_id`。按 [`models/common-fields.md` §3](../models/common-fields.md) 与 [`overview/glossary.md`](../overview/glossary.md) 的命名约定，device record 的人类可读名称字段统一使用 `display_name`，不得用 `device_label`、`device_name` 或裸 `name` 等别名。
 
-设备记录必须由 root-committed genesis/re-anchor 或当前 generation 的 accepted device 签名，并受 device-generation fence 约束。服务端不得伪造 device identity。
+设备记录必须来自 root-committed PCR genesis、accepted-policy-authorized recovery unit 或当前 generation 的 accepted device 授权，并受 device-generation fence 约束。genesis 的首设备 authorize 与 recovery 的两条 Event 由各自候选设备 identity key 签署；policy factor 不代签 Event。服务端不得伪造 device identity。
 
 ## 5. Device Authorization Chain
 
@@ -271,14 +271,14 @@ identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event i
 `device_signature` 的 domain **由 `authorization_binding_kind` 判别**，不是单一固定值。该字段有三个取值，各自对应一个 domain 与一个封闭签名对象：
 
 - `registration_anchor`：PCR genesis 的第二条 authorize；domain `ak.device_authorize_possession_proof.v1`，见 §5.2.1。
-- `pcr_recovery`：PCR-policy 或显式 DID-root recovery unit 的第二条 authorize；domain `ak.device_authorize_recovery_possession_proof.v1`，并绑定 recovery session/policy/generation。
+- `pcr_recovery`：PCR-policy recovery unit 的第二条 authorize（包含 policy 显式选择 did_root factor 的情况）；domain `ak.device_authorize_recovery_possession_proof.v1`，并绑定 recovery session/policy/generation。
 - `accepted_device`：已有 accepted device 批准新设备；domain `ak.device_authorize_accepted_device_possession_proof.v1`，见 §5.2.2。
 
 三个 domain 都登记在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)。verifier MUST 先从 payload 的 `authorization_binding_kind` 选定 domain 与成员集合，MUST NOT 尝试其它 domain，也 MUST NOT 接受跨 binding kind 复用的 transcript。
 
 #### 5.2.1 registration/recovery possession transcript（normative）
 
-genesis / recovery 时候选设备自己 author 整个封闭 unit，因此签名对象覆盖完整 authorization core；recovery 分支还必须加入 policy/session/generation binding：
+genesis 时候选设备签署第二条 authorize；recovery 时同一候选设备签署整个封闭 unit。设备 possession 签名对象覆盖完整 authorization core；recovery 分支还必须加入 policy/session/generation binding：
 
 ```json
 {
@@ -337,7 +337,7 @@ genesis / recovery 时候选设备自己 author 整个封闭 unit，因此签名
 该 Event proof 同时是 `accepted_device` 分支下完整 account actor、`authorized_by`、`not_before`、`expires_at`、`scopes` 的**唯一签名承载**（§5.2.2）：它覆盖完整 canonical Event bytes，而签名方正是选定这些值的批准设备。验签方 MUST 用它校验这些字段，MUST NOT 期望目标设备的 `device_signature` 覆盖它们。
 
 - 对普通 Event，receiver 从当前 accepted PCR device directory 解析该 method；
-- 对 genesis/re-anchor unit 的第二条 authorize，目录尚未包含 candidate。verifier 必须建立只在本次 unit 内可见的 candidate overlay，把规范 method 映射到 descriptor/authorize payload 的 `device_public_key_did`，先验证 descriptor/payload/digest、possession signature 和 Event proof，全部成功后才原子写入 durable directory；
+- 对 genesis unit 的第二条 authorize，以及 recovery unit 的 re-anchor 和 authorize 两条 Event，目录尚未包含 candidate。verifier 必须建立只在本次 unit 内可见的 candidate overlay。genesis 的 key 来自经 root 承诺的 descriptor；recovery 的 key 必须同时等于已验证 session 的 `requesting_device_public_key_did` 和 authorize payload 的 `device_public_key_did`。overlay 将规范 account DID URL/device fragment 映射到该 key，只提供验签材料，不授予权限。verifier 先验证对应 descriptor 或 accepted policy/session、payload/digest、possession signature 和全部 Event proof，全部成功后才原子写入 durable directory；
 - 不得查询未接受的 projection，不得回退到同 fragment 的旧 key，也不得在验签前产生可观察目录状态。
 
 ### 5.4 后续设备配对（normative）
@@ -1306,9 +1306,9 @@ Ack 必须携 `high_water_cursor` 与按顺序 record digest 的
 全设备丢失时，账号重新登录不能替代 PCR recovery proof。基础路径由丢失前已进入 accepted Seal 的
 recovery policy 授权，并提交两条 Event：
 
-1. policy-authorized `ak.device.reanchor` 绑定 policy/version/session、exact `account_id`、replacement
+1. replacement device 签署的、policy-authorized `ak.device.reanchor` 绑定 policy/version/session、exact `account_id`、replacement
    authorize payload digest 与 monotonic PCR generation CAS；
-2. replacement device 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，
+2. 同一 replacement device identity key 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，
    `prev_refs` 只指向 re-anchor Event。
 
 两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。该 scope 的封闭字段集恰为
@@ -1322,13 +1322,54 @@ re-anchor；method 不支持 history/pre-rotation 或 policy 未启用时必须�
 DID publication；用户执行 resolution successor 时必须走独立 DID operation 发布流程，且其失败不得改变
 PCR recovery transaction 的 accepted-step ledger。
 
+**候选设备 key 的唯一承诺与 PoP（normative）**：create request 在 `requesting_device_id` 后必须携带
+`requesting_device_public_key_did` 与 `requesting_device_signature`，前者是无 fragment、规范编码的 Ed25519
+`did:key` 公钥值。该公钥值本身是唯一冻结承诺，不另携可被替换的 key alias。它与 DPoP grant-binding key
+独立，必须满足 §3 的身份 key/会话 key 分离规则。
+
+create-time PoP 的封闭对象由
+[`recovery-session.schema.json#/$defs/recovery_device_possession_transcript`](../../artifacts/schemas/recovery-session.schema.json#/$defs/recovery_device_possession_transcript)
+定义：`schema="ak.identity.recovery_device_possession.v1"`、`request_id`、`session_grant_id`、
+`session_grant_cnf_jkt`、`account_id`、`requesting_device_id`、`requesting_device_public_key_did`、
+`trust_domain` 和条件式 `expected_recovery_policy_ref`。grant id/JKT 必须从认证本次请求的
+`recovery_session` grant 取得，不能由未认证 body 指定；其它成员与 create request 逐字相同。
+`expected_recovery_policy_ref` 仅在请求提供时包含，不得将省略改为 null。签名原像为
+`UTF8("ak.identity.recovery_device_possession.v1\n") || JCS(上述对象)`，签名是 64 字节 Ed25519 signature
+的 base64url 无填充编码。`requesting_device_signature` 本身不进入原像。未知 multicodec、错误长度、
+非规范 key 编码、错误 PoP 或与 grant-binding key 复用均 fail closed，使用现有 `recovery_evidence_unbound`。
+
+来源 Station 必须在生成 session/challenge 及写入 pending session **之前**验完 PoP，并把公钥值冻结在
+`RecoverySessionState.requesting_device_public_key_did`。所有 factor（含显式 `did_root`）的
+`did_root_transcript` / `generic_recovery_transcript` 均必须在 `requesting_device_id` 后包含此冻结值。
+只证明持有 device id 字符串或 DPoP key 不满足该条件。session create 的 canonical intent 幂等摘要覆盖完整
+请求（包括 PoP）；同 grant/request_id 异 intent 为 `duplicate_conflict`，精确重试不换 key、不换 challenge。
+
+**unit admission 与原子边界（normative）**：两条 Event 的 proof method 均使用同一已验证 account DID 下、
+fragment 精确等于 `requesting_device_id` 的设备 method。verifier 从该账号已有可信 binding/accepted PCR
+resolution evidence 校验 principal 投影，不要求重新在线读取 current DID history；不得以设备 `did:key` 为
+Event actor 或把它冒充 account DID。unit-local overlay 的 key、session 冻结 key、两条 Event 实际验签 key
+与 authorize payload key 必须逐字相符；authorize 的 device id 必须等于 session requesting device id。
+先验 candidate key 的签名不是授权：接收方仍必须验证 exact AccountId/Station/PCR lineage、当前有效的
+policy/version、已 verified 且未过期的 session、原 grant/JKT、challenge、generation 与完整 frontier CAS、
+re-anchor 的 authorize payload digest 承诺，以及 authorize 唯一 `prev_refs`。
+
+generation CAS、旧 generation fence、两条 Event 接受、设备目录变更、session 消费及 RecoveryTransaction
+终态必须在同一原子提交中完成。失败不得新增 Event、目录、fence 或终态，不得部分消费既有 session。
+并发只允许一个 generation CAS winner；成功后的 byte-identical retry 返回原 receipt/终态，不因 session
+已被同一成功事务消费而失败，不得再做一次恢复。
+
+基础 `pcr_policy` 恢复 MUST NOT 要求 `registry_head`、current DID updateKeys、`did_recovery_anchor` ref、
+旧 `payload.did_version_id` 或 DID publication；session schema 不含 `registry_head`。DID 服务不可达不得
+成为基础 policy 恢复的额外前提。显式启用 `did_root` factor 时，该 factor 自身的 current authority、
+history/pre-rotation 验证仍须完成；即使它验证成功，两条 Event 也仍由上述 replacement key 签署。
+
 ### 14.1 Device lifecycle 与 trust 正交状态
 
 设备 lifecycle 为 `active | revocation_pending | revoked | expired | generation_fenced | conflicted`；验证状态为 `verified | unresolved | stale`。两维 MUST 分开投影，account `device_summary` 不得用 verification 值代替 lifecycle status，也不得因 evidence unresolved 省略 lifecycle。业务授权要求 lifecycle=`active`、evidence=`verified`、authorize generation 等于 current generation 且目标 Event basis 被 accepted Seal 覆盖。任何单一条件失败都不能由账号 session、DPoP 或 transport service signature 补足。
 
 ### 14.2 Recovery UI requirements
 
-客户端必须在任何网络副作用前 durable 保存 identity root/recovery、device identity、HPKE、DPoP keys 与完整 onboarding/recovery draft。UI 应区分：可 exact retry、genesis 已由另一 unit 赢得、必须 re-anchor、以及无 proof 无法恢复；不得让用户通过再次注册静默替换既有 PCR。
+客户端必须在任何网络副作用前 durable 保存本次流程需要的 device identity、HPKE、DPoP keys 与完整 onboarding/recovery draft；新注册还须保存 identity root/recovery material，基础 policy recovery 不要求持有注册 identity root。恢复 secret 按 key-management 的本地保管规则处理。UI 应区分：可 exact retry、genesis 已由另一 unit 赢得、必须 re-anchor、以及无 proof 无法恢复；不得让用户通过再次注册静默替换既有 PCR。
 
 ## 15. Applet Device Delegation
 

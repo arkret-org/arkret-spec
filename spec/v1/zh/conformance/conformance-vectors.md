@@ -3801,7 +3801,7 @@ Steps：
 1. 构造 root-signed create + founding-device-signed authorize；第二条 Event 的 proof method 使用 founding principal 已验证 `did` 下的 DID URL，并让其 bare `did` 经 adapter 投影为 `principal_id`（`did_core_id`）、fragment 逐字等于 `device_id`，同时让 descriptor、payload digest、device/HPKE material 与 initial session request 全部一致；不得从 principal core 与 device fragment 拼接 verification method。
 2. 分别 mutation root/device signature、lease fence、DPoP JKT、scope、Event order/prev_refs、descriptor fields与 payload digest。
 3. 尝试把 authorize Event id/envelope digest加入 root transcript，或把 second proof method改为 `did:key`。
-4. 并发提交两个不同 genesis unit；随后对 winner执行 root re-anchor。
+4. 并发提交两个不同 genesis unit；随后对 winner 执行 PCR-policy recovery unit。
 
 Expected：
 
@@ -5668,11 +5668,11 @@ Expected：
 
 ### 22.2 Root-anchor 排他性
 
-`ak.vector.identity.root_anchor_exclusivity.v1` 只允许 identity root 为自体 principal 的第一条 PCR `ak.realm.create`（唯一 critical `did_inception`）和 B 模型 `ak.device.reanchor` 启用 Event root-anchor 验签。原子 bootstrap 必须是 `[ak.realm.create, ak.device.authorize]` 且以 entry 0 delegation 验第二条；拆批、第二 PCR genesis、非 PCR Realm、actor/realm/DID 不匹配、缺失或非 critical ref、root 签任何普通 Event 均 fail closed。Agent PCR 不进入此路径。
+`ak.vector.identity.root_anchor_exclusivity.v1` 只允许 identity root 为自体 principal 的第一条 PCR `ak.realm.create`（唯一 critical `did_inception`）启用 Event root-anchor 验签；root-signed `ak.device.reanchor` 必须拒绝，即使 policy 启用了 did_root factor。原子 bootstrap 必须是 `[ak.realm.create, ak.device.authorize]` 且以 entry 0 delegation 验第二条；拆批、第二 PCR genesis、非 PCR Realm、actor/realm/DID 不匹配、缺失或非 critical ref、root 签任何普通 Event 均 fail closed。Agent PCR 不进入此路径。
 
 ### 22.3 Re-anchor、generation fence 与冲突
 
-`ak.vector.identity.device_reanchor.v1` 同时覆盖零 Seal 与完整 accepted Seal frontier 两个正向入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.3](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。负向必须覆盖 A 模型混入、live non-head、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、spent root、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
+`ak.vector.identity.device_reanchor.v1` 覆盖已有 accepted policy 与完整 accepted Seal frontier 的恢复入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.3](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。负向必须覆盖旧恢复模型混入、未授权的 root Event 签名、缺失 accepted policy、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、session key/PoP/双 Event key 不匹配、过期或已被其它事务消费的 session、撤销 policy、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
 
 同 `(principal_id,did_version_number)` 的不同 versionId/digest 或同 entry 的不同 re-anchor unit 必须把全集置于 quarantine 并令 `device_generation_status="conflicted"`；不同到达顺序得到相同结果，禁止 first-seen winner。conflicted 期间普通 admission fail closed；只有下一预承诺 authority 的有效 resolution entry + re-anchor unit 可恢复 `active`。
 

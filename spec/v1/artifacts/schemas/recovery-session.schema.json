@@ -135,13 +135,13 @@
         "session_grant_cnf_jkt",
         "account_id",
         "requesting_device_id",
+        "requesting_device_public_key_did",
         "trust_domain",
         "policy_id",
         "policy_version",
         "identity_model",
         "current_device_generation_ref",
         "device_generation_status",
-        "registry_head",
         "accepted_seal_frontier",
         "publication_authority_context",
         "publication_authority_context_digest",
@@ -178,6 +178,9 @@
           "$ref": "#/$defs/device_id",
           "description": "New device being recovered/authorized."
         },
+        "requesting_device_public_key_did": {
+          "$ref": "#/$defs/requesting_device_public_key_did"
+        },
         "trust_domain": {
           "$ref": "#/$defs/trust_domain"
         },
@@ -201,10 +204,6 @@
             "active",
             "conflicted"
           ]
-        },
-        "registry_head": {
-          "$ref": "#/$defs/digest",
-          "description": "Digest of the accepted identity-registry head snapshot."
         },
         "accepted_seal_frontier": {
           "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload/properties/pre_fence_seal_frontier"
@@ -298,6 +297,8 @@
         "request_id",
         "account_id",
         "requesting_device_id",
+        "requesting_device_public_key_did",
+        "requesting_device_signature",
         "trust_domain"
       ],
       "properties": {
@@ -311,6 +312,14 @@
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"
+        },
+        "requesting_device_public_key_did": {
+          "$ref": "#/$defs/requesting_device_public_key_did"
+        },
+        "requesting_device_signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "Ed25519 proof of possession, base64url without padding. Signs UTF8(ak.identity.recovery_device_possession.v1 plus LF) concatenated with JCS(recovery_device_possession_transcript); the authenticated grant supplies session_grant_id and session_grant_cnf_jkt."
         },
         "trust_domain": {
           "$ref": "#/$defs/trust_domain"
@@ -638,6 +647,7 @@
         "session_grant_cnf_jkt",
         "account_id",
         "requesting_device_id",
+        "requesting_device_public_key_did",
         "trust_domain",
         "policy_id",
         "policy_version",
@@ -671,6 +681,9 @@
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"
+        },
+        "requesting_device_public_key_did": {
+          "$ref": "#/$defs/requesting_device_public_key_did"
         },
         "trust_domain": {
           "$ref": "#/$defs/trust_domain"
@@ -921,6 +934,7 @@
         "session_grant_cnf_jkt",
         "account_id",
         "requesting_device_id",
+        "requesting_device_public_key_did",
         "trust_domain",
         "policy_id",
         "policy_version",
@@ -961,6 +975,9 @@
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"
+        },
+        "requesting_device_public_key_did": {
+          "$ref": "#/$defs/requesting_device_public_key_did"
         },
         "trust_domain": {
           "$ref": "#/$defs/trust_domain"
@@ -1091,6 +1108,59 @@
           }
         }
       ]
+    },
+    "requesting_device_public_key_did": {
+      "type": "string",
+      "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
+      "description": "Canonical fragmentless did:key carrying the replacement Ed25519 device identity public key. This exact value, not the DPoP grant-binding key, is frozen before factor verification and must equal replacement authorize device_public_key_did. The multicodec and 32-byte key must validate; other key kinds fail closed."
+    },
+    "recovery_device_possession_transcript": {
+      "type": "object",
+      "description": "Closed create-time replacement identity-key PoP transcript. Grant id/JKT come from authenticated recovery_session credentials. expected_recovery_policy_ref is included exactly when the create request includes it; absent is not null. No signature, recovery_session_id or server-issued challenge is present because this proof precedes session creation.",
+      "required": [
+        "schema",
+        "request_id",
+        "session_grant_id",
+        "session_grant_cnf_jkt",
+        "account_id",
+        "requesting_device_id",
+        "requesting_device_public_key_did",
+        "trust_domain"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.identity.recovery_device_possession.v1"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id",
+          "description": "Client-stable idempotency identity. The server binds it to the presented recovery_session grant id, cnf.jkt and canonical create intent; same identity with different intent fails duplicate_conflict."
+        },
+        "session_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "session_grant_cnf_jkt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        },
+        "account_id": {
+          "$ref": "#/$defs/account_id",
+          "description": "Required exact authority selector. The receiving server MUST require station_id to equal its own service DID and select the single lifetime PCR lineage by the complete pair; an unknown or mismatched pair fails closed."
+        },
+        "requesting_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "requesting_device_public_key_did": {
+          "$ref": "#/$defs/requesting_device_public_key_did"
+        },
+        "trust_domain": {
+          "$ref": "#/$defs/trust_domain"
+        },
+        "expected_recovery_policy_ref": {
+          "$ref": "#/$defs/recovery_policy_ref",
+          "description": "Optional client CAS hint. Servers MUST snapshot the currently accepted policy; if this hint is present and differs, the request fails with recovery_policy_mismatch."
+        }
+      },
+      "additionalProperties": false
     }
   }
 }
