@@ -76,7 +76,6 @@
     "share_commitment_mismatch",
     "space_parent_chain_in_bottom_state",
     "space_parent_cycle",
-    "space_parent_unreadable",
     "token_expired",
     "unknown_kind",
     "watch_level_public_must_be_self",

@@ -42,7 +42,7 @@ Realm 之间只允许显式 link graph（governance / discoverability / import-e
 - plaintext-visible service
 - event frontier / Seal pipeline
 
-`Realm` 的语义接近“保护域”或“治理域”，不是“项目文件夹”。一个组织通常会拥有多个 Realm：公开项目、普通内部项目、机密项目、HR 项目、法务项目可以位于同一 Organization / Space tree 下，但落到不同 Realm。
+`Realm` 的语义接近“保护域”或“治理域”，不是“项目文件夹”。一个组织通常会拥有多个 Realm：公开项目、普通内部项目、机密项目、HR 项目、法务项目可以由同一组织入口的 View 展示，但每棵 canonical Space tree MUST 位于同一个 Realm。
 
 `security_class=high_assurance` 是 Realm 的可选标签，进一步收紧 federation policy 与默认审计 / E2EE 选项。
 
@@ -394,7 +394,7 @@ Realm 有两个终态 event，语义不同：
 3. **Successor / Tombstone 区分**：`ak.realm.tombstone` MUST 携带不同于自身的 `successor_realm_id`；`ak.realm.destroy` MUST NOT 携带该字段。Projection 对二者统一暴露 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy`（或逐字节等价的封闭枚举）区分迁移与永久退役。
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ak.audit.erasure_receipt`（schema `ak.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：终态 Event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Station；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state`、记录相同 `terminal_kind`，并停止接受该 Realm 的新 `ak.peer.events.command.submit.v1`（包括 backfill 写入）。
-6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向终态 Realm 的 Space 时，引用方 MUST 在发现终态 frontier 后将该 edge 降级为 locked/lazy link，并在 30 days 的 `terminal_parent_repair_window` 内 reparent、archive 或 tombstone；不得传播终态 Realm 的 membership、capability、history 或 E2EE key material。
+6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm parent 禁止；普通外部引用不得进入 canonical placement 或 Space 删除依赖集合。
 7. **Circle scope cascade**：父 Realm tombstone 或 destroy 后，其内所有 [Circle](./circle.md) 的 **effective lifecycle** 立即进入 `realm_terminal`，但 Circle canonical lifecycle cell 不被隐式改写，也不合成 `ak.circle.tombstone`。该派生状态以父 Realm terminal Event 及其 Seal 为唯一依据，优先于 Circle 自身 `active` / `archived` projection。任何指向这些 Circle 的写入 MUST fail closed（`failed_precondition`, `reason_code=realm_terminal_state`）；projection MAY 显示 `scope_unavailable`，但 `scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md)。
 
 #### 2.6.2 跨 Station Erasure Receipt Fanout（normative）
@@ -529,12 +529,7 @@ Space 是用户和产品层可见的结构容器。它可以表达：
 - document outline group / page group
 - 任意 profile 注册的结构节点
 
-Space **不**拥有自己的 membership、policy、history visibility、E2EE group 或 federation policy。它通过 `realm_id` 和可选 `default_realm_id` 解析到 Realm：
-
-- `realm_id`：该 Space 对象自身 metadata 的 home Realm。创建、更新、archive、tombstone 该 Space 的事件写入这个 Realm。
-- `default_realm_id`：该 Space 下新建资源默认落入的 Realm。省略时直接取自身 `realm_id`；协议不递归继承 ancestor 默认值。
-
-这允许 UI 上的同一个 Space tree 跨越多个 Realm。例如 `/Acme/Projects` 下面的普通项目、机密项目和 HR 项目可以是兄弟 Space，但各自 `default_realm_id` 不同。
+Space **不**拥有自己的 membership、policy、history visibility、E2EE group 或 federation policy。Space metadata 及 canonical parent / placement 结构子资源 MUST 使用同一个实际 `realm_id`。Circle、对象 scope 和 capability 仍独立验证。跨 Realm 内容仅通过显式 View / 普通引用聚合。
 
 ### 3.2 Schema id 与字段
 
@@ -545,10 +540,9 @@ Schema id: `ak.schema.space.v1`
 | `id` | yes | `id:space` | 以 `ak:space:` 开头。 | Space ID。 |
 | `schema` | yes | `ak.schema.space.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | MUST 指向 `ak:realm:`。 | Space metadata 的 home Realm。 |
-| `default_realm_id` | no | `id:realm` | MUST 指向 `ak:realm:`。 | 子资源默认 Realm；省略时直接取本 Space `realm_id`。 |
 | `scope_circle_id` | no | `id:circle` | MUST 指向 Space metadata home Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 effective scope；省略表示 Realm-default。 |
 | `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement 的 reducer-enforced 约束。 |
-| `parent_space_id` | no | `id:space` | MAY 指向任意 Space；跨 Realm parent 仅表示导航，不级联权限。 | 结构层级父。 |
+| `parent_space_id` | no | `id:space` | MUST 指向同一实际 Realm 的 Space；不级联权限。 | 结构层级父。 |
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`；profile 可注册新 kind。 | Space 类型。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。 | 在 parent 内的位置。MUST 出现在 Space 顶层，**不**得作为 `fields.rank` 嵌套字段（与 [`relation.md` §2](./relation.md) 对 Relation 的相同约束对齐；wire 上 `fields.rank` MUST 被拒绝为 `schema_violation`，详见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
 | `schema_refs` | no | `array<string>` | 可选 schema/profile 引用。 | 约束本 Space 容纳的资源类型 / fields。 |
@@ -569,10 +563,10 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 ### 3.3 行为规则
 
 - **授权**：任何对 Space 的写入（`ak.space.create` / `ak.space.update` / `ak.space.archive` / `ak.space.restore` / `ak.space.tombstone` / `ak.space.parent`）都在 `realm_id` 指向的 home Realm 内授权。
-- **同步与联邦**：Space metadata 跟随 home Realm 同步。跨 Realm parent 只是可验证引用，不把 child metadata 合并到 source Realm 的 event frontier。
+- **同步与联邦**：Space metadata 跟随 home Realm 同步。parent 与 child MUST 属于同一 Realm frontier；Circle 裁剪不等于依赖不存在。
 - **加密 / scope**：Space 没有自己的 membership 或 MLS group。Space metadata 默认取决于 home Realm 的 scope、`encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing scope，并继承该 Circle 的投递 / 查询裁剪与 encryption profile。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
-- **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id` 与需要的 `scope_circle_id`；`default_realm_id` 只提供 Realm 初值。若 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源 scope。
+- **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id` 与需要的 `scope_circle_id`；新资源 MUST 使用当前 Space 的 `realm_id`；scope MUST 在该 Realm 中独立授权。
 - **子边界升级**：若 Space subtree 或单个 Strand 只需要 Realm 内的子事件 / 子消息边界，创建 Circle，并让子资源显式写入 `scope_circle_id`，必要时用 `child_scope_policy` 强制指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation 或 capability registry 时才创建新的 Realm。
 
 Space 自身 `scope_circle_id` 与子资源 `child_scope_policy` 的区别及 reducer 责任以
@@ -584,7 +578,8 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 
 - `ak.space.archive`：把 Space 设为 `archived`，默认 UI 隐藏；不自动 archive child Space 或内部 Strand。
 - `ak.space.restore`：仅允许 `archived -> active`；不级联 restore。
-- `ak.space.tombstone`：不可逆；在存在 live child Space 或 live `contains` placement 时 MUST `failed_precondition`。
+- `ak.space.tombstone`：不可逆；在存在 non-tombstoned child Space 或 non-redacted Strand 的有效 canonical `contains` placement 时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent cell 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结子项，禁止隐式级联或清空 canonical cells。
+- 检查 MUST 使用指定 accepted Seal basis 的完整 canonical parent / position / lifecycle 状态；可见列表、Circle 裁剪、缓存未命中、unresolved cell 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
 
 错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。
 
@@ -608,9 +603,9 @@ value   := id:space | null
 - 并发 reparent 返回 `⊥`，后续 Move fail closed，必须走 conflict recovery。
 - `parent_space_id == this_space_id` MUST `schema_violation`。
 - derived `contains`（`Space(board) -> Space(list)` / `Space(list) -> Strand`）与 derived `watches` 的真源分别是本节 cell 与 `ak.component.strand.watch.v1`；直接 `ak.relation.create / update / delete` 写这些形状 MUST `schema_violation`，reason 分别为 `relation_kind_contains_derived` 与 `relation_kind_watches_derived`（见 [`relation.md` §3.2](./relation.md)）。
-- Reducer 在接受 `ak.space.parent` 前 MUST 以候选新 parent 链执行确定性 acyclic 检测；若 `space_id` 再次出现在 ancestor 集合中，MUST 以 `failed_precondition`、`reason_code=space_parent_cycle` 拒绝。跨 Realm parent 同样参与检测；任何 ancestor 不可读取或缺少可验证 parent proof 时 MUST 以 `failed_precondition`、`reason_code=space_parent_unreadable` fail closed，不得假设无环。
+- Reducer 在接受 `ak.space.parent` 前 MUST 以候选新 parent 链执行确定性 acyclic 检测；若 `space_id` 再次出现在 ancestor 集合中，MUST 以 `failed_precondition`、`reason_code=space_parent_cycle` 拒绝。create 的初始 parent 也 MUST 执行相同检查；任何 ancestor 不可读取或缺少可验证 parent proof 时 MUST 以 `failed_precondition`、`reason_code=space_parent_unreadable` fail closed，不得假设无环。
 - `parent_space_id=null` 表示移动到 root。不可读 parent 的 projection MAY 返回 `{parent_space_id_hidden:true}`，但 MUST NOT 伪造 root。
-- parent Space MAY 位于不同 Realm；这只影响导航，不传播 membership、capability、history、E2EE key 或 retention policy。
+- parent Space MUST 与 child 具有相同的实际 `realm_id`；目标已可验证时，跨 Realm 写入 MUST `failed_precondition / space_realm_mismatch`。目标不可读或缺少证明时先以 `space_parent_unreadable` fail closed，不得泄露 Realm 差异。
 
 ### 3.6 Strand 位置
 
@@ -639,7 +634,7 @@ value shape := { "list_space_id": id:space, "rank": string } | null
 
 Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Move 的 position cell 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Move 使用相同的授权、Seal、CAS 和 WIP 后像判定。create 成功而 Move 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Move，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position cell 投影，不得合成 canonical Relation Event。
 
-默认规则：workflow placement MUST resolve to the same effective Realm as the Strand unless a profile explicitly declares a cross-Realm reference relation. 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
+Board、List 与 Strand 的实际 `realm_id` MUST 相同；创建、首次 move、后续 move 和 reorder 均无 profile 例外。已可验证的跨 Realm placement MUST `failed_precondition / space_realm_mismatch`；普通 move / reparent MUST NOT 修改 Realm。 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
 
 ### 3.7 示例
 
@@ -650,7 +645,6 @@ Project Space：
   "id": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
   "schema": "ak.schema.space.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "default_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "kind": "project",
   "title": "Website Redesign",
   "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
@@ -665,7 +659,6 @@ Confidential sibling Space：
   "id": "ak:space:AScD0xd0vWSGWhC2n9BZHco7N_jYnNgmEIifpAo_uxUJ",
   "schema": "ak.schema.space.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "default_realm_id": "ak:realm:AZUa8SJ6PUaPKeLjKKRW64JmDpKE7X-1KZHajF0_it8p",
   "parent_space_id": "ak:space:AUwbeCUMZI_GuEADljowhvFwzl6wIkaSiCDhu2oaOqTg",
   "kind": "project",
   "title": "Pricing Strategy",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.3",
+  "version": "2026-09-08.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-08T11:03:00+08:00",
+  "generated_at": "2026-09-08T15:57:36+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -6683,7 +6683,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space parent declaration. Parent is another ak:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
+        "payload": "Space parent declaration. Parent is another ak:space: in the same actual Realm, or null. Cross-Realm parent is forbidden at create and reparent. Parent never propagates capabilities or Circle visibility.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_parent_payload",
         "id_source": "reference"
       },

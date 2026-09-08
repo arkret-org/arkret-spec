@@ -40,7 +40,7 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 | `ak:realm:` | Realm | security / sync / auth / E2EE 边界 | [realm-and-space.md](./realm-and-space.md) |
 | `ak:circle:` | Circle | Realm 内子事件 / 子消息边界（子集成员 / 独立 history / 投递裁剪；可选独立 MLS group），对象通过 `scope_circle_id` 引用 | [circle.md](./circle.md) |
 | `ak:sidecar:` | Agent Sidecar | controller 的个人 AI 私有工作区；Event-derived ID，native scope，参与者由 controller + 当前 Realm 内的 active owned Agents 派生 | [sidecar.md](./sidecar.md) |
-| `ak:space:` | Space | 产品结构容器与导航节点（project / folder / board / list / section ...），通过 `realm_id` / `default_realm_id` 解析安全边界 | [realm-and-space.md](./realm-and-space.md) |
+| `ak:space:` | Space | 产品结构容器与导航节点（project / folder / board / list / section ...），通过 `realm_id` 解析安全边界 | [realm-and-space.md](./realm-and-space.md) |
 | `ak:strand:` | Strand | 统一协作主对象（task / decision / incident / channel ...） | [strand-and-message.md](./strand-and-message.md) |
 | `ak:message:` | Message | Strand `discussion` track 时间线消息 | [strand-and-message.md](./strand-and-message.md) |
 | `ak:morph:` | Morph | 开放形态对象，承载扩展业务类型 | [morph.md](./morph.md) |
@@ -103,7 +103,7 @@ flowchart TB
         Rel["ak:relation:"]
 
         Space -- "contains" --> Strand
-        Space -- "parent_space_id（导航，可跨 Realm）" --> Space
+        Space -- "parent_space_id（同 Realm）" --> Space
         Strand -- "tracks.discussion" --> Msg
         Rel -. "from_ref / to_ref" .-> Strand
         Rel -. "from_ref / to_ref" .-> Morph
@@ -144,7 +144,7 @@ flowchart TB
 
 Realm 之间 MAY 通过 `ak.realm.link` 形成显式 link graph（governance、discoverability、confidential_extension、mirror 等），但 v1 不定义通用 Realm hierarchy。membership、capability、history visibility、schema、policy 和 encryption key 不因 link 级联；任何继承都必须由目标 Realm 显式声明。详细规则见 [`realm-links.md`](./realm-links.md)。
 
-Space 层级通过 Space 自己的 `parent_space_id` + `ak.space.parent` 表达，可跨 Realm 做导航，但不得传播 Realm membership、capability、history visibility 或 E2EE key。详细规则见 [`space-hierarchy.md`](./space-hierarchy.md)。
+Space 层级通过 Space 自己的 `parent_space_id` + `ak.space.parent` 表达，MUST 位于同一 Realm 内；不传播 Circle 可见性或对象 capability。跨 Realm 展示使用 View / 普通引用。详细规则见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
 ### 3.2 Strand 承载主语义
 

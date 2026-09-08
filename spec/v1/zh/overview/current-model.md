@@ -59,13 +59,13 @@ Track 可独立启用或关闭，也可原子切换 primary；「只聊天不归
 
 容器选型的 normative 判定顺序以 [`architecture.md` §2.0](./architecture.md) 为准；本节只说明当前模型读法。
 
-工作流容器是独立的 `Space` 对象（`ak:space:`）。Space 是产品结构节点，不形成自己的 boundary；它的 metadata 写入 `realm_id` 指向的 home Realm，子资源默认落点由 `default_realm_id` 解析：
+工作流容器是独立的 `Space` 对象（`ak:space:`）。Space 是产品结构节点，不形成自己的 boundary；它的 metadata 写入 `realm_id` 指向的 home Realm，子资源默认落点由 `realm_id` 解析：
 
 - `Board Space`（`kind=board`）
 - `List Space`（`kind=list`）
 - 未来可扩展：`swimlane` / `calendar_bucket` / `page_group` / …（profile 注册）
 
-Strand 在 `Board Space` / `List Space` 中的位置通过 `contains` relation 与 `ak.strand.move` / `ak.strand.reorder` 维护。Space 之间的层级用 Space 自己的 `parent_space_id` + `ak.space.parent` 表达，可跨 Realm 做导航，但不级联 Realm 权限或密钥。
+Strand 在 `Board Space` / `List Space` 中的位置通过 `contains` relation 与 `ak.strand.move` / `ak.strand.reorder` 维护。Space 之间的层级用 Space 自己的 `parent_space_id` + `ak.space.parent` 表达，限定在同一 Realm 内；跨 Realm 展示使用 View，不级联权限或密钥。规范约束见 `models/realm-and-space.md` §3。
 
 ## 5. View 的职责
 

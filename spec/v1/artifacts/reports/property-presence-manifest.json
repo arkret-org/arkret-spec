@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9791,
+    "total_properties": 9790,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2688,
+      "optional": 2687,
       "optional_defaulted": 61,
       "required": 6711,
       "required_nullable": 124,
@@ -12985,7 +12985,6 @@
         "/properties/child_scope_policy": "optional",
         "/properties/created_at": "required",
         "/properties/created_by": "required",
-        "/properties/default_realm_id": "optional",
         "/properties/fields": "optional",
         "/properties/fields/properties/wip_limit": "optional",
         "/properties/fields/properties/wip_limit_enforcement": "optional",

@@ -23,11 +23,7 @@
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
-      "description": "Home Realm that stores, syncs, and authorizes this Space object's own metadata. This is also the fallback default Realm for new resources under this Space when default_realm_id is absent."
-    },
-    "default_realm_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_id",
-      "description": "Optional default Realm for resources created under this Space. Omitted means this Space's own realm_id; ancestor defaults are not inherited. This field does not grant membership or decryption rights."
+      "description": "Immutable Realm of this Space and of resources structurally placed under it. Producers explicitly bind new resources to this Realm; scope and capability checks remain independent."
     },
     "scope_circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id",
@@ -40,7 +36,7 @@
     "parent_space_id": {
       "type": "string",
       "pattern": "^ak:space:[A-Za-z0-9_-]{44}$",
-      "description": "Optional parent in the structural hierarchy. Parent MAY live in a different Realm; such a link is navigation only and never propagates membership, capabilities, history, E2EE keys, retention, or federation policy."
+      "description": "Optional canonical parent, which MUST belong to the same actual realm_id. Cross-Realm parent is forbidden, including at creation, with failed_precondition / space_realm_mismatch. Missing or unverifiable parent evidence fails closed with space_parent_unreadable before disclosing Realm differences."
     },
     "kind": {
       "type": "string",

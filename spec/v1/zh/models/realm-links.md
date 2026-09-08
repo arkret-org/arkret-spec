@@ -151,13 +151,13 @@ Realm link 查询返回 link graph，不返回产品导航树。产品导航应�
 
 ## 8. 与 Space Hierarchy 的关系
 
-Space hierarchy 可以跨 Realm 做导航。例如：
+不同 Realm 的 Space 只能由 View 聚合展示，不能形成跨 Realm parent。例如（缩进表示 View 展示，不是 parent）：
 
 ```text
 Acme (Space, realm_id=R_org)
   Projects (Space, realm_id=R_org)
-    Website Redesign (Space, default_realm_id=R_default)
-    Pricing Strategy (Space, default_realm_id=R_confidential)
+    Website Redesign (Space, realm_id=R_default)
+    Pricing Strategy (Space, realm_id=R_confidential)
 ```
 
 这里 `R_default` 与 `R_confidential` 不需要是 parent/linked Realm。若存在关系，也应使用明确 kind，例如：

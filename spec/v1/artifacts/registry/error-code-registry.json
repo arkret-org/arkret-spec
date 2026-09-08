@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-08.3",
-  "generated_at": "2026-09-08T11:03:00+08:00",
+  "version": "2026-09-08.4",
+  "generated_at": "2026-09-08T15:57:36+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -5198,7 +5198,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`ak.space.tombstone` cannot proceed because the target Space still has active `contains` Relations or non-tombstoned child Spaces. See zh/models/realm-and-space.md §3.4."
+      "description": "Space tombstone is blocked by a non-tombstoned child Space or an effective canonical placement of a non-redacted Strand. Archived dependents still count. See zh/models/realm-and-space.md section 3.4."
     },
     {
       "code": "space_not_active",
@@ -5239,7 +5239,15 @@
         "auth_decision",
         "projection"
       ],
-      "description": "The effective Space parent chain cannot be read or verified at the operation basis. Parent-dependent placement, default-Realm resolution, and subtree authorization MUST fail closed rather than treating the Space as a root. See zh/models/space-hierarchy.md section 4."
+      "description": "Canonical parent or placement structural facts cannot be read or verified at the operation basis. Structural validation and subtree authorization MUST fail closed, without disclosing hidden target Realm identity."
+    },
+    {
+      "code": "space_realm_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A verified canonical Space parent or Board/List/Strand placement crosses actual Realm identities. Reject with failed_precondition after target readability and evidence checks; no profile exception or automatic Realm rewrite."
     },
     {
       "code": "spam",

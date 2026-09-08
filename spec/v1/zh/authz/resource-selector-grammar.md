@@ -269,7 +269,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 - 匹配：特定结构 Space。
 - 适用：Space metadata、Space lifecycle、Space parent、board/list 类 workflow container 操作。
-- 不含义：不自动授予该 Space `default_realm_id` 指向 Realm 的 membership、history 或 E2EE key；也不自动授予 Space 下资源的读取权，除非资源 selector / action / constraint 同时命中。
+- 不含义：不自动授予该 Space `realm_id` 指向 Realm 的 membership、history 或 E2EE key；也不自动授予 Space 下资源的读取权，除非资源 selector / action / constraint 同时命中。
 
 `space:ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5:*`
 
