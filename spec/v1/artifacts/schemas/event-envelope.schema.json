@@ -4100,6 +4100,49 @@
           "realm_id"
         ]
       }
+    },
+    {
+      "if": {
+        "required": [
+          "applet_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "proofs": {
+            "items": {
+              "if": {
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "const": "station_admission"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "applet_installation_digest"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "proofs": {
+            "items": {
+              "not": {
+                "required": [
+                  "applet_installation_digest"
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -4303,24 +4346,9 @@
       "type": "string",
       "pattern": "^[0-9A-Za-z]{1,128}$"
     },
-    "space_id": {
-      "$ref": "#/$defs/board_space_id"
-    },
     "board_space_id": {
       "type": "string",
       "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
-    },
-    "list_space_id": {
-      "$ref": "#/$defs/board_space_id"
-    },
-    "strand_id": {
-      "$ref": "./agent-operations.schema.json#/$defs/strand_id"
-    },
-    "track_name": {
-      "$ref": "./agent-sidecar-exchange-projection.schema.json#/$defs/track_name"
-    },
-    "relation_id": {
-      "$ref": "./agent-operations.schema.json#/$defs/relation_id"
     },
     "event_ref": {
       "type": "string",
@@ -4614,7 +4642,7 @@
     },
     "station_admission_proof": {
       "type": "object",
-      "description": "Origin Station admission proof over canonical_json({context:'ak.station_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,signer_resolution_evidence_ref,accepted_at,verification_method}). The optional producer ref freezes the original producer evidence root when that signer regime has portable evidence; Agent federation requires it. The unprefixed signer ref continues to bind the Station proof's own service signer evidence. Each content-addressed ref embeds the sole wire copy of its evidence digest; no sibling *_digest mirror is carried (encoding.md 4.0.1).",
+      "description": "Origin Station admission proof over canonical_json({context:'ak.station_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,signer_resolution_evidence_ref,accepted_at,verification_method}). The optional producer ref freezes the original producer evidence root when that signer regime has portable evidence; Agent federation requires it. The unprefixed signer ref continues to bind the Station proof's own service signer evidence. Each content-addressed ref embeds the sole wire copy of its evidence digest; no sibling *_digest mirror is carried (encoding.md 4.0.1). Applet authority admission additionally signs applet_installation_digest and resolves the exact portable installation authority through governance dependencies.",
       "required": [
         "kind",
         "verification_method",
@@ -4632,7 +4660,7 @@
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Station verification method whose controller projects to the station_id inside the Event signer account ActorId. A directly authoring service proof instead projects to that service ActorId's service_id."
+          "description": "Controller projects to the verified installation target for installed Applet authority; otherwise to the route of executed_by ?? actor_id."
         },
         "event_digest": {
           "$ref": "#/$defs/digest"
@@ -4658,6 +4686,11 @@
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
           "description": "Content-addressed Station signer evidence; it resolves to the exact Station verification method used by this proof."
+        },
+        "applet_installation_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Required for ordinary installed Applet authority; SHA-256 of the exact AppletInstallationAuthority dependency. Forbidden otherwise."
         },
         "accepted_at": {
           "$ref": "#/$defs/canonical_event_timestamp"

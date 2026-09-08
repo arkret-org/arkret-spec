@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.station_admission.v1"
   },
-  "version": "2026-08-30",
+  "version": "2026-09-08",
   "covers_vectors": [
     "ak.vector.identity.station_admission.v1"
   ],
@@ -153,6 +153,66 @@
       "invariants": [
         "replica does not remove or replace the origin proof",
         "replica does not append its own admission proof"
+      ]
+    },
+    {
+      "name": "installed_applet_external_producer_uses_target_station",
+      "given": "an accepted exact installation binds an external Applet service and its grant to Station A",
+      "action": "submit a producer-only Bot/Ghost Event or direct service Event",
+      "expected": "accept_with_station_A_admission",
+      "invariants": [
+        "producer ActorIds and producer proof remain unchanged",
+        "applet_installation_digest binds frozen registration and grant Events"
+      ]
+    },
+    {
+      "name": "applet_caller_admission_is_never_imported",
+      "given": "an Applet caller includes a Station, Applet-signed, forged or duplicate admission proof",
+      "action": "submit over the Applet-to-Station transaction direction",
+      "expected": "reject",
+      "invariants": [
+        "no proof is stripped",
+        "no Event or effects are written"
+      ]
+    },
+    {
+      "name": "applet_crossed_installation_coordinates",
+      "given": "same service owns multiple Applets or one Applet has multiple scope installs",
+      "action": "substitute applet_id, exact scope, grant, epoch, action or admission controller",
+      "expected": "reject",
+      "invariants": [
+        "transport source never selects the installation",
+        "Circle authority never widens to Realm authority"
+      ]
+    },
+    {
+      "name": "applet_replica_frozen_authority",
+      "given": "a valid Applet Event was accepted before installation revocation or key rotation",
+      "action": "resolve standard installation and signer dependencies and verify on a replica",
+      "expected": "accept_original_proof",
+      "invariants": [
+        "current installation liveness cannot invalidate old history",
+        "missing evidence rejects or remains pending",
+        "replica never re-signs admission"
+      ]
+    },
+    {
+      "name": "applet_retry_preserves_proof",
+      "given": "an Applet producer-only Event was durably accepted",
+      "action": "retry exactly or replace its producer proof",
+      "expected": "exact_retry_only",
+      "invariants": [
+        "accepted_at and full accepted proof bytes are unchanged",
+        "changed producer proof is rejected without quarantining the accepted Event"
+      ]
+    },
+    {
+      "name": "applet_revoke_serializes_with_admission",
+      "given": "admission and installation revocation race",
+      "action": "commit using the shared durable installation fence",
+      "expected": "only_admission_before_fence_can_commit",
+      "invariants": [
+        "closed installation and provision units do not require a prior installation"
       ]
     }
   ]

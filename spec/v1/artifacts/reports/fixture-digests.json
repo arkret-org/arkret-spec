@@ -298,7 +298,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "6b8da2eb690ca2ef6b993e9b23c2e404bacc1f23f359a551e25bed380759bdb5"
+      "sha256": "6613b88b917199450e2e86e0ff07e562d069b949c454e26900bc7dba79c6a109"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -398,7 +398,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/station-admission-fixture.json",
-      "sha256": "91668f586a7c6a6bf28cb5e12c730413c19102565b8c1cd876db88fada5f956d"
+      "sha256": "020d0c9679faa028139d9dc8d87a9c70eb80dd9b49338477d390a11e3f383c89"
     },
     {
       "path": "spec/v1/artifacts/fixtures/string-profile-fixture.json",

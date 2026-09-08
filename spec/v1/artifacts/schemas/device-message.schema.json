@@ -451,9 +451,6 @@
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "digest": {
-      "$ref": "./account-operations.schema.json#/$defs/digest"
-    },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },

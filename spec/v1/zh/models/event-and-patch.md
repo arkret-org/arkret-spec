@@ -572,9 +572,9 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 账号型 principal 的完整外部 authority key 只有 `(principal_id, station_id)`。前者回答“是谁”，后者回答“哪个 Station 对该账号、设备和恢复状态负责”。同一 `principal_id` 在不同 Station 上形成不同账号；单个 Station 上同一 pair **MUST** 终身 create-once，只能对应一条 PCR lineage。注销、hard erasure 或停用后 **MUST** 保留最小 uniqueness tombstone，恢复只能沿原 lineage；换服务必须形成新的 pair。PCR Realm、genesis receipt、entry digest 与 frontier 可以作为账号内部审计和恢复状态，但 **MUST NOT** 参与外部 principal equality、membership、Contact、grant、普通 Event 或 cache/query identity。
 
-普通 Event 先定义 `author_id = executed_by ?? actor_id`，再以封闭路由函数导出唯一 origin service：`account -> account_id.station_id`、`service -> service_id`。`actor_id` 仍是业务事实归属者，delegated execution 的授权由 `authorization_ref` 另行证明。Event **MUST NOT** 再携带顶层 `station_id` 或任何平行 server sidecar；否则同一归属已在 `ActorId` 中表达两次，并会产生不一致分支。
+普通 Event 的 producer 固定为 `author_id = executed_by ?? actor_id`。未使用 Applet authority 时，唯一 origin 仍由 `account -> account_id.station_id`、`service -> service_id` 导出。使用已安装 Applet authority 的普通 Event（包括 service 直接行动）则 MUST 以 signed `applet_id`、exact `scope_ref`、`authorization_ref` 与 grant 绑定的 registration epoch 选择唯一安装，origin 为该安装接受时绑定的 Station。不得以 executor route、HTTP source/destination、URL 或接收进程身份替代安装证据。完整 `actor_id` 与 `executed_by` 不得改写；Event MUST NOT 携带顶层 `station_id` 或平行 server sidecar。
 
-普通 caller-signed Event 的首次准入 **MUST** 只发生在上述路由函数导出的 origin service。caller submit 只能携带 producer proof；origin Station 完成 schema、producer proof、完整 author ActorId、设备 generation/PCR 或相应 author branch 状态检查后，在同一 `proofs[]` 追加且只追加一个：
+普通 caller-signed Event 的首次准入 MUST 发生在上述唯一 origin。caller submit 恰含唯一 producer proof，携带任何 admission proof 一律拒绝且不得剥离后重试。origin 校验 schema、digest/Event ID、producer signature/key authority、完整身份、exact install/grant/action/scope、Realm policy、依赖/chain/frontier 与 durable revocation fence 后，追加唯一 `station_admission`：
 
 ```json
 {
@@ -583,7 +583,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
   "event_digest": "sha256:<canonical Event digest>",
   "producer_proof_digest": "sha256:<complete producer proof object digest>",
   "producer_verification_method": "did:webvh:example.com:alice#ak:device:0198a2f0-7e52-7a31-9fa2-5cb02b26da1f",
-  "producer_signing_key": "did:key:z<multibase public key>",
+  "producer_signing_key_did": "did:key:z<multibase public key>",
   "producer_signer_resolution_evidence_ref": "ak:signer_evidence:sha256:<producer evidence digest>",
   "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:<service evidence digest>",
   "accepted_at": "2026-08-13T13:38:00.000Z",
@@ -591,9 +591,15 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 }
 ```
 
-admission proof 使用独立 `context="ak.station_admission_proof.v1"`。其 `verification_method` controller **MUST** 投影为从 `author_id` 导出的 origin service；`event_digest` 必须同时等于唯一 producer proof 与重算 Event digest；`producer_proof_digest` 固定为完整 producer proof object 的 SHA-256；producer verification method/signing key 必须逐字绑定 origin 实际验证的唯一 producer proof。`producer_signer_resolution_evidence_ref` 是 optional 成员，存在时绑定原始 producer 的完整 content-addressed signer evidence，其内嵌 digest 是唯一 wire 表示（[`../conformance/encoding.md` §4.0.1](../conformance/encoding.md)）；Agent author 时它 **MUST** 存在并解析为 origin 在此次准入中冻结的 exact `CurrentAdmission` root。无前缀的 `signer_resolution_evidence_ref` 仍只绑定 admission proof 自身的 Station 历史签名证据，不得冒充 producer evidence。`proofs[]` 恰有一个 producer proof，最多一个 admission proof。`accepted_at` 只进入 admission transcript，不进入 Event digest、Event ID 或 reducer。
+admission proof 使用独立 `context="ak.station_admission_proof.v1"`。其 `verification_method` controller **MUST** 投影为上述分支验证出的唯一 origin Station；`event_digest` 必须同时等于唯一 producer proof 与重算 Event digest；`producer_proof_digest` 固定为完整 producer proof object 的 SHA-256；producer verification method/signing key 必须逐字绑定 origin 实际验证的唯一 producer proof。`producer_signer_resolution_evidence_ref` 是 optional 成员，存在时绑定原始 producer 的完整 content-addressed signer evidence，其内嵌 digest 是唯一 wire 表示（[`../conformance/encoding.md` §4.0.1](../conformance/encoding.md)）；Agent author 时它 **MUST** 存在并解析为 origin 在此次准入中冻结的 exact `CurrentAdmission` root。无前缀的 `signer_resolution_evidence_ref` 仍只绑定 admission proof 自身的 Station 历史签名证据，不得冒充 producer evidence。`proofs[]` 恰有一个 producer proof，最多一个 admission proof。`accepted_at` 只进入 admission transcript，不进入 Event digest、Event ID 或 reducer。
 
-exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof 即可验证；signer evidence 只允许按 proof 内 required content-addressed ref 通过标准 governance-dependency resolve 取得，**MUST NOT** 接收重复内嵌或 ad-hoc signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/历史完整性证明，也不得删除、替换或由 replica 重签 origin proof。origin Station MUST 在追加 admission proof 的同一 serializable gate 中读取 exact `(JCS(author_id), device_id, current_device_generation_ref)` 的 durable `ak.schema.device_revocation_state.v1`；任一未终结 `revocation_pending` 或 `revoked` record 都拒绝新 Event 且不得追加 proof，缓存只能加速。只有精确绑定 proposal/Ack/device/generation 的有效 `signed_reject` 能清除对应 pending record；overdue、restart、cache eviction 或管理员布尔值均不能。此前在 pending 线性化点之前合法产生的 proof 继续仅按其签名 `accepted_at` 验证，不因后来 revoke 而追溯失效。
+普通 Applet Event 的 admission proof MUST 包含 `applet_installation_digest`（完整 `AppletInstallationAuthority` 的 canonical JSON SHA-256），且该字段进入 admission transcript；非 Applet Event MUST 省略。该依赖是 closed object，字段依次为 `registration_event`、`capability_grant_event`，均为原始 accepted Event。通过标准 governance-dependencies 的 `kind=applet_installation_authority, content_digest` 解析，不接受私有 sidecar 或未经验证的 expected Station 参数。
+
+依赖验证顺序：对象摘要与闭合结构 → 两条 Event 的 schema、Event ID、producer/admission digest 与历史签名 → registration 的 signed applet/service/epoch 与 exact scope → Event authorization_ref 等于 grant Event 派生 GrantId → grant 的 subject/executor、唯一 applet_authority、action、resource 与 scope → admission controller。registration 必须是安装聚合原子接受的管理员 Event，其完整 ActorId 的 Station 与原始 admission controller 是安装目标的唯一权威投影；安装 commit MUST 与签署的 authoring request `basis.target_station_id` 及固定集合交叉一致。不得把单独提交的 registration 当成安装完成。grant 可以是经相应 native act-on-behalf authority 接受的委派，但不得改变安装目标。authority Events 不得递归携带 Applet installation authority。
+
+缺少或歧义依赖必须 pending/拒绝，不得根据当前安装反查并替换历史证据。副本必须验证被冻结的依赖并保留原 admission proof；后来撤销/epoch rotation 不得改变旧事件 issuer 或否定撤销前已合法接受的历史。首次准入仍 MUST 在与撤销共享的持久化线性化边界内检查当前有效授权。install/provision closed aggregate 使用其已有固定集合规则，不依赖安装已存在。
+
+exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof，并按上述分支验证所需安装与签名依赖；signer evidence 只允许按 proof 内 required content-addressed ref 通过标准 governance-dependency resolve 取得，**MUST NOT** 接收重复内嵌或 ad-hoc signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/历史完整性证明，也不得删除、替换或由 replica 重签 origin proof。origin Station MUST 在追加 admission proof 的同一 serializable gate 中读取 exact `(JCS(author_id), device_id, current_device_generation_ref)` 的 durable `ak.schema.device_revocation_state.v1`；任一未终结 `revocation_pending` 或 `revoked` record 都拒绝新 Event 且不得追加 proof，缓存只能加速。只有精确绑定 proposal/Ack/device/generation 的有效 `signed_reject` 能清除对应 pending record；overdue、restart、cache eviction 或管理员布尔值均不能。此前在 pending 线性化点之前合法产生的 proof 继续仅按其签名 `accepted_at` 验证，不因后来 revoke 而追溯失效。
 
 这把 Station 明确纳入账号设备 authority 的信任边界：服务 DID 签名提供可验证归责，但不能密码学阻止恶意服务虚假准入。若未来要抵抗恶意 Station，应另行设计 principal-root/device certificate transparency，且不得把 account-local PCR 状态重新暴露为跨服务身份选择器。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-06.1",
+  "version": "2026-09-08.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-06T23:40:00+08:00",
+  "generated_at": "2026-09-08T19:33:46+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -19,22 +19,6 @@
     "retained_mirror": "proof.event_digest inside the enclosing Event's producer/admission proofs is the only content digest that v1 deliberately retains next to the Event identity; it is registered here as a distinct_preimage row against the signer evidence refs and remains governed by encoding.md 6.0.1."
   },
   "exemptions": [
-    {
-      "exemption_id": "ak.exemption.sibling_digest.agent_signer_evidence_current_observation_request_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/agent-signer-evidence.schema.json",
-        "json_path": "$.$defs.current_observation.properties",
-        "digest_field": "request_digest",
-        "content_addressed_refs": [
-          "agent_key_seal_id",
-          "agent_status_seal_id"
-        ]
-      },
-      "preimage": "history_source_agent_observation_digest over the history response signing input with source_signer_evidence_ref removed; not a Seal",
-      "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
-    },
     {
       "exemption_id": "ak.exemption.sibling_digest.agent_signer_evidence_current_observation_agent_authority_state_digest.v1",
       "status": "active",
@@ -66,6 +50,22 @@
       },
       "preimage": "SHA-256(JCS(controller_account_gate_attestation)) frozen for this admission; not a Seal",
       "spec_anchor": "spec/v1/zh/identity/key-management.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.agent_signer_evidence_current_observation_request_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/agent-signer-evidence.schema.json",
+        "json_path": "$.$defs.current_observation.properties",
+        "digest_field": "request_digest",
+        "content_addressed_refs": [
+          "agent_key_seal_id",
+          "agent_status_seal_id"
+        ]
+      },
+      "preimage": "history_source_agent_observation_digest over the history response signing input with source_signer_evidence_ref removed; not a Seal",
+      "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.availability_receipt_root_bytes_digest.v1",
@@ -113,21 +113,6 @@
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.device_revocation_state_device_revocation_gate_decision_receipt_intent_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/device-revocation-state.schema.json",
-        "json_path": "$.$defs.device_revocation_gate_decision_receipt.properties",
-        "digest_field": "intent_digest",
-        "content_addressed_refs": [
-          "covering_seal_id"
-        ]
-      },
-      "preimage": "Immutable caller intent digest of the gated action; not the covering Seal",
-      "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
-    },
-    {
       "exemption_id": "ak.exemption.sibling_digest.device_revocation_state_device_revocation_gate_decision_receipt_accepted_device_possession_proof_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",
@@ -156,6 +141,52 @@
       },
       "preimage": "Lexicographically smallest surviving pending proposal_digest; not the covering Seal",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.device_revocation_state_device_revocation_gate_decision_receipt_intent_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/device-revocation-state.schema.json",
+        "json_path": "$.$defs.device_revocation_gate_decision_receipt.properties",
+        "digest_field": "intent_digest",
+        "content_addressed_refs": [
+          "covering_seal_id"
+        ]
+      },
+      "preimage": "Immutable caller intent digest of the gated action; not the covering Seal",
+      "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.event_envelope_producer_event_proof_event_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/event-envelope.schema.json",
+        "json_path": "$.$defs.producer_event_proof.properties",
+        "digest_field": "event_digest",
+        "content_addressed_refs": [
+          "signer_resolution_evidence_ref"
+        ]
+      },
+      "preimage": "canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id) of the enclosing Event (the retained proof.event_digest); not the signer evidence",
+      "spec_anchor": "spec/v1/zh/conformance/encoding.md#6-signature"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.event_envelope_station_admission_proof_applet_installation_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/event-envelope.schema.json",
+        "json_path": "$.$defs.station_admission_proof.properties",
+        "digest_field": "applet_installation_digest",
+        "content_addressed_refs": [
+          "producer_signer_resolution_evidence_ref",
+          "signer_resolution_evidence_ref"
+        ]
+      },
+      "preimage": "SHA-256(RFC8785_JCS(AppletInstallationAuthority)) over the original accepted registration_event and capability_grant_event; this commits to the installation and action authority, not either producer or Station signer resolution evidence.",
+      "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-station-authority-与准入证明normative"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.event_envelope_station_admission_proof_event_digest.v1",
@@ -190,21 +221,6 @@
       "spec_anchor": "spec/v1/zh/models/event-and-patch.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.event_envelope_producer_event_proof_event_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/event-envelope.schema.json",
-        "json_path": "$.$defs.producer_event_proof.properties",
-        "digest_field": "event_digest",
-        "content_addressed_refs": [
-          "signer_resolution_evidence_ref"
-        ]
-      },
-      "preimage": "canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id) of the enclosing Event (the retained proof.event_digest); not the signer evidence",
-      "spec_anchor": "spec/v1/zh/conformance/encoding.md#6-signature"
-    },
-    {
       "exemption_id": "ak.exemption.sibling_digest.event_payload_audit_release_payload_policy_version_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",
@@ -218,6 +234,36 @@
       },
       "preimage": "Digest of the audit policy version in force; not the Seal",
       "spec_anchor": "spec/v1/zh/crypto-media/audited-e2ee.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.history_key_history_key_response_lost_record_record_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/history-key.schema.json",
+        "json_path": "$.$defs.history_key_response_lost_record.properties",
+        "digest_field": "record_digest",
+        "content_addressed_refs": [
+          "release_service_signer_evidence_ref"
+        ]
+      },
+      "preimage": "Digest of the lost source record this descriptor stands for; not the signer evidence",
+      "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.history_key_history_key_response_record_record_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/history-key.schema.json",
+        "json_path": "$.$defs.history_key_response_record.properties",
+        "digest_field": "record_digest",
+        "content_addressed_refs": [
+          "release_service_signer_evidence_ref"
+        ]
+      },
+      "preimage": "response_record_digest over {sequence,cursor,source_record,sent_at,release_service_signer_evidence_ref,manifest_admission?,release_attestation?}; not the signer evidence",
+      "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.history_key_history_key_response_signing_input_request_digest.v1",
@@ -247,21 +293,6 @@
         ]
       },
       "preimage": "Digest of the history request receipt; not the source signer evidence",
-      "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.history_key_minimal_metadata_mls_leaf_signer_evidence_response_signing_public_key_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/history-key.schema.json",
-        "json_path": "$.$defs.minimal_metadata_mls_leaf_signer_evidence.properties",
-        "digest_field": "response_signing_public_key_digest",
-        "content_addressed_refs": [
-          "identity_link_signer_evidence_ref"
-        ]
-      },
-      "preimage": "Digest of the response signing public key; not the IdentityLink signer evidence",
       "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
     },
     {
@@ -295,6 +326,21 @@
       "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
     },
     {
+      "exemption_id": "ak.exemption.sibling_digest.history_key_minimal_metadata_mls_leaf_signer_evidence_response_signing_public_key_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/history-key.schema.json",
+        "json_path": "$.$defs.minimal_metadata_mls_leaf_signer_evidence.properties",
+        "digest_field": "response_signing_public_key_digest",
+        "content_addressed_refs": [
+          "identity_link_signer_evidence_ref"
+        ]
+      },
+      "preimage": "Digest of the response signing public key; not the IdentityLink signer evidence",
+      "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
+    },
+    {
       "exemption_id": "ak.exemption.sibling_digest.history_key_minimal_metadata_mls_leaf_signer_evidence_winning_group_state_event_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",
@@ -322,36 +368,6 @@
         ]
       },
       "preimage": "Digest of the winning MLS transition bytes; not the IdentityLink signer evidence",
-      "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.history_key_history_key_response_record_record_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/history-key.schema.json",
-        "json_path": "$.$defs.history_key_response_record.properties",
-        "digest_field": "record_digest",
-        "content_addressed_refs": [
-          "release_service_signer_evidence_ref"
-        ]
-      },
-      "preimage": "response_record_digest over {sequence,cursor,source_record,sent_at,release_service_signer_evidence_ref,manifest_admission?,release_attestation?}; not the signer evidence",
-      "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.history_key_history_key_response_lost_record_record_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/history-key.schema.json",
-        "json_path": "$.$defs.history_key_response_lost_record.properties",
-        "digest_field": "record_digest",
-        "content_addressed_refs": [
-          "release_service_signer_evidence_ref"
-        ]
-      },
-      "preimage": "Digest of the lost source record this descriptor stands for; not the signer evidence",
       "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
     },
     {
@@ -385,18 +401,18 @@
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.mls_governance_proof_bundle_merkle_membership_witness_root_digest.v1",
+      "exemption_id": "ak.exemption.sibling_digest.mls_governance_proof_bundle_frontier_branch_projection_state_root.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
         "schema_file": "schemas/mls-governance-proof-bundle.schema.json",
-        "json_path": "$.$defs.merkle_membership_witness.properties",
-        "digest_field": "root_digest",
+        "json_path": "$.$defs.frontier_branch_projection.properties",
+        "digest_field": "state_root",
         "content_addressed_refs": [
-          "root_seal_ref"
+          "target_seal_ref"
         ]
       },
-      "preimage": "The root Seal's state_root field value; not the Seal id",
+      "preimage": "The target Seal's signed state_root field value; not the Seal id",
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
@@ -415,108 +431,18 @@
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.mls_governance_proof_bundle_frontier_branch_projection_state_root.v1",
+      "exemption_id": "ak.exemption.sibling_digest.mls_governance_proof_bundle_merkle_membership_witness_root_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
         "schema_file": "schemas/mls-governance-proof-bundle.schema.json",
-        "json_path": "$.$defs.frontier_branch_projection.properties",
-        "digest_field": "state_root",
+        "json_path": "$.$defs.merkle_membership_witness.properties",
+        "digest_field": "root_digest",
         "content_addressed_refs": [
-          "target_seal_ref"
+          "root_seal_ref"
         ]
       },
-      "preimage": "The target Seal's signed state_root field value; not the Seal id",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_control_event_set_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal-transparency.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "control_event_set_root",
-        "content_addressed_refs": [
-          "seal_id"
-        ]
-      },
-      "preimage": "The Seal's control_event_set_root field value; not the Seal id",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_completeness_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal-transparency.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "completeness_root",
-        "content_addressed_refs": [
-          "seal_id"
-        ]
-      },
-      "preimage": "The Seal's completeness_root field value; not the Seal id",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_state_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal-transparency.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "state_root",
-        "content_addressed_refs": [
-          "seal_id"
-        ]
-      },
-      "preimage": "The Seal's state_root field value; not the Seal id",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_prev_entry_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal-transparency.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "prev_entry_digest",
-        "content_addressed_refs": [
-          "seal_id"
-        ]
-      },
-      "preimage": "Digest of the previous transparency entry's canonical bytes; not the Seal id",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_root_control_event_set_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "control_event_set_root",
-        "content_addressed_refs": [
-          "id"
-        ]
-      },
-      "preimage": "RFC6962 Merkle root over the covered control Event set; the Seal id is the digest of the whole Seal body",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_root_state_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "state_root",
-        "content_addressed_refs": [
-          "id"
-        ]
-      },
-      "preimage": "Merkle root of control-plane cell state; the Seal id is the digest of the whole Seal body",
+      "preimage": "The root Seal's state_root field value; not the Seal id",
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
@@ -535,18 +461,18 @@
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.seal_root_data_view_root.v1",
+      "exemption_id": "ak.exemption.sibling_digest.seal_root_control_event_set_root.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
         "schema_file": "schemas/seal.schema.json",
         "json_path": "$.properties",
-        "digest_field": "data_view_root",
+        "digest_field": "control_event_set_root",
         "content_addressed_refs": [
           "id"
         ]
       },
-      "preimage": "Observational root of KeyView records; the Seal id is the digest of the whole Seal body",
+      "preimage": "RFC6962 Merkle root over the covered control Event set; the Seal id is the digest of the whole Seal body",
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
@@ -565,6 +491,21 @@
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
+      "exemption_id": "ak.exemption.sibling_digest.seal_root_data_view_root.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/seal.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "data_view_root",
+        "content_addressed_refs": [
+          "id"
+        ]
+      },
+      "preimage": "Observational root of KeyView records; the Seal id is the digest of the whole Seal body",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
       "exemption_id": "ak.exemption.sibling_digest.seal_root_previous_state_root.v1",
       "status": "active",
       "kind": "distinct_preimage",
@@ -580,34 +521,79 @@
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_sealsubmitoutcome_post_state_root.v1",
+      "exemption_id": "ak.exemption.sibling_digest.seal_root_state_root.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
-        "schema_file": "schemas/service-operation-dtos.schema.json",
-        "json_path": "$.$defs.SealSubmitOutcome.properties",
-        "digest_field": "post_state_root",
+        "schema_file": "schemas/seal.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "state_root",
+        "content_addressed_refs": [
+          "id"
+        ]
+      },
+      "preimage": "Merkle root of control-plane cell state; the Seal id is the digest of the whole Seal body",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_completeness_root.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/seal-transparency.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "completeness_root",
         "content_addressed_refs": [
           "seal_id"
         ]
       },
-      "preimage": "The accepted Seal's state_root field value; not the Seal id",
+      "preimage": "The Seal's completeness_root field value; not the Seal id",
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_organizationregistrationreceipt_log_head_digest.v1",
+      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_control_event_set_root.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
-        "schema_file": "schemas/service-operation-dtos.schema.json",
-        "json_path": "$.$defs.OrganizationRegistrationReceipt.properties",
-        "digest_field": "log_head_digest",
+        "schema_file": "schemas/seal-transparency.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "control_event_set_root",
         "content_addressed_refs": [
-          "registration_receipt_id"
+          "seal_id"
         ]
       },
-      "preimage": "Digest of the Organization DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt_claims))",
-      "spec_anchor": "spec/v1/zh/identity/identity-did.md"
+      "preimage": "The Seal's control_event_set_root field value; not the Seal id",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_prev_entry_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/seal-transparency.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "prev_entry_digest",
+        "content_addressed_refs": [
+          "seal_id"
+        ]
+      },
+      "preimage": "Digest of the previous transparency entry's canonical bytes; not the Seal id",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_state_root.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/seal-transparency.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "state_root",
+        "content_addressed_refs": [
+          "seal_id"
+        ]
+      },
+      "preimage": "The Seal's state_root field value; not the Seal id",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_organizationregistrationreceipt_control_key_digest.v1",
@@ -625,19 +611,34 @@
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_serviceregistrationreceipt_log_head_digest.v1",
+      "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_organizationregistrationreceipt_log_head_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
         "schema_file": "schemas/service-operation-dtos.schema.json",
-        "json_path": "$.$defs.ServiceRegistrationReceipt.properties",
+        "json_path": "$.$defs.OrganizationRegistrationReceipt.properties",
         "digest_field": "log_head_digest",
         "content_addressed_refs": [
           "registration_receipt_id"
         ]
       },
-      "preimage": "Digest of the service DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt claims))",
+      "preimage": "Digest of the Organization DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt_claims))",
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_sealsubmitoutcome_post_state_root.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/service-operation-dtos.schema.json",
+        "json_path": "$.$defs.SealSubmitOutcome.properties",
+        "digest_field": "post_state_root",
+        "content_addressed_refs": [
+          "seal_id"
+        ]
+      },
+      "preimage": "The accepted Seal's state_root field value; not the Seal id",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_serviceregistrationreceipt_control_key_digest.v1",
@@ -652,6 +653,21 @@
         ]
       },
       "preimage": "Digest of the active control/update public key at version_id; the receipt id is SHA-256(canonical_json(receipt claims))",
+      "spec_anchor": "spec/v1/zh/identity/identity-did.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_serviceregistrationreceipt_log_head_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/service-operation-dtos.schema.json",
+        "json_path": "$.$defs.ServiceRegistrationReceipt.properties",
+        "digest_field": "log_head_digest",
+        "content_addressed_refs": [
+          "registration_receipt_id"
+        ]
+      },
+      "preimage": "Digest of the service DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt claims))",
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
     }
   ]

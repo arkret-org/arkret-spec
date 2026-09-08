@@ -75,15 +75,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/content-addressed-ref-digest-exemption-registry.json",
-      "version": "2026-09-06.1",
-      "generated_at": "2026-09-06T23:40:00+08:00",
-      "content_digest": "sha256:943208be2e7889f853eda751934806d85cf7f85819a9e4a2a6ae192986b041bc"
+      "version": "2026-09-08.1",
+      "generated_at": "2026-09-08T19:33:46+08:00",
+      "content_digest": "sha256:226632764220d54e9d28f76e0a5bc012f11f1a5d8a51759c3aaa7792aa8fe05e"
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-09.1",
-      "generated_at": "2026-09-08T16:09:50+00:00",
-      "content_digest": "sha256:7e6c76ae0cb9e53bacdac12d86f151dca751682ffbeb48ffdf6dca7689c3e269"
+      "version": "2026-09-09.2",
+      "generated_at": "2026-09-08T20:18:11+00:00",
+      "content_digest": "sha256:7d90d79f3d6cf985d28c77b94a70f451c0b306f59d16cf6f3496952ba2c7262c"
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
@@ -243,15 +243,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-08.8",
-      "generated_at": "2026-09-08T16:48:46+08:00",
-      "content_digest": "sha256:0d22b17444b4b33d762fc5eca391fad5b11323ce65e4c9f28dc9af20b6af833e"
+      "version": "2026-09-08.9",
+      "generated_at": "2026-09-08T16:09:50+00:00",
+      "content_digest": "sha256:f8b2438ead9bf9e25b5d0f6653af2a9628767a7208e6fc1dcfffcd118e6c31a0"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-08.3",
-      "generated_at": "2026-09-08T11:03:00+08:00",
-      "content_digest": "sha256:027be2c78f7c4c636e249b1a4f169808d7e1048d222db6885090ddbb9ddeece9"
+      "version": "2026-09-08.5",
+      "generated_at": "2026-09-08T19:26:32+08:00",
+      "content_digest": "sha256:69c192ef205cee8237d1d7fda726248c3318021a0b095db8d57769c6491f1b90"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -291,9 +291,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-09-08.3",
-      "generated_at": "2026-09-08T11:03:00+08:00",
-      "content_digest": "sha256:2cab232c8bbcc83dcd3e4f1ad214ac65a7ff8b92fe0d8641ddd32fd47f78c52a"
+      "version": "2026-09-08.4",
+      "generated_at": "2026-09-08T19:14:31+08:00",
+      "content_digest": "sha256:edd5b2d6ac320760d5e2fad41a8c8fd93da7f82913d5da3aa34dbf38c81d6fca"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",

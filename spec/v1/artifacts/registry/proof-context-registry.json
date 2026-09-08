@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.3",
+  "version": "2026-09-08.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-08T11:03:00+08:00",
+  "generated_at": "2026-09-08T19:14:31+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -842,10 +842,11 @@
         "producer_signing_key_did",
         "producer_signer_resolution_evidence_ref?",
         "signer_resolution_evidence_ref",
+        "applet_installation_digest?",
         "accepted_at",
         "verification_method"
       ],
-      "defined_in": "zh/models/event-and-patch.md#31-principal-authority-与-origin-admission",
+      "defined_in": "zh/models/event-and-patch.md#31-station-authority-与准入证明normative",
       "schema_ref": "schemas/event-envelope.schema.json#/$defs/station_admission_proof"
     },
     {

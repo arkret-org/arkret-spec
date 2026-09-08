@@ -30,9 +30,6 @@
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
-    "event_id": {
-      "$ref": "./account-operations.schema.json#/$defs/event_id"
-    },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },

@@ -386,6 +386,9 @@
         },
         {
           "$ref": "#/$defs/CollisionVariantRecordSelector"
+        },
+        {
+          "$ref": "#/$defs/AppletInstallationAuthoritySelector"
         }
       ]
     },
@@ -515,6 +518,22 @@
             },
             "collision_variant_record": {
               "$ref": "./collision-variant-record.schema.json"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "selector",
+            "applet_installation_authority"
+          ],
+          "properties": {
+            "selector": {
+              "$ref": "#/$defs/AppletInstallationAuthoritySelector"
+            },
+            "applet_installation_authority": {
+              "$ref": "#/$defs/AppletInstallationAuthority"
             }
           },
           "additionalProperties": false
@@ -7254,6 +7273,39 @@
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
           "minLength": 1,
           "maxLength": 128
+        }
+      },
+      "additionalProperties": false
+    },
+    "AppletInstallationAuthority": {
+      "type": "object",
+      "required": [
+        "registration_event",
+        "capability_grant_event"
+      ],
+      "properties": {
+        "registration_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "capability_grant_event": {
+          "$ref": "./event-envelope.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AppletInstallationAuthoritySelector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "content_digest"
+      ],
+      "properties": {
+        "kind": {
+          "const": "applet_installation_authority"
+        },
+        "content_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
         }
       },
       "additionalProperties": false
