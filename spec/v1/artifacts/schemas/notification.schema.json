@@ -4,6 +4,42 @@
   "$defs": {
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "projection_preimage": {
+      "type": "object",
+      "required": [
+        "recipient_account_id",
+        "realm_id",
+        "source_event_id",
+        "notification_kind"
+      ],
+      "properties": {
+        "recipient_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "source_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "notification_kind": {
+          "enum": [
+            "message",
+            "mention",
+            "reply",
+            "assignment",
+            "schedule",
+            "reaction",
+            "policy",
+            "call",
+            "applet",
+            "moderation",
+            "system"
+          ]
+        }
+      },
+      "additionalProperties": false
     }
   },
   "title": "Arkret Notification",
@@ -25,8 +61,17 @@
   },
   "properties": {
     "id": {
-      "type": "string",
-      "pattern": "^ak:notification:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^ak:notification_projection:[A-Za-z0-9_-]{44}$",
+          "description": "SHA-256 suite byte 0x01 followed by the complete digest of the registered notification projection preimage. Recompute against recipient AccountId, RealmId, source EventId and notification_kind."
+        },
+        {
+          "type": "string",
+          "pattern": "^ak:notification:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      ]
     },
     "schema": {
       "const": "ak.schema.notification.v1"
@@ -125,12 +170,43 @@
   "oneOf": [
     {
       "required": [
-        "source_event_id"
+        "source_event_id",
+        "realm_id"
       ],
       "not": {
         "required": [
           "source_account_artifact"
         ]
+      },
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ak:notification_projection:[A-Za-z0-9_-]{44}$",
+          "description": "SHA-256 suite byte 0x01 followed by the complete digest of the registered notification projection preimage. Recompute against recipient AccountId, RealmId, source EventId and notification_kind."
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "not": {
+            "required": [
+              "service_id"
+            ]
+          }
+        },
+        "notification_kind": {
+          "enum": [
+            "message",
+            "mention",
+            "reply",
+            "assignment",
+            "schedule",
+            "reaction",
+            "policy",
+            "call",
+            "applet",
+            "moderation",
+            "system"
+          ]
+        }
       }
     },
     {
@@ -140,6 +216,10 @@
       "properties": {
         "notification_kind": {
           "const": "agent"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^ak:notification:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       },
       "not": {

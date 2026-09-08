@@ -741,6 +741,8 @@ id_form，也不得把 Event、Realm 或 Event-derived typed ID 降级为 UUIDv7
 不是 Event ID。其首字节是完整 digest-suite wire code，不得按 Realm 的“保留零 nibble + 低 4 位
 suite”解释；具体合同见 [`../identity/key-management.md` §6.1](../identity/key-management.md)。
 
+`notification_projection` 使用 `suite_tagged_full_digest` 与 `identity_authority="source_evidence"`，其 closed preimage、域分隔和 SHA-256 算法由 ID registry 的 `notification_projection_identity_contract` 及 [`read-receipts.md` §6.3](../discovery/read-receipts.md#63-notification-派生-projection) 固定。身份键为完整 typed ID；验证责任是校验原始源 Event、接受证据和 recipient context 后重算身份，不要求独立 producer genesis signature。此例外只适用于普通通知投影，不适用于 Agent approval 的 `notification` ID。
+
 `producer_allocated` UUIDv7 只提供时间排序与随机冲突概率，**不证明谁有权分配该 ID**。其协议身份键 MUST 是 `(mint_authority, typed_id)`，`mint_authority` 是该 ID 首次持久出现时通过接收校验的 genesis proof signer DID。存储与索引 MUST 原子保留这个二元组：同 authority + 同 ID + 同内容是幂等重放；同 authority + 同 ID + 不同内容 MUST 拒绝并隔离；不同 authority 即使 UUID 相同也是不同身份。裸 typed-ID 查找、跨 authority 去重、last-writer-wins 修复以及未绑定签名的预占位都 MUST fail closed。该规则由 ID registry 顶层 `producer_allocated_identity_contract` 机读定义，所有 `identity_authority="producer_signature"` 行统一继承。
 
 并非所有 ID kind 都是 producer-allocated `ak:<kind>:<uuidv7>`。Event-derived kind 使用上述

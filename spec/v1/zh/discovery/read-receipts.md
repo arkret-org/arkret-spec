@@ -240,13 +240,27 @@ schema：`ak.schema.read_receipt.v1`：
 
 ### 6.3 Notification 派生 projection
 
+普通源 Event 通知的身份为 `ak:notification_projection:<token>`。`token` 是 `0x01 || SHA-256(UTF8("ak.notification-projection.v1\n") || RFC8785_JCS(preimage))` 的无填充 base64url 编码，共 44 字符，保留完整 32 字节摘要；域分隔字符串末尾是单个 LF 字节。`preimage` 是 [`notification.schema.json#/$defs/projection_preimage`](../../artifacts/schemas/notification.schema.json#/$defs/projection_preimage) 定义的封闭对象：完整 `recipient_account_id`、`realm_id`、原始 `source_event_id`、`notification_kind`。不得截断摘要形成 UUID，不得重定型 Event ID。
+
+同一源、账户、Realm 和类别在所有设备上 MUST 得到相同身份。规则 ID、revision、read cursor、preview、语言、设备与时间不参与身份。关闭后重新启用规则或清缓存重建 MUST 复用身份；修改源 Event 或类别则必须重新派生。每个源 Event 对每个接收账户、每个类别至多产生一个身份。
+
+普通分支的 `actor_id` MUST 是接收账户的完整 account ActorId，`realm_id` 必填；接收方 MUST 重算并比较身份。摘要本身不证明来源、不授予读取权限。客户端必须先验证原始源 Event 及其适用接受证据，再依据当前访问权和规则本地派生。不得改写源 Event 的作者、payload 或 proofs 来承载通知，不得把普通通知装入 `account_data.events[]` 或 Agent-only `notifications.items`，不得新增通知 HTTP 读取面。源缺失、redaction 或撤权时必须清除旧 preview；保留的 inbox 处置状态不能用于恢复正文。
+
+`ak:notification:<uuidv7>` 仅用于 Agent approval 专用分支，继续要求原 producer authority 合同；普通投影摘要不得替代该 UUID。Invite 使用独立的 InviteDeliveryEntry，不属于普通源 Event Notification 分支。共享 inbox 的 key 尾部及解密 value 的 `notification_id` 必须同属一个身份分支且完全相等；archive/dismiss 沿用 encrypted account-data CAS、HLC/device 合并与冲突后重读合并，read/unread 仍独立由 read cursor 派生。
+
 Notification 是派生 projection，不是 canonical truth。schema：`ak.schema.notification.v1`：
 
 ```json
 {
-  "id": "ak:notification:01964157-8000-7000-8000-000000000000",
+  "id": "ak:notification_projection:AcDdfcnJk6U1tjvzQvBEKrNJ6zDKlNhVFeh22cy8n_2V",
   "schema": "ak.schema.notification.v1",
-  "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+  "actor_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:web:alice.example",
+      "station_id": "ak:did_core:web:ps.example"
+    }
+  },
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "source_event_id": "ak:event:AU_oCPn_WTIYBhptsMI1qfZ28EaYvJo6qGTYZmYG4u7J",
   "source_ref": "ak:message:Ac4grCTeSnv86UIA0vyN5mjzADSkwSSFvGCYIwTHoXqb",

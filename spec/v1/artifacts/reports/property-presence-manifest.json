@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9790,
+    "total_properties": 9798,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2687,
+      "optional": 2691,
       "optional_defaulted": 61,
-      "required": 6711,
+      "required": 6715,
       "required_nullable": 124,
       "tristate": 207
     },
@@ -9981,6 +9981,14 @@
         "ak.schema.notification.v1"
       ],
       "properties": {
+        "/$defs/projection_preimage/properties/notification_kind": "required",
+        "/$defs/projection_preimage/properties/realm_id": "required",
+        "/$defs/projection_preimage/properties/recipient_account_id": "required",
+        "/$defs/projection_preimage/properties/source_event_id": "required",
+        "/oneOf/0/properties/actor_id": "optional",
+        "/oneOf/0/properties/id": "optional",
+        "/oneOf/0/properties/notification_kind": "optional",
+        "/oneOf/1/properties/id": "optional",
         "/oneOf/1/properties/notification_kind": "optional",
         "/properties/actor_id": "required",
         "/properties/created_at": "required",
@@ -10001,6 +10009,7 @@
         "/properties/updated_at": "optional"
       },
       "conditionally_required": [
+        "/properties/realm_id",
         "/properties/source_account_artifact",
         "/properties/source_event_id"
       ]

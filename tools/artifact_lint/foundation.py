@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
+
 from .core import (
     ARTIFACTS,
     Any,
@@ -2171,10 +2174,13 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         f"{id_kind} genesis Event {genesis_kind} does not point back to this id kind",
                     )
         elif id_form == "suite_tagged_full_digest":
-            if authority != "issuer_record":
+            expected_authority = (
+                "source_evidence" if id_kind == "notification_projection" else "issuer_record"
+            )
+            if authority != expected_authority:
                 lint.fail(
                     id_path,
-                    f"{id_kind} suite-tagged row must declare identity_authority=issuer_record",
+                    f"{id_kind} suite-tagged row must declare identity_authority={expected_authority}",
                 )
             if genesis_kinds is not None:
                 lint.fail(
@@ -2207,6 +2213,23 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     id_path,
                     f"{id_kind} storage identity key does not match its derivation contract",
                 )
+            if id_kind == "notification_projection":
+                if (contract.get("domain_separator") != "ak.notification-projection.v1\n"
+                    or contract.get("digest_suite_wire_code") != 1
+                    or contract.get("canonicalization") != "json_jcs"):
+                    lint.fail(id_path, "notification projection derivation parameters are invalid")
+                answer = contract.get("known_answer", {})
+                preimage = answer.get("preimage", {})
+                # The frozen vector contains ASCII string leaves only, so
+                # sorted compact JSON is byte-identical to RFC 8785 JCS.
+                if set(preimage) != {"recipient_account_id", "realm_id", "source_event_id", "notification_kind"}:
+                    lint.fail(id_path, "notification projection KAT has an invalid preimage")
+                else:
+                    encoded = json.dumps(preimage, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+                    digest = hashlib.sha256(b"ak.notification-projection.v1\n" + encoded).digest()
+                    expected = "ak:notification_projection:" + base64.urlsafe_b64encode(b"\x01" + digest).decode("ascii")
+                    if answer.get("notification_id") != expected:
+                        lint.fail(id_path, "notification projection KAT digest does not match")
         elif id_form == "producer_allocated":
             if authority != "producer_signature":
                 lint.fail(

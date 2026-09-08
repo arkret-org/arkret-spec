@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.4",
+  "version": "2026-09-08.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-08T15:57:36+08:00",
+  "generated_at": "2026-09-08T16:48:45+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -11178,9 +11178,22 @@
         "category": "derived_projection",
         "status": "active",
         "wire_form": "ak:notification:<uuidv7>",
-        "description": "Notification projection ID",
+        "description": "Agent runtime approval notification ID; ordinary source Event projections use notification_projection. This branch retains the producer_signature identity contract.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
+      },
+      {
+        "kind": "notification_projection",
+        "category": "derived_projection",
+        "status": "active",
+        "wire_form": "ak:notification_projection:<44-char-suite-tagged-full-digest-token>",
+        "description": "Deterministic recipient-scoped ordinary notification projection, without a producer allocation ledger.",
+        "id_form": "suite_tagged_full_digest",
+        "identity_authority": "source_evidence",
+        "derivation_contract_ref": "#/id_kind_registry/notification_projection_identity_contract",
+        "storage_identity_key": [
+          "typed_id"
+        ]
       },
       {
         "kind": "operation",
@@ -11421,8 +11434,53 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-09-04.2",
-    "generated_at": "2026-09-04T23:40:00+08:00"
+    "version": "2026-09-08.4",
+    "generated_at": "2026-09-08T16:43:05+08:00",
+    "notification_projection_identity_contract": {
+      "applies_to_id_kinds": [
+        "notification_projection"
+      ],
+      "authority": "verified_source_event_and_recipient_context",
+      "canonicalization": "json_jcs",
+      "digest_suite_wire_code": 1,
+      "domain_separator": "ak.notification-projection.v1\n",
+      "preimage_schema_ref": "schemas/notification.schema.json#/$defs/projection_preimage",
+      "digest_input": "SHA-256(UTF8(domain_separator) || RFC8785_JCS(projection_preimage))",
+      "token_layout": "0x01 || complete 32-byte SHA-256 digest",
+      "wire_encoding": "base64url_no_pad",
+      "storage_identity_key": [
+        "typed_id"
+      ],
+      "known_answer": {
+        "preimage": {
+          "recipient_account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N",
+          "source_event_id": "ak:event:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+          "notification_kind": "message"
+        },
+        "notification_id": "ak:notification_projection:AdaNq4qN-xTAcv8kCT3P9mL5AsSzg0PFlSELggvhw2Pw"
+      },
+      "notes": "The ID is not a signature or read capability. Verify the original source Event and applicable acceptance evidence, bind the complete recipient AccountId, and rederive the ID. Never rewrite the source Event into account_data.",
+      "immutable_input_fields": [
+        "recipient_account_id",
+        "realm_id",
+        "source_event_id",
+        "notification_kind"
+      ],
+      "excluded_input_fields": [
+        "device_id",
+        "rule_id",
+        "rule_revision",
+        "read_cursor",
+        "preview",
+        "language",
+        "created_at",
+        "updated_at"
+      ]
+    }
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",

@@ -8,7 +8,7 @@
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
     "digest_copy_or_commitment": 17,
-    "complete_event_id": 176,
+    "complete_event_id": 177,
     "external_event_namespace": 1
   },
   "fields": [
@@ -862,6 +862,12 @@
       "schema": "moderation-evidence.schema.json",
       "json_pointer": "/$defs/franking_seal_observation_request/properties/target_event_id",
       "field": "target_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "notification.schema.json",
+      "json_pointer": "/$defs/projection_preimage/properties/source_event_id",
+      "field": "source_event_id",
       "classification": "complete_event_id"
     },
     {

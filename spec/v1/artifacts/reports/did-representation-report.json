@@ -6739,6 +6739,26 @@
       ]
     },
     {
+      "schema_path": "notification.schema.json#/$defs/projection_preimage/properties/recipient_account_id",
+      "property_name": "recipient_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "notification.schema.json#/oneOf/0/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "notification.schema.json#/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
