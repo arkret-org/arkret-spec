@@ -798,11 +798,43 @@ Accept: application/x-ndjson
 `agent_runtime_approval` notification 作为 `action=upsert` 的权威完整集合返回；即使其它
 notification 历史受限也不得截断该子集。
 
-对本次请求包含且当前 membership 为 `join` 的可写 Realm 详情，baseline MUST 提供由自己 Station 确认的**当前对象/安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则由服务器明确确认同一 frontier 下的缺省/空值状态）、当前 read/write capability 的服务器授权结果、Realm 当前 `default_strand_id`，以及该指针所指 non-tombstoned Strand 的最小当前投影。MLS-backed Realm 还必须提供服务器确认的 current membership / MLS governance frontier，以及选择 `content_scheme`、处理 Welcome 与判断 `epoch_update_required` 的当前状态结果。上述材料可直接位于 `state.events`，或由自己 Station 确认的 snapshot/当前状态结果等价提供，不能要求客户端下载历史闭包。`history_access` 只裁剪 data-plane timeline、旧 object revisions 和调用者无权读取的历史正文，不得裁掉上述 current baseline；即使建立当前值的 Event 位于 `since_join` frontier 之前也相同。该义务不泄露 join 前 Message、旧 policy/metadata revisions 或历史密钥。客户端在基线完整且 Realm pointer 与 Strand `is_default` 的同-frontier 一致性验证通过前 MUST 保持 `governance_baseline_pending`（MLS Realm 另保持 `encryption_policy_pending` / `encryption_transition_pending`），不得把字段缺失解释为 policy 缺省、membership 未变化或 default Strand 未设置。
+对本次请求包含且当前 membership 为 `join` 的可写 Realm 详情，baseline MUST 提供由自己 Station 确认的**当前对象/安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则由服务器明确确认同一 frontier 下的缺省/空值状态）、当前 read/write capability 的服务器授权结果、Realm 当前 `default_strand_id`，以及该指针所指 non-tombstoned Strand 的最小当前投影。MLS-backed Realm 还必须提供服务器确认的 current membership / MLS governance frontier，以及选择 `content_scheme`、处理 Welcome 与判断 `epoch_update_required` 的当前状态结果。上述材料可直接位于 `state.events`，或由自己 Station 确认的 snapshot/当前状态结果等价提供，不能要求客户端下载历史闭包。`history_access` 只裁剪 data-plane timeline、旧 object revisions 和调用者无权读取的历史正文，不得裁掉上述 current baseline；即使建立当前值的 Event 位于 `since_join` frontier 之前也相同。该义务不泄露 join 前 Message、旧 policy/metadata revisions 或历史密钥。客户端对尚缺本次目标必要当前治理结果的操作 MUST 保持 `governance_baseline_pending`；使用 default Strand 时还必须通过 Realm pointer 与 Strand `is_default` 的同-frontier 一致性检查。MLS 操作按自身必需条件分别保持 `encryption_policy_pending` / `encryption_transition_pending`。不得把字段缺失解释为 policy 缺省、membership 未变化或 default Strand 未设置；这些等待状态不构成对全部列表、所有 Realm、完整 roster、全部历史或页面资源的统一门禁。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 
 大型 Realm 的当前态 MAY 通过自己 Station 已验证的 Snapshot 加速。客户端核对来源、请求 Realm/basis、格式、chunk 内容 hash 和端到端认证，按需安装当前视图并使用标准 cursor 接续内容增量；MUST NOT 下载全 Realm 历史来证明 Snapshot。manifest 不可用或服务器未宣告 snapshot operation 时，请求相关 Realm 的服务器基线或保持该 Realm pending；不回退客户端治理重放。
+
+### 13.1 渐进加载与目标就绪
+
+首页可见、目标可读、目标可发、当前窗口完成和全部账号 baseline 完成 MUST 分别判断；本节不新增 wire ready boolean。
+客户端取得首个已确认的有界摘要页/局部 baseline 后 SHOULD 展示账号导航，不等待其它 Realm 的治理验证、密钥恢复、完整名单、旧消息或附件。
+窗口未包含的 Realm、member 或 state 不等于 leave、ban 或删除；只有对应 operation 声明的完整集合边界或明确删除才能驱动删除。
+
+| 阶段 | 可展示或执行的内容 | 必需条件 |
+| --- | --- | --- |
+| 发现摘要 | 名称、提示与允许披露的 pending 状态 | 自己 Station 的结果或明确标注的目录提示；不取得 membership 或正文权限 |
+| 加入推进 | 申请受理、等待与失败 | 标准加入/邀请流程；已提交、已排队与已 accepted 不互换 |
+| 当前目标授权 | 读取或准备一个具体动作 | Station 已确认 exact 账号/设备/目标/scope、accepted basis、当前 membership/incarnation、相应能力与 policy |
+| 设备密码状态 | 加密目标上的应用消息认证和生成 | 本设备可用的正确 MLS group/epoch、已接纳 winning transition 与匹配的治理结果；实际 RFC 9420 验证通过 |
+| 当前窗口 | 最近消息及必要显示状态 | 标准有界窗口已安装，limited/gap/继续位置明确；单条正文通过适用的认证/解密 |
+| 按需扩展 | 旧窗口、更多名单及媒体 | 对应范围的当前授权、分页/retention 与独立资源预算 |
+
+对于一个具体发送动作，只要会话/设备、目标当前授权、exact authoring 输入与适用的本机密码状态均满足正式 gate，客户端 MUST 允许继续标准提交，
+不以最近消息窗口或其余页面资源尚未完成阻止该动作。合法空 Realm 不要求先取得第一条历史消息；合法只读范围不以 write capability 作为显示正文的前置。
+每次提交仍由服务器重新 admission；本地排队不表示 accepted，准备成功或 UI 可发不等于权限租约。加密失败 MUST NOT 自动改用明文。
+
+旧消息按其真实历史 epoch/binding 与当前历史访问范围处理，不强制等于当前 epoch；旧页缺钥不得阻止已满足条件的新消息提交。
+MLS 所需 tree、Commit/Welcome 与设备私钥仍必须完整处理，不能用空状态、截断树或任意最新 artifact 假装就绪。
+
+账号/设备失效、leave/ban、相关 scope 的 key-access 变化及 durable ACK MUST 有独立推进配额，不能被 Realm 窗口过滤或历史任务饥饿。
+当前用户动作关键依赖优先于最近窗口，最近窗口优先于后台旧历史/完整名单；同 Realm 重复工作 SHOULD 合并，慢 Realm MUST 独立等待并允许取消。
+实现 MUST 对请求并发、解析/物化字节、任务队列与单次 CPU 工作设置有限预算；浏览器中的 CPU 密集步骤使用 worker 或可让出的分片。
+仅把完整历史循环放入 async 函数不满足此要求；不得每个同步 tick 对所有 Realm 历史重新扫描或重放治理。
+账号安全集合的完整性规则仍适用，但首页渲染与不依赖该集合的读取无需等待全部 baseline；敏感操作等待自身必需的会话/设备状态。
+
+验收 MUST 分别记录首个摘要可见、目标可读、目标可提交、服务端 accepted、对端解密及窗口/全局 baseline 完成；按钮可用或没有崩溃不代表端到端完成。
+冷 Station、暖 Station、新设备及重启恢复分别计量；不承诺与真实密码学输入规模无关的固定时间。列表分页与需求变化须使用已登记的单一同步合同，
+本节不使未登记的 sliding/subscriptions 字段或私有 endpoint 成为合法 wire。
 
 ## 14. E2EE Requirements
 
@@ -845,7 +877,7 @@ history-recovery scalability registry。
 
 Receiver 必须先 durable 保存 request private key/pending intent，再创建 request。source 必须先取得 manifest 的
 accepted/duplicate 小型 receipt；manifest 尚未 accepted 时提交 chunk，release service 必须以 dependency missing 零写入拒绝，
-不得建立 pending chunk、response record 或 attestation。Receiver 只在 manifest descriptor、receipt-bound direct Seal replay、service record、
+不得建立 pending chunk、response record 或 attestation。Receiver 只在 manifest descriptor、自己 Station 的 receipt-bound 治理/释放结果、service record、
 release attestation 与 HPKE 全部验证后原子安装。每个 response record 写入
 `installed|cryptographically_rejected|superseded_duplicate|service_record_lost` disposition 后才可 ack；manifest 的
 `installed` 只表示 descriptor 已安装，不完成任何 epoch coverage，reject/lost 同样不完成 coverage。

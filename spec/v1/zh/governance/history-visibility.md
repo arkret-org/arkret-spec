@@ -188,24 +188,25 @@ history_secret[N] = MLS-Exporter(
 远端 epoch promotion 或“首个成功候选”语义。AEAD 成功只建立 exact Event attribution，不能把 candidate
 升级为该 epoch 的唯一真相，也不能淘汰其它 candidate。
 
-`ak.self.seals.read.mls_governance_proof.v1` 的无状态 query 只保留近端 `group_security_frontier`：它投影 frontier registry 登记的
-cell singleton/prefix ranges，并为每个 range 携连续 leaf indices、左右 boundary inclusion/nonmembership 或 state-edge witness；空 range
-也必须有相邻边界证明，不能把省略当 Bottom。query 的 Seal 坐标都是 canonical `seal_basis.leaves[]` antichain：`proof_target_basis`
-必须支配 `proof_base_basis`，即每个 base leaf 仍是 target leaf 或是某 target leaf 的 ancestor；open_set 不得缩成单一 head。
+普通客户端按 [server-trusted-results](../sync/server-trusted-results.md) 消费自己 Station 的治理结果。
+`ak.self.seals.read.mls_governance_proof.v1` 返回绑定 exact request/local leaves 的 `MlsGovernanceFrontierOutcome`，
+不含 base checkpoint、Merkle range witnesses 或需要客户端回放的闭包。已知历史 MLS artifact 复用该文 §5.2 的 exact accepted-artifact 结果。
+需要独立验证远端输入的服务器仍使用 peer proof/标准 Seal admission；其 range inclusion、nonmembership、边界与完整 antichain 检查不转交普通客户端。
 
 批量/旧 epoch 历史不得使用独立 stateless activation-range page、proof package 或第二套 witness wire。Request receipt 只冻结 closed
-`HistoryGovernanceTraversalIntent`：profile、scope/group、caller 签名并已独立验证的完整 `trusted_history_base_basis`、独立
-`trusted_current_basis` anti-rollback frontier、release service 当次 verified durable view 的完整 `target_basis`、canonical ranges、
+`HistoryGovernanceTraversalIntent`：profile、scope/group、服务器选择、独立验证并固定到 retained intent 的完整 `trusted_history_base_basis` 与
+`trusted_current_basis`、release service 当次 verified durable view 的完整 `target_basis`、canonical ranges、
 incarnation 或 RHRK tuple、registry digests 与 retention。`traversal_intent_digest = SHA-256(UTF8("ak.history-governance-traversal-intent-v1")
 ||0x00||JCS(traversal_intent))`。服务不得替换 caller 的 base/current、缩成单一 head 或在 retry 中换 target。
 
-v1 member history recovery 的 `trusted_history_base_basis` 必须是 caller 独立验证、T3 crash-safe durable pin 的完整 predecessor-free Realm
-bootstrap cut；它不是服务自报的“全局唯一 Genesis Seal”，但不能使用缺少 pre-base provenance/joined-state 的 later checkpoint 冒充。
+v1 member history recovery 的 `trusted_history_base_basis` 是自己 Station 独立验证并耐久保存的完整 predecessor-free Realm
+bootstrap cut；普通客户端只核对准备结果的账号、scope、请求与待签字段，不独立建立 bootstrap pin。服务器不能使用缺少 pre-base provenance/joined-state 的 later checkpoint 冒充。
+以下 cut 遍历、签名、root、coverage 和重放要求仅适用于承担 admission、联邦或独立审计的验证者，不适用于普通客户端。
 从每个 target leaf 反向沿 signed `predecessor_refs[]` 遍历，只能在 exact base leaf 终止；每个区间 Seal 的每个 direct predecessor 必须仍在
 区间或恰为 base leaf，每个 base leaf 至少被一条 target 路径消费，且 target 必须支配 trusted current 的每个 leaf。隐藏 predecessor、无法从
 base 到达的并发 branch、missing object 或 fork-quarantine 均 fail closed。
 
-客户端/服务使用 SQLite 或等价 disk-backed work queue+visited set，从 target 反向发现完整 cut，再按拓扑 base→target 运行标准 `apply_seal`。
+承担验证的服务器或独立审计者使用 SQLite 或等价 disk-backed work queue+visited set，从 target 反向发现完整 cut，再按拓扑 base→target 运行标准 `apply_seal`。
 direct traversal 只消费 Seal 与其 `delta[]` 唯一发现的 Control Move；普通 Message/reaction 等 DataEvent 的 digest 不得进入 `delta[]`，也不因
 某个 Seal 的 optional data observation root 出现它而取得控制面 finality。resolve 必须返回该 accepted Seal 在 acceptance 时实际 pin 的
 exact canonical Control Move bytes，并同时提供 registered `apply_seal` 所需的 historical signer evidence、AvailabilityReceipt 及其它 CBS
@@ -228,7 +229,7 @@ fork-resolution/recovery 归一。没有 acceptance-time bytes/output pin 的新
 历史 basis 的 reducer 状态、历史 authority 和集合查询均属于验证所需的数据；实现不得把只对网络 buffer 成立的内存界限
 宣称为整个 verifier 的界限，也不得因资源不足而省略这些检查。
 
-本地复用 MUST 保持完整输入与规则关联，包括 frozen bootstrap/current/target bases、acceptance-pinned bytes、历史依赖、
+服务器验证复用 MUST 保持完整输入与规则关联，包括 frozen bootstrap/current/target bases、acceptance-pinned bytes、历史依赖、
 完整 scope/ActorId 和本地 trust context。相同 `state_root`、裸 basis、反序列化成功或远端 `verified` 声明均不足以建立该关联。
 关联不可证明时 MUST 重新执行标准验证或保持未决。合法复用不改变任何 root、profile、finality 或 wire proof 语义，
 不得用 current resolver 替代历史 key，也不得忽略新分支。原始依据、trust pin、outbox、ACK 和 secret retention 不受缓存驱逐缩短。
@@ -237,11 +238,11 @@ fork-resolution/recovery 归一。没有 acceptance-time bytes/output pin 的新
 
 Replay 解释器只由 Realm 冻结的 profile id 选择；profile 的规范语义与 conformance vectors 随实现发布，不作为可寻址运行时工件进入 replay 输入。验签、Event identity 与转发均以收到并持久化的 canonical raw bytes 为准，typed view 只用于已知字段的语义解释，不得通过重序列化改变对象身份。实现不支持该 profile 时只对目标 Realm 返回 `unsupported_profile`，不得降级为权限错误或扩大到连接、账户和其他 Realm。
 
-winning MLS transition、requester join/incarnation 和 scope 当前单向收紧的 history access 均由这次 replay 派生；同一 Move 被多个并发 Seal 覆盖不产生可选的
+winning MLS transition、requester join/incarnation 和 scope 当前单向收紧的 history access 均由服务器已验证的 accepted 状态派生；允许按精确输入/规则上下文耐久增量复用，不要求每个用户请求重新 replay；同一 Move 被多个并发 Seal 覆盖不产生可选的
 singular activation Seal。普通 Message/reaction 等 DataEvent 只携既有 accepted `seal_ref` authorization view，不携 `seal_basis`、不进入 Seal.delta、不推进 epoch。
 T1 release 不进入 governance proof query；它由 chunk 首次耐久入队事务生成 `HistoryReleaseAttestation`。旧
 `HistoryGovernanceEvidenceChain`、page/root/ownership/selection/activation/auth witness、`epoch_activation_range`、
-`complete_control_state_v1` 与 proof result/snapshot carrier 均不存在。
+`complete_control_state_v1` 与独立客户端 history proof/snapshot carrier 均不存在；这不禁止 `server-trusted-results` 已登记的、有界且按请求授权的 Station 当前结果。
 
 ## 6. Private history-key delivery
 
@@ -279,15 +280,15 @@ expired、已 GC 与 unauthorized 均返回同一 `not_found` wire shape；合�
 与 constant-time byte comparison。Capability、commitment 不得进入日志 key、trace 或 metrics label。
 
 Request MUST 签入 `requester_author_profile`、与该 profile 逐字匹配的 closed
-`requester_endpoint_authorization`、exact current `requester_authorization_incarnation`、requester 已完整验证并 durable pin 的
-canonical `trusted_history_base_basis.leaves[]` 以及独立的 canonical `trusted_current_basis.leaves[]`。前者是历史 DAG 重放的显式首 trust
-cut，并且必须是完整 predecessor-free Realm bootstrap cut；accepted traversal intent 的 base 必须与其逐字相等。后者是 scope Realm 的 current anti-rollback frontier，Account/PCR/Agent
-T1 facts 不进入它，
-open_set 也不得只签一条 leaf。Release service 只能接受一个完整 target basis 支配该 trusted basis 的 request；无法证明支配、bootstrap
-base 不可验证或 target 存在并发未纳入 leaf 时，create 零写失败。`requester_authorization_incarnation`
-是 closed scope union：Realm 为 exact `realm_membership_incarnation_ref`；Circle 同时携 exact parent-Realm 与 Circle membership
-incarnation refs。Circle reactivation/Add 必须因果覆盖该 parent incarnation，join epoch 只取 Circle 独立 group 内的显式 Add
-activation；禁止跨 Realm/Circle group epoch 取最大值。Request retry 必须保留原 trusted basis 及其本地 verification material，不能只保存裸 ID。
+`requester_endpoint_authorization`、exact current `requester_authorization_incarnation`、canonical ranges、接收 HPKE 公钥
+及有效期。Request、signing input 与 receipt 不携带客户端 `trusted_history_base_basis` / `trusted_current_basis`；
+closed wire MUST 拒绝这些旧字段，客户端不固定或验证治理 cut，不为重试保存治理 verification material。
+Release service 在创建事务内从已 accepted 的完整 current antichain 选择并验证 retained target 与 bootstrap cut，
+冻结到 receipt 的 history_traversal_retention；服务器不能遗漏并发 leaf 或把未验证材料标记为 accepted。
+后续 exact retry 保留原请求签名、receipt、capability 及服务器冻结的 cut，不重新选择目标。新增请求可选择新当前 cut。
+`requester_authorization_incarnation` 是 closed scope union：Realm 为 exact `realm_membership_incarnation_ref`；
+Circle 同时携 exact parent-Realm 与 Circle membership incarnation refs。Circle reactivation/Add 必须因果覆盖 parent
+incarnation，join epoch 只取 Circle 独立 group 内的显式 Add activation，禁止跨 group 取最大值。
 `ordinary_human` endpoint 分支签入 exact `requester_device_id`、accepted `requester_device_authorize_event_id`
 与 PCR-local monotonic `requester_device_generation_ref`；`agent` 分支签入 exact Agent id、runtime verification
 method 与 `requester_agent_key_authorize_event_id`；`minimal_metadata` 分支不得携 principal/device locator。Create 与每个
@@ -300,7 +301,7 @@ Request create 返回成功前，release service 必须冻结并完整验证 req
 以及所有 registered `apply_seal` dependency；split-view 仍由既有 transparency/gossip 处理。object 丢失显式返回 `frontier_unavailable`
 （reason=`history_traversal_anchor_unreachable`）并要求新 request，不得在旧 receipt 下换 base/current/target/range。
 
-每个 Manifest descriptor 只列 `chunk_response_id,chunk_index,covered_epoch_range`。requester 凭 session/capability 及 exact
+每个 Manifest descriptor 只列 `chunk_response_id,chunk_index,covered_epoch_range`。具有相同 requester 授权的独立审计工具可凭 session/capability 及 exact
 `request_receipt_digest`，通过标准 self Seal/Event/dependency resolve 携 closed `TraversalAccess` 读取该 receipt target 反向 cut 内的 Seal、其 delta
 Control Move 及 registered replay dependencies。remote member source 只走普通 authenticated Realm/federation 治理可见性；request replica 只证明请求/receipt bytes、authorization 与 TTL，不承诺 cut 且不扩张治理可见性。仅 RHRK pending archive replica 可用 `pending_archive_replica_digest` 取得 peer retained-cut 窄访问。caller 不得自报 allowed ref 数组；服务从 retained intent/cut 机械判定。普通 timeline visibility 与
 TraversalAccess 互斥，unknown/unauthorized/out-of-cut 同形。旧 evidence-page read operation 与 descriptor-access branch 均不存在。

@@ -2156,7 +2156,9 @@
           "ak.self.history_key_responses.command.ack.v1",
           "ak.self.history_key_responses.command.send.v1",
           "ak.self.history_key_responses.read.list.v1",
-          "ak.self.organization_recovery_archives.read.list.v1"
+          "ak.self.organization_recovery_archives.read.list.v1",
+          "ak.self.seals.read.history_authority.v1",
+          "ak.self.seals.read.membership_authority.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }

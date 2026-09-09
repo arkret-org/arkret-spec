@@ -896,6 +896,14 @@
       "new": "ak.self.seals.read.governance_dependencies.v1"
     },
     {
+      "old": "ak.self.seals.read.history_authority",
+      "new": "ak.self.seals.read.history_authority.v1"
+    },
+    {
+      "old": "ak.self.seals.read.membership_authority",
+      "new": "ak.self.seals.read.membership_authority.v1"
+    },
+    {
       "old": "ak.self.seals.read.mls_accepted_artifact",
       "new": "ak.self.seals.read.mls_accepted_artifact.v1"
     },

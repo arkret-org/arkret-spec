@@ -163,6 +163,54 @@ Welcome transcript 的相符性，保留实际端到端密码学。此结果是�
 不得制造空 checkpoint、page digest 或全历史 fallback。必要的真实 Proposal/Commit bytes 仍按已知 exact refs 获取，
 不得扩展成遍历所有治理历史。旧 accepted-artifact helper 及其历史候选排序/祖先重放缓存须删除。
 
+### 5.3 当前成员加入身份
+
+`ak.self.seals.read.membership_authority.v1`（`POST /_arkret/self/seals/membership-authority`）只查询一个
+`MembershipAuthorityRequest {effective_scope, actor_id, seal_basis}`。scope 为 Realm 或 Circle；actor 使用完整
+ActorId；seal_basis 必须等于本次服务器当前 accepted antichain，陈旧或不同 basis 返回 state_mismatch。
+请求与完整响应分别不超过 64 KiB；不支持批量成员、通配范围或 continuation。
+
+`MembershipAuthorityOutcome` 字段顺序为 `account_id, query_digest, seal_basis, authorization_incarnation`。
+account_id 是与实际认证会话绑定的完整 AccountId；AgentRuntime 使用其 Agent AccountId，不改写成 controller 或人类账号。query_digest 为
+SHA-256(`ak.membership-authority-query-v1` + NUL + JCS(request))；basis 与 request 相等；incarnation 使用
+history-key 的唯一 AuthorizationIncarnation 类型，表示此 basis 下 actor 当前有效的那次 Realm join，以及
+Circle scope 需要的当前 Circle activation。返回已失效的旧 join、把最大 actor_seq 当 join、按 Events 到达顺序
+选择，或对冲突任取一个分支均禁止。Circle activation 必须按既有标准因果规则覆盖当前 Realm incarnation。
+
+服务器先检查本次认证会话、Realm 成员信息的当前读取资格与 Circle 隐私边界，逐次检查目标在该 scope 的当前
+成员状态。Scope/target 不可见或目标未加入统一 not_found；accepted state 缺依赖或无法取得唯一 incarnation
+返回 frontier_unavailable。历史验证共享不共享上述请求授权；不得把查询变成跨 Circle 的成员枚举入口。
+成功不授予 caller MLS Add、消息发送或历史密钥释放权限，后续提交仍执行标准授权及其 signed basis/CAS。
+
+客户端检查 exact request digest、Account Station/账号会话、scope 对应的 incarnation 分支与 basis 后，将该结果
+用于 MLS Add 或历史请求的 intent authoring。它不获取 membership Event/Seal 全闭包，不自行回放 join/leave。
+结果缺失时该操作保持未就绪；账号切换、已知离开/撤销或 basis 更新后，迟到结果不得覆盖新上下文。
+服务器使用已 accepted 的标准 reducer/CAS head 与因果索引求值，不能以即时 directory 的显示状态替代。
+
+### 5.4 当前历史授权与范围下界
+
+`ak.self.seals.read.history_authority.v1`（`POST /_arkret/self/seals/history-authority`）查询
+`HistoryAuthorityRequest {effective_scope, actor_id, seal_basis}`。其当前账号、Agent 实际认证 AccountId、
+成员可见性、scope 隐私、exact antichain、缺失/冲突与迟到响应边界均遵循 §5.3；请求与完整响应各 ≤64 KiB。
+query_digest 使用 SHA-256(`ak.history-authority-query-v1` + NUL + JCS(request))，不与 membership 查询互换。
+
+`HistoryAuthorityOutcome` 顺序为 `account_id, query_digest, seal_basis, authorization_incarnation,
+join_epoch, history_floor_epoch`。所有结果来自同一个已 accepted basis：
+
+- incarnation 使用 §5.3 的当前 Realm join / Circle activation 因果身份。
+- join_epoch 是既有 winning MLS lineage 与该 incarnation 所决定的加入轮次。尚无唯一可用 MLS lineage 时
+  返回 frontier_unavailable，包括 all_history_for_current_members；不能猜测为 0。
+- history_floor_epoch 按 scope 自己的 accepted history_access cell 求值：since_join 为 join_epoch，
+  all_history_for_current_members 为 0。Circle 不继承 Realm policy；缺失、Bottom 或未知策略均不可用。
+  floor 必须为 0 或 join_epoch，接收方不据此推断另一种治理策略或自行回放历史。
+
+发起方用该结果填写 HistoryKeyRequest 的 incarnation 并选择恢复范围下界；不签入治理检查点。响应源查询
+目标 actor 的当前结果，在签名 manifest 之前裁剪候选范围，且目标 incarnation 必须仍与原请求一致。
+此查询不授予历史密钥读取、manifest 提交或密钥释放权限：服务器仍逐次校验 requester/source/endpoint、
+当前成员、T1、retention、receipt 与请求绑定。当前策略收紧或 leave/rejoin 后不得复用旧授权结果释放密钥。
+客户端仍验证 HPKE/MLS、AEAD、签名及 exact packet/recipient/scope 绑定，不获取治理历史作为此查询的前置。
+首次缺少输入时只让该历史任务保持 pending，不阻塞已可读的新消息或全局账号同步。
+
 ## 6. 规范与 conformance
 
 full/e2ee 客户端 conformance 检查请求绑定、结果消费、端到端密码学和恢复行为；服务器 conformance 检查治理历史、DID/外部证据、admission、当前授权与共享增量状态。客户端没有治理历史 verifier 不构成不合规；服务器接受未经验证的远端材料构成不合规。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.13",
+  "version": "2026-09-10.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T23:05:09+08:00",
+  "generated_at": "2026-09-10T00:47:50+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7491,6 +7491,82 @@
           "governance_binding",
           "mls_frontier_leaves",
           "current_epoch_head"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.membership_authority.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_request",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "actor_id",
+          "seal_basis"
+        ],
+        "properties": [
+          "effective_scope",
+          "actor_id",
+          "seal_basis"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_outcome",
+        "schema_kind": "object",
+        "required": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "authorization_incarnation"
+        ],
+        "properties": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "authorization_incarnation"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.history_authority.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_request",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "actor_id",
+          "seal_basis"
+        ],
+        "properties": [
+          "effective_scope",
+          "actor_id",
+          "seal_basis"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_outcome",
+        "schema_kind": "object",
+        "required": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "authorization_incarnation",
+          "join_epoch",
+          "history_floor_epoch"
+        ],
+        "properties": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "authorization_incarnation",
+          "join_epoch",
+          "history_floor_epoch"
         ],
         "closed": true
       }

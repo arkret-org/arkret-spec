@@ -58,7 +58,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/bilateral-continuity-checkpoint-fixture.json",
-      "sha256": "937a566ff3245e1d99c71e34b6f91727de8ed647adb30e06ca56617106592de1"
+      "sha256": "19beb51c1e315297fda402d37026e88331586997979d59b9ea99f01cf9b45dcc"
     },
     {
       "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",
@@ -298,7 +298,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "b5024fbe69c22f9fead07b692e844e82d51108afa579e427422f12765895efe0"
+      "sha256": "b6731106513ac0533a401786721dc555dd08d887adfbf274d4e296f9a4b865f2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

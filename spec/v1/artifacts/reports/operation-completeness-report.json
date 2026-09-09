@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.13",
+  "version": "2026-09-10.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T23:05:09+08:00",
+  "generated_at": "2026-09-10T00:47:50+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,14 +18,14 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 235,
+    "total_operations": 237,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 233
+      "typed_schema": 235
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 49
+        "typed_schema": 51
       },
       "deployment_local": {
         "typed_schema": 17
@@ -3092,6 +3092,34 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/SelfGovernanceDependencyResolveRequest",
         "response": "#/components/schemas/GovernanceDependencyResolveOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.seals.read.history_authority.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/seals/history-authority",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_request",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/HistoryAuthorityRequest",
+        "response": "#/components/schemas/HistoryAuthorityOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.seals.read.membership_authority.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/seals/membership-authority",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_request",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MembershipAuthorityRequest",
+        "response": "#/components/schemas/MembershipAuthorityOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

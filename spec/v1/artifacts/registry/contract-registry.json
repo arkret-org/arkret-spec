@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.13",
+  "version": "2026-09-10.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T23:05:09+08:00",
+  "generated_at": "2026-09-10T00:47:50+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -11603,6 +11603,8 @@
           "ak.self.seals.read.resolve.v1",
           "ak.self.seals.read.mls_governance_proof.v1",
           "ak.self.seals.read.mls_accepted_artifact.v1",
+          "ak.self.seals.read.membership_authority.v1",
+          "ak.self.seals.read.history_authority.v1",
           "ak.self.seals.read.governance_dependencies.v1",
           "ak.self.account.read.describe.v1",
           "ak.self.account.read.viewer.v1",
@@ -14520,7 +14522,7 @@
         "http": "POST /_arkret/self/contacts/request",
         "grpc": "SelfContact/Request",
         "mq": "self.contact.command.request",
-        "notes": "Two-phase holder-local acceptance of one holder-signed ak.contact.requested fact. The accepted source receipt, peer closed XOR, full directional scope set and issuer-local slot lineage are durable replay inputs; no Private Consent Event is written or consulted. Recontact may import one generic mutually signed bilateral prefix checkpoint plus at most 64 uncompressed tail rounds. Missing material is continuity_evidence_unavailable; invalid, rollback or forked material is continuity_invalid. A new lineage never inherits the old checkpoint, history or audit identity.",
+        "notes": "Two-phase holder-local acceptance of one holder-signed ak.contact.requested fact. The accepted source receipt, peer closed XOR, full directional scope set and issuer-local slot lineage are durable replay inputs; no Private Consent Event is written or consulted. Recontact may import one generic mutually signed bilateral prefix checkpoint plus at most 64 uncompressed tail rounds. Missing material is continuity_evidence_unavailable; invalid, rollback or forked material is continuity_invalid. The same trust domain and exact ActorId pair cannot reset its lineage or founding slot. Missing continuity must be recovered or explicitly imported; a full tail without a bilateral checkpoint stays blocked. Only an explicitly initiated first contact for a legally different exact ActorId pair creates an independent root, without inherited checkpoint, history, audit identity, DM or MLS state.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -14839,6 +14841,30 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request",
         "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_outcome"
+      },
+      {
+        "operation_id": "ak.self.seals.read.membership_authority.v1",
+        "http": "POST /_arkret/self/seals/membership-authority",
+        "grpc": "SelfSeals/MembershipAuthority",
+        "mq": "self.seals.read.membership_authority",
+        "notes": "Current accepted membership incarnation for one exact Realm/Circle and ActorId at the current antichain. Recheck current requester visibility and target membership; no client replay, all-members list or history closure. Request and complete response each at most 64 KiB.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 65536,
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_request",
+        "response_schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_outcome"
+      },
+      {
+        "operation_id": "ak.self.seals.read.history_authority.v1",
+        "http": "POST /_arkret/self/seals/history-authority",
+        "grpc": "SelfSeals/HistoryAuthority",
+        "mq": "self.seals.read.history_authority",
+        "notes": "Current exact membership, MLS join epoch and scope policy floor. Request and complete response each at most 64 KiB. No client governance checkpoint or replay; not a key release grant.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 65536,
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_request",
+        "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_outcome"
       },
       {
         "operation_id": "ak.self.seals.read.governance_dependencies.v1",
@@ -15687,8 +15713,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-09.13",
-    "generated_at": "2026-09-09T23:05:09+08:00",
+    "version": "2026-09-10.2",
+    "generated_at": "2026-09-10T00:47:50+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -16931,6 +16957,14 @@
           },
           {
             "operation_id": "ak.self.seals.read.governance_dependencies.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.seals.read.history_authority.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.seals.read.membership_authority.v1",
             "binding_kind": "http_json"
           },
           {

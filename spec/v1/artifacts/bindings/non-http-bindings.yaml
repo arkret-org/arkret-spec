@@ -176,6 +176,8 @@ grpc:
       Prepare: ak.self.seals.command.prepare.v1
       MlsGovernanceProof: ak.self.seals.read.mls_governance_proof.v1
       MlsAcceptedArtifact: ak.self.seals.read.mls_accepted_artifact.v1
+      MembershipAuthority: ak.self.seals.read.membership_authority.v1
+      HistoryAuthority: ak.self.seals.read.history_authority.v1
       Resolve: ak.self.seals.read.resolve.v1
       Submit: ak.self.seals.command.submit.v1
       PendingControl: ak.self.seals.read.pending_control.v1
@@ -369,6 +371,8 @@ mq:
     self.seals.read.resolve: ak.self.seals.read.resolve.v1
     self.seals.read.mls_governance_proof: ak.self.seals.read.mls_governance_proof.v1
     self.seals.read.mls_accepted_artifact: ak.self.seals.read.mls_accepted_artifact.v1
+    self.seals.read.membership_authority: ak.self.seals.read.membership_authority.v1
+    self.seals.read.history_authority: ak.self.seals.read.history_authority.v1
     self.seals.read.governance_dependencies: ak.self.seals.read.governance_dependencies.v1
     self.history_key_requests.command.create: ak.self.history_key_requests.command.create.v1
     self.history_key_requests.read.list: ak.self.history_key_requests.read.list.v1

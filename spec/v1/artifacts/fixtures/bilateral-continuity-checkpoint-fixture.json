@@ -1,6 +1,6 @@
 {
   "suite": "bilateral_continuity_checkpoint",
-  "version": "2026-08-15",
+  "version": "2026-09-10",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.contact.bilateral_continuity_checkpoint.v1"
@@ -84,9 +84,21 @@
       "expected": "accepted_only_after_exact_checkpoint_and_tail_validation"
     },
     {
-      "name": "new_lineage_does_not_inherit_old_audit_identity",
-      "claims_continuity": false,
+      "name": "same_exact_pair_cannot_restart_root_when_tail_is_full",
+      "same_trust_domain": true,
+      "same_actor_pair": true,
+      "uncompressed_tail_count": 64,
+      "checkpoint_available": false,
+      "expected_error": "continuity_evidence_unavailable",
+      "may_restart_root": false
+    },
+    {
+      "name": "different_exact_pair_explicit_first_contact_has_independent_root",
+      "same_actor_pair": false,
+      "explicit_user_action": true,
       "inherits_history": false,
+      "inherits_direct_conversation": false,
+      "inherits_mls_state": false,
       "expected": "independent_root"
     }
   ],

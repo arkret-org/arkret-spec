@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-08.34",
-  "generated_at": "2026-09-09T23:05:10+08:00",
+  "version": "2026-09-08.38",
+  "generated_at": "2026-09-09T16:36:52+00:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -321,7 +321,7 @@
     },
     {
       "operation_id": "ak.peer.history_key_requests.command.replicate.v1",
-      "sha256": "sha256:0660831791c824bb1fe9edc97dba4481ed351cd7c03af9f82765d15683c7dd69"
+      "sha256": "sha256:640bb38a066c7cc89731643006a10b767461bb7a27071b7301a965a3df77bf6a"
     },
     {
       "operation_id": "ak.peer.history_key_responses.command.relay.v1",
@@ -649,7 +649,7 @@
     },
     {
       "operation_id": "ak.self.contact.command.request.v1",
-      "sha256": "sha256:03e40f5daf94bc2b982cbdddf2df26ebd45913c2c9e70e05b5b3b686a8b7f47f"
+      "sha256": "sha256:e4e18c06085a046a2793d5f6297e62f4d4e6133d2b2213ad992176f94f8a4501"
     },
     {
       "operation_id": "ak.self.contact.command.respond.v1",
@@ -733,11 +733,11 @@
     },
     {
       "operation_id": "ak.self.history_key_requests.command.create.v1",
-      "sha256": "sha256:9b1df001d0f511dca8d6eb4465f98123208678f299890d33c528eb8e7c70f7f5"
+      "sha256": "sha256:576fb765b8614b168a3e51e217492eee1e69bc68881077bf58c2c2349dadf433"
     },
     {
       "operation_id": "ak.self.history_key_requests.read.list.v1",
-      "sha256": "sha256:aa6822f3abca8809e9823c8ff803f57585fcbe7193cbea65054386fed22708ba"
+      "sha256": "sha256:2d752fe881a55a373c6afbf1a7e9a10a5574bd2b9ed31f79816c5de378671f09"
     },
     {
       "operation_id": "ak.self.history_key_responses.command.ack.v1",
@@ -902,6 +902,14 @@
     {
       "operation_id": "ak.self.seals.read.governance_dependencies.v1",
       "sha256": "sha256:53e252d91051124491d9c672f0072ffc46709702e12d27b5a19f5a180e62c561"
+    },
+    {
+      "operation_id": "ak.self.seals.read.history_authority.v1",
+      "sha256": "sha256:d9045d71a1abd1a3fb94bdb9f284593780d2b066408f3285318d217ae46244e4"
+    },
+    {
+      "operation_id": "ak.self.seals.read.membership_authority.v1",
+      "sha256": "sha256:8e9af47c5d20878add3d60cad3c1945c818f58f8c59fa5157fb95ec426f3cc05"
     },
     {
       "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",

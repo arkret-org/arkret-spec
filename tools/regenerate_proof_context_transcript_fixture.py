@@ -46,7 +46,7 @@ REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMAS = ARTIFACTS / "schemas"
 
 FIXTURE = ARTIFACTS / "fixtures" / "proof-context-transcript-fixture.json"
-FIXTURE_VERSION = "2026-09-02.2"
+FIXTURE_VERSION = "2026-09-10"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 
 # The single conformance signing key already published by

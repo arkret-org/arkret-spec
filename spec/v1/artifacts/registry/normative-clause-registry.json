@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.6",
+  "version": "2026-09-10",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T21:09:04+08:00",
+  "generated_at": "2026-09-10T00:51:26+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -559,10 +559,10 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/governance/history-visibility.md#6-private-history-key-delivery",
-      "section_digest": "sha256:050a224ff3ae38944bef4dc07e91ac7e7feaad2faf3dd869f6f22118a2aa863e",
-      "requirement": "Ordinary-human device history responses use exact AccountDevice evidence with retained origin-Station signer closure, signed-time validity and exact full AccountId/device binding; first source relay additionally checks current authorization and generation. Device evidence cannot authorize Control Events, notary or organization recovery.",
+      "section_digest": "sha256:42802c962ff3f62d65232ffe8b96b67a975841fc3913c4e4469f977734b0a166",
+      "requirement": "Origin/release services verify exact AccountDevice evidence, origin-Station signer closure, signed-time validity and full AccountId/device binding; first enqueue rechecks current authorization and generation. The Account Station selects and retains the history cut; ordinary requester/signing-input/receipt contain no client trust-anchor fields. Clients retain message/HPKE/signature and recipient binding checks, not governance replay. Device evidence cannot authorize Control Events, notary or organization recovery.",
       "testability_grade": "audit",
-      "test_plan": "Run device-history schema and SDK evidence/signature negatives for missing refs, mixed branches, actor/device/Station substitution, altered authorization, revoked status and invalid time windows. Exercise source relay revocation/generation changes before first enqueue and historical replay after expiry; run real two-account history request, manifest and chunk delivery with receiver verification."
+      "test_plan": "Check old request/receipt trust-anchor fields are rejected and server-selected cut is frozen across exact retries. Run server device-history evidence negatives for missing refs, actor/device/Station substitution, altered authorization, revocation and invalid time. Exercise source relay generation changes before enqueue and historical replay after expiry. Run two-account request/manifest/chunk delivery with client cryptographic checks and zero client governance replay."
     },
     {
       "clause_id": "AK-NC-042",

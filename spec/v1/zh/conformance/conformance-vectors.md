@@ -6600,7 +6600,7 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
   绝不把旧 attempt 记为 `completed`，`request_terminal` code 同样转 `permanently_rejected` 但不作者化替代 manifest，传输失败与未登记 code 一律
   按 `retry_same_attempt` 处理，重启后分支不变；
 - `ak.vector.history_key.frontier_traversal_split.v1`：near-current `group_security_frontier` 的 bounded stateless 完整响应，与
-  bulk/old-history receipt-bound direct Seal traversal 严格分型；覆盖 `trusted_history_base_basis`、独立 anti-rollback
+  bulk/old-history receipt-bound direct Seal traversal 严格分型；覆盖服务器 retained cut 的 `trusted_history_base_basis` 与
   `trusted_current_basis`、target dominance、完整 predecessor cut、registered dependency resolve、current ratchet/join floor、per-item RHRK traversal 及 self/peer visibility 边界；
 - `ak.vector.history_key.sender_crypto.v1`：ordinary human/Agent/minimal sender domain、history-secret KDF、nonce、
   reconstructed AAD、HPKE chunk context、multi-candidate store 与 replay ledger。Received/RHRK secret 永远是 candidate，AEAD success
