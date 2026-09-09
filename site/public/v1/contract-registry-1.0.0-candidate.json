@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.9",
+  "version": "2026-09-09.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T21:26:06+08:00",
+  "generated_at": "2026-09-09T21:51:34+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -14164,7 +14164,7 @@
         "http": "POST /_arkret/self/authorization-leases",
         "grpc": "SelfAuthorizationLeases/Issue",
         "mq": "self.authorization_leases.command.issue",
-        "notes": "Read-only pre-admission of final signed Events followed by one authority-issued publication lease per Event. The operation never commits an Event or advances a frontier. Ordinary Events bind an accepted seal_ref/seal_basis; only complete registered genesis units may bind the ordered anchor_unit digest. Idempotent retry returns byte-identical leases.",
+        "notes": "Read-only preflight of exactly one non-empty submissions (complete online EventInitialSubmission inputs, with no authorization_lease) or intents array. MLS Genesis/Commit public leaf inputs are independently checked against the signed exact basis. Never admits Events or reserves a frontier. Bare events arrays are forbidden.",
         "body_class": "non_streaming_json",
         "max_items": 500,
         "success_shape_kind": "typed_response",
@@ -15674,8 +15674,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-09.9",
-    "generated_at": "2026-09-09T21:26:06+08:00",
+    "version": "2026-09-09.10",
+    "generated_at": "2026-09-09T21:51:34+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

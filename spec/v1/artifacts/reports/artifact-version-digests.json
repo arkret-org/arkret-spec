@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-09.9",
-      "generated_at": "2026-09-09T21:26:06+08:00",
-      "content_digest": "sha256:42f94e8ac0b099582555814e03fee1f243a8ed4402b0257fbda9c0c797cbfefb"
+      "version": "2026-09-09.10",
+      "generated_at": "2026-09-09T21:51:34+08:00",
+      "content_digest": "sha256:273a0d08a9da57dcdd3a816b586be84b3c58e2564804d1f654bfa89d647841d6"
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
@@ -243,15 +243,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-08.29",
-      "generated_at": "2026-09-09T21:26:06+08:00",
-      "content_digest": "sha256:d78786626c3341fe29f6255f523e470869f0eadddfbee0cb371c20aa8c4861c7"
+      "version": "2026-09-08.30",
+      "generated_at": "2026-09-09T21:51:34+08:00",
+      "content_digest": "sha256:f042de2aa72da210f6e66dce957ddbc9afc1f4c056f511b6a1cd7a5dea2963b3"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-09.8",
-      "generated_at": "2026-09-09T21:07:12+08:00",
-      "content_digest": "sha256:250edd34e53be0a27063f0e5424fb1051640dfb35ea9f09b2bd17dff5e5971a5"
+      "version": "2026-09-09.10",
+      "generated_at": "2026-09-09T21:51:34+08:00",
+      "content_digest": "sha256:fed8978a09790cc49a577b82a4f2bb057f097f074d37b6ed0de3787bbf4c4988"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -327,9 +327,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",
-      "version": "2026-09-08.1",
+      "version": "2026-09-09.1",
       "generated_at": null,
-      "content_digest": "sha256:f762426f7c422b6f805a414ada965ff2ab7ad8e53bdce9248755c015cfb4fbd7"
+      "content_digest": "sha256:ec12a44105a0626d2507c86e9397413a188cb63ee751ee9d5487fc0ef812e7ad"
     },
     {
       "path": "spec/v1/artifacts/registry/repeated-enum-registry.json",

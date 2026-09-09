@@ -18,9 +18,9 @@
     "total_properties": 9856,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2709,
+      "optional": 2708,
       "optional_defaulted": 61,
-      "required": 6744,
+      "required": 6745,
       "required_nullable": 126,
       "tristate": 216
     },
@@ -8903,7 +8903,7 @@
         "/$defs/third_party_invite/properties/max_claims": "optional_defaulted",
         "/$defs/third_party_invite/properties/oob_code_kind": "required",
         "/$defs/third_party_invite/properties/pepper_id": "optional",
-        "/$defs/third_party_invite/properties/token_commitment": "optional",
+        "/$defs/third_party_invite/properties/token_commitment": "required",
         "/$defs/third_party_invite/properties/token_entropy_bits": "optional",
         "/$defs/third_party_invite/properties/token_salt_id": "optional",
         "/$defs/third_party_invite/properties/verification_id": "required",
@@ -8933,7 +8933,6 @@
       "conditionally_required": [
         "/$defs/third_party_invite/properties/lookup_table_ref",
         "/$defs/third_party_invite/properties/pepper_id",
-        "/$defs/third_party_invite/properties/token_commitment",
         "/$defs/third_party_invite/properties/token_entropy_bits",
         "/$defs/third_party_invite/properties/token_salt_id",
         "/properties/introduction_evidence_digest"
@@ -12200,8 +12199,8 @@
         "/$defs/AuthorizationLeaseIssueIntent/properties/risk_tier": "required",
         "/$defs/AuthorizationLeaseIssueIntent/properties/scope_ref": "required",
         "/$defs/AuthorizationLeaseIssueOutcome/properties/authorization_leases": "required",
-        "/$defs/AuthorizationLeaseIssueRequestBody/properties/events": "optional",
         "/$defs/AuthorizationLeaseIssueRequestBody/properties/intents": "optional",
+        "/$defs/AuthorizationLeaseIssueRequestBody/properties/submissions": "optional",
         "/$defs/AuthzCheckOutcome/properties/applied_constraints": "optional",
         "/$defs/AuthzCheckOutcome/properties/cache_expires_at": "optional",
         "/$defs/AuthzCheckOutcome/properties/decision": "required",
@@ -12969,8 +12968,8 @@
         "/$defs/AgentMembershipCascadeFederationSubmission/properties/cleanup_intent_digest",
         "/$defs/AgentMembershipCascadeOutcome/properties/cleanup_intent_digest",
         "/$defs/AgentMembershipCascadeSubmission/properties/cleanup_intent_digest",
-        "/$defs/AuthorizationLeaseIssueRequestBody/properties/events",
         "/$defs/AuthorizationLeaseIssueRequestBody/properties/intents",
+        "/$defs/AuthorizationLeaseIssueRequestBody/properties/submissions",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals/items/properties/fault_reason",
         "/$defs/DeviceMessagesGetOutcome/properties/ack_token",
         "/$defs/EventFederationSubmission/properties/membership_compensation_evidence",

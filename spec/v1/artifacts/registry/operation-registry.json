@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.8",
+  "version": "2026-09-09.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T21:07:12+08:00",
+  "generated_at": "2026-09-09T21:51:34+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2685,7 +2685,7 @@
       "http": "POST /_arkret/self/authorization-leases",
       "grpc": "SelfAuthorizationLeases/Issue",
       "mq": "self.authorization_leases.command.issue",
-      "notes": "Read-only pre-admission of final signed Events followed by one authority-issued publication lease per Event. The operation never commits an Event or advances a frontier. Ordinary Events bind an accepted seal_ref/seal_basis; only complete registered genesis units may bind the ordered anchor_unit digest. Idempotent retry returns byte-identical leases.",
+      "notes": "Read-only preflight of exactly one non-empty submissions (complete online EventInitialSubmission inputs, with no authorization_lease) or intents array. MLS Genesis/Commit public leaf inputs are independently checked against the signed exact basis. Never admits Events or reserves a frontier. Bare events arrays are forbidden.",
       "body_class": "non_streaming_json",
       "max_items": 500,
       "success_shape_kind": "typed_response",

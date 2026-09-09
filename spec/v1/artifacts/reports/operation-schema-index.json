@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.9",
+  "version": "2026-09-09.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T21:26:06+08:00",
+  "generated_at": "2026-09-09T21:51:34+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5629,7 +5629,7 @@
             "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody",
             "schema_kind": null,
             "required": [
-              "events"
+              "submissions"
             ],
             "properties": [],
             "closed": false

@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-08.1",
+  "version": "2026-09-09.1",
   "source_of_truth": true,
   "description": "Canonical machine index of the v1 standard relation_kind vocabulary. This registry is the machine source for the kind list, default cardinality class, truth-source class, and writability; detailed dedupe keys, scope rules, and conflict semantics remain normative in zh/models/relation.md sections 3-6.",
   "registry_rules": [
@@ -8,7 +8,8 @@
     "Rows (or shapes) with truth_source_class=derived_projection MUST NOT be written via ak.relation.create / update / delete; the listed write_path Move or durable event is the only truth source and direct Relation writes MUST be rejected with schema_violation.",
     "Every shape_dependent row MUST declare per-shape writability=derived_only or direct. SDK constructors MUST resolve the most-specific matching (canonical_id,from,to) shape before selecting an event path; wildcard fallback applies only when no specific shape matches.",
     "weak_semantic=true rows are non-structural, non-cascading reference edges; they never imply containment, lifecycle coupling, or visibility changes.",
-    "Relations dedupe on the full tuple (realm_id, relation_kind, from_ref, to_ref); concurrent duplicate creation uses require_review, retains the complete bounded head set, and projects no active winner until an explicit resolution covers every current head."
+    "Relations dedupe on the full tuple (realm_id, relation_kind, from_ref, to_ref); concurrent duplicate creation uses require_review, retains the complete bounded head set, and projects no active winner until an explicit resolution covers every current head.",
+    "Each directly writable shape has exactly one primary_conflict_domain: tuple means (realm_id, relation_kind, from_ref, to_ref); from means (realm_id, relation_kind, from_ref) and includes duplicate tuples. Circle is never a key component. truth_source shapes resolve through their registered source cell, never direct Relation resolution. The primary group is retained without truncation when the ordinary 16-head diagnostic limit is exceeded."
   ],
   "relation_kinds": [
     {
@@ -23,7 +24,8 @@
           "cardinality": "one_to_many; single active board parent per list",
           "truth_source_class": "derived_projection",
           "writability": "derived_only",
-          "write_path": "ak.space.parent"
+          "write_path": "ak.space.parent",
+          "primary_conflict_domain": "truth_source"
         },
         {
           "from": "space(kind=list)",
@@ -31,7 +33,8 @@
           "cardinality": "one_to_many; board-exclusive target (board_space_id, strand_id)",
           "truth_source_class": "derived_projection",
           "writability": "derived_only",
-          "write_path": "ak.strand.move / ak.strand.reorder"
+          "write_path": "ak.strand.move / ak.strand.reorder",
+          "primary_conflict_domain": "truth_source"
         },
         {
           "from": "*",
@@ -39,7 +42,8 @@
           "cardinality": "many_to_many",
           "truth_source_class": "canonical",
           "writability": "direct",
-          "write_path": "ak.relation.create"
+          "write_path": "ak.relation.create",
+          "primary_conflict_domain": "tuple"
         }
       ]
     },
@@ -47,77 +51,89 @@
       "canonical_id": "belongs_to",
       "default_cardinality": "many_to_one",
       "truth_source_class": "canonical",
-      "weak_semantic": false
+      "weak_semantic": false,
+      "primary_conflict_domain": "from"
     },
     {
       "canonical_id": "replies_to",
       "default_cardinality": "many_to_one",
       "truth_source_class": "canonical",
-      "weak_semantic": true
+      "weak_semantic": true,
+      "primary_conflict_domain": "from"
     },
     {
       "canonical_id": "depends_on",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
-      "weak_semantic": true
+      "weak_semantic": true,
+      "primary_conflict_domain": "tuple"
     },
     {
       "canonical_id": "blocks",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
-      "weak_semantic": true
+      "weak_semantic": true,
+      "primary_conflict_domain": "tuple"
     },
     {
       "canonical_id": "mentions",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
-      "weak_semantic": true
+      "weak_semantic": true,
+      "primary_conflict_domain": "tuple"
     },
     {
       "canonical_id": "assigned_to",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
       "weak_semantic": true,
-      "notes": "Canonical direction Strand -> structured ActorId; full-tuple dedupe preserves Station identity, not per-principal single value. Assignment records do not change membership, roles, capabilities, or access permissions. Single-assignee UI rules are application-local, not reducer constraints."
+      "notes": "Canonical direction Strand -> structured ActorId; full-tuple dedupe preserves Station identity, not per-principal single value. Assignment records do not change membership, roles, capabilities, or access permissions. Single-assignee UI rules are application-local, not reducer constraints.",
+      "primary_conflict_domain": "tuple"
     },
     {
       "canonical_id": "references",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
-      "weak_semantic": true
+      "weak_semantic": true,
+      "primary_conflict_domain": "tuple"
     },
     {
       "canonical_id": "derived_from",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
-      "weak_semantic": true
+      "weak_semantic": true,
+      "primary_conflict_domain": "tuple"
     },
     {
       "canonical_id": "attached_to",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
-      "weak_semantic": true
+      "weak_semantic": true,
+      "primary_conflict_domain": "tuple"
     },
     {
       "canonical_id": "has_default_view",
       "default_cardinality": "many_to_one",
       "truth_source_class": "canonical",
       "weak_semantic": true,
-      "notes": "Setting a new default View MUST close the previous active edge."
+      "notes": "Setting a new default View MUST close the previous active edge.",
+      "primary_conflict_domain": "from"
     },
     {
       "canonical_id": "summarized_from",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
       "weak_semantic": true,
-      "notes": "Generic weak reference edge with standard RelationEndpoint types."
+      "notes": "Generic weak reference edge with standard RelationEndpoint types.",
+      "primary_conflict_domain": "tuple"
     },
     {
       "canonical_id": "promoted_from_discussion",
       "default_cardinality": "many_to_many",
       "truth_source_class": "canonical",
       "weak_semantic": true,
-      "notes": "Same generic weak reference semantics as summarized_from."
+      "notes": "Same generic weak reference semantics as summarized_from.",
+      "primary_conflict_domain": "tuple"
     },
     {
       "canonical_id": "watches",
@@ -125,14 +141,16 @@
       "truth_source_class": "derived_projection",
       "weak_semantic": false,
       "write_path": "ak.strand.watch.set",
-      "notes": "Derived from cell ak.component.strand.watch.v1; direct Relation writes MUST schema_violation. from_ref MUST be a structured full ActorId, to_ref a Strand (or profiled watchable)."
+      "notes": "Derived from cell ak.component.strand.watch.v1; direct Relation writes MUST schema_violation. from_ref MUST be a structured full ActorId, to_ref a Strand (or profiled watchable).",
+      "primary_conflict_domain": "truth_source"
     },
     {
       "canonical_id": "confidential_discussion_of",
       "default_cardinality": "many_to_one",
       "truth_source_class": "canonical",
       "weak_semantic": true,
-      "notes": "Circle-scoped on the private Strand side; target-side reverse relation MUST NOT be written."
+      "notes": "Circle-scoped on the private Strand side; target-side reverse relation MUST NOT be written.",
+      "primary_conflict_domain": "from"
     }
   ]
 }
