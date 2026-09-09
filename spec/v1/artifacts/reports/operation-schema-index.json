@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.9",
+  "version": "2026-09-09.13",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T21:26:06+08:00",
+  "generated_at": "2026-09-09T23:05:09+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5629,7 +5629,7 @@
             "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody",
             "schema_kind": null,
             "required": [
-              "events"
+              "submissions"
             ],
             "properties": [],
             "closed": false
@@ -7456,6 +7456,46 @@
       }
     },
     {
+      "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "mls_group_id",
+          "artifact_ref"
+        ],
+        "properties": [
+          "effective_scope",
+          "mls_group_id",
+          "artifact_ref"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_outcome",
+        "schema_kind": "object",
+        "required": [
+          "query_digest",
+          "seal_basis",
+          "transition_head",
+          "governance_binding",
+          "mls_frontier_leaves",
+          "current_epoch_head"
+        ],
+        "properties": [
+          "query_digest",
+          "seal_basis",
+          "transition_head",
+          "governance_binding",
+          "mls_frontier_leaves",
+          "current_epoch_head"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.seals.read.governance_dependencies.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -8074,10 +8114,12 @@
         "schema_kind": "object",
         "required": [
           "backups",
+          "active_series",
           "has_more"
         ],
         "properties": [
           "backups",
+          "active_series",
           "next_cursor",
           "has_more"
         ],

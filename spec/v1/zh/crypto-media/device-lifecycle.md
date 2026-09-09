@@ -1226,7 +1226,7 @@ active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
 - 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。
-- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes_id` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 先用 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record 确认 canonical `series_id`（当同一 `(actor_id, backup_kind)` 存在多个 series 时），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
+- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes_id` / `supersedes_digest`）。普通客户端在恢复或读取时 MUST 先用自己 Station 的 `BackupActiveSeriesState` 确认 canonical `series_id`（见 §7.6.1），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
 
 ### 12.1 Backup API
 
@@ -1243,7 +1243,7 @@ DELETE /_arkret/self/keys/backups/{backup_id}
 
 `PUT` 还 MUST：(a) 校验 `series_seq` 严格大于该 series 已有的最大 sequence（首条 MUST `series_seq=0`）；(b) 校验 `supersedes_id` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_seq_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
 
-`GET /_arkret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_kind=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_kind` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 `identity/key-management.md` §7.8 的限速。
+`GET /_arkret/self/keys/backups` 支持 series_id / backup_kind 过滤与有界分页，完整排序、cursor、active 指针与缺失状态合同见 `identity/key-management.md` §7.6.1。每页只返回调用方可见的 backup metadata、digest、retention hints 和两个 class 的当前服务器指针；不返回 PCR 验证材料。恢复方不得从某页的唯一 series 推断 active；分页结束前不得声明链完整。列表和逐项读取继续遵守 §7.8 的限速。
 
 `unlock` 返回完整 encrypted backup object：request body MUST 携带 `ak.schema.key_backup_unlock_proof.v1`，并受 fresh PCR device proof 与 rate limit 约束。普通单对象 `delete` MUST 要求当前设备或 accepted recovery policy 允许的高风险证明；current DID proof 只有在同一 account authority pair 的本地 recovery policy 显式启用 DID-root factor 时才可进入。active series 的删除还必须遵守 transaction-bound erase 合同，不得用单对象 operation 伪造完成证据。
 

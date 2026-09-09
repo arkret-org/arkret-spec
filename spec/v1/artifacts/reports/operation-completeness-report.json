@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.9",
+  "version": "2026-09-09.13",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T21:26:06+08:00",
+  "generated_at": "2026-09-09T23:05:09+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,14 +18,14 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 234,
+    "total_operations": 235,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 232
+      "typed_schema": 233
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 48
+        "typed_schema": 49
       },
       "deployment_local": {
         "typed_schema": 17
@@ -3092,6 +3092,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/SelfGovernanceDependencyResolveRequest",
         "response": "#/components/schemas/GovernanceDependencyResolveOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/seals/mls-accepted-artifact",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request",
+      "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MlsAcceptedArtifactRequest",
+        "response": "#/components/schemas/MlsAcceptedArtifactOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

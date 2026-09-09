@@ -679,6 +679,7 @@
       "type": "object",
       "required": [
         "backups",
+        "active_series",
         "has_more"
       ],
       "properties": {
@@ -686,7 +687,11 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/backup_metadata"
-          }
+          },
+          "maxItems": 200
+        },
+        "active_series": {
+          "$ref": "#/$defs/backup_active_series_state"
         },
         "next_cursor": {
           "$ref": "#/$defs/cursor"
@@ -695,7 +700,8 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Bounded Account Station metadata page with both current accepted backup-class pointers, independent of list filters. key-management.md section 7.6.1 fixes cursor and unknown-state semantics."
     },
     "keys_backups_unlock_request_body": {
       "type": "object",
@@ -1008,6 +1014,71 @@
           }
         }
       ],
+      "additionalProperties": false
+    },
+    "backup_active_series_pointer": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "state"
+          ],
+          "properties": {
+            "state": {
+              "const": "absent"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "state",
+            "active_series_id",
+            "series_pointer_version"
+          ],
+          "properties": {
+            "state": {
+              "const": "active"
+            },
+            "active_series_id": {
+              "$ref": "#/$defs/backup_series_id"
+            },
+            "series_pointer_version": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "backup_active_series_state": {
+      "type": "object",
+      "required": [
+        "account_id",
+        "control_realm_id",
+        "seal_basis",
+        "secret_storage",
+        "mls_history"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
+        "secret_storage": {
+          "$ref": "#/$defs/backup_active_series_pointer"
+        },
+        "mls_history": {
+          "$ref": "#/$defs/backup_active_series_pointer"
+        }
+      },
       "additionalProperties": false
     }
   }

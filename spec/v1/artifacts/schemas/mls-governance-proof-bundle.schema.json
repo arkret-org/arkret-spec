@@ -15,6 +15,12 @@
     },
     {
       "$ref": "#/$defs/self_read_outcome"
+    },
+    {
+      "$ref": "#/$defs/accepted_artifact_request"
+    },
+    {
+      "$ref": "#/$defs/accepted_artifact_outcome"
     }
   ],
   "$defs": {
@@ -814,6 +820,69 @@
         "epoch_head": {
           "$ref": "#/$defs/mls_epoch_head",
           "description": "Present exactly when the requested accepted basis has a winning epoch value; absence denotes no accepted epoch at that basis, never pending verification. A successor requires this head to match its base_group_state_ref and previous_epoch."
+        }
+      },
+      "additionalProperties": false
+    },
+    "accepted_artifact_request": {
+      "type": "object",
+      "description": "One exact already known MLS Genesis, Commit or Welcome artifact in a Realm/Circle. It asks the authenticated Account Station for current acceptance, not for a historical checkpoint. At most 64 KiB canonical request bytes.",
+      "required": [
+        "effective_scope",
+        "mls_group_id",
+        "artifact_ref"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "artifact_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "accepted_artifact_outcome": {
+      "type": "object",
+      "description": "Complete bounded Account Station result: the exact artifact belongs to the current accepted winning MLS transition chain. It includes no history, Merkle witness or continuation. At most 16 MiB canonical response bytes, independently of the 64 KiB request limit.",
+      "required": [
+        "query_digest",
+        "seal_basis",
+        "transition_head",
+        "governance_binding",
+        "mls_frontier_leaves",
+        "current_epoch_head"
+      ],
+      "properties": {
+        "query_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Exact complete accepted target basis supplied by the authenticated Account Station. No local replay checkpoint or proof base is required."
+        },
+        "transition_head": {
+          "$ref": "#/$defs/mls_epoch_head"
+        },
+        "governance_binding": {
+          "$ref": "./event-payload.schema.json#/$defs/mls_governance_binding"
+        },
+        "mls_frontier_leaves": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 65536,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/mls_security_frontier_leaf"
+          },
+          "description": "Exact durable post-transition public leaf input of transition_head.transition_ref, retained at admission. Never reconstructed from current directory order, transient claims or historical candidates."
+        },
+        "current_epoch_head": {
+          "$ref": "#/$defs/mls_epoch_head"
         }
       },
       "additionalProperties": false

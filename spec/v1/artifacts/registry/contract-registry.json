@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.10",
+  "version": "2026-09-09.13",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T21:51:34+08:00",
+  "generated_at": "2026-09-09T23:05:09+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -11602,6 +11602,7 @@
           "ak.self.seals.read.frontier.v1",
           "ak.self.seals.read.resolve.v1",
           "ak.self.seals.read.mls_governance_proof.v1",
+          "ak.self.seals.read.mls_accepted_artifact.v1",
           "ak.self.seals.read.governance_dependencies.v1",
           "ak.self.account.read.describe.v1",
           "ak.self.account.read.viewer.v1",
@@ -14828,6 +14829,18 @@
         "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_outcome"
       },
       {
+        "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
+        "http": "POST /_arkret/self/seals/mls-accepted-artifact",
+        "grpc": "SelfSeals/MlsAcceptedArtifact",
+        "mq": "self.seals.read.mls_accepted_artifact",
+        "notes": "One known Genesis/Commit/Welcome on the current accepted winning transition chain. Recheck current requester/scope and artifact visibility, including Welcome recipient binding. Return the exact admitted transition leaf input and binding, with no client governance replay. Request at most 64 KiB; complete response at most 16 MiB.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 65536,
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request",
+        "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_outcome"
+      },
+      {
         "operation_id": "ak.self.seals.read.governance_dependencies.v1",
         "http": "POST /_arkret/self/seals/governance-dependencies",
         "grpc": "SelfSeals/GovernanceDependencies",
@@ -15674,8 +15687,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-09.10",
-    "generated_at": "2026-09-09T21:51:34+08:00",
+    "version": "2026-09-09.13",
+    "generated_at": "2026-09-09T23:05:09+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -16918,6 +16931,10 @@
           },
           {
             "operation_id": "ak.self.seals.read.governance_dependencies.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
             "binding_kind": "http_json"
           },
           {

@@ -125,6 +125,44 @@ admission、accepted Event 和必要关联索引原子持久化；同 Event 的�
 tree、credential/signature key、GroupContext 和 exact Proposal/Commit bytes 绑定；不能把服务器的治理结果
 当作服务器已经应用私有 MLS tree。冷 Welcome 不再依赖完整治理历史来猜测叶的成员归属。
 
+### 5.2 已知 MLS artifact 的接纳结果
+
+`ak.self.seals.read.mls_accepted_artifact.v1`（`POST /_arkret/self/seals/mls-accepted-artifact`）接收
+`MlsAcceptedArtifactRequest {effective_scope, mls_group_id, artifact_ref}`，仅选择一个已知 Realm/Circle
+内的 Genesis、Commit 或 Welcome。请求 canonical bytes 上限 64 KiB；完整结果上限 16 MiB，独立于请求上限，
+无 continuation。请求不得携证明基点、客户端检查点、完整历史或 caller 自报的叶集合。
+
+`MlsAcceptedArtifactOutcome` 按顺序包含：
+
+| 字段 | 含义 |
+| --- | --- |
+| query_digest | SHA-256(`ak.mls-accepted-artifact-query-v1` + NUL + JCS(request)) |
+| seal_basis | 服务器完成当前授权与接纳判断的完整 accepted antichain |
+| transition_head | artifact 对应的已接纳 Genesis/Commit，使用 MlsEpochHead 唯一类型 |
+| governance_binding | 该 transition 的原始 signed governance binding |
+| mls_frontier_leaves | §5.1 在该 transition admission 中原子保存的 exact final public leaves |
+| current_epoch_head | seal_basis 下当前唯一 winning epoch 的完整 MlsEpochHead |
+
+服务器 MUST 同时检查当前请求者的 Realm/PCR/Circle 读取资格和该 artifact 的精确读取可见性；先前作者身份、
+旧成员身份、临时 claim、可读一个 Event 或共享验证缓存命中都不替代当前范围授权。Welcome 还必须匹配本会话
+实际获准的 device/Agent/pairwise recipient。查询不得扩大历史内容、私有 Circle 或设备收件人的读取权限。
+
+成功只表示：artifact 已被非隔离 accepted Seal 覆盖；Genesis/Commit 自身就是 transition_head.transition_ref，
+Welcome 的 commit_ref 则等于该 ref；transition_head 是 current_epoch_head 的 exact accepted predecessor chain
+在目标 epoch 的祖先。并发候选不得按到达顺序、最大 epoch 或单独的 covering Seal 任择。未 sealed 或当前验证
+尚未完成返回 frontier_unavailable；不属于当前 winning chain 返回 state_mismatch；不可见与不存在统一 not_found。
+若相应 basis 暴露冲突或缺依赖，MUST 失败，不以旧缓存、空叶集合或另一个候选填补。
+
+服务器从已验证状态和确切已接纳索引判断以上事实，可共享相同历史结果，但逐次执行当前授权。返回的 leaf input
+必须对应 transition 自身，而不是现在的 directory 或后续 epoch 的成员集合。查询结果不包含 ancestry Events，
+不要求客户端重放链；多个调用者不各自从 Genesis 建立治理证明。
+
+客户端只在匹配的 Account Station/账号会话及尚未失效的范围内消费结果；跨账号或已知撤销之后到达的结果不得安装。
+它检查 query、scope/group、目标 Event ref、epoch、binding 和实际 RFC 9420 tree/credential/signature key/Commit/
+Welcome transcript 的相符性，保留实际端到端密码学。此结果是服务器接纳判断，不是客户端 VerifiedMlsGovernanceFrontier；
+不得制造空 checkpoint、page digest 或全历史 fallback。必要的真实 Proposal/Commit bytes 仍按已知 exact refs 获取，
+不得扩展成遍历所有治理历史。旧 accepted-artifact helper 及其历史候选排序/祖先重放缓存须删除。
+
 ## 6. 规范与 conformance
 
 full/e2ee 客户端 conformance 检查请求绑定、结果消费、端到端密码学和恢复行为；服务器 conformance 检查治理历史、DID/外部证据、admission、当前授权与共享增量状态。客户端没有治理历史 verifier 不构成不合规；服务器接受未经验证的远端材料构成不合规。

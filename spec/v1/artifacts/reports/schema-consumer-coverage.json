@@ -47,7 +47,7 @@
       "event_kind": 3,
       "inbound": 47,
       "outbound": 55,
-      "prose": 113,
+      "prose": 112,
       "prose_only": 2,
       "schema_reference": 136,
       "startup_compile": 205,
@@ -2389,7 +2389,6 @@
       "schema_id": "ak.schema.key_backup_active_series.v1",
       "file": "schemas/key-backup-active-series.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"

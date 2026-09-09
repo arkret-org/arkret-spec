@@ -6219,6 +6219,16 @@
       ]
     },
     {
+      "schema_path": "keys-operations.schema.json#/$defs/backup_active_series_state/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "keys-operations.schema.json#/$defs/backup_metadata/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",

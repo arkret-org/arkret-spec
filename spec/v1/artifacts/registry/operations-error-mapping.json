@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-09.5",
+  "version": "2026-09-09.7",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T19:15:20+08:00",
+  "generated_at": "2026-09-09T23:05:09+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -20,17 +20,6 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
-      "http_alias": "POST /_arkret/edge/applet/managed-actors/author",
-      "operation_specific": [
-        "applet_registration_epoch_evidence_deactivated",
-        "duplicate_conflict",
-        "authoring_request_expired",
-        "applet_registration_unauthorized"
-      ],
-      "description": "The Applet service verifies the target Station signature and exact immutable bindings before signing the fixed managed-actor Event bundle. A successful exact request is durably replayable; changed bytes conflict and an uncommitted expired request is terminally rejected."
-    },
-    {
       "operation_id": "ak.edge.applet.command.transaction.v1",
       "http_alias": "POST /_arkret/edge/applet/transactions",
       "operation_specific": [
@@ -43,6 +32,17 @@
         "queue_full"
       ],
       "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or receiver-derived delivery_authentication_record_digest, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1."
+    },
+    {
+      "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
+      "http_alias": "POST /_arkret/edge/applet/managed-actors/author",
+      "operation_specific": [
+        "applet_registration_epoch_evidence_deactivated",
+        "duplicate_conflict",
+        "authoring_request_expired",
+        "applet_registration_unauthorized"
+      ],
+      "description": "The Applet service verifies the target Station signature and exact immutable bindings before signing the fixed managed-actor Event bundle. A successful exact request is durably replayable; changed bytes conflict and an uncommitted expired request is terminally rejected."
     },
     {
       "operation_id": "ak.edge.applet.read.describe.v1",
@@ -539,15 +539,6 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.third_party_invite.command.present_token.v1",
-      "http_alias": "POST /_arkret/open/third-party-invites/present",
-      "operation_specific": [
-        "third_party_invite_token_in_query",
-        "unsupported_join_rule"
-      ],
-      "description": "third_party_invite_token_in_query: invite_token arrived in the URL query string or path segment (third-party-invites.md section 3.2); unsupported_join_rule: the intended Realm is knock_restricted, outside v1 base third-party claim (section 4.3). Token, invite and Realm existence failures stay non-enumerable (section 6)."
-    },
-    {
       "operation_id": "ak.open.mimi.command.notify.v1",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/notify",
       "operation_specific": [
@@ -656,6 +647,15 @@
       "description": "Local consumers reject a DID method history that conflicts with their durable accepted prefix using service_route_fork."
     },
     {
+      "operation_id": "ak.open.third_party_invite.command.present_token.v1",
+      "http_alias": "POST /_arkret/open/third-party-invites/present",
+      "operation_specific": [
+        "third_party_invite_token_in_query",
+        "unsupported_join_rule"
+      ],
+      "description": "third_party_invite_token_in_query: invite_token arrived in the URL query string or path segment (third-party-invites.md section 3.2); unsupported_join_rule: the intended Realm is knock_restricted, outside v1 base third-party claim (section 4.3). Token, invite and Realm existence failures stay non-enumerable (section 6)."
+    },
+    {
       "operation_id": "ak.peer.account_status.command.submit.v1",
       "http_alias": "POST /_arkret/peer/account-status",
       "operation_specific": [
@@ -688,6 +688,12 @@
         "source_refs_unverifiable",
         "peer_stale"
       ]
+    },
+    {
+      "operation_id": "ak.peer.current_signer_evidence.read.resolve.v1",
+      "http_alias": "POST /_arkret/peer/current-signer-evidence/query",
+      "operation_specific": [],
+      "description": "All unknown, unauthorized, inactive, conflicted, expired, and wrong-Station selectors collapse to the same signed empty typed outcome; no item-specific error is exposed."
     },
     {
       "operation_id": "ak.peer.device_revocations.command.check.v1",
@@ -878,6 +884,18 @@
       ]
     },
     {
+      "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
+      "http_alias": "POST /_arkret/peer/seals/governance-dependencies",
+      "operation_specific": [
+        "not_found",
+        "limit_exceeded",
+        "frontier_unavailable",
+        "state_mismatch",
+        "signature_invalid"
+      ],
+      "description": "Unknown, unauthorized, outside-cut and missing selectors are same-shape. Any complete-response bounds failure returns no partial items or cursor."
+    },
+    {
       "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
       "http_alias": "POST /_arkret/peer/seals/mls-governance-proof",
       "operation_specific": [
@@ -889,18 +907,6 @@
         "signature_invalid",
         "unsupported_profile"
       ]
-    },
-    {
-      "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
-      "http_alias": "POST /_arkret/peer/seals/governance-dependencies",
-      "operation_specific": [
-        "not_found",
-        "limit_exceeded",
-        "frontier_unavailable",
-        "state_mismatch",
-        "signature_invalid"
-      ],
-      "description": "Unknown, unauthorized, outside-cut and missing selectors are same-shape. Any complete-response bounds failure returns no partial items or cursor."
     },
     {
       "operation_id": "ak.peer.seals.read.resolve.v1",
@@ -1005,12 +1011,6 @@
       "http_alias": "GET /_arkret/root/identity/receipts",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
-      "operation_id": "ak.peer.current_signer_evidence.read.resolve.v1",
-      "http_alias": "POST /_arkret/peer/current-signer-evidence/query",
-      "operation_specific": [],
-      "description": "All unknown, unauthorized, inactive, conflicted, expired, and wrong-Station selectors collapse to the same signed empty typed outcome; no item-specific error is exposed."
     },
     {
       "operation_id": "ak.root.identity.recovery_policy.command.publish.v1",
@@ -1853,8 +1853,11 @@
       "operation_id": "ak.self.keys.backups.read.list.v1",
       "http_alias": "GET /_arkret/self/keys/backups",
       "operation_specific": [
-        "cursor_invalid"
-      ]
+        "cursor_invalid",
+        "frontier_unavailable",
+        "limit_exceeded"
+      ],
+      "description": "Current accepted PCR pointer state is required even for empty/filtered metadata pages. frontier_unavailable is never represented as absent; cursor_invalid rejects stale or cross-selector continuation; limit_exceeded rejects a result that cannot fit a complete bounded page."
     },
     {
       "operation_id": "ak.self.keys.backups.resource.delete.v1",
@@ -2022,6 +2025,14 @@
       "description": "No operation-specific error codes beyond the universal failure surface. Read is gated by Realm read authorization (capability_denied, universal)."
     },
     {
+      "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
+      "http_alias": "GET /_arkret/self/realm-state-snapshot/head",
+      "operation_specific": [
+        "realm_state_snapshot_unavailable",
+        "realm_state_snapshot_authority_unverified"
+      ]
+    },
+    {
       "operation_id": "ak.self.seals.command.prepare.v1",
       "http_alias": "POST /_arkret/self/seals/prepare",
       "operation_specific": [
@@ -2051,20 +2062,6 @@
       ]
     },
     {
-      "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
-      "http_alias": "POST /_arkret/self/seals/mls-governance-proof",
-      "operation_specific": [
-        "not_found",
-        "mls_governance_anchor_unreachable",
-        "mls_governance_proof_bounds_exceeded",
-        "frontier_unavailable",
-        "state_mismatch",
-        "signature_invalid",
-        "unsupported_profile"
-      ],
-      "description": "not_found preserves Realm/scope visibility; mls_governance_anchor_unreachable means the exact proof_target_basis does not dominate the exact proof_base_basis, while byte-identical base and target antichains are a valid zero-transition query; mls_governance_proof_bounds_exceeded means the complete frontier response exceeds the v1 canonical-byte bound and forbids partial output; frontier_unavailable covers missing accepted Seal/Event/witness material that prevents the dominance or frontier decision; state_mismatch covers inconsistent covered/control materialization; signature_invalid covers unverifiable Seal/Event/witness commitments; unsupported_profile rejects unsupported binding or reducer profiles."
-    },
-    {
       "operation_id": "ak.self.seals.read.governance_dependencies.v1",
       "http_alias": "POST /_arkret/self/seals/governance-dependencies",
       "operation_specific": [
@@ -2075,6 +2072,39 @@
         "signature_invalid"
       ],
       "description": "Unknown, unauthorized, outside-cut and missing selectors are same-shape. Any complete-response bounds failure returns no partial items or cursor."
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
+      "http_alias": "POST /_arkret/self/seals/mls-accepted-artifact",
+      "operation_specific": [
+        "not_found",
+        "frontier_unavailable",
+        "state_mismatch",
+        "limit_exceeded"
+      ],
+      "description": "not_found covers missing or invisible artifact/current scope or a mismatched Welcome recipient; frontier_unavailable covers unsealed artifacts, unavailable accepted state or dependencies; state_mismatch rejects non-winning transitions or inconsistent retained inputs; limit_exceeded rejects complete-result byte overflow without partial output."
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
+      "http_alias": "POST /_arkret/self/seals/mls-governance-proof",
+      "operation_specific": [
+        "not_found",
+        "mls_governance_proof_bounds_exceeded",
+        "frontier_unavailable",
+        "state_mismatch",
+        "unsupported_profile"
+      ],
+      "description": "Authenticated Account Station result only. not_found preserves current Realm/scope visibility; mls_governance_proof_bounds_exceeded rejects complete-result or request bounds; frontier_unavailable covers unavailable accepted state/dependencies; state_mismatch rejects inconsistent exact local leaf/basis/genesis/epoch binding; unsupported_profile rejects unsupported binding or reducer profiles. Clients do not receive Merkle material or a proof base."
+    },
+    {
+      "operation_id": "ak.self.seals.read.pending_control.v1",
+      "http_alias": "QUERY /_arkret/self/seals/pending-control",
+      "operation_specific": [
+        "frontier_unavailable",
+        "seal_signer_unauthorized",
+        "state_mismatch"
+      ],
+      "description": "PCR-only availability preparation. frontier_unavailable covers a stale or incomplete predecessor/event basis; seal_signer_unauthorized covers a local service that is not the create-locked PCR holder; state_mismatch covers invalid PCR genesis admission material or dependency construction that cannot satisfy the frozen policy. No Seal is committed on failure."
     },
     {
       "operation_id": "ak.self.seals.read.resolve.v1",
@@ -2129,14 +2159,6 @@
       ]
     },
     {
-      "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-      "http_alias": "GET /_arkret/self/realm-state-snapshot/head",
-      "operation_specific": [
-        "realm_state_snapshot_unavailable",
-        "realm_state_snapshot_authority_unverified"
-      ]
-    },
-    {
       "operation_id": "ak.self.space.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/spaces",
       "operation_specific": [],
@@ -2153,16 +2175,6 @@
       "http_alias": "GET /_arkret/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
-      "operation_id": "ak.self.seals.read.pending_control.v1",
-      "http_alias": "QUERY /_arkret/self/seals/pending-control",
-      "operation_specific": [
-        "frontier_unavailable",
-        "seal_signer_unauthorized",
-        "state_mismatch"
-      ],
-      "description": "PCR-only availability preparation. frontier_unavailable covers a stale or incomplete predecessor/event basis; seal_signer_unauthorized covers a local service that is not the create-locked PCR holder; state_mismatch covers invalid PCR genesis admission material or dependency construction that cannot satisfy the frozen policy. No Seal is committed on failure."
     }
   ],
   "cross_links": {

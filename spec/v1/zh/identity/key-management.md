@@ -1121,7 +1121,37 @@ Welcome/Add 进入唯一 derived group；同 endpoint crash-resume 若使用**�
 
 ### 7.6 Backup Series & Freshness
 
-每个 `(actor_id, backup_kind)` 的 series 使用严格递增 `series_seq` 与 digest-bound `supersedes_id` 链。Active-series record 必须由当前 accepted device 签名，签名输入固定为 `RFC8785_JCS(record 删除 auth_data.signature)`；闭合 record 的全部实际存在成员自动受认证，不携字段名清单。record 携带其 `device_authorize_event_id`，并以整数 `frontier_ref.device_generation_ref` 绑定 current generation。Receiver 选择已验证的最高 pointer version，拒绝回滚、fork、链缺口、旧 generation 或缺少 completeness/witness evidence 的服务端列表。
+每个 `(actor_id, backup_kind)` 的 series 使用严格递增 `series_seq` 与 digest-bound `supersedes_id` 链。Active-series record 必须由当前 accepted device 签名，签名输入固定为 `RFC8785_JCS(record 删除 auth_data.signature)`；闭合 record 的全部实际存在成员自动受认证，不携字段名清单。record 携带其 `device_authorize_event_id`，并以整数 `frontier_ref.device_generation_ref` 绑定 current generation。服务器在 accepted PCR 状态中验证 pointer 的单调性、签名、generation 与分支，拒绝回滚、fork 和链缺口；普通客户端使用下述自己 Station 的当前指针结果，不验证 PCR 历史或要求列表携 completeness/witness evidence。
+
+#### 7.6.1 自己 Station 的 active series 与有界列表
+
+`ak.self.keys.backups.read.list.v1` 的 `KeysBackupsList` 按 `backups, active_series, next_cursor?, has_more` 排列。
+`active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, seal_basis, secret_storage, mls_history`
+排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的 accepted antichain。两个 backup class 始终全部返回，
+不受 series_id/backup_kind 过滤、当前页有无 envelope 或 envelope 的过期/删除影响。
+
+每个 class 的 `BackupActiveSeriesPointer` 为 closed 分支：`{state:"absent"}` 或
+`{state:"active", active_series_id, series_pointer_version}`。active 来自该 basis 已接受的
+exact `ak.key_backup.active_series` cell，pointer version >=1；basis 和 class 足以定位结果，不额外携带历史证明或 Event 清单。absent 只表示服务器已完成该 basis 的求值且没有指针；
+未验证、缺依赖、冲突/Bottom、PCR 不可用必须使请求返回 frontier_unavailable，不得以 absent、空列表、字段省略或 null 掩盖。
+
+普通客户端 MUST 信任本次自己 Station 的结果，检查账号、PCR 与结果形状；不得下载 PCR 闭包、历史 DID、签名清单或独立
+witness 来重建 active 指针。不得把唯一可见 series 猜成 active，也不得由列表到达次序、最大 seq 或 created_at 选出 active。
+首次初始化仅在对应 class 为 absent 时准备 version=1 的已签 CAS；并发指针出现后必须重新读取，不能改写已签 intent。
+active series 不在当前页不表示它不存在。旧设备上传的“验证标记”不是本结果的来源。
+
+list 默认 limit=50，允许 1..200；完整响应 canonical bytes 上限 1 MiB。服务端按 backup_kind、series_id 的 canonical
+UTF-8 字节序，随后 series_seq 数值、backup_id canonical 字节序升序分页。范围、排序和 limit 必须下推到有界存储读取，
+不能先读取全部 envelope 再截断。has_more=true 必须给 next_cursor，false 禁止给 next_cursor；超过单项字节上限返回
+limit_exceeded，不返回不完整 metadata。客户端只在分页完成后声明目标范围完整，不以部分页缺项删除本地状态。
+
+cursor 是自己 Station 签发的 opaque 列表位置，绑定 operation、完整账号、过滤条件、排序和服务端列表修订及 active 指针
+状态。跨账号/operation/过滤条件、篡改、已失效修订必须拒绝为 cursor_invalid；不能退化成从头页并报告 continuation 成功。
+列表内容或 active 指针改变可使旧 cursor 失效；客户端重新读取目标过滤范围。每页仍执行当前设备/账号读取授权，缓存命中
+不豁免撤销。分页不要求持有所有历史治理状态，也不使账号导航等待所有备份页。
+
+恢复只读取所需 active series 的 metadata 页与确切 envelope；备份链、signed envelope 用户/recipient 绑定、HPKE/AEAD
+和密文 digest 认证仍在端到端客户端完成。服务器确认治理可用性不表示它读取或认证了加密明文。
 
 ### 7.7 Recovery UI Requirements（normative）
 
