@@ -306,6 +306,8 @@ binding/status digest 与时窗。`account_binding_default` 表示权威私有 b
 全部 inactive。由于 portable evidence 不公开 service-local account identity，任何 `account_id`、raw account cell 或
 caller 自报 active 布尔值都是 schema violation。
 
+Account Authority 是同一 owning Station 下的独立签名职责，可以使用专用 verification method，但没有独立 service DID（见 `../overview/architecture.md` 与 `../sync/service-surface.md` 的角色身份合同）。消费者从实际 Agent 完整 AccountId 独立取得 Station：gate.authority_id MUST 等于该 Station；controller signer leaf MUST 是完整 Principal evidence，其 public resolution.account_id MUST 逐字等于 `{principal_id: binding.controller_principal_id, station_id: Agent AccountId.station_id}`。Service leaf、另一 Station 的同 principal Account 或 gate 自报 authority 均不能替代该关系证明。此约束同样适用于历史接纳，在原 proof 时刻验证已有签名；不增加字段或重新包装签名。
+
 Agent authority **不能自行合成 Account Authority evidence**。缺少未过期且匹配 controller principal 的 gate 时，
 它 MUST 使用 authenticated S2S `ak.gate.account.command.issue_controller_gate_attestation.v1`，提交 closed
 `{request_id, principal_id, agent_authority_id, agent_authority_resolution}`。Account Authority 独立验证完整
@@ -337,6 +339,8 @@ account inactive、membership ending/generation 变化或冲突立即使对应�
 恢复未过期可信状态不触发重新配对、完整取证或状态重签。到期只刷新状态；绑定变化或缺材料才验证相应新增材料。
 刷新失败暂停需要当前授权的操作，历史验证不受影响。上下文只是派生验证结果：不得新增 context id、服务端登记表、
 建立/确认握手或独立撤销链。多端共享同一已签事实，各端仍自行验证 session、设备授权、MLS 成员资格和消息。
+
+Agent authority MUST 由完整 Agent ActorId 的 AccountId.station_id 独立确定；state.authority_id 必须与其相等，不得用响应自报 authority 作为 expected authority。Principal 与 Service signer leaf 均验证完整 method-native history：projection 的来源签名按自身 issued_at 验证，而 controller binding、Seal 或 Event 的实际签名方法按该 proof 的签发/接纳时刻从历史中选择。历史方法不必仍存在于 current head；新 projection 不得让旧签名追溯失效。
 
 Signal current-signer query 的 `known_agent_state_digests` 只声明本地已完整验证的 state；相同摘要可在专用 compact
 transport root 中省略 `state`。接收端 MUST 先按摘要补回完整 state，再重算 admission/root digest 和验证签名；

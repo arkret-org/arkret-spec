@@ -295,6 +295,7 @@ variant，同 response_id 异 digest 为永久冲突。
 
 Agent authority locator 逐字为
 `{agent_id, verification_method, agent_key_authorize_event_id, active_lifecycle_event_id, control_basis, agent_signer_evidence_digest, observed_at, expires_at}`；
+其中 `observed_at` 为 lease.issued_at、gate.issued_at、binding.issued_at、authorization.accepted_at 与 not_before 的最大值；`expires_at` 为 lease、gate、binding 与 authorization 已声明 expires_at 的最小值。该共同窗口必须非空，恢复或刷新不得扩大各来源独立期限。
 其中 `control_basis` 是完整 accepted PCR Seal antichain，`agent_signer_evidence_digest = SHA-256(JCS(complete current AgentSignerEvidence))`。
 不得退化为 singular control Seal、含糊的 control/evidence Event ref 或未定义 digest。RHRK source locator 内联完整
 `RhrkHolderAuthorityObservation`，而不是裸 observation digest；该 object 分别绑定 `method_controller_principal_id`、`holder_service_id`、current signing method、accepted key evidence Event、

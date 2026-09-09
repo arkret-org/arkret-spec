@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-07.1",
+  "version": "2026-09-09.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-07T06:40:00Z",
+  "generated_at": "2026-09-09T11:39:09+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
