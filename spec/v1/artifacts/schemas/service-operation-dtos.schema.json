@@ -889,14 +889,25 @@
     },
     "AuthorizationLeaseIssueRequestBody": {
       "type": "object",
-      "description": "Exactly one non-empty target array: final signed Events for publication pre-admission, or typed non-Event operation intents. Mixed requests are forbidden.",
+      "description": "Exactly one non-empty target array: complete online self Event admission submissions for a read-only publication preflight, or typed non-Event operation intents. Bare Events, mixed targets and an already attached authorization lease are forbidden. No Event or input is admitted by this operation.",
       "properties": {
-        "events": {
+        "submissions": {
           "type": "array",
           "minItems": 1,
           "maxItems": 500,
           "items": {
-            "$ref": "#/$defs/EventSubmitEnvelope"
+            "allOf": [
+              {
+                "$ref": "#/$defs/EventInitialSubmission"
+              },
+              {
+                "not": {
+                  "required": [
+                    "authorization_lease"
+                  ]
+                }
+              }
+            ]
           }
         },
         "intents": {
@@ -911,7 +922,7 @@
       "oneOf": [
         {
           "required": [
-            "events"
+            "submissions"
           ],
           "not": {
             "required": [
@@ -925,7 +936,7 @@
           ],
           "not": {
             "required": [
-              "events"
+              "submissions"
             ]
           }
         }

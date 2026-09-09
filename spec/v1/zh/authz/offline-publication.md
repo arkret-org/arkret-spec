@@ -228,8 +228,8 @@ Station在不持有真实authority key时补签。
 
 只有显式延迟/离线流程的客户端通过 `ak.self.authorization_leases.command.issue.v1`
 （`POST /_arkret/self/authorization-leases`）提交且只能二选一：
-`AuthorizationLeaseIssueRequestBody {events: Event[1..500]}` 或
-`AuthorizationLeaseIssueRequestBody {intents: AuthorizationLeaseIssueIntent[1..500]}`。Event 必须已完成最终签名；服务端
+`AuthorizationLeaseIssueRequestBody {submissions: EventInitialSubmission[1..500]}` 或
+`AuthorizationLeaseIssueRequestBody {intents: AuthorizationLeaseIssueIntent[1..500]}`。每个 submission 的 Event 必须已完成最终签名，且 MUST 省略 authorization_lease（包括 null）；其余接纳输入按正式 EventInitialSubmission 的 kind presence 规则携带。MLS Genesis/Commit 的最终 mls_frontier_leaves 必须与之后发布完全相同，预检服务器在 Event 的 exact basis 重算并比对 signed security_frontier_digest；不得使用临时 query cache 补缺。服务端
 MUST 对其执行与稍后正式提交相同的 actor/session、device generation、proof、registry、Realm
 policy、CBS、capability、frontier 与 closed-unit admission，但不得写 Event、推进 frontier 或
 承诺稍后一定接受。
@@ -237,7 +237,7 @@ policy、CBS、capability、frontier 与 closed-unit admission，但不得写 Ev
 `AuthorizationLeaseIssueIntent` 只用于 capability registry 中 `target_event_kinds=[]` 的
 non-Event operation，固定 `scope_ref/action/authorization_rule_id/risk_tier/basis_ref`。
 issuer MUST 独立确认 action/risk、当前 accepted basis、session actor/device、scope control
-Realm 和当前 authority policy；intent 本身不是授权。`events` 与 `intents` 不得同时出现。
+Realm 和当前 authority policy；intent 本身不是授权。`submissions` 与 `intents` 不得同时出现；裸 `events` 字段 MUST 拒绝，不保留平行载体。预检不得持久接纳 Event 或公开叶输入；成功只签发逐项绑定 Event 的租约，实际发布仍独立验证。
 
 成功响应 `AuthorizationLeaseIssueOutcome {authorization_leases[]}` MUST 与 request target
 逐项同序、同数量。普通 Event 的 lease 绑定其 `seal_ref` / `seal_basis`；genesis 绑定 §1 的完整
