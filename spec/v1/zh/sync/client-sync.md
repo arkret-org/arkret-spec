@@ -208,7 +208,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 ### 3.2 Agent signer evidence bundle（normative）
 
-声明 `ak.profile.agent_signer_evidence.v1` 的 sync producer MUST 在 sync response 顶层支持可选 `agent_signer_evidence_bundle`，其 shape为 `agent-signer-evidence-operations.schema.json#/$defs/sync_bundle`。Event不新增字段，也不得把transport evidence写进producer canonical bytes。historical evidence按完整 `(event_id,receiver_id)` 去重；event digest 必须从 suite-bearing `event_id` 解码，并由Event的`executed_by ?? actor_id`与proof method再交叉选择。current evidence按完整 Agent AccountId、controller、method/key、authorization dot 与适用scope绑定，允许在原观察窗口内跨消息和重连复用；已观察撤销/成员变化立即失效，接收端逐条独立检查消息/MLS/TTL/replay，不能从sync transport本身推导授权。
+声明 `ak.profile.agent_signer_evidence.v1` 的 sync producer MUST 在 sync response 顶层支持可选 `agent_signer_evidence_bundle`，其 shape为 `agent-signer-evidence-operations.schema.json#/$defs/sync_bundle`。Event不新增字段，也不得把transport evidence写进producer canonical bytes。historical evidence按完整 `(event_id,receiver_id)` 去重；event digest 必须从 suite-bearing `event_id` 解码，并由Event的`executed_by ?? actor_id`与proof method再交叉选择。current evidence按完整 Agent AccountId、controller、method/key、authorization dot 与适用scope绑定，允许在原观察窗口内跨消息和重连复用；已观察的相关 key/lifecycle/account 撤销或冲突使签名授权缓存立即失效，成员或 generation 变化由每消息的可信 membership/MLS 检查拒绝不再适用的操作，不要求刷新未改变的 Agent PCR lease。接收端逐条独立检查消息/MLS/TTL/replay，不能从sync transport本身推导授权。
 
 服务端只可为requester与Agent当前共享Realm/session/contact/controller上下文的Event携带evidence；不得借initial sync枚举其他Agent或其私有scope。minimal-metadata Realm bucket禁止携带或触发Agent/device principal query。
 

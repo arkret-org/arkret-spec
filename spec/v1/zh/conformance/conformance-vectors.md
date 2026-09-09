@@ -6389,7 +6389,7 @@ Authority lease、独立 controller gate、controller binding、key/lifecycle wi
 
 1. 冷获取与多消息、多设备复用；重连及可信恢复不重新签发状态或配对；每条消息仍验签/MLS/replay。
 2. 已知摘要只交付变化和缺项；hydrate 后 canonical root 地址不变，缺 state 或依赖不得成功。
-3. 300 秒最大观察年龄、底层更早截止、旧观察不能重包装续期；已观察撤销/冲突/成员变更立即失效。
+3. 300 秒最大观察年龄、底层更早截止、旧观察不能重包装续期；已观察的相关 key/lifecycle/account 撤销或冲突使签名授权缓存立即失效。成员或 generation 变化由每消息的可信 membership/MLS 检查拒绝不再适用的操作，不刷新未改变的 Agent PCR lease，无关 Agent 或成员变化不得使该签名缓存失效。
 4. state/gate principal、完整 AccountId、runtime method/key、授权 dot 和 scope 错配必须拒绝。
 5. state witness 使用 canonical `<event_id>:<write_index>`；裸 Event ID 或其它 dot 拒绝。
 

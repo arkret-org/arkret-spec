@@ -378,7 +378,8 @@ verifier 在原 producer accepted_at 检查 lease/gate/key 的时窗与三项 ac
 method-history 必须在原 proof 的签署/接纳时刻验证 exact method：did:key 按不可变 identifier 展开，WebVH 验完整
 log 并选择该时刻 document，mutable did:web 不提供历史权威。current carrier 只是获取完整历史材料的 transport，
 不把当前 head 当历史 key。ASRE 的 receiver_signer_evidence_ref 在 current 分支禁止，在 historical 分支必须存在，
-用于原 Station admission 或独立 receipt；其它三项 ref 分别认证 Agent Authority lease、controller 和 Account Authority。
+用于原 Station admission 或独立 receipt；其它两项 ref 分别认证 Agent Authority lease 与 Account Authority gate，
+controller binding 的来源是原授权 Event 的已接纳 producer key，其 Station admission ref 进入既有闭包。
 
 历史对象没有新的包装签名或到期时间。selector tuple 的第一次完整物化原子存储 root 与依赖；同 tuple 同接纳事实
 返回原 root/no-op，不重复物化；不同接纳事实试图覆盖原 tuple 为 duplicate_conflict。后来 key rotation、Agent key

@@ -77,6 +77,19 @@ proof 的 `verification_method` fragment 投影。完整 replay 同时证明该 
 winning Add/Commit/Welcome 得到自己的 `join_epoch`，不得从 KeyPackage blob、ratchet tree 或实现私有元数据猜测 epoch 0。
 已 active principal 的设备变化不改变 principal incarnation/join epoch；remove 后 rejoin 产生新值。
 
+Winning MLS lineage MUST 从目标已验证 cut 的 registered MLS epoch cell 的有效 `transition_ref` 与 `next_epoch`
+开始，沿每个 Commit 的 `base_epoch_ref` 回溯至该 lineage 的 Genesis，并逐步验证 exact scope/group 与连续 epoch。
+不得枚举 retained Commit 的后继数量来指定 winner：合法 recovery 或贡献规则变化后，失效候选仍可保留在历史中。
+epoch cell 为 Bottom 时保持未决；没有 epoch state 时只表示 MLS 阶段尚未就绪。有效 recovery head 的写入身份
+是 recovery Event，其值中的 `transition_ref` 才是被选定的 MLS transition，不能把两者混用。
+Genesis founding membership 和 Add 消费关系都只取这条有效 lineage；未被它消费的 Add 不产生 join floor。
+
+这里的 founding membership MUST 是在 winning Genesis Event 的 signed `seal_basis` 上，按下述 registered
+membership FSM 查询得到的完整 `AuthorizationIncarnation`。它必须与目标 cut 的 incarnation 逐字相等，才可返回 0；
+Circle 两个 incarnation ref 均需相等。成员变更的作者可以是获准代写的管理员，不必等于 target actor；
+`actor_seq` 的先后、Event 到达顺序或“两个 Event 作者相同”均不得代替该历史状态查询。Genesis basis
+或必要历史状态不可用时保持 pending/fail-closed，不得推定为 founding member。
+
 Membership incarnation MUST 从目标已验证 cut 的 registered membership cell 的标准 FSM 有效写入身份派生。
 `member.state`、`invite.accept` 和其它已登记生产者使用相同语义；MUST NOT 用 Event-kind 白名单、payload shape
 或 retained Event 中的某个 `join` 字样替代 reducer。唯一有效的 join head 给出 incarnation；多条同值 join heads

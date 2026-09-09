@@ -193,8 +193,10 @@ Agent compact transport root 可省略已声明 known 的 state，接收端必�
 
 缓存 MUST 绑定完整 AccountId/device/authorization/generation，Agent 还绑定 controller、runtime method/key、授权 dot
 与已验证 scope。source 仍按本地权威状态逐次执行准入；recipient 在 Agent lease 最多 300 秒的明确观察窗口内复用
-授权结果，不逐 Signal 查询。实际有效期同时受 gate/key 截止限制，重连/转发/恢复不续期；已观察撤销、冲突或成员
-变化立即失效。每条消息仍独立验证 producer signature、MLS leaf/group/epoch、AAD/AEAD、TTL 和 replay。设备可共享
+授权结果，不逐 Signal 查询。实际有效期同时受 gate、binding 与 key authorization 的独立截止限制，重连/转发/恢复不续期。
+已观察的相关 key/lifecycle/account 撤销或冲突使 Agent 签名授权缓存失效；成员或 generation 变化由每消息的可信
+membership/MLS 检查使对应操作不再适用，不要求刷新未改变的 Agent PCR lease，无关成员变化不使该签名缓存失效。
+每条消息仍独立验证 producer signature、MLS leaf/group/epoch、AAD/AEAD、TTL 和 replay。设备可共享
 同一适用关系的已签状态，各自从可信 MLS/governance 状态检查 exact membership/generation；不得把 unsigned query
 响应或另一个设备的 verified 标志当作当前 membership 证明。到期仅刷新状态和缺项，不重新配对或验证未变稳定链。
 没有有效可信材料时只可在 Signal TTL 内有界等待；未验证不得展示、更新 high-water 或执行业务，过期即丢弃。
