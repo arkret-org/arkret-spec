@@ -119,7 +119,8 @@
           "description": "Holder-authored ak.account_data.set Events only. Station-CAS rows MUST NOT be synthesized as Events.",
           "items": {
             "$ref": "./event-envelope.schema.json"
-          }
+          },
+          "maxItems": 100
         },
         "station_cas": {
           "$ref": "#/$defs/station_cas_account_data_container"
@@ -999,7 +1000,7 @@
     "account_filter": {
       "type": "object",
       "properties": {
-        "realms": {
+        "realm_ids": {
           "type": "array",
           "maxItems": 16,
           "uniqueItems": true,
@@ -1007,7 +1008,7 @@
             "$ref": "./common-ids.schema.json#/$defs/realm_id"
           }
         },
-        "strands": {
+        "strand_ids": {
           "type": "array",
           "maxItems": 32,
           "uniqueItems": true,
@@ -1049,7 +1050,7 @@
       },
       "required": [],
       "additionalProperties": false,
-      "description": "An absent or empty realms collection selects no Realm detail. Global account and Realm-summary changes remain subscribed. Strands belong to the selected Realms; absent strands selects their current default Strands. Current security results are not filtered by Event kind."
+      "description": "An absent or empty realm_ids collection selects no Realm detail. Global account and Realm-summary changes remain subscribed. Strands belong to the selected Realms; absent strand_ids selects their current default Strands. Current security results are not filtered by Event kind."
     },
     "realm_list_request": {
       "type": "object",

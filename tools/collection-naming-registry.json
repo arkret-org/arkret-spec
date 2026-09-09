@@ -364,6 +364,15 @@
         "has_more"
       ],
       "reason": "has_more describes only the bounded pending Control Move selection, not the predecessor basis"
+    },
+    {
+      "file": "account-subscribe-frame.schema.json",
+      "pointer": "/$defs/realm_list_page",
+      "collection_field": "items",
+      "companion_fields": [
+        "next_cursor"
+      ],
+      "reason": "Account Realm summaries paginate a frozen account-private snapshot; complete additionally marks its terminal page."
     }
   ]
 }

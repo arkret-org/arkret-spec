@@ -58,8 +58,8 @@ Realm timeline / notification delta 只进入其成员 `ActorId` 中 account 分
 | `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
 | `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端返回 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame并结束本轮响应；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ak.self.events.read.scan.v1` 分页/区间读取。 |
 | `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 self.events.stream.subscribe。 |
-| `filter.realms` | query | `RealmId[]` | optional | 最多 16 个详情 Realm；缺省或空集合不返回任何 Realm 详情，全局通道仍持续。 |
-| `filter.strands` | query | `StrandId[]` | optional | 最多 32 个目标，必须属于已选 Realm 且独立授权；缺省选择各 Realm 当前 default Strand。 |
+| `filter.realm_ids` | query | `RealmId[]` | optional | 最多 16 个详情 Realm；缺省或空集合不返回任何 Realm 详情，全局通道仍持续。 |
+| `filter.strand_ids` | query | `StrandId[]` | optional | 最多 32 个目标，必须属于已选 Realm 且独立授权；缺省选择各 Realm 当前 default Strand。 |
 | `realm_list` | query (deepObject) | `RealmListRequest {after?, limit?}` | optional | 摘要快照分页，limit 默认 20、1–100；initial 缺省等价第一页，增量缺省不继续枚举。 |
 | `replace_filter` | query | `boolean` | optional | 默认 false；true 必须携 after 与 filter，按 §2.3 原子替换详情兴趣。 |
 | `filter.timeline_limit` | query | `int` | optional | 每 Realm 每 frame 默认 20、0–100；按目标 Strand 合并，受全局字节预算裁剪。 |
@@ -160,7 +160,7 @@ attempt 选择与 final 替换 MUST 按 [`signal.md` §7](./signal.md#7-message-
 
 本节是同一 v1 account subscribe 的默认合同，不定义第二个同步 endpoint/profile。请求是 closed
 `AccountSubscribeRequest {after?, catchup?, filter?, realm_list?, replace_filter?}`；HTTP query 与
-WebSocket account open parameters 使用同一字段名（`filter.realms`，删除旧 WS `realm_ids` 别名）。
+WebSocket account open parameters 使用同一字段名（`filter.realm_ids`，删除旧 WS `realm_ids` 别名）。
 WebSocket `wait_for` 仍是 HTTP header 的投影。未知字段拒绝；`subscriptions` 不恢复为扩展旁路。
 
 **列表与当前权限。** 无 account after 的 initial 请求缺省读取第一页；增量请求只有显式 realm_list 才取新页。
@@ -187,8 +187,8 @@ knock 只含该状态依法可见的摘要，不泄露成员级 title/default St
 列表完成仅说明冻结列表枚举结束，不能删除快照后新增项；重做列表需按同一 snapshot 分段暂存已见键，终页才删除
 未见且不晚于该快照的旧项。快照期间的较新 tombstone 保留到该快照失效/完成，不能因消息重排复活 leave Realm。
 
-**详情兴趣。** filter.realms 最多 16 项，缺省/空集合表示无详情，彻底删除“None/空等于全部 Realm”语义。
-filter.strands 最多 32 项，每个必须属于某个已选 Realm；服务器分别检查目标 Strand 及其 effective scope 的当前读取授权。
+**详情兴趣。** filter.realm_ids 最多 16 项，缺省/空集合表示无详情，彻底删除“None/空等于全部 Realm”语义。
+filter.strand_ids 最多 32 项，每个必须属于某个已选 Realm；服务器分别检查目标 Strand 及其 effective scope 的当前读取授权。
 不存在/不可见目标统一 not_found，不因本 API 披露父 Realm/私有 Circle；非法跨 Realm 组合 param_invalid。
 省略 strands 选择各已选 Realm 在该 baseline basis 下的当前 default Strand；Realm 没有合法默认目标时只交付
 合法摘要/当前 Realm 结果，目标状态仍 pending，不猜测首个 Strand。显式 strands 选择只影响所列目标；其余 Realm 可只有
@@ -762,7 +762,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。本面默认
 
 1. 将 query deepObject 解析为 JSON filter object；未提供 `filter` 时，normalized filter 是空对象 `{}`。
 2. 省略所有未出现的 optional 字段；不得把实现默认值写入 normalized filter。
-3. 对集合语义字段 `realms`、`strands`、`event_kinds`、`not_event_kinds`，在计算 digest 前按元素字符串 lexicographic 排序并去重；其它数组若未来由 profile 引入，profile MUST 声明 order-is-semantic 或 sorted，未声明时不得进入 cursor binding。
+3. 对集合语义字段 `realm_ids`、`strand_ids`、`event_kinds`、`not_event_kinds`，在计算 digest 前按元素字符串 lexicographic 排序并去重；其它数组若未来由 profile 引入，profile MUST 声明 order-is-semantic 或 sorted，未声明时不得进入 cursor binding。
 4. 按 RFC 8785 JCS 对 normalized filter 编码为 UTF-8 bytes，计算 `filter_digest = "sha256:" || hex(sha256(jcs_bytes))`。
 
 `realm_list.after`、`realm_list.limit`、`replace_filter` 是分页位置或显式转换动作，不进入 detail filter_digest。列表 cursor 另绑定固定列表排序和 snapshot，不能用作 account after。

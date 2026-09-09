@@ -191,10 +191,10 @@
       "instance": {
         "after": "ak:cursor:resume",
         "filter": {
-          "realms": [
+          "realm_ids": [
             "ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
           ],
-          "strands": [
+          "strand_ids": [
             "ak:strand:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
           ]
         },
@@ -211,7 +211,8 @@
       "instance": {
         "filter": {},
         "replace_filter": true
-      }
+      },
+      "first_expected_error": "$: rejected by the closed demand-sync schema"
     },
     {
       "name": "demand_unknown_filter_rejected",
@@ -221,7 +222,8 @@
         "filter": {
           "subscriptions": []
         }
-      }
+      },
+      "first_expected_error": "$: rejected by the closed demand-sync schema"
     },
     {
       "name": "demand_list_limit_zero_rejected",
@@ -231,7 +233,8 @@
         "realm_list": {
           "limit": 0
         }
-      }
+      },
+      "first_expected_error": "$: rejected by the closed demand-sync schema"
     },
     {
       "name": "demand_list_final_page_valid",
@@ -253,7 +256,8 @@
         "items": [],
         "complete": false,
         "snapshot_revision": 7
-      }
+      },
+      "first_expected_error": "$: rejected by the closed demand-sync schema"
     },
     {
       "name": "demand_retired_station_cas_complete_rejected",
@@ -263,7 +267,8 @@
         "complete": true,
         "upserts": [],
         "removals": []
-      }
+      },
+      "first_expected_error": "$: rejected by the closed demand-sync schema"
     }
   ],
   "to_device_message_idempotency": {

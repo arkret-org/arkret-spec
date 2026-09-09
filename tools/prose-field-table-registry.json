@@ -13,7 +13,8 @@
         "next_cursor",
         "prev_cursor",
         "principal_id",
-        "service_id"
+        "service_id",
+        "filter_digest"
       ]
     },
     {
