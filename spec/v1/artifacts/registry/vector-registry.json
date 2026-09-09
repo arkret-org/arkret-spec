@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.1",
+  "version": "2026-09-09.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T11:39:09+08:00",
+  "generated_at": "2026-09-09T13:03:40+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -399,7 +399,7 @@
       "applies_to_fixtures": [
         "agent-signer-evidence-fixture.json"
       ],
-      "description": "Executes the portable Agent signer evidence transcript across exact-request current admission, destination-receipted historical verification, three orthogonal lifecycle gates, canonical witnesses, MLS cross-binding and tamper cases.",
+      "description": "Executes reusable current Agent state, original same-Station or independent receiver historical admission, independent lifecycle gates, canonical witnesses, original genesis notary after resume, Station-admitted controller device binding, MLS cross-binding and tamper cases.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/zh/conformance/conformance-vectors.md",

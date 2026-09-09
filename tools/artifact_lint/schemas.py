@@ -3290,7 +3290,6 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("event-envelope.schema.json", ("$defs", "producer_event_proof"), "signer_resolution_evidence_ref", "signer_resolution_evidence_digest"),
     ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "principal_signer_evidence"), "attester_signer_evidence_ref", "attester_signer_evidence_digest"),
     ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "attester_signer_evidence_ref", "attester_signer_evidence_digest"),
-    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "controller_signer_evidence_ref", "controller_signer_evidence_digest"),
     ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "account_authority_signer_evidence_ref", "account_authority_signer_evidence_digest"),
     ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "receiver_signer_evidence_ref", "receiver_signer_evidence_digest"),
     ("availability-receipt.schema.json", (), "holder_signer_evidence_ref", "holder_signer_evidence_digest"),

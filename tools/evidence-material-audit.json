@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 389,
+  "audited_occurrence_count": 387,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -220,13 +220,6 @@
       "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "attester_signer_evidence_ref",
       "occurrences": 3,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "controller_signer_evidence_ref",
-      "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
@@ -538,13 +531,6 @@
         "attestation",
         "commitment"
       ]
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "controller_signer_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
     },
     {
       "file": "current-signer-evidence-operations.schema.json",

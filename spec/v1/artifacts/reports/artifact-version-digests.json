@@ -225,9 +225,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-09.3",
-      "generated_at": "2026-09-09T12:10:17+08:00",
-      "content_digest": "sha256:517356b240aa097499ba30b6a1a21286f02008662f5acb0d9fa3e248ff42b5a7"
+      "version": "2026-09-09.4",
+      "generated_at": "2026-09-09T13:04:32+08:00",
+      "content_digest": "sha256:e1087f9b13aea7f051acf860fbac1b8b365a01caac9f06d2312c3bb7612cb34c"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-08.13",
-      "generated_at": "2026-09-09T11:39:09+08:00",
-      "content_digest": "sha256:c2ce9b92baef7b0464c39232d6d3c1e283d2c8082dc0f02092b71fb0db3eb274"
+      "version": "2026-09-08.16",
+      "generated_at": "2026-09-09T11:39:12+08:00",
+      "content_digest": "sha256:a1b257d871dad8def930662df6ecbcc41275ed310f434a5fb2822ff0389b9cb8"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -381,9 +381,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-09.1",
-      "generated_at": "2026-09-09T11:39:09+08:00",
-      "content_digest": "sha256:5bad2f4b2b78d2627655c335110561262e81bd20b98ed80dd553a31e62d0d0b6"
+      "version": "2026-09-09.2",
+      "generated_at": "2026-09-09T13:03:40+08:00",
+      "content_digest": "sha256:f9a36712a55d4d313c1c0ddabf12abbc923e8332b38e76a8a0a615aef636d97e"
     }
   ]
 }

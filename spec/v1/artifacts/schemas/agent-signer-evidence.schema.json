@@ -109,13 +109,16 @@
       "required": [
         "authority_id",
         "principal_control_realm_id",
+        "pcr_genesis_event",
+        "key_authorization_event",
         "frontier_seal_id",
         "frontier_state_root",
         "signing_key_binding",
         "authorization",
         "key_state_witness",
         "agent_lifecycle_witness",
-        "seal_lineages"
+        "seal_lineages",
+        "accepted_delegated_notary_signers"
       ],
       "properties": {
         "authority_id": {
@@ -123,6 +126,14 @@
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "pcr_genesis_event": {
+          "$ref": "./event-envelope.schema.json",
+          "description": "Original accepted Agent PCR ak.realm.create with producer proof and Station admission. Its event-derived Realm and complete Agent/controller Account actors bind immutable genesis notary and delegation. Required after pause/resume; never inferred from the current lifecycle Event."
+        },
+        "key_authorization_event": {
+          "$ref": "./event-envelope.schema.json",
+          "description": "Exact accepted ak.agent.key.authorize named by signing_key_binding.agent_key_authorize_event_id and authorization.authorized_event_id. Its Station-admitted producer method and signing key authenticate controller_proof; no separate controller DID assertion-method evidence is used."
         },
         "frontier_seal_id": {
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
@@ -154,6 +165,15 @@
             "$ref": "./seal.schema.json"
           },
           "description": "Complete duplicate-free predecessor closure needed to connect the key and Agent-status witness Seals to frontier_seal_id. Every Seal is in principal_control_realm_id."
+        },
+        "accepted_delegated_notary_signers": {
+          "type": "array",
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./realm.schema.json#/$defs/notary_signer_descriptor"
+          },
+          "description": "Exactly the unique controller delegated notary descriptors used by signatures of Seals in this state, sorted by verification_method bytes. Empty for genesis-root-only signatures. Each complete actor is the genesis delegated controller Account; only keys independently verified and retained at the original Seal admission may be emitted. The existing state lease authenticates this accepted key-source fact together with the exact Seal set; no new signature exists. Never a generic device or DID key source, never reconstructed from current device state."
         }
       },
       "allOf": [
@@ -252,7 +272,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The sole Agent Authority signature covers domain ak.agent_authority_state_evidence.v1 and every sibling field except proof.jws. issued_at is the actual authoritative state observation, expires_at-issued_at is positive and at most 300 seconds. The effective current deadline is the minimum of lease expiry, independent controller gate expiry and key authorization expiry. Copying, repackaging or restoring material cannot renew its observation. Historical verification evaluates it at original producer acceptance.",
+      "description": "The sole Agent Authority signature covers domain ak.agent_authority_state_evidence.v1 and every sibling field except proof.jws. issued_at is the actual authoritative state observation, expires_at-issued_at is positive and at most 300 seconds. The effective current deadline is the minimum of lease expiry, independent controller gate expiry, signing-key binding expiry and key authorization expiry. Copying, repackaging or restoring material cannot renew its observation. Historical verification evaluates it at original producer acceptance.",
       "x-arkret-signature-domain": "ak.agent_authority_state_evidence.v1"
     },
     "controller_account_gate_attestation": {
@@ -474,7 +494,8 @@
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
         },
         "accepted_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "The sealed activation instant: exactly key_state_witness.seal.sealed_at for authorization.accepted_seal_id, which equals key_state_witness.seal_id. This is distinct from key_authorization_event StationAdmissionProof.accepted_at; the Event may have been durably admitted earlier."
         },
         "not_before": {
           "$ref": "./time.schema.json#/$defs/timestamp"

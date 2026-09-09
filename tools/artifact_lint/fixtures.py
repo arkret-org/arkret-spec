@@ -4635,6 +4635,17 @@ def check_history_scale_fixture(lint: Lint) -> None:
         if row.get("expected_error") not in row.get("actual_errors", []):
             lint.fail(path, f"history direct-traversal negative {name} has no matching observed error")
 
+    membership_cases = data.get("direct_traversal_kat", {}).get("since_join_lineage", {}).get("membership_head_cases", [])
+    if {case.get("name") for case in membership_cases} != {
+        "unwritten", "registered_join", "same_value_concurrent_joins", "divergent_heads", "left", "accepted_recovery_join",
+    }:
+        lint.fail(path, "history membership head cases are incomplete")
+    for case in membership_cases:
+        heads = case.get("heads", [])
+        expected = heads[0].get("event_id") if len(heads) == 1 and heads[0].get("value") == "join" else None
+        if case.get("expected_incarnation") != expected:
+            lint.fail(path, "history membership fixture selects an ambiguous or inactive identity")
+
     replay_kat = data.get("direct_traversal_replay_kat")
     if not isinstance(replay_kat, dict):
         lint.fail(path, "history recovery fixture must carry the executable direct-traversal replay KAT")

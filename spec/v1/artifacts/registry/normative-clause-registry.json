@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.3",
+  "version": "2026-09-09.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T12:10:17+08:00",
+  "generated_at": "2026-09-09T13:04:32+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -559,7 +559,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/governance/history-visibility.md#6-private-history-key-delivery",
-      "section_digest": "sha256:06326eb5fb59214782a6d5c4d6a7cd78f7426eb197ad40e79aef6974f540ab9c",
+      "section_digest": "sha256:050a224ff3ae38944bef4dc07e91ac7e7feaad2faf3dd869f6f22118a2aa863e",
       "requirement": "Ordinary-human device history responses use exact AccountDevice evidence with retained origin-Station signer closure, signed-time validity and exact full AccountId/device binding; first source relay additionally checks current authorization and generation. Device evidence cannot authorize Control Events, notary or organization recovery.",
       "testability_grade": "audit",
       "test_plan": "Run device-history schema and SDK evidence/signature negatives for missing refs, mixed branches, actor/device/Station substitution, altered authorization, revoked status and invalid time windows. Exercise source relay revocation/generation changes before first enqueue and historical replay after expiry; run real two-account history request, manifest and chunk delivery with receiver verification."

@@ -162,7 +162,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Each success is a complete immutable Agent root with complete state and the applicable three or four recursive refs. The issuer atomically persists the exact root and complete dependencies. Current selectors refresh reusable state; historical selectors never consult later current state."
+      "description": "Each success is a complete immutable Agent root with complete state, two authority refs and the additional receiver ref only for historical evidence. Original accepted Events in state contribute their Station admission refs to the complete recursive closure. The issuer atomically persists the exact root and complete dependencies. Current selectors refresh reusable state; historical selectors never consult later current state."
     },
     "query_failure": {
       "type": "object",

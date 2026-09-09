@@ -143,7 +143,6 @@
         "verification_method",
         "agent_signer_evidence",
         "attester_signer_evidence_ref",
-        "controller_signer_evidence_ref",
         "account_authority_signer_evidence_ref"
       ],
       "properties": {
@@ -162,9 +161,6 @@
         "attester_signer_evidence_ref": {
           "$ref": "#/$defs/signer_evidence_ref"
         },
-        "controller_signer_evidence_ref": {
-          "$ref": "#/$defs/signer_evidence_ref"
-        },
         "account_authority_signer_evidence_ref": {
           "$ref": "#/$defs/signer_evidence_ref"
         },
@@ -173,7 +169,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The three current refs authenticate Agent Authority lease, controller binding and Account Authority gate. Historical evidence additionally requires receiver_signer_evidence_ref for the original Station admission or distinct receiver receipt; current evidence forbids that ref. All roots retain complete state, and every ref embeds its sole digest.",
+      "description": "Two current refs authenticate the Agent Authority lease and Account Authority gate. Original Station-admitted genesis and key authorization Events in state authenticate notary delegation and controller device keys. Historical evidence additionally requires receiver_signer_evidence_ref for the original Station admission or distinct receiver receipt; current evidence forbids it. Every canonical root retains complete state.",
       "allOf": [
         {
           "if": {

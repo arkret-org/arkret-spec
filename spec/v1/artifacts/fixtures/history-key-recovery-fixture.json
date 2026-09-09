@@ -1159,7 +1159,73 @@
         "received_at",
         "latest_epoch",
         "current_session_device"
-      ]
+      ],
+      "membership_head_cases": [
+        {
+          "name": "unwritten",
+          "heads": [],
+          "expected_incarnation": null
+        },
+        {
+          "name": "registered_join",
+          "heads": [
+            {
+              "event_id": "ak:event:AY0PjNkea0vKSEhH1RcwUyVWR3_--AVU-nd-GJwjuJL_",
+              "value": "join"
+            }
+          ],
+          "expected_incarnation": "ak:event:AY0PjNkea0vKSEhH1RcwUyVWR3_--AVU-nd-GJwjuJL_"
+        },
+        {
+          "name": "same_value_concurrent_joins",
+          "heads": [
+            {
+              "event_id": "ak:event:AY0PjNkea0vKSEhH1RcwUyVWR3_--AVU-nd-GJwjuJL_",
+              "value": "join"
+            },
+            {
+              "event_id": "ak:event:AVFa8lC-YHfQh6yK5Mjfn3lqhZa5PWkiy9QW9AQuTt9H",
+              "value": "join"
+            }
+          ],
+          "expected_incarnation": null
+        },
+        {
+          "name": "divergent_heads",
+          "heads": [
+            {
+              "event_id": "ak:event:AY0PjNkea0vKSEhH1RcwUyVWR3_--AVU-nd-GJwjuJL_",
+              "value": "join"
+            },
+            {
+              "event_id": "ak:event:AfbE6wLRPmCWiACy52NKiDiECv2OCE4HrD3eOwALBVYt",
+              "value": "leave"
+            }
+          ],
+          "expected_incarnation": null
+        },
+        {
+          "name": "left",
+          "heads": [
+            {
+              "event_id": "ak:event:AfbE6wLRPmCWiACy52NKiDiECv2OCE4HrD3eOwALBVYt",
+              "value": "leave"
+            }
+          ],
+          "expected_incarnation": null
+        },
+        {
+          "name": "accepted_recovery_join",
+          "heads": [
+            {
+              "event_id": "ak:event:AbQ2PL8yGTRGCqu42d0IVv_QCwfYE9G1F0StQvBRidkU",
+              "value": "join"
+            }
+          ],
+          "expected_incarnation": "ak:event:AbQ2PL8yGTRGCqu42d0IVv_QCwfYE9G1F0StQvBRidkU"
+        }
+      ],
+      "stage_rule": "membership is resolved before MLS Add authoring; no winning lineage means pending, never epoch zero"
     },
     "organization_recovery_intent": {
       "kind": "ak.history_governance.traversal_intent",

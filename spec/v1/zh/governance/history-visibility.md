@@ -77,6 +77,19 @@ proof 的 `verification_method` fragment 投影。完整 replay 同时证明该 
 winning Add/Commit/Welcome 得到自己的 `join_epoch`，不得从 KeyPackage blob、ratchet tree 或实现私有元数据猜测 epoch 0。
 已 active principal 的设备变化不改变 principal incarnation/join epoch；remove 后 rejoin 产生新值。
 
+Membership incarnation MUST 从目标已验证 cut 的 registered membership cell 的标准 FSM 有效写入身份派生。
+`member.state`、`invite.accept` 和其它已登记生产者使用相同语义；MUST NOT 用 Event-kind 白名单、payload shape
+或 retained Event 中的某个 `join` 字样替代 reducer。唯一有效的 join head 给出 incarnation；多条同值 join heads
+仍是多条身份，MUST 保持未决，不得按时间、digest 或到达顺序选择。按核心 §9.5.1 合法接受的 FSM recovery
+使用 recovery Event 自己的新身份；其只有 `to`、没有 `from`，不得因此丢弃。准入仍需证明该 recovery 的全部前置。
+所有坐标绑定完整 ActorId、exact Realm/Circle 和本次 verified cut；Circle reactivation 必须因果覆盖当前 parent-Realm
+join，父 Realm rejoin 不能与旧 Circle join 拼成一个新授权身份。
+
+成员转换已验证但尚无匹配的 winning MLS Add/Commit 时，membership 已成立，join epoch 尚不可得。这两阶段 MUST
+分别表示。MLS Add 作者化使用 membership incarnation，MUST NOT 以该 Add 将产生的 join epoch 为前置；需要 epoch 的
+历史操作继续等待 lineage，不得默认填 0 或 current epoch，也不得把缺少 lineage 改判为成员证明无效。同一 cut、scope
+与 subject 的各消费者 MUST 得到相同阶段结果。
+
 Standard MLS 对每个认证 endpoint 维护 `endpoint_admission`：从该 endpoint incarnation 的 initial
 winning Add/Welcome activation 开始，以 Remove 结束。保持同一 BasicCredential identity 和
 signature key 的 ordinary self-update MUST NOT 重置；Remove+Add、credential/signature-key replacement
@@ -198,7 +211,16 @@ evidence 同样按其 content-addressed acceptance pin 解析，不得由 curren
 回滚或重算；最初 receiver 必须按 [`event-auth-state-resolution.md` §6.3.2–§6.3.3](../authz/event-auth-state-resolution.md)
 保留该 Seal 实际应用的 canonical bytes 与确定性 reducer 输出，拒绝 later-arriving variant 进入普通状态，并由显式按 canonical bytes 指认的
 fork-resolution/recovery 归一。没有 acceptance-time bytes/output pin 的新 verifier 把该覆盖区间视为不可验证；它不能用任一当前可取得的 variant
-重建旧 `state_root`。内存只需当前对象与有界队列 buffer；visited/work state 可 durable 恢复。
+重建旧 `state_root`。visited/work state 可 durable 恢复。流式读取原始对象并不意味着验证只需当前对象：精确覆盖索引、
+历史 basis 的 reducer 状态、历史 authority 和集合查询均属于验证所需的数据；实现不得把只对网络 buffer 成立的内存界限
+宣称为整个 verifier 的界限，也不得因资源不足而省略这些检查。
+
+本地复用 MUST 保持完整输入与规则关联，包括 frozen bootstrap/current/target bases、acceptance-pinned bytes、历史依赖、
+完整 scope/ActorId 和本地 trust context。相同 `state_root`、裸 basis、反序列化成功或远端 `verified` 声明均不足以建立该关联。
+关联不可证明时 MUST 重新执行标准验证或保持未决。合法复用不改变任何 root、profile、finality 或 wire proof 语义，
+不得用 current resolver 替代历史 key，也不得忽略新分支。原始依据、trust pin、outbox、ACK 和 secret retention 不受缓存驱逐缩短。
+历史结果始终不能替代本次 request/receipt/record binding、current T1 门禁或候选密钥的 exact Event AEAD 验证；accepted exact retry
+仍按既有 ledger 处理。
 
 Replay 解释器只由 Realm 冻结的 profile id 选择；profile 的规范语义与 conformance vectors 随实现发布，不作为可寻址运行时工件进入 replay 输入。验签、Event identity 与转发均以收到并持久化的 canonical raw bytes 为准，typed view 只用于已知字段的语义解释，不得通过重序列化改变对象身份。实现不支持该 profile 时只对目标 Realm 返回 `unsupported_profile`，不得降级为权限错误或扩大到连接、账户和其他 Realm。
 
@@ -480,6 +502,17 @@ MUST 无人工操作地执行以下 crash-safe 收敛循环：
 这些义务只保证在“至少一个符合条件的 endpoint 在 request 有效期内持有 material、可见 request 且所有安全门禁成功”
 时客户端会发起并持续尝试恢复；它不把 `all_history_for_current_members` 扩张为服务端明文托管、密钥永久存在或
 绝对可用性承诺。
+
+恢复 MUST 按实际依赖推进：本节强制工作的前置满足后，无关 scope、全部历史明文、整应用 ready 或不被该操作消费的 MLS
+状态不得成为无限等待条件。create、send、install、display 和当前发送分别保留各自安全门禁；当前发送不等待全部历史恢复。
+单项失败 MUST NOT 中止整个 scope 集合，缺少共同依赖时分别标记受影响工作，其它可执行工作仍公平推进。通知只用于唤醒；
+启动、重连和有界后台调度 MUST 扫描未完成 durable intent/request/attempt，丢失通知不得丢失恢复义务。
+
+Requester MUST 以 verifier 的结构化结果和已登记 wire code 区分成员未证明、成员已证明但 lineage 未就绪、传输/依赖暂缺、
+当前授权暂不满足、已证明的 policy/profile 永久排除及本地验证错误，MUST NOT 按错误文案推断权限。暂时失权、无响应或本地错误
+不能转成 source `request_terminal` 或 §7 永久不可读。可恢复工作保留必要依据，按输入更新、重连、expiry 和有界重查推进；
+确定无效的同一不可变材料无需不断重验，但替代材料、已验证状态前进或实现更新后必须允许复查。UI timeout 不取消强制恢复，
+后到材料仍遵循 late-recovery/audit。此为本地阶段分类，不新增 wire enum，也不改变 §6.2 的 closed disposition。
 
 ### 6.2 Source send/relay 拒绝的耐久处置分类 (normative)
 

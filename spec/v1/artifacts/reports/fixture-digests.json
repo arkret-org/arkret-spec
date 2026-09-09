@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "04610ad5aafc8a3535134fb5f10c3e6cb91c8d33fc38f5e7ef913ba4b2ab4628"
+      "sha256": "dad195bb96ab4c75e048088677a1ff033fc9fc74d5ebf063be1e8e7cb734beec"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -194,7 +194,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "0c5ad2ae4f3e75e777036c863e197a9ccfe0bc7594c3384eac7638b51a7a9d2b"
+      "sha256": "b35d90d2e809a74dc7b8e52f96ee8bd7a6df6035efa8b367a40ff906effe980f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",

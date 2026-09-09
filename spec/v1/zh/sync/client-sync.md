@@ -905,6 +905,10 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
    current authorized peer 对指定 epoch range 发送 key share。
 4. 若 Realm policy 声明 Archive Node / Audit Node / Key Recovery Service，可向该受托服务请求最小 epoch range。
 
+以上顺序是恢复优先级，不构成跨阶段或跨 scope 的全局屏障。强制 history-key 恢复的实际前置满足后 MUST 独立推进；
+成员证明与 MLS lineage 就绪是不同阶段，不得形成 membership → Add → join epoch → membership 的循环。
+单项失败、丢失通知与用户可见 timeout 的处理遵循 [`history-visibility.md` §6.1](../governance/history-visibility.md)。
+
 当连续 epoch 缺口超过 `epoch_gap_recovery_threshold`（默认 32 个 epoch）或本地 backfill 预算耗尽时，客户端 SHOULD 切换到 range-based recovery：按 epoch 区间请求 key material、MLS Commit chain 和必要 snapshot proof，而不是逐消息重试。任何 key share 都必须绑定接收 principal、device、epoch range、policy hash 和发送设备签名；不得向已被移除、未授权或无法验证的成员请求密钥。
 
 对上述强制 history-key 恢复，空 response page 不是完成、失败或可 ACK 的页；客户端必须保留原 high-water 并有界退避续读。

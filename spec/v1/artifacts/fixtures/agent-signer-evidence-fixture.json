@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_signer_evidence.v1",
-  "version": "2026-08-22.1",
+  "version": "2026-09-09.1",
   "suite": "agent_signer_evidence",
   "runner": {
     "kind": "named_suite",
@@ -34,7 +34,7 @@
       "issuer_atomically_persists_root_and_recursive_dependencies": true,
       "client_constructs_wrapper": false,
       "expected": "verified",
-      "contains_three_current_recursive_evidence_refs": true
+      "contains_two_current_authority_refs_and_event_admission_dependencies": true
     },
     {
       "name": "current_stale_lease_is_unresolved",
@@ -411,6 +411,22 @@
       "verifier_now_after_lease_expiry": true,
       "expected": "verified",
       "vector_id": "ak.vector.agent.historical_evidence_materialization.v1"
+    },
+    {
+      "name": "agent_pcr_resume_retains_original_genesis_notary",
+      "verification_mode": "current_admission",
+      "lifecycle_provenance": "resume_accepted",
+      "pcr_genesis_event_present": true,
+      "notary_kind": "agent_root_frozen_descriptor",
+      "expected": "verified"
+    },
+    {
+      "name": "controller_device_binding_uses_authorization_event_admitted_key",
+      "verification_mode": "current_admission",
+      "controller_method_in_principal_did": false,
+      "key_authorization_station_admission_valid": true,
+      "binding_matches_admitted_producer_key": true,
+      "expected": "verified"
     }
   ]
 }
