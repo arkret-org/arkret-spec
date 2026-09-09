@@ -1341,6 +1341,10 @@ components:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome
     MimiUpdateConsentRequestBody:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
+    MlsGovernanceFrontierOutcome:
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_outcome
+    MlsGovernanceFrontierRequest:
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request
     MlsGovernanceProofBundle:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome
     MlsGovernanceProofRequestBody:
@@ -3606,20 +3610,20 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Execute one near-current stateless MLS group-security-frontier query.
+      summary: Evaluate exact MLS leaf intent against the authenticated Account Station accepted state.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MlsGovernanceProofRequestBody'
+              $ref: '#/components/schemas/MlsGovernanceFrontierRequest'
       responses:
         '200':
           description: One deterministic complete response for the exact near-current frontier selector
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MlsGovernanceProofBundle'
+                $ref: '#/components/schemas/MlsGovernanceFrontierOutcome'
   /_arkret/self/seals/governance-dependencies:
     post:
       operationId: ak.self.seals.read.governance_dependencies

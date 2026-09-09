@@ -2472,6 +2472,16 @@
         "event": {
           "$ref": "#/$defs/EventSubmitEnvelope"
         },
+        "mls_frontier_leaves": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 65536,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./mls-governance-proof-bundle.schema.json#/$defs/mls_security_frontier_leaf"
+          },
+          "description": "Required exactly for MLS Genesis/Commit. The exact final occupied leaf intent in strictly increasing leaf_index order, without duplicate credential_ref, bound by the signed Event governance binding security_frontier_digest. It is not a history checkpoint. The whole submission remains bounded by 8 MiB canonical bytes. Receiving servers verify and atomically retain these public inputs with admission, and peers forward the identical accepted inputs."
+        },
         "authorization_lease": {
           "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
         },
@@ -2528,6 +2538,9 @@
               }
             }
           }
+        },
+        {
+          "$ref": "#/$defs/MlsFrontierLeavesPresence"
         }
       ],
       "additionalProperties": false
@@ -2544,6 +2557,16 @@
       "properties": {
         "event": {
           "$ref": "#/$defs/EventSubmitEnvelope"
+        },
+        "mls_frontier_leaves": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 65536,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./mls-governance-proof-bundle.schema.json#/$defs/mls_security_frontier_leaf"
+          },
+          "description": "Required exactly for MLS Genesis/Commit. The exact final occupied leaf intent in strictly increasing leaf_index order, without duplicate credential_ref, bound by the signed Event governance binding security_frontier_digest. It is not a history checkpoint. The whole submission remains bounded by 8 MiB canonical bytes. Receiving servers verify and atomically retain these public inputs with admission, and peers forward the identical accepted inputs."
         },
         "authorization_lease": {
           "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
@@ -2568,6 +2591,9 @@
       "allOf": [
         {
           "$ref": "#/$defs/MembershipCompensationCarrierPresence"
+        },
+        {
+          "$ref": "#/$defs/MlsFrontierLeavesPresence"
         }
       ],
       "additionalProperties": false
@@ -5540,11 +5566,12 @@
     },
     "RealmSealFrontierView": {
       "type": "object",
-      "description": "The serving service's verified durable current accepted Realm Seal frontier used for seal_basis and seal_ref authoring. current is this observation coordinate, not a claim about global wall-clock latest state. open_set returns the complete canonical non-quarantined leaf antichain; single_signer and threshold return exactly one leaf. Consumers resolve and verify every Seal and recompute the joined control view; no service-derived root hint is an authority.",
+      "description": "The serving service's verified durable accepted Realm Seal frontier at observation_coordinate. Self clients trust their authenticated Account Station result; peer servers independently verify foreign governance. The complete canonical non-quarantined leaf antichain and live digest suite refer to the same accepted basis. No client history replay is required.",
       "required": [
         "kind",
         "realm_id",
         "seal_basis",
+        "live_digest_suite",
         "governance_health",
         "observation_coordinate"
       ],
@@ -5557,7 +5584,11 @@
         },
         "seal_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Canonical bytewise-sorted, duplicate-free complete accepted Seal leaf antichain. This exact object can be copied into a newly authored Control Move only after resolving and verifying every leaf."
+          "description": "Canonical sorted unique complete accepted Seal leaf antichain. Self clients copy the exact authenticated Account Station result into their signed intent; peer servers verify its governance independently."
+        },
+        "live_digest_suite": {
+          "$ref": "./realm.schema.json#/properties/digest_algorithm",
+          "description": "Effective digest suite in the verified joined state at exactly seal_basis, including any accepted digest-suite transition. It is not inferred from a Seal ID hash prefix. Self clients use this result without downloading governance history."
         },
         "governance_health": {
           "$ref": "#/$defs/ControlGovernanceHealth",
@@ -7415,6 +7446,40 @@
       },
       "additionalProperties": false,
       "description": "Exact own-Station pending result bound to Realm and basis. Empty does not attest to acceptance of a particular Event: callers needing one known Event use its exact control-proposal result. No request may scan all PCR history to build this result; use a durable pending index. Invalid/stale proposals remain explicit pending or terminal outcomes and cannot be treated as successful Seal acceptance."
+    },
+    "MlsFrontierLeavesPresence": {
+      "if": {
+        "properties": {
+          "event": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ak.mls.genesis",
+                  "ak.mls.commit"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "required": [
+          "mls_frontier_leaves"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "mls_frontier_leaves"
+          ]
+        }
+      }
     }
   }
 }

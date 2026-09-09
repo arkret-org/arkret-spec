@@ -479,7 +479,8 @@
           "const": "control_proposal_decision_overdue"
         },
         "accepted_seal_id": {
-          "$ref": "./seal.schema.json#/$defs/seal_ref"
+          "$ref": "./seal.schema.json#/$defs/seal_ref",
+          "description": "One currently accepted non-quarantined direct covering Seal. If multiple valid Seals cover the proposal, return the canonical bytewise-smallest Seal ID. This is an acceptance observation, not the complete current leaf antichain or an authoring seal_basis."
         }
       },
       "allOf": [

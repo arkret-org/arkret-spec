@@ -47,7 +47,7 @@
       "event_kind": 3,
       "inbound": 47,
       "outbound": 55,
-      "prose": 114,
+      "prose": 113,
       "prose_only": 2,
       "schema_reference": 136,
       "startup_compile": 205,
@@ -2637,7 +2637,6 @@
       "consumers": {
         "inbound": "fragment",
         "outbound": "fragment",
-        "prose": "normative_text",
         "schema_reference": "fragment",
         "startup_compile": "exact",
         "vectors": "required_schema"

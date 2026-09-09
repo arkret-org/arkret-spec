@@ -174,14 +174,16 @@ Agent online Event 复用 controller session 的同一 online context，并额�
 
 ### 2.1 提交与重传封装
 
-lease、receipt 与 `CbsProofBundle` 都不是 Event 字段，也不进入 Event digest。普通在线首次提交只要求 `event`，其 authority 来自 §2.0 的 typed request context；显式延迟/离线模式才附加 lease。`EventInitialSubmission` 没有也不得新增 publication authority evidence 字段：
+lease、receipt 与 `CbsProofBundle` 都不是 Event 字段，也不进入 Event digest。普通在线首次提交以 `event` 为主载体；MLS Genesis/Commit 还必须携带下述公开叶输入，其 authority 来自 §2.0 的 typed request context；显式延迟/离线模式才附加 lease。`EventInitialSubmission` 没有也不得新增 publication authority evidence 字段：
 
 ```text
 EventInitialSubmission {
   event,
+  mls_frontier_leaves?, // MLS Genesis/Commit 必填，其它 kind 禁止
   authorization_lease?,
   cbs_proof_bundles?,
-  control_proposal_ack?
+  control_proposal_ack?,
+  membership_compensation_evidence?
 }
 ```
 
@@ -198,11 +200,16 @@ peer federation 使用：
 ```text
 EventFederationSubmission {
   event,
+  mls_frontier_leaves?, // 与初次接受的公开叶输入完全相同
   authorization_lease?,
   ingress_receipts[], // online 必须为空；delayed/offline 必须非空
-  control_proposal_ack?
+  control_proposal_ack?,
+  ackless_self_principal_admission_evidence?,
+  membership_compensation_evidence?
 }
 ```
+
+`mls_frontier_leaves` 是 signed governance binding 已绑定的公开治理输入，不是 publication authority；其类型、边界、exact-basis 重算、原子持久化与 peer 独立验证遵循[服务器结果 §5.1](../sync/server-trusted-results.md#51-accepted-transition-的公开输入)。缺失或改换输入的 MLS submission MUST 拒绝。
 
 普通在线 federation 必须同时省略 lease 并携带空 `ingress_receipts[]`；来源明确声明该 Event 使用
 延迟/离线窗口时，必须同时携带 lease 与至少一个绑定该 lease 的 receipt。receiver 再按目标 Realm

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.6",
+  "version": "2026-09-09.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T19:23:43+08:00",
+  "generated_at": "2026-09-09T21:26:06+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -6968,6 +6968,7 @@
         "required": [],
         "properties": [
           "event",
+          "mls_frontier_leaves",
           "authorization_lease",
           "cbs_proof_bundles",
           "control_proposal_ack",
@@ -6990,6 +6991,7 @@
             ],
             "properties": [
               "event",
+              "mls_frontier_leaves",
               "authorization_lease",
               "cbs_proof_bundles",
               "control_proposal_ack",
@@ -7392,26 +7394,63 @@
       "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_request",
-        "schema_kind": null,
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request",
+        "schema_kind": "oneOf",
         "required": [],
-        "properties": [],
-        "closed": false
+        "properties": [
+          "previous_epoch",
+          "next_epoch"
+        ],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request",
+            "schema_kind": null,
+            "required": [
+              "proposed_group_genesis_binding"
+            ],
+            "properties": [
+              "previous_epoch",
+              "next_epoch"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request",
+            "schema_kind": null,
+            "required": [],
+            "properties": [
+              "previous_epoch",
+              "next_epoch"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request",
+            "schema_kind": null,
+            "required": [
+              "base_group_state_ref"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_outcome",
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_outcome",
         "schema_kind": "object",
         "required": [
           "query_digest",
-          "frontier_projection",
-          "proof_material",
-          "page_digest"
+          "seal_basis",
+          "live_digest_suite",
+          "governance_binding"
         ],
         "properties": [
           "query_digest",
-          "frontier_projection",
-          "proof_material",
-          "page_digest"
+          "seal_basis",
+          "live_digest_suite",
+          "governance_binding",
+          "epoch_head"
         ],
         "closed": true
       }

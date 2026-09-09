@@ -81,7 +81,7 @@ GET /.well-known/mimi-protocol-directory
 GET /_arkret/open/mimi/provider-directory
 ```
 
-目录响应 MUST 绑定 service DID、provider id、base URL、支持草案版本、endpoint 列表、MLS cipher suites、内容 profile、room policy components 和签名 proof。客户端和远端 provider MUST 验证 service DID、HTTP Message Signature、TLS endpoint、DID service endpoint 和 Realm policy 委托一致。
+目录响应 MUST 绑定 service DID、provider id、base URL、支持草案版本、endpoint 列表、MLS cipher suites、内容 profile、room policy components 和签名 proof。自己 Station 和远端 provider MUST 验证 service DID、HTTP Message Signature、TLS endpoint、DID service endpoint 和 Realm policy 委托一致。客户端从自己的 Station 取得结果并绑定所请求 provider/Realm；不回取 DID 或治理历史。
 
 **出站网络目标策略（normative，SSRF 防护）**：facade 在向对端 provider 声明的 `base_url`（及其派生 endpoint）发起任何 server-side 请求前，MUST 对该 URL（含 redirect 后实际目标）执行 [`../sync/api-conventions.md` §11.2](../sync/api-conventions.md) 出站网络目标策略；命中云 metadata / 内网 / 回环等禁止地址类别时 MUST 拒绝，`base_url` scheme MUST 限 `https`。签名 proof 只证明"是这个 provider"，不证明"网络目标合法"。
 

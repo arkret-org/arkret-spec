@@ -4,11 +4,12 @@
     "entrypoint": "ak.suite.authz.cbs_lattice.v1"
   },
   "profile": "ak.vector_group.cbs_lattice.v1",
-  "version": "2026-09-07",
+  "version": "2026-09-09",
   "notes": [
     "These vectors pin CBS dual-plane semantics. DataEvent vectors use signed kind + payload + scope_ref + seal_ref and never use preconditions. Control Move vectors use signed kind + payload + scope_ref + seal_basis and may use preconditions. Every cell write is receiver-projected from the registered reducer contract.",
     "Seal delta entries reference only newly sealed control-plane event digests. Cumulative coverage is derived from predecessor_refs[] plus delta[]. DataEvent digests may appear in data_event_set_root / data_view_root observations, but those roots do not confer control-plane finality.",
-    "Cell ids follow ak:cell:ak.component.<facet-path>.v<n>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous."
+    "Cell ids follow ak:cell:ak.component.<facet-path>.v<n>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous.",
+    "Governance admission cases apply to servers or independent auditors. Ordinary clients trust their authenticated Account Station and do not replay the CBS closure."
   ],
   "lattice_round_trip": {
     "description": "SDK lattice round-trip runner coverage for CBS lattice family vectors exercised through any conforming local lattice implementation.",
@@ -1642,7 +1643,7 @@
           }
         },
         {
-          "name": "light_client_without_joined_view",
+          "name": "server_without_joined_view",
           "verifiable_joined_view": false,
           "expected": {
             "data_event_result": "pending_or_fail_closed",

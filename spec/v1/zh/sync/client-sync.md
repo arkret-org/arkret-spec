@@ -392,7 +392,7 @@ event_id ASC
 
 `member_roster.entries[]` 的协议安全边界如下：
 
-- 客户端 MAY 用正向 roster entry 驱动成员 UI、未知 actor backfill、KeyPackage claim / MLS admission 的**重试调度**；但 roster entry 本身不授予 membership、KeyPackage delivery、MLS Add / Remove 或 application send 权限。每个不可逆服务操作仍 MUST 由服务端按当前 accepted auth state 独立授权；MLS producer 在构造 / 提交 Commit 前仍 MUST 取得并验证覆盖目标 membership frontier 的 governance proof。
+- 客户端 MAY 用正向 roster entry 驱动成员 UI、未知 actor backfill、KeyPackage claim / MLS admission 的**重试调度**；但 roster entry 本身不授予 membership、KeyPackage delivery、MLS Add / Remove 或 application send 权限。每个不可逆服务操作仍 MUST 由服务端按当前 accepted auth state 独立授权；MLS producer 在构造 / 提交 Commit 前 MUST 从自己的 Station 取得已验证的目标 membership frontier 结果，并核对本地 leaf、scope 和待签 transition 绑定；不下载或重放治理证明。
 - `member_roster.limited=false` 只证明服务端声明本次 roster 完整。客户端 MAY 把“完整 roster 与本地 MLS group 不一致”用作保守的 `encryption_transition_pending` 信号；“两者一致”不得单独清除由 accepted membership Event / Seal 产生的 `epoch_update_required`，后者只能由满足 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.4.1 / §2.5 的 winning Commit 与 verified governance binding 清除。
 - `member_roster.limited=true` 或字段缺失时，客户端 MUST NOT 从 actor 缺席推断 leave / ban，也不得据此移除 MLS leaf 或解除发送暂停。正向 entry 仍可触发幂等的查询 / reconciliation；服务端拒绝、proof 缺失或 authoritative Event 与 hint 冲突时 MUST fail closed，并 backfill `ak.member.state` / refresh baseline。
 - 服务端生成 roster 时 MUST 使用同一响应 frontier 下的 effective membership cells；不得把尚未 accepted、已 leave / ban 或来自不同 frontier 的 actor 标成 `join`。客户端若同时拥有可验证的 authoritative membership state，MUST 以该 state 为准并把矛盾 roster 视为同步完整性错误，而不是覆盖本地 accepted state。

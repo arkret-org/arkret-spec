@@ -719,11 +719,14 @@ authority 给出有界、可验证的决议，并为失约提供 health/fault/re
 
 `ak.self.seals.read.frontier.v1` 与 `ak.peer.seals.read.frontier.v1` 的 Realm current Seal discovery MUST 返回同一 closed
 `RealmSealFrontierView`：`seal_basis.leaves[]` 是 canonical bytewise sorted、duplicate-free 的完整 non-quarantined accepted
-Seal leaf antichain；`single_signer`/`threshold` authority 下恰一项，`open_set` 下不得只返回任意一项。该 View 还携
-`observation_coordinate={service_id,sequence,observed_at}`；“current”只表示该 service 在该 coordinate 的 verified durable
-view，不是 global wall-clock latest。Peer 响应的 Event `heads[]` 不是 Seal leaves，不能替代 `seal_basis`。consumer 必须
-resolve 并验证每个 leaf Seal 及路径，再自行重算 joined control state/roots；服务返回的 head/root hint（若其它 surface
-存在）不得冒充某一 Seal 的签名 root 或授权真相。
+Seal leaf antichain；`single_signer`/`threshold` authority 下恰一项，`open_set` 下不得只返回任意一项。该 View 按 `kind, realm_id, seal_basis, live_digest_suite, governance_health, observation_coordinate` 顺序携带字段。
+`live_digest_suite` MUST 来自 exact `seal_basis` 的已验证 joined effective state，包含已经接受的 digest-suite transition；
+不得从 Seal ID 的哈希前缀猜测。`observation_coordinate={service_id,sequence,observed_at}` 中的 current 仅表示该 service
+在该坐标的 durable view，不是 global wall-clock latest。Peer 响应的 Event `heads[]` 不能替代 Seal leaves。
+自己的 authenticated Account Station 负责验证历史与 joined control state/roots；客户端核对 Realm、会话和本次请求绑定后
+直接使用该 View，不得为订阅、签署 basis 或取得 digest suite 拉取闭包、重放历史或重算 roots。
+Peer server 对 foreign governance 仍独立解析和验证；上述 self 信任不得扩展到任意 remote service 或代替 E2EE 检查。
+服务结果不能被当成某个 Seal 自身签署了额外字段。
 
 `RealmSealFrontierView.governance_health` MUST 从已验证的
 Ack / decision chain 与 accepted Seal covered set 派生；pending 明细最多返回 128 项，

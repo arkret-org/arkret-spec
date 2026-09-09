@@ -932,6 +932,8 @@ Expected：
 
 `vector_id`: `ak.vector.mls.governance_proof.materializer.v1`
 
+这两条 vector 验证服务器 materializer 与独立 peer verifier，MUST NOT 要求普通客户端执行治理重放；self 结果的请求绑定、旧 proof 字段拒绝与 epoch head 检查按[服务器信任与结果 §5](../sync/server-trusted-results.md#5-mls-绑定结果)独立验收。
+
 两条 active vector 共用 [`mls-governance-proof-fixture.json`](../../artifacts/fixtures/mls-governance-proof-fixture.json) 的同一份 byte-level KAT。server-consumer runner MUST 从 fixture 的 accepted Seal DAG、完整 covered Event 集与 joined control state 重建一个有界 `group_security_frontier` exact outcome，逐字节复算 query、base/target `SealBasis`、Event/Seal descriptors、sparse witnesses、`page_digest` 与 `security_frontier_digest`，并与 fixture 的 exact expected outcome 比较；SDK-consumer runner MUST 以同一 outcome、Commit transcript binding 与本地完整 trusted basis 执行 [`encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md#251-security-binding-payload) 的固定验证顺序。近端 KAT 不生成 chunk、manifest 或 Bundle；批量/旧历史由独立 direct traversal KAT 从 receipt-bound target 反向发现完整 Seal cut、解析 Event/typed dependencies 并拓扑重放。具体执行入口以 fixture `runner` 元数据为准。只加载 fixture、只做 schema validation、只检查 `governance_binding.previous_epoch/next_epoch` 或只返回一个总 pass 均不构成通过。
 
 Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transport commitments，覆盖：服务端自报但本地未信任的 base leaf、open-set basis 缺 leaf/多 leaf/乱序、`base == target` 正例、并发或不可达 target、断裂/分叉 Seal DAG、错误 notary authority；covered digest/state leaf/frontier Event 的缺失、多余、重复和乱序；frontier Event proof 与跨 Realm/scope；sparse path/boundary/nonmembership 的缺失或多余；Realm/group/epoch/profile/reducer binding，以及 `security_frontier_digest` 不匹配。任一 reject case 都不得持久化 verified outcome 或推进 MLS epoch。
@@ -1525,17 +1527,17 @@ ak.vector.cbs_lattice.open_set_concurrent_revocation_fail_closed.v1
 
 - **Case A**：两个并发 Seal leaf 中，一个覆盖 capability grant，另一个覆盖同一 grant 的 revoke；DataEvent 的 `seal_ref` 指向 grant leaf。
 - **Case B**：承载授权判定的 control cell 在并发 join 后进入 `⊥`，且 `bottom=reject`。
-- **Case C**：轻客户端只持有单 leaf 视图，无法独立验证 multi-leaf union basis。
+- **Case C**：接纳外部事件的服务器只持有单 leaf 视图，无法独立验证 multi-leaf union basis。
 - **Case D**：receiver 先接受 DataEvent `E` 并物化 cell X write，再接受以 `E` 为 critical causal dependency 的 DataEvent `D` 并物化 cell Y write；随后并发撤销 leaf `R` 迟到。
 
 期望：
 
 - Case A：receiver MUST 按 joined control view 判定该 capability 已撤销，DataEvent MUST fail closed（`seal_ref_stale`）；并发分支不计算 `distance`，不享受新鲜度窗口。
 - Case B：依赖该 cell 的 DataEvent 与 Control Move MUST fail closed（`cell_in_bottom_state` / `failed_bottom`）。
-- Case C：轻客户端 MUST hold pending 或 fail closed，MUST NOT 用单 leaf 授权结论接受该 DataEvent。
+- Case C：接纳服务器 MUST hold pending 或 fail closed，MUST NOT 用单 leaf 授权结论接受该 DataEvent。
 - Case D：join `R` 后 `E` MUST `seal_ref_stale`，其 cell X write MUST 被追溯移除；`D` 与所有直接 / 间接依赖 `E` 的 accepted 后继 MUST 转为 `result=pending, reason=dependency_missing`，其 projected writes（含 cell Y）同步移除。最终 accepted set 与 projection MUST 等于从一开始就持有 `{S0,R}` 的 receiver，且与到达顺序无关。
 
-失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；轻客户端无法验证 joined view 时仍接受；只移除 `E` 而保留依赖 `E` 的 `D` / 后继 projected writes，导致先接受后撤销与先撤销后接收的 projection 不同。
+失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；接纳服务器无法验证 joined view 时仍接受；只移除 `E` 而保留依赖 `E` 的 `D` / 后继 projected writes，导致先接受后撤销与先撤销后接收的 projection 不同。
 
 ### 2.19.1 Vector: Circle lifecycle basis 与 archive freshness
 
@@ -4097,7 +4099,7 @@ Preconditions:
 Steps:
 
 1. Bob 在 message composer 输入 `@alice:acme.example/summary`。
-2. 客户端从本地 Realm roster / actor profile / handle claim cache 解析 controller handle → controller 完整 AccountId，只取其 principal 分量 `AliceDID` 用于 namespace 比较；再验证 selector claim `(AliceDID, "summary")` → 唯一 active `subject_account_id={principal_id:AgentSDID, station_id:AgentSStation}`。**`AgentSStation` 来自这条已签名 claim，不是从 roster 反查、也不是补出来的。**
+2. 客户端从自己 Station 的已验证解析结果取得 controller handle → controller 完整 AccountId，只取其 principal 分量 `AliceDID` 用于 namespace 比较；由 Station 验证 selector claim `(AliceDID, "summary")` → 唯一 active `subject_account_id={principal_id:AgentSDID, station_id:AgentSStation}`。**`AgentSStation` 来自这条已签名 claim，不是从 roster 反查、也不是补出来的。**
 3. 客户端提交 Message content AST，其中 mention node 的 `subject_account_id` **逐字节复制**第 2 步已验证 claim 的同名字段，并可携带 `controller_subject_account_id={principal_id:AliceDID, station_id:AliceStation}`、`controller_handle_at_time="alice:acme.example"`、`agent_slug_at_time="summary"`、`mention_text_original="@alice:acme.example/summary"`。
 4. Alice 之后把 `AgentS.slug` 改为 `sum` 并更新对应 selector claim 的 `agent_slug`，或把 `summary` 分配给另一个新 agent `AgentT`。
 5. 另一次测试中，Alice 同时存在两个 current valid selector claims 绑定 `(AliceDID, "summary")` 到不同 active agents，或 Bob 不可见 selector claim / accountability evidence。

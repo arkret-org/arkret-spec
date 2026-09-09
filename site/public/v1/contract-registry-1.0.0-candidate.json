@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.6",
+  "version": "2026-09-09.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T19:23:43+08:00",
+  "generated_at": "2026-09-09T21:26:06+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -10483,8 +10483,8 @@
         }
       }
     ],
-    "version": "2026-09-09.6",
-    "generated_at": "2026-09-09T19:23:43+08:00"
+    "version": "2026-09-09.7",
+    "generated_at": "2026-09-09T20:03:16+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -14820,12 +14820,12 @@
         "http": "POST /_arkret/self/seals/mls-governance-proof",
         "grpc": "SelfSeals/MlsGovernanceProof",
         "mq": "self.seals.read.mls_governance_proof",
-        "notes": "Near-current stateless group_security_frontier query only. The caller binds exact proof_base_basis and proof_target_basis antichains plus the closed frontier selector. A pre-Genesis 0 -> 0 query MUST carry proposed_group_genesis_binding; it enters query digest/cache identity and every-and-only cell selection but is not accepted authority. Once Genesis exists the field is forbidden and the immutable accepted binding is used. Bulk or old history uses receipt-bound direct accepted-Seal traversal through standard Event/Seal/dependency resolve.",
+        "notes": "Authenticated Account Station group security-frontier result at exact seal_basis and caller-local MLS leaves. No proof_base_basis, Merkle witness, history closure or client replay. The result binds the request digest, governance binding and exact accepted epoch CAS head. Peer proof verification remains independent. Exact canonical request bytes are bounded by 8 MiB; the complete response remains independently bounded by 1 MiB.",
         "body_class": "non_streaming_json",
-        "max_canonical_body_bytes": 1048576,
+        "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/read_request",
-        "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome"
+        "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request",
+        "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_outcome"
       },
       {
         "operation_id": "ak.self.seals.read.governance_dependencies.v1",
@@ -15596,9 +15596,9 @@
         "http": "POST /_arkret/peer/seals/mls-governance-proof",
         "grpc": "PeerSeals/MlsGovernanceProof",
         "mq": "peer.seals.read.mls_governance_proof",
-        "notes": "Near-current S2S group_security_frontier query only. It binds exact base/target Seal antichains and the closed selector. A pre-Genesis 0 -> 0 request carries proposed_group_genesis_binding in its digest/cache identity; accepted-state requests forbid it and use the winning immutable Genesis binding. Bulk or old history uses receipt/replica-bound direct Seal traversal through standard Event, Seal and governance-dependency resolve.",
+        "notes": "Near-current S2S group_security_frontier query only. It binds exact base/target Seal antichains and the closed selector. A pre-Genesis 0 -> 0 request carries proposed_group_genesis_binding in its digest/cache identity; accepted-state requests forbid it and use the winning immutable Genesis binding. Bulk or old history uses receipt/replica-bound direct Seal traversal through standard Event, Seal and governance-dependency resolve. Exact canonical request bytes are bounded by 8 MiB; the complete response remains independently bounded by 1 MiB.",
         "body_class": "non_streaming_json",
-        "max_canonical_body_bytes": 1048576,
+        "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/read_request",
         "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome",
@@ -15674,8 +15674,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-09.6",
-    "generated_at": "2026-09-09T19:23:43+08:00",
+    "version": "2026-09-09.9",
+    "generated_at": "2026-09-09T21:26:06+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -16922,6 +16922,10 @@
           },
           {
             "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.seals.read.pending_control.v1",
             "binding_kind": "http_json"
           },
           {
