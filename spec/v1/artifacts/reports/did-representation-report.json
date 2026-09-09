@@ -2369,16 +2369,6 @@
       ]
     },
     {
-      "schema_path": "contact-operations.schema.json#/$defs/contact_list_row/properties/peer_host_id",
-      "property_name": "peer_host_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "contact-operations.schema.json#/$defs/contact_peer/oneOf/0/properties/account_id",
       "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",

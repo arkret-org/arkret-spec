@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-09.1",
-  "generated_at": "2026-09-09T11:39:09+08:00",
+  "version": "2026-09-09.3",
+  "generated_at": "2026-09-09T18:25:03+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1433,7 +1433,7 @@
       ],
       "required_vectors": [
         "ak.vector.contact.next_prepare_input.v1",
-        "ak.vector.contact.pending_incoming_request_receipt.v1",
+        "ak.vector.contact.pending_incoming_prepare.v1",
         "ak.vector.direct_conversation.send_blocker_authority.v1"
       ],
       "optional_extensions": [],
@@ -1877,7 +1877,7 @@
         }
       ],
       "inherits": [
-        "ak.profile.core_event_store.v1"
+        "ak.profile.minimal_client.v1"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1907,7 +1907,6 @@
         "sync-fixture.json",
         "redaction-fixture.json",
         "reaction-fixture.json",
-        "cbs-lattice-fixture.json",
         "privacy-security-fixture.json",
         "long-text-content-fixture.json"
       ],
@@ -1974,7 +1973,7 @@
         }
       ],
       "inherits": [
-        "ak.profile.core_event_store.v1"
+        "ak.profile.minimal_client.v1"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1997,9 +1996,7 @@
         "scope_limitation"
       ],
       "required_fixtures": [
-        "sync-fixture.json",
-        "cbs-lattice-fixture.json",
-        "capability-fixture.json"
+        "sync-fixture.json"
       ],
       "optional_extensions": [
         "discussion_track",
@@ -2036,9 +2033,7 @@
           "binding_kind": "http_json"
         }
       ],
-      "inherits": [
-        "ak.profile.core_event_store.v1"
-      ],
+      "inherits": [],
       "required_event_kinds": [
         "ak.realm.create",
         "ak.member.state"
@@ -2130,6 +2125,11 @@
           "direction": "consume",
           "operation_id": "ak.self.authz.read.check.v1",
           "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.root.identity.read.resolve.v1",
+          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -2156,8 +2156,6 @@
       "required_fixtures": [
         "encoding-fixture.json",
         "sync-fixture.json",
-        "cbs-lattice-fixture.json",
-        "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
@@ -2237,8 +2235,7 @@
         }
       ],
       "inherits": [
-        "ak.profile.full_client.v1",
-        "ak.profile.mls_governance_binding.full.v1"
+        "ak.profile.full_client.v1"
       ],
       "required_event_kinds": [
         "ak.device.authorize",
@@ -2274,7 +2271,7 @@
         "unsupported_optional": "preserve encrypted events and expose key_missing"
       },
       "conditional_requirements": {
-        "exporter_all_history": "A client that creates or joins a scope with content_scheme=mls_exporter_aead_v1 and history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and implement the complete history-key request/manifest/chunk/response-stream plus receipt-bound direct accepted-Seal traversal contract through the standard Event, Seal and governance-dependency resolve surfaces. It MUST run the crash-safe automatic requester/source convergence loop: durable single-flight request create/resume, non-ack empty-page polling, exact source outbox retry, and a new manifest when later local-authoritative material remains uncovered. The stateless Seal-governance proof is near-current frontier only. Missing feature support is fail closed; standard MLS has no history-recovery fallback."
+        "exporter_all_history": "A client creating or joining content_scheme=mls_exporter_aead_v1 with history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and consume its own authenticated Station's authorized request/manifest/chunk/response-stream results. It checks exact account, scope, recipient, incarnation and request bindings, retains end-to-end envelope/MLS/key authentication, and performs no accepted-Seal/DID/governance closure traversal. The requester/source loop remains durable and bounded: single-flight request create/resume, no ACK for empty pages, exact source outbox retry and a new manifest when later locally authoritative encrypted material remains uncovered. Missing support is fail closed; standard MLS has no history-recovery fallback."
       }
     },
     "ak.profile.agent_signer_evidence.v1": {
@@ -2689,6 +2686,11 @@
         {
           "direction": "provide",
           "operation_id": "ak.self.control_proposal_decisions.read.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.read.resolve.v1",
           "binding_kind": "http_json"
         }
       ],

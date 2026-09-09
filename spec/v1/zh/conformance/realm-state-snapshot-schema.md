@@ -171,6 +171,8 @@ leaf          = H(0x00 || leaf_preimage_utf8_bytes)
 
 ## 5. Snapshot Signature
 
+本节与 §6 的 manifest authority、历史 commitments 和 witness/challenge 验证由接纳外部 snapshot 的服务器或独立审计者执行。普通客户端消费自己 Account Station 已确认的 snapshot，只核对来源、请求 Realm/basis、格式及下载内容 hash/端到端认证；不得下载治理历史、执行 omission challenge 或 raw replay 来认证自己 Station 的结果。相关角色边界见 [服务器可信结果](../sync/server-trusted-results.md)。
+
 Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `id`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_digest`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（content-addressed `chunk_ref` / `size_bytes`）、`security_class`、`verification_hints`、`created_by`、`created_at` 与 `authority_binding`；字段清单与顺序 MUST 与 [`realm-state-snapshot.schema.json`](../../artifacts/schemas/realm-state-snapshot.schema.json) `signature` 的 `x-canonical-bytes-include` 完全对齐。其中 `security_class` 被纳入签名输入，使 `high_assurance → standard` 降级无法在不使签名失效的情况下完成。consumer MUST 先验证该 transcript，再从每个 `chunk_ref` 恢复 suite/digest 并验证 chunk payload。
 
 签名 DID MUST 属于以下之一：
@@ -182,13 +184,13 @@ Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST �
   projection 与 admission 规则见 §5.1）
 - policy-approved snapshot issuer
 
-Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。`frontier.event_ids` 是 snapshot 边界，`event_set_commitment` 只承载该边界内完整 reducer-input Event 集合的 root 与 count；consumer MUST 从已验证 Event 集重算 commitment，不得接受额外的 Event id 镜像字段。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 的唯一 issuer 来源是 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。`auth_state_digest` 是 issuer-local opaque commitment：verifier MUST 检查它与 `auth_frontier` 绑定一致，并 MUST 按自己可取得的 accepted auth state 回放或查询来判定签名者在 `created_at` 的授权与撤销新鲜度；除非部署 profile 另行声明可复算的 auth-state canonical encoding，verifier MUST NOT 只因无法逐字重算该 digest 就接受或拒绝。若签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `realm_state_snapshot_issuer_revoked` 拒绝。
+接纳外部 snapshot 的服务器在采用之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。`frontier.event_ids` 是 snapshot 边界，`event_set_commitment` 只承载该边界内完整 reducer-input Event 集合的 root 与 count；consumer MUST 从已验证 Event 集重算 commitment，不得接受额外的 Event id 镜像字段。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 的唯一 issuer 来源是 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。`auth_state_digest` 是 issuer-local opaque commitment：verifier MUST 检查它与 `auth_frontier` 绑定一致，并 MUST 按自己可取得的 accepted auth state 回放或查询来判定签名者在 `created_at` 的授权与撤销新鲜度；除非部署 profile 另行声明可复算的 auth-state canonical encoding，verifier MUST NOT 只因无法逐字重算该 digest 就接受或拒绝。若签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `realm_state_snapshot_issuer_revoked` 拒绝。
 
 **最大接受窗口（normative）**：仅当采纳时同时满足以下**全部**条件，manifest 才可用于 snapshot bootstrap：
 
-- `(now - manifest.created_at) ≤ realm_state_snapshot_max_acceptance_age_ms`。默认 `realm_state_snapshot_max_acceptance_age_ms = 2_592_000_000`（30 天）；`security_class=high_assurance` 的 Realm MUST 收紧到 ≤ `604_800_000`（7 天）。超出该窗口后，即使曾经有效的 snapshot 也 MUST 被拒绝——client MUST 请求新的 manifest，因为 auth state 与 policy 的漂移已使旧 snapshot 无法安全代表当前状态。
+- `(now - manifest.created_at) ≤ realm_state_snapshot_max_acceptance_age_ms`。默认 `realm_state_snapshot_max_acceptance_age_ms = 2_592_000_000`（30 天）；`security_class=high_assurance` 的 Realm MUST 收紧到 ≤ `604_800_000`（7 天）。超出该窗口后，即使曾经有效的 snapshot 也 MUST 被拒绝——接纳服务器 MUST 请求新的 manifest，因为 auth state 与 policy 的漂移已使旧 snapshot 无法安全代表当前状态。
 - 签名者属于 §5 列出的任一合法类别，且其权限链在当前 auth state 下仍**可解析**。如果该链已被裁剪（例如 Realm tombstone、governance reset 或越过 manifest 时代的 auth-chain compaction），snapshot MUST 被拒绝。
-- 撤销新鲜度以 `authority_binding.auth_frontier` / `auth_state_digest` 解析出的签名者撤销状态为准（snapshot manifest 无独立 `signer.revoked_at` wire 字段；撤销时点是从该 auth state 派生的逻辑值）。判定规则:由 auth state 解析出的签名者撤销生效时点 MUST NOT exist，**或** 严格晚于 `manifest.created_at`。严格在 `created_at` **之后**生效的撤销不追溯使 manifest 失效，但 client 在用当前状态写入新 Event 前 MUST 先重放 snapshot frontier 之后的事件。若该重放无法完整补齐（backfill 缺依赖、source 不可达或 frontier 之后事件无法完整重放），client MUST fail closed，MUST NOT 基于不完整的 post-snapshot 状态写入新 Event；此时按 §6.2 raw replay fallback 处理或要求新的 manifest / 重新初始同步。
+- 撤销新鲜度以 `authority_binding.auth_frontier` / `auth_state_digest` 解析出的签名者撤销状态为准（snapshot manifest 无独立 `signer.revoked_at` wire 字段；撤销时点是从该 auth state 派生的逻辑值）。判定规则:由 auth state 解析出的签名者撤销生效时点 MUST NOT exist，**或** 严格晚于 `manifest.created_at`。严格在 `created_at` **之后**生效的撤销不追溯使 manifest 失效，但接纳服务器在为当前写入提供治理结果前 MUST 验证 snapshot frontier 之后的必要治理增量。依赖缺失时该操作保持 pending/unavailable；客户端不自行补做历史验证。服务器可按 §6.2 的外部 snapshot 接纳规则重建所需状态。
 
 ### 5.1 Snapshot Witness Attestation（normative）
 
@@ -288,22 +290,22 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 | 能力 | 可证明? | 说明 |
 | --- | --- | --- |
 | issuer 是否对**它声明覆盖的集合**保持内部一致 | 可证明 | challenge 抽样命中即可重算 commitment root,确认 issuer 未声明地重写它声明过的某个 event 内容。 |
-| issuer 是否漏掉了**新客户端不知道的** actor 或 event 分支 | 不可证明 | bootstrap 客户端只能用 issuer-provided frontier 或 issuer-listed active actor 集合抽样；它**不知道**该追问 issuer 未列出的 actor。issuer 可以构造一个自洽但缺失若干 actor 的 snapshot，新客户端拿不出对照。 |
-| issuer 是否对**客户端已知的** event_id / actor_seq range 区间漏掉了事件 | 仅在附加条件下可证明 | 客户端 SHOULD 用自己已 cache 的 event_id / actor_seq range 抽样；命中 0 个 `kind="event_id"` 样本时挑战形同虚设。`security_class=high_assurance` 部署 SHOULD 在 challenge `samples[]` 中混入**至少一个**客户端自有的 sample seal。 |
-| issuer 是否同时签发了多版本不一致的 snapshot(split-view) | 不可证明 | inclusion challenge 是 issuer-side 单向 query;两份 issuer 给不同 client 的不同 snapshot 互相不知道。Split-view 检测必须依赖 federation §4.5 frontier exchange 或 §8 fork-detection。 |
+| issuer 是否漏掉了**接纳服务器不知道的** actor 或 event 分支 | 不可证明 | 接纳服务器只能用 issuer-provided frontier 或 issuer-listed active actor 集合抽样；它**不知道**该追问 issuer 未列出的 actor。issuer 可以构造一个自洽但缺失若干 actor 的 snapshot，接纳服务器拿不出对照。 |
+| issuer 是否对**接纳服务器已知的** event_id / actor_seq range 区间漏掉了事件 | 仅在附加条件下可证明 | 接纳服务器 SHOULD 用自己已保存 的 event_id / actor_seq range 抽样；命中 0 个 `kind="event_id"` 样本时挑战形同虚设。`security_class=high_assurance` 部署 SHOULD 在 challenge `samples[]` 中混入**至少一个**接纳服务器自有的 sample seal。 |
+| issuer 是否同时签发了多版本不一致的 snapshot(split-view) | 不可证明 | inclusion challenge 是 issuer-side 单向 query;两份 issuer 给不同接纳者的不同 snapshot 互相不知道。Split-view 检测必须依赖 federation §4.5 frontier exchange 或 §8 fork-detection。 |
 
 简言之: **`event_set_commitment` + inclusion challenge 是"已知集合包含性 + 内容一致性"检查，不是 omission 完整性证明**。任何 spec 措辞、UI 文案、安全审计声明 MUST NOT 把 inclusion challenge 描述为"防止 issuer 漏发任何事件"。
 
 ### 6.2 High-assurance bootstrap 的额外要求
 
-`security_class=high_assurance` 的 Realm MUST 在采纳任何 snapshot 之前执行该挑战；其他 profile SHOULD 执行。同时，该 security_class 的 bootstrap 客户端 **MUST** 使用下列两个充分路径之一补足 §6.1 的边界缺失；`actor_seq_ranges[]` 只是两个路径都可使用的区间内部一致性材料，不是第三个独立充分路径：
+`security_class=high_assurance` 的 Realm MUST 在采纳任何 snapshot 之前执行该挑战；其他 profile SHOULD 执行。同时，该 security_class 的 接纳服务器 **MUST** 使用下列两个充分路径之一补足 §6.1 的边界缺失；`actor_seq_ranges[]` 只是两个路径都可使用的区间内部一致性材料，不是第三个独立充分路径：
 
-1. **Independent witness path**：从至少一个独立 witness（部署 policy 明确列出且非 snapshot issuer 控制）拉取该 Realm 在 `manifest.created_at` 时刻的 active actor-set commitment 与 actor sequence upper-bound commitment，client 用其与 snapshot manifest 中声明的 actor set 比对；不一致 MUST quarantine。`event_set_commitment` MUST 同时携带 schema 中的 `actor_seq_ranges[]`，为每个已见证 actor 绑定 `[from_seq, to_seq]` 与该区间的 commitment `root`；该 commitment 使用 `event_set_commitment.algorithm` 声明的现有算法（`ordered_event_id_sha256_v1` 或 `merkle_event_set_v1`）计算，不引入第三种 wire algorithm。
-2. **Raw replay path**：无独立 witness actor-set commitment 可用时，bootstrap 客户端 **MUST NOT** 把 snapshot 本身作为 high-assurance accepted state；它只能作为加速索引，实际授权决策 MUST 由原始 Event 完整回放得到。回放尚未完成时，snapshot completeness 保持 unverified / degraded；独立 witness 或 federation peer 后续提供 cross-source confirmation 后方可升级。
+1. **Independent witness path**：从至少一个独立 witness（部署 policy 明确列出且非 snapshot issuer 控制）拉取该 Realm 在 `manifest.created_at` 时刻的 active actor-set commitment 与 actor sequence upper-bound commitment，接纳服务器用其与 snapshot manifest 中声明的 actor set 比对；不一致 MUST quarantine。`event_set_commitment` MUST 同时携带 schema 中的 `actor_seq_ranges[]`，为每个已见证 actor 绑定 `[from_seq, to_seq]` 与该区间的 commitment `root`；该 commitment 使用 `event_set_commitment.algorithm` 声明的现有算法（`ordered_event_id_sha256_v1` 或 `merkle_event_set_v1`）计算，不引入第三种 wire algorithm。
+2. **Raw replay path**：无独立 witness actor-set commitment 可用时，接纳服务器 **MUST NOT** 把 snapshot 本身作为 high-assurance accepted state；它只能作为加速索引，实际授权决策 MUST 由原始 Event 完整回放得到。回放尚未完成时，snapshot completeness 保持 unverified / degraded；独立 witness 或 federation peer 后续提供 cross-source confirmation 后方可升级。
 
 仅由 snapshot issuer 自己声明并签发的 `actor_seq_ranges[]`，即使所有已声明 actor 的区间、root 与 count 均自洽，也只能证明这些区间内部无洞；它 MUST NOT 被解释为“没有未知 actor 被整体省略”的证明。整 actor 省略负例由 `ak.vector.realm_state_snapshot.inclusion_challenge.v1` 承载。
 
-非 high-assurance profile SHOULD 在 UI 中把"由第三方 snapshot 加速 bootstrap"标记为 lower-trust 状态，与从原始 Event 回放出的 high-trust 状态区分。
+接纳服务器不得把未经其验证的第三方 snapshot 声明为 accepted。普通客户端使用自己 Station 已确认结果时，不因未执行本地历史重放而显示 lower-trust/degraded；服务器尚未确认的结果保持 pending。
 
 挑战 wire 格式（POST 到 `verification_hints.inclusion_proof_url`）：
 
@@ -393,11 +395,11 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 采样与验证规则（normative）：
 
-1. **随机采样**：client MUST 独立于 issuer 提示进行采样。event_id 样本 MUST 从 client 本地位于 snapshot frontier 内的 Event 集合中均匀抽取 `n ≥ max(20, ceil(log2(covered_event_count)))` 个不同 ID。actor_seq_range 样本 MUST 来自该 snapshot 已知活跃的不同 actor，每个长度 100，至少 3 段。
+1. **随机采样**：接纳服务器 MUST 独立于 issuer 提示进行采样。event_id 样本 MUST 从 接纳服务器本地位于 snapshot frontier 内的 Event 集合中均匀抽取 `n ≥ max(20, ceil(log2(covered_event_count)))` 个不同 ID。actor_seq_range 样本 MUST 来自该 snapshot 已知活跃的不同 actor，每个长度 100，至少 3 段。
 2. **分支验证**：每个 `proofs[i].merkle_branch` MUST 在 `commitment_algorithm` 下针对 `commitment_root` 验证通过；`commitment_root` MUST 等于 manifest 的 `event_set_commitment.root`（不允许重新绑定）。
 3. **缺口归因**：对于采样范围内每个缺失的 `actor_seq`，响应 MUST 在 `verification_hints.{soft_failed_digest, quarantined_digest, conflict_records_digest}` 之一中给出对应条目（`digest_index` 是该 digest 承诺列表中的位置）——禁止静默缺口。
 4. **签名**：`issuer_signature` MUST 来自 §5 列出的 DID（Realm owner / creator / admin / trusted snapshot issuer / witness quorum），并 MUST 以 manifest `created_at` 为时点可验证。
-5. **失败处理**：若任一采样到的 accepted Event 缺失、任一分支验证失败、任一缺口缺少归因，或签名验证失败，client MUST 以错误 `inclusion_proof_failed` 拒绝（见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；若签名者在 `created_at` 当时或之前已被撤销，client MUST 以 `realm_state_snapshot_issuer_revoked` 拒绝。
+5. **失败处理**：若任一采样到的 accepted Event 缺失、任一分支验证失败、任一缺口缺少归因，或签名验证失败，接纳服务器 MUST 以错误 `inclusion_proof_failed` 拒绝（见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；若签名者在 `created_at` 当时或之前已被撤销，接纳服务器 MUST 以 `realm_state_snapshot_issuer_revoked` 拒绝。
 6. **新鲜度**：响应 MUST 在 manifest 的 `verification_hints.challenge_window_seconds` 内收到；过期响应 MUST 重试，MUST NOT 静默接受。
 
 > **向量登记状态**：上述采样规则 1（`n ≥ max(20, ceil(log2(covered_event_count)))` 的 event_id 抽样、至少 3 段 `actor_seq_range`）与规则 2 的 merkle branch 验证注册为 active 向量 `ak.vector.realm_state_snapshot.inclusion_challenge.v1`，并由 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_inclusion_challenge` fixture 及其 registered runner 承载。实现 MUST 按本节 prose 与 fixture 规则执行挑战，并将该 active vector 纳入 high-assurance bootstrap 校验。

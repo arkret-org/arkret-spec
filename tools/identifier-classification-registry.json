@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 635,
-    "typed_object_id": 925,
+    "responsibility_identity_material": 634,
+    "typed_object_id": 927,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -644,7 +644,7 @@
       "name": "previous_terminal_contact_round_id",
       "terminal_signature": "[[\"pattern\", \"^sha256:[0-9a-f]{64}$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 3,
+      "occurrences": 2,
       "example_path": "contact-operations.schema.json#/$defs/contact_round_evidence_bundle/properties/previous_terminal_contact_round_id",
       "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
     },

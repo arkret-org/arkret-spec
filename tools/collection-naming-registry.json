@@ -355,6 +355,15 @@
         "next_cursor"
       ],
       "reason": "projection strand list paginates strands"
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "pointer": "/$defs/PcrPendingControlOutcome",
+      "collection_field": "event_digests",
+      "companion_fields": [
+        "has_more"
+      ],
+      "reason": "has_more describes only the bounded pending Control Move selection, not the predecessor basis"
     }
   ]
 }

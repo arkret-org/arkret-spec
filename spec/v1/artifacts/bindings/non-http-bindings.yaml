@@ -1,34 +1,28 @@
-# Status: binding extension profile reference.
-# v1 core 互操作锁定 HTTP/JSON binding (artifacts/openapi/arkret-service-api.openapi.yaml)。
-# 本文件描述 WebSocket / SSE / gRPC / message queue / libp2p binding 的 frame / topic 形态，
-# 仅在显式声明对应 binding profile 的部署中适用；v1 core 实现不要求实现这些 binding。
-version: "2026-08-29"
+version: '2026-08-29'
 operation_registry: ../registry/operation-registry.json
 coverage: complete_except_http_only
-coverage_contract: >-
-  Every registered operation that is not marked http_only_variant=true MUST appear
-  at least once in this binding artifact. Operations marked http_only_variant=true
-  MUST NOT appear here. tools/artifact_lint enforces both directions after
-  parsing this file as YAML.
+coverage_contract: Every registered operation that is not marked http_only_variant=true MUST appear at least once
+  in this binding artifact. Operations marked http_only_variant=true MUST NOT appear here. tools/artifact_lint enforces
+  both directions after parsing this file as YAML.
 frame_schemas:
   websocket:
     required:
-      - frame_id
-      - operation_id
-      - stream_id
-      - payload
+    - frame_id
+    - operation_id
+    - stream_id
+    - payload
     properties:
       frame_id:
         type: string
-        pattern: "^ak:frame:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        pattern: ^ak:frame:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       operation_id:
         type: string
       stream_id:
         type: string
       cursor:
         oneOf:
-          - type: string
-          - $ref: ../schemas/cursor.schema.json
+        - type: string
+        - $ref: ../schemas/cursor.schema.json
       payload:
         type: object
       error:
@@ -37,16 +31,16 @@ frame_schemas:
         type: string
   sse:
     event_types:
-      - sync.event
-      - sync.realm_state_snapshot
-      - sync.heartbeat
-      - applet.ack
-      - agent.status
+    - sync.event
+    - sync.realm_state_snapshot
+    - sync.heartbeat
+    - applet.ack
+    - agent.status
     data_shape:
       type: object
       required:
-        - operation_id
-        - payload
+      - operation_id
+      - payload
 grpc:
   services:
     GateAccount:
@@ -124,7 +118,7 @@ grpc:
     SelfRealm:
       Get: ak.self.realm.resource.get.v1
       Export: ak.self.realm.read.export.v1
-    SelfRealmJoinApplication:
+    SelfRealmJoinApplication: null
     SelfConsent:
       List: ak.self.consent.read.list.v1
       Get: ak.self.consent.resource.get.v1
@@ -179,10 +173,11 @@ grpc:
     SelfSeals:
       Frontier: ak.self.seals.read.frontier.v1
       GovernanceDependencies: ak.self.seals.read.governance_dependencies.v1
-      IssueAvailabilityReceipts: ak.self.seals.command.issue_availability_receipts.v1
+      Prepare: ak.self.seals.command.prepare.v1
       MlsGovernanceProof: ak.self.seals.read.mls_governance_proof.v1
       Resolve: ak.self.seals.read.resolve.v1
       Submit: ak.self.seals.command.submit.v1
+      PendingControl: ak.self.seals.read.pending_control.v1
     SelfHistoryKey:
       RequestCreate: ak.self.history_key_requests.command.create.v1
       RequestList: ak.self.history_key_requests.read.list.v1
@@ -338,11 +333,11 @@ grpc:
 mq:
   envelope:
     required:
-      - message_id
-      - operation_id
-      - payload
-      - sent_at
-      - signatures
+    - message_id
+    - operation_id
+    - payload
+    - sent_at
+    - signatures
     properties:
       message_id:
         type: string
@@ -366,7 +361,7 @@ mq:
     self.control_proposal_decisions.read.get: ak.self.control_proposal_decisions.read.get.v1
     self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue.v1
     self.events.command.submit: ak.self.events.command.submit.v1
-    self.seals.command.issue_availability_receipts: ak.self.seals.command.issue_availability_receipts.v1
+    self.seals.command.prepare: ak.self.seals.command.prepare.v1
     self.seals.command.submit: ak.self.seals.command.submit.v1
     self.events.read.delivery_status: ak.self.events.read.delivery_status.v1
     self.seals.read.frontier: ak.self.seals.read.frontier.v1
@@ -505,15 +500,16 @@ mq:
     open.service.query.resolution: ak.open.service.read.resolution.v1
     edge.push.command.notify: ak.edge.push.command.notify.v1
     self.authz.query.check: ak.self.authz.read.check.v1
+    self.seals.read.pending_control: ak.self.seals.read.pending_control.v1
 libp2p:
   envelope:
     required:
-      - stream_protocol
-      - operation_id
-      - source_id
-      - target_id
-      - payload
-      - proof
+    - stream_protocol
+    - operation_id
+    - source_id
+    - target_id
+    - payload
+    - proof
     properties:
       stream_protocol:
         type: string
@@ -530,8 +526,5 @@ libp2p:
       proof:
         type: object
   suggested_protocols:
-    - /arkret/sync/1.0.0
-    - /arkret/blob/1.0.0
-  # Federation API 使用 peer events 与 peer seals operations。
-  # libp2p binding 使用 /arkret/sync/1.0.0 + service-signature envelope，
-  # 不另设独立 /arkret/federation/1.0.0 protocol multiplexer。
+  - /arkret/sync/1.0.0
+  - /arkret/blob/1.0.0

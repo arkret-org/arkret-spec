@@ -307,7 +307,8 @@
             "phase",
             "operation_id",
             "idempotency_key",
-            "request_receipt",
+            "peer",
+            "request_event_ref",
             "action",
             "granted_to_peer_scopes"
           ],
@@ -321,8 +322,11 @@
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
             },
-            "request_receipt": {
-              "$ref": "#/$defs/request_acceptance_receipt"
+            "peer": {
+              "$ref": "#/$defs/contact_peer"
+            },
+            "request_event_ref": {
+              "$ref": "#/$defs/event_id"
             },
             "action": {
               "const": "accept"
@@ -868,7 +872,10 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.contact.requested"
+      ]
     },
     "contact_list_row": {
       "type": "object",
@@ -889,9 +896,11 @@
         "request_event_ref": {
           "$ref": "#/$defs/event_id"
         },
-        "request_receipt": {
-          "$ref": "#/$defs/request_acceptance_receipt",
-          "description": "Closed prepare input for answering one incoming Contact proposal, carried only by the ak.self.contact.read.list.v1 projection. It is the complete signed request_acceptance_receipt object, not narrowed to a reference, and the field name is byte-identical to the request_receipt field of the prepare branch of ak.self.contact.command.respond.v1 and ak.self.contact.command.reject.v1, so a client copies it verbatim; the prepare contract is unchanged and a client MUST NOT rename, rebuild or re-derive the receipt, and MUST NOT assemble one from request_event_ref, which is a projection summary. Unlike next_prepare_input this receipt is issued and signed by the PEER's source service rather than by the holder's own server, which is exactly why handing the object itself to the holder client has real cross-server verification value: the client verifies the issuer signature, the issuer service key at accepted_at and the receipt's binding to the exact request Event ref and digest on its own, instead of unconditionally believing its own server's retelling. Presence is fixed by contact_state: a pending_incoming row MUST carry it, and a pending_outgoing, accepted, rejected, expired or tombstoned row MUST NOT, because pending_outgoing is the holder's own outstanding proposal with no incoming request to answer and the other four have a consumed admission slot or a terminal round. A glare pair is therefore never receipt-bearing: the holder's own unconsumed outgoing request keeps the row pending_outgoing while glare evidence is incomplete, and the mechanically derived glare Contact round projects accepted, which matches the rule that the glare branch forbids respond and reject. Absence is the sole encoding of 'respond and reject are not authorable now'; no extra error code and no extra contact_state value expresses it. When the slot has moved on, prepare refuses with zero writes; the client MUST re-read this operation rather than cache, guess or replay a consumed receipt."
+        "request_message": {
+          "type": "string",
+          "description": "The exact verified request Event message, present only for pending_incoming and only when that Event carries message.",
+          "minLength": 1,
+          "maxLength": 2000
         },
         "response_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -915,17 +924,9 @@
           "$ref": "#/$defs/contact_scopes",
           "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
         },
-        "peer_host_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Optional stable Station service did_core_id hosting the peer. Omitted for same-Station contacts."
-        },
-        "peer_host_resolution": {
-          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-          "description": "Required bootstrap material whenever peer_id is present. It MAY be refreshed without changing peer_id."
-        },
         "continuity_evidence": {
           "$ref": "#/$defs/contact_continuity_evidence",
-          "description": "Latest mutually committed portable checkpoint plus its exact uncompressed tail. Its absence means no committed export exists; clients must not synthesize it from projection summaries."
+          "description": "Explicit export only: present when include_continuity=true and a committed portable checkpoint exists. Ordinary list responses omit it. Online recontact uses Station durable evidence."
         },
         "direct_conversation": {
           "$ref": "#/$defs/direct_conversation_summary"
@@ -975,26 +976,18 @@
           },
           "then": {
             "required": [
-              "request_receipt"
+              "request_event_ref"
             ]
           },
           "else": {
             "not": {
               "required": [
-                "request_receipt"
+                "request_message"
               ]
             }
           }
         }
       ],
-      "dependentRequired": {
-        "peer_id": [
-          "peer_host_resolution"
-        ],
-        "peer_host_resolution": [
-          "peer_id"
-        ]
-      },
       "additionalProperties": false
     },
     "contact_next_prepare_input": {
@@ -1387,13 +1380,9 @@
             "introduction_evidence": {
               "$ref": "#/$defs/contact_introduction_evidence"
             },
-            "previous_terminal_contact_round_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/digest",
-              "description": "Immediate previously accepted terminal Contact round for a recontact request. The Station MUST require an exact local terminal-round match when present and MUST require it when a terminal predecessor exists."
-            },
             "continuity_evidence": {
               "$ref": "#/$defs/contact_continuity_evidence",
-              "description": "Portable mutually signed prefix checkpoint plus bounded tail. A caller supplies it when the current Station cannot reconstruct the complete lineage locally; the service verifies it and persists the same checkpoint/tail instead of guessing or skipping a predecessor."
+              "description": "Explicit portable import. The Station validates the checkpoint and bounded tail, binds the exact pair and committed lineage, and derives the predecessor. Ordinary online recontact loads Station durable evidence instead."
             },
             "message": {
               "type": "string"
@@ -1515,7 +1504,8 @@
             "phase",
             "operation_id",
             "idempotency_key",
-            "request_receipt",
+            "peer",
+            "request_event_ref",
             "action"
           ],
           "properties": {
@@ -1528,8 +1518,11 @@
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
             },
-            "request_receipt": {
-              "$ref": "#/$defs/request_acceptance_receipt"
+            "peer": {
+              "$ref": "#/$defs/contact_peer"
+            },
+            "request_event_ref": {
+              "$ref": "#/$defs/event_id"
             },
             "action": {
               "const": "reject"

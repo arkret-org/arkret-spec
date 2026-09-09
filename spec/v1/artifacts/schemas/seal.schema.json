@@ -200,6 +200,103 @@
         }
       },
       "additionalProperties": false
+    },
+    "unsigned_seal": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "predecessor_refs",
+        "delta",
+        "control_event_set_root",
+        "state_root",
+        "completeness_root",
+        "notary_seq",
+        "availability_receipt_digests",
+        "sealed_at",
+        "hlc"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "predecessor_refs": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/seal_ref"
+          },
+          "uniqueItems": true
+        },
+        "delta": {
+          "type": "array",
+          "maxItems": 4096,
+          "description": "Canonical bytewise-sorted set of new control-plane event_digest values introduced by this Seal. DataEvent digests MUST NOT appear here. Receivers MUST reject the Seal if any delta entry is already covered by a predecessor, if any entry is not a known valid Control Move digest, or if the list is not canonical sorted and duplicate-free.",
+          "items": {
+            "$ref": "#/$defs/event_digest"
+          },
+          "uniqueItems": true
+        },
+        "control_event_set_root": {
+          "$ref": "#/$defs/digest",
+          "description": "Authenticated root over the recursive covered_set of this Seal. Default construction is RFC6962 Merkle root over canonical bytewise-sorted covered_set(S); inclusion uses Merkle audit path and non-membership uses sorted-neighbor proof. The root is not computed over delta[] alone."
+        },
+        "state_root": {
+          "$ref": "#/$defs/digest",
+          "description": "Merkle root of control-plane cell state only."
+        },
+        "completeness_root": {
+          "$ref": "#/$defs/digest",
+          "description": "Control-plane per-actor interval / chain-head completeness commitment. It does not prove absence of unknown actors."
+        },
+        "notary_seq": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Per-signer or committee slot sequence used for equivocation detection. Same signer and same realm_id MUST NOT sign two different canonical Seal bodies with the same notary_seq."
+        },
+        "data_view_root": {
+          "$ref": "#/$defs/digest",
+          "description": "Optional observational root of KeyView records keyed by data cell id. It is not a DataEvent admission gate."
+        },
+        "data_event_set_root": {
+          "$ref": "#/$defs/digest",
+          "description": "Optional observational root over DataEvent digests seen in this seal window. Missing DataEvents are not invalid."
+        },
+        "availability_receipt_digests": {
+          "type": "array",
+          "maxItems": 65536,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/digest"
+          },
+          "description": "Canonical bytewise-sorted, duplicate-free full canonical content digests of every and only AvailabilityReceipt required for this Seal's delta admission. Empty when no receipt is required. The receiver resolves every digest through the registered governance-dependency surface and verifies the full signed receipt; missing or surplus receipts reject the Seal. This list replaces the redundant availability_root."
+        },
+        "covered_event_digests": {
+          "type": "array",
+          "maxItems": 1048576,
+          "description": "Optional compaction materialization of the full recursive covered_set(S), canonical bytewise-sorted and duplicate-free. When present, receivers MUST verify it equals set(delta) union all predecessor covered sets and that control_event_set_root is computed over this exact set. Non-compaction Seals normally omit it.",
+          "items": {
+            "$ref": "#/$defs/event_digest"
+          },
+          "uniqueItems": true
+        },
+        "previous_state_root": {
+          "$ref": "#/$defs/digest",
+          "description": "Hash-algorithm transition only: present iff this Seal is a Transition Seal under ak.profile.hash_transition.v1. It commits the governance view before the transition Move is applied, computed with previous_digest_algorithm. state_root commits the post-transition governance view with the new suite. See event-auth-state-resolution.md §9.3.2."
+        },
+        "previous_digest_algorithm": {
+          "$ref": "./realm.schema.json#/properties/digest_algorithm",
+          "description": "Canonical active digest-suite id used for previous_state_root. Required iff previous_state_root is present, absent on non-transition Seals, and byte-equal to the transition Move from_digest_algorithm. A profile id is invalid here."
+        },
+        "sealed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Normative notary commit timestamp covered by the Seal signature transcript. It is the time input for revocation_freshness_window_ms, recovery_witness_freshness_window_ms, proposal_intake_sla_ms, and reducer-derived projection timestamps. It MUST be >= every predecessor Seal.sealed_at. A value beyond verifier wall time + hard_future_skew_ms produces non-terminal seal_deferred_future_skew and MUST be retried as the clock advances; it is not a permanent rejection or a lattice winner input."
+        },
+        "hlc": {
+          "$ref": "#/$defs/hlc"
+        }
+      },
+      "additionalProperties": false,
+      "description": "The exact unsigned Seal body: every signed top-level Seal field except id and notary_signature. RFC 8785 canonical bytes of this object are the device signing input. Ordinary clients bind their own intent to their authenticated Account Station result; servers validate history and roots."
     }
   }
 }

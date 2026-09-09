@@ -54,17 +54,17 @@ ak.profile.<name>.v<major>
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
-Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh:1.0`（v1 core MTI/default human 与 service adapter）、`did:web`（可作冻结 bootstrap evidence 的 human anchor 或显式 no-history service）与 `did:key`（可作不可变 human anchor；在 `ak.profile.ephemeral_pairwise_principal.v1` 下则是 exact MLS LeafNode-bound、无账号/PCR/设备目录的 Realm-local actor）。角色资格 MUST 从 `did-method-adapter-registry.json` 的 active adapter 客观属性与 `role_requirements` 推导；profile 的 `allowed_principal_methods`、`allowed_service_methods` 与 `allowed_actor_methods` 是该推导结果的受检副本，不是独立真相源。所有声明 `ak.profile.station.v1` / `ak.profile.full_client.v1` / `ak.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh:1.0` witness / SCID / entry hash chain 验证；method evidence 中的 `parameters.method` MUST 精确等于 `did:webvh:1.0`，缺失或未知版本 MUST `unsupported_did_method`，不得按“当前最新版”解释。组织高保证实现 SHOULD 声明 `ak.profile.organization_high_assurance_identity.v1` 并要求 `did:webvh` witness evidence threshold ≥ 1；`watchers` 只按 adapter 登记为 accepted-but-not-consumed，不参与 authorization。AT Protocol 互通实现 SHOULD 额外声明 `ak.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 只产生外部 interop claim，不扩展 v1 principal 创建 allowlist。
+Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh:1.0`（v1 core MTI/default human 与 service adapter）、`did:web`（可作冻结 bootstrap evidence 的 human anchor 或显式 no-history service）与 `did:key`（可作不可变 human anchor；在 `ak.profile.ephemeral_pairwise_principal.v1` 下则是 exact MLS LeafNode-bound、无账号/PCR/设备目录的 Realm-local actor）。角色资格 MUST 从 `did-method-adapter-registry.json` 的 active adapter 客观属性与 `role_requirements` 推导；profile 的 `allowed_principal_methods`、`allowed_service_methods` 与 `allowed_actor_methods` 是该推导结果的受检副本，不是独立真相源。承担外部身份接纳/解析的 Station、Registry 与独立审计角色 MUST 支持 `did:webvh:1.0` witness / SCID / entry hash chain 验证；full/e2ee 客户端消费自己 Station 的结果，保留 subject、账号、用途与端到端密钥绑定检查，不重放方法历史。以下方法证据验证规则约束接纳该外部证据的服务器/审计角色；method evidence 中的 `parameters.method` MUST 精确等于 `did:webvh:1.0`，缺失或未知版本 MUST `unsupported_did_method`，不得按“当前最新版”解释。组织高保证实现 SHOULD 声明 `ak.profile.organization_high_assurance_identity.v1` 并要求 `did:webvh` witness evidence threshold ≥ 1；`watchers` 只按 adapter 登记为 accepted-but-not-consumed，不参与 authorization。AT Protocol 互通实现 SHOULD 额外声明 `ak.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 只产生外部 interop claim，不扩展 v1 principal 创建 allowlist。
 
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 - `ak.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
-- `ak.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Realm、`ak.member.state`、启用 discussion track 且可设为 primary 的 Strand、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
-- `ak.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space（`kind=board/list`）、Strand、`contains` position Relation、`ak.strand.move`、`ak.strand.reorder`、`ak.space.create`、`ak.space.update`、`ak.space.parent`、客户端 Collection projection 和 wait-for query。
+- `ak.profile.chat_mvp.v1`：在 `minimal_client` 之上消费服务器已接纳的 Realm、`ak.member.state`、启用 discussion track 且可设为 primary 的 Strand、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
+- `ak.profile.kanban_mvp.v1`：在 `minimal_client` 之上消费服务器已接纳的 Space（`kind=board/list`）、Strand、`contains` position Relation、`ak.strand.move`、`ak.strand.reorder`、`ak.space.create`、`ak.space.update`、`ak.space.parent`、客户端 Collection projection 和 wait-for query。
 
 `minimal_client`、`full_client`、`station` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
 
-`chat_mvp` 与 `kanban_mvp` 不要求实现任意 Morph renderer、任意 facet reducer 或插件 UI。它们只需要按声明 profile 保留未知 Morph / facet 字段、同步相关 Event、执行 schema/capability 校验，并在必须展示时提供 generic Morph fallback。任何依赖特定 `morph_kind` 或 facet 的交互能力 MUST 由额外 profile 显式声明。
+`chat_mvp` 与 `kanban_mvp` 不要求实现任意 Morph renderer、任意 facet reducer 或插件 UI。它们只需要按声明 profile 保留未知 Morph / facet 字段、同步相关 Event、核对 schema 与自己 Station 返回的 capability 结果，并在必须展示时提供 generic Morph fallback。任何依赖特定 `morph_kind` 或 facet 的交互能力 MUST 由额外 profile 显式声明。
 
 Profile 不支持某个标准能力时的默认行为：
 
@@ -186,7 +186,7 @@ MUST 支持：
 
 MAY 支持：
 
-- 本地 reducer
+- 本地内容显示、解密与离线编辑所需的 reducer；不包含治理授权、Seal 接纳或历史 root 重放
 - E2EE 解密
 - 离线写入
 - push notification
@@ -237,7 +237,9 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-声明 `ak.profile.mls_governance_binding.full.v1`（当前唯一 full profile ID；语义见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 验证 Commit 的 `governance_binding.security_frontier_digest` 精确覆盖会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE DataEvent 的普通 `seal_ref` 与 MLS frontier 正交；服务端不得要求同一 Seal 覆盖自身。无法从 accepted state 重建当前 frontier 时客户端 MUST fail closed。该 profile 的机器 requirement closure 必须包含 `ak.self.seals.read.mls_governance_proof.v1`、`ak.schema.mls_governance_proof_bundle.v1` 与 `mls-governance-proof-fixture.json`；认证器 MUST 分别以 SDK consumer 和 server consumer 角色执行 fixture 登记的 verify / materialize runner，并连同 `ak.vector.scalability.mls_governance_proof_bounds.v1` 输出逐 case 结果。任一角色缺失、只做 schema shape check 或未执行完整 mutation/limit matrix 时不得声明 full profile 通过。
+声明 `ak.profile.mls_governance_binding.full.v1` 的服务器 MUST 从 accepted state 计算并验证会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE DataEvent 的普通 `seal_ref` 与 MLS frontier 正交；服务端不得要求同一 Seal 覆盖自身。
+
+E2EE 客户端消费自己 Account Station 确认的 exact scope/group/epoch/security-frontier 结果，核对本地 MLS leaves、待签 intent 与 GroupContext extension 的对应关系，执行 MLS Commit/Welcome 密码学处理；MUST NOT 收集治理闭包、验证历史 authority 或自行重建治理 frontier。没有所需服务器结果时，仅相关 scope 保持 pending。该服务器 policy profile 的 proof bundle 与完整 verify/materialize mutation/limit runner 属于服务器或独立审计角色，不是普通 full/e2ee 客户端的继承要求；SDK 是共享代码位置，不代表客户端角色。客户端 conformance 覆盖已确认结果消费、错账号/Realm/scope/group/epoch/basis 绑定、pending 与端到端篡改拒绝。
 
 声明 `ak.profile.attested_audit.e2ee.v1` 时，审计 applet release service MUST 提供可验证 remote attestation，并执行 active binding、session request/authorize/notice、sealed `ak.audit.release`、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ak.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm / Circle policy 和加入 UI MUST 明确展示这是流程性披露；同样不得绕过 Audit Applet Binding + release session 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。审计 applet 不是 MLS 成员，也不获得实时消息 fanout。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3` / `audited-e2ee.md` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
 
@@ -245,8 +247,8 @@ MUST NOT：
 
 - 把明文消息发送给未授权 Station sync surface 或受托 search / projection 服务
 - 把解密密钥上传给不受信服务
-- 在未验证 KeyPackage 所属 DID 的情况下加密给对方
-- 在 `governance_binding` 的 policy / membership root 不匹配时继续解密正文（违反 MLS Governance Binding）
+- 在自己 Station 尚未确认 KeyPackage 的 actor/device 授权，或客户端尚未验证 KeyPackage 自签与端到端身份绑定时加密给对方
+- 在 MLS transcript/GroupContext 与自己 Station 确认的 exact governance binding 不匹配时继续解密正文
 
 ## 7. Station Events API
 

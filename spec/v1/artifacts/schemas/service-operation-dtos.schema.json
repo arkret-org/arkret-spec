@@ -71,10 +71,10 @@
       "$ref": "#/$defs/GovernanceDependencyResolveOutcome"
     },
     {
-      "$ref": "#/$defs/SealAvailabilityReceiptIssueRequest"
+      "$ref": "#/$defs/SealPrepareRequest"
     },
     {
-      "$ref": "#/$defs/SealAvailabilityReceiptIssueOutcome"
+      "$ref": "#/$defs/SealPrepareOutcome"
     },
     {
       "$ref": "#/$defs/AccountCursorRevokeRequestBody"
@@ -246,6 +246,12 @@
     },
     {
       "$ref": "#/$defs/SessionGrantReplayProblem"
+    },
+    {
+      "$ref": "#/$defs/PcrPendingControlRequest"
+    },
+    {
+      "$ref": "#/$defs/PcrPendingControlOutcome"
     }
   ],
   "$defs": {
@@ -566,12 +572,13 @@
       "additionalProperties": false,
       "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object; collision_variant_record recomputes collision_variant_record_digest = <Realm suite>(RFC8785_JCS(record)) over the whole object, proof included, against the referencing ak.fork.resolution locator and independently recomputes collision_event_id from canonical_event_bytes_b64u. Each evidence object is at most 1 MiB, except collision_variant_record, whose canonical size is bounded by the 1 MiB decoded Event ceiling expanded to base64url (never more than 2 MiB canonical): the reference branch exists precisely for Events too large to inline twice. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
     },
-    "SealAvailabilityReceiptIssueRequest": {
+    "SealPrepareRequest": {
       "type": "object",
       "required": [
         "realm_id",
         "predecessor_refs",
-        "event_digests"
+        "event_digests",
+        "hlc"
       ],
       "properties": {
         "realm_id": {
@@ -598,72 +605,93 @@
             "pattern": "^sha256:[0-9a-f]{64}$"
           },
           "description": "The exact accepted uncovered Control Event set the client intends to place in Seal.delta, byte-wise ascending and duplicate-free."
+        },
+        "hlc": {
+          "$ref": "./seal.schema.json#/$defs/hlc"
         }
       },
       "additionalProperties": false,
-      "description": "PCR-only pre-sign request for the availability dependencies of one exact prospective successor Seal. The server, not the caller, chooses sealed_at."
+      "description": "Prepare one ordinary human/Agent PCR successor Seal from the exact current accepted predecessor basis and accepted uncovered Control Event digests. The caller freezes hlc once for retries. The Account Station validates the history, admission, authority, cell effects and roots, and chooses sealed_at. No client history replay or availability evidence download is required."
     },
-    "SealAvailabilityReceiptIssueOutcome": {
+    "SealPrepareOutcome": {
       "type": "object",
       "required": [
-        "realm_id",
-        "predecessor_refs",
-        "event_digests",
-        "sealed_at",
-        "availability_receipt_digests",
-        "governance_dependencies"
+        "seal_body"
       ],
       "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "predecessor_refs": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
-          }
-        },
-        "event_digests": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 1024,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^sha256:[0-9a-f]{64}$"
-          }
-        },
-        "sealed_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "availability_receipt_digests": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 1024,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^sha256:[0-9a-f]{64}$"
-          },
-          "description": "Every and only full AvailabilityReceipt content digest the prospective Seal must commit, byte-wise ascending and duplicate-free."
-        },
-        "governance_dependencies": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 2048,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/GovernanceDependency"
-          },
-          "description": "Every and only issued AvailabilityReceipt plus its authenticated holder-signer evidence, sorted by canonical selector order."
+        "seal_body": {
+          "allOf": [
+            {
+              "$ref": "./seal.schema.json#/$defs/unsigned_seal"
+            },
+            {
+              "properties": {
+                "predecessor_refs": {
+                  "minItems": 1,
+                  "maxItems": 64
+                },
+                "delta": {
+                  "minItems": 1,
+                  "maxItems": 1024,
+                  "items": {
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  }
+                },
+                "availability_receipt_digests": {
+                  "minItems": 1,
+                  "maxItems": 1024,
+                  "items": {
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  }
+                },
+                "notary_seq": {
+                  "minimum": 1
+                },
+                "control_event_set_root": {
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "state_root": {
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "completeness_root": {
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                }
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "covered_event_digests"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "data_view_root"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "data_event_set_root"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "previous_state_root"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "previous_digest_algorithm"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "additionalProperties": false,
-      "description": "Exact PCR availability preparation. The client MUST verify request echo, canonical ordering, dependency content addresses and receipt coverage, then copy sealed_at and availability_receipt_digests unchanged into the signed Seal."
+      "description": "Bounded ordinary PCR signing input from the caller's authenticated Account Station. The client MUST compare realm_id, predecessor_refs, delta and hlc with its frozen request, require the ordinary SHA-256 PCR shape, and sign exactly the canonical body. It MUST NOT fetch the predecessor closure, reproduce roots or download holder authority dependencies. The Station durably retains and verifies availability evidence. Prepared does not mean committed: submit still rechecks current authority and atomically accepts the signed Seal. No cumulative covered_event_digests or dependencies are returned."
     },
     "AccountCursorRevokeOutcome": {
       "type": "object",
@@ -3164,9 +3192,6 @@
     },
     "EventsResolveOutcome": {
       "type": "object",
-      "x-arkret-pcr-outward-event-kinds": [
-        "ak.contact.requested"
-      ],
       "description": "ak.self.events.read.resolve.v1 result. events[] and missing[] plus optional unauthorized[] form a partition. This surface returns Event bytes only. Control-Move effectiveness is established separately from the complete current Seal frontier/resolve closure; no covering or first-activation Seal is attached. DataEvents carry their accepted seal_ref, never enter Seal.delta and never require a covering Seal.",
       "required": [
         "events",
@@ -7317,6 +7342,79 @@
         }
       },
       "additionalProperties": false
+    },
+    "PcrPendingControlRequest": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "predecessor_refs",
+        "limit"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "predecessor_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+          },
+          "description": "The exact current accepted Seal frontier, byte-wise ascending and duplicate-free."
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024
+        }
+      },
+      "additionalProperties": false,
+      "description": "Bounded pending Control Move discovery for the caller's own or delegated Agent PCR at an exact current accepted predecessor basis. No historical Event scan or client coverage proof is needed. limit is explicit and at most 1024."
+    },
+    "PcrPendingControlOutcome": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "predecessor_refs",
+        "event_digests",
+        "has_more"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "predecessor_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+          },
+          "description": "The exact current accepted Seal frontier, byte-wise ascending and duplicate-free."
+        },
+        "event_digests": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 1024,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "description": "At most request.limit durably admitted, not covered, non-terminal pending Control Move digests in this PCR. Choose the oldest durable intake positions before sorting the selected digests canonically. This is discovery, not a promise of successful preparation or Seal admission."
+        },
+        "has_more": {
+          "type": "boolean",
+          "description": "More pending entries remain beyond this bounded selection. Sealing or terminal decisions remove pending entries; re-read with the new current basis after each completed batch. No cursor advances or read ACK are created."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact own-Station pending result bound to Realm and basis. Empty does not attest to acceptance of a particular Event: callers needing one known Event use its exact control-proposal result. No request may scan all PCR history to build this result; use a durable pending index. Invalid/stale proposals remain explicit pending or terminal outcomes and cannot be treated as successful Seal acceptance."
     }
   }
 }

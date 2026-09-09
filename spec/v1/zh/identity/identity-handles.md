@@ -567,7 +567,7 @@ Handle 解析分为两个方向：
 - **handle → subject**：输入是 canonical `handle = <localpart>:<domain>`（或 normalize 自显示形态），使用 `ak.find.directory.read.resolve_handle.v1` 或下列 issuer discovery 路径；invite/member-add 的 base 投递不得依赖该方向。
 - **subject/context → current handles**：输入是 exact `subject_account_id`、当前 Realm / audience / requester context，使用 `ak.find.directory.read.list_handles_for_subject.v1` 或 roster 内联 `handle_claims[]`。该方向用于 member roster、mention renderer 和 issuer 重签 / 撤销 claim 后的显示刷新。
 
-已知 handle 时，客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
+已知 handle 时，自己 Station 的 verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 
 1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/arkret/handle?localpart=<localpart>`。响应是 `ak.schema.handle_claim.v1` 形态的签名 claim。
    - 用于 holder 自托管（domain 拥有者 == subject DID）与单实例 Station 部署。
@@ -644,6 +644,8 @@ HandleClaimStatusView {
 
 ## 6. 双向验证
 
+本节 verifier 指接纳外部身份材料的 Station / Directory 或独立审计角色。普通客户端消费自己已认证 Station 的公开解析结果，核对完整 AccountId、handle、subject、audience 与有效期，不回取发行者或 holder DID 历史。任意第三方 Directory 的声明仍须由自己 Station 验证，不能直接提升为权威结果。
+
 解析 handle 得到 exact `subject_account_id` 与 issuer `did_core_id` 后，验证规则按 handle 的公开 / 受限语义分两条：
 
 **公开 handle（holder 主动公开）**：verifier MUST 取得与 `subject_account_id.principal_id` 具有已验证 resolution binding 的当前 DID Document，并验证：
@@ -678,13 +680,7 @@ DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的�
 
 ### 6.0 验证职责分工
 
-"verifier" 是任何**正在做信任决策**的节点。`alsoKnownAs` 双向验证的真相源永远是 holder 自己的 DID Document，因此 authority 与 cache 必须分开：
-
-**Authority（first-party 验证，MUST）**：以下信任决策 MUST 由发起方亲自完成双向验证，**不得**用 server-attested `status=verified` view 替代亲自解析 DID Document：
-
-- Wallet 决定是否对某 verifier 披露某 handle（disclosure policy 匹配）；
-- 接受 invite、加入 official Realm、接纳 self-issued handle、跨组织 federation 信任决策；
-- 任何把双向验证结果记入 audit trail 的动作。
+接纳服务器 MUST 在接受外部 handle、为 invite / official Realm 准备身份目标、求值公开 disclosure policy 或生成审计结果之前，完成本节双向验证。自己 Station 的已验证结果可直接用于客户端展示及目标选择；客户端仍核对用户选择与完整账号，不独立解析 DID。Wallet 对私有明文及密钥释放的用户授权仍在设备上执行。
 
 这些 current reverse-binding 动作统一登记为 verifier action
 `ak.verifier.handle.public_reverse_binding.v1`，使用 `current_external_claim` 与
@@ -694,25 +690,14 @@ DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的�
 [`did-freshness-profile-registry.json`](../../artifacts/registry/did-freshness-profile-registry.json)
 双向关闭；其它 handle action 不得自行调用 authority resolver。
 
-**Pre-verification & Cache（hint 层，SHOULD first-party；MAY use bounded cache）**：Directory / Station / 其它中间方 MAY 代行一次验证并签发 HandleClaim status view；缓存同时绑定 DID Document digest / version、`alsoKnownAs` proof、顶层 `verified_at` / `fresh_until` 与 `claim.expires_at`。下列展示类动作适用此层：
+**验证结果与缓存**：自己 Station MUST 验证外部 status/core、issuer/holder acceptance、subject、audience、撤销及 freshness 后提供结果；第三方 signed status 不因自称 verified 而免验。服务器缓存绑定 DID Document digest/version、反向绑定依据和有效期；首次接纳、依据变化及失效时重新核验，普通命中复用结果。
 
-- 客户端展示 "verified handle ✓" 徽章、mention autocomplete、联系人卡片上的 verified 状态。
+客户端可使用自己 Station 返回的有效 status view 展示身份状态，不区分“客户端完整验证”与“服务器验证”两种模式，也不因缺少本地 DID 历史降低标识。失效或无法刷新时按原 freshness 合同降级；服务器验证身份不等于用户完成端到端设备带外验证。服务器处理已确定 AccountId 的普通 Event、路由和 reducer 不重新读取 `alsoKnownAs`；公开 claim 验证不能改变既有 AccountId 的业务授权根。
 
-规则：
-
-- 这种 server-attested `status=verified` signed view 是性能 hint，**不是**权威背书；
-- verifier MUST 能用自己的 DID resolver 独立 re-verify（按 §6 顶层取得与 `claim.subject_account_id.principal_id` 绑定的 DID Document 当前内容并复算 `alsoKnownAs` 包含校验），不得仅凭 server-attested status view 做信任决策。独立 re-verify 在首次接受 claim、claim / document digest 变化、撤销 / invalidation 或 signed freshness 到期时执行；普通展示与命中同一 accepted binding 的业务使用 MUST 复用验证结果，不得每次在线解析。Server-attested hint 的规范 wire carrier就是本节 HandleClaim status view，不得另加并行 `binding_state` 字段；
-- 上述展示类动作 SHOULD 优先 first-party 验证；MAY 接受 server-attested `status=verified` 命中，并把 UI 状态展示为 verified（cache hit 与 first-party verified 之间不做用户可见区分），前提是 status/core 均未过期、hint 仍在 verifier 本地 trust policy 允许的 TTL 上限内、未触发 §6.1.2 失效信号；
-- **verified 徽章 vs 纯 autocomplete 区分（normative）**：联系人卡片 / 个人资料页面上的 **verified 徽章** 是用户信任决策的关键视觉信号，其防伪强度 SHOULD 高于纯 mention autocomplete 排序提示。客户端 **SHOULD** 在展示 verified 徽章前执行一次 first-party re-verify（§6 顶层独立 re-verify 路径）；当徽章仅由 hint-only 命中(未经本次 first-party 验证)驱动时，客户端 SHOULD 对该徽章施加弱化视觉（例如"服务器声明，未本地核验"的次级标识）而非与 first-party verified 徽章不可区分地呈现，以避免下一条所述"被攻陷 Directory + 受信 issuer 串通"直接驱动一个用户无法分辨真伪的强信任徽章。纯 mention autocomplete 排序 MAY 继续仅依赖 hint，无需为排序结果执行 first-party re-verify；
-- 命中超期、§6.1.2 任一失效信号触发、或 verifier 本地 trust policy 拒绝该 hint 来源时，UI MUST 降级为 `unverified` 或等价的视觉降级状态，**不得**继续展示 verified 徽章；
-- 一个被攻陷的 Directory 与一个被信任的 issuer 串通可以伪造 server-attested verified 状态——这是把展示动作放在 SHOULD/MAY 而非 MUST 层的根本风险；Authority 层动作不允许承担此风险。
-
-Station 在事件接收、路由、投递与 Realm reducer 决策中**不读** `alsoKnownAs`。身份选择只使用已验证的 exact AccountId/ActorId；endpoint 只使用对应 Station 的 service resolution。Station 在本节 cache 层只为客户端预解析公开 handle 并维护缓存。
-
-**DNS TXT 通道**：DNS TXT 只能作为发现通道。若 issuer 通过 DNS TXT 直接声明 handle 绑定，客户端 MUST 满足以下至少一项才可显示为 verified：
+**DNS TXT 通道**：DNS TXT 只能作为发现通道。若 issuer 通过 DNS TXT 直接声明 handle 绑定，自己的 Station MUST 验证以下至少一项，才可返回 verified：
 
 - DNSSEC validation 成功，且 TXT 内容绑定 `handle`、完整 `subject_account_id` / issuer 的 `did_core_id`、`created_at`、`expires_at` 和 signature / hash commitment。
-- TXT 记录内的绑定声明由 issuer DID（holder DID 或 Organization DID 或受信 issuer）签名，客户端能通过 DID resolver / VC 验证该签名。
+- TXT 记录内的绑定声明由 issuer DID（holder DID 或 Organization DID 或受信 issuer）签名，接纳服务器通过 DID resolver / VC 验证该签名。
 - HTTPS well-known 或 Directory / VC presentation 提供等价的签名绑定证据。
 
 未启用 DNSSEC 且没有可验证签名的 DNS 结果只能作为 unverified discovery hint，MUST NOT 作为 grant subject、Organization membership、official Realm 或 verified handle 的依据。
@@ -1260,7 +1245,7 @@ Verifier MUST：
 
   违反该作用域规则的事件 schema 在 conformance 测试中 MUST 失败：把 handle 字符串当作**权威 actor 引用字段**（而非显式声明的派生投影或 audit metadata）的 schema 视为 v1 不合规。
 - DNS TXT record 格式 MUST 绑定 `handle`、`subject_account_id`、issuer、`service_id`、`created_at`、`expires_at` 和 signature / hash commitment；过期或不匹配时不得显示 verified。
-- Well-known / Directory response schema MUST 返回 exact `subject_account_id`、issuer 的 `did_core_id`、canonical `handle`、proof、validity 和 optional challenge；公开 handle 客户端必须通过已验证的 DID resolution binding 做 `alsoKnownAs` 双向验证，受限 handle 必须做 issuer claim / audience / policy 验证。匿名或未授权调用方查询受限 handle、revoked handle 或不存在 handle 时，response MUST 不可区分。
+- Well-known / Directory response schema MUST 返回 exact `subject_account_id`、issuer 的 `did_core_id`、canonical `handle`、proof、validity 和 optional challenge；公开 handle 由自己 Station 通过已验证的 DID resolution binding 做 `alsoKnownAs` 双向验证，受限 handle 由该 Station 做 issuer claim / audience / policy 验证；客户端消费结果并核对完整 subject 绑定。匿名或未授权调用方查询受限 handle、revoked handle 或不存在 handle 时，response MUST 不可区分。
 - Credential schema、presentation request、disclosure policy 和 disclosure receipt 必须绑定 holder DID、verifier DID、audience、challenge、domain、disclosed fields、withheld fields 和 proof profile。
 - Status list profile MUST 支持凭证撤销和暂停。授权依赖的 credential 无法确认状态时 MUST fail closed。
 - BBS / SD-JWT VC conformance vectors MUST 覆盖选择性披露、challenge/domain 绑定、错误 issuer、过期凭证、撤销凭证和 pairwise DID unlinkability。

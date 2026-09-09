@@ -193,6 +193,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
+| `sync/server-trusted-results.md` | 客户端信任自己 Station 的治理结果、服务器验证复用及端到端职责。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
 | `sync/signal.md` | encrypted-only Signal Extension send / subscribe rail、可见分类与 TTL。 |
 | `sync/service-surface.md` | 最小服务面与实际服务组合：Station、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |

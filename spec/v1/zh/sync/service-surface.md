@@ -967,15 +967,13 @@ Agent 的 management、pairing、session grant 与 Sidecar operations 属于 sel
 
 Arkret v1 的首次加入流程：
 
-1. 用户输入 handle、DID 或 Realm link
-2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 Realm link / invite / ActorId routing projection / locator / peer evidence 携带的 inline 方法证据或 `resolution_url` 得到 service `did_core_id` 的首跳 `did` / `base_url`，验证 method history、当前状态、服务入口与 Realm policy，再以 role-scoped describe 确认 Station / identity registry / events / account / snapshot / blob / authz 能力
-4. 拉取与该 principal 相关的 invite / grant 视图
-5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Station sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`realm-state-snapshot.schema.json`](../../artifacts/schemas/realm-state-snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。`authority_kind="witness_quorum"` 时，`authority_binding.witness_attestations[]` 是 v1 唯一的 quorum 证据载体：客户端 MUST 按 [`realm-state-snapshot-schema.md` §5.1](../conformance/realm-state-snapshot-schema.md) 逐行重算 `ak.realm_state_snapshot_witness_attestation_proof.v1` canonical projection 验签，并只以 `created_at` 时点的 accepted Realm auth/policy state 判定授权 witness set、key validity、撤销新鲜度与 threshold（按 `witness_id` 去重）。不存在"等价 quorum proof"：缺失、未达阈值或使用任何未登记的替代载体时 MUST 以 `realm_state_snapshot_authority_unverified` 拒绝，不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan.v1`，JSON content 携带 `before`）进行原始 Event 历史回放。
-7. 从 frontier 之后拉取 backfill / sync stream 增量
-8. 本地执行 reducer
-9. 建立 read cursor、notification cursor 等个人状态
+1. 用户输入 handle、DID 或 Realm link。
+2. 客户端向自己 Account Station 解析输入；服务器验证公开 handle 双向绑定、外部 DID/service authority、Directory/invite 元数据与 Realm 加入依据。
+3. 客户端核对服务器准备结果的 canonical Realm、自己的 actor、请求动作及披露信息，签署确切准备字节并提交自己 Station；联邦 forwarding 由服务器完成。
+4. 服务器按当前请求权限提供 Realm metadata、当前治理/安全状态及必要内容。未取得依据时返回适用 pending/unavailable，不得伪装为空的成功基线。
+5. 需要 Snapshot 时从自己 Station 获取 manifest，并按请求范围下载 chunks。服务器验证外部 manifest 的 issuer、authority、witness quorum、state/event commitments 和治理历史；客户端核对来源、Realm/basis、下载内容 hash 与端到端认证，不执行 witness/DID/history 重放。
+6. 使用服务器返回的合法 cursor 接续内容增量；不得把 frontier Event IDs 填入 cursor，或因 snapshot 不可用回退客户端全历史验证。
+7. 运行内容显示/解密所需的本地归约，建立 read cursor、notification cursor 等个人状态。首屏与其它 Realm 不等待该 Realm 的完整内容历史。
 
 ## 12. 新鲜度与多服务并存
 

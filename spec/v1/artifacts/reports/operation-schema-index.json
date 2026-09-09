@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.1",
+  "version": "2026-09-09.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T11:39:09+08:00",
+  "generated_at": "2026-09-09T19:23:43+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -6251,7 +6251,8 @@
           "phase",
           "operation_id",
           "idempotency_key",
-          "request_receipt",
+          "peer",
+          "request_event_ref",
           "action",
           "reservation_handle",
           "signed_event",
@@ -6266,14 +6267,16 @@
               "phase",
               "operation_id",
               "idempotency_key",
-              "request_receipt",
+              "peer",
+              "request_event_ref",
               "action"
             ],
             "properties": [
               "phase",
               "operation_id",
               "idempotency_key",
-              "request_receipt",
+              "peer",
+              "request_event_ref",
               "action"
             ],
             "closed": true
@@ -6326,7 +6329,6 @@
           "peer",
           "granted_to_peer_scopes",
           "introduction_evidence",
-          "previous_terminal_contact_round_id",
           "continuity_evidence",
           "message",
           "reservation_handle",
@@ -6353,7 +6355,6 @@
               "peer",
               "granted_to_peer_scopes",
               "introduction_evidence",
-              "previous_terminal_contact_round_id",
               "continuity_evidence",
               "message"
             ],
@@ -6404,7 +6405,8 @@
           "phase",
           "operation_id",
           "idempotency_key",
-          "request_receipt",
+          "peer",
+          "request_event_ref",
           "action",
           "granted_to_peer_scopes",
           "reservation_handle",
@@ -6420,7 +6422,8 @@
               "phase",
               "operation_id",
               "idempotency_key",
-              "request_receipt",
+              "peer",
+              "request_event_ref",
               "action",
               "granted_to_peer_scopes"
             ],
@@ -6428,7 +6431,8 @@
               "phase",
               "operation_id",
               "idempotency_key",
-              "request_receipt",
+              "peer",
+              "request_event_ref",
               "action",
               "granted_to_peer_scopes"
             ],
@@ -7112,41 +7116,33 @@
       }
     },
     {
-      "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
+      "operation_id": "ak.self.seals.command.prepare.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueRequest",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequest",
         "schema_kind": "object",
         "required": [
           "realm_id",
           "predecessor_refs",
-          "event_digests"
+          "event_digests",
+          "hlc"
         ],
         "properties": [
           "realm_id",
           "predecessor_refs",
-          "event_digests"
+          "event_digests",
+          "hlc"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome",
         "schema_kind": "object",
         "required": [
-          "realm_id",
-          "predecessor_refs",
-          "event_digests",
-          "sealed_at",
-          "availability_receipt_digests",
-          "governance_dependencies"
+          "seal_body"
         ],
         "properties": [
-          "realm_id",
-          "predecessor_refs",
-          "event_digests",
-          "sealed_at",
-          "availability_receipt_digests",
-          "governance_dependencies"
+          "seal_body"
         ],
         "closed": true
       }
@@ -9547,6 +9543,42 @@
           "supported_operation_bundles",
           "transport_bindings",
           "invite_addressing"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.pending_control.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequest",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "predecessor_refs",
+          "limit"
+        ],
+        "properties": [
+          "realm_id",
+          "predecessor_refs",
+          "limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlOutcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests",
+          "has_more"
+        ],
+        "properties": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests",
+          "has_more"
         ],
         "closed": true
       }

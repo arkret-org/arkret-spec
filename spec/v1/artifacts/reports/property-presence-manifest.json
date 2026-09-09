@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9800,
+    "total_properties": 9824,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2698,
+      "optional": 2700,
       "optional_defaulted": 61,
-      "required": 6707,
+      "required": 6722,
       "required_nullable": 125,
-      "tristate": 209
+      "tristate": 216
     },
-    "tristate_occurrences": 209,
-    "tristate_audit_targets": 148,
+    "tristate_occurrences": 216,
+    "tristate_audit_targets": 155,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 138,
+      "absent_null_equivalent": 145,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -240,6 +240,13 @@
     "service-operation-dtos.schema.json/$defs/ProjectionStrandRow/properties/updated_by",
     "service-operation-dtos.schema.json/$defs/RealmActorFrontierView/allOf/0/else/properties/frontier_event_ids",
     "service-operation-dtos.schema.json/$defs/RealmActorFrontierView/allOf/0/then/properties/frontier_event_ids",
+    "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/availability_receipt_digests",
+    "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/completeness_root",
+    "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/control_event_set_root",
+    "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/delta",
+    "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/notary_seq",
+    "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/predecessor_refs",
+    "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/state_root",
     "service-operation-dtos.schema.json/$defs/ServiceRegistrationEnsureRequestBody/properties/previous_receipt",
     "service-operation-dtos.schema.json/$defs/SessionGrantIntrospectGrant/allOf/0/else/properties/holder_binding",
     "service-operation-dtos.schema.json/$defs/SessionGrantIntrospectGrant/allOf/0/then/properties/holder_binding",
@@ -1734,6 +1741,76 @@
       "occurrences": [
         "/$defs/RealmActorFrontierView/allOf/0/else/properties/frontier_event_ids",
         "/$defs/RealmActorFrontierView/allOf/0/then/properties/frontier_event_ids"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/SealPrepareOutcome",
+      "instance_path": "/seal_body/availability_receipt_digests",
+      "occurrences": [
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/availability_receipt_digests"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/SealPrepareOutcome",
+      "instance_path": "/seal_body/completeness_root",
+      "occurrences": [
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/completeness_root"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/SealPrepareOutcome",
+      "instance_path": "/seal_body/control_event_set_root",
+      "occurrences": [
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/control_event_set_root"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/SealPrepareOutcome",
+      "instance_path": "/seal_body/delta",
+      "occurrences": [
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/delta"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/SealPrepareOutcome",
+      "instance_path": "/seal_body/notary_seq",
+      "occurrences": [
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/notary_seq"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/SealPrepareOutcome",
+      "instance_path": "/seal_body/predecessor_refs",
+      "occurrences": [
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/predecessor_refs"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/SealPrepareOutcome",
+      "instance_path": "/seal_body/state_root",
+      "occurrences": [
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/state_root"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4127,8 +4204,9 @@
         "/$defs/contact_accept_request/oneOf/0/properties/granted_to_peer_scopes": "required",
         "/$defs/contact_accept_request/oneOf/0/properties/idempotency_key": "required",
         "/$defs/contact_accept_request/oneOf/0/properties/operation_id": "required",
+        "/$defs/contact_accept_request/oneOf/0/properties/peer": "required",
         "/$defs/contact_accept_request/oneOf/0/properties/phase": "required",
-        "/$defs/contact_accept_request/oneOf/0/properties/request_receipt": "required",
+        "/$defs/contact_accept_request/oneOf/0/properties/request_event_ref": "required",
         "/$defs/contact_accept_request/oneOf/1/properties/control_proposal_ack": "optional",
         "/$defs/contact_accept_request/oneOf/1/properties/idempotency_key": "required",
         "/$defs/contact_accept_request/oneOf/1/properties/operation_id": "required",
@@ -4199,10 +4277,8 @@
         "/$defs/contact_list_row/properties/granted_to_peer_scopes": "required",
         "/$defs/contact_list_row/properties/next_prepare_input": "optional",
         "/$defs/contact_list_row/properties/peer": "required",
-        "/$defs/contact_list_row/properties/peer_host_id": "optional",
-        "/$defs/contact_list_row/properties/peer_host_resolution": "optional",
         "/$defs/contact_list_row/properties/request_event_ref": "optional",
-        "/$defs/contact_list_row/properties/request_receipt": "optional",
+        "/$defs/contact_list_row/properties/request_message": "optional",
         "/$defs/contact_list_row/properties/response_event_ref": "optional",
         "/$defs/contact_list_row/properties/state": "required",
         "/$defs/contact_list_row/properties/tombstone_event_ref": "optional",
@@ -4275,7 +4351,6 @@
         "/$defs/contact_operation_request/oneOf/0/properties/operation_id": "required",
         "/$defs/contact_operation_request/oneOf/0/properties/peer": "required",
         "/$defs/contact_operation_request/oneOf/0/properties/phase": "required",
-        "/$defs/contact_operation_request/oneOf/0/properties/previous_terminal_contact_round_id": "optional",
         "/$defs/contact_operation_request/oneOf/1/properties/control_proposal_ack": "optional",
         "/$defs/contact_operation_request/oneOf/1/properties/idempotency_key": "required",
         "/$defs/contact_operation_request/oneOf/1/properties/operation_id": "required",
@@ -4292,8 +4367,9 @@
         "/$defs/contact_reject_request/oneOf/0/properties/action": "required",
         "/$defs/contact_reject_request/oneOf/0/properties/idempotency_key": "required",
         "/$defs/contact_reject_request/oneOf/0/properties/operation_id": "required",
+        "/$defs/contact_reject_request/oneOf/0/properties/peer": "required",
         "/$defs/contact_reject_request/oneOf/0/properties/phase": "required",
-        "/$defs/contact_reject_request/oneOf/0/properties/request_receipt": "required",
+        "/$defs/contact_reject_request/oneOf/0/properties/request_event_ref": "required",
         "/$defs/contact_reject_request/oneOf/1/properties/control_proposal_ack": "optional",
         "/$defs/contact_reject_request/oneOf/1/properties/idempotency_key": "required",
         "/$defs/contact_reject_request/oneOf/1/properties/operation_id": "required",
@@ -4543,7 +4619,7 @@
         "/$defs/contact_continuity_checkpoint_outcome/properties/continuity_evidence",
         "/$defs/contact_lineage/properties/predecessor_event_ref",
         "/$defs/contact_list_row/properties/next_prepare_input",
-        "/$defs/contact_list_row/properties/request_receipt",
+        "/$defs/contact_list_row/properties/request_event_ref",
         "/$defs/contact_round_evidence_bundle/properties/glare_concurrency_attestations",
         "/$defs/contact_round_evidence_bundle/properties/normal_response_receipt",
         "/$defs/peer_contact_control_receipt/properties/result_digest",
@@ -11583,6 +11659,21 @@
         "/$defs/signature/properties/jws": "required",
         "/$defs/signature/properties/payload_digest": "required",
         "/$defs/signature/properties/verification_method": "required",
+        "/$defs/unsigned_seal/properties/availability_receipt_digests": "required",
+        "/$defs/unsigned_seal/properties/completeness_root": "required",
+        "/$defs/unsigned_seal/properties/control_event_set_root": "required",
+        "/$defs/unsigned_seal/properties/covered_event_digests": "optional",
+        "/$defs/unsigned_seal/properties/data_event_set_root": "optional",
+        "/$defs/unsigned_seal/properties/data_view_root": "optional",
+        "/$defs/unsigned_seal/properties/delta": "required",
+        "/$defs/unsigned_seal/properties/hlc": "required",
+        "/$defs/unsigned_seal/properties/notary_seq": "required",
+        "/$defs/unsigned_seal/properties/predecessor_refs": "required",
+        "/$defs/unsigned_seal/properties/previous_digest_algorithm": "optional",
+        "/$defs/unsigned_seal/properties/previous_state_root": "optional",
+        "/$defs/unsigned_seal/properties/realm_id": "required",
+        "/$defs/unsigned_seal/properties/sealed_at": "required",
+        "/$defs/unsigned_seal/properties/state_root": "required",
         "/properties/availability_receipt_digests": "required",
         "/properties/completeness_root": "required",
         "/properties/control_event_set_root": "required",
@@ -12517,6 +12608,13 @@
         "/$defs/OrganizationRegistrationRefreshRequestBody/properties/version_id": "required",
         "/$defs/OrganizationRegistrationRevokeRequestBody/properties/organization_id": "required",
         "/$defs/OrganizationRegistrationRevokeRequestBody/properties/reason_code": "optional",
+        "/$defs/PcrPendingControlOutcome/properties/event_digests": "required",
+        "/$defs/PcrPendingControlOutcome/properties/has_more": "required",
+        "/$defs/PcrPendingControlOutcome/properties/predecessor_refs": "required",
+        "/$defs/PcrPendingControlOutcome/properties/realm_id": "required",
+        "/$defs/PcrPendingControlRequest/properties/limit": "required",
+        "/$defs/PcrPendingControlRequest/properties/predecessor_refs": "required",
+        "/$defs/PcrPendingControlRequest/properties/realm_id": "required",
         "/$defs/PeerEventsFrontierRequestBody/properties/actor_id": "optional",
         "/$defs/PeerEventsFrontierRequestBody/properties/realm_id": "required",
         "/$defs/PeerEventsQueryOutcome/properties/events": "required",
@@ -12653,19 +12751,22 @@
         "/$defs/ReferenceLockedEventStub/properties/reason_code": "required",
         "/$defs/ReferenceLockedEventStub/properties/reducer_input": "required",
         "/$defs/ReferenceLockedEventStub/properties/view_kind": "required",
-        "/$defs/SealAvailabilityReceiptIssueOutcome/properties/availability_receipt_digests": "required",
-        "/$defs/SealAvailabilityReceiptIssueOutcome/properties/event_digests": "required",
-        "/$defs/SealAvailabilityReceiptIssueOutcome/properties/governance_dependencies": "required",
-        "/$defs/SealAvailabilityReceiptIssueOutcome/properties/predecessor_refs": "required",
-        "/$defs/SealAvailabilityReceiptIssueOutcome/properties/realm_id": "required",
-        "/$defs/SealAvailabilityReceiptIssueOutcome/properties/sealed_at": "required",
-        "/$defs/SealAvailabilityReceiptIssueRequest/properties/event_digests": "required",
-        "/$defs/SealAvailabilityReceiptIssueRequest/properties/predecessor_refs": "required",
-        "/$defs/SealAvailabilityReceiptIssueRequest/properties/realm_id": "required",
         "/$defs/SealFrontierRequestBody/properties/actor_id": "optional",
         "/$defs/SealFrontierRequestBody/properties/realm_id": "required",
         "/$defs/SealFrontierState/properties/frontier": "required",
         "/$defs/SealFrontierState/properties/receipts": "optional",
+        "/$defs/SealPrepareOutcome/properties/seal_body": "required",
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/availability_receipt_digests": "tristate",
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/completeness_root": "tristate",
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/control_event_set_root": "tristate",
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/delta": "tristate",
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/notary_seq": "tristate",
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/predecessor_refs": "tristate",
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/state_root": "tristate",
+        "/$defs/SealPrepareRequest/properties/event_digests": "required",
+        "/$defs/SealPrepareRequest/properties/hlc": "required",
+        "/$defs/SealPrepareRequest/properties/predecessor_refs": "required",
+        "/$defs/SealPrepareRequest/properties/realm_id": "required",
         "/$defs/SealResolveOutcome/properties/missing_seal_refs": "required",
         "/$defs/SealResolveOutcome/properties/seals": "required",
         "/$defs/SealResolveRequestCore/properties/realm_id": "required",

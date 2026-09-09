@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.1",
+  "version": "2026-09-09.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T11:39:09+08:00",
+  "generated_at": "2026-09-09T19:23:43+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,14 +18,14 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 233,
+    "total_operations": 234,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 231
+      "typed_schema": 232
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 47
+        "typed_schema": 48
       },
       "deployment_local": {
         "typed_schema": 17
@@ -3041,15 +3041,15 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
+      "operation_id": "ak.self.seals.command.prepare.v1",
       "surface_class": "core",
-      "http": "POST /_arkret/self/seals/availability-receipts",
+      "http": "POST /_arkret/self/seals/prepare",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueRequest",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueOutcome",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome",
       "openapi_component_refs": {
-        "request": "../schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueRequest",
-        "response": "../schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueOutcome"
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequest",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -3106,6 +3106,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsGovernanceProofRequestBody",
         "response": "#/components/schemas/MlsGovernanceProofBundle"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.seals.read.pending_control.v1",
+      "surface_class": "core",
+      "http": "QUERY /_arkret/self/seals/pending-control",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlOutcome",
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequest",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

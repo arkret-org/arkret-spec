@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-08.3",
+  "version": "2026-09-09.3",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-09-08T11:03:00+08:00",
+  "generated_at": "2026-09-09T18:25:03+08:00",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
@@ -168,7 +168,7 @@
     },
     {
       "from": "ak.profile.chat_mvp.v1",
-      "to": "ak.profile.core_event_store.v1",
+      "to": "ak.profile.minimal_client.v1",
       "kind": "inherits"
     },
     {
@@ -184,11 +184,6 @@
     {
       "from": "ak.profile.e2ee_client.v1",
       "to": "ak.profile.full_client.v1",
-      "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.e2ee_client.v1",
-      "to": "ak.profile.mls_governance_binding.full.v1",
       "kind": "inherits"
     },
     {
@@ -258,7 +253,7 @@
     },
     {
       "from": "ak.profile.kanban_mvp.v1",
-      "to": "ak.profile.core_event_store.v1",
+      "to": "ak.profile.minimal_client.v1",
       "kind": "inherits"
     },
     {
@@ -275,11 +270,6 @@
       "from": "ak.profile.media_service_binding.v1",
       "to": "ak.profile.webrtc_media.v1",
       "kind": "depends_on"
-    },
-    {
-      "from": "ak.profile.minimal_client.v1",
-      "to": "ak.profile.core_event_store.v1",
-      "kind": "inherits"
     },
     {
       "from": "ak.profile.mls.minimal_metadata_realm.v1",

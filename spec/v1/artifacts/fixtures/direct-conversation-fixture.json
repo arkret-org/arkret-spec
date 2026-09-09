@@ -4,7 +4,7 @@
   "profile": "ak.profile.direct_conversation_realm.v1",
   "covers_vectors": [
     "ak.vector.contact.next_prepare_input.v1",
-    "ak.vector.contact.pending_incoming_request_receipt.v1",
+    "ak.vector.contact.pending_incoming_prepare.v1",
     "ak.vector.direct_conversation.realm_shape.v1",
     "ak.vector.direct_conversation.founding_authoring_material.v1",
     "ak.vector.direct_conversation.founder_loss_terminality.v1",
@@ -372,7 +372,7 @@
       }
     },
     {
-      "name": "pending_incoming_contact_row_carries_request_receipt",
+      "name": "pending_incoming_contact_row_carries_request_reference_and_message",
       "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
       "expect_valid": true,
       "semantic_outcome": "accept",
@@ -386,47 +386,19 @@
         },
         "state": "pending_incoming",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
-        "request_receipt": {
-          "core": {
-            "holder": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
-                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
-              }
-            },
-            "peer": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixture",
-                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-              }
-            },
-            "slot_version": 1,
-            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
-            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
-            "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer_id": "ak:did_core:web:peer-ps.example"
-          },
-          "receipt_digest": "sha256:7c025950cd5d95374a2232f472a5f23f6d3528d4d14b866260a821461008c441",
-          "signature": {
-            "verification_method": "did:web:peer-ps.example#key-1",
-            "created_at": "2026-08-08T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
-          }
-        },
         "granted_to_peer_scopes": [],
         "granted_by_peer_scopes": [
           "direct_message"
         ],
-        "bidirectional_scopes": []
+        "bidirectional_scopes": [],
+        "request_message": "Hello, please add me."
       }
     },
     {
-      "name": "pending_incoming_contact_row_without_request_receipt_rejected",
+      "name": "pending_incoming_contact_row_requires_request_reference",
       "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
       "expect_valid": false,
-      "first_expected_error": "contains:'request_receipt' is a required property",
+      "first_expected_error": "contains:'request_event_ref' is a required property",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
@@ -438,7 +410,6 @@
           }
         },
         "state": "pending_incoming",
-        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
         "granted_to_peer_scopes": [],
         "granted_by_peer_scopes": [
           "direct_message"
@@ -447,10 +418,10 @@
       }
     },
     {
-      "name": "accepted_contact_row_rejects_request_receipt",
+      "name": "accepted_contact_row_rejects_request_message",
       "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
       "expect_valid": false,
-      "first_expected_error": "contains:should not be valid under {'required': ['request_receipt']}",
+      "first_expected_error": "contains:should not be valid under {'required': ['request_message']}",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
@@ -463,35 +434,6 @@
         },
         "state": "accepted",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
-        "request_receipt": {
-          "core": {
-            "holder": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
-                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
-              }
-            },
-            "peer": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixture",
-                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-              }
-            },
-            "slot_version": 1,
-            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
-            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
-            "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer_id": "ak:did_core:web:peer-ps.example"
-          },
-          "receipt_digest": "sha256:7c025950cd5d95374a2232f472a5f23f6d3528d4d14b866260a821461008c441",
-          "signature": {
-            "verification_method": "did:web:peer-ps.example#key-1",
-            "created_at": "2026-08-08T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
-          }
-        },
         "response_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
         "next_prepare_input": {
           "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
@@ -506,11 +448,12 @@
         ],
         "bidirectional_scopes": [
           "direct_message"
-        ]
+        ],
+        "request_message": "Not visible after acceptance"
       }
     },
     {
-      "name": "respond_prepare_accepts_verbatim_request_receipt",
+      "name": "respond_prepare_accepts_exact_peer_and_request_reference",
       "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
       "expect_valid": true,
       "semantic_outcome": "accept",
@@ -518,43 +461,22 @@
         "phase": "prepare",
         "operation_id": "ak:operation:019a0000-0000-7000-8000-00000000c003",
         "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B3",
-        "request_receipt": {
-          "core": {
-            "holder": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
-                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
-              }
-            },
-            "peer": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixture",
-                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-              }
-            },
-            "slot_version": 1,
-            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
-            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
-            "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer_id": "ak:did_core:web:peer-ps.example"
-          },
-          "receipt_digest": "sha256:7c025950cd5d95374a2232f472a5f23f6d3528d4d14b866260a821461008c441",
-          "signature": {
-            "verification_method": "did:web:peer-ps.example#key-1",
-            "created_at": "2026-08-08T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
-          }
-        },
         "action": "accept",
         "granted_to_peer_scopes": [
           "direct_message"
-        ]
+        ],
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+          }
+        },
+        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ"
       }
     },
     {
-      "name": "reject_prepare_accepts_verbatim_request_receipt",
+      "name": "reject_prepare_accepts_exact_peer_and_request_reference",
       "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
       "expect_valid": true,
       "semantic_outcome": "accept",
@@ -562,36 +484,15 @@
         "phase": "prepare",
         "operation_id": "ak:operation:019a0000-0000-7000-8000-00000000c004",
         "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B4",
-        "request_receipt": {
-          "core": {
-            "holder": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
-                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
-              }
-            },
-            "peer": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixture",
-                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-              }
-            },
-            "slot_version": 1,
-            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
-            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
-            "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer_id": "ak:did_core:web:peer-ps.example"
-          },
-          "receipt_digest": "sha256:7c025950cd5d95374a2232f472a5f23f6d3528d4d14b866260a821461008c441",
-          "signature": {
-            "verification_method": "did:web:peer-ps.example#key-1",
-            "created_at": "2026-08-08T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
+        "action": "reject",
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
           }
         },
-        "action": "reject"
+        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ"
       }
     },
     {
@@ -1129,65 +1030,39 @@
       ]
     },
     {
-      "name": "pending_incoming_row_authors_respond_and_reject",
-      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
-      "precondition": "the holder holds one verified mirror of a peer-authored ak.contact.requested plus the request_acceptance_receipt issued by the peer's own source service",
-      "action": "read ak.self.contact.read.list.v1 and copy request_receipt into the prepare phase of ak.self.contact.command.respond.v1 and of ak.self.contact.command.reject.v1",
+      "name": "contact_incoming_prepared_from_server_evidence",
+      "vector_id": "ak.vector.contact.pending_incoming_prepare.v1",
+      "precondition": "A fully verified request with an optional message is durably pending for the authenticated holder.",
+      "action": "List, prepare respond/reject using peer and request_event_ref, check draft intent, sign and commit.",
       "semantic_outcome": "accept",
       "assertions": [
-        "the pending_incoming row carries the complete signed request_receipt object and the field name is byte-identical to the prepare field that consumes it",
-        "both prepare phases accept the receipt copied verbatim, with no narrowing to a reference and no change to the prepare contract",
-        "the receipt issuer is the peer's source service, not the holder's own server, so the client verifies the signature itself instead of trusting its server's retelling",
-        "the same receipt digest is the one that derives the normal basis, so respond and reject consume the identical bytes"
+        "The row returns the exact request reference and original message when present, with no request_receipt.",
+        "The client performs no Event resolve or issuer history/receipt verification.",
+        "The server loads its durable receipt and atomically validates the current slot."
       ]
     },
     {
-      "name": "non_pending_incoming_states_omit_request_receipt",
-      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
-      "precondition": "rows in pending_outgoing, accepted, rejected, expired and tombstoned",
-      "action": "read ak.self.contact.read.list.v1",
-      "semantic_outcome": "accept",
-      "assertions": [
-        "no row in these five states carries request_receipt, because pending_outgoing has no incoming request to answer and the other four have a consumed slot or a terminal round",
-        "the omission alone expresses that respond and reject are not authorable now; no error code and no contact_state value is added for it",
-        "a glare pair never presents a receipt-bearing row: an unconsumed outgoing request in the holder's own slot keeps the row pending_outgoing while glare evidence is still incomplete, and the mechanically derived basis projects accepted, so the row is never pending_incoming and respond and reject stay forbidden throughout"
-      ]
-    },
-    {
-      "name": "contact_mirror_branch_returns_exact_event_without_seal",
-      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
-      "precondition": "the holder holds a Contact verified mirror whose receipt was cryptographically verified at ingest and CAS-stored, the contact row is pending_incoming, and the requester lives on a different Station so the Event is absent from the holder's realm event store",
-      "action": "call ak.self.events.read.resolve.v1 for the exact request Event id with include_payload true",
-      "semantic_outcome": "accept",
-      "assertions": [
-        "the exact signed Event and its complete payload are returned from the Contact verified mirror, so the client can recompute event_digest and check the receipt binding itself",
-        "the returned message field is the original plaintext rather than the delivery stub, because the stub rule constrains delivery surfaces and not the exact target holder",
-        "the Event-only outcome has no seals member and discloses no covering Seal of the requester Principal Control Realm",
-        "no Event other than the exact requested one is returned and no Realm membership is implied"
-      ]
-    },
-    {
-      "name": "contact_mirror_branch_has_no_seal_selector_and_refuses_unverified_rows",
-      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
-      "precondition": "the same pending_incoming mirror, plus a second holder-local row that was stored without completing receipt verification at ingest",
-      "action": "confirm ak.self.events.read.resolve.v1 has no seal_refs selector, and separately request the Event backed only by the unverified local row",
+      "name": "contact_incoming_prepare_binding_and_terminal",
+      "vector_id": "ak.vector.contact.pending_incoming_prepare.v1",
+      "precondition": "Wrong holder/peer/reference, a consumed slot, or an outgoing glare proposal.",
+      "action": "Prepare respond or reject.",
       "semantic_outcome": "reject",
       "assertions": [
-        "the Event-only request schema rejects a seal_refs member before handler execution",
-        "the unverified local row does not open the branch, so a row stored without ingest-time receipt verification cannot be used as an independent authority",
-        "the unverified-row refusal does not reveal whether the underlying Event exists"
+        "No writes occur and no signed Event is prepared.",
+        "Glare remains pending_outgoing until accepted; it never becomes respondable.",
+        "The client rejects a draft with a changed peer, request reference, action or selected scopes."
       ]
     },
     {
-      "name": "contact_mirror_visibility_closes_on_terminal_round",
-      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
-      "precondition": "the same mirror after the contact row transitions out of pending_incoming into accepted, rejected, expired or tombstoned",
-      "action": "call ak.self.events.read.resolve.v1 for the same exact request Event id",
+      "name": "contact_mirror_not_exposed",
+      "vector_id": "ak.vector.contact.pending_incoming_prepare.v1",
+      "precondition": "A private Contact mirror exists, whether pending or terminal.",
+      "action": "Resolve its Event through self/peer Event resolve without ordinary Realm visibility.",
       "semantic_outcome": "reject",
       "assertions": [
-        "the transition clears request_receipt and closes resolve visibility in the same transaction, so the credential and the visibility share one lifetime",
-        "the selector is accounted into missing and is indistinguishable from a non-existent Event, and MUST NOT be reported under unauthorized",
-        "retained mirror bytes stay available for local audit but are never exposed through this surface again"
+        "The mirror grants no Event access and no PCR membership.",
+        "A missing outcome reveals no private mirror or Contact state.",
+        "Unverified ingest cannot create an actionable Contact list row."
       ]
     }
   ]

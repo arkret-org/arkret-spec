@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-09.1",
+  "version": "2026-09-09.5",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T11:39:09+08:00",
+  "generated_at": "2026-09-09T19:15:20+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -2022,8 +2022,8 @@
       "description": "No operation-specific error codes beyond the universal failure surface. Read is gated by Realm read authorization (capability_denied, universal)."
     },
     {
-      "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
-      "http_alias": "POST /_arkret/self/seals/availability-receipts",
+      "operation_id": "ak.self.seals.command.prepare.v1",
+      "http_alias": "POST /_arkret/self/seals/prepare",
       "operation_specific": [
         "frontier_unavailable",
         "seal_signer_unauthorized",
@@ -2153,6 +2153,16 @@
       "http_alias": "GET /_arkret/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ak.self.seals.read.pending_control.v1",
+      "http_alias": "QUERY /_arkret/self/seals/pending-control",
+      "operation_specific": [
+        "frontier_unavailable",
+        "seal_signer_unauthorized",
+        "state_mismatch"
+      ],
+      "description": "PCR-only availability preparation. frontier_unavailable covers a stale or incomplete predecessor/event basis; seal_signer_unauthorized covers a local service that is not the create-locked PCR holder; state_mismatch covers invalid PCR genesis admission material or dependency construction that cannot satisfy the frozen policy. No Seal is committed on failure."
     }
   ],
   "cross_links": {

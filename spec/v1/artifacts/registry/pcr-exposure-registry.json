@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-30.1",
+  "version": "2026-09-09.2",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -54,12 +54,12 @@
       "description": "Authenticated Account Authority or Station service call carrying that operation's own authority evidence."
     },
     {
-      "policy_id": "ak.pcr_exposure_policy.contact_pending_verified_mirror_target.v1",
-      "description": "Authenticated exact target holder with a pending_incoming Contact row and a CAS-persisted verified mirror whose Event bytes and source receipt bind the requested ak.contact.requested Event."
-    },
-    {
       "policy_id": "ak.pcr_exposure_policy.public.v1",
       "description": "Deliberately unauthenticated. Only a value the subject itself chose to publish may use this policy."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.contact_incoming_target.v1",
+      "description": "The authenticated complete holder Account is the exact target of a durably verified pending_incoming Contact request. Only its request reference and optional message projection are disclosed; other states omit the message and no PCR Event access is granted."
     }
   ],
   "anti_enumeration_policies": [
@@ -156,17 +156,16 @@
           "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
         },
         {
-          "carrier": "exact_event",
+          "carrier": "derived_field",
           "surface": "operation",
-          "operation_id": "ak.self.events.read.resolve.v1",
+          "operation_id": "ak.self.contact.read.list.v1",
           "direction": "response",
-          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
           "json_pointers": [
-            "/$defs/EventsResolveOutcome/properties/events"
+            "/$defs/contact_list_row/properties/request_event_ref",
+            "/$defs/contact_list_row/properties/request_message"
           ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.contact_pending_verified_mirror_target.v1",
-          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1",
-          "outward_disclosure_policy_id": "ak.outward_disclosure.contact_pending_verified_mirror.v1"
+          "authorization_policy_id": "ak.pcr_exposure_policy.contact_incoming_target.v1"
         }
       ]
     },
@@ -464,5 +463,6 @@
       "event_kind": "ak.self.agent.resume",
       "exposures": []
     }
-  ]
+  ],
+  "generated_at": "2026-09-09T17:46:16+08:00"
 }

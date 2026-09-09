@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.2",
+  "version": "2026-09-09.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T13:03:40+08:00",
+  "generated_at": "2026-09-09T17:54:09+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1714,13 +1714,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
+      "vector_id": "ak.vector.contact.pending_incoming_prepare.v1",
       "status": "active",
       "domain": "contact",
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "The ak.self.contact.read.list.v1 projection carries the complete signed request_receipt on a pending_incoming row, so respond and reject become authorable: the field name is byte-identical to the prepare field that consumes it, it is copied verbatim and never narrowed to a reference, and because it is signed by the peer's source service rather than by the holder's own server the client verifies it independently instead of trusting its server's retelling. pending_outgoing, accepted, rejected, expired and tombstoned rows MUST NOT carry it, a glare pair is structurally never pending_incoming so respond and reject stay forbidden without a new code, and a consumed receipt is refused by prepare with zero writes and MUST be re-read rather than cached or replayed. The client obtains the exact request Event itself only through the closed Contact mirror branch of ak.self.events.read.resolve.v1: it reads exclusively from a Contact verified mirror whose receipt was cryptographically verified at ingest and CAS-stored, it opens only while the row is pending_incoming, it returns the complete payload including the original message because the stub rule constrains delivery surfaces rather than the exact target holder, and it discloses no covering Seal at all, so seal_refs is never satisfied through it. When the row leaves pending_incoming the receipt is cleared and the visibility closes in the same transaction, and the selector is accounted into missing rather than unauthorized.",
+      "description": "Own-Station verified incoming request projection includes exact request_event_ref and optional original request_message. The client submits peer/ref, checks the prepared intent and signs without resolving the request Event or verifying foreign receipts/history. The server loads durable evidence and rejects stale, wrong-holder, wrong-peer, glare and consumed slots with zero writes. Contact mirrors are never exposed through Event resolve.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md",

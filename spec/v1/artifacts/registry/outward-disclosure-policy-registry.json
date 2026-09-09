@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-09-09.2",
   "source_of_truth": true,
   "description": "Reusable outward-disclosure policies. Operations and carrier exposures reference a policy id instead of reproducing operation/profile matrices. Authorization decides whether a caller may reach a value; this registry decides which internal failures may cross the boundary and which observable response properties must remain equivalent.",
   "registry_rules": [
@@ -186,39 +186,7 @@
         }
       ],
       "diagnostic_rule": "The two codes expose only whether exact portable material must be retrieved or whether supplied material is unsafe. They never reveal peer existence, Contact status, prefix length, failing edge or signature identity."
-    },
-    {
-      "policy_id": "ak.outward_disclosure.contact_pending_verified_mirror.v1",
-      "gate_order": [
-        "holder_authentication",
-        "pending_incoming_contact_lookup",
-        "verified_mirror_lookup",
-        "exact_binding_match",
-        "outward_mapping"
-      ],
-      "target_read_gate": "pending_incoming_contact_lookup",
-      "outward_buckets": [
-        {
-          "bucket_id": "contact_mirror_unavailable",
-          "internal_reason_families": [
-            "contact_absent_or_terminal",
-            "mirror_absent",
-            "mirror_unverified",
-            "receipt_binding_mismatch"
-          ],
-          "code": "not_found",
-          "http_status": 404,
-          "body_shape_class": "standard_not_found_constant",
-          "header_class": "no_target_sensitive_headers",
-          "timing_class": "target_private_quantized",
-          "detail_visibility": "restricted_audit_only"
-        }
-      ],
-      "success_constraints": [
-        "Return the exact verified mirror Event bytes only.",
-        "Do not return or satisfy seal_refs and return an empty derived seals list.",
-        "Authorization closes atomically when the Contact leaves pending_incoming."
-      ]
     }
-  ]
+  ],
+  "generated_at": "2026-09-09T17:46:16+08:00"
 }

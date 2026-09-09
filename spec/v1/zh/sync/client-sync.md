@@ -752,15 +752,15 @@ Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 �
 
 恢复流程按触发原因分成两类互斥分支，客户端 MUST 先按 §4 的分类判定原因再进入对应分支；两类分支对"旧 cursor 是否可继续复用"的处理**根本不同**，不得混用同一套 `after=` 取值。
 
-> **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ak.schema.realm_state_snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ak:cursor:<base64url>`）。`ak.self.events.read.scan.v1` / `ak.self.account.stream.subscribe.v1` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `param_invalid`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**集合停止判据**：必须命中 `frontier.event_ids` 中的每一个 head，且已拉窗口内所有可见事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内，才算接上当前态。续传位置由 `ak.self.events.read.scan.v1` 响应返回的 `prev_cursor` / `next_cursor` 决定。
+> **frontier 不是 cursor（前置约定）**：frontier Event IDs 和 Seal basis 是服务器结果的语义边界，`before` / `after` 只接受注册 cursor。客户端核对响应与请求的账号、Realm、filter 和 basis 绑定，使用标准响应的 `prev_cursor` / `next_cursor` 恢复；不以遍历所有 heads/prev_refs 或证明 event_set_commitment 完整性作为采用自己 Station 结果的条件。
 
-上述“命中 frontier head”不要求 caller 获得无权查看的完整 Event。每个 head 必须以以下三种可验证形态之一命中：(a) 完整 Event Envelope；(b) 保留 suite-bearing `event_id`、scope 与必要因果引用的 `RedactedEventView`，event digest 从 ID 解码；(c) `ReferenceLockedEventStub`，携带服务签名并证明该 id 因 visibility 被裁剪。三者都必须能与 manifest 的 `frontier.event_ids` 和 `event_set_commitment` 验证绑定；服务端 MUST 对 caller 不可见的 head 返回 (b)/(c) 或等价 membership proof，MUST NOT 令客户端无限 backfill 等待永不可见的完整 Event。客户端不得从 stub 推断被裁剪 payload，但验证全部 head 已由上述形态覆盖后可满足停止判据。
+按需内容恢复仍可返回完整 Event、RedactedEventView 或 ReferenceLockedEventStub；客户端遵守访问裁剪、消息身份和端到端认证，但不为验证自己 Station 的裁剪声明而拉取隐藏 Event 或治理证明。具体内容依赖未到达时保留该内容 pending，不把它升级为账号级历史重放门禁。
 
 #### 12.3.1 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`（旧 cursor MUST 废弃）
 
 cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-binding，或 cursor 由另一服务签发即 `cursor_unrecognized`）。旧 cursor 不再是可信同步位置：
 
-1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后可验证 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
+1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后由自己 Station 确认的 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
 2. 客户端从下列两条合法新起点二选一，二者都不复用旧 cursor：
    - **(A) 重做 initial sync**：无 `after` 重新建立 `ak.self.account.stream.subscribe.v1?catchup=true`（`after=` 缺省 + `catchup=true`），由服务端发 baseline `delta` 重新签发新 cursor。
    - **(B) snapshot 加速 bootstrap**：调用 `ak.self.realm_state_snapshot.read.manifest_head.v1` 取 `ak.schema.realm_state_snapshot.v1` manifest，MUST 先完成 [`realm-state-snapshot-schema.md` §5](../conformance/realm-state-snapshot-schema.md) 的唯一通用校验清单。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ak.self.events.read.scan.v1` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到 `frontier.event_ids` 中每一个 head 都已在本地命中，且窗口内所有已拉事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内；在此之前 timeline MUST 保持 `limited` / provisional，不得声称历史完整。账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
@@ -770,12 +770,12 @@ cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-bind
 
 cursor 本身仍有效，只是服务 frontier 落后于请求所需 causal frontier。此分支 **MUST NOT** 清 cursor 重做 initial sync：
 
-1. 客户端保留本地 `cursor`、`filter_digest`、未确认写入和最后可验证 frontier。
-2. 按 `retry_after_ms` / `Retry-After` 退避后，用**现有 cursor** 重试 / 等待 frontier 推进；需要补洞时，可先调用 `account/describe` 或 `snapshot/head` 读当前 frontier 作为停止判据，再用**现有 cursor** 的 `prev_cursor` / `next_cursor` 续传 `ak.self.events.read.scan.v1` 补齐缺口。snapshot 采用前同样 MUST 完成上述全部校验。
+1. 客户端保留本地 `cursor`、`filter_digest`、未确认写入和最后由自己 Station 确认的 frontier。
+2. 按 `retry_after_ms` / `Retry-After` 退避后，用**现有 cursor** 重试 / 等待 frontier 推进；需要补洞时，可先调用 `account/describe` 或 `snapshot/head` 读当前 frontier 作为停止判据，再用**现有 cursor** 的 `prev_cursor` / `next_cursor` 续传 `ak.self.events.read.scan.v1` 补齐缺口。snapshot 采用前核对自己 Station 来源、请求绑定、格式和内容认证，不验证治理历史。
 
 #### 12.3.3 历史完整性边界（两分支共用）
 
-cursor、`has_more`、frontier、Snapshot、receipt 与扫描完成都不能证明 source 没有隐藏从未披露的 Event。客户端只能把 known-ID/dependency resolve 与 admission 成功解释为已知缺口已处理；任何恢复分支都 MUST NOT 向用户展示“历史完整”或“无遗漏”。依赖此类保证才能安全成立的流程必须保持 unavailable / fail closed，不能以单源自报或私有 sidecar 降级放行。
+同步完成表示自己 Station 已确认的请求范围和同步位置已处理，不证明所有潜在来源都从未隐瞒数据。客户端不得宣称独立检测自己 Station 的恶意历史省略；正常可用性以服务器 accepted 结果、当前授权和端到端认证为依据，不能因为客户端没有独立 omission proof 而拒绝已经确认的结果。来自外部服务的接受依据仍由自己 Station 验证。
 
 ## 13. Initial Sync
 
@@ -798,11 +798,11 @@ Accept: application/x-ndjson
 `agent_runtime_approval` notification 作为 `action=upsert` 的权威完整集合返回；即使其它
 notification 历史受限也不得截断该子集。
 
-对当前 membership 为 `join` 的每个可写 Realm，baseline 还 MUST 提供可验证的**当前对象/安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则提供同一 frontier 下可验证的缺省/空值证明）、验证当前 read/write capability 所需的 current governance closure、Realm 当前 `default_strand_id`，以及该指针所指 non-tombstoned Strand 的最小当前投影。MLS-backed Realm 还必须提供足以验证 current membership / MLS governance frontier、选择 `content_scheme`、处理 Welcome 与判断 `epoch_update_required` 的 state/proof material。上述材料可直接位于 `state.events`，或由已验证 snapshot + current-state proof / 可 backfill refs 等价提供。`history_access` 只裁剪 data-plane timeline、旧 object revisions 和调用者无权读取的历史正文，不得裁掉上述 current baseline；即使建立当前值的 Event 位于 `since_join` frontier 之前也相同。该义务不泄露 join 前 Message、旧 policy/metadata revisions 或历史密钥。客户端在基线完整且 Realm pointer 与 Strand `is_default` 的同-frontier 一致性验证通过前 MUST 保持 `governance_baseline_pending`（MLS Realm 另保持 `encryption_policy_pending` / `encryption_transition_pending`），不得把字段缺失解释为 policy 缺省、membership 未变化或 default Strand 未设置。
+对本次请求包含且当前 membership 为 `join` 的可写 Realm 详情，baseline MUST 提供由自己 Station 确认的**当前对象/安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则由服务器明确确认同一 frontier 下的缺省/空值状态）、当前 read/write capability 的服务器授权结果、Realm 当前 `default_strand_id`，以及该指针所指 non-tombstoned Strand 的最小当前投影。MLS-backed Realm 还必须提供服务器确认的 current membership / MLS governance frontier，以及选择 `content_scheme`、处理 Welcome 与判断 `epoch_update_required` 的当前状态结果。上述材料可直接位于 `state.events`，或由自己 Station 确认的 snapshot/当前状态结果等价提供，不能要求客户端下载历史闭包。`history_access` 只裁剪 data-plane timeline、旧 object revisions 和调用者无权读取的历史正文，不得裁掉上述 current baseline；即使建立当前值的 Event 位于 `since_join` frontier 之前也相同。该义务不泄露 join 前 Message、旧 policy/metadata revisions 或历史密钥。客户端在基线完整且 Realm pointer 与 Strand `is_default` 的同-frontier 一致性验证通过前 MUST 保持 `governance_baseline_pending`（MLS Realm 另保持 `encryption_policy_pending` / `encryption_transition_pending`），不得把字段缺失解释为 policy 缺省、membership 未变化或 default Strand 未设置。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 
-大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ak.self.realm_state_snapshot.read.manifest_head.v1` 获取 `ak.schema.realm_state_snapshot.v1` manifest，完成 [`realm-state-snapshot-schema.md` §5](../conformance/realm-state-snapshot-schema.md) 的唯一通用校验清单后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ak.self.events.read.scan.v1` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.realm_state_snapshot.read.manifest_head.v1` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
+大型 Realm 的当前态 MAY 通过自己 Station 已验证的 Snapshot 加速。客户端核对来源、请求 Realm/basis、格式、chunk 内容 hash 和端到端认证，按需安装当前视图并使用标准 cursor 接续内容增量；MUST NOT 下载全 Realm 历史来证明 Snapshot。manifest 不可用或服务器未宣告 snapshot operation 时，请求相关 Realm 的服务器基线或保持该 Realm pending；不回退客户端治理重放。
 
 ## 14. E2EE Requirements
 

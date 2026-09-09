@@ -876,8 +876,8 @@
       "new": "ak.self.realm_organization.read.list.v1"
     },
     {
-      "old": "ak.self.seals.command.issue_availability_receipts",
-      "new": "ak.self.seals.command.issue_availability_receipts.v1"
+      "old": "ak.self.seals.command.prepare",
+      "new": "ak.self.seals.command.prepare.v1"
     },
     {
       "old": "ak.self.seals.command.submit",
@@ -934,6 +934,10 @@
     {
       "old": "ak.server.read.describe",
       "new": "ak.server.read.describe.v1"
+    },
+    {
+      "old": "ak.self.seals.read.pending_control",
+      "new": "ak.self.seals.read.pending_control.v1"
     }
   ]
 }

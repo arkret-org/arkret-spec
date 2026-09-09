@@ -224,7 +224,7 @@ Arkret v1 core conformance 要求如下：
 - 可选 witness / watcher 证据
 - 与 Arkret signed-event chain 范式同构的"链式可验证"语义
 
-所有声称 v1 core station / full_client / e2ee_client conformance 的实现 MUST 支持 `did:webvh` witness 验证、SCID 派生、entry hash chain 验证和 controller proof 验证。
+接纳或解析外部身份的 Station / Identity Registry MUST 支持 `did:webvh` witness、SCID、entry hash chain 和 controller proof 验证。普通 full/e2ee 客户端消费自己 Station 的验证结果，不下载或重放 DID 历史；设备/用户签署与端到端密钥检查遵循 [服务器信任与结果消费](../sync/server-trusted-results.md)。
 
 `ak.vector.identity.did_webvh_v1_adapter.v1` 与 `did-webvh-v1-fixture.json` 是上述精确版本选择的可执行证据：接受 `parameters.method=did:webvh:1.0`，并拒绝未知或缺失的 method 版本。凡 `method_history_evidence.evidence_kind=webvh_log` 被用作公开 resolution 或 retained historical signer evidence 时，`log_entries` **MUST** 从 inception 开始、无缺口地终止于 `boundary.to_version_id`，并携带该区间全部适用 `witness_records`；验证者必须重新执行 SCID、hash chain、controller proof、key rotation 与 witness threshold 验证，并要求 terminal state 与同对象的 normalized DID Document 逐字 canonical 相等。resolver summary、partial range 或单独 current DID Document 均不是该 evidence。
 
@@ -697,7 +697,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 1. 用户提交 registry 允许的长期 human principal（`did:webvh`、`did:web` 或 `did:key`）、handle、邀请链接或组织账号；Realm-local pairwise `did:key` profile 与长期 `did:key` human anchor 是不同角色合同，不能混用。interop method 只作为外部 claim。
 2. Station Account Authority 按本地 trust policy 与 adapter 选择 resolver：`did:webvh` 验证完整 history/witness，`did:web` 冻结 DNS/WebPKI current-document bootstrap evidence，`did:key` 验证 deterministic local expansion evidence；高安全部署可以收紧为 `did:webvh`，但不得增加 registry 外 method。
-3. Station Account Authority 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
+3. Station Account Authority 解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain；客户端核对已认证服务、账号及用户提交的密钥/操作绑定，消费服务器结果。
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
 5. Station Account Authority 只签发 session grant / device binding；Station policy 再基于 DID、credential、membership、invite、capability 和 Realm policy 决定可访问的数据范围。
 
@@ -913,7 +913,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 必须拒绝而不是双读。specialized organization/Agent type 不得替代 service bootstrap 的
 `ArkretService + serviceKind`。
 
-客户端判断“谁控制该组织”时，应验证：
+自己 Station 为客户端解析组织控制或准备组织操作时，MUST 验证：
 
 1. Organization DID 解析结果有效。
 2. 当前控制密钥可从 method history 推导。
@@ -939,7 +939,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 2. 收集满足 threshold 的 method-native signature、multi-proof 或 governance service attestation。
 3. 提交 DID method operation；`did:webvh` 场景写入新的 DID log entry，并由 watcher / witness 见证。
 4. 发布或更新 Arkret governance / service delegation state，使 Station 和 Realm endorsement 使用新 key set。
-5. 客户端验证旧 history head、quorum proof、新 key 生效时间和被撤销 key 不再授权后，才接受高风险组织写入。
+5. Station 验证旧 history head、quorum proof、新 key 生效时间及撤销状态后，才接纳高风险组织写入；客户端核对组织、用途和待签意图，并按独立端到端信任策略处理设备密钥变化。
 
 若 3 个 governance key 中 1 个泄露，且 policy 为 2-of-3，两个未泄露 key 可以签发 rotation，移除泄露 key 并加入新 key；泄露 key 单独不能完成 rotation。若剩余可用 key 少于 threshold，必须走 policy 中预先声明的 emergency recovery，而不是临时降低 threshold。
 

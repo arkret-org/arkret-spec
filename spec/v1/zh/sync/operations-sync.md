@@ -285,7 +285,7 @@ Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明以
 - `realm_id`
 - `reducer_profile` 与 `schema_profile_refs`（reducer / schema profile refs）
 - `state_digest`（**必填**）——语义只有一个，由 [`../conformance/realm-state-snapshot-schema.md` §4](../conformance/realm-state-snapshot-schema.md) 给出：对该 Snapshot 全部 chunk `items[]`（封闭的单一 `cell` 分支，每个 item 是一个 Realm-scope reducer cell 与其 §6.2.1 `state_object`）求 RFC 6962 Merkle root，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`H` 随 Realm 的 live digest suite。`security_class` **MUST NOT** 切换该摘要的算法或承诺对象，也 MUST NOT 把它替换成 Seal 的治理 `state_root`：leaf 定义相同，但 leaf **集合**不同——`state_root` 只覆盖控制面 cell，`state_digest` 覆盖 Realm-scope 的控制面与数据面全部已写入 cell。`state_digest`、`control_event_set_root` 与下面的 `event_set_commitment` 三者承诺三个不同对象，MUST 分别校验，MUST NOT 互相代入。
-- `event_set_commitment`（绑定"哪些事件产生该状态"的承诺，与 `state_digest` 各自独立、**均必填**；客户端采用前 MUST 验证它，见下）
+- `event_set_commitment`（绑定"哪些事件产生该状态"的承诺，与 `state_digest` 各自独立、**均必填**；接纳外部 snapshot 的服务器 MUST 验证它）
 - `frontier`（covered Event frontier / Seal basis）
 - `chunks`（chunk digests）
 - `security_class`
@@ -293,16 +293,16 @@ Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明以
 - `authority_binding`（证明 `created_by` 在 `created_at` 被授权签发该 snapshot）
 - `signature`
 
-客户端采用 Snapshot 前 MUST 验证 signature、chunk digest、profile compatibility、basis freshness、Event set commitment 与必要 inclusion / omission challenge。验证失败时 MUST 丢弃 Snapshot 并回退到原始 Event / Seal 回放。
+接纳外部 Snapshot 的服务器 MUST 验证 signature、issuer authority、chunk digest、profile compatibility、basis、Event set commitment 与必要 inclusion/omission 条件。自己 Account Station 向客户端提供的 Snapshot 是已验证结果，客户端只核对已认证来源、账号/Realm、所请求 basis、格式兼容和下载内容 hash/加密认证；不证明服务器的历史完整性、不重放治理或 issuer authority。结果缺失或失效时重新请求所需的服务器基线，MUST NOT 回退客户端全历史验证。
 
 Snapshot 后续恢复流程：
 
-1. 获取 Snapshot manifest。
-2. 验证 issuer 与 proof。
-3. 下载并验证 chunks。
-4. 从 Snapshot frontier / Seal basis 之后拉取 Event 与 Seal。
-5. 重放 DataEvent Lattice 与控制面 Seal。
-6. 进入增量订阅。
+1. 从自己 Station 获取当前请求 Realm/basis 对应的 manifest。
+2. 核对来源、请求绑定、大小与格式。
+3. 按需下载相关 chunks，核对内容 hash/端到端认证。
+4. 安装服务器已确认的当前视图与可恢复同步位置，不能将 Event frontier 当成 cursor。
+5. 按显示、解密与离线需要获取内容增量；治理接纳及历史 root 计算由服务器完成。
+6. 进入增量订阅。单 Realm pending 不阻塞账号首页与其它 Realm。
 
 ## 11. 首次加入 Realm
 

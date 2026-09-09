@@ -143,7 +143,7 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ak.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
-`ak.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis={leaves[]}`（撤销方签名时观察到的 accepted Seal refs，进入 canonical Event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 或 generation 字段。客户端铸造 basis 的注册来源是 `ak.self.seals.read.frontier.v1?realm_id=<principal_control_realm_id>` 返回的 `RealmSealFrontierView.seal_basis`；single_signer/threshold 下恰一 leaf，open_set 下必须保留完整 canonical antichain。client MUST 验证所有所引 Seal 并自行重算 joined roots，但不把 roots 复制进 Event。来源不可用或不完整时 MUST fail closed，不得伪造 basis。
+`ak.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis={leaves[]}`（撤销方签名时观察到的 accepted Seal refs，进入 canonical Event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 或 generation 字段。客户端铸造 basis 的注册来源是 `ak.self.seals.read.frontier.v1?realm_id=<principal_control_realm_id>` 返回的 `RealmSealFrontierView.seal_basis`；single_signer/threshold 下恰一 leaf，open_set 下必须保留完整 canonical antichain。自己的 Station MUST 验证所引 Seal 与 joined roots；client 消费该结果并固定 basis，不下载或重放历史，不把 roots 复制进 Event。来源不可用或不完整时 MUST fail closed，不得伪造 basis。
 
 **`revocation_pending` 状态机（normative）**：机读合同为 [`device-revocation-state.schema.json`](../../artifacts/schemas/device-revocation-state.schema.json)（`ak.schema.device_revocation_state.v1`）。所有 deployment profile 使用同一规则，不存在通用部署 `SHOULD`、E2EE / hardening 才 `MUST` 的分支。
 
@@ -644,7 +644,7 @@ POST /_arkret/self/keys/claim
 
 origin Station MUST 在签发时从该 exact account-device 的 current accepted `ak.device.authorize` 验证授权有效期：当前时刻 `now >= not_before`，且原授权 `expires_at` 非空时 `now < expires_at`；仅有缓存的 `active` 标记不能替代这项检查。缺少对应 accepted 授权 Event、时间材料无法验证、授权尚未生效或已经到期时，MUST NOT 签发可用 row。证明的 `attested_at` 表示本次当前投影检查的时刻，证明 `expires_at` MUST 晚于 `attested_at`，且 MUST NOT 晚于原授权非空的 `expires_at`；实现自定的短 TTL 只能进一步收紧此上界，不能延长原设备授权。没有有效剩余窗口时，按下述非枚举失败形态省略 row，不得通过重签证明、刷新缓存或依赖后台过期扫描延续授权。
 
-receiver MUST 验证：
+自己 Station 接纳远端设备结果时 MUST 验证以下全部规则；客户端消费该 Station 的结果，只执行第 2–4 项的请求、密钥、generation 和状态绑定及有效期检查，不解析 origin DID history：
 
 1. attestation proof 的 controller 投影后**精确等于** `attestation.account_id.station_id`，且该 key 在其当前已验证 method history 下具备 assertion 能力；`proof.created_at` 逐字等于 `attestation.attested_at`，当前时刻早于 `expires_at`；
 2. 外层 entry 的 exact `account_id` 与内层 `device_id` map key 必须分别与已签 attestation 同名字段一致；consumer 仅从验签后的 attestation 取得 `device_signing_key_did`、`hpke_key`、`device_authorize_event_id`、`authorized_generation_ref` 与 `device_status`；
@@ -655,14 +655,13 @@ receiver MUST 验证：
 
 普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `did` 的 DID URL；receiver 取 bare `did` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
 
-#### 8.3 客户端独立验证（normative）
+#### 8.3 客户端设备信任（normative）
 
-客户端不能把服务端裸 `device_signing_key_did` 断言当作 Tier-2 信任。Tier-2 信任只有两个来源：
+客户端信任自己已认证 Station 确认的 exact account-device 当前授权投影。远端 origin Station 的 attestation 及其 assertion key/history 由自己 Station 验证；客户端不执行 DID/PCR 历史验证，不将任意服务直接返回的设备公钥视为本账号服务器结果。
 
-1. §8.2 的 origin Station `device_projection_attestation`——它把「这就是该账号当前接受的设备投影」变成一条可独立验签的断言；
-2. 用户侧 `ak.key.verification.*` 带外验证。
+客户端 MUST 核对请求的完整 AccountId、device_id、密钥、generation、状态和有效期，并保留 KeyPackage/MLS/消息认证与 `ak.key.verification.*` 带外设备信任。服务器确认授权不能将未带外确认的新设备或替换密钥标为用户已验证。缓存按账号/自己 Station 会话隔离，已知撤销或 generation 变化立即失效，不越过 `expires_at`。
 
-客户端 **MUST NOT** 被要求从 identity-root anchored PCR genesis 重放 device authorization chain：跨 principal 面按定义拿不到那份材料，要求重放会把账号内部治理日志变成对任意有关系第三方的外露面。验证只需要在 attestation 或 generation 更新时完成；普通消息热路径可使用按 `(account_id, device_id, authorized_generation_ref, attested_at)` 缓存的 verified projection，不需要在线解析 DID。缓存 MUST NOT 越过 `expires_at`。
+跨账号查询不得披露 PCR genesis / authorization chain / Seal。服务间 attestation 继续是 origin 可归责的已签载体；客户端无需复制其历史证据闭包。
 
 ## 9. MLS KeyPackage Claim API
 

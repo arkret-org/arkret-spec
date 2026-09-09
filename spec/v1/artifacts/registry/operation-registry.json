@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.1",
+  "version": "2026-09-09.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T11:39:09+08:00",
+  "generated_at": "2026-09-09T19:23:43+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -113,7 +113,7 @@
         "ak.self.events.read.describe.v1",
         "ak.self.events.read.delivery_status.v1",
         "ak.self.events.command.submit.v1",
-        "ak.self.seals.command.issue_availability_receipts.v1",
+        "ak.self.seals.command.prepare.v1",
         "ak.self.seals.command.submit.v1",
         "ak.self.events.resource.get.v1",
         "ak.self.events.read.resolve.v1",
@@ -130,7 +130,8 @@
         "ak.self.actor_profile.read.resolve.v1",
         "ak.self.account.stream.subscribe.v1",
         "ak.self.account.command.revoke_cursor.v1",
-        "ak.self.realm_state_snapshot.read.manifest_head.v1"
+        "ak.self.realm_state_snapshot.read.manifest_head.v1",
+        "ak.self.seals.read.pending_control.v1"
       ],
       "surface_class": "core"
     },
@@ -2049,7 +2050,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome"
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+      "notes": "The configured Account Station provides verified public identity resolution to its clients through this standard operation. Clients bind the exact DID/subject/purpose to their trusted Station context without fetching method history. A server or independent verifier admitting external resolver material validates the native method evidence and historical authority; remote self-assertions are not trusted. Registration before an Account session requires the expected authenticated registration service/issuer binding. Requested evidence must be derived from verified state or fail closed."
     },
     {
       "operation_id": "ak.root.identity.receipts.read.list.v1",
@@ -3115,7 +3117,7 @@
       "http": "GET /_arkret/self/contacts",
       "grpc": "SelfContact/List",
       "mq": "self.contact.query.list",
-      "notes": "Holder contact projection from source-signed request/response receipts, issuer-local Contact lineages and current signed head leases. An accepted row carries the next_prepare_input cursor and, after bilateral compaction, the exact portable continuity_evidence checkpoint plus bounded tail; this is the only export surface. A pending_incoming row carries the complete signed request_acceptance_receipt for respond or reject. Every other contact_state omits unavailable authoring/evidence fields. Private Consent and account-data notes are never Contact authority.",
+      "notes": "Authenticated holder projection from server-verified durable Contact evidence. pending_incoming includes request_event_ref and the exact optional request_message; respond/reject use peer and request_event_ref. Complete continuity_evidence is exported only for explicit boolean query include_continuity=true (default false); online recontact uses Station durable checkpoint and bounded tail. Private Consent and account-data notes are not Contact authority.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"
@@ -3245,18 +3247,18 @@
       }
     },
     {
-      "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
-      "http": "POST /_arkret/self/seals/availability-receipts",
-      "grpc": "SelfSeals/IssueAvailabilityReceipts",
-      "mq": "self.seals.command.issue_availability_receipts",
-      "notes": "PCR-only pre-sign preparation for one exact prospective successor Seal. The receiver requires the exact current predecessor frontier and exact accepted uncovered Control Event set, derives the sole eligible holder from the accepted PCR genesis ak.realm.create station_id after validating its station_admission and historical signer evidence, chooses sealed_at, issues and durably stores every required AvailabilityReceipt plus authenticated holder-signer evidence, and returns every-and-only dependency with canonical digests. It fails closed when the local Station is not that create-locked holder, the default min_holders=1 contract cannot be met, or any requested basis is stale or incomplete. The response is preparation material only and does not commit a Seal.",
+      "operation_id": "ak.self.seals.command.prepare.v1",
+      "http": "POST /_arkret/self/seals/prepare",
+      "grpc": "SelfSeals/Prepare",
+      "mq": "self.seals.command.prepare",
+      "notes": "Prepare an ordinary device-signed human/Agent PCR successor Seal. The authenticated Account Station validates exact current predecessor basis, accepted uncovered Control Moves, current signer authority, effective cell effects, roots and availability holder eligibility. It durably stores receipt and historical authority dependencies and returns only the bounded unsigned Seal body. Client binds realm, basis, exact delta and frozen HLC then signs canonical bytes; no client governance history or dependency verification. Same canonical request returns byte-identical preparation during its retention window. Preparation is not Seal admission; submit rechecks authority, freshness and current basis. Digest transitions and compaction are outside this operation.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "canonical_hash",
       "canonical_hash_input": "full_body",
       "retry_safe": true,
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueRequest",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueOutcome",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "stores_content_addressed_governance_dependencies_but_does_not_commit_an_event_or_seal"
@@ -4169,6 +4171,17 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "service_describe",
       "response_schema_ref": "schemas/service-describe.schema.json"
+    },
+    {
+      "operation_id": "ak.self.seals.read.pending_control.v1",
+      "http": "QUERY /_arkret/self/seals/pending-control",
+      "grpc": "SelfSeals/PendingControl",
+      "mq": "self.seals.read.pending_control",
+      "notes": "Own/delegated PCR-only bounded discovery from the durable pending index. Exact current accepted predecessor basis and current device/controller authorization required. Returns at most limit pending digests plus has_more; no complete history, cursor, ACK, or implicit admission. Re-read after a sealed batch. Exact Event acceptance remains the control-proposal decision result.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlOutcome"
     }
   ],
   "success_shape_kind_definitions": {
@@ -5411,7 +5424,7 @@
           "binding_kind": "http_json"
         },
         {
-          "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
+          "operation_id": "ak.self.seals.command.prepare.v1",
           "binding_kind": "http_json"
         },
         {

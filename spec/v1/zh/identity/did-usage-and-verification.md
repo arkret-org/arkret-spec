@@ -40,6 +40,8 @@ method successor、显式启用的 DID-root recovery。历史验证不得查询�
 controller 替代旧 key；current controller 也不得仅凭 `did_core_id` 相同取得既有 PCR、membership、grant、
 contact、session 或 account lifecycle authority。
 
+本文件的 DID authority verifier、方法历史与 accepted binding store 义务适用于接纳外部材料的 Station、registry、联邦服务及独立审计者。普通客户端通过自己的已认证 Station 消费结果，核对完整账号、subject、purpose 与 freshness，不实现这些历史 verifier 或持久证据闭包；详见 [服务器信任与结果消费](../sync/server-trusted-results.md)。客户端本地签署及端到端密钥/消息认证继续执行。
+
 ## 2. DID 身份材料的正交分类与命名
 
 对象 schema 是字段必填性与精确 shape 的唯一真相源。本节不再人工穷举字段名；跨 schema 清单由
@@ -128,7 +130,7 @@ Document 解析、history 验证或网络请求：
 - 展示 verification badge 的缓存状态。UI 可以显示 `verified` / `stale` / `unknown`，但显示路径
   不能升级成 authority path。
 
-普通签名对象仍 MUST 验证签名、canonical transcript、nonce / sequence、scope 与 authorization。
+接纳服务器对普通签名对象仍 MUST 验证签名、canonical transcript、nonce / sequence、scope 与 authorization；客户端只对端到端密码学对象及自己待签意图执行相应检查。
 该验证应使用相应 Seal / auth-state / device authorization / agent signer evidence 中已经接受的
 公钥绑定。**验证签名不等于重新验证 DID**；实现不得仅因签名对象含 `actor_id` 或
 `verification_method` 就对 resolver 发起请求。
