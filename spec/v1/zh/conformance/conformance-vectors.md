@@ -2946,17 +2946,15 @@ Expected：
 
 Cases：
 
-1. **initial baseline 完整且无 removals**：`complete=true` 的 baseline MUST 含当前 registry 中**全部**
+1. **initial baseline 完整且无 removals**：分段 baseline 在 `baseline.completed_channels` 声明 station_cas 完成前 MUST 覆盖当前 registry 中**全部**
    holder-readable Station-CAS live row，`removals` MUST 为空。
-2. **零行也必须是 complete container**：holder 当前没有任何 live row 时仍 MUST 返回空的 `complete=true`
-   容器，使客户端能清除陈旧本地投影，而不是把「没有该字段」当作「无变化」。
+2. **零行也必须是 complete container**：holder 当前没有任何 live row 时仍 MUST 返回空容器及显式完成的 station_cas 通道，使客户端能清除陈旧本地投影，而不是把「没有该字段」当作「无变化」。
 3. **filter 不得裁掉 baseline**：请求 filter 省略了一个确实存在的 live row 时，该 trace MUST 判为
    conformance failure。
-4. **complete baseline 不得携带 removals**：`complete=true` 语义是客户端先清空本地 live set 再应用
-   `upserts`，同帧内的 removal 没有已定义含义。
+4. **complete baseline 不得携带 removals**：baseline 分段只含快照 upserts；终段才协调完整集合，并保留快照后更高 revision 的变更；不得提前清空本地 live set。
 5. **增量 upsert 只推进该 key**：更高 revision 的 upsert 只改该 key。
 6. **增量 removal 只清该 key**：removal 携带 `account_data_key` / `revision` / `updated_at`。
-7. **缺席不是删除**：增量帧里没出现的 key MUST 保留本地值。只有 `complete=true` 或显式 removal 才能丢弃一个 key。
+7. **缺席不是删除**：增量帧里没出现的 key MUST 保留本地值。只有完整分段 baseline 的终段协调或显式 removal 才能丢弃一个 key。
 8. **更低 revision fail closed**：客户端对每个 key 只接受更高 revision。
 9. **同 revision 不同 value 是同步冲突**：MUST 触发 resync，MUST NOT 当作 no-op 或静默覆盖。
 10. **同 key 窗口内合并到最后一项**：增量帧可把同一 key 合并为 cursor 窗口内的最后一项，客户端应用的是最终 revision。

@@ -32,7 +32,7 @@ Authorization: DPoP <ak.session.grant>
 Accept: application/x-ndjson
 ```
 
-上面是 **initial account sync** 的 canonical frame 调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端先发送当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置），再发送 `catchup_complete`。后续请求使用 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true` 进入有界长轮询；收到 `dropped` frame 后的补洞重连使用同一方式。
+上面是 **initial account sync** 的 canonical frame 调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端先发送当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置），本轮预算用尽或到达本轮边界后发送 `catchup_complete`；各 baseline 的完成由 §2.3 分别声明。后续请求使用 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true` 进入有界长轮询；收到 `dropped` frame 后的补洞重连使用同一方式。
 
 该端点对应 `ak.self.account.stream.subscribe.v1`，HTTP binding 返回 `application/x-ndjson` 的 `AccountSubscribeFrame` 有界响应。Initial sync 立即返回；带 `after` 的请求若已有可见 delta 也立即返回；否则服务端 MUST 等待数据或部署默认窗口（v1 默认 30 秒）到期，期间不得先发送空 `delta` / `catchup_complete` 使客户端误判本轮已完成。数据到达时返回 delta；窗口到期仍无数据时返回仅推进 cursor 的 `frontier`。`catchup=true` 时本轮数据 frame 后发送 `catchup_complete`，随后关闭本轮响应；客户端持久化 cursor 后立即发起下一轮长轮询。客户端 MUST 把 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists 与 notifications；不同于 `GET /_arkret/self/events/subscribe`（按 selector 的事件流订阅）、`QUERY /_arkret/self/events`（JSON content 携带 `before` / `after` 的双向历史读取）以及独立的加密 Signal rail。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.realm_state_snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.realm_state_snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
 
@@ -58,10 +58,13 @@ Realm timeline / notification delta 只进入其成员 `ActorId` 中 account 分
 | `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
 | `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端返回 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame并结束本轮响应；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ak.self.events.read.scan.v1` 分页/区间读取。 |
 | `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 self.events.stream.subscribe。 |
-| `filter.realms` | query | `id[]` | optional | 限制返回 Realm。 |
-| `filter.timeline_limit` | query | `int` | optional | 每个 Realm timeline 数量上限(per-frame)。 |
-| `filter.lazy_load_members` | query | `boolean` | optional | 是否延迟加载成员。 |
-| `filter.include_redundant_members` | query | `boolean` | optional | 是否包含冗余成员状态。 |
+| `filter.realms` | query | `RealmId[]` | optional | 最多 16 个详情 Realm；缺省或空集合不返回任何 Realm 详情，全局通道仍持续。 |
+| `filter.strands` | query | `StrandId[]` | optional | 最多 32 个目标，必须属于已选 Realm 且独立授权；缺省选择各 Realm 当前 default Strand。 |
+| `realm_list` | query (deepObject) | `RealmListRequest {after?, limit?}` | optional | 摘要快照分页，limit 默认 20、1–100；initial 缺省等价第一页，增量缺省不继续枚举。 |
+| `replace_filter` | query | `boolean` | optional | 默认 false；true 必须携 after 与 filter，按 §2.3 原子替换详情兴趣。 |
+| `filter.timeline_limit` | query | `int` | optional | 每 Realm 每 frame 默认 20、0–100；按目标 Strand 合并，受全局字节预算裁剪。 |
+| `filter.lazy_load_members` | query | `boolean` | optional | 默认 true；成员页最多 100 行，false 也只启动有界分页，不内联完整名单。 |
+| `filter.include_redundant_members` | query | `boolean` | optional | 默认 false；true 仍受 100 行和字节预算，不改变名单完整性。 |
 | `filter.event_kinds` | query | `string[]` | optional | Event kind allow list。 |
 | `filter.not_event_kinds` | query | `string[]` | optional | Event kind deny list。 |
 
@@ -74,7 +77,7 @@ NDJSON 响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 | `kind` | 是否含 `cursor` | 含义 |
 | --- | --- | --- |
 | `delta` | required | 一次 account-aggregate 增量推送(realms / to_device / account_data / device_lists / notifications)。客户端 MUST 把 `cursor` 作为下次重连的 `after=` 起点。 |
-| `catchup_complete` | required | catch-up replay 或 initial baseline 完成；本轮有界响应随后结束。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
+| `catchup_complete` | required | 本轮有界 catch-up 交付结束；不声明全部账号或 Realm baseline 完成。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
 | `frontier` | required | 仅推进 cursor,不带数据；用于带 `after` 的长轮询在默认 30 秒窗口无变化时完成本轮响应。 |
 | `heartbeat` | absent | 防中间层断流的 keepalive。 |
 | `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。`dropped` frame 的 `cursor` 为 REQUIRED;服务端没有可用补齐 cursor 时 MUST 改发 `resync_required`,不得发送无 cursor 的 `dropped`。客户端 MUST 重新建立 `ak.self.account.stream.subscribe.v1?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `ak.self.events.read.scan.v1` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。MAY 携带 `reconnect_after_ms`。 |
@@ -105,7 +108,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
   "device_lists": {"changed": [], "left": []},
   "account_data": {
     "events": [],
-    "station_cas": {"complete": true, "upserts": [], "removals": []}
+    "station_cas": {"upserts": [], "removals": []}
   },
   "notifications": {"items": []}
 }
@@ -130,7 +133,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 }
 ```
 
-顶层 `account_data` 使用闭合双分支 `{events, station_cas?}`：`events[]` 只承载 durable holder-authored actor-private `Event`；`station_cas` 只承载 registry 中 `writer_authorities` 含 `station_cas` 的行，形状为 `{complete, upserts, removals}`。两类真相源不得互相合成或镜像。
+顶层 `account_data` 使用闭合双分支 `{events, station_cas?}`：`events[]` 只承载 durable holder-authored actor-private `Event`；`station_cas` 只承载 registry 中 `writer_authorities` 含 `station_cas` 的行，形状为 `{upserts, removals}`。两类真相源不得互相合成或镜像。
 `SignalEnvelope` 只出现在 `ak.self.signal.stream.subscribe.v1`，不得为了复用本流容器而包装
 成 durable Event，也不得恢复旧的 presence/receipt/call 聚合对象。
 `ak.profile.signal_message_stream.v1` 的 `ak.message.stream` 正文预览同样只在该 Signal rail
@@ -152,6 +155,90 @@ attempt 选择与 final 替换 MUST 按 [`signal.md` §7](./signal.md#7-message-
 6. **建议 reconnect 退避**: 指数退避，起始 1s,最大 60s;`dropped` / `resync_required` 未携带 `reconnect_after_ms` 时可立即重连以缩短数据不一致窗口。客户端收到 `reconnect_after_ms`、HTTP `Retry-After` 或错误 body `retry_after_ms` 时，MUST 优先遵守服务端指令，并 SHOULD 加 jitter 避免同批客户端同步重连。
 
 `reconnect_after_ms` 是 200 stream control frame 内的重连保持时间，不是错误响应字段。服务端发送后 MUST 按至少 `(account_id, device_id, operation_id, filter_digest)` 维度强制执行；在保持时间内的同 scope `/_arkret/self/account/subscribe` 请求 MUST 返回 `429 rate_limited` 并设置 `Retry-After`，且不得推进 account subscribe position、barrier wait 或 dropped recovery state（to-device 队列删除只由 §10.1 显式 ack 驱动，本就与 subscribe cursor 无关）。服务端 MAY 在实现中加入 source IP / session id / trust domain 等更细维度，但不得把该限制扩大到无关 API。
+
+### 2.3 按需列表、详情与分段 baseline（normative）
+
+本节是同一 v1 account subscribe 的默认合同，不定义第二个同步 endpoint/profile。请求是 closed
+`AccountSubscribeRequest {after?, catchup?, filter?, realm_list?, replace_filter?}`；HTTP query 与
+WebSocket account open parameters 使用同一字段名（`filter.realms`，删除旧 WS `realm_ids` 别名）。
+WebSocket `wait_for` 仍是 HTTP header 的投影。未知字段拒绝；`subscriptions` 不恢复为扩展旁路。
+
+**列表与当前权限。** 无 account after 的 initial 请求缺省读取第一页；增量请求只有显式 realm_list 才取新页。
+`RealmListRequest {after?, limit?}` 的 after 仅接受本列表签发的 continuation；缺省建立新冻结快照，limit 默认 20、范围 1–100。
+`realm_list` 结果为 `RealmListPage {snapshot_cursor, snapshot_revision, items, next_cursor?, complete}`；complete=false 必须有 next_cursor，
+complete=true 必须没有。`snapshot_cursor` 只标识本列表快照，不是账号恢复位置；不得放入 account after。
+items 为 closed `RealmListItem {realm_id, revision, activity_position, membership, title?, default_strand_id?}`，
+只返回本 exact authenticated ActorId 当前合法可见的 join/knock Realm；pending Invite 仍走私有 inbox。
+knock 只含该状态依法可见的摘要，不泄露成员级 title/default Strand；无权限字段省略不表示其不存在。
+
+服务器在首个列表页冻结有界读索引的 snapshot watermark，输出 snapshot_revision（只用于新旧行比较，不是 cursor）；按 `activity_position` 降序、相同时 RealmId
+无符号 UTF-8 升序选页。activity_position 是持久账号摘要投影的单调非负安全整数，发生可见摘要变化时分配；
+不得采用客户端时间或从消息历史临时排序。revision 是该 Realm 摘要及失效记录共享的持久严格递增账号位置。
+翻页复用冻结顺序和内容，但每页交付前重新检查当前读取权限；撤权项略过，扫描继续位置仍前进，允许空非终页。
+每次最多扫描 200 条索引记录，达到扫描/输出条数或 1 MiB canonical 列表页字节预算后返回继续位置；
+不得 offset 扫描、建立全账号内存快照或读取全部消息后再切片。快照/版本行的持久保留必须覆盖所签 cursor 的生命周期；
+不能继续时按既有 cursor_expired/unrecognized/integrity_invalid 恢复，不冒充空终页。
+
+`realm_list_changes {upserts, removals}` 是不受详情 filter 影响的账号增量；removal 为 `{realm_id, revision}`。
+两数组合计最多 100 项，按 revision 升序（同 revision 按 RealmId 字节序），同 Realm 在一 frame 只保留最后结果。
+从持久 account-summary change index 有界读取，cursor 只推进已交付前缀或已证明不向该账号披露的记录。
+首次建立 account baseline 与列表 snapshot 的位置必须来自同一读取边界；cursor 保留此后的摘要变化，分页期间持续交付。
+客户端按 RealmId/revision 合并：较旧快照行不能覆盖已安装新 upsert/removal，重复行幂等。
+列表完成仅说明冻结列表枚举结束，不能删除快照后新增项；重做列表需按同一 snapshot 分段暂存已见键，终页才删除
+未见且不晚于该快照的旧项。快照期间的较新 tombstone 保留到该快照失效/完成，不能因消息重排复活 leave Realm。
+
+**详情兴趣。** filter.realms 最多 16 项，缺省/空集合表示无详情，彻底删除“None/空等于全部 Realm”语义。
+filter.strands 最多 32 项，每个必须属于某个已选 Realm；服务器分别检查目标 Strand 及其 effective scope 的当前读取授权。
+不存在/不可见目标统一 not_found，不因本 API 披露父 Realm/私有 Circle；非法跨 Realm 组合 param_invalid。
+省略 strands 选择各已选 Realm 在该 baseline basis 下的当前 default Strand；Realm 没有合法默认目标时只交付
+合法摘要/当前 Realm 结果，目标状态仍 pending，不猜测首个 Strand。显式 strands 选择只影响所列目标；其余 Realm 可只有
+必要 Realm 当前结果。相同目标去重，重叠 UI 消费者在客户端合并需求：timeline 取最大，成员需求取并集并受硬上限。
+state 只交付 Realm 与所选目标的当前对象/操作必要结果及当前窗口显示依赖，不内联所有 Strand/旧修订/全 roster。
+filter 的 kind allow/deny 只裁剪 timeline，不裁掉安全基线、失效或账号通道。成员页最多 100 行，limited/next_cursor
+沿既有 member_roster 合同；lazy_load_members=false 也不能突破分页预算。名单未列出不是 leave。
+
+**兴趣替换。** 普通 after 仍严格绑定原 filter_digest。replace_filter=true 必须显式携 after 与完整新 filter，
+服务器先认证 cursor 的签发 Station、exact AccountId、device/session 及 operation/purpose/TTL/revoke，只有 detail
+filter 不同可按本分支转换；不能跳过其它绑定，也不能把列表/history/to-device cursor 当旧账号位置。
+转换保留账号全局位置及仍适用的 Realm 位置；新目标、增大的 timeline/成员需求、默认目标变化立即建立局部 baseline，
+即使没有新 Event 也必须补发，不等待下一次写入。缩小/移除只停止详情交付，不产生 leave/removal，不取消已提交操作。
+旧 cursor 保持不可变；exact 请求重试产生相同逻辑 cut/补发范围，派生 token 可不同。新 cut 建立与 delta 起点须原子读取，
+期间撤权/Commit 不得丢失。SDK 记录本请求的规范化 filter_digest，客户端以
+会话 generation、请求序号与已选 filter_digest 拒绝迟到响应，未安装响应的 cursor 不能覆盖当前 cursor。取消旧请求后仍从最后
+已安装 cursor 转换。不得用清空全账号 cursor 实现每次切换。HTTP 与 WS 重开 channel 使用完全相同合同。
+
+**全局安全与分段完整性。** `realm_invalidations` 为最多 100 项的 `{realm_id, revision}`；scope 权限、membership/
+incarnation、key-access、相关 quarantine 等变化使该账号已有该 Realm 当前结果失效时，通过账号持久投影发送。
+仅对账号已可见或已收到过的 Realm 披露 ID。它不包含新授权、不等同 leave；客户端暂停受影响操作并重新查询自己 Station。
+真正 leave/ban/隐藏变化还发列表 removal。全局设备/会话撤销、to-device/ACK、account data、通知和已知 Realm 失效
+均不受详情窗口过滤；增量同样分段，cursor 不得一次跳过未安装的尾段。消息范围缩小不删除本地合法保留的历史。
+
+账号 baseline 使用 `baseline {snapshot_cursor, channels, completed_channels}`，channel 闭合集合为
+`account_data_events | station_cas | device_lists | notifications`。channels 非空，completed_channels 必须是其子集。
+同一 snapshot 内每通道可跨 frame/round；携数据的该通道属于本快照，不能在同 frame 混入该通道更新 delta。
+更新 delta 可在快照分段之间立即交付；客户端按键保留快照后更新覆盖，不能让后到的旧 baseline 覆盖撤销或新值。
+相同快照的所有分段持久安装后，只有 completed_channels 声明的通道才允许清理未出现旧项；中间页、空中间页及
+catchup_complete 不清理集合。零项通道也显式完成。移除 station_cas.complete，避免两个不一致的完成载体。
+详情 `realms[id].baseline {snapshot_cursor, complete}` 仅声明本 filter/basis 的目标当前 state 交付完成；
+不授予读取/发送，不声称 timeline、全部成员或其它 Realm 完成。current query/MLS 仍按各自逐操作 gate。
+快照标识与 cursor/context 一起原子安装；本地不得只保留最后一段冒充整套 baseline。不得自动继续枚举列表来完成账号 baseline。
+
+**固定预算与继续。** 每 canonical account frame ≤8 MiB，每 HTTP round ≤16 MiB 且 ≤16 frames；编码 wire 单 frame
+≤16 MiB，读取/解析前执行上限。客户端 pending ≤2 frames 且 ≤16 MiB canonical，满时 backpressure；服务端 pending
+同上，无法续传时 dropped/resync_required。WS account data 的 payload 遵循同限额，若协商 WS frame 更小则使用 HTTP，
+不得截断 frame。列表页 ≤1 MiB，列表/变更/失效各 ≤100 项（列表索引扫描 ≤200）；state/account-data/device/notification
+单集合每 frame ≤100 项，timeline 每 Realm 默认20、0–100；全部同时受 frame/round bytes 裁剪。大 Event 仍遵守既有
+1 MiB envelope 上限，不降低或截断 MLS 原子材料；一个合法最大 Event 应可置于空 data frame 后推进。
+若附加证据/状态超过 frame，移至后续分段/现有明确的按引用读取合同，不能悄悄丢项或无限空页；不存在合法分割方式时
+只令该目标当前结果不可用并返回现行 limit_exceeded，服务器仍交付其它通道，不能循环推进该目标 cursor。其唯一载体是 `realms[id].unavailable {error_code}`，
+error_code 闭合为 frontier_unavailable/limit_exceeded/temporarily_unavailable/not_found；该 entry 不得同时携其它详情字段。
+not_found 对不存在/不可见统一，且仅可回显调用方明确请求的 Realm ID，不能枚举未知对象。
+只要存在可交付项，每轮必须交付至少一项或明确恢复错误；达到预算时 cursor 保留所有未完成子通道的继续位置，下一轮立即续取。
+服务器保留 P0 安全/交付控制独立配额，摘要/当前目标有公平最低配额；单个冷 Realm 的治理验证不能占满全局读取工作池。
+HTTP 30 秒等待只适用于没有可交付增量/未完成 baseline/显式列表页；存在上述工作立即返回有界 round。
+
+最近窗口缺更早内容使用既有 limited/prev_cursor，不强制回填到 Realm 创建。history gap、列表页未完、state 分段未完是
+三个独立事实；只有需要该目标 state 的操作等待相应 baseline。当前消息发送不等待旧消息、完整名单、头像或其它 Realm。
 
 ## 3. Stream Classes
 
@@ -202,7 +289,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 Notification 是 account-private projection，不是 Realm Event。服务端必须从认证的 provision/session 上下文派生 `controller_account_id` 与 `recipient_id`，调用方不得提交它们；selection、session 与 cursor 必须直接绑定完整 `AccountId`，不得另以裸 principal 加本地账号 sidecar 拼接。该 notification 没有 `realm_id`，不得经过 `realm_id_accessible`。
 
-每次 upsert/remove 都 MUST 在持久化事务中分配严格单调的 notification projection position；不得用可改写的 `created_at` 加 id 拼 position。Opaque account cursor 内部保存其 high-water。Initial sync 必须把当前 account context 下全部仍 open 的 `agent_runtime_approval` 作为 `upsert` baseline 返回；该子集是完整集合，客户端应用前必须删除同一 account context 本地缓存中 baseline 未出现的 open approval。Incremental sync 只返回 cursor position 之后的变化；终止 tombstone 至少保留到 account cursor 最大生命周期加安全窗口。
+每次 upsert/remove 都 MUST 在持久化事务中分配严格单调的 notification projection position；不得用可改写的 `created_at` 加 id 拼 position。Opaque account cursor 内部保存其 high-water。Initial sync 必须把当前 account context 下全部仍 open 的 `agent_runtime_approval` 作为 `upsert` baseline 返回；该子集是完整集合，客户端仅在 `baseline.completed_channels` 包含 `notifications` 后，按 §2.3 删除同一快照所有已安装分段均未出现且未被更新 delta 覆盖的 open approval。Incremental sync 只返回 cursor position 之后的变化；终止 tombstone 至少保留到 account cursor 最大生命周期加安全窗口。
 
 服务端提交 projection 事务后 MAY 发 account-context-scoped 内存 wakeup 以降低长轮询延迟。持久 projection 与 cursor 是权威；丢失 wakeup 后，有界 long poll 超时或重连必须仍可从 durable position 恢复，不要求仅为 wakeup 建 durable outbox。Push provider 只能收到现有 blind wakeup，notification body、Agent DID 和 approval id 均不得进入 provider-visible payload。
 
@@ -614,7 +701,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 存储模型、value 加密与跨设备并发写入契约的单一真源是 [`../models/account-data.md`](../models/account-data.md)：每个 key 是 server-versioned compare-and-set whole-value register，写入携带 `expected_revision`，领域 merge 规则在客户端明文上执行。
 
-`ak.account.invite_delivery` 与 `ak.account.holder_quarantine` 是 registry 声明的 `station_cas` plaintext cell。它们的权威 revision/value 同时由 account-data list/get 诊断面与本 sync frame 顶层 `account_data.station_cas` 投影：initial sync 的 `complete=true` baseline 必须含当前 registry 中所有 holder-readable Station-CAS live row；增量用 `upserts[]` / `removals[]` 表达 cursor 覆盖后的最终 revision，同 key 可合并为窗口内最后一项。`complete=true` 时 `removals` 必须为空，客户端先清空本地 Station-CAS live set 再应用 `upserts`。它们不是 holder-authored Event，MUST NOT 出现在 `account_data.events[]`，也不得为了填充该 Event container 而合成 `ak.account_data.set`。
+`ak.account.invite_delivery` 与 `ak.account.holder_quarantine` 是 registry 声明的 `station_cas` plaintext cell。它们的权威 revision/value 同时由 account-data list/get 诊断面与本 sync frame 顶层 `account_data.station_cas` 投影：initial sync 分段 baseline 必须最终覆盖当前 registry 中所有 holder-readable Station-CAS live row；增量用 `upserts[]` / `removals[]` 表达 cursor 覆盖后的最终 revision，同 key 可合并为窗口内最后一项。baseline 分段的 `removals` 必须为空；仅在 `baseline.completed_channels` 包含 `station_cas` 时，对该快照所有已安装分段作完整集合替换，保留快照后更高 revision 的 upsert/remove。删除旧 `station_cas.complete` 字段，不得在任一分段到达时先清空 live set。它们不是 holder-authored Event，MUST NOT 出现在 `account_data.events[]`，也不得为了填充该 Event container 而合成 `ak.account_data.set`。
 
 每个 upsert 逐字复用 `account-data-operations.schema.json#/$defs/account_data_entry`；remove 携带 `account_data_key`、`revision`、`updated_at`。客户端对每个 key 只接受更高 revision；更低 revision MUST fail closed，同 revision 的不同 value / tombstone MUST 视为同步冲突并触发 resync。服务端 MUST 把 accepted Station-CAS 写入、该 key 的投影位置推进与可重放变更记录放在同一事务；cursor 必须覆盖该位置。变更记录保留期 MUST 不短于 cursor TTL 与 `account_data_tombstone_retention_ms` 的较大者；无法填满 `after` 到当前 frontier 的区间时必须返回 `dropped` / `resync_required`，不得静默跳过。`to_device` 中的 `ak.account_data.update` 仅是低延迟唤醒/加速器，不是第三个真相源，也不能代替上述 baseline 与增量。
 
@@ -661,7 +748,7 @@ GET /_arkret/self/device_messages?after=<cursor>&limit=...
 
 ## 11. Filters
 
-Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MAY 限制：
+Filter MUST 是服务端可验证 JSON，不得包含任意脚本。本面默认和硬上限见 §2.3；服务器 MAY 进一步降低部署预算，但不得使一个合法单 Event 无法取得。其它过滤面可限制：
 
 - 最大 Realm 数
 - 最大 timeline limit
@@ -675,8 +762,10 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 1. 将 query deepObject 解析为 JSON filter object；未提供 `filter` 时，normalized filter 是空对象 `{}`。
 2. 省略所有未出现的 optional 字段；不得把实现默认值写入 normalized filter。
-3. 对集合语义字段 `realms`、`event_kinds`、`not_event_kinds`，在计算 digest 前按元素字符串 lexicographic 排序并去重；其它数组若未来由 profile 引入，profile MUST 声明 order-is-semantic 或 sorted，未声明时不得进入 cursor binding。
+3. 对集合语义字段 `realms`、`strands`、`event_kinds`、`not_event_kinds`，在计算 digest 前按元素字符串 lexicographic 排序并去重；其它数组若未来由 profile 引入，profile MUST 声明 order-is-semantic 或 sorted，未声明时不得进入 cursor binding。
 4. 按 RFC 8785 JCS 对 normalized filter 编码为 UTF-8 bytes，计算 `filter_digest = "sha256:" || hex(sha256(jcs_bytes))`。
+
+`realm_list.after`、`realm_list.limit`、`replace_filter` 是分页位置或显式转换动作，不进入 detail filter_digest。列表 cursor 另绑定固定列表排序和 snapshot，不能用作 account after。
 
 服务端签发 stream cursor、强制 `reconnect_after_ms` cooldown 或验证 cursor binding 时 MUST 使用同一 `filter_digest`；客户端若持久化 cursor，也 SHOULD 同步持久化该 digest 以便诊断 `cursor_integrity_invalid`。
 
@@ -763,8 +852,8 @@ cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-bind
 1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后由自己 Station 确认的 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
 2. 客户端从下列两条合法新起点二选一，二者都不复用旧 cursor：
    - **(A) 重做 initial sync**：无 `after` 重新建立 `ak.self.account.stream.subscribe.v1?catchup=true`（`after=` 缺省 + `catchup=true`），由服务端发 baseline `delta` 重新签发新 cursor。
-   - **(B) snapshot 加速 bootstrap**：调用 `ak.self.realm_state_snapshot.read.manifest_head.v1` 取 `ak.schema.realm_state_snapshot.v1` manifest，MUST 先完成 [`realm-state-snapshot-schema.md` §5](../conformance/realm-state-snapshot-schema.md) 的唯一通用校验清单。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ak.self.events.read.scan.v1` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到 `frontier.event_ids` 中每一个 head 都已在本地命中，且窗口内所有已拉事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内；在此之前 timeline MUST 保持 `limited` / provisional，不得声称历史完整。账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
-3. 若 snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.realm_state_snapshot.read.manifest_head.v1`，客户端 MUST 回退到 (A) 的 initial sync 或纯 Event history replay，**不得**把未验证 snapshot 作为 accepted state，也不得退回复用旧 cursor。
+   - **(B) snapshot 加速目标 bootstrap**：调用标准 snapshot manifest/head；客户端核对自己 Station 来源、exact Realm/basis、格式、所取 chunk hash 与适用端到端认证，按目标范围安装当前视图。账号聚合面仍按 (A) 取得新 cursor。新窗口使用标准响应的历史 cursor；未取旧页保持 limited，不把 frontier 当 cursor，也不遍历 heads/prev_refs/event_set_commitment 来证明服务器治理结果。
+3. snapshot 不可用或所需 chunk 认证失败时，只为该 Realm 请求自己 Station 的当前基线或保持 pending；不得回退客户端治理历史重放。独立审计/备份工具的完整性证明不属于普通新设备登录路径。
 
 #### 12.3.2 `frontier_stale`（旧 cursor 仍有效，可继续 backfill）
 
@@ -786,13 +875,13 @@ GET /_arkret/self/account/subscribe?catchup=true
 Accept: application/x-ndjson
 ```
 
-也就是不带 `after`,并显式请求 `catchup=true`。服务器 MUST 先发送至少一个 `delta` frame 作为账号 baseline,再发送 `catchup_complete` 并结束本轮响应；客户端随后使用该 cursor 发起有界长轮询。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` SHOULD：
+也就是不带 `after`,并显式请求 `catchup=true`。服务器 MUST 先发送至少一个有界 `delta` frame 作为账号 baseline 分段，再发送 `catchup_complete` 并结束本轮响应；未完成通道按 cursor 在后续轮继续，客户端随后使用该 cursor 发起有界长轮询。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` SHOULD：
 
 - 返回用户当前 joined/knocked Realms 的 membership 摘要；另可从既有私有 Invite inbox / delivery CAS→private fanout 返回待处理邀请展示，但不得把它编码为 Realm membership 或 roster row。
 - 对活跃 Realm 返回有限 timeline。
 - 返回足够 `required_state` 让客户端首屏可渲染。
-- 返回 device list delta 的完整 baseline。
-- 顶层 `account_data.station_cas` 必须以 `complete=true` 返回当前 registry 中全部 holder-readable `station_cas` live row；filter 不得裁掉该集合，`removals` 必须为空。当前只有零行也必须返回空的 complete container，使客户端能清除陈旧本地投影。
+- 分段返回 device list baseline；仅 `baseline.completed_channels` 声明该集合完成。
+- 顶层 `account_data.station_cas` 按 §2.3 分段覆盖所有 holder-readable live row；filter 不裁掉该集合，baseline removals 为空。零行也要显式完成 `station_cas` 通道；删除只在该快照终段安装后执行。
 
 此外，baseline `delta` MUST 把当前 account context 下全部仍 open 的
 `agent_runtime_approval` notification 作为 `action=upsert` 的权威完整集合返回；即使其它
@@ -800,7 +889,7 @@ notification 历史受限也不得截断该子集。
 
 对本次请求包含且当前 membership 为 `join` 的可写 Realm 详情，baseline MUST 提供由自己 Station 确认的**当前对象/安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则由服务器明确确认同一 frontier 下的缺省/空值状态）、当前 read/write capability 的服务器授权结果、Realm 当前 `default_strand_id`，以及该指针所指 non-tombstoned Strand 的最小当前投影。MLS-backed Realm 还必须提供服务器确认的 current membership / MLS governance frontier，以及选择 `content_scheme`、处理 Welcome 与判断 `epoch_update_required` 的当前状态结果。上述材料可直接位于 `state.events`，或由自己 Station 确认的 snapshot/当前状态结果等价提供，不能要求客户端下载历史闭包。`history_access` 只裁剪 data-plane timeline、旧 object revisions 和调用者无权读取的历史正文，不得裁掉上述 current baseline；即使建立当前值的 Event 位于 `since_join` frontier 之前也相同。该义务不泄露 join 前 Message、旧 policy/metadata revisions 或历史密钥。客户端对尚缺本次目标必要当前治理结果的操作 MUST 保持 `governance_baseline_pending`；使用 default Strand 时还必须通过 Realm pointer 与 Strand `is_default` 的同-frontier 一致性检查。MLS 操作按自身必需条件分别保持 `encryption_policy_pending` / `encryption_transition_pending`。不得把字段缺失解释为 policy 缺省、membership 未变化或 default Strand 未设置；这些等待状态不构成对全部列表、所有 Realm、完整 roster、全部历史或页面资源的统一门禁。
 
-大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
+大型账户使用 §2.3 的有界摘要页与显式详情兴趣，避免一次性返回所有 Realm。
 
 大型 Realm 的当前态 MAY 通过自己 Station 已验证的 Snapshot 加速。客户端核对来源、请求 Realm/basis、格式、chunk 内容 hash 和端到端认证，按需安装当前视图并使用标准 cursor 接续内容增量；MUST NOT 下载全 Realm 历史来证明 Snapshot。manifest 不可用或服务器未宣告 snapshot operation 时，请求相关 Realm 的服务器基线或保持该 Realm pending；不回退客户端治理重放。
 

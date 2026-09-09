@@ -392,3 +392,5 @@ fixture 的 `discovery_cases[]` 只覆盖 transport descriptor 自身的封闭�
 时选中 websocket，缺 bundle 或缺 websocket transport 时都必须回退 mandatory HTTP binding。
 runner **MUST** 真正 materialize 每个 case 的 mutation，mutation 指向的 carrier 不存在时
 **MUST** 判为 fixture 失败，而不是跳过该 case。
+
+Account open 的 filter、realm_list、replace_filter 与按需 baseline 完全复用 [client-sync §2.3](./client-sync.md#23-按需列表详情与分段-baselinenormative)。filter 使用 realms，不接受旧 realm_ids 别名；channel 重开不能清空账号全局进度。

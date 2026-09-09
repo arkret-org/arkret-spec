@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.2",
+  "version": "2026-09-10.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T00:47:50+08:00",
+  "generated_at": "2026-09-09T19:32:39+00:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1588,11 +1588,11 @@
       "surface_class": "core",
       "http": "GET /_arkret/self/account/subscribe",
       "success_shape_kind": "event_stream",
-      "request_schema_ref": null,
+      "request_schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/account_subscribe_request",
       "response_schema_ref": "schemas/account-subscribe-frame.schema.json",
       "openapi_component_refs": {},
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",

@@ -45,11 +45,11 @@
     "by_consumer": {
       "declared_wire": 59,
       "event_kind": 3,
-      "inbound": 47,
+      "inbound": 48,
       "outbound": 55,
       "prose": 112,
       "prose_only": 2,
-      "schema_reference": 136,
+      "schema_reference": 137,
       "startup_compile": 205,
       "vectors": 126
     },
@@ -241,6 +241,7 @@
       "schema_id": "ak.schema.account_subscribe_frame.v1",
       "file": "schemas/account-subscribe-frame.schema.json",
       "consumers": {
+        "inbound": "fragment",
         "outbound": "exact",
         "prose": "normative_text",
         "schema_reference": "exact",
@@ -4066,6 +4067,7 @@
       "consumers": {
         "declared_wire": "standalone_schema_alias",
         "prose": "normative_text",
+        "schema_reference": "fragment",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },

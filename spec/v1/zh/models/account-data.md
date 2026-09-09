@@ -81,7 +81,7 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 
 ### 5.5 Station-CAS 同步投影（normative）
 
-registry 中 `writer_authorities` 含 `station_cas` 的 row 必须进入 `ak.self.account.stream.subscribe.v1` 顶层 `account_data.station_cas`。服务端 MUST 在 accepted CAS 写入的同一事务中推进 per-exact-AccountId 投影位置并保存可重放的 upsert 或 remove；replay cursor 覆盖该位置。initial sync 省略 `after` 且 `catchup=true` 时，服务端 MUST 以 `complete=true` 返回 registry 当前全部 holder-readable Station-CAS live row（允许为空），不得由 filter 截断。带 `after` 的 catch-up 返回 cursor 之后各 key 的最终 revision，允许同 key 窗口内合并，但不得改变最终状态。
+registry 中 `writer_authorities` 含 `station_cas` 的 row 必须进入 `ak.self.account.stream.subscribe.v1` 顶层 `account_data.station_cas`。服务端 MUST 在 accepted CAS 写入的同一事务中推进 per-exact-AccountId 投影位置并保存可重放的 upsert 或 remove；replay cursor 覆盖该位置。initial sync 省略 `after` 且 `catchup=true` 时，服务端 MUST 以 client-sync §2.3 的分段 baseline 覆盖 registry 当前全部 holder-readable Station-CAS live row（允许为空），仅 completed_channels 声明 station_cas 完成后执行完整集合协调，不得由 filter 截断。带 `after` 的 catch-up 返回 cursor 之后各 key 的最终 revision，允许同 key 窗口内合并，但不得改变最终状态。
 
 upsert 必须复用 `account_data_entry`；remove 必须显式携带 key、revision 与更新时间。客户端 MUST 按 key 单调应用 revision：较高 revision 替换，较低 revision 拒绝；同 revision 只有 canonical 内容/删除态完全相同时才是幂等 replay，否则为同步冲突并 fail closed。frame payload、各 key revision 与 cursor 必须在同一本地事务提交。
 

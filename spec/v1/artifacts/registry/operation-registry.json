@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.2",
+  "version": "2026-09-10.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T00:47:50+08:00",
+  "generated_at": "2026-09-09T19:32:39+00:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2253,10 +2253,11 @@
       "http": "GET /_arkret/self/account/subscribe",
       "grpc": "SelfAccount/Subscribe",
       "mq": "self.account.stream.subscribe",
-      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, unread / notification counts). Signal envelopes use the Signal Extension live rail and are not account aggregate state. Connection is long-lived; server pushes NDJSON frames as new data becomes available.",
+      "notes": "Bounded account long polling with independently paged Realm summaries, at most 16 selected Realm details, segmented global baselines, explicit filter replacement and durable cursor recovery. Empty Realm selection returns no detail. Current authorization and invalidation channels are never window-filtered. Canonical frame <=8 MiB; a round <=16 MiB and <=16 frames; see client-sync section 2.3.",
       "body_class": "streaming_ndjson",
       "success_shape_kind": "event_stream",
-      "response_schema_ref": "schemas/account-subscribe-frame.schema.json"
+      "response_schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "request_schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/account_subscribe_request"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",

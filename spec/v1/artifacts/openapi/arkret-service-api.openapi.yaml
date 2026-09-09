@@ -5214,42 +5214,8 @@ paths:
       - sessionGrantAuth: []
         dpopProof: []
       summary: Streaming push of account-aggregate deltas (NDJSON frames).
-      description: 'Long-lived streaming subscription that pushes cross-Realm
-
-        account-aggregate deltas (cross-Realm frontier, to_device queue,
-
-        account_data, device_lists, unread / notification counts)
-
-        as new data becomes available. Response is `application/x-ndjson`;
-
-        each line is a self-contained frame object — see
-
-        AccountSubscribeFrame for frame kinds (`delta`, `frontier`,
-
-        `heartbeat`, `catchup_complete`, `dropped`, `resync_required`,
-
-        `unauthorized`).
-
-
-        Symmetric with ak.self.events.stream.subscribe.v1 (per-Realm event log streaming);
-
-        both share resume semantics (`after=<cursor>` exclusive start).
-
-        `dropped` requires account-aggregate catch-up by reconnecting with
-
-        `after=<cursor>&catchup=true`; `resync_required` requires local
-
-        rebuild / initial account sync. `dropped` / `resync_required` may
-
-        carry `reconnect_after_ms`, a minimum server-directed delay before
-
-        opening another subscription for the same principal/device/filter
-
-        scope. Signal envelopes use the Signal Extension live rail, not
-
-        this account-aggregate subscription.
-
-        '
+      description: Bounded account long polling. Initial sync returns the first Realm summary page and segmented
+        account baseline. Realm details require an explicit bounded filter. See client-sync sections 2.3 and 13.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -5283,43 +5249,37 @@ paths:
           pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       - name: catchup
         in: query
-        description: 'When true and `after` is present, server first replays the bounded
-
-          account-aggregate catch-up range after the `after=` cursor, emits
-
-          `catchup_complete`, then transitions to real-time push. When true
-
-          and `after` is omitted, this is initial account sync: server first
-
-          emits a current baseline delta, then `catchup_complete`, then
-
-          real-time push. This parameter never means "return all history";
-
-          complete event history is retrieved via `QUERY /_arkret/self/events`.
-
-          '
+        description: End this bounded catchup round with catchup_complete. Baselines may continue across rounds
+          and have separate completion markers.
         schema:
           type: boolean
           default: false
       - name: filter
         in: query
-        description: Optional structured filter object (Realm subset, kinds, event-fields). See zh/sync/client-sync.md
-          §2.
+        description: Bounded Realm/Strand detail interest. Omission or empty realms means global channels only.
         schema:
-          type: object
+          $ref: ../schemas/account-subscribe-frame.schema.json#/$defs/account_filter
         style: deepObject
         explode: true
+      - name: realm_list
+        in: query
+        style: deepObject
+        explode: true
+        schema:
+          $ref: ../schemas/account-subscribe-frame.schema.json#/$defs/realm_list_request
+        description: First summary page or continuation of a frozen summary snapshot. Omit on incremental calls
+          to request no additional list page.
+      - name: replace_filter
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: Explicitly replace detail interest while preserving authenticated global stream positions;
+          requires after and filter.
       responses:
         '200':
-          description: 'Streaming NDJSON frame channel. Each newline-delimited JSON object
-
-            conforms to AccountSubscribeFrame. Frames continue until the client
-
-            disconnects, the server emits `dropped` / `resync_required`, or the
-
-            connection is closed for transport reasons.
-
-            '
+          description: One bounded NDJSON round, at most 16 frames and 16 MiB; each canonical frame is at most 8
+            MiB. Resume from the last durably installed cursor. catchup_complete ends this round, not every baseline.
           content:
             application/x-ndjson:
               schema:

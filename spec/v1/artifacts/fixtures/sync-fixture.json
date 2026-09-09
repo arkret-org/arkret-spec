@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.sync.core.v1"
   },
   "profile": "ak.vector_group.sync.v1",
-  "version": "2026-09-06",
+  "version": "2026-09-10",
   "schema_validation_cases": [
     {
       "name": "device_message_envelope_with_message_id_valid",
@@ -182,6 +182,87 @@
         "events": [],
         "has_more": false,
         "realm_state_snapshot_bootstrap": {}
+      }
+    },
+    {
+      "name": "demand_filter_replacement_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/account_subscribe_request",
+      "expect_valid": true,
+      "instance": {
+        "after": "ak:cursor:resume",
+        "filter": {
+          "realms": [
+            "ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
+          ],
+          "strands": [
+            "ak:strand:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
+          ]
+        },
+        "replace_filter": true,
+        "realm_list": {
+          "limit": 20
+        }
+      }
+    },
+    {
+      "name": "demand_replace_without_after_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/account_subscribe_request",
+      "expect_valid": false,
+      "instance": {
+        "filter": {},
+        "replace_filter": true
+      }
+    },
+    {
+      "name": "demand_unknown_filter_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/account_subscribe_request",
+      "expect_valid": false,
+      "instance": {
+        "filter": {
+          "subscriptions": []
+        }
+      }
+    },
+    {
+      "name": "demand_list_limit_zero_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/account_subscribe_request",
+      "expect_valid": false,
+      "instance": {
+        "realm_list": {
+          "limit": 0
+        }
+      }
+    },
+    {
+      "name": "demand_list_final_page_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/realm_list_page",
+      "expect_valid": true,
+      "instance": {
+        "snapshot_cursor": "ak:cursor:list",
+        "items": [],
+        "complete": true,
+        "snapshot_revision": 7
+      }
+    },
+    {
+      "name": "demand_list_nonfinal_missing_cursor_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/realm_list_page",
+      "expect_valid": false,
+      "instance": {
+        "snapshot_cursor": "ak:cursor:list",
+        "items": [],
+        "complete": false,
+        "snapshot_revision": 7
+      }
+    },
+    {
+      "name": "demand_retired_station_cas_complete_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/station_cas_account_data_container",
+      "expect_valid": false,
+      "instance": {
+        "complete": true,
+        "upserts": [],
+        "removals": []
       }
     }
   ],
@@ -3951,7 +4032,6 @@
       {
         "name": "initial_baseline_is_complete_and_removal_free",
         "station_cas": {
-          "complete": true,
           "upserts": [
             {
               "account_data_key": "ak.account.holder_quarantine",
@@ -3979,12 +4059,20 @@
             "ak.account.holder_quarantine"
           ]
         },
-        "note": "client-sync.md section 9: initial sync returns every holder-readable Station-CAS live row with complete=true and an empty removals list."
+        "note": "client-sync.md section 9: initial sync returns every holder-readable Station-CAS live row with baseline.completed_channels containing station_cas and an empty removals list.",
+        "baseline": {
+          "snapshot_cursor": "ak:cursor:cas_baseline",
+          "channels": [
+            "station_cas"
+          ],
+          "completed_channels": [
+            "station_cas"
+          ]
+        }
       },
       {
         "name": "zero_row_baseline_is_still_a_complete_container",
         "station_cas": {
-          "complete": true,
           "upserts": [],
           "removals": []
         },
@@ -3992,12 +4080,20 @@
           "result": "accept",
           "local_live_keys": []
         },
-        "note": "A holder with no live row still receives the empty complete container so a stale local projection is cleared rather than retained."
+        "note": "A holder with no live row still receives the empty complete container so a stale local projection is cleared rather than retained.",
+        "baseline": {
+          "snapshot_cursor": "ak:cursor:cas_baseline",
+          "channels": [
+            "station_cas"
+          ],
+          "completed_channels": [
+            "station_cas"
+          ]
+        }
       },
       {
         "name": "filter_must_not_truncate_the_baseline",
         "station_cas": {
-          "complete": true,
           "upserts": [
             {
               "account_data_key": "ak.account.holder_quarantine",
@@ -4014,12 +4110,20 @@
           "result": "reject",
           "trace_violation": "baseline_truncated_by_filter"
         },
-        "note": "A live ak.account.invite_delivery row exists for this holder but the request filter omitted it. section 13 forbids the filter from trimming this set."
+        "note": "A live ak.account.invite_delivery row exists for this holder but the request filter omitted it. section 13 forbids the filter from trimming this set.",
+        "baseline": {
+          "snapshot_cursor": "ak:cursor:cas_baseline",
+          "channels": [
+            "station_cas"
+          ],
+          "completed_channels": [
+            "station_cas"
+          ]
+        }
       },
       {
         "name": "complete_baseline_carrying_removals_is_rejected",
         "station_cas": {
-          "complete": true,
           "upserts": [
             {
               "account_data_key": "ak.account.holder_quarantine",
@@ -4042,12 +4146,20 @@
           "result": "reject",
           "trace_violation": "complete_baseline_carries_removals"
         },
-        "note": "complete=true means the client clears its local live set first, so a removal in the same frame has no defined meaning."
+        "note": "Snapshot baseline segments contain no removals; explicit completion reconciles the accumulated snapshot while preserving newer live deltas.",
+        "baseline": {
+          "snapshot_cursor": "ak:cursor:cas_baseline",
+          "channels": [
+            "station_cas"
+          ],
+          "completed_channels": [
+            "station_cas"
+          ]
+        }
       },
       {
         "name": "incremental_upsert_advances_the_key_revision",
         "station_cas": {
-          "complete": false,
           "upserts": [
             {
               "account_data_key": "ak.account.holder_quarantine",
@@ -4071,7 +4183,6 @@
       {
         "name": "incremental_removal_clears_only_that_key",
         "station_cas": {
-          "complete": false,
           "upserts": [],
           "removals": [
             {
@@ -4092,7 +4203,6 @@
       {
         "name": "absence_from_an_incremental_delta_is_not_deletion",
         "station_cas": {
-          "complete": false,
           "upserts": [
             {
               "account_data_key": "ak.account.holder_quarantine",
@@ -4112,12 +4222,11 @@
             "ak.account.holder_quarantine"
           ]
         },
-        "note": "Applied over the case 1 baseline: ak.account.invite_delivery is absent from this delta and MUST be retained. Only complete=true or an explicit removal drops a key."
+        "note": "Applied over the case 1 baseline: ak.account.invite_delivery is absent from this delta and MUST be retained. Only completed baseline reconciliation or an explicit removal drops a key."
       },
       {
         "name": "lower_revision_fails_closed",
         "station_cas": {
-          "complete": false,
           "upserts": [
             {
               "account_data_key": "ak.account.holder_quarantine",
@@ -4139,7 +4248,6 @@
       {
         "name": "same_revision_with_a_different_value_is_a_sync_conflict",
         "station_cas": {
-          "complete": false,
           "upserts": [
             {
               "account_data_key": "ak.account.holder_quarantine",
@@ -4162,7 +4270,6 @@
       {
         "name": "same_key_coalesces_to_the_last_item_in_the_window",
         "station_cas": {
-          "complete": false,
           "upserts": [
             {
               "account_data_key": "ak.account.holder_quarantine",
@@ -4194,7 +4301,6 @@
       {
         "name": "a_station_cas_row_synthesised_as_a_holder_event_is_rejected",
         "station_cas": {
-          "complete": false,
           "upserts": [
             {
               "account_data_key": "ak.account.holder_quarantine",
@@ -4216,7 +4322,6 @@
       {
         "name": "an_unfillable_cursor_gap_drops_or_resyncs",
         "station_cas": {
-          "complete": false,
           "upserts": [],
           "removals": []
         },

@@ -32,7 +32,8 @@
           "$ref": "#/$defs/realm_sync_entry"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "maxProperties": 16
     },
     "to_device": {
       "$ref": "#/$defs/device_message_container",
@@ -56,7 +57,7 @@
     },
     "partial": {
       "type": "boolean",
-      "description": "When true on a `delta` frame, the per-Realm timelines are limited (truncated); client SHOULD backfill via ak.self.events.read.scan.v1 for any Realm whose timeline carries `limited=true`."
+      "description": "This frame contains a limited timeline window. Missing older history is loaded on user demand; partial does not describe account baseline completion."
     },
     "priority": {
       "type": "string",
@@ -66,6 +67,23 @@
       "type": "integer",
       "minimum": 1,
       "description": "Optional server-directed minimum delay, in milliseconds, before opening another `ak.self.account.stream.subscribe.v1` stream for the same principal/device/filter scope. MAY appear only on `dropped` and `resync_required` frames. This is a stream reconnect hint, not a generic error retry field; it does not apply to unrelated API calls. Clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with `429 rate_limited` plus `Retry-After`."
+    },
+    "realm_list": {
+      "$ref": "#/$defs/realm_list_page"
+    },
+    "realm_list_changes": {
+      "$ref": "#/$defs/realm_list_changes"
+    },
+    "baseline": {
+      "$ref": "#/$defs/account_baseline_segment"
+    },
+    "realm_invalidations": {
+      "type": "array",
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/realm_invalidation"
+      }
     }
   },
   "$defs": {
@@ -84,7 +102,8 @@
           "type": "array",
           "items": {
             "$ref": "./event-envelope.schema.json"
-          }
+          },
+          "maxItems": 100
         }
       },
       "additionalProperties": true
@@ -110,50 +129,27 @@
     },
     "station_cas_account_data_container": {
       "type": "object",
-      "description": "Holder-readable register projection for every account-data registry row whose writer_authorities contains station_cas. complete=true is an authoritative initial baseline: upserts is the complete live set and removals is empty. complete=false is a cursor-covered delta; absence means unchanged, never removed.",
+      "description": "Bounded holder-readable Station-CAS upserts/removals. Initial completeness is carried only by baseline.channels/completed_channels; never clear absent keys on an intermediate page.",
       "required": [
-        "complete",
         "upserts",
         "removals"
       ],
       "properties": {
-        "complete": {
-          "type": "boolean"
-        },
         "upserts": {
           "type": "array",
           "items": {
             "$ref": "./account-data-operations.schema.json#/$defs/account_data_entry"
-          }
+          },
+          "maxItems": 100
         },
         "removals": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/station_cas_account_data_removal"
-          }
+          },
+          "maxItems": 100
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "complete": {
-                "const": true
-              }
-            },
-            "required": [
-              "complete"
-            ]
-          },
-          "then": {
-            "properties": {
-              "removals": {
-                "maxItems": 0
-              }
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "station_cas_account_data_removal": {
@@ -187,7 +183,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/notification_delta"
-          }
+          },
+          "maxItems": 100
         }
       },
       "additionalProperties": false
@@ -323,7 +320,7 @@
             "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
           "uniqueItems": true,
-          "maxItems": 10000
+          "maxItems": 100
         },
         "left_ids": {
           "type": "array",
@@ -331,7 +328,7 @@
             "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
           "uniqueItems": true,
-          "maxItems": 10000
+          "maxItems": 100
         }
       },
       "additionalProperties": false
@@ -461,7 +458,8 @@
           "type": "array",
           "items": {
             "$ref": "./event-envelope.schema.json"
-          }
+          },
+          "maxItems": 100
         },
         "limited": {
           "type": "boolean"
@@ -576,9 +574,100 @@
             },
             "additionalProperties": false
           }
+        },
+        "baseline": {
+          "$ref": "#/$defs/realm_detail_baseline"
+        },
+        "unavailable": {
+          "type": "object",
+          "properties": {
+            "error_code": {
+              "type": "string",
+              "enum": [
+                "frontier_unavailable",
+                "limit_exceeded",
+                "temporarily_unavailable",
+                "not_found"
+              ]
+            }
+          },
+          "required": [
+            "error_code"
+          ],
+          "additionalProperties": false
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "unavailable"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "timeline"
+                  ]
+                },
+                {
+                  "required": [
+                    "state_at_window_start"
+                  ]
+                },
+                {
+                  "required": [
+                    "state"
+                  ]
+                },
+                {
+                  "required": [
+                    "state_after"
+                  ]
+                },
+                {
+                  "required": [
+                    "account_data"
+                  ]
+                },
+                {
+                  "required": [
+                    "summary"
+                  ]
+                },
+                {
+                  "required": [
+                    "member_roster"
+                  ]
+                },
+                {
+                  "required": [
+                    "unread_notifications"
+                  ]
+                },
+                {
+                  "required": [
+                    "event_states"
+                  ]
+                },
+                {
+                  "required": [
+                    "bottoms"
+                  ]
+                },
+                {
+                  "required": [
+                    "baseline"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     "state_at_window_start": {
       "type": "object",
@@ -717,7 +806,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/member_roster_entry"
-          }
+          },
+          "maxItems": 100
         },
         "limited": {
           "type": "boolean",
@@ -851,6 +941,26 @@
           "required": [
             "priority"
           ]
+        },
+        {
+          "required": [
+            "realm_list"
+          ]
+        },
+        {
+          "required": [
+            "realm_list_changes"
+          ]
+        },
+        {
+          "required": [
+            "baseline"
+          ]
+        },
+        {
+          "required": [
+            "realm_invalidations"
+          ]
         }
       ]
     },
@@ -885,6 +995,339 @@
           "$ref": "#/$defs/reconnect_after_present"
         }
       ]
+    },
+    "account_filter": {
+      "type": "object",
+      "properties": {
+        "realms": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          }
+        },
+        "strands": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+          }
+        },
+        "timeline_limit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 20
+        },
+        "lazy_load_members": {
+          "type": "boolean",
+          "default": true
+        },
+        "include_redundant_members": {
+          "type": "boolean",
+          "default": false
+        },
+        "event_kinds": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./websocket-frame.schema.json#/$defs/event_kind"
+          }
+        },
+        "not_event_kinds": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./websocket-frame.schema.json#/$defs/event_kind"
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "description": "An absent or empty realms collection selects no Realm detail. Global account and Realm-summary changes remain subscribed. Strands belong to the selected Realms; absent strands selects their current default Strands. Current security results are not filtered by Event kind."
+    },
+    "realm_list_request": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "$ref": "#/$defs/cursor_value"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "account_subscribe_request": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "$ref": "#/$defs/cursor_value"
+        },
+        "catchup": {
+          "type": "boolean",
+          "default": false
+        },
+        "filter": {
+          "$ref": "#/$defs/account_filter"
+        },
+        "realm_list": {
+          "$ref": "#/$defs/realm_list_request"
+        },
+        "replace_filter": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "replace_filter": {
+                "const": true
+              }
+            },
+            "required": [
+              "replace_filter"
+            ]
+          },
+          "then": {
+            "required": [
+              "after",
+              "filter"
+            ]
+          }
+        }
+      ]
+    },
+    "realm_list_item": {
+      "type": "object",
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "activity_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "membership": {
+          "type": "string",
+          "enum": [
+            "join",
+            "knock"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "default_strand_id": {
+          "type": "string",
+          "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+        }
+      },
+      "required": [
+        "realm_id",
+        "revision",
+        "activity_position",
+        "membership"
+      ],
+      "additionalProperties": false
+    },
+    "realm_list_page": {
+      "type": "object",
+      "properties": {
+        "snapshot_cursor": {
+          "$ref": "#/$defs/cursor_value"
+        },
+        "snapshot_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/realm_list_item"
+          }
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/cursor_value"
+        },
+        "complete": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "snapshot_cursor",
+        "snapshot_revision",
+        "items",
+        "complete"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "complete": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "next_cursor"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "next_cursor"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "realm_list_removal": {
+      "type": "object",
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "realm_id",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "realm_list_changes": {
+      "type": "object",
+      "properties": {
+        "upserts": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/realm_list_item"
+          }
+        },
+        "removals": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/realm_list_removal"
+          }
+        }
+      },
+      "required": [
+        "upserts",
+        "removals"
+      ],
+      "additionalProperties": false
+    },
+    "account_baseline_segment": {
+      "type": "object",
+      "properties": {
+        "snapshot_cursor": {
+          "$ref": "#/$defs/cursor_value"
+        },
+        "channels": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "account_data_events",
+              "station_cas",
+              "device_lists",
+              "notifications"
+            ]
+          },
+          "minItems": 1
+        },
+        "completed_channels": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "account_data_events",
+              "station_cas",
+              "device_lists",
+              "notifications"
+            ]
+          }
+        }
+      },
+      "required": [
+        "snapshot_cursor",
+        "channels",
+        "completed_channels"
+      ],
+      "additionalProperties": false
+    },
+    "realm_detail_baseline": {
+      "type": "object",
+      "properties": {
+        "snapshot_cursor": {
+          "$ref": "#/$defs/cursor_value"
+        },
+        "complete": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "snapshot_cursor",
+        "complete"
+      ],
+      "additionalProperties": false
+    },
+    "realm_invalidation": {
+      "type": "object",
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "realm_id",
+        "revision"
+      ],
+      "additionalProperties": false
     }
   },
   "oneOf": [
@@ -904,7 +1347,7 @@
       }
     },
     {
-      "description": "Catch-up replay or initial baseline completed; no data fields are allowed.",
+      "description": "This bounded catchup round completed. Per-channel and Realm baseline completion is declared separately.",
       "properties": {
         "kind": {
           "const": "catchup_complete"

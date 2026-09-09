@@ -42,45 +42,7 @@
       "maxLength": 128
     },
     "account_filter": {
-      "type": "object",
-      "properties": {
-        "realm_ids": {
-          "type": "array",
-          "maxItems": 256,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/realm_id"
-          }
-        },
-        "timeline_limit": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 1000
-        },
-        "lazy_load_members": {
-          "type": "boolean"
-        },
-        "include_redundant_members": {
-          "type": "boolean"
-        },
-        "event_kinds": {
-          "type": "array",
-          "maxItems": 256,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/event_kind"
-          }
-        },
-        "not_event_kinds": {
-          "type": "array",
-          "maxItems": 256,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/event_kind"
-          }
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./account-subscribe-frame.schema.json#/$defs/account_filter"
     },
     "account_open_parameters": {
       "type": "object",
@@ -96,9 +58,36 @@
         },
         "wait_for": {
           "$ref": "#/$defs/cursor"
+        },
+        "realm_list": {
+          "$ref": "./account-subscribe-frame.schema.json#/$defs/realm_list_request"
+        },
+        "replace_filter": {
+          "type": "boolean",
+          "default": false
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "replace_filter": {
+                "const": true
+              }
+            },
+            "required": [
+              "replace_filter"
+            ]
+          },
+          "then": {
+            "required": [
+              "after",
+              "filter"
+            ]
+          }
+        }
+      ]
     },
     "events_open_parameters": {
       "type": "object",

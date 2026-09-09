@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.2",
+  "version": "2026-09-10.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T00:47:50+08:00",
+  "generated_at": "2026-09-09T19:32:39+00:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4524,6 +4524,19 @@
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
       "success_shape_kind": "event_stream",
+      "request": {
+        "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/account_subscribe_request",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "after",
+          "catchup",
+          "filter",
+          "realm_list",
+          "replace_filter"
+        ],
+        "closed": true
+      },
       "response": {
         "schema_ref": "schemas/account-subscribe-frame.schema.json",
         "schema_kind": "oneOf",

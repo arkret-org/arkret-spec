@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9887,
+    "total_properties": 9925,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2709,
-      "optional_defaulted": 61,
-      "required": 6775,
+      "optional": 2722,
+      "optional_defaulted": 68,
+      "required": 6794,
       "required_nullable": 126,
-      "tristate": 216
+      "tristate": 215
     },
-    "tristate_occurrences": 216,
-    "tristate_audit_targets": 155,
+    "tristate_occurrences": 215,
+    "tristate_audit_targets": 154,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 145,
+      "absent_null_equivalent": 144,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -44,7 +44,6 @@
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event",
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload",
     "account-subscribe-frame.schema.json/$defs/device_message_container/allOf/0/if/properties/messages",
-    "account-subscribe-frame.schema.json/$defs/station_cas_account_data_container/allOf/0/then/properties/removals",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/0/then/properties/blockers",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/1/then/properties/blockers",
     "agent-sidecar-exchange-projection.schema.json/allOf/0/then/properties/user_facing_response_event_ids",
@@ -294,16 +293,6 @@
       "instance_path": "/messages",
       "occurrences": [
         "/$defs/device_message_container/allOf/0/if/properties/messages"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "account-subscribe-frame.schema.json",
-      "shape": "/$defs/station_cas_account_data_container",
-      "instance_path": "/removals",
-      "occurrences": [
-        "/$defs/station_cas_account_data_container/allOf/0/then/properties/removals"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -2284,8 +2273,24 @@
         "ak.schema.account_subscribe_frame.v1"
       ],
       "properties": {
+        "/$defs/account_baseline_segment/properties/channels": "required",
+        "/$defs/account_baseline_segment/properties/completed_channels": "required",
+        "/$defs/account_baseline_segment/properties/snapshot_cursor": "required",
         "/$defs/account_data_container/properties/events": "required",
         "/$defs/account_data_container/properties/station_cas": "optional",
+        "/$defs/account_filter/properties/event_kinds": "optional",
+        "/$defs/account_filter/properties/include_redundant_members": "optional_defaulted",
+        "/$defs/account_filter/properties/lazy_load_members": "optional_defaulted",
+        "/$defs/account_filter/properties/not_event_kinds": "optional",
+        "/$defs/account_filter/properties/realms": "optional",
+        "/$defs/account_filter/properties/strands": "optional",
+        "/$defs/account_filter/properties/timeline_limit": "optional_defaulted",
+        "/$defs/account_subscribe_request/allOf/0/if/properties/replace_filter": "required",
+        "/$defs/account_subscribe_request/properties/after": "optional",
+        "/$defs/account_subscribe_request/properties/catchup": "optional_defaulted",
+        "/$defs/account_subscribe_request/properties/filter": "optional",
+        "/$defs/account_subscribe_request/properties/realm_list": "optional",
+        "/$defs/account_subscribe_request/properties/replace_filter": "optional_defaulted",
         "/$defs/agent_runtime_approval_notification_data/properties/agent_id": "required",
         "/$defs/agent_runtime_approval_notification_data/properties/approval_request_id": "required",
         "/$defs/agent_runtime_approval_notification_data/properties/expires_at": "required",
@@ -2327,10 +2332,33 @@
         "/$defs/ordered_log_sibling_diagnostic/properties/issuer_id": "required",
         "/$defs/ordered_log_sibling_diagnostic/properties/issuer_seq": "required",
         "/$defs/ordered_log_sibling_diagnostic/properties/reason": "required",
+        "/$defs/realm_detail_baseline/properties/complete": "required",
+        "/$defs/realm_detail_baseline/properties/snapshot_cursor": "required",
+        "/$defs/realm_invalidation/properties/realm_id": "required",
+        "/$defs/realm_invalidation/properties/revision": "required",
+        "/$defs/realm_list_changes/properties/removals": "required",
+        "/$defs/realm_list_changes/properties/upserts": "required",
+        "/$defs/realm_list_item/properties/activity_position": "required",
+        "/$defs/realm_list_item/properties/default_strand_id": "optional",
+        "/$defs/realm_list_item/properties/membership": "required",
+        "/$defs/realm_list_item/properties/realm_id": "required",
+        "/$defs/realm_list_item/properties/revision": "required",
+        "/$defs/realm_list_item/properties/title": "optional",
+        "/$defs/realm_list_page/allOf/0/if/properties/complete": "optional",
+        "/$defs/realm_list_page/properties/complete": "required",
+        "/$defs/realm_list_page/properties/items": "required",
+        "/$defs/realm_list_page/properties/next_cursor": "optional",
+        "/$defs/realm_list_page/properties/snapshot_cursor": "required",
+        "/$defs/realm_list_page/properties/snapshot_revision": "required",
+        "/$defs/realm_list_removal/properties/realm_id": "required",
+        "/$defs/realm_list_removal/properties/revision": "required",
+        "/$defs/realm_list_request/properties/after": "optional",
+        "/$defs/realm_list_request/properties/limit": "optional_defaulted",
         "/$defs/realm_summary/properties/hero_ids": "optional",
         "/$defs/realm_summary/properties/invited_member_count": "optional",
         "/$defs/realm_summary/properties/joined_member_count": "optional",
         "/$defs/realm_sync_entry/properties/account_data": "optional",
+        "/$defs/realm_sync_entry/properties/baseline": "optional",
         "/$defs/realm_sync_entry/properties/bottoms": "optional",
         "/$defs/realm_sync_entry/properties/bottoms/items/properties/bottom": "required",
         "/$defs/realm_sync_entry/properties/bottoms/items/properties/cell_id": "required",
@@ -2358,9 +2386,6 @@
         "/$defs/state_at_window_start/properties/realm_metadata/properties/join_rule": "optional",
         "/$defs/state_at_window_start/properties/realm_metadata/properties/summary": "optional",
         "/$defs/state_at_window_start/properties/realm_metadata/properties/title": "optional",
-        "/$defs/station_cas_account_data_container/allOf/0/if/properties/complete": "required",
-        "/$defs/station_cas_account_data_container/allOf/0/then/properties/removals": "tristate",
-        "/$defs/station_cas_account_data_container/properties/complete": "required",
         "/$defs/station_cas_account_data_container/properties/removals": "required",
         "/$defs/station_cas_account_data_container/properties/upserts": "required",
         "/$defs/station_cas_account_data_removal/properties/account_data_key": "required",
@@ -2382,20 +2407,28 @@
         "/oneOf/6/properties/kind": "required",
         "/properties/account_data": "optional",
         "/properties/agent_signer_evidence_bundle": "optional",
+        "/properties/baseline": "optional",
         "/properties/cursor": "optional",
         "/properties/device_lists": "optional",
+        "/properties/filter_digest": "optional",
         "/properties/kind": "required",
         "/properties/notifications": "optional",
         "/properties/partial": "optional",
         "/properties/priority": "optional",
+        "/properties/realm_invalidations": "optional",
+        "/properties/realm_list": "optional",
+        "/properties/realm_list_changes": "optional",
         "/properties/realms": "optional",
         "/properties/reconnect_after_ms": "optional",
         "/properties/to_device": "optional"
       },
       "conditionally_required": [
+        "/$defs/account_subscribe_request/properties/after",
+        "/$defs/account_subscribe_request/properties/filter",
         "/$defs/device_message_container/properties/ack_token",
         "/$defs/device_message_container/properties/next_cursor",
         "/$defs/notification_delta/properties/data",
+        "/$defs/realm_list_page/properties/next_cursor",
         "/properties/cursor"
       ]
     },
@@ -13417,15 +13450,12 @@
         "ak.schema.websocket_welcome_frame.v1 -> #/$defs/welcome"
       ],
       "properties": {
-        "/$defs/account_filter/properties/event_kinds": "optional",
-        "/$defs/account_filter/properties/include_redundant_members": "optional",
-        "/$defs/account_filter/properties/lazy_load_members": "optional",
-        "/$defs/account_filter/properties/not_event_kinds": "optional",
-        "/$defs/account_filter/properties/realm_ids": "optional",
-        "/$defs/account_filter/properties/timeline_limit": "optional",
+        "/$defs/account_open_parameters/allOf/0/if/properties/replace_filter": "required",
         "/$defs/account_open_parameters/properties/after": "optional",
         "/$defs/account_open_parameters/properties/catchup": "optional",
         "/$defs/account_open_parameters/properties/filter": "optional",
+        "/$defs/account_open_parameters/properties/realm_list": "optional",
+        "/$defs/account_open_parameters/properties/replace_filter": "optional_defaulted",
         "/$defs/account_open_parameters/properties/wait_for": "optional",
         "/$defs/authenticate/properties/connection_id": "required",
         "/$defs/authenticate/properties/dpop_proof": "required",
@@ -13510,6 +13540,8 @@
         "/$defs/welcome/properties/max_frame_bytes": "required"
       },
       "conditionally_required": [
+        "/$defs/account_open_parameters/properties/after",
+        "/$defs/account_open_parameters/properties/filter",
         "/$defs/events_open_parameters/properties/actor_ids",
         "/$defs/events_open_parameters/properties/realm_ids"
       ]
