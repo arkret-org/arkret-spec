@@ -2278,7 +2278,7 @@
       }
     },
     "ak.profile.agent_signer_evidence.v1": {
-      "description": "Portable ordinary-Realm Agent signer authorization evidence. Producers publish one Agent authority snapshot with key and Agent-lifecycle witnesses, one privacy-minimal Account Authority controller gate, and a structural XOR between exact-request current observation and destination-signed historical Event admission receipt. Consumers independently verify all three orthogonal gates, reject cross-request replay, preserve accepted Event validity across later terminal transitions, and cross-bind encrypted Events to the historical MLS leaf.",
+      "description": "Portable ordinary-Realm Agent signer authorization evidence. Producers publish one reusable Agent authority state lease and independent privacy-minimal controller gate. Current evidence has a maximum 300 second original observation window; historical evidence freezes either the original same-Station admission or a distinct receiver receipt. Consumers verify complete identity/method/history dependencies, reuse unchanged material, independently check each message scope/signature/MLS/replay, and preserve accepted history across later terminal transitions.",
       "enforcement_phases": [
         "conformance",
         "peer_eligibility"

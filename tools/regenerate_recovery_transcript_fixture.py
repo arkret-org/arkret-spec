@@ -42,6 +42,7 @@ def common(kind: str) -> dict[str, object]:
         "session_grant_id": "ak:session_grant:ARZh3t6pUePAQHfZ8vZbYERKa2BqFWV_dynfVmrmHA_N",
         "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "requesting_device_id": "ak:device:019b6a40-0000-7000-8000-000000000001",
+        "requesting_device_public_key_did": "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBVLLqxYgNwxGEhiP",
         "trust_domain": "ak:trust_domain:recovery-fixture",
         "policy_id": "ak:policy:019b6a40-0000-7000-8000-000000000002",
         "policy_version": 7,

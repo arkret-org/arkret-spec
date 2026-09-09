@@ -156,7 +156,7 @@
       "applies_to_fixtures": [
         "agent-signer-evidence-fixture.json"
       ],
-      "description": "Historical Agent signer evidence is materialized under the registered selector tuple: same tuple with the same receipt digest and canonical root is an exact replay checked before signing a new outer, a different receipt or root is duplicate_conflict with zero overwrite, a different receiver_id is a separate legal branch, an incomplete dependency closure or a permanently lost receipt stays unresolved, the historical outer attestation verifies long after attested_at with no verifier-now TTL, and the receiver method is resolved at receipt.accepted_at rather than from current state.",
+      "description": "Historical Agent materialization freezes original state and tagged acceptance: original same-Station admission without another receipt, or a distinct receiver receipt. Same selector and acceptance replay returns the original root; conflicting acceptance/root never overwrites it. Complete historical method evidence is evaluated at original proof times, independent of verifier-now expiry.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/identity/key-management.md",
@@ -3633,7 +3633,7 @@
       "applies_to_fixtures": [
         "pcr-genesis-fixture.json"
       ],
-      "description": "Identity-creation saga crash/resume, lease fencing, single-use challenge terminal-state separation, exact replay, client echo validation, signed account binding and post-registration did:webvh history verification.",
+      "description": "Identity-creation saga crash/resume, lease fencing, independent holder-scoped challenge issuance budget and TTL, same-binding reauthentication proof reuse, lock-wait expiry, single-use terminal-state separation, exact replay, client echo validation, signed account binding and post-registration did:webvh history verification.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

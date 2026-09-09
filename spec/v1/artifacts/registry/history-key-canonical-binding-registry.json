@@ -52,12 +52,6 @@
         "all later chunk bytes"
       ]
     },
-    "history_source_agent_observation_digest": {
-      "domain": "ak.history-source-agent-observation-v1",
-      "preimage_schema_ref": "schemas/history-key.schema.json#/$defs/history_source_agent_observation_input",
-      "preimage": "the complete closed HistoryKeyResponseSigningInput with source_signer_evidence_ref removed",
-      "rule": "Agent CurrentAdmission current_observation.request_digest equals this digest. The exclusion breaks the signer-evidence content-address cycle while source_proof still signs the complete HistoryKeyResponseSigningInput including the evidence ref, whose embedded digest is the sole wire copy (encoding.md 4.0.1)."
-    },
     "manifest_admission_digest": {
       "domain": "ak.history-manifest-admission-v1",
       "preimage": "the complete closed HistoryManifestAdmission with manifest_admission_digest removed",

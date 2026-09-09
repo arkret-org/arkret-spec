@@ -368,7 +368,7 @@
       "name": "agent_event_admission_receipt_handoff",
       "vector_id": "ak.vector.federation.agent_admission_receipt_handoff.v1",
       "request_contract": {
-        "outcome_field": "agent_event_admission_receipts",
+        "outcome_field": "agent_event_admissions",
         "receipt_schema": "ak.schema.agent_signer_admission_receipt.v1",
         "receipt_proof_domain": "ak.agent_signer_admission_receipt.v1",
         "receipted_outcome_classes": [

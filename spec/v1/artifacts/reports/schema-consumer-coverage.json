@@ -47,7 +47,7 @@
       "event_kind": 3,
       "inbound": 47,
       "outbound": 55,
-      "prose": 115,
+      "prose": 114,
       "prose_only": 2,
       "schema_reference": 136,
       "startup_compile": 205,
@@ -501,7 +501,6 @@
       "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
       "file": "schemas/agent-signer-evidence.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"
@@ -3754,8 +3753,6 @@
           "ak.schema.contact_scope_update.v1",
           "ak.schema.control_proposal_decision.v1",
           "ak.schema.controller_account_gate_attestation.v1",
-          "ak.schema.current_signer_evidence_query_outcome.v1",
-          "ak.schema.current_signer_evidence_query_request.v1",
           "ak.schema.cursor.v1",
           "ak.schema.device_message.v1",
           "ak.schema.device_pairing_bootstrap.v1",

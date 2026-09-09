@@ -16,3 +16,5 @@ _*.md
 _*.txt
 out*.txt
 .codex*
+.agent*
+.*.log

@@ -1110,9 +1110,8 @@
       ]
     },
     "requesting_device_public_key_did": {
-      "type": "string",
-      "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-      "description": "Canonical fragmentless did:key carrying the replacement Ed25519 device identity public key. This exact value, not the DPoP grant-binding key, is frozen before factor verification and must equal replacement authorize device_public_key_did. The multicodec and 32-byte key must validate; other key kinds fail closed."
+      "description": "Canonical fragmentless did:key carrying the replacement Ed25519 device identity public key. This exact value, not the DPoP grant-binding key, is frozen before factor verification and must equal replacement authorize device_public_key_did. The multicodec and 32-byte key must validate; other key kinds fail closed.",
+      "$ref": "./keys-operations.schema.json#/$defs/did_key"
     },
     "recovery_device_possession_transcript": {
       "type": "object",
@@ -1160,7 +1159,8 @@
           "description": "Optional client CAS hint. Servers MUST snapshot the currently accepted policy; if this hint is present and differs, the request fails with recovery_policy_mismatch."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.identity.recovery_device_possession.v1"
     }
   }
 }

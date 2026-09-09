@@ -206,18 +206,6 @@
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.current_signer_evidence_response_core_verifier_id.v1",
-      "ruling": "2026-09-02-2004 S3",
-      "schema": "schemas/current-signer-evidence-operations.schema.json",
-      "path": "/$defs/response_core",
-      "removed": "verifier_id",
-      "source": {
-        "field": "recipient_account_id"
-      },
-      "derivation": "verifier_id := recipient_account_id.station_id (= the peer request Source-Service-ID)",
-      "spec_anchor": "spec/v1/zh/sync/service-http-binding.md"
-    },
-    {
       "lock_id": "ak.lock.derived_wire_field_removal.did_key_method_history_evidence_adapter_version.v1",
       "ruling": "2026-09-02-1951 A8",
       "schema": "schemas/identity-resolution.schema.json",

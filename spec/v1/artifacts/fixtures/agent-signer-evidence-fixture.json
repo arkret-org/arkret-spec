@@ -31,42 +31,10 @@
       "name": "query_success_returns_cas_frozen_authenticated_root",
       "success_item_kind": "agent",
       "contains_complete_agent_signer_evidence": true,
-      "contains_four_recursive_evidence_pairs": true,
       "issuer_atomically_persists_root_and_recursive_dependencies": true,
       "client_constructs_wrapper": false,
-      "expected": "verified"
-    },
-    {
-      "name": "current_exact_request_and_three_active_gates_verified",
-      "verification_mode": "current_admission",
-      "key_status": "active",
-      "agent_status": "active",
-      "controller_account_status": "active",
-      "observation_matches_actual_request": true,
-      "observation_basis_matches_admission_evidence": true,
-      "all_current_windows_valid": true,
-      "expected": "verified"
-    },
-    {
-      "name": "current_cross_verifier_replay_rejected",
-      "verification_mode": "current_admission",
-      "observation_verifier_matches_authenticated_service": false,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch"
-    },
-    {
-      "name": "current_request_or_challenge_replay_rejected",
-      "verification_mode": "current_admission",
-      "operation_request_audience_challenge_exact_match": false,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch"
-    },
-    {
-      "name": "current_authority_state_digest_mix_and_match_rejected",
-      "verification_mode": "current_admission",
-      "observation_basis_matches_admission_evidence": false,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch"
+      "expected": "verified",
+      "contains_three_current_recursive_evidence_refs": true
     },
     {
       "name": "current_stale_lease_is_unresolved",
@@ -108,10 +76,9 @@
     {
       "name": "historical_current_authority_state_substitution_rejected",
       "verification_mode": "historical_event",
-      "event_admission_receipt_present": false,
-      "current_observation_present": true,
       "expected": "rejected",
-      "reason": "agent_signer_evidence_missing"
+      "reason": "agent_signer_evidence_missing",
+      "event_admission_present": false
     },
     {
       "name": "historical_wrong_destination_receipt_rejected",
@@ -134,9 +101,9 @@
       "same_selector_tuple": true,
       "same_receipt_digest": true,
       "same_canonical_historical_root": true,
-      "materializer_reads_selector_tuple_before_signing_a_new_root": true,
       "additional_historical_roots_published": 0,
-      "expected": "verified"
+      "expected": "verified",
+      "materializer_reads_selector_tuple_before_publishing_root": true
     },
     {
       "name": "historical_materialization_same_tuple_other_receipt_is_zero_overwrite",
@@ -187,41 +154,6 @@
       "additional_historical_roots_published": 0,
       "expected": "unresolved",
       "reason": "agent_signer_evidence_missing"
-    },
-    {
-      "name": "historical_outer_attestation_verifies_long_after_attested_at",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "outer_attestation_branch": "historical",
-      "outer_attestation_carries_expires_at": false,
-      "verifier_now_far_after_attested_at": true,
-      "authority_method_resolved_at": "attested_at",
-      "expected": "verified"
-    },
-    {
-      "name": "historical_branch_carrying_current_outer_attestation_rejected",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "outer_attestation_branch": "current",
-      "outer_attestation_carries_expires_at": true,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch"
-    },
-    {
-      "name": "authority_key_rotation_after_attested_at_preserves_historical_root",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "authority_signing_key_rotated_after_attested_at": true,
-      "authority_method_resolved_at": "attested_at",
-      "expected": "verified"
-    },
-    {
-      "name": "authority_method_inactive_at_attested_at_rejected",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "authority_method_active_at_attested_at": false,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch"
     },
     {
       "name": "receiver_key_rotation_after_accepted_at_preserves_receipt",
@@ -345,12 +277,6 @@
       "reason": "agent_signing_key_mismatch"
     },
     {
-      "name": "outer_attestation_prevents_mode_splice",
-      "outer_core_digest_matches_complete_tagged_evidence": false,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch"
-    },
-    {
       "name": "historical_mls_leaf_cross_binding_verified",
       "verification_mode": "historical_event",
       "matching_basic_leaf_count": 1,
@@ -371,6 +297,120 @@
       "agent_evidence_queries": 0,
       "device_directory_queries": 0,
       "expected": "verified_by_minimal_metadata_only"
+    },
+    {
+      "name": "current_valid_relation_reuses_signed_state_across_signals",
+      "signal_count": 100,
+      "authority_state_issuance_count": 1,
+      "all_message_signatures_verified": true,
+      "expected": "verified"
+    },
+    {
+      "name": "current_shared_state_does_not_share_device_verification",
+      "authorized_device_count": 2,
+      "authority_state_issuance_count": 1,
+      "independent_local_verification_count": 2,
+      "expected": "verified"
+    },
+    {
+      "name": "current_reconnect_and_trusted_restore_do_not_renew_state",
+      "reconnect_count": 3,
+      "additional_pairing_count": 0,
+      "additional_state_issuance_count": 0,
+      "original_deadline_preserved": true,
+      "expected": "verified"
+    },
+    {
+      "name": "current_delta_hydrates_same_canonical_root",
+      "state_digest_declared_known": true,
+      "transport_contains_state": false,
+      "verified_cached_state_matches_digest": true,
+      "canonical_root_equal_full_response": true,
+      "expected": "verified"
+    },
+    {
+      "name": "current_delta_missing_state_or_dependency_unresolved",
+      "state_digest_declared_known": true,
+      "verified_cached_state_matches_digest": false,
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_missing"
+    },
+    {
+      "name": "current_state_substitution_rejected",
+      "state_digest_matches_lease": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "current_cross_account_station_or_scope_rejected",
+      "exact_account_and_scope_match": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "current_state_age_cannot_exceed_300_seconds",
+      "state_observation_age_seconds": 301,
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_stale"
+    },
+    {
+      "name": "current_repackaging_does_not_extend_original_deadline",
+      "original_state_observation_age_seconds": 301,
+      "repackaged_age_seconds": 1,
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_stale"
+    },
+    {
+      "name": "current_gate_expiry_shortens_effective_deadline",
+      "lease_remaining_seconds": 200,
+      "gate_remaining_seconds": 0,
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_stale"
+    },
+    {
+      "name": "current_known_revocation_invalidates_before_deadline",
+      "lease_remaining_seconds": 200,
+      "observed_revocation": true,
+      "expected": "rejected",
+      "reason": "agent_authorization_inactive"
+    },
+    {
+      "name": "historical_same_station_uses_original_admission",
+      "verification_mode": "historical_event",
+      "event_admission_kind": "station_admission",
+      "same_authority_role": true,
+      "same_durable_acceptance": true,
+      "additional_receiver_receipts": 0,
+      "original_frozen_root_matches": true,
+      "expected": "verified",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1"
+    },
+    {
+      "name": "historical_same_station_second_receipt_rejected",
+      "verification_mode": "historical_event",
+      "event_admission_kind": "receiver_receipt",
+      "same_authority_role": true,
+      "same_durable_acceptance": true,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1"
+    },
+    {
+      "name": "historical_other_receiver_requires_own_receipt",
+      "verification_mode": "historical_event",
+      "event_admission_kind": "station_admission",
+      "same_authority_role": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1"
+    },
+    {
+      "name": "historical_original_lease_survives_later_authority_rotation",
+      "verification_mode": "historical_event",
+      "authority_method_resolved_at": "lease_issued_at",
+      "verifier_now_after_lease_expiry": true,
+      "expected": "verified",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1"
     }
   ]
 }

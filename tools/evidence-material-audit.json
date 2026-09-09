@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 376,
+  "audited_occurrence_count": 389,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -140,7 +140,7 @@
         "attestation",
         "commitment"
       ],
-      "reason": "Closed historical-mode aggregate containing the destination-signed admission receipt and its exact admission-time evidence."
+      "reason": "Frozen admission-time material with original same-Station admission or distinct receiver receipt."
     },
     {
       "file": "agent-signer-evidence.schema.json",
@@ -208,7 +208,7 @@
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "agent_signer_evidence",
-      "occurrences": 2,
+      "occurrences": 3,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -401,6 +401,13 @@
     },
     {
       "file": "current-signer-evidence-operations.schema.json",
+      "key": "account_authority_signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
       "key": "account_device_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -409,6 +416,37 @@
         "attestation"
       ],
       "reason": "Carries the origin-signed current device projection attestation together with its embedded verification proof."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "admission_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ]
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "admission_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "agent_authority_state_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ]
     },
     {
       "file": "current-signer-evidence-operations.schema.json",
@@ -424,6 +462,25 @@
     },
     {
       "file": "current-signer-evidence-operations.schema.json",
+      "key": "agent_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ]
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "attester_signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
       "key": "authenticated_signer_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -433,6 +490,61 @@
         "commitment"
       ],
       "reason": "Carries the registered composite Agent signer authority root selected for this exact current query."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "compact_agent_admission_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ]
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "compact_agent_authority_state_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ]
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "compact_agent_signer_resolution_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ]
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "compact_current_agent_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ]
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "controller_signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
     },
     {
       "file": "current-signer-evidence-operations.schema.json",
@@ -457,6 +569,13 @@
         "commitment"
       ],
       "reason": "Plural response collection whose items are the closed account-device or Agent current-evidence branches."
+    },
+    {
+      "file": "current-signer-evidence-operations.schema.json",
+      "key": "known_signer_evidence_refs",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
     },
     {
       "file": "current-signer-evidence-operations.schema.json",

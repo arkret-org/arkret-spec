@@ -310,7 +310,7 @@ sequenceDiagram
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier)
     Alpha->>Beta: POST /_arkret/peer/events (ak.peer.events.command.submit.v1)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest + receiver-computed canonical body digest<br>service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. 从 CBS basis 读取 reducer-profile cell<br>7. Lattice / Seal
-    Beta-->>Alpha: 200 + accepted / duplicate / rejected / quarantine<br>+ Agent admission receipts
+    Beta-->>Alpha: 200 + accepted / duplicate / rejected / quarantine<br>+ Agent event admissions
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
 ```
 
@@ -327,19 +327,16 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
 - 幂等以 `(Source-Service-ID, Destination-Service-ID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 在 `duplicate[]` 中确认（幂等 no-op）而非报错，carried ID 不等于重算 ID MUST 以 `event_id_digest_mismatch` 拒绝；只有 §4.5.1 定义的 full-hash collision evidence 才以 `witness_disagreement` 整组隔离。
 - 批次级重放检测使用 receiver 从已验证 exact body bytes 计算的 canonical digest 与签名覆盖的 `Idempotency-Key`；不引入额外 path 事务 ID。
 - `quarantine[]` 是 `EventsSubmitOutcome` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`。非协议 adapter 的本地展示行为不改变 wire outcome。
-- receiver 对每个 `accepted[] ∪ duplicate[]` 内的 Agent Event MUST 返回一个
-  `agent_event_admission_receipts[]` 项。receipt 与 Event durable acceptance 在同一事务写入；exact duplicate 返回
-  第一次保存的 byte-identical receipt。rejected、quarantine 与 dependency-missing 项不得签发 receipt。
-- source durable outbox 必须先验证 receipt 的 Event/Realm/Agent/method、origin `producer_signer_resolution_evidence_ref`、receiver service、
-  protected `kid` 与 historical receiver key，再原子保存 receipt 和 materialization obligation；在此之前不得把该
-  Event/receiver 的历史证据交接标为完成。
-- Agent Authority 消费 obligation 时只允许读取 admission proof 指向的 byte-exact original `CurrentAdmission` root，
-  复用其 frozen `admission_evidence`，加入 receipt 并签 historical outer；receipt、root、递归 signer dependencies、
-  digest CAS 与 selector index 必须原子可见。receiver 与 Authority 的历史 method 都从既有 current signed
-  AuthenticatedServiceResolution 所携完整 WebVH log按 `accepted_at` / 实际 `attested_at` 选择，不新增历史检索 endpoint，
-  也不得直接使用 carrier 的 head document。selector tuple 是幂等权威：同 tuple + 同 receipt 在签名前返回已存 root，
-  同 tuple 异 receipt/root 为 `duplicate_conflict` 且零覆盖。
-  outcome receipt 返回、exact duplicate byte-identical replay 与 source outbox durable handoff 的完整正负矩阵由
+- receiver 对每个 `accepted[] ∪ duplicate[]` 内 Agent Event 返回一个 `agent_event_admissions[]` 项。
+  同 Station、同 authority role、原次接纳为 `station_admission`，携原 accepted Event，不签第二 receipt；不同 receiver
+  或独立接纳为 `receiver_receipt`，其 receipt 与 durable acceptance 同事务保存。exact duplicate 返回原字节，
+  rejected/quarantine/dependency-missing 不生成接纳证明。
+- source outbox 从 tagged 分支验证 Event/Realm/Agent/method、冻结 producer evidence ref、receiver 及原签名时点
+  method，原子保存接纳材料与 historical materialization obligation，才可完成该 Event/receiver 交接。
+- Agent Authority 只读原 admission proof 冻结的 byte-exact CurrentAdmission root，复用 admission_evidence 并附
+  对应 event_admission；不签历史 outer。root、完整递归依赖、CAS 与 selector index 原子可见。原 method 从完整
+  authenticated history 按各 proof 的签署/接纳时刻解析，不能使用当前 head。相同 selector tuple 与同接纳事实
+  返回原 root/no-op；异接纳事实或覆盖原 root 为 duplicate_conflict。矩阵由
   `ak.vector.federation.agent_admission_receipt_handoff.v1` 固化。
 - 持续同步、批量重试和 frontier 交换通过组合 `ak.peer.events.command.submit.v1`（推送，本节）、`ak.peer.events.read.scan.v1` / `ak.peer.events.read.resolve.v1`（拉取 / backfill / 补洞，§4.2）与 `ak.peer.events.read.frontier.v1`（§4.5）完成；无需额外的有状态事务 endpoint。
 

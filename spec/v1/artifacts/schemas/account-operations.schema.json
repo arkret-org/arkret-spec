@@ -838,7 +838,7 @@
     },
     "identity_binding_challenge_outcome": {
       "type": "object",
-      "description": "Persisted, single-use server challenge. The client copies every field from challenge_id through expires_at into identity_creation_control_proof, adds proof_kind and verification_key_multibase, and signs that complete proof object with signature omitted. request_id is idempotency metadata and is not part of the root-control transcript.",
+      "description": "Durable single-use proof transcript. Canonical issued_at is chosen after current authentication and live lease/fence checks under shared locks; expires_at = issued_at + a positive TTL <=300s, independently of handoff and lease expiry. Issuance never renews a lease and consumes only its independent account/audience/holder issuance budget. Still-valid proofs survive same-binding reauthentication or renewal; register separately verifies current authority. Persisted, single-use server challenge. The client copies every field from challenge_id through expires_at into identity_creation_control_proof, adds proof_kind and verification_key_multibase, and signs that complete proof object with signature omitted. request_id is idempotency metadata and is not part of the root-control transcript.",
       "required": [
         "request_id",
         "challenge_id",

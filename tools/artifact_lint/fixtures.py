@@ -4705,37 +4705,6 @@ def check_history_scale_fixture(lint: Lint) -> None:
     dependency_kat = data.get("governance_dependency_resolve_kat")
     if not isinstance(dependency_kat, dict) or len(dependency_kat.get("resolve_outcome", {}).get("items", [])) != 2:
         lint.fail(path, "history fixture must exercise both governance evidence branches")
-    source_agent_kat = data.get("history_source_agent_observation_digest_kat")
-    if not isinstance(source_agent_kat, dict):
-        lint.fail(path, "history fixture must carry the source Agent observation digest KAT")
-    else:
-        preimage = source_agent_kat.get("preimage")
-        expected = source_agent_kat.get("expected_digest")
-        if not isinstance(preimage, dict) or not isinstance(expected, str):
-            lint.fail(path, "source Agent observation digest KAT is malformed")
-        else:
-            actual = "sha256:" + hashlib.sha256(
-                b"ak.history-source-agent-observation-v1\x00"
-                + canonical_json(preimage).encode("utf-8")
-            ).hexdigest()
-            if actual != expected:
-                lint.fail(path, "source Agent observation digest KAT does not match its preimage")
-            for member in ("signing_input_a", "signing_input_b"):
-                signing_input = source_agent_kat.get(member)
-                if not isinstance(signing_input, dict):
-                    lint.fail(path, f"source Agent observation digest KAT omits {member}")
-                    continue
-                projected = dict(signing_input)
-                projected.pop("source_signer_evidence_ref", None)
-                if "source_signer_evidence_digest" in signing_input:
-                    lint.fail(path, f"source Agent observation digest KAT {member} carries a sibling evidence digest mirror")
-                if projected != preimage:
-                    lint.fail(path, f"source Agent observation digest KAT {member} projection drifted")
-            if source_agent_kat.get("mutating_only_evidence_coordinates_keeps_digest") != expected:
-                lint.fail(path, "source Agent observation evidence-coordinate exclusion drifted")
-            if source_agent_kat.get("mutating_content_changes_digest") == expected:
-                lint.fail(path, "source Agent observation digest ignores signed business content")
-
     scale = data.get("streaming_direct_traversal_scale_kats")
     if not isinstance(scale, list) or [row.get("epoch_count") for row in scale if isinstance(row, dict)] != [26298, 65536]:
         lint.fail(path, "history scale fixture must freeze 26,298 and 65,536 epoch runs")

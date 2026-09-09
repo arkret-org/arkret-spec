@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 67,
+    "total_fields": 68,
     "by_classification": {
       "bounded_free_text": 7,
       "closed_enum": 32,
-      "closed_literal": 10,
+      "closed_literal": 11,
       "validated_open_reason_code": 18
     },
     "unclassified": 0
@@ -250,6 +250,14 @@
       "pointer": "#/$defs/peer_contact_event_submit_outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "current-signer-evidence-operations.schema.json",
+      "shape": "compact_current_agent_signer_evidence",
+      "field": "schema",
+      "pointer": "#/$defs/compact_current_agent_signer_evidence/properties/schema",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "directory-operations.schema.json",

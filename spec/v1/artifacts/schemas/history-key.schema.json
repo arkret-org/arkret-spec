@@ -2038,56 +2038,6 @@
       "additionalProperties": false,
       "description": "Minimal chunk wire. The exact accepted manifest descriptor and manifest_admission_digest reconstruct the continuous range and HPKE context. T0 is the receipt-bound direct Seal replay recorded by the accepted manifest admission; the chunk carries no independent proof, selector, segment or range-key duplicate. Source submit before that manifest admission is accepted is dependency_missing with zero pending state, zero response record and zero release attestation. The complete canonical chunk source record MUST be at most 2 MiB."
     },
-    "history_source_agent_observation_input": {
-      "type": "object",
-      "required": [
-        "response_id",
-        "effective_scope",
-        "source_actor_id",
-        "source_sender_domain",
-        "request_digest",
-        "request_receipt_digest",
-        "expires_at",
-        "content"
-      ],
-      "properties": {
-        "response_id": {
-          "$ref": "#/$defs/history_response_id"
-        },
-        "effective_scope": {
-          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
-        },
-        "source_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "source_sender_domain": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 512
-        },
-        "request_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "request_receipt_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "content": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/history_response_manifest"
-            },
-            {
-              "$ref": "#/$defs/sealed_history_chunk"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "description": "Closed non-wire canonical input for history_source_agent_observation_digest. It intentionally excludes source_signer_evidence_ref so an Agent can obtain CurrentAdmission evidence before authoring the complete signed response."
-    },
     "history_key_response_signing_input": {
       "type": "object",
       "required": [

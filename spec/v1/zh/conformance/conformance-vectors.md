@@ -3825,6 +3825,8 @@ Expected：
 - 第 1 步从 frozen checkpoint 单调续跑到 completed，不产生第二 DID、PCR 或 grant。
 - 第 2 步全部以 `identity_creation_lease_fenced` 零写入失败，reserved identity 与 checkpoint 归新 fence 继承。
 - 第 3 步依次为 `identity_creation_challenge_expired`、`identity_creation_challenge_already_consumed`、返回原 recorded outcome。
+- 同 holder 刚 renewal 或已耗尽 renewal 额度但执行权有效时，首次 challenge MUST 成功且 lease expiry 不变；独立签发额度耗尽、并发第二次新签发 MUST 返回实际窗口 429 且零事务副作用，跨 lease/fence 重认证不能清空同 holder 预算。exact replay 保留原字节与时间且不计数。
+- 签发 handoff/lease 截止早于 challenge 自身 expiry 合法；同绑定合法重认证/续租后原 proof 继续可用且不重签，缺当前有效授权、已过期/替换/消费、变更 holder/fence/冻结材料时拒绝。锁等待到期按锁后权威时间拒绝，canonical 窗口必须严格为正且最多 300 秒。
 - 第 4 步在 root 签名前或 identity adoption 前 fail closed；客户端不得用服务端返回值覆盖本地 frozen root。
 
 ### 10.9.0.2 Vector: Provisional Identity Explicit Abandonment
@@ -6382,37 +6384,28 @@ Runner MUST 覆盖：
 
 `vector_id`: `ak.vector.agent.signer_evidence_binding.v1`
 
-runner MUST 执行 `agent-signer-evidence-fixture.json` 的完整 `binding_vector` 与全部 case：重算
-Agent authority snapshot、privacy-minimal controller account gate、key / Agent lifecycle state与transition witness、
-current exact request binding、historical destination receipt、outer attestation与全部时窗，并覆盖 active、revoked、
-superseded、unresolved、跨verifier重放及字段混拼分支；state witness 正例 MUST 使用
-`<event_id>:<write_index>` canonical Event dot，裸 Event id、非 canonical write index 与其它 Event dot
-均 MUST 拒绝，revoke 后的 transition witness MUST 来自同一 key cell 中 reducer 写入的 revoke marker。
-只加载 fixture、只验证来源服务
-签名或跳过任一 case 均不构成通过。
+runner MUST 执行 `agent-signer-evidence-fixture.json` 的完整 `binding_vector` 与全部 case，验证唯一 Agent
+Authority lease、独立 controller gate、controller binding、key/lifecycle witness 与 scope/完整账户绑定。必须覆盖：
+
+1. 冷获取与多消息、多设备复用；重连及可信恢复不重新签发状态或配对；每条消息仍验签/MLS/replay。
+2. 已知摘要只交付变化和缺项；hydrate 后 canonical root 地址不变，缺 state 或依赖不得成功。
+3. 300 秒最大观察年龄、底层更早截止、旧观察不能重包装续期；已观察撤销/冲突/成员变更立即失效。
+4. state/gate principal、完整 AccountId、runtime method/key、授权 dot 和 scope 错配必须拒绝。
+5. state witness 使用 canonical `<event_id>:<write_index>`；裸 Event ID 或其它 dot 拒绝。
 
 `vector_id`: `ak.vector.agent.historical_evidence_materialization.v1`
 
-同一 fixture 中带该 `vector_id` 的 case 组固化 historical evidence 的 materialization 与长期验证合同，规则正文见
-[`../identity/key-management.md` §3.6.1](../identity/key-management.md) 与
-[`../sync/federation.md` §4.1.1](../sync/federation.md)。Runner MUST 覆盖：
+同一 fixture 固化 historical materialization，规则见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)
+与 [`../sync/federation.md` §4.1.1](../sync/federation.md)。Runner MUST 覆盖：
 
-1. 逻辑唯一键是 selector tuple `(agent_id, verification_method, event_id, receiver_id)`；Event digest 从 suite-bearing `event_id` 解码，不作为第二个 selector 字段。
-   同 tuple、同 receipt digest、同 canonical historical root MUST 是 exact replay / no-op；materializer MUST 在
-   签发新 outer attestation 前按该 tuple 读既有 root，MUST NOT 先签再靠 digest 主键冲突发现重复，
-   `additional_historical_roots_published` 恒为 0。
-2. 同 tuple 但 receipt digest 或 canonical historical root 任一不同 MUST `duplicate_conflict`，零覆盖并进入安全诊断。
-3. 只有 `receiver_id` 不同的 selector 是不同合法历史分支，MUST NOT 互相冲突，各自发布自己的 root。
-4. recursive signer dependency closure 不完整或 receipt 永久丢失 MUST 保持 unresolved
-   （`agent_signer_evidence_missing`）；MUST NOT 发布半个 root，MUST NOT 从 current state 补造 receipt。
-5. historical outer attestation 使用 closed `attested_at` 且没有 verifier-now TTL：签发很久之后 MUST 仍验证通过，
-   Authority verification method MUST 按 `attested_at` 解析。之后的 Authority key rotation MUST NOT 使已合法组装的
-   root 失效；`attested_at` 当时该 method 已非 active MUST 拒绝；historical 分支携带带 `expires_at` 的 current outer
-   MUST 拒绝。
-6. receiver 在 `receipt.accepted_at` 之后轮换签 receipt 的 key MUST NOT 使该 receipt 无法 materialize：receiver
-   dependency 与 receipt proof verification method MUST 按 `receipt.accepted_at` 解析当时的 historical service record；
-   从 current service record 或 verifier-now 重建 MUST 拒绝。`accepted_at` 当时 method 非 active MUST 拒绝，
-   其后的 revoke MUST NOT 追溯否定。
+1. 同 Station、同 authority role、同次接纳只用 `station_admission` 分支内原 accepted Event，不生成第二 receipt；
+   同站原始接纳使用 `receiver_receipt` 分支必须拒绝。
+2. 其它 authority 或不同接纳事实使用 receiver receipt；两分支不能替代对方所证明的接纳事实。
+3. selector tuple `(agent_id,verification_method,event_id,receiver_id)` 同接纳事实 exact replay 返回原 root/no-op；
+   不同事实或改写原 root 为 duplicate_conflict，零覆盖。
+4. 原 frozen CurrentAdmission root 与完整递归依赖必须原子可见；缺失接纳或历史材料保持 unresolved，不能从 current
+   state 重造历史。lease/gate/key 在原 producer accepted_at 验证，不受 verifier-now 过期影响。
+5. 原 Station/receiver/Agent Authority key 轮换不追溯失效；必须从完整 method history 选原签署时点方法，不能用当前 head。
 
 ## 29. Actor accountability grant closure vector
 
@@ -6542,25 +6535,15 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 
 Runner MUST 覆盖：
 
-1. `ak.peer.events.command.submit.v1` 的成功 outcome MUST 为 `accepted[] ∪ duplicate[]` 中每个 Agent Event
-   返回恰好一个 receiver-signed `agent_event_admission_receipts[]` 项；非 Agent Event 不产生 receipt；
-   `rejected[]`、`quarantine[]` 与 dependency-missing 项 MUST NOT 签发或返回 receipt；self submit outcome 不带该字段。
-2. receipt MUST 与 Event durable acceptance 在同一事务写入。receipt 写入失败 MUST 使该 Event 的接受整体回滚，
-   不得出现「Event 已接受但无 receipt」。receipt 有自己的 detached proof（domain
-   `ak.agent_signer_admission_receipt.v1`），HTTP Message Signature MUST NOT 充当替代。
-3. 同一 Event 被多个 receiver 接受时，每个 receiver 各签自己的 receipt，按 `receiver_id` 区分为多条
-   合法历史分支。
-4. byte-identical 重投 MUST 从 `duplicate[]` 返回第一次保存的 byte-identical receipt；重新生成 `accepted_at`
-   或更换 signing method 均不合格。相同去重键但 Event canonical bytes、digest 或 receipt intent 不同 MUST
-   `duplicate_conflict`，零 receipt 且零覆盖。
-5. source durable outbox 收到 2xx 后 MUST 先校验 response transport authentication 与 outcome schema，再要求
-   receipt 集合与 `accepted[] ∪ duplicate[]` 中带 origin `producer_signer_resolution_evidence_ref` 的 Agent Event 精确一一对应：
-   少一个、多一个、receipt proof 不可解析、`receiver_id` 不匹配，或 receipt 承诺的
-   `producer_signer_resolution_evidence_ref` 与 origin 冻结的 ref 不一致，MUST NOT 把该 Event/receiver 的
-   历史证据交接标为完成。
-6. 只有 receipt 已验证并与 materialization obligation 原子保存后，该 Event 对该 receiver 的 outbox delivery 才可推进；
-   source 在 obligation 提交前重启 MUST 复用同一 outbox row 与同一 Event/receiver/receipt intent，
-   MUST NOT 重新选择 admission evidence 或产生新的逻辑 receipt。
+1. peer/self submit 成功 outcome 为每个 accepted/duplicate Agent Event 返回唯一 `agent_event_admissions[]`。
+   原同站同 authority role 同次接纳只能携 `station_admission.accepted_event`；不同接纳使用 `receiver_receipt.receipt`。
+   非 Agent、rejected、quarantine 与 dependency-missing 不生成此项。
+2. 独立 receipt 与对应 durable acceptance 同事务提交，失败整体回滚；原同站接纳直接复用原 Event proof，不签第二 receipt。
+3. 不同 receiver 的接纳独立按 receiver_id 存储；exact duplicate 返回第一次保存的 byte-identical 接纳材料，不重写时间或method。
+4. source outbox 验证完整 outcome schema/transport、接纳集合与 accepted/duplicate 精确一一对应，以及每项
+   Event/Realm/Agent/method、原 producer evidence ref 与实际 receiver；缺项、错配或无效历史 signer 不完成交接。
+5. 接纳材料、frozen original CurrentAdmission root、完整依赖与 selector index 原子保存。重试同事实 no-op，
+   异事实为 duplicate_conflict 且零覆盖；不得使用后来 current state 补造丢失接纳。
 
 ## Account status issuer ledger
 

@@ -3630,7 +3630,9 @@
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
           "station_id": "ak:did_core:web:ps.example"
-        }
+        },
+        "requesting_device_public_key_did": "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBVLLqxYgNwxGEhiP",
+        "requesting_device_signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       }
     },
     {
@@ -3645,7 +3647,9 @@
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
           "station_id": "ak:did_core:web:ps.example"
-        }
+        },
+        "requesting_device_public_key_did": "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBVLLqxYgNwxGEhiP",
+        "requesting_device_signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       },
       "first_expected_error": "$: Additional properties are not allowed ('unexpected' was unexpected)"
     },
@@ -5604,98 +5608,6 @@
             "jws": "a..b"
           }
         ]
-      }
-    },
-    {
-      "name": "history_source_agent_observation_missing_required_field_is_rejected",
-      "schema_ref": "schemas/history-key.schema.json#/$defs/history_source_agent_observation_input",
-      "expect_valid": false,
-      "first_expected_error": "contains:'response_id' is a required property",
-      "instance": {
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
-        },
-        "source_actor_id": {
-          "kind": "service",
-          "service_id": "ak:did_core:key:z6MkfixtureService"
-        },
-        "source_sender_domain": "history.example",
-        "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
-        "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
-        "expires_at": "2026-08-28T00:00:00.000Z",
-        "content": {
-          "kind": "ak.history_key.response_manifest",
-          "chunks": [
-            {
-              "chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002",
-              "chunk_index": 0,
-              "covered_epoch_range": {
-                "from_epoch": 0,
-                "to_epoch": 0
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "name": "history_source_agent_observation_unknown_field_is_rejected",
-      "schema_ref": "schemas/history-key.schema.json#/$defs/history_source_agent_observation_input",
-      "expect_valid": false,
-      "first_expected_error": "contains:Additional properties are not allowed ('unexpected' was unexpected)",
-      "instance": {
-        "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000001",
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
-        },
-        "source_actor_id": {
-          "kind": "service",
-          "service_id": "ak:did_core:key:z6MkfixtureService"
-        },
-        "source_sender_domain": "history.example",
-        "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
-        "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
-        "expires_at": "2026-08-28T00:00:00.000Z",
-        "content": {
-          "kind": "ak.history_key.response_manifest",
-          "chunks": [
-            {
-              "chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002",
-              "chunk_index": 0,
-              "covered_epoch_range": {
-                "from_epoch": 0,
-                "to_epoch": 0
-              }
-            }
-          ]
-        },
-        "unexpected": true
-      }
-    },
-    {
-      "name": "history_source_agent_observation_wrong_content_union_is_rejected",
-      "schema_ref": "schemas/history-key.schema.json#/$defs/history_source_agent_observation_input",
-      "expect_valid": false,
-      "first_expected_error": "contains:is not valid under any of the given schemas",
-      "instance": {
-        "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000001",
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
-        },
-        "source_actor_id": {
-          "kind": "service",
-          "service_id": "ak:did_core:key:z6MkfixtureService"
-        },
-        "source_sender_domain": "history.example",
-        "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
-        "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
-        "expires_at": "2026-08-28T00:00:00.000Z",
-        "content": {
-          "kind": "ak.history_key.not_a_response"
-        }
       }
     },
     {

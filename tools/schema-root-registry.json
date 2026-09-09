@@ -2,16 +2,7 @@
   "version": "2026-08-23.1",
   "source_of_truth": true,
   "description": "Formal non-wire schema roots plus dated compatibility roots that predate the orphan-def gate. Compatibility entries are not reusable exemptions: additions fail lint and each retained entry is re-reviewed as one group.",
-  "formal_roots": [
-    {
-      "kind": "canonical_preimage",
-      "schema_ref": "schemas/history-key.schema.json#/$defs/history_source_agent_observation_input",
-      "registry_path": "registry/history-key-canonical-binding-registry.json#/digests/history_source_agent_observation_digest/preimage_schema_ref",
-      "owner": "history_replay",
-      "implementation_path": "../arkret-rust-sdk/crates/models-collaboration/src/history_key.rs",
-      "implementation_symbol": "HistorySourceAgentObservationInput"
-    }
-  ],
+  "formal_roots": [],
   "compatibility_review": {
     "owner": "schema_registry_maintenance",
     "reason": "Pre-existing standalone operation, conformance, local-cache or compatibility entrypoints outside the 2026-08-23 eight-def adjudication. New entries are forbidden; each item must be connected or deleted at the next review.",

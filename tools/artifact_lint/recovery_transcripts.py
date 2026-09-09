@@ -40,6 +40,7 @@ COMMON_FIELDS = [
     "session_grant_cnf_jkt",
     "account_id",
     "requesting_device_id",
+    "requesting_device_public_key_did",
     "trust_domain",
     "policy_id",
     "policy_version",

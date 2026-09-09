@@ -91,12 +91,7 @@
       "required": [
         "verification_mode",
         "agent_id",
-        "verification_method",
-        "operation_id",
-        "request_digest",
-        "verifier_id",
-        "audience_id",
-        "challenge"
+        "verification_method"
       ],
       "properties": {
         "verification_mode": {
@@ -109,23 +104,6 @@
           "type": "string",
           "format": "uri",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-        },
-        "operation_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/operation_id"
-        },
-        "request_digest": {
-          "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256"
-        },
-        "verifier_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "audience_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "challenge": {
-          "type": "string",
-          "minLength": 16,
-          "maxLength": 512
         }
       },
       "additionalProperties": false
@@ -184,7 +162,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Each success item is the complete content-addressed Agent signer-resolution root, including exact AgentSignerEvidence and all four recursive ref/digest pairs. Before returning success, the issuer atomically stores the byte-exact root and every recursively referenced dependency in the governance-dependency CAS. Clients never construct this wrapper from a bare AgentSignerEvidence."
+      "description": "Each success is a complete immutable Agent root with complete state and the applicable three or four recursive refs. The issuer atomically persists the exact root and complete dependencies. Current selectors refresh reusable state; historical selectors never consult later current state."
     },
     "query_failure": {
       "type": "object",

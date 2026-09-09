@@ -32,13 +32,10 @@ class CurrentSignerEvidenceSchemaTest(unittest.TestCase):
         return {
             "request_id": "ak:request:019b0000-0000-7000-8000-000000000001",
             "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-            "operation_id": "ak.self.signal.command.send.v1",
-            "request_digest": "sha256:" + "a" * 64,
             "recipient_account_id": {
                 "principal_id": "ak:did_core:webvh:z6mkrecipient",
                 "station_id": "ak:did_core:webvh:z6mkstation-b",
             },
-            "challenge": "ak.challenge." + "A" * 24,
             "queries": [
                 {
                     "sender_kind": "account_device",
@@ -56,19 +53,11 @@ class CurrentSignerEvidenceSchemaTest(unittest.TestCase):
         return {
             "response": {
                 **{key: request[key] for key in (
-                    "request_id", "realm_id", "operation_id", "request_digest",
-                    "recipient_account_id", "challenge",
+                    "request_id", "realm_id", "recipient_account_id",
                 )},
-                "issuer_id": request["queries"][0]["account_id"]["station_id"],
-                "issued_at": "2026-09-01T00:00:00.000Z",
-                "expires_at": "2026-09-01T00:00:30.000Z",
                 "evidences": [],
             },
-            "proof": {
-                "verification_method": "did:webvh:z6mkstation-a#notary-key",
-                "created_at": "2026-09-01T00:00:00.000Z",
-                "jws": "AAAA",
-            },
+
         }
 
     def test_request_has_no_caller_or_transport_authority_fields(self):
@@ -76,7 +65,7 @@ class CurrentSignerEvidenceSchemaTest(unittest.TestCase):
         self.request_validator.validate(request)
         for forbidden in (
             "source_service_id", "verifier_id", "issuer_id", "session_grant",
-            "key_package", "producer_key",
+            "key_package", "producer_key", "operation_id", "request_digest", "challenge",
         ):
             mutated = copy.deepcopy(request)
             mutated[forbidden] = "ak:did_core:webvh:z6mkattacker"

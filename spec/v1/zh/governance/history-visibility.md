@@ -358,18 +358,9 @@ Release service admission 必须完整验证 authenticated branch 及其递归 a
 receiver 使用 `request_receipt` history traversal access 从标准
 governance-dependency resolve surface 按 digest 分页取得。不得查询 current DID document 代替历史 evidence，也不得把最多 1 MiB 的
 evidence bytes 重复内联到每个 manifest/chunk。
-Agent 使用 CurrentAdmission branch 时，`current_observation.request_digest` 必须等于：
-
-```text
-history_source_agent_observation_digest = H(
-  UTF8("ak.history-source-agent-observation-v1") || 0x00 ||
-  JCS(history_response_signing_input 去掉 source_signer_evidence_ref)
-)
-```
-
-该独立 digest 域固定其 history response send 用途，并打破 evidence content digest 与 observation request digest 之间的自引用；
-`source_proof` 仍覆盖包含两项 evidence 坐标的完整 signing input。`current_observation.operation_id` 仍是本次操作的
-`ak:operation:<uuidv7>`，不得把 HTTP service operation id 填进 `ProtocolOperationId`。
+Agent 使用可复用 CurrentAdmission 材料，在 source proof 的签署时刻核对 lease/gate/key 时窗与当前授权。
+`source_proof` 直接签完整 history response signing input，包括 evidence ref；不再计算另一份 Agent observation
+request digest。实际 request、receiver、范围与 capability 仍由该消息自己的签名和请求合同绑定。
 Ordinary human、Agent 与 organization-recovery holder source 使用 `AuthenticatedSignerResolutionEvidence`。
 organization-recovery holder 使用 Principal root evidence；ordinary human 的设备签名必须使用上述 AccountDevice branch，
 其 DID-document method 签名使用 Principal branch。Agent 的 root evidence 必须是 Agent branch；Service branch

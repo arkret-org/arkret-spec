@@ -332,9 +332,11 @@
       "operation_specific": [
         "proof_invalid",
         "failed_precondition",
-        "duplicate_conflict"
+        "duplicate_conflict",
+        "identity_creation_challenge_expired",
+        "identity_creation_challenge_already_consumed"
       ],
-      "description": "Reserves the DID inception operation and issues a durable single-use challenge. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers stale or non-holder lease/fence and an operation that does not derive the claimed principal; duplicate_conflict covers request_id reuse or an attempt to replace an existing reserved operation with different bytes."
+      "description": "Reserves the DID inception operation and issues a durable single-use challenge. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers stale or non-holder lease/fence and an operation that does not derive the claimed principal; duplicate_conflict covers request_id reuse or an attempt to replace an existing reserved operation with different bytes. Exact replay of an expired-unconsumed or consumed challenge returns identity_creation_challenge_expired or identity_creation_challenge_already_consumed respectively; replacement remains failed_precondition. Independent issuance quota exhaustion returns the common rate_limited error with the actual blocking window and zero partial writes."
     },
     {
       "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",

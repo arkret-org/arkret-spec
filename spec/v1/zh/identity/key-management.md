@@ -268,11 +268,11 @@ frontier 互换。共享 `admission_evidence` 只含 `agent_authority_state_evid
 `controller_account_gate_attestation` 及无自引用的 `admission_evidence_digest`。raw public key不是秘密；Agent/controller
 private key、MLS private state、服务本地 `account_id` 与 raw account cell 永不进入 portable evidence。
 
-`agent_authority_state_evidence.core` 在 Agent Principal Control Realm 的一个 exact signed Seal view 中同时承载完整
-`signing_key_binding`、key authorization、key state witness 和 Agent lifecycle witness。`snapshot_digest` 只对 core
+`agent_authority_state_evidence.state` 在 Agent Principal Control Realm 的一个 exact signed Seal view 中同时承载完整
+`signing_key_binding`、key authorization、key state witness 和 Agent lifecycle witness。`state_digest` 只对 state
 做 RFC 8785/JCS SHA-256；`lease` 由该 PCR 的权威 service DID 在独立 domain
-`ak.agent_authority_state_evidence.v1` 下签名并逐字绑定 authority、verification method、snapshot digest 与时窗。
-snapshot core 的 `seal_lineage[]` 必须是把 key/status witness Seal 连接到 `frontier_seal_id` 的完整、无重复
+`ak.agent_authority_state_evidence.v1` 下签名并逐字绑定 authority、verification method、state digest 与时窗。
+state 的 `seal_lineages[]` 必须是把 key/status witness Seal 连接到 `frontier_seal_id` 的完整、无重复
 predecessor closure；unknown、fork、跨 Realm、缺 predecessor 或签名无效均拒绝。
 
 key `cell_ref` MUST 精确等于 SDK 从 `(agent_id, agent_key_id)` 派生的 `ak.component.agent.key.v1` composite
@@ -306,83 +306,82 @@ binding/status digest 与时窗。`account_binding_default` 表示权威私有 b
 全部 inactive。由于 portable evidence 不公开 service-local account identity，任何 `account_id`、raw account cell 或
 caller 自报 active 布尔值都是 schema violation。
 
-Agent authority **不能自行合成这一层 evidence**。组装 current admission evidence 或签发 historical admission receipt
-之前，它 MUST 以 authenticated S2S 身份调用
-`ak.gate.account.command.issue_controller_gate_attestation.v1`，提交 closed
-`{request_id, principal_id, agent_authority_id, agent_authority_resolution}`。后者携 current signed
-AuthenticatedServiceResolution 的 adapter-discriminated method evidence 与其认证的 normalized DID Document；Account Authority
-MUST 独立重做 method evidence、document digest、record proof/currentness、`project(did)` 与 active assertion key 校验，
-然后才可用同一 keyid 验 RFC 9421。签名 MUST 覆盖 method、target URI/path、Content-Digest、
-Source/Destination-Service-ID、operation id 与 request id。DidCoreId、URL、bearer 或 caller 自报 public key 均不是验签钥匙来源；
-bearer 只能作为附加部署门。`agent_authority_id` MUST 与请求的 verified source
-service identity 逐字相等。Account Authority 还 MUST 要求 `agent_authority_id` 等于 controller account authority pair 的 `station_id`。随后只从本地 authoritative account/device state 选择 basis；未知 principal、source/service 不一致与无权 caller 统一返回不可枚举的 `not_found`，不得泄露 account status。attestation 时窗 MUST 不超过 300 秒；producer 不得用
-service-local cache row、session introspection、controller 自报状态或过期 attestation替代。该 attestation 只是短 TTL
-controller-lifecycle snapshot，可在其时窗内被同一 producer复用，故不携 operation/request digest/audience/challenge；
-每个 `current_observation` 与 outer attestation 必须把它的 digest 重新绑定到 exact request context，裸 gate 单独跨请求
-重放不构成有效 signer evidence。exact issuance request replay 在保留期内
-返回 byte-identical outcome；同 request id 异 canonical intent 为 `duplicate_conflict` 且零签发。该 S2S carrier 只补齐
-Account Authority-owned gate，不验证或替代 Agent PCR snapshot、key/lifecycle witness 与 outer attestation。
+Agent authority **不能自行合成 Account Authority evidence**。缺少未过期且匹配 controller principal 的 gate 时，
+它 MUST 使用 authenticated S2S `ak.gate.account.command.issue_controller_gate_attestation.v1`，提交 closed
+`{request_id, principal_id, agent_authority_id, agent_authority_resolution}`。Account Authority 独立验证完整
+AuthenticatedServiceResolution、method-native evidence、document digest、current assertion method，再验证 RFC 9421
+签名覆盖的 method、target URI/path、Content-Digest、Source/Destination-Service-ID、operation id 与 request id。
+verified source、`agent_authority_id` 与 controller exact AccountId 的 Station 必须相同；裸 DID、URL、bearer、自报
+public key 或 account active 值不能代替签名来源。未知 principal、错误 authority 或无权 caller 返回不可枚举的
+`not_found`。gate 的正有效期 MUST 不超过 300 秒；相同 request id 与 canonical intent 的 replay 返回原字节，
+不同 intent 为 `duplicate_conflict` 且零签发。有效 gate 可以跨状态查询、消息与同一适用关系的设备复用；只在
+缺失、到期或已观察状态变化时刷新，不增加 controller 审批。
 
-current 分支必须携带 `current_observation`，逐字绑定 operation/request/verifier/audience/challenge、Agent snapshot
-digest、key/status Seal 与 controller gate digest。validator MUST 要求 `operation_id`、`request_digest`、`challenge`
-与当前实际请求完全相同，`verifier_id` 与实际执行验证的 authenticated service DID 相同，`audience` 与目标 operation
-的实际 audience 相同；任一字段不得由 evidence 自报后直接采信。observation 的 snapshot digest、key Seal、status Seal
-与 controller gate attestation digest MUST 分别逐字等于同一 `admission_evidence` 中被验证对象的实际值。
-outer attestation 的 source service MUST 是该 Agent PCR 的预期 authority service，并且其 proof 必须覆盖整个 tagged
-evidence。verifier-now 必须同时位于 outer attestation、Agent snapshot lease、
-controller gate attestation 和 current observation 的时窗内，且 key、Agent lifecycle、controller account 三层均
-active；pause/deactivate/revoke/supersede/expire/conflict或任一 stale/mismatch 均拒绝新操作。current object 在
-historical API 或 Event 历史验签路径结构性非法，也不得跨 verifier、audience、operation、request 或 challenge 重放。
+#### 可复用当前授权
 
-historical 分支必须携带由实际接收 Station 在 Event accepted 时签发的
-`ak.schema.agent_signer_admission_receipt.v1`。receipt 在 domain
-`ak.agent_signer_admission_receipt.v1` 下闭合绑定 suite-bearing Event ID/Realm、origin `station_admission.accepted_at`、
-receiver `accepted_at`、Agent/key method、origin 冻结的
-`producer_signer_resolution_evidence_ref` 与 receiver。Event digest 从 ID 解码，并覆盖 Event 自身的 `seal_ref`、
-`seal_basis` 或 anchor 形态，因此 receipt 不重复携带一个对 Data Event、Control Move 和 anchor 含义不一致的
-`event_admitted_seal_id`。
-receipt 的 `receiver_id` MUST 与实际接收并承诺该Event的destination service相同，receipt proof必须由该
-destination 在 `accepted_at` 有效的 registered verification method验证；查询方不得用source service或 current head
-document 中的 method 替代。v1 不新增 historical service-resolution endpoint：既有 current signed
-AuthenticatedServiceResolution 的 WebVH method-history evidence 已携带完整 log，materializer 与 verifier 必须先验证该完整
-carrier，再从 log 选择 `accepted_at` 的 exact normalized document；did:key 直接按不可变 identifier 展开，mutable
-did:web 继续 fail closed。current record URL 只是取得完整已签 carrier 的 transport locator，不使 head document 成为
-历史 key 的权威来源。历史 verifier
-必须从原 Event admission proof 取得并逐字复核 `producer_signer_resolution_evidence_ref`，按其内嵌 digest 从 CAS 读取 byte-exact
-`CurrentAdmission` root，只复用其中冻结的 `admission_evidence`；不得由 receipt 自报 snapshot，也不得读取当前状态
-重建。verifier 在 `producer_accepted_at` 检查当时 snapshot lease和account attestation有效，且被冻结的三层 basis
-均 active；不要求这些短期证明在 verifier-now 仍有效。删除 receipt、替换任一 basis、拿 later paused/deactivated
-witness 冒充 admission witness、或把 historical object用于新 admission均拒绝。
+`current_admission` 只包含 tagged `admission_evidence` 与可选 transparency。Agent Authority 的唯一状态签名为
+`agent_authority_state_evidence.lease`，它绑定 exact authority、method、state digest 和观察时窗；独立的 controller
+proof、Account Authority gate 和 Seal 签名各自保留。不再定义 current observation、Agent outer 或 query response
+签名。租约 `issued_at` MUST 是读取权威状态的真实时刻，`0 < expires_at-issued_at <= 300s`；转发、重新包装、重连、
+磁盘恢复或重复签旧观察 MUST NOT 重新计时。有效截止为 lease、gate 与非空 key authorization expiry 的最小值。
 
-key interval、Agent lifecycle 与 controller account lifecycle 是三个正交 AND gate。key revoke/supersede 只由真实
-`ak.agent.key.*` transition witness表达；parent pause/resume/deactivate或account状态变化不得伪造 key transition、
-不得改写 key authorization。Agent PCR 与 account authority 属于不同 DAG，frontier 不可跨 Realm 排序，协议明确
-否决“取最早 terminal frontier写入单一 valid_until”的做法。历史有效性只取决于 destination-signed receipt 固定的
-三项 admission-time basis；后来任一 gate 变化只阻止新 admission，不追溯抹除此前合法签名。
+每次使用 MUST 从可信来源核对完整 Agent AccountId、Agent PCR authority、controller exact AccountId、runtime
+method/key、accepted authorize Event/dot 与 scope disclosure。state 中 controller binding 和独立 gate 的 principal
+必须一致，authority routing 必须匹配完整 AccountId。裸摘要、同 principal 的另一 Station、同 owner 标记和另一端
+的 verified 标志都不是授权。新操作仍从实际请求核对 operation/scope、Realm、当前 membership/generation 与授权
+subset；有界缓存的 key、Agent lifecycle、controller account 均须 active。已观察 revoke/supersede、pause/deactivate、
+account inactive、membership ending/generation 变化或冲突立即使对应上下文失效，不等租约到期。
 
-outer attestation 在 domain `ak.agent_signer_evidence.v1` 下签整个 tagged evidence（只省略 outer_attestation 自身）
-的 JCS digest，防止 mode/context/snapshot/receipt拼接；它不替代底层 controller proof、Seal、snapshot lease、Account
-Authority proof或receipt proof。直接 evidence query 与 federation transport另用 RFC 9421 HTTP Message Signature
-覆盖完整 content digest、operation id与双方 service/session binding，不把 HTTP Signature header 嵌回 body形成环。
-current branch 的 outer 使用 `issued_at/expires_at` 短时窗；historical branch 使用 closed
-`attested_at` 且没有 verifier-now TTL。`attested_at` MUST 是 Agent Authority 实际签署 historical outer 的时刻，
-不得回填为 receipt `accepted_at` 或从 selector 派生。历史 verifier 必须从同一完整 AuthenticatedServiceResolution carrier
-的 method-history evidence 选择 `attested_at` 时 Authority 的 exact document 与 outer method；该 carrier 也必须能够在
-原 snapshot/lease 的签发时刻解析其内层 Authority method，不要求两次 method 相同。之后 key rotation、Agent key
-revoke、Agent pause/deactivate 或 controller account terminal 不得使已经合法组装的 historical root 追溯失效。
+自有关系在 accepted pairing/首次入组时验证并保留完整材料。稳态多条 Signal MUST 复用仍有效的本地验证结果，
+每条独立验证 producer signature、actor/endpoint、scope/group/epoch、TTL、AAD/AEAD 与 replay。普通重连、重新订阅、
+恢复未过期可信状态不触发重新配对、完整取证或状态重签。到期只刷新状态；绑定变化或缺材料才验证相应新增材料。
+刷新失败暂停需要当前授权的操作，历史验证不受影响。上下文只是派生验证结果：不得新增 context id、服务端登记表、
+建立/确认握手或独立撤销链。多端共享同一已签事实，各端仍自行验证 session、设备授权、MLS 成员资格和消息。
 
-Historical root 的 content digest 是该次首次物化的内容地址，不是 selector tuple 的确定性函数；真实
-`attested_at`、签名随机性或并发首次尝试可以产生候选 digest。协议唯一性与幂等只由已登记 selector tuple 承担：第一份
-成功发布的完整 root 胜出；同 tuple + byte-identical receipt 的任何重试 MUST 在签名前返回已存 root/no-op，不得重新签署；
-同 tuple 异 receipt 或试图覆盖已存 root仍为 `duplicate_conflict`。因此无需伪造确定时间，也无需 outer renewal、root
-replacement 或第二套 generation 协议。
+Signal current-signer query 的 `known_agent_state_digests` 只声明本地已完整验证的 state；相同摘要可在专用 compact
+transport root 中省略 `state`。接收端 MUST 先按摘要补回完整 state，再重算 admission/root digest 和验证签名；
+compact bytes 不是 canonical signer-evidence 对象，也不能存入 canonical CAS。变更 state 必须完整交付。
+`known_signer_evidence_refs` 允许省略已知依赖，消费者按已验证缓存与收到材料组成完整闭包；缺项仍 unresolved。
+稳定材料不重复验签，authority 观察更新只验证新 lease/gate；冷缓存不声明 known，返回完整材料。不新增取回端点。
 
-`revoked`、`superseded`、`expired`、`conflicted`或 admission-time 任一 parent inactive 是确定性拒绝；evidence/receipt
-缺失、时窗不满足或网络失败是 `Unresolved/Stale`，绝不得提升为 Verified。启用
-`ak.profile.key_transparency.v1` 时还必须验证 inclusion/consistency/witness proof。完整 transcript 与正负矩阵由
-`ak.vector.agent.signer_evidence_binding.v1` 固化；historical materialization 的 selector tuple exact replay /
-`duplicate_conflict`、`attested_at` 长期验证与 receiver key rotation 由
-`ak.vector.agent.historical_evidence_materialization.v1` 固化。
+闭包的必需边除 ASRE 显式 refs 外，还包括 lifecycle accepted Event 的 StationAdmissionProof 中
+`signer_resolution_evidence_ref`，以及每个 PCR Seal notary signature 使用的 exact method。后者是由已签 Seal
+限定的隐式 selector：闭包必须包含能在 `seal.sealed_at` 认证该 method 的 Service 或 Principal evidence，已有
+attester/controller leaf 匹配时直接复用，不为同一材料新增副本。consumer 验完整 method history、method controller
+与 Agent PCR authority/controller role，再验 Seal transcript；lifecycle Station proof 按原 accepted_at 验证。
+因此旧 Station key 轮换不触发 current DID 回查；未被任何签名或显式 ref 使用的额外材料仍须拒绝，全部唯一内容摘要
+仍受 64 项上限限制。缺少所需历史 method 的响应不是完整闭包，不能只返回新 head 后要求客户端自行在线解析。
+
+#### 历史接纳
+
+`historical_event` 只包含冻结 `admission_evidence`、closed `event_admission` 与可选 transparency。接纳为 tagged XOR：
+
+- `kind=station_admission` 携完整 `accepted_event`，用于同 Station、同 authority role、同一次 durable acceptance。
+  MUST 直接验证该 Event 原有唯一 StationAdmissionProof，不得再签或接受第二张同义 receiver receipt。
+- `kind=receiver_receipt` 携 `receipt`，仅用于不同接收 authority 或另一独立接纳事实。receipt 在
+  `ak.agent_signer_admission_receipt.v1` 下签名，绑定 Event/Realm、origin accepted_at、receiver accepted_at、
+  Agent/method、原 producer signer-evidence ref 与 receiver。
+
+原 admission 的 event_digest、producer proof/key/method、producer signer-evidence ref 和 accepted_at 已共同确定
+同站同次接纳事实。verifier MUST 重算 accepted Event、验证原 admission proof 并从其冻结 ref 读取 byte-exact
+CurrentAdmission root；该根的完整 admission_evidence 必须逐字相同。同站分支两个接纳时刻均为原 accepted_at，
+receiver 从原 admission method 的可信 Station role 得出，且与实际 selector/接纳方相同。receipt 分支必须核对独立
+receiver 和原 Event admission，不得用 source 冒充另一次接纳。sameStation 原始接纳使用 receipt 分支必须拒绝。
+
+verifier 在原 producer accepted_at 检查 lease/gate/key 的时窗与三项 active basis，不要求它们在 verifier-now 仍有效。
+method-history 必须在原 proof 的签署/接纳时刻验证 exact method：did:key 按不可变 identifier 展开，WebVH 验完整
+log 并选择该时刻 document，mutable did:web 不提供历史权威。current carrier 只是获取完整历史材料的 transport，
+不把当前 head 当历史 key。ASRE 的 receiver_signer_evidence_ref 在 current 分支禁止，在 historical 分支必须存在，
+用于原 Station admission 或独立 receipt；其它三项 ref 分别认证 Agent Authority lease、controller 和 Account Authority。
+
+历史对象没有新的包装签名或到期时间。selector tuple 的第一次完整物化原子存储 root 与依赖；同 tuple 同接纳事实
+返回原 root/no-op，不重复物化；不同接纳事实试图覆盖原 tuple 为 duplicate_conflict。后来 key rotation、Agent key
+revoke、parent pause/deactivate 或 controller account 状态变化不追溯抹除已合法接受的历史。key interval、Agent
+lifecycle、controller account lifecycle 仍是独立 AND gate；parent 状态不能伪造 key transition，也不能跨 DAG 排 frontier。
+
+缺失证据或 stale 为 Unresolved/Stale，绝不提升为 Verified；确定的 inactive/conflict 拒绝新操作。启用
+`ak.profile.key_transparency.v1` 时仍须验证 inclusion/consistency/witness proof。向量
+`ak.vector.agent.signer_evidence_binding.v1` 与 `ak.vector.agent.historical_evidence_materialization.v1` 覆盖这些规则。
 
 任何缺少 `signing_key_binding_digest` 证据的 authorization 都是 unresolved，服务端不得从 session row 合成证书，也不得提升为 Verified。客户端 MUST 显示 `verification_pending`；controller MUST 通过 same-key re-authorization 产生 replacement authorize Event 与完整 v1 binding，runtime key MAY 保持不变。
 - **Sidecar exposure 披露**：pairing approval UI 必须说明，建立 Agent ownership 本身不会把 Agent 加入任何

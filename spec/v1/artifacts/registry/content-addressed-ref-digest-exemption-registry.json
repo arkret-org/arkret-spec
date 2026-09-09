@@ -20,54 +20,6 @@
   },
   "exemptions": [
     {
-      "exemption_id": "ak.exemption.sibling_digest.agent_signer_evidence_current_observation_agent_authority_state_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/agent-signer-evidence.schema.json",
-        "json_path": "$.$defs.current_observation.properties",
-        "digest_field": "agent_authority_state_digest",
-        "content_addressed_refs": [
-          "agent_key_seal_id",
-          "agent_status_seal_id"
-        ]
-      },
-      "preimage": "SHA-256(JCS(agent_authority_state_evidence.state)) frozen for this admission; not a Seal. The digest covers the authority state view alone, which is what the schema and every implementation compute; naming the wrapper here was wrong and would have justified a second, incompatible reading",
-      "spec_anchor": "spec/v1/zh/identity/key-management.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.agent_signer_evidence_current_observation_controller_gate_attestation_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/agent-signer-evidence.schema.json",
-        "json_path": "$.$defs.current_observation.properties",
-        "digest_field": "controller_gate_attestation_digest",
-        "content_addressed_refs": [
-          "agent_key_seal_id",
-          "agent_status_seal_id"
-        ]
-      },
-      "preimage": "SHA-256(JCS(controller_account_gate_attestation)) frozen for this admission; not a Seal",
-      "spec_anchor": "spec/v1/zh/identity/key-management.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.agent_signer_evidence_current_observation_request_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/agent-signer-evidence.schema.json",
-        "json_path": "$.$defs.current_observation.properties",
-        "digest_field": "request_digest",
-        "content_addressed_refs": [
-          "agent_key_seal_id",
-          "agent_status_seal_id"
-        ]
-      },
-      "preimage": "history_source_agent_observation_digest over the history response signing input with source_signer_evidence_ref removed; not a Seal",
-      "spec_anchor": "spec/v1/zh/governance/history-visibility.md"
-    },
-    {
       "exemption_id": "ak.exemption.sibling_digest.availability_receipt_root_bytes_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",

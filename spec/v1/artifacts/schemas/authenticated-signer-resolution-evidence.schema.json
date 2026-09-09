@@ -144,8 +144,7 @@
         "agent_signer_evidence",
         "attester_signer_evidence_ref",
         "controller_signer_evidence_ref",
-        "account_authority_signer_evidence_ref",
-        "receiver_signer_evidence_ref"
+        "account_authority_signer_evidence_ref"
       ],
       "properties": {
         "kind": {
@@ -174,7 +173,40 @@
         }
       },
       "additionalProperties": false,
-      "description": "The four required content-addressed refs resolve the Agent Authority, controller, Account Authority and receiver historical signer leaves selected by the exact methods in agent_signer_evidence. Each ref embeds the sole wire copy of its evidence digest (encoding.md 4.0.1). Current route or DID expiry is not a retrospective validity input."
+      "description": "The three current refs authenticate Agent Authority lease, controller binding and Account Authority gate. Historical evidence additionally requires receiver_signer_evidence_ref for the original Station admission or distinct receiver receipt; current evidence forbids that ref. All roots retain complete state, and every ref embeds its sole digest.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "agent_signer_evidence": {
+                "properties": {
+                  "verification_mode": {
+                    "const": "historical_event"
+                  }
+                },
+                "required": [
+                  "verification_mode"
+                ]
+              }
+            },
+            "required": [
+              "agent_signer_evidence"
+            ]
+          },
+          "then": {
+            "required": [
+              "receiver_signer_evidence_ref"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "receiver_signer_evidence_ref"
+              ]
+            }
+          }
+        }
+      ]
     }
   }
 }

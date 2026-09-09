@@ -208,11 +208,15 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 ### 3.2 Agent signer evidence bundle（normative）
 
-声明 `ak.profile.agent_signer_evidence.v1` 的 sync producer MUST 在 sync response 顶层支持可选 `agent_signer_evidence_bundle`，其 shape为 `agent-signer-evidence-operations.schema.json#/$defs/sync_bundle`。Event不新增字段，也不得把transport evidence写进producer canonical bytes。historical evidence按完整 `(event_id,receiver_id)` 去重；event digest 必须从 suite-bearing `event_id` 解码，并由Event的`executed_by ?? actor_id`与proof method再交叉选择。current evidence仅按完整 `(agent_id,verification_method,operation_id,request_digest,verifier_id,audience,challenge)` 精确匹配目标请求，不得作为通用Agent状态缓存。
+声明 `ak.profile.agent_signer_evidence.v1` 的 sync producer MUST 在 sync response 顶层支持可选 `agent_signer_evidence_bundle`，其 shape为 `agent-signer-evidence-operations.schema.json#/$defs/sync_bundle`。Event不新增字段，也不得把transport evidence写进producer canonical bytes。historical evidence按完整 `(event_id,receiver_id)` 去重；event digest 必须从 suite-bearing `event_id` 解码，并由Event的`executed_by ?? actor_id`与proof method再交叉选择。current evidence按完整 Agent AccountId、controller、method/key、authorization dot 与适用scope绑定，允许在原观察窗口内跨消息和重连复用；已观察撤销/成员变化立即失效，接收端逐条独立检查消息/MLS/TTL/replay，不能从sync transport本身推导授权。
 
 服务端只可为requester与Agent当前共享Realm/session/contact/controller上下文的Event携带evidence；不得借initial sync枚举其他Agent或其私有scope。minimal-metadata Realm bucket禁止携带或触发Agent/device principal query。
 
-客户端对historical evidence的cache key MUST包含上述三元组；同一key出现不同receipt、admission evidence digest或snapshot digest必须quarantine。current evidence只能在其observation时窗内供完全相同的请求使用，任何字段不同都必须重新查询，不能覆盖、续期或替代另一challenge。evidence缺失或证明过期只产生 `verification_pending` / `agent_signer_evidence_stale`，不得降级为device directory或ordinary MLS leaf-only Verified。backfill与live sync使用完全相同DTO和validator。
+客户端的 historical cache key 包含完整 `(agent_id,verification_method,event_id,receiver_id)`；同key不同
+接纳事实、admission evidence或state digest必须quarantine。原同站接纳只使用station_admission中的原Event，独立
+接纳使用receiver_receipt。current状态按原lease/gate/key最早截止复用；普通消息、重连或传输重新包装不能续期，
+到期只刷新状态和缺项，不重做未变身份链。缺失证据或stale保持verification_pending，不能降级为device directory
+或ordinary MLS leaf-only Verified。backfill和live sync使用同一DTO与验证规则。
 
 `realms` 不按 membership 做外层分桶；它始终以 `ak:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `ak.member.state` projection，取值可为 `join`、`knock`、`leave` 或 `ban`（完整枚举见 §2 首次定义），不得把这些值提升为 `realms` 的外层 key。待处理 Invite 只来自调用方私有 Invite inbox，不是该字段的第五种取值。
 

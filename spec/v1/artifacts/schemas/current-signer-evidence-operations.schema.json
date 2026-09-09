@@ -2,17 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/current-signer-evidence-operations.schema.json",
   "title": "Arkret Current Signer Evidence Operations",
-  "description": "Request-bound current signer evidence used by a cold recipient. The same closed request is used on the authenticated self proxy and peer authority hop; the authenticated caller service is derived from transport and is never supplied in the body.",
+  "description": "Authenticated current signer state refresh for cold or expired contexts. Signed authority material is reusable across Signals and authorized devices; request context controls disclosure and is not another signature layer.",
   "$defs": {
     "query_request": {
       "type": "object",
       "required": [
         "request_id",
         "realm_id",
-        "operation_id",
-        "request_digest",
         "recipient_account_id",
-        "challenge",
         "queries"
       ],
       "properties": {
@@ -22,21 +19,9 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "operation_id": {
-          "const": "ak.self.signal.command.send.v1"
-        },
-        "request_digest": {
-          "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256",
-          "description": "SHA-256 typed digest of the complete received SignalEnvelope, including producer proof."
-        },
         "recipient_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "Exact authenticated recipient Account. On the self hop it MUST equal the SessionGrant subject; on the peer hop its station_id MUST equal authenticated Source-Service-ID."
-        },
-        "challenge": {
-          "type": "string",
-          "minLength": 24,
-          "maxLength": 512
         },
         "queries": {
           "type": "array",
@@ -45,6 +30,23 @@
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/query_selector"
+          }
+        },
+        "known_agent_state_digests": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256"
+          },
+          "description": "Only digests of complete locally verified state. An equal state may be omitted in the compact transport root; absence never grants trust."
+        },
+        "known_signer_evidence_refs": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
           }
         }
       },
@@ -122,32 +124,21 @@
     "query_outcome": {
       "type": "object",
       "required": [
-        "response",
-        "proof"
+        "response"
       ],
       "properties": {
         "response": {
           "$ref": "#/$defs/response_core"
-        },
-        "proof": {
-          "$ref": "./principal-operations.schema.json#/$defs/signature"
         }
       },
       "additionalProperties": false
     },
     "response_core": {
       "type": "object",
-      "x-arkret-signature-domain": "ak.current_signer_evidence_response.v1",
       "required": [
         "request_id",
         "realm_id",
-        "operation_id",
-        "request_digest",
         "recipient_account_id",
-        "challenge",
-        "issuer_id",
-        "issued_at",
-        "expires_at",
         "evidences"
       ],
       "properties": {
@@ -157,31 +148,9 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "operation_id": {
-          "const": "ak.self.signal.command.send.v1"
-        },
-        "request_digest": {
-          "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256"
-        },
         "recipient_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "Exact recipient account echoed from the request. Its station_id is the verifier: the authenticated proxy Station that MUST equal the peer request Source-Service-ID. No separate verifier field exists on wire."
-        },
-        "challenge": {
-          "type": "string",
-          "minLength": 24,
-          "maxLength": 512
-        },
-        "issuer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Authority Station signing this response. Every returned sender routes to this exact Station."
-        },
-        "issued_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "MUST be no later than issued_at plus 30 seconds and no later than every embedded current evidence expiry."
         },
         "evidences": {
           "type": "array",
@@ -254,11 +223,10 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "authenticated_signer_evidence": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence"
+          "$ref": "#/$defs/compact_agent_signer_resolution_evidence"
         },
         "dependencies": {
           "type": "array",
-          "minItems": 1,
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
@@ -274,10 +242,112 @@
               }
             ]
           },
-          "description": "Byte-exact recursive signer-evidence closure for the root. Traversal is cycle-checked and terminates after at most 64 unique content digests; no dependency may trigger another current-signer-evidence query."
+          "description": "Recursive closure excluding only exact known_signer_evidence_refs. The consumer verifies the union of received and locally retained authenticated objects; a missing or wrong dependency remains unresolved. No dependency triggers another per-message current query. Closure edges also include lifecycle StationAdmission signer_resolution_evidence_ref and exact PCR Seal notary methods resolved at sealed_at. An already used authority/controller leaf may satisfy the method selector; unused surplus is rejected."
         }
       },
       "additionalProperties": false
+    },
+    "compact_agent_signer_resolution_evidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "signer_id",
+        "verification_method",
+        "agent_signer_evidence",
+        "attester_signer_evidence_ref",
+        "controller_signer_evidence_ref",
+        "account_authority_signer_evidence_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "agent"
+        },
+        "signer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "agent_signer_evidence": {
+          "$ref": "#/$defs/compact_current_agent_signer_evidence"
+        },
+        "attester_signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "controller_signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "account_authority_signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Transport-only current root. Hydrate any omitted state from the exact verified state_digest before computing the canonical complete root digest or validating its closure. The compact bytes are never a canonical signer-evidence object."
+    },
+    "compact_current_agent_signer_evidence": {
+      "type": "object",
+      "required": [
+        "schema",
+        "verification_mode",
+        "admission_evidence"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.agent_signer_evidence.v1"
+        },
+        "verification_mode": {
+          "const": "current_admission"
+        },
+        "admission_evidence": {
+          "$ref": "#/$defs/compact_agent_admission_evidence"
+        },
+        "transparency": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/transparency"
+        }
+      },
+      "additionalProperties": false
+    },
+    "compact_agent_admission_evidence": {
+      "type": "object",
+      "required": [
+        "agent_authority_state_evidence",
+        "controller_account_gate_attestation",
+        "admission_evidence_digest"
+      ],
+      "properties": {
+        "agent_authority_state_evidence": {
+          "$ref": "#/$defs/compact_agent_authority_state_evidence"
+        },
+        "controller_account_gate_attestation": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/controller_account_gate_attestation"
+        },
+        "admission_evidence_digest": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256",
+          "description": "SHA-256 over RFC 8785 JCS of exactly {agent_authority_state_evidence, controller_account_gate_attestation}. It never includes itself, a receipt or an outer attestation."
+        }
+      },
+      "additionalProperties": false
+    },
+    "compact_agent_authority_state_evidence": {
+      "type": "object",
+      "required": [
+        "state_digest",
+        "lease"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/agent_authority_state"
+        },
+        "state_digest": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256",
+          "description": "SHA-256 over RFC 8785 JCS of state only."
+        },
+        "lease": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/agent_authority_state_lease"
+        }
+      },
+      "additionalProperties": false,
+      "description": "state may be absent only when its digest was declared known. Hydration is required before any canonical root/admission digest calculation. State changes always return full state."
     }
   }
 }

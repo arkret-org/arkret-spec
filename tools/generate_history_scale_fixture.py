@@ -28,7 +28,6 @@ OUTPUT = ROOT / "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
 ZERO = b"\x00"
 TRAVERSAL_INTENT_DOMAIN = b"ak.history-governance-traversal-intent-v1"
 AVAILABILITY_BYTES_DOMAIN = b"ak.availability_event_bytes.v1"
-SOURCE_AGENT_OBSERVATION_DOMAIN = b"ak.history-source-agent-observation-v1"
 ARCHIVE_REPLICA_DOMAIN = b"ak.organization-recovery-archive-replica-v1"
 MAX_REQUEST_EPOCHS = 65_536
 
@@ -694,49 +693,6 @@ def build_scale_recipe(epoch_count: int, journal: dict[str, int] | None = None) 
         "outbox_write_count": probe["outbox_writes"],
     }
 
-
-def build_source_agent_observation_digest_kat(schemas: SchemaSet) -> dict[str, Any]:
-    preimage = {
-        "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000001",
-        "effective_scope": {"kind": "realm", "realm_id": REALM},
-        "source_actor_id": SERVICE_ACTOR,
-        "source_sender_domain": "history.example",
-        "request_digest": digest_marker(0x41),
-        "request_receipt_digest": digest_marker(0x42),
-        "expires_at": EXPIRES,
-        "content": {
-            "kind": "ak.history_key.response_manifest",
-            "chunks": [
-                {
-                    "chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002",
-                    "chunk_index": 0,
-                    "covered_epoch_range": {"from_epoch": 0, "to_epoch": 0},
-                }
-            ],
-        },
-    }
-    evidence_a = {
-        "source_signer_evidence_ref": "ak:signer_evidence:" + digest_marker(0x51),
-    }
-    evidence_b = {
-        "source_signer_evidence_ref": "ak:signer_evidence:" + digest_marker(0x52),
-    }
-    expected = domain_digest(SOURCE_AGENT_OBSERVATION_DOMAIN, preimage)
-    schemas.validator(
-        "history-key.schema.json", "history_source_agent_observation_input"
-    ).validate(preimage)
-    return {
-        "domain": SOURCE_AGENT_OBSERVATION_DOMAIN.decode("ascii"),
-        "preimage": preimage,
-        "signing_input_a": {**preimage, **evidence_a},
-        "signing_input_b": {**preimage, **evidence_b},
-        "expected_digest": expected,
-        "mutating_only_evidence_coordinates_keeps_digest": expected,
-        "mutating_content_changes_digest": domain_digest(
-            SOURCE_AGENT_OBSERVATION_DOMAIN,
-            {**preimage, "source_sender_domain": "mutated.example"},
-        ),
-    }
 
 
 def build_response_capability_kat() -> dict[str, Any]:
@@ -1550,7 +1506,6 @@ def build_sections() -> dict[str, Any]:
         "direct_traversal_replay_kat": build_traversal_replay_kat(),
         "authenticated_signer_resolution_evidence_kat": signer,
         "governance_dependency_resolve_kat": dependency,
-        "history_source_agent_observation_digest_kat": build_source_agent_observation_digest_kat(schemas),
         "history_response_capability_kat": build_response_capability_kat(),
         "response_stream_cases": build_response_stream_kat(schemas),
         "organization_recovery_archive_durable_before_gc_kat": durability,

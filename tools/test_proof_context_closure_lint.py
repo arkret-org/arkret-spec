@@ -110,9 +110,9 @@ class ProofContextClosureLintTest(unittest.TestCase):
         errors = self._run_with_mutations({REGISTRY: move_to_contexts})
         self.assertAnyContains(errors, "local proof leaves belong in domain_separations[]")
 
-    def test_current_signer_binding_field_must_match_schema(self) -> None:
+    def test_agent_lease_binding_field_must_match_schema(self) -> None:
         def drift(document) -> None:
-            row = self._domain_row(document, "ak.current_signer_evidence_response.v1")
+            row = self._domain_row(document, "ak.agent_authority_state_evidence.v1")
             row["binding_fields"][-1] = "evidence"
 
         errors = self._run_with_mutations({REGISTRY: drift})

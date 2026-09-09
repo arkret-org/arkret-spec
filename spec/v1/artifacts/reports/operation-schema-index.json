@@ -3186,14 +3186,14 @@
           "pending_delivery_count",
           "ingress_receipts",
           "control_proposal_acks",
-          "agent_event_admission_receipts",
           "duplicate",
           "rejections",
           "quarantine",
           "frontiers",
           "cursor",
           "original_outcome",
-          "agent_membership_cascade"
+          "agent_membership_cascade",
+          "agent_event_admissions"
         ],
         "closed": true
       }
@@ -3682,20 +3682,16 @@
         "required": [
           "request_id",
           "realm_id",
-          "operation_id",
-          "request_digest",
           "recipient_account_id",
-          "challenge",
           "queries"
         ],
         "properties": [
           "request_id",
           "realm_id",
-          "operation_id",
-          "request_digest",
           "recipient_account_id",
-          "challenge",
-          "queries"
+          "queries",
+          "known_agent_state_digests",
+          "known_signer_evidence_refs"
         ],
         "closed": true
       },
@@ -3703,12 +3699,10 @@
         "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome",
         "schema_kind": "object",
         "required": [
-          "response",
-          "proof"
+          "response"
         ],
         "properties": [
-          "response",
-          "proof"
+          "response"
         ],
         "closed": true
       }
@@ -5313,20 +5307,16 @@
         "required": [
           "request_id",
           "realm_id",
-          "operation_id",
-          "request_digest",
           "recipient_account_id",
-          "challenge",
           "queries"
         ],
         "properties": [
           "request_id",
           "realm_id",
-          "operation_id",
-          "request_digest",
           "recipient_account_id",
-          "challenge",
-          "queries"
+          "queries",
+          "known_agent_state_digests",
+          "known_signer_evidence_refs"
         ],
         "closed": true
       },
@@ -5334,12 +5324,10 @@
         "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome",
         "schema_kind": "object",
         "required": [
-          "response",
-          "proof"
+          "response"
         ],
         "properties": [
-          "response",
-          "proof"
+          "response"
         ],
         "closed": true
       }
@@ -7064,7 +7052,6 @@
           "pending_delivery_count",
           "ingress_receipts",
           "control_proposal_acks",
-          "agent_event_admission_receipts",
           "duplicate",
           "rejections",
           "quarantine",
@@ -7072,6 +7059,7 @@
           "cursor",
           "original_outcome",
           "agent_membership_cascade",
+          "agent_event_admissions",
           "unit_kind",
           "event_ids",
           "receipt"
@@ -7092,14 +7080,14 @@
               "pending_delivery_count",
               "ingress_receipts",
               "control_proposal_acks",
-              "agent_event_admission_receipts",
               "duplicate",
               "rejections",
               "quarantine",
               "frontiers",
               "cursor",
               "original_outcome",
-              "agent_membership_cascade"
+              "agent_membership_cascade",
+              "agent_event_admissions"
             ],
             "closed": true
           },

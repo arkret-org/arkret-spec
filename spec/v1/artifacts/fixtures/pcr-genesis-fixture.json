@@ -126,6 +126,40 @@
         "did_history_0_canonical_bytes"
       ],
       "expected": "fail_closed_before_sign_or_adopt"
+    },
+    {
+      "name": "challenge_issuance_independent_from_renewal",
+      "attempts": [
+        "acquisition_then_immediate_challenge",
+        "renewal_then_immediate_first_challenge",
+        "renewal_budget_exhausted_but_issuance_budget_available",
+        "concurrent_new_issuances",
+        "same_holder_new_fence_within_issuance_window"
+      ],
+      "expected": [
+        "issued_without_lease_extension",
+        "issued_without_lease_extension",
+        "issued_without_lease_extension",
+        "one_issued_one_rate_limited_zero_partial_writes",
+        "rate_limited"
+      ]
+    },
+    {
+      "name": "challenge_ttl_and_current_execution_authority_are_independent",
+      "attempts": [
+        "challenge_expires_after_issuing_handoff_and_lease",
+        "same_binding_fresh_handoff_reuses_live_proof",
+        "old_proof_without_current_live_lease",
+        "lock_wait_crosses_lease_or_handoff_expiry",
+        "canonical_zero_length_ttl"
+      ],
+      "expected": [
+        "valid_independent_ttl_at_most_300_seconds",
+        "same_transcript_no_new_issuance",
+        "reject_before_registry_io",
+        "reject_without_issuance",
+        "reject_without_issuance"
+      ]
     }
   ],
   "frozen_reservation_barrier_cases": [
@@ -433,5 +467,22 @@
       "transform": "none; the canonical multikey exactly as carried"
     },
     "carrier_rule": "the descriptor carries the keys and MUST NOT carry either digest; the receipt carries the digests because it carries no raw key"
+  },
+  "challenge_issuance_contract": {
+    "budget_key": [
+      "account_id",
+      "audience",
+      "holder_jkt"
+    ],
+    "window_seconds": 60,
+    "window_max_successes": 1,
+    "hour_max_successes": 12,
+    "maximum_ttl_seconds": 300,
+    "renews_lease": false,
+    "consumes_renewal_quota": false,
+    "clips_expiry_to_execution_authority": false,
+    "exact_replay_counts": false,
+    "same_binding_reauthentication_reuses_proof": true,
+    "lease_fence_changes_reset_budget": false
   }
 }

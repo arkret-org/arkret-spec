@@ -1,7 +1,7 @@
 {
   "version": "2026-09-09",
   "source_of_truth": true,
-  "generated_at": "2026-09-08T21:05:59+00:00",
+  "generated_at": "2026-09-09T05:05:59+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1347,7 +1347,8 @@
         "state_digest",
         "issued_at",
         "expires_at"
-      ]
+      ],
+      "schema_ref": "schemas/agent-signer-evidence.schema.json#/$defs/agent_authority_state_lease"
     },
     {
       "domain": "ak.agent_signer_admission_receipt.v1",
@@ -1364,20 +1365,6 @@
         "verification_method",
         "producer_signer_resolution_evidence_ref",
         "receiver_id"
-      ]
-    },
-    {
-      "domain": "ak.agent_signer_evidence.v1",
-      "object_family": "agent_signer_evidence_outer_attestation",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "domain",
-        "core_digest",
-        "source_id",
-        "verification_method",
-        "issued_at",
-        "expires_at",
-        "attested_at"
       ]
     },
     {
@@ -1417,24 +1404,6 @@
         "observed_at",
         "outgoing_request_state"
       ]
-    },
-    {
-      "domain": "ak.current_signer_evidence_response.v1",
-      "object_family": "current_signer_evidence_response",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "request_id",
-        "realm_id",
-        "operation_id",
-        "request_digest",
-        "recipient_account_id",
-        "challenge",
-        "issuer_id",
-        "issued_at",
-        "expires_at",
-        "evidences"
-      ],
-      "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/response_core"
     },
     {
       "domain": "ak.contact.request_acceptance_core.v1",

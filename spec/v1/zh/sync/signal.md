@@ -184,14 +184,20 @@ source 每次准入与出站 fresh 检查 MUST 同时满足原 accepted 设备�
 `ak.self.current_signer_evidence.read.resolve.v1` 让本地 Station 代查询 origin 的
 `ak.peer.current_signer_evidence.read.resolve.v1`，不得把本地用户 SessionGrant 转发给远端、
 直接请求私有 device gate、用 KeyPackage claim 代替 current projection，或先向缓存预注入材料。
-请求 MUST 绑定完整 Signal digest、每次唯一 challenge、exact recipient Account、Realm 与 closed
-sender selector；origin 签名的 outer response MUST 逐字绑定 authenticated proxy Station 和这些
-client context，代理只能原样转交。ordinary 内层仍复用既有 device attestation，不披露 PCR；Agent
-内层必须是 `current_admission` 的完整 authenticated signer-resolution root，不要求 prior Agent Event。
-缓存 MUST 绑定完整 AccountId/device/authorization/generation，并遵守 attestation expiry 和已观察
-到的 generation、撤销或冲突失效。没有当前可信材料时可以在 TTL 内有界等待已有取证流程，
-但 MUST NOT 展示、更新 high-water 或执行业务；过期即丢弃。完整 request-bound response 不得跨
-challenge、recipient、Signal digest 或 verifier 缓存复用；仅其递归已签 basis 可按自身窗口缓存。
+请求只含 `request_id`、Realm、exact recipient Account 与 closed sender selector，可附
+`known_agent_state_digests` / `known_signer_evidence_refs` 声明本地可信材料。HTTP 身份与完整正文认证用于披露控制；
+response 只回显 request/Realm/recipient 并交付独立已签 evidences，不另签 query 包装。ordinary 使用 device attestation；
+Agent 使用 `current_admission` 的可复用 authority lease 与独立 controller gate，缺项通过同一查询补齐。
+Agent compact transport root 可省略已声明 known 的 state，接收端必须按 exact digest 补回后才计算完整 canonical root
+地址并验证闭包；transport 省略不会改变证据内容地址。query outcome 的 unsigned 元数据本身不证明身份、成员或授权。
+
+缓存 MUST 绑定完整 AccountId/device/authorization/generation，Agent 还绑定 controller、runtime method/key、授权 dot
+与已验证 scope。source 仍按本地权威状态逐次执行准入；recipient 在 Agent lease 最多 300 秒的明确观察窗口内复用
+授权结果，不逐 Signal 查询。实际有效期同时受 gate/key 截止限制，重连/转发/恢复不续期；已观察撤销、冲突或成员
+变化立即失效。每条消息仍独立验证 producer signature、MLS leaf/group/epoch、AAD/AEAD、TTL 和 replay。设备可共享
+同一适用关系的已签状态，各自从可信 MLS/governance 状态检查 exact membership/generation；不得把 unsigned query
+响应或另一个设备的 verified 标志当作当前 membership 证明。到期仅刷新状态和缺项，不重新配对或验证未变稳定链。
+没有有效可信材料时只可在 Signal TTL 内有界等待；未验证不得展示、更新 high-water 或执行业务，过期即丢弃。
 
 foreign evidence authority 必须在签发前同时验证 authenticated requester Station、requester exact
 recipient 与 target 在指定非 minimal-metadata Realm 的 current effective joined membership，以及
