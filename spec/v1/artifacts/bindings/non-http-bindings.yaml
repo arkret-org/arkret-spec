@@ -335,6 +335,8 @@ grpc:
       CursorRevoke: ak.self.account.command.revoke_cursor.v1
     SelfRealmStateSnapshot:
       Head: ak.self.realm_state_snapshot.read.manifest_head.v1
+    SelfRelationConflicts:
+      Candidates: ak.self.relation_conflicts.read.candidates.v1
 mq:
   envelope:
     required:
@@ -386,6 +388,7 @@ mq:
     self.organization_recovery_archives.read.list: ak.self.organization_recovery_archives.read.list.v1
     self.events.read.scan.resolve: ak.self.events.read.resolve.v1
     self.events.read.scan: ak.self.events.read.scan.v1
+    self.relation_conflicts.read.candidates: ak.self.relation_conflicts.read.candidates.v1
     self.events.stream.subscribe: ak.self.events.stream.subscribe.v1
     self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase.v1
     peer.events.command.submit: ak.peer.events.command.submit.v1

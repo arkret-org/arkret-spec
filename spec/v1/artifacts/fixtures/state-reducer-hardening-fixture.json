@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.cbs_lattice.v1",
-  "version": "2026-08-17",
+  "version": "2026-09-10",
   "suite": "state_reducer_hardening",
   "runner": {
     "kind": "named_suite",
@@ -11,10 +11,726 @@
     "ak.vector.patch.atomic_application.v1",
     "ak.vector.patch.projection_prestate_binding.v1",
     "ak.vector.patch.redactable_content_slot_unset_ban.v1",
+    "ak.vector.relation.conflict_resolution.v1",
     "ak.vector.state_root.incremental.v1",
     "ak.vector.strand_tracks_update.atomic.v1"
   ],
   "cases": [
+    {
+      "vector_id": "ak.vector.patch.projection_prestate_binding.v1",
+      "assertions": [
+        "strand_patch_plane_and_subject_match_registry",
+        "data_patch_prestate_is_loaded_only_from_referenced_base_head",
+        "receiver_local_head_does_not_change_acceptance",
+        "missing_dependency_remains_pending",
+        "missing_or_multiple_base_refs_fail_closed",
+        "wire_effect_mismatch_rejects_entire_event"
+      ],
+      "input": {
+        "registry_expectations": [
+          {
+            "event_kind": "ak.strand.update",
+            "plane": "data",
+            "sealed": false,
+            "lattice": "mv_register",
+            "cell_subject_field": "payload.target_ref"
+          },
+          {
+            "event_kind": "ak.strand.tracks.update",
+            "plane": "data",
+            "sealed": false,
+            "lattice": "mv_register",
+            "cell_subject_field": "payload.target_ref"
+          },
+          {
+            "event_kind": "ak.strand.stage.set",
+            "plane": "control",
+            "sealed": true,
+            "lattice": "cas_register",
+            "cell_subject_field": "payload.strand_id"
+          }
+        ],
+        "cell": "ak:cell:ak.component.strand.object.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+        "base_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "base_post_state": {
+          "id": "ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+          "schema": "ak.schema.strand.v1",
+          "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "metadata": {
+            "title": "Pending review"
+          },
+          "tracks": {
+            "synthesis": {
+              "enabled": true,
+              "is_primary": true
+            }
+          },
+          "created_by": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "created_at": "2026-06-01T00:00:00.000Z"
+        },
+        "patch": {
+          "metadata.title": {
+            "$op": "set",
+            "value": "Approved review"
+          }
+        },
+        "derived_effect": {
+          "cell": "ak:cell:ak.component.strand.object.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+          "op": {
+            "kind": "set",
+            "value": {
+              "id": "ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+              "schema": "ak.schema.strand.v1",
+              "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+              "metadata": {
+                "title": "Approved review"
+              },
+              "tracks": {
+                "synthesis": {
+                  "enabled": true,
+                  "is_primary": true
+                }
+              },
+              "created_by": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                }
+              },
+              "created_at": "2026-06-01T00:00:00.000Z"
+            }
+          }
+        },
+        "cases": [
+          {
+            "name": "referenced_base_accepts",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "receiver_current_heads": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "wire_effect_variant": "derived_effect",
+            "expected": "accept"
+          },
+          {
+            "name": "different_receiver_head_still_accepts",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "receiver_current_heads": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            ],
+            "wire_effect_variant": "derived_effect",
+            "expected": "accept_as_concurrent_head"
+          },
+          {
+            "name": "base_dependency_missing",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "available_event_digests": [],
+            "expected": "dependency_missing"
+          },
+          {
+            "name": "base_ref_missing",
+            "causal_refs": [],
+            "expected": "reducer_projection_failed"
+          },
+          {
+            "name": "multiple_base_refs",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            ],
+            "expected": "reducer_projection_failed"
+          },
+          {
+            "name": "partial_wire_effect_rejected",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "wire_effect": {
+              "cell": "ak:cell:ak.component.strand.object.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
+              "op": {
+                "kind": "set",
+                "value": {
+                  "metadata.title": "Approved review"
+                }
+              }
+            },
+            "expected": "reducer_projection_failed"
+          }
+        ]
+      }
+    },
+    {
+      "vector_id": "ak.vector.patch.redactable_content_slot_unset_ban.v1",
+      "assertions": [
+        "every_registered_content_slot_rejects_unset",
+        "plaintext_and_encrypted_slot_decisions_are_identical",
+        "set_on_a_registered_slot_is_accepted_even_when_the_body_is_empty",
+        "metadata_paths_are_not_content_slots_and_accept_unset",
+        "rejected_patch_leaves_the_object_unchanged"
+      ],
+      "input": {
+        "path_source": "registry/redactable-field-registry.json#/redactable_fields",
+        "cases": [
+          {
+            "name": "message_content_unset_rejected",
+            "object_kind": "message",
+            "event_kind": "ak.message.revise",
+            "patch": {
+              "content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "message_encrypted_content_unset_rejected",
+            "object_kind": "message",
+            "event_kind": "ak.message.revise",
+            "patch": {
+              "encrypted_content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "strand_content_unset_rejected",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "strand_encrypted_content_unset_rejected",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "encrypted_content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "strand_tracks_synthesis_content_unset_rejected",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "tracks.synthesis.content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "strand_tracks_synthesis_encrypted_content_unset_rejected",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "tracks.synthesis.encrypted_content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "morph_content_unset_rejected",
+            "object_kind": "morph",
+            "event_kind": "ak.morph.update",
+            "patch": {
+              "content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "morph_encrypted_content_unset_rejected",
+            "object_kind": "morph",
+            "event_kind": "ak.morph.update",
+            "patch": {
+              "encrypted_content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "strand_content_set_to_empty_body_accepted",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "content": {
+                "$op": "set",
+                "value": {
+                  "kind": "ak.content.text",
+                  "body": ""
+                }
+              }
+            },
+            "expected": {
+              "decision": "accept",
+              "content_slot_present": true,
+              "state_unchanged": "active"
+            }
+          },
+          {
+            "name": "strand_metadata_summary_unset_accepted",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "metadata.summary": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "accept",
+              "state_unchanged": "active",
+              "rationale": "metadata.summary is not a content-carrier slot; unset is its only non-terminal clear path"
+            }
+          },
+          {
+            "name": "morph_metadata_summary_unset_accepted",
+            "object_kind": "morph",
+            "event_kind": "ak.morph.update",
+            "patch": {
+              "metadata.summary": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "accept",
+              "state_unchanged": "active",
+              "rationale": "metadata.summary is not a content-carrier slot; unset is its only non-terminal clear path"
+            }
+          },
+          {
+            "name": "strand_metadata_fields_unset_accepted",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "metadata.fields.dropped_field": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "accept",
+              "state_unchanged": "active",
+              "rationale": "paths under metadata.fields are ordinary optional members"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "vector_id": "ak.vector.relation.conflict_resolution.v1",
+      "assertions": [
+        "retain_candidate_projects_exactly_one_active_edge",
+        "void_all_projects_no_active_edge_and_allows_a_later_create",
+        "baseline_commitment_binds_domain_count_order_and_every_member",
+        "seventeen_head_group_is_repaired_through_the_same_carrier",
+        "missing_superseded_duplicate_or_foreign_member_is_baseline_stale",
+        "update_head_enters_the_candidate_set_and_tombstone_leaves_it",
+        "exact_replay_is_idempotent_and_never_reported_stale",
+        "same_outcome_concurrency_keeps_both_identities_without_bottom",
+        "different_outcome_concurrency_reaches_bottom_and_keeps_require_review",
+        "one_further_authorized_resolve_heals_the_bottom_group",
+        "large_group_omits_the_inline_list_and_verifies_the_page_chain",
+        "page_gap_or_reorder_discards_the_whole_material",
+        "derived_shape_domain_is_schema_violation",
+        "sixteen_is_the_diagnostic_bound_not_the_repair_bound"
+      ],
+      "input": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "cell_family": "ak.component.relation.conflict_resolution.v1",
+        "capability_action": "ak.relation.resolve",
+        "domains": {
+          "tuple": {
+            "domain_kind": "tuple",
+            "relation_kind": "depends_on",
+            "from_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+            "to_ref": "ak:strand:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-"
+          },
+          "from": {
+            "domain_kind": "from",
+            "relation_kind": "has_default_view",
+            "from_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-"
+          },
+          "derived": {
+            "domain_kind": "tuple",
+            "relation_kind": "watches",
+            "from_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+            "to_ref": "ak:strand:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-"
+          }
+        },
+        "candidate_writes": [
+          {
+            "event_id": "ak:event:AQcreateA4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg",
+            "kind": "ak.relation.create",
+            "domain": "tuple"
+          },
+          {
+            "event_id": "ak:event:AQcreateB4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg",
+            "kind": "ak.relation.create",
+            "domain": "tuple"
+          },
+          {
+            "event_id": "ak:event:AQcreateC4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg",
+            "kind": "ak.relation.create",
+            "domain": "tuple"
+          },
+          {
+            "event_id": "ak:event:AQupdateA2AUo8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAU",
+            "kind": "ak.relation.update",
+            "domain": "tuple",
+            "supersedes": "ak:event:AQcreateA4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg"
+          },
+          {
+            "event_id": "ak:event:AQtombstoneCQk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+            "kind": "ak.relation.tombstone",
+            "domain": "tuple",
+            "ends": "ak:event:AQcreateC4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg"
+          },
+          {
+            "event_id": "ak:event:AQforeignDomaino8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEY",
+            "kind": "ak.relation.create",
+            "domain": "from"
+          }
+        ],
+        "moves": [
+          {
+            "name": "retain_one_candidate",
+            "event_id": "ak:event:AQresolveRetaino8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEY",
+            "kind": "ak.relation.resolve",
+            "payload": {
+              "conflict_domain": {
+                "domain_kind": "tuple",
+                "relation_kind": "depends_on",
+                "from_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+                "to_ref": "ak:strand:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-"
+              },
+              "baseline": {
+                "member_count": 2,
+                "members_digest": "recompute",
+                "member_event_ids": [
+                  "ak:event:AQcreateB4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg",
+                  "ak:event:AQupdateA2AUo8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAU"
+                ]
+              },
+              "outcome": {
+                "kind": "retain_candidate",
+                "retained_event_id": "ak:event:AQupdateA2AUo8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAU"
+              }
+            }
+          },
+          {
+            "name": "void_the_same_group",
+            "event_id": "ak:event:AQresolveVoidYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg0Icw",
+            "kind": "ak.relation.resolve",
+            "payload": {
+              "conflict_domain": {
+                "domain_kind": "tuple",
+                "relation_kind": "depends_on",
+                "from_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+                "to_ref": "ak:strand:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-"
+              },
+              "baseline": {
+                "member_count": 2,
+                "members_digest": "recompute",
+                "member_event_ids": [
+                  "ak:event:AQcreateB4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg",
+                  "ak:event:AQupdateA2AUo8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAU"
+                ]
+              },
+              "outcome": {
+                "kind": "void_all"
+              }
+            }
+          },
+          {
+            "name": "repair_seventeen_heads",
+            "event_id": "ak:event:AQresolveOverflow4Mg0IcwEYsAUo8Qk4Mg0IcwEYsA",
+            "kind": "ak.relation.resolve",
+            "payload": {
+              "conflict_domain": {
+                "domain_kind": "tuple",
+                "relation_kind": "depends_on",
+                "from_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+                "to_ref": "ak:strand:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-"
+              },
+              "baseline": {
+                "member_count": 17,
+                "members_digest": "recompute",
+                "member_event_ids": [
+                  "ak:event:AQoverflow00Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow01Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow02Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow03Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow04Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow05Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow06Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow07Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow08Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow09Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow10Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow11Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow12Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow13Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow14Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow15Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8",
+                  "ak:event:AQoverflow16Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8"
+                ]
+              },
+              "outcome": {
+                "kind": "retain_candidate",
+                "retained_event_id": "ak:event:AQoverflow00Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8"
+              }
+            }
+          },
+          {
+            "name": "large_group_commitment_only",
+            "event_id": "ak:event:AQresolveLargeg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8Qk",
+            "kind": "ak.relation.resolve",
+            "payload": {
+              "conflict_domain": {
+                "domain_kind": "tuple",
+                "relation_kind": "depends_on",
+                "from_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+                "to_ref": "ak:strand:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-"
+              },
+              "baseline": {
+                "member_count": 300,
+                "members_digest": "recompute"
+              },
+              "outcome": {
+                "kind": "retain_candidate",
+                "retained_event_id": "ak:event:AQlarge000AUo8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAU"
+              }
+            }
+          }
+        ],
+        "material_pages": [
+          {
+            "page_index": 0,
+            "member_count_in_page": 256,
+            "first_member_event_id": "ak:event:AQlarge000AUo8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAU",
+            "page_digest": "recompute"
+          },
+          {
+            "page_index": 1,
+            "member_count_in_page": 44,
+            "last_member_event_id": "ak:event:AQlarge299AUo8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAU",
+            "prev_page_digest": "page_digest(0)",
+            "page_digest": "recompute"
+          }
+        ]
+      },
+      "expected": {
+        "retain_one_candidate": {
+          "admitted": true,
+          "active_edge_event_ids": [
+            "ak:event:AQupdateA2AUo8Qk4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAU"
+          ],
+          "voided_event_ids": [
+            "ak:event:AQcreateB4Mg0IcwEYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg"
+          ],
+          "relation_id_source": "retained_head_original_relation_id",
+          "cell_value_source": "payload"
+        },
+        "void_the_same_group": {
+          "admitted": true,
+          "active_edge_event_ids": [],
+          "later_create_under_same_domain": "allowed",
+          "revives_tombstoned_relation": false,
+          "changes_capabilities": false
+        },
+        "candidate_set_derivation": {
+          "create_contributes_own_event_id": true,
+          "update_head_replaces_only_its_own_relation_version": true,
+          "update_head_event_id_enters_candidate_set": true,
+          "create_event_id_is_not_reused_for_the_updated_version": true,
+          "tombstoned_relation_leaves_the_candidate_set": true,
+          "tombstone_adjudicates_other_branches": false,
+          "candidate_order": "bytewise_ascending_event_id_tokens"
+        },
+        "baseline_commitment": {
+          "binds": [
+            "realm_id",
+            "conflict_domain",
+            "member_count",
+            "canonical_order",
+            "every_member"
+          ],
+          "root_only_is_sufficient": false,
+          "count_only_is_sufficient": false,
+          "seventeen_inclusion_proofs_are_sufficient": false,
+          "inline_member_list_present_when_member_count_at_most": 64,
+          "inline_member_list_absent_when_member_count_at_least": 65
+        },
+        "fanout_and_repair_bounds": {
+          "ordinary_diagnostic_max_heads": 16,
+          "diagnostic_absent_above": 16,
+          "baseline_member_count_max": null,
+          "seventeenth_candidate_retained": true,
+          "seventeenth_candidate_truncated": false,
+          "repair_of_seventeen_heads": "admitted",
+          "further_create_into_a_fanout_exceeded_domain": "failed_precondition/relation_conflict_fanout_exceeded"
+        },
+        "rejections": [
+          {
+            "name": "missing_member",
+            "mutation": "drop one member from baseline.member_event_ids",
+            "outcome": "failed_precondition/relation_conflict_baseline_stale",
+            "cell_writes": 0
+          },
+          {
+            "name": "superseded_head_carried",
+            "mutation": "carry CREATE_A instead of UPDATE_A2",
+            "outcome": "failed_precondition/relation_conflict_baseline_stale",
+            "cell_writes": 0
+          },
+          {
+            "name": "duplicate_member",
+            "mutation": "repeat one member event id",
+            "outcome": "schema_violation",
+            "cell_writes": 0
+          },
+          {
+            "name": "foreign_domain_member",
+            "mutation": "add the has_default_view member to the depends_on baseline",
+            "outcome": "failed_precondition/relation_conflict_baseline_stale",
+            "cell_writes": 0
+          },
+          {
+            "name": "retained_outside_baseline",
+            "mutation": "retain an event id that is not a baseline member",
+            "outcome": "failed_precondition/relation_conflict_baseline_stale",
+            "cell_writes": 0
+          },
+          {
+            "name": "derived_shape_domain",
+            "mutation": "target the watches truth_source shape",
+            "outcome": "schema_violation/relation_kind_watches_derived",
+            "cell_writes": 0
+          },
+          {
+            "name": "from_domain_carries_to_ref",
+            "mutation": "add to_ref to a domain_kind=from descriptor",
+            "outcome": "schema_violation",
+            "cell_writes": 0
+          },
+          {
+            "name": "partially_visible_group",
+            "mutation": "caller may read only part of the group",
+            "outcome": "failed_precondition/relation_conflict_group_not_visible",
+            "returns_shortened_list": false
+          },
+          {
+            "name": "material_unavailable",
+            "mutation": "station cannot serve the complete retained material",
+            "outcome": "failed_precondition/relation_conflict_material_unavailable",
+            "returns_shortened_list": false
+          },
+          {
+            "name": "page_chain_gap",
+            "mutation": "skip page_index 1 or replay it out of order",
+            "outcome": "failed_precondition/relation_conflict_material_page_gap",
+            "partial_material_applied": false,
+            "restart_from_page_index": 0
+          }
+        ],
+        "replay_and_concurrency": {
+          "exact_replay_admitted": true,
+          "exact_replay_reported_stale": false,
+          "same_outcome_concurrent_resolutions": {
+            "cell_state": "single_settled_value",
+            "retained_head_identities": 2,
+            "bottom": false
+          },
+          "different_outcome_concurrent_resolutions": {
+            "cell_state": "bottom",
+            "winner_selected": false,
+            "relation_projection": "require_review",
+            "event_ids": [
+              "ak:event:AQresolveSameOutcomeQk4Mg0IcwEYsAUo8Qk4Mg0Ic",
+              "ak:event:AQresolveOtherOutcomeYsAUo8Qk4Mg0IcwEYsAUo8Q"
+            ]
+          },
+          "bottom_recovery": {
+            "event_id": "ak:event:AQresolveHealYsAUo8Qk4Mg0IcwEYsAUo8Qk4Mg0Icw",
+            "kind": "ak.relation.resolve",
+            "requires_conflict_recovery_capability": false,
+            "declares_head_eq_on_own_cell": false,
+            "cell_state_after": "single_settled_value"
+          },
+          "late_uncovered_branch": {
+            "revives_covered_candidates": false,
+            "rewrites_historical_seal_meaning": false,
+            "relation_projection": "require_review"
+          },
+          "replay_shard_merge_determinism": {
+            "same_facts_same_heads": true,
+            "arrival_order_sensitive": false
+          }
+        }
+      }
+    },
     {
       "vector_id": "ak.vector.state_root.incremental.v1",
       "assertions": [
@@ -257,161 +973,6 @@
       }
     },
     {
-      "vector_id": "ak.vector.patch.projection_prestate_binding.v1",
-      "assertions": [
-        "strand_patch_plane_and_subject_match_registry",
-        "data_patch_prestate_is_loaded_only_from_referenced_base_head",
-        "receiver_local_head_does_not_change_acceptance",
-        "missing_dependency_remains_pending",
-        "missing_or_multiple_base_refs_fail_closed",
-        "wire_effect_mismatch_rejects_entire_event"
-      ],
-      "input": {
-        "registry_expectations": [
-          {
-            "event_kind": "ak.strand.update",
-            "plane": "data",
-            "sealed": false,
-            "lattice": "mv_register",
-            "cell_subject_field": "payload.target_ref"
-          },
-          {
-            "event_kind": "ak.strand.tracks.update",
-            "plane": "data",
-            "sealed": false,
-            "lattice": "mv_register",
-            "cell_subject_field": "payload.target_ref"
-          },
-          {
-            "event_kind": "ak.strand.stage.set",
-            "plane": "control",
-            "sealed": true,
-            "lattice": "cas_register",
-            "cell_subject_field": "payload.strand_id"
-          }
-        ],
-        "cell": "ak:cell:ak.component.strand.object.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
-        "base_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "base_post_state": {
-          "id": "ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
-          "schema": "ak.schema.strand.v1",
-          "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "metadata": {
-            "title": "Pending review"
-          },
-          "tracks": {
-            "synthesis": {
-              "enabled": true,
-              "is_primary": true
-            }
-          },
-          "created_by": {
-            "kind": "account",
-            "account_id": {
-              "principal_id": "ak:did_core:webvh:z6mkfixture",
-              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-            }
-          },
-          "created_at": "2026-06-01T00:00:00.000Z"
-        },
-        "patch": {
-          "metadata.title": {
-            "$op": "set",
-            "value": "Approved review"
-          }
-        },
-        "derived_effect": {
-          "cell": "ak:cell:ak.component.strand.object.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
-          "op": {
-            "kind": "set",
-            "value": {
-              "id": "ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
-              "schema": "ak.schema.strand.v1",
-              "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-              "metadata": {
-                "title": "Approved review"
-              },
-              "tracks": {
-                "synthesis": {
-                  "enabled": true,
-                  "is_primary": true
-                }
-              },
-              "created_by": {
-                "kind": "account",
-                "account_id": {
-                  "principal_id": "ak:did_core:webvh:z6mkfixture",
-                  "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-                }
-              },
-              "created_at": "2026-06-01T00:00:00.000Z"
-            }
-          }
-        },
-        "cases": [
-          {
-            "name": "referenced_base_accepts",
-            "causal_refs": [
-              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-            ],
-            "receiver_current_heads": [
-              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-            ],
-            "wire_effect_variant": "derived_effect",
-            "expected": "accept"
-          },
-          {
-            "name": "different_receiver_head_still_accepts",
-            "causal_refs": [
-              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-            ],
-            "receiver_current_heads": [
-              "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-            ],
-            "wire_effect_variant": "derived_effect",
-            "expected": "accept_as_concurrent_head"
-          },
-          {
-            "name": "base_dependency_missing",
-            "causal_refs": [
-              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-            ],
-            "available_event_digests": [],
-            "expected": "dependency_missing"
-          },
-          {
-            "name": "base_ref_missing",
-            "causal_refs": [],
-            "expected": "reducer_projection_failed"
-          },
-          {
-            "name": "multiple_base_refs",
-            "causal_refs": [
-              "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-              "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-            ],
-            "expected": "reducer_projection_failed"
-          },
-          {
-            "name": "partial_wire_effect_rejected",
-            "causal_refs": [
-              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-            ],
-            "wire_effect": {
-              "cell": "ak:cell:ak.component.strand.object.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
-              "op": {
-                "kind": "set",
-                "value": {
-                  "metadata.title": "Approved review"
-                }
-              }
-            },
-            "expected": "reducer_projection_failed"
-          }
-        ]
-      }
-    },
-    {
       "vector_id": "ak.vector.strand_tracks_update.atomic.v1",
       "assertions": [
         "multi_path_patch_is_single_cell_write",
@@ -581,213 +1142,6 @@
               "reason": "schema_violation",
               "reason_code": "patch_path_invalid",
               "tracks_unchanged": true
-            }
-          }
-        ]
-      }
-    },
-    {
-      "vector_id": "ak.vector.patch.redactable_content_slot_unset_ban.v1",
-      "assertions": [
-        "every_registered_content_slot_rejects_unset",
-        "plaintext_and_encrypted_slot_decisions_are_identical",
-        "set_on_a_registered_slot_is_accepted_even_when_the_body_is_empty",
-        "metadata_paths_are_not_content_slots_and_accept_unset",
-        "rejected_patch_leaves_the_object_unchanged"
-      ],
-      "input": {
-        "path_source": "registry/redactable-field-registry.json#/redactable_fields",
-        "cases": [
-          {
-            "name": "message_content_unset_rejected",
-            "object_kind": "message",
-            "event_kind": "ak.message.revise",
-            "patch": {
-              "content": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "reject",
-              "reason": "schema_violation",
-              "reason_code": "patch_unset_redactable_field",
-              "object_unchanged": true
-            }
-          },
-          {
-            "name": "message_encrypted_content_unset_rejected",
-            "object_kind": "message",
-            "event_kind": "ak.message.revise",
-            "patch": {
-              "encrypted_content": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "reject",
-              "reason": "schema_violation",
-              "reason_code": "patch_unset_redactable_field",
-              "object_unchanged": true
-            }
-          },
-          {
-            "name": "strand_content_unset_rejected",
-            "object_kind": "strand",
-            "event_kind": "ak.strand.update",
-            "patch": {
-              "content": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "reject",
-              "reason": "schema_violation",
-              "reason_code": "patch_unset_redactable_field",
-              "object_unchanged": true
-            }
-          },
-          {
-            "name": "strand_encrypted_content_unset_rejected",
-            "object_kind": "strand",
-            "event_kind": "ak.strand.update",
-            "patch": {
-              "encrypted_content": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "reject",
-              "reason": "schema_violation",
-              "reason_code": "patch_unset_redactable_field",
-              "object_unchanged": true
-            }
-          },
-          {
-            "name": "strand_tracks_synthesis_content_unset_rejected",
-            "object_kind": "strand",
-            "event_kind": "ak.strand.update",
-            "patch": {
-              "tracks.synthesis.content": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "reject",
-              "reason": "schema_violation",
-              "reason_code": "patch_unset_redactable_field",
-              "object_unchanged": true
-            }
-          },
-          {
-            "name": "strand_tracks_synthesis_encrypted_content_unset_rejected",
-            "object_kind": "strand",
-            "event_kind": "ak.strand.update",
-            "patch": {
-              "tracks.synthesis.encrypted_content": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "reject",
-              "reason": "schema_violation",
-              "reason_code": "patch_unset_redactable_field",
-              "object_unchanged": true
-            }
-          },
-          {
-            "name": "morph_content_unset_rejected",
-            "object_kind": "morph",
-            "event_kind": "ak.morph.update",
-            "patch": {
-              "content": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "reject",
-              "reason": "schema_violation",
-              "reason_code": "patch_unset_redactable_field",
-              "object_unchanged": true
-            }
-          },
-          {
-            "name": "morph_encrypted_content_unset_rejected",
-            "object_kind": "morph",
-            "event_kind": "ak.morph.update",
-            "patch": {
-              "encrypted_content": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "reject",
-              "reason": "schema_violation",
-              "reason_code": "patch_unset_redactable_field",
-              "object_unchanged": true
-            }
-          },
-          {
-            "name": "strand_content_set_to_empty_body_accepted",
-            "object_kind": "strand",
-            "event_kind": "ak.strand.update",
-            "patch": {
-              "content": {
-                "$op": "set",
-                "value": {
-                  "kind": "ak.content.text",
-                  "body": ""
-                }
-              }
-            },
-            "expected": {
-              "decision": "accept",
-              "content_slot_present": true,
-              "state_unchanged": "active"
-            }
-          },
-          {
-            "name": "strand_metadata_summary_unset_accepted",
-            "object_kind": "strand",
-            "event_kind": "ak.strand.update",
-            "patch": {
-              "metadata.summary": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "accept",
-              "state_unchanged": "active",
-              "rationale": "metadata.summary is not a content-carrier slot; unset is its only non-terminal clear path"
-            }
-          },
-          {
-            "name": "morph_metadata_summary_unset_accepted",
-            "object_kind": "morph",
-            "event_kind": "ak.morph.update",
-            "patch": {
-              "metadata.summary": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "accept",
-              "state_unchanged": "active",
-              "rationale": "metadata.summary is not a content-carrier slot; unset is its only non-terminal clear path"
-            }
-          },
-          {
-            "name": "strand_metadata_fields_unset_accepted",
-            "object_kind": "strand",
-            "event_kind": "ak.strand.update",
-            "patch": {
-              "metadata.fields.dropped_field": {
-                "$op": "unset"
-              }
-            },
-            "expected": {
-              "decision": "accept",
-              "state_unchanged": "active",
-              "rationale": "paths under metadata.fields are ordinary optional members"
             }
           }
         ]

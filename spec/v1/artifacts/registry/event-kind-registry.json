@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.14",
+  "version": "2026-09-10.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T10:52:00+08:00",
+  "generated_at": "2026-09-10T11:48:27+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3728,6 +3728,51 @@
           }
         }
       ]
+    },
+    {
+      "event_kind": "ak.relation.resolve",
+      "category": "relation",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Single registered carrier that settles one Relation primary conflict domain. The sealed Control Move atomically retains exactly one still-valid candidate head of the covered group or voids the covered set; CBS forbids an ordinary data-plane write from adjudicating a single winner across objects, and ak.relation.update / ak.relation.tombstone each address one Relation and therefore cannot prove the author covered the complete head set. payload.conflict_domain is the whole cell subject, payload.baseline is the frozen data-plane completeness commitment the receiver rebuilds independently, and payload.outcome is closed to retain_candidate or void_all. The Move writes only the registered group control cell; Relation content stays on its own data cells and the active-edge projection reads both.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_resolve_payload",
+      "admission": "capability_gated",
+      "admission_checks": [
+        "conflict_domain resolves to a directly writable relation-kind-registry.json shape whose registered primary_conflict_domain equals conflict_domain.domain_kind; a derived_projection shape is rejected with schema_violation (reason=relation_kind_contains_derived or relation_kind_watches_derived)",
+        "the receiver rebuilds the complete active candidate head set of the domain from its own accepted Relation history under this Move's frozen predecessor view, recomputes the chained commitment of zh/models/relation.md section 6.3, and requires byte equality with payload.baseline.members_digest and payload.baseline.member_count; a missing member, a superseded head, a duplicate, a foreign-domain member or any later group change rejects the Move with failed_precondition reason=relation_conflict_baseline_stale and zero cell writes",
+        "when payload.baseline.member_event_ids is present it MUST equal that rebuilt set element by element in canonical bytewise-ascending order; member_count above 64 omits the inline list and is proven by members_digest alone, and the ordinary 16-head diagnostic bound MUST NOT be applied to this evidence",
+        "a retain_candidate outcome names a retained_event_id that belongs to this Move's own baseline; a name outside the covered set is rejected with failed_precondition reason=relation_conflict_baseline_stale",
+        "the actor independently holds the registered ak.relation.resolve capability over every candidate in the covered group and its scope; holding ak.relation.update on one member never authorizes adjudicating the others",
+        "the Move carries no head_eq on its own ak.component.relation.conflict_resolution.v1 cell: re-resolution after a later branch is a normal causal successor, and the family is deliberately absent from the ak.conflict.recovery sole_recovery_families list so a Bottom group can be healed by one further authorized resolve"
+      ],
+      "id_source": "not_an_object_id",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.relation.conflict_resolution.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.conflict_domain"
+              }
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.relation.tombstone",

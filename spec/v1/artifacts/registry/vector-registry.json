@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.5",
+  "version": "2026-09-10.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T11:35:00+08:00",
+  "generated_at": "2026-09-10T11:48:27+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -6138,6 +6138,19 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/models/common-fields.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.relation.conflict_resolution.v1",
+      "status": "active",
+      "domain": "relation",
+      "description": "ak.relation.resolve is the single registered carrier that settles one Relation primary conflict domain: retain_candidate keeps exactly one covered head with its original RelationId, void_all leaves no active edge for the covered set while preserving the facts and permitting a later lawful create. The frozen baseline is an independent data-plane commitment that binds realm, domain, member_count, canonical bytewise-ascending order and every member; a root, a bare count or seventeen inclusion proofs prove nothing. A missing, superseded, duplicate or foreign member and a retained id outside the baseline all reject the whole Move with relation_conflict_baseline_stale and zero cell writes, an update head enters the candidate set while a tombstoned Relation leaves it, and an exact replay stays idempotent. Sixteen bounds only the ordinary diagnostic: a seventeen-head group is repaired through the same carrier, a large group omits the inline list and is verified page by page over the prev_page_digest chain where a gap discards the whole material. Same-outcome concurrent resolutions keep both identities without Bottom, different-outcome ones reach Bottom and keep require_review, and one further authorized resolve heals that Bottom without conflict-recovery capability.",
+      "applies_to_fixtures": [
+        "state-reducer-hardening-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
+        "spec/v1/zh/models/relation.md"
       ]
     },
     {

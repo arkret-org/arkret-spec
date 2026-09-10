@@ -63,9 +63,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
-      "version": "2026-09-07.1",
-      "generated_at": "2026-09-07T00:20:00+08:00",
-      "content_digest": "sha256:ebbcb37b55594c1408772749404beb8dad2dfba6af6fe84017d260e4a27f0a93"
+      "version": "2026-09-10.18",
+      "generated_at": "2026-09-10T18:20:00+08:00",
+      "content_digest": "sha256:af3c321a445add35c5e282c78623c38825f6fc1cadecef0ad9d97847a5c94728"
     },
     {
       "path": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -81,15 +81,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-10.20",
-      "generated_at": "2026-09-10T11:45:00+08:00",
-      "content_digest": "sha256:7f5d715331c9976cc1ec2ef3a62a9551d9d717590ab35fb872c0b5e5947cebd9"
+      "version": "2026-09-10.21",
+      "generated_at": "2026-09-10T11:48:27+08:00",
+      "content_digest": "sha256:e340a20e0138771b2b80745fe63472b3196a92aee603b73e8fd64836f1a71f8a"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
-      "version": "2026-09-10.9",
-      "generated_at": "2026-09-10T06:30:00+08:00",
-      "content_digest": "sha256:08a64c0ad3cf21371b3e7980bde2d12816662f3d2e7a1216de4cab3f8c94da4b"
+      "version": "2026-09-10.10",
+      "generated_at": "2026-09-10T18:20:00+08:00",
+      "content_digest": "sha256:9994390157650387d3f7f371f4a9b6545c76b46ab3bf7c63d6e3eaa8b7677c2b"
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
@@ -129,15 +129,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-10.7",
-      "generated_at": "2026-09-10T11:35:00+08:00",
-      "content_digest": "sha256:d3ef8215309551169fef532fc9dd3e40b17baa750a6365c05422da9b1fd534ee"
+      "version": "2026-09-10.8",
+      "generated_at": "2026-09-10T11:48:27+08:00",
+      "content_digest": "sha256:b8b62fa8cbf6171c58e552b1ae91fd5dcb75e0227b7326487210fdfaa24a2465"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-10.14",
-      "generated_at": "2026-09-10T10:52:00+08:00",
-      "content_digest": "sha256:1772d6981245500bb7726c4fb6a482a5bd7071b67aa50758340d7612397d9f37"
+      "version": "2026-09-10.15",
+      "generated_at": "2026-09-10T11:48:27+08:00",
+      "content_digest": "sha256:fa3d8bc7963f5f73fe0a11ec3997fc440a81c0c4bbd6666a7951a3ebdb7d765b"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
-      "version": "2026-09-08.16",
-      "generated_at": "2026-09-10T08:41:43+08:00",
-      "content_digest": "sha256:3edef857a4aae0fe58f24e7390656f3ad022b68c95b6c14dec7c5a19a76154da"
+      "version": "2026-09-08.17",
+      "generated_at": "2026-09-10T18:20:00+08:00",
+      "content_digest": "sha256:3d68bbc993572171bfcbb22980c427f898d1f7d2d9ecfa2d5c78fe7c1992ffd2"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -255,21 +255,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-08.62",
-      "generated_at": "2026-09-10T11:35:00+08:00",
-      "content_digest": "sha256:cef12f740f460397726bbb836fd64a8da34ddb0ca1572dabcd70c7f1ea2d708c"
+      "version": "2026-09-08.63",
+      "generated_at": "2026-09-10T11:45:00+08:00",
+      "content_digest": "sha256:9ca90da2b5b14e95d33bb7525b177f5a8fd92c622f5db17facc6a02629b8d818"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-10.19",
-      "generated_at": "2026-09-10T11:45:00+08:00",
-      "content_digest": "sha256:36cb7bdc58f75174196aeab118f797c9de38428ae29c71e669a443dcd8156fea"
+      "version": "2026-09-10.20",
+      "generated_at": "2026-09-10T11:48:27+08:00",
+      "content_digest": "sha256:b2097a134e0f9e9db90d8cfdca31e6e48c32a53ff6097cda33ee72b87340afcc"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-09-10.19",
-      "generated_at": "2026-09-10T11:35:00+08:00",
-      "content_digest": "sha256:782f1029f79d998cbf2f3cf853bd0ddc8ee6ed35f1722c934194c67c37dccd97"
+      "version": "2026-09-10.20",
+      "generated_at": "2026-09-10T11:48:27+08:00",
+      "content_digest": "sha256:83e5fb48ac1d2d7a38e8ccd5c533a69a65074faa28d2f023f08ce13a62be0911"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",
@@ -309,9 +309,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
-      "version": "2026-09-08.1",
-      "generated_at": "2026-09-08T05:55:00+08:00",
-      "content_digest": "sha256:13b5fa6b8654664ab0be0bddad0a7cda3bf08a725182592b5ca0b16709825a64"
+      "version": "2026-09-10.1",
+      "generated_at": "2026-09-10T18:20:00+08:00",
+      "content_digest": "sha256:22adfdef155a47b6113ff1966fa5f60f12fbb3e41349336fd561dad83b786024"
     },
     {
       "path": "spec/v1/artifacts/registry/redactable-field-registry.json",
@@ -339,9 +339,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",
-      "version": "2026-09-09.1",
+      "version": "2026-09-10.1",
       "generated_at": null,
-      "content_digest": "sha256:ec12a44105a0626d2507c86e9397413a188cb63ee751ee9d5487fc0ef812e7ad"
+      "content_digest": "sha256:62422361cd6b539371948d17f0fe7c8ea6e0a6594202a96530a078deba4775c5"
     },
     {
       "path": "spec/v1/artifacts/registry/repeated-enum-registry.json",
@@ -393,9 +393,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-10.5",
-      "generated_at": "2026-09-10T11:35:00+08:00",
-      "content_digest": "sha256:9763b835449e097d5ccb579c03136bbbea92d214b47988c462494d00a56c8798"
+      "version": "2026-09-10.6",
+      "generated_at": "2026-09-10T11:48:27+08:00",
+      "content_digest": "sha256:e9e59807a7553c91e36c2e36ee7e886d8a9a7140359ff59a1c0c3dd699791f64"
     }
   ]
 }

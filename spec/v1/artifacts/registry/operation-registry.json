@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.19",
+  "version": "2026-09-10.20",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T11:45:00+08:00",
+  "generated_at": "2026-09-10T11:48:27+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -359,7 +359,8 @@
         "ak.self.space.read.list.v1",
         "ak.self.strand.read.list.v1",
         "ak.self.morph.read.list.v1",
-        "ak.self.morph.resource.get.v1"
+        "ak.self.morph.resource.get.v1",
+        "ak.self.relation_conflicts.read.candidates.v1"
       ],
       "surface_class": "extension"
     },
@@ -3983,6 +3984,18 @@
       "response_schema_ref": "schemas/realm-state-snapshot.schema.json"
     },
     {
+      "operation_id": "ak.self.relation_conflicts.read.candidates.v1",
+      "http": "QUERY /_arkret/self/relation-conflicts/candidates",
+      "grpc": "SelfRelationConflicts/Candidates",
+      "mq": "self.relation_conflicts.read.candidates",
+      "notes": "Registered repair-material read for one Relation primary conflict domain. The Station returns the frozen baseline (complete member_count plus the chained members_digest) and exactly one 256-member page of the canonically ordered candidate list; a page never takes effect alone, and the client walks every page in ascending page_index over the prev_page_digest chain before signing an ak.relation.resolve against that members_digest. The ordinary 16-head diagnostic bound governs only the optional diagnostic field and MUST NOT truncate, reorder or refuse this material: a group that already failed with relation_conflict_fanout_exceeded is exactly the group that needs it. The caller must be authorized to read every candidate in the group; a partially visible group returns relation_conflict_group_not_visible rather than a shortened list, and retained-but-unreadable material returns relation_conflict_material_unavailable instead of a truncated page. A chain break, gap, reorder or mid-read group change returns relation_conflict_material_page_gap and the read restarts at page_index=0.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "max_items": 256,
+      "request_schema_ref": "schemas/relation.schema.json#/$defs/relation_conflict_candidates_request_body",
+      "response_schema_ref": "schemas/relation.schema.json#/$defs/relation_conflict_candidates_outcome"
+    },
+    {
       "operation_id": "ak.self.seals.command.prepare.v1",
       "http": "POST /_arkret/self/seals/prepare",
       "grpc": "SelfSeals/Prepare",
@@ -5485,6 +5498,10 @@
         },
         {
           "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.relation_conflicts.read.candidates.v1",
           "binding_kind": "http_json"
         },
         {

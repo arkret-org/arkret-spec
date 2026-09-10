@@ -10426,6 +10426,64 @@
     "relation_id": {
       "$ref": "./agent-operations.schema.json#/$defs/relation_id"
     },
+    "relation_resolve_payload": {
+      "type": "object",
+      "description": "Payload for ak.relation.resolve, the single registered carrier that settles one Relation primary conflict domain. conflict_domain names the whole group and is the entire cell subject; baseline is the frozen data-plane completeness commitment the receiver independently rebuilds; outcome retains exactly one still-valid candidate head or voids the covered set. The Realm comes from the envelope. There is no free-form resolved_value, no new endpoint and no per-relation patch here: later content edits stay on ak.relation.update, and ending one Relation stays on ak.relation.tombstone.",
+      "required": [
+        "conflict_domain",
+        "baseline",
+        "outcome"
+      ],
+      "properties": {
+        "conflict_domain": {
+          "$ref": "./relation.schema.json#/$defs/relation_conflict_domain"
+        },
+        "baseline": {
+          "$ref": "./relation.schema.json#/$defs/relation_conflict_baseline"
+        },
+        "outcome": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/relation_resolve_retain_outcome"
+            },
+            {
+              "$ref": "#/$defs/relation_resolve_void_all_outcome"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "relation_resolve_retain_outcome": {
+      "type": "object",
+      "description": "Exactly one candidate head of the covered group keeps producing an active edge. retained_event_id MUST be a member of this Move's own baseline; the retained Relation keeps its original RelationId and the exact state that head determines. Every other covered candidate stops producing an active edge while its Events and its adjudication stay auditable.",
+      "required": [
+        "kind",
+        "retained_event_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "retain_candidate"
+        },
+        "retained_event_id": {
+          "$ref": "./relation.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "relation_resolve_void_all_outcome": {
+      "type": "object",
+      "description": "No candidate in the covered group keeps producing an active edge. This voids only the candidates this Move explicitly covered: it preserves their facts for audit, does not revive a tombstoned or redacted object, changes no capability, and does not forbid a later lawful ak.relation.create under the same domain.",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "void_all"
+        }
+      },
+      "additionalProperties": false
+    },
     "relation_tombstone_payload": {
       "type": "object",
       "description": "Payload for ak.relation.tombstone. relation_id is the sole target carrier for the irreversible active -> tombstoned transition; target_ref and update-style patch fields are forbidden. When supplied, reason is retained on the Event and is not copied into the materialized Relation object.",

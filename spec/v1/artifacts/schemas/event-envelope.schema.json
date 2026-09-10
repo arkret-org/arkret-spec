@@ -2381,6 +2381,25 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "ak.relation.resolve"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/relation_resolve_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "ak.relation.tombstone"
           }
         },

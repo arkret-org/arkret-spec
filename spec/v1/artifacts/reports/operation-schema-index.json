@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.20",
+  "version": "2026-09-10.21",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T11:45:00+08:00",
+  "generated_at": "2026-09-10T11:48:27+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -8923,6 +8923,42 @@
           "created_at",
           "authority_binding",
           "signature"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.relation_conflicts.read.candidates.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/relation.schema.json#/$defs/relation_conflict_candidates_request_body",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "conflict_domain"
+        ],
+        "properties": [
+          "realm_id",
+          "conflict_domain",
+          "cursor"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/relation.schema.json#/$defs/relation_conflict_candidates_outcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "conflict_domain",
+          "baseline",
+          "page"
+        ],
+        "properties": [
+          "realm_id",
+          "conflict_domain",
+          "baseline",
+          "page",
+          "diagnostic"
         ],
         "closed": true
       }

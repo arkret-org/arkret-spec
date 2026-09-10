@@ -876,6 +876,10 @@
       "new": "ak.self.realm_state_snapshot.read.manifest_head.v1"
     },
     {
+      "old": "ak.self.relation_conflicts.read.candidates",
+      "new": "ak.self.relation_conflicts.read.candidates.v1"
+    },
+    {
       "old": "ak.self.seals.command.prepare",
       "new": "ak.self.seals.command.prepare.v1"
     },
