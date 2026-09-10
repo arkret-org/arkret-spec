@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T11:05:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7573,6 +7573,44 @@
       }
     },
     {
+      "operation_id": "ak.self.genesis_notary.read.resolve.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_id",
+          "intended_purpose"
+        ],
+        "properties": [
+          "request_id",
+          "account_id",
+          "intended_purpose"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_id",
+          "intended_purpose",
+          "notary",
+          "observed_at"
+        ],
+        "properties": [
+          "request_id",
+          "account_id",
+          "intended_purpose",
+          "notary",
+          "observed_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.history_key_requests.command.create.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -8572,6 +8610,46 @@
           "constraints",
           "next_retry_at",
           "signature"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.media_service_binding.read.resolve.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "seal_basis",
+          "route",
+          "signing_keys",
+          "observed_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "seal_basis",
+          "route",
+          "signing_keys",
+          "observed_at",
+          "expires_at"
         ],
         "closed": true
       }

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/media-service-binding-result.schema.json",
+  "title": "Arkret Media Service Binding Result",
+  "description": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted ak.component.realm.media_service.v1 cell. It resolves service identity, purpose and route only; it releases no media key, no backend token and no plaintext-visibility authorization.",
+  "$defs": {
+    "service_signing_key": {
+      "type": "object",
+      "description": "One accepted assertion-capable Ed25519 signing key of the anchored media service, taken from the same verified current DID Document as the route. The controller DID of verification_method equals the route did; the key verifies participant_binding and ICE config signatures without a per-token DID resolution.",
+      "required": [
+        "verification_method",
+        "public_key_b64u"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes. Public verification material only; it grants no media key release."
+        }
+      },
+      "additionalProperties": false
+    },
+    "media_service_binding_request_body": {
+      "type": "object",
+      "description": "Authenticated member request for one joined Realm. The media service identity is taken from that Realm current accepted cell; caller-supplied service ids, DIDs, base URLs, candidate origins and method evidence are not accepted.",
+      "required": [
+        "request_id",
+        "realm_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "media_service_binding_outcome": {
+      "type": "object",
+      "description": "Complete bounded own-Station result: the accepted anchor, its verified route projection and the signing keys that verify issued media signatures. No method history evidence, witness record, normalized DID Document, describe body or third-party attestation closure is returned. expires_at bounds route and key reuse only and is never an authorization lease.",
+      "required": [
+        "request_id",
+        "realm_id",
+        "seal_basis",
+        "route",
+        "signing_keys",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Exact complete accepted antichain under which the own Station evaluated current membership visibility and the anchored media service cell."
+        },
+        "route": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_route_projection",
+          "description": "Verified route projection of the anchored media service; service_id equals the accepted cell service_id and service_kind is media_service."
+        },
+        "signing_keys": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/service_signing_key"
+          }
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    }
+  }
+}

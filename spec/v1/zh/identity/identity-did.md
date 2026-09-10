@@ -661,7 +661,7 @@ Station MUST 通过 §4.2 的 immutable creation anchor 和完整 AccountId 选�
 
 客户端 MUST 核对 closed 结构、预算、request_id、完整账号、预期 Station/route、当前 session/device generation 与 DID projection 绑定；旧会话迟到结果 MUST 丢弃。同一完整账号已有 PCR 绑定时，新结果 MUST 与之相等；不得静默改绑。已有 projection 的 `updated_at` 更晚时 MUST 拒绝回退；相等时间不替代 exact current 结果，也不得由客户端自行解析历史裁决分支。`observed_at` 只表示本次观察，MUST NOT 作为未来操作授权 TTL。客户端 MAY 保存本账号的身份/PCR 定位结果；后续写入仍由 Station 逐次核对当前授权，需要 exact authoring basis 的操作仍通过各自标准接口准备。
 
-该结果 MUST NOT 携带 method history、projection attestation、PCR genesis/current Event、Seal 或其它 portable evidence。普通登录与 PCR 定位 MUST NOT 调用审计接口作为结果验证前置；审计与 peer/服务器外部验证角色的既有证据接口和密码学规则保持不变。本接口不提供 Genesis notary、公钥或媒体服务路由授权。
+该结果 MUST NOT 携带 method history、projection attestation、PCR genesis/current Event、Seal 或其它 portable evidence。普通登录与 PCR 定位 MUST NOT 调用审计接口作为结果验证前置；审计与 peer/服务器外部验证角色的既有证据接口和密码学规则保持不变。本接口不提供 Genesis notary、公钥或媒体服务路由授权；这两类自己 Station 已验证结果分别由 [server-trusted-results.md §5.8、§5.9](../sync/server-trusted-results.md) 的登记载体承担。
 
 ### 4.3 Identity Receipt 签名 transcript
 

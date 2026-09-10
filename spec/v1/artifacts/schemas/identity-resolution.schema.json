@@ -608,6 +608,57 @@
         }
       ]
     },
+    "service_route_projection": {
+      "type": "object",
+      "description": "Derived route projection of one verified service DID state (sync/service-surface.md section 2.6). Every coordinate comes from the independently verified method-native state and its unique ArkretService entry; the projection creates no signed address history and carries no method evidence.",
+      "required": [
+        "service_id",
+        "service_kind",
+        "did",
+        "method_history_head",
+        "version_id",
+        "resolution_event_ref",
+        "base_url"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "service_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Expected role selected from the DID Document; the value space is registry/service-kind-registry.json filtered to the context of the consuming result."
+        },
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "method_history_head": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "version_id": {
+          "type": "string",
+          "pattern": "^(?!ak:)",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "resolution_event_ref": {
+          "type": "string",
+          "pattern": "^did-(?:webvh-entry|web-document|key-did)-sha256:[0-9a-f]{64}$",
+          "description": "Adapter coordinate emitted by the active did-method-adapter-registry row; it is a method-state position, never an Arkret Event handle."
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^?#]+/$",
+          "minLength": 1,
+          "maxLength": 2048,
+          "description": "Unique canonical absolute HTTPS service entry of the selected ArkretService entry, normalized with exactly one trailing slash."
+        }
+      },
+      "additionalProperties": false
+    },
     "current_principal_request_body": {
       "type": "object",
       "required": [

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T11:05:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,21 +18,21 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 239,
+    "total_operations": 241,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 237
+      "typed_schema": 239
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 54
+        "typed_schema": 55
       },
       "deployment_local": {
         "typed_schema": 17
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 145
+        "typed_schema": 146
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -2493,6 +2493,20 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
+      "operation_id": "ak.self.genesis_notary.read.resolve.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/genesis-notary/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body",
+      "response_schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/GenesisNotaryRequestBody",
+        "response": "#/components/schemas/GenesisNotaryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.self.history_key_requests.command.create.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/self/history-key-requests",
@@ -2849,6 +2863,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MediaIceConfigRequestBody",
         "response": "#/components/schemas/MediaIceConfigOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.media_service_binding.read.resolve.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/media-service-bindings/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
+      "response_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MediaServiceBindingRequestBody",
+        "response": "#/components/schemas/MediaServiceBindingOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

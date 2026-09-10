@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T11:05:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -10482,6 +10482,34 @@
         "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
       },
       {
+        "schema_id": "ak.schema.genesis_notary_request.v1",
+        "file": "schemas/genesis-notary-binding.schema.json",
+        "fragment": "#/$defs/genesis_notary_request_body",
+        "status": "active",
+        "description": "Authenticated own-account request for the notary configuration of a Realm genesis the caller will sign."
+      },
+      {
+        "schema_id": "ak.schema.genesis_notary_outcome.v1",
+        "file": "schemas/genesis-notary-binding.schema.json",
+        "fragment": "#/$defs/genesis_notary_outcome",
+        "status": "active",
+        "description": "Own-Station verified notary configuration copied verbatim into the genesis object; observation is not a validity window or authorization lease."
+      },
+      {
+        "schema_id": "ak.schema.media_service_binding_request.v1",
+        "file": "schemas/media-service-binding-result.schema.json",
+        "fragment": "#/$defs/media_service_binding_request_body",
+        "status": "active",
+        "description": "Authenticated member request for the media service anchored by one joined Realm; no caller-supplied service identity, DID or candidate origin."
+      },
+      {
+        "schema_id": "ak.schema.media_service_binding_outcome.v1",
+        "file": "schemas/media-service-binding-result.schema.json",
+        "fragment": "#/$defs/media_service_binding_outcome",
+        "status": "active",
+        "description": "Own-Station verified media service route and signing keys bound to the accepted anchor; route reuse window only, no key release or plaintext authorization."
+      },
+      {
         "schema_id": "ak.schema.signer_key_query_request.v1",
         "file": "schemas/signer-key-operations.schema.json",
         "fragment": "#/$defs/query_request_body",
@@ -10510,8 +10538,8 @@
         "description": "Peer portable current signer evidence outcome; independent of the unified self signing-key result."
       }
     ],
-    "version": "2026-09-10.17",
-    "generated_at": "2026-09-10T08:41:42+08:00"
+    "version": "2026-09-10.18",
+    "generated_at": "2026-09-10T11:05:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -11644,7 +11672,8 @@
           "ak.self.account.command.revoke_cursor.v1",
           "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "ak.self.seals.read.pending_control.v1",
-          "ak.self.current_principal.read.resolve.v1"
+          "ak.self.current_principal.read.resolve.v1",
+          "ak.self.genesis_notary.read.resolve.v1"
         ],
         "surface_class": "core"
       },
@@ -11806,7 +11835,8 @@
           "ak.self.media.read.ice_config.v1",
           "ak.self.signal.command.send.v1",
           "ak.self.signal.stream.subscribe.v1",
-          "ak.self.call.media.exchange.issue_token.v1"
+          "ak.self.call.media.exchange.issue_token.v1",
+          "ak.self.media_service_binding.read.resolve.v1"
         ],
         "surface_class": "extension"
       },
@@ -14892,6 +14922,18 @@
         "response_schema_ref": "schemas/events-subscribe-frame.schema.json"
       },
       {
+        "operation_id": "ak.self.genesis_notary.read.resolve.v1",
+        "http": "POST /_arkret/self/genesis-notary/query",
+        "grpc": "SelfGenesisNotary/Resolve",
+        "mq": "self.genesis_notary.query.resolve",
+        "notes": "Own-Station signing input for a Realm genesis the authenticated caller is about to author. The exact session account and its serving Station select the accepted deployment notary configuration for the requested collaboration or direct_conversation purpose; the Station names its own Seal verification_method and the caller copies the value verbatim without constructing a fragment or fetching method history. Success creates no Realm, reserves no identifier and grants no authoring authority. Wrong or invisible account returns not_found; no verified configuration yet returns temporarily_unavailable. Request and response canonical JSON are each bounded to 64 KiB.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body",
+        "response_schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome",
+        "max_canonical_body_bytes": 65536
+      },
+      {
         "operation_id": "ak.self.history_key_requests.command.create.v1",
         "http": "POST /_arkret/self/history-key-requests",
         "grpc": "SelfHistoryKey/RequestCreate",
@@ -15332,6 +15374,19 @@
         "response_schema_ref": "schemas/ice-config-response.schema.json"
       },
       {
+        "operation_id": "ak.self.media_service_binding.read.resolve.v1",
+        "http": "POST /_arkret/self/media-service-bindings/query",
+        "grpc": "SelfMediaServiceBinding/Resolve",
+        "mq": "self.media_service_binding.query.resolve",
+        "notes": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted ak.component.realm.media_service.v1 cell. Membership visibility and the anchored cell are evaluated under one accepted antichain; the caller supplies no service id, DID, base URL or candidate origin. The result resolves service identity, purpose and route only: it releases no media key, no backend token and no plaintext-visibility authorization, and expires_at bounds route and key reuse to at most 300 seconds. Invisible Realm or absent anchor returns not_found; unresolved accepted state returns temporarily_unavailable. Request and complete response canonical JSON are each bounded to 64 KiB.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 65536,
+        "max_items": 16,
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
+        "response_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome"
+      },
+      {
         "operation_id": "ak.self.moderation.command.report.v1",
         "http": "POST /_arkret/self/moderation/report",
         "grpc": "SelfModeration/Report",
@@ -15769,8 +15824,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-10.17",
-    "generated_at": "2026-09-10T08:41:42+08:00",
+    "version": "2026-09-10.18",
+    "generated_at": "2026-09-10T11:05:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -16864,6 +16919,10 @@
             "binding_kind": "http_json"
           },
           {
+            "operation_id": "ak.self.genesis_notary.read.resolve.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.self.identity.read.resolution_audit.v1",
             "binding_kind": "http_json"
           },
@@ -16945,6 +17004,10 @@
           },
           {
             "operation_id": "ak.self.media.read.ice_config.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.media_service_binding.read.resolve.v1",
             "binding_kind": "http_json"
           },
           {

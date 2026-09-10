@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/genesis-notary-binding.schema.json",
+  "title": "Arkret Genesis Notary Binding Result",
+  "description": "Own-Station signing input for a Realm genesis the authenticated caller is about to author. It carries the exact notary configuration to freeze into ak.realm.create and nothing else: no method history, no service document, no Realm reservation and no authorization to create.",
+  "$defs": {
+    "genesis_notary_purpose": {
+      "type": "string",
+      "enum": [
+        "collaboration",
+        "direct_conversation"
+      ],
+      "description": "Realm purpose whose founding notary is the caller Station service identity. Identity-control genesis (principal_control, agent_control, applet_managed_control) fixes its own signer from accepted identity rules and is deliberately absent from this value space."
+    },
+    "genesis_notary_request_body": {
+      "type": "object",
+      "description": "Authenticated own-account request for the notary configuration of a genesis the caller will sign. The account pair is the exact authenticated session account and its serving Station; no candidate service id, DID or endpoint is accepted from the caller.",
+      "required": [
+        "request_id",
+        "account_id",
+        "intended_purpose"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "intended_purpose": {
+          "$ref": "#/$defs/genesis_notary_purpose"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "genesis_notary_outcome": {
+      "type": "object",
+      "description": "Complete own-Station result. notary is copied verbatim into the genesis object; the caller still authors and signs the create Event itself. observed_at records the evaluation instant and is not a validity window or authorization lease, because the frozen descriptors become immutable historical Seal-signer truth once the genesis is accepted.",
+      "required": [
+        "request_id",
+        "account_id",
+        "intended_purpose",
+        "notary",
+        "observed_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "intended_purpose": {
+          "$ref": "#/$defs/genesis_notary_purpose"
+        },
+        "notary": {
+          "$ref": "./realm.schema.json#/properties/notary"
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    }
+  }
+}

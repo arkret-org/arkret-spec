@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-10.8",
+  "version": "2026-09-10.9",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -6983,6 +6983,263 @@
         "send_blockers": []
       },
       "first_expected_error": "contains:not valid under"
+    },
+    {
+      "name": "genesis_notary_request_binds_exact_account_and_purpose",
+      "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000010",
+        "account_id": {
+          "principal_id": "ak:did_core:web:alice.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "intended_purpose": "collaboration"
+      }
+    },
+    {
+      "name": "genesis_notary_request_rejects_caller_selected_service",
+      "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000010",
+        "account_id": {
+          "principal_id": "ak:did_core:web:alice.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "intended_purpose": "collaboration",
+        "service_id": "ak:did_core:web:notary.example"
+      },
+      "first_expected_error": "contains:was unexpected"
+    },
+    {
+      "name": "genesis_notary_request_rejects_identity_control_purpose",
+      "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000010",
+        "account_id": {
+          "principal_id": "ak:did_core:web:alice.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "intended_purpose": "principal_control"
+      },
+      "first_expected_error": "contains:is not one of"
+    },
+    {
+      "name": "genesis_notary_outcome_carries_complete_notary_value",
+      "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000010",
+        "account_id": {
+          "principal_id": "ak:did_core:web:alice.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "intended_purpose": "collaboration",
+        "notary": {
+          "kind": "single_signer",
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:web:station.example"
+            },
+            "verification_method": "did:web:station.example#seal-key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        "observed_at": "2026-09-10T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "genesis_notary_outcome_requires_notary",
+      "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000010",
+        "account_id": {
+          "principal_id": "ak:did_core:web:alice.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "intended_purpose": "collaboration",
+        "observed_at": "2026-09-10T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:'notary' is a required property"
+    },
+    {
+      "name": "genesis_notary_outcome_rejects_method_history_evidence",
+      "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000010",
+        "account_id": {
+          "principal_id": "ak:did_core:web:alice.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "intended_purpose": "collaboration",
+        "notary": {
+          "kind": "single_signer",
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:web:station.example"
+            },
+            "verification_method": "did:web:station.example#seal-key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        "observed_at": "2026-09-10T00:00:00.000Z",
+        "method_history_evidence": {}
+      },
+      "first_expected_error": "contains:was unexpected"
+    },
+    {
+      "name": "media_service_binding_request_selects_only_a_joined_realm",
+      "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
+        "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
+      }
+    },
+    {
+      "name": "media_service_binding_request_rejects_caller_candidate_origin",
+      "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
+        "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd",
+        "base_url": "https://attacker.example/"
+      },
+      "first_expected_error": "contains:was unexpected"
+    },
+    {
+      "name": "media_service_binding_outcome_binds_basis_route_and_keys",
+      "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
+        "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd",
+        "seal_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        },
+        "route": {
+          "service_id": "ak:did_core:web:media.example",
+          "service_kind": "media_service",
+          "did": "did:web:media.example",
+          "method_history_head": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "version_id": "synthetic-jcs-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "resolution_event_ref": "did-web-document-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "base_url": "https://media.example/"
+        },
+        "signing_keys": [
+          {
+            "verification_method": "did:web:media.example#key-1",
+            "public_key_b64u": "ddddddddddddddddddddddddddddddddddddddddddA"
+          }
+        ],
+        "observed_at": "2026-09-10T00:00:00.000Z",
+        "expires_at": "2026-09-10T00:05:00.000Z"
+      }
+    },
+    {
+      "name": "media_service_binding_outcome_requires_reuse_window",
+      "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
+        "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd",
+        "seal_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        },
+        "route": {
+          "service_id": "ak:did_core:web:media.example",
+          "service_kind": "media_service",
+          "did": "did:web:media.example",
+          "method_history_head": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "version_id": "synthetic-jcs-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "resolution_event_ref": "did-web-document-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "base_url": "https://media.example/"
+        },
+        "signing_keys": [
+          {
+            "verification_method": "did:web:media.example#key-1",
+            "public_key_b64u": "ddddddddddddddddddddddddddddddddddddddddddA"
+          }
+        ],
+        "observed_at": "2026-09-10T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:'expires_at' is a required property"
+    },
+    {
+      "name": "media_service_binding_outcome_rejects_empty_signing_keys",
+      "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
+        "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd",
+        "seal_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        },
+        "route": {
+          "service_id": "ak:did_core:web:media.example",
+          "service_kind": "media_service",
+          "did": "did:web:media.example",
+          "method_history_head": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "version_id": "synthetic-jcs-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "resolution_event_ref": "did-web-document-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "base_url": "https://media.example/"
+        },
+        "signing_keys": [],
+        "observed_at": "2026-09-10T00:00:00.000Z",
+        "expires_at": "2026-09-10T00:05:00.000Z"
+      },
+      "first_expected_error": "contains:should be non-empty"
+    },
+    {
+      "name": "media_service_binding_outcome_rejects_normalized_did_document",
+      "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
+        "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd",
+        "seal_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        },
+        "route": {
+          "service_id": "ak:did_core:web:media.example",
+          "service_kind": "media_service",
+          "did": "did:web:media.example",
+          "method_history_head": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "version_id": "synthetic-jcs-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "resolution_event_ref": "did-web-document-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "base_url": "https://media.example/"
+        },
+        "signing_keys": [
+          {
+            "verification_method": "did:web:media.example#key-1",
+            "public_key_b64u": "ddddddddddddddddddddddddddddddddddddddddddA"
+          }
+        ],
+        "observed_at": "2026-09-10T00:00:00.000Z",
+        "expires_at": "2026-09-10T00:05:00.000Z",
+        "normalized_did_document": {}
+      },
+      "first_expected_error": "contains:was unexpected"
     }
   ]
 }

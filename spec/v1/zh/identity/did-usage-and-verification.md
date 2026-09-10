@@ -365,7 +365,9 @@ witness 级失效触发（witness 被撤销、witness 组织归属被合并判�
 - Service endpoint 发现与 DID 控制权验证是两件事。完整 AccountId/ActorId 固定目标服务身份，service resolution 携带
   `AuthenticatedServiceResolution` / current-record ref；验证 record 后得到 `base_url`，再以 `ServiceDescribe`
   作第二跳确认。发现到一个新 endpoint 不会自动证明 service identity 控制权，反过来也不要求每次
-  HTTP 请求都重新解析 method history；fresh route cache 是允许的实现优化。
+  HTTP 请求都重新解析 method history；fresh route cache 是允许的实现优化。已登记为自己 Station
+  已验证结果的用途（[`../sync/server-trusted-results.md` §5.8、§5.9](../sync/server-trusted-results.md)）
+  由已认证客户端消费结果而非自行解析；本文的历史与 current 验证职责仍留给接纳外部材料的角色。
 - 测试 MUST 能证明：普通读写命中已接受 binding 时 resolver 网络调用次数为零；新 DID / 新 key
   / rotation / recovery / invalidation 场景才调用 authority resolver；缓存失效不会让低风险读取
   阻塞或 live fallback。

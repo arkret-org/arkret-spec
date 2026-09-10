@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-08.59",
-  "generated_at": "2026-09-10T08:41:44+08:00",
+  "version": "2026-09-08.60",
+  "generated_at": "2026-09-10T11:05:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -728,6 +728,10 @@
       "sha256": "sha256:7111159b8c3494b3ed63286ca17bade59efcdfd7e0ecfc379451ba6c84391065"
     },
     {
+      "operation_id": "ak.self.genesis_notary.read.resolve.v1",
+      "sha256": "sha256:21635dab5cfcb5bb1fe079cbfe31a422d9a3db34abd11c1de274afccdc472d3c"
+    },
+    {
       "operation_id": "ak.self.history_key_requests.command.create.v1",
       "sha256": "sha256:a232cd249a1cceb3917a022c2616a6be93a98639d36f46201d899fd731989de8"
     },
@@ -830,6 +834,10 @@
     {
       "operation_id": "ak.self.media.read.ice_config.v1",
       "sha256": "sha256:5f1c909055b16c1ff0286c489c6043f01d63e4c76c0dd130bbdcf80edbd0709a"
+    },
+    {
+      "operation_id": "ak.self.media_service_binding.read.resolve.v1",
+      "sha256": "sha256:b93395502183ffa505310f2b9b6228e634a37b8de1df0173d39aab69741dad71"
     },
     {
       "operation_id": "ak.self.moderation.command.report.v1",

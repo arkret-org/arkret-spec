@@ -1367,6 +1367,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         ("current result atomic budget", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_result_budget.py")], cwd=ROOT).returncode),
         ("self signer result schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_self_signer_result_schema.py")], cwd=ROOT).returncode),
         ("current principal schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_principal_schema.py")], cwd=ROOT).returncode),
+        ("service binding result schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_service_binding_result_schema.py")], cwd=ROOT).returncode),
         ("current result value mappings", lambda: subprocess.run(
             [sys.executable, str(ROOT / "tools/generate_current_result_values.py"), "--check"], cwd=ROOT
         ).returncode),
