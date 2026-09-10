@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.9",
+  "version": "2026-09-10.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T06:30:00+08:00",
+  "generated_at": "2026-09-10T18:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "rules": [
@@ -1266,6 +1266,19 @@
       "target_derivation": "enclosing_realm",
       "source_event_kinds": [
         "ak.realm.tombstone"
+      ],
+      "projection_omitted_fields": [],
+      "result_projection": "joined_value",
+      "delivery": "current"
+    },
+    {
+      "cell_family": "ak.component.relation.conflict_resolution.v1",
+      "lattice": "cas_register",
+      "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_relation_conflict_resolution",
+      "target_class": "realm",
+      "target_derivation": "enclosing_realm",
+      "source_event_kinds": [
+        "ak.relation.resolve"
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",

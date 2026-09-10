@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-09.1",
+  "version": "2026-09-10.1",
   "source_of_truth": true,
   "description": "Canonical machine index of the v1 standard relation_kind vocabulary. This registry is the machine source for the kind list, default cardinality class, truth-source class, and writability; detailed dedupe keys, scope rules, and conflict semantics remain normative in zh/models/relation.md sections 3-6.",
   "registry_rules": [
@@ -9,7 +9,8 @@
     "Every shape_dependent row MUST declare per-shape writability=derived_only or direct. SDK constructors MUST resolve the most-specific matching (canonical_id,from,to) shape before selecting an event path; wildcard fallback applies only when no specific shape matches.",
     "weak_semantic=true rows are non-structural, non-cascading reference edges; they never imply containment, lifecycle coupling, or visibility changes.",
     "Relations dedupe on the full tuple (realm_id, relation_kind, from_ref, to_ref); concurrent duplicate creation uses require_review, retains the complete bounded head set, and projects no active winner until an explicit resolution covers every current head.",
-    "Each directly writable shape has exactly one primary_conflict_domain: tuple means (realm_id, relation_kind, from_ref, to_ref); from means (realm_id, relation_kind, from_ref) and includes duplicate tuples. Circle is never a key component. truth_source shapes resolve through their registered source cell, never direct Relation resolution. The primary group is retained without truncation when the ordinary 16-head diagnostic limit is exceeded."
+    "Each directly writable shape has exactly one primary_conflict_domain: tuple means (realm_id, relation_kind, from_ref, to_ref); from means (realm_id, relation_kind, from_ref) and includes duplicate tuples. Circle is never a key component. truth_source shapes resolve through their registered source cell, never direct Relation resolution. The primary group is retained without truncation when the ordinary 16-head diagnostic limit is exceeded.",
+    "Explicit resolution of a directly writable shape uses exactly one registered carrier, the sealed Control Move ak.relation.resolve, whose payload.conflict_domain.domain_kind MUST equal the matching shape's primary_conflict_domain. A truth_source shape has no resolvable domain and MUST be rejected with schema_violation. The 16-head bound applies to the ordinary diagnostic only and MUST NOT bound the resolution baseline (relation.md sections 6.2-6.3)."
   ],
   "relation_kinds": [
     {

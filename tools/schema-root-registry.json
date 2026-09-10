@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-23.1",
+  "version": "2026-09-10.1",
   "source_of_truth": true,
   "description": "Formal non-wire schema roots plus dated compatibility roots that predate the orphan-def gate. Compatibility entries are not reusable exemptions: additions fail lint and each retained entry is re-reviewed as one group.",
   "formal_roots": [],
@@ -17,8 +17,6 @@
       "schemas/file-transfer.schema.json#/$defs/key_envelope",
       "schemas/object-addressing.schema.json#/$defs/address_link_kind",
       "schemas/object-addressing.schema.json#/$defs/signed_address_link_token_claims",
-      "schemas/relation.schema.json#/$defs/relation_conflict_diagnostic",
-      "schemas/relation.schema.json#/$defs/relation_conflict_candidate",
       "schemas/seal-transparency.schema.json#/$defs/auditor_attestation",
       "schemas/seal-transparency.schema.json#/$defs/did_core_id",
       "schemas/service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims",

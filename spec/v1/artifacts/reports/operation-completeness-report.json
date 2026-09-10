@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T18:20:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 239,
+    "total_operations": 240,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 237
+      "typed_schema": 238
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 145
+        "typed_schema": 146
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -3025,6 +3025,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.relation_conflicts.read.candidates.v1",
+      "surface_class": "extension",
+      "http": "QUERY /_arkret/self/relation-conflicts/candidates",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/relation.schema.json#/$defs/relation_conflict_candidates_request_body",
+      "response_schema_ref": "schemas/relation.schema.json#/$defs/relation_conflict_candidates_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RelationConflictCandidatesRequestBody",
+        "response": "#/components/schemas/RelationConflictCandidatesOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.seals.command.prepare.v1",

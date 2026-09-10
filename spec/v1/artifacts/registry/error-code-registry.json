@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-10.5",
-  "generated_at": "2026-09-10T04:50:56+08:00",
+  "version": "2026-09-10.6",
+  "generated_at": "2026-09-10T18:20:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4864,11 +4864,42 @@
       "description": "`ak.relation.tombstone` / `ak.relation.update` / equivalent Relation write rejected because the target Relation is already in the terminal state `tombstone`. In particular, `ak.relation.update` targeting a tombstoned Relation MUST be rejected with this reason_code."
     },
     {
+      "code": "relation_conflict_baseline_stale",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when an `ak.relation.resolve` Control Move does not match the complete candidate set the receiver rebuilds for `payload.conflict_domain` under the Move's frozen predecessor view: a missing member, a superseded head, a duplicate, a member of another domain, a `member_count` / `members_digest` mismatch, or a `retain_candidate` naming an event outside the covered baseline. The Move is rejected with zero cell writes; the author re-reads the material through `ak.self.relation_conflicts.read.candidates.v1` and signs a new Move. A byte-identical replay of an already accepted resolve stays idempotent by EventId and MUST NOT be reported with this reason. See zh/models/relation.md §6.4."
+    },
+    {
       "code": "relation_conflict_fanout_exceeded",
       "applies_to": [
         "state_resolution"
       ],
-      "description": "The number of concurrent candidates (winner + losers) under a single Relation dedupe key exceeded the conflict fanout limit (v1 public profile: 16, aligned with the sibling fork limit in zh/models/event-and-patch.md §2.6). The reducer rejects the whole candidate group rather than retaining unbounded loser records; reconvergence requires a repair Event/Control Move on the latest CBS query basis. See zh/models/relation.md §6."
+      "description": "The number of concurrent candidates (winner + losers) under a single Relation dedupe key exceeded the ordinary conflict fanout limit (v1 public profile: 16, aligned with the sibling fork limit in zh/models/event-and-patch.md §2.6). The reducer keeps every retained candidate and projects no active edge for the whole group; it MUST NOT truncate to the first 16. The limit bounds the ordinary diagnostic and projection surface only, never the repair evidence: reconvergence is one `ak.relation.resolve` covering the complete baseline read through `ak.self.relation_conflicts.read.candidates.v1`, whose `member_count` is not bounded by 16. Once a domain is in this state under the writer's own signed basis, a further `ak.relation.create` into it is rejected with this same reason so the repair material stays bounded by what already converged. See zh/models/relation.md §6."
+    },
+    {
+      "code": "relation_conflict_group_not_visible",
+      "applies_to": [
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when the caller may read only part of a Relation conflict domain. The Station MUST NOT return a shortened candidate list, a partial baseline or a partial diagnostic, and MUST NOT widen the caller's scope to complete the group; the caller cannot author a complete-set resolution it is not allowed to see. See zh/models/relation.md §6.2."
+    },
+    {
+      "code": "relation_conflict_material_page_gap",
+      "applies_to": [
+        "service_call",
+        "client_sync"
+      ],
+      "description": "Sub-reason for failed_precondition when the paged Relation conflict repair material does not verify as one chain: a skipped or duplicated `page_index`, a `prev_page_digest` that does not equal the previous page's `page_digest`, a non-final page shorter than `page_size`, or a group that changed mid-read. No page takes effect on its own, so the reader discards the partial material and restarts at `page_index=0`. See zh/models/relation.md §6.3."
+    },
+    {
+      "code": "relation_conflict_material_unavailable",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Sub-reason for failed_precondition when a Station cannot serve the complete frozen Relation conflict repair material it is required to retain. The read fails closed; the Station MUST NOT answer with a truncated list, a recomputed subset or a baseline it cannot back with every member. See zh/models/relation.md §6.3."
     },
     {
       "code": "relation_kind_contains_derived",

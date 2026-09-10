@@ -1776,6 +1776,16 @@
       ],
       "unevaluatedProperties": false
     },
+    "value_relation_conflict_resolution": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "./event-payload.schema.json#/$defs/relation_resolve_payload"
+        }
+      ]
+    },
     "value_relation_lifecycle": {
       "anyOf": [
         {
@@ -3231,6 +3241,9 @@
                   "$ref": "#/$defs/value_relation"
                 },
                 {
+                  "$ref": "#/$defs/value_relation_conflict_resolution"
+                },
+                {
                   "$ref": "#/$defs/value_relation_lifecycle"
                 },
                 {
@@ -3567,6 +3580,9 @@
                       },
                       {
                         "$ref": "#/$defs/value_relation"
+                      },
+                      {
+                        "$ref": "#/$defs/value_relation_conflict_resolution"
                       },
                       {
                         "$ref": "#/$defs/value_relation_lifecycle"
@@ -7371,6 +7387,46 @@
               "selector": {
                 "properties": {
                   "cell_id": {
+                    "pattern": "^ak:cell:ak\\.component\\.relation\\.conflict_resolution\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "result": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "value",
+                      "removed",
+                      "unavailable"
+                    ]
+                  },
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_relation_conflict_resolution"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "selector": {
+                "properties": {
+                  "cell_id": {
                     "pattern": "^ak:cell:ak\\.component\\.relation\\.lifecycle\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
                   }
                 }
@@ -8190,6 +8246,9 @@
                         },
                         {
                           "pattern": "^ak:cell:ak\\.component\\.realm\\.tombstone\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
+                        },
+                        {
+                          "pattern": "^ak:cell:ak\\.component\\.relation\\.conflict_resolution\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
                         },
                         {
                           "pattern": "^ak:cell:ak\\.component\\.relation\\.lifecycle\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
