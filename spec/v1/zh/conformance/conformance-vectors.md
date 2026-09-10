@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-11
+updated: 2026-09-10
 ---
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
@@ -1004,6 +1004,34 @@ Expected：
 
 只做运行时 JSON 校验、不提供 compile-fail 或公开 API inventory，不能声明本向量通过。公开 submit API
 若接受 raw map、可变 verified envelope 或未转换的 wire Event，亦为不通过。
+
+### 2.5.7 Vector: MLS Proposal Producer 边界
+
+`vector_id`: `ak.vector.mls.proposal_producer_binding.v1`
+
+本 vector 固定 [`encryption-and-audit.md` §5.2.1](../crypto-media/encryption-and-audit.md) 的支持矩阵与判定顺序：v1 Realm/Circle durable `ak.mls.proposal` 只接受 exact base 中的 Member sender，且其 leaf credential 与 signature key 必须绑定已验证的实际 Event producer。runner 使用 [`final-conformance-closure-fixture.json`](../../artifacts/fixtures/final-conformance-closure-fixture.json) 的同名 case。
+
+正例：
+
+1. Member sender 的 `remove` Proposal，`sender.leaf_index` 指向 exact accepted base 中已占用的叶，该叶 BasicCredential identity 与 signature key 逐字节等于该 Event 的 `executed_by ?? actor_id` 及其 exact producer proof key。
+2. 同一 base 上 Member sender 的 `add`、`update`、`psk`、`reinit`、`group_context_extensions` 各自按既有规则被接受；runner MUST 证明本裁决没有禁用任何标准 Member Proposal 类型。
+
+必拒反例：
+
+3. 结构完全合法、签名有效的 ExternalSender Proposal，其签名者已被写入 GroupContext `external_senders`，且该 Actor 当前持有 `ak.mls.proposal` 权限。期望 `unsupported_feature`，零 durable 写入。
+4. NewMemberProposal sender 自荐 Add。期望 `unsupported_feature`。
+5. NewMemberCommit sender 或解码出 `external_init` 的 Proposal。期望 `unsupported_feature`，且 MUST 在声明的 `proposal_type` 不匹配之前给出该结论。
+6. `proposal_type="app_custom"` 且解码 codepoint 未登记于 `mls-proposal-admission-registry.json` 的 `application_proposal_types[]`。期望 `unsupported_feature`；把未识别 codepoint 当作已授权 AppCustom 即为不通过。
+7. Member sender 但 `leaf_index` 指向 exact base 中的空叶或另一 base 的叶。期望 `failed_precondition`。
+8. Member sender 且叶存在，但 LeafNode credential identity 或 signature key 与已验证 producer 不一致（含用 controller device 冒充 Agent runtime key、用另一 pairwise `principal_id` 冒充本 endpoint）。期望 `signature_invalid`。
+9. staged GroupContext 安装 RFC 9420 `external_senders`（`0x0004`）的 `ak.mls.genesis` 或 `ak.mls.commit`。期望 `unsupported_feature`，不推进 epoch。
+
+Expected：
+
+- 第 3 至第 6 例 MUST 返回 `unsupported_feature`。把它们报成 `schema_violation`、`unsupported_event_kind`、`capability_denied` 或 `signature_invalid` 即为不通过。
+- 第 7、第 8 例 MUST 返回各自的授权/绑定错误；用 `unsupported_feature` 掩盖绑定失败同样不通过。
+- 所有拒绝分支 MUST 零 durable 写入、不进入 MLS proposal store、不产生 leaf provenance，也不推进 `ak.component.mls.epoch.v1`。
+- 只做 schema 校验、或只验证发送者是当前成员而不比较 exact base 叶与已验证 producer，不构成通过。
 
 ### 2.6 Vector: 数据面冲突返回 Bottom 且不选 Winner
 

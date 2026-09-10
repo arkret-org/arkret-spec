@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.4",
+  "version": "2026-09-10.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T10:55:00+08:00",
+  "generated_at": "2026-09-10T11:35:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4497,6 +4497,20 @@
         "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
       ],
       "description": "Human portable backup carries history-secret segments only; a fresh device establishes active state with its own authorization/KeyPackage/Welcome and cannot install or send from a foreign full snapshot."
+    },
+    {
+      "vector_id": "ak.vector.mls.proposal_producer_binding.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
+      "description": "A v1 Realm/Circle durable ak.mls.proposal is admitted only from a Member sender whose leaf is occupied in the exact accepted base and whose leaf credential and signature key equal the verified Event producer executed_by ?? actor_id. A structurally valid ExternalSender, NewMemberProposal, NewMemberCommit, decoded external_init, unregistered app_custom codepoint, or a transition that installs the external_senders GroupContext extension fails closed with unsupported_feature and never as schema_violation, while an absent base leaf stays failed_precondition and a producer mismatch stays signature_invalid; standard Member proposal types remain admissible.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
     },
     {
       "vector_id": "ak.vector.mls.rfc9420_mti_kat.v1",

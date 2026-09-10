@@ -3,7 +3,7 @@ title: Encryption and Auditability
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-09-10
 sidebar:
   label: Encryption & Audit
 ---
@@ -780,8 +780,41 @@ HTTP caller MUST 使用 §3 的 service-to-service authentication，并且是该
 
 ### 5.2 意图与生效的分离
 组员的增删改是两阶段流程：
-1. **意图上链 (Proposal)**：成员发出 `ak.mls.proposal`（例如移除某成员的意图）。payload MUST 同时携带未填充 base64url 编码的完整 RFC 9420 Proposal message `proposal_bytes_b64`，以及其解码后字节的 SHA-256 `proposal_digest`；receiver MUST 在写入 durable Event store 之前逐字验证 digest、MLS group id、base epoch 与 proposal type，并在处理 by-reference Commit 前从该 final Proposal Event 恢复 bytes 写入 MLS proposal store。v1 不存在 `proposal_message_ref` 或 digest-only 分支。此阶段 group epoch 尚未推进，先前密钥仍有效，被提议移除的成员仍在 group 内。
+1. **意图上链 (Proposal)**：exact base 中的 Member 发出 `ak.mls.proposal`（例如移除某成员的意图）；producer 类、sender 绑定与不受支持分支的错误按 §5.2.1 判定。payload MUST 同时携带未填充 base64url 编码的完整 RFC 9420 Proposal message `proposal_bytes_b64`，以及其解码后字节的 SHA-256 `proposal_digest`；receiver MUST 在写入 durable Event store 之前逐字验证 digest、MLS group id、base epoch 与 proposal type，并在处理 by-reference Commit 前从该 final Proposal Event 恢复 bytes 写入 MLS proposal store。v1 不存在 `proposal_message_ref` 或 digest-only 分支。此阶段 group epoch 尚未推进，先前密钥仍有效，被提议移除的成员仍在 group 内。
 2. **正式生效 (Commit)**：MUST 有成员针对上述 Proposal 构造并广播 `ak.mls.commit`。一旦 Commit 被 accepted Seal 覆盖，epoch 推进，ratchet tree 据此更新，新 group secret 仅分发给剩余成员（不含被移除成员）；自该 epoch 起，被移除成员无法解密后续 application message。
+
+#### 5.2.1 Proposal producer 与 sender 支持矩阵（normative）
+
+v1 的 Realm / Circle durable `ak.mls.proposal` 只有一个 producer 类：exact base 中的 **Member sender**。机器可读支持矩阵是 [`mls-proposal-admission-registry.json`](../../artifacts/registry/mls-proposal-admission-registry.json)，本节与该 registry 逐行对应。实现 MUST NOT 从 RFC 9420 的可解析性、底层 MLS 库的能力或 GroupContext 的既有配置推出第二个 producer 类。
+
+**Member sender 绑定**：Proposal 的 RFC 9420 `Sender` MUST 是 `member`，其 `leaf_index` MUST 指向由 `payload.base_epoch` 与 `governance_binding.previous_epoch` 唯一选定的 exact accepted base group state 中已占用的叶。该叶的 LeafNode BasicCredential identity 与 signature key MUST 逐字节等于该 Event 已验证的真实 producer `executed_by ?? actor_id`（[`../models/event-and-patch.md` §3.1](../models/event-and-patch.md)）。三种 regime 的 credential identity 取值按 §2.7 的封闭规则确定：ordinary human 为 canonical DeviceId 的 UTF-8 bytes，Agent 为 canonical Agent ActorId 的 UTF-8 bytes，minimal-metadata 为该 Realm-local pairwise `principal_id` 的 UTF-8 bytes。零匹配、多匹配、credential 或 signing-key mismatch 与 directory fallback 一律拒绝。
+
+| RFC 9420 sender class | v1 | 结果 |
+| --- | --- | --- |
+| `member` | 支持 | 按本节绑定与各 Proposal 类型既有规则求值 |
+| `external`（ExternalSender） | 不支持 | `unsupported_feature` |
+| `new_member_proposal`（NewMemberProposal） | 不支持 | `unsupported_feature` |
+| `new_member_commit`（NewMemberCommit） | 不支持 | `unsupported_feature` |
+
+RFC 9420 GroupContext extension `external_senders`（`0x0004`）在 v1 是 unsupported row（见 [`mls-extension-registry.json`](../../artifacts/registry/mls-extension-registry.json)）。`ak.mls.genesis` 与 `ak.mls.commit` MUST NOT 在 staged GroupContext 中安装它，携带它的 transition MUST 以 `unsupported_feature` 拒绝：群状态不得广告一个本节永远不会接受的签名者集合。
+
+**Proposal 类型矩阵**：`add`、`update`、`remove`、`psk`、`reinit`、`group_context_extensions` 由 Member sender 携带时，各自既有规则（§5.2、§5.4，以及 §2.6 的能力下界与 `target_authorization_incarnation` 约束）继续完整适用；本节 MUST NOT 被解释为禁用任何标准 Member Proposal 类型。RFC 9420 `external_init`（`0x0006`）在 v1 没有 wire 载体，解码到该类型 MUST 返回 `unsupported_feature`。`app_custom` 只有在其解码 codepoint 命中 registry `application_proposal_types[]` 的 active row、且接收方实现该 row 声明的 application 语义时才可接纳；v1 该集合为空，因此任何 `app_custom` Proposal MUST 返回 `unsupported_feature`。实现 MUST NOT 把未识别 codepoint 自动当作已授权 AppCustom，也不得仅凭 private-use 区间推断语义。
+
+**错误分工与判定顺序**：接收方 MUST 按固定顺序求值，使返回码确定且可机器判定。
+
+1. `mls_proposal_payload` 结构校验失败为 `schema_violation`。
+2. `proposal_bytes_b64` 解码、`proposal_digest`、`mls_group_id` 与 `base_epoch` 的逐字比较失败为 `schema_violation`。
+3. wire format 不是 `PublicMessage` 为 `schema_violation`。
+4. sender class 命中 registry 的 unsupported row 时返回该 row 的 `rejection_error`，即 `unsupported_feature`。
+5. 解码 Proposal 类型命中 unsupported row 或未登记 codepoint 时返回 `unsupported_feature`。
+6. 解码 Proposal 类型与声明的 `proposal_type` 不一致为 `schema_violation`。
+7. Member sender 绑定失败：叶不在 exact base 为 `failed_precondition`，credential 或 signature key 与已验证 producer 不一致为 `signature_invalid`。
+
+第 4 步与第 5 步先于第 6 步，因此一个结构合法但 v1 不支持的 producer 或 Proposal 类型 MUST NOT 被误报为 `schema_violation`，也 MUST NOT 被报成 `unsupported_event_kind`（`ak.mls.proposal` 是 active 标准 kind）、`capability_denied` 或 `signature_invalid`。反向同样成立：第 7 步的失败是授权与绑定失败，不是不受支持的特性，MUST NOT 用 `unsupported_feature` 掩盖。per-Event 拒绝以 `rejections[].reason_code` 承载，服务级失败按 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 的 HTTP 映射。
+
+**与既有禁令的衔接**：§2.6 的「v1 不允许 external join 或由 external Commit 添加成员」是 KeyPackage 能力下界一节的入群禁令，本节是 durable Proposal 的 producer 边界。两者互不替代、互不削弱：即便某部署已把外部签名者写进 GroupContext，本节仍 MUST 拒绝其 durable Proposal。`effective_scope.kind="sidecar"` 保持 §2.5.1 的独立握手 profile，本节 sender 矩阵不改变 Sidecar 合同。
+
+本节的可执行证据是 [`../conformance/conformance-vectors.md` §2.5.7](../conformance/conformance-vectors.md) 的 `ak.vector.mls.proposal_producer_binding.v1`。
 
 ### 5.3 Committer 失联与 Commit 接管 (Takeover)
 单一 committer 失联 MUST NOT 永久锁定 epoch 推进：任一持有相应 commit 权限的成员 MAY 在 observe 到 pending `ak.mls.proposal` 后构造并广播 `ak.mls.commit` 接管该 proposal；commit 被 accepted Seal 覆盖后，被移除成员 MUST 失去后续 epoch 的解密能力。

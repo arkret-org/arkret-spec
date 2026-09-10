@@ -7527,11 +7527,12 @@
             "reinit",
             "group_context_extensions",
             "app_custom"
-          ]
+          ],
+          "description": "Declared Proposal type. The support decision for each token is the matching row of artifacts/registry/mls-proposal-admission-registry.json: app_custom is structurally admissible but has no active application_proposal_types row in v1, so a decoded app_custom Proposal MUST be rejected with unsupported_feature rather than schema_violation. A token that does not equal the decoded Proposal type is schema_violation only after the sender class and decoded Proposal type rows have both been found active."
         },
         "proposal_bytes_b64": {
           "$ref": "#/$defs/base64url",
-          "description": "Unpadded base64url encoding of the complete RFC 9420 MLSMessage carrying a Proposal. For Realm/Circle effective scopes it MUST be PublicMessage; PrivateMessage and bare Proposal bodies are rejected. Sidecar retains its own contract. Exact bytes are inline and durable; by-reference Commit processing matches the RFC proposal reference against these authenticated contents, not the EventId."
+          "description": "Unpadded base64url encoding of the complete RFC 9420 MLSMessage carrying a Proposal. For Realm/Circle effective scopes it MUST be PublicMessage; PrivateMessage and bare Proposal bodies are rejected. Sidecar retains its own contract. Exact bytes are inline and durable; by-reference Commit processing matches the RFC proposal reference against these authenticated contents, not the EventId. On Realm/Circle scopes the decoded sender class MUST be the active member row of artifacts/registry/mls-proposal-admission-registry.json, and the sender leaf credential and signature key MUST equal the verified Event producer executed_by ?? actor_id; ExternalSender, NewMemberProposal and NewMemberCommit senders are rejected with unsupported_feature."
         },
         "proposal_digest": {
           "$ref": "#/$defs/digest",

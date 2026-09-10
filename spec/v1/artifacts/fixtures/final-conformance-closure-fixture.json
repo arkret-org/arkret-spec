@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-02",
+  "version": "2026-09-10",
   "suite": "final_conformance_closure",
   "runner": {
     "kind": "named_suite",
@@ -12,6 +12,7 @@
     "ak.vector.federation.timing_bucket.v1",
     "ak.vector.mls.security_frontier_key_access_only.v1",
     "ak.vector.mls.governance_epoch_binding.v1",
+    "ak.vector.mls.proposal_producer_binding.v1",
     "ak.vector.moderation.franking_roundtrip.v1",
     "ak.vector.moderation.evidence_package_minimal_disclosure.v1",
     "ak.vector.moderation.review_resolution_fold.v1",
@@ -380,6 +381,128 @@
         "mls_epoch_cell_advanced": false,
         "active_epoch_advanced": false
       }
+    },
+    {
+      "vector_id": "ak.vector.mls.proposal_producer_binding.v1",
+      "assertions": [
+        "member_sender_leaf_is_occupied_in_exact_accepted_base",
+        "member_leaf_credential_and_signature_key_equal_verified_event_producer",
+        "unsupported_sender_class_and_proposal_type_return_unsupported_feature",
+        "unsupported_producer_is_never_reported_as_schema_violation",
+        "standard_member_proposal_types_remain_admissible",
+        "rejected_branches_write_nothing_and_do_not_advance_epoch"
+      ],
+      "effective_scope_kind": "realm",
+      "base_epoch": 41,
+      "cases": [
+        {
+          "name": "member_remove_bound_to_verified_producer",
+          "sender_class": "member",
+          "proposal_type": "remove",
+          "sender_leaf_occupied_in_exact_base": true,
+          "leaf_credential_equals_verified_producer": true,
+          "expected": {
+            "decision": "accept",
+            "durable_proposal_written": true
+          }
+        },
+        {
+          "name": "member_standard_types_remain_admissible",
+          "sender_class": "member",
+          "proposal_types": [
+            "add",
+            "update",
+            "psk",
+            "reinit",
+            "group_context_extensions"
+          ],
+          "sender_leaf_occupied_in_exact_base": true,
+          "leaf_credential_equals_verified_producer": true,
+          "expected": {
+            "decision": "accept",
+            "durable_proposal_written": true
+          }
+        },
+        {
+          "name": "external_sender_configured_and_authorized",
+          "sender_class": "external",
+          "proposal_type": "remove",
+          "group_context_external_senders_configured": true,
+          "actor_holds_mls_proposal_capability": true,
+          "proposal_signature_valid": true,
+          "expected": {
+            "decision": "reject",
+            "reason_code": "unsupported_feature",
+            "durable_proposal_written": false
+          }
+        },
+        {
+          "name": "new_member_proposal_self_add",
+          "sender_class": "new_member_proposal",
+          "proposal_type": "add",
+          "expected": {
+            "decision": "reject",
+            "reason_code": "unsupported_feature",
+            "durable_proposal_written": false
+          }
+        },
+        {
+          "name": "external_init_decoded_before_declared_token_mismatch",
+          "sender_class": "new_member_commit",
+          "declared_proposal_type": "add",
+          "decoded_proposal_type": "external_init",
+          "expected": {
+            "decision": "reject",
+            "reason_code": "unsupported_feature",
+            "durable_proposal_written": false
+          }
+        },
+        {
+          "name": "app_custom_codepoint_not_registered",
+          "sender_class": "member",
+          "proposal_type": "app_custom",
+          "decoded_proposal_codepoint": "0xF101",
+          "registered_application_proposal_type": false,
+          "expected": {
+            "decision": "reject",
+            "reason_code": "unsupported_feature",
+            "durable_proposal_written": false
+          }
+        },
+        {
+          "name": "member_leaf_absent_from_exact_base",
+          "sender_class": "member",
+          "proposal_type": "remove",
+          "sender_leaf_occupied_in_exact_base": false,
+          "expected": {
+            "decision": "reject",
+            "reason_code": "failed_precondition",
+            "durable_proposal_written": false
+          }
+        },
+        {
+          "name": "member_leaf_credential_not_verified_producer",
+          "sender_class": "member",
+          "proposal_type": "remove",
+          "sender_leaf_occupied_in_exact_base": true,
+          "leaf_credential_equals_verified_producer": false,
+          "expected": {
+            "decision": "reject",
+            "reason_code": "signature_invalid",
+            "durable_proposal_written": false
+          }
+        },
+        {
+          "name": "transition_installs_external_senders_extension",
+          "transition_kind": "ak.mls.commit",
+          "staged_group_context_extension": "0x0004",
+          "expected": {
+            "decision": "reject",
+            "reason_code": "unsupported_feature",
+            "active_epoch_advanced": false
+          }
+        }
+      ]
     },
     {
       "vector_id": "ak.vector.moderation.franking_roundtrip.v1",
