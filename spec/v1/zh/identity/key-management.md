@@ -724,7 +724,9 @@ DID operation，也不推进 resolution；用户另行执行 method successor �
 
 Genesis/re-anchor accepted 只建立可认证设备，不等于 recovery ready。在首个 accepted Seal 与由该设备签署的 genesis recovery policy 都完成前，PCR 必须保持 `recovery_material_pending`。此 gate 不回滚已 accepted identity/device state；失败后客户端 exact resume。
 
-gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入前 MUST 完成**（与 §7.11 一致）；gate 未完成时允许读取与非 E2EE 的本地/账号级操作。gate 期间允许的封闭写入集合恰为：该 PCR 的首个 Seal、genesis recovery policy、以及 genesis unit 自身产生的 device projection 更新（`ak.device.list_update`）；其余 Realm 写入 MUST fail closed。
+**客户端续接边界（normative）**：注册返回有效 Standard grant 且 current-principal 已核对完整 Account、Station、holder/device 与唯一 PCR 后，客户端 MAY 建立该已接纳账号的本地存储上下文。需要缓存 frontier 或 recovery evidence 的客户端 MUST 在对应写入前建立该上下文并耐久保存续接 checkpoint；不得要求先完成 recovery 才能建立其自身所需的账号存储。存储上下文存在不构成 recovery ready、普通 E2EE 授权或 setup complete；客户端 MUST 保留未完成 gate 和 exact replay 状态，完成后才发布相应产品就绪状态。协议不规定客户端内部类型名或要求新增临时账号／SessionGrant。
+
+gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入前 MUST 完成**（与 §7.11 一致）；gate 未完成时允许读取与非 E2EE 的本地/账号级操作。gate 期间允许的封闭写入集合恰为：该 PCR 的首个 Seal、genesis recovery policy、使该 policy 生效所必需且不包含其它控制写入的设备签名 successor Seal、以及 genesis unit 自身产生的 device projection 更新（`ak.device.list_update`）；其余 Realm 写入 MUST fail closed。policy Event 接纳不等于 policy 已生效；完成 gate 必须观察到已生效的该 policy，不能仅凭接纳回执解除 gate。
 
 ### 5.1 新设备加入（首台设备已存在）
 

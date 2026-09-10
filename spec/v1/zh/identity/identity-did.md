@@ -638,6 +638,10 @@ ephemeral pairwise actor principal 转为长期关系时也适用本节：它必
 
 `ak.self.current_principal.read.resolve.v1`（`POST /_arkret/self/account/current-principal`）是普通已登录客户端读取自己账号当前身份与唯一 PCR 的标准结果入口，遵循 [账号服务器信任](../sync/server-trusted-results.md) §1–2。调用方 MUST 已建立绑定预期 Station、完整 AccountId 与当前 holder 的认证会话；本接口不建立首次接入信任锚，也不支持任意第三方身份查询。
 
+**首次注册的初始 current（normative）**：完整 human genesis unit 原子接纳时 MUST 同事务发布初始 identity resolution current cell；该完整 Account 的已认证读取 MUST 可以在首个 Seal 前返回该精确初始结果。成功条件是 immutable creation anchor、完整 genesis unit 与初始 cell 在同一次一致观察中仍有效，不能用 Event 索引代替 cell。此初始化只确立身份，不宣称治理 frontier ready。首个 Seal 已接纳，或治理 current 已进入未决／不可用状态后，MUST NOT 回退到 genesis projection；适用下文普通 current 可用性规则。
+
+首次注册角色验收 MUST 覆盖：完整 genesis 已原子接纳、初始 current 存在且尚无 Seal 时读取成功；partial genesis、source quarantine、初始 current 缺失时不返回成功；治理 current 已未决或不可用时不回退；精确注册重放不覆盖后继 current。客户端验收 MUST 覆盖在未完成 recovery 时建立已确认 Account 的存储上下文、失败重启后复用同一 checkpoint，以及未接纳 draft 不得建立该上下文。
+
 closed `CurrentPrincipalRequestBody` 字段按序如下：
 
 | 字段 | 类型 | 约束 |
