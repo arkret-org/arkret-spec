@@ -812,10 +812,10 @@ def build_response_stream_kat(schemas: SchemaSet) -> dict[str, Any]:
     ack_outcome = {"acked_through_cursor": lost_record["cursor"]}
 
     for definition, instance in (
-        ("history_key_response_send_request", send_request),
+        ("history_key_response_send_request_body", send_request),
         ("history_key_response_send_receipt", first_receipt),
         ("history_key_response_list_outcome", list_outcome),
-        ("history_key_response_ack_request", ack_request),
+        ("history_key_response_ack_request_body", ack_request),
         ("history_key_response_ack_outcome", ack_outcome),
     ):
         schemas.validator("history-key.schema.json", definition).validate(instance)

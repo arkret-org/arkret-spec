@@ -51,10 +51,6 @@
       "$ref": "#/$defs/notification_container",
       "description": "Account-private notification projection deltas on `delta` frames. These are not Realm Events and are authorized by the authenticated account context rather than realm_id visibility."
     },
-    "agent_signer_evidence_bundle": {
-      "$ref": "./agent-signer-evidence-operations.schema.json#/$defs/sync_bundle",
-      "description": "Bounded signer-evidence sidecar for Agent-authored Events in this delta. Clients MUST verify each evidence item before caching or using it."
-    },
     "partial": {
       "type": "boolean",
       "description": "This frame contains a limited timeline window. Missing older history is loaded on user demand; partial does not describe account baseline completion."
@@ -492,11 +488,8 @@
         "state_at_window_start": {
           "$ref": "#/$defs/state_at_window_start"
         },
-        "state": {
-          "$ref": "#/$defs/event_container"
-        },
-        "state_after": {
-          "$ref": "#/$defs/event_container"
+        "current": {
+          "$ref": "./account-current-result.schema.json#/$defs/current"
         },
         "account_data": {
           "$ref": "#/$defs/event_container"
@@ -621,12 +614,12 @@
                 },
                 {
                   "required": [
-                    "state"
+                    "current"
                   ]
                 },
                 {
                   "required": [
-                    "state_after"
+                    "current"
                   ]
                 },
                 {
@@ -926,11 +919,6 @@
         {
           "required": [
             "notifications"
-          ]
-        },
-        {
-          "required": [
-            "agent_signer_evidence_bundle"
           ]
         },
         {
@@ -1302,12 +1290,22 @@
         "snapshot_cursor": {
           "$ref": "#/$defs/cursor_value"
         },
+        "cut_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "coverage": {
+          "$ref": "./account-current-result.schema.json#/$defs/coverage"
+        },
         "complete": {
           "type": "boolean"
         }
       },
       "required": [
         "snapshot_cursor",
+        "cut_revision",
+        "coverage",
         "complete"
       ],
       "additionalProperties": false

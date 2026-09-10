@@ -17,7 +17,7 @@
       "$ref": "#/$defs/HistoryKeyRequestListOutcome"
     },
     {
-      "$ref": "#/$defs/HistoryKeyResponseSendRequest"
+      "$ref": "#/$defs/HistoryKeyResponseSendRequestBody"
     },
     {
       "$ref": "#/$defs/HistoryKeyResponseSendReceipt"
@@ -29,7 +29,7 @@
       "$ref": "#/$defs/HistoryKeyResponseListOutcome"
     },
     {
-      "$ref": "#/$defs/HistoryKeyResponseAckRequest"
+      "$ref": "#/$defs/HistoryKeyResponseAckRequestBody"
     },
     {
       "$ref": "#/$defs/HistoryKeyResponseAckOutcome"
@@ -62,16 +62,16 @@
       "$ref": "#/$defs/MlsGovernanceProofOutcome"
     },
     {
-      "$ref": "#/$defs/SelfGovernanceDependencyResolveRequest"
+      "$ref": "#/$defs/SelfGovernanceDependencyResolveRequestBody"
     },
     {
-      "$ref": "#/$defs/PeerGovernanceDependencyResolveRequest"
+      "$ref": "#/$defs/PeerGovernanceDependencyResolveRequestBody"
     },
     {
       "$ref": "#/$defs/GovernanceDependencyResolveOutcome"
     },
     {
-      "$ref": "#/$defs/SealPrepareRequest"
+      "$ref": "#/$defs/SealPrepareRequestBody"
     },
     {
       "$ref": "#/$defs/SealPrepareOutcome"
@@ -248,7 +248,7 @@
       "$ref": "#/$defs/SessionGrantReplayProblem"
     },
     {
-      "$ref": "#/$defs/PcrPendingControlRequest"
+      "$ref": "#/$defs/PcrPendingControlRequestBody"
     },
     {
       "$ref": "#/$defs/PcrPendingControlOutcome"
@@ -267,8 +267,8 @@
     "HistoryKeyRequestListOutcome": {
       "$ref": "./history-key.schema.json#/$defs/history_key_request_list_outcome"
     },
-    "HistoryKeyResponseSendRequest": {
-      "$ref": "./history-key.schema.json#/$defs/history_key_response_send_request"
+    "HistoryKeyResponseSendRequestBody": {
+      "$ref": "./history-key.schema.json#/$defs/history_key_response_send_request_body"
     },
     "HistoryKeyResponseSendReceipt": {
       "$ref": "./history-key.schema.json#/$defs/history_key_response_send_receipt"
@@ -279,8 +279,8 @@
     "HistoryKeyResponseListOutcome": {
       "$ref": "./history-key.schema.json#/$defs/history_key_response_list_outcome"
     },
-    "HistoryKeyResponseAckRequest": {
-      "$ref": "./history-key.schema.json#/$defs/history_key_response_ack_request"
+    "HistoryKeyResponseAckRequestBody": {
+      "$ref": "./history-key.schema.json#/$defs/history_key_response_ack_request_body"
     },
     "HistoryKeyResponseAckOutcome": {
       "$ref": "./history-key.schema.json#/$defs/history_key_response_ack_outcome"
@@ -398,7 +398,7 @@
         }
       ]
     },
-    "SelfGovernanceDependencyResolveRequest": {
+    "SelfGovernanceDependencyResolveRequestBody": {
       "type": "object",
       "required": [
         "realm_id",
@@ -430,7 +430,7 @@
       "additionalProperties": false,
       "description": "Resolve exact typed non-Event governance dependencies. history_traversal_access is required only when ordinary visibility would not expose a dependency in the retained history cut."
     },
-    "PeerGovernanceDependencyResolveRequest": {
+    "PeerGovernanceDependencyResolveRequestBody": {
       "type": "object",
       "required": [
         "realm_id",
@@ -572,7 +572,7 @@
       "additionalProperties": false,
       "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object; collision_variant_record recomputes collision_variant_record_digest = <Realm suite>(RFC8785_JCS(record)) over the whole object, proof included, against the referencing ak.fork.resolution locator and independently recomputes collision_event_id from canonical_event_bytes_b64u. Each evidence object is at most 1 MiB, except collision_variant_record, whose canonical size is bounded by the 1 MiB decoded Event ceiling expanded to base64url (never more than 2 MiB canonical): the reference branch exists precisely for Events too large to inline twice. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
     },
-    "SealPrepareRequest": {
+    "SealPrepareRequestBody": {
       "type": "object",
       "required": [
         "realm_id",
@@ -7385,7 +7385,7 @@
       },
       "additionalProperties": false
     },
-    "PcrPendingControlRequest": {
+    "PcrPendingControlRequestBody": {
       "type": "object",
       "required": [
         "realm_id",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.3",
+  "version": "2026-09-10.17",
   "source_of_truth": false,
-  "generated_at": "2026-09-09T19:32:39+00:00",
+  "generated_at": "2026-09-10T08:41:42+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -55,6 +55,32 @@
           "status",
           "rejections",
           "retry_after_ms"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_request_body",
+        "schema_kind": "object",
+        "required": [
+          "authoring_request"
+        ],
+        "properties": [
+          "authoring_request"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
+        "schema_kind": "object",
+        "required": [
+          "managed_actor_bundle"
+        ],
+        "properties": [
+          "managed_actor_bundle"
         ],
         "closed": true
       }
@@ -963,6 +989,52 @@
       }
     },
     {
+      "operation_id": "ak.gate.account.command.abandon_identity_creation.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "principal_id",
+          "did_version_id"
+        ],
+        "properties": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "principal_id",
+          "did_version_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_subject",
+          "principal_id",
+          "did_version_id",
+          "abandoned_at"
+        ],
+        "properties": [
+          "request_id",
+          "account_subject",
+          "principal_id",
+          "did_version_id",
+          "abandoned_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -1041,94 +1113,6 @@
         "properties": [
           "request_id",
           "controller_account_gate_attestation"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.command.issue_identity_binding_challenge.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "did",
-          "did_operation",
-          "pcr_realm_id",
-          "realm_create_payload_digest",
-          "founding_authorize_payload_digest",
-          "initial_session_request_digest"
-        ],
-        "properties": [
-          "request_id",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "did",
-          "did_operation",
-          "pcr_realm_id",
-          "realm_create_payload_digest",
-          "founding_authorize_payload_digest",
-          "initial_session_request_digest"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "challenge_id",
-          "challenge",
-          "purpose",
-          "account_subject",
-          "principal_id",
-          "did",
-          "operation_digest",
-          "did_version_id",
-          "log_head_digest",
-          "control_key_digest",
-          "pcr_realm_id",
-          "realm_create_payload_digest",
-          "founding_authorize_payload_digest",
-          "initial_session_request_digest",
-          "genesis_unit_kinds",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "dpop_jkt",
-          "audience_id",
-          "origin",
-          "trust_domain",
-          "issued_at",
-          "expires_at"
-        ],
-        "properties": [
-          "request_id",
-          "challenge_id",
-          "challenge",
-          "purpose",
-          "account_subject",
-          "principal_id",
-          "did",
-          "operation_digest",
-          "did_version_id",
-          "log_head_digest",
-          "control_key_digest",
-          "pcr_realm_id",
-          "realm_create_payload_digest",
-          "founding_authorize_payload_digest",
-          "initial_session_request_digest",
-          "genesis_unit_kinds",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "dpop_jkt",
-          "audience_id",
-          "origin",
-          "trust_domain",
-          "issued_at",
-          "expires_at"
         ],
         "closed": true
       }
@@ -1259,47 +1243,133 @@
       }
     },
     {
-      "operation_id": "ak.gate.account.command.abandon_identity_creation.v1",
+      "operation_id": "ak.gate.account.command.issue_identity_binding_challenge.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_request_body",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_request_body",
         "schema_kind": "object",
         "required": [
           "request_id",
-          "challenge_id",
-          "challenge",
           "identity_creation_lease_id",
           "lease_fence",
-          "principal_id",
-          "did_version_id"
+          "did",
+          "did_operation",
+          "pcr_realm_id",
+          "realm_create_payload_digest",
+          "founding_authorize_payload_digest",
+          "initial_session_request_digest"
         ],
         "properties": [
           "request_id",
-          "challenge_id",
-          "challenge",
           "identity_creation_lease_id",
           "lease_fence",
-          "principal_id",
-          "did_version_id"
+          "did",
+          "did_operation",
+          "pcr_realm_id",
+          "realm_create_payload_digest",
+          "founding_authorize_payload_digest",
+          "initial_session_request_digest"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome",
         "schema_kind": "object",
         "required": [
           "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
           "account_subject",
           "principal_id",
+          "did",
+          "operation_digest",
           "did_version_id",
-          "abandoned_at"
+          "log_head_digest",
+          "control_key_digest",
+          "pcr_realm_id",
+          "realm_create_payload_digest",
+          "founding_authorize_payload_digest",
+          "initial_session_request_digest",
+          "genesis_unit_kinds",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "dpop_jkt",
+          "audience_id",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
         ],
         "properties": [
           "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
           "account_subject",
           "principal_id",
+          "did",
+          "operation_digest",
           "did_version_id",
-          "abandoned_at"
+          "log_head_digest",
+          "control_key_digest",
+          "pcr_realm_id",
+          "realm_create_payload_digest",
+          "founding_authorize_payload_digest",
+          "initial_session_request_digest",
+          "genesis_unit_kinds",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "dpop_jkt",
+          "audience_id",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_request",
+        "schema_kind": "object",
+        "required": [
+          "transaction_id",
+          "transaction_request_digest",
+          "terminal_receipt",
+          "completion_attestation",
+          "device_authorization_event_id",
+          "result_model_generation_ref",
+          "initial_session",
+          "canonical_request_digest"
+        ],
+        "properties": [
+          "transaction_id",
+          "transaction_request_digest",
+          "terminal_receipt",
+          "completion_attestation",
+          "device_authorization_event_id",
+          "result_model_generation_ref",
+          "initial_session",
+          "canonical_request_digest"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_outcome",
+        "schema_kind": "object",
+        "required": [
+          "transaction_id",
+          "session_grant_outcome",
+          "issued_at"
+        ],
+        "properties": [
+          "transaction_id",
+          "session_grant_outcome",
+          "issued_at"
         ],
         "closed": true
       }
@@ -1445,37 +1515,6 @@
       }
     },
     {
-      "operation_id": "ak.gate.account.command.request_erasure.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id"
-        ],
-        "properties": [
-          "request_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "principal_id",
-          "recorded_at"
-        ],
-        "properties": [
-          "request_id",
-          "principal_id",
-          "recorded_at",
-          "withdrawal_window_ends_at"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.gate.account.command.logout_auth_session.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -1587,50 +1626,6 @@
           "authorized_event_ref",
           "device_grant",
           "key_backup_hint"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_request",
-        "schema_kind": "object",
-        "required": [
-          "transaction_id",
-          "transaction_request_digest",
-          "terminal_receipt",
-          "completion_attestation",
-          "device_authorization_event_id",
-          "result_model_generation_ref",
-          "initial_session",
-          "canonical_request_digest"
-        ],
-        "properties": [
-          "transaction_id",
-          "transaction_request_digest",
-          "terminal_receipt",
-          "completion_attestation",
-          "device_authorization_event_id",
-          "result_model_generation_ref",
-          "initial_session",
-          "canonical_request_digest"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_outcome",
-        "schema_kind": "object",
-        "required": [
-          "transaction_id",
-          "session_grant_outcome",
-          "issued_at"
-        ],
-        "properties": [
-          "transaction_id",
-          "session_grant_outcome",
-          "issued_at"
         ],
         "closed": true
       }
@@ -1765,6 +1760,37 @@
           "binding_receipt",
           "pcr_genesis_receipt",
           "session_grant_outcome"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.request_erasure.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id"
+        ],
+        "properties": [
+          "request_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "principal_id",
+          "recorded_at"
+        ],
+        "properties": [
+          "request_id",
+          "principal_id",
+          "recorded_at",
+          "withdrawal_window_ends_at"
         ],
         "closed": true
       }
@@ -2115,27 +2141,6 @@
       }
     },
     {
-      "operation_id": "ak.open.service.read.resolution.v1",
-      "success_shape_kind": "schema_resource",
-      "response": {
-        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution",
-        "schema_kind": "object",
-        "required": [
-          "service_id",
-          "service_kind",
-          "method_history_evidence",
-          "normalized_did_document"
-        ],
-        "properties": [
-          "service_id",
-          "service_kind",
-          "method_history_evidence",
-          "normalized_did_document"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.open.invite_locator.read.resolve.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -2171,44 +2176,6 @@
           "locator_ref_digest",
           "display_hint",
           "proofs"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.open.third_party_invite.command.present_token.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_request_body",
-        "schema_kind": "object",
-        "required": [
-          "invite_token",
-          "realm_id",
-          "subject_account_id",
-          "subject_did",
-          "claim_nonce"
-        ],
-        "properties": [
-          "invite_token",
-          "realm_id",
-          "subject_account_id",
-          "subject_did",
-          "claim_nonce"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_outcome",
-        "schema_kind": "object",
-        "required": [
-          "invite_id",
-          "token_commitment",
-          "binding_proof"
-        ],
-        "properties": [
-          "invite_id",
-          "token_commitment",
-          "binding_proof"
         ],
         "closed": true
       }
@@ -2528,6 +2495,65 @@
         "required": [],
         "properties": [],
         "closed": false
+      }
+    },
+    {
+      "operation_id": "ak.open.service.read.resolution.v1",
+      "success_shape_kind": "schema_resource",
+      "response": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution",
+        "schema_kind": "object",
+        "required": [
+          "service_id",
+          "service_kind",
+          "method_history_evidence",
+          "normalized_did_document"
+        ],
+        "properties": [
+          "service_id",
+          "service_kind",
+          "method_history_evidence",
+          "normalized_did_document"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.command.present_token.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_request_body",
+        "schema_kind": "object",
+        "required": [
+          "invite_token",
+          "realm_id",
+          "subject_account_id",
+          "subject_did",
+          "claim_nonce"
+        ],
+        "properties": [
+          "invite_token",
+          "realm_id",
+          "subject_account_id",
+          "subject_did",
+          "claim_nonce"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_outcome",
+        "schema_kind": "object",
+        "required": [
+          "invite_id",
+          "token_commitment",
+          "binding_proof"
+        ],
+        "properties": [
+          "invite_id",
+          "token_commitment",
+          "binding_proof"
+        ],
+        "closed": true
       }
     },
     {
@@ -2971,6 +2997,77 @@
       }
     },
     {
+      "operation_id": "ak.peer.current_signer_evidence.read.resolve.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_request",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "recipient_account_id",
+          "queries"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "recipient_account_id",
+          "queries",
+          "known_agent_state_digests",
+          "known_signer_evidence_refs"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome",
+        "schema_kind": "object",
+        "required": [
+          "response"
+        ],
+        "properties": [
+          "response"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.device_revocations.command.check.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body",
+        "schema_kind": "object",
+        "required": [
+          "account_id",
+          "device_id",
+          "action_class",
+          "intent_digest",
+          "requested_at"
+        ],
+        "properties": [
+          "account_id",
+          "device_id",
+          "expected_device_authorize_event_id",
+          "expected_device_generation_ref",
+          "action_class",
+          "intent_digest",
+          "accepted_device_possession_proof",
+          "requested_at"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome",
+        "schema_kind": "object",
+        "required": [
+          "decision_receipt"
+        ],
+        "properties": [
+          "decision_receipt"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.peer.erasure_receipt.command.submit.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3055,43 +3152,6 @@
         ],
         "properties": [
           "package"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.device_revocations.command.check.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body",
-        "schema_kind": "object",
-        "required": [
-          "account_id",
-          "device_id",
-          "action_class",
-          "intent_digest",
-          "requested_at"
-        ],
-        "properties": [
-          "account_id",
-          "device_id",
-          "expected_device_authorize_event_id",
-          "expected_device_generation_ref",
-          "action_class",
-          "intent_digest",
-          "accepted_device_possession_proof",
-          "requested_at"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome",
-        "schema_kind": "object",
-        "required": [
-          "decision_receipt"
-        ],
-        "properties": [
-          "decision_receipt"
         ],
         "closed": true
       }
@@ -3278,59 +3338,6 @@
       }
     },
     {
-      "operation_id": "ak.peer.seals.read.frontier.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id"
-        ],
-        "properties": [
-          "realm_id",
-          "actor_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState",
-        "schema_kind": "object",
-        "required": [
-          "frontier",
-          "service_proof"
-        ],
-        "properties": [
-          "frontier",
-          "service_proof"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.seals.read.resolve.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "seals",
-          "missing_seal_refs"
-        ],
-        "properties": [
-          "seals",
-          "missing_seal_refs"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.peer.events.read.scan.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3396,6 +3403,96 @@
       }
     },
     {
+      "operation_id": "ak.peer.history_key_requests.command.replicate.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica",
+        "schema_kind": "object",
+        "required": [
+          "kind",
+          "request",
+          "request_receipt",
+          "destination_id",
+          "destination_authorization",
+          "replicated_at",
+          "expires_at",
+          "relay_proof"
+        ],
+        "properties": [
+          "kind",
+          "request",
+          "request_receipt",
+          "destination_id",
+          "destination_authorization",
+          "replicated_at",
+          "expires_at",
+          "relay_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_digest",
+          "destination_id",
+          "accepted_at",
+          "service_proof"
+        ],
+        "properties": [
+          "request_digest",
+          "destination_id",
+          "accepted_at",
+          "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.history_key_responses.command.relay.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_source_relay",
+        "schema_kind": "object",
+        "required": [
+          "response",
+          "source_relay_attestation"
+        ],
+        "properties": [
+          "response",
+          "source_relay_attestation"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
+        "schema_kind": "object",
+        "required": [
+          "response_id",
+          "source_record_digest",
+          "record_digest",
+          "sequence",
+          "accepted_at",
+          "manifest_admission_digest",
+          "release_attestation_digest",
+          "receipt_digest",
+          "service_proof"
+        ],
+        "properties": [
+          "response_id",
+          "source_record_digest",
+          "record_digest",
+          "sequence",
+          "accepted_at",
+          "manifest_admission_digest",
+          "release_attestation_digest",
+          "receipt_digest",
+          "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.peer.invites.command.submit.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3411,43 +3508,6 @@
         "properties": [
           "schema",
           "invite_event",
-          "invite_address",
-          "introduction_evidence",
-          "idempotency_key"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
-        "schema_kind": "object",
-        "required": [
-          "status"
-        ],
-        "properties": [
-          "status",
-          "disclosed_outcome",
-          "received_at",
-          "retry_after_ms"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.invites.command.dispatch.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
-        "schema_kind": "object",
-        "required": [
-          "schema",
-          "invite_event_id",
-          "invite_address",
-          "introduction_evidence",
-          "idempotency_key"
-        ],
-        "properties": [
-          "schema",
-          "invite_event_id",
           "invite_address",
           "introduction_evidence",
           "idempotency_key"
@@ -3616,6 +3676,54 @@
       }
     },
     {
+      "operation_id": "ak.peer.organization_recovery_archives.command.replicate.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica",
+        "schema_kind": "object",
+        "required": [
+          "kind",
+          "archive",
+          "container_event_ref",
+          "history_traversal_retention",
+          "source_id",
+          "holder_service_id",
+          "replicated_at",
+          "service_proof"
+        ],
+        "properties": [
+          "kind",
+          "archive",
+          "container_event_ref",
+          "history_traversal_retention",
+          "source_id",
+          "holder_service_id",
+          "replicated_at",
+          "service_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome",
+        "schema_kind": "object",
+        "required": [
+          "archive_replica_digest",
+          "holder_service_id",
+          "archive_sequence",
+          "accepted_at",
+          "service_proof"
+        ],
+        "properties": [
+          "archive_replica_digest",
+          "holder_service_id",
+          "archive_sequence",
+          "accepted_at",
+          "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.peer.principal_genesis.command.submit.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3674,35 +3782,115 @@
       }
     },
     {
-      "operation_id": "ak.peer.current_signer_evidence.read.resolve.v1",
-      "success_shape_kind": "typed_response",
+      "operation_id": "ak.peer.seals.read.frontier.v1",
+      "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_request",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
         "schema_kind": "object",
         "required": [
-          "request_id",
-          "realm_id",
-          "recipient_account_id",
-          "queries"
+          "realm_id"
         ],
         "properties": [
-          "request_id",
           "realm_id",
-          "recipient_account_id",
-          "queries",
-          "known_agent_state_digests",
-          "known_signer_evidence_refs"
+          "actor_id"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState",
         "schema_kind": "object",
         "required": [
-          "response"
+          "frontier",
+          "service_proof"
         ],
         "properties": [
-          "response"
+          "frontier",
+          "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "selectors",
+          "byte_limit"
+        ],
+        "properties": [
+          "realm_id",
+          "selectors",
+          "byte_limit",
+          "history_traversal_access"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome",
+        "schema_kind": "object",
+        "required": [
+          "items",
+          "missing_selectors"
+        ],
+        "properties": [
+          "items",
+          "missing_selectors"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_request",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_outcome",
+        "schema_kind": "object",
+        "required": [
+          "query_digest",
+          "frontier_projection",
+          "proof_material",
+          "page_digest"
+        ],
+        "properties": [
+          "query_digest",
+          "frontier_projection",
+          "proof_material",
+          "page_digest"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.seals.read.resolve.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
+        "schema_kind": "object",
+        "required": [
+          "seals",
+          "missing_seal_refs"
+        ],
+        "properties": [
+          "seals",
+          "missing_seal_refs"
         ],
         "closed": true
       }
@@ -4524,19 +4712,6 @@
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
       "success_shape_kind": "event_stream",
-      "request": {
-        "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/account_subscribe_request",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "after",
-          "catchup",
-          "filter",
-          "realm_list",
-          "replace_filter"
-        ],
-        "closed": true
-      },
       "response": {
         "schema_ref": "schemas/account-subscribe-frame.schema.json",
         "schema_kind": "oneOf",
@@ -4724,6 +4899,35 @@
           "revision",
           "content",
           "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.actor_profile.read.resolve.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "actor_ids"
+        ],
+        "properties": [
+          "realm_id",
+          "actor_ids"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
+        "schema_kind": "object",
+        "required": [
+          "profiles"
+        ],
+        "properties": [
+          "profiles",
+          "failures"
         ],
         "closed": true
       }
@@ -5254,98 +5458,6 @@
       }
     },
     {
-      "operation_id": "ak.self.actor_profile.read.resolve.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "actor_ids"
-        ],
-        "properties": [
-          "realm_id",
-          "actor_ids"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
-        "schema_kind": "object",
-        "required": [
-          "profiles"
-        ],
-        "properties": [
-          "profiles",
-          "failures"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.agent_signer_evidence.read.resolve.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "queries"
-        ],
-        "properties": [
-          "realm_id",
-          "queries"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome",
-        "schema_kind": "object",
-        "required": [
-          "evidence"
-        ],
-        "properties": [
-          "evidence",
-          "failures"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.current_signer_evidence.read.resolve.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_request",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "realm_id",
-          "recipient_account_id",
-          "queries"
-        ],
-        "properties": [
-          "request_id",
-          "realm_id",
-          "recipient_account_id",
-          "queries",
-          "known_agent_state_digests",
-          "known_signer_evidence_refs"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome",
-        "schema_kind": "object",
-        "required": [
-          "response"
-        ],
-        "properties": [
-          "response"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.applet.command.install.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -5568,32 +5680,6 @@
         "properties": [
           "plan",
           "authoring_request"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_request_body",
-        "schema_kind": "object",
-        "required": [
-          "authoring_request"
-        ],
-        "properties": [
-          "authoring_request"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
-        "schema_kind": "object",
-        "required": [
-          "managed_actor_bundle"
-        ],
-        "properties": [
-          "managed_actor_bundle"
         ],
         "closed": true
       }
@@ -6767,6 +6853,42 @@
       }
     },
     {
+      "operation_id": "ak.self.current_principal.read.resolve.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/current_principal_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_id"
+        ],
+        "properties": [
+          "request_id",
+          "account_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/current_principal_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_id",
+          "principal_control_realm_id",
+          "resolution_projection",
+          "observed_at"
+        ],
+        "properties": [
+          "request_id",
+          "account_id",
+          "principal_control_realm_id",
+          "resolution_projection",
+          "observed_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.device_messages.command.ack.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -7131,90 +7253,29 @@
       }
     },
     {
-      "operation_id": "ak.self.seals.command.prepare.v1",
-      "success_shape_kind": "schema_resource",
+      "operation_id": "ak.self.events.read.delivery_status.v1",
+      "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequest",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
         "schema_kind": "object",
         "required": [
-          "realm_id",
-          "predecessor_refs",
-          "event_digests",
-          "hlc"
+          "event_id"
         ],
         "properties": [
-          "realm_id",
-          "predecessor_refs",
-          "event_digests",
-          "hlc"
+          "event_id"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome",
         "schema_kind": "object",
         "required": [
-          "seal_body"
+          "event_id",
+          "targets"
         ],
         "properties": [
-          "seal_body"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.command.submit.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/seal.schema.json",
-        "schema_kind": "object",
-        "required": [
-          "id",
-          "realm_id",
-          "predecessor_refs",
-          "delta",
-          "control_event_set_root",
-          "state_root",
-          "completeness_root",
-          "notary_seq",
-          "availability_receipt_digests",
-          "notary_signature",
-          "sealed_at",
-          "hlc"
-        ],
-        "properties": [
-          "id",
-          "realm_id",
-          "predecessor_refs",
-          "delta",
-          "control_event_set_root",
-          "state_root",
-          "completeness_root",
-          "notary_seq",
-          "data_view_root",
-          "data_event_set_root",
-          "availability_receipt_digests",
-          "covered_event_digests",
-          "previous_state_root",
-          "previous_digest_algorithm",
-          "notary_signature",
-          "sealed_at",
-          "hlc"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealSubmitOutcome",
-        "schema_kind": "object",
-        "required": [
-          "seal_id",
-          "accepted_event_digests",
-          "post_state_root"
-        ],
-        "properties": [
-          "seal_id",
-          "accepted_event_digests",
-          "post_state_root"
+          "event_id",
+          "targets"
         ],
         "closed": true
       }
@@ -7297,34 +7358,6 @@
       }
     },
     {
-      "operation_id": "ak.self.events.read.delivery_status.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "event_id"
-        ],
-        "properties": [
-          "event_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome",
-        "schema_kind": "object",
-        "required": [
-          "event_id",
-          "targets"
-        ],
-        "properties": [
-          "event_id",
-          "targets"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.events.read.frontier.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -7347,272 +7380,6 @@
         ],
         "properties": [
           "frontier"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.frontier.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id"
-        ],
-        "properties": [
-          "realm_id",
-          "actor_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState",
-        "schema_kind": "object",
-        "required": [
-          "frontier"
-        ],
-        "properties": [
-          "frontier",
-          "receipts"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.resolve.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "seals",
-          "missing_seal_refs"
-        ],
-        "properties": [
-          "seals",
-          "missing_seal_refs"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request",
-        "schema_kind": "oneOf",
-        "required": [],
-        "properties": [
-          "previous_epoch",
-          "next_epoch"
-        ],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request",
-            "schema_kind": null,
-            "required": [
-              "proposed_group_genesis_binding"
-            ],
-            "properties": [
-              "previous_epoch",
-              "next_epoch"
-            ],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request",
-            "schema_kind": null,
-            "required": [],
-            "properties": [
-              "previous_epoch",
-              "next_epoch"
-            ],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request",
-            "schema_kind": null,
-            "required": [
-              "base_group_state_ref"
-            ],
-            "properties": [],
-            "closed": false
-          }
-        ]
-      },
-      "response": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_outcome",
-        "schema_kind": "object",
-        "required": [
-          "query_digest",
-          "seal_basis",
-          "live_digest_suite",
-          "governance_binding"
-        ],
-        "properties": [
-          "query_digest",
-          "seal_basis",
-          "live_digest_suite",
-          "governance_binding",
-          "epoch_head"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "mls_group_id",
-          "artifact_ref"
-        ],
-        "properties": [
-          "effective_scope",
-          "mls_group_id",
-          "artifact_ref"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_outcome",
-        "schema_kind": "object",
-        "required": [
-          "query_digest",
-          "seal_basis",
-          "transition_head",
-          "governance_binding",
-          "mls_frontier_leaves",
-          "current_epoch_head"
-        ],
-        "properties": [
-          "query_digest",
-          "seal_basis",
-          "transition_head",
-          "governance_binding",
-          "mls_frontier_leaves",
-          "current_epoch_head"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.membership_authority.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_request",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "actor_id",
-          "seal_basis"
-        ],
-        "properties": [
-          "effective_scope",
-          "actor_id",
-          "seal_basis"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_outcome",
-        "schema_kind": "object",
-        "required": [
-          "account_id",
-          "query_digest",
-          "seal_basis",
-          "authorization_incarnation"
-        ],
-        "properties": [
-          "account_id",
-          "query_digest",
-          "seal_basis",
-          "authorization_incarnation"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.history_authority.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_request",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "actor_id",
-          "seal_basis"
-        ],
-        "properties": [
-          "effective_scope",
-          "actor_id",
-          "seal_basis"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_outcome",
-        "schema_kind": "object",
-        "required": [
-          "account_id",
-          "query_digest",
-          "seal_basis",
-          "authorization_incarnation",
-          "join_epoch",
-          "history_floor_epoch"
-        ],
-        "properties": [
-          "account_id",
-          "query_digest",
-          "seal_basis",
-          "authorization_incarnation",
-          "join_epoch",
-          "history_floor_epoch"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.governance_dependencies.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequest",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "selectors",
-          "byte_limit"
-        ],
-        "properties": [
-          "realm_id",
-          "selectors",
-          "byte_limit",
-          "history_traversal_access"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "items",
-          "missing_selectors"
-        ],
-        "properties": [
-          "items",
-          "missing_selectors"
         ],
         "closed": true
       }
@@ -7803,6 +7570,166 @@
             "closed": false
           }
         ]
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_requests.command.create.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_create_outcome",
+        "schema_kind": "object",
+        "required": [
+          "kind",
+          "request",
+          "request_receipt",
+          "sealed_history_response_capability"
+        ],
+        "properties": [
+          "kind",
+          "request",
+          "request_receipt",
+          "sealed_history_response_capability"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_requests.read.list.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_query",
+        "schema_kind": "object",
+        "required": [
+          "realm_id"
+        ],
+        "properties": [
+          "realm_id",
+          "circle_id",
+          "cursor",
+          "limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_outcome",
+        "schema_kind": "object",
+        "required": [
+          "requests",
+          "limited"
+        ],
+        "properties": [
+          "requests",
+          "cursor",
+          "limited"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_responses.command.ack.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_request_body",
+        "schema_kind": "object",
+        "required": [
+          "ack_token",
+          "high_water_cursor",
+          "entries"
+        ],
+        "properties": [
+          "ack_token",
+          "high_water_cursor",
+          "entries"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome",
+        "schema_kind": "object",
+        "required": [
+          "acked_through_cursor"
+        ],
+        "properties": [
+          "acked_through_cursor"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_responses.command.send.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request_body",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
+        "schema_kind": "object",
+        "required": [
+          "response_id",
+          "source_record_digest",
+          "record_digest",
+          "sequence",
+          "accepted_at",
+          "manifest_admission_digest",
+          "release_attestation_digest",
+          "receipt_digest",
+          "service_proof"
+        ],
+        "properties": [
+          "response_id",
+          "source_record_digest",
+          "record_digest",
+          "sequence",
+          "accepted_at",
+          "manifest_admission_digest",
+          "release_attestation_digest",
+          "receipt_digest",
+          "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_responses.read.list.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_query",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "after",
+          "limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome",
+        "schema_kind": "object",
+        "required": [
+          "entries",
+          "source_signer_results",
+          "limited"
+        ],
+        "properties": [
+          "entries",
+          "source_signer_results",
+          "cipher_suite",
+          "ack_token",
+          "cursor",
+          "limited"
+        ],
+        "closed": true
       }
     },
     {
@@ -8041,6 +7968,43 @@
           "denied_source_ids",
           "denied_actor_ids",
           "disclosure"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.invites.command.dispatch.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "invite_event_id",
+          "invite_address",
+          "introduction_evidence",
+          "idempotency_key"
+        ],
+        "properties": [
+          "schema",
+          "invite_event_id",
+          "invite_address",
+          "introduction_evidence",
+          "idempotency_key"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status"
+        ],
+        "properties": [
+          "status",
+          "disclosed_outcome",
+          "received_at",
+          "retry_after_ms"
         ],
         "closed": true
       }
@@ -8724,6 +8688,47 @@
       }
     },
     {
+      "operation_id": "ak.self.organization_recovery_archives.read.list.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "recovery_key_id",
+          "key_agreement_ref",
+          "accepted_key_evidence_ref",
+          "holder_trusted_basis"
+        ],
+        "properties": [
+          "effective_scope",
+          "recovery_key_id",
+          "key_agreement_ref",
+          "accepted_key_evidence_ref",
+          "holder_trusted_basis",
+          "from_epoch",
+          "to_epoch",
+          "cursor",
+          "byte_limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome",
+        "schema_kind": "object",
+        "required": [
+          "items",
+          "limited"
+        ],
+        "properties": [
+          "items",
+          "cursor",
+          "limited"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.read_cursor.command.advance.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -8878,6 +8883,514 @@
           "realm_id",
           "relationships",
           "declared_organization_hint_ids"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
+      "success_shape_kind": "schema_resource",
+      "response": {
+        "schema_ref": "schemas/realm-state-snapshot.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "id",
+          "realm_id",
+          "reducer_profile",
+          "security_class",
+          "schema_profile_refs",
+          "state_digest",
+          "frontier",
+          "event_set_commitment",
+          "chunks",
+          "created_by",
+          "created_at",
+          "authority_binding",
+          "signature"
+        ],
+        "properties": [
+          "id",
+          "realm_id",
+          "reducer_profile",
+          "security_class",
+          "schema_profile_refs",
+          "state_digest",
+          "frontier",
+          "event_set_commitment",
+          "verification_hints",
+          "chunks",
+          "created_by",
+          "created_at",
+          "authority_binding",
+          "signature"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.command.prepare.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests",
+          "hlc"
+        ],
+        "properties": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests",
+          "hlc"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome",
+        "schema_kind": "object",
+        "required": [
+          "seal_body"
+        ],
+        "properties": [
+          "seal_body"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.command.submit.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/seal.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "id",
+          "realm_id",
+          "predecessor_refs",
+          "delta",
+          "control_event_set_root",
+          "state_root",
+          "completeness_root",
+          "notary_seq",
+          "availability_receipt_digests",
+          "notary_signature",
+          "sealed_at",
+          "hlc"
+        ],
+        "properties": [
+          "id",
+          "realm_id",
+          "predecessor_refs",
+          "delta",
+          "control_event_set_root",
+          "state_root",
+          "completeness_root",
+          "notary_seq",
+          "data_view_root",
+          "data_event_set_root",
+          "availability_receipt_digests",
+          "covered_event_digests",
+          "previous_state_root",
+          "previous_digest_algorithm",
+          "notary_signature",
+          "sealed_at",
+          "hlc"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealSubmitOutcome",
+        "schema_kind": "object",
+        "required": [
+          "seal_id",
+          "accepted_event_digests",
+          "post_state_root"
+        ],
+        "properties": [
+          "seal_id",
+          "accepted_event_digests",
+          "post_state_root"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.frontier.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id"
+        ],
+        "properties": [
+          "realm_id",
+          "actor_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState",
+        "schema_kind": "object",
+        "required": [
+          "frontier"
+        ],
+        "properties": [
+          "frontier",
+          "receipts"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.governance_dependencies.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "selectors",
+          "byte_limit"
+        ],
+        "properties": [
+          "realm_id",
+          "selectors",
+          "byte_limit",
+          "history_traversal_access"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome",
+        "schema_kind": "object",
+        "required": [
+          "items",
+          "missing_selectors"
+        ],
+        "properties": [
+          "items",
+          "missing_selectors"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.history_authority.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_request_body",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "actor_id",
+          "seal_basis"
+        ],
+        "properties": [
+          "effective_scope",
+          "actor_id",
+          "seal_basis"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_outcome",
+        "schema_kind": "object",
+        "required": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "authorization_incarnation",
+          "join_epoch",
+          "history_floor_epoch"
+        ],
+        "properties": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "authorization_incarnation",
+          "join_epoch",
+          "history_floor_epoch"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.membership_authority.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_request_body",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "actor_id",
+          "seal_basis"
+        ],
+        "properties": [
+          "effective_scope",
+          "actor_id",
+          "seal_basis"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_outcome",
+        "schema_kind": "object",
+        "required": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "authorization_incarnation"
+        ],
+        "properties": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "authorization_incarnation"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request_body",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "mls_group_id",
+          "artifact_ref"
+        ],
+        "properties": [
+          "effective_scope",
+          "mls_group_id",
+          "artifact_ref"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_outcome",
+        "schema_kind": "object",
+        "required": [
+          "query_digest",
+          "seal_basis",
+          "transition_head",
+          "governance_binding",
+          "mls_frontier_leaves",
+          "current_epoch_head"
+        ],
+        "properties": [
+          "query_digest",
+          "seal_basis",
+          "transition_head",
+          "governance_binding",
+          "mls_frontier_leaves",
+          "current_epoch_head"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body",
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [
+          "previous_epoch",
+          "next_epoch"
+        ],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body",
+            "schema_kind": null,
+            "required": [
+              "proposed_group_genesis_binding"
+            ],
+            "properties": [
+              "previous_epoch",
+              "next_epoch"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body",
+            "schema_kind": null,
+            "required": [],
+            "properties": [
+              "previous_epoch",
+              "next_epoch"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body",
+            "schema_kind": null,
+            "required": [
+              "base_group_state_ref"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
+      },
+      "response": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_outcome",
+        "schema_kind": "object",
+        "required": [
+          "query_digest",
+          "seal_basis",
+          "live_digest_suite",
+          "governance_binding"
+        ],
+        "properties": [
+          "query_digest",
+          "seal_basis",
+          "live_digest_suite",
+          "governance_binding",
+          "epoch_head"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_membership_removal.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_request_body",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "mls_group_id",
+          "local_mls_leaves",
+          "seal_basis",
+          "base_group_state_ref",
+          "epoch"
+        ],
+        "properties": [
+          "effective_scope",
+          "mls_group_id",
+          "local_mls_leaves",
+          "seal_basis",
+          "base_group_state_ref",
+          "epoch"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_outcome",
+        "schema_kind": "object",
+        "required": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "epoch_head",
+          "remove_leaf_indices"
+        ],
+        "properties": [
+          "account_id",
+          "query_digest",
+          "seal_basis",
+          "epoch_head",
+          "remove_leaf_indices"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_welcome_refs.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_request",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "mls_group_id"
+        ],
+        "properties": [
+          "effective_scope",
+          "mls_group_id",
+          "limit",
+          "cursor"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_outcome",
+        "schema_kind": "object",
+        "required": [
+          "welcome_refs",
+          "limited"
+        ],
+        "properties": [
+          "welcome_refs",
+          "next_cursor",
+          "limited"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.pending_control.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "predecessor_refs",
+          "limit"
+        ],
+        "properties": [
+          "realm_id",
+          "predecessor_refs",
+          "limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlOutcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests",
+          "has_more"
+        ],
+        "properties": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests",
+          "has_more"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.resolve.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
+        "schema_kind": "object",
+        "required": [
+          "seals",
+          "missing_seal_refs"
+        ],
+        "properties": [
+          "seals",
+          "missing_seal_refs"
         ],
         "closed": true
       }
@@ -9170,41 +9683,39 @@
       }
     },
     {
-      "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-      "success_shape_kind": "schema_resource",
-      "response": {
-        "schema_ref": "schemas/realm-state-snapshot.schema.json",
+      "operation_id": "ak.self.signer_keys.read.resolve.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",
         "schema_kind": "object",
         "required": [
-          "id",
+          "request_id",
           "realm_id",
-          "reducer_profile",
-          "security_class",
-          "schema_profile_refs",
-          "state_digest",
-          "frontier",
-          "event_set_commitment",
-          "chunks",
-          "created_by",
-          "created_at",
-          "authority_binding",
-          "signature"
+          "recipient_account_id",
+          "queries"
         ],
         "properties": [
-          "id",
+          "request_id",
           "realm_id",
-          "reducer_profile",
-          "security_class",
-          "schema_profile_refs",
-          "state_digest",
-          "frontier",
-          "event_set_commitment",
-          "verification_hints",
-          "chunks",
-          "created_by",
-          "created_at",
-          "authority_binding",
-          "signature"
+          "recipient_account_id",
+          "queries"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "recipient_account_id",
+          "results"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "recipient_account_id",
+          "results"
         ],
         "closed": true
       }
@@ -9249,403 +9760,6 @@
           "total",
           "next_cursor",
           "has_more"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_requests.command.create.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_create_outcome",
-        "schema_kind": "object",
-        "required": [
-          "kind",
-          "request",
-          "request_receipt",
-          "sealed_history_response_capability"
-        ],
-        "properties": [
-          "kind",
-          "request",
-          "request_receipt",
-          "sealed_history_response_capability"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_requests.read.list.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_query",
-        "schema_kind": "object",
-        "required": [
-          "realm_id"
-        ],
-        "properties": [
-          "realm_id",
-          "circle_id",
-          "cursor",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_outcome",
-        "schema_kind": "object",
-        "required": [
-          "requests",
-          "limited"
-        ],
-        "properties": [
-          "requests",
-          "cursor",
-          "limited"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_responses.command.send.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
-        "schema_kind": "object",
-        "required": [
-          "response_id",
-          "source_record_digest",
-          "record_digest",
-          "sequence",
-          "accepted_at",
-          "manifest_admission_digest",
-          "release_attestation_digest",
-          "receipt_digest",
-          "service_proof"
-        ],
-        "properties": [
-          "response_id",
-          "source_record_digest",
-          "record_digest",
-          "sequence",
-          "accepted_at",
-          "manifest_admission_digest",
-          "release_attestation_digest",
-          "receipt_digest",
-          "service_proof"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_responses.read.list.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_query",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "after",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome",
-        "schema_kind": "object",
-        "required": [
-          "entries",
-          "limited"
-        ],
-        "properties": [
-          "entries",
-          "ack_token",
-          "cursor",
-          "limited"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_responses.command.ack.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_request",
-        "schema_kind": "object",
-        "required": [
-          "ack_token",
-          "high_water_cursor",
-          "entries"
-        ],
-        "properties": [
-          "ack_token",
-          "high_water_cursor",
-          "entries"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome",
-        "schema_kind": "object",
-        "required": [
-          "acked_through_cursor"
-        ],
-        "properties": [
-          "acked_through_cursor"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.organization_recovery_archives.read.list.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "recovery_key_id",
-          "key_agreement_ref",
-          "accepted_key_evidence_ref",
-          "holder_trusted_basis"
-        ],
-        "properties": [
-          "effective_scope",
-          "recovery_key_id",
-          "key_agreement_ref",
-          "accepted_key_evidence_ref",
-          "holder_trusted_basis",
-          "from_epoch",
-          "to_epoch",
-          "cursor",
-          "byte_limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome",
-        "schema_kind": "object",
-        "required": [
-          "items",
-          "limited"
-        ],
-        "properties": [
-          "items",
-          "cursor",
-          "limited"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.history_key_requests.command.replicate.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica",
-        "schema_kind": "object",
-        "required": [
-          "kind",
-          "request",
-          "request_receipt",
-          "destination_id",
-          "destination_authorization",
-          "replicated_at",
-          "expires_at",
-          "relay_proof"
-        ],
-        "properties": [
-          "kind",
-          "request",
-          "request_receipt",
-          "destination_id",
-          "destination_authorization",
-          "replicated_at",
-          "expires_at",
-          "relay_proof"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_digest",
-          "destination_id",
-          "accepted_at",
-          "service_proof"
-        ],
-        "properties": [
-          "request_digest",
-          "destination_id",
-          "accepted_at",
-          "service_proof"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.history_key_responses.command.relay.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_source_relay",
-        "schema_kind": "object",
-        "required": [
-          "response",
-          "source_relay_attestation"
-        ],
-        "properties": [
-          "response",
-          "source_relay_attestation"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
-        "schema_kind": "object",
-        "required": [
-          "response_id",
-          "source_record_digest",
-          "record_digest",
-          "sequence",
-          "accepted_at",
-          "manifest_admission_digest",
-          "release_attestation_digest",
-          "receipt_digest",
-          "service_proof"
-        ],
-        "properties": [
-          "response_id",
-          "source_record_digest",
-          "record_digest",
-          "sequence",
-          "accepted_at",
-          "manifest_admission_digest",
-          "release_attestation_digest",
-          "receipt_digest",
-          "service_proof"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_request",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_outcome",
-        "schema_kind": "object",
-        "required": [
-          "query_digest",
-          "frontier_projection",
-          "proof_material",
-          "page_digest"
-        ],
-        "properties": [
-          "query_digest",
-          "frontier_projection",
-          "proof_material",
-          "page_digest"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequest",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "selectors",
-          "byte_limit"
-        ],
-        "properties": [
-          "realm_id",
-          "selectors",
-          "byte_limit",
-          "history_traversal_access"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "items",
-          "missing_selectors"
-        ],
-        "properties": [
-          "items",
-          "missing_selectors"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.organization_recovery_archives.command.replicate.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica",
-        "schema_kind": "object",
-        "required": [
-          "kind",
-          "archive",
-          "container_event_ref",
-          "history_traversal_retention",
-          "source_id",
-          "holder_service_id",
-          "replicated_at",
-          "service_proof"
-        ],
-        "properties": [
-          "kind",
-          "archive",
-          "container_event_ref",
-          "history_traversal_retention",
-          "source_id",
-          "holder_service_id",
-          "replicated_at",
-          "service_proof"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome",
-        "schema_kind": "object",
-        "required": [
-          "archive_replica_digest",
-          "holder_service_id",
-          "archive_sequence",
-          "accepted_at",
-          "service_proof"
-        ],
-        "properties": [
-          "archive_replica_digest",
-          "holder_service_id",
-          "archive_sequence",
-          "accepted_at",
-          "service_proof"
         ],
         "closed": true
       }
@@ -9713,42 +9827,6 @@
           "supported_operation_bundles",
           "transport_bindings",
           "invite_addressing"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.pending_control.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequest",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "predecessor_refs",
-          "limit"
-        ],
-        "properties": [
-          "realm_id",
-          "predecessor_refs",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlOutcome",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "predecessor_refs",
-          "event_digests",
-          "has_more"
-        ],
-        "properties": [
-          "realm_id",
-          "predecessor_refs",
-          "event_digests",
-          "has_more"
         ],
         "closed": true
       }

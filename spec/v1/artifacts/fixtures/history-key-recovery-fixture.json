@@ -1,6 +1,6 @@
 {
   "profile": "ak.feature.history_key_recovery.v1",
-  "version": "2026-09-02",
+  "version": "2026-09-10",
   "suite": "history_key_recovery",
   "runner": {
     "kind": "named_suite",
@@ -1607,7 +1607,8 @@
           }
         ],
         "ack_token": "response-ack-token-8",
-        "limited": false
+        "limited": false,
+        "source_signer_results": []
       },
       "ack_request": {
         "ack_token": "response-ack-token-8",

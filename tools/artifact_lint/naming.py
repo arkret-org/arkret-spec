@@ -43,7 +43,6 @@ FORBIDDEN_SYMBOLIC_LITERALS = frozenset(
 # a name ending in two stacked wrapper words (RequestBodyBody) is a rename
 # artifact, not a domain noun.
 STRUCTURAL_WRAPPER_WORDS = (
-    "Request",
     "RequestBody",
     "Outcome",
     "View",
@@ -334,6 +333,11 @@ def nc_type_001(candidate: str) -> bool:
     if stacked_wrapper_words(candidate) is not None:
         return True
     return unregistered_wrapper_word(candidate, DEFAULT_REJECTED_WRAPPER_WORDS) is not None
+
+
+def request_wrapper_violation(candidate: str, *, domain_object: bool = False) -> bool:
+    """Apply R4 to a real operation input, preserving an explicitly signed domain object."""
+    return candidate.endswith("Request") and not domain_object
 
 
 DEFAULT_FORBIDDEN_LEXEMES = frozenset(

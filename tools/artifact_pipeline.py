@@ -1294,6 +1294,9 @@ def run_operation_closure_locks(mode: str) -> int:
 
 
 def cmd_generate(_: argparse.Namespace) -> int:
+    current_values_status = subprocess.run(
+        [sys.executable, str(ROOT / "tools/generate_current_result_values.py")], cwd=ROOT
+    ).returncode
     write_capability_action_derivations()
     write_id_wire_form_derivations()
     write_openapi_policy_projection()
@@ -1313,6 +1316,7 @@ def cmd_generate(_: argparse.Namespace) -> int:
         [
             name
             for name, status in (
+                ("current result value mappings", current_values_status),
                 ("openapi operation selector", selector_status),
                 ("operation closure locks", closure_status),
                 ("operation completeness report", completeness_status),
@@ -1360,6 +1364,12 @@ def cmd_check(_: argparse.Namespace) -> int:
         return verdict("check", ["pre-lint pipeline"])
     print_contract_status()
     checks = (
+        ("current result atomic budget", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_result_budget.py")], cwd=ROOT).returncode),
+        ("self signer result schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_self_signer_result_schema.py")], cwd=ROOT).returncode),
+        ("current principal schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_principal_schema.py")], cwd=ROOT).returncode),
+        ("current result value mappings", lambda: subprocess.run(
+            [sys.executable, str(ROOT / "tools/generate_current_result_values.py"), "--check"], cwd=ROOT
+        ).returncode),
         ("openapi operation selector", lambda: run_openapi_operation_selector("check")),
         ("operation closure locks", lambda: run_operation_closure_locks("check")),
         ("operation completeness report", lambda: run_operation_completeness_report("check")),

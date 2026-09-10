@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-09.3",
-  "generated_at": "2026-09-09T18:25:03+08:00",
+  "version": "2026-09-10.17",
+  "generated_at": "2026-09-10T08:43:24+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2275,7 +2275,7 @@
       }
     },
     "ak.profile.agent_signer_evidence.v1": {
-      "description": "Portable ordinary-Realm Agent signer authorization evidence. Producers publish one reusable Agent authority state lease and independent privacy-minimal controller gate. Current evidence has a maximum 300 second original observation window; historical evidence freezes either the original same-Station admission or a distinct receiver receipt. Consumers verify complete identity/method/history dependencies, reuse unchanged material, independently check each message scope/signature/MLS/replay, and preserve accepted history across later terminal transitions.",
+      "description": "Portable ordinary-Realm Agent signer authorization evidence. Producers publish one reusable Agent authority state lease and independent privacy-minimal controller gate. Current evidence has a maximum 300 second original observation window; historical evidence freezes either the original same-Station admission or a distinct receiver receipt. Server and peer consumers verify complete identity/method/history dependencies and reuse unchanged material. Ordinary clients consume authenticated own-Station signing-key results and independently verify message signature/MLS/replay; later terminal transitions do not invalidate previously accepted history.",
       "enforcement_phases": [
         "conformance",
         "peer_eligibility"
@@ -2288,7 +2288,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.agent_signer_evidence.read.resolve.v1",
+          "operation_id": "ak.self.signer_keys.read.resolve.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -2304,9 +2304,8 @@
         "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
         "ak.schema.agent_signer_admission_receipt.v1",
         "ak.schema.agent_signer_evidence.v1",
-        "ak.schema.agent_signer_evidence_query_request.v1",
-        "ak.schema.agent_signer_evidence_query_outcome.v1",
-        "ak.schema.agent_signer_evidence_bundle.v1"
+        "ak.schema.signer_key_query_request.v1",
+        "ak.schema.signer_key_query_outcome.v1"
       ],
       "required_fixtures": [
         "agent-signer-evidence-fixture.json"

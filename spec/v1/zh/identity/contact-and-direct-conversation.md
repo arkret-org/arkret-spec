@@ -654,8 +654,12 @@ binding cell **MUST** 为 `or_set`，contract concurrency class 为 `merge_safe`
 `direct_conversation_binding` ref **MUST** 指向其 `seal_ref` 覆盖的一份合法 endorsement，且该 endorsement
 的 semantic `binding_digest` **MUST** 等于当前无冲突 binding。服务端在列表中选择的代表 Event ref
 不是额外的 authority head：**MUST NOT** 要求 Message 逐字引用该代表，也 **MUST NOT** 因后来出现另一份
-等价 endorsement 而否定先前已覆盖的引用。base 客户端 **MUST NOT** 等待所有可见 endorsement 被覆盖，
-或要求两方各一份确认；一份满足上述条件的证据即可。缺少覆盖时只等待相关 Control Seal，不改变坐标、
+等价 endorsement 而否定先前已覆盖的引用。上述覆盖与 authority 条件由服务器 admission 验证。
+客户端信任自己的 Station，使用 resolver `found.coordinates.binding_event_ref`（found MUST 提供一份
+合法已接受 endorsement 的完整 EventId）、current `group_state_ref` 和精确
+`control_proposal_decisions` 的 sealed 结果取得 authoring 坐标；只核对本地操作的 actor、Realm、intent
+与 basis 绑定，不下载或重放历史 Event/Seal 闭包。base 客户端 **MUST NOT** 等待所有可见 endorsement
+被覆盖，或要求两方各一份确认。缺少当前供料时只等待相关 exact 服务端结果，不改变坐标、
 不重建 group、不放松 current Contact、membership、endpoint 或 lifecycle gate。该规则不取代 §7.2
 尚未建立 binding 时的 provisional founder Message authority。
 

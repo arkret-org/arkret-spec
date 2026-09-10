@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 68,
+    "total_fields": 70,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 32,
-      "closed_literal": 11,
+      "closed_enum": 31,
+      "closed_literal": 14,
       "validated_open_reason_code": 18
     },
     "unclassified": 0
@@ -122,22 +122,6 @@
       "pointer": "#/$defs/operation_status_outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "agent-signer-evidence-operations.schema.json",
-      "shape": "query_failure",
-      "field": "reason",
-      "pointer": "#/$defs/query_failure/properties/reason",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "agent-signer-evidence-operations.schema.json",
-      "shape": "sync_bundle",
-      "field": "schema",
-      "pointer": "#/$defs/sync_bundle/properties/schema",
-      "classification": "closed_literal",
-      "basis": "JSON Schema const"
     },
     {
       "schema_file": "applet-edge-operations.schema.json",
@@ -562,6 +546,38 @@
       "pointer": "#/$defs/SessionGrantIntrospectOutcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "signer-key-operations.schema.json",
+      "shape": "current_result",
+      "field": "status",
+      "pointer": "#/$defs/current_result/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "signer-key-operations.schema.json",
+      "shape": "historical_account_device_result",
+      "field": "status",
+      "pointer": "#/$defs/historical_account_device_result/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "signer-key-operations.schema.json",
+      "shape": "historical_agent_result",
+      "field": "status",
+      "pointer": "#/$defs/historical_agent_result/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "signer-key-operations.schema.json",
+      "shape": "unavailable_result",
+      "field": "status",
+      "pointer": "#/$defs/unavailable_result/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     }
   ]
 }

@@ -62,16 +62,6 @@
       "reason": "registered ordered query-clause grammar; order_by names the whole ordered clause"
     },
     {
-      "file": "agent-signer-evidence-operations.schema.json",
-      "pointer": "/$defs/query_outcome/properties/evidence",
-      "reason": "evidence is an established collective mass noun for the returned signer-resolution evidence set"
-    },
-    {
-      "file": "agent-signer-evidence-operations.schema.json",
-      "pointer": "/$defs/sync_bundle/properties/evidence",
-      "reason": "evidence is an established collective mass noun inside the explicitly named signer-evidence bundle"
-    },
-    {
       "file": "sdk-conformance-claim.schema.json",
       "pointer": "/$defs/clause_claim/properties/evidence",
       "reason": "evidence is an established collective mass noun scoped by one conformance clause claim"
@@ -100,6 +90,61 @@
       "file": "realm-state-snapshot-chunk.schema.json",
       "pointer": "/properties/quarantined",
       "reason": "role stem pinned by the manifest's verification_hints.quarantined_digest and by the realm-state-snapshot-schema.md section 6 gap_attribution category literal quarantined; each row is one non_accepted_input reference"
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/14/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/18/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/23/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/24/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/30/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/33/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/34/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/42/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/51/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/56/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/57/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
     }
   ],
   "pagination_objects": [
@@ -373,6 +418,16 @@
         "next_cursor"
       ],
       "reason": "Account Realm summaries paginate a frozen account-private snapshot; complete additionally marks its terminal page."
+    },
+    {
+      "file": "mls-welcome-refs.schema.json",
+      "pointer": "/$defs/welcome_refs_outcome",
+      "collection_field": "welcome_refs",
+      "companion_fields": [
+        "limited",
+        "next_cursor"
+      ],
+      "reason": "Authenticated recipient discovery paginates only Welcome Event references."
     }
   ]
 }

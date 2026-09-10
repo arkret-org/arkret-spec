@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-08.5",
-  "generated_at": "2026-09-08T14:59:56+00:00",
+  "version": "2026-09-10.5",
+  "generated_at": "2026-09-10T04:50:56+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -962,7 +962,7 @@
       "code": "cursor_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The supplied cursor fails syntax, schema, purpose, binding, or integrity validation before the operation can advance state.",
+      "description": "The supplied cursor fails syntax, schema, purpose, binding, or integrity validation before the operation can advance state. Welcome recipient discovery also uses this code when its bound current eligibility revision changed or its frozen window is no longer retained; unrelated Seal advancement alone does not invalidate it.",
       "type_uri": "https://arkret.org/problems/cursor_invalid",
       "title": "Cursor invalid"
     },

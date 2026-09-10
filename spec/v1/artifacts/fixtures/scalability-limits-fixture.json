@@ -1,6 +1,6 @@
 {
   "suite": "scalability_limits",
-  "version": "2026-07-15",
+  "version": "2026-09-10.5",
   "profile": "ak.profile.core_event_store.v1",
   "runner": {
     "kind": "generated_limit_cases",
@@ -1189,6 +1189,48 @@
         "successor_requires_accepted_previous_epoch_winner": true,
         "response_is_complete_without_cursor_or_continuation": true,
         "canonical_overflow_error_code": "mls_governance_proof_bounds_exceeded"
+      }
+    },
+    {
+      "name": "welcome_recipient_discovery_window_and_bounds",
+      "vector_id": "ak.vector.scalability.mls_governance_proof_bounds.v1",
+      "input": {
+        "generator": {
+          "kind": "welcome_recipient_discovery_matrix",
+          "cases": [
+            "limit_default_20",
+            "limit_max_100",
+            "request_65536_accept_65537_reject",
+            "response_65536_accept_65537_reject_before_cursor",
+            "dropped_notification_still_discoverable",
+            "acked_unconsumed_still_discoverable",
+            "same_account_other_device_hidden",
+            "same_principal_other_station_hidden",
+            "controller_cannot_read_agent_window",
+            "private_circle_leave_hidden",
+            "pairwise_method_change_invalidates",
+            "winning_chain_change_invalidates",
+            "unrelated_seal_keeps_cursor",
+            "expiration_and_consumption_invalidate",
+            "last_resort_other_claim_remains",
+            "new_insert_outside_frozen_window",
+            "index_failure_rolls_back_acceptance",
+            "exact_retry_no_duplicate_index",
+            "quarantine_removes_eligibility",
+            "missing_local_key_requires_recovery"
+          ]
+        }
+      },
+      "expected": {
+        "request_response_max_bytes": 65536,
+        "default_limit": 20,
+        "max_limit": 100,
+        "refs_only": true,
+        "notification_ack_consumes": false,
+        "discovery_consumes": false,
+        "cursor_error": "cursor_invalid",
+        "temporary_memory_independent_of_realm_history": true,
+        "subsequent_artifact_cost_measured_separately": true
       }
     }
   ]

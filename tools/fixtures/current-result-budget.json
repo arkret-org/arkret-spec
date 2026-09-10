@@ -1,0 +1,17 @@
+{
+  "max_required_wrapper_upper_bound_bytes": 633024,
+  "cases": [
+    {
+      "entry_bytes": 7340031,
+      "expected": "value"
+    },
+    {
+      "entry_bytes": 7340032,
+      "expected": "value"
+    },
+    {
+      "entry_bytes": 7340033,
+      "expected": "unavailable_limit_exceeded"
+    }
+  ]
+}

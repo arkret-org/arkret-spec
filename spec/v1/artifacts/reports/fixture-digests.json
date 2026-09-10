@@ -194,7 +194,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "b35d90d2e809a74dc7b8e52f96ee8bd7a6df6035efa8b367a40ff906effe980f"
+      "sha256": "d1f5fdafb202300aa6beaf7065351030c16682e44566edd97ff1bfd1712dd722"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -338,7 +338,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "b61b441fd07df7004b524975e86dc704e31e0d2b51d45ca683ffcea9c6f2498a"
+      "sha256": "b6b8ea0dba135767b29ebdb07d2c2c929a5b6bb10b165749d378759e1eee6c0f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-definition-validator-kat.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "9566c5b9c5937e6e343ceba6efc77b88c4f4791baf24e282f821db7b455f96ee"
+      "sha256": "342189a9d9056574d6449a0e4537d31e2e751743c0b79999042803743025de34"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -406,7 +406,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "1c2b26118da84c07f12b4352d2b36912c2b31b74c4cfd984e4ebaabcbf5da33c"
+      "sha256": "68fcec3dbcae9e986c4e65cc5b59e46ce215c46d9c7dad4620873e35f9fd41b9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

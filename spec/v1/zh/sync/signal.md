@@ -183,23 +183,20 @@ source 每次准入与出站 fresh 检查 MUST 同时满足原 accepted 设备�
 以及非空 `expires_at` 的 `now < expires_at`；缓存 `active` 标记和 Signal TTL 不延长该有效期。
 跨账号 recipient 使用 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md)
 的 origin Station 已签 `device_projection_attestation`，由自己 Station 验证公共授权；cold foreign sender 必须通过
-`ak.self.current_signer_evidence.read.resolve.v1` 让本地 Station 代查询 origin 的
+`ak.self.signer_keys.read.resolve.v1` 让本地 Station 代查询 origin 的
 `ak.peer.current_signer_evidence.read.resolve.v1`，不得把本地用户 SessionGrant 转发给远端、
 直接请求私有 device gate、用 KeyPackage claim 代替 current projection，或先向缓存预注入材料。
-请求只含 `request_id`、Realm、exact recipient Account 与 closed sender selector，可附
-`known_agent_state_digests` / `known_signer_evidence_refs` 声明本地可信材料。HTTP 身份与完整正文认证用于披露控制；
-response 只回显 request/Realm/recipient 并交付独立已签 evidences，不另签 query 包装。ordinary 使用 device attestation；
-Agent 使用 `current_admission` 的可复用 authority lease 与独立 controller gate，缺项通过同一查询补齐。
-Agent compact transport root 可省略已声明 known 的 state，自己的 Station 必须按 exact digest 补回后才计算完整 canonical root
-地址并验证闭包；transport 省略不会改变证据内容地址。自己的已认证 Account Station MUST 在返回 query outcome 前验证完整公共证据；客户端核对 request/Realm/recipient/selector 绑定，信任该公共授权结果，不重放 DID、PCR、Seal 或 capability 闭包。此信任不扩展至远端或离线导入的 unsigned carrier。
+self 请求只含 request_id、Realm、exact recipient Account 与 1..64 个 closed selector；不接受
+known evidence refs/digests，不返回需客户端 hydrate 的根。自己的 Station 使用本地已验证 authority
+或 peer 查询（每批最多16项）完整核验远端证据，返回 §5.6 的独立 self key 结果。Peer 的 compact
+root/known 机制只在服务器之间使用；self 不能透传未验证的远端材料。
 
-缓存 MUST 绑定完整 AccountId/device/authorization/generation，Agent 还绑定 controller、runtime method/key、授权 dot
-与已验证 scope。source 仍按本地权威状态逐次执行准入；recipient 在 Agent lease 最多 300 秒的明确观察窗口内复用
-授权结果，不逐 Signal 查询。实际有效期同时受 gate、binding 与 key authorization 的独立截止限制，重连/转发/恢复不续期。
-已观察的相关 key/lifecycle/account 撤销或冲突使 Agent 签名授权缓存失效；成员或 generation 变化由每消息的可信
-membership/MLS 检查使对应操作不再适用，不要求刷新未改变的 Agent PCR lease，无关成员变化不使该签名缓存失效。
-每条消息仍独立验证 producer signature、MLS leaf/group/epoch、AAD/AEAD、TTL 和 replay。设备可共享
-同一适用关系的授权结果，由自己的 Station 检查 current membership/generation；客户端检查本地 MLS leaf 的 exact binding。不得把远端 unsigned carrier 或另一个设备的 verified 标志当作当前 membership 证明。到期仅刷新状态和缺项，不重新配对或验证未变稳定链。
+客户端对每次 current signer 验证发起有界 self 查询，仅同次批处理或完全相同且已经在途的查询可
+合并。已完成结果不用于未来 Signal/重连/操作；公钥缓存不构成 current 授权，checked_at 不是租约。
+不维护全 Realm checkpoint 失效扫描，也不以300秒 TTL复用替代每次验证。每条 Signal 仍检查完整
+Actor/method、producer signature、真实 MLS leaf/group/epoch、AAD/AEAD、TTL与replay；自己 Station
+对实际操作执行逐次当前准入。查询增加请求量，必须按 §5.6 的64 KiB请求/1 MiB响应与有界等待处理。
+
 没有有效可信材料时只可在 Signal TTL 内有界等待；未验证不得展示、更新 high-water 或执行业务，过期即丢弃。
 
 foreign evidence authority 必须在签发前同时验证 authenticated requester Station、requester exact

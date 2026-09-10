@@ -3303,18 +3303,31 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "actor_id"],
+          "required": [
+            "kind",
+            "actor_id"
+          ],
           "properties": {
-            "kind": {"const": "actor"},
-            "actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"}
+            "kind": {
+              "const": "actor"
+            },
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "realm_id", "principal_id"],
+          "required": [
+            "kind",
+            "realm_id",
+            "principal_id"
+          ],
           "properties": {
-            "kind": {"const": "pairwise_principal"},
+            "kind": {
+              "const": "pairwise_principal"
+            },
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id",
               "description": "Collaboration Realm the pairwise actor is local to. A pairwise actor does not exist outside it, and the holder consent Event lives in the holder Principal Control Realm, so the envelope realm_id cannot supply this binding. The same principal_id under a different realm_id is a different peer and MUST NOT be aggregated."
@@ -5741,13 +5754,41 @@
                 }
               },
               "anyOf": [
-                {"required": ["allowed_did_methods"]},
-                {"required": ["allowed_account_ids"]},
-                {"required": ["denied_account_ids"]},
-                {"required": ["allowed_actor_ids"]},
-                {"required": ["denied_actor_ids"]},
-                {"required": ["allowed_principal_ids"]},
-                {"required": ["denied_principal_ids"]}
+                {
+                  "required": [
+                    "allowed_did_methods"
+                  ]
+                },
+                {
+                  "required": [
+                    "allowed_account_ids"
+                  ]
+                },
+                {
+                  "required": [
+                    "denied_account_ids"
+                  ]
+                },
+                {
+                  "required": [
+                    "allowed_actor_ids"
+                  ]
+                },
+                {
+                  "required": [
+                    "denied_actor_ids"
+                  ]
+                },
+                {
+                  "required": [
+                    "allowed_principal_ids"
+                  ]
+                },
+                {
+                  "required": [
+                    "denied_principal_ids"
+                  ]
+                }
               ]
             }
           ],
@@ -6715,7 +6756,7 @@
           "type": "string",
           "minLength": 1,
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "Unpadded base64url RFC 9420 MLS Commit message. Receivers authenticate these bytes through the containing Event and, when commit_message_ref is present, require its embedded digest to match these exact decoded bytes before applying the Commit."
+          "description": "Unpadded base64url encoding of the complete RFC 9420 MLSMessage carrying a Commit. For Realm/Circle effective scopes it MUST be PublicMessage; PrivateMessage and bare Commit bodies are rejected. Sidecar retains its own contract. The containing Event authenticates the bytes; optional commit_message_ref must match their exact digest. Public processing verifies only public structure/signatures/tree transitions, never secret membership or confirmation MACs; members still perform full RFC 9420 checks."
         },
         "commit_message_ref": {
           "$ref": "./common-ids.schema.json#/$defs/blob_ref",
@@ -6797,7 +6838,7 @@
         "governance_binding",
         "created_at"
       ],
-      "$comment": "Schema requires both effective_scope and governance_binding. Reducers/verifiers must additionally compare effective_scope with governance_binding.effective_scope; JSON Schema cannot express deep cross-field equality. v1 Genesis has exactly one initial principal leaf: the creator. Creator coordinates are not payload fields: the creator principal is Event.actor_id and the creator device is projected from the fragment of the sole producer proof verification_method, so carrying creator_principal_id, creator_device_id, initial_keypackage_refs or another initial-member list is a schema_violation. Every non-creator joins through a later Add/Commit/Welcome.",
+      "$comment": "Schema requires both effective_scope and governance_binding. Reducers/verifiers must additionally compare effective_scope with governance_binding.effective_scope; JSON Schema cannot express deep cross-field equality. v1 Genesis has exactly one initial principal leaf: the creator. Creator coordinates are not payload fields: the creator principal is Event.actor_id and the creator device is projected from the fragment of the sole producer proof verification_method, so carrying creator_principal_id, creator_device_id, initial_keypackage_refs or another initial-member list is a schema_violation. Every non-creator joins through a later Add/Commit/Welcome. Realm/Circle Genesis admission parses the exact digest-checked public GroupInfo/tree before atomically publishing the accepted initial leaf provenance. Public trackers do not verify secret confirmation tags or receive tree/path/epoch secrets.",
       "properties": {
         "mls_group_id": {
           "type": "string",
@@ -7490,7 +7531,7 @@
         },
         "proposal_bytes_b64": {
           "$ref": "#/$defs/base64url",
-          "description": "Unpadded base64url encoding of the complete RFC 9420 MLS Proposal message. The bytes are always inline so restart and offline replay never depend on a process-local proposal store or an auxiliary object route."
+          "description": "Unpadded base64url encoding of the complete RFC 9420 MLSMessage carrying a Proposal. For Realm/Circle effective scopes it MUST be PublicMessage; PrivateMessage and bare Proposal bodies are rejected. Sidecar retains its own contract. Exact bytes are inline and durable; by-reference Commit processing matches the RFC proposal reference against these authenticated contents, not the EventId."
         },
         "proposal_digest": {
           "$ref": "#/$defs/digest",
@@ -10044,10 +10085,10 @@
         "patch": {
           "type": "object",
           "required": [
-        "controller_actor_id"
+            "controller_actor_id"
           ],
           "properties": {
-        "controller_actor_id": {
+            "controller_actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id",
               "description": "Exact ActorId of the successor that becomes the root controller. Its control proof MUST bind this complete identity; a bare principal DID or parallel Station sidecar is insufficient."
             }
@@ -10457,17 +10498,30 @@
       "properties": {
         "resource_kind": {
           "type": "string",
-          "enum": ["actor", "applet", "handle"]
+          "enum": [
+            "actor",
+            "applet",
+            "handle"
+          ]
         },
         "discoverability": {
           "type": "string",
-          "enum": ["public", "listed", "restricted", "unlisted", "invite_only", "secret"]
+          "enum": [
+            "public",
+            "listed",
+            "restricted",
+            "unlisted",
+            "invite_only",
+            "secret"
+          ]
         },
         "directory_ids": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
-          "items": { "$ref": "#/$defs/did_core_id" }
+          "items": {
+            "$ref": "#/$defs/did_core_id"
+          }
         },
         "profile_visibility": {
           "$ref": "#/$defs/discovery_profile_visibility"
@@ -10477,13 +10531,26 @@
     },
     "actor_discovery_state_payload": {
       "type": "object",
-      "required": ["resource_id", "value"],
+      "required": [
+        "resource_id",
+        "value"
+      ],
       "properties": {
-        "resource_id": { "$ref": "./common-ids.schema.json#/$defs/actor_id" },
+        "resource_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
         "value": {
           "allOf": [
-            { "$ref": "#/$defs/resource_discovery_state_value" },
-            { "properties": { "resource_kind": { "const": "actor" } } }
+            {
+              "$ref": "#/$defs/resource_discovery_state_value"
+            },
+            {
+              "properties": {
+                "resource_kind": {
+                  "const": "actor"
+                }
+              }
+            }
           ]
         }
       },
@@ -10491,13 +10558,26 @@
     },
     "applet_discovery_state_payload": {
       "type": "object",
-      "required": ["resource_id", "value"],
+      "required": [
+        "resource_id",
+        "value"
+      ],
       "properties": {
-        "resource_id": { "$ref": "./common-ids.schema.json#/$defs/applet_id" },
+        "resource_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
         "value": {
           "allOf": [
-            { "$ref": "#/$defs/resource_discovery_state_value" },
-            { "properties": { "resource_kind": { "const": "applet" } } }
+            {
+              "$ref": "#/$defs/resource_discovery_state_value"
+            },
+            {
+              "properties": {
+                "resource_kind": {
+                  "const": "applet"
+                }
+              }
+            }
           ]
         }
       },
@@ -10505,18 +10585,33 @@
     },
     "handle_discovery_state_payload": {
       "type": "object",
-      "required": ["resource_id", "value"],
+      "required": [
+        "resource_id",
+        "value"
+      ],
       "properties": {
         "resource_id": {
           "allOf": [
-            { "$ref": "string-profiles.schema.json#/$defs/canonical_handle" },
-            { "pattern": "^(?!ak:)" }
+            {
+              "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
+            },
+            {
+              "pattern": "^(?!ak:)"
+            }
           ]
         },
         "value": {
           "allOf": [
-            { "$ref": "#/$defs/resource_discovery_state_value" },
-            { "properties": { "resource_kind": { "const": "handle" } } }
+            {
+              "$ref": "#/$defs/resource_discovery_state_value"
+            },
+            {
+              "properties": {
+                "resource_kind": {
+                  "const": "handle"
+                }
+              }
+            }
           ]
         }
       },
@@ -10525,9 +10620,15 @@
     "resource_discovery_state": {
       "description": "Union used by generic SDK consumers; Event kinds bind one exact closed branch.",
       "anyOf": [
-        { "$ref": "#/$defs/actor_discovery_state_payload" },
-        { "$ref": "#/$defs/applet_discovery_state_payload" },
-        { "$ref": "#/$defs/handle_discovery_state_payload" }
+        {
+          "$ref": "#/$defs/actor_discovery_state_payload"
+        },
+        {
+          "$ref": "#/$defs/applet_discovery_state_payload"
+        },
+        {
+          "$ref": "#/$defs/handle_discovery_state_payload"
+        }
       ]
     },
     "rsvp_encrypted_response": {
@@ -12312,5 +12413,18 @@
       ],
       "description": "Relation create input: the full Relation object schema minus the id, the banned `type` name, and the reducer-managed `effective_scope`. Reusing relation.schema.json makes the Relation create shape decidable by schema exactly like the Strand / Morph / Space create shapes, while relation.schema.json's own `fields` property keeps the free edge-metadata surface open. Semantic validation MUST require payload.relation.created_by to match the top-level actor_id and payload.relation.created_at to match the top-level created_at before acceptance."
     }
+  },
+  "x-arkret-public-handshake-contract": {
+    "effective_scope_kinds": [
+      "realm",
+      "circle"
+    ],
+    "proposal_wire_format": "mls_public_message",
+    "commit_wire_format": "mls_public_message",
+    "secret_mac_verification_role": "member",
+    "application_and_welcome_protection": "unchanged",
+    "replacement_provenance": "consumed_remove_add_not_tuple_equality",
+    "minimal_metadata_identity": "existing_pairwise_only",
+    "sidecar_policy": "separate_contract"
   }
 }

@@ -4238,10 +4238,10 @@ def check_history_scale_fixture(lint: Lint) -> None:
     else:
         wire = response_stream.get("wire_instances", {})
         for label, schema_ref, instance in (
-            ("manifest send", "schemas/history-key.schema.json#/$defs/history_key_response_send_request", wire.get("manifest_send")),
+            ("manifest send", "schemas/history-key.schema.json#/$defs/history_key_response_send_request_body", wire.get("manifest_send")),
             ("first send receipt", "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt", wire.get("first_send_receipt")),
             ("sequence list", "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome", wire.get("sequence_ordered_list")),
-            ("ack request", "schemas/history-key.schema.json#/$defs/history_key_response_ack_request", wire.get("ack_request")),
+            ("ack request", "schemas/history-key.schema.json#/$defs/history_key_response_ack_request_body", wire.get("ack_request")),
             ("ack outcome", "schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome", wire.get("ack_outcome")),
         ):
             check_json_instance_against_schema(lint, path, label, schema_ref, instance)

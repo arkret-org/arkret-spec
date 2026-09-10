@@ -601,6 +601,8 @@ admission proof 使用独立 `context="ak.station_admission_proof.v1"`。其 `ve
 
 exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof，并按上述分支验证所需安装与签名依赖；signer evidence 只允许按 proof 内 required content-addressed ref 通过标准 governance-dependency resolve 取得，**MUST NOT** 接收重复内嵌或 ad-hoc signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/历史完整性证明，也不得删除、替换或由 replica 重签 origin proof。origin Station MUST 在追加 admission proof 的同一 serializable gate 中读取 exact `(JCS(author_id), device_id, current_device_generation_ref)` 的 durable `ak.schema.device_revocation_state.v1`；任一未终结 `revocation_pending` 或 `revoked` record 都拒绝新 Event 且不得追加 proof，缓存只能加速。只有精确绑定 proposal/Ack/device/generation 的有效 `signed_reject` 能清除对应 pending record；overdue、restart、cache eviction 或管理员布尔值均不能。此前在 pending 线性化点之前合法产生的 proof 继续仅按其签名 `accepted_at` 验证，不因后来 revoke 而追溯失效。
 
+原 accepted Event/admission 与验证其历史签名必需的 Station evidence 及保留关系 MUST 在同一耐久接纳边界成立，ordinary DataEvent 也适用；仍可读取 Event 所需来源不得先被 GC。普通设备历史签名结果复用 admission 中原已签 producer key 与 accepted_at，不新增设备 PCR/ASRE 披露要求，详见 [server-trusted-results §5.6](../sync/server-trusted-results.md)。
+
 这把 Station 明确纳入账号设备 authority 的信任边界：服务 DID 签名提供可验证归责，但不能密码学阻止恶意服务虚假准入。若未来要抵抗恶意 Station，应另行设计 principal-root/device certificate transparency，且不得把 account-local PCR 状态重新暴露为跨服务身份选择器。
 
 ### 3.2 Producer proof

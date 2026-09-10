@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 205,
+    "total_schemas": 208,
     "by_consumer": {
       "declared_wire": 59,
       "event_kind": 3,
-      "inbound": 48,
-      "outbound": 55,
+      "inbound": 49,
+      "outbound": 57,
       "prose": 112,
       "prose_only": 2,
-      "schema_reference": 137,
-      "startup_compile": 205,
-      "vectors": 126
+      "schema_reference": 138,
+      "startup_compile": 208,
+      "vectors": 125
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 79,
+    "without_vector_coverage": 83,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -68,6 +68,7 @@
   ],
   "unresolved_consumer_coverage": [],
   "without_vector_coverage": [
+    "ak.schema.account_current_result.v1",
     "ak.schema.account_data_encrypted_value.v1",
     "ak.schema.account_data_operations.v1",
     "ak.schema.account_operations.v1",
@@ -101,8 +102,8 @@
     "ak.schema.contact_scope_update.v1",
     "ak.schema.content_block_poll.v1",
     "ak.schema.control_proposal_decision.v1",
-    "ak.schema.current_signer_evidence_query_outcome.v1",
-    "ak.schema.current_signer_evidence_query_request.v1",
+    "ak.schema.current_principal_outcome.v1",
+    "ak.schema.current_principal_request.v1",
     "ak.schema.device_pairing_bootstrap.v1",
     "ak.schema.device_pairing_operations.v1",
     "ak.schema.did_binding_contracts.v1",
@@ -123,9 +124,12 @@
     "ak.schema.media_operations.v1",
     "ak.schema.member_identity.v1",
     "ak.schema.mimi_operations.v1",
+    "ak.schema.mls_welcome_refs.v1",
     "ak.schema.object_addressing.v1",
     "ak.schema.offline_publication.v1",
     "ak.schema.patch.v1",
+    "ak.schema.peer_current_signer_evidence_query_outcome.v1",
+    "ak.schema.peer_current_signer_evidence_query_request.v1",
     "ak.schema.presence_preference.v1",
     "ak.schema.presence_visibility.v1",
     "ak.schema.public_key.v1",
@@ -150,6 +154,22 @@
   ],
   "unresolved_vector_disposition": [],
   "schemas": [
+    {
+      "schema_id": "ak.schema.account_current_result.v1",
+      "file": "schemas/account-current-result.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.account_subscribe_frame.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+      }
+    },
     {
       "schema_id": "ak.schema.account_data_encrypted_value.v1",
       "file": "schemas/account-data-encrypted-value.schema.json",
@@ -241,7 +261,6 @@
       "schema_id": "ak.schema.account_subscribe_frame.v1",
       "file": "schemas/account-subscribe-frame.schema.json",
       "consumers": {
-        "inbound": "fragment",
         "outbound": "exact",
         "prose": "normative_text",
         "schema_reference": "exact",
@@ -527,51 +546,6 @@
         "disposition": "direct",
         "evidence": "required_schema"
       }
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_evidence_bundle.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "consumers": {
-        "schema_reference": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      },
-      "fragment": "#/$defs/sync_bundle"
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_evidence_query_outcome.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "consumers": {
-        "outbound": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      },
-      "fragment": "#/$defs/query_outcome"
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_evidence_query_request.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "consumers": {
-        "inbound": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      },
-      "fragment": "#/$defs/query_request"
     },
     {
       "schema_id": "ak.schema.agent_signing_key_binding.v1",
@@ -968,21 +942,18 @@
         "owners": [
           "ak.schema.agent_signer_admission_receipt.v1",
           "ak.schema.agent_signer_evidence.v1",
-          "ak.schema.agent_signer_evidence_bundle.v1",
-          "ak.schema.agent_signer_evidence_query_outcome.v1",
-          "ak.schema.agent_signer_evidence_query_request.v1",
           "ak.schema.availability_receipt.v1",
           "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.controller_account_gate_attestation.v1",
-          "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
-          "ak.schema.controller_account_gate_attestation_issue_request.v1",
-          "ak.schema.current_signer_evidence_query_outcome.v1",
-          "ak.schema.current_signer_evidence_query_request.v1",
           "ak.schema.event.v1",
           "ak.schema.history_key.v1",
           "ak.schema.keys_operations.v1",
           "ak.schema.moderation_evidence.v1",
-          "ak.schema.service_operation_dtos.v1"
+          "ak.schema.peer_current_signer_evidence_query_outcome.v1",
+          "ak.schema.peer_current_signer_evidence_query_request.v1",
+          "ak.schema.service_operation_dtos.v1",
+          "ak.schema.signer_key_query_outcome.v1",
+          "ak.schema.signer_key_query_request.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -1255,6 +1226,7 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
+          "ak.schema.account_current_result.v1",
           "ak.schema.account_data_encrypted_value.v1",
           "ak.schema.account_operations.v1",
           "ak.schema.account_status_record.v1",
@@ -1275,9 +1247,6 @@
           "ak.schema.agent_sidecar_view_state.v1",
           "ak.schema.agent_signer_admission_receipt.v1",
           "ak.schema.agent_signer_evidence.v1",
-          "ak.schema.agent_signer_evidence_bundle.v1",
-          "ak.schema.agent_signer_evidence_query_outcome.v1",
-          "ak.schema.agent_signer_evidence_query_request.v1",
           "ak.schema.agent_signing_key_binding.v1",
           "ak.schema.applet.v1",
           "ak.schema.applet_edge_operations.v1",
@@ -1316,8 +1285,8 @@
           "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
           "ak.schema.controller_account_gate_attestation_issue_request.v1",
-          "ak.schema.current_signer_evidence_query_outcome.v1",
-          "ak.schema.current_signer_evidence_query_request.v1",
+          "ak.schema.current_principal_outcome.v1",
+          "ak.schema.current_principal_request.v1",
           "ak.schema.device_message.v1",
           "ak.schema.device_revocation_state.v1",
           "ak.schema.did_binding_contracts.v1",
@@ -1363,11 +1332,14 @@
           "ak.schema.mimi_interop.v1",
           "ak.schema.mimi_operations.v1",
           "ak.schema.mls_governance_proof_bundle.v1",
+          "ak.schema.mls_welcome_refs.v1",
           "ak.schema.moderation_evidence.v1",
           "ak.schema.moderation_queue_item.v1",
           "ak.schema.morph.v1",
           "ak.schema.notification.v1",
           "ak.schema.offline_publication.v1",
+          "ak.schema.peer_current_signer_evidence_query_outcome.v1",
+          "ak.schema.peer_current_signer_evidence_query_request.v1",
           "ak.schema.policy.v1",
           "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
@@ -1405,6 +1377,8 @@
           "ak.schema.signal_envelope.v1",
           "ak.schema.signal_presence.v1",
           "ak.schema.signal_relay.v1",
+          "ak.schema.signer_key_query_outcome.v1",
+          "ak.schema.signer_key_query_request.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
           "ak.schema.view.v1",
@@ -1603,26 +1577,26 @@
       "fragment": "#/$defs/controller_account_gate_attestation_issue_request"
     },
     {
-      "schema_id": "ak.schema.current_signer_evidence_query_outcome.v1",
-      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "schema_id": "ak.schema.current_principal_outcome.v1",
+      "file": "schemas/identity-resolution.schema.json",
       "consumers": {
         "outbound": "exact",
+        "schema_reference": "exact",
         "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.peer.current_signer_evidence.read.resolve.v1",
-          "ak.self.current_signer_evidence.read.resolve.v1"
+          "ak.self.current_principal.read.resolve.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       },
-      "fragment": "#/$defs/query_outcome"
+      "fragment": "#/$defs/current_principal_outcome"
     },
     {
-      "schema_id": "ak.schema.current_signer_evidence_query_request.v1",
-      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "schema_id": "ak.schema.current_principal_request.v1",
+      "file": "schemas/identity-resolution.schema.json",
       "consumers": {
         "inbound": "exact",
         "startup_compile": "exact"
@@ -1631,12 +1605,11 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.peer.current_signer_evidence.read.resolve.v1",
-          "ak.self.current_signer_evidence.read.resolve.v1"
+          "ak.self.current_principal.read.resolve.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       },
-      "fragment": "#/$defs/query_request"
+      "fragment": "#/$defs/current_principal_request_body"
     },
     {
       "schema_id": "ak.schema.cursor.v1",
@@ -1761,6 +1734,8 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
+          "ak.schema.current_principal_outcome.v1",
+          "ak.schema.current_principal_request.v1",
           "ak.schema.identity_resolution.v1",
           "ak.schema.registration_did_evidence.v1"
         ],
@@ -2650,6 +2625,23 @@
       }
     },
     {
+      "schema_id": "ak.schema.mls_welcome_refs.v1",
+      "file": "schemas/mls-welcome-refs.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.seals.read.mls_welcome_refs.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      }
+    },
+    {
       "schema_id": "ak.schema.moderation_evidence.v1",
       "file": "schemas/moderation-evidence.schema.json",
       "consumers": {
@@ -2816,6 +2808,40 @@
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
+    },
+    {
+      "schema_id": "ak.schema.peer_current_signer_evidence_query_outcome.v1",
+      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.current_signer_evidence.read.resolve.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/query_outcome"
+    },
+    {
+      "schema_id": "ak.schema.peer_current_signer_evidence_query_request.v1",
+      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.current_signer_evidence.read.resolve.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/query_request"
     },
     {
       "schema_id": "ak.schema.personal_productivity.v1",
@@ -3657,6 +3683,36 @@
       }
     },
     {
+      "schema_id": "ak.schema.signer_key_query_outcome.v1",
+      "file": "schemas/signer-key-operations.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      },
+      "fragment": "#/$defs/query_outcome"
+    },
+    {
+      "schema_id": "ak.schema.signer_key_query_request.v1",
+      "file": "schemas/signer-key-operations.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      },
+      "fragment": "#/$defs/query_request_body"
+    },
+    {
       "schema_id": "ak.schema.space.v1",
       "file": "schemas/space.schema.json",
       "consumers": {
@@ -3754,6 +3810,8 @@
           "ak.schema.contact_scope_update.v1",
           "ak.schema.control_proposal_decision.v1",
           "ak.schema.controller_account_gate_attestation.v1",
+          "ak.schema.current_principal_outcome.v1",
+          "ak.schema.current_principal_request.v1",
           "ak.schema.cursor.v1",
           "ak.schema.device_message.v1",
           "ak.schema.device_pairing_bootstrap.v1",
@@ -3831,6 +3889,8 @@
           "ak.schema.service_operation_dtos.v1",
           "ak.schema.signal_envelope.v1",
           "ak.schema.signal_presence.v1",
+          "ak.schema.signer_key_query_outcome.v1",
+          "ak.schema.signer_key_query_request.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
           "ak.schema.view.v1",

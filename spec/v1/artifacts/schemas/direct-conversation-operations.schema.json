@@ -239,7 +239,10 @@
               "const": "found"
             },
             "coordinates": {
-              "$ref": "#/$defs/direct_conversation_coordinates"
+              "$ref": "#/$defs/direct_conversation_coordinates",
+              "required": [
+                "binding_event_ref"
+              ]
             },
             "group_state_ref": {
               "$ref": "./principal-operations.schema.json#/$defs/event_id",

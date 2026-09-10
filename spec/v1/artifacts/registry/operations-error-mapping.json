@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-10.1",
+  "version": "2026-09-10.17",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T16:36:52+00:00",
+  "generated_at": "2026-09-10T08:41:42+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -1269,16 +1269,6 @@
       "description": "Nonexistent, foreign-controller, and unauthorized Sidecar identifiers return the same not_found envelope and timing bucket."
     },
     {
-      "operation_id": "ak.self.agent_signer_evidence.read.resolve.v1",
-      "http_alias": "POST /_arkret/self/agent-signer-evidence/query",
-      "operation_specific": [
-        "agent_signer_evidence_missing",
-        "agent_signer_evidence_stale",
-        "agent_authorization_inactive",
-        "agent_authorization_conflicted"
-      ]
-    },
-    {
       "operation_id": "ak.self.applet.command.install.v1",
       "http_alias": "POST /_arkret/self/applets/install",
       "operation_specific": [
@@ -1596,10 +1586,14 @@
       "description": "Authenticated non-enumerating observation of one durable proposal/Ack/decision/Seal state."
     },
     {
-      "operation_id": "ak.self.current_signer_evidence.read.resolve.v1",
-      "http_alias": "POST /_arkret/self/current-signer-evidence/query",
-      "operation_specific": [],
-      "description": "The authenticated proxy returns the origin-signed typed outcome byte-for-byte; selector failures remain an indistinguishable empty success rather than an operation-specific error."
+      "operation_id": "ak.self.current_principal.read.resolve.v1",
+      "http_alias": "POST /_arkret/self/account/current-principal",
+      "operation_specific": [
+        "not_found",
+        "payload_too_large",
+        "limit_exceeded"
+      ],
+      "description": "Wrong authenticated account/Station or invisible target: 404 not_found. Visible own-account unresolved verified current projection: universal 503 temporarily_unavailable. Canonical request exceeds 64 KiB: 413 payload_too_large; invalid closed shape: universal 422 schema_violation. Response exceeds 64 KiB: limit_exceeded."
     },
     {
       "operation_id": "ak.self.device_messages.command.ack.v1",
@@ -2119,6 +2113,29 @@
       "description": "Authenticated Account Station result only. not_found preserves current Realm/scope visibility; mls_governance_proof_bounds_exceeded rejects complete-result or request bounds; frontier_unavailable covers unavailable accepted state/dependencies; state_mismatch rejects inconsistent exact local leaf/basis/genesis/epoch binding; unsupported_profile rejects unsupported binding or reducer profiles. Clients do not receive Merkle material or a proof base."
     },
     {
+      "operation_id": "ak.self.seals.read.mls_membership_removal.v1",
+      "http_alias": "POST /_arkret/self/seals/mls-membership-removal",
+      "operation_specific": [
+        "not_found",
+        "frontier_unavailable",
+        "state_mismatch",
+        "limit_exceeded",
+        "payload_too_large"
+      ],
+      "description": "not_found hides invisible scope/base; frontier_unavailable rejects missing per-leaf admission lineage or unresolved authority; state_mismatch rejects stale basis/base/epoch or a different full leaf set; payload_too_large rejects request byte overflow; limit_exceeded rejects atomic result overflow. None imply empty or permitted removal."
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_welcome_refs.v1",
+      "http_alias": "POST /_arkret/self/seals/mls-welcome-refs",
+      "operation_specific": [
+        "cursor_invalid",
+        "not_found",
+        "frontier_unavailable",
+        "limit_exceeded"
+      ],
+      "description": "Exact authenticated recipient window with current visibility, bounded response and no consume side effects."
+    },
+    {
       "operation_id": "ak.self.seals.read.pending_control.v1",
       "http_alias": "QUERY /_arkret/self/seals/pending-control",
       "operation_specific": [
@@ -2179,6 +2196,16 @@
       "operation_specific": [
         "signal_rail_unavailable"
       ]
+    },
+    {
+      "operation_id": "ak.self.signer_keys.read.resolve.v1",
+      "http_alias": "POST /_arkret/self/signer-keys/query",
+      "operation_specific": [
+        "not_found",
+        "payload_too_large",
+        "limit_exceeded"
+      ],
+      "description": "Recipient account/Station does not match the authenticated session: 404 not_found. Request canonical bytes >64 KiB: 413 payload_too_large; schema/count violations: universal 422 schema_violation. Complete response >1 MiB or item >16 KiB: limit_exceeded. Hidden, unauthorized, invalid or unavailable signer results use the same per-selector unavailable shape."
     },
     {
       "operation_id": "ak.self.space.read.list.v1",

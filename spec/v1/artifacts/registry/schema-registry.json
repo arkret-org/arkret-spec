@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.1",
+  "version": "2026-09-10.17",
   "source_of_truth": false,
-  "generated_at": "2026-09-08T05:55:00+08:00",
+  "generated_at": "2026-09-10T08:41:42+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -116,41 +116,6 @@
       "fragment": "#/$defs/event_admission_receipt",
       "status": "active",
       "description": "Destination-signed immutable receipt for the exact Agent signer evidence used when one Event was accepted."
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_evidence_query_request.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/query_request",
-      "status": "active",
-      "description": "Authenticated shared-context Agent signer evidence query request."
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_evidence_query_outcome.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/query_outcome",
-      "status": "active",
-      "description": "Closed outcome carrying portable Agent signer evidence or non-enumerating per-selector failures."
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_evidence_bundle.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/sync_bundle",
-      "status": "active",
-      "description": "Deduplicated transport-level Agent signer evidence bundle shared by sync, backfill, and federation."
-    },
-    {
-      "schema_id": "ak.schema.current_signer_evidence_query_request.v1",
-      "file": "schemas/current-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/query_request",
-      "status": "active",
-      "description": "Request-bound cold-recipient query selecting exactly one current account-device or Agent authority branch per sender."
-    },
-    {
-      "schema_id": "ak.schema.current_signer_evidence_query_outcome.v1",
-      "file": "schemas/current-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/query_outcome",
-      "status": "active",
-      "description": "Origin-Station-signed response binding exact Signal, recipient, proxy verifier, challenge and closed current signer evidence."
     },
     {
       "schema_id": "ak.schema.circle.v1",
@@ -1146,7 +1111,7 @@
       "schema_id": "ak.schema.mls_governance_proof_bundle.v1",
       "file": "schemas/mls-governance-proof-bundle.schema.json",
       "status": "active",
-      "description": "Closed near-current stateless MLS group-security frontier query carrier. Bulk and old history use receipt-bound direct accepted-Seal traversal through standard resolve surfaces."
+      "description": "Closed own-Station MLS binding, accepted-artifact and exact current leaf-removal results, with separate peer governance proof carriers."
     },
     {
       "schema_id": "ak.schema.history_key.v1",
@@ -1513,6 +1478,60 @@
         "selector": "ak.fork.resolution payload collision locator kind=collision_variant_record, resolved through the registered governance-dependency bundle surface",
         "normative_ref": "zh/authz/event-auth-state-resolution.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.mls_welcome_refs.v1",
+      "file": "schemas/mls-welcome-refs.schema.json",
+      "status": "active",
+      "description": "Authenticated exact-recipient Welcome reference discovery with bounded frozen-window continuation."
+    },
+    {
+      "schema_id": "ak.schema.account_current_result.v1",
+      "file": "schemas/account-current-result.schema.json",
+      "status": "active",
+      "description": "Server-trusted typed current cell results, complete MV heads, versioned removal and exact baseline coverage."
+    },
+    {
+      "schema_id": "ak.schema.current_principal_request.v1",
+      "file": "schemas/identity-resolution.schema.json",
+      "fragment": "#/$defs/current_principal_request_body",
+      "status": "active",
+      "description": "Authenticated own-account current principal and unique PCR request."
+    },
+    {
+      "schema_id": "ak.schema.current_principal_outcome.v1",
+      "file": "schemas/identity-resolution.schema.json",
+      "fragment": "#/$defs/current_principal_outcome",
+      "status": "active",
+      "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
+    },
+    {
+      "schema_id": "ak.schema.signer_key_query_request.v1",
+      "file": "schemas/signer-key-operations.schema.json",
+      "fragment": "#/$defs/query_request_body",
+      "status": "active",
+      "description": "Unified own-Station current/historical Device and Agent signing-key request; exact local recipient, no evidence closure or reusable current grant."
+    },
+    {
+      "schema_id": "ak.schema.signer_key_query_outcome.v1",
+      "file": "schemas/signer-key-operations.schema.json",
+      "fragment": "#/$defs/query_outcome",
+      "status": "active",
+      "description": "Unified own-Station current/historical Device and Agent signing-key outcome; exact local recipient, no evidence closure or reusable current grant."
+    },
+    {
+      "schema_id": "ak.schema.peer_current_signer_evidence_query_request.v1",
+      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/query_request",
+      "status": "active",
+      "description": "Peer portable current signer evidence request; independent of the unified self signing-key result."
+    },
+    {
+      "schema_id": "ak.schema.peer_current_signer_evidence_query_outcome.v1",
+      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/query_outcome",
+      "status": "active",
+      "description": "Peer portable current signer evidence outcome; independent of the unified self signing-key result."
     }
   ]
 }

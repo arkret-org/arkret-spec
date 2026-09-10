@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/mls-welcome-refs.schema.json",
+  "title": "Arkret MLS Welcome Recipient Discovery",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/welcome_refs_request"
+    },
+    {
+      "$ref": "#/$defs/welcome_refs_outcome"
+    }
+  ],
+  "$defs": {
+    "welcome_refs_request": {
+      "type": "object",
+      "description": "Authenticated own-recipient discovery, not an arbitrary recipient query. Closed canonical request <=64 KiB. Cursor binds exact auth endpoint, scope/group, effective limit and frozen eligibility window.",
+      "required": [
+        "effective_scope",
+        "mls_group_id"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "./mls-governance-proof-bundle.schema.json#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "additionalProperties": false
+    },
+    "welcome_refs_outcome": {
+      "type": "object",
+      "description": "References only, complete canonical response <=64 KiB. limited=true iff next_cursor is present; a limited page makes progress. No read result is an ACK or a KeyPackage consume.",
+      "required": [
+        "welcome_refs",
+        "limited"
+      ],
+      "properties": {
+        "welcome_refs": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          }
+        },
+        "next_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "limited": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "limited": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "next_cursor"
+            ],
+            "properties": {
+              "welcome_refs": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "next_cursor"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

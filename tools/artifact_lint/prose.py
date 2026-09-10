@@ -86,6 +86,7 @@ from .naming import (
     nc_hash_001,
     nc_lexeme_001,
     nc_set_001,
+    request_wrapper_violation,
     schema_shape_has_type,
     stacked_wrapper_words,
     unregistered_wrapper_word,
@@ -653,6 +654,33 @@ def check_naming_predicates(lint: Lint) -> None:
                 f"/components/schemas/{component}",
                 component,
             )
+
+    # Request-body roles are known at operation roots, unlike arbitrary domain names.
+    for route, methods in openapi_components.get("paths", {}).items():
+        if not isinstance(methods, dict):
+            continue
+        for method, operation in methods.items():
+            if not isinstance(operation, dict):
+                continue
+            body = operation.get("requestBody", {})
+            for media, content in body.get("content", {}).items():
+                reference = content.get("schema", {}).get("$ref", "")
+                candidate = reference.rsplit("/", 1)[-1]
+                shape = component_schemas.get(candidate, {}) if reference.startswith("#/components/schemas/") else {"$ref": reference}
+                current_file = openapi_path.name
+                visited = set()
+                while isinstance(shape, dict) and "$ref" in shape:
+                    edge = (current_file, shape["$ref"])
+                    if edge in visited:
+                        break
+                    visited.add(edge)
+                    resolved = resolve_shape_ref(*edge)
+                    if resolved is None:
+                        break
+                    current_file, shape = resolved
+                domain_object = isinstance(shape, dict) and shape.get("x-arkret-domain-object") is True
+                if request_wrapper_violation(candidate, domain_object=domain_object):
+                    lint.fail(openapi_path, f"{method.upper()} {route} {media} request type `{candidate}` violates NC-TYPE-001: HTTP wrapper must end in RequestBody")
 
     # Staleness is judged only after every surface has been adjudicated, so an
     # entry is reported stale because the violation is gone, not because its

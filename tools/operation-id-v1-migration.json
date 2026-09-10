@@ -524,10 +524,6 @@
       "new": "ak.self.agent.sidecar.resource.get.v1"
     },
     {
-      "old": "ak.self.agent_signer_evidence.read.resolve",
-      "new": "ak.self.agent_signer_evidence.read.resolve.v1"
-    },
-    {
       "old": "ak.self.applet.command.install",
       "new": "ak.self.applet.command.install.v1"
     },
@@ -672,8 +668,8 @@
       "new": "ak.self.control_proposal_decisions.read.get.v1"
     },
     {
-      "old": "ak.self.current_signer_evidence.read.resolve",
-      "new": "ak.self.current_signer_evidence.read.resolve.v1"
+      "old": "ak.self.current_principal.read.resolve",
+      "new": "ak.self.current_principal.read.resolve.v1"
     },
     {
       "old": "ak.self.device_messages.command.ack",
@@ -912,6 +908,14 @@
       "new": "ak.self.seals.read.mls_governance_proof.v1"
     },
     {
+      "old": "ak.self.seals.read.mls_membership_removal",
+      "new": "ak.self.seals.read.mls_membership_removal.v1"
+    },
+    {
+      "old": "ak.self.seals.read.mls_welcome_refs",
+      "new": "ak.self.seals.read.mls_welcome_refs.v1"
+    },
+    {
       "old": "ak.self.seals.read.pending_control",
       "new": "ak.self.seals.read.pending_control.v1"
     },
@@ -938,6 +942,10 @@
     {
       "old": "ak.self.signal.stream.subscribe",
       "new": "ak.self.signal.stream.subscribe.v1"
+    },
+    {
+      "old": "ak.self.signer_keys.read.resolve",
+      "new": "ak.self.signer_keys.read.resolve.v1"
     },
     {
       "old": "ak.self.space.read.list",

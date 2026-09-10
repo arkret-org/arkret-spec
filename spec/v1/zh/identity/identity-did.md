@@ -599,7 +599,7 @@ Profile 是该 cell 的公开 **current projection**，可以发布当前 `did`�
 
 **公开面与账号内部审计面分离（normative）**：该公开 operation 的响应 **MUST** 恰为 closed `public_principal_resolution`——`account_id`、`resolution_projection`、bounded `method_history_evidence` 与 Station 签名的 `projection_attestation`。它 **MUST NOT** 携带 `principal_control_realm_id`、PCR genesis Event、genesis receipt、resolution Event 或 accepted Seal，因此该面也不再有 history selector。`resolution_projection.resolution_event_ref` 只是用于比较新旧的 head 坐标，不是可在任何公开面取回该 Event 的句柄；conformance vector `ak.vector.identity.public_resolution_minimization.v1` 锁定这条最小化边界。
 
-`projection_attestation` **MUST** 由 `account_id.station_id` 当前已验证 method history 下的 assertion 能力密钥，对登记的 canonical transcript 签名，并逐字绑定完整 `account_id`、`resolution_projection`、`method_history_evidence` 的 JCS SHA-256 与 `issued_at`/`expires_at`；`proof.created_at` **MUST** 等于 `issued_at`。消费方 **MUST** 先验证 `account_id.station_id` 的 service resolution，再验 attestation、`project(did) == account_id.principal_id` 与 bounded method history；**MUST NOT** 把一组无证明的裸字段当作 current projection。
+`projection_attestation` **MUST** 由 `account_id.station_id` 当前已验证 method history 下的 assertion 能力密钥，对登记的 canonical transcript 签名，并逐字绑定完整 `account_id`、`resolution_projection`、`method_history_evidence` 的 JCS SHA-256 与 `issued_at`/`expires_at`；`proof.created_at` **MUST** 等于 `issued_at`。接纳该公开材料的服务器、peer 与独立审计验证者 **MUST** 先验证 `account_id.station_id` 的 service resolution，再验 attestation、`project(did) == account_id.principal_id` 与 bounded method history；**MUST NOT** 把一组无证明的裸字段当作 current projection。普通已登录客户端 **MUST** 使用 §4.2.3 自己 Station 的认证结果完成当前账号身份与 PCR 定位，**MUST NOT** 为此下载或验证公开解析的 method history，也 **MUST NOT** 直接信任未经认证的 open 响应。
 
 账号内部 PCR genesis/Seal/history 作为审计材料，只能由授权 operation `ak.self.identity.read.resolution_audit.v1` 返回，其授权只取绑定 exact `account_id` 的 current holder session。recovery actor 必须先完成既有 recovery transaction、成为 current holder 后再读；v1 **MUST NOT** 为同一审计数据另建 recovery-session/capability 授权支路。**caller 自报的 intent 不构成授权**，因为任何已认证调用者都能自报。unknown 账号、错误 authority pair 与无权调用者 **MUST** 共用同一反枚举结果。该面复用统一 evidence 形状：exact genesis/current/predecessor Event、genesis receipt 与覆盖 current Event 的 accepted Seal；verifier 通过登记 reducer 重放 current Event，v1 **MUST NOT** 再叠加 resolution 专用的 state-cell Merkle proof。这样避免为单一字段建立第二套不可复用证明系统。这些字段不改变 external identity，也 **MUST NOT** 成为普通 federated Event 验证的前置条件；普通 Event 只验证 in-envelope producer proof 与 Station admission proof。
 
@@ -633,6 +633,35 @@ DID hosting 位置或其它 resolution 成分变化，只要 adapter 仍投影�
 ephemeral pairwise actor principal 转为长期关系时也适用本节：它必须创建新的 `did:webvh` principal，
 再显式重建被允许转移的业务关系。所谓 OOB fingerprint 或双方签名 MAY 作为具体业务 re-binding 的
 强证据，但不改变 `did_core_id` 相等规则，也不构成 identity continuity。
+
+#### 4.2.3 已认证账号的当前 Principal 与唯一 PCR
+
+`ak.self.current_principal.read.resolve.v1`（`POST /_arkret/self/account/current-principal`）是普通已登录客户端读取自己账号当前身份与唯一 PCR 的标准结果入口，遵循 [账号服务器信任](../sync/server-trusted-results.md) §1–2。调用方 MUST 已建立绑定预期 Station、完整 AccountId 与当前 holder 的认证会话；本接口不建立首次接入信任锚，也不支持任意第三方身份查询。
+
+closed `CurrentPrincipalRequestBody` 字段按序如下：
+
+| 字段 | 类型 | 约束 |
+| --- | --- | --- |
+| `request_id` | `RequestId` | 必填，本次请求关联标识 |
+| `account_id` | `AccountId` | 必填，必须逐字等于当前认证会话的完整账号且 Station 为受信任服务 |
+
+closed `CurrentPrincipalOutcome` 字段按序如下：
+
+| 字段 | 类型 | 约束 |
+| --- | --- | --- |
+| `request_id` | `RequestId` | 必填，逐字回显本次请求 |
+| `account_id` | `AccountId` | 必填，逐字回显本次请求与认证账号 |
+| `principal_control_realm_id` | `RealmId` | 必填，该完整账号唯一的已接纳 PCR lineage |
+| `resolution_projection` | `PrincipalResolutionProjection` | 必填，复用既有 closed projection，字段顺序为 `did, method_history_head, version_id, resolution_event_ref, updated_at` |
+| `observed_at` | `Timestamp` | 必填，Station 本次取得已接纳 current 结果的观察时间 |
+
+Station MUST 通过 §4.2 的 immutable creation anchor 和完整 AccountId 选择唯一 PCR，从已验证、已接纳的 `ak.component.identity.resolution.v1` current cell 读取 projection；外部 DID method history、attestation 与依赖验证由 Station 完成。该 cell、source 与所属 PCR 的 accepted current 状态 MUST 在同一次一致观察中仍然有效；异步 post-commit 缓存或仅存在 resolution Event 的索引行不构成成功依据。已经验证的 pinned method state MAY 直接复用；本查询 MUST NOT 重新构造完整 portable method history，也不因外部 DID hosting 暂时不可达而撤销已接纳 PCR 事实。Station MUST NOT 依赖可选 Profile 是否存在、用本地 DID 模板补空、选择第一个候选 PCR，或在 current 分支未决时返回旧 projection 冒充成功。结果 MUST 满足 `project(resolution_projection.did) == account_id.principal_id`；`resolution_event_ref` 与 `updated_at` 仅指向已接纳的 current resolution，不表示独立有效期或授权租约。
+
+请求与响应的 canonical JSON 各 MUST ≤ 65536 bytes。请求字节超限 MUST 返回 `413 payload_too_large`；closed 字段/类型不符 MUST 返回 `422 schema_violation`；合法响应无法在预算内完整返回 MUST 返回 `limit_exceeded`，MUST NOT 截断 projection。未认证采用既有 401 合同。错会话账号、错 Station、目标不存在或不可见 MUST 返回同一 `404 not_found`；已认证且可见的自己账号尚无可用已验证 current 结果、依赖缺失或 current 分支未决 MUST 返回 `503 temporarily_unavailable`。这些情况 MUST NOT 返回空成功、借 optional Profile 填充，或回退到客户端审计下载。
+
+客户端 MUST 核对 closed 结构、预算、request_id、完整账号、预期 Station/route、当前 session/device generation 与 DID projection 绑定；旧会话迟到结果 MUST 丢弃。同一完整账号已有 PCR 绑定时，新结果 MUST 与之相等；不得静默改绑。已有 projection 的 `updated_at` 更晚时 MUST 拒绝回退；相等时间不替代 exact current 结果，也不得由客户端自行解析历史裁决分支。`observed_at` 只表示本次观察，MUST NOT 作为未来操作授权 TTL。客户端 MAY 保存本账号的身份/PCR 定位结果；后续写入仍由 Station 逐次核对当前授权，需要 exact authoring basis 的操作仍通过各自标准接口准备。
+
+该结果 MUST NOT 携带 method history、projection attestation、PCR genesis/current Event、Seal 或其它 portable evidence。普通登录与 PCR 定位 MUST NOT 调用审计接口作为结果验证前置；审计与 peer/服务器外部验证角色的既有证据接口和密码学规则保持不变。本接口不提供 Genesis notary、公钥或媒体服务路由授权。
 
 ### 4.3 Identity Receipt 签名 transcript
 

@@ -7,11 +7,53 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "digest_copy_or_commitment": 19,
-    "complete_event_id": 179,
+    "complete_event_id": 186,
+    "digest_copy_or_commitment": 20,
     "external_event_namespace": 1
   },
   "fields": [
+    {
+      "schema": "account-current-result.schema.json",
+      "json_pointer": "/$defs/projected_agent_key/oneOf/0/properties/authorization_event_ids",
+      "field": "authorization_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-current-result.schema.json",
+      "json_pointer": "/$defs/projected_pins/properties/conflicts/items/properties/source_event_ids",
+      "field": "source_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-current-result.schema.json",
+      "json_pointer": "/$defs/projected_pins/properties/pins/items/properties/source_event_ids",
+      "field": "source_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-current-result.schema.json",
+      "json_pointer": "/$defs/projected_reactions/properties/reactions/items/properties/assertions/items/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-current-result.schema.json",
+      "json_pointer": "/$defs/result/oneOf/1/properties/heads/items/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-current-result.schema.json",
+      "json_pointer": "/$defs/target/oneOf/3/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-current-result.schema.json",
+      "json_pointer": "/$defs/value_fork_resolution/anyOf/1/properties/resolution_event_digest",
+      "field": "resolution_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
     {
       "schema": "account-operations.schema.json",
       "json_pointer": "/$defs/account_binding_receipt/properties/head_event_digest",
@@ -166,12 +208,6 @@
       "schema": "agent-sidecar-exchange-projection.schema.json",
       "json_pointer": "/properties/user_facing_response_event_ids",
       "field": "user_facing_response_event_ids",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-signer-evidence-operations.schema.json",
-      "json_pointer": "/$defs/historical_query_selector/properties/event_id",
-      "field": "event_id",
       "classification": "complete_event_id"
     },
     {
@@ -1198,6 +1234,18 @@
       "schema": "service-operation-dtos.schema.json",
       "json_pointer": "/$defs/SessionGrantDeviceBinding/properties/authorization_event_id",
       "field": "authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "signer-key-operations.schema.json",
+      "json_pointer": "/$defs/historical_account_device_selector/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "signer-key-operations.schema.json",
+      "json_pointer": "/$defs/historical_agent_selector/properties/event_id",
+      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

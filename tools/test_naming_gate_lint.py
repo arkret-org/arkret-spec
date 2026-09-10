@@ -9,8 +9,10 @@ actually executed by the predicates they claim to cover.
 from __future__ import annotations
 
 import json
+import copy
 import sys
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,6 +35,7 @@ from tools.artifact_lint.naming import (
     naive_property_population,
     nc_hash_001,
     nc_lexeme_001,
+    request_wrapper_violation,
     split_name_words,
     stacked_wrapper_words,
     unregistered_wrapper_word,
@@ -101,6 +104,26 @@ class NamingGateBaselineTest(unittest.TestCase):
     def test_gate_is_green(self) -> None:
         lint = run_gate()
         self.assertEqual(lint.errors, [])
+
+    def test_real_operation_request_root_rejects_bare_wrapper(self) -> None:
+        from tools.artifact_lint import prose
+        original_loader = prose.load_yaml
+
+        def mutated_loader(lint, path):
+            document = original_loader(lint, path)
+            if path.name != "arkret-service-api.openapi.yaml":
+                return document
+            document = copy.deepcopy(document)
+            components = document["components"]["schemas"]
+            components["MlsMembershipRemovalRequest"] = components.pop("MlsMembershipRemovalRequestBody")
+            operation = document["paths"]["/_arkret/self/seals/mls-membership-removal"]["post"]
+            operation["requestBody"]["content"]["application/json"]["schema"]["$ref"] = "#/components/schemas/MlsMembershipRemovalRequest"
+            return document
+
+        with patch.object(prose, "load_yaml", side_effect=mutated_loader):
+            errors = run_gate().errors
+        self.assertTrue(any("MlsMembershipRemovalRequest" in error and "NC-TYPE-001" in error for error in errors), errors)
+        self.assertFalse(any("HistoryKeyRequest" in error for error in errors), errors)
 
     def test_every_rule_declares_enforcement(self) -> None:
         rules = json.loads(NAMING_RULES_PATH.read_text(encoding="utf-8"))
@@ -374,6 +397,13 @@ class WrapperWordTest(unittest.TestCase):
         # An operation verb followed by a wrapper word is legitimate.
         self.assertIsNone(stacked_wrapper_words("IdentityLogListOutcome"))
         self.assertIsNone(stacked_wrapper_words("InviteDeliveryRequestBody"))
+
+    def test_operation_request_roles_reject_bare_wrapper_but_keep_signed_domain(self) -> None:
+        self.assertTrue(request_wrapper_violation("MlsMembershipRemovalRequest"))
+        self.assertTrue(request_wrapper_violation("HistoryKeyResponseAckRequest"))
+        self.assertFalse(request_wrapper_violation("MlsMembershipRemovalRequestBody"))
+        self.assertFalse(request_wrapper_violation("HistoryKeyRequest", domain_object=True))
+        self.assertTrue(request_wrapper_violation("HistoryKeyRequest"))
 
     def test_rejected_wrapper_words_are_registry_driven(self) -> None:
         rules = json.loads(NAMING_RULES_PATH.read_text(encoding="utf-8"))

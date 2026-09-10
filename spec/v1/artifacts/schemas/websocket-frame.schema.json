@@ -45,47 +45,57 @@
       "$ref": "./account-subscribe-frame.schema.json#/$defs/account_filter"
     },
     "account_open_parameters": {
-      "type": "object",
-      "properties": {
-        "after": {
-          "$ref": "#/$defs/cursor"
-        },
-        "catchup": {
-          "type": "boolean"
-        },
-        "filter": {
-          "$ref": "#/$defs/account_filter"
-        },
-        "wait_for": {
-          "$ref": "#/$defs/cursor"
-        },
-        "realm_list": {
-          "$ref": "./account-subscribe-frame.schema.json#/$defs/realm_list_request"
-        },
-        "replace_filter": {
-          "type": "boolean",
-          "default": false
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
+      "oneOf": [
         {
-          "if": {
-            "properties": {
-              "replace_filter": {
-                "const": true
-              }
+          "$ref": "./account-subscribe-frame.schema.json#/$defs/account_subscribe_request"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "after": {
+              "$ref": "#/$defs/cursor"
             },
-            "required": [
-              "replace_filter"
-            ]
+            "catchup": {
+              "type": "boolean"
+            },
+            "filter": {
+              "$ref": "#/$defs/account_filter"
+            },
+            "wait_for": {
+              "$ref": "#/$defs/cursor"
+            },
+            "realm_list": {
+              "$ref": "./account-subscribe-frame.schema.json#/$defs/realm_list_request"
+            },
+            "replace_filter": {
+              "type": "boolean",
+              "default": false
+            }
           },
-          "then": {
-            "required": [
-              "after",
-              "filter"
-            ]
-          }
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "replace_filter": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "replace_filter"
+                ]
+              },
+              "then": {
+                "required": [
+                  "after",
+                  "filter"
+                ]
+              }
+            }
+          ],
+          "required": [
+            "wait_for"
+          ]
         }
       ]
     },

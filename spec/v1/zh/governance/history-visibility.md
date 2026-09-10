@@ -369,8 +369,7 @@ admission 必须从 receipt target 按 predecessor_refs 反向取得完整 close
 零 admission。成功事务耐久写 `HistoryManifestAdmission`，其 digest 绑定 manifest/request/receipt、exact `traversal_intent_digest`、
 authorized ranges 和 T0 pass marker。Source 必须先取得该首次 accepted manifest receipt；在此之前提交 chunk 或提交错误
 admission digest 必须 dependency reject 且零 pending、零 response record、零 attestation。
-Receiver 必须先 durable 取得并验证 manifest。Receiver 安装前必须独立执行同一 target→base 遍历与 base→target replay，核对 winner、
-join/incarnation、current monotone history-access ratchet 及 request/receipt/attestation 绑定。RHRK archive 使用 archive-lifetime traversal profile，不伪造 recipient。Source 不生成、
+Receiver 必须先 durable 取得 manifest 并核对实际来源签名、descriptor 与请求绑定。winner、join/incarnation、历史访问 ratchet 与授权范围由自己的 release Station 验证；普通客户端不执行 target→base 遍历或 base→target replay，不获取或保存治理 checkpoint。RHRK archive 使用 archive-lifetime traversal profile，不伪造 recipient。Source 不生成、
 不签名也不携带 T1 authorization basis。Source proof 对 exact request/ranges/content 归因。`history_response_signing_input` 必须携带
 `source_signer_evidence_ref`，其内嵌 digest 逐字绑定 closed source-signer evidence union 的同一份对象，且是该 digest 的唯一
 wire 表示（[`../conformance/encoding.md` §4.0.1](../conformance/encoding.md)）：
@@ -384,7 +383,7 @@ ordinary human、Agent 与 organization-recovery holder 使用 `AuthenticatedSig
 `attester_signer_evidence_ref`，后者必须指向该 AccountId 的 origin Station 的历史 Service evidence。
 origin Station 在 `keys/query` 返回 `query_device_record.signer_evidence_ref` 前必须耐久保存这份内容寻址对象及 attester 闭包；
 对象内 attestation 与 row 中的 attestation 逐字相等。Source 先取该 ref，再在 attestation 有效窗口内签名 response，
-不得从 DID 文档猜设备公钥或把设备伪装成 `principal` 分支。接收方在 `source_proof.created_at` 验证完整闭包、
+不得从 DID 文档猜设备公钥或把设备伪装成 `principal` 分支。Release Station 在 `source_proof.created_at` 验证完整闭包、
 正有效期区间、active 状态、签名与 exact actor/device 绑定；后续过期不追溯作废已接受的历史证明。
 首次入队 T1 仍验证 source 的 current exact device authorization/generation 与 membership；历史 attestation 不代替 current gate。
 `account_device` 仅授权普通 human history-response proof，不扩张 Control Event、DID 文档或 notary 的签名权威。
@@ -392,8 +391,8 @@ origin Station 在 `keys/query` 返回 `query_device_record.signer_evidence_ref`
 Release service admission 必须完整验证 authenticated branch 及其递归 attester evidence closure；对于只有 receiver
 持有 verified local MLS tree 的 minimal-metadata branch，release service 只验证 content address、closed shape、source relay binding 并原样 pin，
 不得声称自己已验证本地 MLS tree 与加密 IdentityLink 的 authority。两种 branch 的 exact canonical bytes 均随 request retention 保留至 request expiry；
-receiver 使用 `request_receipt` history traversal access 从标准
-governance-dependency resolve surface 按 digest 分页取得。不得查询 current DID document 代替历史 evidence，也不得把最多 1 MiB 的
+独立审计工具可使用 `request_receipt` history traversal access 从标准
+governance-dependency resolve surface 按 digest 取得；普通 receiver 使用下述响应页的去重 signer result，不获取递归闭包。不得查询 current DID document 代替历史 evidence，也不得把最多 1 MiB 的
 evidence bytes 重复内联到每个 manifest/chunk。
 Agent 使用可复用 CurrentAdmission 材料，在 source proof 的签署时刻核对 lease/gate/key 时窗与当前授权。
 `source_proof` 直接签完整 history response signing input，包括 evidence ref；不再计算另一份 Agent observation
@@ -421,9 +420,7 @@ IdentityLink 通过 `content_type=application/vnd.arkret.identity-link+json` 的
 逐字等于 `pairwise_actor_id`、其 `(realm_id,mls_group_id,mls_epoch,mls_leaf_index)` 与本机已验证 winning MLS state 的 exact active
 BasicCredential LeafNode 对齐、`trust_domain` 等于当前连接的已验证 trust domain 后，才可把 IdentityLink canonical bytes、digest、exact
 LeafNode TLS bytes、digest 与 winning transition ref 写入 E2EE secure cache。该接收步骤只证明 MLS delivery 与本地 tree 绑定；IdentityLink
-自身的 Principal proof 必须在 history response 验证时由
-`identity_link_signer_evidence_ref` 解析出的 exact
-`AuthenticatedSignerResolutionEvidence::Principal` 及其递归 attester closure 验证，禁止把 evidence 内嵌 IdentityLink bytes 当作自证来源。
+自身的 Principal proof 必须在 history response 验证时使用自己 Station 给出的、绑定 `identity_link_signer_evidence_ref` 与 link method/effective_at 的历史 Principal 公钥进行实际验签。Station 验证该公开 Principal 授权及递归 attester closure；客户端不重做公开授权闭包验证，仍禁止把 evidence 内嵌 IdentityLink bytes 当作自证来源。
 Source record 的唯一 digest 为：
 
 ```text
@@ -443,16 +440,44 @@ identity/profile 以及 profile-closed typed authority view locator/digest vecto
 Release service 在该事务中通过各 authority 既有标准接口或本地 durable replica 机械验证 closed predicates；locator vector 只是
 service-signed 决定收据和审计坐标，不是 receiver 可独立重放的 portable 多 authority proof。v1 显式信任 release service 诚实执行 T1；
 恶意或 stale service 不在本 profile 的密码学保证内，不能用 Merkle 包装伪装成已解决。manifest 未完成上述 T0 admission 时
-chunk 必须 dependency reject 且零写；只有 manifest、descriptor、完整 traversal closure、release attestation 与 service record 全部验证后才可安装。
+chunk 必须 dependency reject 且零写。Station 验证 retained traversal 与 release predicates；receiver 在安装前验证实际 source proof、manifest/descriptor/recipient/scope 绑定及 HPKE，不重验 Station 的治理决定或 service method 历史。
 Service proof 的 transcript 是移除 `service_proof` 后完整 closed response record 的 RFC 8785 JCS bytes；chunk record 中的
 完整 release attestation（含 typed authority locator/digest vector）因此逐字节受 service proof 覆盖，attestation 不再有第二条独立签名或
 不完整的外层摘要。每条 normal record 与 lost descriptor 都 MUST 携带
 `release_service_signer_evidence_ref`；该坐标必须解析为
 `AuthenticatedSignerResolutionEvidence::Service`，其 signer id 和 verification method 分别逐字等于 receipt 冻结的
-`release_id` 与该条 `service_proof.verification_method`，并按 `service_proof.created_at` 验证完整 method history。
+`release_id` 与该条 `service_proof.verification_method`。该历史 Service proof 供 peer/独立审计验证；普通 receiver 通过其原账户 Station 的认证 transport 消费结果，不再查询或重验 service method history。
 Release service 必须在首次写入 record/lost 的同一事务中把该 evidence 及其递归依赖按 request-receipt access 保留到 request expiry；
-requester 通过 receipt-bound governance-dependency resolve 获取，不依赖 current DID document 或另建 resolution-chain surface。
+独立审计者通过 receipt-bound governance-dependency resolve 获取，不依赖 current DID document 或另建 resolution-chain surface。
 Manifest record MUST 不含 release attestation。
+
+普通 receiver 的 `HistoryKeyResponseListOutcome` 必填 `source_signer_results`，以 exact
+`source_signer_evidence_ref` 按 UTF-8 升序去重，恰好覆盖该页所有 record 的引用；只有 lost 或空页时为空数组。
+每项是 closed union：`authenticated` 携 `source_signer_evidence_ref,signer_kind,signer_id,verification_method,public_key_b64u`；
+`signer_kind` 仅 `account_device|principal|agent`。`receiver_mls` 携 `source_signer_evidence_ref,signer_evidence,identity_link_public_key_b64u`，
+其中 signer_evidence 是原样内容寻址的 MinimalMetadataMlsLeafSignerEvidence。公开 key 均为 canonical base64url 的 32-byte Ed25519 key。
+一个 Principal evidence 可供同 principal 的不同完整 ActorId 使用，因此字典不把 signer_id 冒充完整账户授权；
+Station 必须逐 record 检查完整 source actor/device/domain、proof 时间、历史 signer 授权与 T1，不能因 key ref 相同复用另一 record 的授权。
+这些结果与记录的接纳原子持久化，重试/重启使用同一历史 key，不在读取时替换为 current DID key。
+
+Receiver 从已耐久接受的 request/receipt 确定唯一账户、release Station、scope 和 capability，禁止消费任意 URL 的同形结果。
+客户端核对 authenticated signer_id 与 source_actor_id.signing_principal_id、method、ref、source kind/profile，并实际验证 source proof。
+minimal 分支则把 evidence 的 actor/method/scope/incarnation 与 record/attestation 对齐，验证 IdentityLink 的实际 Principal 签名，
+逐字核对本地加密取得的 IdentityLink、active LeafNode 和 response key。治理 winning transition 使用既有 exact accepted-artifact 结果；
+当前结果的 seal_basis 不必等于历史 evidence.target_basis，不能据此重做历史 closure，或把旧 evidence 的 basis 伪装成当前结果。
+当前认可的 exact transition 缺失/分叉未决时保持该项未就绪，不伪装 cryptographically_rejected，也不 ACK 尚未 durable 处置的项。
+
+包含 record 的页面同时必填 `cipher_suite`，其值是该 receipt scope/group 的 accepted Genesis suite；仅 lost/空页必须省略。
+Station 在 admission/release 验证每个授权 epoch 属于完整、连续的 winning lineage；suite 不替代范围存在性验证。
+客户端只按注册 KDF.Nh 与 checked inclusive range 长度核对解密 plaintext，保留不支持 suite/错误字节数拒绝，不构造逐 epoch 治理对象。
+客户端对缺失、重复、多余 signer-result 或 page/capability 绑定错误拒绝整页且不 ACK；这些传递错误不是来源密码学拒绝。
+manifest/HPKE key/完整 pending page（包括字典）与处置必须先 durable，随后才发 ACK，字典不新增第二个 sequence/ACK 位置。
+
+每页最多 100 entries/100 distinct signer results，完整 canonical body（含原样 minimal evidence、cursor、ACK）最多 8 MiB。
+最大片段的 singleton 加上必要 framing 必须在接纳时证明可交付；按可交付前缀选记录，再生成相同前缀的 cursor/ACK。
+同一页不得每个 chunk 重复内联 1 MiB evidence。分页及 ACK 不得越过未完成的 reserved sequence；服务重启必须恢复这些耐久工作，
+不能伪造 lost descriptor 或跳过 slot。服务器/独立审计继续保留各自 retained cut；普通客户端移除 traversal marker、full checkpoint 与闭包 resolver。
+
 Source MUST 先以 content-addressed staged blobs 保存 manifest、所有 sealed chunk bytes 和 ids，最后原子写 ready marker；
 marker 出现前不得发送。Retry 重发相同 bytes。Accepted chunk 是 secret release 线性化点；source 的 exact retry 只返回首次
 小型 `HistoryKeyResponseSendReceipt`，不以新 head 重验或重签；完整 record/attestation 只从 recipient response stream 读取。

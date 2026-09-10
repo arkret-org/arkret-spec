@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/current-signer-evidence-operations.schema.json",
   "title": "Arkret Current Signer Evidence Operations",
-  "description": "Authenticated current signer state refresh for cold or expired contexts. Signed authority material is reusable across Signals and authorized devices; request context controls disclosure and is not another signature layer.",
+  "description": "Peer portable current signer authority evidence. Ordinary clients use the separate signer-key operation; peer evidence and compression are verified by the receiving Station.",
   "$defs": {
     "query_request": {
       "type": "object",
@@ -21,7 +21,7 @@
         },
         "recipient_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact authenticated recipient Account. On the self hop it MUST equal the SessionGrant subject; on the peer hop its station_id MUST equal authenticated Source-Service-ID."
+          "description": "Exact recipient Account; on this peer operation its station_id equals authenticated Source-Service-ID."
         },
         "queries": {
           "type": "array",

@@ -194,7 +194,8 @@ see_also:
 | --- | --- |
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/server-trusted-results.md` | 客户端信任自己 Station 的治理结果、服务器验证复用及端到端职责。 |
-| `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
+| `sync/current-results.md` | 服务器 typed current selector、完整 MV heads、版本化替代/删除与有界基线。 |
+| `sync/client-sync.md` | 客户端增量同步、timeline、服务器当前结果、to_device。 |
 | `sync/signal.md` | encrypted-only Signal Extension send / subscribe rail、可见分类与 TTL。 |
 | `sync/service-surface.md` | 最小服务面与实际服务组合：Station、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
 | `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ak.realm.search_policy` 与 search result fail-closed 语义。 |

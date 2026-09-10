@@ -11,16 +11,22 @@
       "$ref": "#/$defs/read_outcome"
     },
     {
-      "$ref": "#/$defs/self_read_request"
+      "$ref": "#/$defs/self_read_request_body"
     },
     {
       "$ref": "#/$defs/self_read_outcome"
     },
     {
-      "$ref": "#/$defs/accepted_artifact_request"
+      "$ref": "#/$defs/accepted_artifact_request_body"
     },
     {
       "$ref": "#/$defs/accepted_artifact_outcome"
+    },
+    {
+      "$ref": "#/$defs/membership_removal_request_body"
+    },
+    {
+      "$ref": "#/$defs/membership_removal_outcome"
     }
   ],
   "$defs": {
@@ -626,7 +632,7 @@
     "read_outcome": {
       "$ref": "#/$defs/group_security_frontier_outcome"
     },
-    "self_read_request": {
+    "self_read_request_body": {
       "type": "object",
       "description": "Authenticated Account Station MLS binding query. At most 8 MiB canonical request bytes. The local leaf set remains end-to-end caller intent; the Station verifies governance at the exact basis.",
       "required": [
@@ -805,7 +811,7 @@
       "properties": {
         "query_digest": {
           "$ref": "#/$defs/digest",
-          "description": "SHA-256(UTF8(\"ak.mls-governance-frontier-query-v1\") || 0x00 || JCS(exact self_read_request)); request binding, not a server authenticity proof."
+          "description": "SHA-256(UTF8(\"ak.mls-governance-frontier-query-v1\") || 0x00 || JCS(exact self_read_request_body)); request binding, not a server authenticity proof."
         },
         "seal_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
@@ -824,7 +830,7 @@
       },
       "additionalProperties": false
     },
-    "accepted_artifact_request": {
+    "accepted_artifact_request_body": {
       "type": "object",
       "description": "One exact already known MLS Genesis, Commit or Welcome artifact in a Realm/Circle. It asks the authenticated Account Station for current acceptance, not for a historical checkpoint. At most 64 KiB canonical request bytes.",
       "required": [
@@ -883,6 +889,87 @@
         },
         "current_epoch_head": {
           "$ref": "#/$defs/mls_epoch_head"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_removal_request_body": {
+      "type": "object",
+      "description": "Current own-Station reconciliation of exact local MLS leaves. Complete canonical request <=8 MiB; Realm/Circle only; no history, pending tree or continuation.",
+      "required": [
+        "effective_scope",
+        "mls_group_id",
+        "local_mls_leaves",
+        "seal_basis",
+        "base_group_state_ref",
+        "epoch"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "local_mls_leaves": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 65536,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/mls_security_frontier_leaf"
+          },
+          "description": "Complete strictly leaf-index-ordered occupied leaves of the locally verified current base tree, not a pending tree. Must exactly equal the accepted base transition public leaf ledger. No duplicate credential_ref."
+        },
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Exact complete accepted target basis supplied by the authenticated Account Station. No local replay checkpoint or proof base is required."
+        },
+        "base_group_state_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Exact current winning accepted Genesis/Commit whose post-transition tree is the supplied local leaf set."
+        },
+        "epoch": {
+          "$ref": "#/$defs/epoch"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_removal_outcome": {
+      "type": "object",
+      "description": "Atomic current leaf-removal result bound to the full authenticated AccountId and exact query. Complete canonical response <=1 MiB. Missing admission incarnations or unresolved current authority fail instead of producing empty or partial results.",
+      "required": [
+        "account_id",
+        "query_digest",
+        "seal_basis",
+        "epoch_head",
+        "remove_leaf_indices"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "query_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Exact complete accepted target basis supplied by the authenticated Account Station. No local replay checkpoint or proof base is required."
+        },
+        "epoch_head": {
+          "$ref": "#/$defs/mls_epoch_head"
+        },
+        "remove_leaf_indices": {
+          "type": "array",
+          "maxItems": 65536,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "description": "Strictly increasing subset of the exact requested occupied leaf indices. Empty only after complete successful evaluation; no Actor-wide removal."
         }
       },
       "additionalProperties": false

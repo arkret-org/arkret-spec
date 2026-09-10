@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.sync.core.v1"
   },
   "profile": "ak.vector_group.sync.v1",
-  "version": "2026-09-10",
+  "version": "2026-09-10.8",
   "schema_validation_cases": [
     {
       "name": "device_message_envelope_with_message_id_valid",
@@ -212,7 +212,7 @@
         "filter": {},
         "replace_filter": true
       },
-      "first_expected_error": "$: rejected by the closed demand-sync schema"
+      "first_expected_error": "$: 'after' is a required property"
     },
     {
       "name": "demand_unknown_filter_rejected",
@@ -223,7 +223,7 @@
           "subscriptions": []
         }
       },
-      "first_expected_error": "$: rejected by the closed demand-sync schema"
+      "first_expected_error": "$.filter: Additional properties are not allowed ('subscriptions' was unexpected)"
     },
     {
       "name": "demand_list_limit_zero_rejected",
@@ -234,7 +234,7 @@
           "limit": 0
         }
       },
-      "first_expected_error": "$: rejected by the closed demand-sync schema"
+      "first_expected_error": "$.realm_list.limit: 0 is less than the minimum of 1"
     },
     {
       "name": "demand_list_final_page_valid",
@@ -257,7 +257,7 @@
         "complete": false,
         "snapshot_revision": 7
       },
-      "first_expected_error": "$: rejected by the closed demand-sync schema"
+      "first_expected_error": "$: 'next_cursor' is a required property"
     },
     {
       "name": "demand_retired_station_cas_complete_rejected",
@@ -268,7 +268,7 @@
         "upserts": [],
         "removals": []
       },
-      "first_expected_error": "$: rejected by the closed demand-sync schema"
+      "first_expected_error": "$: Additional properties are not allowed ('complete' was unexpected)"
     }
   ],
   "to_device_message_idempotency": {
@@ -4636,5 +4636,50 @@
         "quarantine": false
       }
     }
+  },
+  "demand_query_binding": {
+    "operation_id": "ak.self.account.stream.subscribe.v1",
+    "cases": [
+      {
+        "name": "empty_filter_replacement_is_representable",
+        "request": {
+          "after": "ak:cursor:resume",
+          "filter": {},
+          "replace_filter": true
+        },
+        "encoded_query": "after=ak%3Acursor%3Aresume&filter=%7B%7D&replace_filter=true",
+        "expect_valid": true
+      },
+      {
+        "name": "empty_array_and_false_survive_http_binding",
+        "request": {
+          "filter": {
+            "realm_ids": [],
+            "lazy_load_members": false
+          },
+          "realm_list": {}
+        },
+        "encoded_query": "filter=%7B%22lazy_load_members%22%3Afalse%2C%22realm_ids%22%3A%5B%5D%7D&realm_list=%7B%7D",
+        "expect_valid": true
+      },
+      {
+        "name": "retired_dotted_filter_is_rejected",
+        "encoded_query": "filter.realm_ids=ak%3Arealm%3AAQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "expect_valid": false,
+        "expected_error": "param_invalid"
+      },
+      {
+        "name": "duplicate_filter_is_rejected",
+        "encoded_query": "filter=%7B%7D&filter=%7B%7D",
+        "expect_valid": false,
+        "expected_error": "param_invalid"
+      },
+      {
+        "name": "noncanonical_json_filter_is_rejected",
+        "encoded_query": "filter=%7B%20%7D",
+        "expect_valid": false,
+        "expected_error": "param_invalid"
+      }
+    ]
   }
 }

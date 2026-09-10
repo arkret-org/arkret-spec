@@ -1,0 +1,400 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/signer-key-operations.schema.json",
+  "title": "Arkret Signer Key Operations",
+  "description": "Closed own-Station signing-key results for one current invocation or exact locally accepted historical Event. Receiver is the authenticated recipient Station, never a caller-selected remote service. No portable evidence or reusable current grant.",
+  "$defs": {
+    "signing_account_actor_id": {
+      "type": "object",
+      "description": "Complete account ActorId of the exact verified signer, preserving its Station for either an ordinary device or Agent.",
+      "required": [
+        "kind",
+        "account_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "account"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "station_signing_key": {
+      "type": "object",
+      "required": [
+        "actor",
+        "verification_method",
+        "public_key_b64u",
+        "authorization_ref"
+      ],
+      "properties": {
+        "actor": {
+          "$ref": "#/$defs/signing_account_actor_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+        },
+        "authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "historical_device_signing_key": {
+      "type": "object",
+      "required": [
+        "actor",
+        "verification_method",
+        "public_key_b64u"
+      ],
+      "properties": {
+        "actor": {
+          "$ref": "#/$defs/signing_account_actor_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+        }
+      },
+      "additionalProperties": false
+    },
+    "current_account_device_selector": {
+      "type": "object",
+      "required": [
+        "verification_mode",
+        "sender_kind",
+        "actor",
+        "device_id",
+        "verification_method"
+      ],
+      "properties": {
+        "verification_mode": {
+          "const": "current_admission"
+        },
+        "sender_kind": {
+          "const": "account_device"
+        },
+        "actor": {
+          "$ref": "#/$defs/signing_account_actor_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "current_agent_selector": {
+      "type": "object",
+      "required": [
+        "verification_mode",
+        "sender_kind",
+        "actor",
+        "verification_method"
+      ],
+      "properties": {
+        "verification_mode": {
+          "const": "current_admission"
+        },
+        "sender_kind": {
+          "const": "agent"
+        },
+        "actor": {
+          "$ref": "#/$defs/signing_account_actor_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "historical_account_device_selector": {
+      "type": "object",
+      "required": [
+        "verification_mode",
+        "sender_kind",
+        "actor",
+        "device_id",
+        "verification_method",
+        "event_id"
+      ],
+      "properties": {
+        "verification_mode": {
+          "const": "historical_event"
+        },
+        "sender_kind": {
+          "const": "account_device"
+        },
+        "actor": {
+          "$ref": "#/$defs/signing_account_actor_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "historical_agent_selector": {
+      "type": "object",
+      "required": [
+        "verification_mode",
+        "sender_kind",
+        "actor",
+        "verification_method",
+        "event_id"
+      ],
+      "properties": {
+        "verification_mode": {
+          "const": "historical_event"
+        },
+        "sender_kind": {
+          "const": "agent"
+        },
+        "actor": {
+          "$ref": "#/$defs/signing_account_actor_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "current_selector": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/current_account_device_selector"
+        },
+        {
+          "$ref": "#/$defs/current_agent_selector"
+        }
+      ]
+    },
+    "historical_selector": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/historical_account_device_selector"
+        },
+        {
+          "$ref": "#/$defs/historical_agent_selector"
+        }
+      ]
+    },
+    "query_selector": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/current_selector"
+        },
+        {
+          "$ref": "#/$defs/historical_selector"
+        }
+      ]
+    },
+    "query_request_body": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "realm_id",
+        "recipient_account_id",
+        "queries"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "recipient_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "queries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/query_selector"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "current_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "status",
+        "key",
+        "checked_at"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/current_selector"
+        },
+        "status": {
+          "const": "resolved"
+        },
+        "key": {
+          "$ref": "#/$defs/station_signing_key"
+        },
+        "checked_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16384
+    },
+    "historical_account_device_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "status",
+        "key",
+        "accepted_at"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/historical_account_device_selector"
+        },
+        "status": {
+          "const": "resolved"
+        },
+        "key": {
+          "$ref": "#/$defs/historical_device_signing_key"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Exact Event original producer admission time, never the local receiver acceptance time."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16384
+    },
+    "historical_agent_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "status",
+        "key",
+        "accepted_at",
+        "signer_evidence_ref"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/historical_agent_selector"
+        },
+        "status": {
+          "const": "resolved"
+        },
+        "key": {
+          "$ref": "#/$defs/station_signing_key"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Exact Event original producer admission time, never the local receiver acceptance time."
+        },
+        "signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16384
+    },
+    "unavailable_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "status"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/query_selector"
+        },
+        "status": {
+          "const": "unavailable"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16384
+    },
+    "query_outcome": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "realm_id",
+        "recipient_account_id",
+        "results"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "recipient_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "results": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/current_result"
+              },
+              {
+                "$ref": "#/$defs/historical_account_device_result"
+              },
+              {
+                "$ref": "#/$defs/historical_agent_result"
+              },
+              {
+                "$ref": "#/$defs/unavailable_result"
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 1048576
+    }
+  }
+}

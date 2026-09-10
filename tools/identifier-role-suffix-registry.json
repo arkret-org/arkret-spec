@@ -78,6 +78,18 @@
         "did_core_id": "Stable claim, mention, selector, or accountability subject core."
       },
       "reason": "Contact concurrency requires exact actor identity while claims and selectors intentionally identify stable principals."
+    },
+    {
+      "field": "value",
+      "representation_profiles": [
+        "did_core_id",
+        "did_url"
+      ],
+      "profile_meanings": {
+        "did_core_id": "Registered complete cell value whose family is a principal reference.",
+        "did_url": "Registered complete cell value whose family is a verification-method reference."
+      },
+      "reason": "The registry-discriminated complete cell value is a generic value slot; its exact family schema determines scalar, collection or identity representation."
     }
   ],
   "responsibility_field_contracts": [
@@ -911,6 +923,86 @@
         "actor_id"
       ],
       "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/value_relation/properties/from_ref",
+      "terminal_categories": [
+        "actor_id"
+      ],
+      "reason": "The registry-discriminated complete cell value is a generic value slot; its exact family schema determines scalar, collection or identity representation."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/value_relation/properties/to_ref",
+      "terminal_categories": [
+        "actor_id"
+      ],
+      "reason": "The registry-discriminated complete cell value is a generic value slot; its exact family schema determines scalar, collection or identity representation."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/value_relation/allOf/0/then/properties/to_ref",
+      "terminal_categories": [
+        "actor_id"
+      ],
+      "reason": "The registry-discriminated complete cell value is a generic value slot; its exact family schema determines scalar, collection or identity representation."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/value_relation/allOf/1/then/properties/from_ref",
+      "terminal_categories": [
+        "actor_id"
+      ],
+      "reason": "The registry-discriminated complete cell value is a generic value slot; its exact family schema determines scalar, collection or identity representation."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/result/oneOf/0/properties/value",
+      "terminal_categories": [
+        "mixed[did_core_id,typed_object_id]"
+      ],
+      "reason": "The registry-discriminated complete cell value is a generic value slot; its exact family schema determines scalar, collection or identity representation."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/result/oneOf/1/properties/heads/items/properties/value",
+      "terminal_categories": [
+        "mixed[did_core_id,typed_object_id]"
+      ],
+      "reason": "The registry-discriminated complete cell value is a generic value slot; its exact family schema determines scalar, collection or identity representation."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/2/then/properties/result/properties/value",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/41/then/properties/result/properties/value",
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/89/then/properties/result/properties/value",
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/97/then/properties/result/properties/value",
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
     }
   ]
 }

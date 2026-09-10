@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.1",
+  "version": "2026-09-10.13",
   "source_of_truth": false,
-  "generated_at": "2026-09-08T16:48:45+08:00",
+  "generated_at": "2026-09-10T07:11:08+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -5263,7 +5263,7 @@
               },
               {
                 "name": "previous_epoch",
-                "literal": null
+                "literal": 0
               },
               {
                 "name": "next_epoch",
@@ -5428,7 +5428,7 @@
         }
       ],
       "concurrency_class": "security_barrier",
-      "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is the SHA-256 digest derived from the exact decoded payload.commit_bytes_b64 bytes. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence."
+      "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is the SHA-256 digest derived from the exact decoded payload.commit_bytes_b64 bytes. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence. Realm/Circle Proposal and Commit inputs MUST be complete RFC 9420 PublicMessage MLSMessages. Public staged transitions and accepted consumed proposals determine retained, removed and added leaf provenance; remove+add creates a new leaf instance even if index/ActorId/credential/key are unchanged. Servers verify public structure, signatures and tree transitions without membership/confirmation MAC secrets, and atomically publish public state/provenance with the winning transition. Sidecar retains its separate contract; minimal metadata uses only existing pairwise public identities."
     },
     {
       "event_kind": "ak.mls.commit_failed",

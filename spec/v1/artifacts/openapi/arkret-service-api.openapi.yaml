@@ -453,10 +453,6 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_list
     AgentSidecarView:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_view
-    AgentSignerEvidenceQueryOutcome:
-      $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome
-    AgentSignerEvidenceQueryRequestBody:
-      $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request
     AgentView:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
     AppletActorView:
@@ -780,6 +776,10 @@ components:
       $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_outcome
     ControlProposalDecisionSubmitRequestBody:
       $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_request_body
+    CurrentPrincipalOutcome:
+      $ref: ../schemas/identity-resolution.schema.json#/$defs/current_principal_outcome
+    CurrentPrincipalRequestBody:
+      $ref: ../schemas/identity-resolution.schema.json#/$defs/current_principal_request_body
     CurrentSignerEvidenceQueryOutcome:
       $ref: ../schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome
     CurrentSignerEvidenceQueryRequestBody:
@@ -1181,8 +1181,8 @@ components:
       $ref: ../schemas/handle-claim.schema.json
     HistoryAuthorityOutcome:
       $ref: ../schemas/history-key.schema.json#/$defs/history_authority_outcome
-    HistoryAuthorityRequest:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_authority_request
+    HistoryAuthorityRequestBody:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_authority_request_body
     HistoryKeyRequest:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_request
     HistoryKeyRequestCreateOutcome:
@@ -1197,16 +1197,16 @@ components:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome
     HistoryKeyResponseAckOutcome:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome
-    HistoryKeyResponseAckRequest:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_ack_request
+    HistoryKeyResponseAckRequestBody:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_ack_request_body
     HistoryKeyResponseListOutcome:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_list_outcome
     HistoryKeyResponseListQuery:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_list_query
     HistoryKeyResponseSendReceipt:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_receipt
-    HistoryKeyResponseSendRequest:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_request
+    HistoryKeyResponseSendRequestBody:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_request_body
     HistoryKeySourceRelay:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_source_relay
     HumanSessionGrantRefreshRequest:
@@ -1311,8 +1311,8 @@ components:
       $ref: ../schemas/media-operations.schema.json#/$defs/media_ice_config_request_body
     MembershipAuthorityOutcome:
       $ref: ../schemas/history-key.schema.json#/$defs/membership_authority_outcome
-    MembershipAuthorityRequest:
-      $ref: ../schemas/history-key.schema.json#/$defs/membership_authority_request
+    MembershipAuthorityRequestBody:
+      $ref: ../schemas/history-key.schema.json#/$defs/membership_authority_request_body
     MimiIdentifierQueryOutcome:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome
     MimiIdentifierQueryRequestBody:
@@ -1351,12 +1351,12 @@ components:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
     MlsAcceptedArtifactOutcome:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_outcome
-    MlsAcceptedArtifactRequest:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request
+    MlsAcceptedArtifactRequestBody:
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request_body
     MlsGovernanceFrontierOutcome:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_outcome
-    MlsGovernanceFrontierRequest:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request
+    MlsGovernanceFrontierRequestBody:
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body
     MlsGovernanceProofBundle:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome
     MlsGovernanceProofRequestBody:
@@ -1365,6 +1365,14 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome
     MlsGroupStateMaterialRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody
+    MlsMembershipRemovalOutcome:
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_outcome
+    MlsMembershipRemovalRequestBody:
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_request_body
+    MlsWelcomeRefsOutcome:
+      $ref: ../schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_outcome
+    MlsWelcomeRefsRequestBody:
+      $ref: ../schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_request
     ModerationQueueView:
       type: object
       required:
@@ -1452,8 +1460,8 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsOutcome
     PeerEventsSiblingPositionsRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsRequestBody
-    PeerGovernanceDependencyResolveRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequest
+    PeerGovernanceDependencyResolveRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequestBody
     PeerKeyPackagesClaimOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome
     PeerKeyPackagesClaimQueryOutcome:
@@ -1827,8 +1835,8 @@ components:
       $ref: ../schemas/query.schema.json#/$defs/search_request_body
     SelfEventsSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome
-    SelfGovernanceDependencyResolveRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequest
+    SelfGovernanceDependencyResolveRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequestBody
     SelfInviteDispatchRequestBody:
       $ref: ../schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body
     ServiceDescribe:
@@ -1859,6 +1867,10 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_request_body
     SignalSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome
+    SignerKeyQueryOutcome:
+      $ref: ../schemas/signer-key-operations.schema.json#/$defs/query_outcome
+    SignerKeyQueryRequestBody:
+      $ref: ../schemas/signer-key-operations.schema.json#/$defs/query_request_body
     SnapshotBootstrap:
       type: object
       description: Optional ak.peer.events.read.scan.v1 acceleration hint for federation pull / backfill. realm_state_snapshot_ref
@@ -2150,12 +2162,6 @@ components:
       - dashboard
       - custom
   responses:
-    NotFound:
-      description: Not found or not visible.
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/Problem'
     MethodNotAllowed:
       description: Method not allowed.
       headers:
@@ -2166,15 +2172,92 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-    RateLimited:
-      description: Rate limited.
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
+    NotFound:
+      description: Not found or not visible.
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
+    PsiBatchUnavailable:
+      description: The match batch is unknown, belongs to another device, or expired (error code psi_batch_unavailable).
+        Causes are intentionally merged and use the match-phase Class B shape. The pinned epoch is retained for
+        the full advertised completion TTL.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            const: no-store, no-transform
+        Content-Length:
+          schema:
+            type: integer
+            enum:
+            - 4096
+            - 16384
+            - 65536
+            - 262144
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedProblem'
+            - properties:
+                type:
+                  const: https://arkret.org/problems/psi_batch_unavailable
+                status:
+                  const: 410
+    PsiDuplicateConflict:
+      description: The device-scoped batch_id was reused with different canonical blind or match bytes (error code
+        duplicate_conflict). No evaluation is performed.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            const: no-store, no-transform
+        Content-Length:
+          schema:
+            type: integer
+            enum:
+            - 4096
+            - 16384
+            - 65536
+            - 262144
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedProblem'
+            - properties:
+                type:
+                  const: https://arkret.org/problems/duplicate_conflict
+                status:
+                  const: 409
+    PsiPolicyDenied:
+      description: Requester/batch-level policy denial (error code policy_denied). This is a PSI Class B failure
+        and uses the request phase's exact body bucket and advertised delay distribution; it contains no per-target
+        information.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            const: no-store, no-transform
+        Content-Length:
+          schema:
+            type: integer
+            enum:
+            - 4096
+            - 16384
+            - 65536
+            - 262144
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedProblem'
+            - properties:
+                type:
+                  const: https://arkret.org/problems/policy_denied
+                status:
+                  const: 403
     PsiQuotaExhausted:
       description: PSI window quota exhausted (error code psi_quota_exhausted), returned only at first blind admission.
         The body has the exact blind-phase Content-Length bucket and advertised delay distribution. Retry-After
@@ -2208,86 +2291,15 @@ components:
                   const: https://arkret.org/problems/psi_quota_exhausted
                 status:
                   const: 429
-    PsiPolicyDenied:
-      description: Requester/batch-level policy denial (error code policy_denied). This is a PSI Class B failure
-        and uses the request phase's exact body bucket and advertised delay distribution; it contains no per-target
-        information.
+    RateLimited:
+      description: Rate limited.
       headers:
-        Cache-Control:
-          schema:
-            type: string
-            const: no-store, no-transform
-        Content-Length:
-          schema:
-            type: integer
-            enum:
-            - 4096
-            - 16384
-            - 65536
-            - 262144
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
       content:
         application/problem+json:
           schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedProblem'
-            - properties:
-                type:
-                  const: https://arkret.org/problems/policy_denied
-                status:
-                  const: 403
-    PsiDuplicateConflict:
-      description: The device-scoped batch_id was reused with different canonical blind or match bytes (error code
-        duplicate_conflict). No evaluation is performed.
-      headers:
-        Cache-Control:
-          schema:
-            type: string
-            const: no-store, no-transform
-        Content-Length:
-          schema:
-            type: integer
-            enum:
-            - 4096
-            - 16384
-            - 65536
-            - 262144
-      content:
-        application/problem+json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedProblem'
-            - properties:
-                type:
-                  const: https://arkret.org/problems/duplicate_conflict
-                status:
-                  const: 409
-    PsiBatchUnavailable:
-      description: The match batch is unknown, belongs to another device, or expired (error code psi_batch_unavailable).
-        Causes are intentionally merged and use the match-phase Class B shape. The pinned epoch is retained for
-        the full advertised completion TTL.
-      headers:
-        Cache-Control:
-          schema:
-            type: string
-            const: no-store, no-transform
-        Content-Length:
-          schema:
-            type: integer
-            enum:
-            - 4096
-            - 16384
-            - 65536
-            - 262144
-      content:
-        application/problem+json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedProblem'
-            - properties:
-                type:
-                  const: https://arkret.org/problems/psi_batch_unavailable
-                status:
-                  const: 410
+            $ref: '#/components/schemas/Problem'
     TemporarilyUnavailable:
       description: Temporarily unavailable.
       headers:
@@ -2297,6 +2309,7 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
+
 paths:
   /_arkret/describe:
     get:
@@ -3572,7 +3585,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequestBody
       responses:
         '200':
           description: Station-validated unsigned Seal body; no historical dependencies
@@ -3628,7 +3641,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MlsGovernanceFrontierRequest'
+              $ref: '#/components/schemas/MlsGovernanceFrontierRequestBody'
       responses:
         '200':
           description: One deterministic complete response for the exact near-current frontier selector
@@ -3657,7 +3670,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SelfGovernanceDependencyResolveRequest'
+              $ref: '#/components/schemas/SelfGovernanceDependencyResolveRequestBody'
       responses:
         '200':
           description: Complete same-shape dependency result or an operation error
@@ -3743,7 +3756,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HistoryKeyResponseSendRequest'
+              $ref: '#/components/schemas/HistoryKeyResponseSendRequestBody'
       responses:
         '200':
           description: First accepted small immutable HistoryKeyResponseSendReceipt; exact retry returns the same
@@ -3799,7 +3812,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HistoryKeyResponseAckRequest'
+              $ref: '#/components/schemas/HistoryKeyResponseAckRequestBody'
       responses:
         '200':
           description: Durable contiguous acknowledgement outcome
@@ -3950,7 +3963,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PeerGovernanceDependencyResolveRequest'
+              $ref: '#/components/schemas/PeerGovernanceDependencyResolveRequestBody'
       responses:
         '200':
           description: Complete same-shape dependency result or an operation error
@@ -5257,18 +5270,21 @@ paths:
       - name: filter
         in: query
         description: Bounded Realm/Strand detail interest. Omission or empty realms means global channels only.
-        schema:
-          $ref: ../schemas/account-subscribe-frame.schema.json#/$defs/account_filter
-        style: deepObject
-        explode: true
+          One percent-encoded RFC 8785 JSON query value. Empty objects and arrays are preserved. Repeated parameters,
+          dotted keys and non-canonical JSON are rejected.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/account-subscribe-frame.schema.json#/$defs/account_filter
       - name: realm_list
         in: query
-        style: deepObject
-        explode: true
-        schema:
-          $ref: ../schemas/account-subscribe-frame.schema.json#/$defs/realm_list_request
         description: First summary page or continuation of a frozen summary snapshot. Omit on incremental calls
-          to request no additional list page.
+          to request no additional list page. One percent-encoded RFC 8785 JSON query value. Empty objects and arrays
+          are preserved. Repeated parameters, dotted keys and non-canonical JSON are rejected.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/account-subscribe-frame.schema.json#/$defs/realm_list_request
       - name: replace_filter
         in: query
         schema:
@@ -7165,9 +7181,10 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/actor-profile-operations.schema.json#/$defs/resolve_request
-  /_arkret/self/agent-signer-evidence/query:
+
+  /_arkret/self/account/current-principal:
     post:
-      operationId: ak.self.agent_signer_evidence.read.resolve
+      operationId: ak.self.current_principal.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
@@ -7175,30 +7192,28 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.agent_signer_evidence.read.resolve.v1
+          const: ak.self.current_principal.read.resolve.v1
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Portable Agent signer evidence query result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentSignerEvidenceQueryOutcome'
+      summary: Resolve the authenticated account current principal projection and unique PCR.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentSignerEvidenceQueryRequestBody'
-  /_arkret/self/current-signer-evidence/query:
+              $ref: '#/components/schemas/CurrentPrincipalRequestBody'
+      responses:
+        '200':
+          description: Accepted own-Station current principal result; observation is not an authorization lease.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentPrincipalOutcome'
+
+  /_arkret/self/signer-keys/query:
     post:
-      operationId: ak.self.current_signer_evidence.read.resolve
+      operationId: ak.self.signer_keys.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
@@ -7206,24 +7221,24 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.current_signer_evidence.read.resolve.v1
+          const: ak.self.signer_keys.read.resolve.v1
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Proxy a cold-recipient current signer evidence query to the sender authority.
+      summary: Obtain own-Station current or exact locally accepted historical signing keys.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CurrentSignerEvidenceQueryRequestBody'
+              $ref: '#/components/schemas/SignerKeyQueryRequestBody'
       responses:
         '200':
-          description: Byte-exact origin-signed current signer evidence response.
+          description: Own-Station validated signing-key results for the exact requested modes and selectors.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CurrentSignerEvidenceQueryOutcome'
+                $ref: '#/components/schemas/SignerKeyQueryOutcome'
   /_arkret/self/identity/resolution-audit/query:
     post:
       operationId: ak.self.identity.read.resolution_audit
@@ -11592,7 +11607,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequestBody
       responses:
         '200':
           description: Pending digests at the exact requested basis
@@ -11620,7 +11635,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MlsAcceptedArtifactRequest'
+              $ref: '#/components/schemas/MlsAcceptedArtifactRequestBody'
       responses:
         '200':
           description: Exact currently accepted artifact and winning transition facts, with independently bounded
@@ -11629,6 +11644,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MlsAcceptedArtifactOutcome'
+  /_arkret/self/seals/mls-welcome-refs:
+    post:
+      operationId: ak.self.seals.read.mls_welcome_refs
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.seals.read.mls_welcome_refs.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Discover currently eligible Welcome references for the authenticated recipient in a frozen scope window.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsWelcomeRefsRequestBody'
+      responses:
+        '200':
+          description: Bounded references only, with an opaque continuation when limited.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsWelcomeRefsOutcome'
   /_arkret/self/seals/membership-authority:
     post:
       operationId: ak.self.seals.read.membership_authority
@@ -11649,7 +11692,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MembershipAuthorityRequest'
+              $ref: '#/components/schemas/MembershipAuthorityRequestBody'
       responses:
         '200':
           description: One current membership, bounded to 64 KiB without a historical proof.
@@ -11657,6 +11700,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MembershipAuthorityOutcome'
+  /_arkret/self/seals/mls-membership-removal:
+    post:
+      operationId: ak.self.seals.read.mls_membership_removal
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.seals.read.mls_membership_removal.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Read exact current MLS leaf removal indices from the Account Station.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsMembershipRemovalRequestBody'
+      responses:
+        '200':
+          description: Atomic complete removal subset, bounded to 1 MiB without a historical proof.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsMembershipRemovalOutcome'
   /_arkret/self/seals/history-authority:
     post:
       operationId: ak.self.seals.read.history_authority
@@ -11677,7 +11748,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HistoryAuthorityRequest'
+              $ref: '#/components/schemas/HistoryAuthorityRequestBody'
       responses:
         '200':
           description: Current history floor and join epoch, at most 64 KiB.

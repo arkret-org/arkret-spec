@@ -57,10 +57,10 @@ Realm timeline / notification delta 只进入其成员 `ActorId` 中 account 分
 | `X-Arkret-Wait-For` | header | `cursor` | optional | RYW barrier（purpose=`barrier`）。服务端在发送本轮第一个 account frame 前 MUST 等待 account projection frontier 覆盖 cursor 绑定 target；最长等待当前长轮询窗口（v1 默认 30 秒）。窗口内未覆盖时返回 `temporarily_unavailable` / `timeout` 与当前 frontier，不得先发送会被误认为满足 barrier 的 `delta` / `frontier`。WebSocket profile 的 account `parameters.wait_for` 是本 header 的等价投影。 |
 | `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
 | `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端返回 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame并结束本轮响应；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ak.self.events.read.scan.v1` 分页/区间读取。 |
-| `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 self.events.stream.subscribe。 |
+| `filter` | query (JSON value) | `object` | optional | 单个 percent-encoded RFC 8785 JSON object；详情选择按 §2.3，与 events selector 独立。 |
 | `filter.realm_ids` | query | `RealmId[]` | optional | 最多 16 个详情 Realm；缺省或空集合不返回任何 Realm 详情，全局通道仍持续。 |
 | `filter.strand_ids` | query | `StrandId[]` | optional | 最多 32 个目标，必须属于已选 Realm 且独立授权；缺省选择各 Realm 当前 default Strand。 |
-| `realm_list` | query (deepObject) | `RealmListRequest {after?, limit?}` | optional | 摘要快照分页，limit 默认 20、1–100；initial 缺省等价第一页，增量缺省不继续枚举。 |
+| `realm_list` | query (JSON value) | `RealmListRequest {after?, limit?}` | optional | 摘要快照分页，limit 默认 20、1–100；initial 缺省等价第一页，增量缺省不继续枚举。 |
 | `replace_filter` | query | `boolean` | optional | 默认 false；true 必须携 after 与 filter，按 §2.3 原子替换详情兴趣。 |
 | `filter.timeline_limit` | query | `int` | optional | 每 Realm 每 frame 默认 20、0–100；按目标 Strand 合并，受全局字节预算裁剪。 |
 | `filter.lazy_load_members` | query | `boolean` | optional | 默认 true；成员页最多 100 行，false 也只启动有界分页，不内联完整名单。 |
@@ -86,7 +86,7 @@ NDJSON 响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 
 frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas/account-subscribe-frame.schema.json)(`ak.schema.account_subscribe_frame.v1`)。
 
-> **与 `ak.self.events.stream.subscribe.v1` 帧集合的差异**：account-aggregate 流**有意不**包含 `ak.self.events.stream.subscribe.v1` 的 `event` 与 `epoch_rotation` 控制帧。self.account.stream.subscribe 是跨 Realm 聚合视角，MLS epoch 变化不作为独立控制帧出现，而是在各 Realm `delta` 内通过 `state_after` / `state_at_window_start.e2ee_epoch`（见 §5）表达；需要逐 Realm 的 `epoch_rotation` 边界提示时使用 `ak.self.events.stream.subscribe.v1`。其余控制帧（`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`）与 `ak.self.events.stream.subscribe.v1` 对齐。
+> **与 `ak.self.events.stream.subscribe.v1` 帧集合的差异**：account-aggregate 流**有意不**包含 `ak.self.events.stream.subscribe.v1` 的 `event` 与 `epoch_rotation` 控制帧。self.account.stream.subscribe 是跨 Realm 聚合视角，MLS epoch 变化不作为独立控制帧出现，而是在各 Realm `delta` 内通过当前 MLS epoch cell 结果 / `state_at_window_start.e2ee_epoch`（见 §5）表达；需要逐 Realm 的 `epoch_rotation` 边界提示时使用 `ak.self.events.stream.subscribe.v1`。其余控制帧（`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`）与 `ak.self.events.stream.subscribe.v1` 对齐。
 
 `delta` frame 示例:
 
@@ -105,7 +105,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
     }
   },
   "to_device": {"messages": []},
-  "device_lists": {"changed": [], "left": []},
+  "device_lists": {"changed_ids": [], "left_ids": []},
   "account_data": {
     "events": [],
     "station_cas": {"upserts": [], "removals": []}
@@ -125,7 +125,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "unauthorized"}
 ```
 
-`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `knock` 进入 roster（`member_roster.entries[]`），`leave` / `ban` 不进入 roster（见 §8.1 roster `member_roster.entries[]` 定义）。Invite 是独立 pending workflow，只能从调用方私有 Invite inbox / delivery projection 展示，不得推造 membership cell 或 roster row。`state`、`state_after` 与 Realm-scoped `account_data` 使用事件容器形状:
+`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `knock` 进入 roster（`member_roster.entries[]`），`leave` / `ban` 不进入 roster（见 §8.1 roster `member_roster.entries[]` 定义）。Invite 是独立 pending workflow，只能从调用方私有 Invite inbox / delivery projection 展示，不得推造 membership cell 或 roster row。Realm-scoped `account_data` 使用事件容器形状；当前状态仅使用 [current results](./current-results.md) 的闭合类型，不携 `state` / `state_after`：
 
 ```json
 {
@@ -160,8 +160,15 @@ attempt 选择与 final 替换 MUST 按 [`signal.md` §7](./signal.md#7-message-
 
 本节是同一 v1 account subscribe 的默认合同，不定义第二个同步 endpoint/profile。请求是 closed
 `AccountSubscribeRequest {after?, catchup?, filter?, realm_list?, replace_filter?}`；HTTP query 与
-WebSocket account open parameters 使用同一字段名（`filter.realm_ids`，删除旧 WS `realm_ids` 别名）。
+WebSocket account open parameters 使用同一字段名（`filter.realm_ids`，删除旧 HTTP `realms` 别名）。
 WebSocket `wait_for` 仍是 HTTP header 的投影。未知字段拒绝；`subscriptions` 不恢复为扩展旁路。
+HTTP 的 filter 与 realm_list 各自是至多出现一次的 query parameter，值为 percent-encoded RFC 8785 canonical JSON object；
+先按 query percent decoding 一次，再检查 UTF-8、重复成员、canonical bytes 和 closed schema。`filter={}`、
+`filter={"realm_ids":[]}` 与 `realm_list={}` 均可无歧义表达；传输时花括号/引号等按 URL 编码。
+标量 after/catchup/replace_filter 仍是普通单值 query；任何重复参数、未知参数、旧 filter.* / realm_list.* dotted 参数
+或 bracket/deepObject 别名均 param_invalid，不能静默忽略。JSON 缺省、显式空对象、空数组和 false 按原样保留，
+不以私有哨兵、空字符串或补写默认字段替代。WS account parameters 直接携同一 JSON 对象，不额外字符串化。
+
 
 **列表与当前权限。** 无 account after 的 initial 请求缺省读取第一页；增量请求只有显式 realm_list 才取新页。
 `RealmListRequest {after?, limit?}` 的 after 仅接受本列表签发的 continuation；缺省建立新冻结快照，limit 默认 20、范围 1–100。
@@ -174,7 +181,7 @@ knock 只含该状态依法可见的摘要，不泄露成员级 title/default St
 服务器在首个列表页冻结有界读索引的 snapshot watermark，输出 snapshot_revision（只用于新旧行比较，不是 cursor）；按 `activity_position` 降序、相同时 RealmId
 无符号 UTF-8 升序选页。activity_position 是持久账号摘要投影的单调非负安全整数，发生可见摘要变化时分配；
 不得采用客户端时间或从消息历史临时排序。revision 是该 Realm 摘要及失效记录共享的持久严格递增账号位置。
-翻页复用冻结顺序和内容，但每页交付前重新检查当前读取权限；撤权项略过，扫描继续位置仍前进，允许空非终页。
+翻页复用冻结顺序和内容，但每页交付前重新检查当前读取权限；撤权项略过；join 降为 knock 时仅可返回当前 knock 允许的字段，不得交付冻结 join 行中的私有 title/default Strand；扫描继续位置仍前进，允许空非终页。
 每次最多扫描 200 条索引记录，达到扫描/输出条数或 1 MiB canonical 列表页字节预算后返回继续位置；
 不得 offset 扫描、建立全账号内存快照或读取全部消息后再切片。快照/版本行的持久保留必须覆盖所签 cursor 的生命周期；
 不能继续时按既有 cursor_expired/unrecognized/integrity_invalid 恢复，不冒充空终页。
@@ -219,8 +226,8 @@ incarnation、key-access、相关 quarantine 等变化使该账号已有该 Real
 更新 delta 可在快照分段之间立即交付；客户端按键保留快照后更新覆盖，不能让后到的旧 baseline 覆盖撤销或新值。
 相同快照的所有分段持久安装后，只有 completed_channels 声明的通道才允许清理未出现旧项；中间页、空中间页及
 catchup_complete 不清理集合。零项通道也显式完成。移除 station_cas.complete，避免两个不一致的完成载体。
-详情 `realms[id].baseline {snapshot_cursor, complete}` 仅声明本 filter/basis 的目标当前 state 交付完成；
-不授予读取/发送，不声称 timeline、全部成员或其它 Realm 完成。current query/MLS 仍按各自逐操作 gate。
+详情 `realms[id].baseline {snapshot_cursor, cut_revision, coverage, complete}` 按 [current results](./current-results.md) 的精确覆盖和版本规则声明目标当前结果交付完成；
+不授予读取/发送，不声称 timeline、全部成员或其它 Realm 完成。该 Realm 失效通知到达后，旧 baseline 的后续段/complete 不能解除 pending；必须重建当前目标 baseline，丢弃旧 snapshot 的迟到段。current query/MLS 仍按各自逐操作 gate。
 快照标识与 cursor/context 一起原子安装；本地不得只保留最后一段冒充整套 baseline。不得自动继续枚举列表来完成账号 baseline。
 
 **固定预算与继续。** 每 canonical account frame ≤8 MiB，每 HTTP round ≤16 MiB 且 ≤16 frames；编码 wire 单 frame
@@ -247,8 +254,7 @@ Account subscribe `delta` frame 包含以下 stream：
 | Stream | 持久性 | 用途 |
 | --- | --- | --- |
 | `timeline` | 持久 | Realm 内 accepted events |
-| `state` | 持久 | 当前 state event delta |
-| `state_after` | 派生 | timeline 末尾之后的状态，用于正确解释事件 |
+| `current` | 持久投影 | 服务器已裁决的完整 cell/object 当前结果、MV heads、移除及不可用 |
 | `state_at_window_start` | 派生 | `timeline.limited=true` 时 window 起点 seal 状态，见 §5 |
 | `account_data` | 私有持久 | 标签、UI 偏好、recent emoji、push rules |
 | `to_device` | 设备队列 | key verification、secret sharing、device messages（队列删除只由 §10.1 显式 ack 驱动，不随 cursor 推进） |
@@ -264,7 +270,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 | Stream | 承载位置 |
 | --- | --- |
-| `timeline` / `state` / `state_after` / `state_at_window_start` | per-Realm：`delta.realms[<realm_id>]` 内的同名字段（§4） |
+| `timeline` / `current` / `state_at_window_start` | per-Realm：`delta.realms[<realm_id>]` 内的同名字段（§4） |
 | `to_device` / `device_lists` | `delta` 顶层同名字段（跨 Realm，不分桶到具体 Realm） |
 | `account_data` | 双位置：Realm-scoped 私有数据进 `delta.realms[<realm_id>].account_data`；account-scoped 进 `delta` 顶层 `account_data` |
 | `receipts` | per-Realm：actor-private `read_cursor` 高水位承载于 `delta.realms[<realm_id>].account_data`；`ak.receipt.read` 只走独立 Signal rail，不进入本 frame |
@@ -274,7 +280,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 顶层 `delta` 与 per-Realm entry 都是 closed DTO（`additionalProperties:false`）；上表及 `account-subscribe-frame.schema.json` 给出 v1 全部 canonical 承载位置，实现不得自行另设字段或外层分桶。新增 stream class 必须先登记并更新 schema/profile；`receipts` / `applet` / `blob_status` 不在顶层 `delta` 另立独立 bucket。
 
-`device_lists` 的 wire 形态固定为 `{changed: ActorId[], left: ActorId[]}`。两个数组都 MUST 存在，并按完整 ActorId 去重；元素不是裸 principal DID 或 `device_id`。`changed` 表示该完整 Actor 的权威 device list 已变化，客户端 MUST 通过该 ActorId 携带的 Station 路由重新查询对应设备投影；`left` 表示该完整 Actor 已离开调用方可见范围，客户端 MUST 只删除该 Actor 的缓存设备信任投影。同 DID 在其他 Station 的 Actor 不得被合并、误刷新或一并删除。此跨 Realm 的可见性 delta 不等同于 Station-local `to_device` 消息发送请求中的 principal map key（见 `crypto-media/device-lifecycle.md` 的 `ak.self.device_messages.command.send.v1` 边界）。
+`device_lists` 的 wire 形态固定为 `{changed_ids: ActorId[], left_ids: ActorId[]}`。两个数组都 MUST 存在，并按完整 ActorId 去重；元素不是裸 principal DID 或 `device_id`。`changed_ids` 表示该完整 Actor 的权威 device list 已变化，客户端 MUST 通过该 ActorId 携带的 Station 路由重新查询对应设备投影；`left_ids` 表示该完整 Actor 已离开调用方可见范围，客户端 MUST 只删除该 Actor 的缓存设备信任投影。同 DID 在其他 Station 的 Actor 不得被合并、误刷新或一并删除。此跨 Realm 的可见性 delta 不等同于 Station-local `to_device` 消息发送请求中的 principal map key（见 `crypto-media/device-lifecycle.md` 的 `ak.self.device_messages.command.send.v1` 边界）。
 
 `notifications` 和高频 actor-private `read_cursor` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。加密 `ak.receipt.read` 不在本流中，服务端不得解密或对其做语义合并。客户端不得要求服务返回每一次中间 private read-cursor 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
 
@@ -293,17 +299,16 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 服务端提交 projection 事务后 MAY 发 account-context-scoped 内存 wakeup 以降低长轮询延迟。持久 projection 与 cursor 是权威；丢失 wakeup 后，有界 long poll 超时或重连必须仍可从 durable position 恢复，不要求仅为 wakeup 建 durable outbox。Push provider 只能收到现有 blind wakeup，notification body、Agent DID 和 approval id 均不得进入 provider-visible payload。
 
-### 3.2 Agent signer evidence bundle（normative）
+### 3.2 Agent signer 按需结果（normative）
 
-声明 `ak.profile.agent_signer_evidence.v1` 的 sync producer MUST 在 sync response 顶层支持可选 `agent_signer_evidence_bundle`，其 shape为 `agent-signer-evidence-operations.schema.json#/$defs/sync_bundle`。Event不新增字段，也不得把transport evidence写进producer canonical bytes。historical evidence按完整 `(event_id,receiver_id)` 去重；event digest 必须从 suite-bearing `event_id` 解码，并由Event的`executed_by ?? actor_id`与proof method再交叉选择。current evidence按完整 Agent AccountId、controller、method/key、authorization dot 与适用scope绑定，允许在原观察窗口内跨消息和重连复用；已观察的相关 key/lifecycle/account 撤销或冲突使签名授权缓存立即失效，成员或 generation 变化由每消息的可信 membership/MLS 检查拒绝不再适用的操作，不要求刷新未改变的 Agent PCR lease。接收端逐条独立检查消息/MLS/TTL/replay，不能从sync transport本身推导授权。
+self account-subscribe 不再携 `agent_signer_evidence_bundle` 或公开治理闭包。需要 Agent signer key 的客户端按 [server-trusted-results §5.6](server-trusted-results.md#56-按次-current-与精确历史签名公钥) 向自己的 Station 查询：current 每次验证发起查询，只允许同次/在途合并，不把结果用于未来 Signal；historical 绑定 exact Event/receiver/完整 actor/method，并允许精确缓存。Event 不新增字段，也不把结果写入 producer canonical bytes。Station 验证公共授权，客户端保留真实 producer signature、MLS、TTL、AAD/AEAD 与 replay。Peer portable evidence 与服务器验证不受 self 字段删除影响。
 
-服务端只可为requester与Agent当前共享Realm/session/contact/controller上下文的Event携带evidence；不得借initial sync枚举其他Agent或其私有scope。minimal-metadata Realm bucket禁止携带或触发Agent/device principal query。
-
-客户端的 historical cache key 包含完整 `(agent_id,verification_method,event_id,receiver_id)`；同key不同
-接纳事实、admission evidence或state digest必须quarantine。原同站接纳只使用station_admission中的原Event，独立
-接纳使用receiver_receipt。current状态按原lease/gate/key最早截止复用；普通消息、重连或传输重新包装不能续期，
-到期只刷新状态和缺项，不重做未变身份链。缺失证据或stale保持verification_pending，不能降级为device directory
-或ordinary MLS leaf-only Verified。backfill和live sync使用同一DTO与验证规则。
+Station 按本次请求者当前读取资格披露 exact historical key；不得借 initial sync 枚举 Agent 私有
+scope，也不得因历史 signer 已退出而把有效历史签名判为未授权。minimal-metadata Realm bucket 不触发
+ordinary Agent/device principal 查询。历史缓存按完整 recipient Account、Realm、实际 signer ActorId、
+verification_method、event_id、receiver_id 和 frozen signer_evidence_ref 绑定；同坐标冲突不得覆盖成
+已验证。缺项保持本次任务 verification_pending，不降级为当前 directory 或 MLS leaf-only 授权。
+current 结果不跨消息缓存；backfill 和 live 按需处理都保留真实 producer/MLS 内容密码学。
 
 `realms` 不按 membership 做外层分桶；它始终以 `ak:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `ak.member.state` projection，取值可为 `join`、`knock`、`leave` 或 `ban`（完整枚举见 §2 首次定义），不得把这些值提升为 `realms` 的外层 key。待处理 Invite 只来自调用方私有 Invite inbox，不是该字段的第五种取值。
 
@@ -317,8 +322,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
     "preview_only": false,
     "prev_cursor": "ak:cursor:<opaque-valid-stream-cursor>"
   },
-  "state": {"events": []},
-  "state_after": {"events": []},
+  "current": {"entries": []},
   "state_at_window_start": {
     "actor_profiles": [],
     "realm_metadata": {},
@@ -341,7 +345,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 }
 ```
 
-如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`realm_state_snapshot_frontier` 或等价恢复提示。若 cursor 本身已失效，必须返回 `cursor_expired` 或 `cursor_integrity_invalid`；若 cursor 仍有效但当前服务状态暂时不能完成恢复，则返回 `frontier_stale` 或 `temporarily_unavailable`。服务端不得静默退化为不完整状态，客户端 MUST 按以下分支区分处理：
+如果 `timeline.limited=true`，客户端不得假设历史连续；只有用户请求更早窗口或当前内容所需依赖时才使用 backfill / pagination，limited 本身不触发全历史加载。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`realm_state_snapshot_frontier` 或等价恢复提示。若 cursor 本身已失效，必须返回 `cursor_expired` 或 `cursor_integrity_invalid`；若 cursor 仍有效但当前服务状态暂时不能完成恢复，则返回 `frontier_stale` 或 `temporarily_unavailable`。服务端不得静默退化为不完整状态，客户端 MUST 按以下分支区分处理：
 
 - `cursor_expired` / `cursor_integrity_invalid`：cursor 本端状态失效（TTL 超时或 tamper / 未知 handle / cross-binding）。客户端 MUST 清空本地 cursor 缓存并从 initial sync 重做（重新建立 `ak.self.account.stream.subscribe.v1`，`after=` 缺省 + `catchup=true`），与 §12.3 一致；不能用旧 cursor 继续 backfill。
 - `frontier_stale`：cursor 本身仍有效，只是服务 frontier 落后于请求所需 causal frontier。客户端 MUST NOT 清 cursor 重做 initial sync，而是按 §12.3 等待 / backfill——先以 `account/describe` 或 `snapshot/head` 取当前 frontier，再从该 frontier 起点用现有 cursor backfill 补齐缺口。
@@ -351,13 +355,14 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 ## 4. Realm Buckets
 
-## 5. State After 与 State At Window Start
+## 5. 当前结果与历史展示上下文
 
-### 5.1 State After (timeline 末尾状态)
+### 5.1 服务器当前结果
 
-服务器 SHOULD 在每个 joined Realm 中返回 `state_after`，表示 `timeline.events` 应用完成后的 state delta。客户端渲染 timeline 中事件时 MUST 使用事件自己 auth state；渲染 timeline 末尾的当前 UI 时 SHOULD 使用 `state_after`。
-
-这避免客户端用新权限、新成员名或新加密 epoch 错误解释先前事件。
+`current` 只按 [current results](./current-results.md) 的 selector/revision 安装。
+旧 `state` / `state_after` 容器已移除；客户端不对 timeline 应用 reducer 来计算当前状态。
+当前治理、DataEvent MV heads、删除、Bottom 和可见性均由自己的 Station 裁决。
+历史展示上下文不能覆盖当前结果；当前结果也不改写历史消息的端到端认证或密文。
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
@@ -415,7 +420,7 @@ Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权�
 
 1. 同一响应内的事件按 deterministic timeline projection order 排列。
 2. 若事件 B 通过 `prev_refs`、`refs[role="after"]`、`causal_refs` 或 payload 物化的 reply/reference edge（如 `replies_to`）直接依赖事件 A，且 A 在同一响应窗口中可见，则 A MUST 出现在 B 之前。
-3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 保留原始 Event Envelope 中客户端可见的完整 `prev_refs[]` 与 `refs[]` 条目；客户端把本地 store 未命中的 `prev_refs[]` 当作 Event backfill 目标，把未命中的 `refs[role=authorized_by]` 当作 grant-record / 对应 sealed control-history backfill 目标，并在补齐前 soft fail 或延迟渲染。`authorized_by` 的 `ak:grant:` id 不得被改写成承载 Event id alias。若某个依赖引用本身因权限不可见，服务端不得伪造占位引用；该事件按 `timeline.limited=true` / `preview_only=true` 或对应 `unauthorized` 诊断处理。
+3. 若内容依赖因过滤、权限、分页或缺失不在窗口内，原始可见 refs 保留；客户端只按实际展示、附件或 MLS 密码学需要读取已知 exact refs。不能为了验证治理而补齐所有 prev_refs、authorized_by grants 或 Seal 历史；服务器负责当前/历史接纳和权限判断。不可见引用不得伪造占位；有限窗口按 limited/preview_only 或明确错误处理。
 4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Station sync surface 到达顺序作为跨实现排序依据。
 
 Canonical default timeline projection order（不输入 canonical state、授权判断或 winner 选择；请求未显式声明并协商其它 profile 排序时，服务器 MUST 使用本顺序）：
@@ -433,7 +438,7 @@ event_id ASC
 各键的精确定义与缺边时行为均以 `encoding.md` §7.3 为准；Station 同步面不得在本节另行扩展 `causal_depth` 边集或定义本地 tie-break。
 - `event_id` 是最终 tie-breaker。
 
-对于协议状态，客户端 MUST 使用 `event-auth-state-resolution.md` 的 CBS query basis 与 Lattice cell value 解释当前态，不得只取 timeline 中最后出现的同 kind Event。
+对于当前协议状态，客户端 MUST 安装自己的 Station 返回的 typed current result；不得重跑 CBS/Lattice 或取 timeline 中最后出现的同 kind Event。
 
 ## 7. Large Account and Large Realm Sync
 
@@ -443,12 +448,12 @@ event_id ASC
 
 - initial account sync baseline 只返回 Realm 摘要、必要 `required_state` 和有限 timeline。
 - 活跃 Realm 优先，低优先级 Realm 只返回 unread / mention / summary。
-- 使用 sliding window subscriptions 拉取当前视图需要的 timeline ranges。
+- 使用 §2.3 有界详情兴趣拉取当前视图需要的 timeline ranges。
 - 使用 `timeline.limited=true` 标记缺口，并通过 backfill / pagination 拉取。
 - 使用 lazy loading members，避免同步全量成员状态。
-- 使用 snapshot manifest 快速恢复当前态，再从 snapshot frontier 拉取增量。
+- 使用服务器有界 current-result baseline 恢复当前态，独立验证型 snapshot 留给 peer/auditor。
 - Blob、附件、缩略图、全文索引和历史密文按需拉取。
-- 客户端本地维护 raw event cache、reduced state cache 和 materialized view cache。
+- 客户端本地维护原始内容缓存、版本化 current-result 存储及展示缓存，不维护客户端治理 reduced-state cache。
 
 服务器 MAY 对响应进行分片：
 
@@ -465,24 +470,18 @@ event_id ASC
 
 ## 8. Lazy Loading Members
 
-当 `lazy_load_members=true`：
-
-- 服务器 SHOULD 只返回 timeline 中 sender、被 mention actor、membership changed actor 和 required_state 指定 actor 的 `ak.member.state`。
-- 客户端遇到未知 actor 时 MAY 通过 `ak.self.events.read.scan.v1` 补拉当前 effective `ak.member.state` / `ak.member.identity.update` events；需要当前 handle 展示时，MUST 使用本节定义的 handle-claim source（roster 内联或 `ak.find.directory.read.list_handles_for_subject.v1`），不得把 profile / identity event 中的 handle 字符串当作授权事实。
-- 如果 `include_redundant_members=false`，服务器 SHOULD 避免重复发送客户端已知且未变化的 member state。
+当 `lazy_load_members=true`，服务器只交付当前窗口所需完整 ActorId 的当前成员结果和 roster，覆盖范围由 current baseline.coverage.members 明确列出。客户端遇到未知成员时扩大所需窗口或查询已有服务器当前接口，不扫描成员历史求有效状态。include_redundant_members=false 允许省略未变化增量，不改变基线完整性规则。
 
 ### 8.1 Member Roster, Identity Projection, and Handle Claims
 
-`state.events` 中的 `ak.member.state` 是成员资格的权威真相源；它由 reducer 决策，携带完整 `member_id: ActorId`、`membership` 与 proof refs。客户端按 seal view + Lattice cell value 解释这些事件；路由服务直接从 ActorId 投影，不读取平行 binding 状态。
+membership 当前值由自己的 Station 按 accepted 状态裁决，客户端安装 current member cell 与 server-trusted roster；不下载 proof refs 或重放 Seal。ActorId 始终包含完整 AccountId/Station，不能按 principal 合并不同账户。
 
-为给客户端列表视图（成员侧栏、participant 标识、@mention 自动补全初始集）提供一份轻量 roster，服务端 MAY 在每个 Realm 响应里附带 `member_roster.entries[]` 字段。`member_roster.entries[]` 是 `ak.member.state` cell、当前 effective `ak.member.identity.update` set 和当前可见 handle-claim set 的派生 hint，不参与 state hash / frontier 计算，也不替代逐事件验证。`member_roster.entries[]` MUST NOT 把 display name 或裸 handle 字符串直接作为 roster 字段回填；若返回 handle，MUST 作为完整签名 `ak.schema.handle_claim.v1` evidence 或其 digest/ref 返回。
+`member_roster.entries[]` 是同一当前视图的轻量已裁决成员/identity 引用与 handle-claim 集。它不参与 state hash/frontier，也不要求逐事件治理验证。旧 hint 优先级和“本地验证历史覆盖 roster”的规则已删除。客户端可用于成员展示及幂等 reconciliation 调度，但实际 KeyPackage/MLS/发送操作仍执行自己的 Station 当前 gate 与真实 E2E 校验。
 
-`member_roster.entries[]` 的协议安全边界如下：
-
-- 客户端 MAY 用正向 roster entry 驱动成员 UI、未知 actor backfill、KeyPackage claim / MLS admission 的**重试调度**；但 roster entry 本身不授予 membership、KeyPackage delivery、MLS Add / Remove 或 application send 权限。每个不可逆服务操作仍 MUST 由服务端按当前 accepted auth state 独立授权；MLS producer 在构造 / 提交 Commit 前 MUST 从自己的 Station 取得已验证的目标 membership frontier 结果，并核对本地 leaf、scope 和待签 transition 绑定；不下载或重放治理证明。
-- `member_roster.limited=false` 只证明服务端声明本次 roster 完整。客户端 MAY 把“完整 roster 与本地 MLS group 不一致”用作保守的 `encryption_transition_pending` 信号；“两者一致”不得单独清除由 accepted membership Event / Seal 产生的 `epoch_update_required`，后者只能由满足 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.4.1 / §2.5 的 winning Commit 与 verified governance binding 清除。
-- `member_roster.limited=true` 或字段缺失时，客户端 MUST NOT 从 actor 缺席推断 leave / ban，也不得据此移除 MLS leaf 或解除发送暂停。正向 entry 仍可触发幂等的查询 / reconciliation；服务端拒绝、proof 缺失或 authoritative Event 与 hint 冲突时 MUST fail closed，并 backfill `ak.member.state` / refresh baseline。
-- 服务端生成 roster 时 MUST 使用同一响应 frontier 下的 effective membership cells；不得把尚未 accepted、已 leave / ban 或来自不同 frontier 的 actor 标成 `join`。客户端若同时拥有可验证的 authoritative membership state，MUST 以该 state 为准并把矛盾 roster 视为同步完整性错误，而不是覆盖本地 accepted state。
+- limited=true 或缺字段不能从缺席推断 leave/ban、删除叶或清除发送暂停；完整 roster 也不能代替实际 winning Commit。
+- entries、current member result 与同版本基线矛盾时是同步协议冲突；拒绝并重新查询 Station，不任意选一份。
+- 服务端逐页检查当前权限；不把尚未 accepted、已 leave/ban 或不同 incarnation 的成员标成 join。成员 all 分页不能阻塞首屏和无关操作。
+- 展示名字不等于 handle 授权。现有 identity/handle carrier 保留，Station 负责 effective set 与当前可见性；客户端保留内容/E2E 使用所需真实认证，而非借 handle/identity 引用重建治理历史。
 
 成员展示信息由两类 source 合成：
 
@@ -558,7 +557,7 @@ event_id ASC
 | `actor_id` | `ActorId` | MUST | 等于当前 effective `ak.member.state` cell subject / `payload.member_id`，按完整 Actor（包括 AccountId 的 principal 与 Station 分量）比较，不能降格为裸 DID。高隐私 Realm 中 principal 分量 MAY 使用 Realm-scoped pairwise DID；作为**长期 membership key** 的 pairwise DID MUST 由 `did:webvh` 派生（可持久解析 / 轮换 / 撤销）或在部署 `method_policy` 中显式豁免，MUST NOT 使用被标为 `ephemeral_only` 的 `did:key`（见 [`sovereign-deployment.md` §3.1](./sovereign-deployment.md)）。真实 principal 的披露由当前 effective `ak.member.identity.update` events 决定。 |
 | `membership` | enum | MUST | 当前 effective membership，取 `join` / `knock`。leave / ban 不进入 roster；Invite 不产生 roster entry。 |
 | `subject_account_id` | `AccountId` | MAY | 该 member 的完整 durable 账号标识，principal 与 Station 两个分量都在。它不是 Realm `actor_id`：高隐私 Realm 中 `actor_id` 的 principal 分量可能是 Realm-scoped pairwise DID，而本字段始终是 handle claim 所绑定的 exact AccountId。当当前响应已按 Realm disclosure policy 向调用方披露该 member 的 subject 时返回；subject 仅在 encrypted MemberIdentity 中披露时 MUST 省略本字段。本字段就是 [`identity/identity-handles.md` §3.2](../identity/identity-handles.md) 要求的 `ActorId -> AccountId` 显示投影在 roster 上的承载，比较 MUST 逐字比较两个分量，MUST NOT 降格为 principal core。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
-| `identity_event_ids` | event id array | MAY | 当前 effective `ak.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` 或 `state.events`。 |
+| `identity_event_ids` | event id array | MAY | 当前 effective `ak.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` ；不得恢复 `state.events`。 |
 | `member_display_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}], handle_claims:[{claim_digest,status,revocation_digest,fresh_until}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序，`handle_claims` 按 `(claim_digest)` 排序。用于 roster display cache 失效和重复响应去重；不同于本地从 `ak.member.identity.update.payload.identity_payload` 推导的 carrier digest。 |
 | `identity_events` | Event array | MAY | 可选内联的原始 `ak.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。该字段可能明文或可解密地披露同一 member 的 `MemberIdentity.subject_actor_id`，因此 `subject_account_id` 未披露时 MUST 省略。 |
 | `handle_claim_digests` | hash array | MAY | 当前对调用方可见且可用于该 Realm context 的 effective handle claims 的 canonical digest 集合。每个 digest 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 的 `claim_digest(c)` 定义计算。该字段是跨上下文稳定标识，MUST NOT 在 `subject_account_id` 未披露时返回。 |
@@ -703,7 +702,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 `ak.account.invite_delivery` 与 `ak.account.holder_quarantine` 是 registry 声明的 `station_cas` plaintext cell。它们的权威 revision/value 同时由 account-data list/get 诊断面与本 sync frame 顶层 `account_data.station_cas` 投影：initial sync 分段 baseline 必须最终覆盖当前 registry 中所有 holder-readable Station-CAS live row；增量用 `upserts[]` / `removals[]` 表达 cursor 覆盖后的最终 revision，同 key 可合并为窗口内最后一项。baseline 分段的 `removals` 必须为空；仅在 `baseline.completed_channels` 包含 `station_cas` 时，对该快照所有已安装分段作完整集合替换，保留快照后更高 revision 的 upsert/remove。删除旧 `station_cas.complete` 字段，不得在任一分段到达时先清空 live set。它们不是 holder-authored Event，MUST NOT 出现在 `account_data.events[]`，也不得为了填充该 Event container 而合成 `ak.account_data.set`。
 
-每个 upsert 逐字复用 `account-data-operations.schema.json#/$defs/account_data_entry`；remove 携带 `account_data_key`、`revision`、`updated_at`。客户端对每个 key 只接受更高 revision；更低 revision MUST fail closed，同 revision 的不同 value / tombstone MUST 视为同步冲突并触发 resync。服务端 MUST 把 accepted Station-CAS 写入、该 key 的投影位置推进与可重放变更记录放在同一事务；cursor 必须覆盖该位置。变更记录保留期 MUST 不短于 cursor TTL 与 `account_data_tombstone_retention_ms` 的较大者；无法填满 `after` 到当前 frontier 的区间时必须返回 `dropped` / `resync_required`，不得静默跳过。`to_device` 中的 `ak.account_data.update` 仅是低延迟唤醒/加速器，不是第三个真相源，也不能代替上述 baseline 与增量。
+每个 upsert 逐字复用 `account-data-operations.schema.json#/$defs/account_data_entry`；remove 携带 `account_data_key`、`revision`、`updated_at`。客户端对每个 key 只接受更高 revision；普通增量的更低 revision MUST fail closed；同一仍有效 baseline 的较旧行只记为快照已见键并忽略其旧值，保留已安装的新 revision，不把这种正常分页重叠当作增量回滚；同 revision 的不同 value / tombstone MUST 视为同步冲突并触发 resync。服务端 MUST 把 accepted Station-CAS 写入、该 key 的投影位置推进与可重放变更记录放在同一事务；cursor 必须覆盖该位置。变更记录保留期 MUST 不短于 cursor TTL 与 `account_data_tombstone_retention_ms` 的较大者；无法填满 `after` 到当前 frontier 的区间时必须返回 `dropped` / `resync_required`，不得静默跳过。`to_device` 中的 `ak.account_data.update` 仅是低延迟唤醒/加速器，不是第三个真相源，也不能代替上述 baseline 与增量。
 
 本段的 baseline 完整性、缺席不等于删除、revision 单调性、同 key 窗口合并、两类真相源不得互相合成，以及填不满区间必须 `dropped` / `resync_required` 这几条，由 `ak.vector.sync.station_cas_account_data.v1` 固化（[`../conformance/conformance-vectors.md` §5.12](../conformance/conformance-vectors.md)）。
 
@@ -760,7 +759,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。本面默认
 
 `filter_digest` 的 canonical 计算（normative）：
 
-1. 将 query deepObject 解析为 JSON filter object；未提供 `filter` 时，normalized filter 是空对象 `{}`。
+1. 将单个 percent-encoded query filter 解码并校验为 canonical JSON object；未提供 `filter` 时，normalized filter 是空对象 `{}`。
 2. 省略所有未出现的 optional 字段；不得把实现默认值写入 normalized filter。
 3. 对集合语义字段 `realm_ids`、`strand_ids`、`event_kinds`、`not_event_kinds`，在计算 digest 前按元素字符串 lexicographic 排序并去重；其它数组若未来由 profile 引入，profile MUST 声明 order-is-semantic 或 sorted，未声明时不得进入 cursor binding。
 4. 按 RFC 8785 JCS 对 normalized filter 编码为 UTF-8 bytes，计算 `filter_digest = "sha256:" || hex(sha256(jcs_bytes))`。
@@ -799,7 +798,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。本面默认
 
 **v1 core 采用单一 stateful opaque handle 形态**：canonical body 为 `{v, purpose, issued_at, expires_at, h}`，其中两个 instant 均为 canonical `.sssZ` string，`h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(account_id, device_id, filter_digest, purpose, positions, target?, expiry)` 映射。这里 `account_id` 是完整 exact AccountId，已经包含 Station 分量；不得再以裸 `principal_id` 或 `service_id` sidecar 补齐账号身份。Handle 查表本身就是完整性校验 —— 无需在线 transcript 校验，无需 `_mac` / `_sig`，无需 `issuer_kid` 密钥管理。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式。
 
-服务端 SHOULD 将 handle → binding 映射持久化（或以其它方式保证其跨进程重启存活），使服务重启不会把所有未过期 cursor 同时变成未知 handle、迫使全部客户端按 §12.3 重做 initial sync。仅内存实现不违反完整性契约（未知 handle 仍按 `cursor_integrity_invalid` 失败 closed），但其重启代价随活跃客户端数线性放大；持久化实现 SHOULD 同时对未过期 handle 做超出 TTL 的及时清理（例如客户端出示更新 cursor 即可证明严格更旧的同流 handle 已被取代），避免 handle 表无界增长。
+服务端 SHOULD 将 handle → binding 映射持久化（或以其它方式保证其跨进程重启存活），使服务重启不会把所有未过期 cursor 同时变成未知 handle、迫使全部客户端按 §12.3 重做 initial sync。仅内存实现不违反完整性契约（未知 handle 仍按 `cursor_integrity_invalid` 失败 closed），但其重启代价随活跃客户端数线性放大；持久化实现 SHOULD 同时对未过期 handle 做超出 TTL 的及时清理（到期后清理，或仅清理可证明不再被重试/并发在途响应引用的 handle；出示更新 cursor 本身不足以证明旧 handle 可删），避免 handle 表无界增长。
 
 对生产级部署，上述耐久性从 SHOULD 升级为 MUST：声明 `ak.profile.small_team.v1`、`ak.profile.organization.v1`、`ak.profile.high_security_organization.v1`、`ak.profile.sovereign_deployment.v1`、`ak.profile.sovereign_enclave.v1` 或 `ak.profile.isolated_sovereign_network.v1` 任一 deployment profile 的服务，MUST 保证未过期 cursor handle 绑定跨进程重启可解析，且 MUST 实现 TTL GC 与被取代 handle 的前进清理；常规重启或计划内升级把全部活跃客户端打回 initial sync 视为不满足该 profile 声明。
 
@@ -879,15 +878,15 @@ Accept: application/x-ndjson
 
 - 返回用户当前 joined/knocked Realms 的 membership 摘要；另可从既有私有 Invite inbox / delivery CAS→private fanout 返回待处理邀请展示，但不得把它编码为 Realm membership 或 roster row。
 - 对活跃 Realm 返回有限 timeline。
-- 返回足够 `required_state` 让客户端首屏可渲染。
+- 按已选目标返回足够当前 state 使该页面可渲染；不恢复未登记的 required_state 请求字段。
 - 分段返回 device list baseline；仅 `baseline.completed_channels` 声明该集合完成。
 - 顶层 `account_data.station_cas` 按 §2.3 分段覆盖所有 holder-readable live row；filter 不裁掉该集合，baseline removals 为空。零行也要显式完成 `station_cas` 通道；删除只在该快照终段安装后执行。
 
-此外，baseline `delta` MUST 把当前 account context 下全部仍 open 的
+此外，同一 baseline 的全部已安装分段 MUST 最终覆盖当前 account context 下全部仍 open 的
 `agent_runtime_approval` notification 作为 `action=upsert` 的权威完整集合返回；即使其它
 notification 历史受限也不得截断该子集。
 
-对本次请求包含且当前 membership 为 `join` 的可写 Realm 详情，baseline MUST 提供由自己 Station 确认的**当前对象/安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则由服务器明确确认同一 frontier 下的缺省/空值状态）、当前 read/write capability 的服务器授权结果、Realm 当前 `default_strand_id`，以及该指针所指 non-tombstoned Strand 的最小当前投影。MLS-backed Realm 还必须提供服务器确认的 current membership / MLS governance frontier，以及选择 `content_scheme`、处理 Welcome 与判断 `epoch_update_required` 的当前状态结果。上述材料可直接位于 `state.events`，或由自己 Station 确认的 snapshot/当前状态结果等价提供，不能要求客户端下载历史闭包。`history_access` 只裁剪 data-plane timeline、旧 object revisions 和调用者无权读取的历史正文，不得裁掉上述 current baseline；即使建立当前值的 Event 位于 `since_join` frontier 之前也相同。该义务不泄露 join 前 Message、旧 policy/metadata revisions 或历史密钥。客户端对尚缺本次目标必要当前治理结果的操作 MUST 保持 `governance_baseline_pending`；使用 default Strand 时还必须通过 Realm pointer 与 Strand `is_default` 的同-frontier 一致性检查。MLS 操作按自身必需条件分别保持 `encryption_policy_pending` / `encryption_transition_pending`。不得把字段缺失解释为 policy 缺省、membership 未变化或 default Strand 未设置；这些等待状态不构成对全部列表、所有 Realm、完整 roster、全部历史或页面资源的统一门禁。
+对本次请求包含且当前 membership 为 join 的 Realm，服务器 MUST 按 [current results §4](./current-results.md#4-精确覆盖的分段基线) 提供创建固定安全属性、当前政策结果、default Strand pointer 和所需 Strand 当前对象。history_access 只裁剪旧内容，不得裁掉当前必要结果。发送权限和 MLS authoring/accepted-artifact 继续使用逐操作服务器 gate；缺必要结果仅阻塞依赖该结果的操作，不阻塞所有 Realm、首屏、完整成员名单或旧历史。不得恢复 state.events、客户端治理证明或不存在的 Strand.is_default 镜像字段。
 
 大型账户使用 §2.3 的有界摘要页与显式详情兴趣，避免一次性返回所有 Realm。
 

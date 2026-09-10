@@ -6,8 +6,15 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 387,
+  "audited_occurrence_count": 390,
   "registrations": [
+    {
+      "file": "account-current-result.schema.json",
+      "key": "accepted_key_evidence_ref",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Registered source evidence reference retained in the concrete complete cell value, not a second proof object."
+    },
     {
       "file": "account-operations.schema.json",
       "key": "account_registration_evidence_summary",
@@ -64,28 +71,11 @@
       "reason": "Method-native did:webvh witness / freshness evidence digest for an externally hosted DID. It is public log-derived material, carries no secret, and only pins which witnessed history state the Account Authority resolved."
     },
     {
-      "file": "account-subscribe-frame.schema.json",
-      "key": "agent_signer_evidence_bundle",
+      "file": "signer-key-operations.schema.json",
+      "key": "signer_evidence_ref",
       "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Bundles signer proofs, authorization attestations, and seal-lineage commitments."
-    },
-    {
-      "file": "agent-signer-evidence-operations.schema.json",
-      "key": "evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Returns the registered composite Agent signer evidence object."
+      "disposition": "qualifier",
+      "reason": "Exact reference to the Station-verified frozen historical signer root; self clients do not hydrate this public governance closure."
     },
     {
       "file": "agent-signer-evidence.schema.json",
@@ -911,8 +901,19 @@
     },
     {
       "file": "history-key.schema.json",
-      "key": "source_signer_evidence_ref",
+      "key": "signer_evidence",
       "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "commitment"
+      ],
+      "reason": "Exact minimal-metadata carrier retained for receiver-local encrypted IdentityLink and MLS LeafNode authentication; public Principal authority comes from the Account Station result, without client governance replay."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "source_signer_evidence_ref",
+      "occurrences": 3,
       "disposition": "qualifier",
       "reason": "Locates the exact content-addressed historical signer evidence bound by the response source proof."
     },

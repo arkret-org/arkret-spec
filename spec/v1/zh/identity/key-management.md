@@ -234,6 +234,11 @@ Agent 初次签发的 request identity 由完整
 
 ##### Agent signing-key binding 与 portable signer evidence（normative）
 
+本节 portable evidence 的消费、lease 缓存和治理验证规则适用于 Station/peer 验证者。普通客户端使用
+[server-trusted-results §5.6](../sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥)
+的 self key 结果，current 每次查询且不跨未来 Signal/操作复用，historical 精确绑定原 Event/receiver；
+不缓存或 hydrate 本节完整 authority 闭包。controller 自己签署 key binding 与客户端真实内容验签不变。
+
 每次首次 pairing、replacement pairing 或 same-key re-authorization 接受时，controller MUST 在同一批准动作中签发 `ak.schema.agent_signing_key_binding.v1`。其公开字段只允许 `agent_id`、与 authorize payload byte-identical 的 `agent_key_id`、完整 `verification_method`、raw Ed25519 `public_key`、`public_key_digest`、`agent_key_authorize_event_id`（完整 Event ID）、`issued_at`、仅在授权实际有期限时出现的 `expires_at`、`controller_principal_id` 与 `controller_proof`。authorize Event 的 payload 只承诺排除 `agent_key_authorize_event_id` 与 `controller_proof` 的 binding core digest；receiver 接受并得到完整 Event identity 后才 materialize 这两个字段，禁止在 Event authoring 前预铸本 Event ID。requested scope、`agent_key_scope`、audience selector、pairing code/request、runtime PoP、attestation、session 与 capability material 不得进入公开 binding。
 
 controller proof 的 signing input 固定为：

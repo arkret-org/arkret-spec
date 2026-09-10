@@ -12,6 +12,9 @@
     },
     {
       "$ref": "#/$defs/authenticated_service_resolution"
+    },
+    {
+      "$ref": "#/$defs/current_principal_outcome"
     }
   ],
   "$defs": {
@@ -604,6 +607,52 @@
           "additionalProperties": false
         }
       ]
+    },
+    "current_principal_request_body": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "account_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "current_principal_outcome": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "account_id",
+        "principal_control_realm_id",
+        "resolution_projection",
+        "observed_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "resolution_projection": {
+          "$ref": "#/$defs/resolution_projection"
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
     }
   }
 }

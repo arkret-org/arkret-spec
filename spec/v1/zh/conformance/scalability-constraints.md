@@ -31,6 +31,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 完整 canonical Event Envelope | 1 MiB（1,048,576 bytes） | 见 §2.1.1。超过时 MUST reject 为 `payload_too_large`（不得改用 `schema_violation`）。正文、附件和大对象必须使用 Blob 或 [`content-types.md`](../models/content-types.md) 的 `ak.content.long_text`。 |
 | 非流式 JSON operation canonical request/response body | 8 MiB（8,388,608 bytes） | 见 §2.1.2。只适用于 operation registry 标注 `body_class=non_streaming_json` 的 operation。 |
 | 非流式 JSON HTTP message content wire bytes | 16 MiB（16,777,216 bytes） | 见 §2.1.3。MUST 在完整解析 / JCS 之前停止读取。 |
+| Account current 完整原子 entry | 7 MiB（7,340,032 bytes） | 包含 selector/target/revision/完整 heads；发布时按固定上限裁决，不能按请求或当前帧余量改变同 revision 结果。单 Realm 必需详情帧封装预留1 MiB，总计≤8 MiB；见 [current-results.md](../sync/current-results.md) §5。 |
 | 服务端在 read view 上附加的单 Event `unsigned` canonical JSON | 16 KiB（16,384 bytes） | 见 §2.1.1。producer / peer submit 的 Event MUST NOT 携带 `unsigned`；read view 的 service-added `unsigned` 超限 MUST 视为服务端自身错误，不得发出。 |
 | 单个 HTTP header value | 8 KiB（但专用 header 可更小） | 入口 MUST 在解析/复制到业务对象前拒绝超限值。`Idempotency-Key` 与 `X-Arkret-Request-Id` 的专用上限均为 128 ASCII chars；cursor / causal wait token header 的专用上限为 4 KiB。 |
 | HTTP header aggregate | 32 KiB | request line 之外全部 header name/value 的编码总量；超限 MUST 在认证、签名 transcript 构造和幂等缓存分配前以 `payload_too_large` 拒绝。反向代理可声明更小上限，但不得接受超过本上限的请求。 |
@@ -149,7 +150,7 @@ AND
 JCS(body) bytes <= operation.max_canonical_body_bytes
 ```
 
-- **Request batch**：客户端依次添加完整 item；加入下一项将导致 `next_count > max_items` **或** `JCS(candidate_body).length > max_canonical_body_bytes` 时结束当前批次。服务端按同样两维校验；超任一维时整个 request 以 `payload_too_large` 拒绝，除非该 operation 的既有规范明确是逐项独立事务，否则 MUST NOT 部分接受。
+- **Request batch**：客户端依次添加完整 item；加入下一项将导致 `next_count > max_items` **或** `JCS(candidate_body).length > max_canonical_body_bytes` 时结束当前批次。服务端按同样两维校验：request bytes 超界以 413 `payload_too_large` 拒绝；仅 count 超 schema 上限且 bytes 合规以 422 `schema_violation` 拒绝，operation 明确规定其它 count 语义时遵循其规则。两维同时超界时字节错误优先。除非该 operation 的既有规范明确是逐项独立事务，否则 MUST NOT 部分接受。
 - item 本身还有自己的上限（例如完整 canonical Event 1 MiB）。**batch body 上限 MUST 不小于其允许的最大单 item**，否则合法 item 永远无法发送。
 - **Response page**：服务端按 count 与 canonical bytes 的先到者停止——未达 count 但将超上限时提前结束并返回 next cursor；达到 count 但仍有数据时返回 next cursor。单个 item 在其自身上限内却无法放进一个空 page，说明 operation / page shape 设计错误，MUST NOT 无限循环返回空 page。客户端 MUST NOT 把“本页少于 `max_items`”解释为没有下一页，必须以 next cursor / 规范终止字段为准。
 
@@ -207,11 +208,18 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | full canonical Event >1 MiB | 413 / operation mapping | `payload_too_large` |
 | per-operation 更低 byte 上限 | 413 | `payload_too_large` |
 | 数组 count 超 schema 上限但 bytes 未超 | 422 | `schema_violation` |
+| 合规请求的完整响应/求值超过语义预算 | 413 / 已定义 typed unavailable | `limit_exceeded` |
 | `Content-Encoding` present | 415 | `unsupported_content_encoding` |
 | JSON 无法解析 | 400 | `json_invalid` |
 | JSON 可解析但非 canonical、含 BOM / 重复 key 或违反 schema | 422 | `schema_violation`（按 [`encoding.md`](./encoding.md) 既有细分） |
 
 字节超限 MUST NOT 再允许 `payload_too_large` / `schema_violation` 二选一。即使 schema 的 `maxLength` / `maxItems` 也能提前发现，只要拒绝的规范原因是 byte budget，对外错误码就 MUST 稳定为 `payload_too_large`。错误体本身 MUST 是小型固定 shape，MUST NOT 回显 body、数组项或 canonicalized payload。
+
+本段的 request byte 错误不包括服务器无法生成预算内完整结果的情形。后者使用 `limit_exceeded` 或
+operation 已定义的有界分页/typed unavailable，不得截断完整事实。服务器在返回第一页前发现无法
+构造合法下一请求的 continuation，属于结果生成失败；实际收到超界的 continuation request 才是
+`payload_too_large`。两码虽然都可能映射 HTTP 413，测试仍 MUST 核对 exact error_code。SDK 本地
+预检与服务器 ingress/handler 必须保留请求、schema/count 和结果预算分类，不靠错误文案 substring 判别。
 
 #### 2.1.10 明确否决
 
@@ -417,6 +425,14 @@ Pruning 前置条件：
 v1 不提供 per-Realm 的内建看板 data-plane 选项。`ak.component.space.parent.v1` 与 `ak.component.strand.position.v1` 已分别随 `ak.space.parent`、`ak.strand.move`、`ak.strand.reorder` 冻结为 `control` / `sealed=true`；实现必须按静态 event-kind registry 路由。Realm `policy_bundle.cell_lattices` 只允许登记 Realm-specific extension family，不能用它把上述或其它内建 family 改成 `mv_register`、per-object sequencer 或不同 plane。需要不同并发语义的部署只能登记新的 extension family；不得在 v1 内用未登记字段、私有 override 或双路解析改变既有 Event kind。
 
 ## 8. 错误语义
+
+### Welcome 收件人发现窗口
+
+`ak.self.seals.read.mls_welcome_refs.v1` 的 request/完整 response 各 ≤64 KiB，limit 默认 20、最大 100，
+cursor ≤4096 字符。必须使用事务发布的精确 recipient/scope/group accepted eligibility 索引有界分页，
+禁止全历史扫描或逐候选 ancestry 重放。ACK 不删除尚未消费的发现项；一页必须是冻结窗口中的有进展前缀，
+窗口资格改变使用 `cursor_invalid`，不得遗漏或把新窗口冒充旧窗口。后续 exact artifact 请求另行计费和度量。
+完整生命周期及跨账号/设备/Agent/私有 Circle 权限规则见 [server-trusted-results §5.2.1](../sync/server-trusted-results.md#521-认证收件人的-welcome-引用发现)。
 
 超过规模上限时：
 

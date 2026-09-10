@@ -14,13 +14,13 @@
       "$ref": "#/$defs/history_key_request_list_outcome"
     },
     {
-      "$ref": "#/$defs/history_key_response_send_request"
+      "$ref": "#/$defs/history_key_response_send_request_body"
     },
     {
       "$ref": "#/$defs/history_key_response_list_outcome"
     },
     {
-      "$ref": "#/$defs/history_key_response_ack_request"
+      "$ref": "#/$defs/history_key_response_ack_request_body"
     },
     {
       "$ref": "#/$defs/history_key_response_send_receipt"
@@ -77,13 +77,13 @@
       "$ref": "#/$defs/organization_recovery_archive_replica_outcome"
     },
     {
-      "$ref": "#/$defs/membership_authority_request"
+      "$ref": "#/$defs/membership_authority_request_body"
     },
     {
       "$ref": "#/$defs/membership_authority_outcome"
     },
     {
-      "$ref": "#/$defs/history_authority_request"
+      "$ref": "#/$defs/history_authority_request_body"
     },
     {
       "$ref": "#/$defs/history_authority_outcome"
@@ -1117,7 +1117,8 @@
         }
       ],
       "unevaluatedProperties": false,
-      "description": "Signed requester intent: exact scope, actor, incarnation, endpoint, ranges, recipient key and expiry. The Account Station selects and verifies the retained governance cut; no client checkpoint fields."
+      "description": "Signed requester intent: exact scope, actor, incarnation, endpoint, ranges, recipient key and expiry. The Account Station selects and verifies the retained governance cut; no client checkpoint fields.",
+      "x-arkret-domain-object": true
     },
     "history_key_request_receipt": {
       "type": "object",
@@ -1895,7 +1896,7 @@
       ],
       "properties": {
         "response": {
-          "$ref": "#/$defs/history_key_response_send_request"
+          "$ref": "#/$defs/history_key_response_send_request_body"
         },
         "source_relay_attestation": {
           "$ref": "#/$defs/source_relay_attestation"
@@ -2184,7 +2185,7 @@
       "additionalProperties": false,
       "description": "Content-addressed historical signer evidence for a minimal-metadata pairwise actor. The source proof always uses the independent Ed25519 response-signing method/key committed by the end-to-end encrypted IdentityLink; it never treats an MLS ciphersuite signature key as a generic PayloadProof key. The identity_link_signer_evidence pair resolves the exact Principal evidence used to verify the IdentityLink's own proof without consulting a live DID document. The receiver validates that proof, the response key, exact locally received identity-link and RFC MLS LeafNode canonical bytes, winning transition provenance, target Seal basis and authorization incarnation against its independently verified durable MLS state before accepting source_proof. Canonical evidence bytes are limited to 1 MiB."
     },
-    "history_key_response_send_request": {
+    "history_key_response_send_request_body": {
       "allOf": [
         {
           "$ref": "#/$defs/history_key_response_signing_input"
@@ -2554,7 +2555,7 @@
           "description": "The honest release-service proof signs the RFC 8785 JCS transcript of the entire closed record with only service_proof omitted. For a chunk this coverage includes the byte-identical complete release_attestation and its typed authority locator/digest vector; the attestation has no independent proof wire."
         },
         "source_record": {
-          "$ref": "#/$defs/history_key_response_send_request"
+          "$ref": "#/$defs/history_key_response_send_request_body"
         }
       },
       "oneOf": [
@@ -2703,6 +2704,7 @@
       "type": "object",
       "required": [
         "entries",
+        "source_signer_results",
         "limited"
       ],
       "properties": {
@@ -2711,7 +2713,21 @@
           "items": {
             "$ref": "#/$defs/history_response_page_entry"
           },
-          "description": "Strictly sequence-ascending merged record/lost entries. The verifier extracts each tuple {sequence,kind,response_id,entry_digest}, where entry_digest is record_digest or the digest of the complete signed lost descriptor."
+          "description": "Strictly sequence-ascending merged record/lost entries. The verifier extracts each tuple {sequence,kind,response_id,entry_digest}, where entry_digest is record_digest or the digest of the complete signed lost descriptor.",
+          "maxItems": 100
+        },
+        "source_signer_results": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/history_source_signer_result"
+          },
+          "description": "Exactly the distinct source_signer_evidence_ref values used by this page records, in strict UTF-8 ascending ref order. No duplicates, surplus, or missing entries. Empty for a page containing only lost descriptors or no entries."
+        },
+        "cipher_suite": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Registered MLS ciphersuite from the accepted Genesis of the exact receipt-bound scope/group. Required exactly when this page contains a record. The Station verifies continuous winning-lineage coverage of the admitted ranges; clients use the registered KDF.Nh and checked range lengths without fetching governance history."
         },
         "ack_token": {
           "type": "string",
@@ -2773,9 +2789,54 @@
               ]
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "entries": {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "record"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "entries"
+            ]
+          },
+          "then": {
+            "required": [
+              "cipher_suite"
+            ],
+            "properties": {
+              "source_signer_results": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "cipher_suite"
+              ]
+            },
+            "properties": {
+              "source_signer_results": {
+                "maxItems": 0
+              }
+            }
+          }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Complete canonical page <=8 MiB, including deduplicated signer results, records, cursor and ACK token. The serving release Station is the Account Station frozen by the accepted request; these are trusted results, not client governance checkpoints."
     },
     "history_key_response_list_query": {
       "type": "object",
@@ -2859,7 +2920,7 @@
       ],
       "description": "Must match one byte-identical page entry at the same sequence. service_record_lost is structurally impossible for a normal record; all other dispositions are structurally impossible for a lost descriptor. installed on a manifest installs only its descriptor/admission, never epoch coverage."
     },
-    "history_key_response_ack_request": {
+    "history_key_response_ack_request_body": {
       "type": "object",
       "required": [
         "ack_token",
@@ -3191,7 +3252,7 @@
       },
       "additionalProperties": false
     },
-    "membership_authority_request": {
+    "membership_authority_request_body": {
       "type": "object",
       "description": "One exact current Realm/Circle membership at the requested current accepted antichain. Account Station query, not a history proof. Canonical body at most 64 KiB.",
       "required": [
@@ -3237,7 +3298,7 @@
       },
       "additionalProperties": false
     },
-    "history_authority_request": {
+    "history_authority_request_body": {
       "type": "object",
       "description": "Exact current history authorization for one scope and ActorId. Canonical request at most 64 KiB; no history proof or pagination.",
       "required": [
@@ -3294,6 +3355,78 @@
         }
       },
       "additionalProperties": false
+    },
+    "history_source_signer_result": {
+      "description": "One exact historical public signer result from the requester Account Station. The evidence ref is the only dictionary key. This result is not a portable proof or a grant for another record.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "source_signer_evidence_ref",
+            "signer_kind",
+            "signer_id",
+            "verification_method",
+            "public_key_b64u"
+          ],
+          "properties": {
+            "kind": {
+              "const": "authenticated"
+            },
+            "source_signer_evidence_ref": {
+              "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+              "description": "Content-addressed source signer evidence. Its embedded digest is the sole wire copy (encoding.md 4.0.1) and resolves through the request-receipt governance-dependency surface to the exact historical source signer and verification method."
+            },
+            "signer_kind": {
+              "enum": [
+                "account_device",
+                "principal",
+                "agent"
+              ]
+            },
+            "signer_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "verification_method": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+            },
+            "public_key_b64u": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$",
+              "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "source_signer_evidence_ref",
+            "signer_evidence",
+            "identity_link_public_key_b64u"
+          ],
+          "properties": {
+            "kind": {
+              "const": "receiver_mls"
+            },
+            "source_signer_evidence_ref": {
+              "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+              "description": "Content-addressed source signer evidence. Its embedded digest is the sole wire copy (encoding.md 4.0.1) and resolves through the request-receipt governance-dependency surface to the exact historical source signer and verification method."
+            },
+            "signer_evidence": {
+              "$ref": "#/$defs/minimal_metadata_mls_leaf_signer_evidence"
+            },
+            "identity_link_public_key_b64u": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$",
+              "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes."
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }
