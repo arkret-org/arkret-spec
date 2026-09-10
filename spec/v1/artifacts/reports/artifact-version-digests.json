@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-10.14",
-      "generated_at": "2026-09-10T07:32:10+08:00",
-      "content_digest": "sha256:a1d9802e06bb20f77277c98fcaafabe7379c270b07972bf19ae81e93918d9804"
+      "version": "2026-09-10.15",
+      "generated_at": "2026-09-10T11:06:33+08:00",
+      "content_digest": "sha256:4222169ecfd5b496c6c7370560e56b5b7bcc4516f8ef56570de1c9e2cdf6c890"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -249,9 +249,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-08.59",
-      "generated_at": "2026-09-10T08:41:44+08:00",
-      "content_digest": "sha256:e38a06b57f62721f679802db9765c024dc1adf5193beb1558c6f68a8475267bc"
+      "version": "2026-09-10.2",
+      "generated_at": "2026-09-10T11:06:34+08:00",
+      "content_digest": "sha256:75dc3b7b25d6cfc78a600af6a3b9f2afdd87422c11b732a92059d28fd5c0317e"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -297,9 +297,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-09-10.14",
-      "generated_at": "2026-09-10T07:35:59+08:00",
-      "content_digest": "sha256:d7d02d4bea0dcc4dcb1c8ab97fc0865b7e29e4556a92fccbac1bb0bdc6d0b91d"
+      "version": "2026-09-10.15",
+      "generated_at": "2026-09-10T11:06:33+08:00",
+      "content_digest": "sha256:55e1b6596febff79769a7587eff3e67ee31f686cd9b97dc16356baa088c174ff"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -387,9 +387,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-10.3",
-      "generated_at": "2026-09-09T19:38:40+00:00",
-      "content_digest": "sha256:b6992770043143bac8446e4e53b00d8bb2c6fbe9122bbc07665f68f675938e85"
+      "version": "2026-09-10.4",
+      "generated_at": "2026-09-10T11:06:33+08:00",
+      "content_digest": "sha256:589b46fe5e70f2bf53b46c58f4002d03a472ec9e7aa907cb24a9b8642af0c35f"
     }
   ]
 }

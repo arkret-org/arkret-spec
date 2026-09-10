@@ -1397,6 +1397,7 @@
           "dpop_binding_proof",
           "applet_authority",
           "proof",
+          "pairwise_endpoint_possession_proof",
           "credential_class"
         ],
         "closed": true,
@@ -1442,6 +1443,27 @@
               "dpop_binding_proof",
               "applet_authority",
               "proof"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PairwiseEndpointSessionGrantRequest",
+            "schema_kind": "object",
+            "required": [
+              "request_id",
+              "principal_id",
+              "device_id",
+              "audience_id",
+              "accepted_device_possession_proof",
+              "pairwise_endpoint_possession_proof"
+            ],
+            "properties": [
+              "request_id",
+              "principal_id",
+              "device_id",
+              "audience_id",
+              "accepted_device_possession_proof",
+              "pairwise_endpoint_possession_proof"
             ],
             "closed": true
           },

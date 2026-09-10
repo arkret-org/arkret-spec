@@ -964,6 +964,31 @@
         },
         {
           "type": "object",
+          "description": "Realm-local minimal-metadata pairwise endpoint holder. The grant account_id stays the real Account/Station session that proved current possession of this endpoint key at issuance; realm_id, actor_id and verification_method name the endpoint itself. device_binding is forbidden because this endpoint creates no account, Device or Agent. actor_id MUST use the account branch whose principal_id is the ak:did_core:key: projection of verification_method and whose station_id is the hosting Station, which equals the grant audience. This binding authenticates the endpoint to its own issuer and hosting Station only and MUST NOT be projected into Realm state, roster, directory, federation or any peer-visible surface.",
+          "required": [
+            "kind",
+            "realm_id",
+            "actor_id",
+            "verification_method"
+          ],
+          "properties": {
+            "kind": {
+              "const": "minimal_metadata_pairwise"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            },
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
           "required": [
             "kind",
             "device_id"

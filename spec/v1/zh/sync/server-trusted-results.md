@@ -188,9 +188,17 @@ scope 精确选择一个 Realm 或 Circle，group 必须属于此 scope。limit 
 effective limit 和 continuation 的下一请求无法满足 64 KiB，必须在返回未完成第一页前以 `limit_exceeded`
 失败；不得先给调用者一个无法继续的成功窗口。
 
-收件身份仅从已认证会话推导，禁止 caller 指定任意 recipient。绑定包含完整 AccountId（包括 Station）、
-设备或 Agent 的精确认证 endpoint；pairwise endpoint 还绑定 exact verification method 与 Realm affinity。
-AgentRuntime 使用获准 Agent 的认证引用、method 和 session endpoint，controller 的会话不能代领。
+收件身份仅从已认证会话推导，禁止 caller 指定任意 recipient。收件 endpoint 完全由该会话 SessionGrant 的
+signed `holder_binding` 分支确定：`human_device` 与 `agent_runtime` 分支绑定完整 AccountId（包括 Station）
+与设备或 Agent 的精确认证 endpoint；minimal-metadata pairwise 收件人使用
+`{kind="minimal_metadata_pairwise",realm_id,actor_id,verification_method}` 分支，它在完整 AccountId 之外还
+绑定 exact verification method 与 Realm affinity，并按
+[`../identity/key-management.md` §6.5](../identity/key-management.md) 在每次 admission 重新判定当前持有与
+撤销。AgentRuntime 使用获准 Agent 的认证引用、method 和 session endpoint，controller 的会话不能代领；
+pairwise 窗口同样不得由 controller、其它设备或 Realm membership 代领。本请求保持封闭的
+`{effective_scope, mls_group_id, limit?, cursor?}`，MUST NOT 为任何 endpoint class 新增 proof 字段。
+`holder_binding.realm_id` 必须与 `effective_scope` 所选 Realm（Circle scope 取其所属 Realm）逐字一致，
+否则按不可见规则返回 `not_found`。
 每页必须重新检查当前 Realm/PCR/Circle 资格、精确 recipient、成员 incarnation 和私有 Circle 可见性；
 不可见或不存在统一 `not_found`，当前 accepted 权威结果尚不可用返回 `frontier_unavailable`，不得退回旧授权。
 

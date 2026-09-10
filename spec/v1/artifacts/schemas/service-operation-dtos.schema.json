@@ -6713,6 +6713,76 @@
         }
       ]
     },
+    "PairwiseEndpointPossessionProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Realm-local pairwise endpoint Ed25519 possession proof for SessionGrant issuance only. The signature covers utf8('ak.session_grant_pairwise_endpoint_possession_proof.v1\\n') followed by RFC 8785 JCS of this complete object with signature omitted, and is made with the private key of verification_method. It is not a server challenge: freshness comes from the <=300 second signed window, the one-time account handoff, the issuer request identity and issuer-ledger exact replay. The Account Authority verifies possession only; it MUST NOT read Realm membership, directory or MLS state, and the hosting Station re-evaluates the actor's current active leaf and join on every admission.",
+      "required": [
+        "context",
+        "request_id",
+        "account_id",
+        "realm_id",
+        "actor_id",
+        "audience_id",
+        "holder_jkt",
+        "session_intent_digest",
+        "issued_at",
+        "expires_at",
+        "verification_method",
+        "signature"
+      ],
+      "properties": {
+        "context": {
+          "const": "ak.session_grant_pairwise_endpoint_possession_proof.v1"
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact Account/Station session that requests this grant; it equals the issued grant account_id and is never replaced by the pairwise principal."
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Realm affinity of the endpoint. A Circle-scoped read resolves to this same Realm; the proof never names a Circle."
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Complete pairwise ActorId. It MUST use the account branch, its principal_id MUST be the ak:did_core:key: projection of verification_method, and its station_id MUST equal audience_id."
+        },
+        "audience_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Stable did_core_id of the hosting Station that will consume the issued grant."
+        },
+        "holder_jkt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "RFC 7638 thumbprint of the DPoP holder key of the account handoff carrying this issuance."
+        },
+        "session_intent_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Digest of the complete canonical immutable issue intent, identical to the value bound by the sibling accepted-device proof."
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "MUST be after issued_at and no more than 300 seconds later."
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "Exact did:key:<multibase>#<same multibase> DID URL of the pairwise endpoint key. Its controller MUST project onto actor_id.account_id.principal_id; a mismatch returns verification_method_principal_mismatch."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "64-byte raw Ed25519 signature encoded as canonical unpadded base64url."
+        }
+      }
+    },
     "AgentSessionRefreshProof": {
       "type": "object",
       "additionalProperties": false,
@@ -7001,14 +7071,51 @@
         }
       }
     },
+    "PairwiseEndpointSessionGrantRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Standard issuance whose holder is a Realm-local minimal-metadata pairwise endpoint. Authorization is exactly the returning-human basis - the DPoP-bound account_handoff_grant, a matching per-request DPoP and the accepted-device possession proof - plus one additional possession proof for the pairwise endpoint key. The account-side current-device gate is not relaxed, and the issued grant carries holder_binding.kind=minimal_metadata_pairwise with no device_binding.",
+      "required": [
+        "request_id",
+        "principal_id",
+        "device_id",
+        "audience_id",
+        "accepted_device_possession_proof",
+        "pairwise_endpoint_possession_proof"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "audience_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "accepted_device_possession_proof": {
+          "$ref": "#/$defs/AcceptedDevicePossessionProof"
+        },
+        "pairwise_endpoint_possession_proof": {
+          "$ref": "#/$defs/PairwiseEndpointPossessionProof"
+        }
+      }
+    },
     "SessionGrantRequestBody": {
-      "description": "Closed returning-human, fresh-device recovery, or Agent issuance union. OIDC authorization codes are consumed only by account_handoff_request_body and never by this operation.",
+      "description": "Closed returning-human, Agent runtime, minimal-metadata pairwise endpoint or fresh-device recovery issuance union. OIDC authorization codes are consumed only by account_handoff_request_body and never by this operation.",
       "oneOf": [
         {
           "$ref": "#/$defs/HumanSessionGrantRequest"
         },
         {
           "$ref": "#/$defs/AgentSessionGrantRequest"
+        },
+        {
+          "$ref": "#/$defs/PairwiseEndpointSessionGrantRequest"
         },
         {
           "$ref": "#/$defs/RecoverySessionGrantRequest"
@@ -7048,7 +7155,7 @@
     },
     "SignedSessionGrantClaims": {
       "type": "object",
-      "description": "Canonical signed claims carried by an ak.session.grant JWT. Except for the fixed kind and derived jti, the closed issuance preimage fields are copied from these claims. credential_class and holder_binding are signed and jointly determine the authorization profile; recovery_session is never refreshable or upgradable and recovery completion issues a distinct standard credential. Verifiers MUST RFC 8785-canonicalize the complete claim-derived preimage, recompute SHA-256, prepend the active sha256 suite wire code, derive ak:session_grant:<44-char-token>, and require byte equality with jti. Changing either binding therefore changes the ID.",
+      "description": "Canonical signed claims carried by an ak.session.grant JWT. Except for the fixed kind and derived jti, the closed issuance preimage fields are copied from these claims. credential_class and holder_binding are signed and jointly determine the authorization profile; recovery_session is never refreshable or upgradable and recovery completion issues a distinct standard credential. A standard grant whose holder_binding is minimal_metadata_pairwise is likewise never refreshable: neither refresh branch can revalidate a pairwise endpoint, so a new issuance with a fresh possession proof is required. Verifiers MUST RFC 8785-canonicalize the complete claim-derived preimage, recompute SHA-256, prepend the active sha256 suite wire code, derive ak:session_grant:<44-char-token>, and require byte equality with jti. Changing either binding therefore changes the ID.",
       "required": [
         "kind",
         "jti",
@@ -7127,7 +7234,8 @@
           "type": "string",
           "enum": [
             "account_handoff",
-            "agent_key_proof"
+            "agent_key_proof",
+            "pairwise_endpoint_proof"
           ]
         },
         "scope_details": {
@@ -7168,7 +7276,8 @@
                   "kind": {
                     "enum": [
                       "human_device",
-                      "agent_runtime"
+                      "agent_runtime",
+                      "minimal_metadata_pairwise"
                     ]
                   }
                 },

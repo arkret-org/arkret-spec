@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.3",
+  "version": "2026-09-10.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T19:38:40+00:00",
+  "generated_at": "2026-09-10T11:06:33+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5744,6 +5744,21 @@
       "description": "Transcript KAT for ak.session_grant_accepted_device_possession_proof.v1: the accepted device signs the closed issue-or-refresh intent binding and context substitution is rejected.",
       "covers_proof_contexts": [
         "ak.session_grant_accepted_device_possession_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.session_grant_pairwise_endpoint_possession.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.session_grant_pairwise_endpoint_possession_proof.v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.session_grant_pairwise_endpoint_possession_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
