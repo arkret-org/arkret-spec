@@ -38,7 +38,7 @@ updated: 2026-07-02
 当 Alice 想通过电子邮件 `bob@example.com` 邀请 Bob 加入 Realm 时：
 
 1. **发起盲化邀请**：Alice 的客户端向她的 Station 或授权的 Identity Verification Service 提交一个针对 3PID 的邀请。公开持久化 Event 中 MUST NOT 写入明文邮箱、手机号或可枚举的未加盐哈希。
-2. **生成邀请令牌**：验证服务生成至少 128 bit 熵的随机 `invite_token`，并生成独立 `token_salt`。`invite_token` MUST 只通过外部通知渠道发送给被邀请人，不得写入公开 Event。
+2. **生成邀请令牌**：验证服务按所选模式生成随机 `invite_token`（offline_token 至少 128 bit 熵；lookup 见 §3.2），并生成独立 `token_salt`。`invite_token` MUST 只通过外部通知渠道发送给被邀请人，不得写入公开 Event。
 3. **写入占位符 Event**：Alice 向 Realm 提交一个特殊的 `ak.invite.third_party` Event，其 `payload` 为：
 
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_third_party_create_payload
@@ -58,6 +58,26 @@ updated: 2026-07-02
 ```
 
 `token_commitment` 是盐化承诺；`token_salt` 原值只保存在验证服务的私有状态或加密审计记录中。`oob_code_kind` 是 wire-level discriminator：`offline_token` 表示 OOB code 自身满足 ≥128-bit 熵并按 commitment 校验；`lookup` 表示短码只作为服务端私有 lookup 表索引，必须走 pepper/HMAC 存储与限速。该结构的 object 形态由 [`invite.schema.json`](../../artifacts/schemas/invite.schema.json) 的 `third_party_invite` 定义。`verification_public_key` 是验证服务生成的临时签名公钥，用于后续 claim / 认领验证。若需要在 UI 显示目标邮箱，应只在邀请者本地私有状态中保存，或以 E2EE 方式保存给有权查看邀请详情的管理员。
+
+### 3.1.1 两种模式的 commitment 与 token 字符空间（normative）
+
+治理接纳与当前邀请权限由服务器按 [`server-trusted-results.md`](./server-trusted-results.md) 验证。
+普通客户端消费自己 Station 的结果并核对请求与待签材料绑定，不收集或重放治理闭包。
+独立 Identity Verification Service 属于服务验证角色，不能把调用者自报的成功当作已接受邀请；
+完整 DID 的 method adapter 投影匹配仅检查标识绑定，不代替主体认证或历史授权。
+
+`offline_token` 与 `lookup` 的公开 `third_party_invite` 都 MUST 携带 `token_commitment`，其固定算法为
+`SHA-256(token_salt || UTF8(invite_token))`，输出 `sha256:<lowercase hex>`。`token_salt` MUST 是每邀请
+独立生成的 256-bit 随机秘密，只留在验证服务；lookup 的 pepper/HMAC 索引不能替代这个 claim 绑定承诺。
+lookup MUST 携带 `lookup_table_ref`、`pepper_id`，MUST NOT 携带 `token_salt_id`、`token_entropy_bits`；
+offline_token MUST 携带 `token_salt_id`、`token_entropy_bits >= 128`，MUST NOT 携带 lookup 字段。
+两种模式 MUST 使用同一公开 commitment 完成 present outcome、binding proof transcript 与 claim 的逐字匹配。
+
+present 请求的 `invite_token` 接受去除展示分隔符后的 6..512 个 ASCII 字母、数字、`_` 或 `-`。
+这只是两种模式共同的输入词法：服务 MUST 从已保存记录确定模式，不能由长度推断模式或降低 offline_token
+的 128-bit 熵要求。lookup 短码 MUST 至少 6 位，继续执行 §3.2 的限速与三次失败失效规则。
+`subject_did` MUST 是完整 method-native DID；验证服务 MUST 通过注册的 DID method adapter 检查其投影等于
+`subject_account_id.principal_id`，MUST NOT 把 DidCoreId 字符串当作完整 DID 接受。
 
 ### 3.2 发送外部通知
 
@@ -85,8 +105,8 @@ https://app.arkret.example/invite#token=<invite_token>
 
 > **OOB code 熵约束（normative）**：上面 `XYZ7-K9MP-Q4LB-A2HN-V8RD-T6FW` 是说明性占位，**不**是允许的固定低熵格式。真实 OOB code MUST 满足下列**任一**模式才能被接受：
 >
-> 1. **离线可校验形态**：与 URL `#token=` 等价，MUST ≥ 128-bit 真随机熵（即至少 22 个 base32 字符或等价编码）。短分隔符（破折号）允许出现以方便用户录入，但不计入熵；编码字母表 MUST 排除易混字符（去掉 `0/O/1/I/L`），熵下限按剩余字母表大小重算。
-> 2. **服务端 lookup 短码形态**：可以使用较短人类可读码（如示例 `XYZ-123-ABC`），但 MUST 全部满足：(a) 仅作为服务端私有 lookup 表的索引，token bytes 本身不参与 claim 校验；(b) 失败 claim 严格限速（每 IP / 设备 / 邀请者 同时 ≤ 5 次/分钟、≤ 50 次/天）；(c) 配合服务端 pepper / HMAC 存储，使短码无法离线枚举；(d) 短码 wire form 加入 `oob_code_kind="lookup"` 字段以便 wire-level 校验区分；(e) 同一短码命名空间下连续 3 次错误尝试 MUST invalidate 该 invite（强制邀请者重发）。
+> 1. **离线可校验形态**：与 URL `#token=` 等价，MUST ≥ 128-bit 真随机熵（即至少 26 个均匀随机 base32 字符或等价编码）。短分隔符（破折号）允许出现以方便用户录入，但不计入熵；编码字母表 MUST 排除易混字符（去掉 `0/O/1/I/L`），熵下限按剩余字母表大小重算。
+> 2. **服务端 lookup 短码形态**：可以使用较短人类可读码（如示例 `XYZ-123-ABC`），但 MUST 全部满足：(a) 仅作为服务端私有 lookup 表的索引，原始 token bytes 不进入 claim，claim 仍须验证 §3.1.1 的公开 token_commitment；(b) 失败 claim 严格限速（每 IP / 设备 / 邀请者 同时 ≤ 5 次/分钟、≤ 50 次/天）；(c) 配合服务端 pepper / HMAC 存储，使短码无法离线枚举；(d) 短码 wire form 加入 `oob_code_kind="lookup"` 字段以便 wire-level 校验区分；(e) 同一短码命名空间下连续 3 次错误尝试 MUST invalidate 该 invite（强制邀请者重发）。
 >
 > 任何不能满足以上 (1) 或 (2) 全部条件的 OOB code 不得作为生产 wire 形态。conformance vector `ak.vector.invite.oob_code_entropy.v1` 覆盖短熵 OOB code claim 被拒、lookup 形态超限被 invalidate 两种情况。
 

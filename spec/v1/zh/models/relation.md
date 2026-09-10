@@ -186,11 +186,27 @@ v1 不提供 Realm 级关系数量限制配置或注册机制。标准关系按 
 
 ## 6. 冲突处理
 
+本节的历史准入、候选完整性与因果归约由服务器验证；普通客户端按
+[`server-trusted-results.md`](../sync/server-trusted-results.md) 消费自己 Station 在认证请求下提供的
+结果，核对账号、Realm/scope、目标、basis 与待签意图，不为认证该结果重放治理历史或执行完整性挑战。
+服务器仍须验证外部输入，projection diagnostic 本身不能替代接纳证据或授权。
+
 Relation conflict 的处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。并发重复或标准规则下互斥的候选按 `require_review` 处理；不同 Actor 的 `assigned_to` 记录不是互斥候选。
 
 - `require_review` MUST 输出包含全部 heads 的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。后续 resolution Event / Control Move MUST 在 causal basis 中覆盖它要解决的完整 current head set；漏掉任一 current head 时仍保持 `require_review`。
 
 **conflict head 集合上限（normative）**：同一去重 key 下并发候选总数 MUST 受上限约束，复用 sibling fork 上限——v1 无条件上限为 **16**（与 [`event-and-patch.md` §2.6](./event-and-patch.md) 的 `(actor_id, actor_seq, prev_frontier_digest)` sibling 上限同值同范式；数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)）。当同一去重 key 的并发候选数超过 16 时，reducer MUST 对该去重 key 的整组候选 `failed_precondition`（`reason=relation_conflict_fanout_exceeded`）；归一只能由后续基于最新 CBS query basis、覆盖完整 current head set 的修复 Event / Control Move 产生。上限以内全部 heads 都保留，不存在 winner/loser 分类。
+
+**唯一主冲突域（normative）**：`relation-kind-registry.json` 的每个可直接写 shape 登记
+`primary_conflict_domain`。`tuple` 使用完整 `(realm_id, relation_kind, from_ref, to_ref)`；
+`from` 使用 `(realm_id, relation_kind, from_ref)`，其完整 tuple 重复已经包含在同组中，MUST NOT 再生成
+可独立裁决的 tuple 子组。`truth_source` 仅通过原来源 cell 处理。不同 Actor 的 `assigned_to` 仍属不同 tuple。
+
+**超限证据保留（normative）**：第 17 条及之后已通过基础准入的候选 MUST 与前 16 条一样保留，
+整组不产生 active edge，普通诊断／查询返回 `failed_precondition`（`relation_conflict_fanout_exceeded`）。
+该错误不得被实现为只丢弃新到的候选、保留先到 16 条的截断，也不得删除已保留的 Event／来源证据。
+完整候选的读取与修复证据不受普通诊断 16 条输出上限约束，仍受各自证据合同的资源与授权约束。
+Circle 只参与读取和操作授权，不属于冲突 key；不同 Circle 下同一 Realm 的同 key 事实仍参与同一组冲突。
 
 **与 over-fork sibling 上限的分层关系（normative 澄清）**：本 relation fanout 上限（按去重 key `(realm_id, relation_kind, from_ref, to_ref)` 计数）与 [`event-and-patch.md` §2.6](./event-and-patch.md) 的 actor_seq sibling 上限（按 `(actor_id, actor_seq, prev_frontier_digest)` 计数）是**两层正交的限流**，作用于不同分桶。二者都 MUST 作为**收敛后候选集的纯函数**求值——即对给定的已收敛候选集，触发与否只取决于集合本身，**不依赖到达顺序、分桶处理先后或本地接收时序**；因此任意观察到相同候选集的 receiver 计算出相同的 quarantine / reject 子集，两层限流的触发先后不产生跨 receiver 分歧。pre-convergence(尚未收齐全部并发候选)的瞬态拒绝是 fail-closed 安全的，补齐缺失候选后重判收敛到同一结果。
 

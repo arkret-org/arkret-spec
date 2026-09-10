@@ -105,6 +105,7 @@
       "type": "object",
       "description": "Wire-level 3PID/OOB invite binding. No plaintext email/phone/SMS code is allowed here. `oob_code_kind` distinguishes offline high-entropy token validation from server-side lookup short-code validation.",
       "required": [
+        "token_commitment",
         "oob_code_kind",
         "verification_id",
         "verification_public_key"
@@ -118,7 +119,7 @@
         "token_commitment": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Salted commitment to a high-entropy invite token. Required for offline_token mode."
+          "description": "SHA-256 of the private per-invite salt followed by the raw token UTF-8 bytes. Required in both modes; lookup uses a secret 256-bit salt in addition to its rate-limited pepper/HMAC index."
         },
         "token_salt_id": {
           "type": "string",
@@ -186,7 +187,21 @@
               "token_commitment",
               "token_salt_id",
               "token_entropy_bits"
-            ]
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "lookup_table_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "pepper_id"
+                  ]
+                }
+              ]
+            }
           }
         },
         {
@@ -204,11 +219,25 @@
             "required": [
               "lookup_table_ref",
               "pepper_id"
-            ]
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "token_salt_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "token_entropy_bits"
+                  ]
+                }
+              ]
+            }
           }
         }
       ],
-      "$comment": "Token sourcing is closed: the invite_token MUST come from the URL fragment or an out-of-band code. A claim whose token was sourced from a URL query string or path segment MUST be rejected with reason third_party_invite_token_in_query (zh/sync/third-party-invites.md §3.2). That rejection is produced by the verification-service token presentation endpoint; operation-registry.json registers no operation for it, so this schema note is the machine carrier of the reason code."
+      "$comment": "Token presentation is registered as ak.open.third_party_invite.command.present_token.v1. URL query/path sourcing is rejected with third_party_invite_token_in_query."
     },
     "third_party_invite_present_request_body": {
       "type": "object",
@@ -223,7 +252,7 @@
       "properties": {
         "invite_token": {
           "type": "string",
-          "minLength": 22,
+          "minLength": 6,
           "maxLength": 512,
           "pattern": "^[A-Za-z0-9_-]+$",
           "description": "Raw invite token read from the URL fragment or entered as an out-of-band code, with any user-facing separators removed. Offline tokens are >= 128 bits of entropy; lookup short codes are validated against the service-private lookup table (section 3.2)."

@@ -249,9 +249,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-08.58",
-      "generated_at": "2026-09-10T08:41:43+08:00",
-      "content_digest": "sha256:6c58f5f1dbf9e5d813ac2b42173686dc90619cbb8cb955c2b8da9df79948d4cb"
+      "version": "2026-09-08.59",
+      "generated_at": "2026-09-10T08:41:44+08:00",
+      "content_digest": "sha256:e38a06b57f62721f679802db9765c024dc1adf5193beb1558c6f68a8475267bc"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -333,9 +333,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",
-      "version": "2026-09-08.1",
+      "version": "2026-09-09.1",
       "generated_at": null,
-      "content_digest": "sha256:f762426f7c422b6f805a414ada965ff2ab7ad8e53bdce9248755c015cfb4fbd7"
+      "content_digest": "sha256:ec12a44105a0626d2507c86e9397413a188cb63ee751ee9d5487fc0ef812e7ad"
     },
     {
       "path": "spec/v1/artifacts/registry/repeated-enum-registry.json",
