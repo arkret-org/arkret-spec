@@ -8348,8 +8348,8 @@
             "verification_method": {
               "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload/properties/verification_method"
             },
-            "public_key_digest": {
-              "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload/properties/public_key_digest"
+            "public_key": {
+              "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload/properties/public_key"
             },
             "accountable_principal_id": {
               "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload/properties/accountable_principal_id"
@@ -8377,7 +8377,7 @@
             "agent_id",
             "key_id",
             "verification_method",
-            "public_key_digest",
+            "public_key",
             "accountable_principal_id",
             "agent_key_scope",
             "audience",

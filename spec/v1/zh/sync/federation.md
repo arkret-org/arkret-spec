@@ -685,25 +685,34 @@ peer 结果在 `realm_state != "received"` 时 MUST 携带该 exact 提案的
 #### 5.3.4 加入签名前准备（normative）
 
 客户端 MUST 通过 `ak.self.realm_join.command.prepare.v1`（`POST /_arkret/self/realm-joins/prepare`）取得本次加入的
-全部待签输入。请求体是 closed `realm-join-intake.schema.json#/$defs/self_prepare_request_body`，字段依次为
-`request_id`、`account_id`、`realm_id`、`intent`；MUST NOT 携带 candidate endpoint、自报 `seal_basis` 或任何
-调用方自称的治理事实。
+全部待签输入。请求体是 closed `realm-join-intake.schema.json#/$defs/self_prepare_request_body`，包含
+`request_id`、`account_id`、`realm_id`、`intent`、客户端预先选定的 `created_at` 与可选 `hlc`；MUST NOT
+携带 candidate endpoint、自报 `seal_basis` 或调用方自称的治理事实。时间或意图改变必须产生新的请求身份。
 
-自己的 Station MUST：本地无该 Realm 的已接受状态时按 §5.3.1 完成有界引导并用 `dependency_bundles` 独立验证；
-随后冻结 closed `self_prepare_outcome`：逐字回显 `request_id`、`account_id`、`realm_id`，给出绑定 exact 声明意图
-（含从不回显的受保护邀请凭据）的 `request_digest`、已验证 `governance_facts`，以及 `authoring_core`
-（`event_kind`、canonical `payload`、必要 `preconditions`），并给出 `observed_at` 与 `expires_at`。
+自己的 Station MUST 在本地无该 Realm 已接受状态时按 §5.3.1 完成有界引导并独立验证 dependency_bundles；
+随后冻结 closed `self_prepare_outcome`：请求/账号/Realm 回显、绑定完整请求（含从不回显的邀请凭据）的
+`request_digest`、`governance_facts`、`accepted_actor_frontier`、`authoring_device_generation_ref`、完整
+`unsigned_event`、`observed_at` 与 `expires_at`。unsigned_event 包含 EventId、kind、scope、actor、序号、
+原样复制的时间、prev_refs、refs、seal_basis、payload 与必要 preconditions，仅不含 proofs；不得返回待客户端
+补齐的部分 authoring core。actor_seq 与 prev_refs MUST 从同一 accepted `(realm_id, actor_id)` frontier 派生。
+非空链的 rejoin 不得初始化为 seq=0。authenticated device generation 由自己 Station 当前设备授权求值，供
+durable outbound fence 使用；不能要求尚未加入的客户端另读 membership-gated frontier 或 keys/query。
 
-客户端只核对**目标、用途、请求绑定与待签内容绑定**：`account_id` 是自己、`realm_id` 与 `event_kind` 与用户意图
-一致、`request_digest` 等于自己请求的摘要、`payload` 与 `preconditions` 逐字节即所签内容。它按现行编码补齐
-`event_id`、`scope_ref`、`actor_id`、`actor_seq`、`created_at`、`hlc`、`prev_refs`、`refs` 与 `proofs`，签名后经
-`ak.self.events.command.submit.v1` 提交。客户端 MUST NOT 下载远端 Event / DID / Seal 闭包，MUST NOT 重算 Seal
-joined roots，MUST NOT 选择 candidate endpoint，也 MUST NOT 运行 reducer 生成效果。
+客户端签署前 MUST 核对完整 AccountId、actor、realm/scope、kind、用户意图、payload、引用/授权与 preconditions、
+exact request digest、时间逐字回显、expiry 和会话安装代际；重算内容寻址 EventId并逐字相等。同时检查
+accepted_actor_frontier 的 Realm/actor、序号边界、排序完整前驱集合与 unsigned_event.actor_seq/prev_refs 相等，
+以及与本地已确认接受事实有无矛盾。payload 必须逐字等于请求意图的 canonical projection：invite_accept 仅有 invite_id 与完整 invitee_account_id；member_join/knock 仅有 realm_id、完整 account ActorId member_id、membership 与请求原样 gate_proofs（空时省略）。不得添加 strand_id、reason、membership_cause、agent_controller_binding、invite_ref 或扩展成员；refs 固定为空。preconditions 恰好一条 head_eq，value 必须存在，values/predicate_id 必须缺席：invite_accept 的 cell 必须是以完整 invitee AccountId 派生的 live_target，value 为该 invite_id 无损改写的 EventId；member_join/knock 的 cell 必须是完整 account ActorId 的 member.state，value 仅可为 Station 提供的 null/join/knock/leave/ban。客户端只核对闭合形状及目标绑定，不自行求值 accepted state。
+签名前及异步准备检查完成后，客户端必须再次确认结果 AccountId、captured submitter AccountId 与 active device scope 完全相等，device id 与实际捕获的 signer 相等；切换账号/Station/设备、卸载会话或过期的结果必须丢弃。签名必须使用已核对的同一 signer 实例。自己的 Station 返回缓存或新结果前均必须检查当前 durable device revocation gate 为 Active；pending revoke、revoked、authority/generation mismatch 均不得返回可签材料。
+只追加 producer proof 后经 `ak.self.events.command.submit.v1` 提交；不得
+在返回后补时间、业务字段、scope 或 chain。客户端不下载远端 DID/Event/Seal 闭包、不运行治理 reducer。
+合法跨设备 sibling 按 actor-chain 规则允许；不存在的本地 journal、签发即烧号的 floor 不得作为接纳前提。
+规范允许的 reanchor/fence/quarantine 重算仍按各自上下文处理，不能套永久单调缓存拒绝。
 
-同一 canonical 请求在保留窗口内 MUST 返回 byte-identical 材料。**准备不是接纳**：提交阶段仍重新检查当前
-authority、新鲜度与 basis；`expires_at` 之后或预条件不再成立时 MUST 重新准备，任何服务 MUST NOT 在签名后补填或
-改写 `seal_basis`、`payload` 或 `preconditions`。`restricted_join` 与 application receipt 在其正式 payload /
-precondition 分支登记前 MUST 返回 `unsupported_feature`。
+同一请求身份在本账号、会话代际与 operation 下 MUST 只绑定一份 canonical request；异 bytes 返回
+duplicate_conflict。同一 canonical 请求在保留窗口内返回 byte-identical 材料。准备不是接纳：submit 重新
+检查当前 authority、freshness 与 basis；expires_at 后或 preconditions 不再成立必须重新 prepare，绝不改写
+已签字节。prepared frontier 不预占序号。该收敛只把签署前准备合为一次 RPC；MLS admission、claim、Welcome
+和 durable consume 保留其独立安全步骤。restricted_join 与 application receipt 在正式分支登记前返回 unsupported_feature。
 
 ## 6. 联邦级服务发现
 

@@ -7,8 +7,8 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 195,
-    "digest_copy_or_commitment": 20,
+    "complete_event_id": 196,
+    "digest_copy_or_commitment": 17,
     "external_event_namespace": 1
   },
   "fields": [
@@ -52,12 +52,6 @@
       "schema": "account-current-result.schema.json",
       "json_pointer": "/$defs/value_fork_resolution/anyOf/1/properties/resolution_event_digest",
       "field": "resolution_event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "account-operations.schema.json",
-      "json_pointer": "/$defs/account_binding_receipt/properties/head_event_digest",
-      "field": "head_event_digest",
       "classification": "digest_copy_or_commitment"
     },
     {
@@ -280,12 +274,6 @@
       "schema": "agent-signer-evidence.schema.json",
       "json_pointer": "/$defs/key_transition_witness/properties/transition_event_id",
       "field": "transition_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-signing-key-binding.schema.json",
-      "json_pointer": "/properties/agent_key_authorize_event_id",
-      "field": "agent_key_authorize_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -787,12 +775,6 @@
       "classification": "complete_event_id"
     },
     {
-      "schema": "identity-receipt.schema.json",
-      "json_pointer": "/properties/head_event_digest",
-      "field": "head_event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
       "schema": "identity-resolution.schema.json",
       "json_pointer": "/$defs/principal_resolution_audit_request/properties/after_resolution_event_ref",
       "field": "after_resolution_event_ref",
@@ -1004,6 +986,18 @@
     },
     {
       "schema": "realm-join-intake.schema.json",
+      "json_pointer": "/$defs/realm_join_unsigned_event/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "realm-join-intake.schema.json",
+      "json_pointer": "/$defs/realm_join_unsigned_event/properties/prev_refs",
+      "field": "prev_refs",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "realm-join-intake.schema.json",
       "json_pointer": "/$defs/self_application_status_outcome/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
@@ -1133,12 +1127,6 @@
       "json_pointer": "/$defs/AgentMembershipCascadeOutcome/properties/controller_transition_event_id",
       "field": "controller_transition_event_id",
       "classification": "complete_event_id"
-    },
-    {
-      "schema": "service-operation-dtos.schema.json",
-      "json_pointer": "/$defs/DidOperationSubmitOutcome/properties/head_event_digest",
-      "field": "head_event_digest",
-      "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "service-operation-dtos.schema.json",

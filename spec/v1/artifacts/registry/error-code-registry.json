@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-10.10",
-  "generated_at": "2026-09-10T12:18:51+08:00",
+  "version": "2026-09-10.11",
+  "generated_at": "2026-09-10T22:14:26+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2617,7 +2617,7 @@
         "device_recovery",
         "schema_validation"
       ],
-      "description": "A `recipient_method=hardware_wrapped_key` key-backup envelope, or a recovery proof requiring hardware attestation, lacks an `attestation` chain that the receiver can verify against the active recovery policy's `trusted_recovery_services[]`. See zh/identity/key-management.md §7.5.5."
+      "description": "A `recipient_method=hardware_wrapped_key` key-backup envelope, or a recovery proof requiring hardware attestation, lacks an `attestation` chain that the receiver can verify against the active recovery policy's `methods[kind=trusted_recovery_service].services[]`. See zh/identity/key-management.md §7.5.5."
     },
     {
       "code": "audience_mismatch",
@@ -4811,7 +4811,7 @@
         "schema_validation",
         "device_recovery"
       ],
-      "description": "A recovery policy, receipt, or proof names a proof kind outside the ak.schema.recovery_policy.v1 allowed_proof_kinds enum. Producers MUST use one of did_root, recovery_unlock, device_quorum, trusted_recovery_service, or threshold_recovery."
+      "description": "A recovery policy, receipt, or proof names a proof kind outside the ak.schema.recovery_policy.v1 methods kind union. Producers MUST use one of did_root, recovery_unlock, device_quorum, trusted_recovery_service, or threshold_recovery."
     },
     {
       "code": "recovery_session_challenge_mismatch",

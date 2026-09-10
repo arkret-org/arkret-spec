@@ -601,3 +601,7 @@ Arkret v1 不允许实现用单一聚合服务隐藏已声明的 Station / Direc
 - 多 Station 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Realm policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
 - 加密 envelope、Station device/key surface、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`device-lifecycle.md`、`key-management.md` 与 `media-and-blob.md` 执行。
 - Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端 MUST NOT 仅信任外部 projection 或 search dump。
+
+### 普通客户端与服务器的验证职责
+
+普通 self 结果的唯一责任矩阵见 [服务器信任与结果 §1.1](../sync/server-trusted-results.md#11-攻击者与责任矩阵)。自己 Station 负责当前治理 gate 和远端材料验证；客户端负责签字意图、已知身份/撤销、exact授权实例及 E2E 密码学。Signal 在认证 self 投递边界完成 current gate，不要求客户端逐帧 signer RPC；MLS leaf 连续性不替代当前授权。typed prepare 一次冻结完整 unsigned Event，客户端核对后仅附加 proof；不得在签后补字段。

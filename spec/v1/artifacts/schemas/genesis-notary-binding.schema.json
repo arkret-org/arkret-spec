@@ -36,13 +36,12 @@
     },
     "genesis_notary_outcome": {
       "type": "object",
-      "description": "Complete own-Station result. notary is copied verbatim into the genesis object; the caller still authors and signs the create Event itself. observed_at records the evaluation instant and is not a validity window or authorization lease, because the frozen descriptors become immutable historical Seal-signer truth once the genesis is accepted.",
+      "description": "Complete own-Station signing input for this exact request and account session. The notary is copied verbatim into the caller-signed genesis; accepted descriptors become immutable historical Seal-signer facts.",
       "required": [
         "request_id",
         "account_id",
         "intended_purpose",
-        "notary",
-        "observed_at"
+        "notary"
       ],
       "properties": {
         "request_id": {
@@ -56,9 +55,6 @@
         },
         "notary": {
           "$ref": "./realm.schema.json#/properties/notary"
-        },
-        "observed_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false,

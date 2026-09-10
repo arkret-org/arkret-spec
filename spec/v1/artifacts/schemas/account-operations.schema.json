@@ -1142,7 +1142,6 @@
         "control_key_digest",
         "operation_status",
         "operation_digest",
-        "head_event_digest",
         "issued_at",
         "proof"
       ],
@@ -1203,18 +1202,15 @@
           ]
         },
         "operation_digest": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "head_event_digest": {
           "$ref": "#/$defs/sha256_digest",
-          "description": "DID registry log head digest for the exact did:webvh inception entry accepted during this binding saga; it is not a PCR Event head."
+          "description": "SHA-256 of RFC 8785 JCS of the complete frozen typed DidOperationSubmitRequestBody, including the exact method-native operation and all its proofs. The verifier MUST recompute it from the submitted operation; serializing a raw JSON transport with different optional-member treatment is not equivalent."
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Account Authority detached proof. payload_digest is SHA-256 over RFC 8785 JCS of the complete receipt with proof omitted, including binding_kind, principal_id, did, did_version_id, control_key_digest, operation/head digests, and the identity-creation lease/fence only when that branch applies. JWS signs canonical_json({context:'ak.account_binding_receipt_proof.v1', payload_digest, account_authority_id, account_subject, principal_id, did, did_version_id, control_key_digest, verification_method, created_at}); proof.created_at MUST equal issued_at and verification_method MUST be an assertion method of account_authority_id valid at issued_at."
+          "description": "Account Authority detached proof. payload_digest is SHA-256 over RFC 8785 JCS of the complete receipt with proof omitted, including binding_kind, principal_id, did, did_version_id, control_key_digest, operation_digest, and the identity-creation lease/fence only when that branch applies. JWS signs canonical_json({context:'ak.account_binding_receipt_proof.v1', payload_digest, account_authority_id, account_subject, principal_id, did, did_version_id, control_key_digest, verification_method, created_at}); proof.created_at MUST equal issued_at and verification_method MUST be an assertion method of account_authority_id valid at issued_at."
         }
       },
       "allOf": [

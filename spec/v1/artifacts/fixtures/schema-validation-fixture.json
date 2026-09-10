@@ -2926,8 +2926,12 @@
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
         "key_id": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
         "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
-        "public_key_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "signing_key_binding_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "public_key": {
+          "kty": "OKP",
+          "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "algorithm": "Ed25519",
+          "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        },
         "accountable_principal_id": "ak:did_core:webvh:z6mkfixture",
         "agent_key_scope": {
           "actions": [
@@ -7173,8 +7177,7 @@
             "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           }
-        },
-        "observed_at": "2026-09-10T00:00:00.000Z"
+        }
       }
     },
     {
@@ -7187,8 +7190,7 @@
           "principal_id": "ak:did_core:web:alice.example",
           "station_id": "ak:did_core:web:station.example"
         },
-        "intended_purpose": "collaboration",
-        "observed_at": "2026-09-10T00:00:00.000Z"
+        "intended_purpose": "collaboration"
       },
       "first_expected_error": "contains:'notary' is a required property"
     },
@@ -7217,7 +7219,6 @@
             "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           }
         },
-        "observed_at": "2026-09-10T00:00:00.000Z",
         "method_history_evidence": {}
       },
       "first_expected_error": "contains:was unexpected"
@@ -7249,11 +7250,6 @@
       "instance": {
         "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
         "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd",
-        "seal_basis": {
-          "leaves": [
-            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-          ]
-        },
         "route": {
           "service_id": "ak:did_core:web:media.example",
           "service_kind": "media_service",
@@ -7280,11 +7276,6 @@
       "instance": {
         "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
         "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd",
-        "seal_basis": {
-          "leaves": [
-            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-          ]
-        },
         "route": {
           "service_id": "ak:did_core:web:media.example",
           "service_kind": "media_service",
@@ -7311,11 +7302,6 @@
       "instance": {
         "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
         "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd",
-        "seal_basis": {
-          "leaves": [
-            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-          ]
-        },
         "route": {
           "service_id": "ak:did_core:web:media.example",
           "service_kind": "media_service",
@@ -7338,11 +7324,6 @@
       "instance": {
         "request_id": "ak:request:01964137-0000-7000-8000-000000000011",
         "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd",
-        "seal_basis": {
-          "leaves": [
-            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-          ]
-        },
         "route": {
           "service_id": "ak:did_core:web:media.example",
           "service_kind": "media_service",

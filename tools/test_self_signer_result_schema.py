@@ -78,9 +78,9 @@ class SelfSignerResultTests(unittest.TestCase):
         result["signer_evidence_ref"] = "ak:signer_evidence:sha256:" + "a" * 64
         self.assertFalse(validator.is_valid(result))
 
-    def test_historical_agent_retains_real_authorization_and_frozen_source(self):
+    def test_historical_agent_retains_authorization_without_source_provenance(self):
         selector = self.request("historical_event")["queries"][0]
-        result = {"selector": selector, "status": "resolved", "key": {"actor": selector["actor"], "verification_method": selector["verification_method"], "public_key_b64u": "A" * 43, "authorization_ref": selector["event_id"]}, "accepted_at": "2026-09-10T00:00:00.000Z", "signer_evidence_ref": "ak:signer_evidence:sha256:" + "a" * 64}
+        result = {"selector": selector, "status": "resolved", "key": {"actor": selector["actor"], "verification_method": selector["verification_method"], "public_key_b64u": "A" * 43, "authorization_ref": selector["event_id"]}, "accepted_at": "2026-09-10T00:00:00.000Z"}
         validator = self.validator("historical_agent_result")
         validator.validate(result)
         del result["key"]["authorization_ref"]

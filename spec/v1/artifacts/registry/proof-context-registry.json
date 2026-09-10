@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.16",
+  "version": "2026-09-10.17",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T12:18:51+08:00",
+  "generated_at": "2026-09-10T22:14:26+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -279,7 +279,7 @@
         "pairing_challenge_transcript_digest"
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
-      "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_target_attestation"
+      "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof"
     },
     {
       "context": "ak.device_authorize_possession_proof.v1",

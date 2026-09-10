@@ -266,6 +266,7 @@ grpc:
       BackupSeriesErase: ak.self.keys.backup_series.command.erase.v1
       BackupsDelete: ak.self.keys.backups.resource.delete.v1
       BackupsIssueDeleteChallenge: ak.self.keys.backups.command.issue_delete_challenge.v1
+      BackupsIssueUnlockChallenge: ak.self.keys.backups.command.issue_unlock_challenge.v1
       BackupsUnlock: ak.self.keys.backups.command.unlock.v1
       BackupsList: ak.self.keys.backups.read.list.v1
       BackupsReplace: ak.self.keys.backups.resource.replace.v1
@@ -508,6 +509,7 @@ mq:
     self.keys.keypackages.command.revoke: ak.self.keys.keypackages.command.revoke.v1
     self.keys.backups.resource.replace: ak.self.keys.backups.resource.replace.v1
     self.keys.backups.query.list: ak.self.keys.backups.read.list.v1
+    self.keys.backups.command.issue_unlock_challenge: ak.self.keys.backups.command.issue_unlock_challenge.v1
     self.keys.backups.command.unlock: ak.self.keys.backups.command.unlock.v1
     self.keys.backups.command.issue_delete_challenge: ak.self.keys.backups.command.issue_delete_challenge.v1
     self.keys.backups.resource.delete: ak.self.keys.backups.resource.delete.v1

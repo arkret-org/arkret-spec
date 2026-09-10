@@ -2,21 +2,23 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/key-backup-unlock-proof.schema.json",
   "title": "Arkret Key Backup Unlock Proof",
-  "description": "Proof presented before a recovery strand downloads or unlocks a key-backup envelope. It binds a backup read/decrypt action to one recovery_session_id, requesting device, backup object, selected series, ciphertext digest, and the proof transcript accepted by the recovery session.",
+  "description": "Exact single-object backup unlock intent signed by the accepted current device or by the verified recovery session frozen replacement identity key. Current authority and immutable object identity are rechecked even on exact replay.",
   "type": "object",
   "required": [
     "schema",
-    "recovery_session_id",
     "account_id",
     "requesting_device_id",
     "backup_id",
     "backup_kind",
     "series_id",
     "ciphertext_digest",
-    "proof_kind",
-    "proof_digest",
+    "challenge",
     "issued_at",
-    "auth_data"
+    "auth_data",
+    "kind",
+    "expires_at",
+    "audience",
+    "service_id"
   ],
   "properties": {
     "schema": {
@@ -27,7 +29,7 @@
     },
     "account_id": {
       "$ref": "./common-ids.schema.json#/$defs/account_id",
-      "description": "Exact account that owns both the recovery session and backup. A verification method is checked only against account_id.principal_id; the accepted session independently binds account_id.station_id."
+      "description": "Exact authenticated account pair; both principal and Station must equal the challenge or frozen recovery session."
     },
     "requesting_device_id": {
       "$ref": "#/$defs/device_id"
@@ -44,17 +46,10 @@
     "ciphertext_digest": {
       "$ref": "#/$defs/digest"
     },
-    "proof_kind": {
-      "$ref": "#/$defs/proof_kind"
-    },
-    "proof_digest": {
-      "$ref": "#/$defs/digest",
-      "description": "Digest of the canonical recovery proof transcript that moved the session to verified."
-    },
     "challenge": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{43}$",
-      "description": "Optional echo of the recovery-session challenge; when present it MUST match the session snapshot."
+      "description": "Required exact server challenge: current-device challenge record, or recovery_session.challenge. Caller-minted values are forbidden."
     },
     "issued_at": {
       "$ref": "#/$defs/timestamp"
@@ -69,7 +64,7 @@
       "properties": {
         "verification_method": {
           "$ref": "#/$defs/did_url",
-          "description": "DID URL for either the accepted requesting device key after authorization, or the recovery-session proof key before a recovery_public_key unlock."
+          "description": "current_device: exact current accepted device method; recovery_session: the exact frozen requesting_device_public_key_did from the session. A recovery factor signer or arbitrary DID resolver fallback MUST NOT authorize this intent."
         },
         "signature_algorithm": {
           "type": "string",
@@ -81,14 +76,33 @@
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url signature over RFC 8785 JCS(unlock proof without auth_data.signature). The closed proof shape fixes the authenticated projection, including challenge exactly when present."
+          "description": "base64url signature over RFC 8785 JCS(unlock proof without auth_data.signature), including every present closed-branch field."
         }
       },
       "additionalProperties": false
+    },
+    "kind": {
+      "enum": [
+        "current_device",
+        "recovery_session"
+      ]
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "audience": {
+      "$ref": "./keys-operations.schema.json#/$defs/non_empty_string",
+      "description": "Exact authenticated service origin. Must equal the current-device server challenge origin or the recovery service origin bound by the authenticated recovery grant."
+    },
+    "service_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    },
+    "challenge_id": {
+      "$ref": "./keys-operations.schema.json#/$defs/keys_backups_unlock_challenge/properties/challenge_id"
+    },
+    "nonce": {
+      "$ref": "./keys-operations.schema.json#/$defs/base64url"
     }
-  },
-  "patternProperties": {
-    "^x_[a-z][a-z0-9_]{0,63}$": true
   },
   "additionalProperties": false,
   "$defs": {
@@ -116,17 +130,48 @@
     },
     "backup_kind": {
       "$ref": "./key-backup-active-series.schema.json#/$defs/backup_kind"
-    },
-    "proof_kind": {
-      "type": "string",
-      "enum": [
-        "current_device",
-        "did_root",
-        "recovery_unlock",
-        "device_quorum",
-        "trusted_recovery_service",
-        "threshold_recovery"
-      ]
     }
-  }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "kind": {
+          "const": "current_device"
+        }
+      },
+      "required": [
+        "challenge_id",
+        "nonce"
+      ],
+      "not": {
+        "required": [
+          "recovery_session_id"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "recovery_session"
+        }
+      },
+      "required": [
+        "recovery_session_id"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "challenge_id"
+            ]
+          },
+          {
+            "required": [
+              "nonce"
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -808,6 +808,10 @@
       "new": "ak.self.keys.backups.command.issue_delete_challenge.v1"
     },
     {
+      "old": "ak.self.keys.backups.command.issue_unlock_challenge",
+      "new": "ak.self.keys.backups.command.issue_unlock_challenge.v1"
+    },
+    {
       "old": "ak.self.keys.backups.command.unlock",
       "new": "ak.self.keys.backups.command.unlock.v1"
     },

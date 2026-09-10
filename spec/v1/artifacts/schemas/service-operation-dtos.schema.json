@@ -1676,7 +1676,8 @@
       "required": [
         "status",
         "did",
-        "accepted_at"
+        "accepted_at",
+        "operation_ref"
       ],
       "properties": {
         "status": {
@@ -1699,12 +1700,9 @@
           "minimum": 0,
           "description": "New method sequence number when available."
         },
-        "head_event_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
-        },
         "operation_ref": {
-          "type": "string"
+          "type": "string",
+          "description": "Exact method-native immutable operation identifier. For did:webvh this is did + \"?versionId=\" + the submitted entry versionId. The authenticated response acknowledges the exact complete submitted operation, including proofs; accepted/duplicate MUST match the locally frozen typed request and its method-native version and sequence. A registry MUST NOT normalize or replace accepted entry bytes. A duplicate returns the original result for the same bytes."
         },
         "receipts": {
           "type": "array",
@@ -4079,7 +4077,7 @@
     },
     "IdentityReceiptListOutcome": {
       "type": "object",
-      "description": "Result of ak.root.identity.receipts.read.list.v1. receipts[] is a tagged union over two distinct object families discriminated by their schema constant: ak.schema.identity_receipt.v1 records a role inside a DID registry consensus group (writer / witness / replica) and binds seq + head_event_digest, while ak.schema.did_webvh_witness_receipt.v1 records a did:webvh method witness observed at a specific versionId. The two say different things with the same English word, so the discriminator is mandatory and a verifier MUST branch on it rather than infer intent from which optional fields happen to be present.",
+      "description": "Result of ak.root.identity.receipts.read.list.v1. receipts[] is a tagged union over two distinct object families discriminated by their schema constant: ak.schema.identity_receipt.v1 records a role inside a DID registry consensus group (writer / witness / replica) and binds seq + accepted_entry_digest, while ak.schema.did_webvh_witness_receipt.v1 records a did:webvh method witness observed at a specific versionId. The two say different things with the same English word, so the discriminator is mandatory and a verifier MUST branch on it rather than infer intent from which optional fields happen to be present.",
       "required": [
         "receipts"
       ],

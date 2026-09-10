@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.24",
+  "version": "2026-09-10.25",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T12:30:56+08:00",
+  "generated_at": "2026-09-10T22:14:26+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -354,6 +354,7 @@
         "ak.self.keys.backups.read.list.v1",
         "ak.self.keys.backups.command.unlock.v1",
         "ak.self.keys.backups.command.issue_delete_challenge.v1",
+        "ak.self.keys.backups.command.issue_unlock_challenge.v1",
         "ak.self.keys.backups.resource.delete.v1",
         "ak.self.keys.backup_series.command.erase.v1"
       ],
@@ -1127,7 +1128,7 @@
       "http": "POST /_arkret/gate/account/agent-key-pair",
       "grpc": "GateAccount/AgentKeyPair",
       "mq": "gate.account.command.pair_agent_key",
-      "notes": "Final Agent runtime-key authorization. The closed Ed25519 possession proof MUST be byte-identical to the current persisted runtime request and still fresh; the authority rebuilds its server-record-bound transcript, stable runtime binding and ak.agent.key_pairing_request_binding.v1 (including current proof digest) before accepting the controller-signed authorize Event. A stale prompt or any body/record/evidence mismatch fails closed without consuming the pairing handle.",
+      "notes": "One controller-signed authorize Event with inline Ed25519 public_key, exact supersedes and private scope disclosure binds a frozen candidate by pairing_request_id and approval_request_id. The verifier reads its authoritative frozen record (or authenticated verifier-only agent view), independently verifies PoP and candidate, and persists the exact command. Same-candidate PoP refresh does not invalidate approval. Accepted Seal processing automatically activates after rechecking current handle, expiry, candidate, parent authority and activation fence; cancellation or changed authority is terminal. Exact retry returns/reconciles the durable outcome and never revives authority.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -1144,15 +1145,11 @@
       "http": "POST /_arkret/gate/account/device-pair",
       "grpc": "GateAccount/DevicePair",
       "mq": "gate.account.command.pair_device",
-      "notes": "Authorizes a sibling device only after verified current-device confirmation. This operation always produces authorization_binding_kind=accepted_device, so device_signature MUST verify under ak.device_authorize_accepted_device_possession_proof.v1 and registration_anchor/pcr_recovery domains MUST be rejected. The authority recomputes the pairing transcript, verifies exact request/Event equality and submits the current-device-signed Event through ordinary PCR admission; it never resolves current human DID authority.",
+      "notes": "Durable terminal exact replay is keyed by pairing request id, approving AccountId/device and canonical request digest. It returns the same accepted result without a second Event or stage consumption; same identity with changed intent conflicts.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.account.read.viewer.v1"
-      },
+      "idempotency_mechanism": "canonical_hash",
+      "retry_safe": true,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
       "durable_effect": {
@@ -1160,7 +1157,8 @@
         "event_kinds": [
           "ak.device.authorize"
         ]
-      }
+      },
+      "canonical_hash_input": "/"
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
@@ -1301,7 +1299,7 @@
       "http": "POST /_arkret/open/agent-pairing/runtime-key-requests",
       "grpc": "OpenAgentPairing/SubmitRuntimeKeyRequest",
       "mq": "open.agent_pairing.command.submit_runtime_key_request",
-      "notes": "Runtime-to-controller pending approval request for Agent-agent key pairing. The closed Ed25519 proof binds the local key to the authoritative pairing handle, at-least-128-bit pairing secret, authority service DID, stable runtime binding and no-more-than-five-minute window; the controller still must approve by signing ak.agent.key.authorize bound to the current proof digest. Pairing secret and proof MUST be sent in the JSON body, never in URL path or query string. One open pairing_request_id has at most one pending stable ak.agent.runtime_key_binding.v1 digest: same-binding retries retain approval/notification ids and atomically replace the current freshness proof, while a different binding fails with HTTP 409 agent_runtime_request_conflict without replacement.",
+      "notes": "Runtime submits one candidate with an Ed25519 PoP over the authoritative handle, at-least-128-bit pairing secret, service DID, stable raw-key binding and at-most-five-minute window. Same-binding retries refresh the verified PoP while preserving candidate/approval/notification identity; different candidate on one handle conflicts. Controller signs the inline-key authorize Event once; approval is independent of PoP refresh. Secret and proof occur only in request body and confidential verifier material.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -1918,13 +1916,14 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
-      "retry_safe": false,
+      "retry_safe": true,
       "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.peer.keys.keypackages.read.claim.v1"
+        "strategy": "replay_same_operation",
+        "operation_id": "ak.peer.keys.keypackages.command.claim.v1",
+        "requires_same_request_identity_and_canonical_intent": true
       },
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
       "outward_disclosure_policy_id": "ak.outward_disclosure.target_private_claim.v1",
       "durable_effect": {
         "kind": "none",
@@ -2684,7 +2683,8 @@
       "mq": "self.agent.resource.get",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view"
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view",
+      "notes": "Authenticated controller view. Delegated Account Authority executing pair_agent_key may use authenticated confidential S2S access to this same operation and receive key_state.runtime_verifier_material bound to the exact handle/candidate for independent PoP verification. Ordinary controller/runtime responses MUST omit that field; no generic account impersonation or caller-selected candidate is allowed."
     },
     {
       "operation_id": "ak.self.agent.sidecar.command.ensure.v1",
@@ -3753,25 +3753,40 @@
       }
     },
     {
+      "operation_id": "ak.self.keys.backups.command.issue_unlock_challenge.v1",
+      "http": "POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge",
+      "grpc": "SelfKeys/BackupsIssueUnlockChallenge",
+      "mq": "self.keys.backups.command.issue_unlock_challenge",
+      "notes": "Issue a durable current-device-only challenge with lifetime at most 300 seconds. Recovery unlock reuses its recovery session challenge.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/request_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
       "operation_id": "ak.self.keys.backups.command.unlock.v1",
       "http": "POST /_arkret/self/keys/backups/{backup_id}/unlock",
       "grpc": "SelfKeys/BackupsUnlock",
       "mq": "self.keys.backups.command.unlock",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "reissue_material",
-        "operation_id": "ak.self.keys.backups.command.unlock.v1",
-        "requires_fresh_request_identity": true
-      },
+      "idempotency_mechanism": "canonical_hash",
+      "retry_safe": true,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
       "response_schema_ref": "schemas/key-backup.schema.json",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "canonical_hash_input": "/proof",
+      "notes": "Same still-authorized holder exact replay returns the durable unlock outcome without charging the one-use challenge again."
     },
     {
       "operation_id": "ak.self.keys.backups.read.list.v1",
@@ -5643,6 +5658,10 @@
         },
         {
           "operation_id": "ak.self.keys.backups.command.issue_delete_challenge.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.keys.backups.command.issue_unlock_challenge.v1",
           "binding_kind": "http_json"
         },
         {

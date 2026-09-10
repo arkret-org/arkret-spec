@@ -853,14 +853,6 @@
       "reason": "closed device-or-principal ID union; the complete revoked_by provenance role retains its bare byline spelling"
     },
     {
-      "file": "device-pairing.schema.json",
-      "pointer": "/$defs/device_pairing_challenge_proof/properties/kid",
-      "terminal_categories": [
-        "typed_object_id"
-      ],
-      "reason": "registered compact proof key-selector member; the sibling transcript discriminator fixes its device-key meaning"
-    },
-    {
       "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/SignedSessionGrantClaims/properties/jti",
       "terminal_categories": [

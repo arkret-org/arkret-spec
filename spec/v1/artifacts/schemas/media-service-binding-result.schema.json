@@ -47,7 +47,6 @@
       "required": [
         "request_id",
         "realm_id",
-        "seal_basis",
         "route",
         "signing_keys",
         "observed_at",
@@ -59,10 +58,6 @@
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "seal_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Exact complete accepted antichain under which the own Station evaluated current membership visibility and the anchored media service cell."
         },
         "route": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_route_projection",

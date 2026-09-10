@@ -694,7 +694,7 @@
         "signature_invalid",
         "verification_method_key_mismatch",
         "non_canonical_transcript_name",
-        "stage_request_carries_challenge_proof",
+        "stage_request_carries_target_proof",
         "gate_request_omits_staged_request_id",
         "stage_response_leaks_principal_or_siblings",
         "fresh_device_self_device_messages_call"
@@ -708,7 +708,7 @@
       "assertions": [
         "the verifier independently rebuilds the complete challenge transcript before signature verification",
         "new_device_pubkey canonical bytes and digest remain identical across stage, resolve and gate",
-        "stage accepts only the canonical PublicKey shape and rejects a challenge proof minted before server challenge material exists",
+        "stage accepts only the canonical PublicKey shape and rejects a target proof minted before server challenge material exists",
         "the gate request requires one still-pending staged request and rejects every client-supplied substitute transcript",
         "stage resolve and status remain account-less and expose neither principal binding nor sibling targets",
         "an unauthorized fresh device receives no SessionGrant and cannot call any self device-messages operation"

@@ -480,7 +480,6 @@ GET /_arkret/root/identity/document?did=<did>
 返回 SHOULD 包含：
 
 - 当前 materialized DID Document
-- 当前 `head_event_digest`
 - 当前 `seq`
 - 可选 witness receipts
 

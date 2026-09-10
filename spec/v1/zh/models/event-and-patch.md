@@ -316,7 +316,7 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   推断并移除未枚举的其它 dot。元素 MUST 是本节定义的 canonical dot 形态；数组为空、含重复项、
   含非 dot 字符串，或 `source` 路径不存在，均 MUST fail closed。
 
-  这是 v1 唯一的批量 OR-Set 特例，只用于**部分撤销**：移除集合由 producer 在
+  这是 v1 的同 cell 批量 OR-Set 特例，只用于**部分撤销**：移除集合由 producer 在
   payload 中显式枚举，而不是由冻结前态确定。它与 `or_set_remove_observed` 的分工是封闭的——
   前者移除 producer 指名的子集，后者移除冻结前态下的全部存活 dot；两者 MUST NOT 互相替代。
   规范来源见 [`../identity/consent-model.md`](../identity/consent-model.md) §3.3 的
@@ -324,11 +324,13 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   且 reducer MUST NOT 基于一个 `consent_scope=any` 的 dot 推断移除其它 dot）。
 
   > 与 §2.4.2 末段「一个 payload delta 需要多个同 family op 时必须使用唯一批量特例」的关系：
-  > 批量特例只有 remove 侧 `or_set_remove_dots`（只用于 payload 显式枚举的 dot 数组）。
+  > 同 cell 批量特例只有 remove 侧 `or_set_remove_dots`；下述Agent授权旧目标展开另有封闭规则。
   > 其它 payload 数组 MUST NOT 被当作隐含 op 次序。
 - projection 不声明的 `reason`、`issuer_seq`、`tag`、`value` 等 op 成员 MUST 缺省；source
   路径不存在、selector 未命中或投影与 lattice 不兼容表示 registry/Event 无法求值，MUST
   fail closed，不得退化为实现私有默认值。
+
+**Agent replacement 的有界旧 cell 展开（normative）**：只有 `ak.agent.key.authorize.cell_writes[0]` 可登记 `for_each={"field":"payload.supersedes","max_items":256}`。`supersedes` 缺省时展开零个目标；存在时必须是schema有效、按 `(key_id, authorized_event_ref)` 字节序排序的非空exact active authorization set。逐项只绑定局部 `item`，subject固定为 `composite([payload.agent_id,item.key_id])`。不允许嵌套、过滤、任意数组或新增add展开。effect固定为 `or_set_remove_dots`，其唯一source为 `{"agent_authorization_dot":{"field":"item.authorized_event_ref"}}`：先验证该ref指向相同Agent/item.key_id的accepted authorize Event，并且其注册add dot在seal_basis冻结前态active，再返回只含该Event `canonical_event_dot(event_id,1)` 的单元素数组。不得移除同cell其它授权dot或revoke marker。全部展开与第1write的新授权add原子接受；第1write的dot index始终为1，不因旧集合长度改变。超过上限、重复/陈旧ref、缺失dot或错误cell均fail closed。此处的有限旧目标展开与上文同cell `or_set_remove_dots` 合作，不是producer通用effect程序。
 
 **OR-Set dot（`dot`，normative）**：`or_set` 元素的身份由 dot 唯一确定，其规范形态固定为
 

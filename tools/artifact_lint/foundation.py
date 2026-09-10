@@ -471,7 +471,7 @@ def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> 
     lint_field_path(lint, path, ref, value)
     if not isinstance(value, str) or FIELD_PATH_RE.fullmatch(value) is None:
         return
-    if value.startswith("payload.") or value in ENVELOPE_SUBJECT_SOURCES:
+    if value.startswith("payload.") or value in ENVELOPE_SUBJECT_SOURCES or (value == "item.key_id" and "ak.agent.key.authorize cell_writes[0]" in ref):
         return
     if value.startswith("envelope."):
         lint.fail(path, f"{ref} uses an unregistered envelope source: {value!r}")
@@ -772,6 +772,11 @@ def lint_effect_source(
     """
     if not isinstance(source, dict):
         lint.fail(path, f"{ref} must be an object")
+        return
+    if "agent_authorization_dot" in source:
+        expected = {"agent_authorization_dot": {"field": "item.authorized_event_ref"}}
+        if source != expected or "ak.agent.key.authorize cell_writes[0]" not in ref or not ref.endswith(".dots"):
+            lint.fail(path, f"{ref} permits agent_authorization_dot only in the exact Agent supersedes remove")
         return
     allowed = ("field", "envelope_field", "const", "projected_value")
     if allow_dot:
@@ -1607,6 +1612,14 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 if kind == CONFLICT_RECOVERY_KIND or has_cell_ref or projection_kind == "reset":
                     lint_conflict_recovery_write(lint, event_path, write_ref, kind, write)
                     continue
+                if "for_each" in write:
+                    expected = {"field": "payload.supersedes", "max_items": 256}
+                    if kind != "ak.agent.key.authorize" or index != 0 or write["for_each"] != expected:
+                        lint.fail(event_path, f"{write_ref}.for_each is restricted to the Agent supersedes remove")
+                    if write.get("cell_subject") != {"kind": "composite", "components": ["payload.agent_id", "item.key_id"]} or write.get("effect_projection") != {"kind": "or_set_remove_dots", "dots": {"agent_authorization_dot": {"field": "item.authorized_event_ref"}}}:
+                        lint.fail(event_path, f"{write_ref} must remove only the exact observed authorization dot from its old key cell")
+                elif kind == "ak.agent.key.authorize" and index == 0:
+                    lint.fail(event_path, f"{write_ref} must enumerate the bounded exact supersedes set")
                 write_family = write.get("cell_family")
                 if not isinstance(write_family, str) or CELL_FAMILY_RE.fullmatch(write_family) is None:
                     lint.fail(

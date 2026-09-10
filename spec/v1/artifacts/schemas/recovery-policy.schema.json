@@ -11,10 +11,9 @@
     "version",
     "supersedes_id",
     "trust_domain",
-    "allowed_proof_kinds",
-    "publication_authorization_rules",
     "issued_at",
-    "auth_data"
+    "auth_data",
+    "methods"
   ],
   "properties": {
     "schema": {
@@ -48,258 +47,9 @@
       "$ref": "./common-ids.schema.json#/$defs/trust_domain",
       "description": "Deployment-scope trust domain identifier the policy applies to. Cross-domain proofs MUST fail."
     },
-    "allowed_proof_kinds": {
-      "type": "array",
-      "minItems": 0,
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "enum": [
-          "did_root",
-          "recovery_unlock",
-          "device_quorum",
-          "trusted_recovery_service",
-          "threshold_recovery"
-        ]
-      },
-      "description": "Which proof families authorize PCR device re-entry. did_root is optional and revocable; omitting it guarantees current DID control alone cannot recover this account-local lineage."
-    },
-    "publication_authorization_rules": {
-      "type": "array",
-      "minItems": 0,
-      "maxItems": 5,
-      "uniqueItems": true,
-      "description": "Signed deterministic projection inputs for PCR recovery publication. Exactly one rule per allowed proof kind; a revoked policy carries an empty array.",
-      "items": {
-        "type": "object",
-        "required": [
-          "rule_id",
-          "proof_kind",
-          "issuer_role",
-          "allowed_actions",
-          "issuers",
-          "threshold"
-        ],
-        "properties": {
-          "rule_id": {
-            "type": "string",
-            "enum": [
-              "device_quorum",
-              "did_root",
-              "recovery_unlock",
-              "threshold_recovery",
-              "trusted_recovery_service"
-            ]
-          },
-          "proof_kind": {
-            "type": "string",
-            "enum": [
-              "device_quorum",
-              "did_root",
-              "recovery_unlock",
-              "threshold_recovery",
-              "trusted_recovery_service"
-            ]
-          },
-          "issuer_role": {
-            "const": "identity_recovery"
-          },
-          "allowed_actions": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 1,
-            "prefixItems": [
-              {
-                "const": "ak.device.reanchor"
-              }
-            ]
-          },
-          "issuers": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 32,
-            "uniqueItems": true,
-            "items": {
-              "type": "object",
-              "required": [
-                "verification_method"
-              ],
-              "properties": {
-                "verification_method": {
-                  "$ref": "#/$defs/did_url"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "threshold": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 32
-          }
-        },
-        "allOf": [
-          {
-            "if": {
-              "properties": {
-                "proof_kind": {
-                  "const": "threshold_recovery"
-                }
-              },
-              "required": [
-                "proof_kind"
-              ]
-            },
-            "then": {
-              "properties": {
-                "rule_id": {
-                  "const": "threshold_recovery"
-                },
-                "threshold": {
-                  "const": 1
-                }
-              }
-            }
-          }
-        ],
-        "additionalProperties": false
-      }
-    },
-    "threshold": {
-      "type": "object",
-      "description": "Threshold-recovery configuration. Required when allowed_proof_kinds contains 'threshold_recovery'.",
-      "required": [
-        "k",
-        "shares"
-      ],
-      "properties": {
-        "k": {
-          "type": "integer",
-          "minimum": 2,
-          "description": "Minimum share count required to reconstruct the recovery secret. MUST be >= 2; threshold=1 is forbidden because it collapses to a single-holder bearer."
-        },
-        "shares": {
-          "type": "array",
-          "minItems": 2,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/share"
-          }
-        },
-        "vss_root_commitment": {
-          "$ref": "#/$defs/digest",
-          "description": "Optional VSS root commitment binding all shares' polynomial commitments. SHOULD be present for Feldman / Pedersen schemes."
-        },
-        "reshare_policy": {
-          "type": "object",
-          "description": "Proactive secret sharing / re-share cadence. Holders MUST be able to refresh shares without reconstructing the secret. Implementations SHOULD re-share at least once per `max_share_age_seconds`.",
-          "properties": {
-            "max_share_age_seconds": {
-              "type": "integer",
-              "minimum": 86400
-            },
-            "scheme": {
-              "type": "string",
-              "enum": [
-                "none",
-                "proactive_vss",
-                "proactive_feldman",
-                "service_defined"
-              ]
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "device_quorum": {
-      "type": "object",
-      "description": "Device-quorum configuration. Required when allowed_proof_kinds contains 'device_quorum'.",
-      "required": [
-        "k",
-        "member_ids"
-      ],
-      "properties": {
-        "k": {
-          "type": "integer",
-          "minimum": 2
-        },
-        "member_ids": {
-          "type": "array",
-          "minItems": 2,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "trusted_recovery_services": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "object",
-        "required": [
-          "service_id",
-          "audience",
-          "authorization_verification_method"
-        ],
-        "properties": {
-          "service_id": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-          },
-          "audience": {
-            "type": "string",
-            "minLength": 1
-          },
-          "authorization_verification_method": {
-            "$ref": "#/$defs/did_url",
-            "description": "Exact verification method authorized by this accepted PCR recovery-policy rule. DID-root methods are valid only for proof_kind=did_root; service and quorum rules derive from their own accepted policy basis."
-          },
-          "attestation_required": {
-            "type": "boolean",
-            "default": false
-          },
-          "recovery_action_scope": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "ak.device.authorize",
-                "ak.recovery_policy.rotate"
-              ]
-            },
-            "uniqueItems": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "description": "Recovery services explicitly declared in the principal's DID Document (or sovereign trust seal). Required when allowed_proof_kinds contains 'trusted_recovery_service'."
-    },
-    "recovery_keys": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/recovery_key_entry"
-      },
-      "description": "Recovery signing keys this principal authorizes for 'recovery_unlock' proofs and for the single publication signature produced after 'threshold_recovery' secret reconstruction. Each entry binds a verification method (24-word Recovery Key derived signing key, or hardware-released equivalent) to the principal. A recovery_unlock proof's recovery_secret_ref, and a threshold_recovery publication rule's issuer set, MUST resolve to active entries in this array; the proof signature MUST verify under the selected entry's public key. Required when allowed_proof_kinds contains either 'recovery_unlock' or 'threshold_recovery'. See identity/key-management.md §7.5.2 and §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §14."
-    },
-    "recovery_key_agreements": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/recovery_key_agreement_entry"
-      },
-      "description": "Backup-only HPKE recipient keys. These entries are cryptographically and semantically distinct from recovery_keys[] signing keys. key-backup encryption.recipient_key_ref resolves only here in the envelope's referenced accepted policy, never to a DID Document-only key agreement or a recovery signing verification_method."
-    },
     "approval_requirement": {
       "type": "object",
-      "description": "Two-person rule / cooldown enforcement layered on top of cryptographic proofs.",
+      "description": "Additional signed AND constraints on every selected method. A receiver MUST enforce every present constraint before verification/publication, or fail closed as unsupported. Absence does not create an extra factor. Existing signed constraints MUST NOT be dropped during migration.",
       "properties": {
         "min_approvals": {
           "type": "integer",
@@ -314,21 +64,6 @@
           "type": "boolean",
           "default": false,
           "description": "When true, recovery MUST be announced on the principal control stream and visible to authorized devices before effective key change."
-        }
-      },
-      "additionalProperties": false
-    },
-    "audit": {
-      "type": "object",
-      "description": "Where the recovery strand MUST emit auditable records (recovery announcement, holder participation, completion receipt).",
-      "properties": {
-        "audit_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "receipt_required": {
-          "type": "boolean",
-          "default": true,
-          "description": "When true, recovery completion MUST produce a ak.schema.recovery_receipt.v1 record."
         }
       },
       "additionalProperties": false
@@ -375,167 +110,17 @@
         }
       },
       "additionalProperties": false
+    },
+    "methods": {
+      "type": "array",
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/recovery_method"
+      },
+      "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; k counts distinct eligible holders within the selected entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. No constraints may be silently discarded."
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "version": {
-            "const": 1
-          }
-        },
-        "required": [
-          "version"
-        ]
-      },
-      "then": {
-        "properties": {
-          "supersedes_id": {
-            "type": "null"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "version": {
-            "type": "integer",
-            "minimum": 2
-          }
-        },
-        "required": [
-          "version"
-        ]
-      },
-      "then": {
-        "properties": {
-          "supersedes_id": {
-            "type": "string",
-            "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "allowed_proof_kinds": {
-            "type": "array",
-            "maxItems": 0
-          }
-        },
-        "required": [
-          "allowed_proof_kinds"
-        ]
-      },
-      "then": {
-        "required": [
-          "expires_at"
-        ],
-        "properties": {
-          "expires_at": {
-            "$ref": "#/$defs/timestamp"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "recovery_keys"
-        ]
-      },
-      "then": {
-        "required": [
-          "recovery_key_agreements"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "allowed_proof_kinds": {
-            "type": "array",
-            "contains": {
-              "const": "threshold_recovery"
-            }
-          }
-        },
-        "required": [
-          "allowed_proof_kinds"
-        ]
-      },
-      "then": {
-        "required": [
-          "threshold",
-          "recovery_keys",
-          "recovery_key_agreements"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "allowed_proof_kinds": {
-            "type": "array",
-            "contains": {
-              "const": "device_quorum"
-            }
-          }
-        },
-        "required": [
-          "allowed_proof_kinds"
-        ]
-      },
-      "then": {
-        "required": [
-          "device_quorum"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "allowed_proof_kinds": {
-            "type": "array",
-            "contains": {
-              "const": "trusted_recovery_service"
-            }
-          }
-        },
-        "required": [
-          "allowed_proof_kinds"
-        ]
-      },
-      "then": {
-        "required": [
-          "trusted_recovery_services"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "allowed_proof_kinds": {
-            "type": "array",
-            "contains": {
-              "const": "recovery_unlock"
-            }
-          }
-        },
-        "required": [
-          "allowed_proof_kinds"
-        ]
-      },
-      "then": {
-        "required": [
-          "recovery_keys"
-        ]
-      }
-    }
-  ],
   "patternProperties": {
     "^x_[a-z][a-z0-9_]{0,63}$": true
   },
@@ -592,28 +177,24 @@
     },
     "recovery_key_entry": {
       "type": "object",
-      "description": "A recovery signing key the principal authorizes for 'recovery_unlock' proofs and post-reconstruction 'threshold_recovery' publication signatures. The verification_method is the stable recovery_secret_ref and publication-rule issuer; public_key_multibase carries the actual signing public key so principals do not depend on a DID Document verificationMethod. key_agreement_ref pairs this signer with a distinct backup-only recovery_key_agreements[] entry.",
+      "description": "Recovery proof signing key with its distinct, inline backup-only HPKE recipient. The signing verification_method and backup_hpke.key_agreement_ref MUST be unique within the policy. Public material, algorithm, validity and revocation are checked independently for the two roles.",
       "required": [
         "verification_method",
         "public_key_multibase",
-        "key_agreement_ref",
         "signature_algorithm",
         "not_before",
-        "expires_at"
+        "expires_at",
+        "backup_hpke"
       ],
       "properties": {
         "verification_method": {
           "$ref": "#/$defs/did_url",
-          "description": "DID URL (e.g. `did:webvh:...#recovery-1`) identifying this recovery signing key. This is the value a recovery_unlock proof carries in recovery_secret_ref / verification_method and a threshold_recovery publication rule carries in issuers[].verification_method; it MUST be unique within recovery_keys[]."
+          "description": "Exact recovery signing method; recovery_secret_ref resolves only to this accepted method entry, never arbitrary DID Document membership."
         },
         "public_key_multibase": {
           "type": "string",
           "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$",
           "description": "Multikey for the recovery proof signature algorithm. MUST NOT equal or be converted into the paired HPKE key."
-        },
-        "key_agreement_ref": {
-          "$ref": "#/$defs/did_url",
-          "description": "MUST identify exactly one non-revoked recovery_key_agreements[] entry in the same policy."
         },
         "signature_algorithm": {
           "type": "string",
@@ -641,6 +222,9 @@
             }
           ],
           "description": "When set, the entry is revoked from this instant onward and MUST NOT satisfy any recovery_unlock proof or threshold_recovery publication signature whose binding time is at or after it."
+        },
+        "backup_hpke": {
+          "$ref": "#/$defs/recovery_key_agreement_entry"
         }
       },
       "additionalProperties": false
@@ -739,8 +323,8 @@
         "version",
         "acceptance_basis_ref",
         "trust_domain",
-        "allowed_proof_kinds",
-        "issued_at"
+        "issued_at",
+        "methods"
       ],
       "properties": {
         "policy_id": {
@@ -763,20 +347,6 @@
         },
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
-        },
-        "allowed_proof_kinds": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "enum": [
-              "did_root",
-              "recovery_unlock",
-              "device_quorum",
-              "trusted_recovery_service",
-              "threshold_recovery"
-            ]
-          }
         },
         "supersedes_id": {
           "oneOf": [
@@ -807,6 +377,15 @@
         "policy": {
           "$ref": "#",
           "description": "Full accepted ak.schema.recovery_policy.v1 object. Omitted only when the caller is authorized to learn that a policy exists but not to receive holder/share details."
+        },
+        "methods": {
+          "type": "array",
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/recovery_method"
+          },
+          "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; k counts distinct eligible holders within the selected entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. No constraints may be silently discarded."
         }
       },
       "additionalProperties": false
@@ -1049,6 +628,177 @@
       "allOf": [
         {
           "$ref": "#/$defs/recovery_share_holder"
+        }
+      ]
+    },
+    "recovery_method": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "did_root"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "keys"
+          ],
+          "properties": {
+            "kind": {
+              "const": "recovery_unlock"
+            },
+            "keys": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 32,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/recovery_key_entry"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "k",
+            "member_ids"
+          ],
+          "properties": {
+            "kind": {
+              "const": "device_quorum"
+            },
+            "k": {
+              "type": "integer",
+              "minimum": 2
+            },
+            "member_ids": {
+              "type": "array",
+              "minItems": 2,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "k",
+            "shares",
+            "publication_key"
+          ],
+          "properties": {
+            "kind": {
+              "const": "threshold_recovery"
+            },
+            "k": {
+              "type": "integer",
+              "minimum": 2,
+              "description": "Minimum share count required to reconstruct the recovery secret. MUST be >= 2; threshold=1 is forbidden because it collapses to a single-holder bearer."
+            },
+            "shares": {
+              "type": "array",
+              "minItems": 2,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/share"
+              }
+            },
+            "vss_root_commitment": {
+              "$ref": "#/$defs/digest",
+              "description": "Optional VSS root commitment binding all shares' polynomial commitments. SHOULD be present for Feldman / Pedersen schemes."
+            },
+            "reshare_policy": {
+              "type": "object",
+              "description": "Proactive secret sharing / re-share cadence. Holders MUST be able to refresh shares without reconstructing the secret. Implementations SHOULD re-share at least once per `max_share_age_seconds`.",
+              "properties": {
+                "max_share_age_seconds": {
+                  "type": "integer",
+                  "minimum": 86400
+                },
+                "scheme": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "proactive_vss",
+                    "proactive_feldman",
+                    "service_defined"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "publication_key": {
+              "$ref": "#/$defs/recovery_key_entry"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "k",
+            "services"
+          ],
+          "properties": {
+            "kind": {
+              "const": "trusted_recovery_service"
+            },
+            "k": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32
+            },
+            "services": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "required": [
+                  "service_id",
+                  "audience",
+                  "authorization_verification_method"
+                ],
+                "properties": {
+                  "service_id": {
+                    "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+                  },
+                  "audience": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "authorization_verification_method": {
+                    "$ref": "#/$defs/did_url",
+                    "description": "Exact accepted policy method authorized for this service; both method and audience MUST match verbatim. DID membership or recursive string mention is insufficient."
+                  },
+                  "attestation_required": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "maxItems": 32
+            }
+          },
+          "additionalProperties": false
         }
       ]
     }

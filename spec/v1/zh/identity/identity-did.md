@@ -359,7 +359,7 @@ Arkret 层用 [`did-webvh-witness-receipt.schema.json`](../../artifacts/schemas/
 
 该 receipt 与 `ak.schema.identity_receipt.v1` 是**两个不同的对象族**，不得合并：
 后者的 `witness_role ∈ {writer, witness, replica}` 描述的是 DID **registry consensus group** 中的复制角色，
-并绑定 `seq` + `head_event_digest`；前者描述的是 **did:webvh method witness** 在某个 `versionId` 上的观测，
+并绑定 `seq` + `accepted_entry_digest`；前者描述的是 **did:webvh method witness** 在某个 `versionId` 上的观测，
 绑定 `version_id` + witness `did:key` + controlling organization + `observed_at`。
 两者用同一个英文词表达不同含义，因此 discriminator 是必需的，verifier MUST 按 `schema` 常量分支，
 不得靠"哪些可选字段恰好出现"来猜测语义。
@@ -657,17 +657,18 @@ closed `CurrentPrincipalOutcome` 字段按序如下：
 | `account_id` | `AccountId` | 必填，逐字回显本次请求与认证账号 |
 | `principal_control_realm_id` | `RealmId` | 必填，该完整账号唯一的已接纳 PCR lineage |
 | `resolution_projection` | `PrincipalResolutionProjection` | 必填，复用既有 closed projection，字段顺序为 `did, method_history_head, version_id, resolution_event_ref, updated_at` |
-| `observed_at` | `Timestamp` | 必填，Station 本次取得已接纳 current 结果的观察时间 |
 
 Station MUST 通过 §4.2 的 immutable creation anchor 和完整 AccountId 选择唯一 PCR，从已验证、已接纳的 `ak.component.identity.resolution.v1` current cell 读取 projection；外部 DID method history、attestation 与依赖验证由 Station 完成。该 cell、source 与所属 PCR 的 accepted current 状态 MUST 在同一次一致观察中仍然有效；异步 post-commit 缓存或仅存在 resolution Event 的索引行不构成成功依据。已经验证的 pinned method state MAY 直接复用；本查询 MUST NOT 重新构造完整 portable method history，也不因外部 DID hosting 暂时不可达而撤销已接纳 PCR 事实。Station MUST NOT 依赖可选 Profile 是否存在、用本地 DID 模板补空、选择第一个候选 PCR，或在 current 分支未决时返回旧 projection 冒充成功。结果 MUST 满足 `project(resolution_projection.did) == account_id.principal_id`；`resolution_event_ref` 与 `updated_at` 仅指向已接纳的 current resolution，不表示独立有效期或授权租约。
 
 请求与响应的 canonical JSON 各 MUST ≤ 65536 bytes。请求字节超限 MUST 返回 `413 payload_too_large`；closed 字段/类型不符 MUST 返回 `422 schema_violation`；合法响应无法在预算内完整返回 MUST 返回 `limit_exceeded`，MUST NOT 截断 projection。未认证采用既有 401 合同。错会话账号、错 Station、目标不存在或不可见 MUST 返回同一 `404 not_found`；已认证且可见的自己账号尚无可用已验证 current 结果、依赖缺失或 current 分支未决 MUST 返回 `503 temporarily_unavailable`。这些情况 MUST NOT 返回空成功、借 optional Profile 填充，或回退到客户端审计下载。
 
-客户端 MUST 核对 closed 结构、预算、request_id、完整账号、预期 Station/route、当前 session/device generation 与 DID projection 绑定；旧会话迟到结果 MUST 丢弃。同一完整账号已有 PCR 绑定时，新结果 MUST 与之相等；不得静默改绑。已有 projection 的 `updated_at` 更晚时 MUST 拒绝回退；相等时间不替代 exact current 结果，也不得由客户端自行解析历史裁决分支。`observed_at` 只表示本次观察，MUST NOT 作为未来操作授权 TTL。客户端 MAY 保存本账号的身份/PCR 定位结果；后续写入仍由 Station 逐次核对当前授权，需要 exact authoring basis 的操作仍通过各自标准接口准备。
+客户端 MUST 核对 closed 结构、预算、request_id、完整账号、预期 Station/route、当前 session/device generation 与 DID projection 绑定；旧会话迟到结果 MUST 丢弃。同一完整账号已有 PCR 绑定时，新结果 MUST 与之相等；不得静默改绑。已有 projection 的 `updated_at` 更晚时 MUST 拒绝回退；相等时间不替代 exact current 结果，也不得由客户端自行解析历史裁决分支。本响应不签发未来操作的授权租约。客户端 MAY 保存本账号的身份/PCR 定位结果；后续写入仍由 Station 逐次核对当前授权，需要 exact authoring basis 的操作仍通过各自标准接口准备。
 
 该结果 MUST NOT 携带 method history、projection attestation、PCR genesis/current Event、Seal 或其它 portable evidence。普通登录与 PCR 定位 MUST NOT 调用审计接口作为结果验证前置；审计与 peer/服务器外部验证角色的既有证据接口和密码学规则保持不变。本接口不提供 Genesis notary、公钥或媒体服务路由授权；这两类自己 Station 已验证结果分别由 [server-trusted-results.md §5.8、§5.9](../sync/server-trusted-results.md) 的登记载体承担。
 
 ### 4.3 Identity Receipt 签名 transcript
+
+`accepted_entry_digest` MUST 为 `SHA-256(RFC8785-JCS(exact_complete_accepted_method_entry))`，原像包含 method entry 的全部控制证明；不得使用 PCR Event digest、去 proof 投影或只对 DID Document 取 hash。收据 MUST 绑定精确的 `subject_did` 与 `seq`；同一位置的不同 digest 不得合并计入同一 byte-consensus quorum。
 
 `identity-receipt.schema.json` 的 `signature` 是非 Event detached proof。其
 `payload_digest = sha256(canonical_json(receipt_without_signature))`；detached JWS 的输入必须是：
@@ -677,13 +678,13 @@ Station MUST 通过 §4.2 的 immutable creation anchor 和完整 AccountId 选�
   "context": "ak.identity_receipt_proof.v1",
   "payload_digest": "sha256:<64-hex>",
   "registry_id": "ak:did_core:webvh:<registry-core>",
-  "did": "did:webvh:<subject>",
+  "subject_did": "did:webvh:<subject>",
   "verification_method": "did:webvh:<registry>#<key-id>",
   "created_at": "<canonical RFC3339 timestamp>"
 }
 ```
 
-该对象族保留的 `did` 字段承载 subject `did`，不是稳定业务主键；receipt 对应的稳定主体必须由 adapter 投影后与其 `did_core_id` 绑定字段交叉验证。新对象族 SHOULD 直接命名为 `did`，避免把两种类型混为一谈。
+该对象族的 `subject_did` 承载 method-native DID，不是稳定业务主键。签名 transcript MUST 使用 schema 与 registry 登记的 `subject_did`，不得改写为 `did`；稳定主体由 adapter 投影并与预期 principal 交叉核对。
 
 `domain` 与 `audience` 按该顺序在存在时追加。`context` 是 verifier 构造的固定对象族
 domain tag，不进入 receipt wire body。`signature.created_at` 必须与 receipt 顶层

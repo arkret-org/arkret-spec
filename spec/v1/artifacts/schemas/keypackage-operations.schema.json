@@ -257,11 +257,31 @@
           ],
           "not": {
             "anyOf": [
-              { "required": ["device_id"] },
-              { "required": ["device_authorize_event_id"] },
-              { "required": ["agent_id"] },
-              { "required": ["agent_verification_method"] },
-              { "required": ["agent_key_authorize_event_id"] }
+              {
+                "required": [
+                  "device_id"
+                ]
+              },
+              {
+                "required": [
+                  "device_authorize_event_id"
+                ]
+              },
+              {
+                "required": [
+                  "agent_id"
+                ]
+              },
+              {
+                "required": [
+                  "agent_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "agent_key_authorize_event_id"
+                ]
+              }
             ]
           }
         }
@@ -341,31 +361,83 @@
       ],
       "oneOf": [
         {
-          "required": ["device_id"],
+          "required": [
+            "device_id"
+          ],
           "not": {
             "anyOf": [
-              {"required": ["pairwise_verification_method"]},
-              {"required": ["intended_realm_id"]},
-              {"required": ["agent_verification_method"]},
-              {"required": ["agent_key_authorize_event_id"]}
+              {
+                "required": [
+                  "pairwise_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "intended_realm_id"
+                ]
+              },
+              {
+                "required": [
+                  "agent_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "agent_key_authorize_event_id"
+                ]
+              }
             ]
           }
         },
         {
-          "required": ["pairwise_verification_method", "intended_realm_id"],
-          "not": {"anyOf": [
-            {"required": ["device_id"]},
-            {"required": ["agent_verification_method"]},
-            {"required": ["agent_key_authorize_event_id"]}
-          ]}
+          "required": [
+            "pairwise_verification_method",
+            "intended_realm_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "device_id"
+                ]
+              },
+              {
+                "required": [
+                  "agent_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "agent_key_authorize_event_id"
+                ]
+              }
+            ]
+          }
         },
         {
-          "required": ["agent_verification_method", "agent_key_authorize_event_id"],
-          "not": {"anyOf": [
-            {"required": ["device_id"]},
-            {"required": ["pairwise_verification_method"]},
-            {"required": ["intended_realm_id"]}
-          ]}
+          "required": [
+            "agent_verification_method",
+            "agent_key_authorize_event_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "device_id"
+                ]
+              },
+              {
+                "required": [
+                  "pairwise_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "intended_realm_id"
+                ]
+              }
+            ]
+          }
         }
       ],
       "properties": {
@@ -398,7 +470,7 @@
         },
         "endpoint_signature": {
           "$ref": "#/$defs/signature",
-        "description": "Required authoritative batch signature over the complete typed upload request with only this top-level signature omitted, using the ak.self.keys.keypackages.upload.create.v1 domain. The selected human device, Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
+          "description": "Required authoritative batch signature over the complete typed upload request with only this top-level signature omitted, using the ak.self.keys.keypackages.upload.create.v1 domain. The selected human device, Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -655,69 +727,103 @@
         },
         {
           "oneOf": [
-              {
-                "required": [
-                  "target_account_id",
-                  "target_device_ids"
-                ],
-                "not": {
-                  "anyOf": [
-                    {
-                      "required": [
-                        "target_agent_id"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "target_agent_verification_method"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "target_agent_key_authorize_event_id"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "target_pairwise_verification_method"
-                      ]
-                    }
-                  ]
-                }
-              },
-              {
-                "required": [
-                  "target_agent_id",
-                  "target_agent_verification_method",
-                  "target_agent_key_authorize_event_id"
-                ],
-                "not": {
-                  "anyOf": [
-                    { "required": ["target_account_id"] },
-                    { "required": ["target_device_ids"] },
-                    { "required": ["target_pairwise_verification_method"] }
-                  ]
-                }
-              },
-              {
-                "required": [
-                  "target_pairwise_verification_method"
-                ],
-                "not": {
-                  "anyOf": [
-                    { "required": ["target_account_id"] },
-                    { "required": ["target_device_ids"] },
-                    { "required": ["target_agent_id"] },
-                    { "required": ["target_agent_verification_method"] },
-                    { "required": ["target_agent_key_authorize_event_id"] }
-                  ]
-                }
+            {
+              "required": [
+                "target_account_id",
+                "target_device_ids"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "target_agent_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_verification_method"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_key_authorize_event_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_pairwise_verification_method"
+                    ]
+                  }
+                ]
               }
-            ]
+            },
+            {
+              "required": [
+                "target_agent_id",
+                "target_agent_verification_method",
+                "target_agent_key_authorize_event_id"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "target_account_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_device_ids"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_pairwise_verification_method"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "required": [
+                "target_pairwise_verification_method"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "target_account_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_device_ids"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_verification_method"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_key_authorize_event_id"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
         },
         {
           "if": {
-            "required": ["target_keypackage_ref"]
+            "required": [
+              "target_keypackage_ref"
+            ]
           },
           "then": {
             "properties": {
@@ -878,69 +984,103 @@
         },
         {
           "oneOf": [
-              {
-                "required": [
-                  "target_account_id",
-                  "target_device_ids"
-                ],
-                "not": {
-                  "anyOf": [
-                    {
-                      "required": [
-                        "target_agent_id"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "target_agent_verification_method"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "target_agent_key_authorize_event_id"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "target_pairwise_verification_method"
-                      ]
-                    }
-                  ]
-                }
-              },
-              {
-                "required": [
-                  "target_agent_id",
-                  "target_agent_verification_method",
-                  "target_agent_key_authorize_event_id"
-                ],
-                "not": {
-                  "anyOf": [
-                    { "required": ["target_account_id"] },
-                    { "required": ["target_device_ids"] },
-                    { "required": ["target_pairwise_verification_method"] }
-                  ]
-                }
-              },
-              {
-                "required": [
-                  "target_pairwise_verification_method"
-                ],
-                "not": {
-                  "anyOf": [
-                    { "required": ["target_account_id"] },
-                    { "required": ["target_device_ids"] },
-                    { "required": ["target_agent_id"] },
-                    { "required": ["target_agent_verification_method"] },
-                    { "required": ["target_agent_key_authorize_event_id"] }
-                  ]
-                }
+            {
+              "required": [
+                "target_account_id",
+                "target_device_ids"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "target_agent_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_verification_method"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_key_authorize_event_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_pairwise_verification_method"
+                    ]
+                  }
+                ]
               }
-            ]
+            },
+            {
+              "required": [
+                "target_agent_id",
+                "target_agent_verification_method",
+                "target_agent_key_authorize_event_id"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "target_account_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_device_ids"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_pairwise_verification_method"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "required": [
+                "target_pairwise_verification_method"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "target_account_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_device_ids"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_verification_method"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_key_authorize_event_id"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
         },
         {
           "if": {
-            "required": ["target_keypackage_ref"]
+            "required": [
+              "target_keypackage_ref"
+            ]
           },
           "then": {
             "properties": {
@@ -959,16 +1099,28 @@
           "if": {
             "properties": {
               "requester_authorization": {
-                "properties": { "kind": { "const": "device" } },
-                "required": ["kind"]
+                "properties": {
+                  "kind": {
+                    "const": "device"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
               }
             }
           },
           "then": {
-            "required": ["requester_account_id"]
+            "required": [
+              "requester_account_id"
+            ]
           },
           "else": {
-            "not": { "required": ["requester_account_id"] }
+            "not": {
+              "required": [
+                "requester_account_id"
+              ]
+            }
           }
         }
       },
@@ -1376,7 +1528,11 @@
           ],
           "not": {
             "anyOf": [
-              { "required": ["recipient_account_id"] },
+              {
+                "required": [
+                  "recipient_account_id"
+                ]
+              },
               {
                 "required": [
                   "recipient_device_id"
@@ -1401,12 +1557,36 @@
           ],
           "not": {
             "anyOf": [
-              { "required": ["recipient_account_id"] },
-              { "required": ["recipient_device_id"] },
-              { "required": ["device_verification_method"] },
-              { "required": ["recipient_agent_id"] },
-              { "required": ["recipient_agent_verification_method"] },
-              { "required": ["agent_key_authorize_event_id"] }
+              {
+                "required": [
+                  "recipient_account_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_device_id"
+                ]
+              },
+              {
+                "required": [
+                  "device_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_agent_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_agent_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "agent_key_authorize_event_id"
+                ]
+              }
             ]
           }
         }
@@ -1502,8 +1682,12 @@
         },
         "claim_id": {
           "allOf": [
-            { "$ref": "#/$defs/non_empty_string" },
-            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
           ]
         },
         "recipient_durable_receipt": {
@@ -1529,8 +1713,12 @@
       "properties": {
         "claim_id": {
           "allOf": [
-            { "$ref": "#/$defs/non_empty_string" },
-            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
           ]
         },
         "recipient_durable_receipt": {
@@ -1597,6 +1785,28 @@
         }
       },
       "additionalProperties": false
+    },
+    "peer_keypackages_claim_command_outcome": {
+      "description": "Closed peer claim command result. First success and direct exact replay use the same durable state view as the read-only ledger query; unknown is impossible after a command has been admitted. Existing outcome bytes never cause a second claim.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/peer_keypackages_claim_query_outcome"
+        },
+        {
+          "properties": {
+            "state": {
+              "enum": [
+                "pending",
+                "claimed",
+                "consumed",
+                "claim_failed",
+                "expired",
+                "revoked"
+              ]
+            }
+          }
+        }
+      ]
     }
   }
 }

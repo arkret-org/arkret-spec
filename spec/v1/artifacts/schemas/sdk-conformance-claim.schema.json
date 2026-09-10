@@ -62,7 +62,7 @@
       "items": {
         "$ref": "#/$defs/build_variant"
       },
-      "description": "Optional per-build profile inventory for source or multi-variant SDK distributions. Variant IDs MUST be unique and each feature_set_digest binds the exact normalized feature/configuration set used to produce that variant."
+      "description": "Optional per-build profile inventory for source or multi-variant SDK distributions. Each complete features/configuration inventory is covered by the claim proof and the existing AK-SDK-015 build_variant_inventory digest. Variant IDs MUST be unique; no separate per-feature digest is carried."
     },
     "proof": {
       "$ref": "#/$defs/proof"
@@ -107,16 +107,14 @@
       "additionalProperties": false,
       "required": [
         "variant_id",
-        "feature_set_digest",
+        "features",
+        "configuration",
         "claimed_profiles"
       ],
       "properties": {
         "variant_id": {
           "type": "string",
           "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
-        },
-        "feature_set_digest": {
-          "$ref": "#/$defs/nonzero_digest"
         },
         "features": {
           "type": "array",
@@ -125,7 +123,21 @@
           "items": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._+:/-]{0,127}$"
-          }
+          },
+          "description": "Complete enabled feature names, sorted in strictly increasing ASCII order. An empty array explicitly represents no enabled optional features."
+        },
+        "configuration": {
+          "type": "object",
+          "maxProperties": 128,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+:/-]{0,127}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "description": "Complete non-secret behavior-affecting build configuration, including target, compiler/toolchain, profile, default-feature policy and relevant flags. Keys are tool-qualified stable names, values are exact canonical build inputs. Defaults MUST be expanded. Secrets MUST NOT be included. The publisher MUST fail closed if the inventory cannot reproduce the claimed configuration."
         },
         "claimed_profiles": {
           "type": "array",

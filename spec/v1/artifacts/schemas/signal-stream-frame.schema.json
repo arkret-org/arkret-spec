@@ -22,7 +22,8 @@
       "type": "object",
       "required": [
         "kind",
-        "envelope"
+        "envelope",
+        "delivery_authority"
       ],
       "properties": {
         "kind": {
@@ -30,6 +31,9 @@
         },
         "envelope": {
           "$ref": "./signal-envelope.schema.json"
+        },
+        "delivery_authority": {
+          "$ref": "#/$defs/delivery_authority"
         }
       },
       "additionalProperties": false
@@ -79,6 +83,23 @@
         "reason": {
           "type": "string",
           "maxLength": 128
+        }
+      },
+      "additionalProperties": false
+    },
+    "delivery_authority": {
+      "type": "object",
+      "description": "Own-Station current admission for only the exact envelope in this authenticated stream frame. Bound to the receiving account and live connection generation; never a transferable or reusable current grant. The client independently binds key and exact authorization_ref to its verified MLS leaf.",
+      "required": [
+        "recipient_account_id",
+        "key"
+      ],
+      "properties": {
+        "recipient_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "key": {
+          "$ref": "./signer-key-operations.schema.json#/$defs/station_signing_key"
         }
       },
       "additionalProperties": false

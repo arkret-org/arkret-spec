@@ -377,68 +377,6 @@
       },
       "additionalProperties": false
     },
-    "realm_join_authoring_core": {
-      "type": "object",
-      "description": "The exact governance-derived authoring inputs of one join Control Move, frozen by the account's own Station. The client supplies the remaining envelope members from its own actor chain and device state (event_id, scope_ref, actor_id, actor_seq, created_at, hlc, prev_refs, refs and proofs) and signs the canonical bytes. No reducer runs on the client.",
-      "required": [
-        "event_kind",
-        "payload"
-      ],
-      "properties": {
-        "event_kind": {
-          "type": "string",
-          "enum": [
-            "ak.invite.accept",
-            "ak.member.state"
-          ],
-          "description": "Exact Event kind to author. invite_accept prepares ak.invite.accept; member_join and knock prepare ak.member.state."
-        },
-        "payload": {
-          "oneOf": [
-            {
-              "$ref": "./event-payload.schema.json#/$defs/invite_accept_payload"
-            },
-            {
-              "$ref": "./event-payload.schema.json#/$defs/membership_payload"
-            }
-          ],
-          "description": "Exact canonical payload object to sign. The client checks it against the user intent it declared and signs it byte-for-byte; it MUST NOT edit, extend or re-derive it."
-        },
-        "preconditions": {
-          "$ref": "./event-envelope.schema.json#/properties/preconditions",
-          "description": "Exact pre-state predicates for this Move under the returned seal_basis. Present whenever the target kind requires one, such as the head_eq that an ak.invite.accept with invitee_account_id MUST carry; the client never derives them."
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "event_kind": {
-                "const": "ak.invite.accept"
-              }
-            },
-            "required": [
-              "event_kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "payload": {
-                "$ref": "./event-payload.schema.json#/$defs/invite_accept_payload"
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "payload": {
-                "$ref": "./event-payload.schema.json#/$defs/membership_payload"
-              }
-            }
-          }
-        }
-      ]
-    },
     "self_prepare_request_body": {
       "type": "object",
       "description": "Authenticated account request to prepare exactly one join attempt. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling this request. The request never carries a candidate endpoint, a self-reported seal_basis or any caller-declared governance fact.",
@@ -446,7 +384,8 @@
         "request_id",
         "account_id",
         "realm_id",
-        "intent"
+        "intent",
+        "created_at"
       ],
       "properties": {
         "request_id": {
@@ -461,6 +400,12 @@
         },
         "intent": {
           "$ref": "#/$defs/realm_join_intent"
+        },
+        "created_at": {
+          "$ref": "./event-envelope.schema.json#/properties/created_at"
+        },
+        "hlc": {
+          "$ref": "./event-envelope.schema.json#/properties/hlc"
         }
       },
       "additionalProperties": false,
@@ -475,9 +420,11 @@
         "realm_id",
         "request_digest",
         "governance_facts",
-        "authoring_core",
+        "unsigned_event",
         "observed_at",
-        "expires_at"
+        "expires_at",
+        "accepted_actor_frontier",
+        "authoring_device_generation_ref"
       ],
       "properties": {
         "request_id": {
@@ -496,8 +443,8 @@
         "governance_facts": {
           "$ref": "#/$defs/realm_join_governance_facts"
         },
-        "authoring_core": {
-          "$ref": "#/$defs/realm_join_authoring_core"
+        "unsigned_event": {
+          "$ref": "#/$defs/realm_join_unsigned_event"
         },
         "observed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -505,6 +452,13 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "Instant after which the client MUST prepare again instead of signing this material."
+        },
+        "accepted_actor_frontier": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/RealmActorFrontierView"
+        },
+        "authoring_device_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "Current accepted device-generation fence of the authenticated approving device, frozen for this preparation and durable outbound replay checks; it grants no future authority."
         }
       },
       "additionalProperties": false,
@@ -814,6 +768,111 @@
         }
       ],
       "x-arkret-max-canonical-bytes": 65536
+    },
+    "realm_join_unsigned_event": {
+      "type": "object",
+      "description": "Complete producer Event before proofs. Station freezes accepted actor frontier, governance basis and all envelope fields; created_at and optional hlc are copied exactly from the request. Client recomputes content-bound EventId, validates intent/frontier and adds only its producer proof. No post-prepare field completion is permitted.",
+      "required": [
+        "event_id",
+        "kind",
+        "realm_id",
+        "scope_ref",
+        "actor_id",
+        "actor_seq",
+        "created_at",
+        "prev_refs",
+        "refs",
+        "seal_basis",
+        "payload",
+        "preconditions"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "./event-envelope.schema.json#/properties/event_id"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ak.invite.accept",
+            "ak.member.state"
+          ]
+        },
+        "realm_id": {
+          "$ref": "./event-envelope.schema.json#/properties/realm_id"
+        },
+        "scope_ref": {
+          "$ref": "./event-envelope.schema.json#/properties/scope_ref"
+        },
+        "actor_id": {
+          "$ref": "./event-envelope.schema.json#/properties/actor_id"
+        },
+        "actor_seq": {
+          "$ref": "./event-envelope.schema.json#/properties/actor_seq"
+        },
+        "created_at": {
+          "$ref": "./event-envelope.schema.json#/properties/created_at"
+        },
+        "hlc": {
+          "$ref": "./event-envelope.schema.json#/properties/hlc"
+        },
+        "prev_refs": {
+          "$ref": "./event-envelope.schema.json#/properties/prev_refs"
+        },
+        "refs": {
+          "$ref": "./event-envelope.schema.json#/properties/refs",
+          "maxItems": 0,
+          "description": "The closed prepare flow carries no semantic references; caller intent authorizes no extra grant, invite, source or related ref."
+        },
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
+        "payload": {
+          "oneOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/invite_accept_payload"
+            },
+            {
+              "$ref": "./event-payload.schema.json#/$defs/membership_payload"
+            }
+          ],
+          "description": "Must equal the canonical payload constructed from request intent: directed InviteAccept(invite_id,account_id) with no extensions; or MemberState(realm_id,full account ActorId,membership,exact request gate_proofs). No strand_id, reason, membership_cause, agent_controller_binding, invite_ref or extensions may be added."
+        },
+        "preconditions": {
+          "$ref": "./event-envelope.schema.json#/properties/preconditions",
+          "minItems": 1,
+          "maxItems": 1,
+          "description": "Exactly one head_eq, with value present and no values/predicate_id. invite_accept selects the complete invitee AccountId live_target cell and the request invite_id retyped as EventId value. member_join/knock selects the complete account ActorId member.state cell; value is the Station-provided accepted state (null or join/knock/leave/ban). Clients derive only the subject binding and compare the closed shape, never replay governance."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.invite.accept"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/invite_accept_payload"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/membership_payload"
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

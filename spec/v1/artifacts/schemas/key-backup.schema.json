@@ -139,7 +139,7 @@
         },
         "recipient_key_ref": {
           "type": "string",
-          "description": "For recipient_method=recovery_public_key, this MUST resolve to a non-revoked recovery_key_agreements[].key_agreement_ref in the envelope's referenced accepted recovery policy, and the selected hpke_suite MUST appear in that entry's hpke_suites. DID Document-only key agreements are not an authorization source. A recovery_keys[].verification_method is a signing-key ref and MUST be rejected here."
+          "description": "For recipient_method=recovery_public_key, this MUST resolve to the inline backup_hpke.key_agreement_ref of a non-revoked method signing entry in the envelope's referenced accepted recovery policy, and the selected hpke_suite MUST appear in that entry's hpke_suites. DID Document-only key agreements are not an authorization source. A method signing entry's verification_method is a signing-key ref and MUST be rejected here."
         },
         "hpke_suite": {
           "type": "string",
@@ -648,7 +648,7 @@
           "recovery_policy_ref"
         ]
       },
-      "description": "Every recovery_public_key envelope is bound to one accepted recovery-policy version. The recipient_key_ref resolves only within that policy's recovery_key_agreements array, and recovery_policy_ref is signed even when backup_kind is secret_storage or mls_history."
+      "description": "Every recovery_public_key envelope is bound to one accepted recovery-policy version. The recipient_key_ref resolves only within that policy's methods entries' inline backup_hpke recipients, and recovery_policy_ref is signed even when backup_kind is secret_storage or mls_history."
     },
     {
       "if": {

@@ -51,15 +51,14 @@
               "version": 1,
               "supersedes_id": null,
               "trust_domain": "ak:trust_domain:fixture.example",
-              "allowed_proof_kinds": [],
-              "publication_authorization_rules": [],
               "issued_at": "2026-07-29T02:00:00.000Z",
               "expires_at": "2026-07-29T02:00:01.000Z",
               "auth_data": {
                 "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
                 "signature_algorithm": "Ed25519",
                 "signature": "c2lnbmF0dXJl"
-              }
+              },
+              "methods": []
             }
           },
           "proofs": [
@@ -144,10 +143,11 @@
       "name": "bare_recovery_policy_body_rejected",
       "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
       "expect_valid": false,
-      "first_expected_error": "$: 'event' is a required property",
       "instance": {
-        "schema": "ak.schema.recovery_policy.v1"
-      }
+        "schema": "ak.schema.recovery_policy.v1",
+        "methods": []
+      },
+      "first_expected_error": "$: 'event' is a required property"
     },
     {
       "name": "canonical_recovery_policy_payload_valid",
@@ -165,15 +165,14 @@
           "version": 1,
           "supersedes_id": null,
           "trust_domain": "ak:trust_domain:fixture.example",
-          "allowed_proof_kinds": [],
-          "publication_authorization_rules": [],
           "issued_at": "2026-07-29T02:00:00.000Z",
           "expires_at": "2026-07-29T02:00:01.000Z",
           "auth_data": {
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
             "signature_algorithm": "Ed25519",
             "signature": "c2lnbmF0dXJl"
-          }
+          },
+          "methods": []
         }
       }
     },
@@ -181,7 +180,6 @@
       "name": "recovery_policy_payload_with_state_rejected",
       "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_set_payload",
       "expect_valid": false,
-      "first_expected_error": "$: Additional properties are not allowed ('state' was unexpected)",
       "instance": {
         "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
         "value": {
@@ -194,24 +192,23 @@
           "version": 1,
           "supersedes_id": null,
           "trust_domain": "ak:trust_domain:fixture.example",
-          "allowed_proof_kinds": [],
-          "publication_authorization_rules": [],
           "issued_at": "2026-07-29T02:00:00.000Z",
           "expires_at": "2026-07-29T02:00:01.000Z",
           "auth_data": {
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
             "signature_algorithm": "Ed25519",
             "signature": "c2lnbmF0dXJl"
-          }
+          },
+          "methods": []
         },
         "state": "active"
-      }
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('state' was unexpected)"
     },
     {
       "name": "recovery_policy_payload_with_reason_rejected",
       "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_set_payload",
       "expect_valid": false,
-      "first_expected_error": "$: Additional properties are not allowed ('reason' was unexpected)",
       "instance": {
         "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
         "value": {
@@ -224,35 +221,35 @@
           "version": 1,
           "supersedes_id": null,
           "trust_domain": "ak:trust_domain:fixture.example",
-          "allowed_proof_kinds": [],
-          "publication_authorization_rules": [],
           "issued_at": "2026-07-29T02:00:00.000Z",
           "expires_at": "2026-07-29T02:00:01.000Z",
           "auth_data": {
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
             "signature_algorithm": "Ed25519",
             "signature": "c2lnbmF0dXJl"
-          }
+          },
+          "methods": []
         },
         "reason": "rotation"
-      }
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('reason' was unexpected)"
     },
     {
       "name": "flattened_recovery_policy_payload_rejected",
       "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_set_payload",
       "expect_valid": false,
-      "first_expected_error": "$: 'value' is a required property",
       "instance": {
         "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
         "schema": "ak.schema.recovery_policy.v1",
-        "principal_id": "ak:did_core:webvh:z6mkfixture"
-      }
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "methods": []
+      },
+      "first_expected_error": "$: 'value' is a required property"
     },
     {
       "name": "threshold_recovery_publication_signature_threshold_above_one_rejected",
       "schema_ref": "schemas/recovery-policy.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.publication_authorization_rules[0].threshold: 1 was expected",
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000007",
@@ -263,80 +260,60 @@
         "version": 1,
         "supersedes_id": null,
         "trust_domain": "ak:trust_domain:fixture.example",
-        "allowed_proof_kinds": [
-          "threshold_recovery"
-        ],
-        "publication_authorization_rules": [
-          {
-            "rule_id": "threshold_recovery",
-            "proof_kind": "threshold_recovery",
-            "issuer_role": "identity_recovery",
-            "allowed_actions": [
-              "ak.device.reanchor"
-            ],
-            "issuers": [
-              {
-                "verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1"
-              }
-            ],
-            "threshold": 2
-          }
-        ],
-        "threshold": {
-          "k": 2,
-          "shares": [
-            {
-              "share_id": "s1",
-              "holder": "ak:did_core:webvh:z6mkfixturebobexample",
-              "transport": "hpke_x25519",
-              "share_commitment": {
-                "algorithm": "feldman_vss_sha256",
-                "commitment_b64u": "commitment1"
-              }
-            },
-            {
-              "share_id": "s2",
-              "holder": "ak:did_core:webvh:z6mkfixturecarolexample",
-              "transport": "hpke_x25519",
-              "share_commitment": {
-                "algorithm": "feldman_vss_sha256",
-                "commitment_b64u": "commitment2"
-              }
-            }
-          ]
-        },
-        "recovery_keys": [
-          {
-            "verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1",
-            "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
-            "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
-            "not_before": "2026-07-29T02:00:00.000Z",
-            "expires_at": "2036-07-29T02:00:00.000Z",
-            "revoked_at": null,
-            "signature_algorithm": "Ed25519"
-          }
-        ],
-        "recovery_key_agreements": [
-          {
-            "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
-            "key_agreement_algorithm": "X25519",
-            "public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
-            "hpke_suites": [
-              "ak.hpke_x25519_aead_chacha20poly1305.v1"
-            ],
-            "use": "backup_hpke",
-            "not_before": "2026-07-29T02:00:00.000Z",
-            "expires_at": "2036-07-29T02:00:00.000Z",
-            "revoked_at": null
-          }
-        ],
         "issued_at": "2026-07-29T02:00:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
           "signature_algorithm": "Ed25519",
           "signature": "c2lnbmF0dXJl"
-        }
-      }
+        },
+        "methods": [
+          {
+            "kind": "threshold_recovery",
+            "k": 2,
+            "shares": [
+              {
+                "share_id": "s1",
+                "holder": "ak:did_core:webvh:z6mkfixturebobexample",
+                "transport": "hpke_x25519",
+                "share_commitment": {
+                  "algorithm": "feldman_vss_sha256",
+                  "commitment_b64u": "commitment1"
+                }
+              },
+              {
+                "share_id": "s2",
+                "holder": "ak:did_core:webvh:z6mkfixturecarolexample",
+                "transport": "hpke_x25519",
+                "share_commitment": {
+                  "algorithm": "feldman_vss_sha256",
+                  "commitment_b64u": "commitment2"
+                }
+              }
+            ],
+            "publication_key": {
+              "verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1",
+              "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
+              "not_before": "2026-07-29T02:00:00.000Z",
+              "expires_at": "2036-07-29T02:00:00.000Z",
+              "revoked_at": null,
+              "signature_algorithm": "Ed25519",
+              "backup_hpke": {
+                "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
+                "key_agreement_algorithm": "X25519",
+                "public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
+                "hpke_suites": [
+                  "ak.hpke_x25519_aead_chacha20poly1305.v1"
+                ],
+                "use": "backup_hpke",
+                "not_before": "2026-07-29T02:00:00.000Z",
+                "expires_at": "2036-07-29T02:00:00.000Z",
+                "revoked_at": null
+              }
+            }
+          }
+        ]
+      },
+      "first_expected_error": "$.methods[0]: {'kind': 'threshold_recovery', 'k': 2, 'shares': [{'share_id': 's1', 'holder': 'ak:did_core:webvh:z6mkfixturebobexample', 'transport': 'hpke_x25519', 'share_commitment': {'algorithm': 'feldman_vss_sha256', 'commitment_b64u': 'commitment1'}}, {'share_id': 's2', 'holder': 'ak:did_core:webvh:z6mkfixturecarolexample', 'transport': 'hpke_x25519', 'share_commitment': {'algorithm': 'feldman_vss_sha256', 'commitment_b64u': 'commitment2'}}], 'publication_key': {'verification_method': 'did:webvh:z6mkfixture:alice.example#recovery-proof-1', 'public_key_multibase': 'z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA', 'not_before': '2026-07-29T02:00:00.000Z', 'expires_at': '2036-07-29T02:00:00.000Z', 'revoked_at': None, 'signature_algorithm': 'Ed25519', 'backup_hpke': {'key_agreement_ref': 'did:webvh:z6mkfixture:alice.example#backup-hpke-1', 'key_agreement_algorithm': 'X25519', 'public_key_multibase': 'z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW', 'hpke_suites': ['ak.hpke_x25519_aead_chacha20poly1305.v1'], 'use': 'backup_hpke', 'not_before': '2026-07-29T02:00:00.000Z', 'expires_at': '2036-07-29T02:00:00.000Z', 'revoked_at': None}}} is not valid under any of the given schemas"
     }
   ],
   "semantic_cases": [
@@ -357,11 +334,11 @@
       "name": "missing_threshold_signing_or_paired_hpke_key_rejected",
       "variants": [
         {
-          "variant": "missing_recovery_keys",
+          "variant": "missing_method_signing_keys",
           "expected_error_code": "schema_violation"
         },
         {
-          "variant": "missing_recovery_key_agreements",
+          "variant": "missing_inline_backup_hpke",
           "expected_error_code": "schema_violation"
         },
         {

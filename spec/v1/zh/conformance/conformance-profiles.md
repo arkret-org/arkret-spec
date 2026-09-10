@@ -129,7 +129,7 @@ assertion 名补前缀、映射为 feature，或为缺失项生成兼容 alias�
 
 SDK 侧构建期守卫的具体实现形态（feature 矩阵测试、声明常量的 cfg 拼装等）属实现审查范畴，本文不规定唯一做法。
 
-发布单一预编译构建时，顶层 `sdk_artifact.digest` 已唯一绑定该构建。发布源码包或同一 release 下存在多个可裁剪构建时，SDK conformance claim MUST 使用 `build_variants[]` 声明被认证的每个变体：稳定 `variant_id`、规范化 feature/configuration 集的 `feature_set_digest`，以及该变体实际导出的 `claimed_profiles[]`；可读的 `features[]` 只是对 digest 的审计投影。未列变体不在该 claim 的认证范围内。AK-SDK-015 的证据 MUST 引用 `build_variant_inventory`，验证器 MUST 对 variant id 唯一性、profile id 已登记性及 inventory digest 做校验。
+发布单一预编译构建时，顶层 `sdk_artifact.digest` 已唯一绑定该构建。发布源码包或同一 release 下存在多个可裁剪构建时，SDK conformance claim MUST 使用 `build_variants[]` 声明每个被认证变体的 `variant_id`、完整 `features[]`、完整 `configuration` 与实际导出的 `claimed_profiles[]`。features MUST 按 ASCII 严格递增，无启用 feature 时 MUST 显式为空数组；configuration MUST 展开影响行为的默认值，登记带工具命名空间的 target、toolchain、profile、默认 feature 策略和编译选项，键和值遵守 schema 预算且不得含密钥。无法给出完整构建输入时 MUST NOT 签发该变体 claim。整个 inventory 已由 claim proof 与 AK-SDK-015 的 `build_variant_inventory` digest 覆盖，MUST NOT 再携带平行的 `feature_set_digest`。验证器 MUST 核对 inventory 的 canonical digest、变体 id 唯一性、feature 排序和配置预算、已登记 profile；producer MUST 从实际构建输入生成 inventory，审计 MUST 将它与产物及构建日志核对。未列变体不在认证范围内。
 
 ## 2.2 场景化 Profile
 

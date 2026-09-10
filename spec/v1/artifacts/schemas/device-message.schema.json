@@ -674,6 +674,7 @@
           { "required": ["new_device_pubkey"] },
           { "required": ["challenge_proof"] },
           { "required": ["target_attestation"] },
+          { "required": ["target_proof"] },
           { "required": ["gate_audience"] },
           { "required": ["request_canonical_digest"] },
           { "required": ["device_metadata"] }

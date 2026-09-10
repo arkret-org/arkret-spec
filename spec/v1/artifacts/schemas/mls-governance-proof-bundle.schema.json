@@ -804,7 +804,6 @@
       "description": "Complete authenticated Account Station result, at most 1 MiB canonical bytes; no Merkle witnesses, history closure, provenance catalog or continuation. The response does not repeat local_mls_leaves.",
       "required": [
         "query_digest",
-        "seal_basis",
         "live_digest_suite",
         "governance_binding"
       ],
@@ -812,10 +811,6 @@
         "query_digest": {
           "$ref": "#/$defs/digest",
           "description": "SHA-256(UTF8(\"ak.mls-governance-frontier-query-v1\") || 0x00 || JCS(exact self_read_request_body)); request binding, not a server authenticity proof."
-        },
-        "seal_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Exact complete accepted target basis supplied by the authenticated Account Station. No local replay checkpoint or proof base is required."
         },
         "live_digest_suite": {
           "$ref": "./realm.schema.json#/properties/digest_algorithm"
@@ -857,19 +852,13 @@
       "description": "Complete bounded Account Station result: the exact artifact belongs to the current accepted winning MLS transition chain. It includes no history, Merkle witness or continuation. At most 16 MiB canonical response bytes, independently of the 64 KiB request limit.",
       "required": [
         "query_digest",
-        "seal_basis",
         "transition_head",
         "governance_binding",
-        "mls_frontier_leaves",
-        "current_epoch_head"
+        "mls_frontier_leaves"
       ],
       "properties": {
         "query_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest"
-        },
-        "seal_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Exact complete accepted target basis supplied by the authenticated Account Station. No local replay checkpoint or proof base is required."
         },
         "transition_head": {
           "$ref": "#/$defs/mls_epoch_head"
@@ -886,9 +875,6 @@
             "$ref": "#/$defs/mls_security_frontier_leaf"
           },
           "description": "Exact durable post-transition public leaf input of transition_head.transition_ref, retained at admission. Never reconstructed from current directory order, transient claims or historical candidates."
-        },
-        "current_epoch_head": {
-          "$ref": "#/$defs/mls_epoch_head"
         }
       },
       "additionalProperties": false
@@ -942,8 +928,6 @@
       "required": [
         "account_id",
         "query_digest",
-        "seal_basis",
-        "epoch_head",
         "remove_leaf_indices"
       ],
       "properties": {
@@ -952,13 +936,6 @@
         },
         "query_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest"
-        },
-        "seal_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Exact complete accepted target basis supplied by the authenticated Account Station. No local replay checkpoint or proof base is required."
-        },
-        "epoch_head": {
-          "$ref": "#/$defs/mls_epoch_head"
         },
         "remove_leaf_indices": {
           "type": "array",

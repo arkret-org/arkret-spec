@@ -3472,6 +3472,41 @@ def check_one_of_branch_discriminability(lint: Lint) -> None:
                 return True
         return False
 
+    def required_nested_separation(left: Any, right: Any, left_doc: str, right_doc: str, depth: int = 0) -> bool:
+        """Prove disjointness through required object properties; never guess on optional paths."""
+        if depth > 12:
+            return False
+        def resolve_with_document(node: Any, document_name: str) -> tuple[Any, str]:
+            for _ in range(9):
+                if not isinstance(node, dict) or "$ref" not in node:
+                    return node, document_name
+                ref = node["$ref"]
+                if ref.startswith("#"):
+                    node = resolve_pointer(documents[document_name], ref)
+                else:
+                    match = ONE_OF_REFERENCE_RE.match(ref)
+                    if not match or match.group(1) not in documents:
+                        return None, document_name
+                    document_name = match.group(1)
+                    node = resolve_pointer(documents[document_name], match.group(2) or "#")
+            return None, document_name
+        left, left_doc = resolve_with_document(left, left_doc)
+        right, right_doc = resolve_with_document(right, right_doc)
+        if not isinstance(left, dict) or not isinstance(right, dict):
+            return False
+        left_value, right_value = single_valued(left), single_valued(right)
+        if left_value is not None and right_value is not None:
+            return left_value != right_value
+        if left.get("type") != "object" or right.get("type") != "object":
+            return False
+        return any(
+            required_nested_separation(
+                left.get("properties", {}).get(name), right.get("properties", {}).get(name),
+                left_doc, right_doc, depth + 1,
+            )
+            for name in set(left.get("required", [])) & set(right.get("required", []))
+        )
+
     def sites(name: str, node: Any, pointer: str, out: list[tuple[str, list[Any], set[str]]]) -> None:
         if isinstance(node, dict):
             branches = node.get("oneOf")
@@ -3507,9 +3542,11 @@ def check_one_of_branch_discriminability(lint: Lint) -> None:
             if discriminator(resolved, outer_required):
                 continue
             if all(
-                exclusive(left, right)
+                exclusive(left, right) or required_nested_separation(
+                    branches[index], branches[other_index], document_name, document_name
+                )
                 for index, left in enumerate(resolved)
-                for right in resolved[index + 1 :]
+                for other_index, right in enumerate(resolved[index + 1 :], index + 1)
             ):
                 continue
             lint.fail(
@@ -4008,7 +4045,7 @@ def backup_recovery_unlock_manifest_contract_errors(
         unlock.get("operation_id") != single_operation
         or unlock.get("request_cardinality") != "exactly_one_backup_id_from_path"
         or unlock.get("batch_operation") is not None
-        or registered_unlock_operations != [single_operation]
+        or registered_unlock_operations != sorted([single_operation, "ak.self.keys.backups.command.issue_unlock_challenge.v1"])
     ):
         errors.append("v1 backup unlock must remain one registered single-object operation with no batch surface")
 
@@ -4924,13 +4961,6 @@ def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:
     if not isinstance(possession, dict):
         lint.fail(path, "agent_runtime_key_binding omits proof_of_possession")
         return
-    possession_digest = sha256_text(canonical_json(possession))
-    if runtime_pairing.get("expected_proof_of_possession_digest") != possession_digest:
-        lint.fail(
-            path,
-            "agent_runtime_key_binding.expected_proof_of_possession_digest drifted "
-            "from JCS(proof_of_possession)",
-        )
     binding_json = runtime_pairing.get("canonical_pairing_request_binding_json")
     if not isinstance(binding_json, str):
         lint.fail(path, "agent_runtime_key_binding omits canonical_pairing_request_binding_json")
@@ -4942,11 +4972,10 @@ def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:
         return
     if canonical_json(binding) != binding_json:
         lint.fail(path, "canonical_pairing_request_binding_json is not RFC 8785 JCS")
-    if binding.get("proof_of_possession_digest") != possession_digest:
-        lint.fail(
-            path,
-            "canonical pairing request does not bind the recomputed proof-of-possession digest",
-        )
+    if binding.get("runtime_key_binding_digest") != possession.get("runtime_key_binding_digest"):
+        lint.fail(path, "canonical approval must bind the frozen candidate digest")
+    if "proof_of_possession_digest" in binding or "pairing_code" in binding:
+        lint.fail(path, "canonical approval must exclude replaceable PoP and private secret")
     binding_digest = sha256_text(binding_json)
     if runtime_pairing.get("expected_pairing_request_binding_digest") != binding_digest:
         lint.fail(

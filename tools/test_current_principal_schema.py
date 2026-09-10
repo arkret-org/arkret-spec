@@ -21,7 +21,7 @@ class CurrentPrincipalSchemaTests(unittest.TestCase):
         return {"request_id": "ak:request:01964137-0000-7000-8000-000000000001", "account_id": {"principal_id": "ak:did_core:web:alice.example", "station_id": "ak:did_core:web:station.example"}}
 
     def outcome(self):
-        return {**self.request(), "principal_control_realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd", "resolution_projection": {"did": "did:web:alice.example", "method_history_head": "sha256:" + "a" * 64, "version_id": "synthetic-jcs-sha256:" + "a" * 64, "resolution_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh", "updated_at": "2026-09-10T00:00:00.000Z"}, "observed_at": "2026-09-10T00:01:00.000Z"}
+        return {**self.request(), "principal_control_realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd", "resolution_projection": {"did": "did:web:alice.example", "method_history_head": "sha256:" + "a" * 64, "version_id": "synthetic-jcs-sha256:" + "a" * 64, "resolution_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh", "updated_at": "2026-09-10T00:00:00.000Z"}}
 
     def test_request_requires_exact_account_and_no_audit_selector(self):
         validator = self.validator("current_principal_request_body")
@@ -49,7 +49,7 @@ class CurrentPrincipalSchemaTests(unittest.TestCase):
 
     def test_result_rejects_closure_and_lease(self):
         validator = self.validator("current_principal_outcome")
-        for key in ["method_history_evidence", "projection_attestation", "accepted_seal", "expires_at", "profile"]:
+        for key in ["method_history_evidence", "projection_attestation", "accepted_seal", "expires_at", "profile", "observed_at"]:
             changed = self.outcome()
             changed[key] = None
             self.assertFalse(validator.is_valid(changed))

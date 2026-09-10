@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-10.24",
+  "version": "2026-09-11.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T12:30:56+08:00",
+  "generated_at": "2026-09-11T00:36:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -408,8 +408,10 @@
     {
       "operation_id": "ak.gate.account.command.pair_device.v1",
       "http_alias": "POST /_arkret/gate/account/device-pair",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "proof_invalid"
+      ],
+      "description": "A schema-valid target possession proof that fails Ed25519 material decoding, signature verification or reconstructed stage binding returns failed_precondition with reason_code proof_invalid. Missing required request members or signature_material shape violations remain schema_violation; a nonempty signature string is schema-valid even when it is not valid Ed25519 material."
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
@@ -1261,7 +1263,7 @@
         "accountability_grant_missing",
         "agent_requested_scope_commitment_invalid"
       ],
-      "description": "Re-open bootstrap pairing or replace an Agent runtime. A renewed pairing MUST issue a fresh single-use `pairing_request_id` + `pairing_code` and MUST leave every previously issued handle permanently unresolvable. An Agent without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized key (lifecycle `active` or `paused`) uses replacement, whose single controller-signed authorize Event atomically supersedes prior authorization dots while preserving lifecycle intent. Generic views expose pairing_mode/open-handle fields and readiness blockers, never runtime_state. `deactivated` returns `agent_deactivated`. Neither branch creates, revokes, or re-issues Realm grants; handle expiry has no side effects beyond clearing open-handle fields and recomputing readiness."
+      "description": "Re-open bootstrap pairing or replace an Agent runtime. A renewed pairing MUST issue a fresh single-use `pairing_request_id` + `pairing_code` and MUST leave every previously issued handle permanently unresolvable. An Agent without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized key (lifecycle `active` or `paused`) uses replacement, whose single controller-signed authorize Event atomically supersedes prior authorization dots while preserving lifecycle intent. Generic views expose open-handle fields and readiness blockers, never runtime_state. `deactivated` returns `agent_deactivated`. Neither branch creates, revokes, or re-issues Realm grants; handle expiry has no side effects beyond clearing open-handle fields and recomputing readiness."
     },
     {
       "operation_id": "ak.self.agent.command.resume.v1",
@@ -1900,6 +1902,12 @@
       "operation_specific": [
         "not_found"
       ]
+    },
+    {
+      "operation_id": "ak.self.keys.backups.command.issue_unlock_challenge.v1",
+      "http_alias": "POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge",
+      "operation_specific": [],
+      "description": "Current-device authorization and durable exact challenge replay use the universal failure surface."
     },
     {
       "operation_id": "ak.self.keys.backups.command.unlock.v1",

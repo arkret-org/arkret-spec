@@ -1295,6 +1295,8 @@ components:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_list
     KeysBackupsReplaceOutcome:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome
+    KeysBackupsUnlockChallenge:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge
     KeysBackupsUnlockRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body
     KeysClaimOutcome:
@@ -1457,7 +1459,7 @@ components:
     PeerGovernanceDependencyResolveRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequestBody
     PeerKeyPackagesClaimOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome
     PeerKeyPackagesClaimQueryOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_outcome
     PeerKeyPackagesClaimQueryRequestBody:
@@ -7934,6 +7936,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeysBackupsDeleteChallenge'
+  /_arkret/self/keys/backups/{backup_id}/unlock-challenge:
+    post:
+      operationId: ak.self.keys.backups.command.issue_unlock_challenge
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.keys.backups.command.issue_unlock_challenge.v1
+      - in: path
+        name: backup_id
+        required: true
+        schema:
+          type: string
+          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body'
+      responses:
+        '200':
+          description: Durable one-use challenge bound to the current device and exact backup
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeysBackupsUnlockChallenge'
   /_arkret/self/keys/backups/{backup_id}/unlock:
     post:
       operationId: ak.self.keys.backups.command.unlock
@@ -11864,7 +11899,7 @@ paths:
         without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized
         key (lifecycle active or paused) uses replacement while lifecycle intent, existing keys and grants stay
         untouched until one controller-signed authorization atomically supersedes the prior keys. Generic views
-        express the open branch through pairing_mode/handle fields and readiness blockers and never expose runtime_state
+        expose the handle and active authorization set with independent readiness blockers and never expose runtime_state
         or backup readiness; that diagnostic is pairing-poll-local. Neither branch creates, revokes, or re-issues
         Realm grants. Pair commit does not depend on history-only backup availability; deactivated rejects.
       security:

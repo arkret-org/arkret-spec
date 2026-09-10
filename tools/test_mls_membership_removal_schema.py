@@ -35,12 +35,7 @@ class MembershipRemovalSchemaTests(unittest.TestCase):
         return {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}
 
     def outcome(self):
-        request = self.request()
-        return {'account_id': self.account(), 'query_digest': 'sha256:' + '2' * 64, 'seal_basis': request['seal_basis'],
-                'epoch_head': {'transition_ref': request['base_group_state_ref'], 'transition_event_digest': 'sha256:' + '3' * 64,
-                               'mls_transition_digest': 'sha256:' + '4' * 64, 'effective_scope': request['effective_scope'],
-                               'mls_group_id': request['mls_group_id'], 'previous_epoch': 0, 'next_epoch': 0, 'content_scheme': 'mls_rfc9420'},
-                'remove_leaf_indices': []}
+        return {'account_id': self.account(), 'query_digest': 'sha256:' + '2' * 64, 'remove_leaf_indices': []}
 
     def test_genesis_base_and_atomic_empty_result_are_well_formed(self):
         self.request_validator.validate(self.request())

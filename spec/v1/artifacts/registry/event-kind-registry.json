@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.15",
+  "version": "2026-09-10.16",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T11:48:27+08:00",
+  "generated_at": "2026-09-10T22:14:26+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3983,14 +3983,23 @@
           "cell_subject": {
             "components": [
               "payload.agent_id",
-              "payload.key_id"
+              "item.key_id"
             ],
             "kind": "composite"
           },
           "lattice": "or_set",
           "bottom": "expose",
           "effect_projection": {
-            "kind": "or_set_remove_observed"
+            "kind": "or_set_remove_dots",
+            "dots": {
+              "agent_authorization_dot": {
+                "field": "item.authorized_event_ref"
+              }
+            }
+          },
+          "for_each": {
+            "field": "payload.supersedes",
+            "max_items": 256
           }
         },
         {

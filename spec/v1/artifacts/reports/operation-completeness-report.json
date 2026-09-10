@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.26",
+  "version": "2026-09-10.27",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T18:30:03+08:00",
+  "generated_at": "2026-09-10T22:14:26+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 253,
+    "total_operations": 254,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 251
+      "typed_schema": 252
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 152
+        "typed_schema": 153
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -1194,7 +1194,7 @@
       "http": "POST /_arkret/peer/keys/keypackages/claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/PeerKeyPackagesClaimRequestBody",
         "response": "#/components/schemas/PeerKeyPackagesClaimOutcome"
@@ -2795,6 +2795,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/KeysBackupsIssueDeleteChallengeRequestBody",
         "response": "#/components/schemas/KeysBackupsDeleteChallenge"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.keys.backups.command.issue_unlock_challenge.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge",
+      "openapi_component_refs": {
+        "request": "../schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
+        "response": "#/components/schemas/KeysBackupsUnlockChallenge"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -48,6 +48,12 @@
     },
     {
       "$ref": "#/$defs/backup_series_erase_outcome"
+    },
+    {
+      "$ref": "#/$defs/keys_backups_issue_unlock_challenge_request_body"
+    },
+    {
+      "$ref": "#/$defs/keys_backups_unlock_challenge"
     }
   ],
   "$defs": {
@@ -849,7 +855,7 @@
     },
     "keys_backups_unlock_request_body": {
       "type": "object",
-      "description": "Request body for ak.self.keys.backups.command.unlock.v1. The unlock proof MUST validate as ak.schema.key_backup_unlock_proof.v1 and MUST be verified against the recovery session, caller, requesting device key, active-series record, and target envelope before the full ciphertext is returned (key-management.md §7.7.1 / §7.8). The path backup_id and proof.backup_id MUST match.",
+      "description": "Closed exact single-object unlock intent. Branch authority, current validity, exact account/device/object, challenge and signature must all verify before durable allowance/budget/result commit. An identical retry by the same still-authorized holder returns the stored object without double charge.",
       "required": [
         "proof"
       ],
@@ -1221,6 +1227,94 @@
         },
         "mls_history": {
           "$ref": "#/$defs/backup_active_series_pointer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "keys_backups_issue_unlock_challenge_request_body": {
+      "type": "object",
+      "description": "Request body for ak.self.keys.backups.command.issue_unlock_challenge.v1. While an issued challenge for the same (account_id, backup_id, request_id) is still valid, the service MUST return the same challenge; a different request_id mints a new challenge.",
+      "required": [
+        "request_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "keys_backups_unlock_challenge": {
+      "type": "object",
+      "description": "Shared-durable single-use current-device unlock challenge, TTL <= 300 seconds, scoped to authenticated account/device, exact backup/series/ciphertext, origin and service. All values are server materialized. Recovery-session unlock reuses its session challenge and MUST NOT call this operation.",
+      "required": [
+        "challenge_id",
+        "challenge",
+        "nonce",
+        "operation",
+        "account_id",
+        "backup_id",
+        "audience",
+        "service_id",
+        "request_id",
+        "issued_at",
+        "expires_at",
+        "requesting_device_id",
+        "series_id",
+        "ciphertext_digest"
+      ],
+      "properties": {
+        "challenge_id": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22,
+          "maxLength": 128,
+          "description": "Server-issued single-use challenge identifier."
+        },
+        "challenge": {
+          "$ref": "#/$defs/base64url",
+          "description": "Server-issued CSPRNG challenge bytes (base64url, no padding).",
+          "minLength": 43,
+          "maxLength": 43
+        },
+        "nonce": {
+          "$ref": "#/$defs/base64url",
+          "description": "Server-issued CSPRNG nonce bytes (base64url, no padding); distinct from challenge so the transcript binds two independent freshness values."
+        },
+        "operation": {
+          "const": "ak.self.keys.backups.command.unlock.v1"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact authenticated account pair."
+        },
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "audience": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Exact authenticated unlock service origin."
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id",
+          "description": "Echo of the issuance request_id this challenge was minted for."
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "requesting_device_id": {
+          "$ref": "./account-operations.schema.json#/$defs/device_id"
+        },
+        "series_id": {
+          "$ref": "./agent-operations.schema.json#/$defs/backup_series_id"
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false

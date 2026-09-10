@@ -465,15 +465,7 @@
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id",
-          "description": "Current unconsumed, unexpired pairing handle. Its presence means pairing is open. Services MUST omit this field and its pairing_mode / pairing_code / pairing_expires_at siblings immediately after the handle is consumed or expires."
-        },
-        "pairing_mode": {
-          "type": "string",
-          "enum": [
-            "bootstrap",
-            "replacement"
-          ],
-          "description": "Durable branch discriminator for the current open handle. bootstrap is valid when the Agent has no active accepted runtime-key authorization; replacement is valid when it already holds an active authorized key and lifecycle is active or paused. This field is pairing material, not a fourth generic status axis."
+          "description": "Current unconsumed, unexpired pairing handle. Omit it and pairing_code/pairing_expires_at after consumption or expiry. Attach versus replace is derived from current active authorization dots, never historical rows."
         },
         "pairing_code": {
           "$ref": "#/$defs/pairing_secret"
@@ -499,25 +491,22 @@
           "items": {
             "$ref": "#/$defs/agent_key_authorization_state"
           }
+        },
+        "runtime_verifier_material": {
+          "$ref": "#/$defs/agent_runtime_verifier_material",
+          "description": "Confidential verifier-only material. Return only to the authenticated delegated Account Authority executing pair_agent_key for this exact Agent; MUST be absent from ordinary controller/runtime responses and notifications."
         }
       },
       "dependentRequired": {
         "pairing_request_id": [
-          "pairing_mode",
-          "pairing_expires_at"
-        ],
-        "pairing_mode": [
-          "pairing_request_id",
           "pairing_expires_at"
         ],
         "pairing_code": [
           "pairing_request_id",
-          "pairing_mode",
           "pairing_expires_at"
         ],
         "pairing_expires_at": [
-          "pairing_request_id",
-          "pairing_mode"
+          "pairing_request_id"
         ]
       },
       "additionalProperties": false
@@ -575,7 +564,6 @@
       "required": [
         "pairing_code",
         "new_device_pubkey",
-        "challenge_proof",
         "authorize_event",
         "device_pairing_request_id"
       ],
@@ -585,10 +573,6 @@
         },
         "new_device_pubkey": {
           "$ref": "#/$defs/public_key"
-        },
-        "challenge_proof": {
-          "$ref": "./device-pairing.schema.json#/$defs/device_pairing_challenge_proof",
-          "description": "Structured proof of possession of new_device_pubkey. The Account Authority MUST rebuild ak.device-pairing.challenge.v1 from the referenced staged record and MUST NOT settle for byte equality against a stored copy. The digest of that recomputed transcript is also the value the target device_signature commits to, so one recomputation gates both proofs. A mismatched transcript_digest, a transcript name other than ak.device-pairing.challenge.v1, a kid other than new_device_pubkey.kid, or a failing signature MUST NOT authorize a device."
         },
         "authorize_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
@@ -602,7 +586,7 @@
         },
         "device_pairing_request_id": {
           "$ref": "#/$defs/device_pairing_request_id",
-          "description": "Required server-mediated short-link request id. The Account Authority MUST atomically authorize only the still-pending staged record whose pairing_code and new_device_pubkey exactly match this request, and MUST verify challenge_proof against the ak.device-pairing.challenge.v1 transcript rebuilt from that record (device_pairing_request_id, pairing_code, gate_audience, expires_at, server_nonce, client_nonce, new_device_pubkey digest). A record whose proof does not verify MUST NOT authorize a device."
+          "description": "Required pairing identity bound by the single target device_signature over the full final-account challenge descriptor, including metadata digest with explicit nulls. The verifier reconstructs and compares the transcript digest. Exact replay returns the durable terminal outcome without re-reading pending state."
         }
       },
       "additionalProperties": false
@@ -634,12 +618,8 @@
       "type": "object",
       "required": [
         "pairing_request_id",
-        "agent_id",
-        "verification_method",
-        "public_key",
-        "proof_of_possession",
+        "approval_request_id",
         "requested_scope_disclosure",
-        "signing_key_binding",
         "authorize_event"
       ],
       "properties": {
@@ -647,57 +627,39 @@
           "$ref": "#/$defs/opaque_local_id",
           "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
         },
-        "agent_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "verification_method": {
-          "$ref": "#/$defs/did_url"
-        },
-        "public_key": {
-          "$ref": "#/$defs/agent_runtime_public_key"
-        },
-        "proof_of_possession": {
-          "$ref": "#/$defs/agent_runtime_key_possession_proof"
+        "approval_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
         },
         "requested_scope_disclosure": {
           "$ref": "./agent-requested-scope-disclosure.schema.json",
           "description": "Controller-signed private disclosure addressed to the authoritative pairing verifier. The endpoint MUST consume its presentation challenge once, match agent/controller/audience, recompute the public DID commitment digest, and use the disclosed scope for the subset check. It MUST NOT copy the disclosure into authorize_event or any durable/public history."
-        },
-        "runtime_attestation": {
-          "$ref": "#/$defs/runtime_attestation"
-        },
-        "signing_key_binding": {
-          "$ref": "./agent-signing-key-binding.schema.json",
-          "description": "Controller-signed minimal public binding created in the same approval action. Its agent/method/raw-key/authorization id and both digests MUST match the runtime request and authorize_event exactly."
         },
         "authorize_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
           "description": "Fully-signed ak.agent.key.authorize initial submission approved by the controller or policy engine. Its Event MUST target the Agent Principal Control Realm, carry actor_id equal to agent_id, executed_by equal to the controller DID, authorization_ref equal to the controller delegation DID URL bound by the Agent DID Document, and a proof verification method belonging to the controller or one of its currently authorized devices. The submission MUST carry ordinary publication authority evidence without rewriting the Event. Its payload.agent_key_scope MAY be narrower than, but MUST be an actions/resources/constraints subset of, the immutable provision requested_scope; every provision constraint remains mandatory. Required so key activation never depends on an unaudited pairing side effect. authorize_event.event.event_id is the pair operation idempotency identity."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "One controller approval command bound to the frozen candidate and handle. The signed authorization Event supplies Agent, key, method, scope, expiry and exact supersedes. Verifiers load possession proof and candidate from the authoritative confidential record, never caller echoes. Accepted Seal processing automatically advances the durable command; exact retries only observe or recover it."
     },
     "agent_key_pair_outcome": {
       "type": "object",
       "required": [
         "activation_state",
-        "authorize_event_ref",
-        "signing_key_binding"
+        "authorize_event_ref"
       ],
       "properties": {
         "activation_state": {
           "type": "string",
           "enum": [
             "awaiting_accepted_frontier",
-            "active"
+            "active",
+            "cancelled"
           ],
-          "description": "Two-phase pairing result. awaiting_accepted_frontier means the exact authorization Event is durable but is not yet authorization state; the controller MUST close it into an Agent-PCR Seal and retry the identical idempotent request. active means portable signer evidence can be built from an accepted Seal and only then may the runtime be treated as authorized."
+          "description": "Durable command state. awaiting_accepted_frontier waits for the exact authorization Event covering Seal; accepted Seal processing activates automatically without another pair command. active preserves lifecycle intent and does not itself issue a session. cancelled is terminal after handle invalidation, expiry, changed authority or failed activation fence. Replays never revive a cancelled command."
         },
         "authorize_event_ref": {
           "$ref": "#/$defs/event_id"
-        },
-        "signing_key_binding": {
-          "$ref": "./agent-signing-key-binding.schema.json"
         }
       },
       "additionalProperties": false
@@ -741,13 +703,14 @@
     },
     "agent_runtime_approval_controller_projection": {
       "type": "object",
-      "description": "Authenticated controller-safe projection of the pending runtime key request. It is deliberately not agent_runtime_approval_request_body and not agent_key_pair_request_body: pairing_code is exposed only by the sibling controller key_state field, while requested_scope_disclosure and authorize_event do not exist until the controller approves. Services MUST also omit any other runtime secret or unregistered field.",
+      "description": "Authenticated minimal frozen candidate projection. Raw key/method and optional attestation are public approval inputs; approval_request_id and stable digest do not change when a fresh PoP is accepted for the same candidate. Full possession proof and pairing secret are not included. Controller must inspect exact Agent, key fingerprint, scope/expiry and supersedes in the Event before signing.",
       "required": [
         "pairing_request_id",
         "agent_id",
         "verification_method",
         "public_key",
-        "proof_of_possession"
+        "approval_request_id",
+        "runtime_key_binding_digest"
       ],
       "properties": {
         "pairing_request_id": {
@@ -762,14 +725,43 @@
         "public_key": {
           "$ref": "#/$defs/agent_runtime_public_key"
         },
-        "proof_of_possession": {
-          "$ref": "#/$defs/agent_runtime_key_possession_proof"
-        },
         "runtime_attestation": {
           "$ref": "#/$defs/runtime_attestation"
+        },
+        "approval_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
+        },
+        "runtime_key_binding_digest": {
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
+    },
+    "agent_runtime_verifier_material": {
+      "type": "object",
+      "required": [
+        "approval_request_id",
+        "candidate",
+        "proof_of_possession",
+        "proof_verified_at"
+      ],
+      "properties": {
+        "approval_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
+        },
+        "candidate": {
+          "$ref": "#/$defs/agent_runtime_approval_controller_projection"
+        },
+        "proof_of_possession": {
+          "$ref": "#/$defs/agent_runtime_key_possession_proof"
+        },
+        "proof_verified_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Authoritative Station timestamp at which this exact PoP passed freshness and signature checks. Same-candidate refresh updates this time and PoP atomically; it is not an independent proof against the Station."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Authenticated confidential S2S verifier record for the exact current handle/candidate. Together with sibling authoritative pairing code, expiry and service identity, this provides all raw inputs for independent PoP transcript reconstruction/signature verification. A verified boolean is not a substitute. Freeze the candidate; freshness proof may refresh without invalidating approval."
     },
     "agent_human_approval_error_details": {
       "type": "object",
@@ -828,7 +820,7 @@
     },
     "agent_runtime_approval_status_outcome": {
       "type": "object",
-      "description": "Controller-decision status for one runtime key pairing request. runtime_state is an operation-specific pairing diagnostic, not a fourth general Agent status axis. While the polled pairing is open it is pending_runtime_key (bootstrap) or replacing (replacement). Once the controller has approved this exact pairing, authorized_event_ref plus the authorized key binding fields are present; the runtime MUST compare authorized_public_key_digest against its own key. Presence and digest match of those fields — never lifecycle, readiness, presence or runtime_state alone — is the approval signal. An expired bootstrap reports pairing_expired; an expired replacement reports ready with no authorization fields for this request.",
+      "description": "Operation-local status for the exact handle/candidate. Authorization fields are present only after durable Seal activation and must be checked against the runtime own method/raw-key digest; then a fresh agent_key_proof is required for session issue. Fields occur together. Expired, unknown or invalidated handles use uniform anti-enumeration behavior. Status never authorizes a key by itself.",
       "required": [
         "lifecycle",
         "runtime_state",
@@ -859,13 +851,24 @@
         },
         "authorized_public_key_digest": {
           "$ref": "#/$defs/digest",
-          "description": "SHA-256 of the decoded 32-byte Ed25519 public key, computed with agent_signing_public_key_digest. This is not the canonical runtime-request PublicKey DTO digest."
-        },
-        "authorized_signing_key_binding": {
-          "$ref": "./agent-signing-key-binding.schema.json"
+          "description": "SHA-256 of the decoded 32-byte Ed25519 public key using the unique agent_signing_public_key_digest helper; the runtime compares it to its own key."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "dependentRequired": {
+        "authorized_event_ref": [
+          "authorized_verification_method",
+          "authorized_public_key_digest"
+        ],
+        "authorized_verification_method": [
+          "authorized_event_ref",
+          "authorized_public_key_digest"
+        ],
+        "authorized_public_key_digest": [
+          "authorized_event_ref",
+          "authorized_verification_method"
+        ]
+      }
     },
     "agent_provision_request_body": {
       "type": "object",
@@ -1192,14 +1195,14 @@
     },
     "agent_renew_pairing_outcome": {
       "type": "object",
-      "description": "Fresh pairing handle for bootstrap or runtime-key replacement. Runtime pairing does not require a backup and does not recover active MLS state.",
+      "description": "Fresh single-use pairing handle and CSPRNG secret with at least 128 bits of entropy. Attach or replacement is derived at approval from the complete current authorization set. Renew does not change principal, slug, lifecycle, keys, grants or history and never gates on sibling slug availability.",
       "required": [
         "agent_id",
         "principal_control_realm_id",
         "controller_authorization_ref",
         "requested_scope_digest",
-        "pairing_mode",
         "pairing_request_id",
+        "pairing_code",
         "expires_at"
       ],
       "properties": {
@@ -1215,13 +1218,6 @@
         "requested_scope_digest": {
           "$ref": "#/$defs/digest",
           "description": "Unchanged digest of the immutable requested_scope commitment in the Agent DID binding; the complete scope remains controller-private."
-        },
-        "pairing_mode": {
-          "type": "string",
-          "enum": [
-            "bootstrap",
-            "replacement"
-          ]
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id"

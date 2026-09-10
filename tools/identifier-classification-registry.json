@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 688,
-    "typed_object_id": 1153,
+    "responsibility_identity_material": 690,
+    "typed_object_id": 1155,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -74,14 +74,6 @@
       "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
     },
     {
-      "name": "agent_key_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "agent-signing-key-binding.schema.json#/properties/agent_key_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
       "name": "agent_transition_event_ids",
       "terminal_signature": "[]",
       "category": "typed_object_id",
@@ -118,7 +110,7 @@
       "name": "approval_request_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 5,
+      "occurrences": 8,
       "example_path": "account-subscribe-frame.schema.json#/$defs/agent_runtime_approval_notification_data/properties/approval_request_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
@@ -142,7 +134,7 @@
       "name": "challenge_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 2,
+      "occurrences": 4,
       "example_path": "keys-operations.schema.json#/$defs/keys_backups_delete_challenge/properties/challenge_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
@@ -718,7 +710,7 @@
       "name": "request_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 3,
+      "occurrences": 5,
       "example_path": "keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body/properties/request_id",
       "reason": "Caller/service request correlation token scoped to its operation and not an Arkret object identity."
     },
@@ -763,22 +755,6 @@
       "occurrences": 1,
       "example_path": "direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt/properties/authorization_core/oneOf/0/properties/root_contact_round_id",
       "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
-    },
-    {
-      "name": "rule_id",
-      "terminal_signature": "[[\"const\", \"threshold_recovery\"]]",
-      "category": "registry_catalog_symbol",
-      "occurrences": 1,
-      "example_path": "recovery-policy.schema.json#/properties/publication_authorization_rules/items/allOf/0/then/properties/rule_id",
-      "reason": "Registry catalog symbol naming a registered entry, not an instance of a protocol object."
-    },
-    {
-      "name": "rule_id",
-      "terminal_signature": "[[\"enum\", \"device_quorum|did_root|recovery_unlock|threshold_recovery|trusted_recovery_service\"]]",
-      "category": "registry_catalog_symbol",
-      "occurrences": 1,
-      "example_path": "recovery-policy.schema.json#/properties/publication_authorization_rules/items/properties/rule_id",
-      "reason": "Registry catalog symbol naming a registered entry, not an instance of a protocol object."
     },
     {
       "name": "rule_id",
@@ -997,14 +973,6 @@
       "occurrences": 1,
       "example_path": "realm.schema.json#/allOf/1/then/properties/notary/allOf/0/then/properties/recovery_controller_organization_ids",
       "reason": "Constraint refinement branch of a DID-core list declared by the base object; this branch only makes it required."
-    },
-    {
-      "name": "supersedes_id",
-      "terminal_signature": "[]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "recovery-policy.schema.json#/allOf/0/then/properties/supersedes_id",
-      "reason": "Constraint refinement branch of a typed recovery-policy ID declared by the base object; this branch only makes it required."
     }
   ]
 }

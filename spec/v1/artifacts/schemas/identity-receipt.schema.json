@@ -13,7 +13,7 @@
     "receipt_id",
     "subject_did",
     "seq",
-    "head_event_digest",
+    "accepted_entry_digest",
     "registry_id",
     "witness_role",
     "created_at",
@@ -30,15 +30,16 @@
     },
     "subject_did": {
       "$ref": "./common-ids.schema.json#/$defs/did",
-      "description": "Method-native bare DID whose registry log position is attested by this receipt. This field intentionally remains a DID because seq and head_event_digest identify that DID method history; it is not a stable Arkret business identity field."
+      "description": "Method-native bare DID whose exact accepted log entry at seq is committed by accepted_entry_digest. This identifies method history, not an Arkret business principal."
     },
     "seq": {
       "type": "integer",
       "minimum": 0
     },
-    "head_event_digest": {
+    "accepted_entry_digest": {
       "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 of RFC 8785 JCS of the exact complete accepted method-native log entry, including its control proofs. It commits to immutable accepted bytes at subject_did and seq, not a PCR Event or an unsigned-operation projection. Receipts with different digests at the same position MUST NOT contribute to the same consensus quorum."
     },
     "registry_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",

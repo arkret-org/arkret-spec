@@ -3279,7 +3279,6 @@
       "required": [
         "account_id",
         "query_digest",
-        "seal_basis",
         "authorization_incarnation"
       ],
       "properties": {
@@ -3288,9 +3287,6 @@
         },
         "query_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest"
-        },
-        "seal_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
         },
         "authorization_incarnation": {
           "$ref": "#/$defs/authorization_incarnation"
@@ -3325,7 +3321,6 @@
       "required": [
         "account_id",
         "query_digest",
-        "seal_basis",
         "authorization_incarnation",
         "join_epoch",
         "history_floor_epoch"
@@ -3336,9 +3331,6 @@
         },
         "query_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest"
-        },
-        "seal_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
         },
         "authorization_incarnation": {
           "$ref": "#/$defs/authorization_incarnation"

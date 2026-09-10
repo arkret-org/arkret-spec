@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.26",
+  "version": "2026-09-10.27",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T18:30:03+08:00",
+  "generated_at": "2026-09-10T22:14:26+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1574,23 +1574,14 @@
         "schema_kind": "object",
         "required": [
           "pairing_request_id",
-          "agent_id",
-          "verification_method",
-          "public_key",
-          "proof_of_possession",
+          "approval_request_id",
           "requested_scope_disclosure",
-          "signing_key_binding",
           "authorize_event"
         ],
         "properties": [
           "pairing_request_id",
-          "agent_id",
-          "verification_method",
-          "public_key",
-          "proof_of_possession",
+          "approval_request_id",
           "requested_scope_disclosure",
-          "runtime_attestation",
-          "signing_key_binding",
           "authorize_event"
         ],
         "closed": true
@@ -1600,13 +1591,11 @@
         "schema_kind": "object",
         "required": [
           "activation_state",
-          "authorize_event_ref",
-          "signing_key_binding"
+          "authorize_event_ref"
         ],
         "properties": [
           "activation_state",
-          "authorize_event_ref",
-          "signing_key_binding"
+          "authorize_event_ref"
         ],
         "closed": true
       }
@@ -1620,14 +1609,12 @@
         "required": [
           "pairing_code",
           "new_device_pubkey",
-          "challenge_proof",
           "authorize_event",
           "device_pairing_request_id"
         ],
         "properties": [
           "pairing_code",
           "new_device_pubkey",
-          "challenge_proof",
           "authorize_event",
           "display_name",
           "device_metadata",
@@ -2024,8 +2011,7 @@
           "approval_request_id",
           "authorized_event_ref",
           "authorized_verification_method",
-          "authorized_public_key_digest",
-          "authorized_signing_key_binding"
+          "authorized_public_key_digest"
         ],
         "closed": true
       }
@@ -3713,19 +3699,11 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
-        "schema_kind": "object",
-        "required": [
-          "claim_request_id",
-          "claims",
-          "claim_receipt"
-        ],
-        "properties": [
-          "claim_request_id",
-          "claims",
-          "claim_receipt"
-        ],
-        "closed": true
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
       }
     },
     {
@@ -4256,14 +4234,14 @@
         "required": [
           "status",
           "did",
-          "accepted_at"
+          "accepted_at",
+          "operation_ref"
         ],
         "properties": [
           "status",
           "did",
           "accepted_at",
           "seq",
-          "head_event_digest",
           "operation_ref",
           "receipts"
         ],
@@ -5425,8 +5403,8 @@
           "principal_control_realm_id",
           "controller_authorization_ref",
           "requested_scope_digest",
-          "pairing_mode",
           "pairing_request_id",
+          "pairing_code",
           "expires_at"
         ],
         "properties": [
@@ -5434,7 +5412,6 @@
           "principal_control_realm_id",
           "controller_authorization_ref",
           "requested_scope_digest",
-          "pairing_mode",
           "pairing_request_id",
           "pairing_code",
           "expires_at"
@@ -7193,15 +7170,13 @@
           "request_id",
           "account_id",
           "principal_control_realm_id",
-          "resolution_projection",
-          "observed_at"
+          "resolution_projection"
         ],
         "properties": [
           "request_id",
           "account_id",
           "principal_control_realm_id",
-          "resolution_projection",
-          "observed_at"
+          "resolution_projection"
         ],
         "closed": true
       }
@@ -7915,15 +7890,13 @@
           "request_id",
           "account_id",
           "intended_purpose",
-          "notary",
-          "observed_at"
+          "notary"
         ],
         "properties": [
           "request_id",
           "account_id",
           "intended_purpose",
-          "notary",
-          "observed_at"
+          "notary"
         ],
         "closed": true
       }
@@ -8456,6 +8429,58 @@
       }
     },
     {
+      "operation_id": "ak.self.keys.backups.command.issue_unlock_challenge.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id"
+        ],
+        "properties": [
+          "request_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge",
+        "schema_kind": "object",
+        "required": [
+          "challenge_id",
+          "challenge",
+          "nonce",
+          "operation",
+          "account_id",
+          "backup_id",
+          "audience",
+          "service_id",
+          "request_id",
+          "issued_at",
+          "expires_at",
+          "requesting_device_id",
+          "series_id",
+          "ciphertext_digest"
+        ],
+        "properties": [
+          "challenge_id",
+          "challenge",
+          "nonce",
+          "operation",
+          "account_id",
+          "backup_id",
+          "audience",
+          "service_id",
+          "request_id",
+          "issued_at",
+          "expires_at",
+          "requesting_device_id",
+          "series_id",
+          "ciphertext_digest"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.keys.backups.command.unlock.v1",
       "success_shape_kind": "schema_resource",
       "request": {
@@ -8954,7 +8979,6 @@
         "required": [
           "request_id",
           "realm_id",
-          "seal_basis",
           "route",
           "signing_keys",
           "observed_at",
@@ -8963,7 +8987,6 @@
         "properties": [
           "request_id",
           "realm_id",
-          "seal_basis",
           "route",
           "signing_keys",
           "observed_at",
@@ -9234,13 +9257,16 @@
           "request_id",
           "account_id",
           "realm_id",
-          "intent"
+          "intent",
+          "created_at"
         ],
         "properties": [
           "request_id",
           "account_id",
           "realm_id",
-          "intent"
+          "intent",
+          "created_at",
+          "hlc"
         ],
         "closed": true
       },
@@ -9253,9 +9279,11 @@
           "realm_id",
           "request_digest",
           "governance_facts",
-          "authoring_core",
+          "unsigned_event",
           "observed_at",
-          "expires_at"
+          "expires_at",
+          "accepted_actor_frontier",
+          "authoring_device_generation_ref"
         ],
         "properties": [
           "request_id",
@@ -9263,9 +9291,11 @@
           "realm_id",
           "request_digest",
           "governance_facts",
-          "authoring_core",
+          "unsigned_event",
           "observed_at",
-          "expires_at"
+          "expires_at",
+          "accepted_actor_frontier",
+          "authoring_device_generation_ref"
         ],
         "closed": true
       }
@@ -9667,7 +9697,6 @@
         "required": [
           "account_id",
           "query_digest",
-          "seal_basis",
           "authorization_incarnation",
           "join_epoch",
           "history_floor_epoch"
@@ -9675,7 +9704,6 @@
         "properties": [
           "account_id",
           "query_digest",
-          "seal_basis",
           "authorization_incarnation",
           "join_epoch",
           "history_floor_epoch"
@@ -9707,13 +9735,11 @@
         "required": [
           "account_id",
           "query_digest",
-          "seal_basis",
           "authorization_incarnation"
         ],
         "properties": [
           "account_id",
           "query_digest",
-          "seal_basis",
           "authorization_incarnation"
         ],
         "closed": true
@@ -9742,19 +9768,15 @@
         "schema_kind": "object",
         "required": [
           "query_digest",
-          "seal_basis",
           "transition_head",
           "governance_binding",
-          "mls_frontier_leaves",
-          "current_epoch_head"
+          "mls_frontier_leaves"
         ],
         "properties": [
           "query_digest",
-          "seal_basis",
           "transition_head",
           "governance_binding",
-          "mls_frontier_leaves",
-          "current_epoch_head"
+          "mls_frontier_leaves"
         ],
         "closed": true
       }
@@ -9810,13 +9832,11 @@
         "schema_kind": "object",
         "required": [
           "query_digest",
-          "seal_basis",
           "live_digest_suite",
           "governance_binding"
         ],
         "properties": [
           "query_digest",
-          "seal_basis",
           "live_digest_suite",
           "governance_binding",
           "epoch_head"
@@ -9854,15 +9874,11 @@
         "required": [
           "account_id",
           "query_digest",
-          "seal_basis",
-          "epoch_head",
           "remove_leaf_indices"
         ],
         "properties": [
           "account_id",
           "query_digest",
-          "seal_basis",
-          "epoch_head",
           "remove_leaf_indices"
         ],
         "closed": true
@@ -10191,6 +10207,7 @@
         "properties": [
           "kind",
           "envelope",
+          "delivery_authority",
           "reconnect_after_ms",
           "reason"
         ],
@@ -10201,11 +10218,13 @@
             "schema_kind": "object",
             "required": [
               "kind",
-              "envelope"
+              "envelope",
+              "delivery_authority"
             ],
             "properties": [
               "kind",
-              "envelope"
+              "envelope",
+              "delivery_authority"
             ],
             "closed": true
           },

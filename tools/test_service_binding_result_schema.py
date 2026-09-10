@@ -27,13 +27,13 @@ class ServiceBindingResultSchemaTests(unittest.TestCase):
         return {"request_id": "ak:request:01964137-0000-7000-8000-000000000010", "account_id": self.account(), "intended_purpose": "collaboration"}
 
     def genesis_outcome(self):
-        return {**self.genesis_request(), "notary": {"kind": "single_signer", "signer": self.signer()}, "observed_at": "2026-09-10T00:00:00.000Z"}
+        return {**self.genesis_request(), "notary": {"kind": "single_signer", "signer": self.signer()}}
 
     def media_request(self):
         return {"request_id": "ak:request:01964137-0000-7000-8000-000000000011", "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"}
 
     def media_outcome(self):
-        return {**self.media_request(), "seal_basis": {"leaves": ["ak:seal:sha256:" + "a" * 64]}, "route": {"service_id": "ak:did_core:web:media.example", "service_kind": "media_service", "did": "did:web:media.example", "method_history_head": "sha256:" + "c" * 64, "version_id": "synthetic-jcs-sha256:" + "c" * 64, "resolution_event_ref": "did-web-document-sha256:" + "c" * 64, "base_url": "https://media.example/"}, "signing_keys": [{"verification_method": "did:web:media.example#key-1", "public_key_b64u": "d" * 42 + "A"}], "observed_at": "2026-09-10T00:00:00.000Z", "expires_at": "2026-09-10T00:05:00.000Z"}
+        return {**self.media_request(), "route": {"service_id": "ak:did_core:web:media.example", "service_kind": "media_service", "did": "did:web:media.example", "method_history_head": "sha256:" + "c" * 64, "version_id": "synthetic-jcs-sha256:" + "c" * 64, "resolution_event_ref": "did-web-document-sha256:" + "c" * 64, "base_url": "https://media.example/"}, "signing_keys": [{"verification_method": "did:web:media.example#key-1", "public_key_b64u": "d" * 42 + "A"}], "observed_at": "2026-09-10T00:00:00.000Z", "expires_at": "2026-09-10T00:05:00.000Z"}
 
     def assert_every_member_required(self, validator, instance):
         validator.validate(instance)

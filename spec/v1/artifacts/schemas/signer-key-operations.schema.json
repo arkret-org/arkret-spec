@@ -259,8 +259,7 @@
       "required": [
         "selector",
         "status",
-        "key",
-        "checked_at"
+        "key"
       ],
       "properties": {
         "selector": {
@@ -271,9 +270,6 @@
         },
         "key": {
           "$ref": "#/$defs/station_signing_key"
-        },
-        "checked_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false,
@@ -311,8 +307,7 @@
         "selector",
         "status",
         "key",
-        "accepted_at",
-        "signer_evidence_ref"
+        "accepted_at"
       ],
       "properties": {
         "selector": {
@@ -327,9 +322,6 @@
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "Exact Event original producer admission time, never the local receiver acceptance time."
-        },
-        "signer_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
         }
       },
       "additionalProperties": false,

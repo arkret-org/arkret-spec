@@ -775,8 +775,7 @@
         "agent_id",
         "key_id",
         "verification_method",
-        "public_key_digest",
-        "signing_key_binding_digest",
+        "public_key",
         "accountable_principal_id",
         "agent_key_scope",
         "audience",
@@ -793,13 +792,9 @@
         "verification_method": {
           "$ref": "#/$defs/verification_method"
         },
-        "public_key_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 of the decoded 32-byte Ed25519 public key behind verification_method, computed with agent_signing_public_key_digest. Agent authorization always commits this raw-key digest; it is distinct from the private runtime-request PublicKey DTO digest."
-        },
-        "signing_key_binding_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "sha256 over the canonical agent-signing binding core containing schema, agent_id, agent_key_id, verification_method, public_key, public_key_digest, issued_at, optional expires_at, and controller_principal_id, but excluding agent_key_authorize_event_id and controller_proof. The complete accepted Event ID and controller proof are appended only when materializing the public ak.schema.agent_signing_key_binding.v1 object. Including this Event's not-yet-derived identity would create an impossible digest fixed point. A service MUST recompute the core digest before appending the verified accepted Event identity and MUST NOT substitute another disclosure."
+        "public_key": {
+          "$ref": "./agent-operations.schema.json#/$defs/agent_runtime_public_key",
+          "description": "The complete canonical Ed25519 signing key authenticated by this Event. kid MUST equal verification_method; key decodes to exactly 32 bytes. No second controller signature or independently authored key digest exists."
         },
         "accountable_principal_id": {
           "$ref": "#/$defs/did_core_id"
@@ -822,7 +817,7 @@
         },
         "supersedes": {
           "type": "array",
-          "description": "Exact set of every active Agent-key authorization dot observed immediately before this controller-signed authorization is accepted during runtime re-pairing. Each entry binds both the key id and the authorization Event that introduced the active dot. The array MUST be omitted only for first pairing, when the authoritative active set is empty. Every replacement MUST set-equal the complete pre-accept active authorization set, including an old dot with the same key_id as the new authorization; a stale, partial, extra, or implicit map overwrite fails closed. Acceptance atomically removes these dots with reason superseded_by_repairing and adds this authorize dot, so no server-forged ak.agent.key.revoke Event is required.",
+          "description": "Exact complete active authorization set at seal_basis and first acceptance, sorted byte-lexicographically by (key_id, authorized_event_ref). Omit exactly when the active set is empty, including after revoke. Each authorization Event identifies its registered add dot. Same-key reauthorization uses the same exact-set rule. Remove the observed old-key cells atomically and add the new authorization; never infer authority from historical row presence or map overwrite.",
           "minItems": 1,
           "uniqueItems": true,
           "items": {
@@ -840,7 +835,8 @@
               }
             },
             "additionalProperties": false
-          }
+          },
+          "maxItems": 256
         },
         "revocation_check_ref": {
           "$ref": "#/$defs/object_ref",
@@ -3980,11 +3976,11 @@
         },
         "hpke_key": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Device HPKE public key used for secret/key envelope sealing. It is covered by the possession transcript and by the surrounding root anchor or accepted-device Event proof; services MUST NOT substitute it. For accepted_device pairing its authority is the target device_pairing_target_attestation, which the approving device reads only after that attestation verifies."
+          "description": "Device HPKE public key used for secret/key envelope sealing. It is covered by the possession transcript and by the surrounding root anchor or accepted-device Event proof; services MUST NOT substitute it. For accepted_device pairing its authority is the target device_pairing_target_proof, which the approving device reads only after that attestation verifies."
         },
         "algorithms": {
           "$ref": "#/$defs/string_list",
-          "description": "Canonical sorted unique algorithm ids supported by this device. Enters device trust binding transcript together with device_public_key_did and hpke_key. For accepted_device pairing its authority is the target device_pairing_target_attestation, not any service-supplied or staged copy."
+          "description": "Canonical sorted unique algorithm ids supported by this device. Enters device trust binding transcript together with device_public_key_did and hpke_key. For accepted_device pairing its authority is the target device_pairing_target_proof, not any service-supplied or staged copy."
         },
         "device_key_algorithm": {
           "const": "Ed25519"
@@ -4013,15 +4009,45 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Required Ed25519 possession proof. registration_anchor uses ak.device_authorize_possession_proof.v1, pcr_recovery uses ak.device_authorize_recovery_possession_proof.v1, and accepted_device uses ak.device_authorize_accepted_device_possession_proof.v1. All transcripts bind authorization_binding_kind and cannot be substituted across branches."
+          "description": "Required Ed25519 possession proof. registration_anchor uses ak.device_authorize_possession_proof.v1; pcr_recovery uses ak.device_authorize_recovery_possession_proof.v1; accepted_device carries the single device_pairing_target_proof signature over the full challenge descriptor bound to the final AccountId and authorization core. The accepted-device branch MUST verify pairing_challenge_transcript_digest against that signed descriptor; no second new-device signature is required."
         },
         "recovery_session_id": {
           "type": "string",
           "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Required by the pcr_recovery branch and omitted for registration_anchor and ordinary accepted_device pairing."
+        },
+        "pairing_challenge_transcript_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Required only for accepted_device. SHA-256 typed digest of the complete canonical challenge descriptor authenticated by device_signature; the verifier persists the descriptor and rechecks the exact final AccountId and authorization core."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "authorization_binding_kind": {
+                "const": "accepted_device"
+              }
+            },
+            "required": [
+              "authorization_binding_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "pairing_challenge_transcript_digest"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "pairing_challenge_transcript_digest"
+              ]
+            }
+          }
+        }
+      ]
     },
     "device_id": {
       "$ref": "./account-operations.schema.json#/$defs/device_id"
@@ -6700,9 +6726,6 @@
         },
         "error_code": {
           "$ref": "#/$defs/non_empty_string"
-        },
-        "diagnostic_digest": {
-          "$ref": "#/$defs/digest"
         },
         "failed_at": {
           "$ref": "#/$defs/timestamp"

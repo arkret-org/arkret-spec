@@ -804,7 +804,8 @@
             "authorized_by": "ak:device:01964136-8000-7000-8000-000000000000",
             "authorization_binding_kind": "accepted_device",
             "not_before": "2026-05-02T00:00:03.000Z",
-            "device_signature": "fixture-signature"
+            "device_signature": "fixture-signature",
+            "pairing_challenge_transcript_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
           "proofs": []
         }

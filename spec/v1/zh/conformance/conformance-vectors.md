@@ -3678,13 +3678,13 @@ Expected：
 Steps：
 
 1. source PS 以 `(Source-Service-ID=S, claim_request_id=R, request_digest=H)` 发起 peer claim；目标 authority 已完成 CAS 与 ledger commit，但成功响应丢失。
-2. source 按协议先调用 claim query `(R,H)`；另模拟网络层重复投递完全相同的原 command。
+2. source 直接 exact replay 原 command `(R,H)`；另用可选 query 读取相同 ledger。
 3. source 复用 `R` 但改用另一 canonical digest `H2`。
 
 Expected：
 
 - KeyPackage 的 `published → claimed` CAS、ledger 与序列化 outcome MUST 只有一个线性化点，CAS 次数恰为 1。
-- query MUST 返回 `state=claimed` 与同一签名 outcome；同 `(S,R,H)` 的重复 transport delivery 仍必须返回 byte-identical 原 outcome，但 caller 不得以此替代不确定结果查询。
+- query MUST 返回 `state=claimed` 与同一签名 outcome；同 `(S,R,H)` 的 direct replay 返回相同 closed ledger state 与 byte-identical 原 claim_outcome，零二次 claim；过期的新命令仍拒绝。
 - `(S,R,H2)` MUST `duplicate_conflict`，不得领取第二个 KeyPackage 或覆盖 ledger。
 
 ### 10.3.2 Vector: Peer Claim Double Authorization And Privacy
@@ -4305,7 +4305,7 @@ Preconditions:
 
 Steps:
 
-1. 对已持有 active authorized key 且 lifecycle 为 `active` 的 agent，Controller 直接调用 `ak.self.agent.command.renew_pairing.v1`，得到新一次性 `pairing_request_id` + `pairing_code` 与 `pairing_mode="replacement"`；`paused` 变体同样 MUST 成功。响应不得包含 backup readiness。怀疑旧 key 失陷时 Controller SHOULD 先提交 controller-signed delegated `ak.self.agent.pause`，但 pause 不是 operation 前置条件。
+1. 对已持有 active authorized key 且 lifecycle 为 `active` 的 agent，Controller 直接调用 `ak.self.agent.command.renew_pairing.v1`，得到新一次性 `pairing_request_id` + `pairing_code`；`paused` 变体同样 MUST 成功。响应不得包含 backup readiness。怀疑旧 key 失陷时 Controller SHOULD 先提交 controller-signed delegated `ak.self.agent.pause`，但 pause 不是 operation 前置条件。
 2. Agent 保持 `paused`；旧 key `K1` 与既有 grants 尚未被 replacement 撤销，但服务端不得签发新的 agent session grant 或执行新的 capability action。Controller 在 replacement 完成前调用 resume 的变体 MUST `failed_precondition`。
 3. 新 runtime 生成 key `K2` 提交 runtime-key-request；controller 签 `ak.agent.key.authorize`(K2)，其 payload 带 `supersedes=[{key_id: K1, authorized_event_ref: <K1 authorize Event>}]`，再调用 `ak.gate.account.command.pair_agent_key.v1` 完成配对。
 4. 用 `K1` 再次请求 `agent_key_proof` session grant;`S1` 在 freshness window 后被使用。
@@ -4314,7 +4314,7 @@ Steps:
 
 Expected:
 
-- renew_pairing MUST NOT 改变 agent status、既有 key、grant 或任何 backup；响应分支是 `pairing_mode="replacement"`，此前所有 pairing handle 永久不可解析。`active` 与 `paused` 直调都必须创建新 handle；只有 `deactivated` 必须拒绝。
+- renew_pairing MUST NOT 改变 agent status、既有 key、grant 或任何 backup；响应固定返回新 handle、secret 与过期时间，此前所有 pairing handle 永久不可解析。`active` 与 `paused` 直调都必须创建新 handle；只有 `deactivated` 必须拒绝。
 - 第 2 步的新 session / capability action 与 open replacement 期间的 resume MUST fail closed；已存在 key/grant 的保留只用于原子 supersede 与审计，不等于 paused 状态可继续执行。
 - 第 3 步 MUST 以单一 controller-signed `ak.agent.key.authorize`(K2) Event 原子 remove `supersedes[]` 指定的 K1 authorization dot（reason=`superseded_by_repairing`）并 add K2 dot；不得伪造第二条 controller-authored revoke Event；capability grants 不受影响。遗漏 K1、加入不存在/已撤销 authorization，或引用错误 `authorized_event_ref` 的变体 MUST conflict / fail closed 且不改变任何 key。
 - 第 4 步 MUST fail closed:`K1` 的新 session 请求拒绝;`S1` MUST 在 revocation freshness window 内 fail closed,MUST NOT 自然存活到原 TTL。
@@ -5722,7 +5722,7 @@ Expected：
 
 `ak.vector.identity.recovery_kdf.v1` 固定 BIP-39 24 词 + passphrase 与 32-byte raw secret 两条输入路径。实现 MUST 逐字节重算 HKDF PRK、`root_seed_0/1`、`recovery_proof_seed`、`backup_hpke_ikm`、Ed25519 raw public keys 与 multikey、RFC 9180 `DHKEM(X25519, HKDF-SHA256).DeriveKeyPair` 的 raw `derived_sk`、clamped serialized private key 与 public key，以及 `Base58BTC(multihash(sha2-256, UTF8(root_1_multikey)))` canonical `nextKeyHash`。fixture 中 raw-public-key SHA-256 只作为诊断值，不得写入 did:webvh `nextKeyHashes`。任何 salt/info 字节、`u64be(i)`、multicodec/multihash 编码、输入文本化、raw/clamped private-key 表示混淆或 Ed25519→X25519 key reuse 漂移都必须失败。
 
-`ak.vector.identity.recovery_key_role_separation.v1` 固定 recovery policy 的跨数组语义：`recovery_keys[]` 的 recovery-proof signing entry 必须用唯一 `key_agreement_ref` 配对同一 accepted policy 的一个 active `recovery_key_agreements[]` backup-HPKE entry；proof verification 只能使用前者，所有 `recovery_public_key` envelope 的 signed `recovery_policy_ref` / `recipient_key_ref` / `hpke_suite` 只能解析到后者。悬空或重复 ref、撤销/过期 entry、签名与 HPKE 复用 material、suite 不匹配、把 signing ref 当 recipient、或只在 DID Document 声明而未进入 session/envelope referenced policy 均 MUST reject。
+`ak.vector.identity.recovery_key_role_separation.v1` 固定 recovery policy 的内联角色分离：`methods[]` 中 `recovery_unlock.keys[]` 与 `threshold_recovery.publication_key` 的每个 recovery-proof signing entry 必须携带独立 `backup_hpke` entry；`backup_hpke.key_agreement_ref` 在同一 accepted policy 中唯一。proof verification 只能使用 signing entry，所有 `recovery_public_key` envelope 的 signed `recovery_policy_ref` / `recipient_key_ref` / `hpke_suite` 只能解析到同一 signing entry 内有效的 `backup_hpke`。悬空或重复 ref、撤销/过期 entry、签名与 HPKE 复用 material、suite 不匹配、把 signing ref 当 recipient、或只在 DID Document 声明而未进入 session/envelope referenced policy 均 MUST reject。
 
 ### 22.2 Root-anchor 排他性
 
@@ -6065,12 +6065,12 @@ Steps:
 
 Expected:
 
-- 正例：proof 覆盖 `ak.device-pairing.challenge.v1` transcript 的全部 member，verifier 独立重算 transcript 后验签通过。
+- 正例：唯一 target proof 通过 challenge digest 承诺 `ak.device-pairing.challenge.v1` 全部 member（含 metadata digest），verifier 独立重建后仅验一次 target signature。
 - 正例：同一 `new_device_pubkey` object 的 canonical bytes 与 `new_device_pubkey_digest` 在 stage / resolve / gate 三处逐字节不变。
-- 负例：坏 `gate_audience`、旧 `pairing_code`、跨 request 重放、过期窗口外、改 key、坏签名、proof `kid` 与 `new_device_pubkey.kid` 不等、proof 使用已废弃的 `verification_method` 字段名承载 device key id，或 proof transcript 不是 `ak.device-pairing.challenge.v1`，一律 MUST 拒绝。
+- 负例：坏 `gate_audience`、旧 `pairing_code`、跨 request 重放、过期窗口外、改 key、坏签名、target `device_id` 与 `new_device_pubkey.kid` 不等、metadata digest 被篡改，或 challenge 采用非规范域，一律 MUST 拒绝。
 - 负例：正文旧示例形态 `{kid, alg, public_key}` MUST 被 canonical `PublicKey` schema 拒绝（缺 `kty` / 缺 `key` / 多余 `public_key`）。
-- 负例：stage 请求携带 challenge proof MUST `schema_violation`（proof 必须承诺 stage 才铸出的值，因此不可能在 stage 时存在）。
-- 负例：`ak.gate.account.command.pair_device.v1` 缺少 `device_pairing_request_id`，或引用未知、过期、已消费、code/key 不匹配的 staged record，MUST fail closed；不得接受客户端提供的替代 challenge transcript。
+- 负例：stage 请求携带 target proof MUST `schema_violation`（proof 必须承诺 stage 才铸出的值，因此不可能在 stage 时存在）。
+- 负例：`ak.gate.account.command.pair_device.v1` 缺少 `device_pairing_request_id`，或首次接纳引用未知、过期、已消费、code/key 不匹配的 staged record，MUST fail closed；不得接受客户端提供的替代 challenge transcript。
 - 负例：stage/resolve/status 返回或绑定 principal、SessionGrant、sibling device 集合，或未授权新设备调用 `ak.self.device_messages.*`，一律视为不合规。无效与不匹配的 resolve/status credential 保持统一防枚举错误。
 
 `vector_id`: `ak.vector.device_pairing.accepted_device_attestation.v1`
@@ -6079,23 +6079,26 @@ Steps:
 
 1. 在同一次 pairing 中，目标设备按
    [`../crypto-media/device-lifecycle.md` §5.2.2](../crypto-media/device-lifecycle.md) 生成
-   `device_pairing_target_attestation`，批准设备与 Account Authority 各自独立重建该封闭对象并验签，
+   `device_pairing_target_proof`，批准设备与 Account Authority 各自独立重建该封闭对象并验签，
    目标设备再按 [`../crypto-media/device-lifecycle.md` §5.4.1](../crypto-media/device-lifecycle.md)
    在本地装配前核对被接受的 `ak.device.authorize`。
-2. 验证 attestation 只经二维码/短链 fragment 到达批准设备，stage 与 resolve 均不返回该对象。
+2. 验证 target proof 只经二维码/短链 fragment 到达批准设备，stage 与 resolve 均不返回该对象。
 
 Expected:
 
-- 正例：`accepted_device` 的 `device_signature` 使用 domain `ak.device_authorize_accepted_device_possession_proof.v1`，签名对象恰为 `{algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key_did, hpke_key, pairing_challenge_transcript_digest}`，批准设备与 gate 各自重建后验签通过；gate 不接受任何请求方提供的 attestation 副本。
-- 正例：`device_pairing_target_attestation` 只绑定唯一的 staged short-link `pairing_challenge_transcript_digest`，不登记 to-device 配对 transcript 分支。
-- 正例：`hpke_key` 与 `algorithms` 只从验签通过的 attestation 取得；stage 请求与 `DevicePairingBootstrap` 都不承载这两个值。
-- 负例：attestation 的 `pairing_challenge_transcript_digest` 与本次 pairing 重算得到的 `transcript_digest` 不等 MUST 拒绝，且 MUST 在验签之前拒绝。
-- 负例：attestation 的 `hpke_key` 与 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key_did` / `device_id` 同理。
-- 负例：把 `root_anchored` 的 `ak.device_authorize_possession_proof.v1` transcript 用于 `accepted_device`，或把 `accepted_device` attestation 用于 genesis / re-anchor 的第二条 authorize，双向 MUST 拒绝。
-- 负例：attestation 的 `device_public_key_did` 与 `new_device_pubkey.key` 解码为不同 key，或 `device_id` 与 `new_device_pubkey.kid` 不等，MUST 拒绝。
-- 负例：把 attestation 经免认证 stage / resolve 面回传，或在 `DevicePairingBootstrap` 中镜像 `hpke_key` / `algorithms`，视为不合规。
-- 负例（§5.4.1）：被接受 Event 的 `principal_id` 非用户预期，或 `payload.device_signature` 与目标设备产出的 attestation 签名不逐字节相同，目标设备 MUST fail closed——不使用该身份、不安装或请求该 principal 的密钥材料、不发布 KeyPackage，并向用户告警。
+- 正例：`accepted_device` 的 `device_signature` 使用 domain `ak.device_authorize_accepted_device_possession_proof.v1`，签名对象恰为 `{algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key_did, hpke_key, pairing_challenge_transcript_digest}`，批准设备与 gate 各自重建后验签通过；gate 不接受任何请求方提供的 target proof 副本。
+- 正例：`device_pairing_target_proof` 只绑定唯一的 staged short-link `pairing_challenge_transcript_digest`，不登记 to-device 配对 transcript 分支。
+- 正例：`hpke_key` 与 `algorithms` 只从验签通过的 target proof 取得；stage 请求与 `DevicePairingBootstrap` 都不承载这两个值。
+- 负例：target proof 的 `pairing_challenge_transcript_digest` 与本次 pairing 重算得到的 `transcript_digest` 不等 MUST 拒绝，且 MUST 在验签之前拒绝。
+- 负例：target proof 的 `hpke_key` 与 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key_did` / `device_id` 同理。
+- 负例：把 `root_anchored` 的 `ak.device_authorize_possession_proof.v1` transcript 用于 `accepted_device`，或把 `accepted_device` target proof 用于 genesis / re-anchor 的第二条 authorize，双向 MUST 拒绝。
+- 负例：target proof 的 `device_public_key_did` 与 `new_device_pubkey.key` 解码为不同 key，或 `device_id` 与 `new_device_pubkey.kid` 不等，MUST 拒绝。
+- 负例：把 target proof 经免认证 stage / resolve 面回传，或在 `DevicePairingBootstrap` 中镜像 `hpke_key` / `algorithms`，视为不合规。
+- 负例（§5.4.1）：被接受 Event 的完整 `actor_id.account_id`（含 Station）非用户预期，或 `payload.device_signature` 与目标设备产出的 target proof 签名不逐字节相同，目标设备 MUST fail closed——不使用该身份、不安装或请求该 principal 的密钥材料、不发布 KeyPackage，并向用户告警。
 - 负例：目标设备在完成 §5.4.1 校验之前就完成本地装配，视为不合规。
+
+- 正例：同一已认证批准方的 exact replay 在 stage 消费或清理后仍返回同一 outcome，异请求或异 holder 拒绝；并发与断连后重试不重复 Event、目录写入或 stage 消费。
+- 正例：保存的 payload descriptor、challenge digest 与 signature 在 stage 清理后仍可验签；challenge 来源的信任仍取决于原 admission evidence。
 
 ### 23.11 RSVP typed composite subject 与 `mv_register` 收敛
 

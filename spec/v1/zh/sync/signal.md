@@ -29,7 +29,7 @@ Signal 始终是短 TTL encrypted-only transport，不是 Event、history respon
 `ak.signal_proof.v1` 并覆盖移除 proof 后的完整 envelope digest；transcript 成员 `created_at` 由外层 `sent_at` 注入
 （proof-context registry 该行的 `binding_field_sources`），proof 本身不携带第二个时间戳。sender 是 closed XOR：ordinary
 account-device MUST 携带 `sender_device_id: DeviceId`；Agent MUST 省略该字段，且 `null`/空值非法。
-字段存在性只选择候选分支，不能证明 actor 是 Agent；source 与 recipient MUST 从 accepted principal
+字段存在性只选择候选分支，不能证明 actor 是 Agent；source 与 recipient 自己的 Station MUST 从 accepted principal
 classification 和 current authority 独立确认。minimal-metadata pairwise endpoint 没有 Signal carrier，
 MUST NOT 冒入 Agent 分支。两分支均不得合成 DeviceId、借用 controller device 或 ordinary
 directory；不具备匹配 carrier/authority 的 endpoint/scope MUST NOT 广告 Signal 可用。本节不新增
@@ -164,7 +164,8 @@ Signal 把来源授权、联邦准入与端到端身份分成三层，MUST NOT �
 | --- | --- |
 | sender / source Station local ingress | exact AccountId 的 current accepted device authorization、设备签名 key 和 producer signature；Realm/scope、可验证 Seal、current membership、class action、TTL 与外层 MLS/AAD basis。账号 session 不替代设备授权。 |
 | destination Station peer ingress | 已认证 source service 对 request body 的 HTTP 签名、source 与完整 sender ActorId 的 routing projection、closed schema、proof transcript 结构/digest、Realm/scope/Seal/current membership/class action/TTL 与外层 MLS/AAD basis。不得把远端设备信任或 producer 验签作为 relay 前置。 |
-| recipient 客户端 | 当前可信设备授权及 producer signature、exact scope/group/epoch/winning state、active leaf 的完整 ActorId/device/key/authorization transition binding、AAD、AEAD、plaintext schema 与 replay/high-water；全部通过后才能展示或产生业务副作用。 |
+| recipient 自己 Station 的 authenticated self 投递 | 发出每个 exact envelope 前完成 current signer/device/Agent、撤销、fence、expiry、成员与 action gate，输出绑定收件账号及连接代际的 delivery_authority；不可用则不投递。 |
+| recipient 客户端 | 核对本连接 exact delivery_authority、producer signature、exact scope/group/epoch/winning state、active leaf 的完整 ActorId/device/key/authorization transition binding、AAD、AEAD、plaintext schema 与 replay/high-water；全部通过后才能展示或产生业务副作用。 |
 
 两类 Station 的外层治理检查包括 `scope_ref.realm_id == realm_id`、sender actor 在 signed Seal 的 Realm /
 scope basis 下具备发送资格且当前仍有 membership、`signal_class=moderation` 的对应 action，以及
@@ -181,21 +182,24 @@ source 和 recipient 的设备授权使用 **current** 状态，`seal_ref` 只�
 不选择设备授权历史。source 使用自己托管的 exact AccountId 的 accepted device projection。
 source 每次准入与出站 fresh 检查 MUST 同时满足原 accepted 设备授权的 `now >= not_before`，
 以及非空 `expires_at` 的 `now < expires_at`；缓存 `active` 标记和 Signal TTL 不延长该有效期。
-跨账号 recipient 使用 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md)
-的 origin Station 已签 `device_projection_attestation`，由自己 Station 验证公共授权；cold foreign sender 必须通过
-`ak.self.signer_keys.read.resolve.v1` 让本地 Station 代查询 origin 的
-`ak.peer.current_signer_evidence.read.resolve.v1`，不得把本地用户 SessionGrant 转发给远端、
-直接请求私有 device gate、用 KeyPackage claim 代替 current projection，或先向缓存预注入材料。
-self 请求只含 request_id、Realm、exact recipient Account 与 1..64 个 closed selector；不接受
-known evidence refs/digests，不返回需客户端 hydrate 的根。自己的 Station 使用本地已验证 authority
-或 peer 查询（每批最多16项）完整核验远端证据，返回 §5.6 的独立 self key 结果。Peer 的 compact
-root/known 机制只在服务器之间使用；self 不能透传未验证的远端材料。
+跨账号投递由 recipient 自己的 Station 使用 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md)
+的 origin Station 已签 `device_projection_attestation` 完成公共授权验证。cold foreign sender 由该 Station
+调用 `ak.peer.current_signer_evidence.read.resolve.v1`，每批最多 16 个 exact selector；不得转发用户
+SessionGrant、请求私有 device gate、用 KeyPackage claim 代替 current projection，或透传未验证证据。
 
-客户端对每次 current signer 验证发起有界 self 查询，仅同次批处理或完全相同且已经在途的查询可
-合并。已完成结果不用于未来 Signal/重连/操作；公钥缓存不构成 current 授权，checked_at 不是租约。
-不维护全 Realm checkpoint 失效扫描，也不以300秒 TTL复用替代每次验证。每条 Signal 仍检查完整
-Actor/method、producer signature、真实 MLS leaf/group/epoch、AAD/AEAD、TTL与replay；自己 Station
-对实际操作执行逐次当前准入。查询增加请求量，必须按 §5.6 的64 KiB请求/1 MiB响应与有界等待处理。
+每次发出 authenticated self data frame 前，Station MUST 对 exact sender Actor/method、目标 Realm/scope、
+exact recipient Account 和当前连接会话执行完整 current gate；排队期间撤销、过期、fence、成员或 action
+变化必须被本次 gate 观察。该决定与 frame 内完整 envelope 和 delivery_authority 一起输出，不产生可重用
+租约。来源、peer ingress、普通 relay 成功与先前 data frame 均不能代替这项求值；未知或超时不得发帧。
+可有界合并尚在途的相同求值，但完成结果不能供未来帧或重连复用；本合同不承诺免除服务器远端查询。
+
+客户端 MUST 只消费自己 Station 的当前认证 subscribe 连接中的 `{kind:"signal", envelope, delivery_authority}`。
+delivery_authority.recipient_account_id MUST 等于该连接的完整 AccountId；key.actor/method MUST 与 envelope
+sender/proof 逐字相等，并以 exact key 和 authorization_ref 核对本地已验证 MLS leaf transition。
+连接关闭、账号/session/安装代际改变后，原连接尚在本地队列的帧 MUST 丢弃；已知撤销优先于已收到的成功
+结果。客户端 MUST NOT 为该帧另发 signer self RPC，也不得持久缓存 delivery_authority 作为未来授权。
+仍逐帧核对 producer signature、完整 Actor、实际 MLS leaf/group/epoch、AAD/AEAD、TTL、plaintext schema
+与 replay；稳定 public-key bytes 缓存不能替代同 key 的不同授权实例。
 
 没有有效可信材料时只可在 Signal TTL 内有界等待；未验证不得展示、更新 high-water 或执行业务，过期即丢弃。
 
@@ -222,7 +226,7 @@ MUST 以 `signal_plaintext_forbidden` fail closed。
 
 conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖：
 
-1. 设备在 current directory 为 active、授权晚于 `seal_ref`：source/recipient 的设备授权检查通过，仍须独立通过 MLS 与 scope 检查；
+1. 设备在 current directory 为 active、授权晚于 `seal_ref`：source 与 recipient self 投递的设备授权检查通过，仍须独立通过 MLS 与 scope 检查；
 2. 设备在 `seal_ref` 时曾 active、当前已 revoked / fenced / conflicted：source/recipient 拒绝，包括 leaf 尚未 Remove；
 3. fragment 看似为 device id，但 `verification_method` 的 bare DID 经 adapter 投影不等于
    `sender_actor_id` 的 signing principal 分量，或 fragment 不等于 `sender_device_id`，或
@@ -234,7 +238,7 @@ conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖�
    可转交，recipient MUST 验签拒绝，即使密文能解开；proof digest/transcript 或 sender routing 不匹配则在 destination 丢弃；
 7. source 入队后发生撤销、退群、action 收紧或过期：出站 fresh admission 拒绝，不发送旧 item；
 8. Agent current authority、active unique leaf 与 method/key/authorization binding 全部匹配时可用 Agent sender 分支；ordinary 省略 device、Agent 携 device/controller device、paused/deactivated、key revoke/supersede/expire/conflict、controller membership generation ended、旧 leaf 或 pairwise 冒入均拒绝。
-9. cold foreign ordinary 与 Agent sender 均从空 cache 经真实 self→peer query 成功；预注入同一对象、
+9. cold foreign ordinary 与 Agent sender 均从空 cache 经真实 self 投递 gate→peer query 成功；预注入同一对象、
    重放另一 challenge/Signal/recipient/verifier 的 response、同 core 不同 Station、旧 generation、
    expired attestation、已知 revoke 或 membership ending 均拒绝，且未认证 plaintext sequence 不推进 high-water。
 
@@ -249,7 +253,7 @@ encrypted signal 时，才能为该 scope 广告 Signal；否则必须撤下 sco
 `send` 接受一个 `SignalEnvelope`。canonical HTTP binding 的 `subscribe` 使用独立
 `GET /_arkret/self/signal/subscribe` NDJSON response，并输出
 [`SignalStreamFrame`](../../artifacts/schemas/signal-stream-frame.schema.json)：data frame
-固定为 `{kind:"signal", envelope}`，control frame 只允许 `heartbeat`、`drain` 与
+固定为 `{kind:"signal", envelope, delivery_authority}`，control frame 只允许 `heartbeat`、`drain` 与
 `unauthorized`。Signal stream 没有 cursor、catch-up、ack 或 durable delivery receipt；
 control frame 不得推进任何 account/events position。
 
@@ -334,7 +338,7 @@ destination 在任何 local fanout 前 MUST：
    leaf tracker 来决定 relay；也不得借用本地同 principal/device、另一 Station 的账号目录验签；
 5. 只按外层 `scope_ref` 计算本地 eligible devices，并执行 membership、Circle visibility、
    blocklist 与本地 rate/backpressure policy；
-6. 把原 envelope 原样交给本地 live rail；精确 payload type、Strand/Message/Call/receipt
+6. 把原 envelope 原样交给 recipient self 投递 gate；该 gate 与 peer ingress 是独立阶段，未通过不得输出 live data frame。精确 payload type、Strand/Message/Call/receipt
    target 与 sequence 只由 recipient 解密后校验。
 
 source 与 destination MUST NOT 改写 `sent_at` / `expires_at`、ciphertext、`nonce` 等 AAD 输入、routing header

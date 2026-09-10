@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-10.18",
-  "generated_at": "2026-09-10T11:05:00+08:00",
+  "version": "2026-09-10.19",
+  "generated_at": "2026-09-10T22:14:26+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2298,7 +2298,6 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.agent_signing_key_binding.v1",
         "ak.schema.controller_account_gate_attestation.v1",
         "ak.schema.controller_account_gate_attestation_issue_request.v1",
         "ak.schema.controller_account_gate_attestation_issue_outcome.v1",

@@ -69,62 +69,39 @@ Arkret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Ga
 
 实现这组三项 open operation 的 Station MUST 在自己的 role-scoped `ServiceDescribe.supported_operation_bundles` 宣告已登记的 `ak.operation_bundle.station.device_pairing_handoff.v1`；未宣告该 bundle 的 Station MUST NOT 挂载或接受这三项 canonical HTTP binding。client-visible owner 固定为承载 `arkret_base_url` 与 `/_arkret/open/device-pairing/*` 的 Station origin。Account Authority 分离部署时仍负责 `gate_audience` 指向的授权与原子回填边界，但它是该 Station 的后端 authority，不得在另一个 origin 重复宣告或挂载这组三项 open operation；只有 Account Authority 与 Station 合并为同一 client-visible Station origin 时才由同一 origin 同时承载 open handoff 与 gate。客户端 MUST 从 Station describe 展开此 bundle 判断 handoff 可用性，并从 `auth_metadata.account_authority` 定位 gate，不得把两个 origin 都当作 handoff authority。
 
-1. **暂存（stage）**：新设备经**免认证**端点 `POST /_arkret/open/device-pairing/requests`（`ak.open.device_pairing.command.stage.v1`）提交 `new_device_pubkey`（canonical `PublicKey`，见 [`public-key.schema.json`](../../artifacts/schemas/public-key.schema.json)：`kty` / `kid` / `algorithm` / `key` 四字段，`key` 为密钥材料、`kid` 为 `ak:device:<uuidv7>`）与 `client_nonce`，以及可选 `display_name` / `device_metadata`。**stage 请求 MUST NOT 携带 challenge proof**——该 proof 必须承诺 server 在本次调用中才铸出的值，因此在 stage 时不可能存在（这条顺序约束是 §2.1.2 transcript 可生成性的前提）。Server 铸 `device_pairing_request_id`（`device_pairing_request:<uuidv7>`）、短 `pairing_code`、`gate_audience`（本 Account Authority 的 `gate_account_base_url` origin）与 `server_nonce`，以有界 TTL（SHOULD ≤ 10 分钟）暂存一条 **account-less** 记录（state `pending_authorization`），返回 `{device_pairing_request_id, pairing_code, gate_audience, server_nonce, expires_at}`。暂存记录 MUST 同时保存提交的 `new_device_pubkey` 与 `client_nonce`——它们是 §2.1.2 路径 A transcript 的 member，gate 必须能只凭该记录重算 transcript。暂存记录在被授权前**不绑定任何 principal、不授予任何东西**。
-2. **短链承载**：stage 返回后，新设备按 §2.1.2 生成 `challenge_proof`，再按 §5.2.2 生成 `device_pairing_target_attestation`（承载它自己的 `hpke_key` / `algorithms` 并绑定该 `challenge_proof` 的 `transcript_digest`），由二维码同时承载短 deep-link、该 proof 与该 attestation：`{arkret_base_url}/_arkret/open/device-pairing/resolve#token=<token>&proof=<proof>&attestation=<attestation>`，其中 `token = base64url_nopad(canonical_json({"r": device_pairing_request_id, "c": pairing_code}))`，`proof = base64url_nopad(canonical_json(challenge_proof))`，`attestation = base64url_nopad(canonical_json(device_pairing_target_attestation))`。`token`、`proof` 与 `attestation` MUST 仅出现在 URL fragment 或请求 body，MUST NOT 进入 URL path 或 query（避免进入服务端/代理日志）。**proof 与 attestation 走带外通道到达主设备，MUST NOT 经免认证 stage / resolve 面回传给 server**：暂存面是匿名的，让它持有这两者既无必要也扩大攻击面。二维码容量不足时 SHOULD 缩短 `device_metadata` / `display_name` 等可选材料，MUST NOT 把 attestation 改由服务端中转。
-3. **resolve 与人工确认**：已授权设备经**免认证**、body-only 的 `POST /_arkret/open/device-pairing/resolve`（`ak.open.device_pairing.read.resolve.v1`）以 `token` 换取 `DevicePairingBootstrap`（含 `arkret_base_url`、`device_pairing_request_id`、`pairing_code`、`new_device_pubkey`、`client_nonce`、`gate_audience`、`server_nonce`、可选 `display_name`/`device_metadata`、`expires_at`）。bootstrap **不含也不得含** `hpke_key`、`algorithms`、`challenge_proof` 或 attestation：这些只经带外通道到达，权威来源见 §5.2.2。已授权设备 MUST 用这些 server-minted 值按 §2.1.2 重算 transcript 并对二维码带来的 `challenge_proof` 完成验签，**再按 §5.2.2 独立重建并验签 `device_pairing_target_attestation`**（要求 `device_id` 等于 `new_device_pubkey.kid`、`device_public_key_did` 与 `new_device_pubkey.key` 解码为同一 Ed25519 key、`pairing_challenge_transcript_digest` 逐字节等于自己刚重算的 `transcript_digest`），全部通过后才可向用户呈现为可配对设备。授权 UI MUST 同时显示 requesting-device metadata、`device_id` / key fingerprint、完整 pairing code 与 `gate_audience`，并要求用户把 code 与新设备屏幕逐位比较后显式确认；通过密码学校验本身不得自动触发授权。用户确认后，批准设备 MUST 从验签通过的 attestation（而非服务端响应或 UI 输入）取 `hpke_key` / `algorithms` 填入 authorize payload，再按 §2.1 步骤 3 走 `ak.gate.account.command.pair_device.v1` 授权：该授权端点仍要求授权方是**已验证设备**，server MUST NOT 因短链暂存本身改变设备集合或放宽授权前置。
-4. **回填与 status**：授权端点 MAY 携带 `device_pairing_request_id`。携带时，Account Authority MUST 要求该 id 对应的暂存记录仍为 `pending_authorization` 且未过期，要求记录中的 `pairing_code`、`new_device_pubkey` 与授权请求逐字段一致，并**按 §2.1.2 用该暂存记录自己的字段重算 transcript、验证请求携带的 `challenge_proof`**（逐字段相等比较只能证明字节未被中途替换，不能证明签名对哪个 challenge 或哪个 audience 有效，因此 MUST NOT 用相等比较代替验签）；随后**按 §5.2.2 用同一次重算得到的 `transcript_digest` 与 `authorize_event.event.payload` 的目标材料重建 accepted_device possession 对象、验证 `device_signature`**。这两次验签、设备授权 Event 走普通 admission 落库、device projection 更新、暂存记录消费并翻为 `authorized`（记录 `device_id` 与 `authorized_event_ref`）**MUST 在同一原子边界内完成**：任一不匹配不得授权设备，且不得留下已消费但未授权、或已授权但未消费的中间状态。响应丢失后的重放不是幂等成功——暂存记录已不是 `pending_authorization`，第二次提交 MUST fail closed（不得授权第二台设备、不得重铸 Event），调用方以 status 轮询或 `uncertain_outcome` 指定的查询操作确定结果。新设备经**免认证**、body-only 的 `POST /_arkret/open/device-pairing/requests/status`（`ak.open.device_pairing.read.status.v1`）以 `{device_pairing_request_id, pairing_code}` 轮询得到 `{state, device_id?, authorized_event_ref?}`；`authorized_event_ref` 是 §5.4.1 装配前强制校验的入口。
+1. **暂存（stage）**：新设备经**免认证**端点 `POST /_arkret/open/device-pairing/requests`（`ak.open.device_pairing.command.stage.v1`）提交 `new_device_pubkey`（canonical `PublicKey`，见 [`public-key.schema.json`](../../artifacts/schemas/public-key.schema.json)：`kty` / `kid` / `algorithm` / `key` 四字段，`key` 为密钥材料、`kid` 为 `ak:device:<uuidv7>`）与 `client_nonce`，以及可选 `display_name` / `device_metadata`。**stage 请求 MUST NOT 携带 target proof**——该 proof 必须承诺 server 在本次调用中才铸出的值，因此在 stage 时不可能存在（这条顺序约束是 §2.1.2 transcript 可生成性的前提）。Server 铸 `device_pairing_request_id`（`device_pairing_request:<uuidv7>`）、短 `pairing_code`、`gate_audience`（本 Account Authority 的 `gate_account_base_url` origin）与 `server_nonce`，以有界 TTL（SHOULD ≤ 10 分钟）暂存一条 **account-less** 记录（state `pending_authorization`），返回 `{device_pairing_request_id, pairing_code, gate_audience, server_nonce, expires_at}`。暂存记录 MUST 同时保存提交的 `new_device_pubkey` 与 `client_nonce`——它们是 §2.1.2 staged transcript 的 member，gate 必须能只凭该记录重算 transcript。暂存记录在被授权前**不绑定任何 principal、不授予任何东西**。
+2. **短链承载**：stage 返回后，新设备按 §2.1.2 重建 challenge digest，再按 §5.2.2 生成唯一 `device_pairing_target_proof`，二维码承载 `{arkret_base_url}/_arkret/open/device-pairing/resolve#token=<token>&proof=<proof>`。`token = base64url_nopad(canonical_json({"r": device_pairing_request_id, "c": pairing_code}))`，`proof = base64url_nopad(canonical_json(device_pairing_target_proof))`。两者 MUST 仅位于 URL fragment 或请求 body，不得进入 path/query。target proof 只经带外通道到批准设备，MUST NOT 上传到匿名 stage/resolve。二维码容量不足时 SHOULD 缩短可选 metadata，不能改为匿名服务端中转 proof。
+3. **resolve 与人工确认**：批准设备经 body-only `POST /_arkret/open/device-pairing/resolve`（`ak.open.device_pairing.read.resolve.v1`）解析 token，从 bootstrap 重建 challenge digest，再用 staged key 对唯一 target proof 验签。`device_id` 必须等于 staged `new_device_pubkey.kid`；proof 的 `device_public_key_did` 必须解码成 staged key；digest、HPKE 与 algorithms 全部由同一签名绑定。bootstrap MUST NOT 携带 proof、HPKE 或 algorithms 镜像。UI MUST 展示 metadata、device/key fingerprint、完整 pairing code 与 gate audience，要求用户与目标设备逐位比较后显式确认；metadata 的权威只来自已重算并被 proof 承诺的 challenge。批准设备从已验 target proof 复制材料构造并签署完整 `ak.device.authorize`，不得采信服务器或 UI 自报替代材料。
+4. **原子提交与 exact replay**：`ak.gate.account.command.pair_device.v1` MUST 携带 `device_pairing_request_id`。Account Authority 首次接纳必须从该 id 的未过期 pending stage 重建 challenge digest，并与 authorize payload 的 `pairing_challenge_transcript_digest` 比较，再重建 §5.2.2 对象验证唯一 `device_signature`。pending stage 的 code/key 必须匹配；批准方必须仍是 exact AccountId 的 current accepted device。Event admission、设备目录更新、stage 消费、canonical request digest 与 terminal outcome MUST 在同一 durable 事务提交，提交后发送响应。ledger 以 `(device_pairing_request_id, approving AccountId, approving device_id)` 定位；同一 holder 的相同 canonical 请求返回原 `authorized_event_ref` 与 byte-identical outcome，不再要求 stage 为 pending、不再铸 Event；同 id 异请求或异 holder MUST conflict/拒绝。不得因 stage 清理丢失重试终态。目标设备仍可经匿名 body-only status `{device_pairing_request_id,pairing_code}` 取得 `{state,device_id?,authorized_event_ref?}`，并执行 §5.4.1。
+
 5. **防枚举（normative）**：`resolve` 对 {未知 id、`pairing_code` 不符、已过期、非 `pending_authorization`} MUST 返回统一 `not_found`。`status` 对 {未知 id、`pairing_code` 不符} MUST 返回同样的 `not_found`；凭证正确时可返回 `pending_authorization`、`authorized` 或 `expired`，其中 `authorized` MUST 同时携带 `device_id` 与 `authorized_event_ref`，其余状态 MUST 不携带这两个字段。不得通过错误形态泄露 id 是否存在或 code 是否正确。`pairing_code` MUST 使用 §7 定义的 8 位 Crockford-style CSPRNG code，并由暂存、resolve 与 status 端点限速兜底。
 6. **有界与清理（normative）**：免认证的 stage、resolve 与 status 端点 MUST 限速；过期暂存记录 MUST 对 `resolve` fail closed，`status` 在凭证正确且记录尚处于有界清理保留期时返回 `expired`，清理后返回 `not_found`。过期记录 SHOULD 被定期清理，Server MUST NOT 无界保留。
 
-#### 2.1.2 Pairing challenge proof transcript（normative）
+#### 2.1.2 Pairing challenge digest（normative）
 
-`challenge_proof` 是新设备对 `new_device_pubkey` 的 possession proof，且**必须绑定本次配对挑战**。它的 wire 形态是 [`device-pairing.schema.json`](../../artifacts/schemas/device-pairing.schema.json) 的 `device_pairing_challenge_proof`（`{transcript, kid, signature_algorithm, transcript_digest, signature}`），MUST NOT 退化为无语义的 base64url 字节串。`kid` 是选择 staged key 的 device-local `ak:device:` key id（[`did-usage-and-verification.md` §2.3](../identity/did-usage-and-verification.md) 已登记的非 DID 分支），不是 DID URL，因此不得命名为 `verification_method`。
-
-**签名输入（唯一封闭 transcript）**：
+challenge 本身不另签名；新设备只签 §5.2.2 的 `device_pairing_target_proof`。唯一输入由 staged record 重建：
 
 ```text
-new_device_pubkey_digest = "sha256:" || lowercase_hex(sha256(canonical_json(new_device_pubkey)))
-
-ak.device-pairing.challenge.v1:
-  UTF8("ak.device-pairing.challenge.v1\n") || canonical_json({
-    client_nonce,
-    device_pairing_request_id,
-    expires_at,
-    gate_audience,
-    new_device_pubkey_digest,
-    pairing_code,
-    server_nonce
-  })
+new_device_pubkey_digest = "sha256:" || lowercase_hex(SHA256(JCS(new_device_pubkey)))
+device_metadata_digest = "sha256:" || lowercase_hex(SHA256(JCS({display_name: value_or_null, device_metadata: value_or_null})))
+challenge_bytes = UTF8("ak.device-pairing.challenge.v1\n") || JCS({
+  client_nonce, device_pairing_request_id, expires_at, gate_audience,
+  new_device_pubkey_digest, device_metadata_digest, pairing_code, server_nonce
+})
+pairing_challenge_transcript_digest = "sha256:" || lowercase_hex(SHA256(challenge_bytes))
 ```
 
-`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`transcript_digest` 是上述完整 bytes 的 `sha256:<hex>`。
+`gate_audience` 在上述 canonical transcript 中取 wire `gate_audience_uri` 的逐字值。批准设备从 resolve bootstrap 重建，Account Authority 从自己的 durable stage 重建；均 MUST NOT 采信客户端自报 transcript。缺省 metadata/display_name 固定为 JSON null。两方均 MUST 比较 digest 后验证 target proof，而非只做非空检查或比较已缓存 signature。域、nonce、request id、code、expiry、key 与 metadata 任一改变均拒绝；过期 pending 不能接纳。没有 staged request id 或 proof signature 的请求 MUST `schema_violation`。同一 pairing 累计 10 次失败按 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 锁定失效。
 
-**签名与验签**：
-
-- 签名密钥固定为 `new_device_pubkey` 对应的私钥；proof 的 `kid` MUST 逐字节等于 `new_device_pubkey.kid`，`signature_algorithm` MUST 是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 的 active suite 且与 `new_device_pubkey.algorithm` 相容。
-- verifier MUST **自己重算** transcript bytes，MUST NOT 用「与存档副本逐字节相等」代替验签。重算 digest 与 `transcript_digest` 不等 MUST 拒绝，且 MUST 在验签之前拒绝。各 verifier 的 transcript 输入来源固定如下：
-
-  | verifier | transcript 输入来源 |
-  | --- | --- |
-  | 已授权设备 | `resolve` 返回的 `DevicePairingBootstrap`（`device_pairing_request_id` / `pairing_code` / `gate_audience` / `server_nonce` / `client_nonce` / `expires_at` / `new_device_pubkey`） |
-  | Account Authority gate | 请求中 required `device_pairing_request_id` 对应的 pending 暂存记录，逐项取服务端自己铸出的值；MUST NOT 从请求体取这些值 |
-
-- `ak.gate.account.command.pair_device.v1` 的请求体 MUST 携带 `device_pairing_request_id`。缺失该字段、引用非 pending 记录，或携带客户端自报的替代 challenge transcript，MUST fail closed；schema 不登记 `challenge_transcript` 字段。
-- `transcript` 名不是 `ak.device-pairing.challenge.v1` MUST 拒绝。
-- proof 未通过验证的暂存记录 MUST NOT 授权任何设备；缺失 `challenge_proof` 的 `ak.gate.account.command.pair_device.v1` MUST `schema_violation`。
-- 本 proof 的 `transcript_digest` 同时是 §5.2.2 `accepted_device` possession attestation 的唯一绑定成员。attestation 只绑这一条 staged short-link challenge 的 digest；verifier MUST 先按本节重算 transcript，再用得到的 digest 校验 attestation，MUST NOT 直接采信 attestation 自带的 digest 值。
-
-**为什么必须绑定这些值**：只签静态公钥的 proof 可跨 request、跨 origin、跨过期窗口重放；只做非空/格式检查等于没有 PoP。`gate_audience` 阻断跨 Account Authority 重放，`pairing_code` + `device_pairing_request_id` + `server_nonce` 阻断跨 request 重放，`expires_at` 阻断过期窗口外重放。
-
-**失败语义**：transcript 重算不符、proof `kid` 与 `new_device_pubkey.kid` 不等、`signature_algorithm` 不在 active suite、签名验证失败，一律 `failed_precondition`，对外按 §2.1.1 第 5 条的防枚举要求返回统一形态；同一 pairing transcript 累计 10 次失败后按 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 锁定并永久失效。
+唯一通路是 staged short-link：未认证目标不得使用 self to-device API；不登记第二种 challenge transcript。exact replay 先查 durable terminal outcome，首次接纳才检查 pending state。
 
 #### 2.1.3 Pairing challenge 的 conformance 入口
 
 `vector_id`: `ak.vector.device_pairing.challenge_transcript.v1`（向量说明见
 [`../conformance/conformance-vectors.md` 23.10](../conformance/conformance-vectors.md)）。它覆盖
-stage 到 gate 的 round-trip 正例、同一 `new_device_pubkey` canonical bytes 与 digest 全程不变，
+stage 到 gate 的单签名 round-trip 正例、同一 `new_device_pubkey` canonical bytes 与 digest 全程不变，
 以及坏 audience / 旧 pairing code / 跨 request 重放 / 过期 / 改 key / 坏签名 /
-proof `kid` 不匹配 / 非 canonical transcript 名 / 旧 `{kid, alg, public_key}` 形态 /
+目标 device/key 不匹配 / 非 canonical transcript 域 / 旧 `{kid, alg, public_key}` 形态 /
 stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 sibling target / fresh device 调用 self device-messages 等负向量。
 
 `vector_id`: `ak.vector.device_pairing.accepted_device_attestation.v1`（向量说明见
@@ -298,9 +275,9 @@ genesis 时候选设备签署第二条 authorize；recovery 时同一候选设�
 
 `algorithms` 必须先按 UTF-8 bytewise 排序去重；缺失的 optional 字段在 transcript 中规范化为 `null`。transcript 的 `account_id` 取自待签 Event 的完整 account `actor_id`，不是 payload 字段；签名字段、Event id、envelope digest 及其它 proof material 不进入该对象。`registration_anchor` 下 `authorized_by=account_id.principal_id`；`pcr_recovery` 的 authority 来自 re-anchor Event 所绑定的 accepted recovery policy，而不是 current DID controller。
 
-#### 5.2.2 `accepted_device` possession attestation（normative）
+#### 5.2.2 `accepted_device` target proof（normative）
 
-配对时目标设备的处境相反：stage 时暂存记录是 **account-less**，它既不知道 `principal_id`，也不知道哪台 sibling 会批准（§7 的 to-device 广播下更无法预知 winner），因此不可能先签一个包含 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` 的对象；而批准设备在拿到目标 possession proof 之前又无法构造满足最终 DTO 的完整 Event。若两者都要求对方先动，配对就是死锁。因此 `accepted_device` 使用一个**只覆盖目标自有材料与本次 pairing challenge 绑定**的封闭对象：
+配对时目标设备的处境相反：stage 时暂存记录是 **account-less**，它既不知道 `principal_id`，也不知道哪台 sibling 会批准，因此不可能先签一个包含 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` 的对象；而批准设备在拿到目标 possession proof 之前又无法构造满足最终 DTO 的完整 Event。若两者都要求对方先动，配对就是死锁。因此 `accepted_device` 使用一个**只覆盖目标自有材料与本次 pairing challenge 绑定**的封闭对象：
 
 ```json
 {
@@ -316,19 +293,21 @@ genesis 时候选设备签署第二条 authorize；recovery 时同一候选设�
 
 签名输入是 `UTF8("ak.device_authorize_accepted_device_possession_proof.v1\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`algorithms` 同样必须先按 UTF-8 bytewise 排序去重。该对象没有 optional 成员，因此不存在缺失字段规范化为 `null` 的情形；签名字段、Event id、envelope digest 及其它 proof material 同样不进入该对象。
 
-**`pairing_challenge_transcript_digest` 是本 attestation 唯一的 replay 边界**：它 MUST 逐字节等于本次 pairing 的 `device_pairing_challenge_proof.transcript_digest`（§2.1.2）。单靠这一个成员已经足够，因为该 digest 本身就承诺了整条挑战：
+**`pairing_challenge_transcript_digest` 是本 attestation 唯一的 replay 边界**：它 MUST 逐字节等于按 §2.1.2 独立重算的 challenge digest。单靠这一个成员已经足够，因为该 digest 本身就承诺了整条挑战：
 
-- staged short-link transcript 承诺 `device_pairing_request_id` / `pairing_code` / `gate_audience` / `expires_at` / `server_nonce` / `client_nonce` / `new_device_pubkey_digest`。
+- staged short-link transcript 承诺 `device_pairing_request_id` / `pairing_code` / `gate_audience` / `expires_at` / `server_nonce` / `client_nonce` / `new_device_pubkey_digest` / `device_metadata_digest`。
 
-因此跨 request（`device_pairing_request_id` + nonce）、跨 Account Authority（`gate_audience`）、跨过期窗口（`expires_at`）与换 key（`new_device_pubkey_digest`）的重放全部被阻断，强度与 §2.1.2 的 challenge proof 完全相同；一个为别的配对铸出的 attestation 在本次配对里永远验不过。
+因此跨 request（`device_pairing_request_id` + nonce）、跨 Account Authority（`gate_audience`）、跨过期窗口（`expires_at`）与换 key（`new_device_pubkey_digest`）的重放全部被阻断，由同一 target signature 认证；一个为别的配对铸出的 attestation 在本次配对里永远验不过。
 
 从该对象移出的账号身份 / `authorized_by` / `not_before` / `expires_at` / `scopes` / `recovery_session_id` 改由**批准设备的 Event proof** 承担：`accepted_device` authorize 的 `proof.verification_method` MUST 使用该授权 Event accepted-at 的 `did` 与 method evidence，而不是 current DID resolution；verifier MUST 取其 bare `did`，经已登记 method adapter 验证并要求 `project(did) == Event.actor_id.account_id.principal_id`，同时要求 fragment 逐字等于 `signing_device_id`，且 `signing_device_id` 必须是 payload.`authorized_by`（§5.3）。实现不得把 principal core 与 device fragment 直接拼成 DID URL。该 proof 覆盖完整 canonical Event bytes；两个签名合起来覆盖的字段集合不小于 `registration_anchor` / `pcr_recovery` 单签名覆盖的集合。目标设备对完整 AccountId 的确认由 §5.4.1 的装配前强制校验承担。
 
-**wire 形态与载体（normative）**：该 attestation 的 wire 形态是 [`device-pairing.schema.json`](../../artifacts/schemas/device-pairing.schema.json) 的 `device_pairing_target_attestation`（上述七个成员加 `device_signature`）。它与 `challenge_proof` 一样**只走带外通道**——路径 A 的二维码 fragment、路径 B 的 to-device 消息——并且 **MUST NOT 经免认证 stage / resolve 面回传给 server**：暂存面是匿名的，让它持有该 attestation 既无必要也扩大攻击面（§2.1.1 第 2 条的既有隐私边界）。
+**wire 形态与载体（normative）**：该 attestation 的 wire 形态是 [`device-pairing.schema.json`](../../artifacts/schemas/device-pairing.schema.json) 的 `device_pairing_target_proof`（上述七个成员加 `device_signature`）。它**只走带外通道**——staged short-link 的二维码 fragment——并且 **MUST NOT 经免认证 stage / resolve 面回传给 server**：暂存面是匿名的，让它持有该 attestation 既无必要也扩大攻击面（§2.1.1 第 2 条的既有隐私边界）。
 
 **它是 `hpke_key` 与 `algorithms` 的唯一权威来源**：`device_pairing_stage_request_body` 与 `device_pairing_bootstrap` 都不承载这两个值，也 MUST NOT 增设镜像字段——让匿名暂存面持有长期设备 HPKE 公钥与设备算法指纹会平白扩大可枚举面，而镜像一个已被签名的值只会制造第二个非权威副本和一处必须 fail closed 的比对义务。批准设备 MUST 先独立验证 attestation 签名，再从**验签通过的 attestation** 读取 `hpke_key` / `algorithms` 填入 authorize payload；MUST NOT 从服务端响应、UI 输入或任何未签名来源取这两个值。服务端因此无法替换它们。
 
-**gate 侧不需要额外 wire 字段（normative）**：`ak.gate.account.command.pair_device.v1` 的请求体不携带该 attestation 对象。Account Authority 从 `authorize_event.event.payload` 的 `device_id` / `device_public_key_did` / `hpke_key` / `algorithms` / `device_key_algorithm` / `authorization_binding_kind`，加上它**自己按 §2.1.2 重算**得到的 challenge transcript digest，重建上述封闭对象，并用请求携带的 `new_device_pubkey` 验签 `device_signature`。所有 transcript 输入都不来自请求方可自由选择的字段，因此无需也不得接受一个客户端提供的 attestation 副本；重建不符或验签失败 MUST NOT 授权设备。
+**gate 侧不需要额外 wire 字段（normative）**：`ak.gate.account.command.pair_device.v1` 的请求体不携带该 attestation 对象。Account Authority 从 `authorize_event.event.payload` 的 `device_id` / `device_public_key_did` / `hpke_key` / `algorithms` / `device_key_algorithm` / `authorization_binding_kind`，加上它**自己按 §2.1.2 重算**得到的 challenge transcript digest，重建上述封闭对象，并用请求携带的 `new_device_pubkey` 验签 `device_signature`。目标 descriptor 从已签 Event 取材，challenge 从服务端 stage 重算；因此无需也不得接受一个客户端提供的 target proof 副本；重建不符或验签失败 MUST NOT 授权设备。
+
+**持久验签材料**：accepted authorize payload MUST 保存 `pairing_challenge_transcript_digest`，与目标 descriptor、`device_signature` 一起构成原已签对象，stage 清理后仍可重验 target signature。仅凭这组材料不能事后证明 challenge 确由 gate 签发；该事实由首次 admission 的 accepted evidence 保证。不得保存匿名 code/nonces 为公开 Event 字段。
 
 ### 5.3 Event proof key resolution（normative）
 
@@ -358,7 +337,7 @@ genesis 时候选设备签署第二条 authorize；recovery 时同一候选设�
 
 任一项不符，目标设备 MUST fail closed：MUST NOT 使用该身份、MUST NOT 安装或请求该 principal 的任何密钥材料、MUST NOT 发布 KeyPackage，并 MUST 向用户告警（提示该配对已被篡改或指向了非预期账号）。这条校验同样阻断“批准方把 attestation 用到另一个 principal 下”的场景：攻击者可以铸出一条对自己 principal 有效的 Event，但目标设备在装配前就会因第 5 项拒绝。
 
-**取回路径**：`ak.open.device_pairing.read.status.v1`（路径 A）在 `state="authorized"` 时返回 `authorized_event_ref`，是该校验的入口；路径 B 的目标设备从自己发起的 `transaction_id` 关联的授权结果取得同一 ref。目标设备被授权后即已是该 principal 的 accepted device，**读取自己的 PCR 控制流即可取到该 Event 的完整 canonical bytes 与 proof 完成校验**，不需要新增读取面；在完成本节校验之前，该读取是它唯一允许对该 principal 发起的操作。取不到 Event、Event 尚未被 accepted Seal 覆盖、或读取被拒时，MUST 停在 fail-closed 状态并重试/告警，MUST NOT 先装配再校验。
+**取回路径**：`ak.open.device_pairing.read.status.v1`在 `state="authorized"` 时返回 `authorized_event_ref`，是该校验的入口；目标设备被授权后即已是该 principal 的 accepted device，**读取自己的 PCR 控制流即可取到该 Event 的完整 canonical bytes 与 proof 完成校验**，不需要新增读取面；在完成本节校验之前，该读取是它唯一允许对该 principal 发起的操作。取不到 Event、Event 尚未被 accepted Seal 覆盖、或读取被拒时，MUST 停在 fail-closed 状态并重试/告警，MUST NOT 先装配再校验。
 
 ### 5.5 Device trust projection（normative）
 
@@ -528,7 +507,7 @@ Content-Type: application/json
 }
 ```
 
-未被 `ak.device.authorize` durable accepted 的新设备没有合法的 human-device sender endpoint，也不得取得 restricted fresh-device SessionGrant；因此它 MUST NOT 调用本节 send/read/ack surface，MUST NOT 通过 `ak.key.verification.request` 发现或通知 sibling devices。新设备授权只走 §2.1.1 的匿名 stage/resolve/status 与二维码、手动复制或等价带外通道；用户以带外交付动作选择批准设备。stage/resolve/status 保持 account-less，不返回 principal 或 sibling device 集合。`challenge_proof` 与 `target_attestation` 只经二维码/短链 fragment 到达批准设备，并按 §2.1.1 独立验签。
+未被 `ak.device.authorize` durable accepted 的新设备没有合法的 human-device sender endpoint，也不得取得 restricted fresh-device SessionGrant；因此它 MUST NOT 调用本节 send/read/ack surface，MUST NOT 通过 `ak.key.verification.request` 发现或通知 sibling devices。新设备授权只走 §2.1.1 的匿名 stage/resolve/status 与二维码、手动复制或等价带外通道；用户以带外交付动作选择批准设备。stage/resolve/status 保持 account-less，不返回 principal 或 sibling device 集合。唯一 `device_pairing_target_proof` 只经二维码/短链 fragment 到达批准设备，并按 §2.1.1 独立验签。
 
 授权前没有签发 grant，因此不存在 bootstrap grant 撤销语义：pending pairing 只能过期、被成功授权原子消费，或在记录清理后变为不可解析；它从未授予账号能力。授权后的设备撤销使用普通 `ak.device.revoke` 合同。部署 MAY 在已认证账号边界内提供不含 token、pairing code、proof、attestation 或 sibling 列表的脱敏唤醒提示，但该提示不是配对传输、不得替代带外交付，也不得使匿名请求绑定 principal。
 
@@ -949,7 +928,21 @@ record；否则 single-use pool 耗尽即失败。
 
 实现 MAY 在最终事务前先提交只含 `(Source-Service-ID, claim_request_id, request_digest, state=pending)` 的唯一 reservation，以串行化并发 duplicate；该 reservation 不得选择、锁定或泄露 KeyPackage。上述 1–4 的**最终化**必须在同一事务完成，因而不得出现 KeyPackage 已 `claimed` 但 ledger 无 outcome、或 ledger 已成功但 CAS 未发生的可观察状态。crash 后 recovery worker 只能按原 digest 恢复 / 最终化同一 reservation，不能改用新的请求身份。
 
-同一 source、同一 `claim_request_id`、同一 digest 的 duplicate transport delivery / replay MUST 返回 byte-identical 成功 outcome，且不得第二次领取；这项 receiver 安全性不把 operation 变成可跳过恢复查询的 caller retry-safe。同一 key 携带不同 digest MUST 返回 `duplicate_conflict` 且不得改变任何 KeyPackage。响应丢失、超时或来源服务在 durable dispatch marker 与实际 network send 之间 crash 后，来源服务 MUST 先调用 `ak.peer.keys.keypackages.read.claim.v1`，携带原 `claim_request_id + request_digest`，不得先重发 command，也不得换 `claim_request_id` 盲目重新 claim。query 只接受原 Source-Service-ID 与 exact digest，返回 `unknown|pending|claimed|claim_failed|expired|revoked`；`unknown` 明确证明目标尚无该 request identity 的 reservation，调用方此时 MAY 重放 exact same canonical command（同 source、claim_request_id、digest 与 evidence），不得生成新请求；`pending` 表示 reservation 已存在但最终化事务尚未提交，调用方只可按 `retry_after_ms` 再查；`claimed|expired|revoked` MUST 携带原签名 `claim_outcome`，`claim_failed` 只携带不透明 `error_code=claim_failed`。
+目标先验证当前 transport 的 Source-Service-ID、签名与 exact canonical request digest，再查询 durable ledger；
+同一 source、claim_request_id、digest 的 duplicate MAY 直接 exact replay，MUST 返回同一已存 claim outcome
+及其当前 closed ledger state，不得第二次领取、激活或授予新 authority。异 digest 返回 duplicate_conflict，零写入。
+peer command 使用 `peer_keypackages_claim_command_outcome`：pending、claimed、consumed、claim_failed、expired、
+revoked 与 read query 共享相同字段和终态语义，原签名 claim_outcome bytes 不变；失败不能降成缺少已存结果的另一协议。
+
+响应丢失、超时或 dispatch marker 与 network send 间 crash 后，来源 MAY 直接重放原 canonical command；
+transport HTTP signature 可刷新，participant intent、evidence、request identity 和 bytes 不变。read.claim MAY 用于
+观察 pending、退避或调用方丢失 command bytes 时恢复，不是重发前置。query 的 unknown 只表示无该 reservation；
+新执行仍需原 command 未过期且完整 current admission 通过。pending 的 query/replay 均只观察或续跑原 reservation，
+按 retry_after_ms 退避，不能产生第二次 claim。claimed/consumed/expired/revoked 携原签名 claim_outcome 及该状态
+要求的收据；claim_failed 携不透明 error_code=claim_failed 及规范要求的 terminal_receipt，不披露失败原因。query 仅接受原 Source-Service-ID 和 exact digest。
+已存结果读取不得仅因原 command 新鲜度已过而拒绝；它不重新披露任何需新授权的敏感材料，也不恢复被撤销权限。
+ledger GC 后过期 command 必须拒绝，不能成为新 claim；网络发送与远端收到 bytes 不属于数据库原子事务。
+
 
 成功 outcome 的 `claim_receipt.signature` 由目标服务对 `` `ak.peer-keypackage-claim-receipt-v1\n` `` + JCS(receipt 除 `signature` 外全部字段) 签名；receipt MUST 携带并签名覆盖 `source_id`、`destination_id` 与原 participant-authorized `request`（即不含 authorization / transport-only evidence 的 unsigned request 字段），`request_digest` 绑定完整 peer command，`claims_digest` 绑定 `claims[]` canonical bytes。`claim_request_id`、receipt.request 内同名字段与 outcome 同名字段必须一致。ledger 的可查询 outcome MUST 至少保留到 claim `expires_at + 10 minutes`；其后实现 MAY 只保留符合隐私 / 审计策略的 hash replay tombstone，不得长期保留可关联 private Realm 的不必要明文。
 
@@ -965,7 +958,7 @@ Station **MUST** 在 founding self/peer admission 时验证 exact unit、source 
 
 Welcome 成功处理且 group state durable 保存后，才可生成 recipient durable receipt，并通过 own Station 的 `ak.self.keys.keypackages.command.consume.v1` 消费原 claim；peer surface 不提供 consume 代理。保存失败不得签收。consume 的 signed request 与原 outcome 按 §9.1 幂等恢复。
 
-本节不移除 §9.2.3 的 claim ledger、超时先 query 和 exact replay，也不移除适用的普通 committer durable journal / winning Commit 约束。网络结果不明不得换 claim identity 盲重试、并行领取替代包，或把已领取包放回 published。房间唯一性证明与 claim 的恢复账本各司其职；本地缓存不能替代 accepted facts 或签名收据。
+本节不移除 §9.2.3 的 claim ledger、可选 query 和 direct exact replay，也不移除适用的普通 committer durable journal / winning Commit 约束。网络结果不明不得换 claim identity 盲重试、并行领取替代包，或把已领取包放回 published。房间唯一性证明与 claim 的恢复账本各司其职；本地缓存不能替代 accepted facts 或签名收据。
 
 ### 9.3 普通 MLS join admission 与补偿（normative）
 
@@ -1112,7 +1105,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 2. 发布 `ak.device.list_update`。
 3. 在用户或 policy 允许时，通过加密 to-device 消息共享账户级 secret-storage material 或 MLS Welcome；不得共享 identity root/device private key。
 
-用户确认后的授权落地 MUST 发生在 `/_arkret/gate/account/*` 认证面，使用 `ak.gate.account.command.pair_device.v1`。批准设备提交 staged `device_pairing_request_id`、`pairing_code`、`new_device_pubkey`、`challenge_proof`、自己 author 的完整 `ak.device.authorize`，以及自身 fresh device proof；从已验签 `target_attestation` 取得的 `hpke_key` 与 `device_signature` 只写入该 authorize Event payload，不在 commit 顶层重复。gate MUST 从仍为 pending 的 staged record 按 §2.1.2 独立重算 challenge transcript 并验签，再按 §5.2.2 用该 digest 与提交 payload 重建 accepted_device possession 对象并验签 payload 内 `device_signature`，MUST NOT 接受无 staged request 的替代 transcript，也不得只做逐字段相等比较。gate 返回的 `authorized_event_ref` 只是 durable `ak.device.authorize` / `ak.device.list_update` 已被接受的引用或等价结果。新设备只通过 §2.1.1 status、后续 full `ak.self.account.stream.subscribe.v1` device list baseline，或重新通过 `ak.gate.account.command.issue_session_grant.v1` 取得 Standard grant 来观察授权结果；它 MUST 验证 durable device list，并在本地装配前完成 §5.4.1 的强制校验。
+用户确认后的授权落地 MUST 发生在 `/_arkret/gate/account/*` 认证面，使用 `ak.gate.account.command.pair_device.v1`。批准设备提交 staged `device_pairing_request_id`、`pairing_code`、`new_device_pubkey`、自己 author 的完整 `ak.device.authorize`，以及自身 fresh device proof；从已验签 `device_pairing_target_proof` 取得的 `hpke_key` 与 `device_signature` 只写入该 authorize Event payload，不在 commit 顶层重复。gate MUST 首次接纳时从仍为 pending 的 staged record 按 §2.1.2 独立重算 challenge digest，再按 §5.2.2 用该 digest 与提交 payload 重建 accepted_device possession 对象并验签 payload 内 `device_signature`，MUST NOT 接受无 staged request 的替代 transcript，也不得只做逐字段相等比较。gate 返回的 `authorized_event_ref` 只是 durable `ak.device.authorize` / `ak.device.list_update` 已被接受的引用或等价结果。新设备只通过 §2.1.1 status、后续 full `ak.self.account.stream.subscribe.v1` device list baseline，或重新通过 `ak.gate.account.command.issue_session_grant.v1` 取得 Standard grant 来观察授权结果；它 MUST 验证 durable device list，并在本地装配前完成 §5.4.1 的强制校验。
 
 跨 principal 验证完成后，客户端 MAY 保存由当前 accepted device 签署的本地 trust receipt。该 receipt 只影响本 principal 的信任视图，不授予对方 Realm capability。
 
@@ -1283,7 +1276,7 @@ active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome
 规则：
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
-- 任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}`；该成员自动进入完整 envelope 签名转录。`recipient_key_ref` 只能解析到该 accepted policy 的 `recovery_key_agreements[]`。`mls_history` / `secret_storage` 在读取/恢复时须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
+- 任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}`；该成员自动进入完整 envelope 签名转录。`recipient_key_ref` 只能解析到该 accepted policy 的 `method signing entry 的内联 backup_hpke`。`mls_history` / `secret_storage` 在读取/恢复时须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
 - 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并携带当前 accepted `device_authorize_event_id`；`frontier_ref` 只允许最小值为 1 的整数 `device_generation_ref`。签名输入固定为 `RFC8785_JCS(envelope 删除 auth_data.signature)`，所有实际存在的 required、optional 与 `x_*` 成员自动受认证，不携字段名清单。签名链必须链接到当前 PCR device authorization evidence。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - v1 没有 controller-owned Agent active-state backup 分支。`mls_history` 对所有 actor 都只承载 exporter history-secret ranges；它不携 Agent PCR binding、active MLS state、runtime key 或 pairing readiness。Fresh Agent endpoint 生成新 runtime key，并经标准 KeyPackage/Add/Welcome 重新加入唯一 group。

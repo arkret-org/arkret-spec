@@ -682,8 +682,7 @@
         "request_id",
         "account_id",
         "principal_control_realm_id",
-        "resolution_projection",
-        "observed_at"
+        "resolution_projection"
       ],
       "properties": {
         "request_id": {
@@ -697,9 +696,6 @@
         },
         "resolution_projection": {
           "$ref": "#/$defs/resolution_projection"
-        },
-        "observed_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false,
