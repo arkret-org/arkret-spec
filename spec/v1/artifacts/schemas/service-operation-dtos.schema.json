@@ -611,7 +611,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Prepare one ordinary human/Agent PCR successor Seal from the exact current accepted predecessor basis and accepted uncovered Control Event digests. The caller freezes hlc once for retries. The Account Station validates the history, admission, authority, cell effects and roots, and chooses sealed_at. No client history replay or availability evidence download is required."
+      "description": "Prepare one ordinary human/Agent PCR successor Seal from the exact current accepted predecessor basis and accepted uncovered Control Event digests. The caller freezes hlc once for retries. The Account Station validates the history, admission, authority, cell effects and roots, and chooses sealed_at. No client history replay or availability evidence download is required. The Account Station freezes exactly one canonical request and one unsigned body per (realm_id, signer slot, predecessor basis) signing-slot fence before any body is returned, so a retry MUST resend this exact canonical request. A different request on the same fence is refused with seal_signer_slot_fenced instead of receiving a second signable body."
     },
     "SealPrepareOutcome": {
       "type": "object",
@@ -691,7 +691,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Bounded ordinary PCR signing input from the caller's authenticated Account Station. The client MUST compare realm_id, predecessor_refs, delta and hlc with its frozen request, require the ordinary SHA-256 PCR shape, and sign exactly the canonical body. It MUST NOT fetch the predecessor closure, reproduce roots or download holder authority dependencies. The Station durably retains and verifies availability evidence. Prepared does not mean committed: submit still rechecks current authority and atomically accepts the signed Seal. No cumulative covered_event_digests or dependencies are returned."
+      "description": "Bounded ordinary PCR signing input from the caller's authenticated Account Station. The client MUST compare realm_id, predecessor_refs, delta and hlc with its frozen request, require the ordinary SHA-256 PCR shape, and sign exactly the canonical body. It MUST NOT fetch the predecessor closure, reproduce roots or download holder authority dependencies. The Station durably retains and verifies availability evidence. Prepared does not mean committed: submit still rechecks current authority and atomically accepts the signed Seal. No cumulative covered_event_digests or dependencies are returned. The returned body is frozen by a durable signing-slot fence: the exact canonical request replays it byte for byte across internal timeouts, lease loss, cache eviction, failover and restart, because the device may already have signed it offline. The fence opens a new signing position only when the predecessor basis actually advances or the signer slot formally rotates, its device generation advances, or an equivocation fault is accepted."
     },
     "AccountCursorRevokeOutcome": {
       "type": "object",
