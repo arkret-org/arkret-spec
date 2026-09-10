@@ -418,7 +418,7 @@
         },
         "observed_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Instant the Station evaluated the accepted basis. The consumer MUST reject an attestation whose observation is older than the Realm revocation_freshness_window_ms."
+          "description": "Instant the Station evaluated the accepted basis. The issuing Station clamps expires_at to this instant plus the Realm revocation_freshness_window_ms, so a consumer that holds no Realm policy still decides freshness from observed_at and expires_at alone."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
