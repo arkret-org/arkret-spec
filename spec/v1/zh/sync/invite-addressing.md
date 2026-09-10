@@ -376,6 +376,50 @@ notify 分支的 holder-private 投递承载是 account-data 私有 cell，key �
 - 写入被 CAS 接受时，服务端 MUST 在同一事务推进 account subscribe 的 Station-CAS 投影位置，使 holder 的全部 active devices 可通过顶层 `account_data.station_cas` 的 cursor-covered upsert 取得 accepted revision/value；删除使用显式 remove。服务端 MAY 另以 `ak.account_data.update` actor-private device update 做低延迟唤醒，该 envelope 使用 `DeviceMessageSender::Service { sender_id }` 分支：`recipient_account_id == holder`，`sender_id` 等于 `recipient_account_id.station_id` 与当前接收 Station 的 service identity；该分支不携 `sender_account_id`，不伪造 origin device，不走 holder device revocation gate，也不排除任一 active holder device。to-device 不是权威投影；离线或错过它的设备从 account subscribe baseline/catch-up 恢复，list/get 只作诊断与定点恢复。CAS 冲突或其它未接受写入不得推进投影或 fanout。
 - private delivery material（含 `invite_token`）MUST NOT 物化到 Invite 对象或任何 Realm state（[`../models/governance-objects.md` §5.3](../models/governance-objects.md)）；该 cell 是 directed invite token 送达被邀请方设备的唯一规范私有承载。
 
+### 7.1 定向邀请的加入前预览（normative）
+
+被邀请方在接受前查看 Realm 的**唯一来源**是已验证邀请中的完整 `inviter_account_id.station_id`。被邀请者自己的
+Station、另一成员 Station、notary、独立 Directory 与实际投递使用的 `Source-Service-ID` MUST NOT 替代该身份；
+同一 principal 在不同 Station 上的账号不可互换。Station 固定的是 service 身份而不是永不变化的 URL：端点发现、
+方法证据与新鲜度复用现有 `AuthenticatedServiceResolution`，同一 service 合法更新端点不改变来源，失联 MUST NOT
+通过替换服务身份兜底。
+
+调用方式固定为**自己的 Station 代理并验证**：
+
+- 客户端只调用 `ak.self.realm_join.read.preview.v1`（`POST /_arkret/self/realm-joins/preview`）。请求体是 closed
+  `realm-join-intake.schema.json#/$defs/self_preview_request_body`，字段依次为 `request_id`、`account_id`、`target`。
+  `account_id` MUST 逐字等于已认证会话的完整账号，其 Station MUST 是本服务。
+- `target.selector = "invite"` 时，字段逐字取自 §7 的 `ak.account.invite_delivery` entry（`realm_id`、`invite_id`、
+  `inviter_account_id`、`invite_token`），Station MUST 只向该 `inviter_account_id.station_id` 取预览。
+  该 Station 就是本服务时，MUST 走等价的本地路径，MUST NOT 合成 federation trust header 或自签 S2S 材料。
+  其余 selector 走 Directory 发现输入面，由本 Station 独立验证后才成为结果。
+- 远端分支使用 `ak.peer.realm_join.read.preview.v1`（`POST /_arkret/peer/realm-joins/preview`）。请求体只携
+  `request_id`、`realm_id`、`requester_account_id`、`invite_id`、`invite_token`。调用方 MUST 使用 §3.2 的服务间认证
+  并绑定 Source/Destination service DID、trust domain 与 Content-Digest，且 `Destination-Service-ID` 等于
+  `inviter_account_id.station_id`、`requester_account_id.station_id` 等于 `Source-Service-ID`。
+  **MUST NOT 透传被邀请者的本地 bearer / session 凭据**，也 MUST NOT 用它换取任意来源的读取。
+
+持有方 Station MUST：
+
+1. 在自身**已接受状态**中定位 exact `invite_id`，核对 `invite_token`、邀请逐字绑定 `requester_account_id` 的完整
+   AccountId、未过期且未撤销；
+2. 求值 effective `ak.realm.preview_policy` 的 `audiences` 是否覆盖该 invited audience，并只按其 `fields` 披露；
+3. 返回 closed `peer_preview_outcome`，逐字回显 `request_id`、`realm_id`、`requester_account_id`、`invite_id`，
+   并给出 `preview`、`observed_at`、`expires_at`。响应 MUST NOT 回显 `invite_token`，MUST NOT 携带
+   `join_candidates`、`source_refs`、`stale` 或 `divergent`，也 MUST NOT 携带正文历史、成员列表、policy 原文、
+   隐藏 edge 或 E2EE 明文。
+
+策略允许但没有可披露内容时，MUST 返回只含必填成员的最小 `preview`，MUST NOT 因此扩张读取。未知 Realm、未知或
+不匹配的邀请、非该被邀请者的 Station、已撤销／过期凭据以及 Realm 未声明有效 preview policy，MUST 共用一个与
+不存在不可区分的失败，并按 §3.2 同口径固定 timing bucket。来源不可达是可重试的上游失败，MUST NOT 换源。
+
+自己的 Station 返回 closed `self_preview_outcome`：逐字回显 `request_id`、`account_id`，给出解析后的 canonical
+`realm_id`、绑定本次 target 的 `request_digest`、披露来源 `source`（`inviter_station` / `local` / `directory`）、
+`preview`、`observed_at` 与 `expires_at`。客户端 MUST 只核对目标、用途、请求与来源绑定后展示；MUST NOT 直连
+来源 Station、MUST NOT 选择转发候选，也 MUST NOT 把预览当作 membership、加入承诺或已验证的 Realm 治理。
+预览成功不产生任何加入副作用；正式加入仍走 [`federation.md` §5.3](./federation.md) 与加入准备合同。
+邀请本身不保证存在名称或头像；`title` / `avatar_blob_ref` / `summary` 等只是策略许可后的展示信息。
+
 ## 8. Describe Capabilities
 
 支持 invite addressing 的 Station MUST 广告能展开出下列精确 `http_json` pair 的 registered operation bundle：

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.23",
+  "version": "2026-09-10.24",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T12:18:51+08:00",
+  "generated_at": "2026-09-10T12:30:56+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -186,6 +186,18 @@
         "ak.peer.principal_genesis.command.submit.v1"
       ],
       "surface_class": "extension"
+    },
+    {
+      "surface": "realm_join_intake",
+      "operations": [
+        "ak.peer.realm_join.read.application_status.v1",
+        "ak.peer.realm_join.read.bootstrap.v1",
+        "ak.peer.realm_join.read.preview.v1",
+        "ak.self.realm_join.command.prepare.v1",
+        "ak.self.realm_join.read.application_status.v1",
+        "ak.self.realm_join.read.preview.v1"
+      ],
+      "surface_class": "core"
     },
     {
       "surface": "directory_discovery",
@@ -1993,6 +2005,43 @@
           "ak.device.authorize"
         ]
       }
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.application_status.v1",
+      "http": "POST /_arkret/peer/realm-joins/application-status",
+      "grpc": "PeerRealmJoin/ApplicationStatus",
+      "mq": "peer.realm_join.query.application_status",
+      "notes": "Restricted outcome of exactly one forwarded join application, read by the applicant's own Station before that account is a member. The holder Station verifies service-to-service authentication, that applicant_account_id.station_id equals the Source-Service-ID, that it is the Destination-Service-ID, and that event_id is the exact Event this source forwarded for this applicant. received carries no decision; the other five states carry the durable control_proposal_decision_read_outcome for the same proposal and their proposal_state MUST agree. Unknown Realm, unknown Event, wrong source and an application belonging to another account share one non-enumerating not_found. The read discloses nothing beyond this application and never becomes a general governance, roster or proposal listing surface.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_outcome",
+      "max_canonical_body_bytes": 65536
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
+      "http": "POST /_arkret/peer/realm-joins/bootstrap",
+      "grpc": "PeerRealmJoin/Bootstrap",
+      "mq": "peer.realm_join.query.bootstrap",
+      "notes": "Bounded first-contact join bootstrap served by an existing joined-member Station to the applicant's own Station. The holder verifies service-to-service authentication, applicant_account_id.station_id equals the Source-Service-ID, itself as Destination-Service-ID, the exact invite in its accepted state for invite_accept, and the current join policy for member_join and knock. It returns only the join_rule, complete accepted seal_basis, live digest_algorithm and encryption_profile of that Realm plus one receiver-relative dependency bundle per basis leaf, and it never returns roster, message history, MLS material, unrelated cells or a reusable governance read grant. Missing, Bottom, non-unique or unverifiable joined values fail instead of defaulting. Unauthorized applicants, unknown Realms and invalid or revoked invites share one non-enumerating not_found under a fixed timing bucket. Registered intents are invite_accept, member_join and knock; restricted_join and application receipts are unsupported_feature.",
+      "body_class": "non_streaming_json",
+      "max_items": 64,
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome",
+      "max_canonical_body_bytes": 65536
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.preview.v1",
+      "http": "POST /_arkret/peer/realm-joins/preview",
+      "grpc": "PeerRealmJoin/Preview",
+      "mq": "peer.realm_join.query.preview",
+      "notes": "Pre-join preview of one directed invite, read by the invitee's own Station from the exact inviter Station named by inviter_account_id.station_id. The caller uses service-to-service authentication and never forwards the invitee's local bearer or session credential; requester_account_id.station_id MUST equal the authenticated Source-Service-ID and the holder MUST be the Destination-Service-ID. The holder resolves the exact invite in its accepted state, checks the invite binds that complete invitee AccountId, is unexpired and unrevoked, and discloses only what the effective ak.realm.preview_policy permits for the invited audience. join_candidates, source_refs, stale and divergent are Directory-result provenance and MUST be omitted. A valid invite whose policy discloses nothing returns the minimal bound preview; unknown Realm, unknown or mismatched invite, wrong source, revoked or expired credential and an absent preview policy share one non-enumerating not_found under a fixed timing bucket. The outcome is not membership and never carries the invite token back.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome",
+      "max_canonical_body_bytes": 65536
     },
     {
       "operation_id": "ak.peer.seals.read.frontier.v1",
@@ -4047,6 +4096,49 @@
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
     },
     {
+      "operation_id": "ak.self.realm_join.command.prepare.v1",
+      "http": "POST /_arkret/self/realm-joins/prepare",
+      "grpc": "SelfRealmJoin/Prepare",
+      "mq": "self.realm_join.command.prepare",
+      "notes": "Prepare exactly one Realm join, knock or invite acceptance. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling the request. The Station resolves the canonical Realm, runs the bounded first-contact bootstrap when it holds no accepted state for that Realm, independently verifies the returned facts against their dependency closure, and freezes the effective join_rule, complete accepted seal_basis, live digest suite, encryption profile, the exact Event kind, canonical payload and preconditions. The client checks target, purpose, request binding and the exact bytes, then signs and submits through ak.self.events.command.submit.v1; it never fetches remote governance evidence, never recomputes Seal roots, never selects a candidate endpoint and never runs a reducer. Preparation is not admission: submit re-checks current authority, freshness and basis, and a stale or conflicting basis requires a fresh preparation instead of rewriting signed material. Registered intents are invite_accept, member_join and knock; restricted_join and application receipts are unsupported_feature.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_prepare_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_prepare_outcome",
+      "max_canonical_body_bytes": 65536,
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "stores_bounded_verified_join_intake_state_but_does_not_commit_an_event_or_membership"
+      }
+    },
+    {
+      "operation_id": "ak.self.realm_join.read.application_status.v1",
+      "http": "POST /_arkret/self/realm-joins/application-status",
+      "grpc": "SelfRealmJoin/ApplicationStatus",
+      "mq": "self.realm_join.query.application_status",
+      "notes": "Own-Station validated progress of one join application authored by this account before membership exists. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling the request. origin_state reports this Station's own durable forwarding fact and is never Realm acceptance; realm_state appears only after a bounded candidate answered, and accepted_seal_id appears only when this Station has itself verified and accepted the covering Seal. The outcome carries no Ack, authority set, authority signature or Seal bytes: after sealed the account is a member and continues through the ordinary member federation and sync surfaces. Unknown Event, another account's application and a non-matching session share one non-enumerating not_found.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome",
+      "max_canonical_body_bytes": 65536
+    },
+    {
+      "operation_id": "ak.self.realm_join.read.preview.v1",
+      "http": "POST /_arkret/self/realm-joins/preview",
+      "grpc": "SelfRealmJoin/Preview",
+      "mq": "self.realm_join.query.preview",
+      "notes": "Own-Station validated pre-join Realm preview. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling the request. The invite target is resolved only against inviter_account_id.station_id, taking the equivalent local path when that Station is this service; every other target is resolved through the Directory discovery input surface and independently validated before it becomes a result. The client never calls the source, never selects a forwarding candidate and never goes back to a truth source: join_candidates, source_refs, stale and divergent are omitted. request_digest binds the exact chosen target, and source names where the disclosure came from. An unreachable source is a retryable upstream failure and MUST NOT be replaced by another service identity or another Realm member Station.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_outcome",
+      "max_canonical_body_bytes": 65536
+    },
+    {
       "operation_id": "ak.self.realm_link.read.effective_policy.v1",
       "http": "GET /_arkret/self/realms/{realm_id}/effective-policy",
       "grpc": "SelfRealmLink/EffectivePolicy",
@@ -5278,6 +5370,18 @@
           "binding_kind": "http_json"
         },
         {
+          "operation_id": "ak.peer.realm_join.read.application_status.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.realm_join.read.preview.v1",
+          "binding_kind": "http_json"
+        },
+        {
           "operation_id": "ak.peer.seals.read.frontier.v1",
           "binding_kind": "http_json"
         },
@@ -5623,6 +5727,18 @@
         },
         {
           "operation_id": "ak.self.realm.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.realm_join.command.prepare.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.realm_join.read.application_status.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.realm_join.read.preview.v1",
           "binding_kind": "http_json"
         },
         {

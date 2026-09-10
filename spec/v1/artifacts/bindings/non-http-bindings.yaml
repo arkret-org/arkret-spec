@@ -225,6 +225,10 @@ grpc:
       KeyPackagesClaim: ak.peer.keys.keypackages.command.claim.v1
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.read.claim.v1
       Query: ak.peer.keys.read.lookup.v1
+    PeerRealmJoin:
+      Bootstrap: ak.peer.realm_join.read.bootstrap.v1
+      ApplicationStatus: ak.peer.realm_join.read.application_status.v1
+      Preview: ak.peer.realm_join.read.preview.v1
     PeerSignal:
       Relay: ak.peer.signal.command.relay.v1
     SelfSignal:
@@ -273,6 +277,10 @@ grpc:
       Upload: ak.self.keys.upload.create.v1
     SelfActorProfile:
       Resolve: ak.self.actor_profile.read.resolve.v1
+    SelfRealmJoin:
+      ApplicationStatus: ak.self.realm_join.read.application_status.v1
+      Preview: ak.self.realm_join.read.preview.v1
+      Prepare: ak.self.realm_join.command.prepare.v1
     SelfSignerKeys:
       Resolve: ak.self.signer_keys.read.resolve.v1
     SelfCurrentPrincipal:
@@ -422,6 +430,9 @@ mq:
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim.v1
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.read.claim.v1
     peer.keys.query.lookup: ak.peer.keys.read.lookup.v1
+    peer.realm_join.query.bootstrap: ak.peer.realm_join.read.bootstrap.v1
+    peer.realm_join.query.application_status: ak.peer.realm_join.read.application_status.v1
+    peer.realm_join.query.preview: ak.peer.realm_join.read.preview.v1
     peer.signal.command.relay: ak.peer.signal.command.relay.v1
     self.signal.command.send: ak.self.signal.command.send.v1
     self.signal.stream.subscribe: ak.self.signal.stream.subscribe.v1
@@ -453,6 +464,9 @@ mq:
     self.contact.query.list: ak.self.contact.read.list.v1
     self.contact.command.tombstone: ak.self.contact.command.tombstone.v1
     self.contact.command.scope_update: ak.self.contact.command.scope_update.v1
+    self.realm_join.query.application_status: ak.self.realm_join.read.application_status.v1
+    self.realm_join.query.preview: ak.self.realm_join.read.preview.v1
+    self.realm_join.command.prepare: ak.self.realm_join.command.prepare.v1
     self.signer_keys.query.resolve: ak.self.signer_keys.read.resolve.v1
     self.current_principal.query.resolve: ak.self.current_principal.read.resolve.v1
     self.genesis_notary.query.resolve: ak.self.genesis_notary.read.resolve.v1

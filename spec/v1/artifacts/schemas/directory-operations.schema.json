@@ -623,12 +623,6 @@
         "realm_preview": {
           "$ref": "#/$defs/realm_preview"
         },
-        "stripped_state_entries": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
         "join_rule": {
           "$ref": "#/$defs/non_empty_string"
         },

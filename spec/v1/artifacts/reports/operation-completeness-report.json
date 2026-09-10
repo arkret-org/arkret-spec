@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.24",
+  "version": "2026-09-10.25",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T12:18:51+08:00",
+  "generated_at": "2026-09-10T12:30:56+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,14 +18,14 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 247,
+    "total_operations": 253,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 245
+      "typed_schema": 251
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 55
+        "typed_schema": 61
       },
       "deployment_local": {
         "typed_schema": 17
@@ -1268,6 +1268,48 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/PcrGenesisSubmitRequestBody",
         "response": "#/components/schemas/PcrGenesisSubmitOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.application_status.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/peer/realm-joins/application-status",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmJoinPeerApplicationStatusRequestBody",
+        "response": "#/components/schemas/RealmJoinPeerApplicationStatusOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/peer/realm-joins/bootstrap",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmJoinBootstrapRequestBody",
+        "response": "#/components/schemas/RealmJoinBootstrapOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.preview.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/peer/realm-joins/preview",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmJoinPeerPreviewRequestBody",
+        "response": "#/components/schemas/RealmJoinPeerPreviewOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -3057,6 +3099,48 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.realm_join.command.prepare.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/realm-joins/prepare",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_prepare_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_prepare_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmJoinPrepareRequestBody",
+        "response": "#/components/schemas/RealmJoinPrepareOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.realm_join.read.application_status.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/realm-joins/application-status",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmJoinSelfApplicationStatusRequestBody",
+        "response": "#/components/schemas/RealmJoinSelfApplicationStatusOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.realm_join.read.preview.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/realm-joins/preview",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_request_body",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmJoinSelfPreviewRequestBody",
+        "response": "#/components/schemas/RealmJoinSelfPreviewOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.realm_link.read.effective_policy.v1",

@@ -1776,6 +1776,30 @@ components:
     RealmId:
       type: string
       pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+    RealmJoinBootstrapOutcome:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome
+    RealmJoinBootstrapRequestBody:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body
+    RealmJoinPeerApplicationStatusOutcome:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_application_status_outcome
+    RealmJoinPeerApplicationStatusRequestBody:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_application_status_request_body
+    RealmJoinPeerPreviewOutcome:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome
+    RealmJoinPeerPreviewRequestBody:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body
+    RealmJoinPrepareOutcome:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_prepare_outcome
+    RealmJoinPrepareRequestBody:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_prepare_request_body
+    RealmJoinSelfApplicationStatusOutcome:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome
+    RealmJoinSelfApplicationStatusRequestBody:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_application_status_request_body
+    RealmJoinSelfPreviewOutcome:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_preview_outcome
+    RealmJoinSelfPreviewRequestBody:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_preview_request_body
     RealmLifecycleView:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
     RealmLinkList:
@@ -4977,6 +5001,102 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CurrentSignerEvidenceQueryOutcome'
+  /_arkret/peer/realm-joins/preview:
+    post:
+      operationId: ak.peer.realm_join.read.preview
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.realm_join.read.preview.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Disclose the policy-permitted pre-join preview of one directed invite.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmJoinPeerPreviewRequestBody'
+      responses:
+        '200':
+          description: Preview members the effective preview policy permits for that exact invitee and invite.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmJoinPeerPreviewOutcome'
+  /_arkret/peer/realm-joins/bootstrap:
+    post:
+      operationId: ak.peer.realm_join.read.bootstrap
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.realm_join.read.bootstrap.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Serve bounded first-contact join bootstrap material to an applicant Station.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmJoinBootstrapRequestBody'
+      responses:
+        '200':
+          description: Purpose-limited expiring join material for exactly one applicant, Realm and intent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmJoinBootstrapOutcome'
+  /_arkret/peer/realm-joins/application-status:
+    post:
+      operationId: ak.peer.realm_join.read.application_status
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.realm_join.read.application_status.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Report the restricted outcome of one forwarded join application.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmJoinPeerApplicationStatusRequestBody'
+      responses:
+        '200':
+          description: Receiving-Realm state of exactly that application, with the durable proposal observation when one exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmJoinPeerApplicationStatusOutcome'
   /_arkret/peer/signal:
     post:
       operationId: ak.peer.signal.command.relay
@@ -7399,6 +7519,90 @@ paths:
               schema:
                 $ref: '#/components/schemas/MediaServiceBindingOutcome'
 
+  /_arkret/self/realm-joins/prepare:
+    post:
+      operationId: ak.self.realm_join.command.prepare
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.realm_join.command.prepare.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Prepare the exact signing inputs for one Realm join, knock or invite acceptance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmJoinPrepareRequestBody'
+      responses:
+        '200':
+          description: Verified governance facts plus the exact Event kind, canonical payload and preconditions to sign.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmJoinPrepareOutcome'
+  /_arkret/self/realm-joins/preview:
+    post:
+      operationId: ak.self.realm_join.read.preview
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.realm_join.read.preview.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Read an own-Station validated pre-join Realm preview.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmJoinSelfPreviewRequestBody'
+      responses:
+        '200':
+          description: Preview bound to the exact account, Realm, request and disclosure source.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmJoinSelfPreviewOutcome'
+  /_arkret/self/realm-joins/application-status:
+    post:
+      operationId: ak.self.realm_join.read.application_status
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.realm_join.read.application_status.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Read own-Station validated progress of one join application before membership.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmJoinSelfApplicationStatusRequestBody'
+      responses:
+        '200':
+          description: Origin forwarding fact, receiving-Realm state and the accepted covering Seal reference for that application.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmJoinSelfApplicationStatusOutcome'
   /_arkret/self/signer-keys/query:
     post:
       operationId: ak.self.signer_keys.read.resolve

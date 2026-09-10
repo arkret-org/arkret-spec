@@ -7374,6 +7374,136 @@
       ]
     },
     {
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_application_status_outcome/properties/applicant_account_id",
+      "property_name": "applicant_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_application_status_request_body/properties/applicant_account_id",
+      "property_name": "applicant_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome/properties/applicant_account_id",
+      "property_name": "applicant_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body/properties/applicant_account_id",
+      "property_name": "applicant_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_preview_outcome/properties/requester_account_id",
+      "property_name": "requester_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_preview_request_body/properties/requester_account_id",
+      "property_name": "requester_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/realm_join_invite_target/properties/inviter_account_id",
+      "property_name": "inviter_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_application_status_outcome/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_application_status_request_body/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_prepare_outcome/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_prepare_request_body/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_preview_outcome/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_preview_request_body/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list/properties/declared_organization_hint_ids",
       "property_name": "declared_organization_hint_ids",
       "semantic_category": "responsibility_identity_material",

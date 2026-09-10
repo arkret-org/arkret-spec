@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.18",
+  "version": "2026-09-10.19",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T11:05:00+08:00",
+  "generated_at": "2026-09-10T12:30:56+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -882,6 +882,90 @@
       "file": "schemas/realm-join-candidate.schema.json",
       "status": "active",
       "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_prepare_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_prepare_request_body",
+      "status": "active",
+      "description": "Authenticated account request to prepare exactly one join, knock or invite acceptance through the account's own Station."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_prepare_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_prepare_outcome",
+      "status": "active",
+      "description": "Own-Station validated join preparation: verified governance facts plus the exact Event kind, canonical payload and preconditions to sign. It is not admission and not membership."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_preview_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_preview_request_body",
+      "status": "active",
+      "description": "Authenticated service-to-service pre-join preview read against the exact inviter Station of one directed invite."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_preview_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_preview_outcome",
+      "status": "active",
+      "description": "Policy-permitted pre-join disclosure for exactly one invite and invitee, without Directory result provenance or join routing hints."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_preview_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_preview_request_body",
+      "status": "active",
+      "description": "Authenticated account request for a pre-join Realm preview through the account's own Station."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_preview_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_preview_outcome",
+      "status": "active",
+      "description": "Own-Station validated pre-join preview bound to the exact account, Realm, request and disclosure source."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_bootstrap_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_bootstrap_request_body",
+      "status": "active",
+      "description": "Authenticated service-to-service request for the bounded material required to author and verify exactly one first-contact Realm join attempt."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_bootstrap_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_bootstrap_outcome",
+      "status": "active",
+      "description": "Bounded join bootstrap material: effective join_rule, complete accepted seal_basis, live digest suite, encryption profile and one dependency bundle per basis leaf. It is purpose limited and expiring, never membership or a governance read grant."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_application_status_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_application_status_request_body",
+      "status": "active",
+      "description": "Authenticated service-to-service read of the restricted outcome of exactly one forwarded join application."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_application_status_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_application_status_outcome",
+      "status": "active",
+      "description": "Restricted receiving-Realm outcome of one join application, carrying the durable proposal observation for that exact proposal and nothing else."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_application_status_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_application_status_request_body",
+      "status": "active",
+      "description": "Authenticated account read of one own join application before membership exists."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_application_status_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_application_status_outcome",
+      "status": "active",
+      "description": "Own-Station validated join application progress: origin forwarding fact, receiving-Realm state and the accepted covering Seal reference, with no Ack, authority set or Seal bytes."
     },
     {
       "schema_id": "ak.schema.control_proposal_decision.v1",

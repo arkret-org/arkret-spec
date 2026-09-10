@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-08.66",
-  "generated_at": "2026-09-10T12:11:35+08:00",
+  "version": "2026-09-08.67",
+  "generated_at": "2026-09-10T12:18:51+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -97,7 +97,7 @@
     },
     {
       "operation_id": "ak.find.directory.read.resolve_realm.v1",
-      "sha256": "sha256:f6d794133ce71e77c5a20411eb74aefa72131fdafe17ba08e4c0ad77eda5a716"
+      "sha256": "sha256:8bc23c94b6893bcd20ad95226b3602897c3f804aed8710190c695258e573afe0"
     },
     {
       "operation_id": "ak.find.directory.read.resolve_target.v1",
@@ -366,6 +366,18 @@
     {
       "operation_id": "ak.peer.principal_genesis.command.submit.v1",
       "sha256": "sha256:c872f1b02c8ffb524a74307b5d5080bb4014f7c26d27bac1161102d907f5f688"
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.application_status.v1",
+      "sha256": "sha256:0d510242a04370095165f55e773eb7b81d9a07f88edd9037359c1f8c8ea06b53"
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
+      "sha256": "sha256:3cb1be1153909d2a3854a4d12d23643b7bd8d7fc6e62ddec69f315ac47e380e5"
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.preview.v1",
+      "sha256": "sha256:d74ca09315b298d446fc26938eb2327a778f24c6d0e045666173408e11691d19"
     },
     {
       "operation_id": "ak.peer.seals.read.frontier.v1",
@@ -890,6 +902,18 @@
     {
       "operation_id": "ak.self.realm.resource.get.v1",
       "sha256": "sha256:40c0855101b09a8677be06fc58674aae5c1954369f0c1d1bf106e37981d361f8"
+    },
+    {
+      "operation_id": "ak.self.realm_join.command.prepare.v1",
+      "sha256": "sha256:37b80527e5e8bcaa6dcec2fbbf9e6a0ecc324dac82f059232e83102b0713c1e1"
+    },
+    {
+      "operation_id": "ak.self.realm_join.read.application_status.v1",
+      "sha256": "sha256:dc4da77ae2e8babff83b431c699e09c6b4458f8830edf81196a3bb4b243d8805"
+    },
+    {
+      "operation_id": "ak.self.realm_join.read.preview.v1",
+      "sha256": "sha256:68b700ec302f8a4151e574f7249d1229396f2bc9cc9c2b89fd9621d379bc62d5"
     },
     {
       "operation_id": "ak.self.realm_link.read.effective_policy.v1",

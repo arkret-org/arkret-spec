@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 212,
+    "total_schemas": 224,
     "by_consumer": {
       "declared_wire": 59,
       "event_kind": 3,
-      "inbound": 52,
-      "outbound": 60,
-      "prose": 112,
+      "inbound": 58,
+      "outbound": 66,
+      "prose": 113,
       "prose_only": 2,
-      "schema_reference": 139,
-      "startup_compile": 212,
+      "schema_reference": 140,
+      "startup_compile": 224,
       "vectors": 125
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 87,
+    "without_vector_coverage": 99,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -140,7 +140,19 @@
     "ak.schema.push_operations.v1",
     "ak.schema.query.v1",
     "ak.schema.read_cursor_operations.v1",
+    "ak.schema.realm_join_bootstrap_outcome.v1",
+    "ak.schema.realm_join_bootstrap_request.v1",
     "ak.schema.realm_join_candidate.v1",
+    "ak.schema.realm_join_peer_application_status_outcome.v1",
+    "ak.schema.realm_join_peer_application_status_request.v1",
+    "ak.schema.realm_join_peer_preview_outcome.v1",
+    "ak.schema.realm_join_peer_preview_request.v1",
+    "ak.schema.realm_join_prepare_outcome.v1",
+    "ak.schema.realm_join_prepare_request.v1",
+    "ak.schema.realm_join_self_application_status_outcome.v1",
+    "ak.schema.realm_join_self_application_status_request.v1",
+    "ak.schema.realm_join_self_preview_outcome.v1",
+    "ak.schema.realm_join_self_preview_request.v1",
     "ak.schema.realm_link_operations.v1",
     "ak.schema.realm_organization_operations.v1",
     "ak.schema.realm_read_operations.v1",
@@ -1151,6 +1163,7 @@
       "schema_id": "ak.schema.cbs_proof_bundle.v1",
       "file": "schemas/cbs-proof-bundle.schema.json",
       "consumers": {
+        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"
@@ -1359,7 +1372,19 @@
           "ak.schema.read_receipt.v1",
           "ak.schema.realm.v1",
           "ak.schema.realm_genesis.v1",
+          "ak.schema.realm_join_bootstrap_outcome.v1",
+          "ak.schema.realm_join_bootstrap_request.v1",
           "ak.schema.realm_join_candidate.v1",
+          "ak.schema.realm_join_peer_application_status_outcome.v1",
+          "ak.schema.realm_join_peer_application_status_request.v1",
+          "ak.schema.realm_join_peer_preview_outcome.v1",
+          "ak.schema.realm_join_peer_preview_request.v1",
+          "ak.schema.realm_join_prepare_outcome.v1",
+          "ak.schema.realm_join_prepare_request.v1",
+          "ak.schema.realm_join_self_application_status_outcome.v1",
+          "ak.schema.realm_join_self_application_status_request.v1",
+          "ak.schema.realm_join_self_preview_outcome.v1",
+          "ak.schema.realm_join_self_preview_request.v1",
           "ak.schema.realm_link_operations.v1",
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_profile.v1",
@@ -1800,6 +1825,7 @@
       "consumers": {
         "inbound": "fragment",
         "outbound": "fragment",
+        "schema_reference": "fragment",
         "startup_compile": "exact"
       },
       "wire_covered": true,
@@ -3219,6 +3245,40 @@
       }
     },
     {
+      "schema_id": "ak.schema.realm_join_bootstrap_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.realm_join.read.bootstrap.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/peer_bootstrap_outcome"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_bootstrap_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.realm_join.read.bootstrap.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/peer_bootstrap_request_body"
+    },
+    {
       "schema_id": "ak.schema.realm_join_candidate.v1",
       "file": "schemas/realm-join-candidate.schema.json",
       "consumers": {
@@ -3234,6 +3294,176 @@
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_application_status_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.realm_join.read.application_status.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/peer_application_status_outcome"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_application_status_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.realm_join.read.application_status.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/peer_application_status_request_body"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_preview_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.realm_join.read.preview.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/peer_preview_outcome"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_preview_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.realm_join.read.preview.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/peer_preview_request_body"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_prepare_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.realm_join.command.prepare.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/self_prepare_outcome"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_prepare_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.realm_join.command.prepare.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/self_prepare_request_body"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_application_status_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.realm_join.read.application_status.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/self_application_status_outcome"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_application_status_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.realm_join.read.application_status.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/self_application_status_request_body"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_preview_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.realm_join.read.preview.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/self_preview_outcome"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_preview_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.realm_join.read.preview.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/self_preview_request_body"
     },
     {
       "schema_id": "ak.schema.realm_link_operations.v1",
@@ -3951,7 +4181,19 @@
           "ak.schema.read_cursor_operations.v1",
           "ak.schema.read_cursor_update.v1",
           "ak.schema.realm.v1",
+          "ak.schema.realm_join_bootstrap_outcome.v1",
+          "ak.schema.realm_join_bootstrap_request.v1",
           "ak.schema.realm_join_candidate.v1",
+          "ak.schema.realm_join_peer_application_status_outcome.v1",
+          "ak.schema.realm_join_peer_application_status_request.v1",
+          "ak.schema.realm_join_peer_preview_outcome.v1",
+          "ak.schema.realm_join_peer_preview_request.v1",
+          "ak.schema.realm_join_prepare_outcome.v1",
+          "ak.schema.realm_join_prepare_request.v1",
+          "ak.schema.realm_join_self_application_status_outcome.v1",
+          "ak.schema.realm_join_self_application_status_request.v1",
+          "ak.schema.realm_join_self_preview_outcome.v1",
+          "ak.schema.realm_join_self_preview_request.v1",
           "ak.schema.realm_link_operations.v1",
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_read_operations.v1",

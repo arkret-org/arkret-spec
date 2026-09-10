@@ -540,7 +540,7 @@ Probe 响应 payload：
 
 规范约束：
 
-1. 客户端在提交 `ak.invite.accept`、`ak.member.state{membership="join"}`、`ak.member.state{membership="knock"}` 或 application receipt 前，MUST 取得 canonical `realm_id` 与所需 `seal_basis`，然后只向 Event `actor_id` 的 routing-service projection 提交。
+1. 客户端在提交 `ak.invite.accept`、`ak.member.state{membership="join"}`、`ak.member.state{membership="knock"}` 或 application receipt 前，MUST 通过 §5.3.4 的 `ak.self.realm_join.command.prepare.v1` 从自己的 Station 取得 canonical `realm_id`、已验证 `seal_basis` 与全部待签输入，然后只向 Event `actor_id` 的 routing-service projection 提交。
 2. invitee Station 完成本地 schema、producer proof、session pair 与 device/PCR 状态 admission 后，MAY 从 signed invite 或 inviter 当前 joined-member ActorId routing projection 裁剪 `join_candidates[]`，并按 service DID 去重后选择未过期的 joined-member Station 转发。部署已知 peer、notary、mirror、Directory/search projection 或裸 URL 不得成为候选来源。
 3. 接收 joined-member Station MUST 验证 `realm_id`、producer proof、内嵌 origin Station admission proof、Source-Service-ID 是否等于 Event `actor_id` 的 routing-service projection、candidate provenance，以及 Join Policy / invite / review 链。Candidate 本身不是 authorization grant。
 4. **join-side 接收的最小披露失败语义（normative）**：candidate 服务接收 `ak.invite.accept` / `ak.member.state{membership="join"|"knock"}` / application receipt 时，§3.2 定义的**统一最小披露失败族**（存在性不可区分 + 固定 timing bucket）MUST 同样适用于该接收路径——对外 MUST NOT 可区分"该 `(realm_id, subject)` 不存在 pending invite / 不是该 Realm 成员候选"与"存在但本提交鉴权 / 完整性 / Join Policy 校验失败"。具体而言：对这两类原因 MUST 返回同一 HTTP status 与同一 `reason_code`（沿用 §3.2 的统一鉴权失败码），响应可见字段 MUST NOT 携带 Realm / invite / membership 是否存在的可区分信息，timing MUST 归一到 §3.2 同口径的固定 bucket（≥30 次采样 p95 差异 SHOULD ≤ 50ms，高安全 profile MUST 使 p99 落入同桶）。真实 reason 仅写入接收方审计日志。这把"可探测 `(realm_id, subject)` 是否存在 pending invite"的枚举面在 join-side submission 接收上关闭，与 [`third-party-invites.md` §6](./third-party-invites.md) 的不可枚举 claim 响应口径一致。
@@ -552,8 +552,8 @@ Probe 响应 payload：
 当 Realm S 的管理员邀请外部用户 Bob（Station 在 `server-beta.com`）时：
 
 1. 管理员提交 `ak.invite.create` Event，`invitee_account_id` 指向 Bob 的 exact AccountId；邀请的私有 metadata MAY 携带从 inviter 当前 joined-member ActorId routing projection 裁剪的候选提示，但不得把该列表当作授权本身。
-2. 该 Event 通过联邦推送到达 Bob 的 Station；Bob 的客户端也 MAY 用 invite token / signed link 调用 `ak.find.directory.read.resolve_realm.v1` 刷新 candidate 列表。
-3. Bob 的客户端发现 Invite，决定接受，并把 `ak.invite.accept` Event 提交给 Bob 自己的 Station。
+2. 该 Event 通过联邦推送到达 Bob 的 Station；Bob 的客户端 MAY 用 `ak.self.realm_join.read.preview.v1` 查看加入前预览，candidate 解析与刷新只发生在 Bob 的 Station 内部。
+3. Bob 的客户端发现 Invite，决定接受，先用 §5.3.4 准备待签输入，再把签好的 `ak.invite.accept` Event 提交给 Bob 自己的 Station。
 4. Bob 的 Station 完成本地 admission，追加唯一 `station_admission` proof，再按 signed invite / inviter 当前 joined-member ActorId routing projection 将 byte-identical Event 转发给一个已有成员 Station。
 5. 接收方验证 invite、完整 membership ActorId、路由投影与 Event proofs 后，仅向 effective joined-member routing services 按 service DID 去重扇出。
 6. 各参与方按 reducer 验证 Invite 有效性并收敛成员状态
@@ -565,22 +565,145 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 
 **自动解析路径**（`join_rule ∈ {restricted, knock_restricted}`，且 Bob 拟使用的 gate 子集均 `auto_resolve=true`）：
 
-1. Bob 发现 Realm S 的元数据（通过公开的 Realm Directory、链接或 `directory_hint`），并取得 `join_candidates[]`
-2. Bob 直接提交 `ak.member.state{membership="join", gate_proofs=[...]}` Control Move，附带 claim presentation / challenge proof
-3. Bob 的客户端 / Station 将 join Control Move 推送至所选未过期 candidate。**候选来源只有 §5.0 step 2 的两处**：signed invite，或当前 joined-member ActorId routing projection；部署已知 peer、shared notary、mirror、Directory / search projection 与裸 URL MUST NOT 成为候选
+1. Bob 通过 `ak.self.realm_join.read.preview.v1` 发现并查看 Realm S；候选解析只发生在 Bob 的 Station 内部，客户端不取得 `join_candidates[]`
+2. Bob 用 §5.3.4 准备 `ak.member.state{membership="join", gate_proofs=[...]}` 的待签输入（gate proof 由用户 / 客户端提供），签名后提交给自己的 Station
+3. Bob 的 Station 将 join Control Move 推送至所选未过期 candidate。**候选来源只有 §5.0 step 2 的两处**：signed invite，或当前 joined-member ActorId routing projection；部署已知 peer、shared notary、mirror、Directory / search projection 与裸 URL MUST NOT 成为候选
 4. 各参与方 reducer 加载当前 Join Policy component，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
 5. 若 Realm 启用了 E2EE，Bob join 后由现有成员通过 MLS commit + welcome 引入
 
 **人工邀请路径**（`join_rule ∈ {knock, knock_restricted}`，且不能由自动 gate 直接完成加入）：
 
-1. Bob 发现 Realm S 的元数据，并取得 `join_candidates[]`
-2. Bob 提交 `ak.member.state{membership="knock"}` Control Move；该公开状态只表达加入意图，不携带申请正文
+1. Bob 通过 `ak.self.realm_join.read.preview.v1` 发现 Realm S；候选解析仍只在 Bob 的 Station 内部
+2. Bob 按 §5.3.4 准备并提交 `ak.member.state{membership="knock"}` Control Move；该公开状态只表达加入意图，不携带申请正文
 3. knock Control Move 先提交给 Bob 的 Station；后者 admission 后按有界 candidate 转发，接收方验证完整 proofs 与 candidate provenance 后扇出至管理员设备
 4. 持有目标 Realm 精确 `ak.realm.admin` capability 的管理员根据本地或独立加密扩展流程决定是否邀请；v1 base 不定义 application、review、quorum 或 request-changes 协议
 5. 同意加入时，管理员提交普通 `ak.invite.create`，Bob 随后提交 `ak.invite.accept`；reducer 按标准 Invite 状态机收敛 `membership=join`
 6. 若 Realm 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
 
 > 申请正文 MUST NOT 出现在公开可见的 `ak.member.state{knock}` payload 中。v1 base 不定义独立 `member.application` 对象；部署若需申请正文，必须通过独立的加密扩展通道传输，不能把 Matrix `m.room.member{knock}.reason` 一类默认可见字段变成外部 spam 通道。
+
+### 5.3 首次跨站加入的引导与结果回传（normative）
+
+本节针对 invitee 的 Station **从未参与该 Realm** 的首次加入。加入分三个互不替代的时点：来源
+Station 完成 origin admission、Realm authority 完成签收、覆盖该 Move 的有效 Seal 生效。来源 admission
+MUST NOT 被表述、投影或消费为 Realm acceptance；origin proof 只证明来源站完成了规定的来源准入并绑定
+exact producer proof 与 Event，不证明目标 Realm 授权。
+
+**普通在线加入不使用 lease。** `ak.invite.accept`、`ak.member.state{membership="join"|"knock"}` 的普通在线
+提交按 [`../authz/offline-publication.md`](../authz/offline-publication.md) 走 `publication_mode="online"` 的无
+lease 分支；只有明确的延迟／离线窗口才使用 `publication_mode="delayed"` 并独立验证 AuthorizationLease。
+实现 MUST NOT 为首次加入强制申请 AuthorizationLease，也 MUST NOT 把无效或过期 lease 静默降级为在线成功。
+
+#### 5.3.1 有界加入引导（normative）
+
+用户明确开始加入后，invitee 的 Station MUST 通过
+`ak.peer.realm_join.read.bootstrap.v1`（`POST /_arkret/peer/realm-joins/bootstrap`）从 §5.0 step 2 的**同一有界
+候选集合**取得完成本次加入所需的最小材料。候选来源仍只有两处：signed invite，或当前 joined-member
+ActorId routing projection；部署已知 peer、notary、mirror、Directory / search projection 与裸 URL MUST NOT
+成为候选来源。客户端 MUST NOT 调用该 operation，也 MUST NOT 绕过自己的 Station 直连远端 Station。
+
+请求体是 closed `realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body`，字段依次为
+`request_id`、`realm_id`、`applicant_account_id`、`intent`。持有材料的成员 Station MUST：
+
+1. 按 §3.2 验证服务间认证，并要求 `applicant_account_id.station_id` 逐字等于已认证的 `Source-Service-ID`、
+   自身等于 `Destination-Service-ID`。申请者控制证明由该来源 Station 的服务认证承担；请求方自报的 principal、
+   handle 或推断出的 Station MUST 被拒绝。
+2. 按 `intent` 分支求值授权：`invite_accept` MUST 在自身**已接受状态**中定位 exact `invite_id`，核对
+   `invite_token`、invitee 完整 AccountId、有效期与未撤销；`member_join` 与 `knock` MUST 按当前 effective
+   `ak.realm.join_rule` 与 Join Policy 判断该 intent 是否被允许。通知里的邀请签名只能定位待核验邀请，MUST NOT
+   单独证明 inviter 拥有邀请权限。
+3. 只返回 closed `peer_bootstrap_outcome`：`request_id`、`realm_id`、`applicant_account_id`、`request_digest`、
+   `governance_facts`、`dependency_bundles`、`observed_at`、`expires_at`。`governance_facts` 是
+   `{join_rule, seal_basis, digest_algorithm, encryption_profile}`；`dependency_bundles` 是每个 `seal_basis` leaf
+   恰一个 `ak.schema.cbs_proof_bundle.v1`，按同一 canonical leaf 顺序排列。响应 MUST NOT 携带 roster、消息历史、
+   MLS 材料、无关 cell、frontier 扫描结果或任何可复用的治理读权限。
+4. `seal_basis` MUST 是该服务在 `observed_at` 的**完整当前已接受 Seal frontier**：`single_signer` / `threshold`
+   恰一 leaf，`open_set` 是 canonical 排序、去重、非隔离的完整 leaf antichain；压缩成单 head MUST 被拒绝。
+   `digest_algorithm` MUST 由该完整 basis 的已接受 joined projection 验证得到；缺失、为 `Bottom`、join 后不唯一或
+   任一 leaf / predecessor closure 不可验证时 MUST 失败，MUST NOT 猜测默认值。
+5. 未授权申请者、未知 Realm、失效／撤销／跨人邀请以及 join policy 不允许该 intent，MUST 共用一个与不存在
+   不可区分的失败，并按 §3.2 同口径固定 timing bucket。`restricted_join` 与 application receipt 在其正式 payload /
+   precondition 分支登记前 MUST 返回 `unsupported_feature`，MUST NOT 伪映射为 `member_join`。
+6. 对非成员的 basis 解析 MUST 按 `(realm_id, applicant_account_id)` 限速，并对 frontier 推进使用固定迟滞 / 分桶，
+   与 [`../discovery/discovery-directory.md` §9.2](../discovery/discovery-directory.md) 的 pre-join 活跃度侧信道
+   收口同口径。
+
+请求方 Station MUST 用 `dependency_bundles` 独立验证返回的 `governance_facts`，再据以准备本次加入的签名输入；
+**MUST NOT** 直接把 `ak.schema.realm_join_candidate.v1` 的 `seal_basis`、`digest_algorithm` 或
+`encryption_profile` 当作 authoring basis。candidate 上的这些字段是签发方的观测，只用于候选选择、陈旧检测与
+交叉核对。验证失败、闭包不完整或已过 `expires_at` 时 MUST 重新引导，MUST NOT 用未验证材料 author。
+引导结果 MUST NOT 写入 accepted Realm Event、membership、Seal、projection 或 frontier。
+
+#### 5.3.2 来源持久化与转发（normative）
+
+invitee Station 在向调用方确认受理之前，MUST 持久化 exact 已签 Event、origin proof、授权上下文与有界转发意图。
+来源排队不是 `accepted`：它 MUST NOT 伪造 Ack，MUST NOT 用本地接收时间启动或延长 authority deadline，也
+MUST NOT 据此对本地客户端投影成员身份。提交后、响应前任一端崩溃，MUST 通过 byte-identical 内容与同一
+canonical 请求重试恢复，MUST NOT 重签 Event、重建新 Ack 或把超时当成功。在线重试按当前权限重新求值；
+排队时间不创造离线资格。
+
+#### 5.3.3 受限结果回传（normative）
+
+尚未成为成员的申请者及其来源 Station MUST 能取得本次申请的最小结果，MUST NOT 被要求先成为成员才能得知
+是否已加入。回传由两个 read operation 承担，且只披露本次申请：
+
+- `ak.peer.realm_join.read.application_status.v1`（`POST /_arkret/peer/realm-joins/application-status`）：来源
+  Station 向受理该申请的成员 Station 读取。持有方 MUST 校验 `applicant_account_id.station_id` 等于
+  `Source-Service-ID`、自身为 `Destination-Service-ID`，且 `event_id` 恰是该来源为该申请者转发的 Event；其它
+  Event、其它账号与未知 Realm 共用同一不可枚举 `not_found`。
+- `ak.self.realm_join.read.application_status.v1`（`POST /_arkret/self/realm-joins/application-status`）：申请者
+  向自己的 Station 读取。`account_id` MUST 逐字等于已认证会话的完整账号，其 Station MUST 是本服务。
+
+`realm_state` 与现行 proposal 状态的映射是封闭的：
+
+| `realm_state` | `control_proposal_decision_read_outcome.proposal_state` | 含义 |
+| --- | --- | --- |
+| `received` | 无 | 成员 Station 已耐久接纳该 byte-identical Event，尚未形成 Ack 提案。 |
+| `authority_pending` | `pending` | authority 已签收，未决议。 |
+| `deferred` | `deferred` | 已签收并被延期。 |
+| `overdue` | `overdue` | 决议逾期。 |
+| `rejected` | `rejected` | 终局拒绝。 |
+| `sealed` | `sealed` | 存在覆盖该 Move 的有效 Seal。 |
+
+peer 结果在 `realm_state != "received"` 时 MUST 携带该 exact 提案的
+`control_proposal_decision_read_outcome`，且其 `proposal_state` MUST 与 `realm_state` 按上表一致；`received`
+时 MUST 省略它。self 结果 MUST NOT 携带 Ack、authority set、authority 签名或 Seal 字节：它只回报本 Station 自己
+的 `origin_state`、已得到的 `realm_state` 与已由本 Station 验证接纳的 `accepted_seal_id`。
+
+`origin_state` 只描述来源 Station 自己的转发事实：`pending` 表示申请已耐久入队；`forwarded` 表示某个有界候选
+已接受 byte-identical Event；`unreachable` 表示当前全部有界候选不可达、过期或 fail closed，本次申请保持可重试。
+它 MUST NOT 被解释为 Realm acceptance。邀请撤销、权限变化、旧 basis、候选过期或不可达时，来源 Station MUST
+保留可恢复事实并返回当前结果，MUST NOT 扩散到部署 peer 列表。
+
+取得 `sealed` 后，来源 Station MUST 用既有成员面（`ak.peer.seals.read.resolve.v1`、
+`ak.peer.seals.read.governance_dependencies.v1`、`ak.peer.events.read.*`）取回覆盖 Seal 与必要验证闭包并独立
+验证 authority、CBS、suite、邀请与成员状态迁移，然后才形成本地 accepted 状态与成员投影。v1 MUST NOT 为回传
+另造第二套材料载体。MLS Welcome / 密钥处理另按
+[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) 完成；Ack 与成员状态都不能
+替代它。
+
+#### 5.3.4 加入签名前准备（normative）
+
+客户端 MUST 通过 `ak.self.realm_join.command.prepare.v1`（`POST /_arkret/self/realm-joins/prepare`）取得本次加入的
+全部待签输入。请求体是 closed `realm-join-intake.schema.json#/$defs/self_prepare_request_body`，字段依次为
+`request_id`、`account_id`、`realm_id`、`intent`；MUST NOT 携带 candidate endpoint、自报 `seal_basis` 或任何
+调用方自称的治理事实。
+
+自己的 Station MUST：本地无该 Realm 的已接受状态时按 §5.3.1 完成有界引导并用 `dependency_bundles` 独立验证；
+随后冻结 closed `self_prepare_outcome`：逐字回显 `request_id`、`account_id`、`realm_id`，给出绑定 exact 声明意图
+（含从不回显的受保护邀请凭据）的 `request_digest`、已验证 `governance_facts`，以及 `authoring_core`
+（`event_kind`、canonical `payload`、必要 `preconditions`），并给出 `observed_at` 与 `expires_at`。
+
+客户端只核对**目标、用途、请求绑定与待签内容绑定**：`account_id` 是自己、`realm_id` 与 `event_kind` 与用户意图
+一致、`request_digest` 等于自己请求的摘要、`payload` 与 `preconditions` 逐字节即所签内容。它按现行编码补齐
+`event_id`、`scope_ref`、`actor_id`、`actor_seq`、`created_at`、`hlc`、`prev_refs`、`refs` 与 `proofs`，签名后经
+`ak.self.events.command.submit.v1` 提交。客户端 MUST NOT 下载远端 Event / DID / Seal 闭包，MUST NOT 重算 Seal
+joined roots，MUST NOT 选择 candidate endpoint，也 MUST NOT 运行 reducer 生成效果。
+
+同一 canonical 请求在保留窗口内 MUST 返回 byte-identical 材料。**准备不是接纳**：提交阶段仍重新检查当前
+authority、新鲜度与 basis；`expires_at` 之后或预条件不再成立时 MUST 重新准备，任何服务 MUST NOT 在签名后补填或
+改写 `seal_basis`、`payload` 或 `preconditions`。`restricted_join` 与 application receipt 在其正式 payload /
+precondition 分支登记前 MUST 返回 `unsupported_feature`。
 
 ## 6. 联邦级服务发现
 
