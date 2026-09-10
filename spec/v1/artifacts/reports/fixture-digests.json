@@ -282,7 +282,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "ae4eac055b49d5e43f4e5b130fb953dec9133a76c4fe1123f8b4dc958cd76a44"
+      "sha256": "7908142cd8274d698e79e2de96ac50f0de985940a39aec8b15ca7f9be2bac67b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
@@ -298,7 +298,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "cde8e58e2c0e6939f9721568116b29141b773cc1dccfd01a6c3e25eeef9ff6c7"
+      "sha256": "39c114bc113a998cb319667eb5bbc2558606fd2a2a3f478725c6edd41195622e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -382,7 +382,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
-      "sha256": "f1e1ffc426b28971bfbb627c006e3002ac651ee70db3ef986e0847c2f0741493"
+      "sha256": "35c09493726ca3ebcb16858220a04422c2bf7faf6c6136d35cc4c3b67d00034d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",

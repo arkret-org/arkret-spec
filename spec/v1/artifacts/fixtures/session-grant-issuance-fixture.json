@@ -76,6 +76,33 @@
       "suite_wire_code": 1,
       "session_grant_id": "ak:session_grant:ARpZuUzSWW61gq904QFoUrqtn0kjHANyWjVQiCpn7Bsi",
       "jwt_jti": "ak:session_grant:ARpZuUzSWW61gq904QFoUrqtn0kjHANyWjVQiCpn7Bsi"
+    },
+    {
+      "name": "pairwise_endpoint_holder",
+      "inherits": "issuer_a_closed_preimage",
+      "override": {
+        "holder_binding": {
+          "kind": "minimal_metadata_pairwise",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+              "station_id": "ak:did_core:webvh:z6mkfixtureserviceexample"
+            }
+          },
+          "verification_method": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1#z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
+        },
+        "proof_kind": "pairwise_endpoint_proof"
+      },
+      "omit": [
+        "device_binding"
+      ],
+      "canonical_preimage_utf8": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"audience_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\",\"credential_class\":\"standard\",\"expires_at\":\"2026-08-08T13:00:00.000Z\",\"holder_binding\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"kind\":\"account\"},\"kind\":\"minimal_metadata_pairwise\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"verification_method\":\"did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1#z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"},\"issuance_nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureauthaexample\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"proof_kind\":\"pairwise_endpoint_proof\",\"schema\":\"ak.session_grant.issuance.v1\",\"scopes\":[\"ak.self.account.read.describe.v1\",\"ak.self.events.read.scan.v1\"],\"session_id\":\"session-chain-fixture-001\",\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\"}",
+      "sha256_digest_hex": "21fb93d45be57ed7b17ccf419ff975c44d3ff49d5258a50015d1cba825078b0b",
+      "suite_wire_code": 1,
+      "session_grant_id": "ak:session_grant:ASH7k9Rb5X7XsXzPQZ_5dcRNP_SdUlilABXRy6glB4sL",
+      "jwt_jti": "ak:session_grant:ASH7k9Rb5X7XsXzPQZ_5dcRNP_SdUlilABXRy6glB4sL"
     }
   ],
   "jwk_canonicalization": {
@@ -164,6 +191,15 @@
       "omit": [
         "device_binding"
       ],
+      "expected": "signed_claims_schema_invalid"
+    },
+    {
+      "name": "pairwise_carries_device_binding",
+      "base_vector": "pairwise_endpoint_holder",
+      "add_from_vector": {
+        "field": "device_binding",
+        "vector": "issuer_a_closed_preimage"
+      },
       "expected": "signed_claims_schema_invalid"
     }
   ],

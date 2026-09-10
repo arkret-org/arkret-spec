@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-10.9",
-  "generated_at": "2026-09-10T12:11:35+08:00",
+  "version": "2026-09-10.10",
+  "generated_at": "2026-09-10T12:18:51+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2994,6 +2994,20 @@
         "auth_decision"
       ],
       "description": "A claim, attestation, or invite / binding proof submitted for membership or invitation admission is malformed, unverifiable, or fails policy checks."
+    },
+    {
+      "code": "device_directory_unavailable",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "The requester's own Station could not obtain or verify a current attested device projection for an exact (account_id, device_id) on this call. It reports only the fetching Station's result, never target state, and MUST NOT be rendered as an omitted row or an empty device list. See zh/crypto-media/device-lifecycle.md section 8.2.1."
+    },
+    {
+      "code": "device_result_unavailable",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Single non-enumerating device directory failure. Absent, invisible, unrelated, revoked, fenced and policy-denied targets MUST all use this one value so a caller cannot probe device existence or revocation state. See zh/crypto-media/device-lifecycle.md section 8.2."
     },
     {
       "code": "e2ee_relaxed_audit_binding_conflict",

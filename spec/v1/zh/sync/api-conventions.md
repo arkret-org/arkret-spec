@@ -309,14 +309,20 @@ Station 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失败即 `una
   `credential_class`，Arkret v1 固定为 `standard` 并必须携带 `holder_binding`。恢复完成入口在核验 replacement
   device 后直接签发同一种 Standard grant，不存在临时恢复凭据类。`standard.holder_binding` 在 JWT 与 introspection
   共用同一 closed discriminated XOR wire：human 分支恰为
-  `{kind="human_device",device_binding}`，并禁止全部 Agent runtime字段；Agent分支恰为
+  `{kind="human_device",device_binding}`，并禁止全部 Agent runtime与 pairwise字段；Agent分支恰为
   `{kind="agent_runtime",agent_id,device_id,agent_key_authorization_ref,verification_method}`，并禁止
-  `device_binding`。`agent_key_authorization_ref`就是唯一 authorization代次，必须 resolve为 current accepted
+  `device_binding`；minimal-metadata pairwise分支恰为
+  `{kind="minimal_metadata_pairwise",realm_id,actor_id,verification_method}`，同样禁止 `device_binding`
+  与全部 Agent runtime字段（[`../identity/key-management.md` §6.5](../identity/key-management.md)）。
+  `agent_key_authorization_ref`就是唯一 authorization代次，必须 resolve为 current accepted
   active authorization，不存在额外 `generation`字段或隐式数据库 generation轴。Station 在每个
   self-path admission 中必须同时重验 token subject、分支 binding ref、runtime device、current accepted Agent
   key authorization及 Agent/controller current lifecycle；仅匹配 kind、key digest、scope内 device字符串或
-  service-private row均不得替代 signed binding。持 active authorized Agent key但尚无 session的 runtime可凭 PoP
-  取得 standard Agent session，不能伪装 human device。
+  service-private row均不得替代 signed binding。pairwise分支的同一 admission必须重验 Realm 当前可见性、完整
+  `actor_id` 的 active join、当前 winning epoch下该 actor唯一 active LeafNode，以及其 BasicCredential identity
+  与 signature key同 `verification_method` 逐字一致；Realm membership、controller或 transport session actor
+  都不得替代该证明。持 active authorized Agent key但尚无 session的 runtime可凭 PoP
+  取得 standard Agent session，不能伪装 human device；pairwise endpoint 同理不得伪装 human device或 Agent。
 - **audience**:grant 的 audience MUST 等于本 Station 的 service DID。
 - **scope**：grant scope MUST 含当前 endpoint 对应的 operation scope；scope 只表达服务操作授权，MUST NOT
   使用旧 `session.bind` 哨兵或 device scope 代替 typed holder binding。

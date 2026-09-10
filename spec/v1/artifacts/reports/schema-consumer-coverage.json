@@ -2510,6 +2510,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
+          "ak.peer.keys.read.lookup.v1",
           "ak.self.keys.backup_series.command.erase.v1",
           "ak.self.keys.backups.command.issue_delete_challenge.v1",
           "ak.self.keys.backups.command.unlock.v1",

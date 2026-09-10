@@ -852,7 +852,9 @@ MUST 使用 UTC canonical millisecond；optional 字段无值时 MUST 省略而�
 credential class、holder binding 与 human device authorization binding 都是 preimage 的身份材料：Arkret v1
 的 `credential_class` 固定为 `standard`，并且 MUST 携带 `holder_binding`。`holder_binding.kind="human_device"`
 时完整 `device_binding` 必填且只能逐字取自 origin current-device gate 的 `allow` receipt；
-`holder_binding.kind="agent_runtime"` 时 `device_binding` 禁带。current-v1 不存在缺 `device_binding` 的
+`holder_binding.kind="agent_runtime"` 与 `holder_binding.kind="minimal_metadata_pairwise"` 时
+`device_binding` 禁带，这两类 holder 的完整 endpoint 身份只落在各自分支内（pairwise 分支见 §6.5）。
+current-v1 不存在缺 `device_binding` 的
 fresh-device human grant。恢复完成在核验 replacement device 后直接签发同一种 Standard grant，不存在临时
 恢复凭据类。因而修改任一 binding 必须改变 canonical preimage、digest、grant ID 与 `jti`；verifier 不得把
 binding 当作不参与 ID 的附加 metadata。
@@ -863,7 +865,8 @@ UTF-8 字符串；JWT claim 自身必须携带该 canonical 字符串。接收�
 与 `SessionGrantRequestProof.audience_id`、issue/refresh outcome 的 typed `DidCoreId` 相同；HTTP origin / endpoint URL
 由 DPoP `htu` 单独绑定，MUST NOT 写入 SessionGrant `audience_id`。该选择与 SDK 的 `DidCoreId` wire type及 Account
 Authority 对 non-DID audience 的 fail-closed 校验一致。preimage 不含独立顶层 `device_id`：human device
-绑定由 required `holder_binding={kind="human_device",device_binding}` 表达；Agent runtime 绑定由对应的
+绑定由 required `holder_binding={kind="human_device",device_binding}` 表达；Agent runtime 与
+minimal-metadata pairwise endpoint 绑定由各自对应的
 `holder_binding` 分支表达。operation `scopes[]` 只承载授权求交后的服务操作，不得再编码设备身份或旧
 `session.bind` 哨兵 scope。
 
@@ -937,6 +940,56 @@ SessionGrant 签发而扩张为日常 Event signer。
 - 在条件允许时，session grant SHOULD 在 WebCrypto / 平台 keystore 中以不可导出方式存储；
 - canonical 撤销真相只能来自 issuer ledger、immutable `expires_at` 或触发 ledger cascade 的 current
   account/device/Agent lifecycle；不得另建 Event cell、未注册 revocation-list ID 或第二套状态源。
+
+### 6.5 Minimal-metadata pairwise endpoint 会话绑定（normative）
+
+[`../crypto-media/encryption-and-audit.md` §2.7](../crypto-media/encryption-and-audit.md) 的 Realm-local
+pairwise endpoint 不建立 account、Device 或 Agent，因此它没有自己的 account↔principal binding，也不能取得
+独立 SessionGrant。当该 endpoint 需要在其 hosting Station 上执行 endpoint-scoped 的认证读取（v1 唯一消费者是
+[`../sync/server-trusted-results.md` §5.2.1](../sync/server-trusted-results.md) 的 Welcome 引用发现）时，
+MUST 使用本节的第三个 Standard holder 分支：同一个 Account/Station 会话在签发时额外证明它当前持有该 exact
+pairwise endpoint 私钥，issuer 把该绑定冻结进 signed grant。仅持有普通账号 session、Realm current membership
+或 controller 身份都不能证明该控制权，服务端也不得由 transport session actor 推断。
+
+请求分支为 `PairwiseEndpointSessionGrantRequest`，body 固定
+`{request_id,principal_id,device_id,audience_id,accepted_device_possession_proof,pairwise_endpoint_possession_proof}`；
+账号侧授权载体与 returning human 完全相同：`Authorization: DPoP <account_handoff_grant>` 加匹配 DPoP 与
+`ak.session_grant_accepted_device_possession_proof.v1`，origin current-device gate 必须返回 `allow`，
+`authority_mismatch | revocation_pending | revoked | generation_mismatch` 一律零 grant。账号侧 gate 不因
+pairwise 分支放松，pairwise 侧证明也不替代它。
+
+`pairwise_endpoint_possession_proof` 使用 `ak.session_grant_pairwise_endpoint_possession_proof.v1`，canonical
+签名输入为 `utf8("ak.session_grant_pairwise_endpoint_possession_proof.v1\n")` 加该对象删除 `signature` 后的
+RFC 8785 JCS bytes，由 `verification_method` 所指 `did:key` 私钥签名，signature 是 64-byte raw Ed25519 的
+canonical unpadded base64url。它绑定 `request_id`、完整 `account_id`、`realm_id`、完整 pairwise `actor_id`、
+`audience_id`、holder JKT、canonical immutable session intent 与最多 300 秒时窗。Account Authority MUST 校验：
+`request_id`、`account_id`、`audience_id`、`holder_jkt` 与 `session_intent_digest` 与本次请求逐字一致；
+`actor_id` 是 `kind="account"` 分支且其 `account_id.principal_id` 为 `ak:did_core:key:` 形态；
+`actor_id.account_id.station_id` 逐字等于 `audience_id`，即该 endpoint 的 hosting Station；
+`verification_method` 是 exact `did:key:<multibase>#<same multibase>` DID URL，其 controller 经已登记 adapter
+投影后精确等于该 principal 分量，投影不符 MUST 返回 `verification_method_principal_mismatch`；签名以同一
+multibase 展开的 Ed25519 公钥验证，失败 MUST 返回 `proof_invalid`。Account Authority MUST NOT 为此查询 Realm
+成员、目录或 MLS 状态：它只判定"当前持有"，不判定 Realm affinity 的当前有效性。
+
+签发结果的 `credential_class` 仍为 `standard`，`proof_kind` 为 `pairwise_endpoint_proof`，`holder_binding`
+恰为 `{kind="minimal_metadata_pairwise",realm_id,actor_id,verification_method}`，顶层 `device_binding` 禁带。
+`account_id` 仍是发起会话的真实 Account/Station，MUST NOT 被替换成 pairwise principal，Account Authority 也
+MUST NOT 为 pairwise principal 铸造账号。该 grant 不可 refresh：`SessionGrantRefreshRequestBody` 的两个分支
+分别要求 predecessor 的 human `device_binding` 与 Agent runtime lifecycle，本 holder 两者都不满足；过期后必须
+以新的 possession proof 重新 issue，这也是"当前持有"判定的新鲜度上界。
+
+Station 在每个受保护请求的 admission 中 MUST 重新判定当前持有与撤销，任一项失败即 `unauthenticated` 且
+fail closed：grant 经 issuer ledger 内省仍为 `active`；`holder_binding.realm_id` 所指 Realm 在本 Station 上
+当前可见；由完整 `actor_id` 定址的 `ak.component.member.state.v1` 当前为 active join；该 actor 在当前 winning
+epoch 恰有一条 active LeafNode，其 BasicCredential identity 逐字等于 `actor_id.account_id.principal_id` 的
+UTF-8 bytes，signature key 逐字等于 `verification_method` 展开的 raw key。leaf 被移除或替换、零匹配或多匹配、
+membership incarnation 变化、method 变更与 Realm 不可见都使该 grant 对该 endpoint 立即失效；Realm membership
+本身、controller、默认设备或 transport session actor 都不得补足这项证明。
+
+该 pairwise holder binding 只在 issuer 与 hosting Station 之间承担认证职责。它 MUST NOT 被投影进 Realm state、
+roster、目录、federation 载荷、push payload 或任何 peer 可见面，也 MUST NOT 被用来聚合同一账号的多个 pairwise
+endpoint；§2.7 对 Realm 及其它成员的不可关联性照旧成立。消费该 holder 的封闭 endpoint-scoped 读取请求 MUST NOT
+因此新增 proof 字段，也 MUST NOT 由 controller 或其它设备代领该 endpoint 的读取窗口。
 
 ## 7. 密钥备份
 

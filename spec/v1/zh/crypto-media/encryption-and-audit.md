@@ -524,6 +524,9 @@ signature key 等于 `did:key` raw key，并用同一 key 验证唯一 required 
 `(recipient_pairwise_actor_id, recipient_pairwise_verification_method, intended_realm_id)` 路由；它不得制造
 `recipient_device_id` sentinel，也不得向 ordinary to-device queue 投影。重启 hydration 必须从现存 durable 行恢复该
 endpoint index，接收端通过其 pairwise-authenticated Realm event/backfill surface取得完整 accepted Welcome payload。
+该 surface 的认证载体是 SessionGrant 的 `minimal_metadata_pairwise` holder 分支（[`../identity/key-management.md` §6.5](../identity/key-management.md)）：
+它只在 issuer 与 hosting Station 之间证明该会话当前持有 exact pairwise 私钥，MUST NOT 被投影进 Realm state、
+roster、目录、federation 载荷或任何 peer 可见面，也不得用来聚合同一账号的多个 pairwise endpoint。
 
 Ordinary human 的 credential identity 必须逐字等于 canonical DeviceId UTF-8；Agent 必须逐字等于 canonical
 Agent ActorId UTF-8。三种 profile 的 receiver 都只从 Event 钉住的 exact historical active leaf 取 sender domain；

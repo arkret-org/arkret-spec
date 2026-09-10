@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.23",
+  "version": "2026-09-10.24",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T12:11:35+08:00",
+  "generated_at": "2026-09-10T12:18:51+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 246,
+    "total_operations": 247,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 244
+      "typed_schema": 245
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 151
+        "typed_schema": 152
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -1212,6 +1212,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/PeerKeyPackagesClaimQueryRequestBody",
         "response": "#/components/schemas/PeerKeyPackagesClaimQueryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.keys.read.lookup.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/keys/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/PeerKeysQueryRequestBody",
+        "response": "#/components/schemas/PeerKeysQueryOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

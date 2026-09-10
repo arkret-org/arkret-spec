@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/keys-operations.schema.json",
   "title": "Arkret Device Key Operation DTOs",
-  "description": "Closed request and response DTOs for ak.keys.{upload,query,claim} and ak.keys.backups.{put,list,delete}. Individual OpenAPI components reference the $defs entries in this bundle.",
+  "description": "Closed request and response DTOs for ak.keys.{upload,query,claim}, the Station-to-Station device directory read and ak.keys.backups.{put,list,delete}. Individual OpenAPI components reference the $defs entries in this bundle.",
   "oneOf": [
     {
       "$ref": "#/$defs/keys_upload_request_body"
@@ -15,6 +15,12 @@
     },
     {
       "$ref": "#/$defs/keys_query_outcome"
+    },
+    {
+      "$ref": "#/$defs/peer_keys_query_request_body"
+    },
+    {
+      "$ref": "#/$defs/peer_keys_query_outcome"
     },
     {
       "$ref": "#/$defs/keys_claim_request_body"
@@ -358,12 +364,15 @@
               "$ref": "#/$defs/device_id"
             },
             "minItems": 1,
-            "uniqueItems": true
+            "uniqueItems": true,
+            "maxItems": 32
           }
         },
         "additionalProperties": false
       },
-      "description": "Explicit account/device selectors sorted by unsigned UTF-8 bytes of RFC 8785 JCS(account_id). Neither AccountId component may be inferred from the target service, caller session or another entry. Duplicate AccountIds MUST be rejected; use one entry containing all selected device_ids for that account."
+      "description": "Explicit account/device selectors sorted by unsigned UTF-8 bytes of RFC 8785 JCS(account_id). Neither AccountId component may be inferred from the target service, caller session or another entry. Duplicate AccountIds MUST be rejected; use one entry containing all selected device_ids for that account. At most 16 accounts and 32 devices per account bound the local read and its cross-Station fan-out alike; an over-limit request fails whole and is never truncated.",
+      "minItems": 1,
+      "maxItems": 16
     },
     "key_record": {
       "type": "object",
@@ -429,6 +438,34 @@
         "retry_after_ms": {
           "type": "integer",
           "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_failure": {
+      "type": "object",
+      "description": "Closed non-enumerating failure row for the device directory read surfaces. device_result_unavailable covers absent, invisible, unrelated, revoked, fenced and policy-denied targets with one indistinguishable value. device_directory_unavailable states only that the requester's own Station could not obtain or verify a current attested projection this time; it never depends on target state and MUST NOT be rendered as an omitted row or an empty device set.",
+      "required": [
+        "reason_code"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "device_result_unavailable",
+            "device_directory_unavailable"
+          ]
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Only meaningful with device_directory_unavailable; a target-private failure MUST NOT carry it."
         }
       },
       "additionalProperties": false
@@ -610,13 +647,120 @@
         },
         "failures": {
           "type": "array",
+          "maxItems": 512,
           "items": {
-            "$ref": "#/$defs/failure"
+            "$ref": "#/$defs/query_failure"
           }
         },
         "device_generations": {
           "$ref": "#/$defs/account_device_generation_entries",
           "description": "Current identity-root generation fence by exact AccountId. Fenced/conflicted accounts or mismatched device generations expose no usable signing/HPKE/prekey material."
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_keys_query_purpose": {
+      "type": "string",
+      "description": "Declared use of the requested directory rows. The destination authorizes each purpose independently and MUST NOT clear the broadest one once.",
+      "enum": [
+        "e2ee_message_encryption",
+        "mls_group_admission",
+        "call_media"
+      ]
+    },
+    "peer_keys_relationship_basis": {
+      "description": "Closed relationship the requester asserts. The destination re-derives it from its own accepted state; a caller assertion never authorizes by itself. The contact branch deliberately carries no realm_id: a legitimate Contact needs no shared Realm.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_membership"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "contact"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "peer_keys_query_request_body": {
+      "type": "object",
+      "description": "Station-to-Station device directory and published prekey-bundle read. It is the only registered carrier for a cross-Station keys/query target: the client asks its own Station, which authenticates itself with its own RFC 9421 service signature and never forwards a client SessionGrant, DPoP or any local bearer. Single authority, single hop, read only. Cross-Station single-use material stays with the MLS KeyPackage claim contract.",
+      "required": [
+        "request_id",
+        "requester_account_id",
+        "purpose",
+        "relationship_basis",
+        "device_keys"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id",
+          "description": "Stable typed id the requesting Station mints for this fetch. The destination uses it only for correlation and rate limiting and keeps no durable ledger."
+        },
+        "requester_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact requesting account. Its station_id MUST equal the authenticated Source-Service-ID and MUST NOT be inferred from a principal component, route or session."
+        },
+        "purpose": {
+          "$ref": "#/$defs/peer_keys_query_purpose"
+        },
+        "relationship_basis": {
+          "$ref": "#/$defs/peer_keys_relationship_basis"
+        },
+        "device_keys": {
+          "$ref": "#/$defs/query_account_device_selectors",
+          "description": "Targets for this destination only: every account_id.station_id MUST equal the authenticated Destination-Service-ID."
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_keys_query_outcome": {
+      "type": "object",
+      "description": "Verbatim origin-signed rows plus the closed non-enumerating failure shape. The destination does not add a response signature layer: every row carries the origin's own device_projection_attestation and signer_evidence_ref, and the requesting Station verifies them before handing the client a restricted typed result.",
+      "required": [
+        "request_id",
+        "requester_account_id",
+        "device_keys"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id",
+          "description": "Echoed byte-for-byte from the request."
+        },
+        "requester_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "device_keys": {
+          "$ref": "#/$defs/query_account_device_entries"
+        },
+        "device_generations": {
+          "$ref": "#/$defs/account_device_generation_entries"
+        },
+        "failures": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/query_failure"
+          }
         }
       },
       "additionalProperties": false

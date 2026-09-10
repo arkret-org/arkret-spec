@@ -1047,6 +1047,7 @@ _SUPPLY_CALLER_SIGNED_SCHEMAS = frozenset(
         "review_receipt",
         "cancel_receipt",
         "AcceptedDevicePossessionProof",
+        "PairwiseEndpointPossessionProof",
         "AgentSessionRefreshProof",
         "keypackages_claim_service_binding",
         "security_rotation_local_commit",

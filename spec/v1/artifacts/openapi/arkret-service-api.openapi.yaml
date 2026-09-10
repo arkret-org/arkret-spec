@@ -1464,6 +1464,10 @@ components:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body
     PeerKeyPackagesClaimRequestBody:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body
+    PeerKeysQueryOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome
+    PeerKeysQueryRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body
     PrincipalLocator:
       $ref: ../schemas/principal-locator.schema.json
     PrincipalLocatorResolveRequestBody:
@@ -4888,6 +4892,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PeerKeyPackagesClaimQueryOutcome'
+  /_arkret/peer/keys/query:
+    post:
+      operationId: ak.peer.keys.read.lookup
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.keys.read.lookup.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Read a peer account's attested device directory and published prekey bundles.
+      description: 'Single-hop read used by a requester''s own Station; clients never
+
+        call it and no client SessionGrant, DPoP or local bearer is forwarded.
+
+        requester_account_id.station_id equals the authenticated Source-Service-ID
+
+        and every target account_id.station_id equals the Destination-Service-ID.
+
+        The destination authenticates the transport before any target read, then
+
+        re-derives the declared relationship from its own accepted state: shared
+
+        Realm membership, or the target''s own current outbound Contact scope,
+
+        which never requires a shared Realm. Absent, invisible, unrelated, revoked,
+
+        fenced and policy-denied targets are indistinguishable. Cross-Station
+
+        single-use material stays with the MLS KeyPackage claim contract.
+
+        '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerKeysQueryRequestBody'
+      responses:
+        '200':
+          description: Origin-signed device projections plus the closed non-enumerating failure shape.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerKeysQueryOutcome'
   /_arkret/peer/current-signer-evidence/query:
     post:
       operationId: ak.peer.current_signer_evidence.read.resolve
