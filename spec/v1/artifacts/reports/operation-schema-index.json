@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.18",
+  "version": "2026-09-10.19",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T11:02:47+08:00",
+  "generated_at": "2026-09-10T11:23:51+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -813,7 +813,6 @@
         ],
         "properties": [
           "realm_preview",
-          "stripped_state_entries",
           "join_rule",
           "join_candidates"
         ],
@@ -3864,6 +3863,52 @@
           "request_digest",
           "governance_facts",
           "dependency_bundles",
+          "observed_at",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.preview.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "requester_account_id",
+          "invite_id",
+          "invite_token"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "requester_account_id",
+          "invite_id",
+          "invite_token"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "requester_account_id",
+          "invite_id",
+          "preview",
+          "observed_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "requester_account_id",
+          "invite_id",
+          "preview",
           "observed_at",
           "expires_at"
         ],
@@ -8957,6 +9002,50 @@
           "realm_state",
           "accepted_seal_id",
           "observed_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.realm_join.read.preview.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_id",
+          "target"
+        ],
+        "properties": [
+          "request_id",
+          "account_id",
+          "target"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_id",
+          "realm_id",
+          "request_digest",
+          "source",
+          "preview",
+          "observed_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "account_id",
+          "realm_id",
+          "request_digest",
+          "source",
+          "preview",
+          "observed_at",
+          "expires_at"
         ],
         "closed": true
       }

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.14",
+  "version": "2026-09-10.15",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T07:32:10+08:00",
+  "generated_at": "2026-09-10T11:31:43+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -199,7 +199,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
-      "section_digest": "sha256:e6bb6767cdb2995a83677c0aeb2a6e27978430d46b24e8d3ed205c07c00638b0",
+      "section_digest": "sha256:622be96c70f266669f0e390c18db806c0968d3ab2a95002881596532190173ef",
       "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
       "testability_grade": "vector",
       "evidence_refs": [

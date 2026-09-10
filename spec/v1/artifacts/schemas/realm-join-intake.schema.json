@@ -76,6 +76,278 @@
       },
       "additionalProperties": false
     },
+    "realm_join_target": {
+      "description": "Closed pre-join resolution target. The invite branch is the only one whose source is fixed to the exact inviter Station; every other branch is resolved through the Directory discovery input surface and independently validated by the account's own Station.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/realm_join_invite_target"
+        },
+        {
+          "$ref": "#/$defs/realm_join_realm_id_target"
+        },
+        {
+          "$ref": "#/$defs/realm_join_alias_target"
+        },
+        {
+          "$ref": "#/$defs/realm_join_invite_token_target"
+        },
+        {
+          "$ref": "#/$defs/realm_join_signed_link_target"
+        }
+      ]
+    },
+    "realm_join_invite_target": {
+      "type": "object",
+      "description": "One exact directed invite copied verbatim from the holder-private ak.account.invite_delivery entry. inviter_account_id.station_id is the only permitted preview source for this target.",
+      "required": [
+        "selector",
+        "realm_id",
+        "invite_id",
+        "inviter_account_id",
+        "invite_token"
+      ],
+      "properties": {
+        "selector": {
+          "const": "invite"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "invite_id": {
+          "$ref": "./event-payload.schema.json#/$defs/invite_id"
+        },
+        "inviter_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete inviter AccountId from the accepted invite Event. The same principal on another Station is a different account and is never substitutable."
+        },
+        "invite_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "Opaque server-issued private invite locator. It is forwarded only to the exact inviter Station and MUST NOT appear in any outcome."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_realm_id_target": {
+      "type": "object",
+      "description": "Canonical Realm id target resolved through the Directory discovery input surface.",
+      "required": [
+        "selector",
+        "realm_id"
+      ],
+      "properties": {
+        "selector": {
+          "const": "realm_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_alias_target": {
+      "type": "object",
+      "description": "Realm alias target. The alias MUST resolve from the effective ak.realm.alias cell; a Directory row is a projection of that cell and never an independent source.",
+      "required": [
+        "selector",
+        "alias"
+      ],
+      "properties": {
+        "selector": {
+          "const": "alias"
+        },
+        "alias": {
+          "$ref": "./directory-operations.schema.json#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_invite_token_target": {
+      "type": "object",
+      "description": "Bare invite-token target for a token obtained out of band without a delivered invite entry.",
+      "required": [
+        "selector",
+        "invite_token"
+      ],
+      "properties": {
+        "selector": {
+          "const": "invite_token"
+        },
+        "invite_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_signed_link_target": {
+      "type": "object",
+      "description": "Signed link target carrying its own authorization component.",
+      "required": [
+        "selector",
+        "signed_link"
+      ],
+      "properties": {
+        "selector": {
+          "const": "signed_link"
+        },
+        "signed_link": {
+          "$ref": "./directory-operations.schema.json#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_preview_source": {
+      "type": "string",
+      "description": "Where the account's own Station obtained the returned preview. inviter_station is the exact inviter Station of a directed invite, local is the equivalent local path when that Station is this service, and directory is the independently validated Directory discovery input surface.",
+      "enum": [
+        "inviter_station",
+        "local",
+        "directory"
+      ]
+    },
+    "peer_preview_request_body": {
+      "type": "object",
+      "description": "Authenticated service-to-service pre-join preview read issued by the invitee's own Station against the exact inviter Station. The invitee's local session credential is never forwarded; the request carries only this bounded invite reference and the exact invitee AccountId the source Station vouches for.",
+      "required": [
+        "request_id",
+        "realm_id",
+        "requester_account_id",
+        "invite_id",
+        "invite_token"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "requester_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete AccountId of the invitee on whose behalf the request is made. Its Station MUST equal the authenticated Source-Service-ID."
+        },
+        "invite_id": {
+          "$ref": "./event-payload.schema.json#/$defs/invite_id"
+        },
+        "invite_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "Opaque server-issued private invite locator proving the invitee actually holds the delivered invite. It MUST NOT be echoed, logged or retained beyond this evaluation."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "peer_preview_outcome": {
+      "type": "object",
+      "description": "Policy-permitted pre-join disclosure for exactly one invite and one invitee. Receiving it is not membership, not an authorization grant and not evidence that Realm governance was verified by the receiver.",
+      "required": [
+        "request_id",
+        "realm_id",
+        "requester_account_id",
+        "invite_id",
+        "preview",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "requester_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "invite_id": {
+          "$ref": "./event-payload.schema.json#/$defs/invite_id"
+        },
+        "preview": {
+          "$ref": "./directory-operations.schema.json#/$defs/realm_preview",
+          "description": "Only the members the effective ak.realm.preview_policy permits for the invited audience. join_candidates, source_refs, stale and divergent are Directory-result provenance members and MUST be omitted here."
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 262144
+    },
+    "self_preview_request_body": {
+      "type": "object",
+      "description": "Authenticated account request for a pre-join Realm preview. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling this request.",
+      "required": [
+        "request_id",
+        "account_id",
+        "target"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "target": {
+          "$ref": "#/$defs/realm_join_target"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "self_preview_outcome": {
+      "type": "object",
+      "description": "Own-Station validated pre-join preview. The client checks the request, account, Realm and source binding and displays the disclosed members; it never contacts the source itself and never treats the preview as membership or as verified Realm governance.",
+      "required": [
+        "request_id",
+        "account_id",
+        "realm_id",
+        "request_digest",
+        "source",
+        "preview",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Canonical Realm id the target resolved to. For the invite target it MUST equal the requested realm_id."
+        },
+        "request_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
+          "description": "SHA-256 of UTF8(\"ak.realm-join-preview-request-v1\") || 0x00 || JCS(exact request body). It binds this outcome to the exact target the user chose and is not an authentication proof against a malicious own Station."
+        },
+        "source": {
+          "$ref": "#/$defs/realm_join_preview_source"
+        },
+        "preview": {
+          "$ref": "./directory-operations.schema.json#/$defs/realm_preview",
+          "description": "Only the members the source disclosed under the effective preview policy. join_candidates, source_refs, stale and divergent MUST be omitted: the client neither selects a forwarding candidate nor goes back to any truth source."
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 262144
+    },
     "realm_join_governance_facts": {
       "type": "object",
       "description": "The exact governance-dependent authoring inputs a not-yet-joined applicant cannot derive locally. The holder Station returns them from its own accepted projection at observed_at; the requesting Station independently verifies them against the accompanying dependency closure before reusing them.",

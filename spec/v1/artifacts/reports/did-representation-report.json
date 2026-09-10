@@ -7244,6 +7244,36 @@
       ]
     },
     {
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_preview_outcome/properties/requester_account_id",
+      "property_name": "requester_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_preview_request_body/properties/requester_account_id",
+      "property_name": "requester_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/realm_join_invite_target/properties/inviter_account_id",
+      "property_name": "inviter_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "realm-join-intake.schema.json#/$defs/self_application_status_outcome/properties/account_id",
       "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",
@@ -7255,6 +7285,26 @@
     },
     {
       "schema_path": "realm-join-intake.schema.json#/$defs/self_application_status_request_body/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_preview_outcome/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_preview_request_body/properties/account_id",
       "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "account_id",

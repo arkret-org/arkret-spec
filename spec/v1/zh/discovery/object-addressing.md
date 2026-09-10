@@ -139,7 +139,7 @@ v1 定义三种 link 类型：
 | `invite` | 地址 + `tok`（`invite_token` / `signed_link`） | 兑换后经 [`governance/join-policy.md`](../governance/join-policy.md) 授予 membership / 访问；有 expiry、audience-bound、可吊销。 |
 | `preview` | 地址 + `tok`（signed preview token），或 requester proof 满足 `ak.realm.preview_policy` | 只授予 policy 限定的 stripped preview / history stub / plaintext Realm snippet；**不授予 membership、write、join routing 或完整历史读取**。 |
 
-`preview` link type 的授权语义由 [`../governance/history-visibility.md`](../governance/history-visibility.md) §4 与 Realm 的 effective `ak.realm.preview_policy` 定义。解析方遇到 preview token 但 Realm 未声明有效 preview policy 时 MUST 按未授权处理并返回统一 `not_found`。Preview token 只扩大到 policy 指定的 preview projection，不得被解释成 invite、membership、`ak.event.read` 或 E2EE key share grant。
+`preview` link type 的授权语义由 [`discovery-directory.md` §3.2](./discovery-directory.md) 与 Realm 的 effective `ak.realm.preview_policy` 定义。解析方遇到 preview token 但 Realm 未声明有效 preview policy 时 MUST 按未授权处理并返回统一 `not_found`。Preview token 只扩大到 policy 指定的 preview projection，不得被解释成 invite、membership、`ak.event.read` 或 E2EE key share grant。
 
 ### 4.1 Token wire syntax（normative）
 
