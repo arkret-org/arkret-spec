@@ -21,7 +21,7 @@ VECTOR_ID = "ak.vector.identity.recovery_transcript.v1"
 DOMAIN = "ak.identity.recovery_proof.v1"
 CONDITIONAL_RULE = (
     "kind=did_root MUST omit proof_body; kind in "
-    "recovery_unlock|device_quorum|trusted_recovery_service|threshold_recovery "
+    "recovery_unlock|device_quorum|trusted_recovery_service "
     "MUST include the matching closed signature-independent proof_body projection"
 )
 KINDS = [
@@ -29,8 +29,8 @@ KINDS = [
     "recovery_unlock",
     "device_quorum",
     "trusted_recovery_service",
-    "threshold_recovery",
 ]
+REMOVED_POLICY_DEFS = ("share", "recovery_share_holder")
 GENERIC_KINDS = KINDS[1:]
 COMMON_FIELDS = [
     "schema",
@@ -56,7 +56,6 @@ BODY_DEFS = {
     "recovery_unlock": "recovery_unlock_proof_body",
     "device_quorum": "device_quorum_proof_body",
     "trusted_recovery_service": "trusted_recovery_service_proof_body",
-    "threshold_recovery": "threshold_recovery_proof_body",
 }
 
 
@@ -92,15 +91,6 @@ def _projection(kind: str, proof: Any) -> dict[str, Any] | None:
             for row in rows
             if isinstance(row, dict)
         ]
-    elif kind == "threshold_recovery":
-        rows = body.get("share_releases")
-        if not isinstance(rows, list):
-            return None
-        body["share_releases"] = [
-            {key: value for key, value in row.items() if key != "signature"}
-            for row in rows
-            if isinstance(row, dict)
-        ]
     else:
         return None
     return body
@@ -130,56 +120,22 @@ def check_recovery_transcript_closure(lint: Lint) -> None:
         return
 
     policy_defs = policy_schema.get("$defs")
-    holder = policy_defs.get("recovery_share_holder") if isinstance(policy_defs, dict) else None
-    expected_holder_branches = [
-        {
-            "properties": {"holder_kind": {"const": "personal_principal"}},
-            "required": ["holder_principal_id"],
-            "not": {"required": ["holder_service_id"]},
-        },
-        {
-            "properties": {"holder_kind": {"const": "custodial_service"}},
-            "required": ["holder_service_id"],
-            "not": {"required": ["holder_principal_id"]},
-        },
-    ]
-    if not isinstance(holder, dict):
-        lint.fail(POLICY_SCHEMA, "$defs.recovery_share_holder is required")
-    else:
-        holder_properties = holder.get("properties", {})
-        if set(holder_properties) != {
-            "holder_kind",
-            "holder_principal_id",
-            "holder_service_id",
-        }:
-            lint.fail(
-                POLICY_SCHEMA,
-                "recovery_share_holder must expose only holder_kind plus the personal-principal and custodial-service branch fields",
-            )
-        if holder_properties.get("holder_kind", {}).get("enum") != [
-            "personal_principal",
-            "custodial_service",
-        ]:
-            lint.fail(POLICY_SCHEMA, "recovery_share_holder holder_kind must be the exact two-branch enum")
-        if holder.get("oneOf") != expected_holder_branches:
-            lint.fail(
-                POLICY_SCHEMA,
-                "recovery_share_holder branches must require exactly one matching branch-specific holder field",
-            )
-
-    expected_holder_ref = {
-        "$ref": "./recovery-policy.schema.json#/$defs/recovery_share_holder"
-    }
-    for definition in ("threshold_recovery_proof", "threshold_recovery_proof_body"):
-        try:
-            release_item = defs[definition]["properties"]["share_releases"]["items"]
-        except (KeyError, TypeError):
-            release_item = None
-        if not isinstance(release_item, dict) or release_item.get("allOf") != [expected_holder_ref]:
-            lint.fail(
-                SCHEMA,
-                f"$defs.{definition} share releases must reuse recovery_share_holder exactly",
-            )
+    if isinstance(policy_defs, dict):
+        for definition in REMOVED_POLICY_DEFS:
+            if definition in policy_defs:
+                lint.fail(
+                    POLICY_SCHEMA,
+                    f"$defs.{definition} belongs to the removed threshold_recovery method and MUST NOT return",
+                )
+        method = policy_defs.get("recovery_method")
+        branches = method.get("oneOf") if isinstance(method, dict) else None
+        policy_kinds = [
+            branch.get("properties", {}).get("kind", {}).get("const")
+            for branch in branches
+            if isinstance(branch, dict)
+        ] if isinstance(branches, list) else None
+        if policy_kinds != KINDS:
+            lint.fail(POLICY_SCHEMA, f"$defs.recovery_method branch kinds must be exactly {KINDS}")
 
     proof_kind = defs.get("proof_kind")
     proof_enum = proof_kind.get("enum") if isinstance(proof_kind, dict) else None
@@ -252,7 +208,7 @@ def check_recovery_transcript_closure(lint: Lint) -> None:
 
     cases = fixture.get("cases")
     if not isinstance(cases, list) or [case.get("kind") for case in cases if isinstance(case, dict)] != KINDS:
-        lint.fail(FIXTURE, f"cases must cover the five recovery factors in order: {KINDS}")
+        lint.fail(FIXTURE, f"cases must cover the four recovery factors in order: {KINDS}")
         return
     for index, case in enumerate(cases):
         if not isinstance(case, dict):

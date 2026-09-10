@@ -214,7 +214,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "6e3a91bb7ca84787388852306c6e6f8940aaf5d0139aa9774696f0b68282e55e"
+      "sha256": "d2d94f090b07a9ca78105decce5b1b3acaf1e646e34d3a1b1b49a7eb94108fa6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
@@ -326,11 +326,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-policy-fixture.json",
-      "sha256": "fac959364e5c3a2dc1c4e969c8ab1c1c966d9277b322c19ae5001c8665e4bf4f"
+      "sha256": "3dc509201fd4c9ce34fde9632eba33ab5717231c74bd674088dc6a0f9417efd2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
-      "sha256": "45179ae32e98b20f5b2ee5c4e229bef90714646ef32c73b4a83ca0e96e6f5430"
+      "sha256": "88c585763c3d0c8cbc4020cb8f2e1b11aea2e8b27f56506cb873f975645657e7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",

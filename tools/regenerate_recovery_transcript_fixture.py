@@ -114,39 +114,9 @@ def proof_inputs() -> list[tuple[str, dict[str, object], list[str]]]:
                 "audience": "ak:did_core:webvh:z6mkfixtureserviceexample",
                 "verification_method": "did:web:recovery.example#recovery-1",
                 "signature_algorithm": "Ed25519",
-                "attestation_ref": "ak:attestation:019b6a40-0000-7000-8000-000000000006",
                 "signature": "PLACEHOLDER",
             },
             ["signature"],
-        ),
-        (
-            "threshold_recovery",
-            {
-                "kind": "threshold_recovery",
-                "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "threshold": 2,
-                "share_releases": [
-                    {
-                        "share_id": "share-a",
-                        "holder_kind": "personal_principal",
-                        "holder_principal_id": "ak:did_core:web:holder-a.example",
-                        "transcript_digest": "sha256:" + "33" * 32,
-                        "verification_method": "did:web:holder-a.example#recovery-1",
-                        "signature_algorithm": "Ed25519",
-                        "signature": "PLACEHOLDER",
-                    },
-                    {
-                        "share_id": "share-b",
-                        "holder_kind": "custodial_service",
-                        "holder_service_id": "ak:did_core:web:holder-b.example",
-                        "transcript_digest": "sha256:" + "44" * 32,
-                        "verification_method": "did:web:holder-b.example#recovery-1",
-                        "signature_algorithm": "Ed25519",
-                        "signature": "PLACEHOLDER",
-                    },
-                ],
-            },
-            ["share_releases/*/signature"],
         ),
     ]
 
@@ -163,9 +133,6 @@ def project(kind: str, proof: dict[str, object]) -> dict[str, object] | None:
             row.pop("signature")
     elif kind == "trusted_recovery_service":
         body.pop("signature")
-    elif kind == "threshold_recovery":
-        for row in body["share_releases"]:
-            row.pop("signature")
     return body
 
 
@@ -181,14 +148,11 @@ def main() -> None:
             transcript["proof_body"] = body
         jcs = canonical_json(transcript)
         signature = b64u(signing_key.sign(jcs.encode("utf-8")))
-        if kind in {"did_root", "recovery_unlock", "trusted_recovery_service"}:
-            proof["signature"] = signature
-        elif kind == "device_quorum":
+        if kind == "device_quorum":
             for row in proof["signatures"]:
                 row["signature"] = signature
         else:
-            for row in proof["share_releases"]:
-                row["signature"] = signature
+            proof["signature"] = signature
         replay_kind = inputs[(index + 1) % len(inputs)][0]
         replay = copy.deepcopy(transcript)
         replay["kind"] = replay_kind
@@ -215,10 +179,10 @@ def main() -> None:
             }
         )
     fixture = {
-        "version": "2026-08-23.2",
+        "version": "2026-09-11.1",
         "generated_by": "tools/regenerate_recovery_transcript_fixture.py",
         "domain": "ak.identity.recovery_proof.v1",
-        "description": "Byte-exact signing transcripts for all five recovery factors. The verifier reconstructs these bytes from stored session state and the submitted proof; clients never submit a transcript object.",
+        "description": "Byte-exact signing transcripts for all four recovery factors. The verifier reconstructs these bytes from stored session state and the submitted proof; clients never submit a transcript object.",
         "test_key": test_key,
         "runner": {
             "kind": "known_answer_tests",

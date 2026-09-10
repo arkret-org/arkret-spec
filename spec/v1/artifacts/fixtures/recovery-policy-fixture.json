@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.principal_control_realm.v1",
-  "version": "2026-07-29",
+  "version": "2026-09-11",
   "suite": "recovery_policy_publication",
   "runner": {
     "kind": "named_suite",
@@ -247,12 +247,58 @@
       "first_expected_error": "$: 'value' is a required property"
     },
     {
-      "name": "threshold_recovery_publication_signature_threshold_above_one_rejected",
+      "name": "closed_minimal_method_union_valid",
+      "schema_ref": "schemas/recovery-policy.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.recovery_policy.v1",
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000007",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "version": 1,
+        "supersedes_id": null,
+        "trust_domain": "ak:trust_domain:fixture.example",
+        "issued_at": "2026-07-29T02:00:00.000Z",
+        "auth_data": {
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
+          "signature_algorithm": "Ed25519",
+          "signature": "c2lnbmF0dXJl"
+        },
+        "methods": [
+          {
+            "kind": "did_root"
+          },
+          {
+            "kind": "device_quorum",
+            "k": 2,
+            "member_ids": [
+              "ak:device:019a8200-0000-7000-8000-000000000004",
+              "ak:device:019a8200-0000-7000-8000-000000000005"
+            ]
+          },
+          {
+            "kind": "trusted_recovery_service",
+            "services": [
+              {
+                "service_id": "ak:did_core:web:recovery.example",
+                "audience": "ak:did_core:webvh:z6mkfixturestationexample",
+                "authorization_verification_method": "did:web:recovery.example#recovery-1"
+              }
+            ]
+          }
+        ],
+        "cooldown_seconds": 3600
+      }
+    },
+    {
+      "name": "threshold_recovery_method_rejected",
       "schema_ref": "schemas/recovery-policy.schema.json",
       "expect_valid": false,
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
-        "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000007",
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000008",
         "account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
           "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
@@ -273,7 +319,8 @@
             "shares": [
               {
                 "share_id": "s1",
-                "holder": "ak:did_core:webvh:z6mkfixturebobexample",
+                "holder_kind": "personal_principal",
+                "holder_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
                 "transport": "hpke_x25519",
                 "share_commitment": {
                   "algorithm": "feldman_vss_sha256",
@@ -282,56 +329,135 @@
               },
               {
                 "share_id": "s2",
-                "holder": "ak:did_core:webvh:z6mkfixturecarolexample",
+                "holder_kind": "custodial_service",
+                "holder_service_id": "ak:did_core:webvh:z6mkfixturecarolexample",
                 "transport": "hpke_x25519",
                 "share_commitment": {
                   "algorithm": "feldman_vss_sha256",
                   "commitment_b64u": "commitment2"
                 }
               }
-            ],
-            "publication_key": {
-              "verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1",
-              "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
-              "not_before": "2026-07-29T02:00:00.000Z",
-              "expires_at": "2036-07-29T02:00:00.000Z",
-              "revoked_at": null,
-              "signature_algorithm": "Ed25519",
-              "backup_hpke": {
-                "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
-                "key_agreement_algorithm": "X25519",
-                "public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
-                "hpke_suites": [
-                  "ak.hpke_x25519_aead_chacha20poly1305.v1"
-                ],
-                "use": "backup_hpke",
-                "not_before": "2026-07-29T02:00:00.000Z",
-                "expires_at": "2036-07-29T02:00:00.000Z",
-                "revoked_at": null
-              }
-            }
+            ]
           }
         ]
       },
-      "first_expected_error": "$.methods[0]: {'kind': 'threshold_recovery', 'k': 2, 'shares': [{'share_id': 's1', 'holder': 'ak:did_core:webvh:z6mkfixturebobexample', 'transport': 'hpke_x25519', 'share_commitment': {'algorithm': 'feldman_vss_sha256', 'commitment_b64u': 'commitment1'}}, {'share_id': 's2', 'holder': 'ak:did_core:webvh:z6mkfixturecarolexample', 'transport': 'hpke_x25519', 'share_commitment': {'algorithm': 'feldman_vss_sha256', 'commitment_b64u': 'commitment2'}}], 'publication_key': {'verification_method': 'did:webvh:z6mkfixture:alice.example#recovery-proof-1', 'public_key_multibase': 'z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA', 'not_before': '2026-07-29T02:00:00.000Z', 'expires_at': '2036-07-29T02:00:00.000Z', 'revoked_at': None, 'signature_algorithm': 'Ed25519', 'backup_hpke': {'key_agreement_ref': 'did:webvh:z6mkfixture:alice.example#backup-hpke-1', 'key_agreement_algorithm': 'X25519', 'public_key_multibase': 'z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW', 'hpke_suites': ['ak.hpke_x25519_aead_chacha20poly1305.v1'], 'use': 'backup_hpke', 'not_before': '2026-07-29T02:00:00.000Z', 'expires_at': '2036-07-29T02:00:00.000Z', 'revoked_at': None}}} is not valid under any of the given schemas"
+      "first_expected_error": "contains:'kind': 'threshold_recovery'"
+    },
+    {
+      "name": "trusted_recovery_service_threshold_rejected",
+      "schema_ref": "schemas/recovery-policy.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.recovery_policy.v1",
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000009",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "version": 1,
+        "supersedes_id": null,
+        "trust_domain": "ak:trust_domain:fixture.example",
+        "issued_at": "2026-07-29T02:00:00.000Z",
+        "auth_data": {
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
+          "signature_algorithm": "Ed25519",
+          "signature": "c2lnbmF0dXJl"
+        },
+        "methods": [
+          {
+            "kind": "trusted_recovery_service",
+            "k": 1,
+            "services": [
+              {
+                "service_id": "ak:did_core:web:recovery.example",
+                "audience": "ak:did_core:webvh:z6mkfixturestationexample",
+                "authorization_verification_method": "did:web:recovery.example#recovery-1"
+              }
+            ]
+          }
+        ]
+      },
+      "first_expected_error": "contains:'k': 1"
+    },
+    {
+      "name": "trusted_recovery_service_attestation_required_rejected",
+      "schema_ref": "schemas/recovery-policy.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.recovery_policy.v1",
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-00000000000a",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "version": 1,
+        "supersedes_id": null,
+        "trust_domain": "ak:trust_domain:fixture.example",
+        "issued_at": "2026-07-29T02:00:00.000Z",
+        "auth_data": {
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
+          "signature_algorithm": "Ed25519",
+          "signature": "c2lnbmF0dXJl"
+        },
+        "methods": [
+          {
+            "kind": "trusted_recovery_service",
+            "services": [
+              {
+                "service_id": "ak:did_core:web:recovery.example",
+                "audience": "ak:did_core:webvh:z6mkfixturestationexample",
+                "authorization_verification_method": "did:web:recovery.example#recovery-1",
+                "attestation_required": true
+              }
+            ]
+          }
+        ]
+      },
+      "first_expected_error": "contains:'attestation_required': True"
+    },
+    {
+      "name": "approval_requirement_rejected",
+      "schema_ref": "schemas/recovery-policy.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.recovery_policy.v1",
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-00000000000b",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "version": 1,
+        "supersedes_id": null,
+        "trust_domain": "ak:trust_domain:fixture.example",
+        "issued_at": "2026-07-29T02:00:00.000Z",
+        "auth_data": {
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
+          "signature_algorithm": "Ed25519",
+          "signature": "c2lnbmF0dXJl"
+        },
+        "methods": [
+          {
+            "kind": "trusted_recovery_service",
+            "services": [
+              {
+                "service_id": "ak:did_core:web:recovery.example",
+                "audience": "ak:did_core:webvh:z6mkfixturestationexample",
+                "authorization_verification_method": "did:web:recovery.example#recovery-1"
+              }
+            ]
+          }
+        ],
+        "approval_requirement": {
+          "min_approvals": 2,
+          "announcement_required": true
+        }
+      },
+      "first_expected_error": "contains:'approval_requirement' does not match any of the regexes"
     }
   ],
   "semantic_cases": [
     {
-      "name": "canonical_threshold_policy_uses_one_publication_signature_after_reconstruction",
-      "threshold_k": 3,
-      "active_recovery_signing_key_count": 1,
-      "active_paired_hpke_key_count": 1,
-      "publication_rule_issuer_set_equals_active_recovery_key_set": true,
-      "publication_signature_threshold": 1,
-      "expected": {
-        "decision": "accept",
-        "required_share_count": 3,
-        "required_publication_signature_count": 1
-      }
-    },
-    {
-      "name": "missing_threshold_signing_or_paired_hpke_key_rejected",
+      "name": "missing_method_signing_or_paired_hpke_key_rejected",
       "variants": [
         {
           "variant": "missing_method_signing_keys",
@@ -349,7 +475,7 @@
       "expected_decision": "reject"
     },
     {
-      "name": "threshold_publication_issuer_projection_mismatch_rejected",
+      "name": "publication_issuer_projection_mismatch_rejected",
       "variants": [
         {
           "variant": "issuer_missing_active_recovery_key",
@@ -358,14 +484,6 @@
         {
           "variant": "issuer_contains_unknown_verification_method",
           "expected_error_code": "failed_precondition"
-        },
-        {
-          "variant": "issuer_is_share_holder_subject",
-          "expected_error_code": "failed_precondition"
-        },
-        {
-          "variant": "publication_threshold_copied_from_threshold_k",
-          "expected_error_code": "schema_violation"
         }
       ],
       "expected_decision": "reject"
@@ -458,6 +576,25 @@
         "second_event_created": false,
         "active_policy_advanced": false
       }
+    },
+    {
+      "name": "unexecutable_policy_publication_rejected",
+      "variants": [
+        {
+          "variant": "device_quorum_k_exceeds_distinct_member_ids",
+          "expected_error_code": "failed_precondition"
+        },
+        {
+          "variant": "recovery_unlock_key_expires_at_not_after_not_before",
+          "expected_error_code": "failed_precondition"
+        },
+        {
+          "variant": "trusted_service_authorization_method_controller_differs_from_service_id",
+          "expected_error_code": "failed_precondition"
+        }
+      ],
+      "expected_decision": "reject",
+      "projection_saved": false
     }
   ],
   "minimum_independent_runners": 2

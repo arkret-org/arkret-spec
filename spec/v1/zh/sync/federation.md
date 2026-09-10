@@ -613,10 +613,13 @@ ActorId routing projection；部署已知 peer、notary、mirror、Directory / s
    `ak.realm.join_rule` 与 Join Policy 判断该 intent 是否被允许。通知里的邀请签名只能定位待核验邀请，MUST NOT
    单独证明 inviter 拥有邀请权限。
 3. 只返回 closed `peer_bootstrap_outcome`：`request_id`、`realm_id`、`applicant_account_id`、`request_digest`、
-   `governance_facts`、`dependency_bundles`、`observed_at`、`expires_at`。`governance_facts` 是
-   `{join_rule, seal_basis, digest_algorithm, encryption_profile}`；`dependency_bundles` 是每个 `seal_basis` leaf
-   恰一个 `ak.schema.cbs_proof_bundle.v1`，按同一 canonical leaf 顺序排列。响应 MUST NOT 携带 roster、消息历史、
-   MLS 材料、无关 cell、frontier 扫描结果或任何可复用的治理读权限。
+   `governance_facts`、`dependency_bundles`、`precondition_evidence`、`applicant_predecessor_events`、`observed_at`、
+   `expires_at`。`governance_facts` 是 `{join_rule, seal_basis, digest_algorithm, encryption_profile}`；
+   `dependency_bundles` 是每个 `seal_basis` leaf 恰一个 `ak.schema.cbs_proof_bundle.v1`，按同一 canonical leaf 顺序
+   排列；后两项的边界分别见 step 7 与 step 8。响应 MUST NOT 携带 roster、消息历史、MLS 材料、无关 cell、frontier
+   扫描结果或任何可复用的治理读权限。`request_digest` 与 `expires_at` 只把响应绑定到这一次请求并限制其复用窗口，
+   MUST NOT 被解释为该状态在全网最新的证明。整个响应仍受 8 MiB body 上限约束；装不下完整材料时 MUST 整体
+   `limit_exceeded`，MUST NOT 截断、分页或降级为部分闭包。
 4. `seal_basis` MUST 是该服务在 `observed_at` 的**完整当前已接受 Seal frontier**：`single_signer` / `threshold`
    恰一 leaf，`open_set` 是 canonical 排序、去重、非隔离的完整 leaf antichain；压缩成单 head MUST 被拒绝。
    `digest_algorithm` MUST 由该完整 basis 的已接受 joined projection 验证得到；缺失、为 `Bottom`、join 后不唯一或
@@ -627,12 +630,48 @@ ActorId routing projection；部署已知 peer、notary、mirror、Directory / s
 6. 对非成员的 basis 解析 MUST 按 `(realm_id, applicant_account_id)` 限速，并对 frontier 推进使用固定迟滞 / 分桶，
    与 [`../discovery/discovery-directory.md` §9.2](../discovery/discovery-directory.md) 的 pre-join 活跃度侧信道
    收口同口径。
+7. `precondition_evidence` 只承载本次 `intent` 将绑定的**那一个** exact control cell 的值或不存在证明，并与
+   `governance_facts` 从同一 `seal_basis` 求值：`member_join` / `knock` 是以申请人完整 account ActorId 派生 subject 的
+   `ak.component.member.state.v1`；`invite_accept` 是以申请人完整 AccountId 派生 subject 的
+   `ak.component.invite.live_target.v1`，外加占格 invite 的 `ak.component.invite.lifecycle.v1` 与占格的那条 exact
+   `ak.invite.create` Control Move。每个 cell MUST 对 `seal_basis` 的**每个 leaf** 各给一份证明并按同一 canonical leaf
+   顺序排列：cell 已写入时是该 leaf `state_root` 下该 cell leaf 的 Merkle audit path（`root_field="state_root"`），从未
+   写入时是同一 root 下的 sorted-neighbor non-membership proof，两种形态与
+   [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 同形。持有方 MUST NOT
+   回显自己求得的 cell 值——值由请求方从证明自行导出。除上列 cell 外，响应 MUST NOT 携带任何其它 cell 的证明；本
+   operation MUST NOT 因此取得通用非成员治理读取能力。任一 leaf 的必要证明不可构造时，整次请求 MUST
+   `frontier_unavailable`，MUST NOT 只给部分 leaf、MUST NOT 把 `open_set` 压成单 head、MUST NOT 猜默认值。
+8. `applicant_predecessor_events` 是**待验证输入**，不是权威事实：它是持有方在本次观测下，对同一 `realm_id` 与
+   申请人完整 account ActorId 所见**最高 accepted actor sequence 上全部已知 sibling** 的 Event envelope，按
+   `event_id` bytewise 升序去重排列。持有方 MUST NOT 放入其它 actor、其它 Realm 或该 actor 其它 sequence 的 Event；
+   空数组只表示"持有方未观测到"，MUST NOT 被表述为空链、链完整或全网最新的证明。v1 MUST NOT 为该数组另造
+   `next_actor_seq`、`frontier_digest` 或对 frontier 完整性的服务签名载体：它们无法被请求方验证，只会诱导实现把远端
+   自报当成权威。该数组也 MUST NOT 另带 proof 依赖载体：这些 Event 的 producer proof 由申请人自己的设备密钥签发、
+   station admission proof 由申请人自己的 Station 追加，二者的验证材料按定义都在请求方本地，因此持有方无法、也不需要
+   补充任何验证依赖；本地缺这些材料时连续性本就已断裂，按 §5.3.4 走 `frontier_unavailable`。
+9. 持有方 MAY 用自身**已有**的已验证治理状态回答本请求，包括其它当前成员经既有授权同步得到的部分；但**持有材料
+   MUST NOT 被解释为可以向申请人披露材料**。本 operation 的披露面恰是 step 3 至 step 8 列举的对象；普通同步仍 MUST
+   各自满足实际成员身份、操作与数据范围授权，MUST NOT 借其它成员身份扩张申请人的读取权限，也 MUST NOT 把本次引导
+   结果投影成申请人可读的 Realm 视图。
 
 请求方 Station MUST 用 `dependency_bundles` 独立验证返回的 `governance_facts`，再据以准备本次加入的签名输入；
 **MUST NOT** 直接把 `ak.schema.realm_join_candidate.v1` 的 `seal_basis`、`digest_algorithm` 或
 `encryption_profile` 当作 authoring basis。candidate 上的这些字段是签发方的观测，只用于候选选择、陈旧检测与
 交叉核对。验证失败、闭包不完整或已过 `expires_at` 时 MUST 重新引导，MUST NOT 用未验证材料 author。
 引导结果 MUST NOT 写入 accepted Realm Event、membership、Seal、projection 或 frontier。
+
+全部验证 MUST 在一个**只读临时验证上下文**内完成，通过之前 MUST NOT author：先验 suite、Seal authority 与 CBS
+predecessor closure，确定本次选用的完整可验证 `seal_basis`；再用请求方自己重算的各 leaf `state_root` 逐 leaf 验证
+`precondition_evidence`，把各 leaf 结果按该 cell 已登记的 lattice 规则 join，得到 exact precondition 值——cell 从未
+写入时值为 `null`，join 结果为 `⊥` 时不是可用前态；最后按既有 Event 接受规则逐条验证
+`applicant_predecessor_events`（closed schema、canonical encoding、producer proof 与 station admission proof、signer
+regime、Realm / actor 作用域与 sequence 连续性）。cell subject 不是从申请人自己的完整 AccountId / account ActorId
+派生、材料跨账号或跨 Realm、`invite_move.event_id` 不等于 join 后的 `live_target` 值、`invite.lifecycle` 不在
+`pending` / `claimed`、必要依赖缺失，或材料与本地已可信观察矛盾时，MUST 拒绝整次引导，MUST NOT 只取"能用的
+一部分"。对未知并发，请求方 MUST NOT 声称可以检测或证明其不存在。通过验证的 `applicant_predecessor_events` 只进入
+§5.3.4 本次 prepare 的临时 authoring 上下文，MUST NOT 被提升为本地 accepted Event、Seal、membership、projection 或
+actor frontier，也 MUST NOT 降级或覆盖本地已验证历史。普通授权同步仍按各自既有规则更新 accepted 状态，与本次引导
+互不替代。
 
 #### 5.3.2 来源持久化与转发（normative）
 
@@ -697,6 +736,48 @@ peer 结果在 `realm_state != "received"` 时 MUST 携带该 exact 提案的
 补齐的部分 authoring core。actor_seq 与 prev_refs MUST 从同一 accepted `(realm_id, actor_id)` frontier 派生。
 非空链的 rejoin 不得初始化为 seq=0。authenticated device generation 由自己 Station 当前设备授权求值，供
 durable outbound fence 使用；不能要求尚未加入的客户端另读 membership-gated frontier 或 keys/query。
+
+**治理 basis 与 actor frontier 分开求值（normative）**：`governance_facts` 与 `unsigned_event.preconditions` 从本次
+选用的**完整可验证 Seal basis** 按既有规则求值；`accepted_actor_frontier` 另按
+[`../models/event-and-patch.md` §2.6](../models/event-and-patch.md) 从同一 `(realm_id, actor_id)` 的**已接受观察
+状态**派生，取最高 accepted sequence 上全部已知、未 quarantine 的 sibling。二者绑定同一次 prepare 上下文，但 Seal 的
+`completeness_root` MUST NOT 被表述为对该 actor 混合 data / control 链完整性的证明。查询后新增的合法 sibling
+MUST NOT 追溯使已签 Event 结构非法；本节 MUST NOT 要求全网静止，也 MUST NOT 要求任何一方出示"全网最新"证明。
+
+**观察集合的三个合法来源（normative）**：派生 frontier 的已接受观察集合恰由三者取并，优先级只体现为"本地已验证
+优先"：(a) 本 Station 对该 Realm 的已验证 accepted 状态，含其它当前成员经既有授权同步得到的部分；(b) 申请人过去在本
+Station 留下的、已验证的自身 actor 历史；(c) 本次 §5.3.1 引导返回并已按既有 Event 接受规则验证通过的
+`applicant_predecessor_events`。(c) 只存在于本次 prepare 的只读临时 authoring 上下文，MUST NOT 写入 accepted 状态，
+MUST NOT 降级或覆盖 (a)(b)，也 MUST NOT 用于把 `next_actor_seq` 调低。远端 `next_actor_seq`、`frontier_digest`、空
+数组与服务签名，单独或合起来 MUST NOT 被当作 frontier 完整或空链的证明。合法 reanchor / fence / quarantine 仍按各自
+上下文重算，MUST NOT 引入永久单调 floor 或签发即烧号的 sequence。
+
+**可用空 frontier 的可判定条件（normative）**：`next_actor_seq=0`（`frontier_event_ids=[]`）只有在下列四条**全部
+成立**时才可返回；任一条不成立或不可判定，MUST 返回 `frontier_unavailable`：
+
+1. **单一 authoring 入口**：`account_id.station_id` 逐字等于本服务。该 actor 在该 Realm 的任何 Event 只能经本 Station
+   的 `ak.self.events.command.submit.v1` 产生（§5.0 规范约束 1），因此"该 actor 从未 author 过"是本 Station 有权威的
+   本地事实，而不是对全网的断言。
+2. **authoring 记录连续**：本 Station 持有该 account 自其在本 Station 的 inception 起**未中断**的 durable authoring
+   记录，且该连续区间覆盖当前 `authoring_device_generation_ref` 所属的完整 device generation lineage。任何一次备份
+   恢复、数据导入、迁移、按保留策略裁剪，或任何内容不可确定的记录区间，都使连续性断裂。
+3. **枚举确定性完成**：在该连续记录与本 Station 对该 Realm 的已验证 accepted 状态上，对 `(realm_id, actor_id)` 的枚举
+   **确定性完成**且结果为空；枚举范围 MUST 覆盖 pending outbound、已提交未决、已接受、已 quarantine 与已被 fork
+   resolution 作废的位置。超时、部分结果、索引缺失或存储不可枚举都不算完成。
+4. **无反证**：本次 `applicant_predecessor_events` 经验证后为空集。
+
+数据库查无记录、同步未完成、远端自报空链或远端服务签名，单独或合起来 MUST NOT 满足第 2、3 条，因此 MUST NOT 用来
+推出 `seq=0`。反过来，本条 MUST NOT 被解释为要求正常首次加入出示"全网不存在证明"：第 1 条把该断言收窄到本 Station
+自己的写入面，正常首次加入按 1–4 直接成立。
+
+**unavailable 的机器表达（normative）**：`self_prepare_outcome.accepted_actor_frontier` 是必填项，v1 不存在"frontier
+未知"的成功形态——缺 frontier 就没有 `unsigned_event.actor_seq` / `prev_refs`，整个 outcome 不可构造。历史丢失、缺必要
+前驱、joined precondition 为 `⊥`，或按上条无法判定初始化依据时，本 operation MUST 以 `frontier_unavailable` 失败并保持
+可重试，MUST NOT 返回部分 outcome，MUST NOT 用 `seq=0` 兜底。恢复只走既有机制——授权同步补齐 accepted 状态、
+§5.3.1 引导补本次缺口、actor chain repair 与 fork resolution——MUST NOT 通过重新入群、更换 actor 或新 device
+generation 重置该 actor 链。本 operation 与 §5.3.1 引导都 MUST NOT 写入 accepted Event、Seal、membership、projection 或
+frontier；prepare 不是接纳，提交与覆盖 Seal 验证继续走既有规则。可执行判定的一致性由
+`ak.vector.federation.realm_join_authoring_inputs.v1` 固定。
 
 客户端签署前 MUST 核对完整 AccountId、actor、realm/scope、kind、用户意图、payload、引用/授权与 preconditions、
 exact request digest、时间逐字回显、expiry 和会话安装代际；重算内容寻址 EventId并逐字相等。同时检查

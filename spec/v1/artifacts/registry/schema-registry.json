@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.21",
+  "version": "2026-09-11.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T22:14:26+08:00",
+  "generated_at": "2026-09-11T04:15:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -931,7 +931,7 @@
       "file": "schemas/realm-join-intake.schema.json",
       "fragment": "#/$defs/peer_bootstrap_outcome",
       "status": "active",
-      "description": "Bounded join bootstrap material: effective join_rule, complete accepted seal_basis, live digest suite, encryption profile and one dependency bundle per basis leaf. It is purpose limited and expiring, never membership or a governance read grant."
+      "description": "Bounded join bootstrap material: effective join_rule, complete accepted seal_basis, live digest suite, encryption profile, one dependency bundle per basis leaf, the exact-precondition proof for the single control cell of this intent, and the applicant's own predecessor Events as unverified authoring input. It is purpose limited and expiring, never membership, never a governance read grant and never a frontier completeness proof."
     },
     {
       "schema_id": "ak.schema.realm_join_peer_application_status_request.v1",

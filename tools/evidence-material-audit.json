@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 390,
+  "audited_occurrence_count": 392,
   "registrations": [
     {
       "file": "account-current-result.schema.json",
@@ -1158,6 +1158,28 @@
         "commitment"
       ],
       "reason": "Relays the complete frozen registration evidence to the Station for independent historical verification."
+    },
+    {
+      "file": "realm-join-intake.schema.json",
+      "key": "precondition_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries the bounded join-bootstrap precondition material for one intent: RFC 6962 inclusion and sorted-neighbor non-membership proofs of one control cell against every basis leaf, plus the exact accepted invite Control Move that attests the invite terms."
+    },
+    {
+      "file": "realm-join-intake.schema.json",
+      "key": "realm_join_precondition_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Closed two-branch definition backing the same container: per-leaf cell state proofs for member_join and knock, and live_target plus lifecycle proofs together with the attesting invite Control Move for invite_accept."
     },
     {
       "file": "registration-did-evidence.schema.json",

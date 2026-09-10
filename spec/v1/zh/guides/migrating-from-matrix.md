@@ -134,7 +134,7 @@ Matrix 导入只能生成显式迁移 evidence，不能把旧的跨设备信任�
 | --- | --- | --- |
 | Secure Secret Storage（SSSS）统一保管账户密钥 / megolm backup 等 | `ak.secret_storage.v1`（**client-local only**）+ wire 上传走 `ak.schema.key_backup.v1` | Arkret v1 不再把 secret storage envelope 作为 wire 格式；服务端 wire backup 使用 `ak.schema.key_backup.v1` 与 `backup_kind` 分类。 |
 | 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`secret_storage` / `mls_history` 两类 `backup_kind`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"；每类 envelope 使用独立 subdomain key。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
-| 一把 recovery key 解锁 SSSS | recovery key + 门限 / 社交恢复 share | Arkret 把 recovery 表达为 `recovery_policy`，可声明 threshold、share holder、有效期、approval 条件；share holder 不自动获得读取内容能力。 |
+| 一把 recovery key 解锁 SSSS | `recovery_policy` 的封闭四方法 | Arkret 把 recovery 表达为 `recovery_policy`，`methods` 封闭为 `did_root`、`recovery_unlock`、`device_quorum`、`trusted_recovery_service`，可声明每个 key 的有效期与顶层冷却。身份核验与人工审核由产品承担，协议只验证账号事先授权的签发方与本次受限授权；v1 没有 threshold、share holder 或 approval 条件。恢复控制权不自动授予读取内容或解密历史的能力。 |
 | (Matrix 未明确约束) | "能解密某段历史" 不单独作为账号所有权证明 | Arkret 把 DID 控制证明与解密能力分开，并定义了固定格式、限速、绑定 audience / service DID 的 challenge 流程。 |
 
 #### 4.5.6 Push 通道密钥

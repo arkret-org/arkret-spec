@@ -122,8 +122,7 @@
             "did_root",
             "recovery_unlock",
             "device_quorum",
-            "trusted_recovery_service",
-            "threshold_recovery"
+            "trusted_recovery_service"
           ]
         },
         "proof_digest": {
@@ -133,17 +132,7 @@
         "quorum_participant_count": {
           "type": "integer",
           "minimum": 1,
-          "description": "Required for device_quorum and threshold_recovery; equals the number of participating members / shares."
-        },
-        "share_ids": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9_-]{1,64}$"
-          },
-          "description": "When kind=threshold_recovery, the share_ids that participated. MUST be a subset of the active policy's shares[]."
+          "description": "Required for device_quorum; equals the number of distinct participating member devices."
         }
       },
       "additionalProperties": false
@@ -265,35 +254,6 @@
     }
   },
   "allOf": [
-    {
-      "if": {
-        "properties": {
-          "proof_summary": {
-            "properties": {
-              "kind": {
-                "const": "threshold_recovery"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          }
-        },
-        "required": [
-          "proof_summary"
-        ]
-      },
-      "then": {
-        "properties": {
-          "proof_summary": {
-            "required": [
-              "quorum_participant_count",
-              "share_ids"
-            ]
-          }
-        }
-      }
-    },
     {
       "if": {
         "properties": {

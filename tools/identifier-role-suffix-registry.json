@@ -272,11 +272,6 @@
       "field": "release_service_signer_evidence_ref",
       "role_stem": "release_service",
       "reason": "reference names signer evidence for the registered release_service authority"
-    },
-    {
-      "field": "trusted_recovery_services",
-      "role_stem": "recovery_service",
-      "reason": "recovery_service is the registered threshold-recovery share holder role"
     }
   ],
   "registered_provenance_byline_fields": [

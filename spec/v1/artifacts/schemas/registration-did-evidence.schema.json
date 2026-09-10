@@ -60,7 +60,7 @@
     },
     "registration_did_evidence": {
       "type": "object",
-      "description": "Account-Authority-accepted form of registration_did_evidence_draft. accepted_at is assigned after the registry accepts the exact did_operation, MUST be no earlier than control_proof.created_at, and is not retroactively inserted into the client signature. The pcr_genesis_unit receipt commits the canonical digest of this complete object.",
+      "description": "Account-Authority-accepted form of registration_did_evidence_draft. accepted_at records the trusted registry's own original acceptance time for the exact did_operation and is not retroactively inserted into the client signature, while control_proof.created_at records the instant the proof signer committed inside its own signature. The two timestamps come from independent Authority clocks and establish no dependable causal order, so verifiers MUST NOT accept or reject this evidence by comparing them numerically. The pcr_genesis_unit receipt commits the canonical digest of this complete object.",
       "required": [
         "principal_id",
         "did",

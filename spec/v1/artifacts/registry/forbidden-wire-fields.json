@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 43,
+  "version": 44,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-07T17:56:10+08:00",
+  "generated_at": "2026-09-11T04:15:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -872,16 +872,6 @@
         {
           "document_kind": "schema_instance",
           "schema_ref": "event-payload.schema.json#/$defs/realm_tombstone_payload",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
-    "recovery_policy.share_commitment": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "recovery-policy.schema.json#/$defs/share",
           "instance_pointer": "",
           "match_scope": "root"
         }
@@ -2440,24 +2430,6 @@
         "kind": "field",
         "values": [
           "cleartext_sha256"
-        ]
-      }
-    },
-    {
-      "id": "commitment_b64",
-      "context": "recovery_policy.share_commitment",
-      "since_revision": "2026-05-29",
-      "rejection_level": "hard_reject",
-      "replacement": "commitment_b64u",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Recovery share commitments use base64url characters and therefore carry _b64u.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "commitment_b64"
         ]
       }
     },

@@ -7734,7 +7734,7 @@
       ]
     },
     {
-      "schema_path": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/4/properties/services/items/properties/authorization_verification_method",
+      "schema_path": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/3/properties/services/items/properties/authorization_verification_method",
       "property_name": "authorization_verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",
@@ -7744,7 +7744,7 @@
       ]
     },
     {
-      "schema_path": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/4/properties/services/items/properties/service_id",
+      "schema_path": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/3/properties/services/items/properties/service_id",
       "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
@@ -7781,46 +7781,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "recovery-policy.schema.json#/$defs/recovery_share_holder/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "recovery-policy.schema.json#/$defs/recovery_share_holder/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "recovery-policy.schema.json#/$defs/share/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "recovery-policy.schema.json#/$defs/share/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {
@@ -7965,66 +7925,6 @@
     },
     {
       "schema_path": "recovery-session.schema.json#/$defs/recovery_unlock_proof_body/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof/properties/share_releases/items/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof/properties/share_releases/items/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof/properties/share_releases/items/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof_body/properties/share_releases/items/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof_body/properties/share_releases/items/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof_body/properties/share_releases/items/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",
@@ -10093,102 +9993,6 @@
       "account_scoped": true,
       "required_evidence": [
         "exact_account_authority_binding"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "recovery-policy.schema.json#/$defs/recovery_share_holder/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_principal_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "recovery-policy.schema.json#/$defs/recovery_share_holder/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "recovery-policy.schema.json#/$defs/share/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_principal_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "recovery-policy.schema.json#/$defs/share/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof/properties/share_releases/items/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_principal_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof/properties/share_releases/items/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof_body/properties/share_releases/items/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_principal_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "recovery-session.schema.json#/$defs/threshold_recovery_proof_body/properties/share_releases/items/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
       ]
     }
   ]

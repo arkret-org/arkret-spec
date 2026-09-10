@@ -97,7 +97,7 @@
     },
     "trusted_recovery_service_proof": {
       "type": "object",
-      "description": "Trusted recovery service proof. The verification_method of `proof` MUST be controlled by service_id, and service_id MUST be authorized as a trusted recovery service by the recovery policy / DID delegation snapshotted into the referenced recovery session. The session MUST be unexpired, unconsumed for this purpose, and MUST have been established by recovery_unlock or device_quorum — the service alone is never a sufficient factor.",
+      "description": "Trusted recovery service proof. The verification_method of `proof` MUST be controlled by service_id, and service_id MUST be authorized as a trusted recovery service by the recovery policy / DID delegation snapshotted into the referenced recovery session. The session MUST be unexpired, unconsumed for this purpose, and MUST have been established by recovery_unlock or device_quorum — the service alone is never a sufficient factor. v1 registers no attestation carrier on this branch: the recovery policy has no attestation_required switch, so an attestation reference here would be an unverified configuration surface rather than an enforced factor.",
       "required": [
         "kind",
         "service_id",
@@ -114,11 +114,6 @@
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id",
           "description": "Verified, unexpired, unconsumed recovery session authenticated by recovery_unlock or device_quorum. A service-only session is not a second factor."
-        },
-        "attestation_ref": {
-          "type": "string",
-          "pattern": "^ak:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Optional attestation object for service_id. If present, receivers MUST resolve it in the same trust_domain as the operation and reject cross-domain attestations."
         },
         "proof": {
           "$ref": "#/$defs/detached_proof"

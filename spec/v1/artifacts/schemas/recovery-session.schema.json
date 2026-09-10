@@ -5,9 +5,6 @@
   "description": "Wire contract for the device recovery session state machine. The root object is the recovery session state shape; request body/result helper shapes and kind-specific recovery proof transcripts live in $defs. Completion is owned by the bound RecoveryTransaction; see zh/identity/security-transactions.md §2 and zh/crypto-media/device-lifecycle.md §14.",
   "$ref": "#/$defs/recovery_session_state",
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "did_url": {
       "$ref": "./account-operations.schema.json#/$defs/did_url"
     },
@@ -66,8 +63,7 @@
         "did_root",
         "recovery_unlock",
         "device_quorum",
-        "trusted_recovery_service",
-        "threshold_recovery"
+        "trusted_recovery_service"
       ]
     },
     "proof_summary": {
@@ -500,94 +496,9 @@
             "ML-DSA-65"
           ]
         },
-        "attestation_ref": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Reference to service attestation evidence when required by the active recovery policy."
-        },
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$"
-        }
-      },
-      "additionalProperties": false
-    },
-    "threshold_recovery_proof": {
-      "type": "object",
-      "required": [
-        "kind",
-        "challenge",
-        "threshold",
-        "share_releases"
-      ],
-      "properties": {
-        "kind": {
-          "const": "threshold_recovery"
-        },
-        "challenge": {
-          "$ref": "#/$defs/challenge"
-        },
-        "threshold": {
-          "type": "integer",
-          "minimum": 2
-        },
-        "share_releases": {
-          "type": "array",
-          "minItems": 2,
-          "items": {
-            "type": "object",
-            "required": [
-              "share_id",
-              "holder_kind",
-              "transcript_digest",
-              "verification_method",
-              "signature_algorithm",
-              "signature"
-            ],
-            "properties": {
-              "share_id": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]{1,64}$"
-              },
-              "holder_kind": {
-                "type": "string",
-                "enum": [
-                  "personal_principal",
-                  "custodial_service"
-                ]
-              },
-              "holder_principal_id": {
-                "$ref": "#/$defs/did_core_id"
-              },
-              "holder_service_id": {
-                "$ref": "#/$defs/did_core_id"
-              },
-              "transcript_digest": {
-                "$ref": "#/$defs/digest",
-                "description": "Digest of the holder's share release transcript bound to share_id, holder, recovery_session_id, requesting_device_id, audience, and issued_at. For threshold_recovery / recovery_unlock the requesting device may be a not-yet-authorized new device; holder validation binds proof-of-possession and the recovery session instead of requiring an existing device record."
-              },
-              "verification_method": {
-                "$ref": "#/$defs/did_url"
-              },
-              "signature_algorithm": {
-                "type": "string",
-                "enum": [
-                  "Ed25519",
-                  "ML-DSA-65"
-                ]
-              },
-              "signature": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]+$"
-              }
-            },
-            "additionalProperties": false,
-            "allOf": [
-              {
-                "$ref": "./recovery-policy.schema.json#/$defs/recovery_share_holder"
-              }
-            ]
-          }
         }
       },
       "additionalProperties": false
@@ -611,12 +522,9 @@
             },
             {
               "$ref": "#/$defs/trusted_recovery_service_proof"
-            },
-            {
-              "$ref": "#/$defs/threshold_recovery_proof"
             }
           ],
-          "description": "Kind-specific recovery proof. Receivers reconstruct the canonical transcript from stored session state and the proof body, then verify that the active recovery policy allows this proof kind and its threshold/service/share constraints."
+          "description": "Kind-specific recovery proof. Receivers reconstruct the canonical transcript from stored session state and the proof body, then verify that the active recovery policy allows this proof kind and that the proof satisfies that entry exactly."
         }
       },
       "additionalProperties": false
@@ -808,7 +716,7 @@
     },
     "trusted_recovery_service_proof_body": {
       "type": "object",
-      "description": "Signature-independent trusted_recovery_service projection. signature is deleted while optional attestation_ref is present only when supplied.",
+      "description": "Signature-independent trusted_recovery_service projection. Only the carrier signature is deleted.",
       "required": [
         "kind",
         "challenge",
@@ -840,92 +748,13 @@
             "Ed25519",
             "ML-DSA-65"
           ]
-        },
-        "attestation_ref": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "additionalProperties": false
-    },
-    "threshold_recovery_proof_body": {
-      "type": "object",
-      "description": "Signature-independent threshold_recovery projection. Each nested share-release signature is deleted while the share identity and transcript digest remain bound.",
-      "required": [
-        "kind",
-        "challenge",
-        "threshold",
-        "share_releases"
-      ],
-      "properties": {
-        "kind": {
-          "const": "threshold_recovery"
-        },
-        "challenge": {
-          "$ref": "#/$defs/challenge"
-        },
-        "threshold": {
-          "type": "integer",
-          "minimum": 2
-        },
-        "share_releases": {
-          "type": "array",
-          "minItems": 2,
-          "items": {
-            "type": "object",
-            "required": [
-              "share_id",
-              "holder_kind",
-              "transcript_digest",
-              "verification_method",
-              "signature_algorithm"
-            ],
-            "properties": {
-              "share_id": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]{1,64}$"
-              },
-              "holder_kind": {
-                "type": "string",
-                "enum": [
-                  "personal_principal",
-                  "custodial_service"
-                ]
-              },
-              "holder_principal_id": {
-                "$ref": "#/$defs/did_core_id"
-              },
-              "holder_service_id": {
-                "$ref": "#/$defs/did_core_id"
-              },
-              "transcript_digest": {
-                "$ref": "#/$defs/digest"
-              },
-              "verification_method": {
-                "$ref": "#/$defs/did_url"
-              },
-              "signature_algorithm": {
-                "type": "string",
-                "enum": [
-                  "Ed25519",
-                  "ML-DSA-65"
-                ]
-              }
-            },
-            "additionalProperties": false,
-            "allOf": [
-              {
-                "$ref": "./recovery-policy.schema.json#/$defs/recovery_share_holder"
-              }
-            ]
-          }
         }
       },
       "additionalProperties": false
     },
     "generic_recovery_transcript": {
       "type": "object",
-      "description": "Canonical transcript field set shared by recovery_unlock, device_quorum, trusted_recovery_service, and threshold_recovery proofs before adding kind-specific proof_body. Producers and receivers MUST bind exactly this session tuple.",
+      "description": "Canonical transcript field set shared by recovery_unlock, device_quorum and trusted_recovery_service proofs before adding kind-specific proof_body. Producers and receivers MUST bind exactly this session tuple.",
       "required": [
         "schema",
         "kind",
@@ -956,8 +785,7 @@
           "enum": [
             "recovery_unlock",
             "device_quorum",
-            "trusted_recovery_service",
-            "threshold_recovery"
+            "trusted_recovery_service"
           ]
         },
         "request_id": {
@@ -1021,9 +849,6 @@
             },
             {
               "$ref": "#/$defs/trusted_recovery_service_proof_body"
-            },
-            {
-              "$ref": "#/$defs/threshold_recovery_proof_body"
             }
           ],
           "description": "Closed signature-independent projection selected by kind. Carrier signatures and commitments identified by the selected branch are deleted before canonicalization."
@@ -1084,25 +909,6 @@
             "properties": {
               "proof_body": {
                 "$ref": "#/$defs/trusted_recovery_service_proof_body"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "threshold_recovery"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "proof_body": {
-                "$ref": "#/$defs/threshold_recovery_proof_body"
               }
             }
           }

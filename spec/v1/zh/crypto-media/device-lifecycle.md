@@ -1272,7 +1272,7 @@ active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome
 > 1. **recovery_public_key（推荐，HPKE）**：`mls_history` envelope 直接加密给 actor 的 recovery public key（`recipient_method="recovery_public_key"`，HPKE base mode，参数见 `identity/key-management.md` §7.5.2）。新设备用经 recovery policy 解锁的 recovery 私钥即可 HPKE-open，无需先持有 secret_storage root。这是 fresh-browser same-account MLS 恢复的规范路径。
 > 2. **先解 root，再用 secret_storage_key**：新设备先用 `passphrase_kdf`（`passphrase_kdf` envelope，见 `identity/key-management.md` §7.5.1），或经 recovery policy 释放 recovery private key 后用 `recovery_public_key` 解出 `secret_storage` 域的 root（取得 `mls_group_secrets_backup_key`），之后才能解 `secret_storage_key` 的 `mls_history` envelope。
 >
-> `recipient_method` 取值 MUST 来自 `ak.schema.key_backup.v1` 的枚举（`passphrase_kdf` / `recovery_public_key` / `secret_storage_key`）。实现 MUST NOT 发出枚举外的值（例如 `device_snapshot_secret`、`threshold_recovery`、`hardware_wrapped_key` 不是合法 wire 值，receiver/validator MUST fail closed）。threshold / hardware / trusted recovery service 是 recovery policy / proof 层的 unlock factor，不是 backup envelope recipient method。
+> `recipient_method` 取值 MUST 来自 `ak.schema.key_backup.v1` 的枚举（`passphrase_kdf` / `recovery_public_key` / `secret_storage_key`）。实现 MUST NOT 发出枚举外的值（例如 `device_snapshot_secret`、`threshold_recovery`、`hardware_wrapped_key` 不是合法 wire 值，receiver/validator MUST fail closed）。`threshold_recovery` 与 `hardware_wrapped_key` 也不是 v1 recovery method；trusted recovery service 是 recovery policy / proof 层的 unlock factor，不是 backup envelope recipient method。
 
 规则：
 

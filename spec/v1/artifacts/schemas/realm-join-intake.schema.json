@@ -377,6 +377,149 @@
       },
       "additionalProperties": false
     },
+    "realm_join_precondition_evidence": {
+      "description": "Closed exact-precondition material for the requested join intent. It proves the value or the never-written absence of exactly the one control cell the prepared Event will bind, evaluated against the complete returned seal_basis, and it discloses nothing else: no roster, no unrelated cell, no Realm history and no reusable governance read grant. v1 registers exactly two branches; restricted_join and application receipts have no registered branch and MUST fail with unsupported_feature.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/realm_join_invite_accept_precondition"
+        },
+        {
+          "$ref": "#/$defs/realm_join_member_state_precondition"
+        }
+      ]
+    },
+    "realm_join_invite_accept_precondition": {
+      "type": "object",
+      "description": "Exact live_target material for one directed invite. The slot subject is the single-component composite of the applicant's complete AccountId, so an occupied slot is by construction a live direct invite for exactly this applicant and no other. The occupying invite's lifecycle is the only way to separate an acceptable pending or claimed invite from send_failed, and the exact create Control Move is what supplies the invite expiry to the requesting Station.",
+      "required": [
+        "intent",
+        "live_target_proofs",
+        "invite_lifecycle_proofs",
+        "invite_move"
+      ],
+      "properties": {
+        "intent": {
+          "const": "invite_accept"
+        },
+        "live_target_proofs": {
+          "$ref": "#/$defs/realm_join_cell_state_proofs",
+          "description": "Proofs for the ak.component.invite.live_target.v1 cell whose subject the requesting Station derives from the applicant's own complete AccountId. An absent or Bottom joined slot is not a usable pre-state and MUST fail rather than be defaulted."
+        },
+        "invite_lifecycle_proofs": {
+          "$ref": "#/$defs/realm_join_cell_state_proofs",
+          "description": "Proofs for the ak.component.invite.lifecycle.v1 cell of the invite that occupies the slot. The requesting Station MUST reject any joined state other than pending or claimed."
+        },
+        "invite_move": {
+          "$ref": "./event-envelope.schema.json",
+          "description": "Exact accepted ak.invite.create Control Move that occupies the slot. Its content-bound event_id MUST equal the joined live_target value, which is what authenticates it, so it carries no separate coverage proof; its realm_id and invitee binding MUST agree with the outcome and any other Event is a schema violation."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_member_state_precondition": {
+      "type": "object",
+      "description": "Exact member.state material for a self-authored join or knock. The requesting Station derives the head_eq value from the joined per-leaf results: a never-written cell yields null, a written cell yields its exact fsm state, and a joined Bottom is not a usable pre-state and MUST fail closed instead of being rewritten as null.",
+      "required": [
+        "intent",
+        "member_state_proofs"
+      ],
+      "properties": {
+        "intent": {
+          "enum": [
+            "member_join",
+            "knock"
+          ]
+        },
+        "member_state_proofs": {
+          "$ref": "#/$defs/realm_join_cell_state_proofs",
+          "description": "Proofs for the ak.component.member.state.v1 cell whose subject is the applicant's complete account ActorId, derived by the requesting Station from applicant_account_id and never from a holder-declared subject."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_cell_state_proofs": {
+      "type": "array",
+      "description": "Exactly one proof per seal_basis leaf for one and the same cell_id, in the same canonical leaf order as seal_basis.leaves and dependency_bundles. A missing leaf, a repeated leaf, a leaf outside the returned basis or a second cell_id is a schema violation. The requesting Station joins the per-leaf results under the registered lattice rules for that cell before using them and never accepts one leaf as the whole basis.",
+      "minItems": 1,
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/realm_join_cell_state_proof"
+      }
+    },
+    "realm_join_cell_state_proof": {
+      "type": "object",
+      "description": "Value-or-absence proof for one control cell against exactly one seal_basis leaf. presence present carries the audit path of that cell's state_root leaf, so the verifier reads the exact state object out of leaf_canonical_preimage_b64u instead of trusting a declared value. presence absent carries the sorted-neighbor non-membership proof for the same cell_id under the same root: no neighbor for the empty-tree root, one boundary neighbor whose leaf_index is 0 or leaf_count minus one and whose leaf cell id lies on the correct side of cell_id, or two neighbors with adjacent leaf_index values whose leaf cell ids bracket cell_id in code point order. Nothing here is authoritative: every audit path MUST recompute the state_root the verifier itself derived for seal_ref, and a presence that recomputation contradicts MUST be rejected instead of defaulted.",
+      "required": [
+        "cell_id",
+        "seal_ref",
+        "presence"
+      ],
+      "properties": {
+        "cell_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/cell_ref",
+          "description": "Exact cell this proof decides. It MUST equal the cell the requesting Station derived from the applicant's own complete AccountId or account ActorId, and MUST be identical across every proof of the same array."
+        },
+        "seal_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref",
+          "description": "Exact seal_basis leaf this proof is evaluated against."
+        },
+        "presence": {
+          "enum": [
+            "present",
+            "absent"
+          ]
+        },
+        "inclusion": {
+          "$ref": "./event-envelope.schema.json#/$defs/semantic_ref_merkle_proof",
+          "description": "Present exactly when presence is present. root_field MUST be state_root and root_digest MUST equal the state_root the verifier recomputed for seal_ref."
+        },
+        "neighbors": {
+          "type": "array",
+          "description": "Present exactly when presence is absent, with at most two items and root_field state_root on every item. Zero items assert the empty-tree root, one item is a boundary neighbor, and two items MUST carry adjacent leaf_index values. Any other shape, an order that does not bracket cell_id, or a leaf_count that contradicts the audit paths MUST be rejected.",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/semantic_ref_merkle_proof"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "presence": {
+                "const": "present"
+              }
+            },
+            "required": [
+              "presence"
+            ]
+          },
+          "then": {
+            "required": [
+              "inclusion"
+            ],
+            "not": {
+              "required": [
+                "neighbors"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "neighbors"
+            ],
+            "not": {
+              "required": [
+                "inclusion"
+              ]
+            }
+          }
+        }
+      ]
+    },
     "self_prepare_request_body": {
       "type": "object",
       "description": "Authenticated account request to prepare exactly one join attempt. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling this request. The request never carries a candidate endpoint, a self-reported seal_basis or any caller-declared governance fact.",
@@ -514,7 +657,7 @@
     },
     "peer_bootstrap_outcome": {
       "type": "object",
-      "description": "Bounded join bootstrap material for exactly the requested applicant, Realm and intent. It authorizes nothing: it neither creates membership nor grants roster, message, MLS or general governance reads, and it expires.",
+      "description": "Bounded join bootstrap material for exactly the requested applicant, Realm and intent: the governance facts and their verification closure, the exact-precondition proof for the one control cell this attempt will bind, and the applicant's own predecessor Events as unverified authoring input. It authorizes nothing: it neither creates membership nor grants roster, message, MLS or general governance reads, it claims no network-wide completeness or freshness, and it expires.",
       "required": [
         "request_id",
         "realm_id",
@@ -522,6 +665,8 @@
         "request_digest",
         "governance_facts",
         "dependency_bundles",
+        "precondition_evidence",
+        "applicant_predecessor_events",
         "observed_at",
         "expires_at"
       ],
@@ -551,6 +696,19 @@
             "$ref": "./cbs-proof-bundle.schema.json"
           },
           "description": "Exactly one receiver-relative dependency bundle per seal_basis leaf, in the same canonical leaf order. It is the minimum closure the requesting Station needs to verify the returned facts itself; it is not authoritative and it MUST NOT carry objects outside that closure."
+        },
+        "precondition_evidence": {
+          "$ref": "#/$defs/realm_join_precondition_evidence",
+          "description": "Exact-precondition material for the declared intent, evaluated against the same complete seal_basis and verified independently by the requesting Station. Its branch MUST agree with the requested intent."
+        },
+        "applicant_predecessor_events": {
+          "type": "array",
+          "description": "Unverified authoring input: the applicant's own accepted Events at the highest actor sequence the holder observes for exactly this realm_id and account ActorId, sorted bytewise by event_id without duplicates. Every item MUST carry that realm_id and that actor_id; a foreign actor, a foreign Realm or an Event the requesting Station cannot accept under the ordinary Event acceptance rules MUST be rejected. An empty array is only the holder observing none: it proves neither an empty chain nor completeness, and it never lowers or overrides history the requesting Station has already verified. A closure that cannot fit the response budget is limit_exceeded and is never truncated.",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          }
         },
         "observed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",

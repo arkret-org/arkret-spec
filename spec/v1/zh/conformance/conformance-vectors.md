@@ -5722,7 +5722,7 @@ Expected：
 
 `ak.vector.identity.recovery_kdf.v1` 固定 BIP-39 24 词 + passphrase 与 32-byte raw secret 两条输入路径。实现 MUST 逐字节重算 HKDF PRK、`root_seed_0/1`、`recovery_proof_seed`、`backup_hpke_ikm`、Ed25519 raw public keys 与 multikey、RFC 9180 `DHKEM(X25519, HKDF-SHA256).DeriveKeyPair` 的 raw `derived_sk`、clamped serialized private key 与 public key，以及 `Base58BTC(multihash(sha2-256, UTF8(root_1_multikey)))` canonical `nextKeyHash`。fixture 中 raw-public-key SHA-256 只作为诊断值，不得写入 did:webvh `nextKeyHashes`。任何 salt/info 字节、`u64be(i)`、multicodec/multihash 编码、输入文本化、raw/clamped private-key 表示混淆或 Ed25519→X25519 key reuse 漂移都必须失败。
 
-`ak.vector.identity.recovery_key_role_separation.v1` 固定 recovery policy 的内联角色分离：`methods[]` 中 `recovery_unlock.keys[]` 与 `threshold_recovery.publication_key` 的每个 recovery-proof signing entry 必须携带独立 `backup_hpke` entry；`backup_hpke.key_agreement_ref` 在同一 accepted policy 中唯一。proof verification 只能使用 signing entry，所有 `recovery_public_key` envelope 的 signed `recovery_policy_ref` / `recipient_key_ref` / `hpke_suite` 只能解析到同一 signing entry 内有效的 `backup_hpke`。悬空或重复 ref、撤销/过期 entry、签名与 HPKE 复用 material、suite 不匹配、把 signing ref 当 recipient、或只在 DID Document 声明而未进入 session/envelope referenced policy 均 MUST reject。
+`ak.vector.identity.recovery_key_role_separation.v1` 固定 recovery policy 的内联角色分离：`methods[]` 中 `recovery_unlock.keys[]` 的每个 recovery-proof signing entry 必须携带独立 `backup_hpke` entry；`backup_hpke.key_agreement_ref` 在同一 accepted policy 中唯一。proof verification 只能使用 signing entry，所有 `recovery_public_key` envelope 的 signed `recovery_policy_ref` / `recipient_key_ref` / `hpke_suite` 只能解析到同一 signing entry 内有效的 `backup_hpke`。悬空或重复 ref、撤销/过期 entry、签名与 HPKE 复用 material、suite 不匹配、把 signing ref 当 recipient、或只在 DID Document 声明而未进入 session/envelope referenced policy 均 MUST reject。
 
 ### 22.2 Root-anchor 排他性
 
@@ -6705,3 +6705,35 @@ effective recovery-key cell 不含 service-selected effectiveness locator；生�
 Event、homogeneous policy-root segment、to-device request、foreign active MLS snapshot、profile-fixed baseline 或旧五档 literal。
 RHRK holder 向量还必须断言：它可以取得完整 holder-basis→archive-target 验证 closure 所需的 Control Move/Seal 及由此暴露的
 membership/policy/control metadata，但不能读取 closure 外 DataEvent、generic timeline 或获得 membership/send 权；不能接受该披露的部署必须禁用 RHRK。
+
+## Realm join authoring input closure
+
+`vector_id`: `ak.vector.federation.realm_join_authoring_inputs.v1`
+
+规则正文见 [`../sync/federation.md` §5.3.1 / §5.3.4](../sync/federation.md) 与
+[`../models/event-and-patch.md` §2.6](../models/event-and-patch.md)。Runner MUST 覆盖：
+
+1. **正常首次加入**：申请人自己的 Station 满足可判定初始条件四条（单一 authoring 入口、authoring 记录自 inception
+   连续、`(realm_id, actor_id)` 枚举确定性完成且为空、`applicant_predecessor_events` 验证后为空），返回
+   `next_actor_seq=0` 且 `frontier_event_ids=[]`；MUST NOT 要求任何一方出示全网不存在证明。
+2. **本地留有历史的 rejoin**：本 Station 已验证的自身 actor 历史最高 sequence 为 N 时，`next_actor_seq=N+1` 且
+   `prev_refs` 等于该 sequence 上全部已知未 quarantine sibling；远端返回更低 sequence 或空数组 MUST NOT 把
+   `next_actor_seq` 调低，也 MUST NOT 覆盖本地已验证历史。
+3. **本地其它成员已同步该 Realm**：仅凭 (a) 类观察即可完成 prepare，不发起引导；同一场景 MUST NOT 因此让申请人读到
+   roster、历史消息或任何 step 3–step 8 之外的对象。
+4. **状态缺失安全失败**：数据库查无记录但 authoring 记录不连续、枚举超时或仅有部分结果、以及远端自报空链三种输入
+   分别 MUST 返回 `frontier_unavailable` 且零写入；MUST NOT 退回 `seq=0`，MUST NOT 通过重新入群或新 device
+   generation 重置该 actor 链。恢复后重试 MUST 成功。
+5. **exact cell 证明**：`member_join` / `knock` 的 `ak.component.member.state.v1` 分别覆盖已写入（`join` / `knock` /
+   `leave` / `ban`）与从未写入（sorted-neighbor non-membership，导出值 `null`）两类，逐 leaf 验证后按 lattice join；
+   多 leaf `open_set` 缺任一 leaf 证明、重复 leaf、第二个 `cell_id`、audit path 与请求方重算 `state_root` 不符、
+   非成员方向的 neighbor 排序不 bracket `cell_id`、以及 join 结果为 `⊥`，MUST 分别拒绝且不得默认为 `null`。
+6. **invite 分支**：`live_target` 占格值等于 `invite_move.event_id`（内容寻址自证），`invite.lifecycle` 为 `pending` /
+   `claimed` 才可 author；`send_failed`、终态、已过 `expires_at`、跨人 invite、以及 `invite_move` 与占格值不等，MUST
+   分别拒绝，且对外与不存在共用同一不可枚举失败与固定 timing bucket。
+7. **恶意远端**：伪造的 `governance_facts`、被替换的 leaf、跨账号或跨 Realm 的 `applicant_predecessor_events`、
+   producer proof 无效的伪前驱，MUST 在只读临时验证上下文内被拒绝，且 MUST NOT 产生任何 accepted Event、Seal、
+   membership、projection 或 frontier 写入。
+8. **查询后并发**：验证并签名之后才出现的同 sequence 合法 sibling MUST NOT 追溯使已签 Event 结构非法；实现 MUST NOT
+   为此声称可以检测或证明并发不存在。
+9. **响应预算**：完整材料超出 8 MiB body 上限时整体 `limit_exceeded`，MUST NOT 截断、分页或返回部分闭包。

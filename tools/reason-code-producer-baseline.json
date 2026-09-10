@@ -14,7 +14,6 @@
     "abuse_review",
     "aead_nonce_counter_replay",
     "approval_nonce_reused",
-    "attestation_missing",
     "audit_capability_incomplete",
     "audit_release_binding_inactive",
     "audit_release_retroactive_scope_forbidden",
@@ -73,7 +72,6 @@
     "segment_aead_failed",
     "selector_governance_wildcard_forbidden",
     "selector_missing_realm_scope",
-    "share_commitment_mismatch",
     "space_parent_chain_in_bottom_state",
     "space_parent_cycle",
     "token_expired",
@@ -253,6 +251,18 @@
       "ruling": "2026-09-08-0659",
       "registry_version": "2026-09-08",
       "why": "关系数量限制配置不属于协议目标，删除配置及其专属拒绝原因。"
+    },
+    {
+      "code": "attestation_missing",
+      "ruling": "0032 product-owned account recovery minimal protocol",
+      "registry_version": "2026-09-11.1",
+      "why": "Named recipient_method=hardware_wrapped_key, which is not a v1 enum value, and trusted_recovery_service.attestation_required, which ruling 0032 deleted together with the hardware attestation framework. No v1 carrier can raise it."
+    },
+    {
+      "code": "share_commitment_mismatch",
+      "ruling": "0032 product-owned account recovery minimal protocol",
+      "registry_version": "2026-09-11.1",
+      "why": "Only reachable during threshold_recovery share reconstruction. Ruling 0032 deleted the threshold_recovery method, its shares[] and share_commitment from the closed recovery policy, so the check has no wire object to run against."
     }
   ]
 }

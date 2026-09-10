@@ -83,7 +83,7 @@ identity root key 表示 DID method 的初始与后继更新控制材料。对 A
 
 Arkret v1 不定义独立的账户级设备签名层级。高权限 PCR Event 由当前 generation 的 accepted device 签署；全设备丢失时只允许 §14 的 replacement-device-signed recovery unit 特例。recovery policy 的 quorum/signer 验证 session factor，不能代签该 unit。identity root 仅承担 §3.1 的封闭用途。任何实现都不得从 DID Document 的普通 verification method 推导设备授权。
 
-`principal_signing` 不是 v1 的密钥类型、proof kind 或兼容别名。需要当前设备持有证明的普通操作使用明确的 current-device 分支；需要恢复权威的操作使用 `did_root`、`recovery_unlock`、`device_quorum`、`trusted_recovery_service` 或 `threshold_recovery` 中实际被 recovery policy 接受的分支。实现不得把其中任一分支重命名为“principal signing”，也不得让一把日常 device key 因名称含混而取得恢复或高风险销毁权限。
+`principal_signing` 不是 v1 的密钥类型、proof kind 或兼容别名。需要当前设备持有证明的普通操作使用明确的 current-device 分支；需要恢复权威的操作使用 `did_root`、`recovery_unlock`、`device_quorum` 或 `trusted_recovery_service` 中实际被 recovery policy 接受的分支。实现不得把其中任一分支重命名为“principal signing”，也不得让一把日常 device key 因名称含混而取得恢复或高风险销毁权限。
 
 ### 3.3 Recovery Secret 与域分隔子键
 
@@ -1012,7 +1012,7 @@ server 只存 ciphertext、索引和 signed metadata，不能解密、重签或�
 恢复流程：
 
 1. 新设备生成 device key。
-2. 用户输入 Recovery Key（24 词助记词，§3.3），或按 recovery policy 收集 recovery shares / 完成硬件解锁；仅当目标是 `passphrase_kdf` envelope 时才输入对应口令（§7.5.1）。
+2. 用户输入 Recovery Key（24 词助记词，§3.3），或按 recovery policy 完成 `device_quorum` / `trusted_recovery_service` / `did_root` 授权；仅当目标是 `passphrase_kdf` envelope 时才输入对应口令（§7.5.1）。
 3. 客户端解密 backup envelope。
 4. 客户端验证 backup commitment。
 5. 客户端用 recovery policy 发布 `recover` 或 `ak.device.authorize`。
@@ -1088,15 +1088,15 @@ KeyPackage 对外 claim 不携带 PCR/device history sidecar。origin Station �
 
 集中要点（与下列 §7.5.1–§7.5.5 的分散规则一致，本表为 normative summary）：
 
-- **`passphrase_kdf` 仅 `secret_storage`**：`mls_history` MUST NOT 使用 `passphrase_kdf`，即便作为 fallback 也不允许（单一口令不得直接解锁 MLS 历史）。需要口令参与时，口令只能先解锁 `secret_storage` root、recovery private key、threshold share 或 hardware wrapper 的本地保护层，再由 `recovery_public_key` / `secret_storage_key` 完成对应 `backup_kind` 的释放。
-- **recovery 私钥释放强度（normative 澄清）**：本矩阵在 envelope 层禁止 `mls_history` 用低熵口令派生（`passphrase_kdf`），确保 E2EE 历史不被单一**低熵**口令直接控制。recovery **私钥本身**的释放强度由 §8 recovery policy 的 `methods[]` 决定：当 policy 仅配置单个 `recovery_unlock`（单把高熵 24 词助记词签名）时，恢复强度即等同于该单一高熵助记词——这是 v1 default profile **有意接受**的取舍（高熵单因子 ≠ 低熵口令）。高价值 / 组织账号 SHOULD 按 §7.11 配置门限方法（`threshold_recovery`）或明确的 `approval_requirement` AND 条件；新增独立 OR method 不提高其它方法的门限，不得将多个可替代方法误当作多因素叠加。
+- **`passphrase_kdf` 仅 `secret_storage`**：`mls_history` MUST NOT 使用 `passphrase_kdf`，即便作为 fallback 也不允许（单一口令不得直接解锁 MLS 历史）。需要口令参与时，口令只能先解锁 `secret_storage` root、recovery private key 或 hardware wrapper 的本地保护层，再由 `recovery_public_key` / `secret_storage_key` 完成对应 `backup_kind` 的释放。
+- **recovery 私钥释放强度（normative 澄清）**：本矩阵在 envelope 层禁止 `mls_history` 用低熵口令派生（`passphrase_kdf`），确保 E2EE 历史不被单一**低熵**口令直接控制。recovery **私钥本身**的释放强度由 §8 recovery policy 的 `methods[]` 决定：当 policy 仅配置单个 `recovery_unlock`（单把高熵 24 词助记词签名）时，恢复强度即等同于该单一高熵助记词——这是 v1 default profile **有意接受**的取舍（高熵单因子 ≠ 低熵口令）。高价值 / 组织账号 SHOULD 改用 `device_quorum`（多设备门限）或 `trusted_recovery_service`（产品完成自己的身份核验后签发受限恢复授权），并 MAY 设置 §8.1 的 `cooldown_seconds`；新增独立 OR method 不提高其它方法的门限，不得将多个可替代方法误当作多因素叠加。
 - **`secret_storage_key` 不可 bootstrap**：新设备 MUST NOT 通过 `secret_storage_key` envelope 直接 bootstrap，必须先用 `passphrase_kdf` 或经 recovery policy 释放的 `recovery_public_key` 解出 root secret storage key（消除"新设备能解 wire envelope"的循环依赖）。
-- **门限属于 recovery policy 层**：threshold personal-principal shares 与 trusted custodial recovery service shares 可以保护 recovery private key 或 secret storage root 的释放，但不得作为 `ak.schema.key_backup.v1.encryption.recipient_method`。v1 Recovery Share 不声明 hardware-module holder 分支；相关 proof transcript 由 §8 recovery policy 与 `ak.schema.recovery_session.v1` 约束。
+- **恢复授权属于 recovery policy 层**：`device_quorum`、`trusted_recovery_service` 与 `did_root` 可以保护 recovery private key 或 secret storage root 的释放，但不得作为 `ak.schema.key_backup.v1.encryption.recipient_method`。v1 没有 share、holder 或 hardware-module 分支；相关 proof transcript 由 §8 recovery policy 与 `ak.schema.recovery_session.v1` 约束。
 - 所有 fail-closed 判定 MUST 在解密尝试之前完成；服务端 / receiver 不得对 `forbidden` 组合"先解密再检查"。
 
 #### 7.5.1 `passphrase_kdf`
 
-参考 §7.2：Argon2id（或显式 degraded PBKDF2）派生 root key，HKDF 派生 `commitment_key` 与 `nonce_key`，AEAD AAD 覆盖全部 envelope metadata。`passphrase_kdf` 仅用于 `secret_storage` envelope；`mls_history` envelope MUST NOT 使用 `passphrase_kdf`，即使作为 fallback 也不允许。需要用户口令参与 MLS 历史恢复的实现 MUST 让口令先解锁 `secret_storage` root、recovery key、threshold share 或 hardware wrapper 的本地保护层，而不是在 wire 上发布 `backup_kind="mls_history", recipient_method="passphrase_kdf"` 的 envelope。
+参考 §7.2：Argon2id（或显式 degraded PBKDF2）派生 root key，HKDF 派生 `commitment_key` 与 `nonce_key`，AEAD AAD 覆盖全部 envelope metadata。`passphrase_kdf` 仅用于 `secret_storage` envelope；`mls_history` envelope MUST NOT 使用 `passphrase_kdf`，即使作为 fallback 也不允许。需要用户口令参与 MLS 历史恢复的实现 MUST 让口令先解锁 `secret_storage` root、recovery key 或 hardware wrapper 的本地保护层，而不是在 wire 上发布 `backup_kind="mls_history", recipient_method="passphrase_kdf"` 的 envelope。
 
 **与 recovery secret 的关系（normative）**：内容恢复的标准用户凭证是 §3.3 recovery secret；它经固定域派生 backup-HPKE key。实现 SHOULD NOT 引入独立 vault 口令作为标准凭证。
 
@@ -1107,14 +1107,14 @@ KeyPackage 对外 claim 不携带 PCR/device history sidecar。origin Station �
 
 DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 
-- `recipient_key_ref` MUST 是 envelope 的 `recovery_policy_ref` 所指 accepted recovery policy（§8）中 `methods[].keys[].backup_hpke.key_agreement_ref` 或 threshold method 的 `publication_key.backup_hpke.key_agreement_ref`。DID Document-only `recoveryKeyAgreement` 不是授权源，MUST reject。该 ref MUST NOT 指向 method signing entry 的 `verification_method`：后者只标识 recovery-proof 签名 key。receiver 必须从同一 policy entry 取得 X25519 `public_key_multibase`，并确认 `encryption.hpke_suite` 在该 entry 的 `hpke_suites` 中。
+- `recipient_key_ref` MUST 是 envelope 的 `recovery_policy_ref` 所指 accepted recovery policy（§8）中 `methods[kind=recovery_unlock].keys[].backup_hpke.key_agreement_ref`。DID Document-only `recoveryKeyAgreement` 不是授权源，MUST reject。该 ref MUST NOT 指向 method signing entry 的 `verification_method`：后者只标识 recovery-proof 签名 key。receiver 必须从同一 policy entry 取得 X25519 `public_key_multibase`，并确认 `encryption.hpke_suite` 在该 entry 的 `hpke_suites` 中。
 - HPKE suite MUST 是 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active 行，由 `encryption.hpke_suite` 选定；该字段缺省时 MUST 解释为 default-MUST 行 `ak.hpke_x25519_aead_chacha20poly1305.v1`。`aead.name` MUST 等于所选 suite 的 AEAD。遇到未登记、非 active 或 reserved-未激活的 suite id，receiver MUST fail closed（`unsupported_hpke_suite`），MUST NOT 自由组合未登记的 KEM/KDF/AEAD，也 MUST NOT 仅凭 `aead.name` 推断 suite 参数。P-256 KEM 互操作经 profile-gated 行 `ak.hpke_p256_aead_aes256gcm.v1`（`ak.profile.hpke.p256.v1`）提供。HPKE 单发 base-mode 由 key schedule 内部派生 AEAD nonce，故 `recovery_public_key` envelope 不携带 wire `nonce`。
 - HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_seq, actor_id, backup_kind, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
 - 普通 DID root generation 轮换不改变 backup-HPKE key。只有 recovery secret handoff 才改变 recipient key；handoff 后所有 active backup class MUST 按 §3.3 建新 series/重封装并推进 signed active-series pointer。
 - 任何 `recipient_method="recovery_public_key"` envelope 都 MUST 携带 `recovery_policy_ref{policy_id, policy_version}`；它作为实际存在的顶层成员自动进入 §7.2 的完整 envelope 签名转录。`recipient_key_ref` 只在该 accepted policy 的 method 内联 `backup_hpke` 中解析。各 backup class 在读取/恢复时 MUST 验证 referenced policy 仍属于该 principal 的 accepted policy history，并按 active-series 与轮换规则拒绝回滚。不匹配 MUST `recovery_policy_mismatch`。这项 policy 绑定不替代 MLS 历史或 secret-storage 的独立授权判断。
 - **备份接收 key 的角色隔离（normative）**：wire 名称 `recovery_public_key` 指 §3.3 派生的 X25519 backup-HPKE public key。它与 Ed25519 recovery-proof key、任一代 identity root 是不同 key，但三者来自同一用户 recovery secret。实现 MUST NOT 在 `secret_storage` 中再制造第四把长期 backup keypair，也不得把 Ed25519 key 转换成 X25519 key。
 
-recovery policy 的 signing entry MUST 内联独立 `backup_hpke` entry：`recovery_unlock.keys[]` 与 `threshold_recovery.publication_key` 各自闭合其许可方法，recipient ref 唯一解析到其中的 `backup_hpke.key_agreement_ref`，不得跨 method 猜选。HPKE entry 的 use 固定为 `backup_hpke`，只能接收备份，不能验 recovery proof 或授权 DID/Event。向量 `ak.vector.identity.recovery_key_role_separation.v1` 验证这些独立角色。所有内联材料进入完整 policy 签名；悬空/重复 ref、同一 signing/HPKE material、suite 不匹配、已撤销/过期或 DID Document-only 旁路均 fail closed。
+recovery policy 的 signing entry MUST 内联独立 `backup_hpke` entry：`recovery_unlock.keys[]` 是 v1 唯一携带 backup-HPKE recipient 的 method entry，recipient ref 唯一解析到其中的 `backup_hpke.key_agreement_ref`，不得跨 method 猜选。HPKE entry 的 use 固定为 `backup_hpke`，只能接收备份，不能验 recovery proof 或授权 DID/Event。向量 `ak.vector.identity.recovery_key_role_separation.v1` 验证这些独立角色。所有内联材料进入完整 policy 签名；悬空/重复 ref、同一 signing/HPKE material、suite 不匹配、已撤销/过期或 DID Document-only 旁路均 fail closed。
 
 #### 7.5.3 `secret_storage_key`
 
@@ -1126,20 +1126,19 @@ recovery policy 的 signing entry MUST 内联独立 `backup_hpke` entry：`recov
 - 这是为了消除"新设备能解 wire envelope"的循环依赖。
 - **AEAD nonce 唯一性（normative）**：`secret_storage_key` 是长期复用的对称 wrap key，因此 `aead.nonce` MUST 在该 `recipient_key_ref` key 的整个生命周期内对每条 envelope 唯一——producer MUST 为每条新 envelope 生成至少 96-bit 的随机 nonce（或在该 key 下严格单调不回绕的 counter），且 MUST NOT 用同一 (`recipient_key_ref` key, `aead.nonce`) 对写第二条 envelope；需要更新内容时 MUST 生成新 `backup_id` 与新 `nonce`，并 SHOULD 轮换底层 wrap key。`nonce` 作为 `encryption.aead` 成员自动进入 §7.2 的完整 envelope 签名转录，并进入 AEAD AAD。该约束与 `passphrase_kdf` 的 `nonce_salt` deterministic derivation（§7.5.1）、`recovery_public_key` 的 HPKE 内部 nonce 派生共同关闭三种 `recipient_method` 的 nonce-reuse 面。
 
-#### 7.5.4 门限恢复作为 recovery policy 层
+#### 7.5.4 恢复授权因子不是 recipient method
 
-v1 core 不把 `threshold_recovery` 作为 `ak.schema.key_backup.v1.encryption.recipient_method`。门限恢复在 policy 层重建/释放 recovery secret 或明确的 backup-HPKE key material；客户端随后用 `recovery_public_key` 或 `secret_storage_key` 解开 envelope。
+`ak.schema.key_backup.v1.encryption.recipient_method` 的封闭枚举只有 §7.5.1–§7.5.3 三项。recovery policy 的 `methods[]`（`did_root` / `recovery_unlock` / `device_quorum` / `trusted_recovery_service`）是 policy 层的解锁因子，MUST NOT 出现在 `recipient_method` 位置；`threshold_recovery`、`hardware_wrapped_key`、`device_snapshot_secret` 既不是 v1 recovery method 也不是 v1 recipient method，receiver / validator MUST fail closed。
 
-- 每份 share 的取回 MUST 绑定当前 recovery 流程的 `recovery_session_id`（见 [`../crypto-media/device-lifecycle.md` §14](../crypto-media/device-lifecycle.md)）；holder 服务 MUST NOT 把同一 share 多次释放给不同 session 而不经显式授权。
-- reconstruction 完成的 recovery secret、PRK 或任一派生 private key MUST NOT 写入在线持久化存储；上下文在用途结束后立即清除。
-- share commitment 校验：reconstruction 前 client / recovery coordinator MUST 验证每份 share 与 `recovery_policy.threshold.shares[].share_commitment` 一致；失败时 MUST `share_commitment_mismatch` 并通知用户特定 holder 提交了 invalid share。
+- 恢复授权在 policy 层完成后才释放 recovery private key 或 secret-storage root，客户端随后用 `recovery_public_key` 或 `secret_storage_key` 解开 envelope；授权本身不解密任何 envelope。
+- 释放出的 recovery secret、PRK 或任一派生 private key MUST NOT 写入在线持久化存储；上下文在用途结束后立即清除。
+- v1 不定义份额、持有者释放、可验证秘密共享或再分享编排。产品若在自己内部使用多方审批或份额保护，最终 MUST 以 §8.2 的单一恢复授权进入协议；协议不接收也不校验这些内部材料。
 
 #### 7.5.5 硬件本地保护层
 
-v1 core 不把 `hardware_wrapped_key` 作为 `ak.schema.key_backup.v1.encryption.recipient_method`，也没有独立 hardware recovery method。HSM、TPM 或 Secure Enclave MAY 在本地保护既有方法使用的 recovery secret、threshold share、backup-HPKE key 或 secret-storage root；该本地保护不产生新的 policy authority，也不改变 `methods[]`、门限或签名验证规则。
+v1 core 不把 `hardware_wrapped_key` 作为 `ak.schema.key_backup.v1.encryption.recipient_method`，也没有独立 hardware recovery method。HSM、TPM 或 Secure Enclave MAY 在本地保护既有方法使用的 recovery secret、backup-HPKE key 或 secret-storage root；该本地保护不产生新的 policy authority，也不改变 `methods[]`、门限或签名验证规则。
 
-- closed recovery policy 不接受自定义 hardware profile、wrap key id 或 hardware holder 字段；不得以这些字段、任意 `did:key` 或“硬件已解锁”的本地标记满足恢复授权。
-- 若 policy 的 `trusted_recovery_service` 要求 `attestation_required=true`，receiver MUST 真正验证对应服务 attestation。没有已登记、可执行的 attestation profile 或实现不支持时，MUST fail closed，并明确报告不支持或约束未满足；不得忽略该要求或只检查 evidence 存在。
+- closed recovery policy 不接受自定义 hardware profile、wrap key id、hardware holder 或 attestation 字段；不得以这些字段、任意 `did:key` 或“硬件已解锁”的本地标记满足恢复授权。v1 没有 `attestation_required` 之类的可配置外观，实现 MUST NOT 复活它。
 - `recipient_method=hardware_wrapped_key` MUST 被 schema/receiver 拒绝为未知枚举值。未来若引入可互操作的硬件证明，必须先定义签名原像、session/challenge 绑定、受信 profile、key identity、验证与失败合同，再登记对应能力；v1 不承诺可配置该能力。
 
 #### 7.5.6 Agent PCR history-only backup（normative）
@@ -1195,7 +1194,7 @@ cursor 是自己 Station 签发的 opaque 列表位置，绑定 operation、完�
 
 恢复 UI 是用户唯一能识别"我在恢复一个真实的自己 vs 我在被钓鱼"的界面。实现 MUST：
 
-- 密钥备份解密凭证 MUST 是 Recovery Key（24 词 BIP-39 助记词，§3.3）：由其派生 / 解锁 recovery private key 后按 §7.5.2 HPKE-open `recovery_public_key` envelope，或按 recovery policy（§8）的 threshold method 释放同一 recovery private key；硬件只能作为 §7.5.5 的本地保护层。恢复 UI MUST NOT 要求用户设置独立 vault passphrase 作为标准凭证；仅当目标 envelope 是 `passphrase_kdf`（§7.5.1）时，MAY 提示输入对应口令完成解密，并 SHOULD 在恢复成功后引导写入加密给 recovery key 的新 envelope（§7.5.2，按 §7.6 series 规则开新链或追加）。
+- 密钥备份解密凭证 MUST 是 Recovery Key（24 词 BIP-39 助记词，§3.3）：由其派生 / 解锁 recovery private key 后按 §7.5.2 HPKE-open `recovery_public_key` envelope；硬件只能作为 §7.5.5 的本地保护层。恢复 UI MUST NOT 要求用户设置独立 vault passphrase 作为标准凭证；仅当目标 envelope 是 `passphrase_kdf`（§7.5.1）时，MAY 提示输入对应口令完成解密，并 SHOULD 在恢复成功后引导写入加密给 recovery key 的新 envelope（§7.5.2，按 §7.6 series 规则开新链或追加）。
 - 在尝试解密任何备份 envelope 之前，向用户展示：`backup_kind`、`series_id`、`series_seq`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）与 `frontier_ref.device_generation_ref`。
 - 在使用 `passphrase_kdf` 时，明确展示 KDF（Argon2id / PBKDF2）与参数；用 PBKDF2 的 envelope MUST 在 UI 中显示 `degraded_profile_reason`，且不得自动选用 PBKDF2 envelope 当 Argon2id envelope 同时存在。
 - 在 envelope 携带 `mixed_secret_storage=true` 时 MUST 显著警告"该备份同时保护身份签名与 E2EE 历史，单一口令被攻破将同时丢失两者"；非 `personal_node` profile 下 MUST 直接拒绝展示此类 envelope 作为 primary recovery source。
@@ -1341,34 +1340,42 @@ Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。
 Policy 签名输入固定为 `UTF8("ak.identity.recovery_policy.signature.v1\n") || RFC8785_JCS(policy 的全部实际存在顶层成员，排除 auth_data)`。schema 允许的 optional 成员出现时自动进入投影，缺席时省略；只有 schema 明确允许 `null` 的位置才能保留 `null`。wire 上不携字段名清单，receiver 不得按调用方自报清单缩小投影。
 
 - **publish**：首次发布或后续无中断更新。新 envelope 的 `version` MUST 严格大于当前 accepted policy 的 `version`，`supersedes` MUST 引用前一份 `policy_id`（首版为 `null`）。
-- **rotate**：用于 `reshare_policy` 触发的 proactive secret sharing 或更换 holder 集合；出现的 methods、threshold share commitment 自动进入上述完整 policy 投影。轮换期内的 in-flight recovery session（参见 `crypto-media/device-lifecycle.md` §14）MUST 使用其 `issued_at` 时点的 policy；服务端 / coordinator MUST 拒绝跨 policy 版本拼接 share。
-- **revoke share**：当某个 share holder 被怀疑泄露时，policy holder 可发布只更新 threshold method 的 `shares[i].revoked_at` 与 `revocation_reason_code` 的 rotate envelope。recovery coordinator MUST 拒绝任何 `revoked_at != null` 的 share，即便 commitment 仍能通过。`reshare_policy.max_share_age_seconds` 到期后未 reshare 的 share 在 coordinator 侧 MUST 被视为 stale，UI MUST 提醒用户。
-- **revoke policy**：唯一显式形式是发布下一版本 `methods=[]`；它使未完成 session、尚有效 publication lease 和尚未 accepted reanchor 全部失效。后续只有发布新的 active policy 才能恢复。`expires_at` 表达自然过期：到期不得创建或推进恢复 session，也不得新接受恢复 publication；它不是另一种撤销编码。普通 rotate 允许未被显式撤销且未过期的 in-flight session 继续使用创建时 frozen policy；不得跨版本拼接材料。 session 授权消费 MUST 重查该完整 AccountId 的 accepted policy 历史；一次明确 revoke 不能被后续重新启用 policy 消除。session verified 转换、backup unlock/delete、恢复 transaction step 与首次 reanchor 接纳必须把该检查和相应写入置于同一共享耐久事务边界，使用与 policy 发布一致的账户锁序；仅 HTTP 预检查不足以阻止并发撤销。share/key 显式 revoked_at 必须对尚未 accepted 的恢复及时生效，不能借 frozen snapshot 绕过泄露撤销。已接受的 reanchor 不因事后 policy revoke 回滚。
+- **rotate**：用于更换 `methods[]` 中的 key、成员设备或恢复授权方；出现的成员自动进入上述完整 policy 投影。轮换期内的 in-flight recovery session（参见 `crypto-media/device-lifecycle.md` §14）MUST 使用其 `issued_at` 时点的 policy；服务端 MUST 拒绝跨 policy 版本拼接材料。
+- **revoke key**：当某把 `recovery_unlock` key 被怀疑泄露时，policy holder 发布只更新该 entry `revoked_at` 的 rotate envelope。receiver MUST 拒绝任何 `revoked_at != null` 的 entry，即便签名本身有效；该拒绝 MUST NOT 影响同一 policy 中未被撤销的其它独立 OR 方法。
+- **revoke policy**：唯一显式形式是发布下一版本 `methods=[]`；它使未完成 session、尚有效 publication lease 和尚未 accepted reanchor 全部失效。后续只有发布新的 active policy 才能恢复。`expires_at` 表达自然过期：到期不得创建或推进恢复 session，也不得新接受恢复 publication；它不是另一种撤销编码。普通 rotate 允许未被显式撤销且未过期的 in-flight session 继续使用创建时 frozen policy；不得跨版本拼接材料。 session 授权消费 MUST 重查该完整 AccountId 的 accepted policy 历史；一次明确 revoke 不能被后续重新启用 policy 消除。session verified 转换、backup unlock/delete、恢复 transaction step 与首次 reanchor 接纳必须把该检查和相应写入置于同一共享耐久事务边界，使用与 policy 发布一致的账户锁序；仅 HTTP 预检查不足以阻止并发撤销。`recovery_unlock` key 的显式 `revoked_at` 必须对尚未 accepted 的恢复及时生效，不能借 frozen snapshot 绕过泄露撤销。已接受的 reanchor 不因事后 policy revoke 回滚。
 
-**唯一方法来源**：signed policy 只有 `methods[]`，tag 每种最多一条。每个 entry 是独立 OR 恢复方法：`did_root {}`、`recovery_unlock {keys[]}`、`device_quorum {k,member_ids[]}`、`threshold_recovery {k,shares[],publication_key,...}`、`trusted_recovery_service {k,services[]}`。threshold/quorum 必须按不同有效 holder 去重并满足 2 ≤ k ≤ n；trusted service 必须 1 ≤ k ≤ distinct services，逐字匹配 accepted policy 的 service id、authorization_verification_method 和 audience，不能用 DID Document membership 或任意字段“提及”替代。did_root 只声明 opt-in，由 DID history/pre-rotation 验证当前 root，不钉一把跨代静态 root，也不接受设备 key 代替。一个方法的证明不得拼给另一个方法凑门限。
+**唯一方法来源**：signed policy 只有 `methods[]`，tag 每种最多一条，v1 的封闭四项是 `did_root {}`、`recovery_unlock {keys[]}`、`device_quorum {k,member_ids[]}`、`trusted_recovery_service {services[]}`。每个 entry 是独立 OR 恢复方法。device_quorum 必须按不同有效设备去重并满足 2 ≤ k ≤ n。trusted_recovery_service 的 `services[]` 之间也是 OR：恰好一条 entry 的 `service_id`、`authorization_verification_method` 与 `audience` MUST 与提交的授权逐字相等，没有跨 entry 门限，也不存在部署级恢复签发方；不能用 DID Document membership 或任意字段“提及”替代。did_root 只声明 opt-in，由 DID history/pre-rotation 验证当前 root，不钉一把跨代静态 root，也不接受设备 key 代替。一个方法的证明不得拼给另一个方法凑门限。
 
-publication authority、UI 与 session verifier MUST 从该 entry 同源派生：rule id = kind，role 固定 identity_recovery，action 固定 ak.device.reanchor；recovery_unlock 的 issuer = active keys、threshold 的唯一 issuer = publication_key（外层签名门限 1，不能混淆 shares.k）；device_quorum issuer 来自该 accepted basis 上 member_ids 对应 active device methods、门限 k；trusted service issuer 为 exact policy methods、门限 k；did_root 从 accepted DID history 取 root authority。排序去重与有效期检查在计算 authority_set_digest 前完成。衍生 rule 不是 policy 中第二份可编辑配置。
+publication authority、UI 与 session verifier MUST 从该 entry 同源派生：rule id = kind，role 固定 identity_recovery，action 固定 ak.device.reanchor；recovery_unlock 的 issuer = active keys、门限 1；device_quorum issuer 来自该 accepted basis 上 member_ids 对应 active device methods、门限 k；trusted service issuer 为 `services[]` 的 exact `authorization_verification_method` 集合、门限 1；did_root 从 accepted DID history 取 root authority。排序去重与有效期检查在计算 authority_set_digest 前完成。衍生 rule 不是 policy 中第二份可编辑配置。
 
-`approval_requirement` 是独立 signed AND 约束，出现即必须执行所有 min_approvals/cooldown/announcement 条件；尚不支持的实现 MUST fail closed，不能忽略已签安全条件。trusted service 作为显式 OR 方法的能力保留，不能在归一时自动改成 AND。恢复权限只授权受限 reanchor/unlock，不能自动授予 active backup 删除或任意内容发布；高风险删除仍执行 §7.8.1 的独立 intent 与权限条件。
+**可执行性与失败合同**：v1 没有通用 approval AND 层、announcement 等待或部署级支持矩阵；`min_approvals`、`announcement_required`、`attestation_required` 与服务 k-of-n 都不是 v1 wire 字段，实现 MUST NOT 复活它们。
+policy 的唯一附加约束是顶层 `cooldown_seconds`：出现即 MUST 执行，接收方 MUST 拒绝在恢复会话 `created_at` 起未满该秒数时提交的 proof。
 
-任何允许的恢复方式（did_root / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 create request、session state 与 proof transcript MUST 绑定 exact closed `account_id: AccountId {principal_id, station_id}`，以及 `(policy_id, version, recovery_session_id)`；create wire 不接受旧顶层 `principal_id`。接收方 MUST 要求 `account_id.station_id` 等于自身 authenticated service DID，并以完整 pair 选择唯一 lifetime PCR lineage，unknown/wrong-service/mismatch fail closed。不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 create `request_id`、认证该 create 的 `recovery_session` SessionGrant id、该 grant 的 `cnf.jkt`、`requesting_device_id`、`requesting_device_public_key_did`、`trust_domain`、`identity_model="pcr_policy"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation，且不得由 DID `versionId` 推导。get、proof submit、backup unlock 与 RecoveryTransaction MUST 出示同一 grant/JKT；transport grant、session state 或 proof transcript 任一 binding 不同都必须 `recovery_evidence_unbound`。`did_root` 仅在冻结 policy 显式启用时成立。
+发布（publish / rotate）时接收方 MUST 拒绝自身不可执行的 policy，而不是接受后在真正恢复时才暴露：`device_quorum.k` 大于去重后的有效成员数、`recovery_unlock` entry 的有效期或 `backup_hpke` ref 自相矛盾、`trusted_recovery_service` entry 的 `authorization_verification_method` 的 controller 投影不等于同 entry 的 `service_id`，都 MUST reject，且这一类**发布期**拒绝 MUST 使用 `failed_precondition`——它判定的是这份 policy 自身不可执行，不是某次恢复证明与 policy 不匹配，MUST NOT 复用下文的 `recovery_policy_mismatch`。**恢复执行期**的四类失败必须稳定可分且只使用 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 已登记的 code：不支持用 `recovery_proof_kind_unimplemented`（501），policy 不允许该 kind 用 `recovery_proof_kind_not_allowed`（409），授权条件未满足（冷却未到、门限不足、逐字匹配失败、设备未授权）用 `recovery_policy_mismatch` / `recovery_policy_device_unauthorized`（409），签名不验证用 `signature_invalid`（401），失效或撤销用 `recovery_policy_revoked`（409）与 `auth_expired`（401）。已签的约束 MUST NOT 被静默忽略：无法执行时 fail closed，不得把多因素授权降级成单因素。部署能力仍复用既有 ServiceDescribe 能力声明与协商，MUST NOT 另建第二套恢复策略来源或方法支持矩阵。
+
+恢复权限只授权受限 reanchor/unlock，MUST NOT 自动授予历史内容解密、active backup 删除或任意内容发布；高风险删除仍执行 §7.8.1 的独立 intent 与权限条件，历史内容解密仍以 MLS 与 backup envelope 自身的授权与密钥要求为准。恢复通过不等于备份或历史消息已恢复。
+
+任何允许的恢复方式（did_root / recovery_unlock / device_quorum / trusted_recovery_service）的 create request、session state 与 proof transcript MUST 绑定 exact closed `account_id: AccountId {principal_id, station_id}`，以及 `(policy_id, version, recovery_session_id)`；create wire 不接受旧顶层 `principal_id`。接收方 MUST 要求 `account_id.station_id` 等于自身 authenticated service DID，并以完整 pair 选择唯一 lifetime PCR lineage，unknown/wrong-service/mismatch fail closed。不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 create `request_id`、认证该 create 的 `recovery_session` SessionGrant id、该 grant 的 `cnf.jkt`、`requesting_device_id`、`requesting_device_public_key_did`、`trust_domain`、`identity_model="pcr_policy"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation，且不得由 DID `versionId` 推导。get、proof submit、backup unlock 与 RecoveryTransaction MUST 出示同一 grant/JKT；transport grant、session state 或 proof transcript 任一 binding 不同都必须 `recovery_evidence_unbound`。`did_root` 仅在冻结 policy 显式启用时成立。
 
 `recovery-session.schema.json#/$defs/publication_authority_context` 的 schema identity 固定
 `pcr_policy` authority model，因此该内嵌 context 不携 `identity_model`；session state 与 proof transcript
 中进入签名/绑定原像的 `identity_model` 仍保留，consumer 不得用前者的省略删除后者。
 
-### 8.2 Holder 取回与防滥用
+### 8.2 恢复授权方与精确授权（normative）
 
-share holder 必须由 `holder_kind` 的封闭二分支表达：`personal_principal` 仅携 `holder_principal_id`，`custodial_service` 仅携 `holder_service_id`。v1 不接受 hardware-module 分支，也不把任意 `did:key` 当作硬件保证。两类 holder 在向恢复请求方释放 share 时 MUST：
+产品自行完成人脸、身份证明、人工审核、企业审批、通知等待等身份核验；这些流程、材料与证据 MUST NOT 进入协议，接收方也 MUST NOT 接收或校验它们。协议只回答三件事：账号是否**事先**授权了这位恢复授权方，该授权方是否为**本次**账号控制权变更签发了有效且精确绑定的授权，以及这次执行**现在**是否仍被允许。
 
-- 验证 `recovery_session_id` 来源——session id MUST 来自当前 accepted recovery policy 中的 announcement event 或 trusted_recovery_service 签发的 challenge；不得接受任何 client 直接构造的 session id。
-- 在签发 share release 之前 MUST 验证 holder 自己未被 §8.1 revoke，且当前时间在该 share 的 `not_before` / `expires_at` 范围内。
-- share release 的请求方绑定按 `proof_kind` 分流：
-  - `device_quorum`：请求方设备的 device key MUST 已绑定到目标 principal control stream 中某个尚未 revoke 的 device record；不满足则拒绝 release。
-  - `threshold_recovery` / `recovery_unlock`：请求方设备 MAY 是尚未授权的新设备。holder MUST 验证 `recovery_session_id`、当前 policy/version、identity model/model generation、requesting device key proof-of-possession、session challenge、`requesting_device_id` 与冻结的 `requesting_device_public_key_did` 均与 share request transcript 一致，并按 policy 要求完成 holder 侧 OOB / announcement / approval 检查；MUST NOT 要求该新设备预先存在于 control stream。若没有 accepted device，恢复完成出口必须按 `crypto-media/device-lifecycle.md` §14 提交由同一 replacement device identity key 签署两条 Event 的原子 unit；不得追加 DID-root Event 签名条件。
-  - 其它 future `proof_kind` 未在 policy 中 active 登记前 MUST fail closed；不得把 `threshold_recovery` 当作 `device_quorum` 的弱化别名。
-- share release transcript MUST 绑定 `(share_id, holder, recovery_session_id, requesting_device_id, audience, issued_at)`，并由 holder 签名；coordinator 在 reconstruction 之前 MUST 重放该 transcript 比对，并 MUST NOT 把同一 transcript 用于两次 reconstruction。
-- holder MAY 引入额外 OOB confirmation（电话回拨、共享密语）；该层不在 protocol normative 之内，但被纳入 holder 自身的安全 surface。
+**事先授权**：恢复授权方只能由账号自己经既有合法授权路径写入 accepted recovery policy 的 `methods[kind=trusted_recovery_service].services[]`。产品、部署管理员或 Station MUST NOT 因完成了身份审核而对任意账号取得恢复权；不在该账号 accepted policy 中逐字登记的签发方一律 fail closed。产品内的登录找回与整个账号控制权恢复是两件事，产品授权界面 MUST 明确区分；多个产品共享同一账号时，MUST NOT 默认每个产品都持有整账号恢复权。
+
+**精确授权**：授权 MUST 由 `services[]` 中某一条 entry 的 `authorization_verification_method` 签名，且该 entry 的 `service_id` 与 `audience` MUST 与提交值逐字相等。授权进入签名的 transcript MUST 同时绑定完整 `account_id: AccountId {principal_id, station_id}`、目标新控制密钥（`requesting_device_id` 与冻结的 `requesting_device_public_key_did`）、具体动作（`ak.device.reanchor`）、接收方（`trust_domain` 与 `account_id.station_id`）、本次会话与 challenge（`recovery_session_id`、`policy_id`、`policy_version`、`challenge`、`session_grant_id`、`session_grant_cnf_jkt`）以及明确有效期（`created_at` / `expires_at`）。字段集与字节序按 §8.1 与 [`../crypto-media/device-lifecycle.md` §14](../crypto-media/device-lifecycle.md) 的 canonical transcript。任一绑定不同都 MUST `recovery_evidence_unbound`；该授权 MUST NOT 被挪用到另一账号、另一目标密钥、另一动作、另一部署或另一会话。
+
+**请求方设备绑定**：`recovery_session_id` MUST 来自接收方为本次会话签发的 challenge，MUST NOT 接受调用方自造的 session id。
+
+- `device_quorum`：每个签名设备 MUST 是该 accepted basis 上未撤销的 accepted device，并按不同设备去重后满足 `k`。
+- `recovery_unlock` / `trusted_recovery_service` / `did_root`：请求方设备 MAY 是尚未授权的新设备。接收方 MUST 验证 `recovery_session_id`、当前 policy/version、identity model 与 model generation、请求方设备 key 的 proof-of-possession、session challenge、`requesting_device_id` 与冻结的 `requesting_device_public_key_did` 全部一致，MUST NOT 要求该新设备预先存在于 control stream。
+- 没有 accepted device 时，恢复完成出口 MUST 按 [`../crypto-media/device-lifecycle.md` §14](../crypto-media/device-lifecycle.md) 提交由同一 replacement device identity key 签署两条 Event 的原子 unit；不得追加 DID-root Event 签名条件。
+
+**执行仍被允许**：签名验证通过不足以放行。接收方 MUST 在同一共享耐久事务边界内按 §8.1 重查 bound policy 是否自然到期、后续任一 accepted 版本是否显式撤销、本次所用 key 是否 `revoked_at`，并原子消费该授权以防重放。冻结 session MUST NOT 绕过自然到期与显式撤销；撤销后重新启用 policy MUST NOT 复活旧 session；已完成动作的精确只读回执不构成重新授权。
 
 ## 9. 泄露响应
 
@@ -1422,7 +1429,7 @@ Arkret v1 对设备、会话和恢复要求如下：
 - Session grant MUST 绑定 principal `did_core_id`、device id、service `did_core_id` / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
 - Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes_id` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`mls_history` 域使用 `passphrase_kdf` 的 envelope 被拒绝、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal `did_core_id`、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝无法由当前 `did` / resolution evidence 验证到该 `did_core_id` 与 device trust chain 的 KeyPackage。
-- Recovery policy grammar 由 `ak.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate / share-revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达 threshold、share holder、not_before、expires_at、methods、signed approval requirement 与恢复 receipt；threshold 的总 share 数唯一由 `shares.length` 派生，wire 不携带 `n` 镜像。恢复只改变控制链，不自动授予内容读取或业务 capability。
+- Recovery policy grammar 由 `ak.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate 与 `recovery_unlock` key revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达封闭的 `methods`（`did_root`、`recovery_unlock`、`device_quorum`、`trusted_recovery_service` 四项）、每个 `recovery_unlock` key 的 `not_before` / `expires_at` / `revoked_at`、顶层 `cooldown_seconds` 与恢复 receipt。v1 不存在 threshold、share holder、`n` 镜像或 signed approval requirement，grammar MUST NOT 恢复它们。恢复只改变控制链，不自动授予内容读取、历史内容解密或业务 capability。
 - Recovery policy publication 的 `ak.vector.identity.recovery_policy_publication.v1` MUST 由至少两个独立 runner 覆盖 canonical `EventInitialSubmission`、PCR allowlist/reducer/Seal admission、threshold recovery signing/HPKE key 闭包、issuer projection、跨字段不一致、未 Seal retry 与特殊写路径绕过拒绝。
 - Recovery receipt 由 `ak.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；签名输入固定为 `UTF8("ak.identity.recovery_receipt.signature.v1\n") || RFC8785_JCS(receipt 的全部实际存在顶层成员，排除 auth_data)`，不携字段名清单。`crypto-media/device-lifecycle.md` §14 finalize 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `identity_model` / `previous_model_generation_ref` / `result_model_generation_ref` / authorization path refs / `proof_summary` / `unlocked_backups` / `welcome_count` / `outcome`。
 - Backup series MUST 满足 §7.6：客户端检查自己 Station 列表结果的 exact AccountId、PCR 与当前 active pointer，按 immutable envelope 的 `supersedes_id` 链选择对应尾部并解密；不得以下载或重放 PCR/control stream 历史作为普通备份读取的前置条件。

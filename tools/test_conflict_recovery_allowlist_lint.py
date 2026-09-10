@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -24,6 +25,7 @@ from tools.artifact_lint import core, foundation
 
 EVENT_REGISTRY = ROOT / "spec" / "v1" / "artifacts" / "registry" / "event-kind-registry.json"
 RECOVERY_KIND = core.CONFLICT_RECOVERY_KIND
+NEGATED_HEAD_EQ = re.compile(r"(?:^|[^A-Za-z])(?:no|without)(?:[^.A-Za-z][^.]{0,24})?$")
 EXPECTED_ALLOWLIST = [
     "ak.component.fork_resolution.v1",
     "ak.component.identity.resolution.v1",
@@ -33,6 +35,20 @@ EXPECTED_ALLOWLIST = [
     "ak.component.realm.organization_recovery_key.v1",
     "ak.component.realm.reducer_profile.v1",
 ]
+
+
+def _declares_self_head_eq(row: dict, family: str) -> bool:
+    """True when this writer requires a head_eq on `family`'s own cell.
+
+    Registry rows carry the requirement in admission prose rather than in a
+    structured field, so the match must be positive: an occurrence negated by
+    "no" or "without" states the opposite and MUST NOT count.
+    """
+    text = json.dumps(row, ensure_ascii=False)
+    return any(
+        not NEGATED_HEAD_EQ.search(text[max(0, match.start() - 24) : match.start()])
+        for match in re.finditer("head_eq", text)
+    )
 
 
 def _recovery_write(registry: dict) -> dict:
@@ -72,6 +88,13 @@ class ShippedAllowlistTest(unittest.TestCase):
         A cas_register family whose every writer declares a head_eq on that same
         family has no ordinary-write exit once it is in Bottom, because head_eq
         fails closed there. Such a family must be listed or it becomes a dead cell.
+
+        The predicate reads the declaration, not the word: a row that documents
+        the absence of a self head_eq -- ak.relation.resolve says the Move
+        "carries no head_eq on its own" cell so a Bottom group stays healable by
+        one further authorized resolve -- is not a self-reading writer, and a
+        bare substring search over the row would misread that sentence as its
+        opposite.
         """
         registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
         writers: dict[str, list[dict]] = {}
@@ -81,7 +104,7 @@ class ShippedAllowlistTest(unittest.TestCase):
                     writers.setdefault(write["cell_family"], []).append(row)
         listed = set(_recovery_write(registry)["sole_recovery_families"])
         for family, rows in writers.items():
-            if all("head_eq" in json.dumps(row, ensure_ascii=False) for row in rows):
+            if all(_declares_self_head_eq(row, family) for row in rows):
                 self.assertIn(family, listed, family)
 
     def test_notary_cell_is_not_allowlisted(self) -> None:

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-10.11",
-  "generated_at": "2026-09-10T22:14:26+08:00",
+  "version": "2026-09-11.2",
+  "generated_at": "2026-09-11T04:15:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2611,15 +2611,6 @@
       "description": "Event was rejected because the active capability constraint requires approval evidence (per zh/authz/capabilities.md §6 / §8) and none was supplied."
     },
     {
-      "code": "attestation_missing",
-      "applies_to": [
-        "crypto",
-        "device_recovery",
-        "schema_validation"
-      ],
-      "description": "A `recipient_method=hardware_wrapped_key` key-backup envelope, or a recovery proof requiring hardware attestation, lacks an `attestation` chain that the receiver can verify against the active recovery policy's `methods[kind=trusted_recovery_service].services[]`. See zh/identity/key-management.md §7.5.5."
-    },
-    {
       "code": "audience_mismatch",
       "applies_to": [
         "auth_decision",
@@ -4811,7 +4802,7 @@
         "schema_validation",
         "device_recovery"
       ],
-      "description": "A recovery policy, receipt, or proof names a proof kind outside the ak.schema.recovery_policy.v1 methods kind union. Producers MUST use one of did_root, recovery_unlock, device_quorum, trusted_recovery_service, or threshold_recovery."
+      "description": "A recovery policy, receipt, or proof names a proof kind outside the ak.schema.recovery_policy.v1 methods kind union. Producers MUST use one of did_root, recovery_unlock, device_quorum, or trusted_recovery_service."
     },
     {
       "code": "recovery_session_challenge_mismatch",
@@ -5195,14 +5186,6 @@
         "direct_conversation_readiness"
       ],
       "description": "Closed target-specific Direct Conversation readiness blocker: the otherwise authorized Agent has no current session for the requested send path. It MUST NOT appear in generic Agent readiness."
-    },
-    {
-      "code": "share_commitment_mismatch",
-      "applies_to": [
-        "crypto",
-        "device_recovery"
-      ],
-      "description": "A threshold-recovery share submitted during reconstruction does not match the `share_commitment{algorithm, commitment_b64u}` declared in the active recovery policy. Coordinator MUST notify the user which holder submitted an invalid share. See zh/identity/key-management.md §7.5.4 / §8."
     },
     {
       "code": "sidecar_create_denied",

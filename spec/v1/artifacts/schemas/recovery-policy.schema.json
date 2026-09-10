@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-policy.schema.json",
   "title": "Arkret Recovery Policy",
-  "description": "Normative grammar for an account's PCR recovery policy. Bound through signed control events to one exact AccountId and its local unique PCR lineage; receivers reject recovery and pcr_recovery device authorization whose proof family, threshold or optional DID-root factor is not allowed by the currently accepted policy.",
+  "description": "Normative grammar for an account's PCR recovery policy. Bound through signed control events to one exact AccountId and its local unique PCR lineage; receivers reject recovery and pcr_recovery device authorization whose proof family or optional DID-root factor is not allowed by the currently accepted policy.",
   "type": "object",
   "required": [
     "schema",
@@ -47,26 +47,10 @@
       "$ref": "./common-ids.schema.json#/$defs/trust_domain",
       "description": "Deployment-scope trust domain identifier the policy applies to. Cross-domain proofs MUST fail."
     },
-    "approval_requirement": {
-      "type": "object",
-      "description": "Additional signed AND constraints on every selected method. A receiver MUST enforce every present constraint before verification/publication, or fail closed as unsupported. Absence does not create an extra factor. Existing signed constraints MUST NOT be dropped during migration.",
-      "properties": {
-        "min_approvals": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "cooldown_seconds": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Minimum wall-clock window between recovery announcement and effective key change. Receivers MUST reject control-stream Events whose accepted_at is earlier than announcement_at + cooldown_seconds."
-        },
-        "announcement_required": {
-          "type": "boolean",
-          "default": false,
-          "description": "When true, recovery MUST be announced on the principal control stream and visible to authorized devices before effective key change."
-        }
-      },
-      "additionalProperties": false
+    "cooldown_seconds": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Minimum wall-clock delay, in seconds, between recovery session creation and acceptance of a recovery proof for that session. Receivers MUST reject a proof submitted earlier. Absence is no delay; the value is a signed policy constraint and MUST NOT be ignored."
     },
     "issued_at": {
       "$ref": "#/$defs/timestamp"
@@ -113,12 +97,12 @@
     },
     "methods": {
       "type": "array",
-      "maxItems": 5,
+      "maxItems": 4,
       "uniqueItems": true,
       "items": {
         "$ref": "#/$defs/recovery_method"
       },
-      "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; k counts distinct eligible holders within the selected entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. No constraints may be silently discarded."
+      "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; device_quorum.k counts distinct eligible member devices within that entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. Every published entry MUST be executable by the receiving deployment; no constraint may be silently discarded."
     }
   },
   "patternProperties": {
@@ -166,9 +150,6 @@
       ],
       "description": "Recovery policy publication through the ordinary first-publication Event ingress. Cross-field validation additionally requires payload.policy_id=value.policy_id and actor/scope/lease to bind value.account_id's exact Principal Control Realm."
     },
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "did_url": {
       "$ref": "./account-operations.schema.json#/$defs/did_url"
     },
@@ -206,11 +187,11 @@
         },
         "not_before": {
           "$ref": "#/$defs/timestamp",
-          "description": "Earliest instant this recovery key may authorize a recovery_unlock proof or threshold_recovery publication signature."
+          "description": "Earliest instant this recovery key may authorize a recovery_unlock proof."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Instant after which this recovery key MUST NOT authorize a recovery_unlock proof or threshold_recovery publication signature."
+          "description": "Instant after which this recovery key MUST NOT authorize a recovery_unlock proof."
         },
         "revoked_at": {
           "oneOf": [
@@ -221,7 +202,7 @@
               "$ref": "#/$defs/timestamp"
             }
           ],
-          "description": "When set, the entry is revoked from this instant onward and MUST NOT satisfy any recovery_unlock proof or threshold_recovery publication signature whose binding time is at or after it."
+          "description": "When set, the entry is revoked from this instant onward and MUST NOT satisfy any recovery_unlock proof whose binding time is at or after it."
         },
         "backup_hpke": {
           "$ref": "#/$defs/recovery_key_agreement_entry"
@@ -376,16 +357,16 @@
         },
         "policy": {
           "$ref": "#",
-          "description": "Full accepted ak.schema.recovery_policy.v1 object. Omitted only when the caller is authorized to learn that a policy exists but not to receive holder/share details."
+          "description": "Full accepted ak.schema.recovery_policy.v1 object. Omitted only when the caller is authorized to learn that a policy exists but not to receive the accepted method entries."
         },
         "methods": {
           "type": "array",
-          "maxItems": 5,
+          "maxItems": 4,
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/recovery_method"
           },
-          "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; k counts distinct eligible holders within the selected entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. No constraints may be silently discarded."
+          "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; device_quorum.k counts distinct eligible member devices within that entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. Every published entry MUST be executable by the receiving deployment; no constraint may be silently discarded."
         }
       },
       "additionalProperties": false
@@ -475,162 +456,6 @@
       },
       "additionalProperties": false
     },
-    "recovery_share_holder": {
-      "type": "object",
-      "description": "Closed identity carrier for a recovery-share holder. A holder is either an independently verified personal principal or an explicitly authorized custodial service; v1 defines no hardware-module branch.",
-      "required": [
-        "holder_kind"
-      ],
-      "properties": {
-        "holder_kind": {
-          "type": "string",
-          "enum": [
-            "personal_principal",
-            "custodial_service"
-          ]
-        },
-        "holder_principal_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "holder_service_id": {
-          "$ref": "#/$defs/did_core_id"
-        }
-      },
-      "oneOf": [
-        {
-          "properties": {
-            "holder_kind": {
-              "const": "personal_principal"
-            }
-          },
-          "required": [
-            "holder_principal_id"
-          ],
-          "not": {
-            "required": [
-              "holder_service_id"
-            ]
-          }
-        },
-        {
-          "properties": {
-            "holder_kind": {
-              "const": "custodial_service"
-            }
-          },
-          "required": [
-            "holder_service_id"
-          ],
-          "not": {
-            "required": [
-              "holder_principal_id"
-            ]
-          }
-        }
-      ]
-    },
-    "share": {
-      "type": "object",
-      "required": [
-        "share_id",
-        "holder_kind",
-        "transport",
-        "share_commitment"
-      ],
-      "properties": {
-        "share_id": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{1,64}$"
-        },
-        "holder_kind": {
-          "type": "string",
-          "enum": [
-            "personal_principal",
-            "custodial_service"
-          ]
-        },
-        "holder_principal_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Stable principal core of a personal share holder. The holder does not inherit any business capability of the recovered account."
-        },
-        "holder_service_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Stable service core of a custodial recovery service accepted by the recovery policy."
-        },
-        "transport": {
-          "type": "string",
-          "enum": [
-            "sealed_box",
-            "hpke_x25519",
-            "wrapped_key_did_document",
-            "offline_qr",
-            "service_defined"
-          ]
-        },
-        "share_commitment": {
-          "type": "object",
-          "required": [
-            "algorithm",
-            "commitment_b64u"
-          ],
-          "properties": {
-            "algorithm": {
-              "type": "string",
-              "enum": [
-                "feldman_vss_sha256",
-                "pedersen_vss_sha256",
-                "share_hash_sha256",
-                "share_hash_blake3"
-              ]
-            },
-            "commitment_b64u": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9_-]+$"
-            }
-          },
-          "additionalProperties": false
-        },
-        "not_before": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expires_at": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/$defs/timestamp"
-            }
-          ]
-        },
-        "revoked_at": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/$defs/timestamp"
-            }
-          ]
-        },
-        "revocation_reason_code": {
-          "type": "string",
-          "enum": [
-            "holder_compromised",
-            "holder_unreachable",
-            "policy_rotation",
-            "scheduled_reshare",
-            "service_defined"
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "$ref": "#/$defs/recovery_share_holder"
-        }
-      ]
-    },
     "recovery_method": {
       "oneOf": [
         {
@@ -698,72 +523,11 @@
           "type": "object",
           "required": [
             "kind",
-            "k",
-            "shares",
-            "publication_key"
-          ],
-          "properties": {
-            "kind": {
-              "const": "threshold_recovery"
-            },
-            "k": {
-              "type": "integer",
-              "minimum": 2,
-              "description": "Minimum share count required to reconstruct the recovery secret. MUST be >= 2; threshold=1 is forbidden because it collapses to a single-holder bearer."
-            },
-            "shares": {
-              "type": "array",
-              "minItems": 2,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/share"
-              }
-            },
-            "vss_root_commitment": {
-              "$ref": "#/$defs/digest",
-              "description": "Optional VSS root commitment binding all shares' polynomial commitments. SHOULD be present for Feldman / Pedersen schemes."
-            },
-            "reshare_policy": {
-              "type": "object",
-              "description": "Proactive secret sharing / re-share cadence. Holders MUST be able to refresh shares without reconstructing the secret. Implementations SHOULD re-share at least once per `max_share_age_seconds`.",
-              "properties": {
-                "max_share_age_seconds": {
-                  "type": "integer",
-                  "minimum": 86400
-                },
-                "scheme": {
-                  "type": "string",
-                  "enum": [
-                    "none",
-                    "proactive_vss",
-                    "proactive_feldman",
-                    "service_defined"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            },
-            "publication_key": {
-              "$ref": "#/$defs/recovery_key_entry"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "k",
             "services"
           ],
           "properties": {
             "kind": {
               "const": "trusted_recovery_service"
-            },
-            "k": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 32
             },
             "services": {
               "type": "array",
@@ -786,16 +550,13 @@
                   "authorization_verification_method": {
                     "$ref": "#/$defs/did_url",
                     "description": "Exact accepted policy method authorized for this service; both method and audience MUST match verbatim. DID membership or recursive string mention is insufficient."
-                  },
-                  "attestation_required": {
-                    "type": "boolean",
-                    "default": false
                   }
                 },
                 "additionalProperties": false
               },
               "minItems": 1,
-              "maxItems": 32
+              "maxItems": 32,
+              "description": "Recovery authorization issuers accepted by this policy. Entries are independent OR alternatives: exactly one entry MUST match the submitted authorization verbatim on service_id, authorization_verification_method and audience. There is no threshold across entries and no deployment-level issuer."
             }
           },
           "additionalProperties": false

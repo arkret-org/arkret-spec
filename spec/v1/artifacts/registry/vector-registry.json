@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.9",
+  "version": "2026-09-11.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T18:30:03+08:00",
+  "generated_at": "2026-09-11T04:15:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3110,6 +3110,17 @@
       ]
     },
     {
+      "vector_id": "ak.vector.federation.realm_join_authoring_inputs.v1",
+      "status": "active",
+      "domain": "federation",
+      "scope": "universal",
+      "description": "Realm join authoring inputs are derived, not echoed: governance facts and the exact intent precondition come from the complete verifiable seal_basis with per-leaf state_root inclusion or sorted-neighbor non-membership proofs, the actor frontier is derived under event-and-patch section 2.6 from the union of locally verified accepted state and independently verified applicant predecessor Events, next_actor_seq zero requires all four decidable initial-state conditions, and a missing, discontinuous or unenumerable authoring record fails with frontier_unavailable instead of resetting the chain.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/federation.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.federation.reducer_profile_resolution.v1",
       "status": "active",
       "domain": "federation",
@@ -3623,7 +3634,7 @@
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/artifacts/fixtures/recovery-policy-fixture.json"
       ],
-      "description": "Threshold-recovery publication-signing-key closure, canonical recovery-policy EventInitialSubmission shape, PCR allowlist/reducer admission, acceptance-basis materialization and fail-closed retry semantics."
+      "description": "Canonical recovery-policy EventInitialSubmission shape, closed method-entry validity, PCR allowlist/reducer admission, acceptance-basis materialization and fail-closed retry semantics."
     },
     {
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
@@ -3650,7 +3661,7 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json"
       ],
-      "description": "Byte-exact did_root plus four generic recovery factor transcripts, closed proof_body projections, public session tuple binding and mandatory cross-factor replay rejection."
+      "description": "Byte-exact did_root plus three generic recovery factor transcripts, closed proof_body projections, public session tuple binding and mandatory cross-factor replay rejection."
     },
     {
       "vector_id": "ak.vector.identity.registration_saga.v1",
