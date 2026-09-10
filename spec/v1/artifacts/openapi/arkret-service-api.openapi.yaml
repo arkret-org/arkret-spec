@@ -1392,20 +1392,6 @@ components:
       additionalProperties: false
     ModerationReportOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome
-    NotificationProjectionView:
-      type: object
-      required:
-      - notifications
-      properties:
-        notifications:
-          type: array
-          items:
-            $ref: ../schemas/notification.schema.json
-        counts:
-          type: object
-        next_cursor:
-          type: string
-      additionalProperties: false
     ObjectLookupOutcome:
       type: object
       required:
@@ -5234,7 +5220,10 @@ paths:
         dpopProof: []
       summary: Streaming push of account-aggregate deltas (NDJSON frames).
       description: Bounded account long polling. Initial sync returns the first Realm summary page and segmented
-        account baseline. Realm details require an explicit bounded filter. See client-sync sections 2.3 and 13.
+        account baseline. Realm details require an explicit bounded filter. The notifications channel carries one
+        closed union - Agent runtime approval rows and ordinary source-Event current rows - on a single position,
+        baseline channel and budget; there is no separate notification list operation. See client-sync sections
+        2.3, 3.1 and 13.
       parameters:
       - name: Arkret-Operation
         in: header

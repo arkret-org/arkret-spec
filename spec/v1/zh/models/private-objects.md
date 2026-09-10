@@ -61,7 +61,7 @@ Schema id: `ak.schema.read_cursor.v1`
 
 `notification` SHOULD 是从 Event / Strand / Message / Relation 派生的 inbox projection，**不是 canonical truth**。它面向单个 actor 的 inbox / push pipeline，不参与协作图归约。
 
-**inbox `state` 的跨设备真源（normative）**：`notification` 对象本身不被持久化为共享 canonical event，但其可变 inbox `state`（`unread` / `read` / `dismissed` / `archived`）的跨设备收敛真源是 **actor-private account data**：`read` 由 read cursor（[`../discovery/read-receipts.md`](../discovery/read-receipts.md)）派生；`dismissed` / `archived` 由 actor-private account-data key 承载（key 规则见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)），并按 [`account-data.md` §5](./account-data.md) 的 compare-and-set 契约跨设备收敛：服务端只比较 `expected_revision`，HLC + tie-break 的领域规则由客户端在解密明文上执行。客户端 MUST 从该真源重算 inbox `state`，MUST NOT 把某设备本地的 `dismissed` / `archived` 当作不可同步的纯本地状态而在其它设备丢失。
+**inbox `state` 的跨设备真源（normative）**：`notification` 对象本身不被持久化为共享 canonical event，但其可变 inbox `state`（`unread` / `read` / `dismissed` / `archived`）的跨设备收敛真源是 **actor-private account data**：`read` 由 read cursor（[`../discovery/read-receipts.md`](../discovery/read-receipts.md)）派生；`dismissed` / `archived` 由 actor-private account-data key 承载（key 规则见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)），并按 [`account-data.md` §5](./account-data.md) 的 compare-and-set 契约跨设备收敛：服务端只比较 `expected_revision`，HLC + tie-break 的领域规则由客户端在解密明文上执行。客户端 MUST 从该真源重算 inbox `state`，MUST NOT 把某设备本地的 `dismissed` / `archived` 当作不可同步的纯本地状态而在其它设备丢失。账号同步通道交付的普通当前行不携带 `state`，服务端也不得代填：`state` 只由上述两个 actor-private 真源在客户端重算，不存在第二份 inbox 状态。
 
 完整推送规则、push gateway、E2EE 脱敏推送策略见 [`../discovery/push-notifications.md`](../discovery/push-notifications.md)。
 
@@ -89,7 +89,7 @@ Schema id: `ak.schema.notification.v1`
 
 ### 3.3 行为规则
 
-- Notification 是派生 projection；普通源 Event 分支 MUST 由客户端从已验证的原始 source Event、适用 accepted evidence、当前访问权和 actor-private preferences 本地重建，不得把它当作独立真相源持久化为 durable canonical event。服务端 MAY 从同一事实计算粗粒度 push wakeup，但 MUST NOT 改写 source Event、伪造 recipient-authored Event，或把普通 Notification 放入 `account_data.events[]` / Agent-only `notifications.items`。
+- Notification 是派生 projection，不是 canonical truth，MUST NOT 被持久化为 durable canonical event。普通源 Event 分支的当前行由接收者自己的 Station 物化，并且只经 account subscribe 的 `notifications.items` 普通分支交付（[`../sync/client-sync.md` §3.1.2](../sync/client-sync.md)）；客户端信任自己 Station 的当前判定，但仍 MUST 用完整 recipient `AccountId` 重算 `ak:notification_projection:*` 身份（[`../discovery/read-receipts.md` §6.3](../discovery/read-receipts.md)），按当前访问权与 actor-private preferences 决定是否展示，并在该通道不可用时从已验证的原始 source Event 与适用 accepted evidence 本地重建。服务端 MAY 从同一事实计算粗粒度 push wakeup，但 MUST NOT 改写 source Event、伪造 recipient-authored Event，MUST NOT 把 Notification 放入 `account_data.events[]`，也 MUST NOT 另建第二套通知列表 operation。
 - 每条 Notification 必须恰好选择 `source_event_id` 或 `source_account_artifact`；Agent runtime approval 使用后者、`notification_kind="agent"`，且不得携带 `realm_id`、`source_ref`、`strand_id` 或 `track_name`。`source_account_artifact.id` 是 profile-local 短期 id，不是 durable protocol object ref；Notification 终止后 durable 真相只有 accepted `ak.agent.key.authorize` / lifecycle state。
 - E2EE Realm 中 `preview` 必须由发送者客户端脱敏后置入推送 envelope；服务端不得用明文重新生成 preview。
 - `notification_kind=message` 表示普通 `ak.message.create` 在接收者 effective watch / push rule 允许普通消息提醒时产生的 inbox / push 提醒；默认 `mentions_only` 不得为非定向普通消息产生该类型。当同一 source event 对同一 actor 同时命中 `mention`、`reply`、`assignment` 等更具体原因时，dispatcher MUST NOT 额外产生重复的 `message` notification。

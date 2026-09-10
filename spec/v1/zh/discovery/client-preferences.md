@@ -88,6 +88,12 @@ Notification projection 的 `dismissed` / `archived` 跨设备状态使用
 `state ∈ {dismissed, archived}`、HLC 与 device tie-break 材料，并按 account-data CAS
 重试循环合并；`read` / `unread` 仍由 read cursor 派生，不得写入该 key。
 
+`<notification_id>` MUST 与 account subscribe `notifications.items[].id` 逐字节相等：普通源 Event 通知用
+`ak:notification_projection:<44 字符 token>`。该 key 是 inbox 处置的唯一真源，账号同步通道不携带 `state`，
+服务端也不得代写或代删该 key；同步通道的 `remove` 只删除本地当前行，是否清理对应 key 由持有者客户端自行决定
+（见 [`../sync/client-sync.md` §3.1.2](../sync/client-sync.md)）。Agent runtime approval 分支只做 local dismiss，
+不写该 durable key。
+
 Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST validate 为
 `ak.schema.view.v1` 且 `visibility="private"`。共享 View 仍只能使用 `ak.view.*` Event。
 
