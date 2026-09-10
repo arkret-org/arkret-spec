@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11008,
+    "total_properties": 11025,
     "total_schema_documents": 170,
     "by_presence_class": {
-      "optional": 3038,
+      "optional": 3043,
       "optional_defaulted": 69,
-      "required": 7036,
+      "required": 7048,
       "required_nullable": 138,
       "tristate": 727
     },
@@ -11669,6 +11669,19 @@
         "/$defs/keys_upload_request_body/properties/device_signature": "required",
         "/$defs/keys_upload_request_body/properties/fallback_keys": "optional",
         "/$defs/keys_upload_request_body/properties/one_time_keys": "optional",
+        "/$defs/peer_keys_query_outcome/properties/device_generations": "optional",
+        "/$defs/peer_keys_query_outcome/properties/device_keys": "required",
+        "/$defs/peer_keys_query_outcome/properties/failures": "optional",
+        "/$defs/peer_keys_query_outcome/properties/request_id": "required",
+        "/$defs/peer_keys_query_outcome/properties/requester_account_id": "required",
+        "/$defs/peer_keys_query_request_body/properties/device_keys": "required",
+        "/$defs/peer_keys_query_request_body/properties/purpose": "required",
+        "/$defs/peer_keys_query_request_body/properties/relationship_basis": "required",
+        "/$defs/peer_keys_query_request_body/properties/request_id": "required",
+        "/$defs/peer_keys_query_request_body/properties/requester_account_id": "required",
+        "/$defs/peer_keys_relationship_basis/oneOf/0/properties/kind": "required",
+        "/$defs/peer_keys_relationship_basis/oneOf/0/properties/realm_id": "required",
+        "/$defs/peer_keys_relationship_basis/oneOf/1/properties/kind": "required",
         "/$defs/query_account_device_entries/items/properties/account_id": "required",
         "/$defs/query_account_device_entries/items/properties/device_keys": "required",
         "/$defs/query_account_device_selectors/items/properties/account_id": "required",
@@ -11676,7 +11689,11 @@
         "/$defs/query_device_record/properties/algorithms": "required",
         "/$defs/query_device_record/properties/device_projection_attestation": "required",
         "/$defs/query_device_record/properties/signer_evidence_ref": "required",
-        "/$defs/query_device_record/properties/trust_algorithms": "required"
+        "/$defs/query_device_record/properties/trust_algorithms": "required",
+        "/$defs/query_failure/properties/account_id": "optional",
+        "/$defs/query_failure/properties/device_id": "optional",
+        "/$defs/query_failure/properties/reason_code": "required",
+        "/$defs/query_failure/properties/retry_after_ms": "optional"
       },
       "conditionally_required": [
         "/$defs/backup_series_erase_outcome/properties/confirmation"

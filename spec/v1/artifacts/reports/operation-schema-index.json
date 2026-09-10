@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T11:58:11+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3638,6 +3638,46 @@
           "terminal_receipt",
           "retry_after_ms",
           "error_code"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.keys.read.lookup.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "requester_account_id",
+          "purpose",
+          "relationship_basis",
+          "device_keys"
+        ],
+        "properties": [
+          "request_id",
+          "requester_account_id",
+          "purpose",
+          "relationship_basis",
+          "device_keys"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "requester_account_id",
+          "device_keys"
+        ],
+        "properties": [
+          "request_id",
+          "requester_account_id",
+          "device_keys",
+          "device_generations",
+          "failures"
         ],
         "closed": true
       }

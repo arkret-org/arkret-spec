@@ -42,7 +42,9 @@
     "ak.vector.identity.internationalized_identifier_profiles.v1",
     "ak.vector.identity.authority_local_skeleton_collision.v1",
     "ak.vector.identity_link.minimal_metadata_author_credential.v1",
-    "ak.vector.actor.accountability_grant_required.v1"
+    "ak.vector.actor.accountability_grant_required.v1",
+    "ak.vector.device.peer_directory_lookup_blinding.v1",
+    "ak.vector.device.directory_unavailable_not_empty.v1"
   ],
   "cases": [
     {
@@ -1014,6 +1016,153 @@
         "identity_link disclosure is separate from pairwise author verification",
         "history response signing key and method are signed inside the exact end-to-end encrypted identity_link and cannot be self-selected by signer evidence"
       ]
+    },
+    {
+      "vector_id": "ak.vector.device.peer_directory_lookup_blinding.v1",
+      "name": "peer_device_directory_failure_blinding",
+      "operation_id": "ak.peer.keys.read.lookup.v1",
+      "inputs": [
+        {
+          "label": "target_absent",
+          "body": {
+            "request_id": "ak:request:019a0000-0000-7000-8000-000000000021",
+            "requester_account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturemalloryexample",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            },
+            "purpose": "e2ee_message_encryption",
+            "relationship_basis": {
+              "kind": "contact"
+            },
+            "device_keys": [
+              {
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestation"
+                },
+                "device_ids": [
+                  "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "label": "no_current_relationship",
+          "body": {
+            "request_id": "ak:request:019a0000-0000-7000-8000-000000000022",
+            "requester_account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturemalloryexample",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            },
+            "purpose": "e2ee_message_encryption",
+            "relationship_basis": {
+              "kind": "contact"
+            },
+            "device_keys": [
+              {
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestation"
+                },
+                "device_ids": [
+                  "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "label": "revoked_or_fenced_device",
+          "body": {
+            "request_id": "ak:request:019a0000-0000-7000-8000-000000000023",
+            "requester_account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturemalloryexample",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            },
+            "purpose": "mls_group_admission",
+            "relationship_basis": {
+              "kind": "realm_membership",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "device_keys": [
+              {
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestation"
+                },
+                "device_ids": [
+                  "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "same_http_status": 200,
+        "same_failure_reason_code": "device_result_unavailable",
+        "same_body_shape": [
+          "request_id",
+          "requester_account_id",
+          "device_keys",
+          "failures"
+        ],
+        "timing_equivalence_group": "target_private_quantized",
+        "row_omission_and_failure_row_both_allowed": true,
+        "must_not_include": [
+          "device_signing_key_did",
+          "hpke_key",
+          "device_status",
+          "device_authorize_event_id",
+          "authorized_generation_ref",
+          "algorithms",
+          "signer_evidence_ref",
+          "available_count",
+          "realm_id",
+          "contact_scopes"
+        ],
+        "rate_limit_keys": [
+          "(source_service_id, requester_account_id)",
+          "(source_service_id, target_account_id)"
+        ],
+        "transport_authentication_failure_precedes_any_target_read": true
+      }
+    },
+    {
+      "vector_id": "ak.vector.device.directory_unavailable_not_empty.v1",
+      "name": "remote_directory_unavailable_is_not_an_empty_device_list",
+      "operation_id": "ak.self.keys.read.lookup.v1",
+      "input": {
+        "body": {
+          "device_keys": [
+            {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              },
+              "device_ids": [
+                "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f"
+              ]
+            }
+          ]
+        },
+        "peer_lookup_result": "unreachable_or_attestation_unverifiable"
+      },
+      "expected": {
+        "failure_reason_code": "device_directory_unavailable",
+        "may_include_retry_after_ms": true,
+        "must_not_omit_row_silently": true,
+        "must_not_return_empty_device_keys_as_the_answer": true,
+        "must_not_serve_expired_cache_or_bare_cached_public_key": true,
+        "must_not_extend_attestation_expires_at": true,
+        "client_behaviour": [
+          "treat as temporarily unavailable and retry or wait",
+          "MUST NOT treat as device absent, revoked or peer has no devices",
+          "MUST NOT downgrade encryption, skip a recipient or advance out-of-band verification"
+        ],
+        "distinct_from": "device_result_unavailable"
+      }
     }
   ]
 }

@@ -332,6 +332,10 @@
       "new": "ak.peer.keys.keypackages.read.claim.v1"
     },
     {
+      "old": "ak.peer.keys.read.lookup",
+      "new": "ak.peer.keys.read.lookup.v1"
+    },
+    {
       "old": "ak.peer.mls.read.group_state_material",
       "new": "ak.peer.mls.read.group_state_material.v1"
     },

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.4",
+  "version": "2026-09-10.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T11:06:33+08:00",
+  "generated_at": "2026-09-10T11:58:11+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1813,6 +1813,32 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device.directory_unavailable_not_empty.v1",
+      "status": "active",
+      "domain": "device",
+      "description": "A failed or unverifiable cross-Station fetch surfaces as device_directory_unavailable and is never rendered as an omitted row, an empty device list, an expired cache hit or an extended attestation validity window.",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device.peer_directory_lookup_blinding.v1",
+      "status": "active",
+      "domain": "device",
+      "description": "Cross-Station device directory reads collapse absent, invisible, unrelated, revoked, fenced and policy-denied targets into one indistinguishable outcome, authorize by relationship and purpose rather than by caller assertion, and decide transport authentication before any target read.",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
       ]
     },
     {

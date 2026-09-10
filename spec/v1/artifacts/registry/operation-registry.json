@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T11:58:11+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -180,6 +180,7 @@
         "ak.peer.current_signer_evidence.read.resolve.v1",
         "ak.peer.keys.keypackages.command.claim.v1",
         "ak.peer.keys.keypackages.read.claim.v1",
+        "ak.peer.keys.read.lookup.v1",
         "ak.peer.signal.command.relay.v1",
         "ak.peer.principal_genesis.command.submit.v1"
       ],
@@ -1868,6 +1869,19 @@
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_outcome",
       "outward_disclosure_policy_id": "ak.outward_disclosure.target_private_claim.v1"
+    },
+    {
+      "operation_id": "ak.peer.keys.read.lookup.v1",
+      "http": "POST /_arkret/peer/keys/query",
+      "grpc": "PeerKeys/Query",
+      "mq": "peer.keys.query.lookup",
+      "notes": "Station-to-Station device directory and published prekey-bundle read, the only registered carrier for a cross-Station keys/query target. requester_account_id.station_id equals the authenticated Source-Service-ID and every target account_id.station_id equals the Destination-Service-ID; no client SessionGrant, DPoP or local bearer is ever forwarded and clients never call this surface. The destination completes transport authentication before any target read, then re-derives the declared relationship from its own accepted state: realm_membership requires both parties to be current effective joined members of that exact Realm, while contact reads only the target's own current outbound Contact scope and never requires a shared Realm. Purpose is authorized independently. Absent, invisible, unrelated, revoked, fenced and policy-denied targets collapse into an omitted row or device_result_unavailable, rate limited per requester and per target. Rows carry the origin's own attestation and signer evidence ref; the destination adds no response signature. Request <=64 KiB with 1..16 accounts and 32 devices each; complete response <=512 KiB, no continuation. Cross-Station single-use material remains the MLS KeyPackage claim contract.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 65536,
+      "max_items": 16,
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome"
     },
     {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
@@ -3793,7 +3807,10 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome"
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+      "max_canonical_body_bytes": 65536,
+      "max_items": 16,
+      "notes": "Authenticated cross-account device directory and published prekey-bundle read. Selectors are bounded at 1..16 accounts and 32 devices each with a 64 KiB canonical request; an over-limit request fails whole. Disclosure requires a current authorization relationship - a Realm the requester still joins, or a current Contact/call/session context, where the Contact case never requires a shared Realm. Targets hosted by another Station are resolved through ak.peer.keys.read.lookup.v1 and verified locally before the row is returned; the client never contacts a foreign Station and its session credential is never forwarded. failures[].reason_code is the closed pair device_result_unavailable and device_directory_unavailable, and an unavailable fetch is never rendered as an empty device set."
     },
     {
       "operation_id": "ak.self.keys.upload.create.v1",
@@ -5121,6 +5138,10 @@
         },
         {
           "operation_id": "ak.peer.keys.keypackages.read.claim.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.keys.read.lookup.v1",
           "binding_kind": "http_json"
         },
         {

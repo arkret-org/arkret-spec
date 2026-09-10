@@ -224,6 +224,7 @@ grpc:
     PeerKeys:
       KeyPackagesClaim: ak.peer.keys.keypackages.command.claim.v1
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.read.claim.v1
+      Query: ak.peer.keys.read.lookup.v1
     PeerSignal:
       Relay: ak.peer.signal.command.relay.v1
     SelfSignal:
@@ -408,6 +409,7 @@ mq:
     peer.current_signer_evidence.query.resolve: ak.peer.current_signer_evidence.read.resolve.v1
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim.v1
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.read.claim.v1
+    peer.keys.query.lookup: ak.peer.keys.read.lookup.v1
     peer.signal.command.relay: ak.peer.signal.command.relay.v1
     self.signal.command.send: ak.self.signal.command.send.v1
     self.signal.stream.subscribe: ak.self.signal.stream.subscribe.v1

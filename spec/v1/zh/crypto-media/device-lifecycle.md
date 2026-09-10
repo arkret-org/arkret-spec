@@ -627,14 +627,16 @@ POST /_arkret/self/keys/claim
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `device_keys` | body | `array` | required | closed `{account_id: AccountId, device_ids: device_id[]}` entries；按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId 拒绝。 |
+| `device_keys` | body | `array` | required | closed `{account_id: AccountId, device_ids: device_id[]}` entries，1..16 项，每项 `device_ids` 1..32 项；按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId 拒绝。 |
 | `timeout_ms` | body | `int` | optional | 查询等待上限。 |
 
-服务端在处理 `keys/query` 时 MUST 先认证 requester，并且 MUST 仅在 requester AccountId 与被查询 `account_id` 之间存在当前有效的授权关系时返回目录记录：至少同属一个 requester 可见且 requester 仍为 `join` 的 Realm，或存在当前 call/session/contact profile 明确定义的共享上下文。否则 MUST 使用与不存在不可区分的失败形态（省略该 `(account_id, device_id)` 记录或写入 `failures` 的非枚举性失败），不得让任意已登录用户枚举其它 principal 的设备存在性 / 吊销状态。
+完整 canonical 请求上限 64 KiB。上述数组界限与字节界限同时约束本面与 §8.2.1 的跨站转发；超界整体拒绝，MUST NOT 截断 selector 或只返回前缀结果。
+
+服务端在处理 `keys/query` 时 MUST 先认证 requester，并且 MUST 仅在 requester AccountId 与被查询 `account_id` 之间存在当前有效的授权关系时返回目录记录：至少同属一个 requester 可见且 requester 仍为 `join` 的 Realm，或存在当前 Contact／call／session 明确定义的共享上下文（Contact 场景不要求存在共同 Realm）。否则 MUST 使用与不存在不可区分的失败形态（省略该 `(account_id, device_id)` 记录或写入 `failures` 的非枚举性失败），不得让任意已登录用户枚举其它 principal 的设备存在性 / 吊销状态。
 
 响应字段：`device_keys: array` required，每项 `{account_id, device_keys}`，内层 `device_keys` 为 device ID → `query_device_record`；`failures: array` optional，账号级失败用 exact `account_id`；`device_generations: array` optional，每项 `{account_id, generation_state}`（§8.2 第 3 条的输入）。两个外层数组按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId MUST 拒绝，同 core 不同 Station 不得合并。每个 `(account_id, device_id)` 的 `query_device_record`：prekey bundle 收在 `algorithms`（算法名 → key_record）子字段下；同级只携带 `trust_algorithms`、origin Station 的 `device_projection_attestation` 与 `signer_evidence_ref`（见下方 §8.2）。设备公钥、状态与 authorization/generation 坐标只从验签后的 attestation 读取，不在 row 重复。schema 见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json) 的 `$defs/query_device_record`。
 
-`POST /_arkret/self/keys/claim` 的 `one_time_keys` 请求为 closed `{account_id, device_algorithms}` entries，内层 `device_algorithms` 是 device ID 到算法名的映射；响应同名字段为 `{account_id, device_keys}` entries，内层为 device ID 到算法/key_record 的映射。外层均按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId MUST 拒绝；one-time key 的原子消费、授权、失败与重试定位都绑定 exact `(account_id, device_id)`，不得把同 core 不同 Station 合并。scalar device ID / algorithm map 不承载复合账号身份，继续保留。
+`POST /_arkret/self/keys/claim` 的 `one_time_keys` 请求为 closed `{account_id, device_algorithms}` entries，内层 `device_algorithms` 是 device ID 到算法名的映射；响应同名字段为 `{account_id, device_keys}` entries，内层为 device ID 到算法/key_record 的映射。外层均按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId MUST 拒绝；one-time key 的原子消费、授权、失败与重试定位都绑定 exact `(account_id, device_id)`，不得把同 core 不同 Station 合并。scalar device ID / algorithm map 不承载复合账号身份，继续保留。每个 `account_id.station_id` MUST 等于本 Station：单次 one-time prekey 的原子消费只在其 origin Station 成立，跨站单次材料走 §9.2 的 KeyPackage claim，MUST NOT 为非 MLS one-time prekey 另建第二套联邦消费 ledger；非本 Station 目标按 §8.2 的非枚举形态失败。
 
 #### 8.2 设备验签公钥目录（normative）
 
@@ -653,13 +655,75 @@ origin Station MUST 在签发时从该 exact account-device 的 current accepted
 
 任一条不成立时 MUST NOT 把该 row 用于 E2EE / Signal 验签或 KeyPackage claim。反枚举失败形态不变：requester 与目标 AccountId 之间没有当前有效授权关系时，MUST 省略该 `(account_id, device_id)` 记录或写入非枚举性 `failures`；revoked、fenced 或 conflicted 的设备同样按此处理，MUST NOT 降级成一条缺字段的 row。
 
+`keys/query` 的 `failures[].reason_code` 是封闭两值词表，不得扩展、细分或按内部原因分裂：目标不存在、不可见、无当前授权关系、被撤销、被 fence 或被 policy 拒绝一律使用 `device_result_unavailable`；只有「本次未能取得或验证该 `(account_id, device_id)` 的当前已签投影」使用 `device_directory_unavailable`，它 MUST 只表达调用方自己 Station 的取材结果，MUST NOT 因目标状态而出现，也 MUST NOT 携带 origin 的内部原因。后者 MAY 携 `retry_after_ms`。取材失败 MUST NOT 被渲染成省略的 row、空 `device_keys` 或空设备列表——那会让调用方把「暂时取不到」误读成「对方没有设备」。
+
 普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `did` 的 DID URL；receiver 取 bare `did` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
+
+#### 8.2.1 跨站 peer 设备目录与 prekey lookup（normative）
+
+`keys/query` 的目标 AccountId 的 `station_id` 不是本 Station 时，本 Station MUST 通过
+`ak.peer.keys.read.lookup.v1`（`POST /_arkret/peer/keys/query`）向该 exact `station_id` 取材，验证后把受限
+typed 结果放进同一个 `keys_query_outcome`。客户端 MUST NOT 直接调用任何 peer 面，本 Station MUST NOT 转发
+客户端的 SessionGrant、DPoP 或任何本地 bearer；peer 调用只使用本 Station 自己的 RFC 9421 service signature 与
+`Source-Service-ID` / `Destination-Service-ID` / `Content-Digest` header profile（signature `expires-created` ≤5s）。
+
+**既有操作已覆盖的范围（normative 盘点）**：`ak.peer.current_signer_evidence.read.resolve.v1` 只在一个具名
+非 minimal-metadata Realm 内交付 signer evidence，既不给设备目录也不给 prekey bundle；
+`ak.peer.keys.keypackages.command.claim.v1` 是跨站单次 MLS 材料的**唯一**原子领取合同。因此 v1 的
+`self/keys/claim` 单次 one-time prekey 领取 MUST 只针对 `account_id.station_id` 等于本 Station 的目标；跨站单次
+材料走 KeyPackage claim，不得为非 MLS one-time prekey 另建第二套联邦消费 ledger。本节只补两者都不覆盖的那段：
+**跨站设备目录与已发布 prekey bundle 的只读取材**。
+
+请求字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `request_id` | `id:request` | required | 调用方 Station 为本次取材生成的稳定 id；destination 只用于关联与限速，不建立 durable ledger。 |
+| `requester_account_id` | `AccountId` | required | 发起查询的 exact 完整账号；其 `station_id` MUST 逐字等于已认证 `Source-Service-ID`。destination MUST NOT 从 principal 分量、路由或会话推断它。 |
+| `purpose` | `enum(e2ee_message_encryption, mls_group_admission, call_media)` | required | 本次取材的用途；destination 按用途独立判定授权，不得按最宽用途一次性放行。 |
+| `relationship_basis` | closed XOR | required | `{kind:"realm_membership", realm_id}` 或 `{kind:"contact"}`。 |
+| `device_keys` | `array` | required | closed `{account_id: AccountId, device_ids: device_id[]}` entries，1..16 项、每项 1..32 个 device；每个 `account_id.station_id` MUST 逐字等于已认证 `Destination-Service-ID`。 |
+
+完整 canonical 请求上限 64 KiB，完整响应上限 512 KiB；超界整体失败，不得截断或分页。响应为 closed
+`{request_id, requester_account_id, device_keys[], device_generations[]?, failures[]?}`，逐字回显请求的
+`request_id` 与 `requester_account_id`，其余成员与 §8.2 的 self 形态逐字相同。
+
+destination MUST 在读取任何目标状态**之前**完成 transport 认证与 header/body 绑定，然后独立判定授权，
+MUST NOT 采信调用方自报的关系：
+
+- `realm_membership`：`requester_account_id` 与每个目标 `account_id` 在该 exact `realm_id` 上都是 destination
+  自己 accepted 状态下的 current effective joined member。
+- `contact`：目标账号自己当前 effective 的对 `requester_account_id` 方向 Contact head 授予的 scope 满足本次
+  `purpose`——`e2ee_message_encryption` 需 `direct_message`，`mls_group_admission` 需 `invite`，`call_media` 需
+  `voice_call` 或 `video_call`。该分支 MUST NOT 要求存在共同 Realm；反过来，requester 单方面的 Contact 事实、
+  历史成员身份、目录命中或 Consent quarantine 都不构成授权。
+
+判定通过的每个 `(account_id, device_id)` 返回 §8.2 的完整已签 row。**未通过、目标不存在、不可见、已撤销、
+已 fence 或 policy 拒绝一律收敛为同一形态**：省略该 row 或写入 `reason_code=device_result_unavailable` 的
+`failures` 项；destination MUST NOT 用 HTTP 状态码、响应大小或 per-target reason 区分它们，并 MUST 对
+`(Source-Service-ID, requester_account_id)` 与 `(Source-Service-ID, target account_id)` 分别限速。transport
+认证失败在读取任何目标状态前返回通用 `unauthenticated` / `signature_invalid`，对任意 selector 完全相同。
+
+调用方 Station 对每条返回 row MUST 执行 §8.2 的四条验证；任一条不成立、peer 调用失败、超时、签名不可验证或
+超出预算时，MUST 就该 `(account_id, device_id)` 写入 `reason_code=device_directory_unavailable`，MUST NOT
+省略成空结果、MUST NOT 沿用过期缓存、MUST NOT 延长任何 attestation 的 `expires_at`，也 MUST NOT 用裸缓存
+公钥补位。结果只按 `(requester AccountId, 自己 Station 会话)` 缓存，账号或 Station 切换、已知撤销与 generation
+变化立即失效；迟到响应不得安装到另一个会话。destination 的结果不重新签名：调用方 Station 转交的是 origin
+自己签的 `device_projection_attestation` 与 `signer_evidence_ref`，不得代签、重建或补造证据闭包。
+
+本操作 MUST NOT 恢复客户端 DID resolver、远端 attestation 历史重放或任何私有服务端 API；它也不披露 PCR
+genesis、authorization chain、Seal 或目标的 Realm/Contact 清单。
+
+实现 MUST 通过 [`ak.vector.device.peer_directory_lookup_blinding.v1`](../../artifacts/registry/vector-registry.json)
+与 [`ak.vector.device.directory_unavailable_not_empty.v1`](../../artifacts/registry/vector-registry.json)：前者证明
+不存在／不可见／无关系／已撤销／已 fence／policy 拒绝在响应体、状态码与时序上完全同形，且 transport 认证在读取任何
+目标状态前判定；后者证明取材失败与"对方没有设备"是两件事，且不得靠缓存、空列表或延长有效期掩盖。
 
 #### 8.3 客户端设备信任（normative）
 
-客户端信任自己已认证 Station 确认的 exact account-device 当前授权投影。远端 origin Station 的 attestation 及其 assertion key/history 由自己 Station 验证；客户端不执行 DID/PCR 历史验证，不将任意服务直接返回的设备公钥视为本账号服务器结果。
+客户端信任自己已认证 Station 确认的 exact account-device 当前授权投影。远端 origin Station 的 attestation 及其 assertion key/history 由自己 Station 验证；客户端不执行 DID/PCR 历史验证，不将任意服务直接返回的设备公钥视为本账号服务器结果。跨站目标的取材由自己 Station 按 §8.2.1 完成；客户端 MUST NOT 直连 origin Station 的 peer 面，也 MUST NOT 把自己的 SessionGrant / DPoP 交给任何其它服务。
 
-客户端 MUST 核对请求的完整 AccountId、device_id、密钥、generation、状态和有效期，并保留 KeyPackage/MLS/消息认证与 `ak.key.verification.*` 带外设备信任。服务器确认授权不能将未带外确认的新设备或替换密钥标为用户已验证。缓存按账号/自己 Station 会话隔离，已知撤销或 generation 变化立即失效，不越过 `expires_at`。
+客户端 MUST 核对请求的完整 AccountId、device_id、密钥、generation、状态和有效期，并保留 KeyPackage/MLS/消息认证与 `ak.key.verification.*` 带外设备信任。服务器确认授权不能将未带外确认的新设备或替换密钥标为用户已验证。缓存按账号/自己 Station 会话隔离，已知撤销或 generation 变化立即失效，不越过 `expires_at`。收到 `device_directory_unavailable` 时，客户端 MUST 把该 `(account_id, device_id)` 视为**本次不可用**并保持等待或重试，MUST NOT 解释为该设备不存在、已撤销或对方无设备，MUST NOT 据此降级加密、跳过收件人或推进任何带外验证状态。
 
 跨账号查询不得披露 PCR genesis / authorization chain / Seal。服务间 attestation 继续是 origin 可归责的已签载体；客户端无需复制其历史证据闭包。
 

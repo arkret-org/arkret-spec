@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-10.2",
-  "generated_at": "2026-09-10T11:06:34+08:00",
+  "version": "2026-09-10.5",
+  "generated_at": "2026-09-10T11:58:11+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -338,6 +338,10 @@
     {
       "operation_id": "ak.peer.keys.keypackages.read.claim.v1",
       "sha256": "sha256:3ec4e8ab1ea8e3011936b3235b7acc1766b9ac59b75a66590ed299d3a54b83ca"
+    },
+    {
+      "operation_id": "ak.peer.keys.read.lookup.v1",
+      "sha256": "sha256:b9b78e8b85846646af43f04f0c7f9de85b6941fd55951afedaaf87e3961da21b"
     },
     {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
@@ -821,7 +825,7 @@
     },
     {
       "operation_id": "ak.self.keys.read.lookup.v1",
-      "sha256": "sha256:44c9b2ce2a0cd8317b50838805c5eb187261c096aac53e337aa4afeb8ea67494"
+      "sha256": "sha256:56364fc4836dfd015c75005685300d59bf84fce542758cd3e3adcd8006ece714"
     },
     {
       "operation_id": "ak.self.keys.upload.create.v1",

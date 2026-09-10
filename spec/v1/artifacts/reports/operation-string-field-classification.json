@@ -8,10 +8,10 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 70,
+    "total_fields": 71,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 31,
+      "closed_enum": 32,
       "closed_literal": 14,
       "validated_open_reason_code": 18
     },
@@ -328,6 +328,14 @@
       "shape": "keys_backups_replace_outcome",
       "field": "status",
       "pointer": "#/$defs/keys_backups_replace_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "query_failure",
+      "field": "reason_code",
+      "pointer": "#/$defs/query_failure/properties/reason_code",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
