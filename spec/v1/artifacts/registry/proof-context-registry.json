@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.14",
+  "version": "2026-09-10.15",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T07:35:59+08:00",
+  "generated_at": "2026-09-10T11:05:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1321,6 +1321,56 @@
       ],
       "defined_in": "zh/authz/event-auth-state-resolution.md",
       "schema_ref": "schemas/collision-variant-record.schema.json"
+    },
+    {
+      "context": "ak.third_party_invite_provision_request_proof.v1",
+      "object_family": "third_party_invite_provision_request",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/sync/third-party-invites.md#72-预配-provisioningnormative",
+      "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body",
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "request.inviter_account_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.open.third_party_invite.command.provision.v1"
+        }
+      ]
+    },
+    {
+      "context": "ak.third_party_invite_acceptance_attestation_proof.v1",
+      "object_family": "third_party_invite_acceptance_attestation",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/sync/third-party-invites.md#74-接受证据-acceptance-attestationnormative",
+      "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation",
+      "injected_fields": [
+        {
+          "field": "issuer",
+          "source": "attestation.station_id"
+        },
+        {
+          "field": "operation_id",
+          "source": "constant ak.self.third_party_invite.read.acceptance_attestation.v1"
+        }
+      ]
     }
   ],
   "domain_separations": [

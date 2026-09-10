@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-10.8",
-  "generated_at": "2026-09-10T11:48:27+08:00",
+  "version": "2026-09-10.9",
+  "generated_at": "2026-09-10T12:11:35+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -5655,6 +5655,46 @@
         "federation_transaction"
       ],
       "description": "Confirmed fork evidence: two byte-distinct canonical Event preimages pass structure, suite and proof prerequisites and independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; or a profile declares the observed sibling combination non-joinable. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Different valid event_id values at the same (realm_id, actor_id, actor_seq) are not by themselves disagreement: event-and-patch.md §2.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw frontier_root / heads differences across different replication or disclosure scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay plus an accepted operator-approved fork resolution. See zh/sync/operations-sync.md §12 and zh/sync/federation.md §4.5.1."
+    },
+    {
+      "code": "third_party_invite_acceptance_missing",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "Sub-reason for failed_precondition when ak.open.third_party_invite.command.activate.v1 has no usable Station acceptance attestation for the named invite: the attestation signature does not verify against the attesting Station service identity, its audience or verification_id is not this service, or it does not attest a pending ak.invite.third_party on an accepted basis. A caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT be accepted in its place. See zh/sync/third-party-invites.md section 7.5."
+    },
+    {
+      "code": "third_party_invite_acceptance_stale",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "Sub-reason for failed_precondition when a Station acceptance attestation is structurally valid but its observation is older than the target Realm revocation_freshness_window_ms, or its own expires_at has passed. The verification service MUST fail closed rather than bind private invite material on a basis that may have missed ak.invite.revoke, inviter capability loss or an allowlist removal. See zh/sync/third-party-invites.md section 7.5."
+    },
+    {
+      "code": "third_party_invite_material_mismatch",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "Sub-reason for failed_precondition when the accepted ak.invite.third_party attested for activation differs from the frozen provisioning record in author, Realm, expiry or any member of the public third_party_invite object. The verification service MUST refuse rather than adopt the accepted cell values, because its private token, salt or pepper and ephemeral key were generated for the frozen material. See zh/sync/third-party-invites.md section 7.5."
+    },
+    {
+      "code": "third_party_invite_provisioning_already_bound",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "Sub-reason for duplicate_conflict when an activation attempt would bind an already bound provisioning record to a different invite, Realm or author. One provisioning record binds to exactly one invite for its whole life; the service MUST NOT rebind, rotate the ephemeral key or reissue the token. See zh/sync/third-party-invites.md section 7.5."
+    },
+    {
+      "code": "third_party_invite_provisioning_expired",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "Sub-reason for failed_precondition when activation is attempted after the provisioning record activation_expires_at. The record is cleaned up on the zh/sync/third-party-invites.md section 6.1 schedule and MUST NOT be revived; the inviter provisions fresh material and authors a new invite."
     }
   ],
   "vocabulary": {

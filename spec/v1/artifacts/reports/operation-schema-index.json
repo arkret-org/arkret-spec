@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.22",
+  "version": "2026-09-10.23",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T12:01:31+08:00",
+  "generated_at": "2026-09-10T12:11:35+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2519,6 +2519,40 @@
       }
     },
     {
+      "operation_id": "ak.open.third_party_invite.command.activate.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_request_body",
+        "schema_kind": "object",
+        "required": [
+          "provisioning_id",
+          "acceptance_attestation"
+        ],
+        "properties": [
+          "provisioning_id",
+          "acceptance_attestation"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_outcome",
+        "schema_kind": "object",
+        "required": [
+          "provisioning_id",
+          "realm_id",
+          "invite_id",
+          "activated_at"
+        ],
+        "properties": [
+          "provisioning_id",
+          "realm_id",
+          "invite_id",
+          "activated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.open.third_party_invite.command.present_token.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -2552,6 +2586,94 @@
           "invite_id",
           "token_commitment",
           "binding_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.command.provision.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "inviter_account_id",
+          "verification_id",
+          "oob_code_kind",
+          "delivery_target_uri",
+          "expires_at",
+          "signature"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "inviter_account_id",
+          "verification_id",
+          "oob_code_kind",
+          "delivery_target_uri",
+          "expires_at",
+          "signature"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_outcome",
+        "schema_kind": "object",
+        "required": [
+          "provisioning_id",
+          "realm_id",
+          "inviter_account_id",
+          "third_party_invite",
+          "expires_at",
+          "activation_expires_at"
+        ],
+        "properties": [
+          "provisioning_id",
+          "realm_id",
+          "inviter_account_id",
+          "third_party_invite",
+          "expires_at",
+          "activation_expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.read.provisioning_status.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_request_body",
+        "schema_kind": "object",
+        "required": [
+          "provisioning_id"
+        ],
+        "properties": [
+          "provisioning_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_outcome",
+        "schema_kind": "object",
+        "required": [
+          "provisioning_id",
+          "realm_id",
+          "provisioning_state",
+          "expires_at",
+          "activation_expires_at"
+        ],
+        "properties": [
+          "provisioning_id",
+          "realm_id",
+          "provisioning_state",
+          "invite_id",
+          "activated_at",
+          "delivery_state",
+          "delivery_attempt_count",
+          "expires_at",
+          "activation_expires_at"
         ],
         "closed": true
       }
@@ -9874,6 +9996,38 @@
           "total",
           "next_cursor",
           "has_more"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "invite_id",
+          "provisioning_id",
+          "verification_id"
+        ],
+        "properties": [
+          "realm_id",
+          "invite_id",
+          "provisioning_id",
+          "verification_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome",
+        "schema_kind": "object",
+        "required": [
+          "acceptance_attestation"
+        ],
+        "properties": [
+          "acceptance_attestation"
         ],
         "closed": true
       }

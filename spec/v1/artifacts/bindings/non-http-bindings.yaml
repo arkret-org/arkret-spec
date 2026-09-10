@@ -311,6 +311,11 @@ grpc:
       Resolve: ak.open.invite_locator.read.resolve.v1
     OpenThirdPartyInvite:
       PresentToken: ak.open.third_party_invite.command.present_token.v1
+      Provision: ak.open.third_party_invite.command.provision.v1
+      Activate: ak.open.third_party_invite.command.activate.v1
+      ProvisioningStatus: ak.open.third_party_invite.read.provisioning_status.v1
+    SelfThirdPartyInvite:
+      AcceptanceAttestation: ak.self.third_party_invite.read.acceptance_attestation.v1
     SelfInviteLocator:
       Issue: ak.self.invite_locator.command.issue.v1
       Rotate: ak.self.invite_locator.command.rotate.v1
@@ -508,6 +513,10 @@ mq:
     open.mimi.command.proxy_download: ak.open.mimi.command.proxy_download.v1
     open.invite_locator.query.resolve: ak.open.invite_locator.read.resolve.v1
     open.third_party_invite.command.present_token: ak.open.third_party_invite.command.present_token.v1
+    open.third_party_invite.command.provision: ak.open.third_party_invite.command.provision.v1
+    open.third_party_invite.command.activate: ak.open.third_party_invite.command.activate.v1
+    open.third_party_invite.query.provisioning_status: ak.open.third_party_invite.read.provisioning_status.v1
+    self.third_party_invite.query.acceptance_attestation: ak.self.third_party_invite.read.acceptance_attestation.v1
     open.agent_pairing.query.resolve: ak.open.agent_pairing.read.resolve.v1
     open.agent_pairing.command.submit_runtime_key_request: ak.open.agent_pairing.command.submit_runtime_key_request.v1
     open.agent_pairing.query.runtime_key_request_status: ak.open.agent_pairing.read.runtime_key_request_status.v1

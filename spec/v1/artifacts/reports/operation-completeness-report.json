@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.22",
+  "version": "2026-09-10.23",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T12:01:31+08:00",
+  "generated_at": "2026-09-10T12:11:35+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 242,
+    "total_operations": 246,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 240
+      "typed_schema": 244
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 147
+        "typed_schema": 151
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -924,6 +924,20 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
+      "operation_id": "ak.open.third_party_invite.command.activate.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/open/third-party-invites/activate",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_request_body",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ThirdPartyInviteActivationRequestBody",
+        "response": "#/components/schemas/ThirdPartyInviteActivationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.open.third_party_invite.command.present_token.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/open/third-party-invites/present",
@@ -933,6 +947,34 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/ThirdPartyInvitePresentRequestBody",
         "response": "#/components/schemas/ThirdPartyInvitePresentOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.command.provision.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/open/third-party-invites/provision",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ThirdPartyInviteProvisionRequestBody",
+        "response": "#/components/schemas/ThirdPartyInviteProvisionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.read.provisioning_status.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/open/third-party-invites/status",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_request_body",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ThirdPartyInviteProvisioningStatusRequestBody",
+        "response": "#/components/schemas/ThirdPartyInviteProvisioningStatusOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -3341,6 +3383,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/third-party-invites/acceptance-attestation",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ThirdPartyInviteAcceptanceAttestationRequestBody",
+        "response": "#/components/schemas/ThirdPartyInviteAcceptanceAttestationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.server.read.describe.v1",

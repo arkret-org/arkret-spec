@@ -6004,6 +6004,46 @@
       ]
     },
     {
+      "schema_path": "invite.schema.json#/$defs/third_party_invite_acceptance_attestation/properties/inviter_account_id",
+      "property_name": "inviter_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "invite.schema.json#/$defs/third_party_invite_acceptance_attestation/properties/station_id",
+      "property_name": "station_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "invite.schema.json#/$defs/third_party_invite_acceptance_attestation/properties/verification_id",
+      "property_name": "verification_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body/properties/verification_id",
+      "property_name": "verification_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "invite.schema.json#/$defs/third_party_invite_present_request_body/properties/subject_account_id",
       "property_name": "subject_account_id",
       "semantic_category": "responsibility_identity_material",
@@ -6021,6 +6061,36 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did"
+      ]
+    },
+    {
+      "schema_path": "invite.schema.json#/$defs/third_party_invite_provision_outcome/properties/inviter_account_id",
+      "property_name": "inviter_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "invite.schema.json#/$defs/third_party_invite_provision_request_body/properties/inviter_account_id",
+      "property_name": "inviter_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "invite.schema.json#/$defs/third_party_invite_provision_request_body/properties/verification_id",
+      "property_name": "verification_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
       ]
     },
     {
