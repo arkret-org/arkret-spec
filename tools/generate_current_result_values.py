@@ -179,6 +179,6 @@ if '--check' in sys.argv:
     if expected!=actual:raise SystemExit('Current-result value schema drift; run generate_current_result_values.py')
     print(f'Current-result values: {len(value_defs)} closed family mappings match')
 else:
-    path.write_text(json.dumps(expected,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    path.write_text(json.dumps(expected,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
     print(f'Generated {len(value_defs)} closed current-result value mappings')
 
