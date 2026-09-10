@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10986,
-    "total_schema_documents": 170,
+    "total_properties": 11034,
+    "total_schema_documents": 171,
     "by_presence_class": {
-      "optional": 3038,
+      "optional": 3042,
       "optional_defaulted": 69,
-      "required": 7014,
+      "required": 7058,
       "required_nullable": 138,
       "tristate": 727
     },
@@ -12964,6 +12964,70 @@
       },
       "conditionally_required": [
         "/properties/proofs"
+      ]
+    },
+    "realm-join-intake.schema.json": {
+      "schema_ids": [
+        "ak.schema.realm_join_peer_application_status_outcome.v1 -> #/$defs/peer_application_status_outcome",
+        "ak.schema.realm_join_peer_application_status_request.v1 -> #/$defs/peer_application_status_request_body",
+        "ak.schema.realm_join_bootstrap_outcome.v1 -> #/$defs/peer_bootstrap_outcome",
+        "ak.schema.realm_join_bootstrap_request.v1 -> #/$defs/peer_bootstrap_request_body",
+        "ak.schema.realm_join_self_application_status_outcome.v1 -> #/$defs/self_application_status_outcome",
+        "ak.schema.realm_join_self_application_status_request.v1 -> #/$defs/self_application_status_request_body"
+      ],
+      "properties": {
+        "/$defs/peer_application_status_outcome/allOf/0/if/properties/realm_state": "required",
+        "/$defs/peer_application_status_outcome/properties/applicant_account_id": "required",
+        "/$defs/peer_application_status_outcome/properties/decision": "optional",
+        "/$defs/peer_application_status_outcome/properties/event_id": "required",
+        "/$defs/peer_application_status_outcome/properties/observed_at": "required",
+        "/$defs/peer_application_status_outcome/properties/realm_id": "required",
+        "/$defs/peer_application_status_outcome/properties/realm_state": "required",
+        "/$defs/peer_application_status_outcome/properties/request_id": "required",
+        "/$defs/peer_application_status_request_body/properties/applicant_account_id": "required",
+        "/$defs/peer_application_status_request_body/properties/event_id": "required",
+        "/$defs/peer_application_status_request_body/properties/realm_id": "required",
+        "/$defs/peer_application_status_request_body/properties/request_id": "required",
+        "/$defs/peer_bootstrap_outcome/properties/applicant_account_id": "required",
+        "/$defs/peer_bootstrap_outcome/properties/dependency_bundles": "required",
+        "/$defs/peer_bootstrap_outcome/properties/expires_at": "required",
+        "/$defs/peer_bootstrap_outcome/properties/governance_facts": "required",
+        "/$defs/peer_bootstrap_outcome/properties/observed_at": "required",
+        "/$defs/peer_bootstrap_outcome/properties/realm_id": "required",
+        "/$defs/peer_bootstrap_outcome/properties/request_digest": "required",
+        "/$defs/peer_bootstrap_outcome/properties/request_id": "required",
+        "/$defs/peer_bootstrap_request_body/properties/applicant_account_id": "required",
+        "/$defs/peer_bootstrap_request_body/properties/intent": "required",
+        "/$defs/peer_bootstrap_request_body/properties/realm_id": "required",
+        "/$defs/peer_bootstrap_request_body/properties/request_id": "required",
+        "/$defs/realm_join_governance_facts/properties/digest_algorithm": "required",
+        "/$defs/realm_join_governance_facts/properties/encryption_profile": "required",
+        "/$defs/realm_join_governance_facts/properties/join_rule": "required",
+        "/$defs/realm_join_governance_facts/properties/seal_basis": "required",
+        "/$defs/realm_join_invite_accept_intent/properties/intent": "required",
+        "/$defs/realm_join_invite_accept_intent/properties/invite_id": "required",
+        "/$defs/realm_join_invite_accept_intent/properties/invite_token": "required",
+        "/$defs/realm_join_knock_intent/properties/intent": "required",
+        "/$defs/realm_join_member_join_intent/properties/gate_proofs": "optional",
+        "/$defs/realm_join_member_join_intent/properties/intent": "required",
+        "/$defs/self_application_status_outcome/allOf/0/if/properties/origin_state": "required",
+        "/$defs/self_application_status_outcome/allOf/1/if/properties/realm_state": "required",
+        "/$defs/self_application_status_outcome/properties/accepted_seal_id": "optional",
+        "/$defs/self_application_status_outcome/properties/account_id": "required",
+        "/$defs/self_application_status_outcome/properties/event_id": "required",
+        "/$defs/self_application_status_outcome/properties/observed_at": "required",
+        "/$defs/self_application_status_outcome/properties/origin_state": "required",
+        "/$defs/self_application_status_outcome/properties/realm_id": "required",
+        "/$defs/self_application_status_outcome/properties/realm_state": "optional",
+        "/$defs/self_application_status_outcome/properties/request_id": "required",
+        "/$defs/self_application_status_request_body/properties/account_id": "required",
+        "/$defs/self_application_status_request_body/properties/event_id": "required",
+        "/$defs/self_application_status_request_body/properties/realm_id": "required",
+        "/$defs/self_application_status_request_body/properties/request_id": "required"
+      },
+      "conditionally_required": [
+        "/$defs/peer_application_status_outcome/properties/decision",
+        "/$defs/self_application_status_outcome/properties/accepted_seal_id"
       ]
     },
     "realm-link-operations.schema.json": {

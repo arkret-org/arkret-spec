@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T11:02:47+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -875,6 +875,27 @@
         "initial_session_request_mismatch"
       ],
       "description": "Atomically accepts the exact root-committed PCR genesis pair. Transport service authentication is not content authority; any proof, commitment, create-once or fence failure performs zero writes."
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.application_status.v1",
+      "http_alias": "POST /_arkret/peer/realm-joins/application-status",
+      "operation_specific": [
+        "not_found",
+        "payload_too_large"
+      ],
+      "description": "Unknown Realm, unknown Event, an application forwarded by another source and an applicant whose Station is not the authenticated source all share one non-enumerating 404 not_found under the same fixed timing bucket. Request canonical bytes above 64 KiB are 413 payload_too_large; count-only schema violations remain universal 422 schema_violation."
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
+      "http_alias": "POST /_arkret/peer/realm-joins/bootstrap",
+      "operation_specific": [
+        "not_found",
+        "unsupported_feature",
+        "frontier_unavailable",
+        "payload_too_large",
+        "limit_exceeded"
+      ],
+      "description": "Unauthorized applicant, unknown Realm, invalid, expired or revoked invite and a join policy that does not admit the declared intent share one non-enumerating 404 not_found under a fixed timing bucket. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A missing, Bottom, non-unique or currently unverifiable accepted basis, digest suite or encryption profile is 503 frontier_unavailable and never a defaulted value. Request canonical bytes above 64 KiB are 413 payload_too_large; a closure that cannot fit the response budget is 413 limit_exceeded and is never truncated."
     },
     {
       "operation_id": "ak.peer.seals.read.frontier.v1",
@@ -1999,6 +2020,15 @@
       "http_alias": "GET /_arkret/self/realms/{realm_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ak.self.realm_join.read.application_status.v1",
+      "http_alias": "POST /_arkret/self/realm-joins/application-status",
+      "operation_specific": [
+        "not_found",
+        "payload_too_large"
+      ],
+      "description": "An account or Station that does not match the authenticated session, an unknown Event and another account's application share one non-enumerating 404 not_found. Request canonical bytes above 64 KiB are 413 payload_too_large."
     },
     {
       "operation_id": "ak.self.realm_link.read.effective_policy.v1",

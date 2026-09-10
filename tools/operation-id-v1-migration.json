@@ -344,6 +344,14 @@
       "new": "ak.peer.principal_genesis.command.submit.v1"
     },
     {
+      "old": "ak.peer.realm_join.read.application_status",
+      "new": "ak.peer.realm_join.read.application_status.v1"
+    },
+    {
+      "old": "ak.peer.realm_join.read.bootstrap",
+      "new": "ak.peer.realm_join.read.bootstrap.v1"
+    },
+    {
       "old": "ak.peer.seals.read.frontier",
       "new": "ak.peer.seals.read.frontier.v1"
     },
@@ -858,6 +866,10 @@
     {
       "old": "ak.self.realm.resource.get",
       "new": "ak.self.realm.resource.get.v1"
+    },
+    {
+      "old": "ak.self.realm_join.read.application_status",
+      "new": "ak.self.realm_join.read.application_status.v1"
     },
     {
       "old": "ak.self.realm_link.read.effective_policy",

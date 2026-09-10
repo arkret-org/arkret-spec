@@ -1,0 +1,414 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realm-join-intake.schema.json",
+  "title": "Arkret Realm Join Intake",
+  "description": "Closed carriers for the first cross-station Realm join chain: bounded join bootstrap material served by an existing member Station, and the restricted application outcome an applicant and the applicant's own Station may read before membership exists. Bootstrap material is purpose limited to authoring and verifying exactly one join attempt; it is never Realm acceptance, membership, roster access or a reusable governance read grant.",
+  "$defs": {
+    "realm_join_intent": {
+      "description": "Closed join intent. v1 registers exactly three branches; restricted_join and application receipts have no registered payload or precondition branch and MUST fail with unsupported_feature rather than being mapped onto member_join.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/realm_join_invite_accept_intent"
+        },
+        {
+          "$ref": "#/$defs/realm_join_member_join_intent"
+        },
+        {
+          "$ref": "#/$defs/realm_join_knock_intent"
+        }
+      ]
+    },
+    "realm_join_invite_accept_intent": {
+      "type": "object",
+      "description": "Acceptance of one exact directed invite. invite_token is the holder-private locator delivered through ak.account.invite_delivery and is the applicant possession proof for this attempt.",
+      "required": [
+        "intent",
+        "invite_id",
+        "invite_token"
+      ],
+      "properties": {
+        "intent": {
+          "const": "invite_accept"
+        },
+        "invite_id": {
+          "$ref": "./event-payload.schema.json#/$defs/invite_id"
+        },
+        "invite_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "Opaque server-issued private invite locator copied verbatim from the holder-private delivery entry. It MUST NOT be logged, echoed in any outcome, or persisted outside holder-private state and the bounded intake record."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_member_join_intent": {
+      "type": "object",
+      "description": "Self-authored join under the Realm join policy. gate_proofs are the applicant-supplied closed join-policy gate proofs; gates replayed from accepted state never appear here.",
+      "required": [
+        "intent"
+      ],
+      "properties": {
+        "intent": {
+          "const": "member_join"
+        },
+        "gate_proofs": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-payload.schema.json#/$defs/join_gate_proof"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_knock_intent": {
+      "type": "object",
+      "description": "Public join-intent signal only. v1 carries no application text: the intake never authors membership_payload.reason, so the knock path cannot become an external spam channel.",
+      "required": [
+        "intent"
+      ],
+      "properties": {
+        "intent": {
+          "const": "knock"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_governance_facts": {
+      "type": "object",
+      "description": "The exact governance-dependent authoring inputs a not-yet-joined applicant cannot derive locally. The holder Station returns them from its own accepted projection at observed_at; the requesting Station independently verifies them against the accompanying dependency closure before reusing them.",
+      "required": [
+        "join_rule",
+        "seal_basis",
+        "digest_algorithm",
+        "encryption_profile"
+      ],
+      "properties": {
+        "join_rule": {
+          "$ref": "./realm.schema.json#/properties/default_join_rule",
+          "description": "Effective ak.realm.join_rule value under the accepted projection of seal_basis."
+        },
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Complete current accepted Seal frontier of the holder service for this Realm: exactly one leaf for single_signer and threshold authority, and the complete canonical duplicate-free non-quarantined leaf antichain for open_set. A compressed head is never a substitute."
+        },
+        "digest_algorithm": {
+          "$ref": "./realm.schema.json#/properties/digest_algorithm",
+          "description": "Live Realm digest suite obtained from the verified joined projection of the complete seal_basis. Missing, Bottom, non-unique or unverifiable joined values require failure, never a default."
+        },
+        "encryption_profile": {
+          "$ref": "./realm.schema.json#/properties/encryption_profile",
+          "description": "Effective Realm encryption_profile under the same accepted projection, so the applicant device can apply the pre-join recovery-material gate without any membership-gated history read."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_realm_state": {
+      "type": "string",
+      "description": "State of one join application as observed by the receiving Realm member Station. received means the byte-identical Event was durably accepted for forwarding but is not yet an Ack-bearing proposal; the remaining five values map one to one onto control_proposal_decision_read_outcome.proposal_state pending, deferred, overdue, rejected and sealed.",
+      "enum": [
+        "received",
+        "authority_pending",
+        "deferred",
+        "overdue",
+        "rejected",
+        "sealed"
+      ]
+    },
+    "realm_join_origin_state": {
+      "type": "string",
+      "description": "Forwarding state held by the applicant's own Station. It is never Realm acceptance: pending means the application is durably queued, forwarded means one bounded candidate accepted the byte-identical Event, and unreachable means every bounded candidate currently fails closed or is expired and the attempt stays retryable.",
+      "enum": [
+        "pending",
+        "forwarded",
+        "unreachable"
+      ]
+    },
+    "peer_bootstrap_request_body": {
+      "type": "object",
+      "description": "Authenticated service-to-service request from the applicant's own Station for the bounded material required to author and verify exactly one join attempt. The holder Station MUST verify that applicant_account_id.station_id equals the authenticated Source-Service-ID and that itself is the Destination-Service-ID; a caller-declared intent is never authorization.",
+      "required": [
+        "request_id",
+        "realm_id",
+        "applicant_account_id",
+        "intent"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "applicant_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete AccountId of the applicant. A bare principal, a handle or an inferred Station is never accepted."
+        },
+        "intent": {
+          "$ref": "#/$defs/realm_join_intent"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "peer_bootstrap_outcome": {
+      "type": "object",
+      "description": "Bounded join bootstrap material for exactly the requested applicant, Realm and intent. It authorizes nothing: it neither creates membership nor grants roster, message, MLS or general governance reads, and it expires.",
+      "required": [
+        "request_id",
+        "realm_id",
+        "applicant_account_id",
+        "request_digest",
+        "governance_facts",
+        "dependency_bundles",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "applicant_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "request_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
+          "description": "SHA-256 of UTF8(\"ak.realm-join-bootstrap-request-v1\") || 0x00 || JCS(exact request body). It binds the outcome to this request and is not an authentication proof against a malicious holder."
+        },
+        "governance_facts": {
+          "$ref": "#/$defs/realm_join_governance_facts"
+        },
+        "dependency_bundles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cbs-proof-bundle.schema.json"
+          },
+          "description": "Exactly one receiver-relative dependency bundle per seal_basis leaf, in the same canonical leaf order. It is the minimum closure the requesting Station needs to verify the returned facts itself; it is not authoritative and it MUST NOT carry objects outside that closure."
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Instant the holder Station observed the returned accepted projection."
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Instant after which the requesting Station MUST re-run bootstrap instead of authoring from this material."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 8388608
+    },
+    "peer_application_status_request_body": {
+      "type": "object",
+      "description": "Authenticated service-to-service read of the restricted outcome of exactly one forwarded join application. The holder Station MUST verify that applicant_account_id.station_id equals the authenticated Source-Service-ID and that event_id is the exact Event that Station forwarded for that applicant.",
+      "required": [
+        "request_id",
+        "realm_id",
+        "applicant_account_id",
+        "event_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "applicant_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Exact join Event the applicant's Station forwarded. Any other Event of the same Realm shares the non-enumerating not_found outcome."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "peer_application_status_outcome": {
+      "type": "object",
+      "description": "Restricted outcome of exactly one join application. It discloses only this application: no roster, no unrelated proposals, no Realm history and no general governance read.",
+      "required": [
+        "request_id",
+        "realm_id",
+        "applicant_account_id",
+        "event_id",
+        "realm_state",
+        "observed_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "applicant_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "realm_state": {
+          "$ref": "#/$defs/realm_join_realm_state"
+        },
+        "decision": {
+          "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_outcome",
+          "description": "Durable proposal observation for this exact application, present for every realm_state other than received. Its proposal_state MUST agree with realm_state under the registered mapping."
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "realm_state": {
+                "const": "received"
+              }
+            },
+            "required": [
+              "realm_state"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "decision"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "decision"
+            ]
+          }
+        }
+      ],
+      "x-arkret-max-canonical-bytes": 262144
+    },
+    "self_application_status_request_body": {
+      "type": "object",
+      "description": "Authenticated account read of one own join application before membership exists. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling this request.",
+      "required": [
+        "request_id",
+        "account_id",
+        "realm_id",
+        "event_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Exact join Event this account submitted through its own Station."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "self_application_status_outcome": {
+      "type": "object",
+      "description": "Own-Station validated progress of one join application. It carries no Ack, no authority set, no authority signature and no covering Seal bytes: the client learns whether it has joined, never a second governance read surface.",
+      "required": [
+        "request_id",
+        "account_id",
+        "realm_id",
+        "event_id",
+        "origin_state",
+        "observed_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "origin_state": {
+          "$ref": "#/$defs/realm_join_origin_state"
+        },
+        "realm_state": {
+          "$ref": "#/$defs/realm_join_realm_state",
+          "description": "Present exactly when a bounded candidate has answered for this application; absent while origin_state is pending or unreachable and no earlier answer is retained."
+        },
+        "accepted_seal_id": {
+          "$ref": "./seal.schema.json#/$defs/seal_ref",
+          "description": "Present exactly when realm_state is sealed and the own Station has itself verified and accepted that covering Seal. It is an acceptance observation, not an authoring seal_basis."
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "origin_state": {
+                "const": "forwarded"
+              }
+            },
+            "required": [
+              "origin_state"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "realm_state"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "realm_state": {
+                "const": "sealed"
+              }
+            },
+            "required": [
+              "realm_state"
+            ]
+          },
+          "then": {
+            "required": [
+              "accepted_seal_id"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "accepted_seal_id"
+              ]
+            }
+          }
+        }
+      ],
+      "x-arkret-max-canonical-bytes": 65536
+    }
+  }
+}

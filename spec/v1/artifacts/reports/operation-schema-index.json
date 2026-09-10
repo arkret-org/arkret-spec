@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T11:02:47+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3777,6 +3777,95 @@
           "accepted_device_id",
           "resolution",
           "receipt"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.application_status.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "applicant_account_id",
+          "event_id"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "applicant_account_id",
+          "event_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "applicant_account_id",
+          "event_id",
+          "realm_state",
+          "observed_at"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "applicant_account_id",
+          "event_id",
+          "realm_state",
+          "decision",
+          "observed_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "applicant_account_id",
+          "intent"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "applicant_account_id",
+          "intent"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "applicant_account_id",
+          "request_digest",
+          "governance_facts",
+          "dependency_bundles",
+          "observed_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "applicant_account_id",
+          "request_digest",
+          "governance_facts",
+          "dependency_bundles",
+          "observed_at",
+          "expires_at"
         ],
         "closed": true
       }
@@ -8824,6 +8913,50 @@
           "terminal_state",
           "successor_realm_id",
           "freeze_expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.realm_join.read.application_status.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_id",
+          "realm_id",
+          "event_id"
+        ],
+        "properties": [
+          "request_id",
+          "account_id",
+          "realm_id",
+          "event_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_id",
+          "realm_id",
+          "event_id",
+          "origin_state",
+          "observed_at"
+        ],
+        "properties": [
+          "request_id",
+          "account_id",
+          "realm_id",
+          "event_id",
+          "origin_state",
+          "realm_state",
+          "accepted_seal_id",
+          "observed_at"
         ],
         "closed": true
       }

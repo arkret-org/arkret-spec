@@ -582,6 +582,106 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 
 > 申请正文 MUST NOT 出现在公开可见的 `ak.member.state{knock}` payload 中。v1 base 不定义独立 `member.application` 对象；部署若需申请正文，必须通过独立的加密扩展通道传输，不能把 Matrix `m.room.member{knock}.reason` 一类默认可见字段变成外部 spam 通道。
 
+### 5.3 首次跨站加入的引导与结果回传（normative）
+
+本节针对 invitee 的 Station **从未参与该 Realm** 的首次加入。加入分三个互不替代的时点：来源
+Station 完成 origin admission、Realm authority 完成签收、覆盖该 Move 的有效 Seal 生效。来源 admission
+MUST NOT 被表述、投影或消费为 Realm acceptance；origin proof 只证明来源站完成了规定的来源准入并绑定
+exact producer proof 与 Event，不证明目标 Realm 授权。
+
+**普通在线加入不使用 lease。** `ak.invite.accept`、`ak.member.state{membership="join"|"knock"}` 的普通在线
+提交按 [`../authz/offline-publication.md`](../authz/offline-publication.md) 走 `publication_mode="online"` 的无
+lease 分支；只有明确的延迟／离线窗口才使用 `publication_mode="delayed"` 并独立验证 AuthorizationLease。
+实现 MUST NOT 为首次加入强制申请 AuthorizationLease，也 MUST NOT 把无效或过期 lease 静默降级为在线成功。
+
+#### 5.3.1 有界加入引导（normative）
+
+用户明确开始加入后，invitee 的 Station MUST 通过
+`ak.peer.realm_join.read.bootstrap.v1`（`POST /_arkret/peer/realm-joins/bootstrap`）从 §5.0 step 2 的**同一有界
+候选集合**取得完成本次加入所需的最小材料。候选来源仍只有两处：signed invite，或当前 joined-member
+ActorId routing projection；部署已知 peer、notary、mirror、Directory / search projection 与裸 URL MUST NOT
+成为候选来源。客户端 MUST NOT 调用该 operation，也 MUST NOT 绕过自己的 Station 直连远端 Station。
+
+请求体是 closed `realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body`，字段依次为
+`request_id`、`realm_id`、`applicant_account_id`、`intent`。持有材料的成员 Station MUST：
+
+1. 按 §3.2 验证服务间认证，并要求 `applicant_account_id.station_id` 逐字等于已认证的 `Source-Service-ID`、
+   自身等于 `Destination-Service-ID`。申请者控制证明由该来源 Station 的服务认证承担；请求方自报的 principal、
+   handle 或推断出的 Station MUST 被拒绝。
+2. 按 `intent` 分支求值授权：`invite_accept` MUST 在自身**已接受状态**中定位 exact `invite_id`，核对
+   `invite_token`、invitee 完整 AccountId、有效期与未撤销；`member_join` 与 `knock` MUST 按当前 effective
+   `ak.realm.join_rule` 与 Join Policy 判断该 intent 是否被允许。通知里的邀请签名只能定位待核验邀请，MUST NOT
+   单独证明 inviter 拥有邀请权限。
+3. 只返回 closed `peer_bootstrap_outcome`：`request_id`、`realm_id`、`applicant_account_id`、`request_digest`、
+   `governance_facts`、`dependency_bundles`、`observed_at`、`expires_at`。`governance_facts` 是
+   `{join_rule, seal_basis, digest_algorithm, encryption_profile}`；`dependency_bundles` 是每个 `seal_basis` leaf
+   恰一个 `ak.schema.cbs_proof_bundle.v1`，按同一 canonical leaf 顺序排列。响应 MUST NOT 携带 roster、消息历史、
+   MLS 材料、无关 cell、frontier 扫描结果或任何可复用的治理读权限。
+4. `seal_basis` MUST 是该服务在 `observed_at` 的**完整当前已接受 Seal frontier**：`single_signer` / `threshold`
+   恰一 leaf，`open_set` 是 canonical 排序、去重、非隔离的完整 leaf antichain；压缩成单 head MUST 被拒绝。
+   `digest_algorithm` MUST 由该完整 basis 的已接受 joined projection 验证得到；缺失、为 `Bottom`、join 后不唯一或
+   任一 leaf / predecessor closure 不可验证时 MUST 失败，MUST NOT 猜测默认值。
+5. 未授权申请者、未知 Realm、失效／撤销／跨人邀请以及 join policy 不允许该 intent，MUST 共用一个与不存在
+   不可区分的失败，并按 §3.2 同口径固定 timing bucket。`restricted_join` 与 application receipt 在其正式 payload /
+   precondition 分支登记前 MUST 返回 `unsupported_feature`，MUST NOT 伪映射为 `member_join`。
+6. 对非成员的 basis 解析 MUST 按 `(realm_id, applicant_account_id)` 限速，并对 frontier 推进使用固定迟滞 / 分桶，
+   与 [`../discovery/discovery-directory.md` §9.2](../discovery/discovery-directory.md) 的 pre-join 活跃度侧信道
+   收口同口径。
+
+请求方 Station MUST 用 `dependency_bundles` 独立验证返回的 `governance_facts`，再据以准备本次加入的签名输入；
+**MUST NOT** 直接把 `ak.schema.realm_join_candidate.v1` 的 `seal_basis`、`digest_algorithm` 或
+`encryption_profile` 当作 authoring basis。candidate 上的这些字段是签发方的观测，只用于候选选择、陈旧检测与
+交叉核对。验证失败、闭包不完整或已过 `expires_at` 时 MUST 重新引导，MUST NOT 用未验证材料 author。
+引导结果 MUST NOT 写入 accepted Realm Event、membership、Seal、projection 或 frontier。
+
+#### 5.3.2 来源持久化与转发（normative）
+
+invitee Station 在向调用方确认受理之前，MUST 持久化 exact 已签 Event、origin proof、授权上下文与有界转发意图。
+来源排队不是 `accepted`：它 MUST NOT 伪造 Ack，MUST NOT 用本地接收时间启动或延长 authority deadline，也
+MUST NOT 据此对本地客户端投影成员身份。提交后、响应前任一端崩溃，MUST 通过 byte-identical 内容与同一
+canonical 请求重试恢复，MUST NOT 重签 Event、重建新 Ack 或把超时当成功。在线重试按当前权限重新求值；
+排队时间不创造离线资格。
+
+#### 5.3.3 受限结果回传（normative）
+
+尚未成为成员的申请者及其来源 Station MUST 能取得本次申请的最小结果，MUST NOT 被要求先成为成员才能得知
+是否已加入。回传由两个 read operation 承担，且只披露本次申请：
+
+- `ak.peer.realm_join.read.application_status.v1`（`POST /_arkret/peer/realm-joins/application-status`）：来源
+  Station 向受理该申请的成员 Station 读取。持有方 MUST 校验 `applicant_account_id.station_id` 等于
+  `Source-Service-ID`、自身为 `Destination-Service-ID`，且 `event_id` 恰是该来源为该申请者转发的 Event；其它
+  Event、其它账号与未知 Realm 共用同一不可枚举 `not_found`。
+- `ak.self.realm_join.read.application_status.v1`（`POST /_arkret/self/realm-joins/application-status`）：申请者
+  向自己的 Station 读取。`account_id` MUST 逐字等于已认证会话的完整账号，其 Station MUST 是本服务。
+
+`realm_state` 与现行 proposal 状态的映射是封闭的：
+
+| `realm_state` | `control_proposal_decision_read_outcome.proposal_state` | 含义 |
+| --- | --- | --- |
+| `received` | 无 | 成员 Station 已耐久接纳该 byte-identical Event，尚未形成 Ack 提案。 |
+| `authority_pending` | `pending` | authority 已签收，未决议。 |
+| `deferred` | `deferred` | 已签收并被延期。 |
+| `overdue` | `overdue` | 决议逾期。 |
+| `rejected` | `rejected` | 终局拒绝。 |
+| `sealed` | `sealed` | 存在覆盖该 Move 的有效 Seal。 |
+
+peer 结果在 `realm_state != "received"` 时 MUST 携带该 exact 提案的
+`control_proposal_decision_read_outcome`，且其 `proposal_state` MUST 与 `realm_state` 按上表一致；`received`
+时 MUST 省略它。self 结果 MUST NOT 携带 Ack、authority set、authority 签名或 Seal 字节：它只回报本 Station 自己
+的 `origin_state`、已得到的 `realm_state` 与已由本 Station 验证接纳的 `accepted_seal_id`。
+
+`origin_state` 只描述来源 Station 自己的转发事实：`pending` 表示申请已耐久入队；`forwarded` 表示某个有界候选
+已接受 byte-identical Event；`unreachable` 表示当前全部有界候选不可达、过期或 fail closed，本次申请保持可重试。
+它 MUST NOT 被解释为 Realm acceptance。邀请撤销、权限变化、旧 basis、候选过期或不可达时，来源 Station MUST
+保留可恢复事实并返回当前结果，MUST NOT 扩散到部署 peer 列表。
+
+取得 `sealed` 后，来源 Station MUST 用既有成员面（`ak.peer.seals.read.resolve.v1`、
+`ak.peer.seals.read.governance_dependencies.v1`、`ak.peer.events.read.*`）取回覆盖 Seal 与必要验证闭包并独立
+验证 authority、CBS、suite、邀请与成员状态迁移，然后才形成本地 accepted 状态与成员投影。v1 MUST NOT 为回传
+另造第二套材料载体。MLS Welcome / 密钥处理另按
+[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) 完成；Ack 与成员状态都不能
+替代它。
+
 ## 6. 联邦级服务发现
 
 ### 6.1 Member Station 发现
