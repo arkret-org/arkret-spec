@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-20
+updated: 2026-09-10
 ---
 
 ## 0. 规范语言
@@ -405,7 +405,7 @@ Problem `type` URI 的 `{code}` 尾段与批处理/联邦响应中的逐项 `rea
 - 错误语义必须使用单一标准 code。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。
 - `frontier_stale` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
 - 格式错误的 cursor 使用 `param_invalid` / 400；格式正确但已过期的 cursor 使用 `cursor_expired` / 410。
-- `unsupported_feature` 用于 `Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ak.*` Event kind。二者不得互相替代。
+- `unsupported_feature` 用于两类情形：`Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；以及 active 标准 kind 的 Event 结构合法、但其 wire 特性或 producer 类在 v1 支持矩阵中登记为 unsupported（例如 `ak.mls.proposal` 解码出的 RFC 9420 sender class 或 Proposal 类型，见 [`artifacts/registry/mls-proposal-admission-registry.json`](../../artifacts/registry/mls-proposal-admission-registry.json)）。后一类 MUST NOT 报成 `schema_violation`。`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ak.*` Event kind。三种情形不得互相替代。
 - `conflict` / 409 是抽象 base code；实现 SHOULD 返回 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `http_status=409` 的更精确 code。本文不维护并行穷尽清单；示例包括 `cas_conflict`、`causal_conflict`、`dependency_missing`、`duplicate_conflict`、`frontier_stale`、`state_mismatch`。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
 

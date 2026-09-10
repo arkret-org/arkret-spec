@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.14",
+  "version": "2026-09-10.15",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T07:32:10+08:00",
+  "generated_at": "2026-09-10T10:52:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -603,6 +603,18 @@
       "requirement": "A Control Proposal Ack intake request explicitly selects online or delayed publication. Online forbids an AuthorizationLease and re-evaluates current accepted authority; delayed requires an independently valid Event-bound lease. A malformed, invalid or expired delayed request never downgrades to online, and neither branch turns the Ack into a lease or a Seal.",
       "testability_grade": "audit",
       "test_plan": "Validate schema and shared SDK positive cases for online without a lease and delayed with a matching lease; reject online with a lease, delayed without one, invalid or expired leases, mode replacement, Event substitution and cross-actor or cross-scope lease reuse. Verify exact retry preserves the first durable Ack and deadline."
+    },
+    {
+      "clause_id": "AK-NC-046",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#521-proposal-producer-与-sender-支持矩阵normative",
+      "section_digest": "sha256:66ffcf4e4274631518f369a9b20176a12c4d3c18183b6fdb903be95e2fb9dc66",
+      "requirement": "A v1 Realm or Circle durable ak.mls.proposal is authored only by a Member sender whose leaf is occupied in the exact accepted base and whose leaf credential and signature key equal the verified Event producer executed_by ?? actor_id. ExternalSender, NewMemberProposal, NewMemberCommit, external_init and any app_custom codepoint without an active application registry row fail closed with unsupported_feature and are never reported as schema_violation; standard Member proposal types keep their existing rules.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.mls.proposal_producer_binding.v1"
+      ]
     }
   ]
 }

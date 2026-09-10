@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-10.5",
-  "generated_at": "2026-09-10T04:50:56+08:00",
+  "version": "2026-09-10.6",
+  "generated_at": "2026-09-10T10:52:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1234,7 +1234,7 @@
       "code": "unsupported_feature",
       "http_status": 501,
       "scope": "both",
-      "description": "A required protocol feature is not supported.",
+      "description": "A required protocol feature is not supported. It also carries the per-item rejection for a structurally valid Event whose producer class or wire feature has no admissible v1 form, such as an ak.mls.proposal decoded to an unsupported RFC 9420 sender class or Proposal type (mls-proposal-admission-registry.json); that case MUST NOT be reported as schema_violation. Dual-registered as a reason_code for the event_envelope scope (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/unsupported_feature",
       "title": "Unsupported feature"
     },
@@ -5449,9 +5449,10 @@
       "code": "unsupported_feature",
       "applies_to": [
         "service_call",
-        "feature_discovery"
+        "feature_discovery",
+        "event_envelope"
       ],
-      "description": "Implementation does not advertise the feature requested; caller SHOULD downgrade or pick another peer."
+      "description": "Implementation does not advertise the feature requested; caller SHOULD downgrade or pick another peer. At event_envelope scope it is the per-item reason_code for a structurally valid Event whose wire feature or producer class has no admissible v1 form, including an ak.mls.proposal whose decoded RFC 9420 sender class or Proposal type is a status=unsupported row of mls-proposal-admission-registry.json. Dual-registered with the top-level service code."
     },
     {
       "code": "unsupported_hpke_suite",

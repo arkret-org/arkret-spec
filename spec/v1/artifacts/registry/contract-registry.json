@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T10:52:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -7510,9 +7510,16 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "MLS proposal. proposal_type=add requires exact target_actor_id and target_authorization_incarnation; the incarnation branch must match governance_binding.effective_scope, and the winning Commit that consumes this proposal defines that exact incarnation's join_epoch as Commit.next_epoch. Non-add proposals forbid target_authorization_incarnation.",
+        "payload": "MLS proposal. proposal_type=add requires exact target_actor_id and target_authorization_incarnation; the incarnation branch must match governance_binding.effective_scope, and the winning Commit that consumes this proposal defines that exact incarnation's join_epoch as Commit.next_epoch. Non-add proposals forbid target_authorization_incarnation. On a Realm or Circle effective scope the decoded RFC 9420 sender class and Proposal type MUST be active rows of mls-proposal-admission-registry.json; an unsupported row is rejected with its rejection_error, never with schema_violation.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_proposal_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "admission_checks": [
+          "Realm/Circle proposal_bytes_b64 decodes to a complete RFC 9420 PublicMessage whose sender class is the active member row of mls-proposal-admission-registry.json; external, new_member_proposal and new_member_commit are rejected with unsupported_feature",
+          "the decoded Proposal type is an active row of mls-proposal-admission-registry.json; external_init and any app_custom codepoint without an active application_proposal_types row are rejected with unsupported_feature",
+          "the unsupported sender class or Proposal type is reported before the declared proposal_type token mismatch it necessarily causes, so a structurally valid but unsupported producer never surfaces as schema_violation",
+          "the member sender leaf is occupied in the exact accepted base group state selected by payload.base_epoch and governance_binding.previous_epoch; an absent leaf is failed_precondition",
+          "the sender LeafNode BasicCredential identity and signature key equal the verified Event producer executed_by ?? actor_id under the closed regime of zh/crypto-media/encryption-and-audit.md section 2.7; a mismatch is signature_invalid"
+        ]
       },
       {
         "event_kind": "ak.mls.genesis",
@@ -8962,8 +8969,8 @@
         }
       }
     },
-    "version": "2026-09-10.13",
-    "generated_at": "2026-09-10T07:11:08+08:00"
+    "version": "2026-09-10.14",
+    "generated_at": "2026-09-10T10:52:00+08:00"
   },
   "service_contracts": [
     {

@@ -3,7 +3,7 @@ title: 账号服务器信任与结果消费
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-09
+updated: 2026-09-10
 sidebar:
   label: 服务器信任与结果
 ---
@@ -126,6 +126,15 @@ Realm/Circle 的公开 leaves 意图还 MUST 与 encryption-and-audit §2.5.1 �
 Proposal、Add/Remove/Update 和新 leaf instance，不能仅凭提交者自报 leaves 或相等的前后三元组
 构造来源。公开 tree 与必要 accepted leaf provenance 同此 admission 原子保存；不得要求成员 secrets
 或声称已验证秘密 MAC。minimal-metadata 只使用其既有 pairwise 公开材料，Sidecar 合同不受本条扩展。
+
+解释 staged transition 时，服务器 MUST 先按 [`../crypto-media/encryption-and-audit.md` §5.2.1](../crypto-media/encryption-and-audit.md)
+的固定顺序判定每条 consumed Proposal 与该 Commit 自身的 RFC 9420 sender class 与 Proposal 类型：只有
+[`mls-proposal-admission-registry.json`](../../artifacts/registry/mls-proposal-admission-registry.json) 的 active row
+可以进入 leaf provenance 计算。ExternalSender、NewMemberProposal、NewMemberCommit、`external_init` 与未登记
+codepoint 的 AppCustom MUST 以 `unsupported_feature` fail closed，MUST NOT 误报 `schema_violation`，也 MUST NOT
+发布部分 transition、部分 leaf 来源或“已接纳但未消费”的中间态。Member sender 的叶必须在 exact accepted base 中
+已占用，且其 credential 与 signature key 等于该 Event 已验证的 producer `executed_by ?? actor_id`；不满足时按同一
+节的第 7 步返回 `failed_precondition` 或 `signature_invalid`，不得降级成不受支持特性。
 
 该 evidence 位于 Event digest preimage 外；它的完整内容通过现有 security_frontier_digest 和 Event proof
 绑定，不新增自引用 Event ID、独立 signature 或客户端治理 checkpoint。服务器 MUST 将它与首次 durable
