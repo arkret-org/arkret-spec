@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T11:05:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -647,6 +647,18 @@
       "description": "Local consumers reject a DID method history that conflicts with their durable accepted prefix using service_route_fork."
     },
     {
+      "operation_id": "ak.open.third_party_invite.command.activate.v1",
+      "http_alias": "POST /_arkret/open/third-party-invites/activate",
+      "operation_specific": [
+        "third_party_invite_acceptance_missing",
+        "third_party_invite_acceptance_stale",
+        "third_party_invite_material_mismatch",
+        "third_party_invite_provisioning_already_bound",
+        "third_party_invite_provisioning_expired"
+      ],
+      "description": "These sub-reasons are returned only to a caller that already addressed an existing provisioning record with a verifiable Station acceptance attestation; third_party_invite_provisioning_already_bound is carried by duplicate_conflict and the rest by failed_precondition. An unknown or foreign provisioning_id stays the uniform non-enumerable not_found of third-party-invites.md section 6."
+    },
+    {
       "operation_id": "ak.open.third_party_invite.command.present_token.v1",
       "http_alias": "POST /_arkret/open/third-party-invites/present",
       "operation_specific": [
@@ -654,6 +666,18 @@
         "unsupported_join_rule"
       ],
       "description": "third_party_invite_token_in_query: invite_token arrived in the URL query string or path segment (third-party-invites.md section 3.2); unsupported_join_rule: the intended Realm is knock_restricted, outside v1 base third-party claim (section 4.3). Token, invite and Realm existence failures stay non-enumerable (section 6)."
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.command.provision.v1",
+      "http_alias": "POST /_arkret/open/third-party-invites/provision",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. An unimplemented oob_code_kind or delivery scheme is unsupported_feature, a reused request_id with different canonical intent is duplicate_conflict, and anti-abuse refusals are rate_limited or quota_exceeded; none of them may reveal whether another inviter, Realm or 3PID exists."
+    },
+    {
+      "operation_id": "ak.open.third_party_invite.read.provisioning_status.v1",
+      "http_alias": "POST /_arkret/open/third-party-invites/status",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. An unknown provisioning_id, a record belonging to another inviter and a deleted record MUST be indistinguishable (all not_found)."
     },
     {
       "operation_id": "ak.peer.account_status.command.submit.v1",
@@ -2218,6 +2242,12 @@
       "http_alias": "GET /_arkret/self/realms/{realm_id}/strands",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
+      "http_alias": "POST /_arkret/self/third-party-invites/acceptance-attestation",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. Not visible, not authored by the caller and not pending all return the uniform not_found of third-party-invites.md section 6; a current accepted basis the Station cannot confirm inside the Realm revocation freshness window returns frontier_unavailable."
     },
     {
       "operation_id": "ak.server.read.describe.v1",

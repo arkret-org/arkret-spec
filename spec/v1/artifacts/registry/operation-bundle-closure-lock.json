@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-08.16",
-  "generated_at": "2026-09-10T08:41:43+08:00",
+  "version": "2026-09-08.17",
+  "generated_at": "2026-09-10T11:05:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -139,7 +139,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_handoff.v1",
-      "sha256": "sha256:730ac87c8c61ec4c5e5bb324b6839cfad3b51202bbc238b8c3997e7964fdd6d0"
+      "sha256": "sha256:73878f3753d699ede482aaef7a9c57bd944c99e4d63126ca860de153825e57c1"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.tus_upload.v1",

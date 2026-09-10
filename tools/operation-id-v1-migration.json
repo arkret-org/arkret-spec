@@ -260,8 +260,20 @@
       "new": "ak.open.service.read.resolution.v1"
     },
     {
+      "old": "ak.open.third_party_invite.command.activate",
+      "new": "ak.open.third_party_invite.command.activate.v1"
+    },
+    {
       "old": "ak.open.third_party_invite.command.present_token",
       "new": "ak.open.third_party_invite.command.present_token.v1"
+    },
+    {
+      "old": "ak.open.third_party_invite.command.provision",
+      "new": "ak.open.third_party_invite.command.provision.v1"
+    },
+    {
+      "old": "ak.open.third_party_invite.read.provisioning_status",
+      "new": "ak.open.third_party_invite.read.provisioning_status.v1"
     },
     {
       "old": "ak.peer.account_status.command.submit",
@@ -954,6 +966,10 @@
     {
       "old": "ak.self.strand.read.list",
       "new": "ak.self.strand.read.list.v1"
+    },
+    {
+      "old": "ak.self.third_party_invite.read.acceptance_attestation",
+      "new": "ak.self.third_party_invite.read.acceptance_attestation.v1"
     },
     {
       "old": "ak.server.read.describe",

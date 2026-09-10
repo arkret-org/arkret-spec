@@ -239,6 +239,403 @@
       ],
       "$comment": "Token presentation is registered as ak.open.third_party_invite.command.present_token.v1. URL query/path sourcing is rejected with third_party_invite_token_in_query."
     },
+    "third_party_invite_provisioning_id": {
+      "type": "string",
+      "pattern": "^third_party_invite_provisioning:[A-Za-z0-9_-]{43}$",
+      "description": "Opaque verification-service handle for one private provisioning record, carrying 256 CSPRNG bits in unpadded base64url. It addresses the record on the activation and status surfaces and MUST NOT be written into a durable Realm Event, treated as invite permission, or treated as activation authority."
+    },
+    "third_party_invite_provisioning_state": {
+      "type": "string",
+      "enum": [
+        "provisioned",
+        "activated",
+        "consumed",
+        "expired",
+        "revoked"
+      ],
+      "description": "Verification-service-private lifecycle of one provisioning record. provisioned: material exists and is bound to no invite, so nothing may be delivered. activated: bound to exactly one accepted ak.invite.third_party and the delivery intent is durable. consumed: the token was presented and its binding_proof signed. expired: the activation window elapsed with no binding. revoked: the bound invite reached a terminal state or the inviter lost the capability. It is service-local state, never a Realm invite cell state and never a reducer input."
+    },
+    "third_party_invite_delivery_state": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "queued",
+        "delivered",
+        "failed"
+      ],
+      "description": "Out-of-band delivery progress of an activated provisioning record. failed reports only that the service exhausted its retry budget; the Realm-visible transition still requires an authorized writer to submit ak.invite.revoke with target_state send_failed."
+    },
+    "third_party_invite_delivery_target_uri": {
+      "type": "string",
+      "pattern": "^(?:mailto:|tel:)[!-~]{1,1000}$",
+      "maxLength": 1024,
+      "description": "Private out-of-band delivery target for one third-party invite, as an RFC 6068 mailto: or RFC 3966 tel: URI. It appears only in the provisioning request body: the verification service MUST NOT echo it in any response, MUST NOT write it into a durable Realm Event, account-data cell, notification or ordinary log, and MUST keep only the salted delivery_target_digest of section 4.1 in its encrypted audit record."
+    },
+    "third_party_invite_provision_request_body": {
+      "type": "object",
+      "description": "Request body of ak.open.third_party_invite.command.provision.v1 (zh/sync/third-party-invites.md section 7.2). An authenticated inviter asks the verification service to mint the private token, salt or pepper and per-invite ephemeral key for one third-party invite and to return only the public material. The verification service authenticates the caller from signature alone, applies its anti-abuse budget, and MUST NOT treat a successful provisioning as invite permission, as a pending Realm Invite, or as authority to deliver anything.",
+      "x-arkret-proof-context": "ak.third_party_invite_provision_request_proof.v1",
+      "required": [
+        "request_id",
+        "realm_id",
+        "inviter_account_id",
+        "verification_id",
+        "oob_code_kind",
+        "delivery_target_uri",
+        "expires_at",
+        "signature"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id",
+          "description": "Caller-minted idempotency identity of this provisioning attempt. The same request_id with byte-identical canonical intent MUST return the original public material and provisioning_id; the same request_id with any different intent MUST fail with duplicate_conflict and MUST NOT mint a second set of material."
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Realm the invite will be authored into. It is frozen into the provisioning record and MUST equal the Realm of the accepted ak.invite.third_party at activation."
+        },
+        "inviter_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete AccountId of the inviter. It MUST equal the account the request signature resolves to, and MUST equal the author of the accepted ak.invite.third_party at activation."
+        },
+        "verification_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Verification service DID the inviter selected. It MUST equal the service serving this request and is copied verbatim into the returned third_party_invite; Realm allowlist membership is re-checked by the reducer and at activation, never established here."
+        },
+        "oob_code_kind": {
+          "$ref": "#/$defs/third_party_invite/properties/oob_code_kind",
+          "description": "Mode the inviter requests. A service that does not implement the requested mode MUST answer unsupported_feature instead of silently downgrading; the returned third_party_invite carries exactly this mode."
+        },
+        "delivery_target_uri": {
+          "$ref": "#/$defs/third_party_invite_delivery_target_uri"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Requested invite expiry. The service MUST clamp it to the profile ceiling of section 6 and return the effective value; the accepted ak.invite.third_party MUST carry the returned value verbatim."
+        },
+        "signature": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "description": "Inviter proof over the ak.third_party_invite_provision_request_proof.v1 transcript. verification_method MUST be a current verification method of inviter_account_id.principal_id; audience MUST be verification_id; the service MUST enforce a bounded freshness window and one-time replay protection."
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_invite_provision_outcome": {
+      "type": "object",
+      "description": "Success body of ak.open.third_party_invite.command.provision.v1: exactly the public material the inviter puts into ak.invite.third_party, plus the opaque handle that later binds the accepted invite back to this private record. It MUST NOT carry the raw token, token_salt, lookup pepper, ephemeral private key or delivery_target_uri, and it MUST NOT be presented to the invitee.",
+      "required": [
+        "provisioning_id",
+        "realm_id",
+        "inviter_account_id",
+        "third_party_invite",
+        "expires_at",
+        "activation_expires_at"
+      ],
+      "properties": {
+        "provisioning_id": {
+          "$ref": "#/$defs/third_party_invite_provisioning_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "inviter_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "third_party_invite": {
+          "$ref": "#/$defs/third_party_invite",
+          "description": "Public material to copy verbatim into the ak.invite.third_party payload. Activation compares the accepted invite cell against this object member for member; any edit makes the invite unactivatable."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Effective invite expiry after profile clamping. It is the value the ak.invite.third_party payload MUST carry."
+        },
+        "activation_expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Instant after which this provisioning record can no longer be activated. It MUST NOT be later than expires_at. Once it passes the record moves to expired, its material is zeroized on the section 6.1 schedule, and it MUST NOT be revived."
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_invite_acceptance_attestation": {
+      "type": "object",
+      "description": "Station-signed, purpose-scoped observation that one exact ak.invite.third_party is accepted and still pending on the Station's current accepted basis. It is the only standard carrier that lets an independent verification service activate its private record without holding Realm state; a caller-reported invite_id, invite digest, Event signature or HTTP success MUST NOT be accepted in its place. It grants no governance read access and authorizes nothing except activation of the named provisioning record.",
+      "x-arkret-proof-context": "ak.third_party_invite_acceptance_attestation_proof.v1",
+      "required": [
+        "station_id",
+        "verification_id",
+        "realm_id",
+        "invite_id",
+        "inviter_account_id",
+        "provisioning_id",
+        "third_party_invite",
+        "invite_expires_at",
+        "invite_state",
+        "accepted_seal_id",
+        "observed_at",
+        "expires_at",
+        "signature"
+      ],
+      "properties": {
+        "station_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Service DID of the Station that evaluated the Realm state and signed this attestation. The consumer resolves it through ak.open.service.read.resolution.v1 and MUST reject an attestation whose signature verification_method does not project to it."
+        },
+        "verification_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Exact verification service this attestation is issued to. It MUST equal the third_party_invite verification_id and the service consuming it, and signature.audience MUST equal it verbatim; any other service MUST reject the attestation. Purpose separation comes from the registered ak.third_party_invite_acceptance_attestation_proof.v1 signing context, so a signature made for another object family never verifies here."
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "invite_id": {
+          "type": "string",
+          "pattern": "^ak:invite:[A-Za-z0-9_-]{44}$",
+          "description": "Invite id derived from the accepted ak.invite.third_party Event; it is never minted at provisioning time."
+        },
+        "inviter_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete AccountId of the accepted Event author, as the Station verified it."
+        },
+        "provisioning_id": {
+          "$ref": "#/$defs/third_party_invite_provisioning_id",
+          "description": "Provisioning record this attestation is scoped to. It binds the attestation to one activation request and makes it useless for any other record."
+        },
+        "third_party_invite": {
+          "$ref": "#/$defs/third_party_invite",
+          "description": "Exact public material carried by the accepted invite cell. Together with invite_id, realm_id and invite_expires_at it is the complete preimage the consumer recomputes invite_digest from, per section 4.2."
+        },
+        "invite_expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "The accepted invite cell expires_at. It is the fourth member of the section 4.2 invite_digest preimage and MUST NOT be confused with this attestation's own expires_at."
+        },
+        "invite_state": {
+          "const": "pending",
+          "description": "The Station attests the invite is pending on the observed basis. There is no attestation shape for any other invite state; a non-pending invite yields no attestation at all."
+        },
+        "accepted_seal_id": {
+          "$ref": "./seal.schema.json#/$defs/seal_ref",
+          "description": "One currently accepted non-quarantined direct covering Seal of the ak.invite.third_party Event; when several cover it, the canonical bytewise-smallest Seal id. It is an acceptance observation, not an authoring seal_basis and not the complete leaf antichain."
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Instant the Station evaluated the accepted basis. The consumer MUST reject an attestation whose observation is older than the Realm revocation_freshness_window_ms."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Attestation validity end. It MUST NOT exceed observed_at plus the Realm revocation_freshness_window_ms, and MUST NOT exceed invite_expires_at."
+        },
+        "signature": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "description": "Station proof over the ak.third_party_invite_acceptance_attestation_proof.v1 transcript."
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_invite_acceptance_attestation_request_body": {
+      "type": "object",
+      "description": "Request body of ak.self.third_party_invite.read.acceptance_attestation.v1 (zh/sync/third-party-invites.md section 7.4). The authenticated inviter asks its own Station for the purpose-scoped acceptance attestation of one exact invite it authored. The Station evaluates its current accepted basis; the caller supplies no governance material and receives no governance closure.",
+      "required": [
+        "realm_id",
+        "invite_id",
+        "provisioning_id",
+        "verification_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "invite_id": {
+          "$ref": "#/$defs/third_party_invite_acceptance_attestation/properties/invite_id"
+        },
+        "provisioning_id": {
+          "$ref": "#/$defs/third_party_invite_provisioning_id",
+          "description": "Provisioning record the attestation will be scoped to. The Station copies it verbatim and never resolves it against verification-service state."
+        },
+        "verification_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Verification service the attestation is issued to. The Station MUST reject a value that differs from the accepted invite cell verification_id."
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_invite_acceptance_attestation_outcome": {
+      "type": "object",
+      "description": "Success body of ak.self.third_party_invite.read.acceptance_attestation.v1. An invite that is not visible to the caller, was not authored by the caller, or is not pending on the current accepted basis returns the uniform not_found of section 6; a basis the Station cannot currently confirm returns frontier_unavailable.",
+      "required": [
+        "acceptance_attestation"
+      ],
+      "properties": {
+        "acceptance_attestation": {
+          "$ref": "#/$defs/third_party_invite_acceptance_attestation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_invite_activation_request_body": {
+      "type": "object",
+      "description": "Request body of ak.open.third_party_invite.command.activate.v1 (zh/sync/third-party-invites.md section 7.5). It binds one provisioning record to exactly one accepted ak.invite.third_party. The attestation is the whole authorization: the service MUST NOT accept a bare invite id, a caller-computed invite digest, or its own optimistic read of a remote Realm.",
+      "required": [
+        "provisioning_id",
+        "acceptance_attestation"
+      ],
+      "properties": {
+        "provisioning_id": {
+          "$ref": "#/$defs/third_party_invite_provisioning_id",
+          "description": "Provisioning record to activate. It MUST equal acceptance_attestation.provisioning_id."
+        },
+        "acceptance_attestation": {
+          "$ref": "#/$defs/third_party_invite_acceptance_attestation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_invite_activation_outcome": {
+      "type": "object",
+      "description": "Success body of ak.open.third_party_invite.command.activate.v1: the immutable binding this activation established. A byte-identical retry, a concurrent duplicate and a retry after a process restart all return this same body; the current lifecycle and delivery position are read separately through ak.open.third_party_invite.read.provisioning_status.v1.",
+      "required": [
+        "provisioning_id",
+        "realm_id",
+        "invite_id",
+        "activated_at"
+      ],
+      "properties": {
+        "provisioning_id": {
+          "$ref": "#/$defs/third_party_invite_provisioning_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "invite_id": {
+          "$ref": "#/$defs/third_party_invite_acceptance_attestation/properties/invite_id"
+        },
+        "activated_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Instant the binding and the delivery intent were durably committed. It is the first activation instant and never advances on retry."
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_invite_provisioning_status_request_body": {
+      "type": "object",
+      "description": "Request body of ak.open.third_party_invite.read.provisioning_status.v1 (zh/sync/third-party-invites.md section 7.6). provisioning_id is the whole query credential and MUST travel only in this JSON body. An unknown handle, a handle belonging to another inviter, and a deleted record MUST be indistinguishable.",
+      "required": [
+        "provisioning_id"
+      ],
+      "properties": {
+        "provisioning_id": {
+          "$ref": "#/$defs/third_party_invite_provisioning_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_invite_provisioning_status_outcome": {
+      "type": "object",
+      "description": "Lifecycle and delivery position of one provisioning record. It is the recovery surface for a lost provisioning or activation response and the only standard delivery observation point. It MUST NOT carry the raw token, token_salt, lookup pepper, ephemeral private key, delivery_target_uri or any 3PID-derived value, and it MUST NOT reveal whether the invitee has opened the invite.",
+      "required": [
+        "provisioning_id",
+        "realm_id",
+        "provisioning_state",
+        "expires_at",
+        "activation_expires_at"
+      ],
+      "properties": {
+        "provisioning_id": {
+          "$ref": "#/$defs/third_party_invite_provisioning_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "provisioning_state": {
+          "$ref": "#/$defs/third_party_invite_provisioning_state"
+        },
+        "invite_id": {
+          "$ref": "#/$defs/third_party_invite_acceptance_attestation/properties/invite_id",
+          "description": "Invite this record is bound to. Present exactly when the record has been activated."
+        },
+        "activated_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "First activation instant, identical to the activation outcome value."
+        },
+        "delivery_state": {
+          "$ref": "#/$defs/third_party_invite_delivery_state"
+        },
+        "delivery_attempt_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Out-of-band delivery attempts made so far. An external mail or SMS gateway MAY deliver the same invite more than once; a count above one is not evidence that the invitee received more than one distinct invite."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "activation_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "provisioning_state": {
+                "const": "provisioned"
+              }
+            },
+            "required": [
+              "provisioning_state"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "invite_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "activated_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "delivery_state"
+                  ]
+                },
+                {
+                  "required": [
+                    "delivery_attempt_count"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "provisioning_state": {
+                "enum": [
+                  "activated",
+                  "consumed"
+                ]
+              }
+            },
+            "required": [
+              "provisioning_state"
+            ]
+          },
+          "then": {
+            "required": [
+              "invite_id",
+              "activated_at",
+              "delivery_state",
+              "delivery_attempt_count"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
     "third_party_invite_present_request_body": {
       "type": "object",
       "description": "Request body of ak.open.third_party_invite.command.present_token.v1 (zh/sync/third-party-invites.md section 4.1). The invitee's client presents the out-of-band invite_token together with the exact account it wants bound and the intended Realm; the verification service atomically consumes the token and returns the binding_proof the client then carries into ak.invite.claim. invite_token MUST travel only in this JSON body: a request that carries it in the URL query string or path segment is rejected with third_party_invite_token_in_query before any lookup.",

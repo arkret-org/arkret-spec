@@ -298,7 +298,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "b6731106513ac0533a401786721dc555dd08d887adfbf274d4e296f9a4b865f2"
+      "sha256": "cde8e58e2c0e6939f9721568116b29141b773cc1dccfd01a6c3e25eeef9ff6c7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -370,7 +370,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
-      "sha256": "8ba29f0b92e8bdfb76d42e3b7c37c262e7fb2d20bfe172d78354a4a3f47e7684"
+      "sha256": "2f275f28d2eda99fd5ff03a54c284b5525145620a30f12911b971c57d4303c47"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",

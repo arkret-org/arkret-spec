@@ -2067,10 +2067,26 @@ components:
     StrandId:
       type: string
       pattern: ^ak:strand:[A-Za-z0-9_-]{44}$
+    ThirdPartyInviteAcceptanceAttestationOutcome:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome
+    ThirdPartyInviteAcceptanceAttestationRequestBody:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body
+    ThirdPartyInviteActivationOutcome:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_activation_outcome
+    ThirdPartyInviteActivationRequestBody:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_activation_request_body
     ThirdPartyInvitePresentOutcome:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_present_outcome
     ThirdPartyInvitePresentRequestBody:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_present_request_body
+    ThirdPartyInviteProvisioningStatusOutcome:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_outcome
+    ThirdPartyInviteProvisioningStatusRequestBody:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_request_body
+    ThirdPartyInviteProvisionOutcome:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provision_outcome
+    ThirdPartyInviteProvisionRequestBody:
+      $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body
     TimelineProjectionRow:
       type: object
       required:
@@ -7906,6 +7922,195 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PrincipalLocator'
+  /_arkret/open/third-party-invites/provision:
+    post:
+      operationId: ak.open.third_party_invite.command.provision
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.open.third_party_invite.command.provision.v1
+      security: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Provision the private material for one third-party invite.
+      description: 'Private-material provisioning entry of the 3PID invite verification
+
+        service (third-party-invites.md section 7.2). The authenticated inviter submits
+
+        request_id, realm_id, inviter_account_id, verification_id, oob_code_kind, the
+
+        private mailto:/tel: delivery target and the requested expiry, signed under
+
+        ak.third_party_invite_provision_request_proof.v1 with the service DID as
+
+        audience. The service mints and durably keeps the token, the per-invite salt or
+
+        lookup pepper and the per-invite ephemeral signing key, and returns only the
+
+        public third_party_invite material, the effective expiry, the activation
+
+        deadline and an opaque provisioning_id. No pending Realm Invite exists yet and
+
+        nothing is delivered before activation.
+
+        '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThirdPartyInviteProvisionRequestBody'
+      responses:
+        '200':
+          description: Public invite material and the opaque provisioning handle.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThirdPartyInviteProvisionOutcome'
+  /_arkret/open/third-party-invites/activate:
+    post:
+      operationId: ak.open.third_party_invite.command.activate
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.open.third_party_invite.command.activate.v1
+      security: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Bind provisioned material to one accepted third-party invite.
+      description: 'Back-binding activation of one provisioned private record to exactly
+
+        one accepted ak.invite.third_party (third-party-invites.md section 7.5). The
+
+        Station-signed acceptance attestation is the whole authorization; a caller
+
+        reported invite id, a caller-computed invite digest, an Event signature or an
+
+        HTTP success MUST NOT be accepted in its place. The service verifies the
+
+        attesting Station identity, audience, exact verification_id, freshness and
+
+        member-for-member equality against the frozen provisioning record, recomputes
+
+        invite_digest from the attested cell, then atomically persists the unique
+
+        binding and the delivery intent. One provisioning record binds to one invite
+
+        forever.
+
+        '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThirdPartyInviteActivationRequestBody'
+      responses:
+        '200':
+          description: Immutable binding established by this activation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThirdPartyInviteActivationOutcome'
+  /_arkret/open/third-party-invites/status:
+    post:
+      operationId: ak.open.third_party_invite.read.provisioning_status
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.open.third_party_invite.read.provisioning_status.v1
+      security: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Read the lifecycle and delivery position of one provisioning record.
+      description: 'Recovery and delivery observation surface for one provisioning record
+
+        (third-party-invites.md section 7.6). provisioning_id is the whole query
+
+        credential and MUST travel only in the JSON body. The outcome never carries the
+
+        token, salt, lookup pepper, ephemeral private key, delivery target or any
+
+        3PID-derived value, and never reveals whether the invitee opened the invite. An
+
+        unknown handle, a handle belonging to another inviter and a deleted record are
+
+        indistinguishable.
+
+        '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThirdPartyInviteProvisioningStatusRequestBody'
+      responses:
+        '200':
+          description: Provisioning lifecycle and delivery position.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThirdPartyInviteProvisioningStatusOutcome'
+  /_arkret/self/third-party-invites/acceptance-attestation:
+    post:
+      operationId: ak.self.third_party_invite.read.acceptance_attestation
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.third_party_invite.read.acceptance_attestation.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Obtain the acceptance attestation for one authored third-party invite.
+      description: 'Purpose-scoped acceptance attestation the authenticated inviter
+
+        obtains from its own Station for one exact ak.invite.third_party it authored
+
+        (third-party-invites.md section 7.4). The Station evaluates its current accepted
+
+        basis and signs a short-lived attestation bound to the exact verification
+
+        service and the named provisioning record. The caller supplies no governance
+
+        material and receives no governance closure, Seal ancestry or membership
+
+        listing. Not visible, not authored by the caller and not pending all return the
+
+        uniform not_found of section 6.
+
+        '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThirdPartyInviteAcceptanceAttestationRequestBody'
+      responses:
+        '200':
+          description: Station-signed acceptance attestation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThirdPartyInviteAcceptanceAttestationOutcome'
   /_arkret/open/third-party-invites/present:
     post:
       operationId: ak.open.third_party_invite.command.present_token

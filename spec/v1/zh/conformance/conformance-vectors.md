@@ -3541,6 +3541,30 @@ Expected：
 - 对外失败响应 MUST 与 `not_found` 不可区分（与本节其它 invite 向量一致），具体 reason code 只写入服务端 audit log。
 - 规范定义见 [`../sync/third-party-invites.md` §6.1](../sync/third-party-invites.md)。
 
+### 9.13.1 Vector: Third-Party Invite Provisioning and Activation Binding
+
+`vector_id`: `ak.vector.invite.provisioning_activation_binding.v1`
+
+机器 fixture：`service-closure-hardening-fixture.json` 中同名 case；执行入口以 fixture `runner` 元数据为准。
+
+Steps：
+
+1. 邀请者以同一 `request_id` 与逐字相同的 canonical 意图重放预配请求；随后以同一 `request_id` 换投递目标重放。
+2. 邀请者在没有接受证据、持有过期观察的接受证据、以及持有公开材料被改写的接受证据三种情况下分别尝试激活。
+3. 邀请者用合法接受证据完成一次激活，进程重启后以逐字相同的请求重试。
+4. 攻击者用指向另一份 invite 的接受证据尝试重绑同一预配记录。
+5. 分别在激活前后读取预配状态，并用他人 `provisioning_id` 读取一次。
+
+Expected：
+
+- 同 `request_id` 同意图 MUST 返回原公开材料与原 `provisioning_id` 且不重铸材料；同 `request_id` 异意图 MUST 以 `duplicate_conflict` 拒绝且不铸造第二套材料。
+- 三类非法激活 MUST 全部 fail closed，内部审计原因依次为 `third_party_invite_acceptance_missing`、`third_party_invite_acceptance_stale`、`third_party_invite_material_mismatch`，且不写入绑定、不落地投递意图。
+- 重启后的逐字重试 MUST 返回同一份绑定与首次 `activated_at`，不换 token、不换临时密钥。
+- 指向另一份 invite 的第二份接受证据 MUST 以 `duplicate_conflict` 拒绝，内部审计原因为 `third_party_invite_provisioning_already_bound`，且不发生重绑。
+- 激活前 MUST 不存在任何带外投递；状态响应 MUST NOT 携带 token、salt、pepper、临时私钥或投递目标。
+- 他人 `provisioning_id` 的读取 MUST 与 `not_found` 不可区分。
+- 规范定义见 [`../sync/third-party-invites.md` §7.2](../sync/third-party-invites.md)、[§7.5](../sync/third-party-invites.md) 与 [§7.7](../sync/third-party-invites.md)。
+
 ### 9.14 Vector: Minimal-Metadata Author Credential Binding
 
 `vector_id`: `ak.vector.identity_link.minimal_metadata_author_credential.v1`

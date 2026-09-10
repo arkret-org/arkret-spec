@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.3",
+  "version": "2026-09-10.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T19:38:40+00:00",
+  "generated_at": "2026-09-10T03:05:00+00:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3807,6 +3807,20 @@
       ]
     },
     {
+      "vector_id": "ak.vector.invite.provisioning_activation_binding.v1",
+      "status": "active",
+      "domain": "invite",
+      "description": "Third-party invite private-material lifecycle: provisioning is idempotent on request_id and refuses a reused id with different intent, activation only binds on a fresh and member-for-member matching Station acceptance attestation, one provisioning record never rebinds to a second invite, an identical retry after a restart returns the original binding, and out-of-band delivery never starts before activation.",
+      "applies_to_fixtures": [
+        "service-closure-hardening-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/third-party-invites.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
       "status": "active",
       "domain": "invite",
@@ -5774,6 +5788,36 @@
       "description": "Transcript KAT for ak.station_admission_proof.v1: digest input deletes `actor_kind`, `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm_join_candidate_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.station_admission_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.third_party_invite_acceptance_attestation.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.third_party_invite_acceptance_attestation_proof.v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.third_party_invite_acceptance_attestation_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.third_party_invite_provision_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.third_party_invite_provision_request_proof.v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.third_party_invite_provision_request_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"

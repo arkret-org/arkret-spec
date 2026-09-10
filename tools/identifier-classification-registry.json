@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 656,
-    "typed_object_id": 1078,
+    "responsibility_identity_material": 663,
+    "typed_object_id": 1090,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -655,6 +655,14 @@
       "occurrences": 1,
       "example_path": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/provider_id",
       "reason": "MIMI / Matrix interop identifier retained verbatim from the external provider surface."
+    },
+    {
+      "name": "provisioning_id",
+      "terminal_signature": "[[\"pattern\", \"^third_party_invite_provisioning:[A-Za-z0-9_-]{43}$\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 7,
+      "example_path": "invite.schema.json#/$defs/third_party_invite_provision_outcome/properties/provisioning_id",
+      "reason": "Bounded opaque handle minted by the verification service to address one private third-party invite provisioning record; the record, not the handle, carries authority, and it is neither invite permission nor activation authority."
     },
     {
       "name": "rate_limit_policy_id",
