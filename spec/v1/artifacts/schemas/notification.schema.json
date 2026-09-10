@@ -5,6 +5,23 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
+    "ordinary_notification_kind": {
+      "type": "string",
+      "enum": [
+        "message",
+        "mention",
+        "reply",
+        "assignment",
+        "schedule",
+        "reaction",
+        "policy",
+        "call",
+        "applet",
+        "moderation",
+        "system"
+      ],
+      "description": "Closed notification_kind subset of the ordinary source-Event branch. invite has its own private Invite delivery carrier and agent belongs to the account-artifact branch, so neither participates in the deterministic projection preimage."
+    },
     "projection_preimage": {
       "type": "object",
       "required": [
@@ -24,19 +41,51 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "notification_kind": {
-          "enum": [
-            "message",
-            "mention",
-            "reply",
-            "assignment",
-            "schedule",
-            "reaction",
-            "policy",
-            "call",
-            "applet",
-            "moderation",
-            "system"
-          ]
+          "$ref": "#/$defs/ordinary_notification_kind"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ordinary_projection_content": {
+      "type": "object",
+      "description": "Server-materialized current content of one ordinary source-Event notification projection, as delivered on the account subscribe notifications channel (account-subscribe-frame.schema.json#/$defs/notification_delta). It reuses the ak.schema.notification.v1 field shapes and carries only what the recipient's own Station can state authoritatively: the projection identity is the delta id, the recipient is the authenticated account, and the inbox state (unread / read / dismissed / archived) stays in holder-private account data. See spec/v1/zh/sync/client-sync.md#312.",
+      "required": [
+        "realm_id",
+        "source_event_id",
+        "notification_kind",
+        "priority",
+        "created_at"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "#/properties/realm_id"
+        },
+        "source_event_id": {
+          "$ref": "#/properties/source_event_id"
+        },
+        "source_ref": {
+          "$ref": "#/properties/source_ref"
+        },
+        "strand_id": {
+          "$ref": "#/properties/strand_id"
+        },
+        "track_name": {
+          "$ref": "#/properties/track_name"
+        },
+        "notification_kind": {
+          "$ref": "#/$defs/ordinary_notification_kind"
+        },
+        "priority": {
+          "$ref": "#/properties/priority"
+        },
+        "preview": {
+          "$ref": "#/properties/preview"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -193,19 +242,7 @@
           }
         },
         "notification_kind": {
-          "enum": [
-            "message",
-            "mention",
-            "reply",
-            "assignment",
-            "schedule",
-            "reaction",
-            "policy",
-            "call",
-            "applet",
-            "moderation",
-            "system"
-          ]
+          "$ref": "#/$defs/ordinary_notification_kind"
         }
       }
     },

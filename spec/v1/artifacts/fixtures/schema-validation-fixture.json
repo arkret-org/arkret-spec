@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-10.8",
+  "version": "2026-09-10.9",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -2773,6 +2773,129 @@
         "data": {
           "kind": "agent_runtime_approval",
           "reason": "approved"
+        }
+      }
+    },
+    {
+      "name": "account_ordinary_notification_current_row_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": true,
+      "instance": {
+        "id": "ak:notification_projection:AdaNq4qN-xTAcv8kCT3P9mL5AsSzg0PFlSELggvhw2Pw",
+        "action": "upsert",
+        "data": {
+          "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N",
+          "source_event_id": "ak:event:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+          "source_ref": "ak:message:Ac4grCTeSnv86UIA0vyN5mjzADSkwSSFvGCYIwTHoXqb",
+          "strand_id": "ak:strand:AaalePlTK6W4ZKrbKyKzlmmcdhXVx-InxeWY4ul69tiN",
+          "track_name": "discussion",
+          "notification_kind": "message",
+          "priority": "normal",
+          "preview": {},
+          "created_at": "2026-09-10T04:42:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "account_ordinary_notification_removal_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": true,
+      "instance": {
+        "id": "ak:notification_projection:AdaNq4qN-xTAcv8kCT3P9mL5AsSzg0PFlSELggvhw2Pw",
+        "action": "remove",
+        "data": {
+          "reason": "access_revoked"
+        }
+      }
+    },
+    {
+      "name": "account_ordinary_notification_rejects_inbox_state",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "id": "ak:notification_projection:AdaNq4qN-xTAcv8kCT3P9mL5AsSzg0PFlSELggvhw2Pw",
+        "action": "upsert",
+        "data": {
+          "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N",
+          "source_event_id": "ak:event:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+          "notification_kind": "message",
+          "priority": "normal",
+          "state": "unread",
+          "created_at": "2026-09-10T04:42:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "account_ordinary_notification_rejects_agent_notification_kind",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "id": "ak:notification_projection:AdaNq4qN-xTAcv8kCT3P9mL5AsSzg0PFlSELggvhw2Pw",
+        "action": "upsert",
+        "data": {
+          "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N",
+          "source_event_id": "ak:event:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+          "notification_kind": "agent",
+          "priority": "normal",
+          "created_at": "2026-09-10T04:42:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "account_ordinary_notification_rejects_agent_branch_data",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": false,
+      "first_expected_error": "contains:'realm_id' is a required property",
+      "instance": {
+        "id": "ak:notification_projection:AdaNq4qN-xTAcv8kCT3P9mL5AsSzg0PFlSELggvhw2Pw",
+        "action": "upsert",
+        "data": {
+          "approval_request_id": "agent_runtime_approval:01964137-0000-7000-8000-000000000001",
+          "agent_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "requested_at": "2026-07-13T10:00:00.000Z",
+          "expires_at": "2026-07-13T10:15:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "account_ordinary_notification_rejects_agent_removal_reason",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not one of",
+      "instance": {
+        "id": "ak:notification_projection:AdaNq4qN-xTAcv8kCT3P9mL5AsSzg0PFlSELggvhw2Pw",
+        "action": "remove",
+        "data": {
+          "reason": "approved"
+        }
+      }
+    },
+    {
+      "name": "account_ordinary_notification_removal_requires_reason",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": false,
+      "first_expected_error": "contains:'data' is a required property",
+      "instance": {
+        "id": "ak:notification_projection:AdaNq4qN-xTAcv8kCT3P9mL5AsSzg0PFlSELggvhw2Pw",
+        "action": "remove"
+      }
+    },
+    {
+      "name": "account_agent_notification_rejects_ordinary_current_row",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": false,
+      "first_expected_error": "contains:'approval_request_id' is a required property",
+      "instance": {
+        "id": "ak:notification:01964137-0000-7000-8000-000000000001",
+        "action": "upsert",
+        "data": {
+          "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N",
+          "source_event_id": "ak:event:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+          "notification_kind": "message",
+          "priority": "normal",
+          "created_at": "2026-09-10T04:42:00.000Z"
         }
       }
     },

@@ -141,7 +141,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 attempt 选择与 final 替换 MUST 按 [`signal.md` §7](./signal.md#7-message-正文流式预览-payload-profile)
 执行，不得把预览写入 `timeline.events[]`。
 
-顶层 `notifications` 与 `to_device` 都不是事件容器。`notifications` 使用 §3.1 的闭合 `{items: NotificationDelta[]}`；`to_device` 使用 `DeviceMessageEnvelope[]` 承载形态 `{messages, ack_token?, limited?, next_cursor?, lost?}`，schema 为 `account-subscribe-frame.schema.json#/$defs/device_message_container`。两者中的对象均不得作为 durable Event Envelope 处理。
+顶层 `notifications` 与 `to_device` 都不是事件容器。`notifications` 使用 §3.1 的闭合 `{items: NotificationDelta[]}`，其中的普通当前行与 Agent approval 共用同一条通道；`to_device` 使用 `DeviceMessageEnvelope[]` 承载形态 `{messages, ack_token?, limited?, next_cursor?, lost?}`，schema 为 `account-subscribe-frame.schema.json#/$defs/device_message_container`。两者中的对象均不得作为 durable Event Envelope 处理。
 
 ### 2.2 连接管理与重连
 
@@ -259,7 +259,7 @@ Account subscribe `delta` frame 包含以下 stream：
 | `account_data` | 私有持久 | 标签、UI 偏好、recent emoji、push rules |
 | `to_device` | 设备队列 | key verification、secret sharing、device messages（队列删除只由 §10.1 显式 ack 驱动，不随 cursor 推进） |
 | `receipts` | 可配置 | actor-private read cursor delta（逻辑类，无独立 wire 字段；承载于 per-Realm `account_data`；加密 read receipt 走独立 Signal rail） |
-| `notifications` | 派生 | inbox / push notification delta |
+| `notifications` | 派生 | 账号 inbox 当前行与 Agent runtime approval delta（§3.1） |
 | `device_lists` | 持久 delta | E2EE device trust 更新 |
 | `applet` | 持久 | Applet delivery receipt、bridge health（逻辑类，无独立 wire 字段；承载于 per-Realm `timeline`，见下表） |
 | `blob_status` | 派生 | upload scan、thumbnail、retention 状态（逻辑类，无独立 wire 字段；承载于 per-Realm `timeline`，见下表） |
@@ -286,18 +286,59 @@ Account subscribe `delta` frame 包含以下 stream：
 
 ### 3.1 Account notification delta（normative）
 
-顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, action, data?}`：`id` 为 `ak:notification:*`，`action` 只能为 `upsert | remove`。该容器在 v1 专用于 Agent runtime approval，不携带没有分支选择作用的 notification/data kind 镜像：
+顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, action, data?}`：`action` 只能为 `upsert | remove`，`id` 形态是唯一分支判别式——`ak:notification:<uuidv7>` 选择 §3.1.1 的 Agent runtime approval 分支，`ak:notification_projection:<44 字符 token>` 选择 §3.1.2 的普通源 Event 当前行分支。v1 只有这两个分支；容器不携带没有分支选择作用的 notification/data kind 镜像，也不存在第二套通知列表 operation：`ak.edge.push.command.notify.v1` 是投递面，权限 action `ak.notification.read` / `ak.notification.ack` 不是 operation，两者都不能当作通知读取入口。
+
+- 校验顺序 MUST 是先按 `id` 形态选定分支、再按该分支校验 `data`。分支交叉（`ak:notification_projection:*` 携 Agent approval data，或 `ak:notification:*` 携普通当前行）MUST fail closed，不得按另一分支解释。
+- 客户端 projector MUST 按 `upsert=按同 id 插入或完整替换`、`remove=删除` 应用 delta；把所有 action 都当 insert 的实现不得声明支持该 notification delta。
+- 两个分支共用同一条通道：同一 `items[]` 数组、同一严格单调 projection position、同一 `baseline` 的 `notifications` 通道，以及 §2.3 的每帧 count/bytes 与 round/frame 预算（该集合每 frame ≤100 项，并同时受 frame/round 字节裁剪）。服务端不得为其中一个分支另开集合、另开 cursor 或另设配额。
+- Notification 是 account-private projection，不是 Realm Event。服务端必须从认证的 provision/session 上下文派生接收者（`controller_account_id` / `recipient_id`），调用方不得提交它们；selection、session 与 cursor 必须直接绑定完整 `AccountId`，不得另以裸 principal 加本地账号 sidecar 拼接。本通道不受详情 Realm 窗口与 `filter` 过滤（§2.3）。
+
+#### 3.1.1 Agent runtime approval 分支（`ak:notification:<uuidv7>`）
 
 - `upsert` 的 `data` MUST 含 `approval_request_id`、`agent_id`、`requested_at`、`expires_at`，并且不得含 pairing code、runtime public key、PoP、attestation、display name 或 slug。客户端必须在显示和审批前通过认证的 `ak.self.agent.resource.get.v1` 读取当前完整投影。
 - `remove` 的 `data` MAY 省略；若存在，必须是闭合 `{reason}`，其中 `reason` 只能为 `approved | expired | renewed | deactivated | superseded`。
-- 客户端 projector MUST 按 `upsert=按同 id 插入或完整替换`、`remove=删除` 应用 delta；把所有 action 都当 insert 的实现不得声明支持该 notification delta。
 - `upsert` 后，客户端 MUST 重读 Agent，要求当前 `approval_request_id` 相同、`key_state.pairing_request_id` / `pairing_mode` / `pairing_expires_at` 共同表明 pairing 仍 open 且未过期，并要求通用 `agent.readiness.blockers` 含 `pairing_open`；`pairing_mode=bootstrap` 时还必须含 `runtime_key_missing`，`replacement` 时必须存在 active authorization 且显示 runtime key replacement 警告。通用 view/key_state 不含 `runtime_state`；该字段只在 runtime pairing poll 响应出现。lifecycle 意图与 open handle 不互锁，pause / resume 不被 replacement 阻塞。服务端在 handle consumed 或过期后 MUST 原子清除上述 open-handle 投影（以及 `pairing_code`）并重算 readiness。审批前 MUST 再次读取或依赖服务端 current-request CAS。匹配 `remove` 必须关闭 prompt并清除本地缓存。Local dismiss 只影响当前设备 UI，不写 durable dismissed state。
 
-Notification 是 account-private projection，不是 Realm Event。服务端必须从认证的 provision/session 上下文派生 `controller_account_id` 与 `recipient_id`，调用方不得提交它们；selection、session 与 cursor 必须直接绑定完整 `AccountId`，不得另以裸 principal 加本地账号 sidecar 拼接。该 notification 没有 `realm_id`，不得经过 `realm_id_accessible`。
+该分支的 notification 没有 `realm_id`，不得经过 `realm_id_accessible`。
 
-每次 upsert/remove 都 MUST 在持久化事务中分配严格单调的 notification projection position；不得用可改写的 `created_at` 加 id 拼 position。Opaque account cursor 内部保存其 high-water。Initial sync 必须把当前 account context 下全部仍 open 的 `agent_runtime_approval` 作为 `upsert` baseline 返回；该子集是完整集合，客户端仅在 `baseline.completed_channels` 包含 `notifications` 后，按 §2.3 删除同一快照所有已安装分段均未出现且未被更新 delta 覆盖的 open approval。Incremental sync 只返回 cursor position 之后的变化；终止 tombstone 至少保留到 account cursor 最大生命周期加安全窗口。
+#### 3.1.2 普通源 Event 当前行分支（`ak:notification_projection:*`）
 
-服务端提交 projection 事务后 MAY 发 account-context-scoped 内存 wakeup 以降低长轮询延迟。持久 projection 与 cursor 是权威；丢失 wakeup 后，有界 long poll 超时或重连必须仍可从 durable position 恢复，不要求仅为 wakeup 建 durable outbox。Push provider 只能收到现有 blind wakeup，notification body、Agent DID 和 approval id 均不得进入 provider-visible payload。
+`upsert` 的 `data` 是闭合对象 [`notification.schema.json#/$defs/ordinary_projection_content`](../../artifacts/schemas/notification.schema.json#/$defs/ordinary_projection_content)，逐字复用 `ak.schema.notification.v1` 的字段形状，只承载接收者自己 Station 能权威声明的内容：`realm_id`、`source_event_id`、`notification_kind`、`priority`、`created_at` 必填，`source_ref`、`strand_id`、`track_name`、`preview`、`updated_at` 可选。它不重复 `id`（由该行的 `id` 承载）、不携 `schema`、不携 `actor_id`（接收者就是本次认证账号）、也不携 `state`。`notification_kind` 是 `ordinary_notification_kind` 的 11 值子集；`invite` 走独立的私有 Invite delivery 载体，`agent` 属于 §3.1.1，二者都不出现在本分支。
+
+`remove` 的 `data` 是闭合 `{reason}`，MUST 存在，`reason` 只能取：
+
+| `reason` | 含义 |
+| --- | --- |
+| `source_removed` | 源 Event 被 redact / tombstone，或已超出该账号对该来源的历史可见范围。 |
+| `access_revoked` | 接收者对该源 scope 的当前读取授权消失（leave / ban / 能力撤销 / quarantine / key-access 变化）。 |
+| `expired` | 部署的通知保留边界把该行挤出当前集合。 |
+| `superseded` | 同一 source Event 已由更具体 `notification_kind` 的投影按 [`../models/private-objects.md` §3.3](../models/private-objects.md) 的去重规则取代。 |
+
+`reason` 只表达服务端可观测的原因。read / dismissed / archived 是 holder-private inbox 处置，永远不产生 `remove`，也不写入本通道。
+
+**身份与去重。** `items[].id` MUST 是 [`../discovery/read-receipts.md` §6.3](../discovery/read-receipts.md) 与 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `notification_projection` 派生结果。客户端 MUST 用自己的完整 `AccountId` 与该行的 `realm_id` / `source_event_id` / `notification_kind` 重算该 token 并逐字节比较；不一致 MUST 丢弃该行且不得安装，同时不得因此删除已安装的其它行。同一 `(接收账号, realm_id, source_event_id, notification_kind)` 至多一行；重复 `upsert` 是整行替换，不是追加。
+
+**当前授权与 preview。** 服务端 MUST 在构造每个 frame 时按接收者的**当前**读取授权重新判定该行，冻结的列表页与 baseline 分段同样适用：授权收缩后 MUST NOT 因为源 Event 在冻结时刻曾可见就交付该行或其 `preview`，MUST 改为交付 `remove` 并把 `reason` 置为 `access_revoked`。`preview` 仍遵守 [`../models/private-objects.md` §3.4](../models/private-objects.md)：E2EE / redaction / history-limited 下必须为空或已授权脱敏摘要，服务端不得解密源正文重建 preview，也不得借通知投影扩大源 Message 的明文可见性。若 `preview` 使该行超出 §2.3 的 frame 预算，服务端 MUST 省略 `preview` 后交付该行，MUST NOT 丢弃该行或让通道停滞。
+
+**与 holder-private inbox 的合并（唯一状态真源）。** 本分支只承载当前可见性与内容，不承载 inbox 状态：
+
+- `read` / `unread` 仍由 read cursor 派生；`dismissed` / `archived` 仍只写 `ak.notifications.inbox.<notification_id>`（[`../discovery/client-preferences.md` §3.2](../discovery/client-preferences.md)，按 account-data CAS 收敛）。该 key 尾部的 `<notification_id>` MUST 与本行 `id` 完全相等。
+- 客户端展示用的 `ak.schema.notification.v1` 对象由客户端本地组合：`id` 取该行 `id`，`schema` 取常量，`actor_id` 取本账号完整 account ActorId，`state` 由上述两个私有真源重算，其余字段取 `data`。服务端不得代填 `state`，也不得把 inbox 处置写进本通道。
+- 当前行与 inbox key 是两条独立记录：inbox 条目存在但没有当前行时 MUST NOT 复活该通知；当前行存在而没有 inbox 条目时按 read cursor 派生 `unread` / `read`。
+- 收到 `remove` 后客户端 MUST 删除本地当前行；对应的 `ak.notifications.inbox.<notification_id>` MAY 由持有者客户端按 account-data CAS 自行删除，服务端 MUST NOT 代写或代删该 key。
+- 本分支不改写源 Event、不生成 recipient-authored Event，也不进入 `account_data.events[]`。
+
+**分页冻结期的覆盖规则。** baseline 分段或列表分页进行中发生的 read / archive 只落在 account-data 通道，本通道的任何分段都不携带、也不重置 inbox 状态。分段进行中发生的 `remove` 或新 `upsert` 作为更新 delta 立即交付；客户端 MUST 按 §2.3 保留快照之后的更新，较晚到达的旧快照分段只记为「该快照已见键」，MUST NOT 用旧内容覆盖新 `upsert`，更不得复活已删除行。
+
+#### 3.1.3 通道位置、baseline 与增量（两分支共用）
+
+每次 upsert/remove 都 MUST 在持久化事务中分配严格单调的 notification projection position；不得用可改写的 `created_at` 加 id 拼 position。两个分支共用同一序列，opaque account cursor 内部保存其 high-water。
+
+Initial sync 的 `notifications` baseline MUST 覆盖当前 account context 下该通道的完整当前集合：全部仍 open 的 `agent_runtime_approval`，以及接收者当前仍可见的全部普通当前行，都作为 `action=upsert` 交付。该集合按 §2.3 分段，可跨 frame/round；客户端仅在 `baseline.completed_channels` 包含 `notifications` 后，才删除同一快照所有已安装分段均未出现且未被更新 delta 覆盖的行。中间页、空中间页与 `catchup_complete` 都不触发删除。Incremental sync 只返回 cursor position 之后的变化；终止 tombstone 至少保留到 account cursor 最大生命周期加安全窗口。填不满 `after` 到当前 frontier 的区间时 MUST 返回 `dropped` / `resync_required`，不得静默跳过。
+
+普通当前行的集合 MUST 有界：服务端按部署保留边界从最旧开始逐出，逐出 MUST 以 `reason` 为 `expired` 的 `remove` 显式表达，不得静默消失；源 Event redaction、retention 到期与当前授权收缩同样必须发出对应 `remove`。该逐出不适用于 Agent approval 子集：即使普通通知历史受限，也不得截断仍 open 的 approval。
+
+服务端提交 projection 事务后 MAY 发 account-context-scoped 内存 wakeup 以降低长轮询延迟。持久 projection 与 cursor 是权威；丢失 wakeup 后，有界 long poll 超时或重连必须仍可从 durable position 恢复，不要求仅为 wakeup 建 durable outbox。Push provider 只能收到现有 blind wakeup，notification body、preview、Agent DID 和 approval id 均不得进入 provider-visible payload。
 
 ### 3.2 Agent signer 按需结果（normative）
 
@@ -882,9 +923,10 @@ Accept: application/x-ndjson
 - 分段返回 device list baseline；仅 `baseline.completed_channels` 声明该集合完成。
 - 顶层 `account_data.station_cas` 按 §2.3 分段覆盖所有 holder-readable live row；filter 不裁掉该集合，baseline removals 为空。零行也要显式完成 `station_cas` 通道；删除只在该快照终段安装后执行。
 
-此外，同一 baseline 的全部已安装分段 MUST 最终覆盖当前 account context 下全部仍 open 的
-`agent_runtime_approval` notification 作为 `action=upsert` 的权威完整集合返回；即使其它
-notification 历史受限也不得截断该子集。
+此外，同一 baseline 的全部已安装分段 MUST 最终覆盖当前 account context 下 `notifications` 通道的完整当前集合：
+全部仍 open 的 `agent_runtime_approval`，以及接收者当前仍可见的全部普通 `ak:notification_projection:*` 当前行，
+都作为 `action=upsert` 返回（§3.1.3）。普通行受部署保留边界与当前授权裁剪，被裁剪的行必须以显式 `remove` 退出；
+即使普通通知历史受限，也不得截断仍 open 的 `agent_runtime_approval` 子集。
 
 对本次请求包含且当前 membership 为 join 的 Realm，服务器 MUST 按 [current results §4](./current-results.md#4-精确覆盖的分段基线) 提供创建固定安全属性、当前政策结果、default Strand pointer 和所需 Strand 当前对象。history_access 只裁剪旧内容，不得裁掉当前必要结果。发送权限和 MLS authoring/accepted-artifact 继续使用逐操作服务器 gate；缺必要结果仅阻塞依赖该结果的操作，不阻塞所有 Realm、首屏、完整成员名单或旧历史。不得恢复 state.events、客户端治理证明或不存在的 Strand.is_default 镜像字段。
 
