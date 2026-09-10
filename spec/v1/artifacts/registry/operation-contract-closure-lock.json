@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-08.62",
-  "generated_at": "2026-09-10T11:23:51+08:00",
+  "version": "2026-09-08.64",
+  "generated_at": "2026-09-10T11:40:54+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -878,6 +878,10 @@
     {
       "operation_id": "ak.self.realm.resource.get.v1",
       "sha256": "sha256:40c0855101b09a8677be06fc58674aae5c1954369f0c1d1bf106e37981d361f8"
+    },
+    {
+      "operation_id": "ak.self.realm_join.command.prepare.v1",
+      "sha256": "sha256:39d55e80d287ebcbc7147985846a53fba3477f2d519e10f2a61bc23e1a1a4c12"
     },
     {
       "operation_id": "ak.self.realm_join.read.application_status.v1",

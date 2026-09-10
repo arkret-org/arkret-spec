@@ -240,12 +240,14 @@ payload **不携带** detached `proof`：治理签名就是该 Event 的 envelop
 
 Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 因为组织 DID 可解析，就公开组织成员列表、官方 Realm 列表、服务拓扑或治理策略全文。
 
-客户端展示组织搜索结果时 SHOULD verify：
+组织搜索结果的权威核验由请求方**自己的 Station** 承担，MUST 覆盖：
 
 1. Organization DID 可解析。
 2. discovery policy 或 profile 由组织 DID / governance service 签名。
-3. 如果结果声称包含 official Realm，仍需验证每个 Realm 的 `ak.realm.organization` 背书。
+3. 结果声称包含 official Realm 时，逐个验证该 Realm 的 `ak.realm.organization` 背书。
 4. 目录服务 DID 被组织 DID 声明或被本地 trust policy 接受。
+
+客户端只消费自己 Station 已验证的结果并核对请求／账号／目标绑定；MUST NOT 自行解析组织 DID、下载背书链，也 MUST NOT 按 `source_refs` 回源取证作为展示或动作的前置。
 
 ### 4.1 Actor / Applet / Handle Discovery State
 
@@ -415,7 +417,7 @@ Directory Service 是 Arkret 的**发现入口层**：让任意 subject 在不�
 它的职责面 normative 限定为三件事，超出以下范围的能力 MUST NOT 被实现为 Directory 的内置职责：
 
 1. **Ingest**：按 §8 接入资源（Realm / Organization / Actor / Applet / Handle）的签名 discovery state，建立**可重建、可替换、可撤销**的索引。
-2. **Query**：向 subject 提供 search / resolve（§9），返回最小可验证元数据 + `source_refs`，让客户端能独立回真相源验签。
+2. **Query**：向 subject 提供 search / resolve（§9），返回最小可验证元数据 + `source_refs`。`source_refs` 是给服务端与独立审计者的来源坐标，供 subject 自己的 Station 及跨 Directory 对账使用；它 MUST NOT 被解释为普通客户端必须逐条回源取证的义务。
 3. **Filter & 防枚举**：执行 §3 / §11 的 discoverability 过滤、bucket 聚合、blinded `not_found`，杜绝侧信道。
 
 ### 7.1 索引内容
@@ -875,7 +877,7 @@ object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `as_of` | `timestamp` | Directory 上次刷新该条目的时间。 |
-| `source_refs` | `id[]?` | 真相源 event id；客户端可据此回 Station 验签。**conditional**：entry 有 Event 来源时 MUST 携带（`minItems: 1`）；没有 Event 来源时 MUST 整个省略，MUST NOT 用空数组冒充（判据见 §7.3 不变量 3）。 |
+| `source_refs` | `id[]?` | 真相源 event id，供服务端验证、跨 Directory 对账与独立审计定位；普通客户端不据此回源取证。**conditional**：entry 有 Event 来源时 MUST 携带（`minItems: 1`）；没有 Event 来源时 MUST 整个省略，MUST NOT 用空数组冒充（判据见 §7.3 不变量 3）。 |
 | `policy_revision` | `string` | discovery state 的 effective revision；便于跨 Directory 对账。每条 search / resolve 结果 MUST 携带（与 §7.3 不变量 3 一致），不得省略；`ak.find.directory.read.resolve_target.v1` 等泛化解析继承同一 MUST。 |
 | `stale` | `boolean?` | TTL 过期且未续约时为 `true`，客户端 SHOULD 仅作参考。 |
 | `divergent` | `boolean?` | 与同一资源的另一 Directory 视图不一致时为 `true`（实现可选检测）。 |
@@ -890,21 +892,21 @@ object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载
 1. `realm_id` MUST 等于解析结果的 canonical Realm ID。
 2. `service_id` MUST 是稳定 service `did_core_id`，不是裸 DID，也不是用户 / 成员 principal `did_core_id`；调用方首次接受新 candidate、candidate binding / policy revision 变化或其 authority freshness 失效时 MUST 验证该 core 与当前 service DID binding，并确认 endpoint 支持 candidate 声明的 `operations`。同一未过期 candidate 命中已接受 binding 时直接复用，不得在每次传输前重新在线解析 DID Document。
 3. `operations` MUST 包含 `ak.peer.events.command.submit.v1`；缺失时 invitee Station 不得将其用于 join-side federation forwarding。客户端不得调用该 candidate。
-4. `expires_at` 过期时，客户端 MUST 重新 `resolve_realm`，不得继续使用缓存 candidate。candidate 不携带 `stale`、`policy_revision` 或 `source_refs`；这些字段属于外层 Directory 结果，不能作为 candidate 自身的 wire 检查项。
+4. `expires_at` 过期时，invitee Station MUST 重新解析，不得继续使用缓存 candidate。candidate 不携带 `stale` 或 `policy_revision`——这两个字段属于外层 Directory 结果，不能作为 candidate 自身的 wire 检查项；candidate 自身的 `source_refs` 则是签发方给出的 signed invite / 当前 joined-member Event 依据，属于服务间 provenance，MUST NOT 被解释为客户端回源取证入口。
 5. Candidate 只决定 invitee Station 可将 join material 转交给哪个已有成员 Station；最终是否接受仍由 Realm auth state、Join Policy、capability、invite / review 链、Event proof 和 reducer 校验决定。
 6. `join_candidates[].service_id` MUST 来自 signed invite，或按当前 effective joined member ActorId 的封闭规则投影；candidate 仍不授权投递，也不得替 invitee 选择账号。最终 membership 必须携带 invitee 自己接受的完整 ActorId。
 7. Directory / invite link MAY 按 requester、join_rule、discoverability、anti-enumeration policy 裁剪 candidate 数量；不得泄露完整成员 Station 拓扑。对 `restricted` / `unlisted` / `invite_only` / `secret` 的 Realm，MUST 只给出 signed invite 或最小 current member binding 所需的有界集合；部署已知 peer、mirror、notary、search projection 或 URL hint 不得凭自身进入列表。
-8. `seal_basis` 是 candidate `service_id` 在 `as_of` observation coordinate 下该 Realm 的**完整当前已接受 Seal frontier**：`single_signer`/`threshold` authority 恰一 leaf，`open_set` authority 是 canonical sorted、duplicate-free 的完整 non-quarantined leaf antichain；不得把 open_set 压成 single head。roots 由客户端与接收方从全部所引 Seal 的 joined view 重算，不复制到 Event。resolver 只有在 signed invite 或 current member binding 已授权该有界披露时才可返回 basis；客户端 MUST 在向自己的 Station 首次提交前验证并 stamp Control Move。`seal_basis` 进入 Event digest 且被 proof 绑定，任何服务都不得补填。candidate 不持有完整 Realm Seal frontier 时 MUST NOT 返回。**pre-join 活跃度侧信道收口（normative）**：对非成员 basis 解析 MUST 按 `(realm_id, requester)` 限速并使用固定 timing bucket，且 SHOULD 对 frontier 推进迟滞/分桶。
-9. `encryption_profile` 是签发方在 `as_of` 时**已接受 Realm projection** 的 effective 值，与 `seal_basis` 同样进入 candidate payload digest 并被 candidate proof 绑定。pre-join client MUST 只用该字段判定 [`../identity/key-management.md`](../identity/key-management.md) §7.11 的加入前 recovery-material gate：`mls_rfc9420` 表示该 join 会为 invitee 产生 Realm MLS group secret，gate MUST 生效；`none` / `external` 表示 Realm join 本身不产生 Realm 级 MLS 材料，gate 由后续 Circle 加入等已可读状态各自判定。客户端 MUST NOT 为判定该 gate 绕过 membership gate 或读取 membership 门控的 Realm Event 历史（服务端按本节对非成员统一返回 `not_found`，这条读路径不存在）。签发方在该 Realm 的已接受 projection 缺失或不可验证时 MUST NOT 猜测默认值，MUST 省略该 candidate；任何服务都不得补填该字段。
-10. `digest_algorithm` 是签发方在 `as_of` 对完整 `seal_basis` 的 accepted joined projection 验证得到的 current live `DigestSuite`，与 `encryption_profile`、`seal_basis` 一并进入 candidate payload digest 并被 candidate proof 绑定。缺失、为 `Bottom`、各 leaf join 后不唯一或任一 leaf / predecessor closure 不可验证时，签发方 MUST 省略整个 candidate。pre-join client 只能使用这个已签值 author `ak.invite.accept`；MUST NOT 从 `SealId`、`state_root` 或其他待验证 digest 前缀推断 suite。接收 Realm service 仍须按真实 predecessor joined suite 重验 Event，candidate 值不一致时拒绝，因此恶意 candidate issuer 只能造成拒绝服务，不能扩张权限。
+8. `seal_basis` 是 candidate `service_id` 在 `as_of` observation coordinate 下该 Realm 的**完整当前已接受 Seal frontier**：`single_signer`/`threshold` authority 恰一 leaf，`open_set` authority 是 canonical sorted、duplicate-free 的完整 non-quarantined leaf antichain；不得把 open_set 压成 single head。Seal roots 留在 Seal 自身，不复制到 Event；接收方从所引 Seal 的 joined view 重算，客户端不承担该重算。resolver 只有在 signed invite 或 current member binding 已授权该有界披露时才可返回 basis。**它是签发方的观测，只供 invitee Station 做候选选择、陈旧检测与交叉核对：invitee Station MUST NOT 用它 author 本次加入，MUST 改用 [`../sync/federation.md` §5.3.1](../sync/federation.md) 已验证的引导结果；客户端从不接触 candidate。** `seal_basis` 进入 Event digest 且被 proof 绑定，任何服务都不得补填。candidate 不持有完整 Realm Seal frontier 时 MUST NOT 返回。**pre-join 活跃度侧信道收口（normative）**：对非成员 basis 解析 MUST 按 `(realm_id, requester)` 限速并使用固定 timing bucket，且 SHOULD 对 frontier 推进迟滞/分桶。
+9. `encryption_profile` 是签发方在 `as_of` 时**已接受 Realm projection** 的 effective 值，与 `seal_basis` 同样进入 candidate payload digest 并被 candidate proof 绑定。该值供 invitee Station 交叉核对；pre-join client MUST 只用自己 Station 在 `ak.self.realm_join.command.prepare.v1` 结果中给出的已验证 `encryption_profile` 判定 [`../identity/key-management.md`](../identity/key-management.md) §7.11 的加入前 recovery-material gate，取值语义相同：`mls_rfc9420` 表示该 join 会为 invitee 产生 Realm MLS group secret，gate MUST 生效；`none` / `external` 表示 Realm join 本身不产生 Realm 级 MLS 材料，gate 由后续 Circle 加入等已可读状态各自判定。客户端 MUST NOT 为判定该 gate 绕过 membership gate 或读取 membership 门控的 Realm Event 历史（服务端按本节对非成员统一返回 `not_found`，这条读路径不存在）。签发方在该 Realm 的已接受 projection 缺失或不可验证时 MUST NOT 猜测默认值，MUST 省略该 candidate；任何服务都不得补填该字段。
+10. `digest_algorithm` 是签发方在 `as_of` 对完整 `seal_basis` 的 accepted joined projection 验证得到的 current live `DigestSuite`，与 `encryption_profile`、`seal_basis` 一并进入 candidate payload digest 并被 candidate proof 绑定。缺失、为 `Bottom`、各 leaf join 后不唯一或任一 leaf / predecessor closure 不可验证时，签发方 MUST 省略整个 candidate。invitee Station 只把它当作交叉核对值；author 使用的 suite MUST 取自 §5.3.1 已验证的引导结果并经 `ak.self.realm_join.command.prepare.v1` 冻结。任何一方 MUST NOT 从 `SealId`、`state_root` 或其他待验证 digest 前缀推断 suite。接收 Realm service 仍须按真实 predecessor joined suite 重验 Event，candidate 值不一致时拒绝，因此恶意 candidate issuer 只能造成拒绝服务，不能扩张权限。
 
 invitee Station 的转发算法 SHOULD 按 `priority` 升序，再按本地可达性与 `service_id` 稳定排序。候选不可达、过期或 fail closed 时 MAY 尝试下一个；客户端只重试自己的 Station。所有重试 MUST 使用同一 canonical `realm_id`，不得跨 Realm 重定向。
 
-客户端在以下情况 MUST 回真相源验签后再 act：
+客户端 MUST NOT 为发起动作回真相源取证，也 MUST NOT 重算 Seal joined roots：
 
-- 准备执行 join、capability 请求或 invite 接受
-- 跨 Directory 看到 `policy_revision` 不一致或 `divergent=true`
-- 收到 `stale=true` 的关键条目（policy / membership / endorsement）
+- 准备执行 join、knock 或 invite 接受时，客户端 MUST 使用 `ak.self.realm_join.command.prepare.v1`；由自己的 Station 解析、验证并冻结待签输入。
+- 跨 Directory 的 `policy_revision` 不一致、`divergent=true` 与关键条目 `stale=true` 是**展示级提示**：刷新与核验由自己的 Station 完成，客户端只在其已验证结果上重新求值，MUST NOT 据此自行拉取远端真相源。
+- capability 请求按其各自已登记的 operation 求值，同样不引入客户端治理历史取证。
 
 ### 9.2 Search / Resolve 示例
 

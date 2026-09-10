@@ -377,6 +377,139 @@
       },
       "additionalProperties": false
     },
+    "realm_join_authoring_core": {
+      "type": "object",
+      "description": "The exact governance-derived authoring inputs of one join Control Move, frozen by the account's own Station. The client supplies the remaining envelope members from its own actor chain and device state (event_id, scope_ref, actor_id, actor_seq, created_at, hlc, prev_refs, refs and proofs) and signs the canonical bytes. No reducer runs on the client.",
+      "required": [
+        "event_kind",
+        "payload"
+      ],
+      "properties": {
+        "event_kind": {
+          "type": "string",
+          "enum": [
+            "ak.invite.accept",
+            "ak.member.state"
+          ],
+          "description": "Exact Event kind to author. invite_accept prepares ak.invite.accept; member_join and knock prepare ak.member.state."
+        },
+        "payload": {
+          "oneOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/invite_accept_payload"
+            },
+            {
+              "$ref": "./event-payload.schema.json#/$defs/membership_payload"
+            }
+          ],
+          "description": "Exact canonical payload object to sign. The client checks it against the user intent it declared and signs it byte-for-byte; it MUST NOT edit, extend or re-derive it."
+        },
+        "preconditions": {
+          "$ref": "./event-envelope.schema.json#/properties/preconditions",
+          "description": "Exact pre-state predicates for this Move under the returned seal_basis. Present whenever the target kind requires one, such as the head_eq that an ak.invite.accept with invitee_account_id MUST carry; the client never derives them."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.invite.accept"
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/invite_accept_payload"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/membership_payload"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "self_prepare_request_body": {
+      "type": "object",
+      "description": "Authenticated account request to prepare exactly one join attempt. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling this request. The request never carries a candidate endpoint, a self-reported seal_basis or any caller-declared governance fact.",
+      "required": [
+        "request_id",
+        "account_id",
+        "realm_id",
+        "intent"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Canonical Realm id the user selected, normally taken from a preview outcome."
+        },
+        "intent": {
+          "$ref": "#/$defs/realm_join_intent"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
+    },
+    "self_prepare_outcome": {
+      "type": "object",
+      "description": "Own-Station validated preparation of one join attempt. It is not membership, not a capability grant and not admission: submit re-checks current authority, freshness and basis. Preparing the same canonical request again during its retention window returns byte-identical material.",
+      "required": [
+        "request_id",
+        "account_id",
+        "realm_id",
+        "request_digest",
+        "governance_facts",
+        "authoring_core",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "request_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
+          "description": "SHA-256 of UTF8(\"ak.realm-join-prepare-request-v1\") || 0x00 || JCS(exact request body). It binds this preparation to the exact declared intent, including the protected invite credential that is never echoed."
+        },
+        "governance_facts": {
+          "$ref": "#/$defs/realm_join_governance_facts"
+        },
+        "authoring_core": {
+          "$ref": "#/$defs/realm_join_authoring_core"
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Instant after which the client MUST prepare again instead of signing this material."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 262144
+    },
     "realm_join_realm_state": {
       "type": "string",
       "description": "State of one join application as observed by the receiving Realm member Station. received means the byte-identical Event was durably accepted for forwarding but is not yet an Ack-bearing proposal; the remaining five values map one to one onto control_proposal_decision_read_outcome.proposal_state pending, deferred, overdue, rejected and sealed.",

@@ -7294,6 +7294,26 @@
       ]
     },
     {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_prepare_outcome/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "realm-join-intake.schema.json#/$defs/self_prepare_request_body/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "realm-join-intake.schema.json#/$defs/self_preview_outcome/properties/account_id",
       "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",

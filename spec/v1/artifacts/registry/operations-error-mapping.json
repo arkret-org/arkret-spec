@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-10.19",
+  "version": "2026-09-10.20",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T11:23:51+08:00",
+  "generated_at": "2026-09-10T11:40:53+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -2029,6 +2029,18 @@
       "http_alias": "GET /_arkret/self/realms/{realm_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ak.self.realm_join.command.prepare.v1",
+      "http_alias": "POST /_arkret/self/realm-joins/prepare",
+      "operation_specific": [
+        "not_found",
+        "unsupported_feature",
+        "frontier_unavailable",
+        "failed_precondition",
+        "payload_too_large"
+      ],
+      "description": "An account or Station that does not match the authenticated session, an unknown or hidden Realm, an invalid, expired or revoked invite credential and a join policy that does not admit the declared intent share one non-enumerating 404 not_found. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A basis, digest suite or encryption profile that cannot currently be obtained and verified is 503 frontier_unavailable and never a defaulted value. A pre-state that no longer holds under the current accepted basis is 409 failed_precondition and requires a fresh preparation, never a rewrite of already signed material. Request canonical bytes above 64 KiB are 413 payload_too_large."
     },
     {
       "operation_id": "ak.self.realm_join.read.application_status.v1",

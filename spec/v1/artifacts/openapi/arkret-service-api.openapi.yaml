@@ -1790,6 +1790,10 @@ components:
       $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome
     RealmJoinPeerPreviewRequestBody:
       $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body
+    RealmJoinPrepareOutcome:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_prepare_outcome
+    RealmJoinPrepareRequestBody:
+      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_prepare_request_body
     RealmJoinSelfApplicationStatusOutcome:
       $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome
     RealmJoinSelfApplicationStatusRequestBody:
@@ -7327,6 +7331,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/CurrentPrincipalOutcome'
 
+  /_arkret/self/realm-joins/prepare:
+    post:
+      operationId: ak.self.realm_join.command.prepare
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.realm_join.command.prepare.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Prepare the exact signing inputs for one Realm join, knock or invite acceptance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmJoinPrepareRequestBody'
+      responses:
+        '200':
+          description: Verified governance facts plus the exact Event kind, canonical payload and preconditions to sign.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmJoinPrepareOutcome'
   /_arkret/self/realm-joins/preview:
     post:
       operationId: ak.self.realm_join.read.preview

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.19",
+  "version": "2026-09-10.20",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T11:23:51+08:00",
+  "generated_at": "2026-09-10T11:40:53+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -882,6 +882,20 @@
       "file": "schemas/realm-join-candidate.schema.json",
       "status": "active",
       "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_prepare_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_prepare_request_body",
+      "status": "active",
+      "description": "Authenticated account request to prepare exactly one join, knock or invite acceptance through the account's own Station."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_prepare_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_prepare_outcome",
+      "status": "active",
+      "description": "Own-Station validated join preparation: verified governance facts plus the exact Event kind, canonical payload and preconditions to sign. It is not admission and not membership."
     },
     {
       "schema_id": "ak.schema.realm_join_peer_preview_request.v1",
