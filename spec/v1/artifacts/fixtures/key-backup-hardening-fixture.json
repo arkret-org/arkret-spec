@@ -195,7 +195,7 @@
         "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "issued_at": "2026-06-19T00:00:00.000Z",
         "auth_data": {
-          "verification_method": "did:webvh:z6mkfixture:alice.example#device-2",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1",
           "signature_algorithm": "Ed25519",
           "signature": "c2lnbmF0dXJl"
         }
@@ -249,7 +249,7 @@
       "proof_context": "ak.key_backup_delete_proof.v1",
       "consumer_operation": "ak.self.keys.backups.resource.delete.v1",
       "assertions": [
-        "principal_signing, deduplicated device_quorum at policy k, and a live trusted_recovery_service session are the only accepted authority branches",
+        "recovery_unlock bound to its exact session and frozen policy, deduplicated device_quorum at policy k, and a live trusted_recovery_service session established by recovery_unlock or device_quorum are the only accepted authority branches",
         "every branch signs one canonical delete-intent transcript whose context is the registered ak.key_backup_delete_proof.v1",
         "a transcript carrying another consumer's context yields a different digest and fails closed",
         "ordinary current-device proof, non-tail single deletion, insufficient quorum, and expired or consumed recovery sessions fail closed",

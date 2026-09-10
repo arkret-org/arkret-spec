@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.8",
+  "version": "2026-09-10.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T12:18:51+08:00",
+  "generated_at": "2026-09-10T18:30:03+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3873,7 +3873,7 @@
       "applies_to_profiles": [
         "ak.profile.key_backup.memory_hard.v1"
       ],
-      "description": "Active-series tail deletion accepts exactly the three high-risk authority proof branches (principal_signing / device_quorum / trusted_recovery_service) over the canonical delete-intent transcript bound to a server-issued single-use challenge: ordinary current-device proof on an active tail, non-tail single deletion, deduplicated quorum below policy k, expired or consumed recovery session, replayed or expired challenge, and any tampered transcript field (backup_id / reason / audience / nonce) MUST all be rejected; a byte-identical retry returns the stored terminal outcome without re-admitting the consumed challenge.",
+      "description": "Active-series tail deletion accepts exactly the three high-risk authority proof branches (recovery_unlock / device_quorum / trusted_recovery_service) over the canonical delete-intent transcript bound to a server-issued single-use challenge. recovery_unlock MUST bind the exact verified session and its frozen accepted policy; trusted_recovery_service MUST reference an unconsumed session established by recovery_unlock or device_quorum and is never a factor by itself. Ordinary current-device proof on an active tail, non-tail single deletion, deduplicated quorum below policy k, expired or consumed recovery session, replayed or expired challenge, and any tampered transcript field (backup_id / reason / audience / nonce) MUST all be rejected; a byte-identical retry returns the stored terminal outcome without re-admitting the consumed challenge.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
         "spec/v1/zh/identity/key-management.md"

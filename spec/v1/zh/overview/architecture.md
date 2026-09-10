@@ -3,11 +3,15 @@ title: Architecture
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-09-10
 see_also:
   - ../sync/operations-sync.md
   - ../sync/service-surface.md
+  - ../sync/server-trusted-results.md
+  - ../sync/federation.md
   - ../sync/sovereign-deployment.md
+  - ../crypto-media/device-lifecycle.md
+  - ../security/server-threat-model.md
   - ../models/realm-and-space.md
   - ../models/circle.md
   - ../conformance/normative-language.md
@@ -97,7 +101,7 @@ Arkret 记录的是 **协作 Event**——授权状态、协作事实、E2EE han
 Event chain 可以由以下形态承载：
 
 - 用户设备上的本地 append-only log。
-- Station 内置的 Event Store Service 与 `/_arkret/self/events/*` API。
+- Station 内置的 Event 存储实现与 `/_arkret/self/events/*` surface。
 - 多个受控 storage replica 保存的只读副本。
 - Station 在 DID Document 中声明的服务 endpoint。
 
@@ -320,67 +324,75 @@ Arkret 不要求所有角色分离部署。
 
 ```mermaid
 flowchart LR
-    subgraph "Client Side"
+    subgraph CLIENTS["Clients / Actor producers"]
+        direction TB
         C1["Human Client"]
-        C2["Agent Runtime"]
-        C3["Applet / Automation"]
+        C2["Local Agent Runtime"]
+        C3["Local Applet / Automation"]
+        EV["Signed per-Actor Event Chain<br/>(protocol data model)"]
         CQ["Projection / Local Search"]
     end
 
-    subgraph "Identity Services"
-        DID["DID Document"]
-        REG["Identity Registry"]
-        WIT["Witness / Replica"]
+    subgraph STA["Station A · service_kind=station"]
+        direction TB
+        AA["Account Authority surface"]
+        EAS["Account / Event<br/>ingest · admission · store · read"]
+        SFS["Client sync · federation · invite"]
+        DKS["Authorization · identity resolution<br/>device/key · queues/cursors"]
+        LCL["Blob authority · private search<br/>local moderation"]
     end
 
-    subgraph "Write Services"
-        EV["Actor Event Chain"]
-        ER["Events API / Event Store"]
+    subgraph STB["Station B · service_kind=station"]
+        SB["Same built-in Station capabilities"]
     end
 
-    subgraph "Station / Station sync surfaces"
-        PS1["Station A"]
-        PS2["Station B"]
-        AUTHZ["Station A authorization capability"]
+    subgraph IDINFRA["Optional identity resolution infrastructure"]
+        REG["Method-native Resolver / Identity Registry"]
+        WIT["Witness / Replica<br/>(when applicable)"]
     end
 
-    subgraph "Directory Services"
-        DIR["Directory"]
-    end
-
-    subgraph "Content / Push Services"
-        BLOB["Blob Store"]
+    subgraph OPTIONAL["Optional independently trusted services"]
+        direction TB
+        DIR["Directory Service"]
+        BLOB["Blob Service<br/>(bounded bytes only)"]
         PUSH["Push Gateway"]
+        EXT["Media / TURN / SFU · Applet Service · Agent Runtime<br/>Notary · Moderation · Archive · Key/Account Recovery"]
     end
-
-    C1 --> DID
-    C2 --> DID
-    C3 --> DID
-    DID --> REG
-    REG --> WIT
 
     C1 --> EV
     C2 --> EV
     C3 --> EV
-    EV --> ER
-    ER --> PS1
-    ER --> PS2
-
+    EV -->|"submit signed Event"| EAS
+    C1 -->|"account flow"| AA
+    C1 -->|"sync / read"| SFS
+    EAS --> SFS
+    SFS <-->|"inter-Station federation"| SB
     C1 --> CQ
     C2 --> CQ
+    SFS -->|"authorized Event stream"| CQ
+    C1 --> REG
+    DKS -->|"method-native verification"| REG
+    REG -.-> WIT
     C1 --> DIR
-    C1 --> BLOB
-
-    PS1 --> AUTHZ
-    C1 --> PUSH
+    DKS -->|"authorized discovery"| DIR
+    C1 -->|"authorize / upload / download"| LCL
+    LCL -->|"bounded storage contract"| BLOB
+    C1 -.->|"authorized byte transfer"| BLOB
+    C1 -->|"register push route"| DKS
+    SFS -->|"blind / authorized notify"| PUSH
+    PUSH -->|"provider wakeup"| C1
+    SFS <-.->|"explicit delegation / capability"| EXT
 ```
 
 规范要点（_informative_）：
 
-- DID / Registry / Witness 负责身份解析和控制链证明。
-- Actor Event Chain 是主体发布日志，Station 提供受控同步、托管和联邦入口。
-- Search / View projection 默认在客户端本地派生；Directory 是受授权的发现层，不能替代签名事件和 reducer。
-- Blob、Authz、Push 是服务平面，可与其他角色同机部署，也可分离部署。
+- Station 是核心 wire role；Account/Event、Account Authority、client sync/federation/invite、Authz、device/key、queue/cursor、Blob authority、私有搜索和本地 moderation 都是其内置 capability/surface，不产生额外 `service_kind`。这些能力可以拆成内部进程，但拆分对协议参与方透明。
+- Signed per-Actor Event Chain 是协议数据模型，不是独立网络服务。客户端向自己的 Station 提交签名 Event；Station 完成准入、存储和读取，并通过 inter-Station federation 交换已接受材料。
+- DID Document 是 method-native 解析结果；Resolver、Identity Registry、Witness 或 Replica 只有在形成独立可寻址、签名或信任边界时才作为基础设施出现。它们不替代 Station 的账号与 Event authority。
+- Search / View projection 默认在客户端本地派生；Directory Service 是可选的公共或授权发现层，不能替代签名 Event 和 reducer。
+- Blob authorization、metadata、retention policy 与引用关系由 Station 判定；可选 Blob Service 只按绑定 contract 执行 bytes storage/delivery。客户端不得把可达 Blob URL 当作读取授权。
+- Push route 向账号所属 Station 注册，由 Station sync surface 或 Realm policy 明确授权的通知服务调用 Push Gateway；Push Gateway 不持有 Station 业务数据 authority。
+- Directory、Blob、Push、Media、TURN/SFU、Applet、Agent、外部 Moderation、Archive 与 Recovery 等角色只有在实际形成独立 service DID、endpoint、委托、签名、明文/密钥可见性或 normative authority 边界时才进入 discovery；同机部署不消除这些边界。
 
 ### 4.1 单人/小团队拓扑
 
@@ -456,6 +468,23 @@ Arkret 固定以下架构取向：
 
 ## 6. 信任边界
 
+本节中的“信任”只表示某一方被协议指定为某类结论的裁决者，不表示该方善意、永不失效或被授予其它权限。认证服务身份、信任其特定 operation 的结果、相信某个用户、允许读取明文和接受某个 Event 是彼此独立的判断。共享同一 principal、Station、Realm、组织或网络位置，均不得自动合并这些判断。
+
+### 6.0 参与方关系矩阵
+
+| 关系 | 协议允许依赖的结论 | 仍须由消费方独立完成 | 不提供的保证与残余风险 |
+| --- | --- | --- | --- |
+| 用户设备 ↔ 自己 Station | 建立账号会话前，客户端先固定预期 Station 身份与认证绑定；会话建立后，普通客户端信任该 Station 对本次完整 AccountId、operation、Realm/scope、对象和观察坐标给出的治理接纳、当前授权及 signer 结果。精确结果合同见 [`sync/server-trusted-results.md` §1–§2](../sync/server-trusted-results.md#1-信任方与角色)。 | 客户端核对响应与请求、账号、scope、basis、对象和待签字节的绑定；保管设备私钥；验证实际 Event/内容签名、MLS、附件、备份和设备带外信任；签名前核对用户意图。 | Station 可拒绝、延迟、遗漏或回滚服务视图，并可对自己负责的服务器验证结果撒谎或 equivocate；base v1 普通客户端不通过完整治理重放独立发现这类谎言。Station 仍不能生成它不持有密钥的有效用户/设备签名，也不能仅凭服务器身份解密端到端密文。独立检测恶意自己 Station 需要另行部署审计者、witness 或高保证 profile，不能由普通结果消费流程暗示。 |
+| 同一用户的不同设备 | PCR 中已接受且 current generation 为 active 的设备授权，只证明该设备当前可代表相应 Account 执行已授予动作；用户完成带外验证后，客户端可另行记录设备信任。 | 每台设备证明私钥持有；新设备按授权链与 generation 接纳；设备密钥变化、撤销、fence 和带外验证状态分别处理；端到端秘密只经已登记的配对、加密 to-device、backup 或 recovery 流程传递。 | 同属一个 principal 或 Account 不等于设备彼此可信，不允许自动复制私钥、MLS state 或“已验证”标记。一个被攻陷的已授权设备可在其 capability 内作恶，吊销不能追回其已经看见的明文或旧 epoch 密钥。权威规则见 [`crypto-media/device-lifecycle.md` §5–§10](../crypto-media/device-lifecycle.md#5-device-authorization-chain)。 |
+| 同一 Station 的不同用户 | 各用户分别信任该 Station 对自己已认证 Account 会话给出的 scoped 结果；Station 可执行本地接纳、投递和授权检查。 | 用户之间仍按完整 ActorId、Event proof、capability、membership、MLS sender 与内容认证互相验证；服务端必须执行账号和 Realm 隔离。 | 共用 Station 不建立用户间信任、联系人关系、membership、读取权或设备信任。Station 被攻陷可能同时影响多个本地账号的可用性、元数据和服务器结果；未加密或 policy 明确委托的明文也在其可见边界内。 |
+| 同一 principal 在不同 Station 的 Account | 每个完整 AccountId 都是独立账号与信任上下文；只有显式、已验证的绑定或协议事件才能建立它们之间的关系。 | 分别认证 Station、会话、设备 generation、ActorId 与 operation scope；跨站引用不得丢弃 `station_id` 或只按 principal DID 合并。 | 相同 principal 分量不证明两个 Account、设备集合、消息队列、push target、权限或历史相同，也不授权一个 Station 代表另一 Station。 |
+| 跨 Station 用户 | 用户可依赖自己的 Station 已验证并按本次 operation 返回的远端治理、设备或 signer 结果；共享事实仍以签名 Event、Seal、membership/capability 和端到端密码学为准。 | 客户端核对完整双方 AccountId/ActorId、Realm/scope、实际 producer 签名、MLS/内容绑定和 freshness；远端取材由自己 Station 走 peer 面完成，客户端不向远端 Station 交付自己的 SessionGrant/DPoP。 | 用户不因 federation、同 Realm 或对方 Station 的自报 verified 状态而直接信任对方。远端 Station 的已签 attestation 提供归责，不在密码学上阻止其为自己的账号发布虚假服务器断言；恶意源还可 withholding、选择性转发或提供不完整观察。 |
+| Station ↔ Station | 没有默认互信。接收 Station 只在本地 peer policy、Realm 业务授权和请求级认证全部通过后，接受某个有界 federation transaction。 | 接收方独立验证 service DID/method evidence、delegation/endpoint、HTTP message signature、双方 service/trust-domain、body digest、replay/freshness、Event proof、capability、Seal/basis 和目标绑定。 | allowlist、TLS、可解析 DID、有效服务签名或已知 peer 只证明相应层的身份/准入，不证明业务授权、内容真实、历史完整或对方善意。current-v1 不证明从未观察到的 Event 不存在，也不阻止 source withholding；见 [`sync/federation.md` §2–§3](../sync/federation.md#2-设计原则)。 |
+| 同一 Realm/Circle 的用户或 Agent | accepted membership 与 capability 只证明主体可在相应 effective scope 内执行特定动作；MLS membership 证明相应 epoch 的密码学参与资格。 | 每个接收方继续验证 Event、授权状态、scope、MLS epoch/sender、内容 schema，并把不可信内容当作潜在恶意输入。 | 共处 Realm/Circle 不建立人际信任、设备信任或内容真实性的额外保证。E2EE 防止未持钥服务读取正文，不阻止合法成员泄露已解密内容、提交恶意内容或观察其有权看到的元数据。 |
+| 客户端/Station ↔ Directory、Push、Blob、Media、Projection、Applet 等第三方服务 | 只依赖 DID/service delegation、Realm policy、operation contract 和 `plaintext_visible_services` 明确授予的最小职责。 | 调用方验证服务身份、用途、audience、scope、输入/输出绑定、有效期、内容 hash/AEAD 与撤销状态；不能把服务自报 verified 当作授权。 | 被委托一种职责不获得其它职责；传输密文不等于可见明文，获准看明文也不等于能代签、决定 membership 或成为真相源。第三方仍可拒绝服务、记录其可见元数据或在权限范围内返回错误结果。 |
+
+矩阵中的“自己 Station”始终指当前完整 AccountId 的 `station_id` 所标识、在会话建立前已经固定身份且由当前认证上下文调用的 Station；不是当前 URL、Directory 搜索结果、远端 Realm 服务、同 principal 的另一 Station 或任意能返回相似 JSON 的服务。服务器可信结果只替代客户端侧的治理闭包验证工作，不替代服务器首次接纳远端材料时的验证，也不替代端到端客户端职责。
+
 ### 6.1 Event Chain 可证明 actor 发过什么
 
 Event chain 能证明：
@@ -482,6 +511,8 @@ Station 不可以：
 - 静默删除仍然有效的历史 Event
 - 把未授权明文内容发送给未被 principal 或 Realm policy 委托的第三方服务。常见受托服务（Push、Blob preview、Policy preview、search / projection）是否可见私有明文，以 §2.3 的 `plaintext_visible_services` 规则为准。
 
+上述“不可以”是合规 Station 的规范义务，不是客户端已获得的恶意 Station 检测保证。actor/device 签名使 Station 无法把自己构造的不同 bytes 冒充为该签名者的有效 Event；但 Station 仍可能 withholding、回放陈旧视图、对自己签署的 admission/治理结果作虚假陈述，或向不同观察者给出矛盾结果。普通客户端按 §6.0 信任自己 Station 的 scoped 服务器结果并保留端到端校验；接收远端材料的服务器和独立审计者不得套用该客户端信任捷径。
+
 ### 6.3 Projection 可解释状态，但不应替代原始审计链
 
 客户端本地 projection 或受托 search / projection 服务可以：
@@ -505,6 +536,20 @@ Station 不可以：
 Realm 构成了协作图的硬性隔离边界：
 - 节点在处理深度 Graph / Space-hierarchy 查询（即 View.kind=`graph` 投影或跨 Space 层级遍历）时，遇到跨 Realm 引用必须截断返回惰性链接 (Lazy Link)，MUST NOT 越权自动化拼接外部图谱。
 - 跨组织的级联图谱展示必须由拥有多域权限的客户端发起多次请求主动合成。
+
+### 6.6 边界穿越的强制复核项
+
+任何新 operation、证据载体、缓存、代理或服务拆分一旦跨过上述边界，设计评审 MUST 明确回答以下问题；不能只写“trusted”“verified”或“secure”：
+
+1. **主体与角色**：谁产生事实、谁传输、谁接纳、谁消费、谁独立审计；程序部署在同一进程不合并逻辑角色。
+2. **精确身份与上下文**：使用完整 AccountId/ActorId、service DID、Realm/effective scope、operation、对象、audience、basis/epoch/generation 中哪些字段绑定结论；不得用裸 principal、URL、域名或显示名补足缺失身份。
+3. **信任依据与验证者**：结论来自用户/设备签名、service attestation、DID method evidence、capability/Seal、MLS/AEAD、Realm policy 还是本地 operator policy；在哪个边界首次验证，后续复用如何证明来源未变。
+4. **时间与状态**：freshness、expiry、replay、幂等、撤销、key rotation、leave/rejoin、fork/recovery 和缓存失效如何处理；历史有效不能自动推导当前授权。
+5. **数据暴露**：各方可见正文、密钥、身份、关系图和流量元数据中的哪些部分；最小披露、不可枚举失败和日志/审计保留如何约束。
+6. **失败语义**：不存在、不可见、未验证、依赖不可用、pending、conflict 与有效空结果是否可区分且不会被错误降级；网络成功、服务器接纳、治理 finality、业务完成和端到端可解密不得合并成一个“成功”。
+7. **残余风险**：明确哪些攻击被密码学阻止，哪些只有可归责证据，哪些只能由 policy/审计缓解，哪些仍允许拒绝服务、withholding、equivocation、合法成员泄露或已授权端点作恶。
+
+若一项设计不能给出上述答案，应先补充所属领域 prose 与 conformance 场景，再增加 wire 字段或交互轮次；不得用未定义的“信任服务”、客户端完整历史重放或把所有参与方放进同一 TCB 来掩盖边界。
 
 ## 7. AI 与人类共用同一协议
 

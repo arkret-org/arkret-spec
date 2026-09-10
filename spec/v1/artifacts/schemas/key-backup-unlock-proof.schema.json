@@ -120,7 +120,8 @@
     "proof_kind": {
       "type": "string",
       "enum": [
-        "principal_signing",
+        "current_device",
+        "did_root",
         "recovery_unlock",
         "device_quorum",
         "trusted_recovery_service",

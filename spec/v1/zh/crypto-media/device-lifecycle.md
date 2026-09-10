@@ -194,7 +194,7 @@ gate receipt 的 proof context 固定为 `ak.device_revocation_gate_decision_pro
 企业通常强制要求使用 Okta、Google Workspace 等中心化身份提供商 (IdP) 进行认证。在不破坏去中心化端到端加密前提下，本协议引入 **Auth Gateway (认证网关)** 模式。
 
 ### 3.1 架构角色
-- **Auth Gateway**：部署在企业内网或受控云端的高安全级别服务器。它通常是组织 DID 明确声明的 session grant issuer 或设备授权服务。只有在企业托管账号场景中，它才 MAY 托管员工 DID 的高权限签发材料；对普通个人 DID，网关 SHOULD 只签发短期 session grant，不应托管用户 principal signing key 或 recovery key。
+- **Auth Gateway**：部署在企业内网或受控云端的高安全级别服务器。它通常是组织 DID 明确声明的 session grant issuer 或设备授权服务。只有在企业托管账号场景中，它才 MAY 按组织治理委托托管员工账号的高权限签发材料；对普通个人 DID，网关 SHOULD 只签发短期 session grant，不应托管用户 DID control/update key、device key 或 recovery key。v1 不定义独立 principal signing key。
 
 ### 3.2 登录时序
 1. **浏览器会话初始化**：员工在浏览器打开 Web 端应用，本地生成临时会话密钥 `session_key`。

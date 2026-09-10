@@ -99,7 +99,7 @@
         ],
         "issued_at": "2026-04-26T00:00:00.000Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder"
         }
@@ -166,7 +166,7 @@
         },
         "issued_at": "2026-04-26T00:00:00.000Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder"
         }
@@ -198,7 +198,7 @@
         },
         "issued_at": "2026-04-27T00:00:00.000Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder"
         }
@@ -342,7 +342,7 @@
         "expires_at": "2026-04-27T00:00:00.000Z",
         "issued_at": "2026-04-27T00:00:00.000Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder"
         }

@@ -104,7 +104,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 | --- | --- | --- |
 | Device Ed25519 fingerprint key | `ak:device:` 记录里的 `verify_key` (Ed25519) | Arkret 把 device 公钥写进 `ak:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `ak.device.authorize` Event 锚定到 principal DID，而非 homeserver 账号。 |
 | Device Curve25519 identity key | `ak:device:` 记录里的 `hpke_key` (X25519) | 用于 HPKE-based to-device 通道、KeyPackage init key 来源、加密 backup envelope 接收。Matrix Curve25519 用于 Olm 长期 DH，语义对等但用途窄一些。 |
-| (homeserver 账号绑定) | DID method cold identity root | Arkret 在账号签名层之外另有一层冷身份根：例如 `did:webvh` 的逐代 `updateKeys`。它只做 DID 管理，并只签 PCR genesis / recovery re-anchor 两类锚事件；不成为 device key、principal signing key 或日常 Event key。根代际归属由 DID method history / key log 表达，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §3.3、§5.0。 |
+| (homeserver 账号绑定) | DID method cold identity root | Arkret 在日常设备签名层之外另有一层冷身份根：例如 `did:webvh` 的逐代 `updateKeys`。它只做 DID method 管理、签自体 PCR genesis，并在 accepted recovery policy 显式启用时充当 recovery-session factor；它不签 `ak.device.reanchor`，也不成为 device key、MLS leaf key 或日常 Event key。恢复 unit 由 session 冻结的 replacement device identity key 签署。根代际归属由 DID method history / key log 表达，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §3.1、§5.0。 |
 
 #### 4.5.2 Prekey 与会话引导
 

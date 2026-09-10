@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-10.25",
-      "generated_at": "2026-09-10T12:30:56+08:00",
-      "content_digest": "sha256:b81b1e18fc92da1ae8abc26ba4d23ba3aea40ed722a84cb3d9ae5125b9e227be"
+      "version": "2026-09-10.26",
+      "generated_at": "2026-09-10T18:30:03+08:00",
+      "content_digest": "sha256:a752acded841a94a005056a2240a97ab26322cc48b1131b76efcd003eb39b03b"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -255,9 +255,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-08.67",
-      "generated_at": "2026-09-10T12:18:51+08:00",
-      "content_digest": "sha256:c0cad3ba912b5f561e65958863c1ba5f1d7f852ec88fa35d3d378e2a9ca913a4"
+      "version": "2026-09-08.68",
+      "generated_at": "2026-09-10T12:30:56+08:00",
+      "content_digest": "sha256:82fa9293e5a6fa198912fb56308769ed50542cc758753d5aabf6d05d4621e178"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -363,9 +363,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/schema-registry.json",
-      "version": "2026-09-10.19",
-      "generated_at": "2026-09-10T12:30:56+08:00",
-      "content_digest": "sha256:dda52d8b8399ec873da8c8da821c5c6b57b180e56e2beb4f1205691c08015c55"
+      "version": "2026-09-10.20",
+      "generated_at": "2026-09-10T18:30:03+08:00",
+      "content_digest": "sha256:f49701da5c1fe39bbcd2a7abc803996aa4c60d618395c9cd2da98d7585b5e163"
     },
     {
       "path": "spec/v1/artifacts/registry/service-kind-registry.json",
@@ -393,9 +393,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-10.8",
-      "generated_at": "2026-09-10T12:18:51+08:00",
-      "content_digest": "sha256:64870269c6c1f15282f75a75d954a25ea6e8848c1a0efb5a430d3ffe0aff9bee"
+      "version": "2026-09-10.9",
+      "generated_at": "2026-09-10T18:30:03+08:00",
+      "content_digest": "sha256:08caa5d7e54f4b29ce9fa66681770e866bb3cb5b4fffa10e885ddfaffc0b348f"
     }
   ]
 }

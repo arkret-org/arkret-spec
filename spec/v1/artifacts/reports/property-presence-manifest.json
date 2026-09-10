@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11259,
+    "total_properties": 11260,
     "total_schema_documents": 173,
     "by_presence_class": {
       "optional": 3067,
       "optional_defaulted": 69,
-      "required": 7252,
+      "required": 7253,
       "required_nullable": 139,
       "tristate": 732
     },
@@ -10244,8 +10244,9 @@
         "/$defs/device_quorum_proof/properties/threshold": "required",
         "/$defs/device_quorum_signature/properties/device_id": "required",
         "/$defs/device_quorum_signature/properties/proof": "required",
-        "/$defs/principal_signing_proof/properties/kind": "required",
-        "/$defs/principal_signing_proof/properties/proof": "required",
+        "/$defs/recovery_unlock_proof/properties/kind": "required",
+        "/$defs/recovery_unlock_proof/properties/proof": "required",
+        "/$defs/recovery_unlock_proof/properties/recovery_session_id": "required",
         "/$defs/trusted_recovery_service_proof/properties/attestation_ref": "optional",
         "/$defs/trusted_recovery_service_proof/properties/kind": "required",
         "/$defs/trusted_recovery_service_proof/properties/proof": "required",

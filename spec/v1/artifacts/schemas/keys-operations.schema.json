@@ -89,7 +89,7 @@
     },
     "keys_backups_delete_proof": {
       "$ref": "./high-risk-authority-proof.schema.json",
-      "description": "High-risk authority proof over the canonical delete-intent transcript of key-management.md section 7.8.1. Exactly one of principal_signing, device_quorum or trusted_recovery_service; an ordinary current-device session proof is not accepted for active-series tail deletion."
+      "description": "High-risk authority proof over the canonical delete-intent transcript of key-management.md section 7.8.1. Exactly one of recovery_unlock, device_quorum or trusted_recovery_service; an ordinary current-device session proof is not accepted for active-series tail deletion."
     },
     "algorithm_counts": {
       "type": "object",

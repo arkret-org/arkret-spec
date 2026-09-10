@@ -174,7 +174,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
             }
         )
         for branch in (
-            "principal_signing_proof",
+            "recovery_unlock_proof",
             "device_quorum_signature",
             "trusted_recovery_service_proof",
         ):

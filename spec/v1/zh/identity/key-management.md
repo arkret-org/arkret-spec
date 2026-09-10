@@ -17,7 +17,7 @@ updated: 2026-08-11
 本文定义 Arkret 的密钥生命周期：
 
 - identity root key
-- principal signing key
+- principal 高权限签署规则（v1 不新增独立 key）
 - recovery secret 与域分隔子键
 - device key
 - session key
@@ -83,6 +83,8 @@ identity root key 表示 DID method 的初始与后继更新控制材料。对 A
 
 Arkret v1 不定义独立的账户级设备签名层级。高权限 PCR Event 由当前 generation 的 accepted device 签署；全设备丢失时只允许 §14 的 replacement-device-signed recovery unit 特例。recovery policy 的 quorum/signer 验证 session factor，不能代签该 unit。identity root 仅承担 §3.1 的封闭用途。任何实现都不得从 DID Document 的普通 verification method 推导设备授权。
 
+`principal_signing` 不是 v1 的密钥类型、proof kind 或兼容别名。需要当前设备持有证明的普通操作使用明确的 current-device 分支；需要恢复权威的操作使用 `did_root`、`recovery_unlock`、`device_quorum`、`trusted_recovery_service` 或 `threshold_recovery` 中实际被 recovery policy 接受的分支。实现不得把其中任一分支重命名为“principal signing”，也不得让一把日常 device key 因名称含混而取得恢复或高风险销毁权限。
+
 ### 3.3 Recovery Secret 与域分隔子键
 
 recovery secret 是派生源，不是可跨用途复用的一把 recovery private key。Arkret v1 的派生合同隔离代际 DID update root、稳定 recovery-session proof key 与稳定 backup HPKE key。客户端 MAY 在首次配置时由同一 secret 派生这些角色，但 accepted PCR recovery policy MAY 独立登记由另一 secret 派生的 recovery-session proof key；后者不得被要求等于或控制注册 DID 的 root。客户端恢复 UI MAY 把 secret 呈现为 24 词 BIP-39 助记词，但 MUST NOT 上传助记词、BIP-39 seed、PRK 或任何派生 private key；本地 MAY 仅保留不可逆指纹用于输入校验。恢复 policy key 不授予 DID update authority；备份解锁仍须满足该备份自身的 key binding。
@@ -126,6 +128,8 @@ device key 用于：
 - MLS KeyPackage 身份绑定
 
 device key MUST 通过 device authorization event 或 capability grant 绑定到 principal DID。
+
+普通 human endpoint 不另建 principal signing key 或 ordinary MLS leaf signer。相同 device Ed25519 key material MAY 用于上述签名职责，但每个 operation 必须使用其登记的不可互换 context/transcript，并独立校验完整 AccountId、device generation、capability、audience、scope、freshness 与撤销状态。设备的 HPKE/X25519 密封 key 是不同算法与权能，MUST NOT 与该签名 key 转换或复用。
 
 ### 3.5 Session Key
 
@@ -555,12 +559,12 @@ controller device 状态解析历史签名。随后 MUST 按 registry 从签名 
 
 ### 3.7 MLS KeyPackage Key
 
-MLS KeyPackage key 用于加入加密 Realm。
+MLS KeyPackage 携带 MLS leaf/init 等群组加入材料，但 Arkret 不为它新增一把账户级授权 key。endpoint signer 使用 [`../crypto-media/encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md) 的封闭三分支：ordinary human 使用 current accepted device key，Agent 使用 exact current agent key，minimal-metadata endpoint 使用 exact pairwise `did:key`。
 
 要求：
 
-- MUST 绑定到 Actor DID 和 device id
-- MUST 由有效 device key 或 principal signing key 签名
+- MUST 绑定到对应分支的完整 Actor/endpoint identity；只有 ordinary human 分支携 device id
+- MUST 由该分支 current accepted endpoint key 签名，不存在 principal signing key 或独立 ordinary MLS leaf signer fallback
 - MUST 有发布时间与过期时间
 - SHOULD 单次或短期使用
 - 被撤销设备的 KeyPackage MUST NOT 用于新加密
@@ -1246,7 +1250,7 @@ cursor 是自己 Station 签发的 opaque 列表位置，绑定 operation、完�
 - **认证降级阻断**：`POST /_arkret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_id / 完整 account_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
 - **审计记录**：超出阈值或在异常时间窗内的下载 MUST 写入 `ak.audit.accessed`，`access_kind="key_backup_read"`，并按 `ak.profile.attested_audit.e2ee.v1`（若声明）配对 audit pair。
 - **跨 actor 拒绝**：服务端 MUST 在 envelope `actor_id` 与请求 caller 不一致时返回 `forbidden`，并不得通过 metadata 暴露 envelope 是否存在。v1 不定义 controller-owned Agent active-state backup，因此不存在以 `managed_principal_binding` 绕过本规则的例外。
-- **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 携带 [`high-risk-authority-proof.schema.json`](../../artifacts/schemas/high-risk-authority-proof.schema.json) 的三分支之一（`principal_signing` / `device_quorum` / `trusted_recovery_service`），按 §7.8.1 绑定服务端签发的单次 challenge 并签署 canonical delete-intent transcript，然后写入 `access_kind="key_backup_delete"` 审计。普通 current device proof **不是**该 family 的第四分支：仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。设备revoke轮换的整组删除必须使用[`security-transactions.md` §3](./security-transactions.md)登记的transaction-bound operation；普通DELETE outcome不得作为`erase_confirmation_digest`来源。
+- **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 携带 [`high-risk-authority-proof.schema.json`](../../artifacts/schemas/high-risk-authority-proof.schema.json) 的三分支之一（`recovery_unlock` / `device_quorum` / `trusted_recovery_service`），按 §7.8.1 绑定服务端签发的单次 challenge 并签署 canonical delete-intent transcript，然后写入 `access_kind="key_backup_delete"` 审计。普通 `current_device` proof **不是**该 family 的第四分支：仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。设备revoke轮换的整组删除必须使用[`security-transactions.md` §3](./security-transactions.md)登记的transaction-bound operation；普通DELETE outcome不得作为`erase_confirmation_digest`来源。
 
 v1 **不定义 batch unlock**：唯一操作仍是逐 object 的 `ak.self.keys.backups.command.unlock.v1`，每个请求只接受 path 中一个 `backup_id` 及其完整独立 proof。不得发明 collection-level `unlock_batch`、跨对象 proof、partial outcome 或私有批量载体；未来若需要批量协议，必须单独走 AKP。实现 MAY 在 deployment policy 中收紧 registry 允许收紧的阈值；MUST NOT 放宽普通下载上限超过 `64`，也 MUST NOT 把收紧配置用于破坏已进入 verified 的 manifest 在 session 过期前的可完成性。
 
@@ -1298,11 +1302,12 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
    生成的签名即使密码学验签通过也 MUST 拒绝。
 3. **验证与消费**。`DELETE` body 为闭合 `{request_id, challenge_id, proof, reason?}`。服务端
    MUST 先按当前 caller / path / audience / service 校验 challenge（重放、过期、path 不同、
-   audience / service 不同一律 fail closed），再验证 proof 分支的授权（`principal_signing`
-   的 controller 投影必须逐字节等于 `account_id.principal_id` 且该 key 在 `created_at` 是当前 account
-   control key；`device_quorum` 去重后有效签名数不小于当前 recovery policy 的 `k` 且请求
+   audience / service 不同一律 fail closed），再验证 proof 分支的授权（`recovery_unlock`
+   必须携带 exact `recovery_session_id`，该 session 必须属于同一 Account、处于 verified 且未完成/撤销状态、
+   未过期，其 proof summary 必须为 `recovery_unlock` 并绑定同一 verification method；签名 key 必须从该 session
+   冻结的 accepted recovery policy 解析，不能从当前 DID Document 或请求自报 key 取得；`device_quorum` 去重后有效签名数不小于当前 recovery policy 的 `k` 且请求
    `threshold` 等于该 `k`；`trusted_recovery_service` 的 session 必须未过期、未消费且由
-   principal signing / recovery unlock / device quorum 建立），最后在成功删除的同一事务中
+   recovery unlock / device quorum 建立），最后在成功删除的同一事务中
    原子消费 challenge。
 4. **幂等**。服务端以 `(account_id, backup_id, request_id)` 保存 canonical request digest 与
    terminal outcome：完全相同的网络重试返回已存 outcome，不重新验收已消费 challenge；同
@@ -1310,7 +1315,7 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
    DELETE retry-safe 由此并存。
 5. **conformance**。`ak.vector.key_backup.delete_authority.v1` MUST 覆盖：三个 high-risk
    分支的正例、普通 device proof 删除 active tail 被拒、非尾部单独删除被拒、quorum 去重 /
-   低于 policy `k` 被拒、session 过期或已消费被拒、challenge 重放 / 过期被拒，以及篡改
+   低于 policy `k` 被拒、`recovery_unlock` 的 session/method/policy 错绑被拒、session 过期或已消费被拒、challenge 重放 / 过期被拒，以及篡改
    `backup_id` / `reason` / `audience` / `nonce` / `context` 任一 transcript 字段后验签必然失败。
 
 ### 7.9 Algorithm Agility & Forward Compatibility
