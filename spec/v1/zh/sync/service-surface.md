@@ -415,7 +415,7 @@ operation/schema/fixture closure 时才可独立声明它，缺少其中任一 o
 2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
 3. conformance 报告工具与 admin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`conformance_verified`、
    `experimental`、`compat`、`not_claimed`。
-4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 verification artifact，校验 `artifact_digest`、`verifier_id`、`signature`、时间戳和可选 `expires_at`。
+4. `verified_profiles` 是给 Conformance Verifier、管理员与独立审计方使用的 portable claim，不是普通产品客户端的运行时准入输入。上述角色在使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 verification artifact，校验 `artifact_digest`、`verifier_id`、`signature`、时间戳和可选 `expires_at`。普通 authenticated self 客户端既不得只信任服务自报，也不得自行下载该 artifact 或验证发行者历史：没有某个具体 operation 已登记的自己 Station 结果时，只能把该 profile 显示为未验证/不可用，不能据它启用能力。v1 不登记通用 conformance-result 查询。
 
 `plaintext_visibility.data_classes` 是机器可判定的明文类别白名单。`event_kinds`、`payload_paths`、`blob_purposes` 和 `projection_outputs` 只是进一步缩小或解释范围，不能替代 `data_classes`；`notes` 只供人读。Realm policy 的 `plaintext_visible_services[].data_classes` MUST 是目标 `ServiceDescribe.plaintext_visibility.data_classes` 的子集，且 `visibility` 不得高于 `max_visibility`。若 describe 缺失 `data_classes` 或只给出自由文本 `purposes`，客户端 / reducer MUST 把它视为不能接收私有明文。
 

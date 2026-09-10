@@ -87,7 +87,7 @@ TUS 创建请求的 `POST` MUST 携带
   - `supported_features` 含 `ak.feature.blob.resumable_upload.tus.v1`；
   - `transport_bindings` 含一条 `kind="tus"` 的 binding，携带 tus endpoint 的 `base_url`、`operations: ["ak.self.blob.upload.create.v1"]`、`extension_profile_required: null`、`tus_version`（支持的协议版本列表）与 `tus_extensions`（支持的扩展列表）；
   - `limits` 携带下文的续传相关上限。
-- 客户端首次接受该 binding、binding / policy 变化或 authority freshness 失效时，MUST 验证 DID Document / accepted service binding 并校验 describe（沿用 [`sync/service-surface.md` §2](../sync/service-surface.md) 的服务选择规则）；同一有效 binding 的后续上传复用验证结果，不得逐次在线解析 DID。`/_arkret/describe` 是**服务级**权威发现面；tus `OPTIONS` 响应（`Tus-Resumable`、`Tus-Version`、`Tus-Extension`、`Tus-Max-Size`）是 **endpoint 级**的线上确认。二者 MUST 一致；冲突时客户端以 describe 与服务端实际拒绝为准，不得仅凭对猜测 endpoint 的裸 `OPTIONS` 探测作为发现手段。
+- 该 binding 只伴随 authenticated `ak.self.blob.upload.create.v1`，目标固定为当前账号会话已经绑定的自己 Station；v1 不允许客户端从任意 `blob_node` describe 选择一个写入目标。客户端首次接受 binding、binding / policy 变化或会话/route freshness 失效时，MUST 核对当前会话的 exact Station/HTTPS origin 与 describe 中该 operation 的声明；不得为此下载 DID 历史或信任陌生 endpoint 自报。`/_arkret/describe` 是**服务级**能力声明面；tus `OPTIONS` 响应（`Tus-Resumable`、`Tus-Version`、`Tus-Extension`、`Tus-Max-Size`）是 **endpoint 级**的线上确认。二者 MUST 一致；冲突时客户端以已绑定自己 Station 的 describe 与服务端实际拒绝为准，不得仅凭对猜测 endpoint 的裸 `OPTIONS` 探测作为发现手段。跨 Station/独立 Blob 服务若未来需要该 binding，必须先登记具体代理/结果合同；本节不提供该能力。
 
 **隐私（normative）**
 

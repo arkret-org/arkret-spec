@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11260,
+    "total_properties": 11259,
     "total_schema_documents": 173,
     "by_presence_class": {
-      "optional": 3067,
+      "optional": 3065,
       "optional_defaulted": 69,
-      "required": 7253,
+      "required": 7254,
       "required_nullable": 139,
       "tristate": 732
     },
@@ -9675,8 +9675,7 @@
         "/$defs/relation_tombstone_payload/properties/relation_id": "required",
         "/$defs/relation_update_payload/properties/expected_state_digest": "optional",
         "/$defs/relation_update_payload/properties/patch": "required",
-        "/$defs/relation_update_payload/properties/relation_id": "optional",
-        "/$defs/relation_update_payload/properties/target_ref": "optional",
+        "/$defs/relation_update_payload/properties/relation_id": "required",
         "/$defs/resource_discovery_state_value/properties/directory_ids": "required",
         "/$defs/resource_discovery_state_value/properties/discoverability": "required",
         "/$defs/resource_discovery_state_value/properties/profile_visibility": "optional",
@@ -9872,8 +9871,6 @@
         "/$defs/preview_policy_payload/properties/value/properties/history",
         "/$defs/realm_organization_payload/properties/authorization/properties/delegation_ref",
         "/$defs/realm_organization_payload/properties/revokes_statement_id",
-        "/$defs/relation_update_payload/properties/relation_id",
-        "/$defs/relation_update_payload/properties/target_ref",
         "/$defs/rsvp_entry/properties/encrypted_response",
         "/$defs/rsvp_entry/properties/response",
         "/$defs/sidecar_context_attach_payload/properties/predecessor_event_ref",

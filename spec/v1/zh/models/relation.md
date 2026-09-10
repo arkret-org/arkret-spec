@@ -51,6 +51,8 @@ Schema id: `ak.schema.relation.v1`
 
 **`ak.relation.tombstone` payload（normative）**：该 Event 的 payload 由 [`event-payload.schema.json#/$defs/relation_tombstone_payload`](../../artifacts/schemas/event-payload.schema.json) 定义，唯一目标字段是必填的 `relation_id: id:relation`；可选 `reason` 是保留在 Event 上的人类可读原因。`target_ref`、`patch`、`expected_state_digest` 以及其它 `ak.relation.update` 字段在 tombstone payload 上 MUST 以 `schema_violation` 拒绝，不允许两个目标别名形成双源。Reducer MUST 验证 `relation_id` 指向本 Event `realm_id` 内当前为 `active` 的 Relation；目标不存在、属于其它 Realm 或已经 `tombstoned` 时 MUST `failed_precondition`。接受后只执行 `active → tombstoned`，并把物化 `state_changed_at` 设为该 Event 的 `created_at`；`reason` 不复制到 Relation 对象。
 
+**`ak.relation.update` 目标（normative）**：更新 payload 同样只使用必填 `relation_id: id:relation` 定位被 patch 的 Relation；`target_ref` 不是 v1 别名，出现时 MUST `schema_violation`。registry 的 `ak.component.relation.v1` cell subject 逐字取 `payload.relation_id`，正文、schema 与 reducer 不得分别选择两个目标字段。
+
 ```text
 {
   "relation_id": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",

@@ -578,8 +578,9 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 
 - `ak.space.archive`：把 Space 设为 `archived`，默认 UI 隐藏；不自动 archive child Space 或内部 Strand。
 - `ak.space.restore`：仅允许 `archived -> active`；不级联 restore。
-- `ak.space.tombstone`：不可逆；在存在 non-tombstoned child Space 或 non-redacted Strand 的有效 canonical `contains` placement 时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent cell 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结子项，禁止隐式级联或清空 canonical cells。
-- 检查 MUST 使用指定 accepted Seal basis 的完整 canonical parent / position / lifecycle 状态；可见列表、Circle 裁剪、缓存未命中、unresolved cell 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
+- `ak.space.tombstone`：不可逆；在它自己签名的 accepted Seal basis 中存在 non-tombstoned child Space 或 non-redacted Strand 的有效 canonical `contains` placement 时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent cell 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结已观察到的子项，禁止隐式级联或清空 canonical cells。
+- 上述准入检查 MUST 使用指定 accepted Seal basis 的完整 canonical parent / position / lifecycle 状态；可见列表、Circle 裁剪、缓存未命中、unresolved cell 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
+- v1 不为 Space lifecycle 与所有可能指向它的 parent/position cell 新建跨 cell 事务或全 Realm dependency-lock。若一条 reparent/placement 与目标 Space tombstone 分别基于彼此尚未观察到的合法并发 Seal，合并 view MUST 保留两条 canonical Event/cell 事实，但派生结构边只有在目标 Space 的 joined lifecycle 仍非 `tombstoned` 时才有效。目标已 tombstoned 时，该 parent/position 不得形成 `contains`、不得把目标复活、不得被投影成 root，也不得授予导航或写入能力；客户端/服务端必须把它显示为待显式 reparent/move 的不可用结构引用。后续修复写仍使用原 parent/position cell 的完整 current heads。该规则由 joined state 唯一决定，与接收顺序无关，也不新增 recovery Event。
 
 错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。
 
@@ -604,6 +605,7 @@ value   := id:space | null
 - `parent_space_id == this_space_id` MUST `schema_violation`。
 - derived `contains`（`Space(board) -> Space(list)` / `Space(list) -> Strand`）与 derived `watches` 的真源分别是本节 cell 与 `ak.component.strand.watch.v1`；直接 `ak.relation.create / update / delete` 写这些形状 MUST `schema_violation`，reason 分别为 `relation_kind_contains_derived` 与 `relation_kind_watches_derived`（见 [`relation.md` §3.2](./relation.md)）。
 - Reducer 在接受 `ak.space.parent` 前 MUST 以候选新 parent 链执行确定性 acyclic 检测；若 `space_id` 再次出现在 ancestor 集合中，MUST 以 `failed_precondition`、`reason_code=space_parent_cycle` 拒绝。create 的初始 parent 也 MUST 执行相同检查；任何 ancestor 不可读取或缺少可验证 parent proof 时 MUST 以 `failed_precondition`、`reason_code=space_parent_unreadable` fail closed，不得假设无环。
+- parent lifecycle 在写入签名 basis 下已是 `tombstoned` 时，create/reparent MUST 以既有 `failed_precondition / space_not_active` 拒绝。写入后才由并发 Seal 得知 parent 已 tombstoned 时，按 §3.4 的 joined-view gate 保留 cell 但不派生有效 parent/contains 边，直到显式 reparent；不得按到达顺序撤销任何一条已接受 Event。
 - `parent_space_id=null` 表示移动到 root。不可读 parent 的 projection MAY 返回 `{parent_space_id_hidden:true}`，但 MUST NOT 伪造 root。
 - parent Space MUST 与 child 具有相同的实际 `realm_id`；目标已可验证时，跨 Realm 写入 MUST `failed_precondition / space_realm_mismatch`。目标不可读或缺少证明时先以 `space_parent_unreadable` fail closed，不得泄露 Realm 差异。
 
@@ -635,6 +637,8 @@ value shape := { "list_space_id": id:space, "rank": string } | null
 Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Move 的 position cell 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Move 使用相同的授权、Seal、CAS 和 WIP 后像判定。create 成功而 Move 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Move，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position cell 投影，不得合成 canonical Relation Event。
 
 Board、List 与 Strand 的实际 `realm_id` MUST 相同；创建、首次 move、后续 move 和 reorder 均无 profile 例外。已可验证的跨 Realm placement MUST `failed_precondition / space_realm_mismatch`；普通 move / reparent MUST NOT 修改 Realm。 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
+
+Board 或目标 List 的 lifecycle 在写入签名 basis 下已是 `tombstoned` 时，首次 move、后续 move 与 reorder MUST 以既有 `failed_precondition / space_not_active` 拒绝。写入后才由并发 Seal 得知目标已 tombstoned 时，按 §3.4 的 joined-view gate 保留 position cell 但不派生有效 placement/contains 边，直到显式 move；不得静默改到 root、清除 cell 或用到达顺序选择 tombstone 与 placement 的赢家。
 
 ### 3.7 示例
 

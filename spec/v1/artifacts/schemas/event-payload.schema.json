@@ -10504,20 +10504,10 @@
     },
     "relation_update_payload": {
       "type": "object",
-      "description": "Relation patch payload. effective_scope and every effective_scope.* descendant path are the reducer-materialized projection of the verified Event.scope_ref and are forbidden on this generic update surface (reason=effective_scope_reducer_managed); the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
-      "oneOf": [
-        {
-          "required": [
-            "relation_id",
-            "patch"
-          ]
-        },
-        {
-          "required": [
-            "target_ref",
-            "patch"
-          ]
-        }
+      "description": "Relation patch payload. relation_id is the sole target carrier. effective_scope and every effective_scope.* descendant path are the reducer-materialized projection of the verified Event.scope_ref and are forbidden on this generic update surface (reason=effective_scope_reducer_managed); the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
+      "required": [
+        "patch",
+        "relation_id"
       ],
       "properties": {
         "expected_state_digest": {
@@ -10540,9 +10530,6 @@
         },
         "relation_id": {
           "$ref": "#/$defs/relation_id"
-        },
-        "target_ref": {
-          "$ref": "#/$defs/object_ref"
         }
       },
       "additionalProperties": false
