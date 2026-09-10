@@ -426,4 +426,4 @@ full/e2ee 客户端 conformance 检查请求绑定、结果消费、端到端密
 
 相同 fixture 可以提供服务器有效/无效输入及客户端成功/pending/错绑定结果，但 MUST 分别标明角色；不能要求客户端执行服务器 verifier runner 才能声明产品 profile。SDK 发布同时包含两种角色时，仍须分别证明各自适用的条款。
 
-第三方 conformance artifact、service delegation、公开身份声明及其发行者历史由自己 Station 验证并提供带来源和有效期的结果。Realm genesis notary 与已加入 Realm 的媒体服务绑定分别由 §5.8、§5.9 的登记载体承担；尚未登记专用载体的第三方服务资格仍由各自 operation 的既有合同处理，实现 MUST NOT 为它们新造通用 service 结果或让普通客户端回退到自行验证发行者历史。服务器代核验不能将自报 claim 变成独立认证；客户端不必下载完整 artifact/authority 证据链。
+第三方 service delegation、公开身份声明及其发行者历史由自己 Station 验证；只有具体 operation 已登记的结果才能交给普通客户端消费。Realm genesis notary 与已加入 Realm 的媒体服务绑定分别由 §5.8、§5.9 的登记载体承担；尚未登记专用载体的第三方服务资格仍由各自 operation 的既有合同处理，普通客户端只能把相应功能视为未验证/不可用。Conformance artifact 是 `service-surface.md` §3 规定的 verifier/admin/auditor portable claim，不是普通客户端的运行时结果。实现 MUST NOT 为上述空档新造通用 service 结果，也不得让普通客户端回退到自行验证 artifact 或发行者历史。服务器代核验不能将自报 claim 变成独立认证。

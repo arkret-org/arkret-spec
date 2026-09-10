@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.27",
+  "version": "2026-09-11.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-10T22:14:26+08:00",
+  "generated_at": "2026-09-11T01:58:57+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -4977,7 +4977,7 @@
             "cell_family": "ak.component.relation.v1",
             "cell_subject": {
               "kind": "id:relation",
-              "field": "payload.target_ref"
+              "field": "payload.relation_id"
             },
             "lattice": "mv_register",
             "bottom": "expose",
@@ -9025,8 +9025,8 @@
         }
       }
     },
-    "version": "2026-09-10.16",
-    "generated_at": "2026-09-10T22:14:26+08:00"
+    "version": "2026-09-11.1",
+    "generated_at": "2026-09-11T01:58:57+08:00"
   },
   "service_contracts": [
     {
