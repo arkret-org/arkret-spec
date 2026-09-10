@@ -174,7 +174,7 @@ HTTP 的 filter 与 realm_list 各自是至多出现一次的 query parameter，
 `RealmListRequest {after?, limit?}` 的 after 仅接受本列表签发的 continuation；缺省建立新冻结快照，limit 默认 20、范围 1–100。
 `realm_list` 结果为 `RealmListPage {snapshot_cursor, snapshot_revision, items, next_cursor?, complete}`；complete=false 必须有 next_cursor，
 complete=true 必须没有。`snapshot_cursor` 只标识本列表快照，不是账号恢复位置；不得放入 account after。
-items 为 closed `RealmListItem {realm_id, revision, activity_position, membership, title?, default_strand_id?}`，
+items 为 closed `RealmRow {realm_id, revision, activity_position, membership, title?, default_strand_id?}`，
 只返回本 exact authenticated ActorId 当前合法可见的 join/knock Realm；pending Invite 仍走私有 inbox。
 knock 只含该状态依法可见的摘要，不泄露成员级 title/default Strand；无权限字段省略不表示其不存在。
 
