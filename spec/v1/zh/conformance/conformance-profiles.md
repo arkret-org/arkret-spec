@@ -86,6 +86,21 @@ Profile 之间的 `inherits` / `depends_on` / `mutually_exclusive_with` 关系�
 - `peer_eligibility` 只用于验证对端 profile/evidence 是否满足业务准入条件，不改变其 Describe 的实时 route union。
 - 只有同时提供 `wire_selector_refs[]` 与 `normative_effect_refs[]` 的 requirement 才能声明 `runtime_negotiation` / `runtime_admission`。没有 wire selector/effect 的 profile 仅用于构建、conformance、启动或 peer eligibility，真实业务请求不得每次展开 99 个 block。
 
+这里的 `consume` 清单描述客户端实现需要具备的消费能力，不是要求某一个已连接 Station
+提供全部接口的运行时页面门禁。例如 `full_client` 的执行阶段只有 `build` / `conformance`；
+新建 Realm 页面不应因该清单还包含 DID 解析、blob 或其它无关操作而整体不可用。
+页面、动作和后台任务的可用性按实际依赖的 exact operation/binding、feature 与 limit 判断，
+并向实际提供该操作的、已建立信任绑定的服务协商；独立可用的功能不因其它功能缺失被连带关闭。
+这不免除客户端的完整 profile conformance 要求，也不允许调用未被目标服务公告的操作。
+能力描述尚未取得表示检查未完成，不等同于服务器已明确不支持。
+
+身份托管、服务器内部的 DID method 解析验证、向客户端公开通用解析 API 是不同能力。
+WebVH 托管提供签名历史文件，内部解析验证读取并验证方法材料；二者不自动意味着公告了
+`ak.root.identity.read.resolve.v1`。使用该公开 API 时，按其提供方的 role-scoped Describe
+检查 exact pair；`auth_metadata.account_authority.gate_account_base_url` 只选择账号准入路径，
+不能作为该解析 API 已公告或可调用的证据。业务操作返回的已验证身份结果仍按
+[服务器信任与结果消费](../sync/server-trusted-results.md) 处理。
+
 ### 2.1.1 Profile 数量约束与 Composition 路线（normative for new profiles）
 
 v1 stable + extension catalog 已包含较大的 implementation / deployment / vector / hardening profile 矩阵，组合空间已经较大。为防止 profile 数量进一步爆炸，**新增 implementation profile MUST 满足**以下条件之一：
