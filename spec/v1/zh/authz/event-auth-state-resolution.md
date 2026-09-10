@@ -580,6 +580,30 @@ Equivocation evidence 是普通 Control Move，event kind 为 **`ak.notary.fault
 
 Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ak.vector.cbs_lattice.threshold_forensic_attribution.v1` 固定。本条判据是**事后指认**：`2k>n` 保证共同成员存在且必然双签，共同成员是否诚实不影响可指认性。[`cbs-profiles.md` §2](./cbs-profiles.md) 的 barrier 串行化另有更强的 `2k > n + f`，要求交集中至少有一个**诚实** signer；两条不等式服务于不同断言，MUST NOT 互相代入，也 MUST NOT 因为一方不成立而放松另一方。
 
+#### 7.1.1 PCR 准备结果的持久 signing-slot fence（normative）
+
+§7.1 处理的是**已经签出**两份冲突 Seal 之后的事后问责，§7.2.1 约束的是接纳侧的持久 frontier CAS；两者都不规定「服务器在同一个签名位置上可以交出几份可签 body」。device-signed PCR 的签名输入由调用方自己的 Account Station 通过 `ak.self.seals.command.prepare.v1` 构造，因此 Station MUST 在交出 body 之前就关闭该位置的分叉入口。本节只定义准备侧的结果冻结，不改变 §7.1 的 equivocation 判定，也不替代 §7.2.1 的接纳侧 CAS。
+
+**fence 身份（normative）**：fence key 是 `(realm_id, signer_slot, predecessor_basis)`。`signer_slot` 是 §7.1 的 per-signer slot，即由请求认证身份解析出的 signer 与本次将写入的 `notary_seq`；`predecessor_basis` 是请求内 canonical `predecessor_refs[]`。session、连接、设备实例、worker、租约持有者、时钟窗口与 `Idempotency-Key` 一律不得进入 fence 身份。
+
+**原子冻结（normative）**：Station 首次为某个 fence key 产出 `seal_body` 时，MUST 在同一个原子持久写入中登记该 fence 记录，内容至少包含 fence key、[`api-conventions.md` §6](../sync/api-conventions.md) 定义的该请求 canonical hash identity、完整冻结 `seal_body` 及其 canonical digest。该写入 MUST 在响应离开服务器之前提交；先返回 body 再补登记，或只在进程内存、缓存、调度器状态中登记，都不满足本条。
+
+**唯一可签 body（normative）**：fence 一经登记：
+
+- canonical hash identity 与记录一致的请求 MUST 逐字节返回原 `seal_body`，MUST NOT 重算 roots、重新冻结 `sealed_at` 或改写 `notary_seq`；
+- 任何其它请求 MUST 以 `seal_signer_slot_fenced` 拒绝并零写入，含同一 basis 上不同 `event_digests[]`、不同 `hlc` 及任何其它 canonical 差异。实现 MUST NOT 为它返回第二份 `seal_body`，MUST NOT 改用 `duplicate_conflict`、`state_mismatch`、`frontier_unavailable` 或裸 `conflict` 掩盖，也 MUST NOT 使用未在 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 登记的错误名。
+
+**耐久与恢复（normative）**：fence 是耐久协议状态，不是调度租约。服务器内部超时、租约释放或到期、worker 重新选举、缓存淘汰、进程崩溃与重启、容量压力与运维命令 MUST NOT 解除 fence：设备可能已经离线签署了那份 body，解除 fence 等于由服务器自己制造 §7.1 的 equivocation。[`api-conventions.md` §6.1](../sync/api-conventions.md) 的 24 小时幂等记录窗口对本 fence 只是下限；fence 记录 MUST 保留到该签名位置按下条关闭为止，关闭之后也 MUST NOT 被改写成另一份 body。重启或故障切换后 MUST 先读 fence 记录再决定；结果未知时只能重读，MUST NOT 重新准备。
+
+**离开该签名位置的封闭条件（normative）**：只有下列两类事实使后续请求落到另一个 fence key，且都由已接纳治理状态判定，不由服务器自行宣布：
+
+1. `predecessor_basis` 实际推进：出现已接纳的后继 Seal，使该 Realm 当前 accepted frontier 不再等于被冻结的 basis。新 basis 是另一个 fence key，旧 fence 记录不因此失效。
+2. signer slot 依正式协议轮换或失效：`ak.realm.notary` 按 §6.5 写入 `ak.component.notary.v1`，替换或移除该 signer descriptor；或该 signer 设备的 accepted `current_device_generation_ref` 按 §4.3 推进；或针对该 signer 的 `ak.notary.fault.equivocation` 被接纳，slot 按 §7.1 进入 `fork_quarantine`。
+
+以上之外，MUST NOT 以租约到期、换一台服务器承接、调用方声称未收到或人工介入为由，在同一 fence key 上发放第二份 body。
+
+**prepare 不等于接纳（normative）**：fence 只保证同一签名位置至多存在一份可签 body，不承诺该 body 会被接纳。`ak.self.seals.command.submit.v1` MUST 按 §6.3 与 §7.2.1 重新校验 predecessor frontier、CAS、当前签署资格与全部接纳条件；fence 命中 MUST NOT 被解释为已接纳、已授权，或 basis 与 authority 仍然新鲜。
+
 ### 7.2 控制面 Control Proposal Ack 与 inclusion obligation
 
 除 [`cbs-profiles.md` §4](./cbs-profiles.md) 定义的 authority-authored human
@@ -854,7 +878,7 @@ AvailabilityReceipt {
 - `Realm.availability_policy` 是本义务的唯一机器承载，结构见 `realm.schema.json`。缺失时按 `{min_holders:1, applies_to:["seal_include"], minimum_retention_ms:86400000}` 解释；不得按“Realm 大小”或产品类别自行选择隐式门槛。v1 不携 `holder_roles`，eligible holder 只按 predecessor accepted closure 的下列两个互斥分支派生：
   - ordinary Collaboration / Direct Conversation Realm：从全部 effective joined membership 的完整 `member_id: ActorId` 派生目标 Station，并按 service DID 去重。account 分支使用 `account_id.station_id`；service 分支使用 `service_id`。leave/ban、`via_ids`、Event actor、notary、当前 resolver 与本批 post-state 均不产生 holder。暂时无法解析 endpoint 只影响投递重试，不改变 membership 或 holder identity。
   - `purpose="principal_control" | "agent_control" | "applet_managed_control"` 的 create-locked control Realm：human / Agent PCR genesis 按 `realm-and-space.md` §2.8.1、Applet managed principal genesis 按 `applet-integration.md` 明确不产生 member state，因此唯一 holder 是从 predecessor closure 中唯一 accepted `ak.realm.create` 的 actual-author `ActorId` 导出的 origin service。receiver 必须先完整验证该 create 的 Station admission proof、proof 所引用的 historical `AuthenticatedSignerResolutionEvidence`、`signer_id == route(actual_author_actor_id)` 以及 Event/Realm/proof binding，才可把该 frozen service DID 加入 holder set。genesis unit 内出现多个不同 route-derived origin service、缺 admission proof或 signer binding 不一致时整个 closure 无合法 holder；不得从 current account row、session、resolver、notary 或部署配置回填。
-- notary 在 Seal include 一个 Control Move 前 MUST 收集满足 effective policy 的签名 AvailabilityReceipt；device-signed PCR notary 使用 `ak.self.seals.command.prepare.v1`，提交 exact predecessor antichain、待 include Event digest 集与冻结 `hlc`。自己 Station 验证治理依据、Control Move effects 与 roots，冻结 `sealed_at`，durable 保存 receipt commitments 与 typed dependencies，仅返回完整 unsigned `seal_body`。客户端核对 Realm/basis/delta/hlc 和本次 intent 后签 canonical bytes，不重放历史或验证 roots/dependencies。普通 successor MUST 省略 `covered_event_digests`，累计覆盖由服务器从 predecessor closure 与 delta 推导；compaction 与 digest transition 不使用此操作。`apply_seal` receiver MUST 按 §6.3 step 5 独立验证 full canonical digest、receipt 的 event/digest、holder DID、签发时冻结的 `AuthenticatedSignerResolutionEvidence`、accepted holder eligibility、互异 holder 数与 `retention_expires_at >= Seal.sealed_at + minimum_retention_ms`。不得用 current resolver 代替历史签名 key；不满足时拒绝 Seal，而不是降级为诊断。
+- notary 在 Seal include 一个 Control Move 前 MUST 收集满足 effective policy 的签名 AvailabilityReceipt；device-signed PCR notary 使用 `ak.self.seals.command.prepare.v1`，提交 exact predecessor antichain、待 include Event digest 集与冻结 `hlc`。自己 Station 验证治理依据、Control Move effects 与 roots，冻结 `sealed_at`，durable 保存 receipt commitments 与 typed dependencies，仅返回完整 unsigned `seal_body`。客户端核对 Realm/basis/delta/hlc 和本次 intent 后签 canonical bytes，不重放历史或验证 roots/dependencies。同一 `(realm_id, signer_slot, predecessor_basis)` 上至多存在一份可签 body，其持久冻结、恢复与关闭条件由 §7.1.1 定义，本节不重复。普通 successor MUST 省略 `covered_event_digests`，累计覆盖由服务器从 predecessor closure 与 delta 推导；compaction 与 digest transition 不使用此操作。`apply_seal` receiver MUST 按 §6.3 step 5 独立验证 full canonical digest、receipt 的 event/digest、holder DID、签发时冻结的 `AuthenticatedSignerResolutionEvidence`、accepted holder eligibility、互异 holder 数与 `retention_expires_at >= Seal.sealed_at + minimum_retention_ms`。不得用 current resolver 代替历史签名 key；不满足时拒绝 Seal，而不是降级为诊断。
 - policy 的 `applies_to` 含 `snapshot` 或 `backfill` 时，相关签发服务在作出 bytes-available 承诺前 MUST 收集同样门槛的 receipts，并把 receipt digest / proof 随响应或承诺 root 暴露给 verifier；verifier 缺少可验证门槛时 MUST NOT 声称 availability 已满足。
 - 数据面默认 SHOULD 在 relay 签 Event Batch Receipt（§4.4）时同时签 availability 承诺；高对抗部署 MAY 要求更高 storage quorum。
 - erasure coding / data availability sampling 不进 v1 core。

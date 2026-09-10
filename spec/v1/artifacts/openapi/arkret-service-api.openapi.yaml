@@ -3579,7 +3579,7 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Prepare an exact bounded unsigned PCR successor Seal.
+      summary: Prepare the one unsigned PCR successor Seal frozen for this signer slot.
       requestBody:
         required: true
         content:
@@ -3588,11 +3588,17 @@ paths:
               $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequestBody
       responses:
         '200':
-          description: Station-validated unsigned Seal body; no historical dependencies
+          description: Station-validated unsigned Seal body frozen for this signing slot; no historical dependencies
           content:
             application/json:
               schema:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome
+        '409':
+          description: A different request already froze the only signable body for this signer slot
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/seals:
     post:
       operationId: ak.self.seals.command.submit

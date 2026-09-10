@@ -357,6 +357,10 @@
       "sha256": "a4a74f2e5932021a4aef691e27f8dfddcde48fc2234ccd70aa314d8ed919d95f"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/seal-prepare-fence-fixture.json",
+      "sha256": "d22c337b762b77fbc673280de14594c9e2c81115eff09105f69ce80cb4f9bff0"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/seal-submit-fixture.json",
       "sha256": "0d4c4a7694a90c3585da3f9486322734bf5794e614caf6bfb76f984172e25532"
     },
