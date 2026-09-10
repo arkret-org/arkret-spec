@@ -1080,6 +1080,10 @@ components:
       additionalProperties: false
     FieldFilter:
       $ref: ../schemas/query.schema.json#/$defs/field_filter
+    GenesisNotaryOutcome:
+      $ref: ../schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome
+    GenesisNotaryRequestBody:
+      $ref: ../schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body
     GhostActorProvisionOutcome:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome
     GhostActorProvisionRequestBody:
@@ -1309,6 +1313,10 @@ components:
       $ref: ../schemas/ice-config-response.schema.json
     MediaIceConfigRequestBody:
       $ref: ../schemas/media-operations.schema.json#/$defs/media_ice_config_request_body
+    MediaServiceBindingOutcome:
+      $ref: ../schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome
+    MediaServiceBindingRequestBody:
+      $ref: ../schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body
     MembershipAuthorityOutcome:
       $ref: ../schemas/history-key.schema.json#/$defs/membership_authority_outcome
     MembershipAuthorityRequestBody:
@@ -7257,6 +7265,66 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CurrentPrincipalOutcome'
+
+  /_arkret/self/genesis-notary/query:
+    post:
+      operationId: ak.self.genesis_notary.read.resolve
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.genesis_notary.read.resolve.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Resolve the own-Station notary configuration for a Realm genesis the caller will author.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenesisNotaryRequestBody'
+      responses:
+        '200':
+          description: Verified notary configuration to freeze verbatim into the genesis object; it grants no authoring
+            authority and reserves no Realm.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenesisNotaryOutcome'
+
+  /_arkret/self/media-service-bindings/query:
+    post:
+      operationId: ak.self.media_service_binding.read.resolve
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.media_service_binding.read.resolve.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Resolve the own-Station verified route and signing keys of a joined Realm anchored media service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MediaServiceBindingRequestBody'
+      responses:
+        '200':
+          description: Verified media service route and signing keys bound to the accepted anchor; the reuse window
+            releases no media key, backend token or plaintext authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaServiceBindingOutcome'
 
   /_arkret/self/signer-keys/query:
     post:

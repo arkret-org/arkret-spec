@@ -174,6 +174,18 @@ submitted、pending、receipt、transparency entry、availability receipt、snap
    `controller_actor_id` / `controller_epoch` / `authority_generation`
    由 create envelope 的 `actor_id` 与冻结 profile 规则确定性派生。
 
+第 3 条冻结的 founding notary 值是历史 Seal signer 事实，`purpose` 为 `collaboration` 或
+`direct_conversation` 时，普通已认证客户端 MUST 通过
+[server-trusted-results.md §5.8](../sync/server-trusted-results.md) 的
+`ak.self.genesis_notary.read.resolve.v1` 从自己的 Station 取得完整 `notary` 值并逐字写入
+`payload.object.notary`。Station 按 [event-auth-state-resolution.md §6.5](./event-auth-state-resolution.md#65-notary-control-cellnormative)
+的默认与本部署已接纳 policy 选定每个 descriptor 并返回 exact `verification_method`；客户端
+MUST NOT 以固定 fragment、DID 字符串拼接、describe 字段或另取的当前 DID Document 构造 signer，
+也 MUST NOT 为核对它下载 service DID method history。该结果只是签署输入：它不创建 Realm、不预留
+标识、不授予 authoring 权限，caller 仍按本节规则 author 并签署完整 bootstrap unit。identity-control
+genesis（`principal_control`、`agent_control`、`applet_managed_control`）的 signer 由各自已接纳的
+身份规则确定，MUST NOT 从该入口取得。
+
 普通 Collaboration 的 policy bundle、join rule、history access、discovery、alias/plaintext/delivery 与 creator membership 是同一 bootstrap registry 中按序签名的显式 facet。`direct_conversation`、`principal_control`、`agent_control` 不携该普通 history facet；create reducer 分别按 `payload.object.purpose` 命中的注册条件原子写入 `ak.component.realm.history_access.v1: null -> since_join`。另有 `initial_resolution` 与 Agent status 条件写。缺槽、错序、漏写或条件路径不闭合时整个 unit MUST 原子拒绝。
 
 对 MLS-backed scope，首 Seal 还 MUST 声明将由后续 `ak.mls.genesis` 建立 epoch-0 binding 的

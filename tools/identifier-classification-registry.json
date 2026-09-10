@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 656,
-    "typed_object_id": 1091,
+    "responsibility_identity_material": 659,
+    "typed_object_id": 1097,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -962,7 +962,7 @@
       "name": "version_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "external_system_identifier",
-      "occurrences": 10,
+      "occurrences": 11,
       "example_path": "did-webvh-witness-receipt.schema.json#/properties/version_id",
       "reason": "did:webvh DID Log coordinate copied verbatim; its lexical space belongs to the external method."
     },

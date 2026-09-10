@@ -276,8 +276,12 @@ grpc:
       Resolve: ak.self.signer_keys.read.resolve.v1
     SelfCurrentPrincipal:
       Resolve: ak.self.current_principal.read.resolve.v1
+    SelfGenesisNotary:
+      Resolve: ak.self.genesis_notary.read.resolve.v1
     SelfMedia:
       IceConfig: ak.self.media.read.ice_config.v1
+    SelfMediaServiceBinding:
+      Resolve: ak.self.media_service_binding.read.resolve.v1
     OpenMimi:
       IdentifierQuery: ak.open.mimi.read.identifiers.v1
       KeyMaterial: ak.open.mimi.exchange.request_key_material.v1
@@ -444,6 +448,8 @@ mq:
     self.contact.command.scope_update: ak.self.contact.command.scope_update.v1
     self.signer_keys.query.resolve: ak.self.signer_keys.read.resolve.v1
     self.current_principal.query.resolve: ak.self.current_principal.read.resolve.v1
+    self.genesis_notary.query.resolve: ak.self.genesis_notary.read.resolve.v1
+    self.media_service_binding.query.resolve: ak.self.media_service_binding.read.resolve.v1
     self.invite_receive_policy.resource.get: ak.self.invite_receive_policy.resource.get.v1
     self.invite_receive_policy.resource.replace: ak.self.invite_receive_policy.resource.replace.v1
     self.direct_conversation.query.resolve: ak.self.direct_conversation.read.resolve.v1

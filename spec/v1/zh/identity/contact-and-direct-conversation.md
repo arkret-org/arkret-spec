@@ -557,7 +557,7 @@ DC 不存在第二套 profile-fixed history sharing 对象。Exact-peer-only 来
 membership gate，不来自 key-source allowlist。DC 的 `history_access` 永久为 `since_join` 且不存在 update/widen 分支。Exporter DC 的历史 secret delivery 只按 receipt-bound direct Seal replay 得到的 winning transition、recipient current incarnation/join floor 与首次入队 T1 gate 执行；provisional epoch 是否可交付也由这些事实机械决定，
 不得再引入 `pre_join_history` 或公开 provisional key-share 特例。
 
-notary value 与 CBS profile **MUST** 从 trust domain 已 accepted 的 DM deployment policy 与 founder current service binding 确定性派生，caller **MUST NOT** 自选。单侧创建只保证不依赖 peer 设备与 peer Station；若所选普通 notary profile 本身需要其它不可达 signer，创建仍按普通 CBS 规则 pending。
+notary value 与 CBS profile **MUST** 从 trust domain 已 accepted 的 DM deployment policy 与 founder current service binding 确定性派生，caller **MUST NOT** 自选：founder 以 `intended_purpose=direct_conversation` 调用 [`../sync/server-trusted-results.md` §5.8](../sync/server-trusted-results.md) 的 `ak.self.genesis_notary.read.resolve.v1`，把返回的完整 `notary` 值逐字写入 genesis，**MUST NOT** 自行构造 signer descriptor 或回取 service DID method history。单侧创建只保证不依赖 peer 设备与 peer Station；若所选普通 notary profile 本身需要其它不可达 signer，创建仍按普通 CBS 规则 pending。
 
 ## 7. 首次物化：bootstrap authority 与唯一 MLS group
 

@@ -132,6 +132,10 @@
       "category": "resolution_or_did_document"
     },
     {
+      "pointer": "identity-resolution.schema.json#/$defs/service_route_projection/properties/did/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
       "pointer": "invite.schema.json#/$defs/third_party_invite_present_request_body/properties/subject_did/$ref",
       "category": "registration_or_binding"
     },

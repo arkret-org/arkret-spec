@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 208,
+    "total_schemas": 212,
     "by_consumer": {
       "declared_wire": 59,
       "event_kind": 3,
-      "inbound": 50,
-      "outbound": 58,
+      "inbound": 52,
+      "outbound": 60,
       "prose": 112,
       "prose_only": 2,
       "schema_reference": 139,
-      "startup_compile": 208,
+      "startup_compile": 212,
       "vectors": 125
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 83,
+    "without_vector_coverage": 87,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -111,6 +111,8 @@
     "ak.schema.directory_operations.v1",
     "ak.schema.erasure_receipt_operations.v1",
     "ak.schema.extension_manifest.v1",
+    "ak.schema.genesis_notary_outcome.v1",
+    "ak.schema.genesis_notary_request.v1",
     "ak.schema.high_risk_authority_proof.v1",
     "ak.schema.history_key.v1",
     "ak.schema.http_problem_details.v1",
@@ -122,6 +124,8 @@
     "ak.schema.keys_operations.v1",
     "ak.schema.list_handles_for_subject_response.v1",
     "ak.schema.media_operations.v1",
+    "ak.schema.media_service_binding_outcome.v1",
+    "ak.schema.media_service_binding_request.v1",
     "ak.schema.member_identity.v1",
     "ak.schema.mimi_operations.v1",
     "ak.schema.mls_welcome_refs.v1",
@@ -1302,6 +1306,8 @@
           "ak.schema.event_payload.v1",
           "ak.schema.events_subscribe_frame.v1",
           "ak.schema.extension_manifest.v1",
+          "ak.schema.genesis_notary_outcome.v1",
+          "ak.schema.genesis_notary_request.v1",
           "ak.schema.grant_constraint.v1",
           "ak.schema.handle_claim.v1",
           "ak.schema.handle_claim_core.v1",
@@ -1327,6 +1333,8 @@
           "ak.schema.list_handles_for_subject_response.v1",
           "ak.schema.media_metadata.v1",
           "ak.schema.media_operations.v1",
+          "ak.schema.media_service_binding_outcome.v1",
+          "ak.schema.media_service_binding_request.v1",
           "ak.schema.member_identity.v1",
           "ak.schema.message.v1",
           "ak.schema.mimi_interop.v1",
@@ -2032,6 +2040,40 @@
       }
     },
     {
+      "schema_id": "ak.schema.genesis_notary_outcome.v1",
+      "file": "schemas/genesis-notary-binding.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.genesis_notary.read.resolve.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/genesis_notary_outcome"
+    },
+    {
+      "schema_id": "ak.schema.genesis_notary_request.v1",
+      "file": "schemas/genesis-notary-binding.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.genesis_notary.read.resolve.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/genesis_notary_request_body"
+    },
+    {
       "schema_id": "ak.schema.grant_constraint.v1",
       "file": "schemas/grant-constraint.schema.json",
       "consumers": {
@@ -2533,6 +2575,40 @@
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
+    },
+    {
+      "schema_id": "ak.schema.media_service_binding_outcome.v1",
+      "file": "schemas/media-service-binding-result.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.media_service_binding.read.resolve.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/media_service_binding_outcome"
+    },
+    {
+      "schema_id": "ak.schema.media_service_binding_request.v1",
+      "file": "schemas/media-service-binding-result.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.media_service_binding.read.resolve.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/media_service_binding_request_body"
     },
     {
       "schema_id": "ak.schema.member_identity.v1",
@@ -3831,6 +3907,8 @@
           "ak.schema.event_payload.v1",
           "ak.schema.extension_manifest.v1",
           "ak.schema.file_transfer.v1",
+          "ak.schema.genesis_notary_outcome.v1",
+          "ak.schema.genesis_notary_request.v1",
           "ak.schema.grant_constraint.v1",
           "ak.schema.handle_claim.v1",
           "ak.schema.handle_claim_core.v1",
@@ -3852,6 +3930,8 @@
           "ak.schema.keypackage_operations.v1",
           "ak.schema.keys_operations.v1",
           "ak.schema.list_handles_for_subject_response.v1",
+          "ak.schema.media_service_binding_outcome.v1",
+          "ak.schema.media_service_binding_request.v1",
           "ak.schema.member_identity.v1",
           "ak.schema.message.v1",
           "ak.schema.mimi_interop.v1",

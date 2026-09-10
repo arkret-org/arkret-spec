@@ -4994,6 +4994,26 @@
       ]
     },
     {
+      "schema_path": "genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "grant-constraint.schema.json#/properties/approval_actor_ids",
       "property_name": "approval_actor_ids",
       "semantic_category": "responsibility_identity_material",
@@ -5804,6 +5824,26 @@
       ]
     },
     {
+      "schema_path": "identity-resolution.schema.json#/$defs/service_route_projection/properties/did",
+      "property_name": "did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
+      "schema_path": "identity-resolution.schema.json#/$defs/service_route_projection/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "inclusion-list.schema.json#/$defs/proof/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
@@ -6581,6 +6621,16 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "media-service-binding-result.schema.json#/$defs/service_signing_key/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
       ]
     },
     {

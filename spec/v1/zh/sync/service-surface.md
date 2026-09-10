@@ -163,6 +163,8 @@ WebVH DID 托管位置迁移须满足原生 portability 前置条件并保持 SC
 
 服务路由只保留 DID 方法原生状态，不创建额外的地址历史或签名发布状态机。DID method 原生历史及冻结历史 signer evidence 继续保留；可路由不代表 Realm 授权，历史签名必须验证签发位置的密钥与业务权威，不能用当前文档替代。
 
+本节的 method-native 验证职责属于接纳外部材料的角色：服务器、联邦接收方、identity registry 与独立审计者。已建立账号会话的普通客户端在已登记用途上改为消费自己 Station 的已验证结果：Realm genesis notary 用 [server-trusted-results.md §5.8](./server-trusted-results.md)，已加入 Realm 的媒体服务绑定用同文件 §5.9；两者都返回派生 `ServiceResolutionProjection` 或冻结 signer descriptor，不返回 method evidence，客户端只核对请求/会话/route 与结果内的确定性绑定。尚未登记此类结果的场景——例如尚未建立账号会话时的接入引导，或匿名消费公开 Directory 候选——仍由该角色自行按本节验证，MUST NOT 因为存在自己 Station 的结果面就直接信任陌生 URL 的自报。
+
 ## 3. 通用服务描述接口
 
 所有网络可发现服务 MUST 提供：

@@ -720,6 +720,10 @@
       "new": "ak.self.events.stream.subscribe.v1"
     },
     {
+      "old": "ak.self.genesis_notary.read.resolve",
+      "new": "ak.self.genesis_notary.read.resolve.v1"
+    },
+    {
       "old": "ak.self.history_key_requests.command.create",
       "new": "ak.self.history_key_requests.command.create.v1"
     },
@@ -822,6 +826,10 @@
     {
       "old": "ak.self.media.read.ice_config",
       "new": "ak.self.media.read.ice_config.v1"
+    },
+    {
+      "old": "ak.self.media_service_binding.read.resolve",
+      "new": "ak.self.media_service_binding.read.resolve.v1"
     },
     {
       "old": "ak.self.moderation.command.report",

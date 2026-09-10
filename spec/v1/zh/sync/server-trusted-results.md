@@ -368,7 +368,39 @@ Station MUST 将原 accepted Event、admission 与验证其签名必需的来源
 
 ### 5.7 已登录当前 Principal 与 PCR 定位
 
-普通已登录客户端 MUST 使用 [identity-did.md §4.2.3](../identity/identity-did.md#423-已认证账号的当前-principal-与唯一-pcr) 的 `ak.self.current_principal.read.resolve.v1`，取得 exact AccountId 的已接纳 current projection 与唯一 PCR。Station 验证外部方法历史；客户端只校验请求/会话/route 与字段绑定，不下载公开 attestation/history 或账号审计闭包。`observed_at` 与 projection `updated_at` 均不授予未来操作权限。本入口只解决已认证账号定位，不替代首次 Station 接入、公证服务或媒体路由绑定。
+普通已登录客户端 MUST 使用 [identity-did.md §4.2.3](../identity/identity-did.md#423-已认证账号的当前-principal-与唯一-pcr) 的 `ak.self.current_principal.read.resolve.v1`，取得 exact AccountId 的已接纳 current projection 与唯一 PCR。Station 验证外部方法历史；客户端只校验请求/会话/route 与字段绑定，不下载公开 attestation/history 或账号审计闭包。`observed_at` 与 projection `updated_at` 均不授予未来操作权限。本入口只解决已认证账号定位，不替代首次 Station 接入、公证服务或媒体路由绑定；Realm genesis notary 见 §5.8，已加入 Realm 的媒体服务绑定见 §5.9。
+
+### 5.8 Realm genesis 的 notary 签署输入
+
+`ak.self.genesis_notary.read.resolve.v1`（`POST /_arkret/self/genesis-notary/query`）向已认证账号返回它即将 author 的 Realm genesis 所需的 notary 配置。它是 §3 的签署准备输入，不是授权结果：成功不创建 Realm、不预留标识、不授予 create 或 authoring 权限，也不替代 caller 对 `ak.realm.create` 及其所在 bootstrap unit 的真实签名。
+
+closed `GenesisNotaryRequestBody` 字段按序为 `request_id, account_id, intended_purpose`。`account_id` MUST 逐字等于当前认证会话的完整账号，且其 Station MUST 是服务本请求的自己 Station。`intended_purpose` 是 closed `collaboration | direct_conversation`，MUST 等于 caller 将写入 genesis 的 `purpose`；`principal_control`、`agent_control` 与 `applet_managed_control` 的 signer 由各自已接纳的身份规则确定，MUST NOT 从本入口取得，服务器也 MUST NOT 以服务密钥替代 principal、设备或 Agent 的 signer。
+
+closed `GenesisNotaryOutcome` 字段按序为 `request_id, account_id, intended_purpose, notary, observed_at`。`notary` 复用 [realm.schema.json](../../artifacts/schemas/realm.schema.json) 的唯一 `notary` 类型，是可逐字写入 `payload.object.notary` 的完整值。Station MUST 按 [event-auth-state-resolution.md §6.5](../authz/event-auth-state-resolution.md#65-notary-control-cellnormative) 的默认与本部署 trust domain 已接纳的 policy 确定该值，并对其中每个 descriptor 完成 service DID 的 method-native 当前状态验证与该 verification method 的 assertion 能力核对。descriptor 的 `verification_method` MUST 由 Station 按其真实 Seal 签名密钥选定并逐字返回；客户端与共享 SDK MUST NOT 以固定 fragment、DID 字符串拼接、describe 字段或另取的当前 DID Document 构造它。结果 MUST NOT 携带 method history evidence、witness 记录、normalized DID Document、signer evidence 闭包或 Realm 标识。
+
+客户端在签署前 MUST 核对：closed 结构与预算、`request_id`、完整 `account_id` 与当前会话/预期 Station route、`intended_purpose` 等于自己将写入的 `purpose`，以及每个 descriptor 的自洽性——`verification_method` 的 controller DID 经登记 adapter 投影等于该 descriptor 的 `actor_id`、`key_kind` 与 `jose_algorithm` 是登记的 active 组合、`frozen_public_key_digest` 等于 `frozen_public_key_b64u` 解码字节的 SHA-256，且 `actor_id`、`verification_method`、`frozen_public_key_digest` 三个维度在全部 slot 及其并集内各自不重复。本两类 purpose 的每个 descriptor 的 `actor_id.kind` MUST 为 `service`。signer 归属由部署 policy 决定：默认是 `account_id.station_id` 所属服务身份，部署也 MAY 指定已接纳的独立 notary 服务；客户端 MUST 按结果原样使用，MUST NOT 把非本 Station 的 signer 替换成自己的 Station，也 MUST NOT 因它不是本 Station 而自行增删 slot。任一项不符 MUST 放弃创建；MUST NOT 改写、补齐、部分采用或与本地默认值合并该值，也 MUST NOT 为核对它下载 service DID method history、witness 记录或 signer evidence 闭包。
+
+`observed_at` 只标记本次观察，MUST NOT 被当作有效期或授权租约。一旦 genesis 被接纳，冻结的 descriptor 就是历史 Seal signer 事实：Station 后续更换签名密钥 MUST 走 `ak.realm.notary` Control Move，MUST NOT 追溯改写已接纳的 genesis 值，也 MUST NOT 因本结果陈旧而使已接纳 Realm 失效。一次结果只用于本次创建意图；账号、Station 或 session 变化后 MUST 重新查询，迟到结果 MUST NOT 安装。
+
+请求与响应 canonical JSON 各 MUST ≤ 65536 bytes。请求字节超限 MUST 返回 `413 payload_too_large`；closed 字段/类型不符或 purpose 不在值空间内 MUST 返回 `422 schema_violation`；合法响应无法在预算内完整返回 MUST 返回 `limit_exceeded`。未认证沿用既有 401。错会话账号、错 Station 或目标不可见 MUST 返回同一 `404 not_found`。已认证且可见但本 Station 尚无可用已验证 notary 配置——签名密钥未就绪、部署 policy 依赖缺失或方法状态未决——MUST 返回 `503 temporarily_unavailable`，MUST NOT 返回占位 descriptor、空对象或旧缓存。
+
+### 5.9 已加入 Realm 的媒体服务绑定
+
+`ak.self.media_service_binding.read.resolve.v1`（`POST /_arkret/self/media-service-bindings/query`）为已加入 Realm 的成员返回该 Realm 当前已接纳 `ak.component.realm.media_service.v1` cell 所锚定媒体服务的已验证路由与签名公钥。它只解析服务身份、用途与路由，MUST NOT 被解释为加入通话、领取 backend token、释放媒体密钥或授权明文可见服务。
+
+closed `MediaServiceBindingRequestBody` 字段按序为 `request_id, realm_id`。请求 MUST NOT 携带 caller 自选的 service id、DID、base URL、候选 origin 或 method evidence；服务身份只从该 Realm 当前已接纳 cell 取得。
+
+closed `MediaServiceBindingOutcome` 字段按序为 `request_id, realm_id, seal_basis, route, signing_keys, observed_at, expires_at`。`seal_basis` 是 Station 完成本次可见性与 cell 求值的完整 accepted antichain。`route` 使用唯一 `ServiceResolutionProjection` 类型（[service-surface.md §2.6](./service-surface.md)，字段顺序 `service_id, service_kind, did, method_history_head, version_id, resolution_event_ref, base_url`）；其 `service_id` MUST 逐字等于该 cell 当前值的 `service_id`，`service_kind` MUST 为 `media_service`。`signing_keys` 是 1..16 个 closed `{verification_method, public_key_b64u}`，逐项取自同一已验证当前 DID Document 中该服务的 assertion 能力 Ed25519 公钥；`verification_method` 在结果内唯一，其去 fragment 的 controller DID MUST 等于 `route.did`。结果 MUST NOT 携带 method history evidence、witness 记录、normalized DID Document、describe 全文或任何第三方 attestation 闭包。
+
+Station MUST 逐次检查本次认证会话对该 Realm 的当前成员可见性，再在同一观察下读取已接纳 cell，并按 [service-surface.md §2.6](./service-surface.md) 完成 DID method-native 当前状态验证、唯一 ArkretService 入口选择与 describe 反向绑定，同时保持已接纳 method 状态不回退。不可见、非成员或该 Realm 没有已接纳媒体锚定统一 `404 not_found`；可见但依赖不足、方法状态未决或 describe 反向绑定尚未完成 MUST 返回 `503 temporarily_unavailable`，MUST NOT 返回空 route、旧缓存或未验证候选。检测到同一 service DID 的分叉或状态回退 MUST fail closed，MUST NOT 改用另一个候选 origin。
+
+客户端 MUST 核对 closed 结构与预算、`request_id`、`realm_id`、完整账号/Station/会话与预期 route，并把 `route.service_id` 与自己已安装的 `ak.realm.media_service` 当前值逐字比较；不相等 MUST fail closed（`media_service_binding_uncovered`），MUST NOT 采用结果中的路由。客户端还 MUST 核对该 cell 的 `ice_config_endpoint` 与每个 `foci[].token_endpoint` 的 origin 落在 `route.base_url` 之内，再向它们发起请求。`participant_binding.issuer_kid` 与 ICE config 响应签名的 kid MUST 命中 `signing_keys` 中的某个 `verification_method`；不命中 MUST 返回 `token_issuer_unauthorised`。客户端 MUST NOT 为验签逐 token 在线解析 DID，也 MUST NOT 自行获取 service DID 日志、witness 记录或 describe。
+
+`expires_at` 只界定本结果中路由与签名公钥的复用窗口，MUST NOT 晚于 `observed_at` 之后 300 秒，也 MUST NOT 超过 Station 自身已验证 method evidence 或绑定的有效边界；它不是授权租约，不延长任何 backend token、TURN credential 或 participant binding 的 TTL。窗口内该 cell 变化、Realm 成员或 Circle 资格变化、账号或 Station 切换以及已知的 service 分叉 MUST 立即使结果失效；过期或失效后 MUST 重新查询，迟到结果 MUST NOT 安装到新上下文。
+
+本结果不改变媒体明文与密钥释放边界：`media_service_decrypts`、`plaintext_visible_services`、当前 epoch `security_frontier_digest` 覆盖与用户明确确认仍按 [media-service-binding.md §8.2](../crypto-media/media-service-binding.md) 在客户端判定，SFrame/AEAD、录制与转写 exporter label、backend token 分支与 TTL 检查继续由客户端执行。
+
+请求与完整响应 canonical JSON 各 MUST ≤ 65536 bytes。请求字节超限 MUST 返回 `413 payload_too_large`；closed 字段/类型或数组项数非法 MUST 返回 `422 schema_violation`；合法响应无法在预算内完整返回 MUST 返回 `limit_exceeded`，MUST NOT 截断 `signing_keys`。未认证沿用既有 401。
 
 ## 6. 规范与 conformance
 
@@ -376,4 +408,4 @@ full/e2ee 客户端 conformance 检查请求绑定、结果消费、端到端密
 
 相同 fixture 可以提供服务器有效/无效输入及客户端成功/pending/错绑定结果，但 MUST 分别标明角色；不能要求客户端执行服务器 verifier runner 才能声明产品 profile。SDK 发布同时包含两种角色时，仍须分别证明各自适用的条款。
 
-第三方 conformance artifact、service delegation、公开身份声明及其发行者历史由自己 Station 验证并提供带来源和有效期的结果。服务器代核验不能将自报 claim 变成独立认证；客户端不必下载完整 artifact/authority 证据链。
+第三方 conformance artifact、service delegation、公开身份声明及其发行者历史由自己 Station 验证并提供带来源和有效期的结果。Realm genesis notary 与已加入 Realm 的媒体服务绑定分别由 §5.8、§5.9 的登记载体承担；尚未登记专用载体的第三方服务资格仍由各自 operation 的既有合同处理，实现 MUST NOT 为它们新造通用 service 结果或让普通客户端回退到自行验证发行者历史。服务器代核验不能将自报 claim 变成独立认证；客户端不必下载完整 artifact/authority 证据链。

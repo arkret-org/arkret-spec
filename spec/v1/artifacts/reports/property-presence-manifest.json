@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11043,
-    "total_schema_documents": 170,
+    "total_properties": 11069,
+    "total_schema_documents": 172,
     "by_presence_class": {
       "optional": 3052,
       "optional_defaulted": 69,
-      "required": 7051,
+      "required": 7077,
       "required_nullable": 139,
       "tristate": 732
     },
@@ -10010,6 +10010,22 @@
         "/$defs/encryption/properties/segment_bytes"
       ]
     },
+    "genesis-notary-binding.schema.json": {
+      "schema_ids": [
+        "ak.schema.genesis_notary_outcome.v1 -> #/$defs/genesis_notary_outcome",
+        "ak.schema.genesis_notary_request.v1 -> #/$defs/genesis_notary_request_body"
+      ],
+      "properties": {
+        "/$defs/genesis_notary_outcome/properties/account_id": "required",
+        "/$defs/genesis_notary_outcome/properties/intended_purpose": "required",
+        "/$defs/genesis_notary_outcome/properties/notary": "required",
+        "/$defs/genesis_notary_outcome/properties/observed_at": "required",
+        "/$defs/genesis_notary_outcome/properties/request_id": "required",
+        "/$defs/genesis_notary_request_body/properties/account_id": "required",
+        "/$defs/genesis_notary_request_body/properties/intended_purpose": "required",
+        "/$defs/genesis_notary_request_body/properties/request_id": "required"
+      }
+    },
     "grant-constraint.schema.json": {
       "schema_ids": [
         "ak.schema.grant_constraint.v1"
@@ -10946,6 +10962,13 @@
         "/$defs/route_mirror_hint/properties/service_resolution": "required",
         "/$defs/service_resolution_carrier/oneOf/0/properties/inline": "required",
         "/$defs/service_resolution_carrier/oneOf/1/properties/resolution_url": "required",
+        "/$defs/service_route_projection/properties/base_url": "required",
+        "/$defs/service_route_projection/properties/did": "required",
+        "/$defs/service_route_projection/properties/method_history_head": "required",
+        "/$defs/service_route_projection/properties/resolution_event_ref": "required",
+        "/$defs/service_route_projection/properties/service_id": "required",
+        "/$defs/service_route_projection/properties/service_kind": "required",
+        "/$defs/service_route_projection/properties/version_id": "required",
         "/$defs/webvh_method_history_evidence/properties/boundary": "required",
         "/$defs/webvh_method_history_evidence/properties/evidence": "required",
         "/$defs/webvh_method_history_evidence/properties/evidence_kind": "required",
@@ -11766,6 +11789,25 @@
         "/$defs/media_ice_config_request_body/properties/device_id": "required",
         "/$defs/media_ice_config_request_body/properties/mode": "required",
         "/$defs/media_ice_config_request_body/properties/realm_id": "required"
+      }
+    },
+    "media-service-binding-result.schema.json": {
+      "schema_ids": [
+        "ak.schema.media_service_binding_outcome.v1 -> #/$defs/media_service_binding_outcome",
+        "ak.schema.media_service_binding_request.v1 -> #/$defs/media_service_binding_request_body"
+      ],
+      "properties": {
+        "/$defs/media_service_binding_outcome/properties/expires_at": "required",
+        "/$defs/media_service_binding_outcome/properties/observed_at": "required",
+        "/$defs/media_service_binding_outcome/properties/realm_id": "required",
+        "/$defs/media_service_binding_outcome/properties/request_id": "required",
+        "/$defs/media_service_binding_outcome/properties/route": "required",
+        "/$defs/media_service_binding_outcome/properties/seal_basis": "required",
+        "/$defs/media_service_binding_outcome/properties/signing_keys": "required",
+        "/$defs/media_service_binding_request_body/properties/realm_id": "required",
+        "/$defs/media_service_binding_request_body/properties/request_id": "required",
+        "/$defs/service_signing_key/properties/public_key_b64u": "required",
+        "/$defs/service_signing_key/properties/verification_method": "required"
       }
     },
     "member-identity.schema.json": {

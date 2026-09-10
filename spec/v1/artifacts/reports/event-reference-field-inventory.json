@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 190,
+    "complete_event_id": 191,
     "digest_copy_or_commitment": 20,
     "external_event_namespace": 1
   },
@@ -801,6 +801,12 @@
     {
       "schema": "identity-resolution.schema.json",
       "json_pointer": "/$defs/resolution_projection/properties/resolution_event_ref",
+      "field": "resolution_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "identity-resolution.schema.json",
+      "json_pointer": "/$defs/service_route_projection/properties/resolution_event_ref",
       "field": "resolution_event_ref",
       "classification": "complete_event_id"
     },

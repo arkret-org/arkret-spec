@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.17",
+  "version": "2026-09-10.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T08:41:42+08:00",
+  "generated_at": "2026-09-10T11:05:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1504,6 +1504,34 @@
       "fragment": "#/$defs/current_principal_outcome",
       "status": "active",
       "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
+    },
+    {
+      "schema_id": "ak.schema.genesis_notary_request.v1",
+      "file": "schemas/genesis-notary-binding.schema.json",
+      "fragment": "#/$defs/genesis_notary_request_body",
+      "status": "active",
+      "description": "Authenticated own-account request for the notary configuration of a Realm genesis the caller will sign."
+    },
+    {
+      "schema_id": "ak.schema.genesis_notary_outcome.v1",
+      "file": "schemas/genesis-notary-binding.schema.json",
+      "fragment": "#/$defs/genesis_notary_outcome",
+      "status": "active",
+      "description": "Own-Station verified notary configuration copied verbatim into the genesis object; observation is not a validity window or authorization lease."
+    },
+    {
+      "schema_id": "ak.schema.media_service_binding_request.v1",
+      "file": "schemas/media-service-binding-result.schema.json",
+      "fragment": "#/$defs/media_service_binding_request_body",
+      "status": "active",
+      "description": "Authenticated member request for the media service anchored by one joined Realm; no caller-supplied service identity, DID or candidate origin."
+    },
+    {
+      "schema_id": "ak.schema.media_service_binding_outcome.v1",
+      "file": "schemas/media-service-binding-result.schema.json",
+      "fragment": "#/$defs/media_service_binding_outcome",
+      "status": "active",
+      "description": "Own-Station verified media service route and signing keys bound to the accepted anchor; route reuse window only, no key release or plaintext authorization."
     },
     {
       "schema_id": "ak.schema.signer_key_query_request.v1",
