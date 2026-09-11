@@ -743,6 +743,29 @@ Genesis 接受规则：
 6. `effective_scope.kind = "sidecar"` 的 genesis 另有创建者约束：`Event.actor_id` MUST 是 account 分支，且 `Event.actor_id.account_id` MUST 逐字等于该 Sidecar 的 `controller_account_id`；`Event.executed_by` MUST 缺席——该 Event 是 Agent PCR 后继 Seal 覆盖的 effectless `ak.mls.genesis`，MUST 由 controller device 直接签名（见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)）；signer regime MUST 是 ordinary device regime，且上式投影出的 creator device MUST 是该 controller 在该 Event 的 accepted basis 上 active 的 accepted device。Agent、Applet、service 或任何 delegated signer 一律拒绝。
 7. 对尚无 accepted Genesis 的 scope/group，`governance_binding.content_scheme` 与 `durability_policy` 必须逐字等于产出该 `security_frontier_digest` 的 0→0 query 中 `proposed_group_genesis_binding`。Admission 必须在写入前验证 proposal-bound query/cache identity 与 signed Genesis transcript 的相等性；不一致返回 `mls_genesis_binding_proposal_mismatch` 且零写入。并发 Genesis 的输家按 winning accepted binding 重新查询，不得沿用自身 proposal。Genesis accepted 后，这对字段永久来自 accepted state，任何 caller override 都拒绝。
 
+**创建者客户端自举与恢复（normative）**：加密 Realm 的 bootstrap unit 已 accepted 后，创建者客户端
+MUST 把 Realm-default scope 从“Realm 已接受”推进到“epoch-0 MLS 可写”，不得依赖一次性的 UI task、页面存活
+或后台 effect 恰好执行完成。初始 leaf 的创建者不会收到发给自己的 Welcome；因此 Welcome 缺失、Welcome 查询的
+`frontier_unavailable`，以及账号 current 投影暂未包含 authority-root cell，均不得被解释为“创建者需要等待
+Welcome”或“自举已经完成”。客户端 MUST 按以下规则收敛：
+
+1. 创建者身份只能来自自己 Station 已认证的 exact accepted `ak.realm.create` / authority-root 结果，或客户端
+   已耐久保存并可与该 accepted 结果逐字关联的创建 receipt；optimistic Realm projection、显示字段、membership、
+   `created_by` 镜像或传输 session 都不是该判断的权威来源。账号 current 投影落后只表示本地 materialization
+   尚未追上，不得据此提前返回成功。
+2. 上述创建者判断只选择“author Genesis”还是“取得 Welcome/恢复已有状态”的客户端恢复分支，**不授予**
+   `ak.mls.genesis` 权限。Genesis authoring 与 admission 仍 MUST 使用 §2.5 的 accepted security frontier、
+   governance result 及本节第 1 条的当前权限；不得以 create author、membership 或本地镜像绕过 authority-root。
+3. 客户端 MUST 在产生不可重建的 epoch-0 私有状态后耐久保存该状态，以及恢复 exact signed Genesis 所需的
+   transaction material；网络失败、页面卸载或进程崩溃后必须重入同一事务。byte-identical retry 必须复用同一
+   Event；若 Station 已接受 Genesis，则客户端必须解析并收敛到该 accepted Event，不得生成第二个 Genesis。
+4. 只有当 exact `ak.mls.genesis` 已 accepted，且与之匹配的 epoch-0 私有 group state 和客户端所需的 accepted
+   artifact 已耐久保存后，客户端才可把该 scope 标记为 MLS-write-ready。仅有 optimistic Realm、epoch-0 本地
+   snapshot、`submitted` / `emitted` 标志、HTTP 成功或本地 Event id 均不足以越过 §2.5.2 send gate。
+5. 非创建者客户端 MUST NOT 因本地 authority-root 缺失而尝试 author Genesis；它应通过 accepted
+   authority/Genesis 状态进入 Welcome、已有设备迁移或备份恢复路径。任何分支暂时无法取得所需 accepted
+   结果时保持不可写并按服务端 retry 指令重试，不得降级为明文写入。
+
 #### 5.1.1 Epoch-0 public group-state material
 
 `group_info_ref` 与 `ratchet_tree_ref` MUST 分别是 `ak:blob:<digest-suite>:<hex>` content-addressed ref：`<digest-suite>`
