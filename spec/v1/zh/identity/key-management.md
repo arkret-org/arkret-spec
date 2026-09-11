@@ -1028,6 +1028,8 @@ same-endpoint crash resume MAY 使用**设备本地 MLS 检查点**（device-bou
 
 wrapping root、加密 snapshot、`group_state_refs` 与 genesis/commit emitted marker 构成一个 durable recovery unit：必须同一事务提交，或使用 durable-first + 启动交叉验证达到等价原子性。marker 声称材料存在而 root/snapshot/ref 缺失、epoch/ref 回滚或材料解不开时必须进入 `recovery_required`；不得在相同 derived group id 下重铸另一棵 tree。account-data、设备本地 MLS 检查点与 history backup 继续使用独立 HKDF subdomain。
 
+设备授权、账户 root 恢复、该设备的 MLS 入群与旧历史恢复是不同阶段。配对授权成功或签发 SessionGrant MUST NOT 被解释为账户 root 已转移；客户端不得以重复配对代替缺失的密钥恢复。已有合法 session 可以继续使用不依赖缺失 root 的功能；若允许用户推迟恢复，UI MUST 明确指出缺失 root 也会阻止依赖它的新加密写入与本地 MLS 状态持久化，不能仅宣称旧历史不可读。账户 root 恢复成功也不授予 MLS 成员资格，仍须验证该设备自己的 accepted Welcome/Commit 后才能发送。
+
 ### 7.4 所有权证明与解密证明
 
 DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某段历史密文”：

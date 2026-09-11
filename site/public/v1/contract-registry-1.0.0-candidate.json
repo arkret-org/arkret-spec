@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.3",
+  "version": "2026-09-11.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-11T10:57:28+08:00",
+  "generated_at": "2026-09-11T18:53:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -16171,8 +16171,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-11.2",
-    "generated_at": "2026-09-11T10:57:28+08:00",
+    "version": "2026-09-11.5",
+    "generated_at": "2026-09-11T18:53:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

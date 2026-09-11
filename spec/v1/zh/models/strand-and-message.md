@@ -308,11 +308,10 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
 
 整个变更由单个 DataEvent 的 reducer projection 原子写入同一 `mv_register` cell；并发更新暴露多 head，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用一个明确 base head，不得依赖接收顺序静默覆盖。
 
-标准 Strand authoring projection 必须同时暴露该 `ak.component.strand.object.v1` cell 的完整
-`object_revision_heads[]`。标题、描述、字段、track 或日历的普通 patch 都使用其中唯一 head 作为
-Event `causal_refs[]`；`schedule_revision_heads[]` 只证明日历 schedule revision，不能替代对象基线。
-集合为空表示投影尚不可用于写入；集合多于一项表示存在并发对象版本，客户端必须显示冲突并进入
-登记的 resolution 流程，不得选择任一 head 后继续普通更新。
+Strand authoring 复用 current 的 `heads[{event_id,value}]`，不定义第二份 head 镜像。
+标题、描述、字段、track、日历都按 [通用 patch 基线规则](./event-and-patch.md#431-patch-reducer-的唯一输入normative)
+固定值与来源；多个已观察来源的显式合并由普通 patch 加签名覆盖的 `expected_state_digest` 完成。
+日历 schedule frontier 仅用于 RSVP 领域投影，不能替代对象 patch 的来源。
 
 **Capability**: `ak.strand.tracks.update` 一个 action 覆盖该 event。
 

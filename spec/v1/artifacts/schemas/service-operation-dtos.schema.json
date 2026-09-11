@@ -5362,7 +5362,6 @@
         "strand_id",
         "realm_id",
         "state",
-        "object_revision_heads",
         "is_default"
       ],
       "properties": {
@@ -5380,17 +5379,6 @@
             "archived",
             "redacted"
           ]
-        },
-        "object_revision_heads": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^sha256:[0-9a-f]{64}$"
-          },
-          "description": "Complete lexicographically sorted current event_digest head set for ak.component.strand.object.v1 at the same accepted frontier as this row. Authoring metadata only: an ordinary patch MUST use the sole head as its causal base, MUST wait when unavailable, and MUST enter the registered resolution flow when more than one head exists. A schedule or other subprojection frontier is not a substitute."
         },
         "state_changed_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp"

@@ -749,13 +749,14 @@ MUST 把 Realm-default scope 从“Realm 已接受”推进到“epoch-0 MLS 可
 `frontier_unavailable`，以及账号 current 投影暂未包含 authority-root cell，均不得被解释为“创建者需要等待
 Welcome”或“自举已经完成”。客户端 MUST 按以下规则收敛：
 
-1. 创建者身份只能来自自己 Station 已认证的 exact accepted `ak.realm.create` / authority-root 结果，或客户端
-   已耐久保存并可与该 accepted 结果逐字关联的创建 receipt；optimistic Realm projection、显示字段、membership、
-   `created_by` 镜像或传输 session 都不是该判断的权威来源。账号 current 投影落后只表示本地 materialization
-   尚未追上，不得据此提前返回成功。
-2. 上述创建者判断只选择“author Genesis”还是“取得 Welcome/恢复已有状态”的客户端恢复分支，**不授予**
-   `ak.mls.genesis` 权限。Genesis authoring 与 admission 仍 MUST 使用 §2.5 的 accepted security frontier、
-   governance result 及本节第 1 条的当前权限；不得以 create author、membership 或本地镜像绕过 authority-root。
+1. 客户端 MUST 先从自己 Station 的 exact accepted 结果判断该 scope 是否已有 `ak.mls.genesis`。
+   已有 Genesis 时，创建者 principal/device 由该 Genesis 的 actor 与签名设备确定，不由 Realm
+   创建账号、membership、显示字段或 session 推断。同一账号的新设备没有本地匹配 group state 时，
+   MUST 进入 Commit/Welcome 或已有状态恢复路径，MUST NOT 因账号是 Realm creator 而反复创建 Genesis。
+2. 只有尚无 accepted Genesis 时，客户端才可依据 exact accepted Realm authority-root 与当前授权决定
+   是否启动首次 Genesis；未知／暂不可用不得解释为不存在。已有本机 epoch-0 transaction 时重入该事务；
+   Genesis 存在但本机私有状态缺失时转恢复，不得以“等待自身 Welcome”困住初始 leaf。
+   分支判断不授予 Genesis 权限；authoring 与 admission 始终使用 §2.5 的 accepted security frontier。
 3. 客户端 MUST 在产生不可重建的 epoch-0 私有状态后耐久保存该状态，以及恢复 exact signed Genesis 所需的
    transaction material；网络失败、页面卸载或进程崩溃后必须重入同一事务。byte-identical retry 必须复用同一
    Event；若 Station 已接受 Genesis，则客户端必须解析并收敛到该 accepted Event，不得生成第二个 Genesis。
