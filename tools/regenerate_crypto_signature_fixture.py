@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import base64
+import copy
 import hashlib
 import json
 import subprocess
@@ -42,8 +43,14 @@ def event_id(event_digest: str) -> str:
 
 
 def refresh_common(vector: dict[str, object]) -> bytes:
+    for key in ("event_without_proofs", "event_with_proof"):
+        candidate = vector.get(key)
+        if isinstance(candidate, dict) and candidate.get("refs") == []:
+            candidate.pop("refs")
+        if isinstance(candidate, dict) and candidate.get("causal_refs") == []:
+            candidate.pop("causal_refs")
     event = dict(vector["event_without_proofs"])
-    for field in ("unsigned", "actor_kind", "event_id", "proofs"):
+    for field in ("unsigned", "event_id", "proofs"):
         event.pop(field, None)
     event_bytes = canonical(event)
     event_digest = digest(event_bytes)
@@ -201,6 +208,20 @@ def refresh_negative_cases(
 
 def sync_websocket_fixture(event_with_proof: dict[str, object]) -> None:
     data = json.loads(WEBSOCKET_FIXTURE.read_text(encoding="utf-8"))
+    schema_cases = json.loads(
+        (FIXTURE.parent / "schema-validation-fixture.json").read_text(encoding="utf-8")
+    )["schema_validation_cases"]
+    admitted = copy.deepcopy(event_with_proof)
+    # Frame cases validate transport/schema, not Station cryptography. Reuse the
+    # explicit admission shape fixture and bind it to the regenerated producer.
+    template = next(case["instance"]["event"] for case in schema_cases
+                    if case["name"] == "event_federation_admitted_capability_message_shape_valid")
+    admission = copy.deepcopy(template["proofs"][-1])
+    producer = admitted["proofs"][0]
+    admission["event_digest"] = producer["event_digest"]
+    admission["producer_proof_digest"] = digest(canonical(producer))
+    admission["producer_verification_method"] = producer["verification_method"]
+    admitted["proofs"].append(admission)
     for case in data.get("frame_schema_cases", []):
         wire = case.get("wire_utf8")
         if not isinstance(wire, str):
@@ -208,8 +229,11 @@ def sync_websocket_fixture(event_with_proof: dict[str, object]) -> None:
         frame = json.loads(wire)
         payload = frame.get("payload", {})
         if payload.get("kind") == "event" and isinstance(payload.get("payload"), dict):
-            payload["payload"] = event_with_proof
+            payload["payload"] = admitted
             case["wire_utf8"] = canonical(frame).decode()
+    for case in data.get("schema_validation_cases", []):
+        if case.get("name") == "events_data_producer_only_rejected":
+            case["instance"]["payload"]["payload"] = event_with_proof
     WEBSOCKET_FIXTURE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
     )

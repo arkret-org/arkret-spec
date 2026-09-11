@@ -32,9 +32,9 @@ Arkret canonical JSON MUST 使用：
 - whole-object digest/signature 对通过 schema 的 `.sssZ` 字符串原样 canonicalize。独立 transcript/AAD 绑定已有 Arkret timestamp 时 MUST 使用相同字段名和相同 canonical 字符串；“参与密码学”本身不是转成 epoch integer 的理由。producer 必须先构造 typed canonical timestamp，receiver 必须先严格验证 wire spelling，再重建 canonical bytes。
 - 字段名使用 snake_case。
 
-Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned`、`event_id` 与 **reducer-stamped 顶层字段**（v1 只有 `actor_kind`）后的 canonical JSON bytes，并且 MUST 保留 producer 声明的 `scope_ref`。`event_id` 由这个 digest 一次前向派生，因此排除它不改变任何 producer-authored 事实的覆盖范围。`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。`actor_kind` 由 producer 提交时 MUST NOT 携带、reducer 接受时才 immutable 写入，因此不进入 producer `proof.event_digest`。`scope_ref` 不是 stamp：它由 producer 签名，reducer 必须从 payload 与 accepted references 独立派生并逐字段比对。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。签名字节的不可变性是协议演进的根约束——升级 MUST NOT 改写历史签名 bytes，而是用重放/投影重建派生视图，详见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md)。
+Event Envelope 的签名和 hash 输入 MUST 是只去除 `event_id`、`proofs` 与 `unsigned` 后的 canonical JSON bytes，并且 MUST 保留 producer 声明的 `scope_ref`。`event_id` 由这个 digest 一次前向派生，因此排除它不改变任何 producer-authored 事实的覆盖范围；`proofs` 不能签署自身；`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。Event 顶层没有 reducer-stamped 分类字段。`scope_ref` 由 producer 签名，reducer 必须从 payload 与 accepted references 独立派生并逐字段比对。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。签名字节的不可变性是协议演进的根约束——升级 MUST NOT 改写历史签名 bytes，而是用重放/投影重建派生视图，详见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md)。
 
-**架构取舍（normative）**：v1 不引入开放 `stamped` 容器，Event 顶层 exclusion set 固定为 `actor_kind`。新增 reducer-stamped 顶层字段会在 producer 签名之外创造新事实来源，v1 MUST NOT 接受。低层 canonicalizer 必须从 Event schema 消费该单元素 exclusion set，不得自行维护另一份业务字段列表。
+**架构取舍（normative）**：v1 不引入开放 `stamped` 容器，也没有任何 Event 顶层 reducer-stamped 字段。新增此类字段会在 producer 签名之外创造新事实来源，v1 MUST NOT 接受。低层 canonicalizer 的 Event 排除集固定为 `event_id`、`proofs`、`unsigned`，不得自行维护另一份业务字段列表。
 
 生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何进入签名 / canonical wire bytes 的 v1 schema MUST NOT 出现 `type: number`（非整数）字段；该约束在 OpenAPI 镜像上由 lint 强制。唯一例外是**非 canonical、非签名的查询时注解**（例如 OpenAPI `SearchMatch.score`）：它们 MAY 保留 `type: number`，且在 OpenAPI 镜像中 MUST 以 `# lint-waiver(type:number): <理由>` 标注；任何需要进入签名材料的同类值仍必须使用 `{integer, scale}` 信封。
 
@@ -282,7 +282,7 @@ SessionGrant 是 v1 的非 Event `suite_tagged_full_digest` kind：其 `session_
 
 suite code 由 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 固定：`0x1=sha256`、`0x2=blake3`、`0x3=cbor.sha256`（reserved，激活前非法）；低 nibble `0x0` 永久 invalid，`0x4..0xF` 未分配。v1 Event 与 `suite_tagged_full_digest` typed ID 只接受高 nibble为 `0x0` 的已登记 active suite code；`0x10..0xFF` 对 v1 Event ID 永久非法，对其它 suite-tagged typed ID 在本 wire contract 中同样非法。对 SessionGrant，这个首字节仍是受范围约束的 suite code；高 nibble 为零是保留位，不得解释为任何类别标记。code 未登记、未激活、digest 长度不等于 32，或不属于该 Realm historical/live basis 时 MUST fail closed。code 不得由数组位置、suite 名或 hash 名推导，退役后不得复用。
 
-本次只改变 Event ID 编码，**不改变 event_digest preimage**：`D` 仍是 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。实现不得在本迁移中加入 domain prefix、二次 hash、XOR folding 或另一套 canonicalization；这些改变必须注册新 suite。
+本次只改变 Event ID 编码，**不改变 event_digest preimage**：`D` 是 `canonical_digest(envelope_without_event_id_proofs_unsigned)`。实现不得在本迁移中加入 domain prefix、二次 hash、XOR folding 或另一套 canonicalization；这些改变必须注册新 suite。
 
 producer 顺序固定为：完成除 `event_id` / `proofs` 外的字段；计算完整 `D`；派生并写入 `event_id`；最后签署携完整 `event_digest` 的 proof。receiver 在任何 lookup、去重、路由、幂等、授权或 projection 副作用前，MUST 严格解析 ID、先要求 `id.header >> 4 == 0`，再从 `id.header & 0x0F` 读取 suite、按历史 basis 校验 suite、重算完整 digest，并要求低 nibble `id.code == digest.suite.wire_code` 且全部 32 digest octets 相等。reserved nibble 非零使用 `schema_violation`；digest 不一致使用 `event_id_digest_mismatch`；未知或未激活 code 使用 `unsupported_digest_algorithm`；已知但不属于 Realm basis 使用 `schema_violation`。解析器不得只 mask 低 nibble 后接受高 nibble 非零的 canonical alias。
 
@@ -363,7 +363,7 @@ Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile �
 
 本节的 conformance 入口是 `ak.vector.event_id.content_bound.v1`（机读 fixture 见 [`content-bound-event-id-fixture.json`](../../artifacts/fixtures/content-bound-event-id-fixture.json)）：它固定 SHA-256 / BLAKE3 bytes、canonical Base64URL、suite mismatch、unknown/reserved code、错误完整 digest、padding与长度负例。
 
-`event_id` 不是 producer 自由分配的值，也不含可解析时间段。它携带 suite code 与完整 256-bit digest；`proof.event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`，§6）提供同一 digest 的算法名 wire 表示并受 proof 绑定。
+`event_id` 不是 producer 自由分配的值，也不含可解析时间段。它携带 suite code 与完整 256-bit digest；`proof.event_digest`（≡ `canonical_digest(envelope_without_event_id_proofs_unsigned)`，§6）提供同一 digest 的算法名 wire 表示并受 proof 绑定。
 
 `event_id` 作为必填字段出现在 wire 上；它是完整身份，且任何 receiver 都能从 canonical bytes 独立重算。`proof.event_digest` 与它的 digest 部分是理论上可删除、但v1为conformance / test交叉验证、early-validation与诊断明确保留的冗余：可在昂贵的 DID / 密钥解析之前做内容完整性预检，并在跨实现 canonical JSON 分歧时直接定位到 canonicalization。
 
@@ -403,9 +403,9 @@ Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile �
 
 本节只定义无语义后果的稳定顺序：
 
-- 候选各自产生 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`，§6）是第一输入。digest preimage MUST 从 envelope 移除 `proofs`、`unsigned`、`actor_kind` 与 `event_id` 后 canonicalize；签名 `scope_ref` 不得移除。
+- 候选各自产生 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_event_id_proofs_unsigned)`，§6）是第一输入。digest preimage MUST 从 envelope 移除 `event_id`、`proofs` 与 `unsigned` 后 canonicalize；签名 `scope_ref` 不得移除。
 - 比较对象是解码后的 digest octets，按 unsigned lexicographic order 升序排列；octets 完全相同而 suite 不同时，以 canonical suite id 的 unsigned UTF-8 bytewise 升序作第二键。不得直接比较 `<suite>:<hex>` wire string。
-- 两个不同 canonical preimage 得到相同 typed digest 是 hash collision，必须按 §4.0 / sync collision 规则 quarantine，不能靠另一字段补全顺序。preimage 相同而仅 `proofs`、`unsigned` 或 reducer stamp 不同不构成 collision。
+- 两个不同 canonical preimage 得到相同 typed digest 是 hash collision，必须按 §4.0 / sync collision 规则 quarantine，不能靠另一字段补全顺序。preimage 相同而仅 `proofs` 或 `unsigned` 不同不构成 collision。
 
 该顺序只允许用于以下场景：canonical set 序列化、审计列表、timeline/display 的稳定排列，以及 domain 明确声明为 presentation-only、且全部候选仍完整可见的默认展示选择。producer 可以低成本决定自己在同组中的相对位置；使用方 MUST 明示这一偏置。
 
@@ -424,7 +424,7 @@ Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile �
 
 `vector_id`: `ak.vector.encoding.canonical_event_tie_break.v1`（历史 id 保留，语义已收窄为 canonical presentation order；机读 fixture 见
 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)，向量说明见
-[`conformance-vectors.md` 23.1](./conformance-vectors.md)）。向量覆盖 decoded digest octets 排序、跨 suite 第二键、producer grinding、禁止的语义 winner、collision quarantine，以及 proofs / reducer stamps 差异不误报 collision。`ordered_log` 向量独立验证所有 sibling 都进入 joined value，不能反向把本节顺序恢复成 slot winner。
+[`conformance-vectors.md` 23.1](./conformance-vectors.md)）。向量覆盖 decoded digest octets 排序、跨 suite 第二键、producer grinding、禁止的语义 winner、collision quarantine，以及 proofs 差异不误报 collision。`ordered_log` 向量独立验证所有 sibling 都进入 joined value，不能反向把本节顺序恢复成 slot winner。
 
 ### 4.4 Field Naming: `_id` / `_ref` / `_did`（normative）
 
@@ -468,7 +468,7 @@ Identifier 字段命名、`did_core_id` / `did` 边界与 DID URL adapter 规则
 Proof MUST bind（下列为绑定字段集合；canonical binding object 的实际字节顺序由 §2 canonical JSON 的 JCS key 排序决定，下方 JSON 示例与本清单的列举顺序仅为可读性，不代表签名字节顺序）:
 
 - `context = "ak.event_proof.v1"`：固定 signing-context domain tag；不从 Event envelope 读取，verifier 构造 binding object 时 MUST 写入该常量。
-- `event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`
+- `event_digest = canonical_digest(envelope_without_event_id_proofs_unsigned)`
 - `actor_id`
 - `verification_method`
 - `signer_resolution_evidence_ref`（仅 retained direct-history / DID-root / native producer 分支；caller 首次提交态省略。其内嵌 digest 是 signer evidence digest 的唯一表示，§4.0.1）
@@ -499,12 +499,9 @@ Durable Realm Event 是可由多个合规 Realm host 保存和复验的原始事
 }
 ```
 
-Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor_kind` 与 `event_id`，保留签名 `scope_ref` 以及完整 `prev_refs` / `refs` / `causal_refs`，按 §2 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；随后按 §4.0 从该 digest 的 suite wire code 与全部 32 digest octets 重算 `event_id` 并与携带值比对（不一致 `event_id_digest_mismatch`）；最后按上表字段构造 canonical binding object（含固定 `context`）并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
+Verifier 顺序固定为：先从 Event 中移除 `event_id`、`proofs` 与 `unsigned`，保留签名 `scope_ref` 以及实际存在的完整 `prev_refs` / `refs` / `causal_refs`，按 §2 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；随后按 §4.0 从该 digest 的 suite wire code 与全部 32 digest octets 重算 `event_id` 并与携带值比对（不一致 `event_id_digest_mismatch`）；最后按上表字段构造 canonical binding object（含固定 `context`）并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
 
-**preimage 排除清单分两类，理由不同，MUST NOT 混为一谈**：
-
-- `proofs` / `unsigned` / `actor_kind`——**签名后附加或由他方投影**的字段，本来就不属于作者签署的内容；
-- `event_id`——**由 digest 本身决定**（§4.0），排除是为了让一次前向派生良定义；若不排除，digest 的 preimage 会包含 digest 自身的函数，定义即循环。
+**preimage 排除清单分三项，理由不同，MUST NOT 混为一谈**：`proofs` 不能覆盖自身；`unsigned` 是签名后附加的本地读取信息；`event_id` 由 digest 本身决定（§4.0），排除是为了让一次前向派生良定义，若不排除则定义循环。
 
 把"被排除"读成"不重要"是错的：`event_id` 的完整性由 §4.0 的重算比对保证，并在完整 digest 已知后一次前向派生。`prev_refs` 中完整 Event ID、语义 refs、事前 `seal_ref` / `seal_basis`、`created_at` 与 payload 均未排除，必须逐字进入 preimage；事后覆盖本 Event 的 Seal / receipt 只能单向承诺该 Event identity，不得反向加入原 Event。
 
@@ -517,12 +514,12 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 
 本条只登记这两种已证明的投影；通用 `$defs/proof` 的 `payload_digest` / `kind` 与本地 directory proof 叶不在本条射程内，其取舍按各自对象族逐项裁决。
 
-AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / station proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_service_id,retention_expires_at,holder_signer_evidence_ref}`，令 `payload_digest=H(JCS(core))`；再签
+AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id` 以及全部 accepted producer / station proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_service_id,retention_expires_at,holder_signer_evidence_ref}`，令 `payload_digest=H(JCS(core))`；再签
 `JCS({context:"ak.availability_receipt_proof.v1",payload_digest,...core,verification_method,created_at})` 并得到完整
 `receipt={...core,signature}`；最后按需要计算 selector digest `H(JCS(receipt))`。Seal 只签入这个 full canonical digest，receipt wire 不回显它。
 任何实现若把 selector digest 写回 receipt preimage、从 digest 中排除 signature，或省略 signer evidence 绑定都必须拒绝。
 
-**Realm 与 scope 绑定（normative）**：`event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)` 同时覆盖 `realm_id` 与 `scope_ref`；改写二者都会使 proof 失败。实现 MUST 在验证 proof 后确认 `scope_ref.realm_id == realm_id`、处理上下文 Realm 相等，并由 payload/accepted references 重算 scope；不得仅凭签名有效就跨 Realm/Circle 接受。
+**Realm 与 scope 绑定（normative）**：`event_digest = canonical_digest(envelope_without_event_id_proofs_unsigned)` 同时覆盖 `realm_id` 与 `scope_ref`；改写二者都会使 proof 失败。实现 MUST 在验证 proof 后确认 `scope_ref.realm_id == realm_id`、处理上下文 Realm 相等，并由 payload/accepted references 重算 scope；不得仅凭签名有效就跨 Realm/Circle 接受。
 
 **唯一例外是 `ak.realm.create`**：它 MUST 省略 `realm_id` 并使用不含 `realm_id` 的 `{"kind":"realm_genesis"}` scope，receiver 按 §4.0 从 `event_id` 派生 `realm_id`。理由是循环性——`realm_id` 若留在 preimage 内，它既是 digest 的输入又是 digest 的函数，无不动点可解。完整裁决见 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)。该例外只作用于 genesis 一条 Event；其后该 Realm 的每条 Event 都照常携带并绑定 `realm_id`。
 
@@ -530,7 +527,7 @@ AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite �
 
 上面 `realm_id` 的循环论证不限于「Event 自己派生出来的 ID」。形态 B 生效后，`event_id` 与
 `event_digest` 互为函数，因此**任何进入 preimage 的字段**（`payload`、`refs`、`prev_refs`、
-`scope_ref`、`preconditions` 等——即除 `proofs` / `unsigned` / `actor_kind` / `event_id` 之外
+`scope_ref`、`preconditions` 等——即除 `event_id` / `proofs` / `unsigned` 之外
 的全部 envelope 字段）**原则上 MUST NOT 承诺任何 Event 标识**。按被承诺对象在本 Event 构造时
 是否已经成型，该禁令分三类，三类的可豁免性**不同**，MUST NOT 混为一谈：
 
@@ -609,7 +606,7 @@ description 若声明指向 enclosing Event 或同 unit / 同 batch 的兄弟 Ev
 1. 取被签对象。若该对象是 `{<core>, <proof carrier>}` 形态的外层容器，原像是 `<core>` 成员本身；
    否则原像是该对象**整体删除 proof carrier 成员之后**的结果。carrier 名由该族 schema 决定
    （`proof` / `proofs` / `signature` / `governance_proof`）；Event envelope 另按 §6 删除
-   `proofs` / `unsigned` / `actor_kind` / `event_id` 四个成员。
+   `event_id` / `proofs` / `unsigned` 三个成员。
 2. **删除的是成员本身，MUST NOT 置为 `null`**，也 MUST NOT 保留空对象或空数组占位——`null` 与
    缺席在 JCS 下是不同字节，两种写法会产生两个互不验证的 digest。
 3. **实际存在的 optional 字段一律逐字保留**；缺席的 optional 字段 MUST NOT 被补写默认值、空串、

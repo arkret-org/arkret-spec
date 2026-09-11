@@ -572,7 +572,7 @@ Arkret 不打算做“两套系统”：
 
 这里"可审计长期沉淀"用 SHOULD，只约束**是否选择把某条沉淀落账**;它与下文 agent 署名的 MUST 相互独立——"沉淀可选"**不蕴含**"署名可选"。一旦选择以 Event 落账(尤其代表人类写入共享对象),署名规则即无条件适用:
 
-Agent 写入 Event 的可审计署名由 Event Envelope 的规范字段承担，权威定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md):agent 以自身身份写入时 `actor_id` 即 agent principal,reducer stamp `actor_kind="agent"` projection;agent 代表 controller 写入(act-on-behalf)时 MUST 同时携带 `executed_by`(agent principal)与 `authorization_ref`(覆盖该动作的 grant / approval 引用),receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。缺少上述署名字段的 agent-signed write MUST 被视为 `schema_violation` 或 `capability_denied`，MUST NOT 把它伪装成人类直接写入。v1 不定义独立的 `agent_context` wire 对象；运行时上下文(prompt、tool session、model 版本等)属于 agent runtime 本地信息，若需向部署留痕，使用 actor-private Account Data 或部署本地审计设施。
+Agent 写入 Event 的可审计署名由 Event Envelope 的规范字段承担，权威定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md)：agent 以自身身份写入时 `actor_id` 即 Agent principal；agent 代表 controller 写入（act-on-behalf）时 MUST 同时携带 `executed_by`（Agent principal）与 `authorization_ref`（覆盖该动作的 grant / approval 引用），receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。审计端分别从 `actor_id`、`executed_by` 与历史 provisioning / accountability evidence 得出 accountable actor 和 executor，不从 Actor Profile 分类推断权限或署名。缺少上述署名字段的 agent-signed write MUST 被视为 `schema_violation` 或 `capability_denied`，MUST NOT 把它伪装成人类直接写入。v1 不定义独立的 `agent_context` wire 对象；运行时上下文（prompt、tool session、model 版本等）属于 agent runtime 本地信息，若需向部署留痕，使用 actor-private Account Data 或部署本地审计设施。
 
 这意味着不存在协议层面的"agent 私有记忆库"。任何需要被审阅、引用或撤回的 agent 记忆都必须以标准对象形式落账；不需要被审阅的运行时状态留在 agent runtime 内部，不进入协议视野。
 

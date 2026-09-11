@@ -33,7 +33,6 @@
           "actor_seq": 3,
           "created_at": "2026-07-29T02:00:00.000Z",
           "prev_refs": [],
-          "refs": [],
           "seal_basis": {
             "leaves": [
               "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"

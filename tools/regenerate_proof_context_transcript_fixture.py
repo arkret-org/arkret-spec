@@ -91,9 +91,8 @@ PROOF_CARRIER_NAMES = (
     "governance_proof",
 )
 
-# Event envelopes drop four members, not one: encoding.md section 6 removes the
-# post-signature projections plus event_id, which is a function of the digest.
-EVENT_ENVELOPE_REMOVED = ["actor_kind", "event_id", "proofs", "unsigned"]
+# Event envelopes drop exactly the derived identity and proof/read-view members.
+EVENT_ENVELOPE_REMOVED = ["event_id", "proofs", "unsigned"]
 
 # Families whose carrier or digest subject cannot be read off the schema node,
 # because the registered node is the proof object itself rather than the object
@@ -273,7 +272,6 @@ VALUE_TABLE: dict[str, Any] = {
             "actor_seq": 1,
             "created_at": "2026-05-02T00:00:00.000Z",
             "prev_refs": [],
-            "refs": [],
             "requirements": {},
             "payload": {},
             "proofs": [],
@@ -630,8 +628,6 @@ def build_case(
             for member in removed_members:
                 if member == "unsigned":
                     signed_object[member] = {"received_at": "2026-05-02T00:00:01.000Z"}
-                elif member == "actor_kind":
-                    signed_object[member] = "user"
                 elif member == "event_id":
                     signed_object[member] = "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
                 elif member in ("proofs", "signatures"):

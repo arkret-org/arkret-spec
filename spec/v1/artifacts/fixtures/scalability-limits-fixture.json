@@ -210,7 +210,7 @@
           "kind": "accepted_event_envelope_canonical_bytes",
           "encoded_size_bytes": 1048576,
           "include_all_proofs": true,
-          "include_reducer_stamped_fields": true,
+          "include_station_admission": true,
           "include_unsigned": false
         }
       },
@@ -227,7 +227,7 @@
           "kind": "accepted_event_envelope_canonical_bytes",
           "encoded_size_bytes": 1048577,
           "include_all_proofs": true,
-          "include_reducer_stamped_fields": true,
+          "include_station_admission": true,
           "include_unsigned": false
         }
       },
@@ -273,16 +273,16 @@
       }
     },
     {
-      "name": "reject_event_that_crosses_limit_after_reducer_stamping",
+      "name": "reject_event_that_crosses_limit_with_complete_admission_proof_set",
       "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
       "input": {
         "generator": {
-          "kind": "event_reducer_stamp_boundary",
+          "kind": "event_admission_proof_budget_boundary",
           "producer_envelope_bytes": 1048500,
           "accepted_candidate_bytes": 1048577,
-          "stamped_fields": [
-            "effective_scope",
-            "actor_kind"
+          "proof_kinds": [
+            "producer_event",
+            "station_admission"
           ]
         }
       },

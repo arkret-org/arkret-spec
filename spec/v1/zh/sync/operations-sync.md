@@ -105,7 +105,7 @@ Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_sco
 1. 确认 Event 携带签名 `scope_ref`、`seal_ref`、`auth_context`，且不携带 `preconditions` 或 `seal_basis`。
 2. 确认 `seal_ref` 指向本 Realm 已接受的 Seal。
 3. 在该 Seal 的控制面 `state_root` / KeyView 下验证 actor/key binding、key epoch、credential epoch、capability refs、policy、membership、Realm lifecycle、Circle lifecycle 与 object scope；这里的 actor/key binding 校验是对 pinned auth-state 的确定性求值，不是对当前 DID Document 的在线重解析。Circle `state=active` MUST 在该 `seal_ref` view 中求值，不得读取 receiver 当前 projection。
-4. 按 Realm 的 `revocation_freshness_window_ms` 判定该 `seal_ref` 是否仍可作为数据面授权基准；Circle archive 复用该框架，Circle tombstone 与 `open_set` 并发 archive / tombstone 不享受窗口，具体见 [`circle.md` §6.1](../models/circle.md)。无法确认撤销新鲜度的高风险写入 MUST fail closed。
+4. 若这是 caller 首次提交，唯一 origin Station 在追加 `station_admission` 的同一 serializable gate 中读取当前 capability、device、membership 与 lifecycle barrier；barrier 已先提交则拒绝，依赖不全则 pending。若这是 federation/backfill accepted Event，则验证原 origin admission proof 及冻结依赖，不以 receiver 当前状态追溯重判。具体见 [`event-auth-state-resolution.md` §4.3](../authz/event-auth-state-resolution.md)。
 5. 从注册的 reducer contract 重算全部 cell writes，确认它们只命中 data plane cell，且 cell family 的 Lattice 操作合法。
 6. 将 DataEvent 纳入本地 data accepted set，并按 cell Lattice join 重算数据面 projection。
 
@@ -337,7 +337,7 @@ Snapshot 后续恢复流程：
 
 - DataEvent 按自身 `seal_ref` 指向的控制面 Seal 验证授权。
 - Control Move 按自身 `seal_basis` 指向的控制面 view 验证授权和 precondition。
-- revoke、grant、membership、policy 与 lifecycle 的可见性由控制面 Seal 拓扑和 `revocation_freshness_window_ms` 判定。
+- revoke、grant、membership、policy 与 lifecycle 的当前有效性由 origin admission gate 的 current accepted control state 判定；已取得有效 `station_admission` 的历史 Event 不因后来控制面变化失效。
 - 同批提交不会让授权变更提前影响后续 Event。
 - 无法解析必要控制面 proof 或 freshness 的写入 MUST fail closed 或 quarantine，不得按 HLC、本地到达顺序或服务端当前数据库猜测授权有效。
 
@@ -347,7 +347,7 @@ ACL 不等于密文保护。Station sync surface 可以转发不透明密文，�
 
 字段可见性分级：
 
-- Event Envelope 顶层路由、因果与签名归属元数据：`event_id`、`realm_id`、签名 `scope_ref`、`kind`、`prev_refs[]`、`causal_refs[]`、`refs[]`、`actor_id`、`actor_seq`、`hlc`、`seal_ref` 或 `seal_basis`、以及 schema 声明的 `executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`actor_kind`。
+- Event Envelope 顶层路由、因果与签名归属元数据：`event_id`、`realm_id`、签名 `scope_ref`、`kind`、`prev_refs[]`、可选非空 `causal_refs[]` / `refs[]`、`actor_id`、`actor_seq`、`hlc`、`seal_ref` 或 `seal_basis`、以及 schema 声明的 `executed_by`、`authorization_ref`、`applet_id`、`external_ref`。
 - 明文业务元数据：轻量状态、rank、due date 等；若足以暴露敏感内容，接收服务必须列入 Realm policy 的 plaintext-visible service。
 - 不透明加密负载：message body、附件内容、私有对象字段等。
 

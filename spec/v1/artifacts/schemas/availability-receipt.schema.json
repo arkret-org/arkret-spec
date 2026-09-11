@@ -22,7 +22,7 @@
     },
     "bytes_digest": {
       "$ref": "#/$defs/digest",
-      "description": "Realm-suite digest of UTF8('ak.availability_event_bytes.v1') || 0x00 || JCS(the complete accepted EventEnvelope with only unsigned removed). event_id, actor_kind and all accepted producer/station proofs remain in the preimage."
+      "description": "Realm-suite digest of UTF8('ak.availability_event_bytes.v1') || 0x00 || JCS(the complete accepted EventEnvelope with only unsigned removed). event_id and all accepted producer/station proofs remain in the preimage."
     },
     "holder_service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"

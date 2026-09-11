@@ -418,11 +418,11 @@
         },
         "observed_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Instant the Station evaluated the accepted basis. The issuing Station clamps expires_at to this instant plus the Realm revocation_freshness_window_ms, so a consumer that holds no Realm policy still decides freshness from observed_at and expires_at alone."
+          "description": "Instant the Station evaluated the current accepted invite and policy basis in its serializable issuance gate. A consumer uses this for audit ordering; it decides attestation validity from the signed expires_at without consulting a Realm-configured grace window."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Attestation validity end. It MUST NOT exceed observed_at plus the Realm revocation_freshness_window_ms, and MUST NOT exceed invite_expires_at."
+          "description": "Explicit attestation validity end chosen by the issuing Station's service policy. It MUST be later than or equal to observed_at and MUST NOT exceed invite_expires_at. A later invite revoke blocks new attestations but does not rewrite an already issued attestation before this signed expiry."
         },
         "signature": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",

@@ -551,99 +551,59 @@
     },
     {
       "name": "auth_context_epoch_pinning_reject",
-      "description": "Verifier evaluates key and credential epoch validity at the event seal_ref, not only against the current DID document.",
-      "revocation_freshness_window_ms": 86400000,
+      "description": "The source Station evaluates key and credential epoch validity inside the serializable admission gate; peers verify the frozen station_admission proof and never re-evaluate an accepted Event against later revocation.",
       "cases": [
         {
-          "name": "revoked_key_old_seal_ref_outside_window",
+          "name": "admission_before_key_revocation_is_retained",
           "key_id": "device-1",
           "key_epoch": 4,
+          "serialization_order": [
+            "station_admission",
+            "key_revocation"
+          ],
           "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "seal_ref_distance_ms": 172800000,
           "expected": {
-            "result": "reject_or_hide",
-            "reason": "seal_ref_stale"
+            "result": "accept_and_retain",
+            "station_admission_valid": true,
+            "retroactive_removal_forbidden": true
           }
         },
         {
-          "name": "revoked_key_within_freshness_window",
+          "name": "key_revocation_before_admission_blocks",
           "key_id": "device-1",
           "key_epoch": 4,
+          "serialization_order": [
+            "key_revocation",
+            "station_admission"
+          ],
           "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "seal_ref": "ak:seal:sha256:2121212121212121212121212121212121212121212121212121212121212121",
-          "seal_ref_distance_ms": 3600000,
           "expected": {
-            "result": "accept",
-            "included_in_data_cell_join": true
+            "result": "failed_precondition",
+            "station_admission_appended": false
           }
         },
         {
-          "name": "revoked_key_at_freshness_window_boundary",
+          "name": "late_delivery_uses_frozen_admission",
           "key_id": "device-1",
           "key_epoch": 4,
-          "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "seal_ref": "ak:seal:sha256:2121212121212121212121212121212121212121212121212121212121212121",
-          "seal_ref_distance_ms": 86400000,
-          "expected": {
-            "result": "accept",
-            "included_in_data_cell_join": true
-          }
-        },
-        {
-          "name": "rejecting_revoked_key_within_freshness_window_is_nonconformant",
-          "key_id": "device-1",
-          "key_epoch": 4,
-          "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "seal_ref": "ak:seal:sha256:2121212121212121212121212121212121212121212121212121212121212121",
-          "seal_ref_distance_ms": 3600000,
-          "implementation_result": "reject",
-          "expected": {
-            "conformance": "fail",
-            "required_result": "accept",
-            "required_included_in_data_cell_join": true
-          }
-        },
-        {
-          "name": "first_delivery_thirty_days_after_revocation_keeps_same_historical_grace_result",
-          "key_id": "device-1",
-          "risk_tier": "medium",
-          "key_epoch": 4,
-          "basis_seal_committed_at": "2026-01-01T00:00:00Z",
-          "revocation_seal_committed_at": "2026-01-01T00:01:00Z",
+          "station_admission_appended_at": "2026-01-01T00:00:00Z",
+          "key_revoked_at": "2026-01-01T00:01:00Z",
           "first_delivery_at": "2026-01-31T00:01:00Z",
-          "seal_ref_distance_ms": 60000,
           "expected": {
-            "result": "accept",
-            "same_as_immediate_delivery": true,
-            "same_across_receivers": true,
-            "same_under_offline_replay": true,
-            "first_delivery_at_is_not_an_input": true
+            "result": "accept_and_retain",
+            "peer_rechecks_current_revocation": false,
+            "same_across_receivers": true
           }
         },
         {
-          "name": "high_risk_has_zero_historical_grace_even_on_immediate_delivery",
-          "key_id": "device-1",
-          "risk_tier": "high",
-          "key_epoch": 4,
-          "basis_seal_committed_at": "2026-01-01T00:00:00Z",
-          "revocation_seal_committed_at": "2026-01-01T00:01:00Z",
-          "first_delivery_at": "2026-01-01T00:01:01Z",
-          "seal_ref_distance_ms": 60000,
-          "expected": {
-            "result": "reject_or_hide",
-            "reason": "seal_ref_stale",
-            "effective_window_ms": 0
-          }
-        },
-        {
-          "name": "epoch_not_valid_at_seal_ref",
+          "name": "epoch_not_valid_at_origin_admission_gate",
           "key_id": "device-1",
           "key_epoch": 7,
-          "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "origin_control_state_contains_epoch": false,
           "current_did_document_contains_key": true,
           "expected": {
             "result": "failed_precondition",
+            "station_admission_appended": false,
             "must_not_use_current_did_document_fallback": true
           }
         }
@@ -935,7 +895,7 @@
           "expected_receiver_state_after": {
             "accepted_variant": "variant_a",
             "accepted_variant_bytes_taken_from": "the winner locator, verbatim",
-            "proofs_actor_kind_and_unsigned": "reused_from_the_already_verified_local_event",
+            "proofs_and_unsigned": "reused_from_the_already_verified_local_event",
             "received_at": "resolution_seal_sealed_at",
             "loser_retention": "variant_b_kept_as_forensic_variant_outside_the_accepted_read_surface",
             "loser_derived_writes": "removed",
@@ -1592,7 +1552,7 @@
     },
     {
       "name": "open_set_concurrent_revocation_fail_closed",
-      "description": "A DataEvent whose seal_ref is locally valid is re-evaluated against the joined multi-leaf control view when a concurrent revocation branch is observed.",
+      "description": "The source Station serializes DataEvent admission against the joined multi-leaf control view. Once station_admission is appended atomically, later revocation never removes the accepted Event or its dependents.",
       "notary_kind": "open_set",
       "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "joined_leaf_set": [
@@ -1625,9 +1585,9 @@
             "cell_status": "value"
           },
           "expected": {
-            "data_event_result": "reject_or_hide",
-            "reason": "seal_ref_stale",
-            "freshness_window_applies": false
+            "data_event_result": "failed_precondition",
+            "reason": "capability_denied",
+            "station_admission_appended": false
           }
         },
         {
@@ -1638,8 +1598,8 @@
           },
           "expected": {
             "data_event_result": "fail_closed",
-            "reason": "seal_ref_stale",
-            "freshness_window_applies": false
+            "reason": "failed_bottom",
+            "station_admission_appended": false
           }
         },
         {
@@ -1652,8 +1612,8 @@
           }
         },
         {
-          "name": "late_revocation_leaf_retroactive_removal",
-          "description": "Ordered sequence, not a single joined-view snapshot: E is first accepted and its reducer-projected write is materialized into data cell X under the initial joined view that has NOT yet joined the revoke leaf R. Dependent event D is then accepted with E as a critical causal dependency and materializes a projected write into data cell Y. R arrives later; once joined, E loses seal_ref authorization, so E and the complete direct/indirect dependency closure rooted at E MUST leave accepted projection inputs. The final state MUST equal that of a receiver that joined {S0,R} from the start, independent of arrival order.",
+          "name": "late_revocation_leaf_preserves_admitted_history",
+          "description": "E receives a valid station_admission and materializes data cell X before revoke leaf R reaches the source admission gate. Dependent Event D is then admitted and materializes data cell Y. R blocks later admissions but cannot remove E, D, or their projected writes.",
           "dependent_data_event": {
             "id": "ak:event:AaFd64dGxtrDPbCq0cu8KtFv-Ga-z7dOzhEHsiP2eaS7",
             "plane": "data",
@@ -1662,7 +1622,7 @@
           },
           "sequence": [
             {
-              "step": "accept_before_revocation",
+              "step": "admit_before_revocation",
               "joined_leaf_set": [
                 "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               ],
@@ -1672,6 +1632,7 @@
               },
               "expected": {
                 "data_event_result": "accept",
+                "station_admission_appended": true,
                 "data_cell_x_contains_event_projection": true,
                 "dependent_event_result": "accept",
                 "data_cell_y_contains_dependent_projection": true
@@ -1689,32 +1650,23 @@
                 "cell_status": "value"
               },
               "expected": {
-                "data_event_result": "reject_or_hide",
-                "reason": "seal_ref_stale",
-                "data_cell_x_projection_retroactively_removed": true,
-                "dependent_event_result": "pending",
-                "dependent_event_reason": "dependency_missing",
-                "dependent_event_projection_retroactively_removed": true,
-                "recursive_dependency_closure_revalidated": true,
-                "projection_recomputed": true,
-                "converges_with_from_start_joiner": true,
-                "order_independent": true
+                "data_event_result": "accept_and_retain",
+                "station_admission_still_valid": true,
+                "data_cell_x_projection_retained": true,
+                "dependent_event_result": "accept_and_retain",
+                "dependent_event_projection_retained": true,
+                "retroactive_authorization_recheck": false,
+                "new_admissions_using_revoked_grant_blocked": true
               }
             }
           ],
           "expected": {
-            "final_data_event_result": "reject_or_hide",
-            "final_reason": "seal_ref_stale",
-            "data_cell_x_projection_retroactively_removed": true,
-            "dependent_event_final_result": "pending",
-            "dependent_event_final_reason": "dependency_missing",
-            "data_cell_y_dependent_projection_retroactively_removed": true,
-            "accepted_set_is_authorized_dependency_closed": true,
-            "final_state_equals_from_start_joiner_of_leaf_set": [
-              "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-            ],
-            "order_independent": true
+            "final_data_event_result": "accept_and_retain",
+            "data_cell_x_projection_retained": true,
+            "dependent_event_final_result": "accept_and_retain",
+            "data_cell_y_dependent_projection_retained": true,
+            "retroactive_removal_forbidden": true,
+            "revocation_blocks_only_new_admission": true
           }
         }
       ],

@@ -64,13 +64,8 @@ class DelegatedWriteAdmissionLockLintTest(unittest.TestCase):
 
     @staticmethod
     def _lifecycle_lock(envelope):
-        for block in envelope["allOf"]:
-            selector = block.get("if", {}).get("properties", {}).get("kind", {})
-            if selector.get("enum") == [
-                "ak.self.agent.pause",
-                "ak.self.agent.resume",
-                "ak.self.agent.deactivate",
-            ]:
+        for block in envelope["$defs"]["registered_admission_shape"]["allOf"]:
+            if block["if"]["properties"]["kind"].get("const") == "ak.self.agent.pause":
                 return block
         raise AssertionError("agent lifecycle envelope lock is missing")
 
@@ -113,33 +108,25 @@ class DelegatedWriteAdmissionLockLintTest(unittest.TestCase):
 
     def test_missing_envelope_lock_fails(self) -> None:
         def mutate(envelope) -> None:
-            envelope["allOf"].remove(self._lifecycle_lock(envelope))
-
-        errors = self._lint(envelope_mutation=mutate)
-        self.assertEqual(
-            sorted(e.split(": ", 1)[1].split(":")[0] for e in errors),
-            sorted(bindings.DELEGATED_WRITE_ADMISSION_KINDS),
-            errors,
-        )
-        self.assertTrue(all("no kind-selected if/then requiring" in e for e in errors), errors)
+            envelope["allOf"].remove({"$ref": "#/$defs/registered_admission_shape"})
+        self.assertTrue(any("projection reference" in e for e in self._lint(envelope_mutation=mutate)))
 
     def test_envelope_lock_missing_one_field_fails(self) -> None:
         def mutate(envelope) -> None:
-            self._lifecycle_lock(envelope)["then"]["required"] = ["executed_by"]
-
-        errors = self._lint(envelope_mutation=mutate)
-        self.assertTrue(
-            all("['authorization_ref']" in e for e in errors) and len(errors) == 3,
-            errors,
-        )
+            self._lifecycle_lock(envelope)["then"] = {"required": ["executed_by"]}
+        self.assertTrue(any("projection drift" in e for e in self._lint(envelope_mutation=mutate)))
 
     def test_envelope_lock_with_extra_selector_does_not_count(self) -> None:
         def mutate(envelope) -> None:
-            lock = self._lifecycle_lock(envelope)
-            lock["if"]["properties"]["payload"] = {"type": "object"}
+            self._lifecycle_lock(envelope)["if"]["required"].append("refs")
+        self.assertTrue(any("projection drift" in e for e in self._lint(envelope_mutation=mutate)))
 
-        errors = self._lint(envelope_mutation=mutate)
-        self.assertEqual(len(errors), 3, errors)
+    def test_agent_genesis_refs_dependent_selector_fails(self) -> None:
+        def mutate(envelope) -> None:
+            guard = next(g for g in envelope["$defs"]["registered_admission_shape"]["allOf"]
+                         if g["if"]["properties"]["kind"].get("const") == "ak.realm.create")
+            guard["if"]["required"].append("refs")
+        self.assertTrue(any("projection drift" in e for e in self._lint(envelope_mutation=mutate)))
 
 
 if __name__ == "__main__":

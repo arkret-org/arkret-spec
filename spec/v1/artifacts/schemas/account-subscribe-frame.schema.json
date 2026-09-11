@@ -97,7 +97,7 @@
         "events": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json"
+            "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
           },
           "maxItems": 100
         }
@@ -555,7 +555,7 @@
         "events": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json"
+            "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
           },
           "maxItems": 100
         },
@@ -629,8 +629,7 @@
                   "failed_plane",
                   "failed_bottom",
                   "rejected_seal",
-                  "fork_quarantine",
-                  "seal_ref_stale"
+                  "fork_quarantine"
                 ]
               },
               "event_state_reason_code": {
@@ -955,7 +954,7 @@
           "type": "array",
           "description": "Optional inline effective ak.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites. MUST be omitted unless subject_account_id is disclosed, because plaintext or decryptable identity events can disclose the same member subject.",
           "items": {
-            "$ref": "./event-envelope.schema.json"
+            "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
           }
         },
         "handle_claim_digests": {

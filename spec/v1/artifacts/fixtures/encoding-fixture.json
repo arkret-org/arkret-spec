@@ -234,7 +234,6 @@
         "created_at": "2026-04-26T00:00:00.000Z",
         "hlc": "01970e589d21-0004-a13f9c2e",
         "prev_refs": [],
-        "refs": [],
         "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_context": {
           "key_id": "device-1",
@@ -249,8 +248,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"actor_seq\":1,\"auth_context\":{\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "expected_digest": "sha256:d215d667975b07f5f0f8e577da0583f6d066bce916156937e65161ce224c51b8",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"actor_seq\":1,\"auth_context\":{\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_digest": "sha256:e1c68e4c5e39b3e4b4d5cbee8af62b6657175bfcd4aebcd27b8f59291c322c8b",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST be derived from the digest and excluded from its own digest input",
@@ -1120,12 +1119,11 @@
       "kind": "canonical_event_tie_break",
       "description": "Producer-biased canonical presentation and serialization order. Decoded digest octets sort ascending, with canonical suite id as secondary key only when octets are identical. The order never selects a semantic winner or removes a candidate.",
       "digest_preimage": {
-        "source": "envelope_without_proofs_unsigned_actor_kind_event_id",
+        "source": "envelope_without_event_id_proofs_unsigned",
         "removed_top_level_fields": [
+          "event_id",
           "proofs",
-          "unsigned",
-          "effective_scope",
-          "actor_kind"
+          "unsigned"
         ]
       },
       "comparison": {
@@ -1260,7 +1258,7 @@
           "expected": "exact_replay_single_entry_no_sibling_diagnostic"
         },
         {
-          "name": "proofs_or_reducer_stamps_only_difference_is_not_collision",
+          "name": "proofs_or_unsigned_only_difference_is_not_collision",
           "candidates": [
             {
               "label": "a",
@@ -1273,8 +1271,7 @@
               "label": "b",
               "canonical_preimage_equal_to": "a",
               "differs_in": [
-                "effective_scope",
-                "actor_kind"
+                "unsigned"
               ]
             }
           ],

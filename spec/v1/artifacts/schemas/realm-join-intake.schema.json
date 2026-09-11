@@ -939,7 +939,6 @@
         "actor_seq",
         "created_at",
         "prev_refs",
-        "refs",
         "seal_basis",
         "payload",
         "preconditions"
@@ -975,11 +974,6 @@
         },
         "prev_refs": {
           "$ref": "./event-envelope.schema.json#/properties/prev_refs"
-        },
-        "refs": {
-          "$ref": "./event-envelope.schema.json#/properties/refs",
-          "maxItems": 0,
-          "description": "The closed prepare flow carries no semantic references; caller intent authorizes no extra grant, invite, source or related ref."
         },
         "seal_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis"

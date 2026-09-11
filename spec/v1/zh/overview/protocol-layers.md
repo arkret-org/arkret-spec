@@ -112,8 +112,8 @@ delivery/query 所需的原生安全 scope 形状，不解释 Sidecar 领域 red
 
 字段名固定为 `scope_ref`。它是 signed producer fact，不是 reducer 盖章字段。reducer MUST
 从 schema-validated payload、已接受的对象引用及治理状态独立派生 Realm、Circle 或 Sidecar 安全作用域，并逐字段比较；
-无法派生、引用未补齐或不相等时 MUST fail closed。`actor_kind` 是 Event Envelope 唯一仍可由
-reducer 盖章且不进入 producer event digest 的顶层字段。
+无法派生、引用未补齐或不相等时 MUST fail closed。Event Envelope 不包含 reducer 盖章字段；
+除 `event_id`、`proofs` 与 `unsigned` 外，所有实际存在的顶层字段都进入 producer event digest。
 
 服务端只能用 `scope_ref` 做 ingress authorization、MLS/security policy 选择、eligible-device
 fanout 与 federation routing。Strand、Message、Track、Call、read position 等精确产品目标

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.6",
+  "version": "2026-09-11.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-11T21:54:24+08:00",
+  "generated_at": "2026-09-11T23:16:51+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1610,7 +1610,7 @@
       "http": "POST /_arkret/open/third-party-invites/activate",
       "grpc": "OpenThirdPartyInvite/Activate",
       "mq": "open.third_party_invite.command.activate",
-      "notes": "Back-binding activation of one provisioned private record to exactly one accepted ak.invite.third_party (third-party-invites.md section 7.5). The body carries provisioning_id and the Station-signed ThirdPartyInviteAcceptanceAttestation; the attestation is the whole authorization, so a caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT be accepted in its place. The service verifies the Station service identity and signature, audience, exact verification_id, freshness against the Realm revocation_freshness_window_ms, and member-for-member equality of author, Realm, expiry and public material against the frozen provisioning record, recomputes invite_digest from the attested cell per section 4.2, then atomically persists the unique binding and the delivery intent. One provisioning record binds to one invite forever: a second attestation naming a different invite, Realm or author is refused and never rebinds, rotates the key or reissues the token. A byte-identical retry, a concurrent duplicate and a retry after a restart all return the original binding.",
+      "notes": "Back-binding activation of one provisioned private record to exactly one accepted ak.invite.third_party (third-party-invites.md section 7.5). The body carries provisioning_id and the Station-signed ThirdPartyInviteAcceptanceAttestation; the attestation is the whole authorization, so a caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT be accepted in its place. The service verifies the Station service identity and signature, audience, exact verification_id, the attestation's signed expires_at/invite_expires_at bounds, and member-for-member equality of author, Realm, expiry and public material against the frozen provisioning record, recomputes invite_digest from the attested cell per section 4.2, then atomically persists the unique binding and the delivery intent. One provisioning record binds to one invite forever: a second attestation naming a different invite, Realm or author is refused and never rebinds, rotates the key or reissues the token. A byte-identical retry, a concurrent duplicate and a retry after a restart all return the original binding.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",

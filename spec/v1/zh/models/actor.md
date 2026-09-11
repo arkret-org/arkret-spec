@@ -20,7 +20,7 @@ Actor 是 Arkret 协作图中"能执行动作的主体"。Actor identity 的根�
 
 协议中的 actor identity 根由 DID 定义。
 
-Actor 类型（`actor_kind`）：
+Actor Profile 可声明以下展示分类（`actor_kind`）：
 
 - `user`
 - `organization`
@@ -30,14 +30,14 @@ Actor 类型（`actor_kind`）：
 - `service`
 - `integration`
 
-`actor_kind` 不包含 `device`：设备不是 actor 主体，没有自己的 DID。设备永远从属于某个 user/organization principal，通过 `ak.device.authorize` 由该 principal 授权登记；设备的稳定标识是 `device_id`（`ak:device:<uuid>` typed ID），设备密钥是该 principal DID 下的 verification method。详见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
+`actor_kind` 不包含 `device`：设备不是 actor 主体，没有自己的 DID。设备永远从属于某个 user/organization principal，通过 `ak.device.authorize` 由该 principal 授权登记；设备的稳定标识是 `device_id`（`ak:device:<uuid>` typed ID），设备密钥是该 principal DID 下的 verification method。`actor_kind` 只存在于 Actor Profile / read projection，不进入 Event Envelope，也不授予 capability、决定签名归属或替代 provisioning / registration / installation / accountability。详见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
 
 Actor MAY 有对应的 `actor_profile` 对象，便于在协作图中被 mention、assign 或展示。
 
 所有 Station 承载 Actor 的完整身份统一为 `ActorId.account{account_id:{principal_id,station_id}}`，
 包括 user、Agent、Ghost、organization/team 账号与 integration。服务以自身身份直接行动时使用
-`ActorId.service{service_id}`。`actor_kind`、controller、provisioning、credential 与 lifecycle 是独立的
-已验证事实，不得成为同一 principal/station pair 的另一身份分支，也不得仅因 account 分支授予权限。
+`ActorId.service{service_id}`。Profile `actor_kind` 是非权威展示分类；controller、provisioning、registration、
+credential 与 lifecycle 才是各自独立验证的安全事实。任何一项都不得成为同一 principal/station pair 的另一身份分支，也不得仅因 account 分支或 Profile 分类授予权限。
 
 Accountable actor MUST 记录责任关系，但 accountability 不等于 capability。
 
@@ -64,7 +64,7 @@ Schema id: `ak.schema.actor_profile.v1`
 | `schema` | yes | `ak.schema.actor_profile.v1` | const。 | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 profile 可省略。 | 所属 Realm。 |
 | `principal_id` | yes | `did_core_id` | 权限仍以经DID 证明的稳定主体与 capability 为准。 | Principal 的稳定业务身份。 |
-| `actor_kind` | yes | `enum(user, organization, team, agent, bot, service, integration)` | 不含 `device`：设备非 actor 主体，见 §2 与 device-lifecycle §4。 | Actor 类型。 |
+| `actor_kind` | yes | `enum(user, organization, team, agent, bot, service, integration)` | 不含 `device`：设备非 actor 主体，见 §2 与 device-lifecycle §4。仅用于 Profile 展示、发现与 compose-time 分类；不得作为 Event 授权、签名归属或审计问责的权威来源。 | Actor Profile 分类。 |
 | `display_name` | yes | `string` | 1..128 chars。 | 展示名。 |
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
 | `agent_slug` | no | `string` | 仅 Agent 可用；pattern 以 `actor-profile.schema.json` 为准。若出现，MUST 可由当前有效 `ak.schema.agent_selector_claim.v1` 证明；冲突时 selector 解析 fail closed。 | controller-scoped agent mention selector 的投影 hint；不是 handle、权限主体或目录发现键。 |
@@ -78,11 +78,11 @@ Schema id: `ak.schema.actor_profile.v1`
 
 ### 3.3 `principal_id` 与 `actor_kind` 的语义
 
-`principal_id` 是授权、签名和审计归属的稳定 `did_core_id`；`actor_kind` 只是该主体在协作图中的展示和策略分类。
+`principal_id` 是授权、签名和审计归属的稳定 `did_core_id`；`actor_kind` 只是该 Profile 在协作图中的展示、发现和 compose-time 分类。Profile 值与已验证 provisioning / registration / installation / ActorId 分支或 accountability 冲突时，安全判断 MUST 使用后者并 fail closed；不得以 Profile 扩权或改写历史 Event 归属。
 
-- **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。设备的一切普通协作-图行动 MUST 以所属账号的完整 account `ActorId`（包含 `principal_id` 与 `station_id`）作为 `actor_id`；设备身份通过 proof `verification_method`、`device_id`（`ak:device:<uuid>`）、`ak.device.authorize` 或 session grant 表达。唯一例外是声明 `ak.profile.mls.minimal_metadata_realm.v1` 的 Realm：发送方 MAY 使用显式 `ak.profile.ephemeral_pairwise_principal.v1` 的临时 pairwise **actor principal**（`did:key` 投影的 `did_core_id`，`actor_kind` 仍取 `user`/`agent` 等真实主体类型）。该 actor 不进入账号、PCR、Actor Profile 或设备目录；其作者 authority 仅来自 Event 所钉定 exact `(group_id, epoch, group_state_ref)` 中恰好一条 active LeafNode，且 credential identity 与 pairwise `did`、signature key 与 Event proof key 必须逐字一致。transport session 只承担访问与限流，不是作者授权，也不得被持久化为 identity link。该 pairwise actor 在 wire 上仍以完整 account `ActorId` 作者 Event，其 `actor_id` 的 `station_id` 分量是**当次的 hosting Station**；Realm 内状态（membership cell、MLS leaf 披露）仍按完整 `ActorId` 定址。只有 Realm **之外**的持有方把它当匹配键时才改用 `(realm_id, principal_id)`——v1 封闭列举为 consent peer 匹配与 KeyPackage claim 授权两处，判据见 [`../crypto-media/encryption-and-audit.md` §2.7](../crypto-media/encryption-and-audit.md)。该例外只对本 profile 成立，不放松普通 Account / Agent / service actor 的完整 ActorId 相等规则。
+- **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。设备的一切普通协作-图行动 MUST 以所属账号的完整 account `ActorId`（包含 `principal_id` 与 `station_id`）作为 `actor_id`；设备身份通过 proof `verification_method`、`device_id`（`ak:device:<uuid>`）、`ak.device.authorize` 或 session grant 表达。唯一例外是声明 `ak.profile.mls.minimal_metadata_realm.v1` 的 Realm：发送方 MAY 使用显式 `ak.profile.ephemeral_pairwise_principal.v1` 的临时 pairwise **actor principal**（`did:key` 投影的 `did_core_id`）。该 actor 不进入账号、PCR、Actor Profile 或设备目录，因此也没有可读取的 `actor_kind`；其作者 authority 仅来自 Event 所钉定 exact `(group_id, epoch, group_state_ref)` 中恰好一条 active LeafNode，且 credential identity 与 pairwise `did`、signature key 与 Event proof key 必须逐字一致。transport session 只承担访问与限流，不是作者授权，也不得被持久化为 identity link。该 pairwise actor 在 wire 上仍以完整 account `ActorId` 作者 Event，其 `actor_id` 的 `station_id` 分量是**当次的 hosting Station**；Realm 内状态（membership cell、MLS leaf 披露）仍按完整 `ActorId` 定址。只有 Realm **之外**的持有方把它当匹配键时才改用 `(realm_id, principal_id)`——v1 封闭列举为 consent peer 匹配与 KeyPackage claim 授权两处，判据见 [`../crypto-media/encryption-and-audit.md` §2.7](../crypto-media/encryption-and-audit.md)。该例外只对本 profile 成立，不放松普通 Account / Agent / service actor 的完整 ActorId 相等规则。
 - `team`、`agent`、`bot`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_principal_ids` 指向控制/责任 principal；它们不会因为 `accountable_principal_ids` 自动继承权限。
-- **Actor 分类边界（normative）**：`Agent` 是唯一的 Agent 概念；wire 上恰好使用 `actor_kind="agent"`，且 MUST 是 controller 通过 `ak.self.agent.command.provision.v1` 创建、拥有独立 DID document、指向 controller 的 `ak.identity.accountability_grant` 与 `ak.agent.key.authorize` runtime key 的一等 principal。协议不存在“普通设备 Agent”“托管 Agent”或 Agent 的 native/ghost 子类。Applet 创建或托管的自动化 Actor MUST 使用 `actor_kind="bot"`，不得使用 `agent`。Device 只是 principal endpoint，既不是 Actor 也不是 Agent。Ghost Actor 是外部主体镜像的 provenance，不是 `actor_kind`；外部账号/集成镜像使用 `integration`，外部 Bot 镜像使用 `bot`，不得使用 `agent`。Applet 自身直接行动时使用 `service`。Realm policy MUST 分别控制 Agent、Bot 与 Applet/Ghost provenance，不得合并为单一 "automation allowed" 开关：
+- **Actor 分类边界（normative）**：`Agent` 是唯一的 Agent 概念；其 Actor Profile 使用 `actor_kind="agent"`，但 Agent 身份 MUST 由 controller 发起的 `ak.self.agent.command.provision.v1`、独立 DID document、指向 controller 的 `ak.identity.accountability_grant` 与 `ak.agent.key.authorize` runtime key 共同证明。协议不存在“普通设备 Agent”“托管 Agent”或 Agent 的 native/ghost 子类。Applet 创建或托管的自动化 Actor Profile 使用 `actor_kind="bot"`，不得使用 `agent`，但其安全身份来自 Applet registration/install/provisioning。Device 只是 principal endpoint，既不是 Actor 也不是 Agent。Ghost Actor 是外部主体镜像的 provenance，不是 `actor_kind`；外部账号/集成镜像 Profile 使用 `integration`，外部 Bot 镜像 Profile 使用 `bot`，不得使用 `agent`。Applet 自身直接行动时由 `ActorId.service` 与 registration 证明，Profile 可分类为 `service`。Realm policy MUST 分别控制 Agent、Bot 与 Applet/Ghost provenance，不得把 Profile 字面值当作单一 "automation allowed" 授权开关：
   - **Agent**：可被 mention / grant / revoke / pause / deactivate；只走 Agent provisioning、pairing、runtime key、Sidecar 与 controller membership cascade。
   - **Bot**：Applet 管辖的自动化 principal；其 lifecycle 与授权根来自 Applet registration/install/provisioning，MUST NOT 进入 Agent provisioning、pairing、Sidecar 或 controller membership cascade。
   - **Ghost Actor**（[`../extensions/applet-integration.md`](../extensions/applet-integration.md)）：Applet 管辖 namespace 下的外部主体镜像。`actor_id` MUST 是该 Ghost 的完整 account `ActorId`；Actor Profile `principal_id` MUST 是无 fragment 的 `did_core_id`，不得用它替代完整账号身份；DID 仅进入已验证 resolution commitment，DID URL fragment 只用于 `verification_method`。其初始 `accountable_principal_ids` 恰为签署同 provisioning aggregate accountability grant 的 `[service_id]`；controller 只有另行签发 active grant 才可加入。每个 Ghost 有独立 `AccountId` 与 purpose=`applet_managed_control` PCR，rotation 走普通 resolution update；active registration/install grant/revoke fence 控制新写入，历史与 resolution audit 不因撤销而删除。
@@ -128,7 +128,7 @@ Schema id: `ak.schema.actor_profile.v1`
     accountability grant。授权根仍是完整 AccountId 与既有 grant 链，不是这个 cell。
   - 因此本 family 的 `bottom=expose` 只表示读路径暴露多 heads，不构成 `⊥`（§9.1.1）。
 
-- Event Envelope 在 reducer 接受时 stamp `actor_kind` projection(见 [`event-and-patch.md`](./event-and-patch.md) §2.2),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可分类 event。该字段是 reducer-managed immutable,actor 提交侧 MUST NOT 携带。
+- Event Envelope 不携带主体分类 stamp。审计 / 取证 / offline reader 必须分别保留签名覆盖的 `actor_id` 与可选 `executed_by`，并解析准入时点的 provisioning / registration / installation / accountability / identity 证据；Actor Profile `actor_kind` 只能作为展示分类，不能决定问责主体、executor 或权限。
 
 ### 3.3.1 `accountable_principal_ids` 的可验证性（normative）
 

@@ -1560,42 +1560,6 @@ def _admission_mandatory_top_level_fields(event_registry: dict[str, Any]) -> dic
     return mandatory
 
 
-def _envelope_kind_locked_fields(envelope: dict[str, Any]) -> dict[str, set[str]]:
-    """Fields the Event Envelope schema requires unconditionally for a kind:
-    an allOf if/then whose only if-selector is the kind const/enum."""
-    locked: dict[str, set[str]] = {}
-    for block in envelope.get("allOf", []):
-        if not isinstance(block, dict):
-            continue
-        condition = block.get("if")
-        consequence = block.get("then")
-        if not isinstance(condition, dict) or not isinstance(consequence, dict):
-            continue
-        properties = condition.get("properties")
-        if not isinstance(properties, dict) or set(properties) != {"kind"}:
-            continue
-        if set(condition) - {"properties", "required"}:
-            continue
-        kind_selector = properties["kind"]
-        if not isinstance(kind_selector, dict):
-            continue
-        if "const" in kind_selector:
-            kinds = [kind_selector["const"]]
-        elif isinstance(kind_selector.get("enum"), list):
-            kinds = list(kind_selector["enum"])
-        else:
-            continue
-        required = consequence.get("required")
-        if not isinstance(required, list):
-            continue
-        for kind in kinds:
-            if isinstance(kind, str):
-                locked.setdefault(kind, set()).update(
-                    field for field in required if isinstance(field, str)
-                )
-    return locked
-
-
 def check_delegated_write_admission_envelope_lock(lint: Lint) -> None:
     """Event kinds whose admission requires the executor pair on every branch MUST
     keep that requirement in the registry and mirror it as an Event Envelope lock."""
@@ -1614,15 +1578,19 @@ def check_delegated_write_admission_envelope_lock(lint: Lint) -> None:
                 "every non-otherwise branch requires top_level_fields_present "
                 f"{sorted(DELEGATED_WRITE_ENVELOPE_FIELDS)} and whose final otherwise branch denies",
             )
-    locked = _envelope_kind_locked_fields(envelope)
-    for kind in sorted(mandatory):
-        missing = sorted(mandatory[kind] - locked.get(kind, set()))
-        if missing:
-            lint.fail(
-                envelope_path,
-                f"{kind}: admission requires {sorted(mandatory[kind])} on every branch but "
-                f"event-envelope.schema.json has no kind-selected if/then requiring {missing}",
-            )
+    from tools.event_admission_contract import schema_definitions
+
+    try:
+        expected = schema_definitions(event_registry)
+    except (KeyError, ValueError) as exc:
+        lint.fail(event_path, f"invalid admission projection: {exc}")
+        return
+    if envelope.get("allOf", []).count({"$ref": "#/$defs/registered_admission_shape"}) != 1:
+        lint.fail(envelope_path, "missing canonical admission projection reference")
+    for name, definition in expected.items():
+        if envelope.get("$defs", {}).get(name) != definition:
+            lint.fail(envelope_path, f"{name}: canonical admission projection drift")
+
 
 
 def check_event_admission_coverage(lint: Lint) -> None:

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.1",
+  "version": "2026-09-11.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T11:39:09+08:00",
+  "generated_at": "2026-09-11T23:16:51+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -121,7 +121,7 @@
           "signer_resolution_evidence_ref"
         ]
       },
-      "preimage": "canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id) of the enclosing Event (the retained proof.event_digest); not the signer evidence",
+      "preimage": "canonical_digest(envelope_without_event_id_proofs_unsigned) of the enclosing Event (the retained proof.event_digest); not the signer evidence",
       "spec_anchor": "spec/v1/zh/conformance/encoding.md#6-signature"
     },
     {
@@ -153,7 +153,7 @@
           "signer_resolution_evidence_ref"
         ]
       },
-      "preimage": "canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id) of the enclosing Event (the retained proof.event_digest); not the signer evidence",
+      "preimage": "canonical_digest(envelope_without_event_id_proofs_unsigned) of the enclosing Event (the retained proof.event_digest); not the signer evidence",
       "spec_anchor": "spec/v1/zh/conformance/encoding.md#6-signature"
     },
     {

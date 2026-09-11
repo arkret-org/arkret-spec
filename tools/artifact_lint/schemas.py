@@ -2378,6 +2378,24 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     if data is None:
         return
 
+    properties = data.get("properties", {})
+    required = data.get("required", [])
+    if "actor_kind" in properties or "actor_kind" in required:
+        lint.fail(path, "Event Envelope must not declare the removed actor_kind stamp")
+    for field in ("refs", "causal_refs"):
+        schema = properties.get(field, {})
+        if field in required:
+            lint.fail(path, f"{field} must be optional and omitted when empty")
+        if not isinstance(schema, dict) or schema.get("minItems") != 1:
+            lint.fail(path, f"present {field} must contain at least one reference")
+        if isinstance(schema, dict) and "default" in schema:
+            lint.fail(path, f"{field} must not define a default that changes signed identity")
+    prev_refs = properties.get("prev_refs", {})
+    if "prev_refs" not in required or not isinstance(prev_refs, dict):
+        lint.fail(path, "prev_refs must remain required")
+    elif prev_refs.get("minItems", 0) != 0 or "default" in prev_refs:
+        lint.fail(path, "prev_refs must allow explicit [] and must not define a default")
+
     def realm_create_purpose_const(branch: object) -> object:
         if not isinstance(branch, dict):
             return None
@@ -2393,10 +2411,6 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
 
     discriminator_conditions = {
         "Any Event carrying did_inception": ("then", "principal_control"),
-        "A agent_control Realm create without did_inception": (
-            "if",
-            "agent_control",
-        ),
     }
     schema_nodes = [node for _json_path, node, _key in walk_json(data) if isinstance(node, dict)]
 
@@ -3887,13 +3901,13 @@ def check_classification_context_paths(lint: Lint) -> None:
 
 
 def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
-    """Pin Circle lifecycle evaluation to the Event CBS basis and freshness rules."""
+    """Pin Circle lifecycle to the source-Station serializable admission barrier."""
     path = ARTIFACTS / "fixtures" / "circle-scope-fixture.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
 
-    vector_id = "ak.vector.circle.lifecycle_basis_and_archive_freshness.v1"
+    vector_id = "ak.vector.circle.lifecycle_admission_barrier.v1"
     covers = data.get("covers_vectors", [])
     if not isinstance(covers, list) or vector_id not in covers:
         lint.fail(path, f"covers_vectors must include {vector_id}")
@@ -3909,11 +3923,11 @@ def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
     }
     required_names = {
         "data_event_basis_already_archived",
-        "linear_archive_within_freshness_window",
-        "linear_archive_beyond_freshness_window",
-        "open_set_concurrent_archive",
-        "tombstone_is_immediate",
-        "restore_does_not_rehabilitate_pre_archive_basis",
+        "admission_before_archive_is_retained",
+        "archive_before_admission_blocks",
+        "open_set_joined_archive_blocks_admission",
+        "tombstone_before_admission_blocks",
+        "restore_requires_new_signed_event",
         "control_move_basis_active",
         "control_move_basis_archived",
     }
@@ -3928,55 +3942,28 @@ def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
     if archived.get("expected") != {"result": "failed_precondition", "reason": "circle_not_active"}:
         lint.fail(path, "an inactive Circle in the Event basis must reject with circle_not_active")
 
-    within = cases["linear_archive_within_freshness_window"]
-    within_expected = within.get("expected", {})
-    if not isinstance(within_expected, dict) or within_expected.get("result") != "accept":
-        lint.fail(path, "linear archive within the freshness window must be accepted")
-    within_distance = within.get("distance_ms")
-    within_window = within.get("revocation_freshness_window_ms")
-    if not isinstance(within_distance, int) or not isinstance(within_window, int) or within_distance > within_window:
-        lint.fail(path, "within-window Circle archive case exceeds its freshness window")
-    if within_expected.get("included_in_data_cell_join") is not True:
-        lint.fail(path, "accepted within-window Circle archive must remain in data-cell join input")
-    if within_expected.get("must_not_reason") != "circle_not_active":
-        lint.fail(path, "post-basis archive must not be reclassified as basis-time circle_not_active")
+    admitted = cases["admission_before_archive_is_retained"].get("expected", {})
+    if admitted.get("result") != "accept_and_retain" or admitted.get("retroactive_removal_forbidden") is not True:
+        lint.fail(path, "an Event admitted before archive must remain accepted permanently")
 
-    beyond = cases["linear_archive_beyond_freshness_window"]
-    beyond_distance = beyond.get("distance_ms")
-    beyond_window = beyond.get("revocation_freshness_window_ms")
-    if not isinstance(beyond_distance, int) or not isinstance(beyond_window, int) or beyond_distance <= beyond_window:
-        lint.fail(path, "beyond-window Circle archive case must exceed its freshness window")
-    if beyond.get("expected") != {"result": "reject_or_hide", "reason": "seal_ref_stale"}:
-        lint.fail(path, "beyond-window Circle archive must reject or hide with seal_ref_stale")
-
-    concurrent = cases["open_set_concurrent_archive"]
-    concurrent_expected = concurrent.get("expected", {})
-    if concurrent.get("notary_kind") != "open_set" or concurrent.get("evaluation_basis") != "joined_control_view":
-        lint.fail(path, "concurrent Circle archive must evaluate the open_set joined control view")
-    if not isinstance(concurrent_expected, dict) or concurrent_expected.get("reason") != "seal_ref_stale":
-        lint.fail(path, "concurrent Circle archive must fail closed with seal_ref_stale")
-    if concurrent_expected.get("freshness_window_applies") is not False:
-        lint.fail(path, "concurrent Circle archive must not receive a freshness window")
-
-    tombstone = cases["tombstone_is_immediate"]
-    tombstone_expected = tombstone.get("expected", {})
-    if tombstone.get("observed_lifecycle_move") != "ak.circle.tombstone":
-        lint.fail(path, "tombstone_is_immediate must use ak.circle.tombstone")
-    if (
-        not isinstance(tombstone_expected, dict)
-        or tombstone_expected.get("reason") != "seal_ref_stale"
-        or tombstone_expected.get("freshness_window_applies") is not False
+    for name in (
+        "archive_before_admission_blocks",
+        "open_set_joined_archive_blocks_admission",
+        "tombstone_before_admission_blocks",
     ):
-        lint.fail(path, "Circle tombstone must fail closed without a freshness window")
+        expected = cases[name].get("expected", {})
+        if expected.get("result") != "failed_precondition" or expected.get("reason") != "circle_not_active":
+            lint.fail(path, f"{name} must fail with circle_not_active")
+        if expected.get("station_admission_appended") is not False:
+            lint.fail(path, f"{name} must not append station_admission")
 
-    restore = cases["restore_does_not_rehabilitate_pre_archive_basis"]
-    restore_expected = restore.get("expected", {})
-    if restore.get("seal_ref_position") != "before_archive":
-        lint.fail(path, "restore barrier case must use a pre-archive seal_ref")
-    if not isinstance(restore_expected, dict) or restore_expected.get("reason") != "seal_ref_stale":
-        lint.fail(path, "restore must not rehabilitate a pre-archive seal_ref")
-    if restore_expected.get("requires_new_basis_containing") != "ak.circle.restore":
-        lint.fail(path, "post-restore writes must require a basis containing ak.circle.restore")
+    concurrent = cases["open_set_joined_archive_blocks_admission"]
+    if concurrent.get("evaluation_basis") != "origin_serializable_joined_control_view":
+        lint.fail(path, "open_set archive must be evaluated in the origin serializable joined control view")
+
+    restore_expected = cases["restore_requires_new_signed_event"].get("expected", {})
+    if restore_expected.get("requires_new_event_signed_after_restore") is not True:
+        lint.fail(path, "restore must require a new Event signed after restore")
 
     control_active = cases["control_move_basis_active"]
     control_archived = cases["control_move_basis_archived"]

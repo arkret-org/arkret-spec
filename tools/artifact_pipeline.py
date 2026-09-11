@@ -41,9 +41,11 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .event_admission_contract import synchronize as synchronize_event_admission
     from .release_metadata import current_release_tag as read_current_release_tag
     from .check_artifact_versions import semantic_content_digest, transition_errors
 except ImportError:  # Direct script execution: python tools/artifact_pipeline.py
+    from event_admission_contract import synchronize as synchronize_event_admission
     from release_metadata import current_release_tag as read_current_release_tag
     from check_artifact_versions import semantic_content_digest, transition_errors
 
@@ -1294,6 +1296,7 @@ def run_operation_closure_locks(mode: str) -> int:
 
 
 def cmd_generate(_: argparse.Namespace) -> int:
+    synchronize_event_admission(ROOT, check=False)
     current_values_status = subprocess.run(
         [sys.executable, str(ROOT / "tools/generate_current_result_values.py")], cwd=ROOT
     ).returncode
@@ -1349,6 +1352,10 @@ def verdict(command: str, failed: Sequence[str]) -> int:
 
 def cmd_check(_: argparse.Namespace) -> int:
     errors = check_capability_action_derivations()
+    try:
+        synchronize_event_admission(ROOT, check=True)
+    except ValueError as exc:
+        errors.append(str(exc))
     errors.extend(check_id_wire_form_derivations())
     errors.extend(check_openapi_policy_projection())
     errors.extend(check_derived_registry_views())
@@ -1364,6 +1371,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         return verdict("check", ["pre-lint pipeline"])
     print_contract_status()
     checks = (
+        ("event admission and frozen finality", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_event_admission_contract.py")], cwd=ROOT).returncode),
         ("current result atomic budget", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_result_budget.py")], cwd=ROOT).returncode),
         ("self signer result schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_self_signer_result_schema.py")], cwd=ROOT).returncode),
         ("current principal schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_principal_schema.py")], cwd=ROOT).returncode),

@@ -127,16 +127,15 @@ Relation.effective_scope      : reducer-derived read projection，必须等于�
 
 **Circle lifecycle 求值基线（normative）**：上述 `state=active` 检查是 CBS 授权输入，不得读取 receiver 当前 materialized Circle projection 代替事件自己的治理基线。DataEvent MUST 在其 `seal_ref` 对应的控制面 view 中求值 Circle `realm_id` 与 lifecycle；Control Move 在 admission 时 MUST 在其 `seal_basis.leaves[]` 合成的 joined control view 中求值，并在 Seal 接受时按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.3 step 8 对该 Seal 的冻结 predecessor joined governance state 重验。若对应基线内 Circle 已是 `archived` 或 `tombstoned`，MUST `failed_precondition`(`reason=circle_not_active`)。实现不得因本地较新的 Circle projection 不同而改变同一基线的判定。
 
-当 DataEvent 的 `seal_ref` 基线内 Circle 仍为 `active`、但 receiver 已观察到其后的 lifecycle Seal 时，按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 的撤销新鲜度框架处理：
+当 DataEvent 的 `seal_ref` 基线内 Circle 仍为 `active` 时，archive / tombstone 与该 Event 的先后只由唯一
+origin Station 的 serializable admission gate 决定（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3）：
 
-- 若 `ak.circle.archive` 所在 Seal `S_archive` 是 `seal_ref` 的后继，`distance(seal_ref, S_archive)` MUST 使用被签名的 Seal 提交时间计算。距离不超过 `revocation_freshness_window_ms` 时，receiver MUST 接受并把该 Event 保留在 data-cell join 输入；超过窗口 MUST 拒绝或隐藏，code=`seal_ref_stale`。不得把 receiver 当前看到的 `archived` 直接当成事件基线内的 `circle_not_active`，也不得为此自造未登记的响应字段。
-- `ak.circle.tombstone` 是不可逆终止。一旦 receiver 观察到其 Seal，任何更早 `seal_ref` 的 Circle-scoped DataEvent MUST 立即拒绝或隐藏，code=`seal_ref_stale`，不享受新鲜度窗口。
-- `open_set` 下 archive / tombstone Seal 与 `seal_ref` 并发时，receiver MUST 按已验证 leaf 集的 joined control view 重判；joined lifecycle 不是 `active` 时立即 `seal_ref_stale`，不得计算 `distance` 或给予窗口。无法验证 multi-leaf joined view 的轻客户端 MUST hold pending 或 fail closed，不得 fanout。
-- 后续 `ak.circle.restore` 只使**以包含 restore 的 active control view 为新基线**的写入恢复合法；它 MUST NOT 追溯恢复任何跨过 archive barrier 的旧 `seal_ref`。producer 在 restore 后继续写入 MUST 换用包含 restore 的新 Seal 基线。
+- Event 已取得 `station_admission` 后才接受 archive / tombstone：历史 Event 永久保留在 reducer input，scope 不重写；
+- archive / tombstone 已进入 gate 后才首次提交 Event：即使仍引用旧 active `seal_ref` 也 MUST 拒绝且不得追加 admission proof；
+- 并发到达由同一 gate 的持久化顺序唯一决定；所需 joined control dependencies 不全时 pending；
+- 后续 `ak.circle.restore` 只恢复其后新 admission 的资格。曾在 barrier 后被拒绝的 producer-only submit 必须以包含 restore 的新 Seal 基线重新签发；restore 不改变此前 accepted history。
 
-这些规则只统一 lifecycle gate 的基线与 stale 处置，不改变签名 `scope_ref`：一旦 DataEvent
-被接受，其 scope 不因 archive/restore 重写。对应 conformance vector 是
-`ak.vector.circle.lifecycle_basis_and_archive_freshness.v1`。
+对应 conformance vector 是 `ak.vector.circle.lifecycle_admission_barrier.v1`。
 
 ### 6.2 `scope_ref` wire shape 与对象 projection
 
@@ -269,7 +268,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 1. `Circle.members ⊆ Realm.members`。reducer 在 `ak.circle.member.state -> join` 时，若 target actor 的父 Realm `ak.member.state` 不是 `join`,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
 2. 父 Realm `ak.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `leave`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
 
-   **Cascade seal 锚点（normative）**：该 derived cascade 没有独立显式 event，其治理锚点 MUST 取为覆盖触发 `leave/ban` 的父 Realm `ak.member.state` event 的 Seal（记为 `S_cascade`），并以该 control view 中的 event digest 作为审计证据。Circle-scoped DataEvent 的授权 MUST 在该 event 自身 `seal_ref` 所指向的 joined control view 上求值：若 `seal_ref` 已包含 `S_cascade` 或包含同一父 Realm membership 变更，则该 actor 在所有 Circle 的 effective membership 派生为 `leave`，reducer MUST 拒绝其写入（`failed_precondition`，`reason=circle_member_must_be_realm_member`）并 MUST NOT 投递；若 `seal_ref` 尚未包含该 cascade，写入只能按该 `seal_ref` 视图下的成员资格暂定接受，并受 revocation freshness / backfill 规则约束。服务端不得用 producer 提供的 `prev_refs` 因果闭包替代 `seal_ref` 治理视图；需要表达 in-flight 窗口时，MUST 用从事件 `seal_ref` 到 `S_cascade` 的 sealed-control predecessor 关系定义，而不是用 payload-level refs。
+   **Cascade seal 锚点（normative）**：该 derived cascade 没有独立显式 event，其治理锚点 MUST 取为覆盖触发 `leave/ban` 的父 Realm `ak.member.state` event 的 Seal（记为 `S_cascade`），并以该 control view 中的 event digest 作为审计证据。Circle-scoped DataEvent 的 `seal_ref` 只冻结 producer proof 的历史 membership basis；origin Station 仍 MUST 按 [`event-auth-state-resolution.md` §4.3](../authz/event-auth-state-resolution.md) 在追加 `station_admission` 的同一 serializable gate 读取 current accepted membership。若 cascade 在该 gate 前已提交，则无论 Event 的 `seal_ref` 是否早于 `S_cascade`，都 MUST 拒绝新准入（`failed_precondition`，`reason=circle_member_must_be_realm_member`）且不得投递；若 Event 的 admission 先提交，则该 Event 作为历史事实永久保留，后到 cascade 不得追溯删除或重算。服务端不得用 producer 提供的 `prev_refs` 因果闭包、Seal 距离、接收时间或风险等级构造另一套 in-flight 宽限规则。
 3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时，actor 同时属于多个 Circle 即可。
 4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `ak.circle.admin` action。Realm admin transfer 不改变本条不变量：接手者不是自动 Circle member，也不是自动 Circle-local manager。
 
@@ -303,8 +302,8 @@ Circle 不定义 `ak.circle.freeze` 或 `ak.circle.destroy`；父 Realm 的 `fre
 | 父 Realm tombstone / destroy | 按 Realm lifecycle 停止 | Circle 的 canonical lifecycle cell 保持原值，但 effective lifecycle 由父 Realm terminal Event 派生为 `realm_terminal`；不得合成 `ak.circle.tombstone` 或未登记的 Circle cell write。Circle 与其对象停止，后续写入统一拒绝 `realm_terminal_state`；tombstone 到 successor Realm 时不会自动迁移 Circle membership / MLS key / history grant |
 | 父 Realm freeze | 所有非豁免新写入按 Realm §2.6.0 拒绝 `realm_frozen` | Circle-scoped 新写入同样按 `realm_frozen` 拒绝；Circle 本身不定义独立 freeze，也不得用 Circle capability 绕过父 Realm freeze |
 | 父 Realm archive | 按 Realm 默认隐藏 / 只读投影，可由 Realm restore 恢复 | Circle 与其对象遵循父 Realm archive 的默认隐藏 / 只读投影；不额外 tombstone、不改 membership / MLS eligibility，Realm restore 后恢复到 Circle 自身 lifecycle 决定的状态 |
-| Circle archive | 不受影响 | 事件 CBS 基线内已 archived 时，新写入 MUST fail closed(`failed_precondition`, `reason=circle_not_active`)，**含新建以该 archived Circle 为 `scope_circle_id` 的对象**；基线后才观察到 archive 时按 §6.1 的 freshness / joined-view 规则处置。既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `ak.circle.restore` 使 Circle 恢复 active |
-| Circle tombstone | 不受影响 | 事件基线内已 tombstoned 时对象写入 MUST `circle_not_active`；基线后观察到 tombstone 时立即 `seal_ref_stale`，不享受 freshness window。projection 显示 scope unavailable；`scope_circle_id` 不会被自动 rewrite |
+| Circle archive | 不受影响 | archive 在 origin admission gate 提交后，新写入 MUST fail closed（`failed_precondition`, `reason=circle_not_active`），**含新建以该 archived Circle 为 `scope_circle_id` 的对象**；此前已取得 `station_admission` 的 Event 永久保留。既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `ak.circle.restore` 使 Circle 恢复 active |
+| Circle tombstone | 不受影响 | tombstone 在 origin admission gate 提交后，新对象写入 MUST `circle_not_active`；此前已 accepted Event 永久保留。projection 显示 scope unavailable；`scope_circle_id` 不会被自动 rewrite |
 | 父 Realm 修改 history access | 不改 Circle history access | Circle 保持自身当前 facet；仅父 Realm current membership intersection 与 encryption floor 继续生效 |
 | Circle history visibility 收紧 | 不受影响 | 投影、watch、message read/write 按新状态重新裁剪 |
 | `scope_circle_id` 改绑 | — | 默认拒；profile 允许时 audit-paired，新旧历史分段展示(见 §6.1) |
@@ -313,7 +312,7 @@ Circle 不定义 `ak.circle.freeze` 或 `ak.circle.destroy`；父 Realm 的 `fre
 
 父 Realm terminal gate 的判定优先于 Circle 自身 lifecycle gate。因此父 Realm已
 tombstone / destroy 时，即使 Circle canonical state 仍为 `active`，receiver 也 MUST 返回
-`realm_terminal_state`，而不是 `circle_not_active` / `seal_ref_stale`；该优先级保证所有
+`realm_terminal_state`，而不是 `circle_not_active`；该优先级保证所有
 实现对同一父 Realm terminal basis 产生相同错误形态。
 
 **`ak.circle.restore`（archived → active）后置条件（normative）**：archived 是可逆中间态，restore 的 membership / MLS 后置条件如下：

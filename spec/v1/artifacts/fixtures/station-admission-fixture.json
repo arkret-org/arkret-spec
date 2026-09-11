@@ -215,5 +215,63 @@
         "closed installation and provision units do not require a prior installation"
       ]
     }
+  ],
+  "control_finality_cases": [
+    {
+      "name": "pre_admitted_but_unsealed",
+      "origin_admission_proof_present": true,
+      "receiver_current_barrier": false,
+      "covering_seal_dependencies_complete": false,
+      "frozen_predecessor_authorization_valid": true,
+      "expected": "control_pending"
+    },
+    {
+      "name": "pre_admitted_move_covering_predecessor_revoked",
+      "origin_admission_proof_present": true,
+      "receiver_current_barrier": true,
+      "covering_seal_dependencies_complete": true,
+      "frozen_predecessor_authorization_valid": false,
+      "expected": "rejected_seal"
+    },
+    {
+      "name": "sealed_then_revoked",
+      "origin_admission_proof_present": true,
+      "receiver_current_barrier": true,
+      "covering_seal_dependencies_complete": true,
+      "frozen_predecessor_authorization_valid": true,
+      "expected": "control_covered"
+    },
+    {
+      "name": "revoke_arrives_before_old_seal",
+      "origin_admission_proof_present": false,
+      "receiver_current_barrier": true,
+      "receiver_arrival_order": [
+        "revoke",
+        "old_seal"
+      ],
+      "covering_seal_dependencies_complete": true,
+      "frozen_predecessor_authorization_valid": true,
+      "expected": "control_covered"
+    },
+    {
+      "name": "old_seal_arrives_before_revoke",
+      "origin_admission_proof_present": false,
+      "receiver_current_barrier": true,
+      "receiver_arrival_order": [
+        "old_seal",
+        "revoke"
+      ],
+      "covering_seal_dependencies_complete": true,
+      "frozen_predecessor_authorization_valid": true,
+      "expected": "control_covered"
+    },
+    {
+      "name": "reverse_arrival_missing_old_closure",
+      "origin_admission_proof_present": true,
+      "receiver_current_barrier": true,
+      "covering_seal_dependencies_complete": false,
+      "frozen_predecessor_authorization_valid": true,
+      "expected": "control_pending"
+    }
   ]
 }

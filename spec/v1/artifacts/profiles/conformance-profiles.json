@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-10.19",
-  "generated_at": "2026-09-10T22:14:26+08:00",
+  "version": "2026-09-11.1",
+  "generated_at": "2026-09-11T23:16:51+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3934,7 +3934,7 @@
           "agent_requested_scope_did_commitment",
           "provision_no_realm_grant",
           "executed_by_attribution",
-          "actor_kind_projection",
+          "verified_actor_executor_provenance",
           "sidecar_exposure_disclosure"
         ],
         "unsupported_optional": "fail closed; do not return long-lived bearer or private key"

@@ -2472,14 +2472,14 @@
     },
     "EventFederationSubmission": {
       "type": "object",
-      "description": "Event publication transported between peers. Online federation carries an empty ingress_receipts array and no authorization_lease; explicit delayed/offline federation carries its lease and one or more lease-bound receipts. A membership-compensation Event carries the exact accepted transport-only evidence from self admission. The receiving peer independently revalidates the Event, current admission, optional delayed evidence, compensation evidence and CBS closure.",
+      "description": "Event publication transported between peers. Validate history_admission_contract: ordinary capability DataEvents require their original station_admission; producer-only native/control shapes require their registered authority or accepted-Seal evidence. A Control Move without established Seal finality remains pending. Receivers validate frozen historical dependencies, never reinterpret an existing origin admission or accepted Seal with current barriers. Online federation has empty ingress_receipts; delayed federation retains its lease and receipts. MLS and compensation evidence remain required where applicable.",
       "required": [
         "event",
         "ingress_receipts"
       ],
       "properties": {
         "event": {
-          "$ref": "#/$defs/EventSubmitEnvelope"
+          "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
         },
         "mls_frontier_leaves": {
           "type": "array",
@@ -2611,7 +2611,7 @@
       "description": "A readable event item. Complete EventEnvelope is the only reducer input shape. RedactedEventView and ReferenceLockedEventStub are projection/completeness evidence for callers that may know the source event exists but may not receive its full canonical payload bytes.",
       "oneOf": [
         {
-          "$ref": "./event-envelope.schema.json"
+          "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
         },
         {
           "$ref": "#/$defs/RedactedEventView"
@@ -2651,20 +2651,8 @@
       "additionalProperties": false
     },
     "EventSubmitEnvelope": {
-      "allOf": [
-        {
-          "$ref": "./event-envelope.schema.json"
-        },
-        {
-          "type": "object",
-          "not": {
-            "required": [
-              "actor_kind"
-            ]
-          },
-          "description": "Actor-supplied ak.self.events.command.submit.v1 input envelope. It reuses the base Event shape, including the required producer-signed scope_ref, and forbids the sole reducer-stamped Event field actor_kind. Object payload schemas independently forbid actor-supplied effective_scope where that name is reserved for a read-only materialized object projection."
-        }
-      ]
+      "$ref": "./event-envelope.schema.json",
+      "description": "Actor-supplied ak.self.events.command.submit.v1 input envelope. It reuses the complete canonical Event shape, including the required producer-signed scope_ref. Object payload schemas independently forbid actor-supplied effective_scope where that name is reserved for a read-only materialized object projection."
     },
     "EventView": {
       "type": "object",
@@ -3236,7 +3224,7 @@
         "events": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json"
+            "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
           }
         },
         "missing": {

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-11.2",
-  "generated_at": "2026-09-11T04:15:00+08:00",
+  "version": "2026-09-12",
+  "generated_at": "2026-09-12T03:54:41+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -615,14 +615,6 @@
       "title": "Device reanchor authority mismatch"
     },
     {
-      "code": "device_reanchor_entry_not_head",
-      "http_status": 409,
-      "scope": "both",
-      "description": "A device re-anchor completion references a DID key-log entry that is not the current head. Dual-registered as a service code and a reason_code (see reason_codes[]).",
-      "type_uri": "https://arkret.org/problems/device_reanchor_entry_not_head",
-      "title": "Device reanchor entry not head"
-    },
-    {
       "code": "device_reanchor_frontier_mismatch",
       "http_status": 409,
       "scope": "both",
@@ -909,14 +901,6 @@
       "description": "Event submission rejected an actor chain sequence number that is duplicate, skipped without allowed repair evidence, or inconsistent with the actor frontier.",
       "type_uri": "https://arkret.org/problems/actor_seq_invalid",
       "title": "Actor seq invalid"
-    },
-    {
-      "code": "seal_ref_stale",
-      "http_status": 409,
-      "scope": "both",
-      "description": "The supplied seal_ref or seal_basis exceeds the operation or policy tier's verifiable historical Seal-distance grace (or a separately defined frontier token freshness rule). For Event revocation admission this is not age since signing, first delivery, receiver admission, or replay.",
-      "type_uri": "https://arkret.org/problems/seal_ref_stale",
-      "title": "Seal ref stale"
     },
     {
       "code": "seal_ref_unknown",
@@ -2388,14 +2372,6 @@
       "description": "Returned in three surfaces. (1) `event_envelope` / `auth_decision`: an Actor Profile update declares an `accountable_principal_ids[]` entry without a corresponding active `ak.identity.accountability_grant` (issuer=that DID, subject=profile.principal_id, grant_status=active, within validity window). Reducer MUST reject the entire Event with this reason and MUST NOT accept a field-stripped projection. See zh/models/actor.md §3.3.1. (2) `service_call`: returned by orchestrator HTTP operations that fan-out an accountability grant — `ak.self.agent.command.provision.v1` rejects when the controller cannot present an issuable accountability grant for the new agent principal, and `ak.self.agent.command.resume.v1` rejects when the controller's accountability grant over the agent has been revoked or has lapsed its freshness window since `ak.self.agent.command.pause.v1`. HTTP callers MUST treat this as a precondition-class failure, not transient."
     },
     {
-      "code": "actor_kind_reducer_managed",
-      "applies_to": [
-        "schema_validation",
-        "event_envelope"
-      ],
-      "description": "Sub-reason for schema_violation when actor-side submit payload carries `actor_kind`. The reducer derives actor_kind immutably from actor_id's Actor Profile after acceptance; submitters MUST NOT supply it. See zh/models/event-and-patch.md §2.1."
-    },
-    {
       "code": "actor_session_mismatch",
       "applies_to": [
         "event_envelope",
@@ -3200,15 +3176,6 @@
         "service_call"
       ],
       "description": "The atomic replacement ak.device.authorize payload digest, prev_refs, principal, device, session, or enrollment-authority proof does not exactly match the binding in ak.device.reanchor. Dual-registered as a reason_code and a top-level service code (see codes[])."
-    },
-    {
-      "code": "device_reanchor_entry_not_head",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision",
-        "service_call"
-      ],
-      "description": "Live B-model re-anchor references a verified DID entry that is not the registry head at admission time. Historical replay uses the accepted batch receipt instead of this live-head check. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "device_reanchor_frontier_mismatch",
@@ -5210,7 +5177,7 @@
         "client_sync",
         "realm_state_snapshot_verification"
       ],
-      "description": "Snapshot signer's authority (Realm owner / admin / trusted snapshot issuer / witness quorum membership) was revoked at or before the manifest's `created_at`, or revoke freshness cannot be sealed within the verifier's revocation_freshness_window_ms. Client MUST quarantine or reject the snapshot. A revoke that takes effect strictly after `created_at` does not retroactively invalidate a previously valid snapshot."
+      "description": "Snapshot signer's authority (Realm owner / admin / trusted snapshot issuer / witness quorum membership) was revoked before the snapshot's origin admission/issuance gate, or the verifier cannot prove the frozen authority basis. Client MUST quarantine or reject the snapshot. A revoke accepted after a valid snapshot issuance does not retroactively invalidate that snapshot."
     },
     {
       "code": "soft_failed",
@@ -5667,7 +5634,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "Sub-reason for failed_precondition when a Station acceptance attestation is structurally valid but its observation is older than the target Realm revocation_freshness_window_ms, or its own expires_at has passed. The verification service MUST fail closed rather than bind private invite material on a basis that may have missed ak.invite.revoke, inviter capability loss or an allowlist removal. See zh/sync/third-party-invites.md section 7.5."
+      "description": "Sub-reason for failed_precondition when a Station acceptance attestation is structurally valid but its signed expires_at has passed, observed_at is later than expires_at, or expires_at exceeds invite_expires_at. The verification service MUST fail closed rather than bind private invite material with an invalid or expired attestation. See zh/sync/third-party-invites.md section 7.5."
     },
     {
       "code": "third_party_invite_material_mismatch",

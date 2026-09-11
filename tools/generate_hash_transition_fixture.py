@@ -56,7 +56,6 @@ def event_id(digest: str, code: int) -> str:
 
 def accepted_event(preimage: dict[str, object], digest: str, identifier: str, jws: str) -> dict[str, object]:
     event = dict(preimage)
-    event["actor_kind"] = "user"
     event["event_id"] = identifier
     event["proofs"] = [{
         "kind": "detached_jws",
@@ -173,7 +172,6 @@ def main() -> None:
         },
         "prev_refs": [source["cases"][1]["derived_event_id"]],
         "realm_id": realm_id,
-        "refs": [],
         "scope_ref": {"kind": "realm", "realm_id": realm_id},
         "seal_basis": {"leaves": [base_seal_id]},
     }
@@ -240,7 +238,6 @@ def main() -> None:
         "payload": {"object": {"frozen": True}},
         "prev_refs": [transition_event_id],
         "realm_id": realm_id,
-        "refs": [],
         "scope_ref": {"kind": "realm", "realm_id": realm_id},
         "seal_basis": {"leaves": ["ak:seal:" + transition_seal_digest]},
     }

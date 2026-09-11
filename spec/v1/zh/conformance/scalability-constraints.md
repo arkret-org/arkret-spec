@@ -93,7 +93,7 @@ v1 之前使用的“Event / Operation envelope”是一个未定义术语，把
 
 ```text
 RFC 8785 JCS(
-  reducer 接受后、含 reducer-stamped 顶层字段的完整 Event Envelope，
+  reducer 接受后的完整 Event Envelope，
   含全部 producer proofs / signatures，
   不含服务端在 read view 上附加的 unsigned
 )
@@ -101,7 +101,7 @@ RFC 8785 JCS(
 
 - 单独测 payload 或 “without proof” 形态都不够；multi-proof / hybrid proof 的**全部** active proof 都计入。
 - producer / self submit 与 peer submit 的 Event **MUST NOT** 携带 `unsigned`。该字段只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断（与 [`encoding.md` §2](./encoding.md) 的签名字节排除规则一致）。
-- reducer MUST 在真正 commit 前，按将写入的唯一 reducer-stamped 字段 `actor_kind` 构造候选 accepted envelope 并执行 1 MiB 检查；签名 `scope_ref` 已包含在 producer bytes 中。
+- origin MUST 在真正 commit 前，对将持久化的完整 accepted envelope（含 producer proof 与待追加的 `station_admission`，不含 read-view `unsigned`）执行 1 MiB 检查；不得在签名后补写、删除或改写任何 Event 字段来规避上限。
 - Event 被包含在 batch / operation body 中时，同时受单 Event 1 MiB 与外层 body 8 MiB 约束。
 - 服务端附加的 `unsigned` 另受单对象 16 KiB canonical JSON 上限，并计入 response body 8 MiB，但 **不** 反向改变已接受 Event 的 1 MiB 身份。16 KiB 足以承载 age、redaction reason 与有限 transport hints；更大的诊断、receipt 集合或扩展材料 MUST 使用 read model 的独立分页 / 引用字段，MUST NOT 塞进一个未签名、开放解释的旁路对象。该值是 response amplification 安全边界。
 - 1 MiB + 1 MUST 返回 `payload_too_large`，MUST NOT 因为 JSON schema 恰好也失败而返回 `schema_violation`。
@@ -276,7 +276,6 @@ operation 已定义的有界分页/typed unavailable，不得截断完整事实�
 | peer dependency resolve 连续轮次 | 8 | 每一成功轮 MUST 严格缩小 typed missing sets；第 9 轮进入 operator diagnostic。 |
 | 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |
 | 单次 Lattice join 内存预算 | 实现声明 | 服务 MUST 暴露，超出时返回可恢复错误而不是 OOM。 |
-| `revocation_freshness_window_ms` | 86,400,000 ms（24h，default）| `realm.schema.json`；按 Seal DAG notary 提交时间差度量（[`event-auth-state-resolution.md` §4.3](../authz/event-auth-state-resolution.md)）。`risk_tier=high` capability 无宽限（等效 0）。高风险 Realm SHOULD 取更短值。 |
 | `proposal_intake_sla_ms` | 86,400,000 ms（24h，default 与 v1 wire maximum）| `realm.schema.json`；pending Control Move 得到 signed Control Proposal Ack / rejection 的截止（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。按 notary 提交时间计。 |
 | `proposal_decision_window_ms` | 30,000 ms（30s，default）；`minimum=1`；`maximum=86,400,000`（24h） | `realm.schema.json`；Control Proposal Ack 的首个可验证决议窗口。必须满足 `proposal_decision_window_ms <= proposal_absolute_deadline_ms`；违反时 Realm create / policy update MUST `schema_violation`。若 `max_proposal_defers > 0`，必须严格小于。到期前须 include / signed-reject / bounded signed-defer；不是接受或 finality SLA。 |
 | `proposal_absolute_deadline_ms` | 90,000 ms（90s，default）；`minimum=1`；`maximum=259,200,000`（72h） | `realm.schema.json`；从 Ack signed `received_at` 起不可延长的决议绝对窗口。defer 必须原样保留 `absolute_due_at`；与 decision window 的相对约束见上一行。 |

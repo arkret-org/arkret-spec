@@ -30,7 +30,6 @@
           "created_at": "2026-05-02T00:00:00.000Z",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "prev_refs": [],
-          "refs": [],
           "payload": {
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
             "content": {
@@ -742,7 +741,6 @@
           "created_at": "2026-05-02T00:00:02.000Z",
           "hlc": "01970e589d23-0001-a13f9c2e",
           "prev_refs": [],
-          "refs": [],
           "payload": {
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
             "content": {
@@ -791,7 +789,6 @@
           "created_at": "2026-05-02T00:00:03.000Z",
           "hlc": "01970e589d24-0001-a13f9c2e",
           "prev_refs": [],
-          "refs": [],
           "payload": {
             "device_id": "ak:device:0196419b-0000-7000-8000-000000000002",
             "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N2",

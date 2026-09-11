@@ -234,7 +234,6 @@ def detached_proof(payload_digest: str) -> dict[str, Any]:
 def build_dependency_kat(schemas: SchemaSet, signer: dict[str, Any]) -> dict[str, Any]:
     accepted_event = {
         "event_id": event_id("availability-event"),
-        "actor_kind": "principal",
         "proofs": [{"kind": "producer_event", "event_digest": digest_marker(0x51)}],
     }
     bytes_digest = sha256(AVAILABILITY_BYTES_DOMAIN + ZERO + jcs(accepted_event))
@@ -795,6 +794,7 @@ def build_response_stream_kat(schemas: SchemaSet) -> dict[str, Any]:
     )
     list_outcome = {
         "entries": [{"kind": "lost", "lost_record": lost_record}],
+        "source_signer_results": [],
         "ack_token": "response-ack-token-8",
         "limited": False,
     }
@@ -1170,7 +1170,6 @@ def build_rhrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "actor_seq": 7,
         "created_at": replicated_at,
         "prev_refs": [container_payload["base_epoch_ref"]],
-        "refs": [],
         "seal_basis": basis(seal_ref("rhrk-source-accepted-basis")),
         "payload": container_payload,
     }

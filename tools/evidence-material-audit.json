@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 392,
+  "audited_occurrence_count": 398,
   "registrations": [
     {
       "file": "account-current-result.schema.json",
@@ -357,9 +357,9 @@
     {
       "file": "contract-registry.json",
       "key": "required_evidence",
-      "occurrences": 3,
+      "occurrences": 6,
       "disposition": "registry_contract",
-      "reason": "Declares the required adapter evidence categories rather than carrying wire material."
+      "reason": "Declares required adapter and shared-history verifier evidence categories; registry policy metadata, never an additional wire evidence carrier."
     },
     {
       "file": "contract-registry.json",
@@ -696,6 +696,13 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Generated exact DID-authority call-site classification for the resolution successor Event."
+    },
+    {
+      "file": "event-kind-registry.json",
+      "key": "required_evidence",
+      "occurrences": 3,
+      "disposition": "registry_contract",
+      "reason": "Generated shared-history verifier dependency categories from canonical history_admission_contract; no wire object is introduced."
     },
     {
       "file": "event-payload.schema.json",

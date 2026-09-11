@@ -107,7 +107,7 @@
     },
     "sealed_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",
-      "description": "Normative notary commit timestamp covered by the Seal signature transcript. It is the time input for revocation_freshness_window_ms, recovery_witness_freshness_window_ms, proposal_intake_sla_ms, and reducer-derived projection timestamps. It MUST be >= every predecessor Seal.sealed_at. A value beyond verifier wall time + hard_future_skew_ms produces non-terminal seal_deferred_future_skew and MUST be retried as the clock advances; it is not a permanent rejection or a lattice winner input."
+      "description": "Normative notary commit timestamp covered by the Seal signature transcript. It is a time input for recovery_witness_freshness_window_ms, proposal_intake_sla_ms, and reducer-derived projection timestamps, but it does not order Event admission against revocation. It MUST be >= every predecessor Seal.sealed_at. A value beyond verifier wall time + hard_future_skew_ms produces non-terminal seal_deferred_future_skew and MUST be retried as the clock advances; it is not a permanent rejection or a lattice winner input."
     },
     "hlc": {
       "$ref": "#/$defs/hlc"
@@ -289,7 +289,7 @@
         },
         "sealed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "Normative notary commit timestamp covered by the Seal signature transcript. It is the time input for revocation_freshness_window_ms, recovery_witness_freshness_window_ms, proposal_intake_sla_ms, and reducer-derived projection timestamps. It MUST be >= every predecessor Seal.sealed_at. A value beyond verifier wall time + hard_future_skew_ms produces non-terminal seal_deferred_future_skew and MUST be retried as the clock advances; it is not a permanent rejection or a lattice winner input."
+          "description": "Normative notary commit timestamp covered by the Seal signature transcript. It is a time input for recovery_witness_freshness_window_ms, proposal_intake_sla_ms, and reducer-derived projection timestamps, but it does not order Event admission against revocation. It MUST be >= every predecessor Seal.sealed_at. A value beyond verifier wall time + hard_future_skew_ms produces non-terminal seal_deferred_future_skew and MUST be retried as the clock advances; it is not a permanent rejection or a lattice winner input."
         },
         "hlc": {
           "$ref": "#/$defs/hlc"

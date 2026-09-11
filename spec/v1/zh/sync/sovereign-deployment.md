@@ -264,8 +264,7 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
       "policy_revision": 1,
       "content_encryption_floor": "e2ee_required",
       "metadata_encryption_floor": "e2ee_required",
-      "federation_policy": "restricted",
-      "revocation_freshness_window_ms": 86400000
+      "federation_policy": "restricted"
     }
   },
   {

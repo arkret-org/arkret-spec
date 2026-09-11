@@ -82,7 +82,7 @@ DataEvent 规则：
 2. DataEvent MUST NOT 携带 `seal_basis`、`preconditions` 或任何 pending / finality 字段。
 3. 注册 reducer contract 的全部派生写 MUST 只落入 data plane；否则 receiver MUST `schema_violation(reason=plane_cross_write)`。
 4. `causal_refs[]` / `refs[]` 只表达业务因果，不承担全局完整性证明。
-5. `event_digest` 是去除 `proofs`、`unsigned` 与 reducer-stamped `actor_kind` 后 canonical Event bytes 的 hash；签名 `scope_ref` 保留。
+5. `event_digest` 是去除 `event_id`、`proofs` 与 `unsigned` 后 canonical Event bytes 的 hash；签名 `scope_ref` 保留。
 6. cell target、conflict domain 与 lattice op 由 receiver 从 reducer contract 和 `kind + payload` 重算。wire 上不存在 producer-selected write 或 conflict digest。
 
 ### 4.1 `auth_context` 与 epoch pinning
@@ -128,68 +128,84 @@ DataEvent 通过验证后不是"被 seal final"，而是**本地终态**：相�
 - 直接 participant Event 的 `authorization_ref` 必须是 exact source token，并有恰好一条 critical
   `direct_conversation_binding` Event ref；任意 cell/Event、membership、`created_by` 或本地 row 不得替代；
 - verifier 在 `seal_ref` view 重算唯一 immutable binding 的有效性、exact-two participant/membership、
-  Realm/Strand/MLS/lifecycle/resource 与 action-specific gate。dependency 缺失/冲突/freshness unknown 时
+  Realm/Strand/MLS/lifecycle/resource 与 action-specific gate。dependency 缺失或冲突时
   pending/fail closed；
 - `executed_by` Event 的 `authorization_ref` 仍绑定 executor delegation；participant source、Agent
   provision/runtime/participation 与 executor delegation 全部是 AND gate；
 - owner aggregate 必须先与 profile phase mask 求交。active phase 的普通 owner operational coverage不能
   作为 participant source 的 fallback；
 - authority reset/transfer 不改变 participant source。member leave/ban、Realm terminal 或 canonical main
-  Strand terminal 是结构性 zero-window barrier：该终态 accepted 后，新写立即不再 admission；明确因果早于
-  barrier 且已按旧 basis 合法接受的 Event 不追溯改写，因果晚于 barrier 的 Event 必须拒绝，依赖不完整的
-  并发 Event 保持 pending，不能等待 retired fact 后再临时放行。
+  Strand terminal 与 capability revoke 使用同一个 origin serializable admission barrier：barrier 在该 gate
+  提交后，新写立即不再 admission；此前已取得 `station_admission` 的 Event 永久保留；并发到达由该 gate
+  的持久化顺序唯一决定，依赖不完整的 Event 保持 pending。
 
 影响 immutable binding 可用性、membership、Realm/Strand terminal、MLS group、contact/consent 或 Agent
 participation 的 accepted state 变化，MUST 在更新投影的同一事务边界把 participant authz cache stale；
 federation 迟到 evidence 补齐后必须重验 pending closure。
 
-### 4.3 `seal_ref` 验证与撤销
+### 4.3 `seal_ref`、origin admission 与撤销
 
-`seal_ref` 的语义是："我声称我的写入权基于这个控制面 seal"。
+`seal_ref` 的语义是：“producer 声称该写入权基于这张已接受控制面 Seal”。它冻结 producer proof
+要验证的历史授权材料，但不单独证明 Event 在撤销之前首次准入；后者只由 origin
+`station_admission` 证明。
 
-Receiver MUST：
+**caller 首次准入（normative）**：唯一 origin Station MUST 在追加 `station_admission` 的同一持久化
+serializable gate 中完成以下检查：
 
-1. 验 `seal_ref` 是本 Realm 已验证控制面 Seal。轻客户端 MAY 用该 seal `state_root` 下 membership / capability inclusion proof 验证所需授权 cell。
-2. 在 `seal_ref` 的治理状态下解析该 kind/scope/派生目标需要的 capability，并证明 actor 持有所需写权限且未撤销。
-3. 若 receiver 尚未观察到覆盖该 issuer / capability 的后续撤销 seal，则按 `seal_ref` 的授权状态接受。
-4. 若 receiver 已观察到撤销 seal `R`，且 `R` 是 `seal_ref` 的后继，则只按缺口距离判定：
+1. 按登记的 plane 验证历史 basis：DataEvent 使用 `seal_ref`，Control Move 使用 `seal_basis`，其中的
+   Seal 必须属于本 Realm 且已验证；在该 basis 下验证 key epoch、membership、capability、scope 与全部
+   reducer 依赖。初检 Control Move 不等于验证其未来 covering Seal 的 predecessor；
+2. 从该 gate 的 current accepted control state 读取 capability/device/membership/lifecycle/offline-lease
+   状态及 durable revocation fence；不得只重放旧 `seal_ref` 后直接放行；
+3. gate current view 已含 revoke、device pending/revoked、member leave/ban、Realm/Circle terminal、lease
+   过期或等价 barrier 时，拒绝该首次提交且不得追加 admission proof；
+4. 全部检查与 Event 持久化、proof 追加在同一事务边界提交。依赖不全时 pending，不猜测 Event 与
+   barrier 的顺序。
+
+该 gate 的持久化提交顺序是唯一先后依据：
 
 ```text
-if distance(seal_ref, R) <= revocation_freshness_window:
-  MUST accept and retain the DataEvent in data-cell join input
-else:
-  MUST exclude the DataEvent from data-cell join input
+admit(DataEvent) < revoke_or_barrier => DataEvent accepted forever
+admit(ControlMove) < revoke_or_barrier => preserve intake; finality still requires accepted Seal
+revoke_or_barrier < admit(E)  => reject E; no station_admission
 ```
 
-超窗后的 receiver MAY 在本地保留 Event 供审计并对普通查询隐藏，也 MAY 在准入面直接拒绝；
-两种形态对 reducer 输入必须完全等价：该 Event 及其依赖闭包不得参与任何 data-cell join、
-`state_root` leaf 或授权判断。窗口内接受并保留在 data-cell join 输入是同一确定性结果，不是实现可选项。
+**历史与副本验证（normative）**：有效 origin `station_admission` 永久保留首次准入事实；普通
+capability DataEvent 据此成为单调 accepted fact。Control Move 则仍为 `control_pending`，只有通过
+§6.3 的 accepted Seal 覆盖才是 `control_covered`，origin proof 不能替代 notary/CBS 的治理裁决。
+federation、backfill、offline replay 与新副本 MUST 验证原始 producer proof、origin admission proof
+及其冻结依赖。已合法 accepted 的 DataEvent、已经 accepted Seal 覆盖的历史 Control Move，不得因
+receiver 当前撤销状态、到达时间、`Seal.sealed_at` 距离或风险等级而被追溯删除、移出其历史 reducer
+input、隐藏依赖闭包或重算历史 state。`station_admission.accepted_at` 只冻结历史 signer 解析与审计，
+MUST NOT 与另一 authority 的墙钟作大小比较。
 
-**读取面的边界（normative）**：上述判定是 receiver 在其已验证控制面视图上的 Event admission / reducer-input
-判定，不定义名为 `query_grade` 的 wire 字段，也不要求把“曾用旧但仍在窗口内的 basis”复制进 Event、查询行或
-projection。`local` / `seen` / `observed` 是实现可保留的本地证据状态，`control_pending` / `control_sealed` 是
-Control Move 生命周期，`fork_quarantine` 是分支处置；这些概念不得合并成一个跨 operation 的 grade enum。
-具体读取操作若需要携带可验证的 freshness、observation 或 quarantine evidence，MUST 在该 operation 的
-`response_schema_ref` 中登记独立、具名且可验证的字段；未登记的响应包装或私有 `query_grade` 字段不属于 v1 wire。
+**控制面两个验证时点（normative）**：新的 caller intake 与新的 notary proposal intake MUST 检查各自
+适用的 current barrier；随后 `apply_seal` 只使用该 Seal 的冻结 predecessor view，MUST NOT 再读取
+receiver 当前投影。一个先取得 origin proof、尚未 sealed 的 C，若其拟议 covering Seal 的 predecessor
+已包含撤销 R，仍须按 §6.3 step 8 拒绝；保留 C 的初检事实不等于让 C 进入治理状态。若 C 已在 R 之前的
+合法 Seal SC 生效，则无论 SC、R 的接收顺序如何，重放 SC 都必须得到同一结果。尚缺 SC 闭包时 pending，
+不能以当前状态猜测其有效性。
 
-**`distance` 度量与窗口单位（normative）**：`revocation_freshness_window` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `revocation_freshness_window_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`）。`distance(seal_ref, R)` MUST 按**控制面 Seal DAG 上 notary 签署的提交时间差**度量：取撤销 Seal `R` 与 `seal_ref` 各自签名 transcript 内 notary 提交时间（沿 Seal DAG，`R` 是 `seal_ref` 后继，见 §6.3），求二者毫秒差。该度量只用进入 Seal 签名 transcript 的 notary 提交时间，**不**用 DataEvent 自报的 `created_at` 或本地接收时间——时间来自被签名的 Seal 拓扑，可验证、跨 receiver 确定复现。`distance > revocation_freshness_window_ms` 即超窗。
+普通 capability DataEvent 缺少 `station_admission` 时只是 producer-only caller submit，不是 accepted
+shared Event；它 MUST NOT 进入 federation、backfill、共享读取或 reducer input。retained direct-history
+无 admission 分支由 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的
+`history_admission_contract` 封闭列举，所有消费共享历史的 profile MUST 执行同一合同：按 exact kind
+及唯一 admission variant 选择 `selected_native_admission` 的已列举 class，或验证
+`sealed_control_history` 的 accepted covering Seal 与冻结 closure；必须调用该行登记的 validator 并保留
+完整历史 producer/authority evidence。无匹配、private kind、deny branch 或证据不全均不得获准；
+`native` 字样、一个合法 producer 签名或 schema 通过都不是普通 DataEvent fallback。
 
-该字段的安全语义是 **Seal-distance grace（历史 basis 宽限）**，不是现实时间 TTL。给定同一旧 basis Seal、
-后继撤销 Seal 与 Event，receiver 在撤销后一秒或三十天首次收到、在线接收或离线回放，MUST 得到相同结果；
-不同 receiver 的到达时间与顺序也不得进入谓词。若两张 Seal 的距离在窗口内，中低风险 Event 不会仅因现实时间
-流逝变成超窗；高风险 capability 仍按下文 effective window 0 处理。
+**统一 barrier（normative）**：capability revoke、device revoke/pending、member leave/ban、Realm/Circle
+archive/tombstone/destroy、Agent/controller lifecycle terminal 与 offline lease 过期均使用上述同一个
+admission 规则：只阻断 barrier 后的新首次准入，不追溯改写 barrier 前 accepted 历史。Circle restore
+只恢复其后新 admission 的资格，不复活任何曾被拒绝的 producer-only submit。Control Move 的初检、
+新 notary intake 与既有 Seal 重放必须按上述时点分开；MUST NOT 在历史 `apply_seal` 中重验 current barrier。
 
-该规则不判断事件真实签发时间，也不依赖本地接收时间。producer 在本地已知撤销 seal 后仍用旧 `seal_ref` 签 DataEvent，协议不把它单独定义为可证明 fault；但所有已观察到 `R` 且窗口超限的 receiver MUST 拒绝或隐藏这些事件（`seal_ref_stale`，§13）。
-
-**并发分支撤销（normative，`open_set`）**：撤销 Seal `R` 与 `seal_ref` 并发时，receiver MUST 按已 join 的控制面视图重判 capability；若已撤销或授权 cell 进入 `⊥`，依赖 Event fail closed。并发分支不计算 `distance`、不享受新鲜度宽限。轻客户端无法验证 multi-leaf union basis 时必须 hold pending 或 fail closed。撤销 leaf 迟到后，receiver MUST 把已失效 Event 从 data-cell reducer 输入集中移除，并按仍授权且依赖闭包完整的 accepted Event 集合确定性重算。
-
-追溯重验 MUST 闭包传播：直接/间接依赖被移除 Event 的 accepted Event 转为 `pending/dependency_missing`，其派生写也从 reducer 输入移除，直到闭包稳定。后续补齐后可重新验证，但不得沿用旧授权缓存。结果不得依赖撤销 leaf 的到达顺序。
-
-**高风险 capability 的撤销即时性（normative）**：对 `risk_tier=high` capability（`risk_tier` 的权威源是 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)，散文镜像见 [`capabilities.md`](./capabilities.md)）授权的 DataEvent，撤销**不享受**新鲜度窗口宽限：receiver 一旦观察到覆盖该 capability 的撤销 Seal `R`，MUST 对 `seal_ref` 早于 `R` 的此类 DataEvent fail closed（等效 `revocation_freshness_window_ms = 0`），无论 `distance`。承载此类 capability 授权判定的 cell family MUST 声明 `cell_role=authorization_root` 且 `plane=control`；若复用一个原本 data-like 的 cell family 作为该授权输入，则还 MUST 显式 `sealed=true` 升控制面，否则 Realm schema / reducer MUST 拒绝该声明。中低风险 DataEvent 仍按上面的窗口判定。
-
-这里的“即时”严格表示 **`R` 已成为 receiver 可验证控制面视图的一部分之后零宽限**，不表示追溯否定 `R` 之前或与 `R` 并发、且按自身合法旧 CBS basis 已授权的操作。同一 ordered submit batch 也不产生隐式因果顺序：revoke 与依赖旧 grant 的 Event 若都指向 revoke 前 basis，后者仍按该 basis 判定；`sealed=true` 提供控制面 finality 与后继顺序，但不会把同批数组顺序改写为授权因果。需要阻断 compromised runtime 的部署 MUST 同时使用 session/introspection pause、ingress deny 或等价的运行时 kill switch；只有后续 Event 改用包含 `R` 的新 basis 后，协议内 capability revoke 才能证明性阻断它。producer 在本地已观察到 `R` 后仍用早于 `R` 的 `seal_ref` 继续签发 DataEvent，receiver / audit **SHOULD** 将其记录为 audit-loggable 可疑信号（stale-after-observed），供事后问责。
-
-**Scope lifecycle 也是授权输入（normative）**：Realm / Circle lifecycle 与 capability 撤销使用同一 CBS 基线纪律。Circle-scoped DataEvent 的 `state=active` 必须在事件 `seal_ref` view 中求值；不得以 receiver 当前 projection 替代。基线后的线性 Circle archive 复用上述 `distance` / `revocation_freshness_window_ms`，tombstone 与 `open_set` 并发 archive / tombstone 等效 window=0；后续 restore 不追溯恢复跨过 archive barrier 的旧 `seal_ref`。Control Move 在其 `seal_basis` joined view admission，并由 `apply_seal` step 8 在冻结 predecessor joined governance state 重验。完整错误映射与 restore barrier 见 [`../models/circle.md` §6.1](../models/circle.md)。
+撤销传播不是全局瞬时的：网络分区中的 honest origin 在尚未接受 revoke 前仍可能准入。需要现实时间有界
+阻断的部署 MUST 同时执行 session/introspection pause、ingress deny 或等价 kill switch，并可对高风险写
+要求 current control plane 已同步；不能用两张 Seal 的固定距离替代实时控制。Station 对首次准入负责，
+其签名提供归责但不能密码学阻止恶意 Station 虚假准入；抵抗该威胁需要透明日志、多方 admission 或
+principal-root certificate 等独立协议。
 
 Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制面 seal 后再签 data write。治理低频，等待 seal 是可接受成本。
 
@@ -493,7 +509,7 @@ accepted Seal 的 `covered_set`、`control_event_set_root`、`completeness_root`
 2. **不得事后重算历史 Seal 输入。** receiver MUST 把该 Seal 已物化的确定性 reducer 输出与它当初实际应用的 canonical bytes 一起钉住，并 MUST NOT 在检出碰撞后用任一变体重新推导它。未保留当初 bytes 的 receiver MUST 把该 Seal 覆盖区间视为不可验证并 fail closed，直到归一裁决到达；它 MUST NOT 用任取一个变体重算出的 `state_root` 冒充原承诺。
 3. **accepted `canonical_winner` 是 winner bytes 的准入 authority（normative）**：该 Move 由 recovery capability 授权、被 accepted Seal 覆盖，并逐字承载 winner 的完整 canonical bytes，因此它自身就是准入依据。receiver（包括**只持有 loser** 的 receiver）MUST 在应用该 resolution 时，把 `conflict_evidence.variants[winner_index]` 解出的完整 canonical bytes 作为该 `event_id` 在本 Realm 的 accepted 变体，MUST NOT 因为本地已存在另一份同 `event_id` 的 bytes 而报 `witness_disagreement` 或再次整组 quarantine。准入前 MUST 独立重跑该 winner 自身的前置检查：结构与 schema、Realm 声明的 suite、`realm_id` 等于本 Realm、以及重算出的 `event_id` 逐字等于被裁决的 ID；任一项不成立 MUST 拒绝该 resolution 并保持原状态，MUST NOT 部分应用。
 
-   **proof 从哪里来（normative）**：winner 的 producer / station-admission proof **不在证据里**——locator 携带 digest 原像，而原像按定义不含 `proofs`。它也不需要在：这两类 proof 绑定的是 `event_digest`，而碰撞的两个变体按定义算出**同一个** `event_digest`，因此 receiver 对该 `event_id` **已经持有并已验证过的** proof 集合对 winner bytes 原样成立。receiver MUST 复用它，并在准入时按 winner bytes 重新执行 proof binding 校验——这不是空转：若 verdict 指认的 bytes 算出别的 digest，该校验正是拒绝它的地方。receiver MUST NOT 为 winner 补签、重签或省略 proof。**准入后本地存储的 Event（normative）**：其 digest 原像逐字节等于 winner locator 解出的 bytes；`proofs` / `unsigned` / `actor_kind` 沿用 receiver 对该 `event_id` 已验证的既有值，MUST NOT 从 loser 原像重新派生。这些字段本就在原像之外（[`../conformance/encoding.md` §6](../conformance/encoding.md) 的 preimage 排除清单），因此该 Event 的 `event_digest` 与 `event_id` 不变，`covered_set` 与历史 `state_root` 不受影响。一个对该 `event_id` **一个变体都不持有**的 receiver 没有可准入的对象，它按普通 backfill 路径取 Event，不走本条。loser bytes MUST 作为 forensic 变体保留在碰撞 bucket 内，MUST NOT 进入 accepted 读取面；loser 派生的 writes 按 [`../sync/operations-sync.md` §12](../sync/operations-sync.md) 的既有移除规则处置。该准入不重算任何历史 Seal 的 `state_root` 或 reducer 输出（第 2 点）。已持有 winner 的 receiver 应用同一裁决是幂等 no-op。`void_all` 裁决后该 `event_id` 在本 Realm **没有** accepted 变体，后到的任一变体 MUST NOT 复活它。
+   **proof 从哪里来（normative）**：winner 的 producer / station-admission proof **不在证据里**——locator 携带 digest 原像，而原像按定义不含 `proofs`。它也不需要在：这两类 proof 绑定的是 `event_digest`，而碰撞的两个变体按定义算出**同一个** `event_digest`，因此 receiver 对该 `event_id` **已经持有并已验证过的** proof 集合对 winner bytes 原样成立。receiver MUST 复用它，并在准入时按 winner bytes 重新执行 proof binding 校验——这不是空转：若 verdict 指认的 bytes 算出别的 digest，该校验正是拒绝它的地方。receiver MUST NOT 为 winner 补签、重签或省略 proof。**准入后本地存储的 Event（normative）**：其 digest 原像逐字节等于 winner locator 解出的 bytes；`proofs` / `unsigned` 沿用 receiver 对该 `event_id` 已验证的既有值，MUST NOT 从 loser 原像重新派生。这些字段本就在原像之外（[`../conformance/encoding.md` §6](../conformance/encoding.md) 的 preimage 排除清单），因此该 Event 的 `event_digest` 与 `event_id` 不变，`covered_set` 与历史 `state_root` 不受影响。一个对该 `event_id` **一个变体都不持有**的 receiver 没有可准入的对象，它按普通 backfill 路径取 Event，不走本条。loser bytes MUST 作为 forensic 变体保留在碰撞 bucket 内，MUST NOT 进入 accepted 读取面；loser 派生的 writes 按 [`../sync/operations-sync.md` §12](../sync/operations-sync.md) 的既有移除规则处置。该准入不重算任何历史 Seal 的 `state_root` 或 reducer 输出（第 2 点）。已持有 winner 的 receiver 应用同一裁决是幂等 no-op。`void_all` 裁决后该 `event_id` 在本 Realm **没有** accepted 变体，后到的任一变体 MUST NOT 复活它。
 
    本条明确**不**采用两条替代方案：MUST NOT 让 receiver 经 peer 回填 winner bytes 再自行覆写（回填路径会先触发 §12 的碰撞检测，且各实现对 `received_at` / outbox / projection 的处置必然分叉），也 MUST NOT 把 collision 分型的 alignment 收缩为「只对原本就持有 winner 的 peer 可判定」（那会让 [`../sync/federation.md` §4.5.3](../sync/federation.md) 第二阶段对该分型形同虚设，只剩 operator 手工解除）。**准入的确定性元数据（normative）**：这样准入的 Event 的本地接收时间戳 MUST 取该 resolution Move 所在 Seal 的 `sealed_at`，其派生 projection MUST 与「本地一直持有 winner」的 receiver 逐字节一致——准入结果因此是 `(winner bytes, resolution Seal)` 的纯函数，不依赖本地历史。
 
@@ -572,11 +588,11 @@ Equivocation evidence 是普通 Control Move，event kind 为 **`ak.notary.fault
 - fork resolution 前，普通 joined governance view MUST NOT 纳入 quarantined Seal；
 - 仅 fork-resolution compaction Seal 或 genesis recovery path 可恢复推进。
 
-**以 quarantined Seal 作 `seal_ref` 锚点的 DataEvent（normative）**：当一条 DataEvent 的 `seal_ref` 指向已进入 `fork_quarantine` 的 Seal 时，receiver MUST NOT 用该 quarantined seal 的授权状态接受它进入 joined view，也 MUST NOT 直接按 `seal_ref_stale` 永久拒绝（quarantine 是控制面分叉、未必表示该 DataEvent 的授权基准非法）。receiver MUST 把它降级保持 **observed-only**（§13 `data_observed`，不参与 join、不投影为生效内容），并 hold pending 直到该 slot 的 fork resolution 产生胜出分支：
+**以 quarantined Seal 作 `seal_ref` 锚点的 DataEvent（normative）**：当一条 DataEvent 的 `seal_ref` 指向已进入 `fork_quarantine` 的 Seal 时，receiver MUST NOT 用该 quarantined seal 的授权状态接受它进入 joined view，也 MUST NOT 在 fork resolution 前作永久拒绝（quarantine 是控制面分叉、未必表示该 DataEvent 的授权基准非法）。receiver MUST 把它降级保持 **observed-only**（§13 `data_observed`，不参与 join、不投影为生效内容），并 hold pending 直到该 slot 的 fork resolution 产生胜出分支：
   - 若 `seal_ref` 的 Seal 属**胜出分支**（resolution 后不再 quarantined），receiver MUST 用胜出分支下的授权状态按 §4.2 / §4.3 **重判**该 DataEvent，通过则正常接受；
-  - 若 `seal_ref` 的 Seal 属**落败分支**（resolution 后被弃），receiver MUST 按 `seal_ref_stale` 拒绝或隐藏该 DataEvent，producer 需以胜出分支的新 `seal_ref` 重新签发。
+  - 若 `seal_ref` 的 Seal 属**落败分支**（resolution 后被弃），receiver MUST 以 `rejected_seal` 拒绝或隐藏该 DataEvent；该 Event 从未获得有效准入证明，producer 需基于胜出分支重新签发。
 
-  该处理与 §4.3 撤销新鲜度判定正交（前者针对控制面分叉，后者针对单链撤销），与 [`../sync/operations-sync.md`](../sync/operations-sync.md) 的 observed-only / backfill 保持语义（observed-only 的 DataEvent 不进 canonical join），不引入新状态。
+  该处理是 §4.3 源站原子准入门的控制面分叉分支，与 [`../sync/operations-sync.md`](../sync/operations-sync.md) 的 observed-only / backfill 保持语义（observed-only 的 DataEvent 不进 canonical join），不引入新状态。
 
 Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ak.vector.cbs_lattice.threshold_forensic_attribution.v1` 固定。本条判据是**事后指认**：`2k>n` 保证共同成员存在且必然双签，共同成员是否诚实不影响可指认性。[`cbs-profiles.md` §2](./cbs-profiles.md) 的 barrier 串行化另有更强的 `2k > n + f`，要求交集中至少有一个**诚实** signer；两条不等式服务于不同断言，MUST NOT 互相代入，也 MUST NOT 因为一方不成立而放松另一方。
 
@@ -871,7 +887,7 @@ AvailabilityReceipt {
 
 需要内容寻址时，selector digest 由 `H(JCS(AvailabilityReceipt))` 计算并覆盖完整签名内容；receipt wire 本身不回显该 digest。
 
-其中 `bytes_digest = H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`，`H` 使用该 Realm 的 digest suite。`event_id`、`actor_kind` 与所有 accepted producer / station proofs 都在 preimage 内；因此它覆盖实际保留的准入证明字节，但仍须与按普通 Event preimage 重算的 `event_digest` / `event_id` 及逐项 proof 验证交叉核对。
+其中 `bytes_digest = H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`，`H` 使用该 Realm 的 digest suite。`event_id` 与所有 accepted producer / station proofs 都在 preimage 内；因此它覆盖实际保留的准入证明字节，但仍须与按普通 Event preimage 重算的 `event_digest` / `event_id` 及逐项 proof 验证交叉核对。
 
 规则：
 
@@ -942,7 +958,7 @@ AvailabilityReceipt {
 - **`fsm`**：`fsm` 与 `cas_register` 同为**因果寄存器**，只是每个活跃 head 携带的值是该写入的目标状态 `to`，且写入要额外通过转移表准入。transition write MUST 声明 `from` 与 `to`；`from` 是对写入自身签名 basis 的准入断言，不进入状态、也不是 join 的接边依据。定义、读取、准入与合并规则见下面 §9.3.1.5–§9.3.1.8；实现 MUST NOT 把 op 序列按到达顺序解释成一条转移路径。
 - **`ordered_log`**：每个 reducer-projected `op.kind="append"` write MUST 携带 `issuer_seq`，且其值 MUST 逐字等于 envelope `actor_seq`；其它 op kind 禁止该字段。`issuer_seq` 是为 self-contained projected op 保留的 issuer 因果坐标，不是 cell-local counter。对同一 `(write.cell, actor_id)`，它允许因 actor 在其它 cell 写入而产生任意非负间隔；不得要求从 0 开始连续，也不得把间隔后的 entry 留在 pending。
 
-  joined value 是全部已验证 append Event 的 grow-only 集合。entry identity 由 Event identity 决定；reducer 以 `(actor_id, issuer_seq, event_digest)` 承载并按该三元组 canonical 升序序列化，其中 digest 比较遵守 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的 decoded-octets 规则。该排序只固定 bytes，**不选择 winner**。相同 `(actor_id, issuer_seq)` 的多个合法 sibling 全部进入 cell value；同一 Event 的 exact replay 幂等去重。不同 canonical Event preimage 得到同一 Event identity/digest 属于 hash collision，必须在 Event acceptance 层整组 quarantine，不能由 lattice 选边；仅 `proofs` / reducer stamps 不同且 producer digest preimage 相同仍是同一 Event 内容。
+  joined value 是全部已验证 append Event 的 grow-only 集合。entry identity 由 Event identity 决定；reducer 以 `(actor_id, issuer_seq, event_digest)` 承载并按该三元组 canonical 升序序列化，其中 digest 比较遵守 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的 decoded-octets 规则。该排序只固定 bytes，**不选择 winner**。相同 `(actor_id, issuer_seq)` 的多个合法 sibling 全部进入 cell value；同一 Event 的 exact replay 幂等去重。不同 canonical Event preimage 得到同一 Event identity/digest 属于 hash collision，必须在 Event acceptance 层整组 quarantine，不能由 lattice 选边；仅 `proofs` / `unsigned` 不同且 producer digest preimage 相同仍是同一 Event 内容。
 
   `ordered_log` 不产生 `⊥`，也不定义“issuer equivocation loser”。同高 sibling MAY 作为审计诊断暴露，但诊断必须列出完整 sibling set，不得包含 `winner` / `loser`，不得把任一 sibling 从 timeline、joined value、`state_root` 或 `data_view_root` 排除。一个 actor 后续 Event 是否覆盖完整 frontier由 actor-chain / completeness 规则判断，不得因某 cell 出现同高 sibling而截断该 actor 在本 cell 的未来 entries。
 
@@ -1277,7 +1293,6 @@ E2EE message 不等待数据面 Seal；它等待普通 Event admission 成立，
 | `rejected_seal` | Seal 签名、slot、delta、root、batch 或 `state_root` 校验失败。 |
 | `seal_deferred_future_skew` | Seal 的 `sealed_at` 暂时超过本地时钟允许的 future skew；非终态，receiver MUST hold 并随时钟推进重判。 |
 | `fork_quarantine` | 控制面分叉已被证明，相关 Seal 不得进入普通 joined view。 |
-| `seal_ref_stale` | DataEvent 的 `seal_ref` 与其后继撤销 Seal 之间的 notary-committed Seal distance 超出历史 basis grace；不得解释为 Event 首次投递或接收时间超过现实 TTL。 |
 
 本表是 reducer 判定状态；其到服务 error code 的映射以 [`operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 为准，实现 MUST NOT 引入未登记错误码。
 

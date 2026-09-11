@@ -133,6 +133,22 @@ authenticated data，并额外执行 history-access 文档中的 endpoint-admiss
 解密前 MUST 验 Event schema/proof、exact historical group state、unique active leaf、current history frontier 与
 header 外层绑定；解密后 MUST 验 plaintext schema 与 inner/outer routing。错误不得进入 verified timeline。Redaction、
 retention 或 erasure 可停止投影，但不能使已交付的 secret 失效。
+**消息 authoring prepare 的加密边界（normative）**：SDK 的本地 intent MAY 含明文，但线上 closed
+prepare request MUST 区分 policy 允许的 `content` 与客户端已加密的 `encrypted_content`；
+`e2ee_required` 目标 MUST 拒绝明文分支。MLS 分支 MUST 先在客户端冻结并核对上述 header 所需的
+target/effective scope、scheme、group state、producer verification method 与 sender domain，然后本地
+加密。Station 只接收密文和同样处理的 encrypted metadata，不取得正文密钥或明文，也不能代用户加密。
+
+返回的完整 unsigned Event MUST 逐字保留请求密文、metadata 与已冻结的 AAD 绑定值；客户端 MUST
+独立核对目标、scope/group/sender、密文及用户意图，重算 EventId 后只附加 producer proof。任何不符均
+拒绝签名，不得在返回后替换密文并沿用原 prepare 承诺。若新治理状态使冻结输入不再适用，prepare MUST
+返回可重试的过期/not-ready 结果；客户端按新上下文显式重新准备。相同 request identity 的 exact retry
+MUST 复用原密文和原结果，不得再次消费 MLS sender counter 或在同一 identity 下产生不同密文。
+
+MLS/AAD/nonce/counter/replay 与加密状态持久化仍属客户端，可由 SDK 封装。prepare + submit 的“两次请求”
+只适用于发送 gate 和本地 MLS state 均已就绪的情况；缺失前置材料时必须先补齐。本条约束 authoring
+facade 的实现，不另设 Event、加密 envelope 或通用 prepare wire。
+
 ### 2.4 Sync 与 MLS Epoch
 
 Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密事件和 MLS epoch state MUST 作为相关但可独立到达的 stream 处理：

@@ -666,7 +666,7 @@ MUST 支持:
 - Agent provision request 与 list/get projection 使用必填固有字段 `slug`；Agent selector claim `ak.schema.agent_selector_claim.v1` 与 Actor Profile 投影 hint 使用外部引用字段 `agent_slug`，并支持 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_account_id`（完整 AccountId）的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
 - Draft-only family:`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_approve` / `ak.agent.action_reject`,materialize 为 controller-owned `ak.agent.draft.v1` encrypted account-data
 - Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
-- Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
+- Event Envelope `actor_id` / `executed_by` / `authorization_ref` attribution，以及从历史 provisioning / registration / accountability evidence 分别验证 accountable actor 与 executor
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - `display_name`与`avatar_blob_ref`不得进入 provision Event或三个 projection；provision完成后只可用既有 `ak.profile.update` 独立 Event，固定 `actor_id=agent_id`、`executed_by=controller_account_id`与 accepted controller delegation。该独立 operation失败不得回滚 provision complete
 - Controller deactivate / suspend 时,accountable Agents 的 active sessions revocation 链失效
@@ -709,7 +709,7 @@ MUST 支持:
 - Canonical constraint vocabulary:`allowed_tracks` / `allowed_strand_ids` / `allowed_data_labels` / `allowed_endpoints` / `rate_limit` / `approval_required` / `controller_approval_required` / `accountability_required`
 - Reply-as-agent 与 act-on-behalf wire(`actor_id` / `executed_by` / `authorization_ref`)与双重署名渲染
 - act-on-behalf 默认 fresh approval 粒度 `(action, target_strand)` + 短期 temporal window
-- Realm policy 必须分别控制 Agent、Bot 与 Applet/Ghost provenance；Bot 或 Ghost Actor 不得使用 `actor_kind="agent"`
+- Realm policy 必须分别控制 Agent、Bot 与 Applet/Ghost provenance；不得把 Actor Profile `actor_kind` 当作授权来源，Bot 或 Ghost Actor 的 Profile 也不得使用 `actor_kind="agent"`
 
 MUST NOT:
 - 让 agent 自动继承 controller 在 Realm 内的最大权限

@@ -94,28 +94,16 @@
       }
     },
     {
-      "name": "accept_historical_reverification_after_registry_head_advanced",
+      "name": "accept_historical_reverification_after_policy_changed",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
         "mode": "historical_reverification",
-        "accepted_at_receipt_snapshot_valid": true,
-        "entry_is_current_head_now": false
+        "accepted_atomic_unit_and_frozen_session_valid": true,
+        "current_policy_differs": true
       },
       "expected": {
         "decision": "accept",
-        "uses_current_head": false
-      }
-    },
-    {
-      "name": "reject_live_non_head_entry",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "mode": "live_admission",
-        "entry_is_live_registry_head": false
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "device_reanchor_entry_not_head"
+        "uses_current_policy": false
       }
     },
     {
@@ -219,17 +207,6 @@
       }
     },
     {
-      "name": "reject_spent_or_wrong_generation_root",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "update_authority_is_current_and_unspent": false
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "signature_invalid"
-      }
-    },
-    {
       "name": "reject_old_generation_event_after_fence",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
@@ -243,31 +220,6 @@
       }
     },
     {
-      "name": "quarantine_all_same_version_number_conflicts_independent_of_arrival_order",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "did_version_number": 2,
-        "candidate_count": 2,
-        "candidate_digests_differ": true,
-        "arrival_orders": [
-          [
-            "a",
-            "b"
-          ],
-          [
-            "b",
-            "a"
-          ]
-        ]
-      },
-      "expected": {
-        "decision": "quarantine_all",
-        "device_generation_status": "conflicted",
-        "first_seen_winner": false,
-        "same_result_for_all_arrival_orders": true
-      }
-    },
-    {
       "name": "reject_ordinary_admission_while_generation_conflicted",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
@@ -277,19 +229,6 @@
       "expected": {
         "decision": "reject",
         "error_code": "device_generation_fenced"
-      }
-    },
-    {
-      "name": "accept_conflict_resolution_by_next_precommitted_authority",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "device_generation_status": "conflicted",
-        "resolution_entry_uses_next_precommitted_authority": true,
-        "resolution_unit_valid": true
-      },
-      "expected": {
-        "decision": "accept",
-        "device_generation_status": "active"
       }
     },
     {
@@ -347,7 +286,7 @@
         "realm_purpose": "agent_control",
         "did_inception_ref_count": 0,
         "agent_provision_ref_count": 0,
-        "actor_kind": "agent",
+        "authoritative_actor_provenance": "accepted_agent_provision",
         "executed_by_present": true,
         "authorization_ref_matches_agent_pcr_delegation": true,
         "accepted_provision_declares_this_derived_realm_id": true,
@@ -366,7 +305,7 @@
         "realm_purpose": "agent_control",
         "did_inception_ref_count": 0,
         "agent_provision_ref_count": 0,
-        "actor_kind": "agent",
+        "authoritative_actor_provenance": "accepted_agent_provision",
         "executed_by_present": true,
         "authorization_ref_matches_agent_pcr_delegation": true,
         "accepted_provision_declares_this_derived_realm_id": false
@@ -385,7 +324,7 @@
         "event_kind": "ak.realm.create",
         "realm_purpose": "principal_control",
         "did_inception_ref_count": 1,
-        "actor_kind": "user",
+        "authoritative_actor_provenance": "did_root_anchor",
         "executed_by_present": true,
         "authorization_ref_present": true
       },
@@ -402,7 +341,7 @@
         "event_kind": "ak.realm.create",
         "realm_purpose": "principal_control",
         "did_inception_ref_count": 0,
-        "actor_kind": "user",
+        "authoritative_actor_provenance": "did_root_anchor",
         "executed_by_present": false
       },
       "expected": {
@@ -489,65 +428,6 @@
       }
     },
     {
-      "name": "reject_reanchor_missing_did_recovery_anchor",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "event_kind": "ak.device.reanchor",
-        "did_recovery_anchor_refs": []
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "schema_violation"
-      }
-    },
-    {
-      "name": "reject_reanchor_noncritical_did_recovery_anchor",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "event_kind": "ak.device.reanchor",
-        "did_recovery_anchor_refs": [
-          {
-            "critical": false
-          }
-        ]
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "schema_violation"
-      }
-    },
-    {
-      "name": "reject_reanchor_duplicate_did_recovery_anchor",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "event_kind": "ak.device.reanchor",
-        "did_recovery_anchor_refs": [
-          {
-            "critical": true
-          },
-          {
-            "critical": false
-          }
-        ]
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "schema_violation"
-      }
-    },
-    {
-      "name": "reject_reanchor_anchor_entry_payload_mismatch",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "did_recovery_anchor_entry_id": "3-other",
-        "payload_did_version_id": "4-head"
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "device_reanchor_entry_not_head"
-      }
-    },
-    {
       "name": "reject_reanchor_authorize_prev_refs_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
@@ -618,53 +498,6 @@
       "expected": {
         "decision": "reject",
         "error_code": "device_generation_fenced"
-      }
-    },
-    {
-      "name": "quarantine_same_version_number_different_version_ids",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "did_version_number": 4,
-        "candidate_version_ids": [
-          "4-aaa",
-          "4-bbb"
-        ],
-        "candidate_units_identical": false
-      },
-      "expected": {
-        "decision": "quarantine_all",
-        "error_code": "device_reanchor_conflict",
-        "first_seen_winner": false
-      }
-    },
-    {
-      "name": "quarantine_same_entry_two_different_units",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "did_version_number": 4,
-        "candidate_version_ids": [
-          "4-aaa",
-          "4-aaa"
-        ],
-        "candidate_event_digest_pairs_differ": true
-      },
-      "expected": {
-        "decision": "quarantine_all",
-        "error_code": "device_reanchor_conflict",
-        "first_seen_winner": false
-      }
-    },
-    {
-      "name": "quarantine_previously_accepted_unit_when_conflict_arrives",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "first_unit_has_accepted_receipt": true,
-        "later_same_slot_conflicting_unit_arrives": true
-      },
-      "expected": {
-        "decision": "quarantine_all",
-        "receipt_retained_as_historical_acceptance_evidence": true,
-        "current_effects_removed": true
       }
     },
     {
@@ -861,6 +694,59 @@
       "expected": {
         "decision": "reject",
         "error_code": "recovery_policy_mismatch"
+      }
+    },
+    {
+      "name": "policy_recovery_without_did_root_anchor",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "accepted_policy_authorizes_replacement_key": true,
+        "session_key_matches_both_event_signers": true,
+        "generation_cas_succeeds": true,
+        "did_service_available": false
+      },
+      "expected": {
+        "decision": "accept_atomic_recovery_unit",
+        "requires_did_root_anchor": false,
+        "requires_did_publication": false
+      }
+    },
+    {
+      "name": "reject_reanchor_wrong_session_key",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "session_key_matches_both_event_signers": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "durable_effects": 0
+      }
+    },
+    {
+      "name": "reject_reanchor_concurrent_generation_cas_loser",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "generation_cas_succeeds": false,
+        "previous_winner_has_accepted_receipt": true
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_generation_fenced",
+        "durable_effects": 0
+      }
+    },
+    {
+      "name": "reject_explicit_did_root_factor_invalid",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "policy_enables_did_root_factor": true,
+        "factor_current_update_authority_valid": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "durable_effects": 0
       }
     }
   ]

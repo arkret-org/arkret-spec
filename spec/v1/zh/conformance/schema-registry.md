@@ -293,7 +293,7 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 - 已发布实现遇到不在其本地 registry 快照中的值时，MUST 按**未知值保留**处理：不得因此让整个对象 / 信封反序列化失败。反序列化层保留之后的语义处置按各消费面既有规则执行——未知值保留**不等于**语义接受：写入权威接收方对未声明支持的标准 event kind 仍按 [conformance-profiles.md §2.1](./conformance-profiles.md) 返回 `unsupported_feature` / `unsupported_event_kind` / `schema_violation` 或 quarantine；未注册 relation kind 按 relation-kind-registry `registry_rules` 保留为 opaque edge 且不得推断语义；fail-closed 门（未知 critical feature、授权判定）照常适用。
 - 生成代码 SHOULD 为开放注册集值提供 non-exhaustive / `Unknown(String)` 兜底变体，MUST NOT 用封闭 enum 让未知值导致整体反序列化失败。
 
-**b. schema 内闭集枚举（closed enum）**——由 JSON Schema `enum` 关键词在 canonical schema 中承载的封闭值集：如 Event Envelope 的 `actor_kind`（`user` / `organization` / `team` / `agent` / `bot` / `service` / `integration`）、cursor 的 `purpose`（`stream` / `barrier`）。
+**b. schema 内闭集枚举（closed enum）**——由 JSON Schema `enum` 关键词在 canonical schema 中承载的封闭值集：如 Actor Profile 的 `actor_kind`（`user` / `organization` / `team` / `agent` / `bot` / `service` / `integration`）、cursor 的 `purpose`（`stream` / `barrier`）。
 
 - 已发布 stable schema 向闭集枚举新增值 MUST 伴随对应 schema 版本 bump，并经 §6 的变更说明流程反映到 `conformance-profiles.json#profile_requirements` 的 `required_schemas`。尚未发布的 current-v1 candidate 在冻结前发现分类错误时 MUST 直接修正 current-v1 canonical schema、fixtures、SDK 与全部 consumer，不得为未发布错误保留 compatibility alias 或另造 v2。
 - 已发布旧实现对新值按 `schema_violation` 硬拒是**合规行为**，不是互操作缺陷；发起方在对端未声明新 schema 版本前 MUST NOT 发送新值（能力交集原则）。

@@ -108,11 +108,13 @@ Ghost Actor MUST 带有 `accountable_principal_ids`，且本节 provisioning agg
 
 #### 3.4.1 Agent、Bot 与 Ghost Actor 边界
 
-`Agent` 恰好指 controller 通过 `ak.self.agent.command.provision.v1` 创建的一等个人 Agent，使用
-`actor_kind="agent"`。Applet 创建或托管的 AI/automation 是 `Bot`，MUST 使用 `actor_kind="bot"`，不得借用
-Agent 分类。Ghost Actor 只表示外部主体镜像 provenance，不是 `actor_kind`：外部账号/集成镜像使用
-`actor_kind="integration"`，外部 Bot 镜像使用 `actor_kind="bot"`，不得使用 `agent`。Applet service 自身直接行动时
-使用 `actor_kind="service"`。四者的 principal、lifecycle 与治理路径不得合并。
+`Agent` 恰好指 controller 通过 `ak.self.agent.command.provision.v1` 创建的一等个人 Agent，其 Actor Profile
+使用 `actor_kind="agent"`。Applet 创建或托管的 AI/automation 是 `Bot`，其 Profile MUST 使用
+`actor_kind="bot"`，不得借用 Agent 分类。Ghost Actor 只表示外部主体镜像 provenance，不是
+`actor_kind`：外部账号/集成镜像的 Profile 使用 `actor_kind="integration"`，外部 Bot 镜像 Profile 使用
+`actor_kind="bot"`，不得使用 `agent`。Applet service 自身直接行动时由 `ActorId.service` 与 registration
+证明，Profile 可使用 `actor_kind="service"`。这些 Profile 值都不授予 authority；四者的 principal、
+lifecycle、provisioning / registration 与治理路径不得合并。
 
 Agent（见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)）与 Applet-managed Bot/Ghost
 Actor 是不同 actor，生命周期与治理路径完全分离：
@@ -120,7 +122,7 @@ Actor 是不同 actor，生命周期与治理路径完全分离：
 | 维度 | Agent | Applet-managed Bot / Ghost Actor |
 | --- | --- | --- |
 | 创建路径 | controller 先生成、签署并发布不含 PCR binding 的 Agent DID entry 0；`ak.self.agent.command.provision.v1` prepare 只验证其 accepted `initial_resolution` 与 delegation，不生成 DID/私钥或分配 PCR id。controller 把该承诺写入本地冻结的 Agent PCR genesis并取 `retype(event_id)`，再提交唯一 controller-signed `ak.agent.provision` Event，在一个 reducer transaction 原子派生 provision/accountability/selector/realm-id-claim projection；必填 `requested_scope` 只建立 immutable 全局 ceiling，不生成 `ak.capability.grant`。PCR genesis 在另一次提交 accepted 后 outcome 为 `awaiting_did_binding`；controller 以预承诺 key 发布 create-locked entry 1，accepted 后才 `complete` 并暴露 pairing/list/get。Profile、恢复备份与首次 `ak.agent.key.authorize` 继续独立提交 | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
-| `actor_kind` | `agent` | Bot 为 `bot`；外部账号/集成 Ghost 为 `integration`；外部 Bot Ghost 为 `bot`；不得为 `agent` |
+| Actor Profile `actor_kind` | `agent` | Bot 为 `bot`；外部账号/集成 Ghost 为 `integration`；外部 Bot Ghost 为 `bot`；不得为 `agent`；仅作分类，安全 provenance 仍由对应 provisioning / registration 证明 |
 | `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | 初始 Profile 指向签署同一 aggregate accountability grant 的外部 service DID；Applet controller 关系由 registration / install 表达 |
 | Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ak.edge.applet.command.transaction.v1` 与 Applet 的 delegated session |

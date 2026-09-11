@@ -297,7 +297,7 @@ ak.vector.encoding.reject_feff_injection.v1
 ak.vector.encoding.event_digest.v1
 ```
 
-digest preimage 是去除 `proofs`、`unsigned`、`actor_kind` 与 `event_id` 后的 Event Envelope
+digest preimage 是去除 `event_id`、`proofs` 与 `unsigned` 后的 Event Envelope
 （[`encoding.md` §3](./encoding.md)）。`event_id` 由该 digest 一次前向派生，因此 **MUST NOT** 出现在
 preimage 中：
 
@@ -309,15 +309,16 @@ preimage 中：
     "kind": "realm",
     "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"
   },
-  "actor_id": "ak:did_core:webvh:z6mkfixture",
+  "actor_id": {
+    "kind": "service",
+    "service_id": "ak:did_core:webvh:z6mkfixture"
+  },
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [],
-  "refs": [],
   "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "auth_context": {
-    "actor_id": "ak:did_core:webvh:z6mkfixture",
     "key_id": "device-1",
     "key_epoch": 1
   },
@@ -335,20 +336,20 @@ preimage 中：
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"ak:did_core:webvh:z6mkfixture","actor_seq":1,"auth_context":{"key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":{"kind":"service","service_id":"ak:did_core:webvh:z6mkfixture"},"actor_seq":1,"auth_context":{"key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest 与由它前向派生的 `event_id`：
 
 ```text
-sha256:e6a0a930ea002d2ea22b51f854b9effa9b6e6bcdf41fc575140f7d9e159dbf1b
-ak:event:AeagqTDqAC0uoitR-FS57_qbbmvN9B_FdRQPfZ4Vnb8b
+sha256:e1c68e4c5e39b3e4b4d5cbee8af62b6657175bfcd4aebcd27b8f59291c322c8b
+ak:event:AeHGjkxeObPktNXL7or2K2ZXF1v81K680nuPWSkcMiyL
 ```
 
 判定规则：
 
-- event digest / proof `event_digest` MUST 从 redaction 前、去除 `proofs` / `unsigned` / `actor_kind` /
-  `event_id` 后的 canonical event bytes 派生；`event_id` 是该 digest 的前向派生结果，把它放回 preimage
+- event digest / proof `event_digest` MUST 从 redaction 前、去除 `event_id` / `proofs` / `unsigned`
+  后的 canonical event bytes 派生；`event_id` 是该 digest 的前向派生结果，把它放回 preimage
   会造成不可解的自引用。
 - `event_id` 的 33 octets 为 `0x01`（sha256 suite code）拼接完整 32 字节 digest，再做无 padding base64url
   （[`encoding.md` §4](./encoding.md)）。
@@ -680,6 +681,19 @@ purpose/scheme/scope/kind/group id、standard 携 counter、exporter 缺 counter
 - 实现 MUST NOT hash 明文 payload。
 - 实现 MUST NOT 省略路由和解密所需的 `payload_metadata` 字段，否则 Station sync surface 无法安全去重和审计密文 envelope。
 
+消息 prepare 的实现还 MUST 执行以下 authoring 边界向量（加密责任见
+[encryption-and-audit §2.3](../crypto-media/encryption-and-audit.md)；它们不定义新的 prepare operation）：
+
+| 场景 | 预期 |
+| --- | --- |
+| `e2ee_required`，线上 prepare 含明文 `content` | 拒绝；不能在 Station 上加密或降级 |
+| 客户端按冻结 header 本地加密，返回 Event 原样保留密文和绑定 | 客户端核对、重算 EventId 后可附加 proof |
+| prepare 返回的 target、scope、group/epoch、producer method 或 sender domain 任一改变 | 客户端拒绝签名；不能沿用原 ciphertext 的 AAD 承诺 |
+| `encrypted_content` 或 encrypted metadata 任一字节改变 | 客户端拒绝签名，不能静默修正 unsigned Event |
+| 同 request identity exact retry | 原密文、原结果和 sender counter 消费次数不变 |
+| scope/group/frontier 改变使原冻结输入不可用 | 可重试的过期/not-ready；显式新准备，禁止同 identity 换密文 |
+| 缺少本地 MLS state 或发送 gate 未就绪 | 先补前置或保持 not-ready，不声称 prepare + submit 足够 |
+
 ### 1.12.1 Vector: 畸形二进制 Payload 拒绝（结构深度 / CBOR bounds）
 
 本节固化 [scalability-constraints.md](./scalability-constraints.md) §2 的 canonical 结构嵌套深度上限（64）与手写 deterministic CBOR 的 decode bounds（单 array / map ≤ 65,536 项；声明长度 MUST ≤ 剩余输入；indefinite-length 项拒绝）。机器可读向量在 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)；体量型输入（深嵌套、超大数组）用 **generator 描述字段**表达，runner MUST 按 generator 规则在执行时构造输入，fixture 本身不存放兆级字面量。
@@ -801,7 +815,7 @@ Expected：`expected_multibase` / `expected_principal_id_key` MUST byte-for-byte
 
 `ak.vector.scalability.circle_count_limit.v1` MUST 同时覆盖：（a）已有 1,000 个 active Circle 的 Realm 再提交 `ak.circle.create`；（b）已有 256 个 active MLS-backed Circle membership 的 actor 再加入一个 MLS-backed Circle。两者均 MUST 以 `failed_precondition`、`reason_code=circle_count_exceeded` 拒绝且不得改变状态。体量状态由 runner 按 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的 generator 描述构造，不要求 fixture 字面展开全部对象。
 
-`ak.vector.scalability.envelope_size_limit.v1` 只测完整 canonical accepted Event Envelope；v1 不定义 “Event/Operation envelope” 混合对象。Runner MUST 生成精确 1,048,576 bytes 的候选 accepted Event（包含全部 proof 与 reducer-stamped 字段、不含 read-view `unsigned`）作为接受边界，并生成 1,048,577 bytes 的超限输入；还必须覆盖 producer envelope 在 stamping 前未超限、加入 `effective_scope` / `actor_kind` 后变为 1,048,577 bytes 的用例。两个超限输入都 MUST 在 commit 前以 `payload_too_large` 拒绝；self/peer submit 携带 `unsigned` 必须在 reducer 前 `schema_violation`。同一 vector 还必须生成含 Add 的 Commit 所对应的 inline `ak.mls.welcome` 完整候选：恰好 1,048,576 bytes 可继续发送 Commit，1,048,577 bytes 必须在任何 Commit 网络写入和 post-Commit state 安装前终止该 generation。
+`ak.vector.scalability.envelope_size_limit.v1` 只测完整 canonical accepted Event Envelope；v1 不定义 “Event/Operation envelope” 混合对象。Runner MUST 生成精确 1,048,576 bytes 的候选 accepted Event（包含 producer proof 与待原子提交的 `station_admission` proof，不含 read-view `unsigned`）作为接受边界，并生成 1,048,577 bytes 的超限输入；producer 在签名前必须预留完整 proof 集预算，源站不得通过签后改写已签字段来满足上限。超限输入 MUST 在 commit 前以 `payload_too_large` 拒绝；self/peer submit 携带 `unsigned` 必须在 reducer 前 `schema_violation`。同一 vector 还必须生成含 Add 的 Commit 所对应的 inline `ak.mls.welcome` 完整候选：恰好 1,048,576 bytes 可继续发送 Commit，1,048,577 bytes 必须在任何 Commit 网络写入和 post-Commit state 安装前终止该 generation。
 
 `ak.vector.scalability.http_header_limits.v1` MUST 至少覆盖：128-char `Idempotency-Key` 接受、129-char 拒绝；非 ASCII / 非 canonical alphabet 拒绝；HTTP header aggregate 32 KiB 接受、32 KiB + 1 byte 拒绝；超限输入不得建立 replay-cache entry、不得构造无界签名 transcript。
 
@@ -1391,24 +1405,21 @@ ak.vector.lattice.ordered_log_gap.v1
 ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.1：verifier MUST NOT 只查"当前 DID 文档"，key / credential epoch 的有效性以 `seal_ref` 时点为准。
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.1、§4.3：key / credential epoch 必须在源站串行化准入门中按已解析控制面状态验证；一旦源站原子追加有效 `station_admission`，后到撤销不得追溯改写该 Event。
 
 输入：
 
-- **Case A — 被撤销 key + 旧 seal_ref**：actor 的 key K 在 Seal `S_r` 被撤销；DataEvent 携带 `auth_context.key_epoch` 指向撤销前 epoch、`seal_ref` 为撤销前 Seal，且 `distance(seal_ref, S_r)` 超过 `revocation_freshness_window`。
-- **Case B — 撤销宽限窗口内**：同 Case A 但 `distance(seal_ref, S_r)` 在窗口内。
-- **Case C — epoch 与 seal_ref 不符**：`auth_context.key_epoch` 在 `seal_ref` 对应控制面状态下不存在或已被替换。
+- **Case A — 先准入后撤销**：源站在 key K 仍有效时完成串行化校验并原子追加 `station_admission`，随后接受撤销 K 的控制面状态。
+- **Case B — 先撤销后准入**：撤销 K 已进入源站的准入门控制面状态，producer 仍提交指向撤销前 epoch / Seal 的普通 capability DataEvent。
+- **Case C — epoch 与准入基线不符**：`auth_context.key_epoch` 在源站准入门解析的控制面状态中不存在或已被替换。
 
 期望：
 
-- Case A：receiver MUST 拒绝或隐藏（`seal_ref_stale` / `failed_precondition`）。
-- Case B：receiver MUST 接受并把 Event 保留在 data-cell join 输入；选择拒绝或从 reducer 输入排除该
-  窗口内 Event 的实现不符合本向量。
-- Case C：receiver MUST `failed_precondition`，不得回退到"当前 DID 文档"判定。
+- Case A：所有 receiver MUST 验证冻结的 `station_admission` 并永久保留 Event；后到撤销不得移除 Event 或其已接受后继。
+- Case B：源站 MUST `failed_precondition` 且不得追加 `station_admission`；普通 capability DataEvent 不得绕过准入门直接进入 accepted history。
+- Case C：源站 MUST `failed_precondition`，不得回退到 producer 提供的旧 Seal 或 receiver 当前 DID 文档判定。
 
-失败条件：用当前 DID 文档替代 `seal_ref` 时点判定；Case A 被静默接受；Case B 被拒绝或未进入
-data-cell join 输入。Case A 的 reject 与 hide 只允许改变本地保留/诊断可见性，对 data-cell join 输入
-必须同为排除。Runner 不得要求未登记的 `query_grade` 响应字段。
+失败条件：撤销后仍为 Case B 追加准入证明；对 Case A 作追溯移除；peer 依据自己的当前控制面状态重跑源站授权；无 `station_admission` 的普通 capability DataEvent 进入 accepted history。Runner 不得要求未登记的 `query_grade` 响应字段。
 
 ### 2.15 Vector: compaction Seal 节律义务
 
@@ -1549,52 +1560,52 @@ ak.vector.cbs_lattice.threshold_forensic_attribution.v1
 ak.vector.cbs_lattice.open_set_concurrent_revocation_fail_closed.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 与 §6.3：`open_set` notary profile 下，撤销 Seal 与 DataEvent 的 `seal_ref` 并发时，receiver 必须按 joined control view 重判授权，不能因为二者互不可达而把撤销窗口当成未发生。
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 与 §6.3：`open_set` notary profile 下，源站必须把撤销状态与 DataEvent 准入放入同一串行化边界；peer 只验证冻结的 `station_admission`，不得事后重跑授权或移除历史。
 
 输入（fixture：[`cbs-lattice-fixture.json`](../../artifacts/fixtures/cbs-lattice-fixture.json) `open_set_concurrent_revocation_fail_closed`）：
 
-- **Case A**：两个并发 Seal leaf 中，一个覆盖 capability grant，另一个覆盖同一 grant 的 revoke；DataEvent 的 `seal_ref` 指向 grant leaf。
+- **Case A**：joined control view 已包含 capability revoke；DataEvent 的 producer basis 仍指向 grant leaf，随后到达源站准入门。
 - **Case B**：承载授权判定的 control cell 在并发 join 后进入 `⊥`，且 `bottom=reject`。
 - **Case C**：接纳外部事件的服务器只持有单 leaf 视图，无法独立验证 multi-leaf union basis。
-- **Case D**：receiver 先接受 DataEvent `E` 并物化 cell X write，再接受以 `E` 为 critical causal dependency 的 DataEvent `D` 并物化 cell Y write；随后并发撤销 leaf `R` 迟到。
+- **Case D**：源站先为 DataEvent `E` 原子追加有效准入证明，再接受并物化依赖 `E` 的 DataEvent `D`；撤销 leaf `R` 后到。
 
 期望：
 
-- Case A：receiver MUST 按 joined control view 判定该 capability 已撤销，DataEvent MUST fail closed（`seal_ref_stale`）；并发分支不计算 `distance`，不享受新鲜度窗口。
+- Case A：源站 MUST fail closed 且不得追加 `station_admission`；producer basis 不能覆盖准入门的 joined control view。
 - Case B：依赖该 cell 的 DataEvent 与 Control Move MUST fail closed（`cell_in_bottom_state` / `failed_bottom`）。
 - Case C：接纳服务器 MUST hold pending 或 fail closed，MUST NOT 用单 leaf 授权结论接受该 DataEvent。
-- Case D：join `R` 后 `E` MUST `seal_ref_stale`，其 cell X write MUST 被追溯移除；`D` 与所有直接 / 间接依赖 `E` 的 accepted 后继 MUST 转为 `result=pending, reason=dependency_missing`，其 projected writes（含 cell Y）同步移除。最终 accepted set 与 projection MUST 等于从一开始就持有 `{S0,R}` 的 receiver，且与到达顺序无关。
+- Case D：`E`、`D` 及其 projected writes MUST 永久保留；撤销 `R` 只阻止其后新的准入，不得把已接受历史转回 pending 或制造 `dependency_missing`。
 
-失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；接纳服务器无法验证 joined view 时仍接受；只移除 `E` 而保留依赖 `E` 的 `D` / 后继 projected writes，导致先接受后撤销与先撤销后接收的 projection 不同。
+失败条件：用 producer 的单 leaf 绕过 joined control view；接纳服务器无法验证完整准入状态时仍接受；peer 重跑当前授权；撤销后追溯移除 `E`、`D` 或任何已接受 projected write。
 
-### 2.19.1 Vector: Circle lifecycle basis 与 archive freshness
+### 2.19.1 Vector: Circle lifecycle admission barrier
 
 向量名称：
 
 ```text
-ak.vector.circle.lifecycle_basis_and_archive_freshness.v1
+ak.vector.circle.lifecycle_admission_barrier.v1
 ```
 
-本向量固化 [`circle.md`](../models/circle.md) §6.1 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3：Circle `state=active` 是事件 CBS 基线中的授权输入，不能读取 receiver 当前 projection 代替；线性 archive、并发 archive、tombstone 与 restore barrier 必须得到唯一分类。
+本向量固化 [`circle.md`](../models/circle.md) §6.1 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3：Circle lifecycle 是源站串行化准入门的授权输入；archive / tombstone 只阻止后续准入，不得追溯改写已获有效证明的 Event。
 
 输入（fixture：[`circle-scope-fixture.json`](../../artifacts/fixtures/circle-scope-fixture.json) `lifecycle_basis_cases`）：
 
-- **Case A — 基线内 inactive**：DataEvent 的 `seal_ref` view 或 Control Move 的 `seal_basis` joined view 中 Circle 已 archived。
-- **Case B — 线性 archive**：DataEvent 的 `seal_ref` view 中 Circle active，后继 Seal 覆盖 archive；分别构造窗口内与超窗距离。
-- **Case C — 并发 archive**：`open_set` 两个互不可达 leaf 分别承载 DataEvent 基线与 Circle archive，joined lifecycle 为 archived。
-- **Case D — tombstone**：`seal_ref` 后继 Seal 覆盖 Circle tombstone，即使距离仍在普通 freshness window 内。
-- **Case E — restore barrier**：`seal_ref` 位于 archive 前，receiver 当前 view 已经过 archive → restore 并重新 active。
+- **Case A — 准入时 inactive**：源站准入门解析的 joined control view 中 Circle 已 archived。
+- **Case B — 先准入后 archive**：Circle active 时源站原子追加 `station_admission`，后继控制面状态再 archive Circle。
+- **Case C — 先 archive 后准入**：archive 已进入源站 joined control view，producer 仍提交基于旧 active leaf 的 Event。
+- **Case D — tombstone barrier**：tombstone 已进入源站准入门控制面状态，producer 提交基于旧 active leaf 的 Event。
+- **Case E — restore barrier**：archive 后的旧 Event 未获准入；restore 只允许 producer 基于恢复后的新状态重新签发并请求新准入。
 - **Case F — Control Move**：分别在 active / archived 的 `seal_basis` joined view admission，并登记 Seal step 8 的冻结 predecessor 重验基线。
 
 期望：
 
-- Case A：MUST `failed_precondition`，reason=`circle_not_active`；不得用 receiver 较新的 projection 改写结果。
-- Case B：窗口内 MUST 接受并进入 data-cell join 输入；超窗 MUST 拒绝或隐藏，code=`seal_ref_stale`。后继 archive 不得被误报为基线内 `circle_not_active`。
-- Case C / D：MUST 立即拒绝或隐藏，code=`seal_ref_stale`，`freshness_window_applies=false`；轻客户端无法验证 joined view 时只能 pending 或 fail closed。
-- Case E：restore MUST NOT 追溯恢复旧 `seal_ref`；producer 必须换用包含 restore 的新 active 基线。
+- Case A：源站 MUST `failed_precondition`，reason=`circle_not_active`，且不得追加准入证明。
+- Case B：所有 receiver MUST 验证准入证明并永久保留 Event；archive 不得改变其 accepted status。
+- Case C / D：源站 MUST `failed_precondition`，reason=`circle_not_active`，且不得用 producer 的旧 leaf 绕过 barrier。
+- Case E：restore MUST NOT 追溯准入旧签名 Event；producer 必须基于 restore 后状态重新签发。
 - Case F：admission 与 Seal 重验都只读取登记的 CBS 基线，不读取本地当前 projection。
 
-失败条件：相同事件因 receiver 当前 Circle projection 不同而一方接受、一方 `circle_not_active`；并发 archive 获得 freshness window；tombstone 获得宽限；restore 后接受 archive 前的旧基线；Control Move 不在 `seal_basis` / Seal frozen predecessor view 中重验。
+失败条件：peer 因当前 Circle projection 不同而重判已获准入的 Event；archive / tombstone 追溯移除历史；restore 后接受 archive 前未获准入的旧签名 Event；Control Move 不在 `seal_basis` / Seal frozen predecessor view 中重验。
 
 ### 2.20 Vector: conflict-recovery Move
 
@@ -1652,8 +1663,8 @@ ak.vector.lattice.ordered_log_join.v1
 - **Case B — exact replay**：同一 Event identity 与完整 canonical `write.op` 重复到达。
 - **Case C — sibling set**：同一 `(cell, actor_id, issuer_seq)` 的两个不同合法 Event，完整 canonical `write.op` bytes 可同可不同，canonical `event_digest` 不同。
 - **Case D — 因果资料不选边**：与 Case C 相同的集合，但其中一条携带不同 causal refs；若 actor-chain 验证均接受，二者仍全部进入日志。
-- **Case E — digest collision**：两个候选的 canonical `envelope_without_proofs_unsigned_actor_kind_event_id` bytes 不同，却得到完全相同的 typed `event_digest`（同 suite、同 octets）。
-- **Case F — 仅 proofs / reducer stamp 不同**：两个候选的 canonical digest preimage bytes 逐字相同，只有 `proofs` 集或 reducer-stamped `actor_kind` 不同。`scope_ref` 不同必然改变 digest，不属于本例。
+- **Case E — digest collision**：两个候选的 canonical `envelope_without_event_id_proofs_unsigned` bytes 不同，却得到完全相同的 typed `event_digest`（同 suite、同 octets）。
+- **Case F — 仅 proofs / unsigned 不同**：两个候选的 canonical digest preimage bytes 逐字相同，只有 `proofs` 集或 read-view `unsigned` 不同。`scope_ref` 不同必然改变 digest，不属于本例。
 - **Case G — 跨 suite 比较**：两个候选使用不同 digest suite，且 typed wire string 的 UTF-8 顺序与 decoded digest octets 顺序**相反**。
 
 期望：
@@ -1663,7 +1674,7 @@ ak.vector.lattice.ordered_log_join.v1
 - **Case C**：两条 sibling 都进入 joined value；diagnostic 若出现，必须列出完整 sibling set，不得出现 winner/loser 字段。
 - **Case D**：结果与 Case C 相同；因果资料、HLC 与到达顺序不得删除任一已接受 sibling。
 - **Case E**：MUST fail closed（digest collision），MUST NOT 回退到 `event_id`、`op.value` 内任一字段、到达顺序或实现私有 ID。
-- **Case F**：视为同一 producer-signed Event 内容，MUST NOT 报 collision；`proofs` 按 proof profile 合并，reducer stamps 按其各自验证规则处理。
+- **Case F**：视为同一 producer-signed Event 内容，MUST NOT 报 collision；`proofs` 按 proof profile 合并，`unsigned` 不参与身份。
 - **Case G**：joined value 包含两条；它们的 canonical serialization order 由 decoded digest octets 决定，不由 `<suite>:` 前缀字符串决定。
 
 失败条件：
@@ -4483,7 +4494,7 @@ Steps:
 Expected:
 
 - 第 3 步 MUST 校验 `executed_by` ↔ proof key 一致、`authorization_ref` 覆盖 `ak.message.create` + Strand F + 未过期；通过则接受。
-- Reducer 写入 `actor_kind="agent"` projection(注意是 reducer-stamped,actor 提交侧不携带)。
+- 审计结果分别记录 accountable actor=controller 与 executor=Agent A；该结论来自签名覆盖的 `actor_id` / `executed_by`、`authorization_ref=G` 及已验证 Agent provisioning / accountability / key 证据，不读取或写入 Event `actor_kind`。
 - 第 4 步 MUST fail closed(`reason=approval_already_consumed`)。
 - 客户端渲染 "Controller vian Agent" 双重署名；不显示为纯 controller 行为。
 
@@ -5824,7 +5835,7 @@ receipt schema；其中的示意 JWS / digest 不得用于密码学断言，也�
 Steps:
 
 1. 构造并发候选集与同一 `(cell, actor_id, issuer_seq)` 的合法 sibling set。
-2. 对每个候选计算 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。
+2. 对每个候选计算 `canonical_digest(envelope_without_event_id_proofs_unsigned)`。
 3. 解码 typed digest 的 hex 为 octets，按 unsigned lexicographic order 升序序列化全部候选。
 
 Expected:
@@ -5832,8 +5843,8 @@ Expected:
 - 全部候选保留且没有 winner；octets 完全相同而 suite 不同时以 canonical suite id 的 UTF-8 bytewise 顺序作第二键。
 - 必须包含一条 suite 前缀字符串顺序与 decoded octets 顺序**相反**的 case：按整串 UTF-8 比较会得到错误序列。
 - fixture 明示攻击者击败已知随机 digest 的期望尝试数约为 2，并断言该顺序不得进入授权、finality、Relation active edge、account status 或 `state_root` 成员资格选择。
-- digest preimage MUST 逐字使用移除 `proofs` / `unsigned` / reducer stamp `actor_kind` 后的 canonical bytes，并保留签名 `scope_ref`；沿用移除 scope 的旧算法 MUST 失败。
-- 仅 `proofs` 或 reducer stamps 不同、canonical preimage 逐字相同的两个输入 MUST NOT 被报成 collision。
+- digest preimage MUST 逐字使用移除 `event_id` / `proofs` / `unsigned` 后的 canonical bytes，并保留签名 `scope_ref`；排除任何额外业务字段或移除 scope 的算法 MUST 失败。
+- 仅 `proofs` 或 `unsigned` 不同、canonical preimage 逐字相同的两个输入 MUST NOT 被报成 collision。
 - 同 typed digest（同 suite、同 octets）但 canonical preimage 不同 MUST fail closed，MUST NOT 回退到 `event_id` / HLC / `created_at` / 到达顺序 / 实现私有 ID。
 - producer 在 Event DAG 中加入因果资料不得把任一已接受 sibling 变成 loser。
 

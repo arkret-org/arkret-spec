@@ -593,7 +593,7 @@ introspection 或本地会话状态自行判定或近似认证新鲜度：intros
 
 ## 9.1 Agent principal lifecycle
 
-Agent(`actor_kind="agent"`,`accountable_principal_ids` 指向 controller principal)的 lifecycle 是 controller 账户 lifecycle 的从属体:
+由 Agent provisioning 与 accountability grant 证明、且 Actor Profile 分类为 `actor_kind="agent"` 的 Agent，其 lifecycle 是 controller 账户 lifecycle 的从属体；Profile 分类本身不建立该关系：
 
 - **Provisioning** 由 controller 通过 `ak.self.agent.command.provision.v1` operation 发起。controller 先按 [`key-management.md` §3.6.3](./key-management.md) 生成并发布不含 PCR binding 的 Agent DID inception；`prepare` 校验该 accepted entry 0，写 private durable reservation 与 signed opaque allocation handle，并返回逐字一致的 `initial_resolution`，但 canonical published state 保持为零，且**不**分配 Agent PCR id。controller 把该承诺写入本地冻结的 PCR genesis，取 `principal_control_realm_id = retype(event_id)`，再签署恰好一条前向声明该值的 `ak.agent.provision` Event；`commit` 经普通 Event admission 接受后，在同一 reducer transaction 原子派生分别闭合的最小 provision、accountability、selector 与 realm-id-claim projections。不得用多 Event fan-out、服务代签、完整 payload 复制或部分 projection 替代。
   必填且 immutable 的 `requested_scope` 只建立 Agent key/session 的全局硬上限，不是 Realm 授权；其 private disclosure 与 commitment 只包含该完整 scope。provisioning 不得据此创建任何 `ak.capability.grant`。后续 Agent key scope、Realm-scoped grant 与 session request 不得越过该 ceiling；participation selection 是独立的 controller 偏好，在动作时只能进一步拒绝，不能补回 requested_scope 未授权的 action。

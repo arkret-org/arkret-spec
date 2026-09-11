@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.1",
+  "version": "2026-09-11.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-11T04:15:00+08:00",
+  "generated_at": "2026-09-11T23:16:51+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1614,13 +1614,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.circle.lifecycle_basis_and_archive_freshness.v1",
+      "vector_id": "ak.vector.circle.lifecycle_admission_barrier.v1",
       "status": "active",
       "domain": "circle",
       "applies_to_fixtures": [
         "circle-scope-fixture.json"
       ],
-      "description": "Circle lifecycle is evaluated at the Event CBS basis; linear archive uses the revocation freshness window, tombstone and concurrent archive fail closed immediately, and restore never rehabilitates a pre-archive basis.",
+      "description": "Circle lifecycle is evaluated in the source-Station serializable admission gate: admission before archive is retained, archive or tombstone before admission blocks, and restore requires a newly signed Event.",
       "source_refs": [
         "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
@@ -5221,7 +5221,7 @@
       "vector_id": "ak.vector.proof_context.transcript.event_envelope.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.event_proof.v1: digest input deletes `actor_kind`, `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.extension_manifest_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.event_proof.v1: digest input deletes exactly `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.extension_manifest_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.event_proof.v1"
       ],
@@ -5851,7 +5851,7 @@
       "vector_id": "ak.vector.proof_context.transcript.station_event_admission.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.station_admission_proof.v1: digest input deletes `actor_kind`, `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm_join_candidate_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.station_admission_proof.v1: digest input deletes exactly `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm_join_candidate_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.station_admission_proof.v1"
       ],

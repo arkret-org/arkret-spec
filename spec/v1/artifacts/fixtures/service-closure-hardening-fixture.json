@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-10",
+  "version": "2026-09-11.1",
   "suite": "service_closure_hardening",
   "runner": {
     "kind": "named_suite",
@@ -23,7 +23,7 @@
         "provision_replay_same_request_id_and_intent_returns_original_material",
         "provision_same_request_id_different_intent_is_duplicate_conflict",
         "activation_without_verifiable_acceptance_attestation_is_rejected",
-        "activation_with_stale_acceptance_attestation_is_rejected",
+        "activation_with_expired_signed_acceptance_attestation_is_rejected",
         "activation_with_edited_public_material_is_rejected",
         "second_invite_never_rebinds_one_provisioning_record",
         "activation_replay_after_restart_returns_original_binding",
@@ -43,8 +43,7 @@
         "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "provisioning_state": "provisioned",
         "delivery_state": "not_started",
-        "activation_expires_at": "2026-05-05T00:00:00.000Z",
-        "revocation_freshness_window_ms": 60000
+        "activation_expires_at": "2026-05-05T00:00:00.000Z"
       },
       "provision_requests": [
         {
@@ -82,10 +81,11 @@
           }
         },
         {
-          "name": "stale_acceptance_attestation",
+          "name": "expired_signed_acceptance_attestation",
           "acceptance_attestation_present": true,
           "invite_id": "ak:invite:AQSdMSVYQP78xQTP7_xycpRF0LZ8BTOV1U1lNLZqz2PL",
-          "observation_age_ms": 900000,
+          "verified_at": "2026-05-05T00:00:01.000Z",
+          "attestation_expires_at": "2026-05-05T00:00:00.000Z",
           "expected": {
             "decision": "reject",
             "audit_reason": "third_party_invite_acceptance_stale",
@@ -97,7 +97,8 @@
           "name": "edited_public_material",
           "acceptance_attestation_present": true,
           "invite_id": "ak:invite:AQSdMSVYQP78xQTP7_xycpRF0LZ8BTOV1U1lNLZqz2PL",
-          "observation_age_ms": 1000,
+          "verified_at": "2026-05-04T23:59:01.000Z",
+          "attestation_expires_at": "2026-05-05T00:00:00.000Z",
           "attested_token_commitment": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "expected": {
             "decision": "reject",
@@ -110,7 +111,8 @@
           "name": "first_valid_activation",
           "acceptance_attestation_present": true,
           "invite_id": "ak:invite:AQSdMSVYQP78xQTP7_xycpRF0LZ8BTOV1U1lNLZqz2PL",
-          "observation_age_ms": 1000,
+          "verified_at": "2026-05-04T23:59:01.000Z",
+          "attestation_expires_at": "2026-05-05T00:00:00.000Z",
           "attested_token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "expected": {
             "decision": "accept",
@@ -125,7 +127,8 @@
           "name": "restart_then_identical_retry",
           "acceptance_attestation_present": true,
           "invite_id": "ak:invite:AQSdMSVYQP78xQTP7_xycpRF0LZ8BTOV1U1lNLZqz2PL",
-          "observation_age_ms": 1000,
+          "verified_at": "2026-05-04T23:59:01.000Z",
+          "attestation_expires_at": "2026-05-05T00:00:00.000Z",
           "attested_token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "process_restarted": true,
           "expected": {
@@ -141,7 +144,8 @@
           "name": "second_invite_rebind_attempt",
           "acceptance_attestation_present": true,
           "invite_id": "ak:invite:AfVi-FmTYttG2uQeB67y7GdHhOrWGxBe0QaDAOwYnK01",
-          "observation_age_ms": 1000,
+          "verified_at": "2026-05-04T23:59:01.000Z",
+          "attestation_expires_at": "2026-05-05T00:00:00.000Z",
           "attested_token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "expected": {
             "decision": "reject",

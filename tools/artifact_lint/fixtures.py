@@ -2706,10 +2706,9 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
         if isinstance(event, dict):
             signed_event = dict(event)
             # zh/conformance/encoding.md section 6: the digest preimage removes
-            # proofs, unsigned, actor_kind and event_id. event_id is excluded
-            # because section 4.0 derives it from this very digest.
+            # event_id, proofs and unsigned. event_id is excluded because
+            # section 4.0 derives it from this very digest.
             signed_event.pop("unsigned", None)
-            signed_event.pop("actor_kind", None)
             signed_event.pop("event_id", None)
             expected_canonical = canonical_json(signed_event)
             if vector.get("canonical_event_payload") != expected_canonical:
@@ -2723,7 +2722,6 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
                 unsigned = dict(event_with_proof)
                 unsigned.pop("proofs", None)
                 unsigned.pop("unsigned", None)
-                unsigned.pop("actor_kind", None)
                 unsigned.pop("event_id", None)
                 if unsigned != signed_event:
                     lint.fail(path, f"vectors[{index}] event_with_proof without proofs differs from event_without_proofs")
@@ -2865,7 +2863,7 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
                     canonical_input = {
                         key: value
                         for key, value in canonical_input.items()
-                        if key not in {"proofs", "unsigned", "actor_kind", "event_id"}
+                        if key not in {"proofs", "unsigned", "event_id"}
                     }
                 try:
                     canonical = canonical_json(canonical_input)

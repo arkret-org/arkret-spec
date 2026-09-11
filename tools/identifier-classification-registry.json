@@ -409,14 +409,6 @@
     },
     {
       "name": "id",
-      "terminal_signature": "[[\"pattern\", \"^[1-9][0-9]*-[^\\\\s]+$\"]]",
-      "category": "external_system_identifier",
-      "occurrences": 1,
-      "example_path": "event-envelope.schema.json#/allOf/123/then/properties/refs/contains/properties/id",
-      "reason": "did:webvh DID Log coordinate copied verbatim; its lexical space belongs to the external method."
-    },
-    {
-      "name": "id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._~-]+$\"]]",
       "category": "document_local_symbol",
       "occurrences": 1,

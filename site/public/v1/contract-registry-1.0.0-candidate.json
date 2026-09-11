@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.8",
+  "version": "2026-09-12.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-11T21:54:24+08:00",
+  "generated_at": "2026-09-12T03:57:27+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -389,7 +389,7 @@
       "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed.",
       "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
       "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
-      "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=agent_control Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
+      "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. For purpose=agent_control the immutable accepted controller-authored ak.agent.provision is resolved by its whole-value claim of retype(this EventId, realm); the genesis MUST NOT carry a backward agent_provision ref, which would create an EventId cycle. The verifier cross-binds the complete actor/controller AccountIds, PCR delegation and provision payload before materializing Agent status. An explicitly organization-governed purpose=principal_control branch proves its separate accepted organization authority. A self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
       "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds the exact account ActorId, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Agent or human PCR admission.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
       "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(did)=actor_id; current DID state after registration is irrelevant.",
@@ -480,7 +480,7 @@
       "State convergence is defined by CBS: DataEvent writes are projected and locally accepted against seal_ref, Control Move writes are projected and finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
       "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST be listed in at least one action's target_event_kinds - admission has a single direction of truth and no per-event capability list. Enforced by tools/artifact_lint; no active durable reducer-input event may lack an admission source (fail-closed).",
       "A conditional admission MUST use only selectors defined by admission_predicate_contract. All non-otherwise predicates are evaluated independently; exactly one match selects its branch, zero matches selects the final otherwise branch, and multiple matches fail closed. otherwise is never evaluated as an ordinary predicate.",
-      "ak.conflict.recovery is the single registered exception to literal cell addressing. Its one cell_writes[] entry declares cell_ref (a cell_id sourced from the payload) instead of cell_family/cell_subject, and effect_projection kind=reset instead of a lattice op, and it omits lattice and bottom. That combination is closed: no other kind may declare cell_ref or reset, and this kind MUST declare both together. A recovery addresses one cell of an arbitrary family, so the target cannot be a literal ak.component.*.v<n> URI; and a reset is not a join, so it has no lattice. The safety envelope is not static reachability but zh/authz/event-auth-state-resolution.md section 9.5: the reducer MUST apply a reset only to a cell already in Bottom, and only when the Event carries refs[] role=recovery_capability and role=state_witness satisfying every condition in that section. On a cell in any other state the write MUST be rejected.",
+      "ak.conflict.recovery is the single registered exception to literal cell addressing. Its one cell_writes[] entry declares cell_ref (a cell_id sourced from the payload) instead of cell_family/cell_subject, and effect_projection kind=reset instead of a lattice op, and it omits lattice and bottom. That combination is closed: no other kind may declare cell_ref or reset, and this kind MUST declare both together. A recovery addresses one cell of an arbitrary family, so the target cannot be a literal ak.component.*.v<n> URI; and a reset is not a join, so it has no lattice. The safety envelope is not static reachability but zh/authz/event-auth-state-resolution.md section 9.5: the reducer MUST apply a reset only to a cell already in Bottom, and only when the registered recovery authority is verified: role=recovery_capability is required, while role=state_witness is required only for non-causal bottom=reject lattices. cas_register and fsm recovery prove conflict through complete signed-basis heads and MUST NOT require an old-value witness. On a cell in any other state the write MUST be rejected.",
       "Every active standard Event kind MUST declare exactly one payload_schema_ref. The reference MUST resolve to an existing schema location and MUST equal the single Event Envelope payload dispatch for that kind. Consumers MUST NOT infer payload schemas from Event.kind spelling, schema-name conventions, or fallback definitions.",
       "For every v1 built-in reducer-input Event kind, plane, sealed, lattice and bottom are frozen registry authority. Realm policy_bundle.cell_lattices is restricted to Realm-specific extension families and MUST NOT shadow, override or reinterpret a built-in cell family."
     ],
@@ -9025,8 +9025,132 @@
         }
       }
     },
-    "version": "2026-09-11.1",
-    "generated_at": "2026-09-11T01:58:57+08:00"
+    "version": "2026-09-12.1",
+    "generated_at": "2026-09-12T03:57:27+08:00",
+    "history_admission_contract": {
+      "applies_to": "All conformance profiles consuming shared durable Events; this is not a new profile or wire discriminator.",
+      "consumer_contexts": [
+        "federation",
+        "backfill",
+        "shared_read",
+        "reducer_input"
+      ],
+      "default": "require_station_admission",
+      "selection": "Validate Event syntax and the unique registered admission branch first. Unknown/private kinds and deny branches reject. Without station_admission, select only the following explicit evidence paths. A matching shape is not an acceptance decision; missing required evidence is pending or rejected, never accepted.",
+      "with_station_admission": {
+        "validator": "origin_station_admission",
+        "required_evidence": [
+          "original_producer_proof",
+          "original_origin_admission_proof",
+          "frozen_signer_and_authority_dependencies"
+        ],
+        "data_result": "accepted",
+        "control_result": "control_pending_until_accepted_seal",
+        "replay_current_barrier": false
+      },
+      "without_station_admission": {
+        "selected_native_admission": {
+          "admission_classes": [
+            "registration_anchor",
+            "delegated_pcr_genesis",
+            "applet_managed_pcr_genesis",
+            "pcr_recovery",
+            "direct_conversation_genesis",
+            "direct_conversation_agent_genesis",
+            "self_authored_proof",
+            "sidecar_account_self_authored_proof",
+            "service_attested",
+            "crypto_verifiable"
+          ],
+          "validator": "selected_admission_class",
+          "required_evidence": [
+            "complete_original_producer_signer_evidence",
+            "registered_native_authority_and_acceptance_dependencies"
+          ],
+          "control_finality": "accepted_seal_or_registered_atomic_genesis_or_recovery_unit",
+          "replay_current_barrier": false
+        },
+        "sealed_control_history": {
+          "plane": "control",
+          "sealed": true,
+          "validator": "cbs_accepted_seal",
+          "required_evidence": [
+            "complete_original_producer_signer_evidence",
+            "accepted_covering_seal_and_frozen_predecessor_closure",
+            "registered_admission_authority_at_frozen_basis"
+          ],
+          "result": "control_covered",
+          "replay_current_barrier": false
+        }
+      },
+      "capability_data_without_admission": "reject",
+      "schema_projection": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
+      "intake_boundary": "New caller submissions and new notary proposals still check current barriers. Replaying an existing accepted Seal uses only its frozen dependencies; a new Seal must pass its own predecessor authorization even if its Move already has an origin proof.",
+      "control_history_evaluation": {
+        "input_contract": "All other CBS Seal validity rules (signatures, coverage/delta, basis equality, sibling bounds and every other included Move) have passed. Event identity, producer signature and registered authority dependencies are verified. This table isolates authorization/finality: authorization uses the covering Seal frozen predecessor, never the origin intake basis; it is not a standalone Seal verifier.",
+        "allowed_inputs": [
+          "covering_seal_dependencies_complete",
+          "frozen_predecessor_authorization_valid"
+        ],
+        "forbidden_inputs": [
+          "receiver_current_barrier",
+          "receiver_arrival_order",
+          "origin_admission_proof_present"
+        ],
+        "rules": [
+          {
+            "when": {
+              "covering_seal_dependencies_complete": false
+            },
+            "result": "control_pending"
+          },
+          {
+            "when": {
+              "covering_seal_dependencies_complete": true,
+              "frozen_predecessor_authorization_valid": false
+            },
+            "result": "rejected_seal"
+          },
+          {
+            "when": {
+              "covering_seal_dependencies_complete": true,
+              "frozen_predecessor_authorization_valid": true
+            },
+            "result": "control_covered"
+          }
+        ]
+      },
+      "consumer_schema_bindings": [
+        {
+          "schema": "schemas/service-operation-dtos.schema.json",
+          "pointer": "/$defs/EventFederationSubmission/properties/event/$ref"
+        },
+        {
+          "schema": "schemas/service-operation-dtos.schema.json",
+          "pointer": "/$defs/EventsResolveOutcome/properties/events/items/$ref"
+        },
+        {
+          "schema": "schemas/service-operation-dtos.schema.json",
+          "pointer": "/$defs/EventReadRow/oneOf/0/$ref"
+        },
+        {
+          "schema": "schemas/events-subscribe-frame.schema.json",
+          "pointer": "/oneOf/0/properties/payload/$ref"
+        },
+        {
+          "schema": "schemas/account-subscribe-frame.schema.json",
+          "pointer": "/$defs/event_container/properties/events/items/$ref"
+        },
+        {
+          "schema": "schemas/account-subscribe-frame.schema.json",
+          "pointer": "/$defs/timeline/properties/events/items/$ref"
+        },
+        {
+          "schema": "schemas/account-subscribe-frame.schema.json",
+          "pointer": "/$defs/member_roster_entry/properties/identity_events/items/$ref"
+        }
+      ]
+    }
   },
   "service_contracts": [
     {
@@ -13285,7 +13409,7 @@
         "http": "POST /_arkret/open/third-party-invites/activate",
         "grpc": "OpenThirdPartyInvite/Activate",
         "mq": "open.third_party_invite.command.activate",
-        "notes": "Back-binding activation of one provisioned private record to exactly one accepted ak.invite.third_party (third-party-invites.md section 7.5). The body carries provisioning_id and the Station-signed ThirdPartyInviteAcceptanceAttestation; the attestation is the whole authorization, so a caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT be accepted in its place. The service verifies the Station service identity and signature, audience, exact verification_id, freshness against the Realm revocation_freshness_window_ms, and member-for-member equality of author, Realm, expiry and public material against the frozen provisioning record, recomputes invite_digest from the attested cell per section 4.2, then atomically persists the unique binding and the delivery intent. One provisioning record binds to one invite forever: a second attestation naming a different invite, Realm or author is refused and never rebinds, rotates the key or reissues the token. A byte-identical retry, a concurrent duplicate and a retry after a restart all return the original binding.",
+        "notes": "Back-binding activation of one provisioned private record to exactly one accepted ak.invite.third_party (third-party-invites.md section 7.5). The body carries provisioning_id and the Station-signed ThirdPartyInviteAcceptanceAttestation; the attestation is the whole authorization, so a caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT be accepted in its place. The service verifies the Station service identity and signature, audience, exact verification_id, the attestation's signed expires_at/invite_expires_at bounds, and member-for-member equality of author, Realm, expiry and public material against the frozen provisioning record, recomputes invite_digest from the attested cell per section 4.2, then atomically persists the unique binding and the delivery intent. One provisioning record binds to one invite forever: a second attestation naming a different invite, Realm or author is refused and never rebinds, rotates the key or reissues the token. A byte-identical retry, a concurrent duplicate and a retry after a restart all return the original binding.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",

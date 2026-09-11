@@ -77,7 +77,7 @@ Agent 的对象身份与 Applet 类似（独立 DID，或由 controller principa
 
 ### 3.2 关键对象
 
-- `actor_kind=agent` 的 Actor / Actor Profile（详见 [actor.md §3](./actor.md)）。
+- 由 Agent provisioning / accountability 证明、且 Actor Profile 分类为 `actor_kind=agent` 的 Actor（详见 [actor.md §3](./actor.md)）。
 - `ak.profile.agent_runtime.v1` extension profile（详见 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）。
 - Agent policy（`policy_kind=agent`）：见 [governance-objects.md §3](./governance-objects.md)。
 - `notification_kind=agent`：见 [private-objects.md §3](./private-objects.md)。

@@ -469,7 +469,7 @@ effective_not_before = max(temporal.not_before[]?)
 effective_expires_at = min(temporal.expires_at[]?)
 ```
 
-缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但 agent / service principal 的高风险 action 与 registry `required_constraints` 明列 `expires_at` 的 action 仍按 §8 风险分层 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、issuer-authority 收窄和 revoke freshness 判断都 MUST 使用 effective window。
+缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但 agent / service principal 的高风险 action 与 registry `required_constraints` 明列 `expires_at` 的 action 仍按 §8 风险分层 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、issuer-authority 收窄和 grant 有效期判断都 MUST 使用 effective window。
 
 | 扁平名称 | Typed `constraint_kind` | `constraint_subkind` | 对应字段 |
 |----------|------------------------|----------|----------|
@@ -719,9 +719,9 @@ grant SHOULD 同时记录签发时点的 `auth_state_digest` / `auth_frontier`�
 
 ### 10.3 Revoke 因果传播
 
-某条 ref grant 被 revoke 时，所有以它为 ref 的 grant MUST 在该 revoke 的 causal 后继中失效。DataEvent 对 revoke 的窗口判定见 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md)，风险分级与 freshness 降级见本文件 [§18.2](#182-撤销新鲜度-revocation-freshness)。revoke 与 freshness 不一致期间，child grant 已发起的 in-flight Event 必须沿用这两处的同一套风险分级，不得另造无窗口规则。
+某条 ref grant 被 revoke 时，所有以它为 ref 的 grant MUST 在该 revoke 的 causal 后继中失效。普通 capability-governed DataEvent 的首次准入与历史保留只使用 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的 origin serializable admission gate：该 gate 已提交 revoke 时阻止新 admission；已先取得有效 `station_admission` 的 Event 永久保留，不按 risk tier、接收时间或 Seal 距离追溯失效。§18.2 的 freshness 风险分级只约束 gate 尚无法建立 current revocation state 时的新请求，不得覆盖已冻结的历史准入结论。
 
-解析 `issuer_authority_refs[]` 时，reducer MUST 主动查询本地已 accepted 的 grant / revoke index。若任一 `kind="grant"` ancestor 在本地已知为 revoked、superseded、expired 或 tombstoned：高风险 action 的 child grant 及依赖它的 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`；中低风险 DataEvent 则 MUST 按 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的 causal distance window 判定，在窗口内接受时标记 `authorization_freshness="stale"`，越窗后拒绝。若本地无法确认 freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
+解析 `issuer_authority_refs[]` 时，reducer MUST 主动查询本地已 accepted 的 grant / revoke index。若任一 `kind="grant"` ancestor 在本地已知为 revoked、superseded、expired 或 tombstoned，新 child grant 与尚未取得 `station_admission` 的依赖 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不因 action 风险等级、旧 `seal_ref` 或所谓 causal-distance 宽限而接受。若 origin gate 尚无法确认 current freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关的新 action MUST fail closed，低风险只可进入 pending / limited 模式；依赖补齐后仍须在同一 serializable gate 重验 current state。已取得有效 `station_admission` 的历史 Event 不重新进入本段判定。
 
 `grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ak:grant:<44-char-event-token>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次临时 policy decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
 
@@ -906,7 +906,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - Cache entry 的 `auth_state_digest` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；MUST NOT 继续用旧 grant 允许新写入。
 - 对 subject 为 condition selector 或约束引用外部 claim / attestation 状态的 grant，cache key / cache value MUST 额外绑定 `claim_status_root` 与 `claim_freshness_deadline`。Issuer revoke、claim status root rotation、attestation expiry 或 freshness deadline 过期 MUST 使 cache entry stale；实现 MUST NOT 只因 grant/revoke/membership 未变化就继续使用 fast-path allow。
 - 已被 GC 的 grant 仍 MUST 保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现 MUST NOT 因为 grant payload 已压缩或归档而让旧 cache 重新生效。
-- `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态 MUST NOT 生成 allow cache；只能生成 deny / unknown / pending 诊断。
+- `partial_auth_state`、soft-failed auth chain 或无法确认当前撤销状态的状态 MUST NOT 生成 allow cache；只能生成 deny / unknown / pending 诊断。
 - fast path（capability 快照缓存）**MUST** 只适用于"该 grant 的全部 constraint 的 `evaluation_class` 均为 `stateless` 或 `grant_local`"的 grant；只要 grant 含任一 `external` 或 `realm_state` 类 constraint（见 [`constraint-schema.md` §2.3](./constraint-schema.md) evaluation_class 分类，典型如 `claim_based` / `quota.rate` / `confidentiality` / `field_access` 带 `condition` 等），该 grant 的判定 **MUST** 走完整授权判定，**MUST NOT** 仅凭 fast-path cache 命中放行。该绑定与 §18.1 fast-path cache 的 `auth_state_digest` 失效机制叠加生效，不互相替代。
 - 多 Station 部署中，cache TTL 只是额外保险，MUST NOT 替代 revoke fanout、frontier 对账和 `auth_state_digest` 失效。
 

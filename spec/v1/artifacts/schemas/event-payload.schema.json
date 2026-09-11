@@ -10237,9 +10237,6 @@
         "audit_policy": {
           "$ref": "./realm.schema.json#/properties/audit_policy"
         },
-        "revocation_freshness_window_ms": {
-          "$ref": "./realm.schema.json#/properties/revocation_freshness_window_ms"
-        },
         "recovery_witness_freshness_window_ms": {
           "$ref": "./realm.schema.json#/properties/recovery_witness_freshness_window_ms"
         },
@@ -11560,7 +11557,7 @@
     },
     "state_conflict_recovery_payload": {
       "type": "object",
-      "description": "Control cell bottom recovery. zh/authz/event-auth-state-resolution.md section 9.5 resolves a bottom=reject cell that has joined to Bottom back to a single legal value. The authorization and the pre-conflict anchor are not payload fields: they are refs[] entries with role=recovery_capability and role=state_witness.",
+      "description": "Control cell Bottom recovery under section 9.5. The recovery_capability ref supplies registered authority. Only non-causal bottom=reject targets require a pre-conflict state_witness; cas_register/fsm prove divergent heads through the signed basis. Target lattice and authority are semantic verifier inputs, not extra payload fields.",
       "required": [
         "target_cell_id",
         "resolved_value"

@@ -1571,14 +1571,20 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
 def check_canonical_digest_alias(lint: Lint) -> None:
     """Keep one exact name for the Event digest preimage across prose and artifacts."""
 
-    forbidden = "envelope_without_proofs_unsigned_reducer_stamps"
+    forbidden_aliases = {
+        "envelope_without_proofs_unsigned_reducer_stamps",
+        "envelope_without_proofs_unsigned_actor_kind",
+        "envelope_without_proofs_unsigned_actor_kind_event_id",
+    }
     for path in sorted({*markdown_files(), *raw_artifact_files()}):
-        if forbidden in read_text(path):
-            lint.fail(
-                path,
-                f"forbidden Event digest preimage alias `{forbidden}`; "
-                "use `envelope_without_proofs_unsigned_actor_kind`",
-            )
+        text = read_text(path)
+        for forbidden in forbidden_aliases:
+            if forbidden in text:
+                lint.fail(
+                    path,
+                    f"forbidden Event digest preimage alias `{forbidden}`; "
+                    "use `envelope_without_event_id_proofs_unsigned`",
+                )
 
 
 
