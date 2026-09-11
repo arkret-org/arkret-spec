@@ -841,6 +841,16 @@ Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部�
 - 目标 cell 当前已有多个并发 head 不影响某个基于旧 head 的 DataEvent 被验证：它形成新的并发 head并由 `mv_register` 暴露。producer 若要显式收敛多个 head，MUST 使用该 cell family 注册的 resolution Event / per-object sequencer；通用 patch 不得任意选择本地 winner。create 类无 pre-state 的 Event 不使用本 patch 规则。
 - `causal_refs[]` 中没有命中目标 cell 的 base、命中多个 base、base Event reducer 未写该 cell，或 base post-state 无法重建时，receiver MUST `schema_violation` / `reducer_projection_failed`；不得回退到当前 state。
 
+为使上述写入规则可实现，任何宣告支持 patch authoring 的 current projection / authoring read
+surface MUST 在同一 accepted frontier 上返回目标 cell 的**完整当前 head digest 集合**；集合必须按
+digest 字节序排序、去重，并与投影值原子对应。该集合是 authoring basis metadata，不是对象字段，
+不得用 `updated_at`、`updated_by`、Event 到达顺序或某个领域子投影的 revision frontier 代替。
+producer 不应为了取得基线扫描完整 Event history。普通（非 resolution）patch 仅在目标 cell 恰有
+一个 current head 时可提交，并 MUST 将该 digest 放入 `causal_refs[]`；head 为零时必须等待投影就绪，
+head 多于一个时必须进入该 cell family 登记的冲突呈现 / resolution 流程。projection 若不能完整给出
+集合 MUST fail closed，不得只返回本地 winner。领域子状态的 frontier（例如日历 schedule heads）只
+能用于该领域条目的签名或验证，不能替代承载整个对象 cell 的 base head。
+
 上述 patch 路由、冻结 pre-state 与失败分支由
 `ak.vector.patch.projection_prestate_binding.v1` 固定。
 
