@@ -292,7 +292,7 @@ producer 类型系统 MUST 保留 Missing / Null / Value 三态，普通二态 o
 
 ### 9.2 Lifecycle cascade
 
-Circle lifecycle 的转换与 reason_code 以 [`common-fields.md` §5.1](./common-fields.md) 的 Circle 行为唯一权威。
+Circle lifecycle 的转换与 reason_code 见本文件 Circle lifecycle 合同入口。
 Circle 不定义 `ak.circle.freeze` 或 `ak.circle.destroy`；父 Realm 的 `freeze` / `destroy` 在父边界统一生效，Circle 不持有独立 federation identity 或 successor 语义。
 
 因为对象只有单一 scope,lifecycle cascade 简单:
@@ -386,3 +386,8 @@ delivery 边界流动。
 - 历史可见性枚举与 canonical 语义：[`../governance/history-visibility.md`](../governance/history-visibility.md)。
 - MLS 加密 / governance binding:[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)。
 - Circle schema artifact:`spec/v1/artifacts/schemas/circle.schema.json`。
+
+
+### Circle lifecycle 合同入口
+
+`circle` 的 lifecycle 以 contract registry 中对应 cell family 的 `fsm_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `circle_not_active` / `circle_not_archived`；终态操作对已终态对象返回 `circle_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。

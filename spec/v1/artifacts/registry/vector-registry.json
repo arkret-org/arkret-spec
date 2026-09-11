@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.2",
+  "version": "2026-09-12.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-11T23:16:51+08:00",
+  "generated_at": "2026-09-12T06:19:17+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -6144,7 +6144,7 @@
       ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/models/common-fields.md",
+        "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
     },
@@ -6170,7 +6170,7 @@
       ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/models/common-fields.md",
+        "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
     },
@@ -6232,7 +6232,7 @@
       ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/models/common-fields.md",
+        "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
     },

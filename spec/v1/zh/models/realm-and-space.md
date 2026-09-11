@@ -355,20 +355,22 @@ Realm 有两个终态 event，语义不同：
 
 `ak.realm.tombstone` 写入 `ak.component.realm.tombstone.v1`，`ak.realm.destroy` 写入 `ak.component.realm.destroy.v1`；二者均为 cas_register（bottom=reject），各自不可重复写入。capability：`ak.realm.tombstone` / `ak.realm.destroy`（action 定义见 [`../authz/capabilities.md` §5.1](../authz/capabilities.md)，high-risk 约束见 [`capabilities.md` §8](../authz/capabilities.md)）。
 
-#### 2.6.0 Realm 可逆 lifecycle facet（`ak.realm.archive` / `ak.realm.freeze`）
+#### 2.6.0 Realm archive/restore 与 freeze/unfreeze
 
-除上述两个终态外，Realm 还有两个**可逆** lifecycle facet，与终态正交，且对应 [`common-fields.md` §5](./common-fields.md) 状态对齐表 Realm 行支持的 `archived`：
+Realm 的 lifecycle 由 archive、tombstone、destroy 等已登记事实组合；freeze 是独立普通写入 gate。四个可逆操作都沿用原 cas_register（bottom=reject）：
 
-| Event | 语义 | lifecycle_modality | cell family |
+| Event | cell family | effect | capability action |
 | --- | --- | --- | --- |
-| `ak.realm.archive` | 把 Realm 设为 `archived`（软隐藏，UI 默认不展示，可撤销）。 | reversible | `ak.component.realm.archive.v1` |
-| `ak.realm.freeze` | 把 Realm 冻结为只读（暂停普通写入，可撤销）。 | reversible | `ak.component.realm.freeze.v1` |
+| `ak.realm.archive` | `ak.component.realm.archive.v1` | 常量 true | `ak.realm.archive` |
+| `ak.realm.restore` | `ak.component.realm.archive.v1` | 常量 false | `ak.realm.archive` |
+| `ak.realm.freeze` | `ak.component.realm.freeze.v1` | 常量 true | `ak.realm.freeze` |
+| `ak.realm.unfreeze` | `ak.component.realm.freeze.v1` | 常量 false | `ak.realm.freeze` |
 
-二者均为 cas_register（bottom=reject）durable event，承载一个 **reversible boolean** facet：**同一个 `ak.realm.archive` 写 `true` 进入 `archived`、写 `false` 复原**，**不走独立 `ak.realm.restore` event**；`ak.realm.freeze` 同理用单一 reversible boolean facet 在 frozen / 非 frozen 之间切换。这区别于 [`common-fields.md` §5.2](./common-fields.md) 模板中 `ak.<kind>.archive` + `ak.<kind>.restore` 成对的形态——Realm 的可逆性由 facet boolean 表达，registry `lifecycle_modality=reversible` 是真源。capability：`ak.realm.archive` / `ak.realm.freeze`（action 见 [`../authz/capabilities.md`](../authz/capabilities.md)）。
+payload 只接受已登记的可选 reason，不接受 archived/frozen boolean、effective_at 或 freeze_expires_at。Event kind 唯一决定 effect，重放和并发继续按同一 CAS contract。restore 只解除 archive，unfreeze 只解除 freeze；二者均不能解除 terminal/redaction、其它 gate 或 capability 限制。无论交付顺序如何，任一适用 gate 仍关闭就不得普通写入，缺状态或 Bottom fail closed；不另存与这些 cell 竞争的 Realm 总状态。
 
-被 `archived` 或 `frozen` facet 关闭普通写入的 Realm 收到非豁免普通写入时，reducer / 服务端 MUST 返回 `realm_frozen`（HTTP 403）。豁免集合是封闭集合，仅包括：(a) `ak.realm.archive` / `ak.realm.freeze` facet 自身的后继写（包括写 `false` 解锁）；(b) `ak.realm.tombstone` / `ak.realm.destroy` 终态升级；(c) `ak.audit.*` 与 `ak.audit.erasure_receipt`；(d) 撤权或主动退出写入：`ak.member.state{membership="leave"}`、`ak.capability.revoke`、delegation revoke、device / key revoke，以及这些动作必需的审计回执。豁免动作仍 MUST 通过其普通 capability、CAS basis、签名和 schema 校验；冻结/归档不授予额外权限。`ak.realm.policy_bundle`、新增成员、授权扩张和其它控制面写入不在豁免集合内。Circle 与其它子对象 MUST 直接回指本枚举，不得自行扩张豁免面。
+被 archived 或 frozen 关闭的非豁免普通写入返回 `realm_frozen`（HTTP 403）。封闭豁免集合为：(a) archive/restore/freeze/unfreeze；(b) tombstone/destroy 终态升级；(c) `ak.audit.*` 与 `ak.audit.erasure_receipt`；(d) `ak.member.state{membership="leave"}`、capability/delegation/device/key revoke 及其必需审计。所有豁免仍验证普通 capability、CAS basis、签名与 schema。policy_bundle、新增成员和授权扩张不豁免；子对象直接复用此集合。终态按 §2.6.1 的更严格规则处理，不能凭恢复豁免绕过。
 
-**Lifecycle 时刻字段 `effective_at` 与 `freeze_expires_at`（normative）**：Realm lifecycle Event（`ak.realm.archive` / `ak.realm.freeze` / `ak.realm.tombstone` / `ak.realm.destroy`）与 Strand / Circle / Morph 等 generic lifecycle payload MAY 携带 `effective_at`，表示该 lifecycle 变更的生效时刻。`effective_at` 缺席 = 立即生效，以该 Event 被 accepted 进入 frontier 的时刻为准；reducer 对缺席一律按「现在」处理，不得回退到签发时刻或服务端本地时钟之外的其他来源。仅 `ak.realm.freeze` MAY 额外携带 `freeze_expires_at`，表示本次冻结的到期时刻：到达该时刻后 freeze cell 自动解除（到期自动解冻），无需再显式写 `frozen=false`；缺席 = 无自动解冻，冻结只能由后继 `ak.realm.freeze{frozen=false}` 显式解除。二者均为信息性 / 调度性成员，只决定变更何时生效、何时自动解除，MUST NOT 改变 effect_projection 的既有判据：freeze 的投影字段仍是 `payload.frozen`，`ak.self.realm.lifecycle` 读视图（`realm_lifecycle_view`）的 `frozen` 判据不变，`freeze_expires_at` 仅作为独立只读成员在投影中暴露。
+生命周期只由正式 Event/Seal 接受推进。时钟推进不会清除冻结；解冻必须提交 unfreeze。计划执行由产品在实际执行时 author/sign/submit，不是已接受 Event 的延迟效力，也不改变既有 revocation fence 的时点。
 
 #### 2.6.0.1 产品态"解散 Realm"映射（normative）
 
@@ -699,3 +701,8 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 - CBS / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - `ak.strand.move` / cas_register sync 编译：[`../sync/operations-sync.md`](../sync/operations-sync.md)。
 - Realm genesis/profile/effective projection 与 Space schema：`artifacts/schemas/realm-genesis.schema.json`、`artifacts/schemas/realm-profile.schema.json`、`artifacts/schemas/realm.schema.json`、`artifacts/schemas/space.schema.json`。
+
+
+### Space lifecycle 合同入口
+
+`space` 的 lifecycle 以 contract registry 中对应 cell family 的 `fsm_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `space_not_active` / `space_not_archived`；终态操作对已终态对象返回 `space_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。

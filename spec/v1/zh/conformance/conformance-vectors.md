@@ -1835,7 +1835,7 @@ ak.vector.redaction.space_target_ref_schema.v1
 ak.vector.redaction.message_target_exclusive_kind.v1
 ```
 
-[`common-fields.md` §5.1](../models/common-fields.md) 的 Message 豁免要求：注册了对象专属 `ak.<kind>.redact` 的对象
+[`event-and-patch.md` §4.2.4.1](../models/event-and-patch.md) 的 Message 专属合同要求：注册了对象专属 `ak.<kind>.redact` 的对象
 MUST 只走该专属 kind，cross-object `ak.redaction` MUST NOT 指向它。v1 唯一这样的对象是 Message。
 本向量把该裁决固化为 schema 级判据，使实现无需维护按字符串前缀判断的私有 allow/deny 表。
 
@@ -1967,7 +1967,7 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
 - 所有负例 MUST 被 `strand.schema.json` / `morph.schema.json` 拒绝；每个 `encrypted_content` 形态与同槽的 `content` 形态受同一分支约束。Strand 顶层 Description、Strand Synthesis track、Morph 三个内容面各自的明文 / 密文负例，以及无槽 redacted 与保槽 archived 正例，见 [`redaction-fixture.json`](../../artifacts/fixtures/redaction-fixture.json) 的 `schema_validation_cases`。
 - 正例 MUST 通过：reducer / projection MUST 在写入 `state="redacted"` 的同一次转换里清空内容槽，`state_changed_at` 取触发 `ak.redaction` event 的 `created_at`。
 - `state="archived"` MUST 仍允许内容槽存在——archive 是可逆软隐藏，不是内容清除；把 archive 也做成清空是实现越权。
-- 物化对象上 MUST NOT 出现 `redaction_ref` 一类的对象级 redaction 引用：Strand / Morph 走 cross-object `ak.redaction`，审计链接由 `ak.component.object.redaction.v1` cell 的事件索引提供（[`common-fields.md` §5.2](../models/common-fields.md)）。
+- 物化对象上 MUST NOT 出现 `redaction_ref` 一类的对象级 redaction 引用：Strand / Morph 走 cross-object `ak.redaction`，审计链接由 `ak.component.object.redaction.v1` cell 的事件索引提供（[`event-and-patch.md` §4.2.4.1](../models/event-and-patch.md)）。
 
 ### 3.2.4 Vector: event-targeted redaction 不驱动派生对象 state
 
@@ -1977,7 +1977,7 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
 ak.vector.redaction.event_target_does_not_drive_object_state.v1
 ```
 
-[`common-fields.md` §5.2](../models/common-fields.md) 的裁决：cross-object `ak.redaction` 的 `target_ref` 为 `ak:event:` 形态时，语义仅是按 `preserve[]` 对该 Event 自身做字段级裁剪，MUST NOT 改变任何对象的 `state`；对象进入 `redacted` 只能由对象 typed-id 形态的 `target_ref` 驱动。对 `id_source=event_derived` 的对象（[`common-fields.md` §6.0](../models/common-fields.md)），`ak:event:<T>` 与 `ak:<对象种类>:<T>` 共享同一 33-octet token，两种拼写都通过 schema，但按 [`encoding.md` §9.5.1](encoding.md) 单字段 subject 取逐字 scalar 的规则落进 `ak.component.object.redaction.v1` 的两个不同 cell，两个 cell 互不影响。
+[`event-and-patch.md` §4.2.4.1](../models/event-and-patch.md) 的裁决：cross-object `ak.redaction` 的 `target_ref` 为 `ak:event:` 形态时，语义仅是按 `preserve[]` 对该 Event 自身做字段级裁剪，MUST NOT 改变任何对象的 `state`；对象进入 `redacted` 只能由对象 typed-id 形态的 `target_ref` 驱动。对 `id_source=event_derived` 的对象（[`common-fields.md` §6.0](../models/common-fields.md)），`ak:event:<T>` 与 `ak:<对象种类>:<T>` 共享同一 33-octet token，两种拼写都通过 schema，但按 [`encoding.md` §9.5.1](encoding.md) 单字段 subject 取逐字 scalar 的规则落进 `ak.component.object.redaction.v1` 的两个不同 cell，两个 cell 互不影响。
 
 正例 1（event 拼写：目标是 Strand 的 create Event 自身，做字段级裁剪）：
 
@@ -4152,7 +4152,7 @@ Preconditions:
   不是 fixture 常量、也不是任何解析方当次的 Station。
 - Alice 或授权 issuer 签发 current
   `ak.schema.agent_selector_claim.v1{controller_subject_id=AliceDID, agent_slug="summary",
-  subject_account_id={principal_id:AgentSDID, station_id:AgentSStation}, binding_state="verified",
+  subject_account_id={principal_id:AgentSDID, station_id:AgentSStation}, 
   visibility="restricted", audience=<RealmR>}`。**selector namespace 仍是 principal 级
   `(controller_subject_id, agent_slug)`；被签名的目标是上面那个完整 AccountId。**
 - 同一 Realm 中 Bob 可见 Alice 的 handle claim、AgentS 的 Actor Profile、selector claim 与 accountability evidence。

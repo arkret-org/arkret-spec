@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.10",
+  "version": "2026-09-12.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T18:20:00+08:00",
+  "generated_at": "2026-09-12T06:19:17+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "rules": [
@@ -935,7 +935,8 @@
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
       "source_event_kinds": [
-        "ak.realm.archive"
+        "ak.realm.archive",
+        "ak.realm.restore"
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
@@ -1015,7 +1016,8 @@
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
       "source_event_kinds": [
-        "ak.realm.freeze"
+        "ak.realm.freeze",
+        "ak.realm.unfreeze"
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",

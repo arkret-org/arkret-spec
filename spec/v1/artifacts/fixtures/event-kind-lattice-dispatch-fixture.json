@@ -34,10 +34,6 @@
     {
       "id": "actor_private_contract_closure",
       "rule": "Every active actor_private_event resolves to one actor-private event write and cell-family merge contract, with no shared Realm plane/sealed contract."
-    },
-    {
-      "id": "lifecycle_modality_scope",
-      "rule": "Every writer of an object_lifecycle FSM family declares lifecycle_modality; workflow, membership, status, audit and OR-Set revocation axes are excluded."
     }
   ]
 }

@@ -278,6 +278,8 @@ grpc:
       Upload: ak.self.keys.upload.create.v1
     SelfActorProfile:
       Resolve: ak.self.actor_profile.read.resolve.v1
+    SelfMessages:
+      Prepare: ak.self.messages.command.prepare.v1
     SelfRealmJoin:
       ApplicationStatus: ak.self.realm_join.read.application_status.v1
       Preview: ak.self.realm_join.read.preview.v1
@@ -467,6 +469,7 @@ mq:
     self.contact.command.scope_update: ak.self.contact.command.scope_update.v1
     self.realm_join.query.application_status: ak.self.realm_join.read.application_status.v1
     self.realm_join.query.preview: ak.self.realm_join.read.preview.v1
+    self.messages.command.prepare: ak.self.messages.command.prepare.v1
     self.realm_join.command.prepare: ak.self.realm_join.command.prepare.v1
     self.signer_keys.query.resolve: ak.self.signer_keys.read.resolve.v1
     self.current_principal.query.resolve: ak.self.current_principal.read.resolve.v1

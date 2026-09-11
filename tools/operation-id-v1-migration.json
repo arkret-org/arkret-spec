@@ -864,6 +864,10 @@
       "new": "ak.self.media_service_binding.read.resolve.v1"
     },
     {
+      "old": "ak.self.messages.command.prepare",
+      "new": "ak.self.messages.command.prepare.v1"
+    },
+    {
       "old": "ak.self.moderation.command.report",
       "new": "ak.self.moderation.command.report.v1"
     },

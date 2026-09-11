@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.1",
+  "version": "2026-09-12.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-11T04:15:00+08:00",
+  "generated_at": "2026-09-12T06:42:59+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -13,446 +13,27 @@
   ],
   "schemas": [
     {
-      "schema_id": "ak.schema.realm.v1",
-      "file": "schemas/realm.schema.json",
-      "status": "active"
-    },
-    {
-      "schema_id": "ak.schema.realm_genesis.v1",
-      "file": "schemas/realm-genesis.schema.json",
-      "status": "active"
-    },
-    {
-      "schema_id": "ak.schema.realm_profile.v1",
-      "file": "schemas/realm-profile.schema.json",
-      "status": "active"
-    },
-    {
-      "schema_id": "ak.schema.space.v1",
-      "file": "schemas/space.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.string_profiles.v1",
-      "file": "schemas/string-profiles.schema.json",
+      "schema_id": "ak.schema.account_current_result.v1",
+      "file": "schemas/account-current-result.schema.json",
       "status": "active",
-      "description": "Shared coarse JSON Schema shapes for Arkret human identifiers, IDNA domains, handles, acct URIs, and human-readable text profiles."
+      "description": "Server-trusted typed current cell results, complete MV heads, versioned removal and exact baseline coverage."
     },
     {
-      "schema_id": "ak.schema.actor_profile.v1",
-      "file": "schemas/actor-profile.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.actor_profile_operations.v1",
-      "file": "schemas/actor-profile-operations.schema.json",
+      "schema_id": "ak.schema.account_data_encrypted_value.v1",
+      "file": "schemas/account-data-encrypted-value.schema.json",
       "status": "active",
-      "description": "Authorized shared-Realm projection of another principal's global Actor Profile. It is the only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts."
-    },
-    {
-      "schema_id": "ak.schema.accountability_grant.v1",
-      "file": "schemas/accountability-grant.schema.json",
-      "status": "active",
-      "description": "Issuer-signed accountability endorsement for Actor Profile accountable_principal_ids verification."
-    },
-    {
-      "schema_id": "ak.schema.agent_membership_cascade.v1",
-      "file": "schemas/agent-membership-cascade.schema.json",
-      "status": "active",
-      "description": "Closed Agent controller-membership binding and durable exact-set emergency cleanup state."
-    },
-    {
-      "schema_id": "ak.schema.agent_provision.v1",
-      "file": "schemas/agent-provision.schema.json",
-      "status": "active",
-      "description": "Single controller-authored Agent Agent provisioning payload with atomic accountability and selector projections."
-    },
-    {
-      "schema_id": "ak.schema.agent_selector_claim.v1",
-      "file": "schemas/agent-selector-claim.schema.json",
-      "status": "active",
-      "description": "Signed controller-scoped Agent selector claim for @<controller-handle>/<agent_slug> resolution."
-    },
-    {
-      "schema_id": "ak.schema.agent_requested_scope_disclosure.v1",
-      "file": "schemas/agent-requested-scope-disclosure.schema.json",
-      "status": "active",
-      "description": "Controller-signed, verifier-bound private disclosure of an Agent's immutable requested_scope; the public Agent DID carries only its commitment digest."
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_evidence.v1",
-      "file": "schemas/agent-signer-evidence.schema.json",
-      "status": "active",
-      "description": "Portable Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
-    },
-    {
-      "schema_id": "ak.schema.controller_account_gate_attestation.v1",
-      "file": "schemas/agent-signer-evidence.schema.json",
-      "fragment": "#/$defs/controller_account_gate_attestation",
-      "status": "active",
-      "description": "Privacy-minimal Account Authority attestation of the controller principal lifecycle gate; never carries service-local account identity or a raw account cell."
-    },
-    {
-      "schema_id": "ak.schema.controller_account_gate_attestation_issue_request.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/controller_account_gate_attestation_issue_request",
-      "status": "active",
-      "description": "Authenticated S2S request from an Agent PCR authority for the controller Account Authority lifecycle gate needed to assemble signer evidence."
-    },
-    {
-      "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome",
-      "status": "active",
-      "description": "Closed issuance outcome carrying one privacy-minimal controller Account Authority gate attestation."
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
-      "file": "schemas/agent-signer-evidence.schema.json",
-      "fragment": "#/$defs/event_admission_receipt",
-      "status": "active",
-      "description": "Destination-signed immutable receipt for the exact Agent signer evidence used when one Event was accepted."
-    },
-    {
-      "schema_id": "ak.schema.circle.v1",
-      "file": "schemas/circle.schema.json",
-      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity. see zh/models/circle.md."
-    },
-    {
-      "schema_id": "ak.schema.agent_sidecar.v1",
-      "file": "schemas/agent-sidecar.schema.json",
-      "status": "active",
-      "description": "Controller-owned private AI workspace with native Sidecar scope and ownership-derived Agent access. It is not a Circle profile and has no backing Circle or editable membership. See zh/models/sidecar.md."
-    },
-    {
-      "schema_id": "ak.schema.agent_sidecar_view_state.v1",
-      "file": "schemas/agent-sidecar-view-state.schema.json",
-      "status": "active",
-      "description": "Controller-private encrypted account-data plaintext for per-context Sidecar display mode and hosted-view state.",
+      "description": "Closed XChaCha20-Poly1305 envelope for principal-private encrypted Account Data values.",
       "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "account_data key ak.account.agent_sidecar_view_state.*",
-        "normative_ref": "zh/models/sidecar.md"
+        "kind": "account_data_storage",
+        "selector": "account-data-key-registry.json#/keys[storage=encrypted_account_data]",
+        "normative_ref": "zh/models/account-data.md#2"
       }
     },
     {
-      "schema_id": "ak.schema.agent_sidecar_exchange_projection.v1",
-      "file": "schemas/agent-sidecar-exchange-projection.schema.json",
+      "schema_id": "ak.schema.account_data_operations.v1",
+      "file": "schemas/account-data-operations.schema.json",
       "status": "active",
-      "description": "Disposable controller-device-local Event-fold cache for one source-routed Sidecar exchange. Not Account Data or wire truth.",
-      "consumer_binding": {
-        "kind": "prose_only",
-        "rationale": "Disposable controller-device-local fold cache; it is explicitly not Account Data, a transport body, or durable wire truth."
-      }
-    },
-    {
-      "schema_id": "ak.schema.agent_sidecar_event_exchange_binding.v1",
-      "file": "schemas/agent-sidecar-event-exchange-binding.schema.json",
-      "status": "active",
-      "description": "Closed exchange binding inside the encrypted metadata plaintext of Sidecar-scoped Message events. Sole normative declaration of explicit user-facing/internal response disposition. Never legal in plaintext metadata or shared Realm/Circle events. See zh/models/sidecar.md section 7.2.1."
-    },
-    {
-      "schema_id": "ak.schema.agent_sidecar_exchange_control.v1",
-      "file": "schemas/agent-sidecar-exchange-control.schema.json",
-      "status": "active",
-      "description": "Closed plaintext encrypted by ak.agent.sidecar.exchange.control. Sole durable source of Sidecar exchange coordinator reassignment and terminal state."
-    },
-    {
-      "schema_id": "ak.schema.strand.v1",
-      "file": "schemas/strand.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.message.v1",
-      "file": "schemas/message.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.content_block_poll.v1",
-      "file": "schemas/content-block-poll.schema.json",
-      "status": "active",
-      "description": "Canonical content-block schema for ak.content.poll and ak.content.poll.response.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "content block type poll or poll_response",
-        "normative_ref": "zh/conformance/schema-registry.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.personal_productivity.v1",
-      "file": "schemas/personal-productivity.schema.json",
-      "status": "active",
-      "description": "Encrypted account-data value shapes for reminders, scheduled send, snooze, and saved items.",
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "account_data productivity kind",
-        "normative_ref": "zh/models/personal-productivity.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.draft_sync.v1",
-      "file": "schemas/draft-sync.schema.json",
-      "status": "active",
-      "description": "Encrypted account-data plaintext shape for cross-device draft sync.",
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "ak.profile.draft_sync.v1",
-        "normative_ref": "zh/models/personal-productivity.md#7"
-      }
-    },
-    {
-      "schema_id": "ak.schema.dnd_schedule.v1",
-      "file": "schemas/dnd-schedule.schema.json",
-      "status": "active",
-      "description": "Closed decrypted plaintext shape and canonical recurring-time semantics for ak.dnd_schedule.",
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "ak.dnd_schedule",
-        "normative_ref": "zh/discovery/push-notifications.md#7"
-      }
-    },
-    {
-      "schema_id": "ak.schema.presence_visibility.v1",
-      "file": "schemas/presence-visibility.schema.json",
-      "status": "active",
-      "description": "Closed decrypted plaintext shape of the principal-private ak.presence.visibility account-data value. The sending client applies it before encrypted Signal fanout; services MUST NOT require its plaintext or project it into server-readable policy state.",
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "account_data key ak.presence.visibility",
-        "normative_ref": "zh/discovery/profiles-presence.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.presence_preference.v1",
-      "file": "schemas/presence-preference.schema.json",
-      "status": "active",
-      "description": "Closed decrypted plaintext shape of the principal-private ak.presence.preference account-data value: pinned manual_state, temporary status_message override and clears_at expiry, enforced client-side across the principal's devices.",
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "account_data key ak.presence.preference",
-        "normative_ref": "zh/discovery/profiles-presence.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.file_transfer.v1",
-      "file": "schemas/file-transfer.schema.json",
-      "status": "active",
-      "description": "Encrypted account-data plaintext shape and to-device key message content for principal-private cross-device file transfer.",
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "account_data file-transfer kind",
-        "normative_ref": "zh/models/file-transfer.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.calendar_event.v1",
-      "file": "schemas/calendar-event.schema.json",
-      "status": "active",
-      "description": "Profile fields for calendar-event Strands."
-    },
-    {
-      "schema_id": "ak.schema.rsvp.v1",
-      "file": "schemas/rsvp.schema.json",
-      "status": "active",
-      "description": "Payload schema for ak.rsvp.set.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "event kind ak.rsvp.set payload",
-        "normative_ref": "zh/models/calendar-event.md#8.4"
-      }
-    },
-    {
-      "schema_id": "ak.schema.pin.v1",
-      "file": "schemas/pin.schema.json",
-      "status": "active",
-      "description": "Payload schemas for shared pin events.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "event kind dispatch for ak.pin.add, ak.pin.remove, and ak.pin.reorder payloads",
-        "normative_ref": "zh/models/pins.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.search_service.v1",
-      "file": "schemas/search-service.schema.json",
-      "status": "active",
-      "description": "Privacy-preserving search index manifest, blind index query, and policy shapes.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "search profile dispatch for encrypted index manifests, blind-index queries, and Realm search policy",
-        "normative_ref": "zh/sync/privacy-preserving-search.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.morph.v1",
-      "file": "schemas/morph.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.morph.customer_risk.v1",
-      "file": "schemas/morph-customer-risk.schema.json",
-      "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ak.schema.morph.v1 containers.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "ak.schema.morph.v1#/schema_refs[]",
-        "normative_ref": "zh/models/morph.md#4"
-      }
-    },
-    {
-      "schema_id": "ak.schema.relation.v1",
-      "file": "schemas/relation.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.view.v1",
-      "file": "schemas/view.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.policy.v1",
-      "file": "schemas/policy.schema.json",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "schema-selected Realm policy object",
-        "normative_ref": "zh/models/governance-objects.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.invite.v1",
-      "file": "schemas/invite.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.principal_locator.v1",
-      "file": "schemas/principal-locator.schema.json",
-      "status": "active",
-      "description": "Signed online invite locator asserting an exact AccountId for private invite delivery."
-    },
-    {
-      "schema_id": "ak.schema.invite_delivery_request.v1",
-      "file": "schemas/invite-delivery-request.schema.json",
-      "status": "active",
-      "description": "Private service-to-service invite delivery request carrying invite_address and introduction_evidence."
-    },
-    {
-      "schema_id": "ak.schema.invite_delivery.v1",
-      "file": "schemas/invite-delivery.schema.json",
-      "status": "active",
-      "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Station on the notify branch. See zh/sync/invite-addressing.md section 7.",
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "account_data key ak.account.invite_delivery",
-        "normative_ref": "zh/sync/invite-addressing.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.holder_quarantine.v1",
-      "file": "schemas/holder-quarantine.schema.json",
-      "status": "active",
-      "description": "Actor-private plaintext account-data cell value of ak.account.holder_quarantine, written only by the recipient Station CAS materializer. surface_kind discriminates invite_delivery from consent_request. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "account_data key ak.account.holder_quarantine",
-        "normative_ref": "zh/identity/consent-model.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.invite_receive_policy.v1",
-      "file": "schemas/invite-receive-policy.schema.json",
-      "status": "active",
-      "description": "Subject-private invite receive policy controlling which introduction evidence kinds may notify the holder."
-    },
-    {
-      "schema_id": "ak.schema.authz_operations.v1",
-      "file": "schemas/authz-operations.schema.json",
-      "status": "active",
-      "description": "Closed response DTO bundle for authorization query operations."
-    },
-    {
-      "schema_id": "ak.schema.event.v1",
-      "file": "schemas/event-envelope.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.event_payload.v1",
-      "file": "schemas/event-payload.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.resource_discovery_state.v1",
-      "file": "schemas/event-payload.schema.json",
-      "fragment": "#/$defs/resource_discovery_state",
-      "status": "active",
-      "description": "Closed SDK-facing union at schemas/event-payload.schema.json#/$defs/resource_discovery_state over the exact Actor, Applet, and Handle discovery-state Event payloads.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "generic SDK consumer projection over the three exact resource discovery-state Event payloads",
-        "normative_ref": "zh/discovery/discovery-directory.md#3-realm-discoverability"
-      }
-    },
-    {
-      "schema_id": "ak.schema.event_batch_receipt.v1",
-      "file": "schemas/event-batch-receipt.schema.json",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "schema=ak.schema.event_batch_receipt.v1",
-        "normative_ref": "zh/conformance/encoding.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.availability_receipt.v1",
-      "file": "schemas/availability-receipt.schema.json",
-      "status": "active",
-      "description": "Signed holder commitment that exact Event bytes are available until retention_expires_at. A Seal commits every-and-only required receipt through its canonical availability_receipt_digests array."
-    },
-    {
-      "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
-      "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
-      "status": "active",
-      "description": "Content-addressed historical signer-resolution evidence pinned for Event, Station and AvailabilityReceipt signature verification."
-    },
-    {
-      "schema_id": "ak.schema.patch.v1",
-      "file": "schemas/patch.schema.json",
-      "description": "Registered schema for the canonical Arkret field-patch wire format."
-    },
-    {
-      "schema_id": "ak.schema.ice_config_response.v1",
-      "file": "schemas/ice-config-response.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.media_operations.v1",
-      "file": "schemas/media-operations.schema.json",
-      "status": "active",
-      "description": "Closed request DTO bundle for realtime media service operations."
-    },
-    {
-      "schema_id": "ak.schema.capability.v1",
-      "file": "schemas/capability-grant.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.cursor.v1",
-      "file": "schemas/cursor.schema.json",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "opaque cursor payload selected by purpose",
-        "normative_ref": "zh/sync/api-conventions.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.realm_state_snapshot.v1",
-      "file": "schemas/realm-state-snapshot.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.realm_state_snapshot_chunk.v1",
-      "file": "schemas/realm-state-snapshot-chunk.schema.json",
-      "status": "active",
-      "description": "Snapshot chunk payload: the Realm reducer cells behind one manifest chunks[].chunk_ref, whose leaves are the state_root leaves of event-auth-state-resolution.md section 6.2.1",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "snapshot manifest chunks[].chunk_ref content-addressed payload",
-        "normative_ref": "zh/conformance/realm-state-snapshot-schema.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.account_subscribe_frame.v1",
-      "file": "schemas/account-subscribe-frame.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.events_subscribe_frame.v1",
-      "file": "schemas/events-subscribe-frame.schema.json",
-      "status": "active",
-      "description": "Closed data/control frame union for ak.self.events.stream.subscribe.v1."
+      "description": "Closed request/response DTO bundle for self-surface actor-private account_data operations (ak.self.account_data.*); see zh/discovery/client-preferences.md."
     },
     {
       "schema_id": "ak.schema.account_operations.v1",
@@ -468,10 +49,346 @@
       "description": "Immutable Account Authority issuer-ledger lifecycle record with a suite-tagged full-digest identity and detached proof."
     },
     {
-      "schema_id": "ak.schema.account_data_operations.v1",
-      "file": "schemas/account-data-operations.schema.json",
+      "schema_id": "ak.schema.account_subscribe_frame.v1",
+      "file": "schemas/account-subscribe-frame.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.accountability_grant.v1",
+      "file": "schemas/accountability-grant.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface actor-private account_data operations (ak.self.account_data.*); see zh/discovery/client-preferences.md."
+      "description": "Issuer-signed accountability endorsement for Actor Profile accountable_principal_ids verification."
+    },
+    {
+      "schema_id": "ak.schema.actor_profile.v1",
+      "file": "schemas/actor-profile.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.actor_profile_operations.v1",
+      "file": "schemas/actor-profile-operations.schema.json",
+      "status": "active",
+      "description": "Authorized shared-Realm projection of another principal's global Actor Profile. It is the only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts."
+    },
+    {
+      "schema_id": "ak.schema.agent_membership_cascade.v1",
+      "file": "schemas/agent-membership-cascade.schema.json",
+      "status": "active",
+      "description": "Closed Agent controller-membership binding and durable exact-set emergency cleanup state."
+    },
+    {
+      "schema_id": "ak.schema.agent_operations.v1",
+      "file": "schemas/agent-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for account pairing and Agent management operations."
+    },
+    {
+      "schema_id": "ak.schema.agent_pairing_bootstrap.v1",
+      "file": "schemas/agent-operations.schema.json",
+      "fragment": "#/$defs/agent_pairing_bootstrap",
+      "status": "active",
+      "description": "One-time bootstrap DTO for Agent runtime pairing. Resolves to the sub-schema at file + fragment (agent-operations.schema.json#/$defs/agent_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.agent_operations.v1 maps to."
+    },
+    {
+      "schema_id": "ak.schema.agent_provision.v1",
+      "file": "schemas/agent-provision.schema.json",
+      "status": "active",
+      "description": "Single controller-authored Agent Agent provisioning payload with atomic accountability and selector projections."
+    },
+    {
+      "schema_id": "ak.schema.agent_requested_scope_disclosure.v1",
+      "file": "schemas/agent-requested-scope-disclosure.schema.json",
+      "status": "active",
+      "description": "Controller-signed, verifier-bound private disclosure of an Agent's immutable requested_scope; the public Agent DID carries only its commitment digest."
+    },
+    {
+      "schema_id": "ak.schema.agent_selector_claim.v1",
+      "file": "schemas/agent-selector-claim.schema.json",
+      "status": "active",
+      "description": "Signed controller-scoped Agent selector claim for @<controller-handle>/<agent_slug> resolution."
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar.v1",
+      "file": "schemas/agent-sidecar.schema.json",
+      "status": "active",
+      "description": "Controller-owned private AI workspace with native Sidecar scope and ownership-derived Agent access. It is not a Circle profile and has no backing Circle or editable membership. See zh/models/sidecar.md."
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_event_exchange_binding.v1",
+      "file": "schemas/agent-sidecar-event-exchange-binding.schema.json",
+      "status": "active",
+      "description": "Closed exchange binding inside the encrypted metadata plaintext of Sidecar-scoped Message events. Sole normative declaration of explicit user-facing/internal response disposition. Never legal in plaintext metadata or shared Realm/Circle events. See zh/models/sidecar.md section 7.2.1."
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_exchange_control.v1",
+      "file": "schemas/agent-sidecar-exchange-control.schema.json",
+      "status": "active",
+      "description": "Closed plaintext encrypted by ak.agent.sidecar.exchange.control. Sole durable source of Sidecar exchange coordinator reassignment and terminal state."
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_exchange_projection.v1",
+      "file": "schemas/agent-sidecar-exchange-projection.schema.json",
+      "status": "active",
+      "description": "Disposable controller-device-local Event-fold cache for one source-routed Sidecar exchange. Not Account Data or wire truth.",
+      "consumer_binding": {
+        "kind": "prose_only",
+        "rationale": "Disposable controller-device-local fold cache; it is explicitly not Account Data, a transport body, or durable wire truth."
+      }
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_view_state.v1",
+      "file": "schemas/agent-sidecar-view-state.schema.json",
+      "status": "active",
+      "description": "Controller-private encrypted account-data plaintext for per-context Sidecar display mode and hosted-view state.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.account.agent_sidecar_view_state.*",
+        "normative_ref": "zh/models/sidecar.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
+      "file": "schemas/agent-signer-evidence.schema.json",
+      "fragment": "#/$defs/event_admission_receipt",
+      "status": "active",
+      "description": "Destination-signed immutable receipt for the exact Agent signer evidence used when one Event was accepted."
+    },
+    {
+      "schema_id": "ak.schema.agent_signer_evidence.v1",
+      "file": "schemas/agent-signer-evidence.schema.json",
+      "status": "active",
+      "description": "Portable Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
+    },
+    {
+      "schema_id": "ak.schema.applet.v1",
+      "file": "schemas/applet.schema.json",
+      "status": "active",
+      "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ak.applet.* use typed payload definitions in event-payload.schema.json.",
+      "consumer_binding": {
+        "kind": "prose_only",
+        "rationale": "No v1 operation or Event admits this whole object; ak.applet.* Events use event-payload.schema.json definitions."
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_edge_operations.v1",
+      "file": "schemas/applet-edge-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for Applet edge and bridge operations."
+    },
+    {
+      "schema_id": "ak.schema.applet_ghost_authoring_request_basis.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/ghost_authoring_request_basis",
+      "status": "active",
+      "description": "Station-derived Ghost basis binding the exact target server, active installation coordinates, Realm and external tuple.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Ghost preview authoring_request.basis",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_ghost_operations.v1",
+      "file": "schemas/applet-ghost-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision.v1 (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
+    },
+    {
+      "schema_id": "ak.schema.applet_install_authoring.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "status": "active",
+      "description": "Closed Station preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
+    },
+    {
+      "schema_id": "ak.schema.applet_install_authoring_request_basis.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/install_authoring_request_basis",
+      "status": "active",
+      "description": "Canonical unsigned basis frozen by the Station preview and covered by the install authoring request signature.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Applet install preview authoring_request.basis",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_install_operations.v1",
+      "file": "schemas/applet-install-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for ak.self.applet.install.command.preview.v1 and ak.applet.install."
+    },
+    {
+      "schema_id": "ak.schema.applet_install_plan.v1",
+      "file": "schemas/applet-install-plan.schema.json",
+      "status": "active",
+      "description": "Canonical Applet InstallPlan nested in the Station-signed authoring request and recomputed by install commit before admission. plan_digest is calculated over this object with plan_digest omitted."
+    },
+    {
+      "schema_id": "ak.schema.applet_managed_actor_authoring_bundle.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/managed_actor_bundle",
+      "status": "active",
+      "description": "Exact four-Event service-authored managed-actor creation bundle returned by the Applet service after validating an authoring request.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Applet install author outcome managed_actor_bundle",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_managed_actor_authoring_request.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/authoring_request",
+      "status": "active",
+      "description": "Station-signed, expiry-bounded install_bot or provision_ghost managed-actor authoring request.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Applet install or Ghost preview and unified managed-actor author request",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_managed_actor_provision.v1",
+      "file": "schemas/applet-managed-actor.schema.json",
+      "status": "active",
+      "description": "Immutable service-authored Bot/Ghost creation authority cross-bound to an applet_managed_control PCR genesis.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.applet.managed_actor.provision",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_package.v1",
+      "file": "schemas/applet-package.schema.json",
+      "status": "active",
+      "description": "Controller-signed package used by ak.self.applet.command.install.v1 preview/commit to derive ak.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
+    },
+    {
+      "schema_id": "ak.schema.applet_registration_epoch_evidence.v1",
+      "file": "schemas/applet-registration-epoch-evidence.schema.json",
+      "status": "active",
+      "description": "Closed install-time service DID document, method-version and accepted signing-key snapshot carried only by the caller-signed Applet registration Event manifest."
+    },
+    {
+      "schema_id": "ak.schema.applet_registration_epoch_transcript.v1",
+      "file": "schemas/applet-registration-epoch-transcript.schema.json",
+      "status": "active",
+      "description": "Closed normalized transcript for deterministic recomputation of Applet registration_epoch from derived registration, DID document/version, signing-key, endpoint/auth, and security-policy evidence.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "applet registration_epoch canonical transcript",
+        "normative_ref": "zh/extensions/applet-schema.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_widget_declaration.v1",
+      "file": "schemas/applet-widget-declaration.schema.json",
+      "status": "active",
+      "description": "Closed declaration for Applet UI widget origin, CSP, scoped token capability scope, and consent gate."
+    },
+    {
+      "schema_id": "ak.schema.audit_release_attestation.v1",
+      "file": "schemas/audit-release-attestation.schema.json",
+      "status": "active",
+      "description": "Remote attestation evidence for an attested_hardware audit release service. Carried inline as audit_release_payload.release_attestation on every ak.audit.release under a binding whose audit_assurance_class is attested_hardware; verified at admission against the binding's attestation_policy (audit_release_attestation_invalid) and the active binding fields (audit_release_attestation_mismatch). See zh/crypto-media/audited-e2ee.md §6."
+    },
+    {
+      "schema_id": "ak.schema.audit_ryw_receipt.v1",
+      "file": "schemas/audit-ryw-receipt.schema.json",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "audit read-your-writes receipt",
+        "normative_ref": "zh/models/event-and-patch.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
+      "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
+      "status": "active",
+      "description": "Content-addressed historical signer-resolution evidence pinned for Event, Station and AvailabilityReceipt signature verification."
+    },
+    {
+      "schema_id": "ak.schema.authority_set_policy.v1",
+      "file": "schemas/authority-set-policy.schema.json",
+      "status": "active",
+      "description": "Canonical concrete authority policy rederived from accepted CBS control state and bound by AuthoritySetRef.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schemas/offline-publication.schema.json#/$defs/authority_set_policy",
+        "normative_ref": "zh/authz/offline-publication.md#3"
+      }
+    },
+    {
+      "schema_id": "ak.schema.authz_operations.v1",
+      "file": "schemas/authz-operations.schema.json",
+      "status": "active",
+      "description": "Closed response DTO bundle for authorization query operations."
+    },
+    {
+      "schema_id": "ak.schema.availability_receipt.v1",
+      "file": "schemas/availability-receipt.schema.json",
+      "status": "active",
+      "description": "Signed holder commitment that exact Event bytes are available until retention_expires_at. A Seal commits every-and-only required receipt through its canonical availability_receipt_digests array."
+    },
+    {
+      "schema_id": "ak.schema.backup_series_erase_confirmation.v1",
+      "file": "schemas/keys-operations.schema.json",
+      "fragment": "#/$defs/backup_series_erase_confirmation",
+      "status": "active",
+      "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage and mls_history backup objects were erased after authoritative pointer switch."
+    },
+    {
+      "schema_id": "ak.schema.blob.v1",
+      "file": "schemas/blob.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.blob_operations.v1",
+      "file": "schemas/blob-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for Blob service operations."
+    },
+    {
+      "schema_id": "ak.schema.bottom.v1",
+      "file": "schemas/bottom.schema.json",
+      "status": "active",
+      "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined"
+    },
+    {
+      "schema_id": "ak.schema.calendar_event.v1",
+      "file": "schemas/calendar-event.schema.json",
+      "status": "active",
+      "description": "Profile fields for calendar-event Strands."
+    },
+    {
+      "schema_id": "ak.schema.call_recording_artifact.v1",
+      "file": "schemas/call-recording-artifact.schema.json",
+      "status": "active",
+      "description": "Canonical metadata for call recording artifacts after Arkret blob pipeline ingestion, including recording exporter context, retention policy and deletion audit binding."
+    },
+    {
+      "schema_id": "ak.schema.call_signal_plaintext.v1",
+      "file": "schemas/call-signal-plaintext.schema.json",
+      "status": "active",
+      "description": "Closed top-level E2EE plaintext for ak.call.signal, with signal_kind-specific data validation defined by the WebRTC signaling profile.",
+      "consumer_binding": {
+        "kind": "signal_plaintext_dispatch",
+        "selector": "ak.call.signal",
+        "normative_ref": "zh/sync/signal.md#1.1"
+      }
+    },
+    {
+      "schema_id": "ak.schema.capability.v1",
+      "file": "schemas/capability-grant.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.cbs_proof_bundle.v1",
+      "file": "schemas/cbs-proof-bundle.schema.json",
+      "status": "active",
+      "description": "Unsigned, independently verified CBS dependency bundle."
+    },
+    {
+      "schema_id": "ak.schema.circle.v1",
+      "file": "schemas/circle.schema.json",
+      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity. see zh/models/circle.md."
     },
     {
       "schema_id": "ak.schema.circle_operations.v1",
@@ -480,34 +397,27 @@
       "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ak.self.circle.*); see zh/models/circle.md."
     },
     {
+      "schema_id": "ak.schema.collision_variant_record.v1",
+      "file": "schemas/collision-variant-record.schema.json",
+      "status": "active",
+      "description": "Stored canonical Event variant bytes referenced by an ak.fork.resolution collision locator.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "ak.fork.resolution payload collision locator kind=collision_variant_record, resolved through the registered governance-dependency bundle surface",
+        "normative_ref": "zh/authz/event-auth-state-resolution.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.common_ids.v1",
+      "file": "schemas/common-ids.schema.json",
+      "status": "active",
+      "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
+    },
+    {
       "schema_id": "ak.schema.consent_operations.v1",
       "file": "schemas/consent-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface holder-private consent cell operations (ak.self.consent.*); see zh/identity/consent-model.md."
-    },
-    {
-      "schema_id": "ak.schema.read_cursor_operations.v1",
-      "file": "schemas/read-cursor-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface read cursor operations (ak.self.read_cursor.*); see zh/discovery/read-receipts.md."
-    },
-    {
-      "schema_id": "ak.schema.realm_link_operations.v1",
-      "file": "schemas/realm-link-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface cross-Realm link operations (ak.self.realm_link.*); see zh/models/realm-links.md."
-    },
-    {
-      "schema_id": "ak.schema.realm_organization_operations.v1",
-      "file": "schemas/realm-organization-operations.schema.json",
-      "status": "active",
-      "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ak.self.realm_organization.*); see zh/models/realm-and-space.md."
-    },
-    {
-      "schema_id": "ak.schema.realm_read_operations.v1",
-      "file": "schemas/realm-read-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface Realm read and moderation-policy operations (ak.self.realm.*); see zh/models/realm-and-space.md and zh/governance/content-moderation.md."
     },
     {
       "schema_id": "ak.schema.contact_operations.v1",
@@ -527,6 +437,130 @@
       }
     },
     {
+      "schema_id": "ak.schema.contact_scope_update.v1",
+      "file": "schemas/contact-operations.schema.json",
+      "fragment": "#/$defs/contact_scope_update_payload",
+      "status": "active",
+      "description": "Closed holder-signed Contact scope replacement payload, including the peer XOR, stable basis, version, predecessor and full granted-scope set.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.contact.scope.update Event payload",
+        "normative_ref": "zh/identity/contact-and-direct-conversation.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.content_block_poll.v1",
+      "file": "schemas/content-block-poll.schema.json",
+      "status": "active",
+      "description": "Canonical content-block schema for ak.content.poll and ak.content.poll.response.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "content block type poll or poll_response",
+        "normative_ref": "zh/conformance/schema-registry.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.control_proposal_decision.v1",
+      "file": "schemas/control-proposal-decision.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for quorum-capable Control Proposal Acks and signed reject/defer decisions (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation.v1",
+      "file": "schemas/agent-signer-evidence.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation",
+      "status": "active",
+      "description": "Privacy-minimal Account Authority attestation of the controller principal lifecycle gate; never carries service-local account identity or a raw account cell."
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+      "file": "schemas/agent-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome",
+      "status": "active",
+      "description": "Closed issuance outcome carrying one privacy-minimal controller Account Authority gate attestation."
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_request.v1",
+      "file": "schemas/agent-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_request",
+      "status": "active",
+      "description": "Authenticated S2S request from an Agent PCR authority for the controller Account Authority lifecycle gate needed to assemble signer evidence."
+    },
+    {
+      "schema_id": "ak.schema.current_principal_outcome.v1",
+      "file": "schemas/identity-resolution.schema.json",
+      "fragment": "#/$defs/current_principal_outcome",
+      "status": "active",
+      "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
+    },
+    {
+      "schema_id": "ak.schema.current_principal_request.v1",
+      "file": "schemas/identity-resolution.schema.json",
+      "fragment": "#/$defs/current_principal_request_body",
+      "status": "active",
+      "description": "Authenticated own-account current principal and unique PCR request."
+    },
+    {
+      "schema_id": "ak.schema.cursor.v1",
+      "file": "schemas/cursor.schema.json",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "opaque cursor payload selected by purpose",
+        "normative_ref": "zh/sync/api-conventions.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.device_message.v1",
+      "file": "schemas/device-message.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.device_pairing_bootstrap.v1",
+      "file": "schemas/device-pairing.schema.json",
+      "fragment": "#/$defs/device_pairing_bootstrap",
+      "status": "active",
+      "description": "Pairing material DTO handed to an already-authorized device after resolving a device-pairing short link. Resolves to the sub-schema at file + fragment (device-pairing.schema.json#/$defs/device_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.device_pairing_operations.v1 maps to."
+    },
+    {
+      "schema_id": "ak.schema.device_pairing_operations.v1",
+      "file": "schemas/device-pairing.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for the server-mediated device-pairing short-link handoff (stage / resolve / status). See device-lifecycle.md §2.1.1."
+    },
+    {
+      "schema_id": "ak.schema.device_reanchor.v1",
+      "file": "schemas/device-reanchor.schema.json",
+      "status": "active",
+      "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence Seal frontier and replacement authorization digest.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "event kind ak.device.reanchor payload",
+        "normative_ref": "zh/identity/key-management.md#5.0.3"
+      }
+    },
+    {
+      "schema_id": "ak.schema.device_revocation_state.v1",
+      "file": "schemas/device-revocation-state.schema.json",
+      "status": "active",
+      "description": "Reducer-owned durable state machine for accepted ak.device.revoke proposals: mandatory Ack, exact authority/device/generation binding, universal revocation_pending gates, exact signed-reject release, overdue fault retention and covering-Seal finality."
+    },
+    {
+      "schema_id": "ak.schema.did_binding_contracts.v1",
+      "file": "schemas/did-binding-contracts.schema.json",
+      "status": "active",
+      "description": "Verified DID binding contracts behind identity/did-usage-and-verification.md §5: canonical evidence receipt (evidence_digest), canonical resolver policy snapshot (policy_digest), mechanically extracted evidence dependency record, per-pin limited-trust record, and the freshness profile row every authority call site references.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "verified DID evidence/policy/freshness contract kind",
+        "normative_ref": "zh/identity/did-usage-and-verification.md#5"
+      }
+    },
+    {
+      "schema_id": "ak.schema.did_webvh_witness_receipt.v1",
+      "file": "schemas/did-webvh-witness-receipt.schema.json",
+      "status": "active",
+      "description": "Arkret-layer record that a named did:webvh witness was observed attesting a specific log versionId. Separate object family from ak.schema.identity_receipt.v1, whose witness_role describes a DID registry consensus role rather than a method-native witness; both are returned by ak.root.identity.receipts.read.list.v1 as a tagged union discriminated on schema. Never substitutes for verifying the standard did-witness.json proofs."
+    },
+    {
       "schema_id": "ak.schema.direct_conversation_operations.v1",
       "file": "schemas/direct-conversation-operations.schema.json",
       "status": "active",
@@ -538,14 +572,866 @@
       }
     },
     {
-      "schema_id": "ak.schema.device_message.v1",
-      "file": "schemas/device-message.schema.json"
+      "schema_id": "ak.schema.directory_operations.v1",
+      "file": "schemas/directory-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations."
     },
     {
-      "schema_id": "ak.schema.device_revocation_state.v1",
-      "file": "schemas/device-revocation-state.schema.json",
+      "schema_id": "ak.schema.dnd_schedule.v1",
+      "file": "schemas/dnd-schedule.schema.json",
       "status": "active",
-      "description": "Reducer-owned durable state machine for accepted ak.device.revoke proposals: mandatory Ack, exact authority/device/generation binding, universal revocation_pending gates, exact signed-reject release, overdue fault retention and covering-Seal finality."
+      "description": "Closed decrypted plaintext shape and canonical recurring-time semantics for ak.dnd_schedule.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "ak.dnd_schedule",
+        "normative_ref": "zh/discovery/push-notifications.md#7"
+      }
+    },
+    {
+      "schema_id": "ak.schema.draft_sync.v1",
+      "file": "schemas/draft-sync.schema.json",
+      "status": "active",
+      "description": "Encrypted account-data plaintext shape for cross-device draft sync.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "ak.profile.draft_sync.v1",
+        "normative_ref": "zh/models/personal-productivity.md#7"
+      }
+    },
+    {
+      "schema_id": "ak.schema.encrypted_envelope.v1",
+      "file": "schemas/encrypted-envelope.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.erasure_receipt.v1",
+      "file": "schemas/erasure-receipt.schema.json",
+      "status": "active",
+      "description": "Signed hard-erasure receipt payload for ak.audit.erasure_receipt"
+    },
+    {
+      "schema_id": "ak.schema.erasure_receipt_operations.v1",
+      "file": "schemas/erasure-receipt-operations.schema.json",
+      "status": "active",
+      "description": "Closed service-to-service submission, signed acceptance and retrieval carriers for erasure receipts"
+    },
+    {
+      "schema_id": "ak.schema.erasure_verification_stub.v1",
+      "file": "schemas/erasure-verification-stub.schema.json",
+      "status": "active",
+      "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "erasure receipt retained_stub_digest target",
+        "normative_ref": "zh/models/common-fields.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.event.v1",
+      "file": "schemas/event-envelope.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.event_batch_receipt.v1",
+      "file": "schemas/event-batch-receipt.schema.json",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "schema=ak.schema.event_batch_receipt.v1",
+        "normative_ref": "zh/conformance/encoding.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.event_payload.v1",
+      "file": "schemas/event-payload.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.events_subscribe_frame.v1",
+      "file": "schemas/events-subscribe-frame.schema.json",
+      "status": "active",
+      "description": "Closed data/control frame union for ak.self.events.stream.subscribe.v1."
+    },
+    {
+      "schema_id": "ak.schema.extension_manifest.v1",
+      "file": "schemas/extension-manifest.schema.json",
+      "status": "active",
+      "description": "Declarative extension loading and conformance manifest.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "extension loader manifest_id",
+        "normative_ref": "zh/conformance/schema-registry.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.file_transfer.v1",
+      "file": "schemas/file-transfer.schema.json",
+      "status": "active",
+      "description": "Encrypted account-data plaintext shape and to-device key message content for principal-private cross-device file transfer.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data file-transfer kind",
+        "normative_ref": "zh/models/file-transfer.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.genesis_notary_outcome.v1",
+      "file": "schemas/genesis-notary-binding.schema.json",
+      "fragment": "#/$defs/genesis_notary_outcome",
+      "status": "active",
+      "description": "Own-Station verified notary configuration copied verbatim into the genesis object; observation is not a validity window or authorization lease."
+    },
+    {
+      "schema_id": "ak.schema.genesis_notary_request.v1",
+      "file": "schemas/genesis-notary-binding.schema.json",
+      "fragment": "#/$defs/genesis_notary_request_body",
+      "status": "active",
+      "description": "Authenticated own-account request for the notary configuration of a Realm genesis the caller will sign."
+    },
+    {
+      "schema_id": "ak.schema.grant_constraint.v1",
+      "file": "schemas/grant-constraint.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.handle_claim.v1",
+      "file": "schemas/handle-claim.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.handle_claim_core.v1",
+      "file": "schemas/handle-claim.schema.json",
+      "fragment": "#/$defs/handle_claim_core",
+      "status": "active",
+      "description": "Signed Handle Claim core binding one canonical handle to an exact Account subject and issuer."
+    },
+    {
+      "schema_id": "ak.schema.handle_claim_revocation.v1",
+      "file": "schemas/handle-claim.schema.json",
+      "fragment": "#/$defs/handle_claim_revocation",
+      "status": "active",
+      "description": "Signed issuer-or-holder revocation of one exact Handle Claim digest."
+    },
+    {
+      "schema_id": "ak.schema.high_risk_authority_proof.v1",
+      "file": "schemas/high-risk-authority-proof.schema.json",
+      "status": "active",
+      "description": "Shared high-risk authority proof family (recovery_unlock / device_quorum / trusted_recovery_service) over an operation's canonical transcript, each branch reusing the common detached-JWS leaf. First consumer: active-series key backup tail deletion (key-management.md §7.8)."
+    },
+    {
+      "schema_id": "ak.schema.history_key.v1",
+      "file": "schemas/history-key.schema.json",
+      "status": "active",
+      "description": "Closed private history-key request, response stream, source relay, response record, organization-recovery archive, and HPKE plaintext DTO family"
+    },
+    {
+      "schema_id": "ak.schema.holder_quarantine.v1",
+      "file": "schemas/holder-quarantine.schema.json",
+      "status": "active",
+      "description": "Actor-private plaintext account-data cell value of ak.account.holder_quarantine, written only by the recipient Station CAS materializer. surface_kind discriminates invite_delivery from consent_request. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.account.holder_quarantine",
+        "normative_ref": "zh/identity/consent-model.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.http_problem_details.v1",
+      "file": "schemas/http-problem-details.schema.json",
+      "status": "active",
+      "description": "Canonical RFC 9457 application/problem+json HTTP error response from sync/api-conventions.md section 5.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "application/problem+json error responses selected by operations-error-mapping.json",
+        "normative_ref": "zh/sync/api-conventions.md#5"
+      }
+    },
+    {
+      "schema_id": "ak.schema.ice_config_response.v1",
+      "file": "schemas/ice-config-response.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.identity_link.v1",
+      "file": "schemas/identity-link.schema.json",
+      "status": "active",
+      "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain.",
+      "consumer_binding": {
+        "kind": "mls_encrypted_payload",
+        "selector": "content_type=application/vnd.arkret.identity-link+json; plaintext schema=ak.schema.identity_link.v1",
+        "normative_ref": "zh/governance/history-visibility.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.identity_receipt.v1",
+      "file": "schemas/identity-receipt.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.identity_resolution.v1",
+      "file": "schemas/identity-resolution.schema.json",
+      "status": "active",
+      "description": "Principal resolution projection/update/evidence and signed service resolution record contracts for the did_core_id/did model.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "principal resolution evidence or service resolution record",
+        "normative_ref": "zh/identity/identity-did.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.inclusion_list.v1",
+      "file": "schemas/inclusion-list.schema.json",
+      "status": "active",
+      "description": "FOCIL-style control-plane inclusion list signed by a non-proposer notary signer; the next Seal MUST include, signed-reject, or prove verification failure for every listed digest",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "control-plane inclusion list",
+        "normative_ref": "zh/authz/event-auth-state-resolution.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.invite.v1",
+      "file": "schemas/invite.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.invite_delivery.v1",
+      "file": "schemas/invite-delivery.schema.json",
+      "status": "active",
+      "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Station on the notify branch. See zh/sync/invite-addressing.md section 7.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.account.invite_delivery",
+        "normative_ref": "zh/sync/invite-addressing.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.invite_delivery_request.v1",
+      "file": "schemas/invite-delivery-request.schema.json",
+      "status": "active",
+      "description": "Private service-to-service invite delivery request carrying invite_address and introduction_evidence."
+    },
+    {
+      "schema_id": "ak.schema.invite_receive_policy.v1",
+      "file": "schemas/invite-receive-policy.schema.json",
+      "status": "active",
+      "description": "Subject-private invite receive policy controlling which introduction evidence kinds may notify the holder."
+    },
+    {
+      "schema_id": "ak.schema.key_backup.v1",
+      "file": "schemas/key-backup.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.key_backup_active_series.v1",
+      "file": "schemas/key-backup-active-series.schema.json",
+      "status": "active",
+      "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_kind)."
+    },
+    {
+      "schema_id": "ak.schema.key_backup_plaintext.v1",
+      "file": "schemas/key-backup-plaintext.schema.json",
+      "status": "active",
+      "description": "Canonical plaintext keybag opened from a ak.schema.key_backup.v1 envelope.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "decrypted ak.schema.key_backup.v1 plaintext schema",
+        "normative_ref": "zh/identity/key-management.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.key_backup_unlock_proof.v1",
+      "file": "schemas/key-backup-unlock-proof.schema.json",
+      "status": "active",
+      "description": "Proof binding a key-backup read/decrypt action to one recovery session, requesting device, backup object, selected series, ciphertext digest, and accepted proof transcript."
+    },
+    {
+      "schema_id": "ak.schema.key_transparency.v1",
+      "file": "schemas/key-transparency.schema.json",
+      "status": "active",
+      "description": "Canonical log head, inclusion proof, consistency proof and witness evidence for ak.profile.key_transparency.v1 and high-security log-backed identity checks.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.profile.key_transparency.v1 evidence",
+        "normative_ref": "zh/identity/identity-did.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.keypackage_operations.v1",
+      "file": "schemas/keypackage-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self KeyPackage upload/claim/consume/revoke and atomic peer claim/outcome-query operations."
+    },
+    {
+      "schema_id": "ak.schema.keys_operations.v1",
+      "file": "schemas/keys-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for ak.self.keys.upload.create.v1, query, claim, and key backup put/list/delete responses."
+    },
+    {
+      "schema_id": "ak.schema.list_handles_for_subject_response.v1",
+      "file": "schemas/list-handles-for-subject-response.schema.json",
+      "status": "active",
+      "description": "Directory response listing currently visible handle claims for a disclosed subject DID."
+    },
+    {
+      "schema_id": "ak.schema.media_metadata.v1",
+      "file": "schemas/media-metadata.schema.json",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "message content media metadata component",
+        "normative_ref": "zh/conformance/schema-registry.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.media_operations.v1",
+      "file": "schemas/media-operations.schema.json",
+      "status": "active",
+      "description": "Closed request DTO bundle for realtime media service operations."
+    },
+    {
+      "schema_id": "ak.schema.media_service_binding_outcome.v1",
+      "file": "schemas/media-service-binding-result.schema.json",
+      "fragment": "#/$defs/media_service_binding_outcome",
+      "status": "active",
+      "description": "Own-Station verified media service route and signing keys bound to the accepted anchor; route reuse window only, no key release or plaintext authorization."
+    },
+    {
+      "schema_id": "ak.schema.media_service_binding_request.v1",
+      "file": "schemas/media-service-binding-result.schema.json",
+      "fragment": "#/$defs/media_service_binding_request_body",
+      "status": "active",
+      "description": "Authenticated member request for the media service anchored by one joined Realm; no caller-supplied service identity, DID or candidate origin."
+    },
+    {
+      "schema_id": "ak.schema.member_identity.v1",
+      "file": "schemas/member-identity.schema.json",
+      "status": "active",
+      "description": "Realm-scoped member display/subject projection carried by ak.member.identity.update; handle lifecycle is carried by ak.schema.handle_claim.v1."
+    },
+    {
+      "schema_id": "ak.schema.message.v1",
+      "file": "schemas/message.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.message_authoring_content.v1",
+      "file": "schemas/message-authoring.schema.json",
+      "fragment": "#/$defs/message_authoring_content",
+      "status": "active",
+      "description": "Closed ordinary message authoring carrier: message_authoring_content."
+    },
+    {
+      "schema_id": "ak.schema.message_authoring_intent.v1",
+      "file": "schemas/message-authoring.schema.json",
+      "fragment": "#/$defs/message_authoring_intent",
+      "status": "active",
+      "description": "Closed ordinary message authoring carrier: message_authoring_intent."
+    },
+    {
+      "schema_id": "ak.schema.message_encryption_context.v1",
+      "file": "schemas/message-authoring.schema.json",
+      "fragment": "#/$defs/message_encryption_context",
+      "status": "active",
+      "description": "Closed ordinary message authoring carrier: message_encryption_context."
+    },
+    {
+      "schema_id": "ak.schema.message_prepare_outcome.v1",
+      "file": "schemas/message-authoring.schema.json",
+      "fragment": "#/$defs/message_prepare_outcome",
+      "status": "active",
+      "description": "Closed ordinary message authoring carrier: message_prepare_outcome."
+    },
+    {
+      "schema_id": "ak.schema.message_prepare_request.v1",
+      "file": "schemas/message-authoring.schema.json",
+      "fragment": "#/$defs/message_prepare_request_body",
+      "status": "active",
+      "description": "Closed ordinary message authoring carrier: message_prepare_request_body."
+    },
+    {
+      "schema_id": "ak.schema.mimi_interop.v1",
+      "file": "schemas/mimi-interop.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.mimi_operations.v1",
+      "file": "schemas/mimi-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for MIMI provider interop operations."
+    },
+    {
+      "schema_id": "ak.schema.mls_governance_proof_bundle.v1",
+      "file": "schemas/mls-governance-proof-bundle.schema.json",
+      "status": "active",
+      "description": "Closed own-Station MLS binding, accepted-artifact and exact current leaf-removal results, with separate peer governance proof carriers."
+    },
+    {
+      "schema_id": "ak.schema.mls_welcome_refs.v1",
+      "file": "schemas/mls-welcome-refs.schema.json",
+      "status": "active",
+      "description": "Authenticated exact-recipient Welcome reference discovery with bounded frozen-window continuation."
+    },
+    {
+      "schema_id": "ak.schema.moderation_evidence.v1",
+      "file": "schemas/moderation-evidence.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.moderation_queue_item.v1",
+      "file": "schemas/moderation-queue-item.schema.json",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "moderation queue projection item",
+        "normative_ref": "zh/conformance/conformance-profiles.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.moderation_report.v1",
+      "file": "schemas/moderation-report.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.morph.customer_risk.v1",
+      "file": "schemas/morph-customer-risk.schema.json",
+      "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ak.schema.morph.v1 containers.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "ak.schema.morph.v1#/schema_refs[]",
+        "normative_ref": "zh/models/morph.md#4"
+      }
+    },
+    {
+      "schema_id": "ak.schema.morph.v1",
+      "file": "schemas/morph.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.notification.v1",
+      "file": "schemas/notification.schema.json",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "principal-private notification projection",
+        "normative_ref": "zh/models/private-objects.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.object_addressing.v1",
+      "file": "schemas/object-addressing.schema.json",
+      "status": "active",
+      "description": "Canonical address-link target descriptor and signed token claims.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "address-link target/token kind",
+        "normative_ref": "zh/conformance/schema-registry.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.offline_publication.v1",
+      "file": "schemas/offline-publication.schema.json",
+      "status": "active",
+      "description": "AuthorizationLease and IngressReceipt proof objects."
+    },
+    {
+      "schema_id": "ak.schema.patch.v1",
+      "file": "schemas/patch.schema.json",
+      "description": "Registered schema for the canonical Arkret field-patch wire format."
+    },
+    {
+      "schema_id": "ak.schema.peer_current_signer_evidence_query_outcome.v1",
+      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/query_outcome",
+      "status": "active",
+      "description": "Peer portable current signer evidence outcome; independent of the unified self signing-key result."
+    },
+    {
+      "schema_id": "ak.schema.peer_current_signer_evidence_query_request.v1",
+      "file": "schemas/current-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/query_request",
+      "status": "active",
+      "description": "Peer portable current signer evidence request; independent of the unified self signing-key result."
+    },
+    {
+      "schema_id": "ak.schema.personal_productivity.v1",
+      "file": "schemas/personal-productivity.schema.json",
+      "status": "active",
+      "description": "Encrypted account-data value shapes for reminders, scheduled send, snooze, and saved items.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data productivity kind",
+        "normative_ref": "zh/models/personal-productivity.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.pin.v1",
+      "file": "schemas/pin.schema.json",
+      "status": "active",
+      "description": "Payload schemas for shared pin events.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "event kind dispatch for ak.pin.add, ak.pin.remove, and ak.pin.reorder payloads",
+        "normative_ref": "zh/models/pins.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.policy.v1",
+      "file": "schemas/policy.schema.json",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "schema-selected Realm policy object",
+        "normative_ref": "zh/models/governance-objects.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.presence_preference.v1",
+      "file": "schemas/presence-preference.schema.json",
+      "status": "active",
+      "description": "Closed decrypted plaintext shape of the principal-private ak.presence.preference account-data value: pinned manual_state, temporary status_message override and clears_at expiry, enforced client-side across the principal's devices.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.presence.preference",
+        "normative_ref": "zh/discovery/profiles-presence.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.presence_visibility.v1",
+      "file": "schemas/presence-visibility.schema.json",
+      "status": "active",
+      "description": "Closed decrypted plaintext shape of the principal-private ak.presence.visibility account-data value. The sending client applies it before encrypted Signal fanout; services MUST NOT require its plaintext or project it into server-readable policy state.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.presence.visibility",
+        "normative_ref": "zh/discovery/profiles-presence.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.principal_locator.v1",
+      "file": "schemas/principal-locator.schema.json",
+      "status": "active",
+      "description": "Signed online invite locator asserting an exact AccountId for private invite delivery."
+    },
+    {
+      "schema_id": "ak.schema.principal_operations.v1",
+      "file": "schemas/principal-operations.schema.json",
+      "status": "active",
+      "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, Sidecar staging and shared primitives.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "registered principal-scoped operation DTO and proof carriers",
+        "normative_ref": "zh/conformance/schema-registry.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.public_key.v1",
+      "file": "schemas/public-key.schema.json",
+      "status": "active",
+      "description": "Defs-only canonical PublicKey DTO (kty/kid/algorithm/key, optional key_digest). Owned by its own document so device, agent, account and to-device surfaces reference one shared definition instead of reverse-referencing each other's bundles. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected."
+    },
+    {
+      "schema_id": "ak.schema.push_operations.v1",
+      "file": "schemas/push-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for push device registration and push wakeup delivery."
+    },
+    {
+      "schema_id": "ak.schema.query.v1",
+      "file": "schemas/query.schema.json",
+      "status": "active",
+      "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequestBody / SearchRequestBody / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "OpenAPI QueryRequestBody/SearchRequestBody components",
+        "normative_ref": "zh/conformance/query-schema.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.read_cursor.v1",
+      "file": "schemas/read-cursor.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.read_cursor_operations.v1",
+      "file": "schemas/read-cursor-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface read cursor operations (ak.self.read_cursor.*); see zh/discovery/read-receipts.md."
+    },
+    {
+      "schema_id": "ak.schema.read_cursor_update.v1",
+      "file": "schemas/device-message.schema.json",
+      "fragment": "#/$defs/read_cursor_update_content",
+      "status": "active",
+      "description": "Closed ak.read_cursor.update sibling-device content: the derived projection of the winning ak.read_cursor.advance for one (actor_id, realm_id, read_scope), carrying the winning envelope created_at as updated_at. Not the ak.schema.read_cursor.v1 payload object."
+    },
+    {
+      "schema_id": "ak.schema.read_receipt.v1",
+      "file": "schemas/read-receipt.schema.json",
+      "status": "active",
+      "description": "Closed decrypted Signal payload profile for ak.receipt.read timeline read hints.",
+      "consumer_binding": {
+        "kind": "signal_plaintext_dispatch",
+        "selector": "ak.receipt.read",
+        "normative_ref": "zh/sync/signal.md#1.1"
+      }
+    },
+    {
+      "schema_id": "ak.schema.realm.v1",
+      "file": "schemas/realm.schema.json",
+      "status": "active"
+    },
+    {
+      "schema_id": "ak.schema.realm_genesis.v1",
+      "file": "schemas/realm-genesis.schema.json",
+      "status": "active"
+    },
+    {
+      "schema_id": "ak.schema.realm_join_bootstrap_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_bootstrap_outcome",
+      "status": "active",
+      "description": "Bounded join bootstrap material: effective join_rule, complete accepted seal_basis, live digest suite, encryption profile, one dependency bundle per basis leaf, the exact-precondition proof for the single control cell of this intent, and the applicant's own predecessor Events as unverified authoring input. It is purpose limited and expiring, never membership, never a governance read grant and never a frontier completeness proof."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_bootstrap_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_bootstrap_request_body",
+      "status": "active",
+      "description": "Authenticated service-to-service request for the bounded material required to author and verify exactly one first-contact Realm join attempt."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_candidate.v1",
+      "file": "schemas/realm-join-candidate.schema.json",
+      "status": "active",
+      "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_application_status_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_application_status_outcome",
+      "status": "active",
+      "description": "Restricted receiving-Realm outcome of one join application, carrying the durable proposal observation for that exact proposal and nothing else."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_application_status_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_application_status_request_body",
+      "status": "active",
+      "description": "Authenticated service-to-service read of the restricted outcome of exactly one forwarded join application."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_preview_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_preview_outcome",
+      "status": "active",
+      "description": "Policy-permitted pre-join disclosure for exactly one invite and invitee, without Directory result provenance or join routing hints."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_peer_preview_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_preview_request_body",
+      "status": "active",
+      "description": "Authenticated service-to-service pre-join preview read against the exact inviter Station of one directed invite."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_prepare_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_prepare_outcome",
+      "status": "active",
+      "description": "Own-Station validated join preparation: verified governance facts plus the exact Event kind, canonical payload and preconditions to sign. It is not admission and not membership."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_prepare_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_prepare_request_body",
+      "status": "active",
+      "description": "Authenticated account request to prepare exactly one join, knock or invite acceptance through the account's own Station."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_application_status_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_application_status_outcome",
+      "status": "active",
+      "description": "Own-Station validated join application progress: origin forwarding fact, receiving-Realm state and the accepted covering Seal reference, with no Ack, authority set or Seal bytes."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_application_status_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_application_status_request_body",
+      "status": "active",
+      "description": "Authenticated account read of one own join application before membership exists."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_preview_outcome.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_preview_outcome",
+      "status": "active",
+      "description": "Own-Station validated pre-join preview bound to the exact account, Realm, request and disclosure source."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_preview_request.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_preview_request_body",
+      "status": "active",
+      "description": "Authenticated account request for a pre-join Realm preview through the account's own Station."
+    },
+    {
+      "schema_id": "ak.schema.realm_link_operations.v1",
+      "file": "schemas/realm-link-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface cross-Realm link operations (ak.self.realm_link.*); see zh/models/realm-links.md."
+    },
+    {
+      "schema_id": "ak.schema.realm_organization_operations.v1",
+      "file": "schemas/realm-organization-operations.schema.json",
+      "status": "active",
+      "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ak.self.realm_organization.*); see zh/models/realm-and-space.md."
+    },
+    {
+      "schema_id": "ak.schema.realm_profile.v1",
+      "file": "schemas/realm-profile.schema.json",
+      "status": "active"
+    },
+    {
+      "schema_id": "ak.schema.realm_read_operations.v1",
+      "file": "schemas/realm-read-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface Realm read and moderation-policy operations (ak.self.realm.*); see zh/models/realm-and-space.md and zh/governance/content-moderation.md."
+    },
+    {
+      "schema_id": "ak.schema.realm_state_snapshot.v1",
+      "file": "schemas/realm-state-snapshot.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.realm_state_snapshot_chunk.v1",
+      "file": "schemas/realm-state-snapshot-chunk.schema.json",
+      "status": "active",
+      "description": "Snapshot chunk payload: the Realm reducer cells behind one manifest chunks[].chunk_ref, whose leaves are the state_root leaves of event-auth-state-resolution.md section 6.2.1",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "snapshot manifest chunks[].chunk_ref content-addressed payload",
+        "normative_ref": "zh/conformance/realm-state-snapshot-schema.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.recovery_completion_attestation.v1",
+      "file": "schemas/recovery-authority.schema.json",
+      "fragment": "#/$defs/recovery_completion_attestation",
+      "status": "active",
+      "description": "Coordinator-signed proof of a durably completed RecoveryTransaction for recovery grant promotion."
+    },
+    {
+      "schema_id": "ak.schema.recovery_policy.v1",
+      "file": "schemas/recovery-policy.schema.json",
+      "status": "active",
+      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm; receivers reject recovery and device authorization evidence whose proof family is not allowed by current accepted policy."
+    },
+    {
+      "schema_id": "ak.schema.recovery_receipt.v1",
+      "file": "schemas/recovery-receipt.schema.json",
+      "status": "active",
+      "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
+    },
+    {
+      "schema_id": "ak.schema.recovery_session.v1",
+      "file": "schemas/recovery-session.schema.json",
+      "status": "active",
+      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and did_root plus generic recovery proof transcripts. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
+    },
+    {
+      "schema_id": "ak.schema.registration_did_evidence.v1",
+      "file": "schemas/registration-did-evidence.schema.json",
+      "status": "active",
+      "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
+    },
+    {
+      "schema_id": "ak.schema.relation.v1",
+      "file": "schemas/relation.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.resource_discovery_state.v1",
+      "file": "schemas/event-payload.schema.json",
+      "fragment": "#/$defs/resource_discovery_state",
+      "status": "active",
+      "description": "Closed SDK-facing union at schemas/event-payload.schema.json#/$defs/resource_discovery_state over the exact Actor, Applet, and Handle discovery-state Event payloads.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "generic SDK consumer projection over the three exact resource discovery-state Event payloads",
+        "normative_ref": "zh/discovery/discovery-directory.md#3-realm-discoverability"
+      }
+    },
+    {
+      "schema_id": "ak.schema.resource_selector.v1",
+      "file": "schemas/resource-selector.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.rsvp.v1",
+      "file": "schemas/rsvp.schema.json",
+      "status": "active",
+      "description": "Payload schema for ak.rsvp.set.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "event kind ak.rsvp.set payload",
+        "normative_ref": "zh/models/calendar-event.md#8.4"
+      }
+    },
+    {
+      "schema_id": "ak.schema.sdk_conformance_claim.v1",
+      "file": "schemas/sdk-conformance-claim.schema.json",
+      "status": "active",
+      "description": "Machine-verifiable SDK release claim against the canonical sdk_conformance_contract.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "published SDK conformance claim artifact",
+        "normative_ref": "zh/conformance/conformance-profiles.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.seal.v1",
+      "file": "schemas/seal.schema.json",
+      "status": "active",
+      "description": "Seal control-plane finality commitment schema"
+    },
+    {
+      "schema_id": "ak.schema.seal_transparency.v1",
+      "file": "schemas/seal-transparency.schema.json",
+      "status": "active",
+      "description": "Seal transparency append-only log entry and independent auditor attestation wire schema",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Seal transparency log/auditor evidence",
+        "normative_ref": "zh/authz/event-auth-state-resolution.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.search_service.v1",
+      "file": "schemas/search-service.schema.json",
+      "status": "active",
+      "description": "Privacy-preserving search index manifest, blind index query, and policy shapes.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "search profile dispatch for encrypted index manifests, blind-index queries, and Realm search policy",
+        "normative_ref": "zh/sync/privacy-preserving-search.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.security_rotation_local_commit.v1",
+      "file": "schemas/security-transaction.schema.json",
+      "fragment": "#/$defs/security_rotation_local_commit",
+      "status": "active",
+      "description": "Typed local-device commit artifact for the terminal SecurityRotationTransaction step."
+    },
+    {
+      "schema_id": "ak.schema.security_transaction.v1",
+      "file": "schemas/security-transaction.schema.json",
+      "status": "active",
+      "description": "Closed RecoveryTransaction and SecurityRotationTransaction resource."
+    },
+    {
+      "schema_id": "ak.schema.service_describe.v1",
+      "file": "schemas/service-describe.schema.json",
+      "status": "active",
+      "description": "Canonical ServiceDescribe response for ak.server.read.describe.v1 and per-surface describe operations: base service metadata plus exact supported_operation_bundles and claim-level partitions (supported_features / claimed_profiles / verified_profiles / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe.v1. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+    },
+    {
+      "schema_id": "ak.schema.service_identity_bundle.v1",
+      "file": "schemas/service-identity-bundle.schema.json",
+      "status": "active",
+      "description": "Verifiable service DID disaster-recovery bundle containing public DID history, receipts and key references but no private key bytes.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schema field equals ak.schema.service_identity_bundle.v1",
+        "normative_ref": "zh/identity/identity-did.md#42-service-identity-生命周期与持久化"
+      }
+    },
+    {
+      "schema_id": "ak.schema.service_operation_dtos.v1",
+      "file": "schemas/service-operation-dtos.schema.json",
+      "status": "active",
+      "description": "Canonical DTO bundle for service operation request/response shapes migrated out of OpenAPI inline components."
     },
     {
       "schema_id": "ak.schema.signal_envelope.v1",
@@ -576,17 +1462,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.signal_typing.v1",
-      "file": "schemas/signal-typing.schema.json",
-      "status": "active",
-      "description": "Closed decrypted Signal payload profile for ak.typing Strand composition indicators.",
-      "consumer_binding": {
-        "kind": "signal_plaintext_dispatch",
-        "selector": "ak.typing",
-        "normative_ref": "zh/sync/signal.md#1.1"
-      }
-    },
-    {
       "schema_id": "ak.schema.signal_relay.v1",
       "file": "schemas/signal-relay.schema.json",
       "status": "active",
@@ -599,703 +1474,49 @@
       "description": "Closed data/control frame union for ak.self.signal.stream.subscribe.v1."
     },
     {
-      "schema_id": "ak.schema.cbs_proof_bundle.v1",
-      "file": "schemas/cbs-proof-bundle.schema.json",
+      "schema_id": "ak.schema.signal_typing.v1",
+      "file": "schemas/signal-typing.schema.json",
       "status": "active",
-      "description": "Unsigned, independently verified CBS dependency bundle."
-    },
-    {
-      "schema_id": "ak.schema.authority_set_policy.v1",
-      "file": "schemas/authority-set-policy.schema.json",
-      "status": "active",
-      "description": "Canonical concrete authority policy rederived from accepted CBS control state and bound by AuthoritySetRef.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "schemas/offline-publication.schema.json#/$defs/authority_set_policy",
-        "normative_ref": "zh/authz/offline-publication.md#3"
-      }
-    },
-    {
-      "schema_id": "ak.schema.offline_publication.v1",
-      "file": "schemas/offline-publication.schema.json",
-      "status": "active",
-      "description": "AuthorizationLease and IngressReceipt proof objects."
-    },
-    {
-      "schema_id": "ak.schema.security_transaction.v1",
-      "file": "schemas/security-transaction.schema.json",
-      "status": "active",
-      "description": "Closed RecoveryTransaction and SecurityRotationTransaction resource."
-    },
-    {
-      "schema_id": "ak.schema.security_rotation_local_commit.v1",
-      "file": "schemas/security-transaction.schema.json",
-      "fragment": "#/$defs/security_rotation_local_commit",
-      "status": "active",
-      "description": "Typed local-device commit artifact for the terminal SecurityRotationTransaction step."
-    },
-    {
-      "schema_id": "ak.schema.backup_series_erase_confirmation.v1",
-      "file": "schemas/keys-operations.schema.json",
-      "fragment": "#/$defs/backup_series_erase_confirmation",
-      "status": "active",
-      "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage and mls_history backup objects were erased after authoritative pointer switch."
-    },
-    {
-      "schema_id": "ak.schema.recovery_completion_attestation.v1",
-      "file": "schemas/recovery-authority.schema.json",
-      "fragment": "#/$defs/recovery_completion_attestation",
-      "status": "active",
-      "description": "Coordinator-signed proof of a durably completed RecoveryTransaction for recovery grant promotion."
-    },
-    {
-      "schema_id": "ak.schema.extension_manifest.v1",
-      "file": "schemas/extension-manifest.schema.json",
-      "status": "active",
-      "description": "Declarative extension loading and conformance manifest.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "extension loader manifest_id",
-        "normative_ref": "zh/conformance/schema-registry.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.blob.v1",
-      "file": "schemas/blob.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.blob_operations.v1",
-      "file": "schemas/blob-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for Blob service operations."
-    },
-    {
-      "schema_id": "ak.schema.media_metadata.v1",
-      "file": "schemas/media-metadata.schema.json",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "message content media metadata component",
-        "normative_ref": "zh/conformance/schema-registry.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.call_recording_artifact.v1",
-      "file": "schemas/call-recording-artifact.schema.json",
-      "status": "active",
-      "description": "Canonical metadata for call recording artifacts after Arkret blob pipeline ingestion, including recording exporter context, retention policy and deletion audit binding."
-    },
-    {
-      "schema_id": "ak.schema.call_signal_plaintext.v1",
-      "file": "schemas/call-signal-plaintext.schema.json",
-      "status": "active",
-      "description": "Closed top-level E2EE plaintext for ak.call.signal, with signal_kind-specific data validation defined by the WebRTC signaling profile.",
+      "description": "Closed decrypted Signal payload profile for ak.typing Strand composition indicators.",
       "consumer_binding": {
         "kind": "signal_plaintext_dispatch",
-        "selector": "ak.call.signal",
+        "selector": "ak.typing",
         "normative_ref": "zh/sync/signal.md#1.1"
       }
     },
     {
-      "schema_id": "ak.schema.encrypted_envelope.v1",
-      "file": "schemas/encrypted-envelope.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.account_data_encrypted_value.v1",
-      "file": "schemas/account-data-encrypted-value.schema.json",
-      "status": "active",
-      "description": "Closed XChaCha20-Poly1305 envelope for principal-private encrypted Account Data values.",
-      "consumer_binding": {
-        "kind": "account_data_storage",
-        "selector": "account-data-key-registry.json#/keys[storage=encrypted_account_data]",
-        "normative_ref": "zh/models/account-data.md#2"
-      }
-    },
-    {
-      "schema_id": "ak.schema.key_backup.v1",
-      "file": "schemas/key-backup.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.key_backup_active_series.v1",
-      "file": "schemas/key-backup-active-series.schema.json",
-      "status": "active",
-      "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_kind)."
-    },
-    {
-      "schema_id": "ak.schema.key_backup_plaintext.v1",
-      "file": "schemas/key-backup-plaintext.schema.json",
-      "status": "active",
-      "description": "Canonical plaintext keybag opened from a ak.schema.key_backup.v1 envelope.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "decrypted ak.schema.key_backup.v1 plaintext schema",
-        "normative_ref": "zh/identity/key-management.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.key_backup_unlock_proof.v1",
-      "file": "schemas/key-backup-unlock-proof.schema.json",
-      "status": "active",
-      "description": "Proof binding a key-backup read/decrypt action to one recovery session, requesting device, backup object, selected series, ciphertext digest, and accepted proof transcript."
-    },
-    {
-      "schema_id": "ak.schema.recovery_policy.v1",
-      "file": "schemas/recovery-policy.schema.json",
-      "status": "active",
-      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm; receivers reject recovery and device authorization evidence whose proof family is not allowed by current accepted policy."
-    },
-    {
-      "schema_id": "ak.schema.device_reanchor.v1",
-      "file": "schemas/device-reanchor.schema.json",
-      "status": "active",
-      "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence Seal frontier and replacement authorization digest.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "event kind ak.device.reanchor payload",
-        "normative_ref": "zh/identity/key-management.md#5.0.3"
-      }
-    },
-    {
-      "schema_id": "ak.schema.recovery_session.v1",
-      "file": "schemas/recovery-session.schema.json",
-      "status": "active",
-      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and did_root plus generic recovery proof transcripts. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
-    },
-    {
-      "schema_id": "ak.schema.recovery_receipt.v1",
-      "file": "schemas/recovery-receipt.schema.json",
-      "status": "active",
-      "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
-    },
-    {
-      "schema_id": "ak.schema.notification.v1",
-      "file": "schemas/notification.schema.json",
-      "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "principal-private notification projection",
-        "normative_ref": "zh/models/private-objects.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.push_operations.v1",
-      "file": "schemas/push-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for push device registration and push wakeup delivery."
-    },
-    {
-      "schema_id": "ak.schema.read_cursor.v1",
-      "file": "schemas/read-cursor.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.read_cursor_update.v1",
-      "file": "schemas/device-message.schema.json",
-      "fragment": "#/$defs/read_cursor_update_content",
-      "status": "active",
-      "description": "Closed ak.read_cursor.update sibling-device content: the derived projection of the winning ak.read_cursor.advance for one (actor_id, realm_id, read_scope), carrying the winning envelope created_at as updated_at. Not the ak.schema.read_cursor.v1 payload object."
-    },
-    {
-      "schema_id": "ak.schema.read_receipt.v1",
-      "file": "schemas/read-receipt.schema.json",
-      "status": "active",
-      "description": "Closed decrypted Signal payload profile for ak.receipt.read timeline read hints.",
-      "consumer_binding": {
-        "kind": "signal_plaintext_dispatch",
-        "selector": "ak.receipt.read",
-        "normative_ref": "zh/sync/signal.md#1.1"
-      }
-    },
-    {
-      "schema_id": "ak.schema.directory_operations.v1",
-      "file": "schemas/directory-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations."
-    },
-    {
-      "schema_id": "ak.schema.identity_resolution.v1",
-      "file": "schemas/identity-resolution.schema.json",
-      "status": "active",
-      "description": "Principal resolution projection/update/evidence and signed service resolution record contracts for the did_core_id/did model.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "principal resolution evidence or service resolution record",
-        "normative_ref": "zh/identity/identity-did.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.identity_receipt.v1",
-      "file": "schemas/identity-receipt.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.did_webvh_witness_receipt.v1",
-      "file": "schemas/did-webvh-witness-receipt.schema.json",
-      "status": "active",
-      "description": "Arkret-layer record that a named did:webvh witness was observed attesting a specific log versionId. Separate object family from ak.schema.identity_receipt.v1, whose witness_role describes a DID registry consensus role rather than a method-native witness; both are returned by ak.root.identity.receipts.read.list.v1 as a tagged union discriminated on schema. Never substitutes for verifying the standard did-witness.json proofs."
-    },
-    {
-      "schema_id": "ak.schema.identity_link.v1",
-      "file": "schemas/identity-link.schema.json",
-      "status": "active",
-      "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain.",
-      "consumer_binding": {
-        "kind": "mls_encrypted_payload",
-        "selector": "content_type=application/vnd.arkret.identity-link+json; plaintext schema=ak.schema.identity_link.v1",
-        "normative_ref": "zh/governance/history-visibility.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.member_identity.v1",
-      "file": "schemas/member-identity.schema.json",
-      "status": "active",
-      "description": "Realm-scoped member display/subject projection carried by ak.member.identity.update; handle lifecycle is carried by ak.schema.handle_claim.v1."
-    },
-    {
-      "schema_id": "ak.schema.handle_claim_core.v1",
-      "file": "schemas/handle-claim.schema.json",
-      "fragment": "#/$defs/handle_claim_core",
-      "status": "active",
-      "description": "Signed Handle Claim core binding one canonical handle to an exact Account subject and issuer."
-    },
-    {
-      "schema_id": "ak.schema.handle_claim_revocation.v1",
-      "file": "schemas/handle-claim.schema.json",
-      "fragment": "#/$defs/handle_claim_revocation",
-      "status": "active",
-      "description": "Signed issuer-or-holder revocation of one exact Handle Claim digest."
-    },
-    {
-      "schema_id": "ak.schema.handle_claim.v1",
-      "file": "schemas/handle-claim.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.list_handles_for_subject_response.v1",
-      "file": "schemas/list-handles-for-subject-response.schema.json",
-      "status": "active",
-      "description": "Directory response listing currently visible handle claims for a disclosed subject DID."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_candidate.v1",
-      "file": "schemas/realm-join-candidate.schema.json",
-      "status": "active",
-      "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_prepare_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_prepare_request_body",
-      "status": "active",
-      "description": "Authenticated account request to prepare exactly one join, knock or invite acceptance through the account's own Station."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_prepare_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_prepare_outcome",
-      "status": "active",
-      "description": "Own-Station validated join preparation: verified governance facts plus the exact Event kind, canonical payload and preconditions to sign. It is not admission and not membership."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_peer_preview_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_preview_request_body",
-      "status": "active",
-      "description": "Authenticated service-to-service pre-join preview read against the exact inviter Station of one directed invite."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_peer_preview_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_preview_outcome",
-      "status": "active",
-      "description": "Policy-permitted pre-join disclosure for exactly one invite and invitee, without Directory result provenance or join routing hints."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_self_preview_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_preview_request_body",
-      "status": "active",
-      "description": "Authenticated account request for a pre-join Realm preview through the account's own Station."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_self_preview_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_preview_outcome",
-      "status": "active",
-      "description": "Own-Station validated pre-join preview bound to the exact account, Realm, request and disclosure source."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_bootstrap_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_bootstrap_request_body",
-      "status": "active",
-      "description": "Authenticated service-to-service request for the bounded material required to author and verify exactly one first-contact Realm join attempt."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_bootstrap_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_bootstrap_outcome",
-      "status": "active",
-      "description": "Bounded join bootstrap material: effective join_rule, complete accepted seal_basis, live digest suite, encryption profile, one dependency bundle per basis leaf, the exact-precondition proof for the single control cell of this intent, and the applicant's own predecessor Events as unverified authoring input. It is purpose limited and expiring, never membership, never a governance read grant and never a frontier completeness proof."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_peer_application_status_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_application_status_request_body",
-      "status": "active",
-      "description": "Authenticated service-to-service read of the restricted outcome of exactly one forwarded join application."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_peer_application_status_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_application_status_outcome",
-      "status": "active",
-      "description": "Restricted receiving-Realm outcome of one join application, carrying the durable proposal observation for that exact proposal and nothing else."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_self_application_status_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_application_status_request_body",
-      "status": "active",
-      "description": "Authenticated account read of one own join application before membership exists."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_self_application_status_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_application_status_outcome",
-      "status": "active",
-      "description": "Own-Station validated join application progress: origin forwarding fact, receiving-Realm state and the accepted covering Seal reference, with no Ack, authority set or Seal bytes."
-    },
-    {
-      "schema_id": "ak.schema.control_proposal_decision.v1",
-      "file": "schemas/control-proposal-decision.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for quorum-capable Control Proposal Acks and signed reject/defer decisions (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
-    },
-    {
-      "schema_id": "ak.schema.grant_constraint.v1",
-      "file": "schemas/grant-constraint.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.resource_selector.v1",
-      "file": "schemas/resource-selector.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.mimi_interop.v1",
-      "file": "schemas/mimi-interop.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.mimi_operations.v1",
-      "file": "schemas/mimi-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for MIMI provider interop operations."
-    },
-    {
-      "schema_id": "ak.schema.moderation_report.v1",
-      "file": "schemas/moderation-report.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.moderation_evidence.v1",
-      "file": "schemas/moderation-evidence.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.moderation_queue_item.v1",
-      "file": "schemas/moderation-queue-item.schema.json",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "moderation queue projection item",
-        "normative_ref": "zh/conformance/conformance-profiles.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.audit_release_attestation.v1",
-      "file": "schemas/audit-release-attestation.schema.json",
-      "status": "active",
-      "description": "Remote attestation evidence for an attested_hardware audit release service. Carried inline as audit_release_payload.release_attestation on every ak.audit.release under a binding whose audit_assurance_class is attested_hardware; verified at admission against the binding's attestation_policy (audit_release_attestation_invalid) and the active binding fields (audit_release_attestation_mismatch). See zh/crypto-media/audited-e2ee.md §6."
-    },
-    {
-      "schema_id": "ak.schema.applet.v1",
-      "file": "schemas/applet.schema.json",
-      "status": "active",
-      "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ak.applet.* use typed payload definitions in event-payload.schema.json.",
-      "consumer_binding": {
-        "kind": "prose_only",
-        "rationale": "No v1 operation or Event admits this whole object; ak.applet.* Events use event-payload.schema.json definitions."
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_package.v1",
-      "file": "schemas/applet-package.schema.json",
-      "status": "active",
-      "description": "Controller-signed package used by ak.self.applet.command.install.v1 preview/commit to derive ak.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
-    },
-    {
-      "schema_id": "ak.schema.applet_managed_actor_provision.v1",
-      "file": "schemas/applet-managed-actor.schema.json",
-      "status": "active",
-      "description": "Immutable service-authored Bot/Ghost creation authority cross-bound to an applet_managed_control PCR genesis.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.applet.managed_actor.provision",
-        "normative_ref": "zh/extensions/applet-integration.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_registration_epoch_evidence.v1",
-      "file": "schemas/applet-registration-epoch-evidence.schema.json",
-      "status": "active",
-      "description": "Closed install-time service DID document, method-version and accepted signing-key snapshot carried only by the caller-signed Applet registration Event manifest."
-    },
-    {
-      "schema_id": "ak.schema.applet_registration_epoch_transcript.v1",
-      "file": "schemas/applet-registration-epoch-transcript.schema.json",
-      "status": "active",
-      "description": "Closed normalized transcript for deterministic recomputation of Applet registration_epoch from derived registration, DID document/version, signing-key, endpoint/auth, and security-policy evidence.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "applet registration_epoch canonical transcript",
-        "normative_ref": "zh/extensions/applet-schema.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_widget_declaration.v1",
-      "file": "schemas/applet-widget-declaration.schema.json",
-      "status": "active",
-      "description": "Closed declaration for Applet UI widget origin, CSP, scoped token capability scope, and consent gate."
-    },
-    {
-      "schema_id": "ak.schema.applet_install_plan.v1",
-      "file": "schemas/applet-install-plan.schema.json",
-      "status": "active",
-      "description": "Canonical Applet InstallPlan nested in the Station-signed authoring request and recomputed by install commit before admission. plan_digest is calculated over this object with plan_digest omitted."
-    },
-    {
-      "schema_id": "ak.schema.applet_install_authoring.v1",
-      "file": "schemas/applet-install-authoring.schema.json",
-      "status": "active",
-      "description": "Closed Station preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
-    },
-    {
-      "schema_id": "ak.schema.applet_ghost_authoring_request_basis.v1",
-      "file": "schemas/applet-install-authoring.schema.json",
-      "fragment": "#/$defs/ghost_authoring_request_basis",
-      "status": "active",
-      "description": "Station-derived Ghost basis binding the exact target server, active installation coordinates, Realm and external tuple.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "Ghost preview authoring_request.basis",
-        "normative_ref": "zh/extensions/applet-integration.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_install_authoring_request_basis.v1",
-      "file": "schemas/applet-install-authoring.schema.json",
-      "fragment": "#/$defs/install_authoring_request_basis",
-      "status": "active",
-      "description": "Canonical unsigned basis frozen by the Station preview and covered by the install authoring request signature.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "Applet install preview authoring_request.basis",
-        "normative_ref": "zh/extensions/applet-integration.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_managed_actor_authoring_request.v1",
-      "file": "schemas/applet-install-authoring.schema.json",
-      "fragment": "#/$defs/authoring_request",
-      "status": "active",
-      "description": "Station-signed, expiry-bounded install_bot or provision_ghost managed-actor authoring request.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "Applet install or Ghost preview and unified managed-actor author request",
-        "normative_ref": "zh/extensions/applet-integration.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_managed_actor_authoring_bundle.v1",
-      "file": "schemas/applet-install-authoring.schema.json",
-      "fragment": "#/$defs/managed_actor_bundle",
-      "status": "active",
-      "description": "Exact four-Event service-authored managed-actor creation bundle returned by the Applet service after validating an authoring request.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "Applet install author outcome managed_actor_bundle",
-        "normative_ref": "zh/extensions/applet-integration.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_install_operations.v1",
-      "file": "schemas/applet-install-operations.schema.json",
+      "schema_id": "ak.schema.signer_key_query_outcome.v1",
+      "file": "schemas/signer-key-operations.schema.json",
+      "fragment": "#/$defs/query_outcome",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ak.self.applet.install.command.preview.v1 and ak.applet.install."
+      "description": "Unified own-Station current/historical Device and Agent signing-key outcome; exact local recipient, no evidence closure or reusable current grant."
     },
     {
-      "schema_id": "ak.schema.applet_ghost_operations.v1",
-      "file": "schemas/applet-ghost-operations.schema.json",
+      "schema_id": "ak.schema.signer_key_query_request.v1",
+      "file": "schemas/signer-key-operations.schema.json",
+      "fragment": "#/$defs/query_request_body",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision.v1 (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
+      "description": "Unified own-Station current/historical Device and Agent signing-key request; exact local recipient, no evidence closure or reusable current grant."
     },
     {
-      "schema_id": "ak.schema.audit_ryw_receipt.v1",
-      "file": "schemas/audit-ryw-receipt.schema.json",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "audit read-your-writes receipt",
-        "normative_ref": "zh/models/event-and-patch.md"
-      }
+      "schema_id": "ak.schema.space.v1",
+      "file": "schemas/space.schema.json"
     },
     {
-      "schema_id": "ak.schema.erasure_receipt.v1",
-      "file": "schemas/erasure-receipt.schema.json",
-      "status": "active",
-      "description": "Signed hard-erasure receipt payload for ak.audit.erasure_receipt"
-    },
-    {
-      "schema_id": "ak.schema.erasure_receipt_operations.v1",
-      "file": "schemas/erasure-receipt-operations.schema.json",
-      "status": "active",
-      "description": "Closed service-to-service submission, signed acceptance and retrieval carriers for erasure receipts"
-    },
-    {
-      "schema_id": "ak.schema.erasure_verification_stub.v1",
-      "file": "schemas/erasure-verification-stub.schema.json",
-      "status": "active",
-      "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "erasure receipt retained_stub_digest target",
-        "normative_ref": "zh/models/common-fields.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.high_risk_authority_proof.v1",
-      "file": "schemas/high-risk-authority-proof.schema.json",
-      "status": "active",
-      "description": "Shared high-risk authority proof family (recovery_unlock / device_quorum / trusted_recovery_service) over an operation's canonical transcript, each branch reusing the common detached-JWS leaf. First consumer: active-series key backup tail deletion (key-management.md §7.8)."
-    },
-    {
-      "schema_id": "ak.schema.did_binding_contracts.v1",
-      "file": "schemas/did-binding-contracts.schema.json",
-      "status": "active",
-      "description": "Verified DID binding contracts behind identity/did-usage-and-verification.md §5: canonical evidence receipt (evidence_digest), canonical resolver policy snapshot (policy_digest), mechanically extracted evidence dependency record, per-pin limited-trust record, and the freshness profile row every authority call site references.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "verified DID evidence/policy/freshness contract kind",
-        "normative_ref": "zh/identity/did-usage-and-verification.md#5"
-      }
-    },
-    {
-      "schema_id": "ak.schema.seal.v1",
-      "file": "schemas/seal.schema.json",
-      "status": "active",
-      "description": "Seal control-plane finality commitment schema"
-    },
-    {
-      "schema_id": "ak.schema.mls_governance_proof_bundle.v1",
-      "file": "schemas/mls-governance-proof-bundle.schema.json",
-      "status": "active",
-      "description": "Closed own-Station MLS binding, accepted-artifact and exact current leaf-removal results, with separate peer governance proof carriers."
-    },
-    {
-      "schema_id": "ak.schema.history_key.v1",
-      "file": "schemas/history-key.schema.json",
-      "status": "active",
-      "description": "Closed private history-key request, response stream, source relay, response record, organization-recovery archive, and HPKE plaintext DTO family"
-    },
-    {
-      "schema_id": "ak.schema.inclusion_list.v1",
-      "file": "schemas/inclusion-list.schema.json",
-      "status": "active",
-      "description": "FOCIL-style control-plane inclusion list signed by a non-proposer notary signer; the next Seal MUST include, signed-reject, or prove verification failure for every listed digest",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "control-plane inclusion list",
-        "normative_ref": "zh/authz/event-auth-state-resolution.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.seal_transparency.v1",
-      "file": "schemas/seal-transparency.schema.json",
-      "status": "active",
-      "description": "Seal transparency append-only log entry and independent auditor attestation wire schema",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "Seal transparency log/auditor evidence",
-        "normative_ref": "zh/authz/event-auth-state-resolution.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.agent_operations.v1",
-      "file": "schemas/agent-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for account pairing and Agent management operations."
-    },
-    {
-      "schema_id": "ak.schema.agent_pairing_bootstrap.v1",
-      "file": "schemas/agent-operations.schema.json",
-      "fragment": "#/$defs/agent_pairing_bootstrap",
-      "status": "active",
-      "description": "One-time bootstrap DTO for Agent runtime pairing. Resolves to the sub-schema at file + fragment (agent-operations.schema.json#/$defs/agent_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.agent_operations.v1 maps to."
-    },
-    {
-      "schema_id": "ak.schema.device_pairing_operations.v1",
-      "file": "schemas/device-pairing.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for the server-mediated device-pairing short-link handoff (stage / resolve / status). See device-lifecycle.md §2.1.1."
-    },
-    {
-      "schema_id": "ak.schema.device_pairing_bootstrap.v1",
-      "file": "schemas/device-pairing.schema.json",
-      "fragment": "#/$defs/device_pairing_bootstrap",
-      "status": "active",
-      "description": "Pairing material DTO handed to an already-authorized device after resolving a device-pairing short link. Resolves to the sub-schema at file + fragment (device-pairing.schema.json#/$defs/device_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.device_pairing_operations.v1 maps to."
-    },
-    {
-      "schema_id": "ak.schema.applet_edge_operations.v1",
-      "file": "schemas/applet-edge-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for Applet edge and bridge operations."
-    },
-    {
-      "schema_id": "ak.schema.bottom.v1",
-      "file": "schemas/bottom.schema.json",
-      "status": "active",
-      "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined"
-    },
-    {
-      "schema_id": "ak.schema.keypackage_operations.v1",
-      "file": "schemas/keypackage-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for self KeyPackage upload/claim/consume/revoke and atomic peer claim/outcome-query operations."
-    },
-    {
-      "schema_id": "ak.schema.keys_operations.v1",
-      "file": "schemas/keys-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for ak.self.keys.upload.create.v1, query, claim, and key backup put/list/delete responses."
-    },
-    {
-      "schema_id": "ak.schema.http_problem_details.v1",
-      "file": "schemas/http-problem-details.schema.json",
-      "status": "active",
-      "description": "Canonical RFC 9457 application/problem+json HTTP error response from sync/api-conventions.md section 5.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "application/problem+json error responses selected by operations-error-mapping.json",
-        "normative_ref": "zh/sync/api-conventions.md#5"
-      }
+      "schema_id": "ak.schema.strand.v1",
+      "file": "schemas/strand.schema.json"
     },
     {
-      "schema_id": "ak.schema.service_identity_bundle.v1",
-      "file": "schemas/service-identity-bundle.schema.json",
+      "schema_id": "ak.schema.string_profiles.v1",
+      "file": "schemas/string-profiles.schema.json",
       "status": "active",
-      "description": "Verifiable service DID disaster-recovery bundle containing public DID history, receipts and key references but no private key bytes.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "schema field equals ak.schema.service_identity_bundle.v1",
-        "normative_ref": "zh/identity/identity-did.md#42-service-identity-生命周期与持久化"
-      }
+      "description": "Shared coarse JSON Schema shapes for Arkret human identifiers, IDNA domains, handles, acct URIs, and human-readable text profiles."
     },
     {
-      "schema_id": "ak.schema.service_describe.v1",
-      "file": "schemas/service-describe.schema.json",
+      "schema_id": "ak.schema.time.v1",
+      "file": "schemas/time.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for ak.server.read.describe.v1 and per-surface describe operations: base service metadata plus exact supported_operation_bundles and claim-level partitions (supported_features / claimed_profiles / verified_profiles / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe.v1. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+      "description": "Defs-only shared canonical Arkret timestamp profile. Arkret-owned absolute instants use fixed UTC milliseconds (YYYY-MM-DDTHH:MM:SS.sssZ); external protocol time, local wall time, durations, and algorithm-internal epochs remain separate semantic types."
     },
     {
       "schema_id": "ak.schema.transport_binding.v1",
@@ -1309,36 +1530,8 @@
       }
     },
     {
-      "schema_id": "ak.schema.websocket_frame.v1",
-      "file": "schemas/websocket-frame.schema.json",
-      "status": "active",
-      "description": "Closed bidirectional application-frame union for ak.profile.binding.websocket.v1.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.profile.binding.websocket.v1 frame union",
-        "normative_ref": "zh/sync/websocket-binding.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.websocket_server_frame.v1",
-      "file": "schemas/websocket-frame.schema.json",
-      "fragment": "#/$defs/server_frame",
-      "status": "active",
-      "description": "Closed server-to-client WebSocket frame union."
-    },
-    {
-      "schema_id": "ak.schema.websocket_client_frame.v1",
-      "file": "schemas/websocket-frame.schema.json",
-      "fragment": "#/$defs/client_frame",
-      "status": "active",
-      "description": "Closed client-to-server WebSocket frame union."
-    },
-    {
-      "schema_id": "ak.schema.websocket_challenge_frame.v1",
-      "file": "schemas/websocket-frame.schema.json",
-      "fragment": "#/$defs/challenge",
-      "status": "active",
-      "description": "Server challenge frame with connection-bound one-time nonce."
+      "schema_id": "ak.schema.view.v1",
+      "file": "schemas/view.schema.json"
     },
     {
       "schema_id": "ak.schema.websocket_authenticate_frame.v1",
@@ -1348,46 +1541,18 @@
       "description": "Client authentication and reauthentication response frame."
     },
     {
-      "schema_id": "ak.schema.websocket_welcome_frame.v1",
+      "schema_id": "ak.schema.websocket_challenge_frame.v1",
       "file": "schemas/websocket-frame.schema.json",
-      "fragment": "#/$defs/welcome",
+      "fragment": "#/$defs/challenge",
       "status": "active",
-      "description": "Server authentication-success frame carrying effective connection and channel limits."
+      "description": "Server challenge frame with connection-bound one-time nonce."
     },
     {
-      "schema_id": "ak.schema.websocket_open_frame.v1",
+      "schema_id": "ak.schema.websocket_client_frame.v1",
       "file": "schemas/websocket-frame.schema.json",
-      "fragment": "#/$defs/open",
+      "fragment": "#/$defs/client_frame",
       "status": "active",
-      "description": "Client channel-open union with operation-specific closed parameters."
-    },
-    {
-      "schema_id": "ak.schema.websocket_opened_frame.v1",
-      "file": "schemas/websocket-frame.schema.json",
-      "fragment": "#/$defs/opened",
-      "status": "active",
-      "description": "Server channel-open acknowledgement."
-    },
-    {
-      "schema_id": "ak.schema.websocket_data_frame.v1",
-      "file": "schemas/websocket-frame.schema.json",
-      "fragment": "#/$defs/data",
-      "status": "active",
-      "description": "Server channel data wrapper over a canonical account, events, or signal payload."
-    },
-    {
-      "schema_id": "ak.schema.websocket_control_frame.v1",
-      "file": "schemas/websocket-frame.schema.json",
-      "fragment": "#/$defs/control",
-      "status": "active",
-      "description": "Server connection- or channel-scoped control frame."
-    },
-    {
-      "schema_id": "ak.schema.websocket_error_frame.v1",
-      "file": "schemas/websocket-frame.schema.json",
-      "fragment": "#/$defs/error",
-      "status": "active",
-      "description": "Server connection- or channel-scoped error frame."
+      "description": "Closed client-to-server WebSocket frame union."
     },
     {
       "schema_id": "ak.schema.websocket_close_frame.v1",
@@ -1402,6 +1567,77 @@
       "fragment": "#/$defs/closed",
       "status": "active",
       "description": "Server channel-termination frame."
+    },
+    {
+      "schema_id": "ak.schema.websocket_control_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "fragment": "#/$defs/control",
+      "status": "active",
+      "description": "Server connection- or channel-scoped control frame."
+    },
+    {
+      "schema_id": "ak.schema.websocket_data_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "fragment": "#/$defs/data",
+      "status": "active",
+      "description": "Server channel data wrapper over a canonical account, events, or signal payload."
+    },
+    {
+      "schema_id": "ak.schema.websocket_dpop_claims.v1",
+      "file": "schemas/websocket-dpop-proof.schema.json",
+      "fragment": "#/$defs/claims",
+      "status": "active",
+      "description": "Closed htm, wss htu, ath, nonce, iat and jti claim set for a WebSocket authentication proof."
+    },
+    {
+      "schema_id": "ak.schema.websocket_dpop_proof.v1",
+      "file": "schemas/websocket-dpop-proof.schema.json",
+      "status": "active",
+      "description": "Decoded protected header and claim set for the application-level challenge_dpop_session_v1 proof.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "challenge_dpop_session_v1 decoded proof",
+        "normative_ref": "zh/sync/websocket-binding.md#3.1"
+      }
+    },
+    {
+      "schema_id": "ak.schema.websocket_dpop_protected_header.v1",
+      "file": "schemas/websocket-dpop-proof.schema.json",
+      "fragment": "#/$defs/protected_header",
+      "status": "active",
+      "description": "Closed Ed25519 JOSE protected header for a WebSocket authentication proof."
+    },
+    {
+      "schema_id": "ak.schema.websocket_error_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "fragment": "#/$defs/error",
+      "status": "active",
+      "description": "Server connection- or channel-scoped error frame."
+    },
+    {
+      "schema_id": "ak.schema.websocket_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "status": "active",
+      "description": "Closed bidirectional application-frame union for ak.profile.binding.websocket.v1.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.profile.binding.websocket.v1 frame union",
+        "normative_ref": "zh/sync/websocket-binding.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.websocket_open_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "fragment": "#/$defs/open",
+      "status": "active",
+      "description": "Client channel-open union with operation-specific closed parameters."
+    },
+    {
+      "schema_id": "ak.schema.websocket_opened_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "fragment": "#/$defs/opened",
+      "status": "active",
+      "description": "Server channel-open acknowledgement."
     },
     {
       "schema_id": "ak.schema.websocket_ping_frame.v1",
@@ -1425,219 +1661,18 @@
       "description": "Server reauthentication challenge frame."
     },
     {
-      "schema_id": "ak.schema.websocket_dpop_proof.v1",
-      "file": "schemas/websocket-dpop-proof.schema.json",
+      "schema_id": "ak.schema.websocket_server_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "fragment": "#/$defs/server_frame",
       "status": "active",
-      "description": "Decoded protected header and claim set for the application-level challenge_dpop_session_v1 proof.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "challenge_dpop_session_v1 decoded proof",
-        "normative_ref": "zh/sync/websocket-binding.md#3.1"
-      }
+      "description": "Closed server-to-client WebSocket frame union."
     },
     {
-      "schema_id": "ak.schema.websocket_dpop_protected_header.v1",
-      "file": "schemas/websocket-dpop-proof.schema.json",
-      "fragment": "#/$defs/protected_header",
+      "schema_id": "ak.schema.websocket_welcome_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "fragment": "#/$defs/welcome",
       "status": "active",
-      "description": "Closed Ed25519 JOSE protected header for a WebSocket authentication proof."
-    },
-    {
-      "schema_id": "ak.schema.websocket_dpop_claims.v1",
-      "file": "schemas/websocket-dpop-proof.schema.json",
-      "fragment": "#/$defs/claims",
-      "status": "active",
-      "description": "Closed htm, wss htu, ath, nonce, iat and jti claim set for a WebSocket authentication proof."
-    },
-    {
-      "schema_id": "ak.schema.public_key.v1",
-      "file": "schemas/public-key.schema.json",
-      "status": "active",
-      "description": "Defs-only canonical PublicKey DTO (kty/kid/algorithm/key, optional key_digest). Owned by its own document so device, agent, account and to-device surfaces reference one shared definition instead of reverse-referencing each other's bundles. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected."
-    },
-    {
-      "schema_id": "ak.schema.time.v1",
-      "file": "schemas/time.schema.json",
-      "status": "active",
-      "description": "Defs-only shared canonical Arkret timestamp profile. Arkret-owned absolute instants use fixed UTC milliseconds (YYYY-MM-DDTHH:MM:SS.sssZ); external protocol time, local wall time, durations, and algorithm-internal epochs remain separate semantic types."
-    },
-    {
-      "schema_id": "ak.schema.common_ids.v1",
-      "file": "schemas/common-ids.schema.json",
-      "status": "active",
-      "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
-    },
-    {
-      "schema_id": "ak.schema.query.v1",
-      "file": "schemas/query.schema.json",
-      "status": "active",
-      "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequestBody / SearchRequestBody / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "OpenAPI QueryRequestBody/SearchRequestBody components",
-        "normative_ref": "zh/conformance/query-schema.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.service_operation_dtos.v1",
-      "file": "schemas/service-operation-dtos.schema.json",
-      "status": "active",
-      "description": "Canonical DTO bundle for service operation request/response shapes migrated out of OpenAPI inline components."
-    },
-    {
-      "schema_id": "ak.schema.sdk_conformance_claim.v1",
-      "file": "schemas/sdk-conformance-claim.schema.json",
-      "status": "active",
-      "description": "Machine-verifiable SDK release claim against the canonical sdk_conformance_contract.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "published SDK conformance claim artifact",
-        "normative_ref": "zh/conformance/conformance-profiles.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.key_transparency.v1",
-      "file": "schemas/key-transparency.schema.json",
-      "status": "active",
-      "description": "Canonical log head, inclusion proof, consistency proof and witness evidence for ak.profile.key_transparency.v1 and high-security log-backed identity checks.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.profile.key_transparency.v1 evidence",
-        "normative_ref": "zh/identity/identity-did.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.object_addressing.v1",
-      "file": "schemas/object-addressing.schema.json",
-      "status": "active",
-      "description": "Canonical address-link target descriptor and signed token claims.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "address-link target/token kind",
-        "normative_ref": "zh/conformance/schema-registry.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.principal_operations.v1",
-      "file": "schemas/principal-operations.schema.json",
-      "status": "active",
-      "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, Sidecar staging and shared primitives.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "registered principal-scoped operation DTO and proof carriers",
-        "normative_ref": "zh/conformance/schema-registry.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.contact_scope_update.v1",
-      "file": "schemas/contact-operations.schema.json",
-      "fragment": "#/$defs/contact_scope_update_payload",
-      "status": "active",
-      "description": "Closed holder-signed Contact scope replacement payload, including the peer XOR, stable basis, version, predecessor and full granted-scope set.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.contact.scope.update Event payload",
-        "normative_ref": "zh/identity/contact-and-direct-conversation.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.registration_did_evidence.v1",
-      "file": "schemas/registration-did-evidence.schema.json",
-      "status": "active",
-      "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
-    },
-    {
-      "schema_id": "ak.schema.collision_variant_record.v1",
-      "file": "schemas/collision-variant-record.schema.json",
-      "status": "active",
-      "description": "Stored canonical Event variant bytes referenced by an ak.fork.resolution collision locator.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "ak.fork.resolution payload collision locator kind=collision_variant_record, resolved through the registered governance-dependency bundle surface",
-        "normative_ref": "zh/authz/event-auth-state-resolution.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.mls_welcome_refs.v1",
-      "file": "schemas/mls-welcome-refs.schema.json",
-      "status": "active",
-      "description": "Authenticated exact-recipient Welcome reference discovery with bounded frozen-window continuation."
-    },
-    {
-      "schema_id": "ak.schema.account_current_result.v1",
-      "file": "schemas/account-current-result.schema.json",
-      "status": "active",
-      "description": "Server-trusted typed current cell results, complete MV heads, versioned removal and exact baseline coverage."
-    },
-    {
-      "schema_id": "ak.schema.current_principal_request.v1",
-      "file": "schemas/identity-resolution.schema.json",
-      "fragment": "#/$defs/current_principal_request_body",
-      "status": "active",
-      "description": "Authenticated own-account current principal and unique PCR request."
-    },
-    {
-      "schema_id": "ak.schema.current_principal_outcome.v1",
-      "file": "schemas/identity-resolution.schema.json",
-      "fragment": "#/$defs/current_principal_outcome",
-      "status": "active",
-      "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
-    },
-    {
-      "schema_id": "ak.schema.genesis_notary_request.v1",
-      "file": "schemas/genesis-notary-binding.schema.json",
-      "fragment": "#/$defs/genesis_notary_request_body",
-      "status": "active",
-      "description": "Authenticated own-account request for the notary configuration of a Realm genesis the caller will sign."
-    },
-    {
-      "schema_id": "ak.schema.genesis_notary_outcome.v1",
-      "file": "schemas/genesis-notary-binding.schema.json",
-      "fragment": "#/$defs/genesis_notary_outcome",
-      "status": "active",
-      "description": "Own-Station verified notary configuration copied verbatim into the genesis object; observation is not a validity window or authorization lease."
-    },
-    {
-      "schema_id": "ak.schema.media_service_binding_request.v1",
-      "file": "schemas/media-service-binding-result.schema.json",
-      "fragment": "#/$defs/media_service_binding_request_body",
-      "status": "active",
-      "description": "Authenticated member request for the media service anchored by one joined Realm; no caller-supplied service identity, DID or candidate origin."
-    },
-    {
-      "schema_id": "ak.schema.media_service_binding_outcome.v1",
-      "file": "schemas/media-service-binding-result.schema.json",
-      "fragment": "#/$defs/media_service_binding_outcome",
-      "status": "active",
-      "description": "Own-Station verified media service route and signing keys bound to the accepted anchor; route reuse window only, no key release or plaintext authorization."
-    },
-    {
-      "schema_id": "ak.schema.signer_key_query_request.v1",
-      "file": "schemas/signer-key-operations.schema.json",
-      "fragment": "#/$defs/query_request_body",
-      "status": "active",
-      "description": "Unified own-Station current/historical Device and Agent signing-key request; exact local recipient, no evidence closure or reusable current grant."
-    },
-    {
-      "schema_id": "ak.schema.signer_key_query_outcome.v1",
-      "file": "schemas/signer-key-operations.schema.json",
-      "fragment": "#/$defs/query_outcome",
-      "status": "active",
-      "description": "Unified own-Station current/historical Device and Agent signing-key outcome; exact local recipient, no evidence closure or reusable current grant."
-    },
-    {
-      "schema_id": "ak.schema.peer_current_signer_evidence_query_request.v1",
-      "file": "schemas/current-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/query_request",
-      "status": "active",
-      "description": "Peer portable current signer evidence request; independent of the unified self signing-key result."
-    },
-    {
-      "schema_id": "ak.schema.peer_current_signer_evidence_query_outcome.v1",
-      "file": "schemas/current-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/query_outcome",
-      "status": "active",
-      "description": "Peer portable current signer evidence outcome; independent of the unified self signing-key result."
+      "description": "Server authentication-success frame carrying effective connection and channel limits."
     }
   ]
 }

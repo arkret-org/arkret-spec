@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12",
-  "generated_at": "2026-09-12T03:54:41+08:00",
+  "version": "2026-09-12.1",
+  "generated_at": "2026-09-12T06:56:52+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1794,7 +1794,7 @@
       "code": "authoring_request_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "A first Applet managed-actor authoring or install commit attempt arrived after the Station-signed authoring request expiry. Exact durable replay of an already successful request remains available; the caller must otherwise obtain a fresh preview.",
+      "description": "A new authoring attempt arrived after its registered preparation expiry. Message prepare uses client created_at plus 300 seconds. The caller needs a new request identity; accepted Event validity and exact replay/recovery of an existing submission are unaffected.",
       "type_uri": "https://arkret.org/problems/authoring_request_expired",
       "title": "Authoring request expired"
     },

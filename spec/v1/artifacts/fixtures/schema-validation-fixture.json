@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-10.9",
+  "version": "2026-09-12.1",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -8457,6 +8457,174 @@
       },
       "expect_valid": false,
       "first_expected_error": "contains:not valid under"
+    },
+    {
+      "name": "ak_realm_archive_empty",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": true,
+      "instance": {}
+    },
+    {
+      "name": "ak_realm_archive_old_archive_inverse",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": false,
+      "instance": {
+        "archived": false
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_archive_old_freeze_inverse",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": false,
+      "instance": {
+        "frozen": false
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_archive_delayed",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": false,
+      "instance": {
+        "effective_at": "2026-09-12T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_archive_clock_unfreeze",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": false,
+      "instance": {
+        "freeze_expires_at": "2026-09-12T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_restore_empty",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": true,
+      "instance": {}
+    },
+    {
+      "name": "ak_realm_restore_old_archive_inverse",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": false,
+      "instance": {
+        "archived": false
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_restore_old_freeze_inverse",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": false,
+      "instance": {
+        "frozen": false
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_restore_delayed",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": false,
+      "instance": {
+        "effective_at": "2026-09-12T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_restore_clock_unfreeze",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "expect_valid": false,
+      "instance": {
+        "freeze_expires_at": "2026-09-12T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_freeze_empty",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": true,
+      "instance": {}
+    },
+    {
+      "name": "ak_realm_freeze_old_archive_inverse",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": false,
+      "instance": {
+        "archived": false
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_freeze_old_freeze_inverse",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": false,
+      "instance": {
+        "frozen": false
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_freeze_delayed",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": false,
+      "instance": {
+        "effective_at": "2026-09-12T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_freeze_clock_unfreeze",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": false,
+      "instance": {
+        "freeze_expires_at": "2026-09-12T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_unfreeze_empty",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": true,
+      "instance": {}
+    },
+    {
+      "name": "ak_realm_unfreeze_old_archive_inverse",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": false,
+      "instance": {
+        "archived": false
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_unfreeze_old_freeze_inverse",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": false,
+      "instance": {
+        "frozen": false
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_unfreeze_delayed",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": false,
+      "instance": {
+        "effective_at": "2026-09-12T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "ak_realm_unfreeze_clock_unfreeze",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "expect_valid": false,
+      "instance": {
+        "freeze_expires_at": "2026-09-12T00:00:00.000Z"
+      },
+      "first_expected_error": "contains:Additional properties are not allowed"
     }
   ]
 }

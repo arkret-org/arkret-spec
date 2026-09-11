@@ -1286,7 +1286,14 @@
           "type": "null"
         },
         {
-          "$ref": "./event-payload.schema.json#/$defs/realm_archive_payload/properties/archived"
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
         }
       ]
     },
@@ -1458,7 +1465,14 @@
           "type": "null"
         },
         {
-          "$ref": "./event-payload.schema.json#/$defs/realm_freeze_payload/properties/frozen"
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
         }
       ]
     },

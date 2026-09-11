@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-11.5",
+  "version": "2026-09-12.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-11T23:16:51+08:00",
+  "generated_at": "2026-09-12T06:56:52+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -2018,6 +2018,22 @@
         "limit_exceeded"
       ],
       "description": "Invisible Realm, non-member caller or absent media service anchor: 404 not_found. Invalid closed shape or array count: universal 422 schema_violation. Visible Realm whose accepted anchor, method state or describe binding is unresolved, forked or rolled back: universal 503 temporarily_unavailable. Canonical request exceeds 64 KiB: 413 payload_too_large; complete response exceeds 64 KiB: limit_exceeded, never a truncated signing_keys array."
+    },
+    {
+      "operation_id": "ak.self.messages.command.prepare.v1",
+      "http_alias": "POST /_arkret/self/messages/prepare",
+      "operation_specific": [
+        "authoring_request_expired",
+        "capability_denied",
+        "dependency_missing",
+        "duplicate_conflict",
+        "failed_precondition",
+        "frontier_unavailable",
+        "not_found",
+        "payload_too_large",
+        "unsupported_feature"
+      ],
+      "description": "Closed message preparation; ordinary authority, dependency, policy and cryptographic context errors retain their registered identities. Expired preparation requires a new identity and never changes accepted Event validity."
     },
     {
       "operation_id": "ak.self.moderation.command.report.v1",

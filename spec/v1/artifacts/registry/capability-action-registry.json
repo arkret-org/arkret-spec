@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-10.18",
+  "version": "2026-09-12.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-10T18:20:00+08:00",
+  "generated_at": "2026-09-12T05:53:14+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1196,10 +1196,11 @@
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.realm.archive"
+        "ak.realm.archive",
+        "ak.realm.restore"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "operation_verb"
     },
     {
       "action": "ak.realm.authority.reset",
@@ -1253,10 +1254,11 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.realm.freeze"
+        "ak.realm.freeze",
+        "ak.realm.unfreeze"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "operation_verb"
     },
     {
       "action": "ak.realm.link",
@@ -1373,9 +1375,11 @@
         "ak.realm.preview_policy",
         "ak.realm.profile",
         "ak.realm.read_receipt_policy",
+        "ak.realm.restore",
         "ak.realm.schema",
         "ak.realm.search_policy",
         "ak.realm.set_default_strand",
+        "ak.realm.unfreeze",
         "ak.realm.upgrade",
         "ak.redaction",
         "ak.relation.create",

@@ -572,6 +572,8 @@ KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
 # object_patch). Adding a new dispatch that doesn't match the last-segment
 # rule MUST add the pair here, forcing reviewer awareness of the rename.
 SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
+    ("ak.realm.restore", "realm_archive_payload"),
+    ("ak.realm.unfreeze", "realm_freeze_payload"),
     ("ak.audit.ryw_receipt", "audit_payload"),
     ("ak.circle.archive", "object_lifecycle_payload"),
     ("ak.circle.restore", "object_lifecycle_payload"),

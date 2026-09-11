@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12",
+  "version": "2026-09-12.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T03:54:41+08:00",
+  "generated_at": "2026-09-12T07:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -300,7 +300,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:ebb0ed40dc5faefa4624a167bedeb0ba2ff5267d4b43aee84019b3ad4ff18733",
+      "section_digest": "sha256:98f992abd95b32ace1f7ff17190f6d9d093679f3e024f71d4a86cc2d8f28030c",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -481,8 +481,8 @@
       "clause_id": "AK-NC-034",
       "status": "active",
       "category": "state_machine",
-      "source_anchor": "spec/v1/zh/models/common-fields.md#52-unified-lifecycle-event-templatedoc-only-canonical",
-      "section_digest": "sha256:f36d5ccc2af6fbb0b9a6e30cd79164a953853f8f349ce135b46bc26734bdad0b",
+      "source_anchor": "spec/v1/zh/models/event-and-patch.md#4241-redaction-对象投影",
+      "section_digest": "sha256:c1676d0e57ee337811e02e7b87be5335146a86aa31175f4c18bb2d99a1fdba8e",
       "requirement": "A cross-object ak.redaction whose target_ref uses the ak:event: form only trims that Event's fields per preserve[] and MUST NOT change any object's state, including the event-derived object minted from a targeted create Event; an object enters state=redacted only through the object typed-id form of target_ref (Message still goes exclusively through ak.message.redact). The two spellings of one 33-octet token land in two distinct ak.component.object.redaction.v1 cells that are independent and never merge; a reducer MUST NOT canonicalize the ak:event: spelling into the derived object typed id.",
       "testability_grade": "vector",
       "evidence_refs": [

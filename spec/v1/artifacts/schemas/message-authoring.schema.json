@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/message-authoring.schema.json",
+  "title": "Arkret Message Authoring",
+  "description": "Closed own-account preparation of one ordinary Message Event. Encryption happens before this request. Exact request replay returns the original complete unsigned Event; preparing never advances accepted state.",
+  "$defs": {
+    "message_encryption_context": {
+      "type": "object",
+      "required": [
+        "scheme",
+        "effective_scope",
+        "sender_domain"
+      ],
+      "properties": {
+        "scheme": {
+          "enum": [
+            "mls_rfc9420",
+            "mls_exporter_aead_v1"
+          ]
+        },
+        "effective_scope": {
+          "$ref": "./event-envelope.schema.json#/properties/scope_ref"
+        },
+        "sender_domain": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "message_authoring_content": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "content"
+          ],
+          "properties": {
+            "kind": {
+              "const": "plaintext"
+            },
+            "content": {
+              "$ref": "./event-payload.schema.json#/$defs/content_block"
+            },
+            "metadata": {
+              "$ref": "./event-payload.schema.json#/$defs/message_metadata"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "encrypted_content",
+            "encryption_context"
+          ],
+          "properties": {
+            "kind": {
+              "const": "mls"
+            },
+            "encrypted_content": {
+              "$ref": "./encrypted-envelope.schema.json"
+            },
+            "encrypted_metadata": {
+              "$ref": "./encrypted-envelope.schema.json"
+            },
+            "encryption_context": {
+              "$ref": "#/$defs/message_encryption_context"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "message_authoring_intent": {
+      "type": "object",
+      "required": [
+        "strand_id",
+        "track_name",
+        "content"
+      ],
+      "properties": {
+        "strand_id": {
+          "$ref": "./event-payload.schema.json#/$defs/message_create_payload/properties/strand_id"
+        },
+        "track_name": {
+          "const": "discussion"
+        },
+        "content": {
+          "$ref": "#/$defs/message_authoring_content"
+        },
+        "blob_refs": {
+          "$ref": "./event-payload.schema.json#/$defs/message_create_payload/properties/blob_refs"
+        },
+        "reply_to_id": {
+          "$ref": "./event-payload.schema.json#/$defs/message_create_payload/properties/reply_to_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "message_prepare_request_body": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "account_id",
+        "realm_id",
+        "intent",
+        "created_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "intent": {
+          "$ref": "#/$defs/message_authoring_intent"
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "hlc": {
+          "$ref": "./event-envelope.schema.json#/properties/hlc"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 1048576
+    },
+    "message_prepare_outcome": {
+      "type": "object",
+      "required": [
+        "request_digest",
+        "draft",
+        "accepted_actor_frontier",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "draft": {
+          "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
+        },
+        "accepted_actor_frontier": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/RealmActorFrontierView"
+        },
+        "observed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 2097152
+    }
+  }
+}

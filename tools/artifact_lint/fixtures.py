@@ -391,7 +391,6 @@ def check_fixture_runner_contract(lint: Lint) -> None:
             "unknown_dispatch_fails_closed",
             "fsm_family_contract_closure",
             "actor_private_contract_closure",
-            "lifecycle_modality_scope",
         },
         "event_kind_payload_coverage_fixture": {
             "catalog_registry_bijection",

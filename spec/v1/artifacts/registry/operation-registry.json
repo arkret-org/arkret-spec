@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.8",
+  "version": "2026-09-12.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T05:53:14+08:00",
+  "generated_at": "2026-09-12T06:56:52+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -193,6 +193,7 @@
         "ak.peer.realm_join.read.application_status.v1",
         "ak.peer.realm_join.read.bootstrap.v1",
         "ak.peer.realm_join.read.preview.v1",
+        "ak.self.messages.command.prepare.v1",
         "ak.self.realm_join.command.prepare.v1",
         "ak.self.realm_join.read.application_status.v1",
         "ak.self.realm_join.read.preview.v1"
@@ -3991,6 +3992,25 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
       "response_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome"
+    },
+    {
+      "operation_id": "ak.self.messages.command.prepare.v1",
+      "http": "POST /_arkret/self/messages/prepare",
+      "grpc": "SelfMessages/Prepare",
+      "mq": "self.messages.command.prepare",
+      "notes": "Prepare one complete unsigned ak.message.create from a closed intent, after client encryption where required. Exact canonical request replay; expires at client created_at plus 300 seconds. No sequence reservation and no submit ticket.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_request_body",
+      "response_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_outcome",
+      "max_canonical_body_bytes": 1048576,
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "Only a bounded expiring preparation cache; no accepted Event, sequence, membership or projection mutation."
+      }
     },
     {
       "operation_id": "ak.self.moderation.command.report.v1",

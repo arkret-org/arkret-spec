@@ -14,7 +14,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "79e9d6c9de7fa23ca6d07f2b2d58626fac4e1a5ef636afc453263e795627c46f"
+      "sha256": "bd205828feee6aa5fb59cd48311eaf036a720da48f4f9e0e03aafda3ebf8b694"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
@@ -154,7 +154,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-lattice-dispatch-fixture.json",
-      "sha256": "f331b7f9084bd683af305a709944e5bc183cab4652699642aea39f1032a58b1c"
+      "sha256": "a5d8ce8d3bc11adc8d55bb151d35ab85891e4768ab71dbfc120b98d9e958284d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
@@ -298,7 +298,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "63e745d802c1d8e4f78f9464f4e2bbfc4d3fb6a68a9e0ec852da024d6c7abb52"
+      "sha256": "0e273087464ac48ad925cdace41b8e130dc14da9353ca155f199d651da5c817e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "089ac40be9b2057e2138ec4901dc18deca5ee510f8ff6871a40313fac61615ec"
+      "sha256": "75f1c0fc47fd816579a07f8208b85749fb4e45d7cb86a43769d2443c1cece6cb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

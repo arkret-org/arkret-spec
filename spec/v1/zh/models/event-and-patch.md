@@ -711,12 +711,12 @@ Morph profile 或 Realm schema 定义的长文本字段若需要同样的槽保�
 理由（**槽存在性语义**，normative）: 每个内容槽都是明文 / 密文二选一的一对字段（例如 Description 的
 `content` ↔ `encrypted_content`、synthesis track 内的 `tracks.synthesis.content` ↔ `tracks.synthesis.encrypted_content`，
 由各对象 schema 的互斥约束保证）。该槽在物化对象上"缺席"只允许表达两件事：从未撰写，
-或已按 redaction policy 清除（见 [`common-fields.md` §5](./common-fields.md) `redacted` 行：内容清除、
+或已按 redaction policy 清除（见 本节 §4.2.4.1：内容清除、
 envelope 与审计元数据保留）。普通 `ak.<kind>.update` MUST NOT 制造第三种缺席来源。同一个槽的两种编码
 MUST 受同一条规则约束——否则同一份正文能否被移除将取决于 Realm 是否 E2EE，而两者只是同一个槽的明文 / 密文形态。
 该理由的另一半（"已按 redaction policy 清除"确实产生缺席）在三个承载内容槽的对象上都有机读后盾：
 `message.schema.json` 的 `state=redacted` oneOf 分支、`strand.schema.json` 与 `morph.schema.json` 的
-`state=redacted` 条件分支都要求两个槽同时缺席，判据见 [`common-fields.md` §5.2](./common-fields.md)
+`state=redacted` 条件分支都要求两个槽同时缺席，判据见 本节 §4.2.4.1
 与 `ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1`。
 
 **本条不是 redaction capability 的替代，也不限制内容改写（normative）**: redaction 是 whole-object、
@@ -739,6 +739,16 @@ reducer MUST 在 patch path 命中 registry 登记的内容槽（或 Realm schem
 [`state-reducer-hardening-fixture.json`](../../artifacts/fixtures/state-reducer-hardening-fixture.json) 固化：
 registry 中每条已登记 path 上的 `{"$op":"unset"}` MUST 被拒绝；同一 path 上的 `set`（含空正文）
 与 `metadata.summary` / `metadata.title` / `metadata.fields.*` 上的 `unset` MUST 被接受。
+
+#### 4.2.4.1 Redaction 对象投影
+
+Message 只接受专属 `ak.message.redact`；cross-object `ak.redaction` 的 schema 排除 `ak:message:` 目标。判据：`ak.vector.redaction.message_target_exclusive_kind.v1`。其它对象的 redaction 按各自对象定义与已登记 effect 执行，不根据 kind 字符串推断目标。
+
+- **`redacted` 的内容槽投影（机读判据，normative）**：对象 `state=redacted` 的内容清除在三个承载内容对象上都有 schema 后盾——[`message.schema.json`](../../artifacts/schemas/message.schema.json) 顶层 `oneOf` 的 `state=redacted` 分支，以及 [`strand.schema.json`](../../artifacts/schemas/strand.schema.json) / [`morph.schema.json`](../../artifacts/schemas/morph.schema.json) 的 `state=redacted` 条件分支。Message / Morph 必须移除其 `content` / `encrypted_content` 对；Strand 必须同时移除顶层 Description 对与 `tracks.synthesis.content` / `tracks.synthesis.encrypted_content` 对。接收方因此无需回放事件流即可从单个物化对象判定内容是否真的被清除；reducer / projection MUST 在写入 `state=redacted` 的同一次转换里清空该对象的全部已登记内容槽，残留任一槽即 `schema_violation`。判据由 `ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1` 固化。
+
+- **cross-object `ak.redaction` 的对象不物化 redaction 引用（normative）**：走 cross-object `ak.redaction` 的对象（Strand / Morph / Space / Relation）MUST NOT 在物化对象上新增 `redaction_ref` 一类的对象级 redaction event 引用；审计链接走事件索引——`ak.redaction` 在 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 上登记的 `cell_writes` 已把 `payload.target_ref` 作为 `ak.component.object.redaction.v1` cell subject，由对象 id 反查触发 redaction 的 event 是规范定义的 canonical projection，不是实现私有扫描；对象上必须物化的 redaction 痕迹只有 `state=redacted` + `state_changed_at`（见 common-fields §5.1）与上一条的内容槽缺席分支。**Message 是唯一例外**，因为它是唯一注册了对象专属 `ak.message.redact` 的对象：该 kind 是 message-scoped 且 terminal，而 Message 专属 redaction 合同又在 schema 层把 cross-object `ak.redaction` 的 Message 目标整体删除，因此推 Message 进入 `redacted` 的 event family 只有一个，`message.schema.json` 的 `redaction_ref` 也就有唯一无歧义的指向，并且它是 Message 局部字段（见 [`strand-and-message.md` §9.2](./strand-and-message.md)），既不在 §3.1 通用字段矩阵内也不是通用模板槽。反向不成立：`ak.redaction` 的 payload 用唯一的 `target_ref` 承载目标，其词法空间同时覆盖对象目标与 `ak:event:` 目标，并可带 `preserve[]` 做字段级裁剪，同一对象上可以出现多条，给 Strand / Morph 加单值 `redaction_ref` 会凭空要求一条“多条里选哪一条”的排序规则，而该规则在协议里没有任何其他用途。
+
+- **event-targeted redaction 不驱动对象 state（normative）**：`target_ref` 的词法空间同时覆盖 `ak:event:` 目标与对象 typed-id 目标，而 `id_source=event_derived` 对象的两种拼写共享同一 33-octet token（common-fields §6.0）——对同一个 create Event，`ak:event:<T>` 与 `ak:<对象种类>:<T>` 都合法。规范裁决二者是**两件不同的断言**：`target_ref` 为 `ak:event:` 形态时，redaction 的语义仅是按 `preserve[]` 对该 Event 自身做字段级裁剪，MUST NOT 改变任何对象（包括该 Event 派生的 event-derived 对象）的 `state`；对象进入 `redacted` 只能由 `ak:<对象种类>:` 形态的 `target_ref` 驱动（Message 仍只走专属 `ak.message.redact`，见本节 Message 专属 redaction 合同）。按 [`../conformance/encoding.md` §9.5.1](../conformance/encoding.md) 单字段 subject 取逐字 scalar 的规则，两种拼写落进 `ak.component.object.redaction.v1` 的**两个** cell；这是规范定义的正确行为，两个 cell 是独立的 OR-Set，互不影响、互不合并，reducer MUST NOT 把 `ak:event:` 拼写 canonicalize 成派生对象 typed id（subject 与语义都不折叠）。由此，回答“这条内容还在不在”必须同时读两个 cell：对象拼写的 cell 决定对象 `state`，event 拼写的 cell 决定该 Event 的字段级裁剪；UI 与审计视图 MUST 合并两处投影，不得只查其一。判据由 `ak.vector.redaction.event_target_does_not_drive_object_state.v1` 固化。
 
 #### 4.2.5 Op 其余规则
 

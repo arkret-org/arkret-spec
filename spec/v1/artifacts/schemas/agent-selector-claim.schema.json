@@ -10,7 +10,6 @@
     "agent_slug",
     "subject_account_id",
     "issuer_id",
-    "binding_state",
     "visibility",
     "created_at",
     "proofs"
@@ -28,25 +27,23 @@
       "description": "Controller-scoped slug used as the right-hand side of @<controller-handle>/<agent_slug>."
     },
     "subject_account_id": {
-      "$ref": "#/$defs/account_id",
-      "description": "Exact Agent AccountId this selector resolves to, principal and Station component both. The namespace stays principal-scoped -- (controller_subject_id, agent_slug) -- but the target the controller signs is one account: a valid controller signature does not authorise pointing the slug at an arbitrary account that happens to share the agent principal. A consumer copies this value verbatim into the mention node; it MUST NOT rebuild it from a bare principal, the controller handle's Station, a DID default Station or the resolving facade."
+      "oneOf": [
+        {
+          "$ref": "#/$defs/account_id"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Exact Agent AccountId for bind; null for an explicitly signed unbind of this controller/slug. Causal head supersession is applied before expiry/validity filtering; superseded bindings never revive."
     },
     "issuer_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "DID that signs this selector claim. It is normally controller_subject; a delegated issuer MUST be authorized by controller_subject and bound in source_refs or proof evidence."
+      "description": "Controller DID signing this claim; MUST equal controller_subject_id. The Event actor is its controller account in that account's principal-control Realm."
     },
     "vouching_id": {
       "$ref": "#/$defs/did_core_id",
       "description": "Optional service-only vouching role that served or vouched for this selector claim when distinct from issuer_id. The service subject-class requirement is validated independently of the field name."
-    },
-    "binding_state": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "verified",
-        "revoked",
-        "expired"
-      ]
     },
     "visibility": {
       "type": "string",
@@ -106,5 +103,24 @@
       "$ref": "./common-ids.schema.json#/$defs/account_id"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "anyOf": [
+    {
+      "properties": {
+        "subject_account_id": {
+          "$ref": "#/$defs/account_id"
+        }
+      }
+    },
+    {
+      "required": [
+        "source_refs"
+      ],
+      "properties": {
+        "source_refs": {
+          "minItems": 1
+        }
+      }
+    }
+  ]
 }

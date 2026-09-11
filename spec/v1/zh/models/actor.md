@@ -107,8 +107,10 @@ Schema id: `ak.schema.actor_profile.v1`
     `genesis.actor_id.account_id` 精确核对。**这不是取调用方当次的 Station。**
     provision 未完成（Agent PCR genesis 未 accepted）之前，该 Agent MUST NOT 被当作 active 可解析目标。
   - 无内层 proof 的投影 MUST NOT 被伪造成独立签名 claim。要求返回 `selector_claim.proofs` 的 portable
-    响应，必须拿到真实 controller 或授权 issuer 签名的 claim；拿不到就不能广告 / 返回该成功面，
+    响应，必须拿到真实 controller 签名的 claim；拿不到就不能广告 / 返回该成功面，
     服务端 MUST NOT 补签，也 MUST NOT 公开 private provision 材料来填满 DTO。
+
+- **Selector bind/unbind（normative）**：复用同一个 `ak.agent.selector_claim` 已签载体和同一 MV cell；`subject_account_id` 为完整 AccountId 时是 bind，为显式 null 时是 unbind。unbind 的 `source_refs` MUST 包含它因果覆盖的 exact bind/provision 来源，且至少一项；controller、slug、来源 heads 必须匹配该 cell，issuer_id 必须等于 controller_subject_id，Event actor 必须是该 controller account；内层 proof 以其历史 DID 文档验签，与 bind 使用相同验证规则。不得以空数组、删除数据库行或过期推断撤销。先求因果当前 heads，再按 expiry/authority/visibility 判有效性；被取代的旧 bind 永不因后继过期或 unbound 复活。多个当前 heads（含 bind/unbind 并发）按歧义规则 fail closed；后继覆盖完整已知 heads 可重新 bind/unbind。null 不指向任何账号，不可返回成功 selector 解析。pending 只属本地过程；当前可解析仍须 active Agent、accountability、可见性和未过期授权，accepted 不表示永久 verified。缓存沿当前基线/失效规则更新，缺当前证据拒绝解析。provision 不伪造内层 claim proof，portable claim 仍要求真实 controller 签名。
 
 - **为什么该 cell 是 `mv_register` 而不是 `cas_register`（normative rationale）**：
   这个 family 承载的是一个 selector 的**占位声明**，占位语义通常会让人推断它应该是 CAS。

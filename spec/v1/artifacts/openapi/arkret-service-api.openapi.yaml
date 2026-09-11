@@ -1322,6 +1322,10 @@ components:
       $ref: ../schemas/history-key.schema.json#/$defs/membership_authority_outcome
     MembershipAuthorityRequestBody:
       $ref: ../schemas/history-key.schema.json#/$defs/membership_authority_request_body
+    MessagePrepareOutcome:
+      $ref: '../schemas/message-authoring.schema.json#/$defs/message_prepare_outcome'
+    MessagePrepareRequestBody:
+      $ref: '../schemas/message-authoring.schema.json#/$defs/message_prepare_request_body'
     MimiIdentifierQueryOutcome:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome
     MimiIdentifierQueryRequestBody:
@@ -7520,6 +7524,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/MediaServiceBindingOutcome'
 
+  /_arkret/self/messages/prepare:
+    post:
+      operationId: ak.self.messages.command.prepare
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.messages.command.prepare.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Prepare one complete unsigned Message Event from a closed intent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessagePrepareRequestBody'
+      responses:
+        '200':
+          description: Complete unsigned Message Event and accepted actor frontier bound to the exact request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagePrepareOutcome'
   /_arkret/self/realm-joins/prepare:
     post:
       operationId: ak.self.realm_join.command.prepare

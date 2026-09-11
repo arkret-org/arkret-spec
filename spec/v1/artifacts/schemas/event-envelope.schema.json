@@ -1377,7 +1377,45 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "ak.realm.restore"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_archive_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "ak.realm.freeze"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_freeze_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.unfreeze"
           }
         },
         "required": [
@@ -7649,10 +7687,12 @@
                 "ak.realm.preview_policy",
                 "ak.realm.profile",
                 "ak.realm.read_receipt_policy",
+                "ak.realm.restore",
                 "ak.realm.schema",
                 "ak.realm.search_policy",
                 "ak.realm.set_default_strand",
                 "ak.realm.tombstone",
+                "ak.realm.unfreeze",
                 "ak.realm.upgrade",
                 "ak.redaction",
                 "ak.relation.create",
@@ -7828,10 +7868,12 @@
                     "ak.realm.preview_policy",
                     "ak.realm.profile",
                     "ak.realm.read_receipt_policy",
+                    "ak.realm.restore",
                     "ak.realm.schema",
                     "ak.realm.search_policy",
                     "ak.realm.set_default_strand",
                     "ak.realm.tombstone",
+                    "ak.realm.unfreeze",
                     "ak.realm.upgrade",
                     "ak.redaction",
                     "ak.relation.resolve",

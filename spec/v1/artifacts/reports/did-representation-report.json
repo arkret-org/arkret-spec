@@ -1363,6 +1363,16 @@
       ]
     },
     {
+      "schema_path": "agent-selector-claim.schema.json#/anyOf/0/properties/subject_account_id",
+      "property_name": "subject_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "agent-selector-claim.schema.json#/properties/controller_subject_id",
       "property_name": "controller_subject_id",
       "semantic_category": "responsibility_identity_material",
@@ -6731,6 +6741,16 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "message-authoring.schema.json#/$defs/message_prepare_request_body/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
       ]
     },
     {

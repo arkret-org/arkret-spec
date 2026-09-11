@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.1",
+  "version": "2026-09-12.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T03:57:27+08:00",
+  "generated_at": "2026-09-12T06:19:17+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -93,7 +93,6 @@
     "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry. Signal payload types and DeviceMessageEnvelope message kinds are intentionally outside this Event registry.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
-    "lifecycle_modality applies to physical object lifecycle writes, identified mechanically by an fsm_contract whose axis is object_lifecycle, plus explicitly registered reversible Realm lifecycle facets. Every active event kind that writes such a family MUST declare lifecycle_modality. Use reversible for a reversible facet or either member of an archive/restore pair, and terminal for an irreversible transition. Workflow, membership, status, audit, key-material and OR-Set revocation axes are excluded. Reducers and SDKs MUST read this field and MUST NOT infer modality from event-kind spelling.",
     "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a canonical_json descriptor for a closed structured identifier (key bytes are its RFC 8785 JCS bytes), a coalesce descriptor, or a composite descriptor whose structured components use the same canonical_json descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. There is no initial_value or sentinel_writers declaration: a cas_register cell with no active head reads null protocol-wide (zh/authz/event-auth-state-resolution.md section 9.3.1.2), and a family that needs a reusable free slot registers an explicit `set null` release write whose write identity is carried by that release Event. A contract MAY also declare pre_state_requirements[]: each entry names a cell_family, a subject, an optional condition drawn from the same closed payload-condition grammar as cell_writes[].condition, a closed stored-field predicate (stored_field_present, stored_field_equals_payload, or stored_field_matches_payload, which holds when the stored field and the payload field are both absent or both present and byte-identical), and the exact failure code/reason_code. A requirement whose condition does not hold is not evaluated; a failing requirement rejects the whole Move with zero cell writes.",
     "The ak.component.agent.status.v1 lifecycle cell is keyed only by the complete Agent account ActorId: agent-control ak.realm.create and every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate write MUST use the identical single-component composite canonical_json(envelope.actor_id) subject. The Agent actor MUST be the account variant; a service actor is invalid. The Agent principal component is derived only from envelope.actor_id and the controller principal only from envelope.executed_by; the lifecycle payloads carry no duplicate agent or controller coordinate. These writes are delegated controller writes: executed_by and its paired authorization_ref MUST be present for agent-control ak.realm.create and for every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate, enforced by the registered event-kind admission rule (and its Event Envelope schema lock), never only by the generic optional envelope schema. A missing executor pair, a service actor, or a missing exact Station binding fails closed, and Account ActorIds with the same principal_id at different station_id values MUST derive different subjects.",
     "Every lattice=fsm cell write MUST resolve by cell_family to exactly one fsm_contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
@@ -1197,9 +1196,8 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm archive lifecycle facet (reversible boolean)",
+      "payload": "Explicit archive operation; no caller-supplied state or scheduling fields.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -1212,7 +1210,35 @@
           "effect_projection": {
             "kind": "set",
             "value": {
-              "field": "payload.archived"
+              "const": true
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
+    },
+    {
+      "event_kind": "ak.realm.restore",
+      "category": "realm",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Explicit restore operation on the same registered facet; other gates remain unchanged.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "id_source": "not_an_object_id",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.archive.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "const": false
             }
           }
         }
@@ -1226,9 +1252,8 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm freeze lifecycle facet (reversible boolean)",
+      "payload": "Explicit freeze operation; no caller-supplied state or scheduling fields.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -1241,7 +1266,35 @@
           "effect_projection": {
             "kind": "set",
             "value": {
-              "field": "payload.frozen"
+              "const": true
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
+    },
+    {
+      "event_kind": "ak.realm.unfreeze",
+      "category": "realm",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Explicit unfreeze operation on the same registered facet; other gates remain unchanged.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "id_source": "not_an_object_id",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.freeze.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "const": false
             }
           }
         }
@@ -1257,7 +1310,6 @@
       "reducer_input": true,
       "payload": "Realm tombstone lifecycle facet (terminal pointer to successor)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
-      "lifecycle_modality": "terminal",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -1286,7 +1338,6 @@
       "reducer_input": true,
       "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
-      "lifecycle_modality": "terminal",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -1519,7 +1570,6 @@
       "reducer_input": true,
       "payload": "Circle archive lifecycle facet (active -> archived).",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -1554,7 +1604,6 @@
       "reducer_input": true,
       "payload": "Circle restore lifecycle facet (archived -> active).",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -1589,7 +1638,6 @@
       "reducer_input": true,
       "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "lifecycle_modality": "terminal",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -2554,7 +2602,6 @@
       "reducer_input": true,
       "payload": "Strand archive",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -2589,7 +2636,6 @@
       "reducer_input": true,
       "payload": "Strand restore",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -2983,7 +3029,6 @@
       "reducer_input": true,
       "payload": "Space archive (UI-level grouping archive; contained Strands MUST be relocated or follow archive)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_state_transition_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -3018,7 +3063,6 @@
       "reducer_input": true,
       "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_state_transition_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -3053,7 +3097,6 @@
       "reducer_input": true,
       "payload": "Space tombstone (irreversible; contained Strands MUST be relocated before)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_object_tombstone_payload",
-      "lifecycle_modality": "terminal",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -3474,7 +3517,6 @@
       "reducer_input": true,
       "payload": "Cross-object redaction envelope for non-Message objects/events and profile-declared content trimming. Message is excluded: it has its own registered ak.message.redact.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload",
-      "lifecycle_modality": "terminal",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -3573,7 +3615,6 @@
       "reducer_input": true,
       "payload": "Morph archive",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -3608,7 +3649,6 @@
       "reducer_input": true,
       "payload": "Morph restore",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "lifecycle_modality": "reversible",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -3783,7 +3823,6 @@
       "reducer_input": true,
       "payload": "Irreversible Relation lifecycle transition. payload.relation_id is the sole target carrier; payload.target_ref and update-style payload.patch are forbidden. Optional payload.reason is retained on the Event, while the materialized Relation stores only state=tombstoned and state_changed_at=Event.created_at.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
-      "lifecycle_modality": "terminal",
       "id_source": "reference",
       "plane": "control",
       "sealed": true,
@@ -4206,7 +4245,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one Agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
+      "payload": "Controller-signed bind or explicit null-target unbind for one (controller principal, agent_slug) MV cell in the controller PCR. A bound target is a complete AccountId. Unbind source_refs must name same-cell bind/provision Events covered by its Seal basis. Concurrent heads remain ambiguous.",
       "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
       "id_source": "not_an_object_id",
       "plane": "control",

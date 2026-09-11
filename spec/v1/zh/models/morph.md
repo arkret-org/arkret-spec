@@ -42,7 +42,7 @@ Schema id: `ak.schema.morph.v1`
 | `content` | no | `object` | 富文本/parts 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_content` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
-| `state` | no | `enum(active, archived, redacted)` | lifecycle 转换与 reason_code 以 [common-fields.md §5.1](./common-fields.md) 的 Morph 行为唯一权威；`archived` 可逆，唯一不可逆终态是 `redacted`。 | 物化状态（物理生命周期）。 |
+| `state` | no | `enum(active, archived, redacted)` | lifecycle 转换与 reason_code 见本文件 Morph lifecycle 合同入口；`archived` 可逆，唯一不可逆终态是 `redacted`。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | 枚举、唯一写入路径、reserved-name guard 与 reducer 规则以 [common-fields.md §5.3](./common-fields.md) 为唯一权威。generic Morph 可省略；需要进度轴的 `morph_kind` profile MAY 收紧为 create 必填，缺失时首条 `ak.morph.stage.set` 可初始化为任一合法值。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
@@ -215,3 +215,8 @@ Morph `schema_refs[]` 的固定规则见 [§4.1](#41-schema-refs-固定规则nor
 - Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/morph_stage_set_payload`。
 - Stage 事件 / capability 注册：`artifacts/registry/event-kind-registry.json`、`artifacts/registry/capability-action-registry.json`。
 - Stage 字段 forbidden-wire 规则：`artifacts/registry/forbidden-wire-fields.json`。
+
+
+### Morph lifecycle 合同入口
+
+`morph` 的 lifecycle 以 contract registry 中对应 cell family 的 `fsm_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `morph_not_active` / `morph_not_archived`；终态操作对已终态对象返回 `morph_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。

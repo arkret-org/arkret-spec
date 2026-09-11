@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.2",
+  "version": "2026-09-12.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T05:53:14+08:00",
+  "generated_at": "2026-09-12T06:56:52+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9000,6 +9000,49 @@
       }
     },
     {
+      "operation_id": "ak.self.messages.command.prepare.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_id",
+          "realm_id",
+          "intent",
+          "created_at"
+        ],
+        "properties": [
+          "request_id",
+          "account_id",
+          "realm_id",
+          "intent",
+          "created_at",
+          "hlc"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_digest",
+          "draft",
+          "accepted_actor_frontier",
+          "observed_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_digest",
+          "draft",
+          "accepted_actor_frontier",
+          "observed_at",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.moderation.command.report.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -9245,8 +9288,7 @@
           "archived",
           "frozen",
           "terminal_state",
-          "successor_realm_id",
-          "freeze_expires_at"
+          "successor_realm_id"
         ],
         "closed": true
       }

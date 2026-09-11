@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-07.2",
+  "version": "2026-09-12.1",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -40,11 +40,6 @@
       "event_kind": "ak.realm.inheritance_policy",
       "priority": "high",
       "rationale": "Realm inheritance policy lacks a directly searchable vector."
-    },
-    {
-      "event_kind": "ak.realm.archive",
-      "priority": "normal",
-      "rationale": "Realm archival transition lacks a directly searchable vector."
     },
     {
       "event_kind": "ak.circle.history_access",
@@ -96,5 +91,6 @@
       "priority": "high",
       "rationale": "Realm profile override lacks a directly searchable vector."
     }
-  ]
+  ],
+  "generated_at": "2026-09-12T06:29:14+08:00"
 }

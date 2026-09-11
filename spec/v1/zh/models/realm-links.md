@@ -51,7 +51,7 @@ Payload 字段：
 | --- | --- | --- | --- |
 | `target_realm_id` | yes | `id:realm` | 被引用的目标 Realm。 |
 | `link_kind` | yes | `string` | Link 语义，标准值见下表；profile MAY 注册额外值。 |
-| `status` | yes | `enum(active,rejected,tombstoned)` | 本侧声明的 link 状态。**命名例外（normative）**：该轴由 Arkret Event 推进，按 [`common-fields.md` §5](./common-fields.md) 的所有权判据本应命名为 `state`；v1 保留 `status` 是已字节锁的 wire 名，实现 MUST NOT 据此认为它镜像外部系统状态。 |
+| `status` | yes | `enum(active,rejected,tombstoned)` | 本侧声明的 link 状态。这是 Realm Link 自己的 closed 状态字段；语义由本节定义，不需要 common 命名例外。 |
 | `label` | no | `string` | 本地显示标签；不参与授权或确认语义。 |
 | `commitment` | no | `digest` | profile-specific 承诺值；需要双方确认、mirror、migration、confidential extension 或 attestation 的 profile MAY 要求它并定义 transcript。core `ak.realm.link` 不给该字段赋予通用授权语义。 |
 

@@ -43,7 +43,6 @@
           "principal_id": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary",
           "station_id": "ak:did_core:web:acme.example"
         },
-        "binding_state": "verified",
         "visibility": "restricted",
         "note": "The namespace is (controller_subject_id, agent_slug) and stays principal-scoped; the signed target is one AccountId. subject_account_id is a binding field of ak.agent_selector_claim_proof.v1, so changing the Station invalidates this proof."
       },

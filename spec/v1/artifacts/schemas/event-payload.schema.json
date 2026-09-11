@@ -8534,9 +8534,6 @@
         },
         "reason": {
           "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -9629,18 +9626,9 @@
     },
     "realm_archive_payload": {
       "type": "object",
-      "required": [
-        "archived"
-      ],
       "properties": {
-        "archived": {
-          "type": "boolean"
-        },
         "reason": {
           "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -9701,9 +9689,6 @@
         "verification_stub_required": {
           "type": "boolean",
           "default": true
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -9744,21 +9729,9 @@
     },
     "realm_freeze_payload": {
       "type": "object",
-      "required": [
-        "frozen"
-      ],
       "properties": {
-        "frozen": {
-          "type": "boolean"
-        },
         "reason": {
           "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "freeze_expires_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -10405,9 +10378,6 @@
         },
         "replacement_event_id": {
           "$ref": "#/$defs/event_ref"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false

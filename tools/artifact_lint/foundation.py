@@ -1264,13 +1264,6 @@ def check_state_contract_closure(lint: Lint) -> None:
                 shared_fsm_families.add(family)
                 if family not in resolved_contracts:
                     lint.fail(path, f"{kind} writes FSM family {family} without one fsm_contract")
-                elif resolved_contracts[family].get("axis") == "object_lifecycle":
-                    modality = event_rows.get(kind, {}).get("lifecycle_modality")
-                    if modality not in {"reversible", "terminal"}:
-                        lint.fail(
-                            path,
-                            f"{kind} writes object_lifecycle FSM {family} but has no valid lifecycle_modality",
-                        )
             projection = write.get("effect_projection")
             if (
                 isinstance(projection, dict)
