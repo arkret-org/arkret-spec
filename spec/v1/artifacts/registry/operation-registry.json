@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.7",
+  "version": "2026-09-11.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-11T23:16:51+08:00",
+  "generated_at": "2026-09-12T05:53:14+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3352,7 +3352,7 @@
       "http": "POST /_arkret/self/account/current-principal",
       "grpc": "SelfCurrentPrincipal/Resolve",
       "mq": "self.current_principal.query.resolve",
-      "notes": "Authenticated exact AccountId selects its unique accepted PCR and current PrincipalResolutionProjection, independent of optional profile. The own Station validates method history; no portable evidence is returned. observed_at is a one-shot observation, not an authorization lease. Wrong or invisible account returns not_found; unresolved verified current state returns temporarily_unavailable. Request and response canonical JSON are each bounded to 64 KiB.",
+      "notes": "Authenticated exact AccountId selects its unique accepted PCR and current PrincipalResolutionProjection, independent of optional profile. Before the first accepted Seal, only the exact atomically accepted genesis current is eligible while no accepted resolution successor exists; derived cache metadata is not authority. The own Station validates method history; no portable evidence or observation time is returned. Wrong or invisible account returns not_found; unresolved verified current state returns temporarily_unavailable. Request and response canonical JSON are each bounded to 64 KiB.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/current_principal_request_body",
