@@ -97,7 +97,14 @@ v1 recurrence 是 RFC 8984 JSCalendar `RecurrenceRule` 的 snake_case 子集：`
 
 ## 6. Schedule revision 与 occurrence 身份
 
-修改 Calendar 子树的 Event 构成该 Strand 的 **schedule revision DAG**。只修改标题等非 Calendar 子树的 `ak.strand.update` 不产生新的 schedule revision。
+创建携带 Calendar 子树的 Strand，或显式写入该子树（含其祖先路径 `metadata`、`metadata.fields` 的替换／删除）的 Event，构成该 Strand 的 **schedule revision DAG**。写入与原值相同仍是一次显式 revision；是否需要 RSVP 重新确认则按下文 significant-change 表比较日程值，不能把“新 revision”直接等同于“日程已改变”。仅写入 `metadata.title` 等不包含 Calendar 子树的路径不产生新的 schedule revision。此定义按签名写入意图与因果关系求值，不依赖 receiver 的当前可见值；显式选择相同日程也可以收敛其并发来源。
+
+schedule revision frontier 是对象 source DAG 中 schedule revision 的因果极大集合：
+Event A 被 Calendar Event C 取代，当且仅当 A 是 C 的 `causal_refs[]` 传递祖先。
+中间可以有任意非 Calendar 更新；是否为祖先与 receiver 当时的 current 集合无关。
+MUST 从 accepted source 因果关系计算，禁止通过“本次引用是否等于接收时全部 current heads”判断。
+相同 accepted Event 集合的所有拓扑到达顺序必须给出相同 schedule frontier。
+Calendar patch 与标题／正文 patch 使用同一对象基线规则，不添加额外 schedule base。
 
 Calendar schedule projection MUST 暴露 canonical `schedule_revision_heads[]` 与 `schedule_resolution_state`：
 
@@ -105,7 +112,7 @@ Calendar schedule projection MUST 暴露 canonical `schedule_revision_heads[]` �
 - `conflict`：出现两个不同的 schedule value。
 - `encrypted_unresolved`：无法解密比较。
 
-只有 `settled` 才 MAY 展开 occurrence、发送 RSVP 或派生精确 schedule notification。实现 MUST NOT 用 HLC、接收顺序或私有 LWW 从冲突 heads 中选边。Calendar profile MUST 使用显式 schedule resolution Event 收敛 heads：该 Event 引用并消费全部当前 metadata cell heads、携带完整 post-state，并复用 `ak.strand.update` 的授权边界。普通 `ak.strand.update` 只绑定一个 frozen base head，MUST NOT 被称为 multi-head resolution。
+只有 `settled` 才 MAY 展开 occurrence、发送 RSVP 或派生精确 schedule notification。实现 MUST NOT 用 HLC、接收顺序或私有 LWW 从冲突 heads 中选边。Calendar 冲突收敛复用 `ak.strand.update`：显式引用要收敛的对象来源，使用 `expected_state_digest` 固定基值，并以普通 patch 表达选定的合并结果；不注册独立 schedule resolution Event。
 
 **`calendar_schedule_unsettled` 是 authoring 侧与投影侧的错误，MUST NOT 成为服务端 admission 条件**：判定 settledness 需要读取 Calendar 子树明文，E2EE 部署的服务端做不到。authoring client 在本地算出非 `settled` 时 MUST 拒绝构造 RSVP；若某个 client 仍然发出，服务端按 §8.4 照常接受（它只看得到 shape 与 envelope），由授权投影把该 head 归入 §9 的相应类别。这条与 §8.1 第三层同一原则：**任何需要 schedule 明文的判定都不得进入 admission**，否则 plaintext Realm 会比 E2EE Realm 多拒绝一批 Event，两者 accepted set 分叉。
 
@@ -159,7 +166,7 @@ RSVP 通过 `ak.rsvp.set` 写入，payload 是 `{event_ref, occurrence, entry}`�
 | --- | --- | --- |
 | shape admission | 只看本 Event 自身（非空 / 去重 / 排序 / ⊆ `causal_refs` / ≤128） | `rsvp_basis_not_causal` 或 `schedule_frontier_too_large` 拒绝，MUST NOT pending |
 | target admission | 被引用 Event 的**明文 envelope**：`realm_id`、`kind`、target ref | 引用 Event 尚未到达时按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 的 `dependency_missing` 保持 pending；已到达但 Realm / kind / target 不符时拒绝 |
-| basis 有效性 | 需要读取 Calendar 子树明文：该 revision 是否真的改动了 schedule、整组 refs 是否等于 authoring 时可见的 frontier | **不是** admission 条件，只在授权投影中判定，见 §9 的 `unresolved_basis` / `stale_orphaned` |
+| basis 有效性 | 需要读取 Calendar 子树明文：引用来源是否构成目标 schedule revision、整组 refs 是否等于 authoring 时实际观察的 frontier | **不是** admission 条件，只在授权投影中判定，见 §9 的 `unresolved_basis` / `stale_orphaned` |
 
 Envelope 在 E2EE 下同样是明文，因此 target admission 不构成解密要求；只有第三层需要明文 schedule，故它 MUST 留在投影侧。服务端 MUST NOT 因为自己恰好能读明文 schedule 就在 admission 阶段追加第三层判定——那会让 E2EE 与 plaintext Realm 分叉出两套 accepted set。
 

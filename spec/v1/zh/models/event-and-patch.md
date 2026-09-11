@@ -837,9 +837,18 @@ Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部�
 冻结 pre-state 的唯一求值规则：
 
 - Control Move 的 pre-state 是 `seal_basis` 所承诺的目标 cell settled value，按 CBS frozen-baseline 规则读取。
-- 携带 patch 的 DataEvent MUST 在 `causal_refs[]` 中为每个目标 cell 精确引用一个 accepted base-head event digest；该 Event 的 reducer contract 必须写同一 cell。receiver 从该 base head 的完整 post-state恢复 pre-state，不读取本地当前 head、到达顺序或墙钟。依赖未取得时保持 `dependency_missing` pending。
-- 目标 cell 当前已有多个并发 head 不影响某个基于旧 head 的 DataEvent 被验证：它形成新的并发 head并由 `mv_register` 暴露。producer 若要显式收敛多个 head，MUST 使用该 cell family 注册的 resolution Event / per-object sequencer；通用 patch 不得任意选择本地 winner。create 类无 pre-state 的 Event 不使用本 patch 规则。
-- `causal_refs[]` 中没有命中目标 cell 的 base、命中多个 base、base Event reducer 未写该 cell，或 base post-state 无法重建时，receiver MUST `schema_violation` / `reducer_projection_failed`；不得回退到当前 state。
+- 携带 patch 的 DataEvent 的 `causal_refs[]` 引用作者实际观察到的 accepted source；receiver 按目标 `(scope_ref, cell_id)` 解析这些来源的完整 post-state。不得读取 receiver 当前 head、到达顺序或墙钟。依赖未取得时保持 `dependency_missing` pending。
+- 只有一个目标 cell source 且未携带 `expected_state_digest` 时，该来源的完整值就是 pre-state。携带已登记的 `expected_state_digest` 时，以该 digest 精确选取被引用来源中的完整值；多个来源可具有相同完整值，但不得选择不同值。无匹配或有歧义时 MUST `schema_violation` / `reducer_projection_failed`。
+- 显式合并多个来源复用普通 Data patch：作者在 `causal_refs[]` 引用实际观察并决定收敛的来源，并用签名覆盖的 `expected_state_digest` 指定计算基值。patch 表达相对于该基值的合并结果；没有修改的字段明确继承该基值。未被引用的并发来源仍然保留。多来源而无 pre-state digest MUST 拒绝。不得新增与此规则重复的 Strand 专用 resolver 或 authoring 接口。
+- 基于旧来源编写的合法 patch 即使提交时 current 已改变也 MUST 接受为因果后继／并发来源；不得隐式把旧草稿重定位到提交时的 current。无 pre-state 的 create 不使用本 patch 规则。
+
+authoring MUST 使用现有 `current` 的 `CurrentResultEntry`：同一 `(scope_ref, cell_id)` 下的
+`heads[{event_id,value}]` 同时提供完整值与来源身份，`event_id` 可无损转换为 Event digest。
+不得另增只返回 head 的镜像读取接口、持久化对象 head 列，或用领域子投影的 frontier 代替对象来源。
+producer MUST 在打开编辑时一起固定完整基值、来源 Event 与 effective scope；后台 current 更新不改变
+未提交草稿的基线。零 head／不可用 entry 等待 current 就绪；多 head 必须显示冲突并由用户显式选择／
+合并，MUST NOT 根据时间、排序或本地最后收到的 Event 猜测 winner。值计算基线与因果观察集合不是
+同一概念：前者唯一，后者可以包含多个来源；此规则同样适用于日历字段更新。
 
 上述 patch 路由、冻结 pre-state 与失败分支由
 `ak.vector.patch.projection_prestate_binding.v1` 固定。

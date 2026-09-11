@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.3",
+  "version": "2026-09-11.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-11T18:55:11+08:00",
+  "generated_at": "2026-09-11T21:54:24+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",

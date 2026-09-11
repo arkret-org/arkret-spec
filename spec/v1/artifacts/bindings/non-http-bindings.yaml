@@ -1,4 +1,4 @@
-version: '2026-08-29'
+version: '2026-09-11'
 operation_registry: ../registry/operation-registry.json
 coverage: complete_except_http_only
 coverage_contract: Every registered operation that is not marked http_only_variant=true MUST appear at least once

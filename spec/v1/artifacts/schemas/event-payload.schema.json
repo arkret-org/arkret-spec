@@ -10535,7 +10535,7 @@
       "properties": {
         "expected_state_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Optional optimistic concurrency guard. When present it MUST equal the writer-observed digest of the frozen pre-state this patch was computed against; a mismatch MUST fail closed. Registered as the apply_patch projection's expected_prestate source in contract-registry.json."
+          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/cell, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. Registered as apply_patch expected_prestate in contract-registry.json."
         },
         "patch": {
           "allOf": [
@@ -12397,7 +12397,7 @@
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Optional optimistic concurrency guard. When present it MUST equal the writer-observed digest of the frozen pre-state this patch was computed against; a mismatch MUST fail closed. Registered as the apply_patch projection's expected_prestate source in contract-registry.json."
+          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/cell, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. Registered as apply_patch expected_prestate in contract-registry.json."
         },
         "object": {
           "allOf": [

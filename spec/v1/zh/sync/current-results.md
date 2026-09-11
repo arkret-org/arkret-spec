@@ -122,7 +122,8 @@ revision 使用与账号 Realm 摘要、`realm_invalidations.revision` 相同的
 详情 `baseline` 替换为 closed `{snapshot_cursor, cut_revision, coverage, complete}`。
 coverage 为 closed `{realm, strand_ids, members, event_ids}`：realm 为布尔值，strand_ids 最多32个，
 event_ids 最多100个；members 为 `{mode:all}` 或 `{mode:selected,actor_ids}`，后者最多100个完整 ActorId。
-集合无重复并按各 ID 的规范排序；ActorId 按 JCS 无符号 UTF-8 排序。
+集合无重复；strand_ids 与 event_ids 按解码后的 token 字节排序，ActorId 按 JCS 无符号 UTF-8 排序。
+此处不是 SyncFilter 绑定摘要的字符串 lexicographic 排序；producer 从 filter 构造 coverage 时 MUST 按 coverage 规则重新规范化，不能直接复用 filter 数组顺序。
 
 覆盖集只包含本次 filter 实际请求且获准的目标。realm=true 覆盖已选择 Realm 的必要治理与当前 Realm
 目标；Strand 集按 filter 的精确选择或其服务器当前 default pointer 确定；event_ids 仅取实际 timeline
@@ -147,6 +148,11 @@ Realm 首个可用基线必须提供当前 genesis/create-locked 安全属性、
 authz/current-result 接口取得；不可要求客户端从 grant Events 求权限。必要字段未交付保持该操作 pending，
 不能解释为默认值。服务器优先交付这些有界必要目标；不能要求等待 Realm 全对象、all members、所有 Realm
 或旧消息才能呈现首屏。MLS authoring/accepted-artifact 查询仍使用各自正式 exact result，不借本基线替代 E2E。
+
+`cell_contracts` 中 `cell_subject: null` 表示单例，不能误读为动态 subject。对于上述尚未写入的单例，
+publisher 必须在验证完整 accepted 状态后发布已确认空值；数据库中缺少结果行本身不是空值证明。
+派生 publication 标为 ready 但缺少必要基线条目时，读取方必须使其失效并通过既有 accepted frontier
+重建路径修复，不能永久重试同一不完整 publication，也不能由客户端补默认值或发出新的治理 Event。
 
 ## 5. 预算与失败
 
