@@ -184,6 +184,40 @@ lease/fence 授权当前 holder 冻结 reservation 并发起 holder-originated c
 
 ### 2.1.3 SessionGrant 不确定结果与身份边界
 
+**认证事务与既有会话隔离（normative）**：显式登录、服务账号注册、OIDC callback 和
+AccountHandoff continuation 由当前认证事务独占其页面与 continuation。客户端 MUST 先等待安全存储
+hydration 完成，再验证 callback state 并使用该事务冻结的 issuer/client/redirect、nonce、PKCE 与
+holder 材料；Account Authority 仍按 §2.1.2 执行 code exchange proof 与账号绑定验证，不转移或重复
+发明 callback state 的权威所有者。
+本地存在旧 SessionGrant、非空 bearer、既有 AccountId 或已显示过应用页面，均 MUST NOT 被解释为
+本次认证成功，MUST NOT 跳过 callback 或把它重定向到业务页面。旧会话仍有效也适用本规则。
+用户显式取消事务后 MAY 返回既有账号，但仍须按该会话的当前授权状态验证，不能消费未验证 callback。
+
+进入认证事务时，客户端 MUST 停止旧会话的自动 bootstrap、refresh、同步与账号派生读取，并隔离
+已在途的旧任务：其晚到成功、拒绝、持久化写入或导航不得覆盖当前事务及之后接纳的会话。
+这只是客户端执行所有权切换，不撤销服务端 grant，不删除长期设备或恢复材料。客户端 SHOULD
+复用一个会话代次/所有权边界，不为此新增协议接口、凭据种类或持久化 ready/head 镜像。
+
+只有本次事务按 §2.1.2 取得并验证完整 Standard grant、核对 current-principal 的 exact AccountId、
+Station、holder/device 与唯一 PCR，并 durable 保存该 grant 及对应本地材料后，才可发布新的活动会话
+并由该成功分支离开认证页面、启动业务 bootstrap。注册 continuation 中提前建立账号存储上下文
+不代表完成注册；recovery readiness 仍遵守 §2.1.2，不能由旧会话或新 grant 推定。
+错误或可重试结果必须留在当前事务中显示，不得默默回到起点。临时错误保留合法 exact request，
+重试不能再次消费 authorization code，也不能改变 frozen request identity。
+
+**终态失效的本地完成边界（normative）**：一次资源请求的 401 本身不证明账号/设备被撤销。
+客户端按已登记错误分类执行允许的会话恢复；恢复明确终态拒绝，或恢复后对同一活动会话的验证仍明确
+拒绝时，MUST 停止使用该凭据。处理必须绑定原请求的会话所有权与完整 AccountId/device/grant，
+MUST NOT 清除后来接纳的会话或另一认证事务。失效必须覆盖该 grant 的内存状态、恢复来源及重复 bearer
+缓存，等待安全存储删除完成后才可宣称清理成功；不得只清空 UI token 而在重载时复活同一无效 grant。
+删除失败必须显示存储错误并保持禁止自动恢复的当前运行态，不能报告清理完成或降低存储安全等级。
+网络超时、5xx、429、材料暂不可读与协议验证失败不得被臆断为服务端撤销，也不得触发身份或密钥重建。
+资源服务器调用 issuer introspection 的 S2S 请求失败（包括 S2S 凭据被拒）、非成功 HTTP 响应或
+不完整成功响应 MUST 返回 `503 auth_unavailable`，不得转换成终端用户 `401 unauthenticated`。
+只有成功验证的 issuer outcome 明确声明该 grant 非 active，才可据此拒绝该用户会话。
+只清理本次失效会话所拥有的凭据/绑定缓存；另一活动 handoff 的 holder、exact request 和长期
+device、Recovery Key、DID/PCR/MLS、secret-storage 材料 MUST 保留。
+
 SessionGrant issue / refresh 的 exact replay 规则以 [`key-management.md` §6.2](./key-management.md) 为准。
 replay 命中 expired outcome 时返回 `session_grant_replay_expired`；命中 revoked / superseded outcome 时返回
 `session_grant_replay_terminal`；记录已超过保留期、issuer 无法证明旧 attempt 是否提交时返回
