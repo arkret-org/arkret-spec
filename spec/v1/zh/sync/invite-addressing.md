@@ -358,6 +358,13 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 2. 验证 `Destination-Service-ID == invite_address.account_id.station_id`。
 3. 验证 `invite_address.service_resolution`，要求完整证据的 `service_id` 等于 `invite_address.account_id.station_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
 4. 验证 invite_event.kind 为 ak.invite.create、内容绑定的 Event / Invite ID、Realm ID、producer 签名及 origin Station admission proof。验证必须复用现有 Event proof 合同，独立认证 Station 控制密钥及其对 producer key 的绑定；不得相信发送者自报公钥或仅使用 Source-Service-ID。保留目标、有效期及重放约束。
+   first-contact receiver 尚无 Realm visibility 时，MAY 以 admission proof 内 content-addressed
+   `signer_resolution_evidence_ref` 向该 origin Station 的 `ak.peer.seals.read.governance_dependencies.v1` 精确解析
+   **origin Station 自身**的 `AuthenticatedSignerResolutionEvidence::Service`。该例外只公开服务 DID 的历史方法证据：
+   evidence 的 `signer_id` MUST 等于提供响应的 Station service id，selector MUST 与 proof 逐字相等；Principal、
+   AccountDevice、Agent、其它 service 或任何非 signer-evidence dependency 仍必须命中普通 Realm visibility / retained-cut
+   授权。它不授予 Seal、Control Move、membership、roster 或通用 dependency read，也不能替代对返回 evidence、
+   admission transcript 与 producer key 绑定的独立验证。
    投递仅证明已认证发送者发出邀请，**不验证或宣称**其 Realm 管理权限、成员资格或邀请 durable acceptance。接收方 MUST NOT 为投递求值成员级 Realm 授权闭包、要求本地 accepted Seal 或获取 Realm peer dependencies。请求不承载邀请专用 CBS bundles；普通 CBS、Seal 签名和 signer authority 准入规则保持不变。正常加入 / 同步负责 Realm 授权及 durable acceptance，投递不得物化 Realm、membership、accepted Seal、projection 或 frontier。
    本步在 holder 查询、policy、consent、quota 与任何写入之前执行。结构错误返回 schema_violation，无效签名或 proof 绑定返回已注册的 signature_invalid；请求体仍受现有 8 MiB 上限约束。验证不了的 Seal 不得作为任何可信状态或授权依据。
 5. 验证 `invite_event.payload.invitee_account_id == invite_address.account_id`，必须比较完整 AccountId。

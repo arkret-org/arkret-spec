@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-11.2",
-  "generated_at": "2026-09-11T04:15:01+08:00",
+  "version": "2026-09-11.3",
+  "generated_at": "2026-09-11T10:57:28+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -385,7 +385,7 @@
     },
     {
       "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
-      "sha256": "sha256:080126ec49cb2ebfe48b1b71f902a1e4cd5f4b57179352620c8f5966546b01d0"
+      "sha256": "sha256:7f6ff6caceb13397bd1461b8589d171fb517ea7161f72f961303f7aa54f017f4"
     },
     {
       "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
