@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.1",
+  "version": "2026-09-11.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-11T04:15:00+08:00",
+  "generated_at": "2026-09-11T10:57:28+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -5826,6 +5826,18 @@
         },
         {
           "operation_id": "ak.self.seals.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.security_transaction.command.continue.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.security_transaction.command.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.security_transaction.resource.get.v1",
           "binding_kind": "http_json"
         },
         {
