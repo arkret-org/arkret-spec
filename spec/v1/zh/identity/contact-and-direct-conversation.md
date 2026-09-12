@@ -661,7 +661,7 @@ binding cell **MUST** 使用 `sequenced_state`、`value_shape=set`，由 Realm �
 
 **发送证据与展示引用（normative）。** `ak.direct_conversation.bound` 是 `sealed=true` 的 Control Move；
 仅存入 ingress 或出现在查询投影中不等于可授权。普通 participant Message 的唯一 critical
-`direct_conversation_binding` ref **MUST** 指向其 `seal_ref` 覆盖的一份合法 endorsement，且该 endorsement
+`direct_conversation_binding` ref **MUST** 指向该 Realm 已确认序列接纳的一份合法 endorsement，且该 endorsement
 的 semantic `binding_digest` **MUST** 等于当前无冲突 binding。服务端在列表中选择的代表 Event ref
 不是额外的 authority head：**MUST NOT** 要求 Message 逐字引用该代表，也 **MUST NOT** 因后来出现另一份
 等价 endorsement 而否定先前已覆盖的引用。上述覆盖与 authority 条件由服务器 admission 验证。
@@ -675,7 +675,7 @@ binding cell **MUST** 使用 `sequenced_state`、`value_shape=set`，由 Realm �
 
 binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 `mls_group_id` 或 consume receipt，也 **MUST NOT** 改变 membership、MLS、policy 或 Realm 坐标；若未来增加此类字段，**MUST** 拆为独立安全命令。
 
-日常写 authority 唯一来自 `ak.authority.direct_conversation_participant.v1` 与 current accepted binding、exact-two membership、双方 current directional Contact heads、唯一 group 的 exact-pair winning state 及 action-specific lifecycle gate 的交集。技术 root、`created_by`、founder 身份、本地 slot 与普通 grant **MUST NOT** 替代该 evaluator。root mask 只允许 current materialization 的精确 founding/repair effects；`found` 后 **MUST NOT** 恢复 owner/admin authority。
+日常写 authority 唯一来自 `ak.authority.direct_conversation_participant.v1` 与接收 Station 本地已验证的 accepted binding、exact-two membership、双方 directional Contact 授权区间、唯一 group 的 exact-pair winning state 及 action-specific lifecycle gate 的交集。这里的普通准入采用 §3 的已验证区间与已知撤销规则，不要求逐次刷新 source current lease 或联络 origin / 治理 Station；初次缺证仍 pending，已知撤销立即阻止新 live。技术 root、`created_by`、founder 身份、本地 slot 与普通 grant **MUST NOT** 替代该 evaluator。root mask 只允许 current materialization 的精确 founding/repair effects；`found` 后 **MUST NOT** 恢复 owner/admin authority。
 
 ## 9. Resolver、隐私与 SDK 边界
 
@@ -743,7 +743,7 @@ evidence 的显式携带与接收 Station 的独立重新验证。
 
 #### 9.1.2 Origin authority 供给（normative）
 
-Direct Conversation founding 不建立独立 principal↔service binding object。resolver 只返回可验证的 `founding_authority_evidence`；caller author 的每条 Event 已签入完整 `ActorId`，接收服务按该 ActorId 路由完成本地 pair/device admission 后追加 proof。任何缺少该 pair、proof 不匹配或服务非 Event origin 的情况返回 `temporarily_unavailable` 或 fail closed，不得现场代 principal 签名。
+Direct Conversation founding 不建立独立 principal↔service binding object。resolver 只返回可验证的 `founding_authority_evidence`；caller author 的每条 founding Event 已签入完整 `ActorId`，负责 founding 的服务按该 ActorId 路由完成本地 pair/device admission 后提供本节要求的 founding 证据。任何缺少该 pair、proof 不匹配或 founding source 与证据不符的情况返回 `temporarily_unavailable` 或 fail closed，不得现场代 principal 签名。本节仅限定安全 founding 的来源证明；不得将其扩展成普通 Message 的 origin 联署、收据或在线准入要求。既有 binding 上的普通发送按 §3 与 §8 由接收 Station 独立验证。
 
 
 **send blocker 的权威边界（normative）。** wire 上的封闭枚举 `direct_conversation_send_blocker`（[`direct-conversation-operations.schema.json`](../../artifacts/schemas/direct-conversation-operations.schema.json)）**MUST** 只承载 server-verifiable blocker：服务端 **MUST** 能从它有权读取的 accepted authoritative state 证明该值，**MUST NOT** 猜测、解密或把客户端自报当作 authority。因此 `personal_blocked` 与 `history_key_unavailable` **MUST NOT** 出现在该枚举中——`ak.account.blocklist` 是 holder-private account data，经不可信服务同步时只以对 holder 设备加密的形式存在；某条历史 MLS secret 是否已安装是端侧私有密钥状态。任何让服务端权威判定这两者的做法都要么拆掉那条加密不变量，要么把未认证声明当成事实。服务端返回这两个值 **MUST** 直接构成 `schema_violation`，客户端 **MUST** 拒绝，**MUST NOT** 以"容忍未知 blocker 字符串"的方式接受。
