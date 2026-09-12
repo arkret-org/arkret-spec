@@ -201,7 +201,7 @@ incarnation 或 RHRK tuple、registry digests 与 retention。`traversal_intent_
 
 v1 member history recovery 的 `trusted_history_base_basis` 是自己 Station 独立验证并耐久保存的从合法 Realm 起点认证的安全依据（包括 quorum 结论路径）；普通客户端只核对准备结果的账号、scope、请求与待签字段，不独立建立 bootstrap pin。服务器必须认证 pre-base provenance/joined-state；later basis 可按 cbs-profiles §9 的配置与 ancestry/状态结论认证，不能使用自报 checkpoint。
 非投票 admission/联邦/恢复消费者按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 认证必要 epoch/transition、suite、Realm/Circle incarnation、join floor、T0 policy ceiling 与 current ratchet，并用 ancestry 结论验证冻结 bases 关系；不承担完整 cut 重放。以下完整 cut 遍历、root/coverage 重算只适用于实际投票/执行和选择独立重放的 auditor，不适用于普通客户端。
-从每个 target leaf 反向沿 signed `predecessor_refs[]` 遍历，只能在 exact base leaf 终止；每个区间 Seal 的每个 direct predecessor 必须仍在
+从每个 target leaf 反向沿 signed `predecessor_ref` 遍历，只能在 exact base leaf 终止；每个区间 Seal 的唯一 direct predecessor 必须仍在
 区间或恰为 base leaf，每个 base leaf 至少被一条 target 路径消费，且 target 必须支配 trusted current 的每个 leaf。隐藏 predecessor、无法从
 base 到达的并发 branch、missing object 或 fork-quarantine 均 fail closed。
 

@@ -23,7 +23,7 @@
     "members": [
       "realm_id",
       "signer_slot",
-      "predecessor_basis"
+      "predecessor_ref"
     ],
     "forbidden_members": [
       "session_grant_id",
@@ -52,9 +52,7 @@
       },
       "instance": {
         "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
-        "predecessor_refs": [
-          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
-        ],
+        "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "event_digests": [
           "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         ],
@@ -76,9 +74,7 @@
       "instance": {
         "seal_body": {
           "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
-          "predecessor_refs": [
-            "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
-          ],
+          "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "delta": [
             "sha256:2222222222222222222222222222222222222222222222222222222222222222"
           ],
@@ -200,10 +196,8 @@
       "mutations": [
         {
           "op": "replace",
-          "path": "/predecessor_refs",
-          "value": [
-            "ak:seal:sha256:8888888888888888888888888888888888888888888888888888888888888888"
-          ]
+          "path": "/predecessor_ref",
+          "value": "ak:seal:sha256:8888888888888888888888888888888888888888888888888888888888888888"
         },
         {
           "op": "replace",

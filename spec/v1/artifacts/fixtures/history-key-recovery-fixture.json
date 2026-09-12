@@ -451,9 +451,7 @@
       "seal_id": "ak:seal:sha256:5a82e691c5c5b480d3ac762a78cfe9c2f24071a7471dcb025caf3a300b060bbe",
       "body": {
         "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e",
-        "predecessor_refs": [
-          "ak:seal:sha256:29fcaaa6c472cdc227da6dfefae6b7e8329656ee5a576553f5687394f3e231a7"
-        ],
+        "predecessor_ref": "ak:seal:sha256:29fcaaa6c472cdc227da6dfefae6b7e8329656ee5a576553f5687394f3e231a7",
         "delta": [
           "sha256:52e4734165204038c513d4aa9fd183f42c303dcfa5e549774d7122487b252b0b"
         ],
@@ -993,50 +991,42 @@
       "seals": [
         {
           "seal_ref": "ak:seal:sha256:213637127a85071dc883b8c4e02b128a09e134a49551fff1e5d51d4e3d86bba8",
-          "predecessor_refs": [],
+          "predecessor_ref": null,
           "delta_event_refs": [
             "ak:event:Acj6U-RncK_874Fqg5G92m-RTUDoHDuFvgvGKctFCZBe"
           ]
         },
         {
           "seal_ref": "ak:seal:sha256:df4e503e1b03a35a83492fde99f377baf8f9d5d861e1afb2f660dff00cca103e",
-          "predecessor_refs": [],
+          "predecessor_ref": null,
           "delta_event_refs": [
             "ak:event:AZc5yUQiAVSI3hquJ6vb24B9nBqhiONzxJK6xPKc-IQ9"
           ]
         },
         {
           "seal_ref": "ak:seal:sha256:6796b8b6f488a87acd1026c367c5eaa48103c0052234bfb036e6c51dd5e05663",
-          "predecessor_refs": [
-            "ak:seal:sha256:213637127a85071dc883b8c4e02b128a09e134a49551fff1e5d51d4e3d86bba8"
-          ],
+          "predecessor_ref": "ak:seal:sha256:213637127a85071dc883b8c4e02b128a09e134a49551fff1e5d51d4e3d86bba8",
           "delta_event_refs": [
             "ak:event:AbIrZN4jft7Fjs2JH-3IcwjI_o-5MlSHaTIN1Dq_Y_zi"
           ]
         },
         {
           "seal_ref": "ak:seal:sha256:c97b14e04379c0f4363f9462b573642c9ef8cfa5c6fd43bab25a748cd218ffbb",
-          "predecessor_refs": [
-            "ak:seal:sha256:df4e503e1b03a35a83492fde99f377baf8f9d5d861e1afb2f660dff00cca103e"
-          ],
+          "predecessor_ref": "ak:seal:sha256:df4e503e1b03a35a83492fde99f377baf8f9d5d861e1afb2f660dff00cca103e",
           "delta_event_refs": [
             "ak:event:AaDhdv-ZXFF_BFoRFd0wDaCk_iEjsbNYRgnubpgUwTGC"
           ]
         },
         {
           "seal_ref": "ak:seal:sha256:272847e37a778e5a559a9d39a039350d544051b28227f016a5f4248ffec154a6",
-          "predecessor_refs": [
-            "ak:seal:sha256:6796b8b6f488a87acd1026c367c5eaa48103c0052234bfb036e6c51dd5e05663"
-          ],
+          "predecessor_ref": "ak:seal:sha256:6796b8b6f488a87acd1026c367c5eaa48103c0052234bfb036e6c51dd5e05663",
           "delta_event_refs": [
             "ak:event:Aa5iC1k8qBhLViQvgYBaDDu8kW0AZcwnQyf3uwwBrOPh"
           ]
         },
         {
           "seal_ref": "ak:seal:sha256:a299c49172875d5dc859af690c8de8a9355ece491c8327088ebc178f0a4f76f1",
-          "predecessor_refs": [
-            "ak:seal:sha256:c97b14e04379c0f4363f9462b573642c9ef8cfa5c6fd43bab25a748cd218ffbb"
-          ],
+          "predecessor_ref": "ak:seal:sha256:c97b14e04379c0f4363f9462b573642c9ef8cfa5c6fd43bab25a748cd218ffbb",
           "delta_event_refs": [
             "ak:event:ASmikVTqZVHXrc7W_v34KTlnAXhVdm_rVRzstrRVXbL6"
           ]
@@ -1453,9 +1443,9 @@
       "registry_snapshot_count": 1,
       "signer_evidence_distinct_count": 2,
       "streaming_storage": "temporary_sqlite_work_queue_and_visited",
-      "max_live_descriptor_bytes": 282,
-      "descriptor_canonical_bytes": 7416182,
-      "descriptor_stream_aggregate_digest": "sha256:c702bba991ec05314014566a763db2c99aeecba920b02fb58cbd0347277aed45",
+      "max_live_descriptor_bytes": 279,
+      "descriptor_canonical_bytes": 7337289,
+      "descriptor_stream_aggregate_digest": "sha256:a25c6b001026ed875edcf82704c23d7e5d7db5ea8f4cd12929a6544a440ce77d",
       "journal_rows_written": 52598,
       "outbox_write_count": 0
     },
@@ -1468,9 +1458,9 @@
       "registry_snapshot_count": 1,
       "signer_evidence_distinct_count": 2,
       "streaming_storage": "temporary_sqlite_work_queue_and_visited",
-      "max_live_descriptor_bytes": 282,
-      "descriptor_canonical_bytes": 18481298,
-      "descriptor_stream_aggregate_digest": "sha256:1d1377c13c8b58b688f887be4d7df282b12aa0597424360d57b74fd06e78da19",
+      "max_live_descriptor_bytes": 279,
+      "descriptor_canonical_bytes": 18284691,
+      "descriptor_stream_aggregate_digest": "sha256:b92623410b82d077542041da70d448106f37697ff65aca4333ab02f63a49752a",
       "journal_rows_written": 131074,
       "outbox_write_count": 0
     }

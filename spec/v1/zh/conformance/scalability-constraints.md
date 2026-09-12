@@ -348,7 +348,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
 | 单 principal active device 数 | 100 | 超过时 Station device/key surface MAY require admin approval or device cleanup。 |
-| 单个 Seal 的 `predecessor_refs[]` | 128 | 超过时接收方 MUST 以 `payload_too_large` 拒绝，不得截断或只验证前缀。开放 notary set 必须先合并 DAG frontier，再形成后继 Seal。 |
+| 单个 Seal 的 `predecessor_ref` | 1 | genesis 必须为 null；其它 Seal 必须恰有一个同 Realm 已确认前驱。安全序列没有可截断、合并或挑选赢家的 DAG frontier。 |
 | 单个 compaction Seal 的 `covered_event_digests[]` | 1,048,576 | 超过时接收方 MUST 以 `payload_too_large` 拒绝，不得接受不完整覆盖；producer 必须按既有 Seal predecessor/coverage 规则重规划为多个有界 successor，不得生成无界单对象或发明历史完整性 sidecar。 |
 | MLS Governance Proof exact response canonical bytes | 1 MiB（1,048,576 bytes） | 唯一近端 `group_security_frontier` profile 只携 small closed sparse witness 与 content-addressed Event/Seal descriptors；完整对象经 resolve 取得。每个 query 显式绑定完整 canonical `proof_base_basis`/`proof_target_basis` Seal 反链、`frontier_purpose` 及其 closed 字段和 `byte_limit`。`base == target` 合法；并发/不可达返回 `mls_governance_anchor_unreachable`，必需材料缺失返回 `frontier_unavailable`。完整响应超界返回 `mls_governance_proof_bounds_exceeded`；服务不分页、不截断 witness、不返回 cursor，调用方只能提供更接近且已独立验证的 base 或 fail closed。 |
 | History response manifest / source chunk record | 256 KiB / 2 MiB | manifest descriptor 是 `chunk_response_id,chunk_index,covered_epoch_range` 的唯一真源，其 range 必须被 receipt-bound direct traversal 的完整 replay 与 current history-access/join-floor admission 逐字授权；不存在独立 manifest-level evidence selector、selector digest 或 range key。sealed source chunk 只含 manifest/admission digest、index 与 HPKE bytes，不重复 range。二者按最终 canonical source record bytes 分别计限。 |

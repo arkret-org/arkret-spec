@@ -18,7 +18,7 @@ v1 的安全域标识就是 RealmId。一个 Realm 的权限、成员、硬唯�
 
 ## 2. 提案、执行和确认
 
-Seal 的 `realm_id/configuration_ref/notary_seq/predecessor_refs` 唯一绑定安全位置。`view` 只在 `notary_signature` certificate 内，不能改变 Seal identity。genesis 高度 0、无 predecessor；其它高度恰为已确认 predecessor 加一。predecessor 必须是同 Realm 的唯一确认 Seal。Seal 的内容地址输入是去除 `id` 与 `notary_signature` 后的完整 canonical body；更改 command 顺序、结果、前态、配置或任何关闭证据都会改变 Seal digest。commit JWS 签 `JCS({context:"ak.seal.commit.v1",seal_digest,configuration_ref,notary_seq,view})`，其中 seal_digest 是 canonical body 摘要。不同 view 对同一 body 的证书不产生两个 Seal 身份。
+Seal 的 `realm_id/configuration_ref/notary_seq/predecessor_ref` 唯一绑定安全位置。`view` 只在 `notary_signature` certificate 内，不能改变 Seal identity。genesis 高度 0 且 `predecessor_ref=null`；其它高度必须携同 Realm 唯一已确认 predecessor，且高度恰为 predecessor 加一。Seal 的内容地址输入是去除 `id` 与 `notary_signature` 后的完整 canonical body；更改 command 顺序、结果、前态、配置或任何关闭证据都会改变 Seal digest。commit JWS 签 `JCS({context:"ak.seal.commit.v1",seal_digest,configuration_ref,notary_seq,view})`，其中 seal_digest 是 canonical body 摘要。不同 view 对同一 body 的证书不产生两个 Seal 身份。
 
 `command_results` 给出原子 command unit 的实际执行顺序。每项 `unit_event_digests` 是已登记 unit 的确切成员顺序，`event_digest` 等于首成员；单命令为单元素数组。bootstrap/cascade 只能使用各自已登记的 unit 验证器，任意批次不能自行组成 unit。整个确认历史中同一 Event 只进入一个 unit。实际投票/执行副本与选择独立重放的审计者必须取得并验证所有命令的原始 Event、依赖与结果；非投票消费者按 §9 认证所需结论，不重算已经确认的历史执行。`result_digest` 按 seal schema 的封闭投影从实际注册写入后的完整状态与 reason_code 重算，禁止哈希任意 HTTP response。失败 effects 为空；成功 effects 按 CellRef 排序，每个触及 Cell 只保留执行完该 unit 全部有序 write 后的一个完整 state，包括 bootstrap D 初始值。命令在其顺序位置重新执行授权、确切前置 revision、领域约束和全部写入。`delta` 恰为本 Seal committed units 内所有 security 成员摘要的 canonical sorted set；bootstrap D 成员共享原子 outcome 但不进入该集合；普通数据与失败命令不在其中。
 

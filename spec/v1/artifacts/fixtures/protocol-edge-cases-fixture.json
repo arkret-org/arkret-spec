@@ -231,15 +231,15 @@
           "rotate_at_limit": "success"
         },
         {
-          "field": "seal.predecessor_refs",
-          "limit": 128,
-          "test": [
-            127,
-            128,
-            129
+          "field": "seal.predecessor_ref",
+          "genesis_value": null,
+          "successor_cardinality": 1,
+          "invalid": [
+            "missing",
+            "null_on_successor",
+            "non_null_at_genesis"
           ],
-          "overflow": "payload_too_large",
-          "must_not_truncate": true
+          "failure": "state_mismatch"
         },
         {
           "field": "compaction_seal.covered_event_digests",

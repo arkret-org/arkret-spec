@@ -120,7 +120,7 @@ def main() -> None:
     genesis_state_root = blake3_digest(b"\x00" + genesis_state_leaf.encode())
     genesis_body = {
         "realm_id": create_realm_id,
-        "predecessor_refs": [],
+        "predecessor_ref": None,
         "delta": [create_digest],
         "control_event_set_root": genesis_control_root,
         "state_root": genesis_state_root,
@@ -193,7 +193,7 @@ def main() -> None:
     control_root = blake3_digest(b"\x01" + b"".join(transition_control_leaf_digests))
     transition_body = {
         "realm_id": realm_id,
-        "predecessor_refs": [base_seal_id],
+        "predecessor_ref": base_seal_id,
         "delta": [transition_digest],
         "control_event_set_root": control_root,
         "state_root": next_root,

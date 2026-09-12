@@ -295,12 +295,12 @@ def traversal_case() -> dict[str, Any]:
         "trusted_current_basis": basis(middle_a, middle_b),
         "target_basis": basis(target_a, target_b),
         "seals": [
-            {"seal_ref": base_a, "predecessor_refs": [], "delta_event_refs": [event_id("base-a-create")]},
-            {"seal_ref": base_b, "predecessor_refs": [], "delta_event_refs": [event_id("base-b-create")]},
-            {"seal_ref": middle_a, "predecessor_refs": [base_a], "delta_event_refs": [event_id("epoch-0")]},
-            {"seal_ref": middle_b, "predecessor_refs": [base_b], "delta_event_refs": [event_id("member-join")]},
-            {"seal_ref": target_a, "predecessor_refs": [middle_a], "delta_event_refs": [event_id("epoch-1")]},
-            {"seal_ref": target_b, "predecessor_refs": [middle_b], "delta_event_refs": [event_id("policy-ratchet")]},
+            {"seal_ref": base_a, "predecessor_ref": None, "delta_event_refs": [event_id("base-a-create")]},
+            {"seal_ref": base_b, "predecessor_ref": None, "delta_event_refs": [event_id("base-b-create")]},
+            {"seal_ref": middle_a, "predecessor_ref": base_a, "delta_event_refs": [event_id("epoch-0")]},
+            {"seal_ref": middle_b, "predecessor_ref": base_b, "delta_event_refs": [event_id("member-join")]},
+            {"seal_ref": target_a, "predecessor_ref": middle_a, "delta_event_refs": [event_id("epoch-1")]},
+            {"seal_ref": target_b, "predecessor_ref": middle_b, "delta_event_refs": [event_id("policy-ratchet")]},
         ],
     }
 
@@ -332,10 +332,11 @@ def traversal_errors(case: dict[str, Any]) -> list[str]:
         if ref in base:
             consumed_base.add(ref)
             continue
-        predecessors = row.get("predecessor_refs", [])
-        if not predecessors:
+        predecessor = row.get("predecessor_ref")
+        if predecessor is None:
             errors.append("interval_stops_before_base")
-        queue.extend(predecessors)
+        else:
+            queue.append(predecessor)
     if consumed_base != base:
         errors.append("base_leaf_not_consumed")
     if not current.issubset(visited):
@@ -368,7 +369,7 @@ def traversal_negative_cases(case: dict[str, Any]) -> list[dict[str, Any]]:
     run(
         "branch_stops_before_base",
         "interval_stops_before_base",
-        lambda value: value["seals"][-1].__setitem__("predecessor_refs", []),
+        lambda value: value["seals"][-1].__setitem__("predecessor_ref", None),
     )
     run(
         "base_leaf_not_consumed",
@@ -382,7 +383,7 @@ def traversal_negative_cases(case: dict[str, Any]) -> list[dict[str, Any]]:
         "surplus_descriptor",
         "surplus_descriptor",
         lambda value: value["seals"].append(
-            {"seal_ref": seal_ref("surplus"), "predecessor_refs": [], "delta_event_refs": []}
+            {"seal_ref": seal_ref("surplus"), "predecessor_ref": None, "delta_event_refs": []}
         ),
     )
     return results
@@ -669,7 +670,7 @@ def build_scale_recipe(epoch_count: int, journal: dict[str, int] | None = None) 
             db.execute("INSERT INTO visited(epoch) VALUES(?)", (epoch,))
             descriptor = {
                 "seal_ref": seal_ref(epoch),
-                "predecessor_refs": [] if epoch == 0 else [seal_ref(epoch - 1)],
+                "predecessor_ref": None if epoch == 0 else seal_ref(epoch - 1),
                 "delta_control_event_refs": [] if epoch == 0 else [event_id(f"epoch-{epoch - 1}")],
             }
             raw = jcs(descriptor)
@@ -933,7 +934,7 @@ def build_rhrk_registration_rotation_kat(
         "seal_id": accepted_key_evidence_seal_ref,
         "body": {
             "realm_id": REALM,
-            "predecessor_refs": trusted_basis["leaves"],
+            "predecessor_ref": trusted_basis["leaves"][0],
             "delta": [register_event_digest],
             "covered_event_digests": [register_event_digest],
             "control_event_set_root": sha256(jcs([register_event_digest])),

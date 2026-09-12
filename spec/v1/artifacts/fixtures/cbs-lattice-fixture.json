@@ -279,13 +279,13 @@
       "description": "A Seal delta contains newly sealed control-plane event digests only. Including a DataEvent digest in delta is a seal validation failure.",
       "seal": {
         "id": "ak:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "predecessor_refs": [],
         "delta": [
           "sha256:1111111111111111111111111111111111111111111111111111111111111111"
         ],
         "delta_member_plane": {
           "sha256:1111111111111111111111111111111111111111111111111111111111111111": "data"
-        }
+        },
+        "predecessor_ref": null
       },
       "expected": {
         "seal_result": "reject",
@@ -323,9 +323,7 @@
       "description": "Byte-level body identity and commit certificate KAT. Symbolic predecessor roots are not an execution-validity proof.",
       "seal_body": {
         "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
-        "predecessor_refs": [
-          "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        ],
+        "predecessor_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "delta": [],
         "control_event_set_root": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
         "state_root": "sha256:efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
@@ -337,8 +335,8 @@
         "command_results": []
       },
       "expected": {
-        "id": "ak:seal:sha256:6c35488b87c40e6f8904e3c1d5e8ffdcbe50cab1bdb55a8be850d3844f1e917c",
-        "notary_signature_payload_digest": "sha256:7bf6f8361bdb1a2c844f75ad97cdba8eecfd9ddec427f67205bb17572d5aec71",
+        "id": "ak:seal:sha256:ccaab1f1ea5150a9d8114e3b55ed0a482b9eaaf996016e77eaec25073d64de18",
+        "notary_signature_payload_digest": "sha256:6439a91a21b367b4f557d3b413898428ef34e79fff4dc3e0d5fb16b88270cf26",
         "valid_result": "accept"
       },
       "attacks": [
@@ -383,7 +381,7 @@
       },
       "commit_transcript": {
         "context": "ak.seal.commit.v1",
-        "seal_digest": "sha256:6c35488b87c40e6f8904e3c1d5e8ffdcbe50cab1bdb55a8be850d3844f1e917c",
+        "seal_digest": "sha256:ccaab1f1ea5150a9d8114e3b55ed0a482b9eaaf996016e77eaec25073d64de18",
         "configuration_ref": "ak:event:AYdKcd4Mb1IzAPoctcZYEVvHLuvqQFdhPu0jBrZv-M0Q",
         "notary_seq": 7,
         "view": 0
@@ -394,8 +392,8 @@
         "signatures": [
           {
             "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
-            "payload_digest": "sha256:7bf6f8361bdb1a2c844f75ad97cdba8eecfd9ddec427f67205bb17572d5aec71",
-            "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ..UJtISK3jMDdbdF6B_p0cnhO2V7Dq0UGBKyKAQZeIkr5m0Z0pRdJyxtGuWK02Ta8w9-5LIlffiJQkcbhOU4kTDw"
+            "payload_digest": "sha256:6439a91a21b367b4f557d3b413898428ef34e79fff4dc3e0d5fb16b88270cf26",
+            "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ..Kd6eaAYPIEwPqvwTc8eWlpIGobuExoH9QWZ2Bk9bpvtoSbL5jsbnr4IkcBpUDcVd_O8uhlopkFtexFDzrqhcDw"
           }
         ]
       }

@@ -9624,13 +9624,13 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "predecessor_refs",
+          "predecessor_ref",
           "event_digests",
           "hlc"
         ],
         "properties": [
           "realm_id",
-          "predecessor_refs",
+          "predecessor_ref",
           "event_digests",
           "hlc"
         ],
@@ -9659,7 +9659,7 @@
         "required": [
           "id",
           "realm_id",
-          "predecessor_refs",
+          "predecessor_ref",
           "delta",
           "control_event_set_root",
           "state_root",
@@ -9674,7 +9674,7 @@
         "properties": [
           "id",
           "realm_id",
-          "predecessor_refs",
+          "predecessor_ref",
           "delta",
           "control_event_set_root",
           "state_root",
@@ -10023,12 +10023,12 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "predecessor_refs",
+          "predecessor_ref",
           "limit"
         ],
         "properties": [
           "realm_id",
-          "predecessor_refs",
+          "predecessor_ref",
           "limit"
         ],
         "closed": true
@@ -10038,13 +10038,13 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "predecessor_refs",
+          "predecessor_ref",
           "event_digests",
           "has_more"
         ],
         "properties": [
           "realm_id",
-          "predecessor_refs",
+          "predecessor_ref",
           "event_digests",
           "has_more"
         ],

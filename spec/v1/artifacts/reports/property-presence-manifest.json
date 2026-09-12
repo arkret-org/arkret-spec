@@ -18,16 +18,16 @@
     "total_properties": 11670,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 3068,
+      "optional": 3069,
       "optional_defaulted": 63,
-      "required": 7456,
-      "required_nullable": 342,
-      "tristate": 741
+      "required": 7454,
+      "required_nullable": 344,
+      "tristate": 740
     },
-    "tristate_occurrences": 741,
-    "tristate_audit_targets": 164,
+    "tristate_occurrences": 740,
+    "tristate_audit_targets": 163,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 155,
+      "absent_null_equivalent": 154,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -769,7 +769,6 @@
     "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/control_event_set_root",
     "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/delta",
     "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/notary_seq",
-    "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/predecessor_refs",
     "service-operation-dtos.schema.json/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/state_root",
     "service-operation-dtos.schema.json/$defs/SealResolveOutcome/allOf/0/then/properties/missing_conclusion_queries",
     "service-operation-dtos.schema.json/$defs/ServiceRegistrationEnsureRequestBody/properties/previous_receipt",
@@ -2912,16 +2911,6 @@
       "instance_path": "/seal_body/notary_seq",
       "occurrences": [
         "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/notary_seq"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/SealPrepareOutcome",
-      "instance_path": "/seal_body/predecessor_refs",
-      "occurrences": [
-        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/predecessor_refs"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -14630,7 +14619,7 @@
         "/$defs/unsigned_seal/properties/existence_anchors": "optional",
         "/$defs/unsigned_seal/properties/hlc": "required",
         "/$defs/unsigned_seal/properties/notary_seq": "required",
-        "/$defs/unsigned_seal/properties/predecessor_refs": "required",
+        "/$defs/unsigned_seal/properties/predecessor_ref": "required_nullable",
         "/$defs/unsigned_seal/properties/previous_digest_algorithm": "optional",
         "/$defs/unsigned_seal/properties/previous_state_root": "optional",
         "/$defs/unsigned_seal/properties/realm_id": "required",
@@ -14664,7 +14653,7 @@
         "/properties/id": "required",
         "/properties/notary_seq": "required",
         "/properties/notary_signature": "required",
-        "/properties/predecessor_refs": "required",
+        "/properties/predecessor_ref": "required_nullable",
         "/properties/previous_digest_algorithm": "optional",
         "/properties/previous_state_root": "optional",
         "/properties/realm_id": "required",
@@ -15619,10 +15608,10 @@
         "/$defs/PairwiseEndpointSessionGrantRequest/properties/request_id": "required",
         "/$defs/PcrPendingControlOutcome/properties/event_digests": "required",
         "/$defs/PcrPendingControlOutcome/properties/has_more": "required",
-        "/$defs/PcrPendingControlOutcome/properties/predecessor_refs": "required",
+        "/$defs/PcrPendingControlOutcome/properties/predecessor_ref": "required",
         "/$defs/PcrPendingControlOutcome/properties/realm_id": "required",
         "/$defs/PcrPendingControlRequestBody/properties/limit": "required",
-        "/$defs/PcrPendingControlRequestBody/properties/predecessor_refs": "required",
+        "/$defs/PcrPendingControlRequestBody/properties/predecessor_ref": "required",
         "/$defs/PcrPendingControlRequestBody/properties/realm_id": "required",
         "/$defs/PeerEventsFrontierRequestBody/properties/actor_id": "optional",
         "/$defs/PeerEventsFrontierRequestBody/properties/realm_id": "required",
@@ -15771,12 +15760,12 @@
         "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/control_event_set_root": "tristate",
         "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/delta": "tristate",
         "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/notary_seq": "tristate",
-        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/predecessor_refs": "tristate",
+        "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/predecessor_ref": "optional",
         "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/state_root": "tristate",
         "/$defs/SealPrepareOutcome/properties/view": "required",
         "/$defs/SealPrepareRequestBody/properties/event_digests": "required",
         "/$defs/SealPrepareRequestBody/properties/hlc": "required",
-        "/$defs/SealPrepareRequestBody/properties/predecessor_refs": "required",
+        "/$defs/SealPrepareRequestBody/properties/predecessor_ref": "required",
         "/$defs/SealPrepareRequestBody/properties/realm_id": "required",
         "/$defs/SealResolveOutcome/allOf/0/then/properties/missing_conclusion_queries": "tristate",
         "/$defs/SealResolveOutcome/properties/conclusion_set": "optional",

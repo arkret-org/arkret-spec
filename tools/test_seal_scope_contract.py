@@ -210,7 +210,9 @@ class SealScopeContractTest(unittest.TestCase):
         self.assertIn("view", schema["$defs"]["multi_signature"]["required"])
         unsigned = schema["$defs"]["unsigned_seal"]
         self.assertEqual(set(unsigned["properties"]), set(schema["properties"]) - {"id", "notary_signature"})
-        self.assertEqual(schema["properties"]["predecessor_refs"]["maxItems"], 1)
+        predecessor = schema["properties"]["predecessor_ref"]
+        self.assertEqual(predecessor["oneOf"][0], {"type": "null"})
+        self.assertEqual(predecessor["oneOf"][1]["$ref"], "#/$defs/seal_ref")
         self.assertNotIn("data_view_root", schema["properties"])
 
     def test_snapshot_causal_state_requires_coverage(self):

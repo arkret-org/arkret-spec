@@ -38,7 +38,7 @@
       "instance": {
         "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
-        "predecessor_refs": [],
+        "predecessor_ref": null,
         "delta": [
           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ],
@@ -88,7 +88,7 @@
       "instance": {
         "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
-        "predecessor_refs": [],
+        "predecessor_ref": null,
         "delta": [
           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ],
@@ -140,9 +140,7 @@
       "instance": {
         "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
-        "predecessor_refs": [
-          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
-        ],
+        "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
@@ -183,9 +181,7 @@
       "instance": {
         "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
-        "predecessor_refs": [
-          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
-        ],
+        "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
@@ -226,9 +222,7 @@
       "instance": {
         "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
-        "predecessor_refs": [
-          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
-        ],
+        "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
@@ -270,9 +264,7 @@
       "instance": {
         "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
-        "predecessor_refs": [
-          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
-        ],
+        "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",

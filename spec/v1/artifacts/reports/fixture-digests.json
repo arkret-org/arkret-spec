@@ -86,7 +86,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
-      "sha256": "ca87e208a8c29a6b872938ef2b9daac909237ae6417fa4cc89f5b04c76dba5aa"
+      "sha256": "1fba646791812069edb6651b1b488c02f7c986ffaee544aac637afdb53438fc6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -190,11 +190,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
-      "sha256": "51e89bef7a96543d27dbbeb5a223c93fbd254b621d076559475f7d2f18a7d5e6"
+      "sha256": "f350d3c9a6f53c91c4ee70173bae7321f43f84dcf0a120a4f87812f39117b120"
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "3b6c98f38c55a6c7c6e734295db5f1e2cb20948286968f8d32794aeaee916fcb"
+      "sha256": "55cca124ab45756872520fa4ec85805a8ec846eca9752e10434091f3a9c34496"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -306,7 +306,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "5f8d729db74c6b8e96d56133b17ffecf6629f28fad6169d95b4da0d522fd6125"
+      "sha256": "9f444327b8a94fbf688c7bdf95d2be4d361eb9c31c8ef40dba8054ae707e858b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
@@ -350,7 +350,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "551a0cd9c8ded895680dbd4e5f8ad6aa1bf4395268f6770124ac28a7de5f0e6b"
+      "sha256": "dbbf9409780777e1aeb903db0ff3a27d421664e859a73bae8e1eb118a4967bd3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -362,11 +362,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/seal-prepare-fence-fixture.json",
-      "sha256": "d886b187bbd6b51f00b3864edc0c849439a33b120ded705684f5eac879b94691"
+      "sha256": "b6b2787a8ff76131370da0bf3ab85c1331c19a672e869bd9f277faca2001caf9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/seal-submit-fixture.json",
-      "sha256": "a52089f4d34292c66d1ae0028818c30372729f3898e48f46005afced1756aa11"
+      "sha256": "7c72e16b3dc26bf531a68d94d635dd9cbbdb8da60c77557807cb8916c5e4f4c2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",

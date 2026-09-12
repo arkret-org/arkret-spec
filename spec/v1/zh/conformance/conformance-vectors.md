@@ -1109,7 +1109,7 @@ ak.vector.state_root.incremental.v1
 输入：
 
 - 一个已被接受的 Seal `A0`，其控制面覆盖集写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 缓存 `cell → leaf_digest` 表。
-- 一个新的 Seal `A1`（`predecessor_refs=[A0]`），控制面 `delta[]` 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
+- 一个新的 Seal `A1`（`predecessor_ref=A0`），控制面 `delta[]` 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
 - 一个 corner-case Seal `A2`：`delta[]` 是空 set（无新 control write）。
 - 一个 schema-evolution case `A3`：`delta[]` 包含一个新 cell（之前从未有过 write），并通过已登记的安全领域终态写终止一个旧 cell。
 
@@ -6401,7 +6401,7 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
 2. 小型 KAT 必须构造 schema-valid `HistoryGovernanceTraversalIntent/Retention`、完整 每 Realm 单 head 的 base/current/target `SealBasis`、
    `AuthenticatedSignerResolutionEvidence`、`MinimalMetadataMlsLeafSignerEvidence`、`AvailabilityReceipt` 与三分支
    `GovernanceDependencyResolveOutcome`，并重算各自 canonical digest；replay 解释器只按 Realm profile id 选择。
-3. Direct traversal runner 使用 disk-backed work queue 从每个 target leaf 沿 signed `predecessor_refs` 反向遍历到 exact base cut；每个区间
+3. Direct traversal runner 使用 disk-backed work queue 从每个 target leaf 沿 signed `predecessor_ref` 反向遍历到 exact base cut；每个区间
    predecessor 必须在 cut 内或恰为 base leaf，每个 base leaf 必须被消费，target 必须支配独立 current anti-rollback basis。随后按拓扑运行标准
    `apply_seal`，按 digest 解析每个 `Seal.delta` Control Move、AvailabilityReceipt、signer-resolution evidence、registry snapshot/artifact 与其它
    registered dependency，重算 roots、确认命令结果、revision、membership incarnation、ciphersuite/content scheme 及 current monotone history access。

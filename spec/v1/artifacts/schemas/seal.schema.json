@@ -7,7 +7,7 @@
   "required": [
     "id",
     "realm_id",
-    "predecessor_refs",
+    "predecessor_ref",
     "delta",
     "control_event_set_root",
     "state_root",
@@ -28,14 +28,16 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "The safety domain identifier. v1 has exactly one confirmed safety sequence per Realm. Circle, MLS and other safety resources within it share this sequence; ordinary data does not participate."
     },
-    "predecessor_refs": {
-      "type": "array",
-      "maxItems": 1,
-      "items": {
-        "$ref": "#/$defs/seal_ref"
-      },
-      "uniqueItems": true,
-      "description": "Empty only at the registered atomic genesis, otherwise exactly one confirmed predecessor in the same Realm. A Seal never joins competing safety branches."
+    "predecessor_ref": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/seal_ref"
+        }
+      ],
+      "description": "Null only at the registered atomic genesis; every successor names exactly one confirmed predecessor in the same Realm. A Seal never joins competing safety branches."
     },
     "delta": {
       "type": "array",
@@ -237,7 +239,7 @@
       "type": "object",
       "required": [
         "realm_id",
-        "predecessor_refs",
+        "predecessor_ref",
         "delta",
         "control_event_set_root",
         "state_root",
@@ -253,14 +255,16 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
           "description": "The safety domain identifier. v1 has exactly one confirmed safety sequence per Realm. Circle, MLS and other safety resources within it share this sequence; ordinary data does not participate."
         },
-        "predecessor_refs": {
-          "type": "array",
-          "maxItems": 1,
-          "items": {
-            "$ref": "#/$defs/seal_ref"
-          },
-          "uniqueItems": true,
-          "description": "Empty only at the registered atomic genesis, otherwise exactly one confirmed predecessor in the same Realm. A Seal never joins competing safety branches."
+        "predecessor_ref": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/seal_ref"
+            }
+          ],
+          "description": "Null only at the registered atomic genesis; every successor names exactly one confirmed predecessor in the same Realm. A Seal never joins competing safety branches."
         },
         "delta": {
           "type": "array",
