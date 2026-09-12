@@ -416,7 +416,7 @@ Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile �
 - 决定授权、capability、admission、finality、`state_root` 成员资格、生命周期状态或不可逆副作用；
 - 作为 Relation active edge、`ordered_log` slot 或 account-status authorization projection 的消歧键。
 
-需要单值语义的 domain MUST 使用注册的 CAS/FSM、显式 conflict/review 状态，或对**完整候选集**定义单调且 fail-closed 的领域 projection；不得把本节 comparator 包装成领域规则重新引入 winner。
+需要单值语义的 domain MUST 使用已登记的 CAS predicate、领域转移 validator、显式 conflict/review 状态，或对**完整候选集**定义单调且 fail-closed 的领域 projection；不得把本节 comparator 包装成领域规则重新引入 winner。
 
 现行允许引用本节的语义面只有 [`models/strand-and-message.md` §9.5.1](../models/strand-and-message.md) 的默认 revision 展示，以及 [`authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md) 对完整 `ordered_log` entry set 的 canonical 序列化。Relation 与 account status 的 canonical/authorization projection不得引用本节。
 
@@ -471,15 +471,15 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 - `event_digest = canonical_digest(envelope_without_event_id_proofs_unsigned)`
 - `actor_id`
 - `verification_method`
-- `signer_resolution_evidence_ref`（仅 retained direct-history / DID-root / native producer 分支；caller 首次提交态省略。其内嵌 digest 是 signer evidence digest 的唯一表示，§4.0.1）
+- `signer_resolution_evidence_ref`（除下述两个原子 native unit 的预授权槽位外均必填；存在时进入 binding，其内嵌 digest 是 signer evidence digest 的唯一表示，§4.0.1）
 - `created_at`
 - `domain` / `audience` where applicable
 
-Event proof 有三个语境，不得仅凭“是否已有 admission proof”把 caller submit 与 retained history 合并：
+普通首次提交、accepted、federation、backfill 和 shared read Event 均恰含一个 producer proof，并且必须携带 `signer_resolution_evidence_ref`。按该不可变证据解析 exact signing key、原授权实例和依赖，再独立验证签名；接收服务不向 Event 增加准入签名。
 
-2. 首次提交、accepted 与 federation Event 均恰含一个 producer proof，且必须携带 `signer_resolution_evidence_ref`。按该不可变证据解析 exact signing key、原授权实例和依赖，再独立验证签名；接收服务不向 Event 增加准入签名。
+仅有两个闭合 native unit 例外：human PCR genesis 的 `registration_anchor` root create 加 founding-device authorize，以及 PCR-policy recovery 的 reanchor 加 replacement authorize。相应 proof 必须省略 `signer_resolution_evidence_ref`，因为 signer 在该原子 unit 接纳前尚不存在可被引用的 accepted signer projection。专用 unit verifier 分别从冻结的 registration DID/root-control evidence 或 recovery session/candidate possession overlay 解析 exact key，在零写入的 staged state 中验完整 unit，随后原子接纳。带该省略形状的 Event 不能单独进入普通 submit、federation、backfill 或 shared read；历史复验必须携完整 native unit 与 accepted receipt closure。其它 admission class、其它 `ak.realm.create`、其它 `ak.device.authorize` 和所有普通 Event 使用该例外均 fail closed。
 
-`ak.schema.event.v1` 只对单个 envelope 可观察的闭合形状负责：admission 存在时机械禁止 producer pair；无 admission 时pair 允许成对出现或成对省略。`EventSubmitEnvelope` 的 producer-submission validator 与 direct-history replay validator MUST分别收紧第 1、3 项，任一调用面不得把基础 JSON Schema 的允许集误当成完整准入判据。
+`ak.schema.event.v1` 只表达 proof 字段的基础闭合形状；`shared_history_event`、普通 submission validator 与上述两个 native unit schema/validator 必须分别收紧 presence。任一调用面不得把基础 JSON Schema 的允许集误当成完整准入判据。
 
 Durable Realm Event 是可由多个合规 Realm host 保存和复验的原始事实，因此其 proof 不能绑定某一台 authoring Station 的 service DID。会经 federation、backfill、snapshot recovery 或多 host replay 的 Event，其 `proof.domain` / `proof.audience` MUST 省略，或绑定一个由相关 profile 明确定义且对所有合法 receiver 恒定的 Realm 语义值；MUST NOT 写入当前提交端、来源端或目标端 Station DID。HTTP 目的服务、trust domain、ActorId routing authority 与 replay 隔离由外层 RFC 9421 service signature 和 federation request binding 承担，不得通过改写原 Event proof 实现。接收方 MUST 对原 Event bytes 验签，MUST NOT 为本地 service DID 重签或补写 `domain` / `audience`。
 

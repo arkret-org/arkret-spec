@@ -198,7 +198,7 @@ branch `DirectConversationFoundingFederationSubmission`（discriminator
 - 恰好四条按 `contact-and-direct-conversation.md` §6.1 wire 顺序排列的 `EventFederationSubmission`
   （`ak.realm.create` → 另一 participant 的 `ak.member.state{join}` → `ak.strand.create`）；
 - 一张 source `DirectConversationFoundingAcceptanceReceipt`；
-- 验证该 unit 所需的 bounded dependencies（`cbs_proof_bundles` 与 Contact round evidence）；四条 Event 都必须携带由各自 `actor_id` 路由投影所指 service 签发的 admission proof，且认证的 `Source-Service-ID` 必须等于该 origin service。
+- 验证该 unit 所需的 bounded dependencies（`cbs_proof_bundles`、Contact round evidence 与 producer signer evidence closure）；四条 Event 各自携带唯一 producer proof，接收方从其 `signer_resolution_evidence_ref` 独立解析 exact actor key。认证的 `Source-Service-ID` 只标识本次 transport relay，不得被要求等于任一 Event 的 `actor_id.account_id.station_id` 或 receipt issuer。
 
 该 branch MUST NOT 携带 `service_binding_ref`：Realm 在接收方尚不存在，普通 Realm-scoped service binding
 快照无从计算；destination 绑定改由 §3 的 service DID / trust-domain header 与下述 receipt 校验承担。
@@ -206,8 +206,7 @@ branch `DirectConversationFoundingFederationSubmission`（discriminator
 接收方每次 MUST 按固定顺序 fresh 验证，任一步失败即整组零写入：
 
 1. §3 的 service-to-service 认证、`Source`/`Destination` service DID 与 trust-domain header 成立；
-2. transport source 当前确实承载 `receipt.founder_id`；receipt 由迁移前旧 service 签发时，还 MUST 携带该
-   origin service 的可验证 admission proof 与 cutover/fence 连续性证明；
+2. 独立验证 receipt 签名、issuer 的可携带 service signer evidence，以及 receipt 与 `founder_id`、完整 founding unit 的绑定；receipt 由服务迁移前的旧 service 签发时，还 MUST 验证该 issuer 的历史方法证据与 cutover/fence 连续性。transport source 可以是其它已认证 relay，其身份不进入 founder 或 Event 授权结果；
 3. `Destination` 承载本地 participant，且该 participant 恰为该 pair 中非 founder 的一方；
 4. body 只含该 unit、该 receipt 与 bounded dependencies，无第四条 Event、无其它 Realm 的 Event；
 5. 重算 `founding_unit_digest` 并与 `receipt.founding_unit_digest` 逐字比对，重算 `realm_id` /
@@ -453,7 +452,7 @@ Probe 响应 payload：
 - `actor_seq_upper_bounds` 是 issuer 视角每个 federation-visible actor 的 `actor_seq` 上界，只能提示已观察 actor 的已知差异。Issuer MUST 按 probing peer 的投递 / 服务范围裁剪该 map：只返回该 peer 依据 Realm policy、joined-member ActorId routing projection 或 federation role 有 need-to-know 的 actor 子集；不得把与该 peer 无投递或审计职责的其它组织 / 其它服务范围 actor DID 和 seq 上界暴露给该 peer。高隐私 Realm MAY 只返回聚合 `frontier_root`；不得为了让不同 peer 的 root 相同而泄露 scope 外 Actor 或 shadow Event。
 - **方向与跨 peer 可比性边界（normative）**：一个 disclosure 方向由 `(origin_service_id=issuer_id, destination_service_id=requester Source-Service-ID, realm_id)` 绑定，反向调用是另一个集合。`frontier_root` 的 leaf 集合又含按 requester 裁剪的 `actor_seq_upper_bounds`，而 current-v1 没有登记可由双方唯一重算的 `comparison_scope_digest` 或 frozen disclosure generation；因此不同 issuer、不同 requester、不同 policy / membership / routing basis 的 root **MUST NOT** 作跨端集合相等比较。即使数值相等，也只表示两个 issuer-local observation 恰好具有同一聚合值，不证明中间 sibling、未观察 Event 或 Realm 历史完整；数值不同也不证明丢失或恶意。实现可以保存同一 issuer→requester 方向的连续观察作诊断，但不得据此产生协议级 `set_equal`、fork evidence 或 completeness 状态。
 
-  per-actor 归约的比较单元不是单值 `(actor_id, actor_seq)→hash`，而是该位置的 **canonical sibling 集** `S(peer, realm_id, actor_id, actor_seq) = sort_unique({(event_id,event_digest,prev_frontier_digest)})`。同一位置出现多个不同 `event_id` / hash 是 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 明确允许的 sibling fork；在单桶 16、跨桶累计 64 的上限内，且未触发 counter / FSM 等领域特定不可 join 规则时，双方 MUST 通过 backfill 取 union、逐条验证并收敛到同一 sibling 集，MUST NOT 因各自先看到不同子集而 quarantine。只有归约后出现以下证据才进入 fork-detection quarantine：两个 byte-distinct canonical Event preimage 均通过完整结构、suite 与 proof 前置检查，并独立重算为同一完整 suite-tagged `event_id`（full-hash collision evidence）；某 sibling 桶 / 位置的已验证集合超过 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 上限；或领域规范把该 sibling 组合定义为不可 join 冲突。scope 不同的 `frontier_root` / `head_ids[]` 仍不得单独触发 `witness_disagreement`。
+  per-actor 归约的比较单元不是单值 `(actor_id, actor_seq)→hash`，而是该位置的 **canonical sibling 集** `S(peer, realm_id, actor_id, actor_seq) = sort_unique({(event_id,event_digest,prev_frontier_digest)})`。同一位置出现多个不同 `event_id` / hash 是 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 明确允许的 sibling fork；在单桶 16、跨桶累计 64 的上限内，双方 MUST 通过 backfill 取 union、逐条验证并收敛到同一 sibling 集，MUST NOT 因各自先看到不同子集、普通 causal_register 暴露多头 Bottom 或领域 validator 拒绝某条写入而 quarantine。只有归约后出现以下证据才进入 fork-detection quarantine：两个 byte-distinct canonical Event preimage 均通过完整结构、suite 与 proof 前置检查，并独立重算为同一完整 suite-tagged `event_id`（full-hash collision evidence）；或某 sibling 桶 / 位置的已验证集合超过 [`event-and-patch.md` §2.6](../models/event-and-patch.md) 上限。scope 不同的 `frontier_root` / `head_ids[]` 仍不得单独触发 `witness_disagreement`。
 - `witness_receipts[]` 可选，每份按其已登记对象族 proof context、issuer、scope 与 freshness 独立验证；未登记或无法验证的 receipt MUST NOT 作为 witness 证据。它们不进入 issuer transcript。缺失/剥离只降低可选 witness 证据，不使 issuer signature 无效；任何强制 witness policy 仍需满足自己的 quorum，不能因此绕过。
 - `signature` 使用 response schema 登记的 closed envelope：`verification_method, jws`。
   `jws` 按 encoding 的 Ed25519 detached JWS 签署上述九字段 bytes，不是 RFC 9421 HTTP response 签名；算法唯一来源是

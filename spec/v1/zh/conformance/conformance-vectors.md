@@ -317,10 +317,12 @@ preimage 中：
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [],
-  "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "auth_context": {
     "key_id": "device-1",
-    "key_epoch": 1
+    "key_epoch": 1,
+    "authority_refs": [
+      "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    ]
   },
   "payload": {
     "strand_id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
@@ -336,14 +338,14 @@ preimage 中：
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":{"kind":"service","service_id":"ak:did_core:webvh:z6mkfixture"},"actor_seq":1,"auth_context":{"key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":{"kind":"service","service_id":"ak:did_core:webvh:z6mkfixture"},"actor_seq":1,"auth_context":{"authority_refs":["ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"],"key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"}}
 ```
 
 期望 digest 与由它前向派生的 `event_id`：
 
 ```text
-sha256:e1c68e4c5e39b3e4b4d5cbee8af62b6657175bfcd4aebcd27b8f59291c322c8b
-ak:event:AeHGjkxeObPktNXL7or2K2ZXF1v81K680nuPWSkcMiyL
+sha256:ebaf0577d95046f160a97da53227f7b951061c31694b062eca0b3366bccdb472
+ak:event:AeuvBXfZUEbxYKl9pTIn97lRBhwxaUsGLsoLM2a8zbRy
 ```
 
 判定规则：
@@ -860,7 +862,7 @@ ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1
 输入：
 
 - DataEvent 携带签名 `scope_ref` 与 `auth_context`，不携带 `seal_basis` 或 `preconditions`；writes 由 reducer vector 重算。
-- `seal_ref` 指向的 Seal view 可验证，actor chain / signature / capability 均通过。
+- `auth_context.authority_refs` 指向的已签名授权状态可由本地证据验证，actor chain / signature / capability 均通过。
 
 期望：
 
@@ -1216,7 +1218,7 @@ runner MUST 从
 
 ### 2.11 Vector: 领域转移与执行模型
 
-`ak.vector.lattice.domain_transition_join.v1`、`ak.vector.lattice.domain_transition_heads.v1` 检查领域转移表，而不声明另一个共享状态类型。
+`ak.vector.state_model.causal_transition_validation.v1`、`ak.vector.state_model.causal_transition_heads.v1` 检查领域转移表，而不声明另一个共享状态类型。
 
 普通 lifecycle 使用 causal_register：同一 Event 重放幂等；不同身份的同值写保留两头；active→archived→active→archived 的最后一步是新写；有权后继观察多头后可修复；terminal tombstone 不可复活。每次转移对签名因果 basis 检查，合并时不按业务值接因果边。
 
@@ -1224,7 +1226,7 @@ runner MUST 从
 
 ### 2.12 Vector: 安全 revision 与 ABA
 
-`ak.vector.cbs_lattice.cas_mixed_basis.v1`：S cell 在 E1 写 A、E2 写 null、E3 再写 A 后，携 E1 基底的命令仍 stale；业务值重新相等不能通过身份守卫。D cell 的条件只对其签名因果基底检查，并发双方均可合法产生 heads，不得借该条件宣称分区下独占成功。
+`ak.vector.state_model.sequenced_revision_guard.v1`：S cell 在 E1 写 A、E2 写 null、E3 再写 A 后，携 E1 基底的命令仍 stale；业务值重新相等不能通过身份守卫。D cell 的条件只对其签名因果基底检查，并发双方均可合法产生 heads，不得借该条件宣称分区下独占成功。
 
 ### 2.13 Vector: `ordered_log` sparse actor sequence
 
@@ -5602,7 +5604,7 @@ Steps:
 
 1. `default_join_rule=invite` 的 Realm 上走完整 create 到 accept 链路。
 2. 分别执行 cancel（invitee 拒绝）、revoke、以及以 `reason_code` 表达 expired 的 revoke。
-3. 对照 `ak.fsm.membership.v1` 与 event kind registry 检查每类 Move 的精确 cell write family。
+3. 对照 `ak.domain_transition.membership.v1` 与 event kind registry 检查每类 Move 的精确 cell write family。
 
 Expected:
 

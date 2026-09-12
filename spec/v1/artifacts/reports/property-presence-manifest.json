@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11606,
+    "total_properties": 11609,
     "total_schema_documents": 173,
     "by_presence_class": {
       "optional": 3059,
       "optional_defaulted": 63,
       "required": 7411,
-      "required_nullable": 336,
-      "tristate": 737
+      "required_nullable": 337,
+      "tristate": 739
     },
-    "tristate_occurrences": 737,
-    "tristate_audit_targets": 161,
+    "tristate_occurrences": 739,
+    "tristate_audit_targets": 162,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 152,
+      "absent_null_equivalent": 153,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -684,6 +684,8 @@
     "object-addressing.schema.json/$defs/signed_address_link_token_claims/allOf/1/properties/target_descriptor",
     "patch.schema.json/additionalProperties/oneOf/1/properties/value",
     "principal-locator.schema.json/$defs/invite_locator_rotate_request_body/properties/display_hint",
+    "principal-operations.schema.json/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/proofs",
+    "principal-operations.schema.json/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/proofs",
     "query.schema.json/$defs/field_filter/properties/value",
     "query.schema.json/$defs/query_request_body/properties/cursor",
     "query.schema.json/$defs/query_request_body/properties/relation",
@@ -2211,6 +2213,17 @@
       "instance_path": "/display_hint",
       "occurrences": [
         "/$defs/invite_locator_rotate_request_body/properties/display_hint"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "principal-operations.schema.json",
+      "shape": "/$defs/pcr_genesis_unit",
+      "instance_path": "/events/proofs",
+      "occurrences": [
+        "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/proofs",
+        "/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/proofs"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4812,10 +4825,12 @@
         "/$defs/agent_runtime_approval_status_outcome/properties/authorized_event_ref": "optional",
         "/$defs/agent_runtime_approval_status_outcome/properties/authorized_public_key_digest": "optional",
         "/$defs/agent_runtime_approval_status_outcome/properties/authorized_verification_method": "optional",
+        "/$defs/agent_runtime_approval_status_outcome/properties/current_signer_evidence": "optional",
         "/$defs/agent_runtime_approval_status_outcome/properties/lifecycle": "required",
         "/$defs/agent_runtime_approval_status_outcome/properties/presence": "required",
         "/$defs/agent_runtime_approval_status_outcome/properties/readiness": "required",
         "/$defs/agent_runtime_approval_status_outcome/properties/runtime_state": "required",
+        "/$defs/agent_runtime_approval_status_outcome/properties/signer_resolution_evidence_ref": "optional",
         "/$defs/agent_runtime_approval_status_request_body/properties/agent_id": "required",
         "/$defs/agent_runtime_approval_status_request_body/properties/pairing_code": "required",
         "/$defs/agent_runtime_approval_status_request_body/properties/pairing_request_id": "required",
@@ -4869,6 +4884,7 @@
         "/$defs/key_state/properties/authorized_event_ref": "optional",
         "/$defs/key_state/properties/controller_account_id": "required",
         "/$defs/key_state/properties/controller_authorization_ref": "required",
+        "/$defs/key_state/properties/current_signer_evidence": "optional",
         "/$defs/key_state/properties/pairing_code": "optional",
         "/$defs/key_state/properties/pairing_expires_at": "optional",
         "/$defs/key_state/properties/pairing_request_id": "optional",
@@ -4876,6 +4892,7 @@
         "/$defs/key_state/properties/principal_control_realm_id": "required",
         "/$defs/key_state/properties/requested_scope": "required",
         "/$defs/key_state/properties/runtime_verifier_material": "optional",
+        "/$defs/key_state/properties/signer_resolution_evidence_ref": "optional",
         "/$defs/operation_status_outcome/properties/status": "required",
         "/$defs/pending_sidecar_access_reconciliation_item/properties/agent_id": "required",
         "/$defs/pending_sidecar_access_reconciliation_item/properties/provisioning_phase": "required"
@@ -5947,14 +5964,11 @@
       ],
       "properties": {
         "/properties/cell_ids": "required",
-        "/properties/details": "optional",
         "/properties/escalated_at": "optional",
-        "/properties/event_ids": "optional",
-        "/properties/heads": "optional",
-        "/properties/kind": "required",
-        "/properties/seal_view": "optional",
-        "/properties/seal_view/properties/leaves": "required",
-        "/properties/seal_view/properties/state_root": "optional"
+        "/properties/heads": "required",
+        "/properties/heads/items/properties/event_id": "required",
+        "/properties/heads/items/properties/value": "required_nullable",
+        "/properties/kind": "required"
       }
     },
     "calendar-event.schema.json": {
@@ -7793,7 +7807,7 @@
         "/$defs/producer_event_proof/properties/jws": "required",
         "/$defs/producer_event_proof/properties/kind": "required",
         "/$defs/producer_event_proof/properties/proof_purpose": "optional",
-        "/$defs/producer_event_proof/properties/signer_resolution_evidence_ref": "required",
+        "/$defs/producer_event_proof/properties/signer_resolution_evidence_ref": "optional",
         "/$defs/producer_event_proof/properties/verification_method": "required",
         "/$defs/proof/properties/audience": "optional",
         "/$defs/proof/properties/created_at": "required",
@@ -13108,7 +13122,9 @@
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/kind": "required",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/payload": "optional",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/payload/properties/object": "required",
+        "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/proofs": "tristate",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/kind": "required",
+        "/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/proofs": "tristate",
         "/$defs/prepared_event_draft/properties/event_digest": "required",
         "/$defs/prepared_event_draft/properties/unsigned_event_bytes": "required",
         "/$defs/receiver_eligibility_basis/oneOf/0/properties/kind": "required",

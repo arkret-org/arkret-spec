@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.11",
+  "version": "2026-09-12.12",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T10:53:29+08:00",
+  "generated_at": "2026-09-12T12:51:01+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -8147,7 +8147,7 @@
     ]
   },
   "transition_templates": {
-    "ak.fsm.membership.v1": {
+    "ak.domain_transition.membership.v1": {
       "states": [
         "join",
         "knock",
@@ -8508,7 +8508,7 @@
     },
     "ak.component.circle.member.v1": {
       "axis": "membership",
-      "template": "ak.fsm.membership.v1",
+      "template": "ak.domain_transition.membership.v1",
       "instance_parameters": {}
     },
     "ak.component.invite.lifecycle.v1": {
@@ -8625,7 +8625,7 @@
     },
     "ak.component.member.state.v1": {
       "axis": "membership",
-      "template": "ak.fsm.membership.v1",
+      "template": "ak.domain_transition.membership.v1",
       "instance_parameters": {}
     },
     "ak.component.mls.keypackage.v1": {

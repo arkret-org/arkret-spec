@@ -194,7 +194,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
 }
 ```
 
-Event MUST 被签名。Reducer MUST 拒绝任何 signature、schema、capability、`seal_ref` / `seal_basis` 或 causal 校验失败的事件。
+Event MUST 被签名。Reducer MUST 拒绝任何 signature、schema、capability、`auth_context` / `seal_basis` 或 causal 校验失败的事件。
 
 ### 2.4 Payload 与 type 约定
 
@@ -337,11 +337,11 @@ dot 拼接与 batch tag 均由 `ak.vector.encoding.or_set_dot_and_batch_tag.v1`
 dot 的三段拼接，也带 `batch_add` 的字节级 `batch_tag` KAT，含裸 event_id 作 tag 与用 wire
 数组下标充当第三段的负向例。
 
-**共享 FSM 真相源（normative）**：任何 `lattice="fsm"` 的共享 cell write 都 MUST 按
-`contract-registry.json` 的 `event_kind_registry.transition_contracts[cell_family]` 解析唯一状态机。
-该 family contract 封闭登记 `axis`、`states`、`initial_state(s)`、`terminal_states`、
-`allowed_transitions`、并发冲突与幂等重放语义；event kind 行只登记写入 family 与投影，
-MUST NOT 在 `parameters.states` / `parameters.allowed_transitions` 再复制一份状态图。
+**领域转移合同真相源（normative）**：需要限制业务状态变化的共享 cell write MUST 按
+`contract-registry.json` 的 `event_kind_registry.transition_contracts[cell_family]` 解析唯一领域转移验证器。
+该 validator contract 封闭登记 `axis`、`states`、`initial_state(s)`、`terminal_states` 与
+`allowed_transitions`；event kind 行只登记写入 family 与投影，MUST NOT 在
+`parameters.states` / `parameters.allowed_transitions` 再复制一份状态图。转移合同只在 admission 时针对写入的已签 basis 验证，不是第六种 state model，也不在 join 阶段按业务值连接因果边。
 多个 family 共享状态图时 MUST 引用 `transition_templates` 并提供完整 `instance_parameters`；
 Realm / Circle membership 共用同一 materialized membership 状态图，invite 是独立 pending workflow，
 并且不存在用于改写路由的 `join -> join`。receiver 必须先解析 template 实例，再验证投影边；未登记 family、缺实例
@@ -530,7 +530,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 账号外部身份保持完整 `(principal_id, station_id)`。同一 pair 终身对应一条 PCR lineage，注销和硬删除后保留最小唯一性 tombstone；AccountId 不因提交到 B 而改写。账号所属 Station 的注册、恢复和托管职责不赋予它普通 Event 的独占准入权。
 
-producer 为 `executed_by ?? actor_id`。caller submit、federation、backfill 和共享读取均保留相同的唯一 producer proof。每个 receiver 独立验证 required `signer_resolution_evidence_ref`、签名、原始完整身份、授权实例、action、scope 和执行依赖；不追加服务准入签名。可携带证明必须提供精确历史授权的可验证依据，HTTP 来源、存储收据和当前 DID key 不能代替它。
+producer 为 `executed_by ?? actor_id`。caller submit、federation、backfill 和共享读取均保留相同的唯一 producer proof。除 human PCR genesis 与 PCR-policy recovery 的闭合预授权 unit 槽位外，每个 receiver 独立验证 required `signer_resolution_evidence_ref`、签名、原始完整身份、授权实例、action、scope 和执行依赖；不追加服务准入签名。可携带证明必须提供精确历史授权的可验证依据，HTTP 来源、存储收据和当前 DID key 不能代替它。两个 native unit 例外只由各自完整 unit 的冻结 root/candidate 证据验签，不能扩张到普通 Event 或单 Event 传播。
 
 Applet 写入仍必须验证 signed `applet_id`、确切 installation aggregate、registration epoch、grant、executor 和 scope；安装目标决定安装管理职责，不决定哪台 Station 可以接收合法普通 Event。安装和许可属于安全状态，普通使用许可不触发新 Seal。缺失已引用依赖进入 pending，不能按本站当前安装记录替换历史证据。
 
@@ -549,7 +549,7 @@ Applet 写入仍必须验证 signed `applet_id`、确切 installation aggregate�
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在生成 proof binding 与签名之前截断到毫秒，不得使用 `+00:00`。 | 签名时间。 |
 | `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |
-| `signer_resolution_evidence_ref` | yes | `id:signer_evidence` | 解析到实际 producer 的完整已签名证据，进入 proof binding。 | 可携带 signer 依据。 |
+| `signer_resolution_evidence_ref` | conditional | `id:signer_evidence` | 普通 submit、普通或安全 shared-history Event 与所有非 native security submit 必填并进入 proof binding。仅 human PCR genesis 的 root create/founding authorize，以及 PCR-policy recovery 的 reanchor/replacement authorize 必须省略；专用 unit verifier 从 enclosing unit 的冻结原生证据解析 key。 | 可携带 signer 依据。 |
 | `jws` | yes | `string` | detached JWS。 | 签名值。 |
 
 DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/identity-did.md) 的 Proof 和 [`../conformance/encoding.md`](../conformance/encoding.md) 的 canonical JSON 规则一致。
@@ -562,14 +562,14 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
   "event_digest": "sha256:<canonical envelope hash>",
   "actor_id": "<event.actor_id>",
   "verification_method": "<proof.verification_method>",
-  "signer_resolution_evidence_ref": "<proof.signer_resolution_evidence_ref>",
+  "signer_resolution_evidence_ref": "<proof.signer_resolution_evidence_ref if present>",
   "created_at": "<proof.created_at>",
   "domain": "<proof.domain if present>",
   "audience": "<proof.audience if present>"
 }
 ```
 
-Verifier MUST 先移除 `event_id`、`proofs` 与 `unsigned`，保留完整 `actor_id` / `executed_by` 与 `scope_ref`，计算 producer-signed canonical Event hash并与 `proof.event_digest` 比对；随后按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 重算 `event_id` 并与携带值比对（不一致 `event_id_digest_mismatch`），比对通过前 MUST NOT 将 `event_id` 用于去重、索引、路由或授权判断；随后写入固定 signing-context `context="ak.event_proof.v1"` 验证 detached JWS。JWS transcript 同时绑定 context、actor、verification method、时间、domain/audience，避免跨对象族、跨服务或跨 actor/scope 重放。
+Verifier MUST 先移除 `event_id`、`proofs` 与 `unsigned`，保留完整 `actor_id` / `executed_by` 与 `scope_ref`，计算 producer-signed canonical Event hash并与 `proof.event_digest` 比对；随后按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 重算 `event_id` 并与携带值比对（不一致 `event_id_digest_mismatch`），比对通过前 MUST NOT 将 `event_id` 用于去重、索引、路由或授权判断；随后写入固定 signing-context `context="ak.event_proof.v1"` 验证 detached JWS。JWS transcript 同时绑定 context、actor、verification method、时间、domain/audience，以及存在时的 signer evidence ref，避免跨对象族、跨服务或跨 actor/scope 重放。省略 ref 时 verifier 必须已经由 exact native unit 上下文选中唯一合法槽位；通用 Event verifier 不得自行推断 native 例外。
 
 在 cross-service、cross-trust-domain、federation 或任何 profile 声明的多受众调用中，缺少 `domain` 或缺少所需 `audience` 的 proof MUST fail closed（`proof_binding_missing` 或 profile 声明的更具体 reason）。同一服务内单受众本地写入 MAY 省略其中一项，但 verifier 仍 MUST 把处理上下文中的 Realm / service audience 与 envelope `realm_id`、proof controller 和 capability 绑定分开校验；不得因为 proof 验签通过就跨服务接受同一 Event。
 

@@ -517,11 +517,10 @@ components:
       $ref: ../schemas/bottom.schema.json
     CellQueryEnvelope:
       type: object
-      description: Wire envelope for state-query / projection responses on a single cell. `status` MUST be `value`
-        when the join is defined, `bottom` when the cell resolved to ⊥ on a `bottom=reject` lattice (caller MUST
-        treat as fail-closed), and `conflict` when a `bottom=expose` lattice surfaces candidate heads to the projection
-        / UI without selecting a winner. See zh/sync/service-surface.md §5.3 and zh/authz/event-auth-state-resolution.md
-        §5.1.
+      description: Wire envelope for a single ordinary projected cell. `status=value` carries one resolved value;
+        `status=conflict` carries the complete typed Bottom diagnostic for unresolved causal-register heads. Safety
+        command rejection, missing dependencies and sequenced state are returned by their dedicated operation or
+        availability outcomes. See zh/sync/service-surface.md §5.3 and zh/authz/event-auth-state-resolution.md §5.1.
       required:
       - cell
       - status
@@ -533,38 +532,13 @@ components:
           type: string
           enum:
           - value
-          - bottom
           - conflict
         value:
-          description: Effective Lattice value when status=value. Shape is cell-type specific (or_set members, mv_register
-            tuple, cas_register atom, fsm state, counter integer, ordered_log tail).
-        heads:
-          type: array
-          uniqueItems: true
-          description: Candidate heads when status=conflict on a `bottom=expose` cell. Receivers MUST NOT use this
-            for authorization decisions.
-          items: true
+          description: Effective ordinary value when status=value. Shape follows the registered causal_register,
+            or_set, counter or ordered_log contract.
         bottom:
           $ref: '#/components/schemas/BottomDiagnostic'
-        seal_view:
-          type: object
-          description: Seal leaves / state_root the value or bottom was observed under. Mirrors `bottom.seal_view`
-            when status≠value.
-          required:
-          - leaves
-          properties:
-            leaves:
-              type: array
-              minItems: 1
-              uniqueItems: true
-              items:
-                type: string
-                pattern: ^ak:seal:sha256:[0-9a-f]{64}$
-            state_root:
-              type: string
-              pattern: ^sha256:[0-9a-f]{64}$
-          additionalProperties: false
-      additionalProperties: true
+      additionalProperties: false
     CircleCreateRequestBody:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_create_request_body
     CircleList:

@@ -9,7 +9,7 @@
   "covers_vectors": [
     "ak.vector.identity.independent_admission.v1"
   ],
-  "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-station-authority-与准入证明normative",
+  "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-独立接收与可携带授权normative",
   "semantic_cases": [
     {
       "name": "account_id_is_complete_external_identity",
@@ -32,7 +32,7 @@
         "device context and active generation never merge or authorize the other AccountId",
         "session grants and cursors are valid only for their original AccountId and Station audience",
         "to-device queues and push registrations remain partitioned by their original AccountId",
-        "Station admission proofs remain signed by and attributable to the original station_id",
+        "producer proofs remain signed by and attributable to their complete actor_id",
         "neither Station may take over, redirect or rewrite the other Station's data lineage",
         "DID representation, DID Document, handle and service route changes do not alter either AccountId"
       ]

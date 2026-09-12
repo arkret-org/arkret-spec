@@ -4160,6 +4160,16 @@
         "kind": "conflict",
         "cell_ids": [
           "ak:cell:ak.component.member.state.v1:did:webvh:z6mkfixture1270013a22816webvhalice:127.0.0.1%3A22816:webvh:alice"
+        ],
+        "heads": [
+          {
+            "event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE",
+            "value": "join"
+          },
+          {
+            "event_id": "ak:event:ARK8nkJp0G6J3mZTRCBvkq8M5BMG40WviXOcSQERftHw",
+            "value": "leave"
+          }
         ]
       }
     },
@@ -4172,6 +4182,16 @@
         "kind": "conflict",
         "cell_ids": [
           "ak:cell:ak.component.member.state.v1:did:web:host%3"
+        ],
+        "heads": [
+          {
+            "event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE",
+            "value": "join"
+          },
+          {
+            "event_id": "ak:event:ARK8nkJp0G6J3mZTRCBvkq8M5BMG40WviXOcSQERftHw",
+            "value": "leave"
+          }
         ]
       }
     },
@@ -4184,6 +4204,16 @@
         "kind": "conflict",
         "cell_ids": [
           "ak:cell:message:019640ed-8000-7000-8000-000000000000"
+        ],
+        "heads": [
+          {
+            "event_id": "ak:event:AQYO3eVkYjFtPuQW9j4IjZBYS99qhNh95RojKarhxLiE",
+            "value": "join"
+          },
+          {
+            "event_id": "ak:event:ARK8nkJp0G6J3mZTRCBvkq8M5BMG40WviXOcSQERftHw",
+            "value": "leave"
+          }
         ]
       }
     },

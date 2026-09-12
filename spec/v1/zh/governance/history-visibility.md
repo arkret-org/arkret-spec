@@ -660,8 +660,7 @@ lattice `op.from`。不得以 `expected_previous_key_evidence_ref`、Seal ref �
 payload 中的 `expected_previous_key_evidence_ref` 与 `expected_previous_key_evidence_seal_ref` 只证明 prior tuple provenance：
 前者必须等于 current projected tuple 的 provenance Event，后者必须是使该 Event 生效的 exact accepted Seal；新 holder
 acceptance 的 trusted basis 必须因果覆盖该 Seal。CAS 与 provenance 任一不成立均 fail closed 且整个 Move 零写入。
-同一 frozen predecessor 上的同批 sibling 必须由 Seal 排重；若互斥 sibling 分别进入不可达 accepted Seal branches，通用
-`sequenced_state` join 产生 `⊥`，不得按到达顺序选 winner。旧 tuple 保留作历史验证。Circle 不登记独立 key。同一个 Realm key 只服务显式 opt-in scopes。每个
+同一 frozen predecessor 上的竞争命令必须由唯一确认顺序裁决：第一条成功命令推进 revision，其余命令产生 durable stale rejection，`sequenced_state` 不执行 unordered join，也不产生 `⊥`。检测到互相不可达且都声称确认同一 revision 的 Seal 是确认协议失效证据，整支 quarantine，不能作为两个 Cell 值合并。旧 tuple 保留作历史验证。Circle 不登记独立 key。同一个 Realm key 只服务显式 opt-in scopes。每个
 exporter Realm/Circle 独立选择 `none|organization_recovery_key`，不继承父 scope，不复制
 holder/custody tuple。选择后，每个 winning Genesis/Commit Event MUST 在同一签名 Event 中携带
 恰一份本 scope/epoch archive，否则 transition 拒绝。RHRK tuple 固定

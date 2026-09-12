@@ -438,7 +438,7 @@
     },
     "key_state": {
       "type": "object",
-      "description": "Controller-private key, pairing-handle and authorization material for a generic Agent view. This object deliberately carries no lifecycle, readiness, presence, runtime_state or backup-readiness field: the only three generic status axes are siblings on agent_projection, while pairing poll alone exposes its operation-local runtime_state diagnostic.",
+      "description": "Controller-private key, pairing-handle and authorization material for a generic Agent view. When active authorization exists, signer_resolution_evidence_ref and current_signer_evidence provide the same complete activation closure delivered to the runtime; an Account Authority may independently rebuild it, while authorized_event_ref remains provenance only. This object deliberately carries no lifecycle, readiness, presence, runtime_state or backup-readiness field: the only three generic status axes are siblings on agent_projection, while pairing poll alone exposes its operation-local runtime_state diagnostic.",
       "required": [
         "agent_id",
         "controller_account_id",
@@ -492,12 +492,25 @@
             "$ref": "#/$defs/agent_key_authorization_state"
           }
         },
+        "signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "current_signer_evidence": {
+          "$ref": "./current-signer-evidence-operations.schema.json#/$defs/agent_evidence",
+          "description": "Complete Agent signer evidence root and recursive dependencies with no known-ref omissions. The consumer recomputes signer_resolution_evidence_ref with the SDK canonical helper."
+        },
         "runtime_verifier_material": {
           "$ref": "#/$defs/agent_runtime_verifier_material",
           "description": "Confidential verifier-only material. Return only to the authenticated delegated Account Authority executing pair_agent_key for this exact Agent; MUST be absent from ordinary controller/runtime responses and notifications."
         }
       },
       "dependentRequired": {
+        "signer_resolution_evidence_ref": [
+          "current_signer_evidence"
+        ],
+        "current_signer_evidence": [
+          "signer_resolution_evidence_ref"
+        ],
         "pairing_request_id": [
           "pairing_expires_at"
         ],
@@ -820,7 +833,7 @@
     },
     "agent_runtime_approval_status_outcome": {
       "type": "object",
-      "description": "Operation-local status for the exact handle/candidate. Authorization fields are present only after durable Seal activation and must be checked against the runtime own method/raw-key digest; then a fresh agent_key_proof is required for session issue. Fields occur together. Expired, unknown or invalidated handles use uniform anti-enumeration behavior. Status never authorizes a key by itself.",
+      "description": "Operation-local status for the exact handle/candidate. Authorization and signer-evidence fields are present only after durable Seal activation. The runtime checks its own method/raw-key digest, validates the complete current_signer_evidence closure, independently rebuilds its authenticated root and signer_resolution_evidence_ref with the SDK canonical helper, then persists both for offline ordinary Event authoring; authorized_event_ref is provenance and MUST NOT be used as the signer evidence ref. Expired, unknown or invalidated handles use uniform anti-enumeration behavior. Status never authorizes a key by itself.",
       "required": [
         "lifecycle",
         "runtime_state",
@@ -852,21 +865,47 @@
         "authorized_public_key_digest": {
           "$ref": "#/$defs/digest",
           "description": "SHA-256 of the decoded 32-byte Ed25519 public key using the unique agent_signing_public_key_digest helper; the runtime compares it to its own key."
+        },
+        "signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Content address of current_signer_evidence.authenticated_signer_evidence. The runtime MUST recompute it from the complete canonical root and reject a mismatch."
+        },
+        "current_signer_evidence": {
+          "$ref": "./current-signer-evidence-operations.schema.json#/$defs/agent_evidence",
+          "description": "Complete activation-time Agent signer evidence root and recursive dependencies, with no known-ref omissions. It is delivered through this existing pairing status operation so ordinary Event authoring needs no new endpoint or online origin lookup."
         }
       },
       "additionalProperties": false,
       "dependentRequired": {
         "authorized_event_ref": [
           "authorized_verification_method",
-          "authorized_public_key_digest"
+          "authorized_public_key_digest",
+          "signer_resolution_evidence_ref",
+          "current_signer_evidence"
         ],
         "authorized_verification_method": [
           "authorized_event_ref",
-          "authorized_public_key_digest"
+          "authorized_public_key_digest",
+          "signer_resolution_evidence_ref",
+          "current_signer_evidence"
         ],
         "authorized_public_key_digest": [
           "authorized_event_ref",
-          "authorized_verification_method"
+          "authorized_verification_method",
+          "signer_resolution_evidence_ref",
+          "current_signer_evidence"
+        ],
+        "signer_resolution_evidence_ref": [
+          "authorized_event_ref",
+          "authorized_verification_method",
+          "authorized_public_key_digest",
+          "current_signer_evidence"
+        ],
+        "current_signer_evidence": [
+          "authorized_event_ref",
+          "authorized_verification_method",
+          "authorized_public_key_digest",
+          "signer_resolution_evidence_ref"
         ]
       }
     },

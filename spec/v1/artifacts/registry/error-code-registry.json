@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.9",
-  "generated_at": "2026-09-12T10:15:03+08:00",
+  "version": "2026-09-12.11",
+  "generated_at": "2026-09-12T13:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -906,7 +906,7 @@
       "code": "seal_ref_unknown",
       "http_status": 404,
       "scope": "both",
-      "description": "The supplied seal_ref or seal_basis leaf does not identify a Seal known to the receiving service for the target Realm.",
+      "description": "A Seal named by an ordinary Event auth_context.authority_refs entry or by a security command seal_basis leaf is not available to the receiving service for the target Realm.",
       "type_uri": "https://arkret.org/problems/seal_ref_unknown",
       "title": "Seal ref unknown"
     },
@@ -3026,7 +3026,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "Sub-reason for schema_violation when created_at is earlier than the sealed_at of the Seal this Event binds to (seal_ref for a DataEvent, max of seal_basis.leaves[].sealed_at for a Control Move), beyond the symmetric hard_future_skew_ms tolerance. Anchor units carry no such basis and are exempt; see zh/models/event-and-patch.md."
+      "description": "Sub-reason for schema_violation when created_at is earlier than the greatest sealed_at among the signed auth_context.authority_refs of an ordinary Event or the seal_basis.leaves of a security command, beyond the symmetric hard_future_skew_ms tolerance. Native anchor units carry no such basis and are exempt; see zh/models/event-and-patch.md."
     },
     {
       "code": "created_at_before_causal_predecessor",
@@ -4597,7 +4597,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "An ak.realm.link status transition is absent from the canonical FSM transition matrix, including any non-byte-identical attempt to leave terminal tombstoned state. The reducer MUST reject with top-level failed_precondition. See zh/models/realm-links.md §4."
+      "description": "An ak.realm.link status transition is absent from the canonical domain-transition contract, including any non-byte-identical attempt to leave terminal tombstoned state. The reducer MUST reject with top-level failed_precondition. See zh/models/realm-links.md §4."
     },
     {
       "code": "realm_link_self_reference",

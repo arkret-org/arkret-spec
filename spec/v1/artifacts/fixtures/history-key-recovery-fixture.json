@@ -548,9 +548,9 @@
             ]
           }
         },
-        "expected": "first_committed_second_rejected",
+        "expected": "rejected_seal",
         "reason": "cas_conflict",
-        "accepted_writes": 1
+        "accepted_writes": 0
       },
       {
         "name": "conflicting_confirmed_security_values_halt_domain",
@@ -571,8 +571,8 @@
             ]
           }
         },
-        "expected": "halt_security_domain",
-        "read_status": "failed_bottom",
+        "expected": "protocol_halt",
+        "reason": "confirmed_order_equivocation",
         "accepted_writes": 0
       }
     ],
@@ -1159,68 +1159,34 @@
         "latest_epoch",
         "current_session_device"
       ],
-      "membership_head_cases": [
+      "membership_state_cases": [
         {
           "name": "unwritten",
-          "heads": [],
+          "state": null,
           "expected_incarnation": null
         },
         {
-          "name": "registered_join",
-          "heads": [
-            {
-              "event_id": "ak:event:AY0PjNkea0vKSEhH1RcwUyVWR3_--AVU-nd-GJwjuJL_",
-              "value": "join"
-            }
-          ],
+          "name": "confirmed_join",
+          "state": {
+            "revision_event_id": "ak:event:AY0PjNkea0vKSEhH1RcwUyVWR3_--AVU-nd-GJwjuJL_",
+            "value": "join"
+          },
           "expected_incarnation": "ak:event:AY0PjNkea0vKSEhH1RcwUyVWR3_--AVU-nd-GJwjuJL_"
         },
         {
-          "name": "same_value_concurrent_joins",
-          "heads": [
-            {
-              "event_id": "ak:event:AY0PjNkea0vKSEhH1RcwUyVWR3_--AVU-nd-GJwjuJL_",
-              "value": "join"
-            },
-            {
-              "event_id": "ak:event:AVFa8lC-YHfQh6yK5Mjfn3lqhZa5PWkiy9QW9AQuTt9H",
-              "value": "join"
-            }
-          ],
+          "name": "confirmed_leave",
+          "state": {
+            "revision_event_id": "ak:event:AfbE6wLRPmCWiACy52NKiDiECv2OCE4HrD3eOwALBVYt",
+            "value": "leave"
+          },
           "expected_incarnation": null
         },
         {
-          "name": "divergent_heads",
-          "heads": [
-            {
-              "event_id": "ak:event:AY0PjNkea0vKSEhH1RcwUyVWR3_--AVU-nd-GJwjuJL_",
-              "value": "join"
-            },
-            {
-              "event_id": "ak:event:AfbE6wLRPmCWiACy52NKiDiECv2OCE4HrD3eOwALBVYt",
-              "value": "leave"
-            }
-          ],
-          "expected_incarnation": null
-        },
-        {
-          "name": "left",
-          "heads": [
-            {
-              "event_id": "ak:event:AfbE6wLRPmCWiACy52NKiDiECv2OCE4HrD3eOwALBVYt",
-              "value": "leave"
-            }
-          ],
-          "expected_incarnation": null
-        },
-        {
-          "name": "accepted_recovery_join",
-          "heads": [
-            {
-              "event_id": "ak:event:AbQ2PL8yGTRGCqu42d0IVv_QCwfYE9G1F0StQvBRidkU",
-              "value": "join"
-            }
-          ],
+          "name": "confirmed_rejoin",
+          "state": {
+            "revision_event_id": "ak:event:AbQ2PL8yGTRGCqu42d0IVv_QCwfYE9G1F0StQvBRidkU",
+            "value": "join"
+          },
           "expected_incarnation": "ak:event:AbQ2PL8yGTRGCqu42d0IVv_QCwfYE9G1F0StQvBRidkU"
         }
       ],

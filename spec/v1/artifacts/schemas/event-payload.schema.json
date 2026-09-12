@@ -1409,7 +1409,7 @@
         },
         "proof": {
           "$ref": "applet-package.schema.json#/$defs/detached_proof",
-          "description": "Exact controller-DID detached package proof copied from the accepted Applet package. payload_digest binds the canonical package, while the enclosing formal registration Event has its own Event proof and Station admission proof."
+          "description": "Exact controller-DID detached package proof copied from the accepted Applet package. payload_digest binds the canonical package, while the enclosing formal registration Event has its own unique producer proof and signer-resolution evidence."
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
@@ -7968,7 +7968,7 @@
         },
         "claim_envelope": {
           "type": "object",
-          "description": "Closed requester device, Agent, or Realm-local pairwise signature binding the claimed KeyPackage to this Welcome, Realm, exact claim_request_id challenge and Welcome digest before decrypting the Welcome. Device/Agent signer authority is established by accepted authorization Events and their in-envelope Station admission proofs; the pairwise signer is established by its exact did:key method and Realm-local actor. No signer-evidence sidecar is carried.",
+          "description": "Closed requester device, Agent, or Realm-local pairwise signature binding the claimed KeyPackage to this Welcome, Realm, exact claim_request_id challenge and Welcome digest before decrypting the Welcome. Device/Agent signer authority is established by accepted authorization Events whose unique producer proofs and signer evidence validate independently; the pairwise signer is established by its exact did:key method and Realm-local actor. No separate signer-evidence sidecar is carried in this claim envelope.",
           "required": [
             "keypackage_ref",
             "keypackage_digest",

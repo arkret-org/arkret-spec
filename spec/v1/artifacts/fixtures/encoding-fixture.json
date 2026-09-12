@@ -234,10 +234,12 @@
         "created_at": "2026-04-26T00:00:00.000Z",
         "hlc": "01970e589d21-0004-a13f9c2e",
         "prev_refs": [],
-        "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_context": {
           "key_id": "device-1",
-          "key_epoch": 1
+          "key_epoch": 1,
+          "authority_refs": [
+            "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          ]
         },
         "payload": {
           "strand_id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
@@ -248,8 +250,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"actor_seq\":1,\"auth_context\":{\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "expected_digest": "sha256:e1c68e4c5e39b3e4b4d5cbee8af62b6657175bfcd4aebcd27b8f59291c322c8b",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"actor_seq\":1,\"auth_context\":{\"authority_refs\":[\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"],\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"}}",
+      "expected_digest": "sha256:ebaf0577d95046f160a97da53227f7b951061c31694b062eca0b3366bccdb472",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST be derived from the digest and excluded from its own digest input",

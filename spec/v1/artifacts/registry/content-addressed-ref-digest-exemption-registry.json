@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.6",
+  "version": "2026-09-12.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T09:51:32+08:00",
+  "generated_at": "2026-09-12T12:24:32+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -19,6 +19,21 @@
     "retained_mirror": "proof.event_digest inside the enclosing Event's producer/admission proofs is the only content digest that v1 deliberately retains next to the Event identity; it is registered here as a distinct_preimage row against the signer evidence refs and remains governed by encoding.md 6.0.1."
   },
   "exemptions": [
+    {
+      "exemption_id": "ak.exemption.sibling_digest.agent_runtime_approval_status_authorized_public_key_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/agent-operations.schema.json",
+        "json_path": "$.$defs.agent_runtime_approval_status_outcome.properties",
+        "digest_field": "authorized_public_key_digest",
+        "content_addressed_refs": [
+          "signer_resolution_evidence_ref"
+        ]
+      },
+      "preimage": "SHA-256 of the decoded 32-byte Ed25519 runtime public key; signer_resolution_evidence_ref addresses the complete authenticated signer-resolution evidence root",
+      "spec_anchor": "spec/v1/zh/identity/key-management.md"
+    },
     {
       "exemption_id": "ak.exemption.sibling_digest.availability_receipt_root_bytes_digest.v1",
       "status": "active",

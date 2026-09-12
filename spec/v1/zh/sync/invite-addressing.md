@@ -357,16 +357,9 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 1. 验证 service-to-service authentication，绑定 Source/Destination service `did_core_id`、trust domain、Content-Digest 与 idempotency key；接收方从已验证的 exact canonical body bytes 内部计算 request digest。
 2. 验证 `Destination-Service-ID == invite_address.account_id.station_id`。
 3. 验证 `invite_address.service_resolution`，要求完整证据的 `service_id` 等于 `invite_address.account_id.station_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
-4. 验证 invite_event.kind 为 ak.invite.create、内容绑定的 Event / Invite ID、Realm ID、producer 签名及 可携带的 producer signer evidence 与原始授权。验证必须复用现有 Event proof 合同，独立认证 Station 控制密钥及其对 producer key 的绑定；不得相信发送者自报公钥或仅使用 Source-Service-ID。保留目标、有效期及重放约束。
-   first-contact receiver 尚无 Realm visibility 时，MAY 以 admission proof 内 content-addressed
-   `signer_resolution_evidence_ref` 向该 origin Station 的 `ak.peer.seals.read.governance_dependencies.v1` 精确解析
-   **origin Station 自身**的 `AuthenticatedSignerResolutionEvidence::Service`。该例外只公开服务 DID 的历史方法证据：
-   evidence 的 `signer_id` MUST 等于提供响应的 Station service id，selector MUST 与 proof 逐字相等；Principal、
-   AccountDevice、Agent、其它 service 或任何非 signer-evidence dependency 仍必须命中普通 Realm visibility / retained-cut
-   授权。它不授予 Seal、Control Move、membership、roster 或通用 dependency read，也不能替代对返回 evidence、
-   admission transcript 与 producer key 绑定的独立验证。
+4. 验证 invite_event.kind 为 ak.invite.create、内容绑定的 Event / Invite ID、Realm ID、producer 签名、可携带的 producer signer evidence 与原始授权。验证必须复用现有 Event proof 合同，从请求携带闭包或本地已验证缓存重算 `signer_resolution_evidence_ref` 并解析 exact producer key；不得相信发送者自报公钥、仅使用 Source-Service-ID，或要求账号原站在线。first-contact receiver 缺少闭包成员时只能 pending，并可按通用 dependency resolution 从任一获授权且能提供精确 content-addressed 对象的来源补齐；来源身份不进入 Event 授权结果。保留目标、有效期及重放约束。
    投递仅证明已认证发送者发出邀请，**不验证或宣称**其 Realm 管理权限、成员资格或邀请 durable acceptance。接收方 MUST NOT 为投递求值成员级 Realm 授权闭包、要求本地 accepted Seal 或获取 Realm peer dependencies。请求不承载邀请专用 CBS bundles；普通 CBS、Seal 签名和 signer authority 准入规则保持不变。正常加入 / 同步负责 Realm 授权及 durable acceptance，投递不得物化 Realm、membership、accepted Seal、projection 或 frontier。
-   本步在 holder 查询、policy、consent、quota 与任何写入之前执行。结构错误返回 schema_violation，无效签名或 proof 绑定返回已注册的 signature_invalid；请求体仍受现有 8 MiB 上限约束。验证不了的 Seal 不得作为任何可信状态或授权依据。
+   本步在 holder 查询、policy、consent、quota 与任何写入之前执行。结构错误返回 schema_violation，无效签名或 proof 绑定返回已注册的 signature_invalid；请求体仍受现有 8 MiB 上限约束。未能验证的 authority ref 不得作为任何可信状态或授权依据。
 5. 验证 `invite_event.payload.invitee_account_id == invite_address.account_id`，必须比较完整 AccountId。
 6. 验证 durable invite Event 未携带独立 route material；可选 `route_assistance` 只存在于 delivery transport，MUST NOT 要求它写入或匹配 durable Event，也 MUST NOT 把它当作授权证据。
 7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定 `invite_address.account_id`、issuer / Directory trust、domain allowlist、expiry 与 audience。分类顺序固定为：有效高信任 evidence，其次有效 `handle_claim`，其次接收端派生 `same_station`，最后 `explicit_address`。派生 `same_station` 只比较已验 invite Event account Actor 的 `account_id.station_id` 与 `invite_address.account_id.station_id`，不得使用 `Source-Service-ID` 或实际 ingress service。证据无效且不满足同 Station 时降级为低信任 `explicit_address`，不得直接通知或物化 membership。

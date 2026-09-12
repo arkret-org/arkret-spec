@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-04.1",
-  "generated_at": "2026-09-04T00:28:18+08:00",
+  "version": "2026-09-12.1",
+  "generated_at": "2026-09-12T13:00:00+08:00",
   "source_of_truth": true,
   "profile_id": "ak.security_frontier.v1",
   "description": "Closed machine contract for the accepted state that changes current or historical MLS key access. Producers never choose frontier members. Verifiers project these inputs from one accepted Seal view and the RFC 9420 group state, then compare the resulting digest with the governance binding.",
@@ -23,7 +23,7 @@
       ],
       "ordering": "Sort by UTF-8 bytes of cell_family, then canonical JCS bytes of cell_subject, then projected_value_digest; reject duplicates."
     },
-    "digest_rule": "security_frontier_digest = sha256(JCS({profile_id,effective_scope,group_genesis_binding,cell_entries,mls_leaf_set_digest})). group_genesis_binding is exactly {content_scheme,durability_policy?} from the verified accepted Genesis/group state, or from proposed_group_genesis_binding in the unique pre-Genesis 0 -> 0 query branch when no accepted Genesis exists. The proposal is part of the canonical query digest/cache identity and Genesis admission later requires byte-identical binding; it is never accepted authority. accepted Seal ids, ordinary Event seal_ref values and producer-supplied Event lists are not digest members."
+    "digest_rule": "security_frontier_digest = sha256(JCS({profile_id,effective_scope,group_genesis_binding,cell_entries,mls_leaf_set_digest})). group_genesis_binding is exactly {content_scheme,durability_policy?} from the verified accepted Genesis/group state, or from proposed_group_genesis_binding in the unique pre-Genesis 0 -> 0 query branch when no accepted Genesis exists. The proposal is part of the canonical query digest/cache identity and Genesis admission later requires byte-identical binding; it is never accepted authority. accepted Seal ids, ordinary Event auth_context.authority_refs values and producer-supplied Event lists are not digest members."
   },
   "cell_rules": [
     {
@@ -136,7 +136,7 @@
     "moderation and read-receipt policy",
     "media or routing endpoint metadata that does not change plaintext/key recipients",
     "contact, consent, block or pause facts whose accepted effect does not remove an MLS leaf",
-    "ordinary Event seal_ref and accepted Seal identifiers",
+    "ordinary Event auth_context.authority_refs and accepted Seal identifiers",
     "producer-supplied Event, Seal, root or frontier member lists"
   ],
   "unknown_input_behavior": "fail_closed",

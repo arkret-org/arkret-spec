@@ -4300,7 +4300,6 @@
         "verification_method",
         "event_digest",
         "created_at",
-        "signer_resolution_evidence_ref",
         "jws"
       ],
       "properties": {
@@ -4324,7 +4323,7 @@
         },
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Portable historical signer authorization resolving this exact verification method; required on submissions and shared history. The receiving Station may resolve the evidence from any authenticated holder."
+          "description": "Portable historical signer authorization resolving this exact verification method. Required for every ordinary submission, ordinary or security shared-history Event, and every non-native security submission. It MUST be absent only in an exact pre-authorization slot of a human PCR genesis unit or PCR-policy recovery unit, whose enclosing unit carries the frozen native signer material."
         },
         "domain": {
           "type": "string"
@@ -4356,7 +4355,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The sole Event proof. Independently verifies the complete executed_by when present or actor_id otherwise against portable signer authorization. Native genesis and recovery use their exact registered trust roots. Signature validity is separate from current authorization and history eligibility."
+      "description": "The sole Event proof. Independently verifies the complete executed_by when present or actor_id otherwise. signer_resolution_evidence_ref is required except in the exact pre-authorization slots registered for human PCR genesis and PCR-policy recovery; those slots resolve the key only from their enclosing unit's frozen native evidence and cannot be accepted or replayed as standalone shared-history Events. Signature validity is separate from current authorization and history eligibility."
     },
     "event_proof": {
       "$ref": "#/$defs/producer_event_proof"

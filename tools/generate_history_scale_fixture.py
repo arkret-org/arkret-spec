@@ -619,13 +619,11 @@ def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
             "winning_commit_next_epoch": 1,
             "expected_join_epoch": 1,
             "forbidden_derivations": ["joined_at", "received_at", "latest_epoch", "current_session_device"],
-            "membership_head_cases": [
-                {"name": "unwritten", "heads": [], "expected_incarnation": None},
-                {"name": "registered_join", "heads": [{"event_id": event_id("requester-join"), "value": "join"}], "expected_incarnation": event_id("requester-join")},
-                {"name": "same_value_concurrent_joins", "heads": [{"event_id": event_id("requester-join"), "value": "join"}, {"event_id": event_id("concurrent-requester-join"), "value": "join"}], "expected_incarnation": None},
-                {"name": "divergent_heads", "heads": [{"event_id": event_id("requester-join"), "value": "join"}, {"event_id": event_id("requester-leave"), "value": "leave"}], "expected_incarnation": None},
-                {"name": "left", "heads": [{"event_id": event_id("requester-leave"), "value": "leave"}], "expected_incarnation": None},
-                {"name": "accepted_recovery_join", "heads": [{"event_id": event_id("requester-recovery"), "value": "join"}], "expected_incarnation": event_id("requester-recovery")},
+            "membership_state_cases": [
+                {"name": "unwritten", "state": None, "expected_incarnation": None},
+                {"name": "confirmed_join", "state": {"revision_event_id": event_id("requester-join"), "value": "join"}, "expected_incarnation": event_id("requester-join")},
+                {"name": "confirmed_leave", "state": {"revision_event_id": event_id("requester-leave"), "value": "leave"}, "expected_incarnation": None},
+                {"name": "confirmed_rejoin", "state": {"revision_event_id": event_id("requester-recovery"), "value": "join"}, "expected_incarnation": event_id("requester-recovery")},
             ],
             "stage_rule": "membership is resolved before MLS Add authoring; no winning lineage means pending, never epoch zero",
         },
@@ -1017,17 +1015,18 @@ def build_rhrk_registration_rotation_kat(
         ],
         "concurrency_cases": [
             {
-                "name": "same_seal_sibling_is_rejected_before_join",
+                "name": "same_seal_stale_revision_has_rejected_outcome",
                 "basis": current_projected_tuple,
                 "expected": "rejected_seal",
                 "reason": "cas_conflict",
                 "accepted_writes": 0,
             },
             {
-                "name": "incomparable_accepted_branches_join_bottom",
+                "name": "conflicting_confirmed_security_values_halt_domain",
                 "basis": current_projected_tuple,
-                "expected": "bottom",
-                "read_status": "failed_bottom",
+                "expected": "protocol_halt",
+                "reason": "confirmed_order_equivocation",
+                "accepted_writes": 0,
             },
         ],
         "negative_mutations": [

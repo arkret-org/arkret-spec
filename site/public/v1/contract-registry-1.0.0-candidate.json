@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.11",
+  "version": "2026-09-12.15",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T10:44:58+08:00",
+  "generated_at": "2026-09-12T13:20:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -8872,7 +8872,7 @@
       ]
     },
     "transition_templates": {
-      "ak.fsm.membership.v1": {
+      "ak.domain_transition.membership.v1": {
         "states": [
           "join",
           "knock",
@@ -9233,7 +9233,7 @@
       },
       "ak.component.circle.member.v1": {
         "axis": "membership",
-        "template": "ak.fsm.membership.v1",
+        "template": "ak.domain_transition.membership.v1",
         "instance_parameters": {}
       },
       "ak.component.invite.lifecycle.v1": {
@@ -9350,7 +9350,7 @@
       },
       "ak.component.member.state.v1": {
         "axis": "membership",
-        "template": "ak.fsm.membership.v1",
+        "template": "ak.domain_transition.membership.v1",
         "instance_parameters": {}
       },
       "ak.component.mls.keypackage.v1": {
@@ -13614,7 +13614,7 @@
         "http": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
         "grpc": "OpenAgentPairing/RuntimeKeyRequestStatus",
         "mq": "open.agent_pairing.query.runtime_key_request_status",
-        "notes": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id + pairing_code + agent_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code or agent_id mismatch MUST be indistinguishable (both not_found). Once approved, the outcome carries authorized_event_ref plus the authorized key binding; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime. HTTP responses MUST carry Retry-After; clients wait at least that interval and use 1s/2s/5s/10s then at most 30s backoff, stopping after pairing expiry.",
+        "notes": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id + pairing_code + agent_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code or agent_id mismatch MUST be indistinguishable (both not_found). Once approved, the outcome carries the authorized key binding plus current_signer_evidence and signer_resolution_evidence_ref. The runtime compares authorized_public_key_digest against its own key, independently verifies and rebuilds the signer evidence/ref, persists that closure, and then authors ordinary Events offline; authorized_event_ref never substitutes for signer_resolution_evidence_ref. HTTP responses MUST carry Retry-After; clients wait at least that interval and use 1s/2s/5s/10s then at most 30s backoff, stopping after pairing expiry.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
@@ -14208,7 +14208,7 @@
         "http": "POST /_arkret/peer/keys/keypackages/claim",
         "grpc": "PeerKeys/KeyPackagesClaim",
         "mq": "peer.keys.keypackages.command.claim",
-        "notes": "Atomic cross-Station KeyPackage claim. The destination Station is the sole CAS authority. The authenticated source Station first admits the participant request against its exact local account/device/generation durable state; revocation_pending fails before any remote call or inventory disclosure and is exposed only as the existing opaque claim_failed result. Request and response carry no PCR/control-history or signer-evidence sidecar. Every claim binds the matching accepted authorization Event id, whose in-envelope Station admission proof, the signed destination claim receipt, exact selectors and KeyPackage signature MUST all validate. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
+        "notes": "Atomic cross-Station KeyPackage claim. The destination Station is the sole atomic claim-ledger authority for its KeyPackage inventory. The authenticated source Station first validates the participant request against its exact local account/device/generation durable state; revocation_pending fails before any remote call or inventory disclosure and is exposed only as the existing opaque claim_failed result. Request and response carry no PCR/control-history or separate signer-evidence sidecar. Every claim binds the matching accepted authorization Event id, whose unique producer proof and signer evidence must validate when independently replayed, plus the signed destination claim receipt, exact selectors and KeyPackage signature. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -16856,8 +16856,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-12.11",
-    "generated_at": "2026-09-12T10:44:58+08:00",
+    "version": "2026-09-12.13",
+    "generated_at": "2026-09-12T13:20:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

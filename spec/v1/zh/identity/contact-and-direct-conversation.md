@@ -532,7 +532,7 @@ founder **MUST** 一次提交恰好四条 Event：
 
 四条的 CBS basis 形态是封闭的：`ak.realm.create` 用 genesis bootstrap shape；两条 `ak.member.state{join}` 与
 `ak.strand.create` 在**且仅在**该 exact unit 内使用 bootstrap no-basis shape（既不携 `seal_basis`，也不携
-`seal_ref`/`auth_context`），并叠加同批 staged authority-root proof。两者的免 basis 落点分别登记在
+`auth_context`），并叠加同批 staged authority-root proof。两者的免 basis 落点分别登记在
 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md) 与
 [`../authz/event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 的封闭列表。
 `ak.strand.create` 平时是携 `auth_context` 的 DataEvent，batch admission **MUST** 在本 unit 之外
@@ -779,7 +779,7 @@ Conformance **MUST** 覆盖：
 - founder 与 peer 位于同一 Station 与位于两台 Station 两种部署下，self 路径与 §5.6 peer 路径 **MUST** 得到相同 unit digest、相同 receipt 语义与相同 admission decision；
 - 幂等与崩溃恢复：同 `idempotency_key` 同 unit 的 exact retry 返回 byte-identical receipt 且 `accepted_at` 不变，同 key 不同 unit 返回 `duplicate_conflict`；unit 提交、receipt 落库、outbox 入队与响应丢失各崩溃点重放同一 signed bytes 均恢复同一结果，且不产生第二组 Event；
 - §5.6 branch 的 dependency 不足 **MUST** 是 top-level 409 `dependency_missing` 加零写入，**MUST NOT** 出现只接受一或两条 Event 的 partial；
-- basis 形态：unit 内 `ak.member.state{join}` 与 `ak.strand.create` 的 no-basis shape 被接受；同一 no-basis `ak.strand.create` 出现在 founding unit 之外（普通 Realm、同 Realm 的后续 Strand 或单条提交）**MUST** 被 admission 拒绝，而 unit 内改携 `seal_ref`/`auth_context`/`seal_basis` 也 **MUST** 被拒绝；
+- basis 形态：unit 内 `ak.member.state{join}` 与 `ak.strand.create` 的 no-basis shape 被接受；同一 no-basis `ak.strand.create` 出现在 founding unit 之外（普通 Realm、同 Realm 的后续 Strand 或单条提交）**MUST** 被 admission 拒绝，而 unit 内改携 `auth_context`/`seal_basis` 也 **MUST** 被拒绝；
 - recontact continuity：多轮 tombstone/recontact 后仍重算出同一 root Contact round 与同一 founder；缺 `previous_terminal_contact_round_id`、成环、分叉或两 proof 导出不同根均拒绝；
 - accepted-at 与 current gate 分离：source 在旧 current round 有效时 accepted 的 unit 延迟到撤回后才到 peer，peer 仍接受历史 identity 并按 current gate 投影 `suspended`；
 - 对方设备离线时 MLS 建立与发送成功；对方服务器不可达时 founder 仍可建 Realm、建立唯一 group 并发出真密文；

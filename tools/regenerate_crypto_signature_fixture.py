@@ -64,6 +64,7 @@ def refresh_common(vector: dict[str, object]) -> bytes:
 
     binding = vector["binding_object"]
     binding["event_digest"] = event_digest
+    binding["actor_id"] = event["actor_id"]
     binding_bytes = canonical(binding)
     vector["canonical_binding_payload"] = binding_bytes.decode()
     vector["binding_digest"] = digest(binding_bytes)
@@ -208,20 +209,7 @@ def refresh_negative_cases(
 
 def sync_websocket_fixture(event_with_proof: dict[str, object]) -> None:
     data = json.loads(WEBSOCKET_FIXTURE.read_text(encoding="utf-8"))
-    schema_cases = json.loads(
-        (FIXTURE.parent / "schema-validation-fixture.json").read_text(encoding="utf-8")
-    )["schema_validation_cases"]
     admitted = copy.deepcopy(event_with_proof)
-    # Frame cases validate transport/schema, not Station cryptography. Reuse the
-    # explicit admission shape fixture and bind it to the regenerated producer.
-    template = next(case["instance"]["event"] for case in schema_cases
-                    if case["name"] == "event_federation_admitted_capability_message_shape_valid")
-    admission = copy.deepcopy(template["proofs"][-1])
-    producer = admitted["proofs"][0]
-    admission["event_digest"] = producer["event_digest"]
-    admission["producer_proof_digest"] = digest(canonical(producer))
-    admission["producer_verification_method"] = producer["verification_method"]
-    admitted["proofs"].append(admission)
     for case in data.get("frame_schema_cases", []):
         wire = case.get("wire_utf8")
         if not isinstance(wire, str):
@@ -231,9 +219,6 @@ def sync_websocket_fixture(event_with_proof: dict[str, object]) -> None:
         if payload.get("kind") == "event" and isinstance(payload.get("payload"), dict):
             payload["payload"] = admitted
             case["wire_utf8"] = canonical(frame).decode()
-    for case in data.get("schema_validation_cases", []):
-        if case.get("name") == "events_data_producer_only_rejected":
-            case["instance"]["payload"]["payload"] = event_with_proof
     WEBSOCKET_FIXTURE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
     )
@@ -241,6 +226,8 @@ def sync_websocket_fixture(event_with_proof: dict[str, object]) -> None:
 
 def main() -> None:
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    authority_ref = "ak:seal:sha256:" + "1" * 64
+    signer_evidence_ref = "ak:signer_evidence:sha256:" + "e" * 64
     for vector in data["vectors"]:
         for field in ("event_without_proofs", "event_with_proof"):
             event = vector.get(field)
@@ -253,6 +240,16 @@ def main() -> None:
                     },
                 }
                 event.pop("station_id", None)
+                event.pop("seal_ref", None)
+                event.setdefault("auth_context", {})["authority_refs"] = [authority_ref]
+                for proof in event.get("proofs", []):
+                    proof["signer_resolution_evidence_ref"] = signer_evidence_ref
+        proof = vector.get("proof")
+        if isinstance(proof, dict):
+            proof["signer_resolution_evidence_ref"] = signer_evidence_ref
+        binding = vector.get("binding_object")
+        if isinstance(binding, dict):
+            binding["signer_resolution_evidence_ref"] = signer_evidence_ref
     vectors = {vector["name"]: vector for vector in data["vectors"]}
     ed = vectors["ak.vector.encoding.crypto.ed25519_detached_jws.v1"]
     es = vectors["ak.vector.encoding.crypto.es256_detached_jws.v1"]

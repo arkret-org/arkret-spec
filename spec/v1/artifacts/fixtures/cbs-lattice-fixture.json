@@ -19,14 +19,14 @@
       "ak.vector.lattice.counter_join.v1",
       "ak.vector.lattice.ordered_log_join.v1",
       "ak.vector.lattice.ordered_log_gap.v1",
-      "ak.vector.lattice.domain_transition_join.v1",
+      "ak.vector.state_model.causal_transition_validation.v1",
       "ak.vector.lattice.causal_register_supersession.v1",
-      "ak.vector.realm_link.fsm_transition_matrix.v1"
+      "ak.vector.realm_link.transition_matrix.v1"
     ],
     "cases": [
       {
         "vector_id": "ak.vector.lattice.causal_register_join.v1",
-        "state_model": "causal_register",
+        "state_model": "sequenced_state",
         "assertions": [
           "concurrent_set_surfaces_all_heads",
           "does_not_choose_winner"
@@ -64,7 +64,7 @@
         ]
       },
       {
-        "vector_id": "ak.vector.lattice.domain_transition_join.v1",
+        "vector_id": "ak.vector.state_model.causal_transition_validation.v1",
         "state_model": "causal_register",
         "assertions": [
           "domain_transition_checked_on_signed_basis",
@@ -85,7 +85,7 @@
         ]
       },
       {
-        "vector_id": "ak.vector.realm_link.fsm_transition_matrix.v1",
+        "vector_id": "ak.vector.realm_link.transition_matrix.v1",
         "cell_family": "ak.component.realm.link.v1",
         "state_model": "causal_register",
         "parameters": {
@@ -139,7 +139,7 @@
           "undeclared_transition_rejects_with_realm_link_invalid_transition",
           "tombstoned_is_terminal_except_byte_equivalent_replay",
           "same_event_identity_replay_is_idempotent",
-          "same_basis_different_status_siblings_remain_unresolved",
+          "same_revision_competitors_produce_one_committed_and_one_rejected_result",
           "general_graph_cycles_are_not_an_admission_error",
           "self_reference_rejects_with_realm_link_self_reference"
         ]
@@ -401,9 +401,9 @@
       }
     },
     {
-      "name": "cas_mixed_basis",
-      "vector_id": "ak.vector.cbs_lattice.cas_mixed_basis.v1",
-      "description": "Safety CAS uses the exact last successful Event revision, including same-value and null writes; data conditions only use their signed causal basis.",
+      "name": "sequenced_revision_guard",
+      "vector_id": "ak.vector.state_model.sequenced_revision_guard.v1",
+      "description": "Safety revision validation uses the exact last successful Event identity, including same-value and null writes; ordinary conditions only use their signed causal basis.",
       "state_model": "sequenced_state",
       "cases": [
         {
@@ -2089,8 +2089,8 @@
       ]
     },
     {
-      "name": "fsm_causal_heads",
-      "vector_id": "ak.vector.lattice.domain_transition_heads.v1",
+      "name": "causal_transition_heads",
+      "vector_id": "ak.vector.state_model.causal_transition_heads.v1",
       "description": "Domain transitions are predicates on a causal register, not a separate state type or a join-time path.",
       "state_model": "causal_register",
       "cases": [

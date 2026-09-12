@@ -90,7 +90,7 @@ H = (H1 ∩ H2) ∪ (H1 \ C2) ∪ (H2 \ C1)
 
 C/H 快照 MUST 绑定资格上下文，即安全确认前缀、授权与关闭依赖和 reducer 合同。不同上下文的快照 MUST NOT 直接 join；先并 K 再重算。业务资格撤回不是普通膨胀型 CRDT delta。
 
-一致性向量 `ak.vector.lattice.causal_register_supersession.v1` 与 `ak.vector.lattice.domain_transition_heads.v1` 验证同值身份、ABA、部分观察与领域转移的因果归约。
+一致性向量 `ak.vector.lattice.causal_register_supersession.v1` 与 `ak.vector.state_model.causal_transition_heads.v1` 验证同值身份、ABA、部分观察与领域转移的因果归约。
 
 ## 7. 其他普通状态与结构
 

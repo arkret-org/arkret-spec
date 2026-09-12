@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.11",
+  "version": "2026-09-12.14",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T10:44:58+08:00",
+  "generated_at": "2026-09-12T13:25:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -68,7 +68,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:be616b302606c05c71b1a35cdc87f5928435f7f9cfff262d4276878a44898bbe",
+      "section_digest": "sha256:afd150600245242a6c38b5a119769fb982bf18573054194dcd7b4e46ffc97719",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another. Section 6.0.2 fixes one construction for every registered proof context: the unsigned projection deletes the proof carrier member rather than nulling it and never defaults an absent optional, an absent optional binding field is omitted rather than written as null, audience is a single string or a duplicate-free array with the single-value form mandatory for one audience, and the context constant is a binding object member rather than a JWS header parameter, so a signature valid under one object family's context MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -178,8 +178,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:2fc6e96a18f1555f60a73f61895af13afc68bd929dfc4a58edc9a46898fea5de",
-      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Station admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal, and a minimal-metadata Realm-local pairwise actor is no exception: its Realm state stays keyed by the complete ActorId, and only the two closed out-of-Realm matching sites (consent peer, KeyPackage claim) use (realm_id, principal_id), which its did:key principal already pins; every MLS epoch binds the security frontier for its accepted key-access state: the Account Station verifies public governance and foreign producer authority, while its authenticated client binds that result to its local MLS leaves and exact intent without governance-history replay; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis. Realm/Circle Proposal/Commit wire inputs are complete PublicMessage MLSMessages; the Station checks public signatures/tree transitions and persists exact consumed-proposal leaf provenance without member MAC secrets. Remove+Add always creates new provenance even when the leaf tuple is unchanged; minimal identities remain pairwise and Sidecar keeps its separate contract. Ordinary clients obtain exact historical Agent signing keys from their own Station instead of replaying public governance; they still verify the actual producer signature and historical MLS binding. Current self signing-key results serve only their requesting validation/in-flight identical query and cannot be reused for future Signals or operations. Message prepare distinguishes local plaintext intent from the encrypted wire request: the client freezes AAD inputs and encrypts locally, checks returned ciphertext/metadata and bindings byte-for-byte, and exact retry never consumes another sender counter. Plaintext is rejected under e2ee_required; the two-request path assumes send readiness and local MLS state.",
+      "section_digest": "sha256:f33ddb7db128c8b3ecbbc1230e0a42aac608087f9402103bd0af370126e41737",
+      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id, its independently verifiable unique producer proof and signer evidence, and a destination-signed claim receipt without separate PCR/device/Agent history sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal, and a minimal-metadata Realm-local pairwise actor is no exception: its Realm state stays keyed by the complete ActorId, and only the two closed out-of-Realm matching sites (consent peer, KeyPackage claim) use (realm_id, principal_id), which its did:key principal already pins; every MLS epoch binds the security frontier for its accepted key-access state: the Account Station verifies public governance and foreign producer authority, while its authenticated client binds that result to its local MLS leaves and exact intent without governance-history replay; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis. Realm/Circle Proposal/Commit wire inputs are complete PublicMessage MLSMessages; the Station checks public signatures/tree transitions and persists exact consumed-proposal leaf provenance without member MAC secrets. Remove+Add always creates new provenance even when the leaf tuple is unchanged; minimal identities remain pairwise and Sidecar keeps its separate contract. Ordinary clients obtain exact historical Agent signing keys from their own Station instead of replaying public governance; they still verify the actual producer signature and historical MLS binding. Current self signing-key results serve only their requesting validation/in-flight identical query and cannot be reused for future Signals or operations. Message prepare distinguishes local plaintext intent from the encrypted wire request: the client freezes AAD inputs and encrypts locally, checks returned ciphertext/metadata and bindings byte-for-byte, and exact retry never consumes another sender counter. Plaintext is rejected under e2ee_required; the two-request path assumes send readiness and local MLS state.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.encrypted_envelope_digest.v1",
@@ -279,17 +279,17 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-因果寄存器",
-      "section_digest": "sha256:12d5e230f3232196d5cc361b2733925cba6c764c65ca45639c5be37152c3bade",
+      "section_digest": "sha256:c8f4a0f76737462f3cb084dbc07829220772d55086a347b6eef634890480fada",
       "requirement": "Ordinary causal_register preserves coverage and every active Event identity, including equal values and explicit null. Join is idempotent, commutative and associative only within the same eligibility context. Apply authorization closure before causal coverage, retain values needed for reclassification, and merge raw evidence before recomputing across contexts. Security sequenced_state has no unordered join; transition tables and CAS remain validation predicates.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.cbs_lattice.cas_mixed_basis.v1",
+        "ak.vector.state_model.sequenced_revision_guard.v1",
         "ak.vector.cbs_lattice.authorized_causal_repair.v1",
         "ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
         "ak.vector.lattice.causal_register_supersession.v1",
         "ak.vector.lattice.counter_join.v1",
-        "ak.vector.lattice.domain_transition_heads.v1",
-        "ak.vector.lattice.domain_transition_join.v1",
+        "ak.vector.state_model.causal_transition_heads.v1",
+        "ak.vector.state_model.causal_transition_validation.v1",
         "ak.vector.lattice.causal_register_join.v1",
         "ak.vector.lattice.ordered_log_gap.v1",
         "ak.vector.lattice.ordered_log_join.v1"
@@ -332,7 +332,7 @@
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
       "section_digest": "sha256:91e0d670084a055b8145d60781b6f5cd4c95150ca04c4d6bc1fa66d0f302f1e9",
-      "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
+      "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, exact Event replay is a no-op, and competing commands against one revision produce one confirmed successor plus durable stale rejection outcomes.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.call_state.transition_matrix.v1",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.11",
+  "version": "2026-09-12.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T10:44:58+08:00",
+  "generated_at": "2026-09-12T13:20:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2011,7 +2011,9 @@
           "approval_request_id",
           "authorized_event_ref",
           "authorized_verification_method",
-          "authorized_public_key_digest"
+          "authorized_public_key_digest",
+          "signer_resolution_evidence_ref",
+          "current_signer_evidence"
         ],
         "closed": true
       }

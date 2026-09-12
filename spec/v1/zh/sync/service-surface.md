@@ -683,7 +683,7 @@ Sync 响应 SHOULD 在每条 reducer-input Event 上携带其当前协议状态�
 
 普通 `causal_register` 的多头 MUST 完整保留；通用 current result 返回 `status=heads`，需要单值却不能确定结果的消费面返回 `unavailable` 并附冲突诊断。不得把多头当成权限或到达顺序赢家。
 
-诊断的唯一 closed shape 见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)：`kind`、`cell_ids` 及该 schema 明确允许的可选诊断字段。它不是 Cell 状态、命令 outcome 或安全恢复载体；不得使用额外的 `cells`、`basis` 镜像。安全 Cell 只有唯一已确认 revision；缺依赖保持 unavailable，已证明的安全确认分叉停止争议后继的授权消费，不能通过通用 recovery 生成另一条合法 lineage。
+诊断的唯一 closed shape 见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)：固定 `kind="conflict"`、ordinary `cell_ids`、按 Event id 排序的 typed `heads[{event_id,value}]` 与可选 `escalated_at`。它不是 Cell 状态、命令 outcome 或安全恢复载体；不得使用额外的 `cells`、`basis`、平行 `event_ids`、free-form details 或 Seal 镜像。安全 Cell 只有唯一已确认 revision；缺依赖保持 unavailable，已证明的安全确认分叉停止争议后继的授权消费，不能通过通用 recovery 生成另一条合法 lineage。
 
 `event_state="fork_quarantine"` 表示争议 Event 被隔离，按 [Actor 分叉规则](../authz/event-auth-state-resolution.md) §15 处理；它不允许重写已经确认的安全历史。`bottom_escalation_after_ms` 只控制普通冲突的带外提示；超时不选赢家、不扩权。
 

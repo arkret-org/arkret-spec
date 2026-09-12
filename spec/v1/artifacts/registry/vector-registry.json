@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.10",
+  "version": "2026-09-12.13",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T10:22:27+08:00",
+  "generated_at": "2026-09-12T13:05:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -931,19 +931,6 @@
       "description": ""
     },
     {
-      "vector_id": "ak.vector.call_state.ordered_competing_transitions.v1",
-      "status": "active",
-      "domain": "call_state",
-      "applies_to_profiles": [
-        "ak.profile.media_service_binding.v1"
-      ],
-      "description": "Same-basis sibling transitions to different states return fsm bottom instead of selecting a winner.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.call_state.initial_state_accepts_allowed.v1",
       "status": "active",
       "domain": "call_state",
@@ -967,6 +954,19 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.call_state.ordered_competing_transitions.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_profiles": [
+        "ak.profile.media_service_binding.v1"
+      ],
+      "description": "Same-basis sibling transitions to different states return fsm bottom instead of selecting a winner.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
       ]
     },
     {
@@ -1404,18 +1404,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.cas_mixed_basis.v1",
-      "status": "active",
-      "domain": "cbs_lattice",
-      "applies_to_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "description": "Safety commands compare exact revisions derived from signed basis, including ABA; ordinary commands validate only their signed causal basis and retain concurrent heads.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.cbs_lattice.confirmed_prefix_compaction.v1",
       "status": "active",
       "domain": "cbs_lattice",
@@ -1560,18 +1548,6 @@
       "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.seal_delta_execution_order.v1",
-      "status": "active",
-      "domain": "cbs_lattice",
-      "applies_to_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "description": "Safety command_results determine execution order; each command checks actual relevant read/write revisions and authorization at its position. Overlap is allowed but stale state is rejected. Ordinary Events never enter delta, registered atomic units have all-or-nothing effects, and producer-selected execution classes are forbidden.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.cbs_lattice.seal_delta_excludes_data_event_digest.v1",
       "status": "active",
       "domain": "cbs_lattice",
@@ -1582,6 +1558,18 @@
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ],
       "description": ""
+    },
+    {
+      "vector_id": "ak.vector.cbs_lattice.seal_delta_execution_order.v1",
+      "status": "active",
+      "domain": "cbs_lattice",
+      "applies_to_fixtures": [
+        "cbs-lattice-fixture.json"
+      ],
+      "description": "Safety command_results determine execution order; each command checks actual relevant read/write revisions and authorization at its position. Overlap is allowed but stale state is rejected. Ordinary Events never enter delta, registered atomic units have all-or-nothing effects, and producer-selected execution classes are forbidden.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
+      ]
     },
     {
       "vector_id": "ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1",
@@ -4252,32 +4240,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.lattice.domain_transition_heads.v1",
-      "status": "active",
-      "domain": "lattice",
-      "applies_to_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "description": "The fsm lattice is a causal register whose active heads carry the transition's `to`: `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis, never join-time edges. Covers input-order permutation and batched merge giving one result, ABA reuse distinguishing A->B->A from A->B->A->B, a registered self-loop on a terminal state leaving later registered transitions legal, concurrent same-`to` writes keeping every identity, a missing dependency holding rather than trusting an unverified `to`, a late branch merging after the fact, concurrent different-`to` recovery still conflicting, and the MLS membership consumer reading the same state as the lattice.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
-        "spec/v1/zh/authz/event-auth-state-resolution.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.lattice.domain_transition_join.v1",
-      "status": "active",
-      "domain": "lattice",
-      "applies_to_vector_groups": [
-        "ak.vector_group.cbs_lattice.v1"
-      ],
-      "description": "fsm join: identical (from,to) sibling transitions converge idempotently; same-from different-to siblings return bottom (reject path).",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.lattice.ordered_log_gap.v1",
       "status": "active",
       "domain": "lattice",
@@ -6185,13 +6147,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.realm_link.fsm_transition_matrix.v1",
+      "vector_id": "ak.vector.realm_link.transition_matrix.v1",
       "status": "active",
       "domain": "realm_link",
       "applies_to_vector_groups": [
         "ak.vector_group.cbs_lattice.v1"
       ],
-      "description": "Realm Link FSM: all declared initial states and transitions are accepted, tombstoned is terminal except byte-equivalent replay, undeclared transitions reject with realm_link_invalid_transition, competing same-revision transitions are serialized and stale commands reject without changing the confirmed state, general graph cycles remain valid, and self-reference rejects with realm_link_self_reference.",
+      "description": "Realm Link transition contract: all declared initial states and transitions are accepted, tombstoned is terminal except byte-equivalent replay, undeclared transitions reject with realm_link_invalid_transition, competing same-revision transitions are serialized and stale commands reject without changing the confirmed state, general graph cycles remain valid, and self-reference rejects with realm_link_self_reference.",
       "source_refs": [
         "spec/v1/zh/models/realm-links.md",
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
@@ -6701,7 +6663,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cbs_lattice.v1"
       ],
-      "description": "A proposed Seal may include at most one mutually exclusive write to the same bottom=reject cell; apply_seal rejects a violating Seal, while unreachable Seal leaves retain ordinary bottom conflict semantics.",
+      "description": "A proposed Seal may include at most one mutually exclusive safety write to the same sequenced_state cell; apply_seal rejects a violating Seal before execution. Unreachable Seal branches never create a second safety state or a Bottom value.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
@@ -7176,6 +7138,44 @@
         "spec/v1/zh/sync/signal.md"
       ],
       "description": "Signal payload_sequence is a durable per-device/per-canonical-scope u64 high-water: forward gaps from reservation/crash/failure are accepted, repeat or rollback is stale, exact envelope replay is diagnosed separately, and scopes remain independent."
+    },
+    {
+      "vector_id": "ak.vector.state_model.causal_transition_heads.v1",
+      "status": "active",
+      "domain": "state_model",
+      "applies_to_fixtures": [
+        "cbs-lattice-fixture.json"
+      ],
+      "description": "The causal register domain-transition validator whose active heads carry the transition's `to`: `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis, never join-time edges. Covers input-order permutation and batched merge giving one result, ABA reuse distinguishing A->B->A from A->B->A->B, a registered self-loop on a terminal state leaving later registered transitions legal, concurrent same-`to` writes keeping every identity, a missing dependency holding rather than trusting an unverified `to`, a late branch merging after the fact, concurrent different-`to` recovery still conflicting, and the MLS membership consumer reading the same state as the lattice.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
+        "spec/v1/zh/authz/event-auth-state-resolution.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.state_model.causal_transition_validation.v1",
+      "status": "active",
+      "domain": "state_model",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cbs_lattice.v1"
+      ],
+      "description": "Domain-transition validation accepts registered transitions against each write's signed causal basis; concurrent accepted writes remain distinct causal heads and are resolved only by an authorized successor.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.state_model.sequenced_revision_guard.v1",
+      "status": "active",
+      "domain": "state_model",
+      "applies_to_fixtures": [
+        "cbs-lattice-fixture.json"
+      ],
+      "description": "Safety commands compare exact revisions derived from signed basis, including ABA; ordinary commands validate only their signed causal basis and retain concurrent heads.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
+      ]
     },
     {
       "vector_id": "ak.vector.state_root.incremental.v1",

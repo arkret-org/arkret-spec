@@ -97,7 +97,7 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 | `rejected` | `rejected` / `active` / `tombstoned` | 本侧可在新的已授权 Control Move 中重新接受。 |
 | `tombstoned` | `tombstoned` | 终态；仅允许字节等价的幂等重放。 |
 
-未列出的迁移 MUST 以 `failed_precondition`、`reason_code=realm_link_invalid_transition` 拒绝。并发 Control Move 按 CBS/Seal basis 裁决；无法得到单一 sealed head 时 cell 为 `⊥` 并 fail closed，不得按时间戳或接收顺序挑选。机器可执行 transition matrix、tombstone 终态、幂等重放与 sibling-conflict 行为由 `ak.vector.realm_link.fsm_transition_matrix.v1` 固化。
+未列出的迁移 MUST 以 `failed_precondition`、`reason_code=realm_link_invalid_transition` 拒绝。该 family 是 `sequenced_state`：同一 confirmed predecessor 上只会确认一个 successor，竞争命令以 committed/rejected 结果收束，不产生 `⊥`，不得按时间戳或接收顺序挑选。机器可执行 transition matrix、tombstone 终态、幂等重放与竞争 revision 行为由 `ak.vector.realm_link.transition_matrix.v1` 固化。
 
 Projection MAY 派生：
 

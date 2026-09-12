@@ -4387,7 +4387,7 @@ def check_history_scale_fixture(lint: Lint) -> None:
             "same_seal_stale_revision_has_rejected_outcome",
             "conflicting_confirmed_security_values_halt_domain",
         }:
-            lint.fail(path, "RHRK CAS concurrency cases are incomplete")
+            lint.fail(path, "RHRK sequenced-state concurrency cases are incomplete")
 
     rhrk = data.get("organization_recovery_archive_durable_before_gc_kat")
     rhrk_vector_id = (
@@ -4691,16 +4691,16 @@ def check_history_scale_fixture(lint: Lint) -> None:
         if row.get("expected_error") not in row.get("actual_errors", []):
             lint.fail(path, f"history direct-traversal negative {name} has no matching observed error")
 
-    membership_cases = data.get("direct_traversal_kat", {}).get("since_join_lineage", {}).get("membership_head_cases", [])
+    membership_cases = data.get("direct_traversal_kat", {}).get("since_join_lineage", {}).get("membership_state_cases", [])
     if {case.get("name") for case in membership_cases} != {
-        "unwritten", "registered_join", "same_value_concurrent_joins", "divergent_heads", "left", "accepted_recovery_join",
+        "unwritten", "confirmed_join", "confirmed_leave", "confirmed_rejoin",
     }:
-        lint.fail(path, "history membership head cases are incomplete")
+        lint.fail(path, "history membership sequenced-state cases are incomplete")
     for case in membership_cases:
-        heads = case.get("heads", [])
-        expected = heads[0].get("event_id") if len(heads) == 1 and heads[0].get("value") == "join" else None
+        state = case.get("state")
+        expected = state.get("revision_event_id") if isinstance(state, dict) and state.get("value") == "join" else None
         if case.get("expected_incarnation") != expected:
-            lint.fail(path, "history membership fixture selects an ambiguous or inactive identity")
+            lint.fail(path, "history membership fixture selects an inactive sequenced revision")
 
     replay_kat = data.get("direct_traversal_replay_kat")
     if not isinstance(replay_kat, dict):
