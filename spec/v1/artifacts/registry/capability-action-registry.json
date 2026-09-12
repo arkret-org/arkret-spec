@@ -1,14 +1,14 @@
 {
-  "version": "2026-09-12.2",
+  "version": "2026-09-12.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T05:53:14+08:00",
+  "generated_at": "2026-09-12T06:56:52+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "risk_tier_definitions": {
     "low": "Read, projection, discovery, ack, and account-private affordances. Freshness fail-closed treats unknown / stale as local-pending allowed (capabilities.md §18).",
-    "medium": "Object create / update / delete, message authoring, invite issuance, MLS proposal, audit query. Freshness requires recent frontier within freshness_required_ms.",
-    "high": "Capability mutation, policy mutation, lifecycle freeze / tombstone / destroy, schema redefinition, MLS commit / welcome / genesis, audit export, moderation decision, admin / hierarchy / upgrade. Freshness MUST be within freshness_required_ms; partition forces local pending with no peer visibility."
+    "medium": "Ordinary authoring and object changes follow registered data execution with verified cached authority. Risk tier does not impose Seal age, online origin or periodic freshness on ordinary publication.",
+    "high": "Registered high-risk approvals and explicit validity constraints are enforced. Security writes revalidate exact authority and preconditions in the unique confirmation sequence; risk labels do not override execution classification."
   },
   "registry_rules": [
     "Wire capability grant.actions[] entries MUST be drawn from this registry; wildcards / segment globs are statically rejected by capability-grant.schema.json.",
@@ -27,7 +27,7 @@
     {
       "action": "ak.agent.action_approve",
       "category": "management",
-      "risk_tier": "medium",
+      "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
         "ak.agent.action_approve"
@@ -1321,7 +1321,6 @@
         "ak.circle.restore",
         "ak.circle.tombstone",
         "ak.circle.update",
-        "ak.conflict.recovery",
         "ak.container.move_item",
         "ak.container.rebalance",
         "ak.fork.resolution",
@@ -1433,7 +1432,6 @@
         "ak.circle.member.add",
         "ak.circle.member.add.others",
         "ak.circle.member.manage",
-        "ak.conflict.recovery",
         "ak.container.move_item",
         "ak.container.rebalance",
         "ak.event.read",
@@ -1996,17 +1994,6 @@
       "required_constraints": [],
       "target_event_kinds": [
         "ak.fork.resolution"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.conflict.recovery",
-      "category": "general",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.conflict.recovery"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"

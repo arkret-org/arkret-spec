@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.2",
+  "version": "2026-09-12.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-11T23:16:51+08:00",
+  "generated_at": "2026-09-12T09:51:32+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -123,54 +123,6 @@
       },
       "preimage": "canonical_digest(envelope_without_event_id_proofs_unsigned) of the enclosing Event (the retained proof.event_digest); not the signer evidence",
       "spec_anchor": "spec/v1/zh/conformance/encoding.md#6-signature"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.event_envelope_station_admission_proof_applet_installation_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/event-envelope.schema.json",
-        "json_path": "$.$defs.station_admission_proof.properties",
-        "digest_field": "applet_installation_digest",
-        "content_addressed_refs": [
-          "producer_signer_resolution_evidence_ref",
-          "signer_resolution_evidence_ref"
-        ]
-      },
-      "preimage": "SHA-256(RFC8785_JCS(AppletInstallationAuthority)) over the original accepted registration_event and capability_grant_event; this commits to the installation and action authority, not either producer or Station signer resolution evidence.",
-      "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-station-authority-与准入证明normative"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.event_envelope_station_admission_proof_event_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/event-envelope.schema.json",
-        "json_path": "$.$defs.station_admission_proof.properties",
-        "digest_field": "event_digest",
-        "content_addressed_refs": [
-          "producer_signer_resolution_evidence_ref",
-          "signer_resolution_evidence_ref"
-        ]
-      },
-      "preimage": "canonical_digest(envelope_without_event_id_proofs_unsigned) of the enclosing Event (the retained proof.event_digest); not the signer evidence",
-      "spec_anchor": "spec/v1/zh/conformance/encoding.md#6-signature"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.event_envelope_station_admission_proof_producer_proof_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/event-envelope.schema.json",
-        "json_path": "$.$defs.station_admission_proof.properties",
-        "digest_field": "producer_proof_digest",
-        "content_addressed_refs": [
-          "producer_signer_resolution_evidence_ref",
-          "signer_resolution_evidence_ref"
-        ]
-      },
-      "preimage": "SHA-256 of the complete producer_event_proof object verified by the origin service; not the signer evidence",
-      "spec_anchor": "spec/v1/zh/models/event-and-patch.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.event_payload_audit_release_payload_policy_version_digest.v1",
@@ -398,21 +350,6 @@
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.seal_root_completeness_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "completeness_root",
-        "content_addressed_refs": [
-          "id"
-        ]
-      },
-      "preimage": "Per-actor completeness commitment; the Seal id is the digest of the whole Seal body",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
       "exemption_id": "ak.exemption.sibling_digest.seal_root_control_event_set_root.v1",
       "status": "active",
       "kind": "distinct_preimage",
@@ -425,36 +362,6 @@
         ]
       },
       "preimage": "RFC6962 Merkle root over the covered control Event set; the Seal id is the digest of the whole Seal body",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_root_data_event_set_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "data_event_set_root",
-        "content_addressed_refs": [
-          "id"
-        ]
-      },
-      "preimage": "Observational root over DataEvent digests; the Seal id is the digest of the whole Seal body",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_root_data_view_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "data_view_root",
-        "content_addressed_refs": [
-          "id"
-        ]
-      },
-      "preimage": "Observational root of KeyView records; the Seal id is the digest of the whole Seal body",
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
@@ -485,21 +392,6 @@
         ]
       },
       "preimage": "Merkle root of control-plane cell state; the Seal id is the digest of the whole Seal body",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_completeness_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal-transparency.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "completeness_root",
-        "content_addressed_refs": [
-          "seal_id"
-        ]
-      },
-      "preimage": "The Seal's completeness_root field value; not the Seal id",
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {

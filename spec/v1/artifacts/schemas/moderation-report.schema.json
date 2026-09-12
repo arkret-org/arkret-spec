@@ -36,7 +36,6 @@
                 "scope_ref",
                 "actor_id",
                 "payload",
-                "seal_ref",
                 "auth_context"
               ],
               "not": {

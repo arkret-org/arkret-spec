@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-signer-evidence.schema.json",
   "title": "Arkret Agent Signer Evidence",
-  "description": "Closed reusable Agent authority state and independent controller gate. Historical acceptance uses the original same-Station admission or a distinct receiver receipt; it never reconstructs past authority from current state.",
+  "description": "Portable Agent authority state and independent controller authorization. Ordinary publication verifies the signed snapshot at observation and applies known revocation closures; cache freshness is not an authorization lease. Security operations use registered current-state validation.",
   "oneOf": [
     {
       "$ref": "#/$defs/current_admission_evidence"
@@ -41,7 +41,7 @@
         "schema",
         "verification_mode",
         "admission_evidence",
-        "event_admission"
+        "authorization_closure_refs"
       ],
       "properties": {
         "schema": {
@@ -53,11 +53,16 @@
         "admission_evidence": {
           "$ref": "#/$defs/admission_evidence"
         },
-        "event_admission": {
-          "$ref": "#/$defs/event_admission"
-        },
         "transparency": {
           "$ref": "#/$defs/transparency"
+        },
+        "authorization_closure_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+          },
+          "description": "All applicable confirmed closure evidence. Empty means none in this verified input context, not proof that no unknown remote revocation exists."
         }
       },
       "additionalProperties": false
@@ -128,11 +133,11 @@
         },
         "pcr_genesis_event": {
           "$ref": "./event-envelope.schema.json",
-          "description": "Original accepted Agent PCR ak.realm.create with producer proof and Station admission. Its event-derived Realm and complete Agent/controller Account actors bind immutable genesis notary and delegation. Required after pause/resume; never inferred from the current lifecycle Event."
+          "description": "Original producer-signed authority Event, confirmed in the exact registered atomic unit or safety sequence. Independent verification binds complete Agent/controller identity, original key and authorization instance."
         },
         "key_authorization_event": {
           "$ref": "./event-envelope.schema.json",
-          "description": "Exact accepted ak.agent.key.authorize named by authorization.authorized_event_id. Its producer proof and Station admission authenticate the inline public_key and complete authorization payload. No separate controller binding signature is used."
+          "description": "Original producer-signed authority Event, confirmed in the exact registered atomic unit or safety sequence. Independent verification binds complete Agent/controller identity, original key and authorization instance."
         },
         "frontier_seal_id": {
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
@@ -268,7 +273,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The sole Agent Authority signature covers domain ak.agent_authority_state_evidence.v1 and every sibling field except proof.jws. issued_at is the actual authoritative state observation, expires_at-issued_at is positive and at most 300 seconds. The effective current deadline is the minimum of lease expiry, independent controller gate expiry, signing-key binding expiry and key authorization expiry. Copying, repackaging or restoring material cannot renew its observation. Historical verification evaluates it at original producer acceptance.",
+      "description": "The Agent Authority signature binds context ak.agent_authority_state_evidence.v1 and every sibling field except proof.jws. issued_at is the immutable observation; expires_at is only the current-query cache deadline, at most 300 seconds later. Ordinary publication can reuse verified observed authority after that deadline and applies explicit key/delegation expiry and revocation closures. Repackaging never changes observation or revives revoked authority.",
       "x-arkret-signature-domain": "ak.agent_authority_state_evidence.v1"
     },
     "controller_account_gate_attestation": {
@@ -370,7 +375,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "Privacy-minimal Account Authority gate. The authority signs domain ak.controller_account_gate.v1 and every field except proof.jws. account_id and raw account cell material are forbidden by the closed schema."
+      "description": "Signed privacy-minimal controller state observation. issued_at and expires_at delimit cache freshness, not a periodic ordinary-publication lease. Ordinary admission uses verified observation plus applicable authorization closures; safety operations independently validate the exact required current state."
     },
     "account_binding_default_basis": {
       "type": "object",
@@ -413,56 +418,6 @@
       },
       "additionalProperties": false
     },
-    "event_admission_receipt": {
-      "type": "object",
-      "required": [
-        "schema",
-        "event_id",
-        "realm_id",
-        "producer_accepted_at",
-        "accepted_at",
-        "agent_id",
-        "verification_method",
-        "producer_signer_resolution_evidence_ref",
-        "receiver_id",
-        "proof"
-      ],
-      "properties": {
-        "schema": {
-          "const": "ak.schema.agent_signer_admission_receipt.v1"
-        },
-        "event_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "producer_accepted_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "accepted_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "agent_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "producer_signer_resolution_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Origin-frozen producer signer evidence root copied from the verified station_admission proof; its embedded digest is the sole wire copy (encoding.md 4.0.1)."
-        },
-        "receiver_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "proof": {
-          "$ref": "#/$defs/detached_jws"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Receiver-signed immutable record that the exact Event and the origin-frozen producer signer-evidence root were durably accepted. producer_accepted_at is copied from the verified station_admission proof. Event digest already commits to seal_ref or seal_basis, so no ambiguous receipt Seal id is repeated. The proof domain is ak.agent_signer_admission_receipt.v1 and covers every field except proof.jws."
-    },
     "authorization": {
       "type": "object",
       "required": [
@@ -491,7 +446,7 @@
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "The sealed activation instant: exactly key_state_witness.seal.sealed_at for authorization.accepted_seal_id, which equals key_state_witness.seal_id. This is distinct from key_authorization_event StationAdmissionProof.accepted_at; the Event may have been durably admitted earlier."
+          "description": "The confirmed key activation instant, exactly key_state_witness.seal.sealed_at. It is not a receiver arrival timestamp and cannot prove when a later ordinary Event existed."
         },
         "not_before": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -610,7 +565,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Exact confirmed key Cell proof at this transition. Reconstruct JCS({cell:cell_ref,state:{revision_event_id:authorization_event_id,value:cell_value}}). This Event must be the last successful write to the Cell in the referenced Seal; a later write requires its own transition witness. cell_value contains the full sorted active tagged set, not a display projection."
     },
     "key_transition_witness": {
       "type": "object",
@@ -684,11 +640,12 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Exact confirmed key Cell proof at this transition. Reconstruct JCS({cell:cell_ref,state:{revision_event_id:transition_event_id,value:cell_value}}). This Event must be the last successful write to the Cell in the referenced Seal; a later write requires its own transition witness. cell_value contains the full sorted active tagged set, not a display projection."
     },
     "key_cell_value": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 0,
       "maxItems": 64,
       "uniqueItems": true,
       "items": {
@@ -702,19 +659,12 @@
             "$ref": "./event-payload.schema.json#/$defs/or_set_dot"
           },
           "value": {
-            "oneOf": [
-              {
-                "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload"
-              },
-              {
-                "$ref": "./event-payload.schema.json#/$defs/agent_key_revoke_payload"
-              }
-            ]
+            "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload"
           }
         },
         "additionalProperties": false
       },
-      "description": "Canonical resolved OR-set entries sorted by tag bytes. Raw or implementation-private JSON is not a valid state value."
+      "description": "Complete sorted active tagged set of a sequenced_state key Cell. Revocation removes authorization entries; it does not add a revoke payload as another permission. Removed tags need not be retained in ordered safety state because revision checks prevent replay resurrection."
     },
     "agent_lifecycle_witness": {
       "type": "object",
@@ -728,7 +678,6 @@
         "seal",
         "cell_ref",
         "cell_value",
-        "cell_heads",
         "leaf_digest",
         "leaf_index",
         "leaf_count",
@@ -758,7 +707,8 @@
           ]
         },
         "accepted_status_event": {
-          "$ref": "./event-envelope.schema.json"
+          "$ref": "./event-envelope.schema.json",
+          "description": "Exact last successful registered status write. Its event_id is the sequenced_state revision_event_id; verify against provenance and the Seal cell proof. A same-value event is not the same revision."
         },
         "seal_id": {
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
@@ -779,34 +729,8 @@
             "active",
             "paused",
             "deactivated"
-          ]
-        },
-        "cell_heads": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 64,
-          "description": "The cell's complete active head set, in the `event-auth-state-resolution.md` section 6.2.1 order. `ak.component.agent.status.v1` is an `fsm` and therefore a causal register (section 9.3.1.5), so its `state_root` leaf hashes `{\"heads\":[...]}` rather than the settled value: a verifier cannot rebuild `leaf_digest` from `cell_value` alone. `cell_value` stays required and MUST equal the state these heads settle to, so the two cannot disagree.",
-          "items": {
-            "type": "object",
-            "required": [
-              "event_id",
-              "value"
-            ],
-            "additionalProperties": false,
-            "properties": {
-              "event_id": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id"
-              },
-              "value": {
-                "type": "string",
-                "enum": [
-                  "active",
-                  "paused",
-                  "deactivated"
-                ]
-              }
-            }
-          }
+          ],
+          "description": "The complete confirmed status value. Rebuild state_root leaf as JCS({cell:cell_ref,state:{revision_event_id:accepted_status_event.event_id,value:cell_value}}); no causal head set or implicit current-key substitution exists."
         },
         "leaf_digest": {
           "$ref": "#/$defs/digest"
@@ -1064,50 +988,6 @@
     "digest": {
       "type": "string",
       "pattern": "^[a-z0-9_.-]+:[0-9a-f]{64}$"
-    },
-    "event_admission": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/station_event_admission"
-        },
-        {
-          "$ref": "#/$defs/receiver_event_admission"
-        }
-      ]
-    },
-    "station_event_admission": {
-      "type": "object",
-      "required": [
-        "kind",
-        "accepted_event"
-      ],
-      "properties": {
-        "kind": {
-          "const": "station_admission"
-        },
-        "accepted_event": {
-          "$ref": "./event-envelope.schema.json"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Mandatory for the same Station authority role and the original durable acceptance. Verify the unique station_admission proof from accepted_event; a second receiver receipt is forbidden."
-    },
-    "receiver_event_admission": {
-      "type": "object",
-      "required": [
-        "kind",
-        "receipt"
-      ],
-      "properties": {
-        "kind": {
-          "const": "receiver_receipt"
-        },
-        "receipt": {
-          "$ref": "#/$defs/event_admission_receipt"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Only a different receiver authority or a different durable acceptance uses this branch."
     }
   }
 }

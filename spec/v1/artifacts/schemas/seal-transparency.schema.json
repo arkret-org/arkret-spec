@@ -10,7 +10,6 @@
     "realm_id",
     "seal_id",
     "control_event_set_root",
-    "completeness_root",
     "state_root",
     "prev_entry_digest",
     "logged_at",
@@ -39,9 +38,6 @@
     "control_event_set_root": {
       "$ref": "#/$defs/digest"
     },
-    "completeness_root": {
-      "$ref": "#/$defs/digest"
-    },
     "state_root": {
       "$ref": "#/$defs/digest"
     },
@@ -64,7 +60,7 @@
   "$defs": {
     "auditor_attestation": {
       "type": "object",
-      "description": "Signed statement by an independent auditor (peer Realm or third party) that it verified the log range [from_index, to_index]: append-only consistency, Seal signature validity, and control/completeness monotonicity along every Seal DAG predecessor edge represented in the range. Log-index-adjacent concurrent leaves are not compared. A client accepts this as verified v1 evidence only when a concrete operation/profile carries it and the deployment policy's required attestation count is met.",
+      "description": "Independent audit of one confirmed Realm prefix: append-only log, exact quorum signatures, single predecessor continuity and monotonic successful-command coverage. Competing same-height Seal values are a safety fault, never joined.",
       "required": [
         "log_id",
         "realm_id",
@@ -107,8 +103,7 @@
             "append_only",
             "seal_signatures",
             "dag_edges_verified",
-            "set_root_monotonic",
-            "completeness_monotonic"
+            "set_root_monotonic"
           ],
           "properties": {
             "append_only": {
@@ -121,9 +116,6 @@
               "const": true
             },
             "set_root_monotonic": {
-              "const": true
-            },
-            "completeness_monotonic": {
               "const": true
             }
           },

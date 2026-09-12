@@ -57,7 +57,7 @@ SECOND_PERSON_RE = re.compile(r"[你您]的?|我们")
 
 # Control Proposal Ack naming guard (RC001 / RC002).
 CONTROL_PLANE_SECTION_FILE = SPEC_ZH / "authz" / "event-auth-state-resolution.md"
-CONTROL_PLANE_SECTION_HEADING = "### 7.2 控制面 Control Proposal Ack 与 inclusion obligation"
+CONTROL_PLANE_SECTION_HEADING = "## 14. 控制面 Control Proposal Ack 与 inclusion obligation"
 SECTION_HEADING_RE = re.compile(r"^#{2,3} ")
 RETIRED_RECEIPT_RE = re.compile(
     r"(?i)"

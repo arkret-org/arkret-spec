@@ -530,7 +530,7 @@
     ],
     "concurrency_cases": [
       {
-        "name": "same_seal_sibling_is_rejected_before_join",
+        "name": "same_seal_stale_revision_has_rejected_outcome",
         "basis": {
           "key_tuple": {
             "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000121",
@@ -548,12 +548,12 @@
             ]
           }
         },
-        "expected": "rejected_seal",
+        "expected": "first_committed_second_rejected",
         "reason": "cas_conflict",
-        "accepted_writes": 0
+        "accepted_writes": 1
       },
       {
-        "name": "incomparable_accepted_branches_join_bottom",
+        "name": "conflicting_confirmed_security_values_halt_domain",
         "basis": {
           "key_tuple": {
             "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000121",
@@ -571,8 +571,9 @@
             ]
           }
         },
-        "expected": "bottom",
-        "read_status": "failed_bottom"
+        "expected": "halt_security_domain",
+        "read_status": "failed_bottom",
+        "accepted_writes": 0
       }
     ],
     "negative_mutations": [
@@ -1523,7 +1524,7 @@
     "generator": "tools/generate_history_scale_fixture.py",
     "traversal_intent_digest": "SHA256(UTF8('ak.history-governance-traversal-intent-v1')||0x00||JCS(intent))",
     "streaming_storage": "temporary SQLite work queue plus visited set; one canonical descriptor is live at a time",
-    "fixture_storage": "small replayable open-set cut, dependency objects and aggregate scale summaries only",
+    "fixture_storage": "small replayable confirmed-prefix interval, dependency objects and aggregate scale summaries only",
     "proof_transport": "none; standard Event, Seal and governance-dependency resolve carry retained objects",
     "prewrite_budget": 65536
   },

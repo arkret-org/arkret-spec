@@ -24,7 +24,7 @@ Arkret 的访问授权由 **capability + invite** 两条路径承担。但二者
 
 它是invite及其它**不以 Contact 为授权依据**的动作路径的holder-private前置gate。Contact request/response、Contact-based create/send与Personal DM明确不读取本模型；它们只读取双方holder-signed directional Contact heads（见[`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md)）。
 
-本规范定义 Arkret 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol-06`](https://datatracker.ietf.org/doc/html/draft-ietf-mimi-protocol-06) 的 consent 概念，并完整落在 Arkret 的 CBS / Lattice 模型之上：consent 是 holder 控制的 Realm 内某个 consent cell（or_set lattice）的当前 join 值，由签名 Control Move 维护并在被 accepted Seal 覆盖后生效。
+本规范定义 Arkret 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol-06`](https://datatracker.ietf.org/doc/html/draft-ietf-mimi-protocol-06) 的 consent 概念，并完整落在 Arkret 的 CBS / Lattice 模型之上：consent 是 holder 控制的 Realm 内某个 consent cell（sequenced_state，值为活跃 tagged set）的当前确认值，由签名 Control Move 维护并在被 accepted Seal 覆盖后生效。
 
 ## 2. 设计原则
 
@@ -60,21 +60,21 @@ Consent 表达"我允许某个 peer 发起某类不以 Contact 为授权依据�
 
 ### 3.1 Consent Cell
 
-Consent state 写入 holder 控制的 Realm（默认是 holder 的 principal control Realm）内一个 or_set lattice cell：
+Consent state 写入 holder 控制的 Realm（默认是 holder 的 principal control Realm）内一个 sequenced_state 安全集合 Cell：
 
 ```text
 cell_id  = ak:cell:ak.component.consent.grant.v1:<consent_id>
-lattice  = or_set
-bottom   = inert  // or_set join never produces ⊥
+state_model = sequenced_state
+value_shape = set
 ```
 
 - `consent_id` 是 consent 槽的 subject。同一 holder 对同一 peer 的不同 consent_scope 用不同 consent_id；同 consent_id 上所有 add / remove tag op 收敛于同一 cell。
-- or_set join 永不产生 ⊥，因此 registry 对 consent cell 明确登记 `bottom=inert`，不构成任何"reject"语义；effective consent 始终由 or_set join 决定。
+- effective consent 来自唯一确认序列中的活跃 tagged set。grant/revoke 检查实际相关 revision，竞争命令可以被拒绝，不能无序 join 成权限。
 - **缺省判定（normative，唯一默认）**：一个`(consent_id,peer,consent_scope)`没有active grant dot时，effective consent=`no-consent`，invite/非Contact action gate不得放行（按§6.1 profile拒绝或进入holder quarantine）。该默认不得扩展到Contact/Personal DM，因为那些路径根本不以Consent为authority。
 
 ### 3.2 `ak.consent.grant` Control Move
 
-**为什么暴露 dot 模型（normative rationale）**: observe-remove OR-Set 要求 revoker 在 wire 层能枚举将要撤销的具体 dot；否则两个并发 revoke 会因为没有 `observed_dot_ids` 上下文产生分布式 race（一方撤旧 dot，另一方撤新 dot，UI 看似已撤销但 state 仍 active）。把 dot 暴露给客户端是正确性必需，不是冗余复杂度。
+**精确撤销身份（normative）**：observed_dot_ids 固定要移除的授权实例，不能用业务值或接收时刻推测。签名 basis 的 Cell revision 必须在确认执行位置仍匹配；并发变化导致拒绝后，调用方取得新状态再明确签署所需撤销。不能以此保证一次部分撤销删除所有未来 grant。
 
 ```text
 ControlMove(ak.consent.grant) {
@@ -99,7 +99,7 @@ ControlMove(ak.consent.grant) {
   seal_basis    = <holder principal control Realm 的当前 Seal basis>
 }
 
-receiver 按 registry 从 `kind + payload` 唯一投影一条 `or_set add`：目标 cell
+receiver 按 registry 从 `kind + payload` 唯一投影一条 安全集合 add：目标 cell
 为 `ak.component.consent.grant.v1:<consent_id>`，dot 为
 `"ak:event:<enclosing event_id>:<write_index>"`（dot 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value 为 payload 的规范化 consent
 entry。该投影不是 Event wire 字段。
@@ -144,7 +144,7 @@ Payload-only schema 示例：
 
 Event `actor_id` 与认证 holder MUST 是 holder Principal Control Realm 当前 authority-root controller，且 `authorization_ref` MUST 绑定当前 authority-root 授权。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持由不同主体独立 managed-behalf 执行，也不可作为 `consent_write` capability 授予 controller / agent；通用 PCR write、co-owner grant、agent 自动化权限、payload approval evidence 或 `ak.self.events.command.submit.v1` 均不得替代 authority-root authorization。普通 Event admission MUST 验证上述约束，缺失或由其他 actor 提交时 MUST 以 `unauthorized` reject。
 
-`dot` 由 `ak:event:<enclosing event_id>:<write_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
+`dot` 由 `ak:event:<enclosing event_id>:<write_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，安全集合将顺序确认的 grant 保留为不同 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
 
 ### 3.3 `ak.consent.revoke` Control Move
 
@@ -171,11 +171,11 @@ ControlMove(ak.consent.revoke) {
 }
 
 receiver 按 registry 从 `kind + payload` 唯一投影同一 consent cell 上的
-`or_set remove`；其 `observed_dot_ids` 必须逐字取自 payload。该投影不是 Event
+安全集合 remove；其 `observed_dot_ids` 必须逐字取自 payload。该投影不是 Event
 wire 字段。
 ```
 
-`observed_dot_ids` MUST 列出 revoke 想要撤销的具体 add dot；它们 MUST 在该 Control Move 的 `seal_basis` view 下解析为合法 add op。precondition `contains_dots` 让 reducer 在 dots 已被先行 revoke 时拒绝 no-op 重放，避免审计日志中出现无意义记录；多 issuer 并发 revoke 同一 dot 收敛于 or_set 的去重语义。`observed_dot_ids` 之外的 dot 不受影响——这是 OR-Set 的 normative 行为。
+`observed_dot_ids` MUST 列出 revoke 想要撤销的具体 add dot；它们 MUST 在该 Control Move 的 `seal_basis` view 下解析为合法 add op。precondition `contains_dots` 让 reducer 在 dots 已被先行 revoke 时拒绝 no-op 重放，避免审计日志中出现无意义记录；多 issuer 基于同一 revision 撤销时至多一个成功；相同 Event exact replay 返回原结果，另一 stale Event 拒绝。`observed_dot_ids` 之外的 dot 不受影响——这是登记的精确移除行为。
 
 Payload-only schema 示例：
 
@@ -194,7 +194,7 @@ Reducer projection 的 `observed_dot_ids[]` MUST 逐字等于 payload 的 `obser
 
 **Regrant**：撤销后 holder 可以再次发出 `ak.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dot_ids` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
 
-**完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, consent_scope) intent 需要 client 在构造 revoke Control Move 前先查询当前 cell 的 or_set join，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——admin / UI MUST 把这种状态明确提示为 "partial revoke"。
+**完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, consent_scope) intent 需要 client 在构造 revoke Control Move 前先查询当前 cell 的 已确认安全集合，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——admin / UI MUST 把这种状态明确提示为 "partial revoke"。
 
 撤销在该revoke Control Move被accepted Seal覆盖后立即生效；此前凭Consent发出的invite或其它非Contact action不追溯失效。Contact事实不读取本cell。
 
@@ -249,15 +249,15 @@ consent revoke 被 accepted Seal 覆盖后，下列下游缓存 MUST eager inval
 
 ## 5. Cell Join 与 Effective Consent
 
-Consent cell 是 or_set lattice（dot-based observed-remove，详见 [`event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md)）。Effective consent 由当前 Seal view 下 cell 的 or_set join 派生：
+Consent cell 是 sequenced_state 安全状态，值为 dot-based observed-remove 集合（详见 [`event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。Effective consent 由当前 Seal view 下 确认顺序逐项应用集合增删所得状态派生：
 
-- `active_dots(cell) = { (dot, value) ∈ or_set.adds | dot ∉ or_set.observed_dot_ids }`
+- `active_dots(cell) = { (entry.tag_id, entry.value) | entry ∈ cell.state.value }`
 - `effective_grants(cell) = group active_dots(cell) by value.intent` —— projection 把同 intent 的多 active dot 折叠成一条 effective consent。
 - 一个`(consent_id,peer,concrete_scope)`的grant当前生效（即invite/非Contact action gate放行）当且仅当：
   - `active_dots(cell)` 中存在 ≥1 条 `value.intent == (consent_id, peer, concrete_scope)` **或** `value.intent == (consent_id, peer, "any")` 的 dot；
   - 当前时间 ∈ `[not_before, expires_at]`（窗口字段缺省视为 `(-∞, +∞)`）。
 - 不同 consent ID 是独立 cell；查询 `(holder_account_id,JCS(peer),scope)` 时只有 invite / 非 Contact action service 遍历 holder cells 匹配，完整 identity tuple 任一分量不同都不命中。
-- 同一 CBS basis 内并发 grant 与 revoke 在 or_set join 后唯一确定（add dot 集合与 observed_dot_ids 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / admin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
+- grant 与 revoke 在 Realm 安全序列中执行，每条命令验证实际相关 revision；先前状态变化使旧命令拒绝。审计保留成功与拒绝 outcome，invite gate 只使用当前已确认活跃集合，不合并竞争权限。
 
 物化 `Consent` 对象由 holder client / admin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。Consent 没有 canonical-object schema：cell 的写入 payload 由 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `ak.consent.grant` / `ak.consent.revoke` 绑定，投影形态由 [`consent-operations.schema.json#/$defs/consent_cell_view`](../../artifacts/schemas/consent-operations.schema.json) 固定；本文只定义语义。
 
@@ -272,7 +272,7 @@ Peer 发送 invite Control Move 时，consent gate 在 **holder 的 Station** �
 
 查询步骤：
 
-1. 调用 holder 的 principal control Realm（或受托 contact discovery service）查询所有候选 consent cell（subject 由 holder consent 命名约定决定），跑 or_set join 后筛选 `value.intent` 匹配 `(peer=requester, scope="invite" OR consent_scope="any")` 当前 active 的 dot 集合。
+1. 调用 holder 的 principal control Realm（或受托 contact discovery service）查询所有候选 consent cell（subject 由 holder consent 命名约定决定），跑 已确认安全集合 后筛选 `value.intent` 匹配 `(peer=requester, scope="invite" OR consent_scope="any")` 当前 active 的 dot 集合。
    **`peer=requester` 是分类型精确匹配，跨 kind 永不匹配（normative）**：
    - 已认证对端是普通 Account / Agent / pseudonymous Account / service Actor 时，**只**与 `{kind:"actor"}` entry 按**完整 ActorId**（含 Station 与 role）比较，MUST NOT 降维到 principal core；
    - 已认证对端是 Realm-local ephemeral pairwise actor 时，**只**与 `{kind:"pairwise_principal"}` entry 按 `(realm_id, principal_id)` 比较，且该 actor MUST 是 `realm_id` 所指 Realm **当前** active LeafNode 所投影的 actor；
@@ -445,7 +445,7 @@ contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防
 MIMI 协议有 `request_consent` / `update_consent` 操作（`ak.open.mimi.command.request_consent.v1` / `ak.open.mimi.command.update_consent.v1`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
 
 - 接收 MIMI consent update：facade MUST 先验证私有 request correlation 声明的 holder、Event actor 与认证主体均是该 holder Principal Control Realm 当前 authority-root controller，且 `authorization_ref` 绑定该 authority root；不同主体的 managed-behalf 执行不受支持。facade MUST 把调用方携带的 exact `ak.consent.grant` / `ak.consent.revoke` `EventInitialSubmission` 原样送入普通 Event admission，不得构造、代签或重建该 Control Move。只有 accepted Event 才能写入 holder principal control Realm 的 consent cell。
-- 发送 Arkret consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
+- 发送 Arkret consent state 到 MIMI：facade MUST 把当前 consent cell 已确认安全集合 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
 - consent state 不暴露具体 evidence_ref / reason 跨 provider；只暴露最小 `(peer, scope, granted/revoked)` 三元组。
 
 ## 8. 隐私与审计

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.1",
+  "version": "2026-09-12.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T06:19:17+08:00",
+  "generated_at": "2026-09-12T09:51:32+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "rules": [
@@ -13,7 +13,7 @@
   "families": [
     {
       "cell_family": "ak.component.actor.discovery.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_actor_discovery",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -22,11 +22,26 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
+    },
+    {
+      "cell_family": "ak.component.agent.approval_consumption.v1",
+      "state_model": "sequenced_state",
+      "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_agent_approval_consumption",
+      "target_class": "realm",
+      "target_derivation": "enclosing_realm",
+      "source_event_kinds": [
+        "ak.agent.action_approve"
+      ],
+      "projection_omitted_fields": [],
+      "result_projection": "joined_value",
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.agent.key.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_agent_key",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -37,11 +52,12 @@
       "projection_omitted_fields": [],
       "result_projection": "domain_current",
       "result_projection_schema_ref": "schemas/account-current-result.schema.json#/$defs/projected_agent_key",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.agent.principal_control_realm_claim.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_agent_principal_control_realm_claim",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -50,11 +66,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.agent.provision.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_agent_provision",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -63,11 +80,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.agent.selector_claim.v1",
-      "lattice": "mv_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_agent_selector_claim",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -77,11 +95,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.agent.status.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_agent_status",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -93,11 +112,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.applet.discovery.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_applet_discovery",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -106,11 +126,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.applet.managed_actor_provision.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_applet_managed_actor_provision",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -119,11 +140,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.applet.registration.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_applet_registration",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -132,11 +154,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.audit.binding.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_audit_binding",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -145,11 +168,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.audit.binding_state.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_audit_binding_state",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -159,11 +183,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.audit.session.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_audit_session",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -175,11 +200,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.calendar.rsvp.v1",
-      "lattice": "mv_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_calendar_rsvp",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -188,11 +214,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.call.focus.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_focus",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -201,11 +228,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.call.moderation.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_moderation",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -214,11 +242,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.call.mute_override.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_mute_override",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -227,11 +256,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.call.recording.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_recording",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -241,11 +271,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.call.recording_result.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_recording_result",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -255,11 +286,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.call.roster.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_roster",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -268,11 +300,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.call.state.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_state",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -282,11 +315,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.call.summary.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_summary",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -295,11 +329,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.call.transcript.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_transcript",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -309,11 +344,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.call.transcript_result.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_call_transcript_result",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -323,11 +359,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.capability.derived.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_capability_derived",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -336,11 +373,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.capability.grant.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_capability_grant",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -351,11 +389,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.circle.history_access.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_circle_history_access",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -365,11 +404,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.circle.lifecycle.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_circle_lifecycle",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -379,11 +419,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.circle.member.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_circle_member",
       "target_class": "member",
       "target_derivation": "registered_subject_actor",
@@ -392,11 +433,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.circle.metadata.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_circle_metadata",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -410,11 +452,12 @@
         "history_access"
       ],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.circle.tombstone.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_circle_tombstone",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -423,11 +466,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.consent.grant.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_consent_grant",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -437,11 +481,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.container.order.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_container_order",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -450,11 +495,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.container.position.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_container_position",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -463,11 +509,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.device.authorization.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_device_authorization",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -477,11 +524,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.device.list_update.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
       "source_event_kinds": [
@@ -491,11 +539,12 @@
       "result_projection": "joined_value",
       "delivery": "dedicated_channel",
       "channel": "device_lists",
-      "reason": "Historical notification assertions are not current device state; use the account device_lists channel and current device queries."
+      "reason": "Historical notification assertions are not current device state; use the account device_lists channel and current device queries.",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.direct_conversation.binding.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_direct_conversation_binding",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -504,11 +553,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.fork_resolution.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_fork_resolution",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -517,11 +567,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.handle.discovery.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_handle_discovery",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -530,11 +581,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.identity.accountability.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_identity_accountability",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -544,11 +596,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.identity.disclosure_policy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_identity_disclosure_policy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -557,11 +610,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.identity.resolution.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_identity_resolution",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -571,11 +625,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.invite.lifecycle.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_invite_lifecycle",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -589,11 +644,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.invite.live_target.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_invite_live_target",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -605,11 +661,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.invite.membership_proposal.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_invite_membership_proposal",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -618,11 +675,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.key_backup.active_series.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_key_backup_active_series",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -631,11 +689,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.member.state.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_member_state",
       "target_class": "member",
       "target_derivation": "registered_subject_actor",
@@ -645,11 +704,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.message.reactions.v1",
-      "lattice": "or_set",
+      "state_model": "or_set",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_message_reactions",
       "target_class": "event",
       "target_derivation": "message_create_event_from_registered_subject",
@@ -660,11 +720,12 @@
       "projection_omitted_fields": [],
       "result_projection": "domain_current",
       "result_projection_schema_ref": "schemas/account-current-result.schema.json#/$defs/projected_reactions",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.message.revision.v1",
-      "lattice": "mv_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_message_revision",
       "target_class": "event",
       "target_derivation": "message_create_event_from_registered_subject",
@@ -673,11 +734,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.mimi.room_binding.v1",
-      "lattice": "mv_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_mimi_room_binding",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -686,11 +748,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.mls.epoch.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_mls_epoch",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -700,11 +763,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.mls.key_schedule.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_mls_key_schedule",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -714,11 +778,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.mls.keypackage.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_mls_keypackage",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -727,11 +792,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.moderation_state.v1",
-      "lattice": "or_set",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_moderation_state",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -741,11 +807,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.morph.lifecycle.v1",
-      "lattice": "fsm",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_morph_lifecycle",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -755,11 +822,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.morph.stage.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_morph_stage",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -768,11 +836,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.morph.v1",
-      "lattice": "mv_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_morph",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -787,11 +856,12 @@
         "stage_changed_at"
       ],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.notary.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_notary",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -801,11 +871,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.notary_fault.v1",
-      "lattice": "or_set",
+      "state_model": "or_set",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_notary_fault",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -815,11 +886,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.object.redaction.v1",
-      "lattice": "or_set",
+      "state_model": "or_set",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_object_redaction",
       "target_class": "object",
       "target_derivation": "accepted_object_subject_target",
@@ -829,11 +901,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.organization.discovery.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_organization_discovery",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -842,11 +915,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.organization.moderation_policy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_organization_moderation_policy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -855,11 +929,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.pin.v1",
-      "lattice": "or_set",
+      "state_model": "or_set",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_pin",
       "target_class": "pin_scope",
       "target_derivation": "accepted_pin_scope_target",
@@ -871,11 +946,12 @@
       "projection_omitted_fields": [],
       "result_projection": "domain_current",
       "result_projection_schema_ref": "schemas/account-current-result.schema.json#/$defs/projected_pins",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "set"
     },
     {
       "cell_family": "ak.component.policy.definition.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_policy_definition",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -884,11 +960,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.profile.create.v1",
-      "lattice": "mv_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_profile_create",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -900,11 +977,12 @@
         "resolution"
       ],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.profile.realm_override.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_profile_realm_override",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -913,11 +991,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.alias.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_alias",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -926,11 +1005,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.archive.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_archive",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -940,11 +1020,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.asset_privacy_policy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_asset_privacy_policy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -953,11 +1034,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.authority_root.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_authority_root",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -968,11 +1050,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.destroy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_destroy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -981,11 +1064,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.digest_suite.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_digest_suite",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -994,11 +1078,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.discovery.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_discovery",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1007,11 +1092,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.freeze.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_freeze",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1021,11 +1107,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.genesis.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_genesis",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1034,11 +1121,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.history_access.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_history_access",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1048,11 +1136,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.inheritance_policy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_inheritance_policy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1061,11 +1150,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.join_rule.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_join_rule",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1074,11 +1164,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.link.v1",
-      "lattice": "fsm",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_link",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1087,11 +1178,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.media_service.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_media_service",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1100,11 +1192,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.organization.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_organization",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1113,11 +1206,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.organization_recovery_key.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_organization_recovery_key",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1127,11 +1221,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.plaintext_visible_services.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_plaintext_visible_services",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1140,11 +1235,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.policy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_policy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1153,11 +1249,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.policy_bundle.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_policy_bundle",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1166,11 +1263,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.preview_policy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_preview_policy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1179,11 +1277,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.profile.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_profile",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1192,11 +1291,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.read_receipt_policy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_read_receipt_policy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1205,11 +1305,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.reducer_profile.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_reducer_profile",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1219,11 +1320,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.schema.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_schema",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1232,11 +1334,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.search_policy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_search_policy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1245,11 +1348,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.set_default_strand.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_set_default_strand",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1258,11 +1362,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.realm.tombstone.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_realm_tombstone",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1271,11 +1376,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.relation.conflict_resolution.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_relation_conflict_resolution",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1284,11 +1390,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.relation.lifecycle.v1",
-      "lattice": "fsm",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_relation_lifecycle",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1297,11 +1404,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.relation.v1",
-      "lattice": "mv_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_relation",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1314,11 +1422,12 @@
         "state_changed_at"
       ],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.schema.definition.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_schema_definition",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1327,11 +1436,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.sovereign.did_policy.v1",
-      "lattice": "cas_register",
+      "state_model": "sequenced_state",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_sovereign_did_policy",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1340,11 +1450,27 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
+    },
+    {
+      "cell_family": "ak.component.space.child_scope_policy.v1",
+      "state_model": "sequenced_state",
+      "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_space_child_scope_policy",
+      "target_class": "realm",
+      "target_derivation": "enclosing_realm",
+      "source_event_kinds": [
+        "ak.space.create",
+        "ak.space.update"
+      ],
+      "projection_omitted_fields": [],
+      "result_projection": "joined_value",
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.space.lifecycle.v1",
-      "lattice": "fsm",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_space_lifecycle",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1355,11 +1481,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.space.metadata.v1",
-      "lattice": "mv_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_space_metadata",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1368,29 +1495,33 @@
         "ak.space.update"
       ],
       "projection_omitted_fields": [
+        "child_scope_policy",
+        "parent_space_id",
         "state",
-        "state_changed_at",
-        "parent_space_id"
+        "state_changed_at"
       ],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.space.parent.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_space_parent",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
       "source_event_kinds": [
+        "ak.space.create",
         "ak.space.parent"
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.strand.lifecycle.v1",
-      "lattice": "fsm",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_strand_lifecycle",
       "target_class": "strand",
       "target_derivation": "registered_subject_strand",
@@ -1400,11 +1531,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.strand.object.v1",
-      "lattice": "mv_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_strand_object",
       "target_class": "strand",
       "target_derivation": "registered_subject_strand",
@@ -1420,11 +1552,12 @@
         "stage_changed_at"
       ],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.strand.position.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_strand_position",
       "target_class": "strand",
       "target_derivation": "registered_subject_strand",
@@ -1434,11 +1567,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.strand.stage.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_strand_stage",
       "target_class": "strand",
       "target_derivation": "registered_subject_strand",
@@ -1447,11 +1581,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.strand.watch.v1",
-      "lattice": "cas_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_strand_watch",
       "target_class": "strand",
       "target_derivation": "registered_subject_strand",
@@ -1460,11 +1595,12 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     },
     {
       "cell_family": "ak.component.view.v1",
-      "lattice": "mv_register",
+      "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_view",
       "target_class": "realm",
       "target_derivation": "enclosing_realm",
@@ -1475,7 +1611,8 @@
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",
-      "delivery": "current"
+      "delivery": "current",
+      "value_shape": "register"
     }
   ],
   "budgets": {

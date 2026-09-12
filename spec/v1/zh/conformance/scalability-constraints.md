@@ -63,7 +63,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单 producer 每毫秒 HLC 生成事件数 | 以 [`encoding.md` §7](./encoding.md) 为准 | HLC logical 空间、溢出行为、producer 边界与非收敛用途均以 encoding 的唯一规范定义为准。[^hlc-throughput] [^hlc-logical-width] |
 | 单 producer 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和自己的 HLC logical 段或下游 reducer。超过该建议持续吞吐时，工作负载 SHOULD 拆分为多个合法 device / actor producer，或考虑使用 batch event；不得伪造 producer identity 规避授权或限流。 |
 | Cursor TTL 硬上限 | 以 [`encoding.md` §8.3 规则 9](./encoding.md) 为准 | purpose 对应上限值、issuer 校验与超限/自然过期错误语义均以 encoding 的唯一规范定义为准。 |
-| 协议级 `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 这是 v1 跨时间校验的单一硬上界：HLC 入站 freshness 超界时 MUST reject / quarantine；Seal `sealed_at` 超界时进入 `seal_deferred_future_skew` 非终态；授权 verification time、`approved_at`、quota / temporal constraint 超界时 MUST fail closed。复用同一常量不使 producer 可控 HLC 成为授权、Lattice winner、Control Move precondition 或 Seal finality 输入；这些路径各自使用 verifier 固定的本地时间和其领域文档定义的处理结果。见 [encoding.md](./encoding.md) §7.2、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3.3 与 [constraint-schema.md](../authz/constraint-schema.md) §16–§17。 |
+| 协议级 `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 这是 v1 跨时间校验的单一硬上界：HLC 入站 freshness 超界时 MUST reject / quarantine；Seal `sealed_at` 超界时进入 `seal_deferred_future_skew` 非终态；授权 verification time、`approved_at`、quota / temporal constraint 超界时 MUST fail closed。复用同一常量不使 producer 可控 HLC 成为授权、Lattice winner、Control Move precondition 或 Seal finality 输入；这些路径各自使用 verifier 固定的本地时间和其领域文档定义的处理结果。见 [encoding.md](./encoding.md) §14、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3.3 与 [constraint-schema.md](../authz/constraint-schema.md) §16–§17。 |
 | HLC `expected_future_skew_ms`（软 future drift 阈值） | 30,000 ms（30 秒） | 见 [encoding.md](./encoding.md) §7.2。超该阈值但未超 `hard_future_skew_ms` 时 receiver SHOULD soft-fail / quarantine。 |
 | HLC `state_event_expected_future_skew_ms`（state event 软阈值） | 默认按 `expected_future_skew_ms` | 见 [encoding.md](./encoding.md) §7.2。profile MAY 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）声明更严窗口；未声明时按 `expected_future_skew_ms` 处理。 |
 
@@ -101,7 +101,7 @@ RFC 8785 JCS(
 
 - 单独测 payload 或 “without proof” 形态都不够；multi-proof / hybrid proof 的**全部** active proof 都计入。
 - producer / self submit 与 peer submit 的 Event **MUST NOT** 携带 `unsigned`。该字段只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断（与 [`encoding.md` §2](./encoding.md) 的签名字节排除规则一致）。
-- origin MUST 在真正 commit 前，对将持久化的完整 accepted envelope（含 producer proof 与待追加的 `station_admission`，不含 read-view `unsigned`）执行 1 MiB 检查；不得在签名后补写、删除或改写任何 Event 字段来规避上限。
+- receiver MUST 在本地持久化前，对将持久化的完整 accepted envelope（含唯一 producer proof，不含 read-view `unsigned`）执行 1 MiB 检查；不得在签名后补写、删除或改写任何 Event 字段来规避上限。
 - Event 被包含在 batch / operation body 中时，同时受单 Event 1 MiB 与外层 body 8 MiB 约束。
 - 服务端附加的 `unsigned` 另受单对象 16 KiB canonical JSON 上限，并计入 response body 8 MiB，但 **不** 反向改变已接受 Event 的 1 MiB 身份。16 KiB 足以承载 age、redaction reason 与有限 transport hints；更大的诊断、receipt 集合或扩展材料 MUST 使用 read model 的独立分页 / 引用字段，MUST NOT 塞进一个未签名、开放解释的旁路对象。该值是 response amplification 安全边界。
 - 1 MiB + 1 MUST 返回 `payload_too_large`，MUST NOT 因为 JSON schema 恰好也失败而返回 `schema_violation`。
@@ -276,10 +276,10 @@ operation 已定义的有界分页/typed unavailable，不得截断完整事实�
 | peer dependency resolve 连续轮次 | 8 | 每一成功轮 MUST 严格缩小 typed missing sets；第 9 轮进入 operator diagnostic。 |
 | 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |
 | 单次 Lattice join 内存预算 | 实现声明 | 服务 MUST 暴露，超出时返回可恢复错误而不是 OOM。 |
-| `proposal_intake_sla_ms` | 86,400,000 ms（24h，default 与 v1 wire maximum）| `realm.schema.json`；pending Control Move 得到 signed Control Proposal Ack / rejection 的截止（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。按 notary 提交时间计。 |
+| `proposal_intake_sla_ms` | 86,400,000 ms（24h，default 与 v1 wire maximum）| `realm.schema.json`；pending Control Move 得到 signed Control Proposal Ack / rejection 的截止（[`event-auth-state-resolution.md` §14](../authz/event-auth-state-resolution.md)）。按 notary 提交时间计。 |
 | `proposal_decision_window_ms` | 30,000 ms（30s，default）；`minimum=1`；`maximum=86,400,000`（24h） | `realm.schema.json`；Control Proposal Ack 的首个可验证决议窗口。必须满足 `proposal_decision_window_ms <= proposal_absolute_deadline_ms`；违反时 Realm create / policy update MUST `schema_violation`。若 `max_proposal_defers > 0`，必须严格小于。到期前须 include / signed-reject / bounded signed-defer；不是接受或 finality SLA。 |
 | `proposal_absolute_deadline_ms` | 90,000 ms（90s，default）；`minimum=1`；`maximum=259,200,000`（72h） | `realm.schema.json`；从 Ack signed `received_at` 起不可延长的决议绝对窗口。defer 必须原样保留 `absolute_due_at`；与 decision window 的相对约束见上一行。 |
-| 单个 pending Control Move 累计 defer 数（`max_proposal_defers`）| 2（default 与 protocol maximum）| `realm.schema.json`；每次 defer 绑定原 Ack、closed reason 与递增 deadline；两窗口相等时 MUST 为 `0`，否则不存在合法的递增 deadline。超过仍未 include / signed-reject 构成 decision-overdue / censorship evidence（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。 |
+| 单个 pending Control Move 累计 defer 数（`max_proposal_defers`）| 2（default 与 protocol maximum）| `realm.schema.json`；每次 defer 绑定原 Ack、closed reason 与递增 deadline；两窗口相等时 MUST 为 `0`，否则不存在合法的递增 deadline。超过仍未 include / signed-reject 构成 decision-overdue / censorship evidence（[`event-auth-state-resolution.md` §14](../authz/event-auth-state-resolution.md)）。 |
 
 CBS fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
 
@@ -305,7 +305,7 @@ projection / patch / profile 只能声明相同或更低的值，不得扩大它
 2. **Targeted dependency fetch**：按精确 missing DataEvent、Control Move、Seal predecessor 与 critical refs 拉取；允许有界可验证超集，不把传输优化算法变成共识规则。
 3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 DataEvent 与 Control Move。
 4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 CBS query basis 的只读 projection，并显式标记 query basis incomplete。
-5. **Write revalidation**：任何新 Control Move 必须在提交前以最新 Seal view 重新验证 preconditions；DataEvent 必须以最新可用 `seal_ref` 重新验证授权 freshness；不得继承 partial view 的乐观允许结果。
+5. **Write revalidation**：任何新 Control Move 必须在提交前以最新 Seal view 重新验证 preconditions；DataEvent 必须补齐其已签授权依赖并应用已知关闭，不要求最新 Seal 或定期刷新；不得继承 partial view 的乐观允许结果。
 
 长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Seal DAG 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Event / Seal。
 
@@ -421,7 +421,7 @@ Pruning 前置条件：
 
 ### 7.1 内建 cell plane 的 v1 限制
 
-v1 不提供 per-Realm 的内建看板 data-plane 选项。`ak.component.space.parent.v1` 与 `ak.component.strand.position.v1` 已分别随 `ak.space.parent`、`ak.strand.move`、`ak.strand.reorder` 冻结为 `control` / `sealed=true`；实现必须按静态 event-kind registry 路由。Realm `policy_bundle.cell_lattices` 只允许登记 Realm-specific extension family，不能用它把上述或其它内建 family 改成 `mv_register`、per-object sequencer 或不同 plane。需要不同并发语义的部署只能登记新的 extension family；不得在 v1 内用未登记字段、私有 override 或双路解析改变既有 Event kind。
+内建 Cell 的 `state_model` 与 `execution` 由 canonical registry 固定。Space parent、Strand position 使用 `causal_register` 普通数据合流；多值和合流环显式 unresolved，不授予访问权。Realm 不能覆盖内建 family 的模型；未知扩展、动态 lattice 配置或私有 sequencer 模式均拒绝。
 
 ## 8. 错误语义
 

@@ -382,88 +382,8 @@ def lint_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
 
 
 def lint_conflict_recovery_write(lint, event_path, write_ref, kind, write):
-    """The single registered exception to literal cell addressing.
-
-    Enforces both directions: only `ak.conflict.recovery` may declare
-    `cell_ref` or a `reset` projection, and it MUST declare exactly that pair
-    with no lattice, bottom, family, subject or condition -- a reset is not a
-    join, and a conditional reset would make the recovery path itself depend on
-    payload shape.
-    """
-    if kind != CONFLICT_RECOVERY_KIND:
-        lint.fail(
-            event_path,
-            f"{write_ref} declares cell_ref or a reset projection; that form is reserved "
-            f"to {CONFLICT_RECOVERY_KIND} (event-auth-state-resolution.md section 9.5)",
-        )
-        return
-    cell_ref = write.get("cell_ref")
-    if not isinstance(cell_ref, dict) or cell_ref.get("kind") != "cell_ref":
-        lint.fail(event_path, f"{write_ref}.cell_ref must be an object with kind='cell_ref'")
-    elif cell_ref.get("field") != "payload.target_cell_id":
-        lint.fail(
-            event_path,
-            f"{write_ref}.cell_ref.field must be payload.target_cell_id, got "
-            f"{cell_ref.get('field')!r}",
-        )
-    projection = write.get("effect_projection")
-    if not isinstance(projection, dict) or projection.get("kind") != "reset":
-        lint.fail(event_path, f"{write_ref}.effect_projection must be kind='reset'")
-    elif projection.get("value") != {"field": "payload.resolved_value"}:
-        lint.fail(
-            event_path,
-            f"{write_ref}.effect_projection.value must be "
-            "{'field': 'payload.resolved_value'}",
-        )
-    for forbidden in ("cell_family", "cell_subject", "lattice", "bottom", "condition"):
-        if forbidden in write:
-            lint.fail(
-                event_path,
-                f"{write_ref} MUST NOT declare {forbidden}: the target family, its lattice "
-                "and its bottom belong to the cell being recovered, not to this kind",
-            )
-    # zh/authz/event-auth-state-resolution.md section 9.3.1.4: the exit from
-    # Bottom is layered by family. Families whose write authorization or business
-    # precondition reads the cell itself leave nobody able to author an ordinary
-    # write once it is in Bottom, so recovery is their only exit; every other
-    # causal-register family heals through an ordinary authorized write. The list
-    # names only that first group -- it never restricts which cells a recovery
-    # may target, because that would strand families not yet audited.
-    allowlist = write.get("sole_recovery_families")
-    if not isinstance(allowlist, list) or not allowlist:
-        lint.fail(
-            event_path,
-            f"{write_ref} must declare a non-empty sole_recovery_families "
-            "(event-auth-state-resolution.md section 9.3.1.4)",
-        )
-        return
-    if not all(isinstance(entry, str) for entry in allowlist):
-        lint.fail(event_path, f"{write_ref}.sole_recovery_families entries must be strings")
-        return
-    for entry in allowlist:
-        if CELL_FAMILY_RE.fullmatch(entry) is None:
-            lint.fail(
-                event_path,
-                f"{write_ref}.sole_recovery_families entry {entry!r} must use canonical "
-                "ak.component.<facet-path>.v<n> form",
-            )
-    if len(set(allowlist)) != len(allowlist):
-        lint.fail(event_path, f"{write_ref}.sole_recovery_families must not repeat a family")
-    if allowlist != sorted(allowlist):
-        lint.fail(
-            event_path,
-            f"{write_ref}.sole_recovery_families must be sorted so the closed list has one "
-            "canonical form",
-        )
-    if NOTARY_CELL_FAMILY in allowlist:
-        lint.fail(
-            event_path,
-            f"{write_ref}.sole_recovery_families MUST NOT contain {NOTARY_CELL_FAMILY}: "
-            "verifying any Seal reads that cell, so no recovery Seal for it can ever be accepted "
-            "and listing it would imply an exit that does not exist "
-            "(event-auth-state-resolution.md section 9.5)",
-        )
-
+    """Reject every arbitrary target/reset escape from registered Cell effects."""
+    lint.fail(event_path, f"{write_ref}: dynamic cell_ref/reset writes are forbidden; use registered authorized effects")
 
 
 def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
@@ -778,7 +698,7 @@ def lint_effect_source(
         if source != expected or "ak.agent.key.authorize cell_writes[0]" not in ref or not ref.endswith(".dots"):
             lint.fail(path, f"{ref} permits agent_authorization_dot only in the exact Agent supersedes remove")
         return
-    allowed = ("field", "envelope_field", "const", "projected_value")
+    allowed = ("field", "envelope_field", "const", "projected_value", "object_without_fields")
     if allow_dot:
         allowed += ("dot",)
     source_keys = [key for key in allowed if key in source]
@@ -791,6 +711,15 @@ def lint_effect_source(
     source_key = source_keys[0]
     if source_key == "field":
         lint_field_path(lint, path, f"{ref}.field", source["field"])
+    elif source_key == "object_without_fields":
+        value = source[source_key]
+        if not isinstance(value, dict) or set(value) != {"field", "exclude"}:
+            lint.fail(path, f"{ref}.object_without_fields requires field and exclude")
+            return
+        lint_field_path(lint, path, f"{ref}.field", value["field"])
+        excluded = value["exclude"]
+        if not isinstance(excluded, list) or not excluded or any(not isinstance(v, str) or not v or "." in v for v in excluded) or len(excluded) != len(set(excluded)):
+            lint.fail(path, f"{ref}.exclude must be a non-empty unique top-level field list")
     elif source_key == "envelope_field":
         value = source["envelope_field"]
         if value not in EFFECT_PROJECTION_ENVELOPE_FIELDS:
@@ -845,9 +774,8 @@ def lint_effect_projection(
         return
     projection_kind = projection.get("kind")
     expected_kinds = {
-        "fsm": {"transition", "transition_to"},
-        "mv_register": {"set", "apply_patch"},
-        "cas_register": {"set", "apply_patch"},
+        "causal_register": {"set", "apply_patch", "transition", "transition_to"},
+        "sequenced_state": {"set", "apply_patch", "transition", "transition_to", "append", "or_set_delta", "or_set_add", "or_set_batch_add", "or_set_remove_observed", "or_set_remove_dots"},
         "ordered_log": {"append"},
         "or_set": {
             "or_set_delta",
@@ -905,20 +833,16 @@ def lint_effect_projection(
             lint.fail(path, f"{ref} requires patch and/or increment_members")
         elif "patch" in projection:
             lint_effect_source(lint, path, f"{ref}.patch", projection["patch"])
-        # `event-and-patch.md` §2.4.2: an `mv_register` keeps every concurrent
-        # write, so its frozen pre-state is not single-valued and nothing but
-        # the binding says which head the patch was computed against.
-        # `cas_register` needs no such declaration — there the write supersedes
-        # exactly what its own basis observed.
-        if lattice == "mv_register" and "expected_prestate" not in projection:
+        # Patches bind a specific causal head; sequential commands use their confirmed predecessor.
+        if lattice == "causal_register" and "expected_prestate" not in projection:
             lint.fail(
                 path,
-                f"{ref} on an mv_register requires expected_prestate; without it the head "
+                f"{ref} on a causal_register requires expected_prestate; without it the head "
                 f"this patch applies to is undefined",
             )
         if increment_members is not None:
-            if lattice != "cas_register":
-                lint.fail(path, f"{ref}.increment_members requires cas_register")
+            if lattice != "sequenced_state":
+                lint.fail(path, f"{ref}.increment_members requires sequenced_state")
             if "expected_prestate" not in projection:
                 lint.fail(path, f"{ref}.increment_members requires expected_prestate")
             if (
@@ -1101,7 +1025,7 @@ def _resolved_fsm_contract(
     contract: object,
     templates: dict[str, object],
 ) -> dict[str, object] | None:
-    ref = f"event_kind_registry.fsm_contracts[{family!r}]"
+    ref = f"event_kind_registry.transition_contracts[{family!r}]"
     if not isinstance(contract, dict):
         lint.fail(path, f"{ref} must be an object")
         return None
@@ -1177,14 +1101,14 @@ def check_state_contract_closure(lint: Lint) -> None:
         return
     rows = registry.get("event_kinds")
     contracts = registry.get("cell_contracts")
-    templates = registry.get("fsm_templates")
-    fsm_contracts = registry.get("fsm_contracts")
+    templates = registry.get("transition_templates")
+    transition_contracts = registry.get("transition_contracts")
     private = registry.get("actor_private_contracts")
     if not isinstance(rows, list) or not isinstance(contracts, dict):
         lint.fail(path, "event_kind_registry must contain event_kinds and cell_contracts")
         return
-    if not isinstance(templates, dict) or not isinstance(fsm_contracts, dict):
-        lint.fail(path, "event_kind_registry must contain fsm_templates and fsm_contracts")
+    if not isinstance(templates, dict) or not isinstance(transition_contracts, dict):
+        lint.fail(path, "event_kind_registry must contain transition_templates and transition_contracts")
         return
     if not isinstance(private, dict):
         lint.fail(path, "event_kind_registry.actor_private_contracts must be an object")
@@ -1196,9 +1120,9 @@ def check_state_contract_closure(lint: Lint) -> None:
         if isinstance(row, dict) and isinstance(row.get("event_kind"), str)
     }
     resolved_contracts: dict[str, dict[str, object]] = {}
-    for family, contract in fsm_contracts.items():
+    for family, contract in transition_contracts.items():
         if not isinstance(family, str) or CELL_FAMILY_RE.fullmatch(family) is None:
-            lint.fail(path, f"fsm_contracts key must be a canonical cell family: {family!r}")
+            lint.fail(path, f"transition_contracts key must be a canonical cell family: {family!r}")
             continue
         resolved = _resolved_fsm_contract(lint, path, family, contract, templates)
         if resolved is None:
@@ -1217,7 +1141,7 @@ def check_state_contract_closure(lint: Lint) -> None:
             or not all(isinstance(value, str) and value for value in states)
             or len(states) != len(set(states))
         ):
-            lint.fail(path, f"fsm_contracts[{family!r}].states must be a non-empty unique string array")
+            lint.fail(path, f"transition_contracts[{family!r}].states must be a non-empty unique string array")
             continue
         state_set = set(states)
         transition_state_set = state_set | {None}
@@ -1226,11 +1150,11 @@ def check_state_contract_closure(lint: Lint) -> None:
             or not initial_values
             or not set(initial_values) <= transition_state_set
         ):
-            lint.fail(path, f"fsm_contracts[{family!r}] must declare valid initial_state(s)")
+            lint.fail(path, f"transition_contracts[{family!r}] must declare valid initial_state(s)")
         if not isinstance(terminal, list) or not set(terminal) <= state_set:
-            lint.fail(path, f"fsm_contracts[{family!r}].terminal_states must be a states subset")
+            lint.fail(path, f"transition_contracts[{family!r}].terminal_states must be a states subset")
         if not isinstance(transitions, list):
-            lint.fail(path, f"fsm_contracts[{family!r}].allowed_transitions must be an array")
+            lint.fail(path, f"transition_contracts[{family!r}].allowed_transitions must be an array")
             continue
         seen_edges: set[tuple[object, object]] = set()
         for index, edge in enumerate(transitions):
@@ -1240,11 +1164,11 @@ def check_state_contract_closure(lint: Lint) -> None:
                 or not all(value is None or isinstance(value, str) for value in edge)
                 or not set(edge) <= transition_state_set
             ):
-                lint.fail(path, f"fsm_contracts[{family!r}].allowed_transitions[{index}] is invalid")
+                lint.fail(path, f"transition_contracts[{family!r}].allowed_transitions[{index}] is invalid")
                 continue
             pair = (edge[0], edge[1])
             if pair in seen_edges:
-                lint.fail(path, f"fsm_contracts[{family!r}] repeats transition {pair}")
+                lint.fail(path, f"transition_contracts[{family!r}] repeats transition {pair}")
             seen_edges.add(pair)
         resolved_contracts[family] = resolved
 
@@ -1257,7 +1181,7 @@ def check_state_contract_closure(lint: Lint) -> None:
                 _lint_cell_subject_kind(
                     lint, path, f"{kind} cell_writes[{write_index}]", write.get("cell_subject")
                 )
-            if not isinstance(write, dict) or write.get("lattice") != "fsm":
+            if not isinstance(write, dict) or "transition_contract" not in write:
                 continue
             family = write.get("cell_family")
             if isinstance(family, str):
@@ -1331,7 +1255,7 @@ def check_state_contract_closure(lint: Lint) -> None:
 
     extra_contracts = set(resolved_contracts) - shared_fsm_families
     if extra_contracts:
-        lint.fail(path, f"unreferenced fsm_contracts: {sorted(extra_contracts)}")
+        lint.fail(path, f"unreferenced transition_contracts: {sorted(extra_contracts)}")
     for kind, row in event_rows.items():
         parameters = row.get("parameters")
         if isinstance(parameters, dict) and ({"states", "allowed_transitions"} & set(parameters)):
@@ -1481,56 +1405,21 @@ def check_apply_patch_base_producers(lint: Lint, event_registry: dict, event_pat
 
 
 def check_concurrency_class_closure(lint: Lint, event_registry: dict, event_path: Path) -> None:
-    """zh/authz/cbs-profiles.md section 2: concurrency_class carries safety.
-
-    Rules that relax serialization read this field, so it must be present on
-    every sealed control kind, and a family must not carry both a barrier and a
-    non-barrier promise -- the two say opposite things about the same cell. The
-    one registered exception is an object genesis whose subject comes from the
-    Event's own id: such a write can only ever mint a fresh cell, so it can never
-    land on the same cell as a later write against an existing subject.
-    """
-    barrier: dict[str, list[tuple[str, frozenset[str]]]] = {}
-    other: dict[str, list[str]] = {}
-    for row in event_registry.get("event_kinds") or []:
-        if not isinstance(row, dict):
-            continue
-        kind = row.get("event_kind")
-        if row.get("sealed") and not row.get("concurrency_class"):
-            lint.fail(
-                event_path,
-                f"{kind} is a sealed control kind without a concurrency_class; the field carries "
-                "safety and MUST NOT be inferred from spelling (cbs-profiles.md section 2)",
-            )
-        if row.get("plane") != "control":
-            continue
-        is_barrier = row.get("concurrency_class") == "security_barrier"
-        for write in row.get("cell_writes") or []:
-            if not isinstance(write, dict):
-                continue
+    """Every writer of a registered family must use one execution/model contract."""
+    families = {}
+    for row in event_registry.get("event_kinds", []):
+        if "concurrency_class" in row:
+            lint.fail(event_path, "retired concurrency_class must not override registered write execution")
+        for write in row.get("cell_writes", []):
             family = write.get("cell_family")
-            if not isinstance(family, str):
-                continue
-            if is_barrier:
-                barrier.setdefault(family, []).append(
-                    (kind, frozenset(_cell_subject_sources(write.get("cell_subject"))))
-                )
-            else:
-                other.setdefault(family, []).append(kind)
-    for family, barrier_writes in sorted(barrier.items()):
-        non_barrier = other.get(family)
-        if not non_barrier:
-            continue
-        if all(sources == frozenset({"envelope.event_id"}) for _, sources in barrier_writes):
-            continue
-        lint.fail(
-            event_path,
-            f"{family} is written by security_barrier kind(s) "
-            f"{sorted(kind for kind, _ in barrier_writes)} and non-barrier kind(s) "
-            f"{sorted(set(non_barrier))}; the two make opposite serialization promises about the "
-            "same cell. Only an object-genesis barrier write whose cell_subject comes solely from "
-            "envelope.event_id is exempt (cbs-profiles.md section 2)",
-        )
+            execution = write.get("execution")
+            model = write.get("state_model")
+            if (execution == "security") != (model == "sequenced_state"):
+                lint.fail(event_path, f"{family} execution and state_model disagree")
+            contract = (execution, model, write.get("value_shape"))
+            if family in families and families[family] != contract:
+                lint.fail(event_path, f"{family} has conflicting execution/model contracts")
+            families[family] = contract
 
 
 def check_registries(lint: Lint) -> dict[str, set[str]]:
@@ -1571,7 +1460,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             lint.fail(event_path, f"{kind} has unknown wire_scope {wire_scope!r}")
         removed_single_target_fields = {
             "cell_family", "cell_subject", "value_projection", "effect_projection",
-            "lattice", "bottom", "initial_value",
+            "state_model", "bottom", "initial_value",
         }
         present_removed_fields = sorted(removed_single_target_fields.intersection(row))
         if present_removed_fields:
@@ -1590,14 +1479,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 if not isinstance(write, dict):
                     lint.fail(event_path, f"{write_ref} must be an object")
                     continue
-                # zh/authz/event-auth-state-resolution.md section 9.5: a
-                # conflict recovery addresses one cell of an arbitrary family,
-                # so its target cannot be a literal ak.component.*.v<n> URI and
-                # its write is a reset rather than a join. That form is closed
-                # to this one kind, and this kind MUST use it -- otherwise
-                # `cell_ref` becomes a general escape from static cell
-                # addressing, which is what the literal family exists to
-                # prevent.
+                # Every effect has one registered static family and derived subject.
                 has_cell_ref = "cell_ref" in write
                 projection_kind = None
                 if isinstance(write.get("effect_projection"), dict):
@@ -1738,7 +1620,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         event_path,
                         f"{write_ref}.effect_projection",
                         write["effect_projection"],
-                        write.get("lattice"),
+                        write.get("state_model"),
                     )
                     projection = write.get("effect_projection")
                     if (
@@ -1787,11 +1669,19 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                             f"{write_ref}.condition.fields must equal the cell_subject "
                             "coalesce fields item-for-item and in order",
                         )
-                write_lattice = write.get("lattice")
+                write_lattice = write.get("state_model")
                 if write_lattice not in REGISTRY_LATTICES:
                     lint.fail(event_path, f"{write_ref} has unknown lattice {write_lattice!r}")
                 write_bottom = write.get("bottom")
-                if write_bottom not in REGISTRY_BOTTOMS:
+                if write.get("execution") not in {"data", "security"}:
+                    lint.fail(event_path, f"{write_ref} must declare data or security execution")
+                if (write.get("execution") == "security") != (write_lattice == "sequenced_state"):
+                    lint.fail(event_path, f"{write_ref} execution and state_model disagree")
+                if write.get("value_shape") not in {"register", "set", "log", "counter"}:
+                    lint.fail(event_path, f"{write_ref} requires a registered value_shape")
+                if write_lattice == "sequenced_state" and "bottom" in write:
+                    lint.fail(event_path, f"{write_ref} sequenced_state cannot declare a join bottom")
+                if write_lattice != "sequenced_state" and write_bottom not in REGISTRY_BOTTOMS:
                     lint.fail(event_path, f"{write_ref} has unknown bottom {write_bottom!r}")
                 elif write_lattice == "or_set" and write_bottom == "reject":
                     # zh/authz/event-auth-state-resolution.md section 9.1.1: the
@@ -1826,7 +1716,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 if previous is not None:
                     previous_kind, previous_condition = previous
                     paired = (
-                        write_lattice == "or_set"
+                        write.get("value_shape") == "set"
                         and {previous_kind, projection_kind}
                         <= (add_kinds | remove_kinds)
                         and bool({previous_kind, projection_kind} & add_kinds)
@@ -1848,27 +1738,14 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             plane = row.get("plane")
             sealed = row.get("sealed")
             if plane not in REGISTRY_PLANES:
-                lint.fail(event_path, f"{kind} cell_writes row must declare plane=data|control")
-            if not isinstance(sealed, bool):
-                lint.fail(event_path, f"{kind} cell_writes row must declare sealed boolean")
-            elif (plane == "control") != sealed:
-                lint.fail(event_path, f"{kind} sealed must be true iff plane=control")
-            concurrency_class = row.get("concurrency_class")
-            if plane == "control":
-                if concurrency_class not in {
-                    "merge_safe",
-                    "exclusive",
-                    "security_barrier",
-                }:
-                    lint.fail(
-                        event_path,
-                        f"{kind} control contract must declare a valid concurrency_class",
-                    )
-            elif concurrency_class is not None:
-                lint.fail(
-                    event_path,
-                    f"{kind} data contract must omit control concurrency_class",
-                )
+                lint.fail(event_path, f"{kind} must declare a registered plane")
+            if plane == "conditional":
+                if "sealed" in row:
+                    lint.fail(event_path, f"{kind} conditional execution cannot declare static sealed")
+                if not any(w.get("execution") == "security" and w.get("condition") for w in cell_writes):
+                    lint.fail(event_path, f"{kind} conditional execution requires a conditional security write")
+            elif not isinstance(sealed, bool) or sealed != (plane == "control"):
+                lint.fail(event_path, f"{kind} static sealed must agree with execution")
         if row.get("status") == "active" and row.get("reducer_input") is True:
             if cell_writes is None:
                 lint.fail(

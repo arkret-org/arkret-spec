@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/event-envelope.schema.json",
   "title": "Arkret Event Envelope",
-  "description": "Single canonical wire object for durable and actor-private Events. kind + schema-validated payload is the only producer-authored business fact; reducer cell targets and lattice operations are derived from the registered reducer contract and never supplied on wire. DataEvents carry seal_ref/auth_context; Control Moves carry seal_basis and optional preconditions. proof.event_digest hashes canonical producer bytes, including the complete actor_id, after removing only event_id, proofs, and unsigned. Signed scope_ref is included in the digest and is independently checked against payload-derived security scope. Signal uses signal-envelope.schema.json; point-to-point device verification and secret distribution use device-message.schema.json.",
+  "description": "Signed immutable Event with exactly one portable producer proof. Ordinary data uses causal replication and cached verified authorization. Security commands require a unique scoped Seal decision. Station receipts do not grant authority. Execution and admission shape are generated from the canonical registry.",
   "type": "object",
   "required": [
     "event_id",
@@ -116,23 +116,20 @@
     },
     "preconditions": {
       "type": "array",
-      "description": "Control Move only. Pre-state predicates that must hold under the seal_basis governance view; if any fails, the entire event fails. DataEvents MUST NOT carry preconditions.",
+      "description": "Signed predicates over the verified causal basis for ordinary data, or the actual confirmed predecessor for safety commands. Ordinary predicates do not promise global compare-and-swap; concurrent data heads are retained.",
       "items": {
         "$ref": "#/$defs/precondition"
       },
       "uniqueItems": true,
       "maxItems": 256
     },
-    "seal_ref": {
-      "$ref": "#/$defs/seal_ref",
-      "description": "DataEvent only. Accepted control-plane Seal id that freezes the producer proof basis. The origin Station still revalidates current identity, key, capability, membership and lifecycle state in the serializable gate that atomically appends station_admission. A valid admission is permanent; later revocation never retroactively invalidates the Event."
-    },
     "auth_context": {
       "type": "object",
-      "description": "DataEvent only. Pins the signing key id and epoch used to verify authorization at seal_ref. The signing principal is the complete executed_by when present, otherwise the complete actor_id. Effective capabilities are derived from the accepted governance basis, never selected by the producer.",
+      "description": "Signed portable producer key coordinates and verified authority references for ordinary data. References may name long-lived accepted security decisions; they have no age lease and require no online origin or new Seal. Receiver-known revocation still blocks new live admission.",
       "required": [
         "key_id",
-        "key_epoch"
+        "key_epoch",
+        "authority_refs"
       ],
       "properties": {
         "key_id": {
@@ -146,13 +143,23 @@
         "credential_epoch": {
           "type": "integer",
           "minimum": 0
+        },
+        "authority_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/seal_ref"
+          },
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "description": "Canonical sorted immutable accepted safety-state references supporting this signed authorization context. Missing references are pending, not permission to bypass verification."
         }
       },
       "additionalProperties": false
     },
     "seal_basis": {
       "type": "object",
-      "description": "Control Move only. Signed governance basis for preconditions and reducer derivation. The canonical sorted Seal leaves are the sole producer commitment; receivers resolve and verify each Seal and deterministically recompute the covered control set and joined state. Seal roots remain on the Seal itself and are not copied into the Event.",
+      "description": "Security commands only: canonical references to the exact confirmed predecessor in each participating safety domain. Each domain has at most one head. Final execution compares actual predecessor state; an outdated command fails with a persistent result instead of creating conflicting authority.",
       "required": [
         "leaves"
       ],
@@ -178,27 +185,12 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Producer proofs sign canonical Event bytes, including the complete actor_id and executed_by when present. After local admission, the origin Station named by the account signer variant appends at most one station_admission proof that binds the exact producer proof it verified; a directly authoring service is its own service identity. proofs and unsigned remain excluded from event_digest; federation and backfill preserve the accepted Event byte-for-byte.",
+      "description": "Exactly one portable producer proof. Storage receipts are separate objects and never authorize this Event. Proofs and unsigned remain outside the canonical Event digest. Exact retries preserve the verified producer proof.",
       "items": {
         "$ref": "#/$defs/event_proof"
       },
       "minItems": 1,
-      "allOf": [
-        {
-          "contains": {
-            "$ref": "#/$defs/producer_event_proof"
-          },
-          "minContains": 1,
-          "maxContains": 1
-        },
-        {
-          "contains": {
-            "$ref": "#/$defs/station_admission_proof"
-          },
-          "minContains": 0,
-          "maxContains": 1
-        }
-      ]
+      "maxItems": 1
     },
     "requirements": {
       "type": "object",
@@ -238,71 +230,6 @@
     ]
   },
   "allOf": [
-    {
-      "$comment": "Machine-closed accepted-Event producer signer-evidence rule. When an admission proof is present it owns historical producer-key validation and the producer proof omits its external evidence pair. A no-admission envelope is shared by caller submission and retained direct-history replay, so its pair requirement is enforced by the consuming operation/profile rather than inferred from this context-free schema.",
-      "if": {
-        "properties": {
-          "proofs": {
-            "contains": {
-              "$ref": "#/$defs/station_admission_proof"
-            },
-            "minContains": 1
-          }
-        },
-        "required": [
-          "proofs"
-        ]
-      },
-      "then": {
-        "properties": {
-          "proofs": {
-            "contains": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/producer_event_proof"
-                },
-                {
-                  "not": {
-                    "required": [
-                      "signer_resolution_evidence_ref"
-                    ]
-                  }
-                }
-              ]
-            },
-            "minContains": 1,
-            "maxContains": 1
-          }
-        }
-      }
-    },
-    {
-      "$comment": "A patch-bearing DataEvent is identified by its required seal_ref and payload.patch. It needs at least one causal base; exact per-target-cell matching remains a reducer check.",
-      "if": {
-        "required": [
-          "seal_ref",
-          "payload"
-        ],
-        "properties": {
-          "payload": {
-            "type": "object",
-            "required": [
-              "patch"
-            ]
-          }
-        }
-      },
-      "then": {
-        "required": [
-          "causal_refs"
-        ],
-        "properties": {
-          "causal_refs": {
-            "minItems": 1
-          }
-        }
-      }
-    },
     {
       "$comment": "Signed Applet provenance invariants. external_ref is only meaningful when bound to a signed applet_id, and every Applet-originated write, including service-actor self-signature, must cite a real accepted active authorization/delegation grant.",
       "if": {
@@ -416,57 +343,6 @@
             "minContains": 1,
             "maxContains": 1
           }
-        }
-      }
-    },
-    {
-      "$comment": "Known active non-reducer Event kinds MUST NOT carry CBS fields: preconditions/seal_ref/auth_context/seal_basis.",
-      "if": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "ak.account.blocklist",
-              "ak.account_data.set",
-              "ak.agent.action_approve",
-              "ak.agent.action_reject",
-              "ak.agent.action_request",
-              "ak.agent.draft.propose",
-              "ak.audit.erasure_receipt",
-              "ak.audit.ryw_receipt",
-              "ak.circle.seal_commit",
-              "ak.device.push_route",
-              "ak.read_cursor.advance"
-            ]
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "preconditions"
-              ]
-            },
-            {
-              "required": [
-                "seal_ref"
-              ]
-            },
-            {
-              "required": [
-                "auth_context"
-              ]
-            },
-            {
-              "required": [
-                "seal_basis"
-              ]
-            }
-          ]
         }
       }
     },
@@ -947,11 +823,6 @@
       "then": {
         "not": {
           "anyOf": [
-            {
-              "required": [
-                "seal_ref"
-              ]
-            },
             {
               "required": [
                 "auth_context"
@@ -2051,25 +1922,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/circle_member_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.circle.seal_commit"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/circle_seal_commit_payload"
           }
         }
       }
@@ -3731,6 +3583,20 @@
             "minContains": 1,
             "maxContains": 1
           }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "auth_context"
+              ]
+            },
+            {
+              "required": [
+                "seal_basis"
+              ]
+            }
+          ]
         }
       }
     },
@@ -3823,47 +3689,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.conflict.recovery"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/state_conflict_recovery_payload"
-          },
-          "refs": {
-            "contains": {
-              "properties": {
-                "role": {
-                  "const": "recovery_capability"
-                },
-                "critical": {
-                  "const": true
-                }
-              },
-              "required": [
-                "role",
-                "critical"
-              ]
-            },
-            "minContains": 1,
-            "maxContains": 1
-          }
-        },
-        "required": [
-          "refs"
-        ]
-      },
-      "$comment": "Conflict recovery always requires its registered recovery authority reference. Target lattice, signed-basis heads and any non-causal state witness are verified by section 9.5 semantics, not inferred from head_in."
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.realm.owner.transfer"
           }
         },
@@ -3931,8 +3756,17 @@
       },
       "then": {
         "not": {
-          "required": [
-            "realm_id"
+          "anyOf": [
+            {
+              "required": [
+                "auth_context"
+              ]
+            },
+            {
+              "required": [
+                "seal_basis"
+              ]
+            }
           ]
         },
         "properties": {
@@ -3955,50 +3789,10 @@
       }
     },
     {
-      "if": {
-        "required": [
-          "applet_id"
-        ]
-      },
-      "then": {
-        "properties": {
-          "proofs": {
-            "items": {
-              "if": {
-                "required": [
-                  "kind"
-                ],
-                "properties": {
-                  "kind": {
-                    "const": "station_admission"
-                  }
-                }
-              },
-              "then": {
-                "required": [
-                  "applet_installation_digest"
-                ]
-              }
-            }
-          }
-        }
-      },
-      "else": {
-        "properties": {
-          "proofs": {
-            "items": {
-              "not": {
-                "required": [
-                  "applet_installation_digest"
-                ]
-              }
-            }
-          }
-        }
-      }
+      "$ref": "#/$defs/registered_admission_shape"
     },
     {
-      "$ref": "#/$defs/registered_admission_shape"
+      "$ref": "#/$defs/registered_execution_shape"
     }
   ],
   "$defs": {
@@ -4369,7 +4163,11 @@
                 "audit_pair",
                 "recovery_capability",
                 "did_inception",
-                "accountability"
+                "accountability",
+                "bootstrap_genesis",
+                "authorization_closure",
+                "disclosure_authorization",
+                "capture_stop"
               ]
             },
             "critical": {
@@ -4379,7 +4177,7 @@
           "additionalProperties": false
         }
       ],
-      "description": "Closed typed locator union. State witnesses use a SealRef plus inline typed Merkle proof; grant/event roles use the exact provenance EventId. Signer-resolution evidence is carried exactly once by each producer/station proof's required signer_resolution_evidence_ref and signer_resolution_evidence_digest, never as a SemanticRef. Unknown critical roles fail closed."
+      "description": "Closed typed semantic locator union. Signer evidence belongs to the producer proof. An authority reference supplies evidence, not permission to skip independent validation. Unknown critical roles reject."
     },
     "semantic_ref_merkle_proof": {
       "type": "object",
@@ -4495,68 +4293,6 @@
       },
       "additionalProperties": false
     },
-    "station_admission_proof": {
-      "type": "object",
-      "description": "Origin Station admission proof over canonical_json({context:'ak.station_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,signer_resolution_evidence_ref,accepted_at,verification_method}). The optional producer ref freezes the original producer evidence root when that signer regime has portable evidence; Agent federation requires it. The unprefixed signer ref continues to bind the Station proof's own service signer evidence. Each content-addressed ref embeds the sole wire copy of its evidence digest; no sibling *_digest mirror is carried (encoding.md 4.0.1). Applet authority admission additionally signs applet_installation_digest and resolves the exact portable installation authority through governance dependencies.",
-      "required": [
-        "kind",
-        "verification_method",
-        "event_digest",
-        "producer_proof_digest",
-        "producer_verification_method",
-        "producer_signing_key_did",
-        "signer_resolution_evidence_ref",
-        "accepted_at",
-        "jws"
-      ],
-      "properties": {
-        "kind": {
-          "const": "station_admission"
-        },
-        "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Controller projects to the verified installation target for installed Applet authority; otherwise to the route of executed_by ?? actor_id."
-        },
-        "event_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "producer_proof_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "SHA-256 digest of the complete producer_event_proof object actually verified by the origin service."
-        },
-        "producer_verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Must equal the bound producer proof verification_method byte-for-byte."
-        },
-        "producer_signing_key_did": {
-          "type": "string",
-          "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-          "description": "Public signing key that verifies the exact producer proof at admission time."
-        },
-        "producer_signer_resolution_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Optional origin-frozen producer signer evidence root. Agent admission requires it and it resolves to the exact frozen CurrentAdmission root."
-        },
-        "signer_resolution_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Content-addressed Station signer evidence; it resolves to the exact Station verification method used by this proof."
-        },
-        "applet_installation_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Required for ordinary installed Applet authority; SHA-256 of the exact AppletInstallationAuthority dependency. Forbidden otherwise."
-        },
-        "accepted_at": {
-          "$ref": "#/$defs/canonical_event_timestamp"
-        },
-        "jws": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
-        }
-      },
-      "additionalProperties": false
-    },
     "producer_event_proof": {
       "type": "object",
       "required": [
@@ -4564,6 +4300,7 @@
         "verification_method",
         "event_digest",
         "created_at",
+        "signer_resolution_evidence_ref",
         "jws"
       ],
       "properties": {
@@ -4572,7 +4309,7 @@
           "enum": [
             "detached_jws"
           ],
-          "description": "Actor, device or service signature over the registered producer-proof transcript. When the Event has no station_admission proof, signer_resolution_evidence_ref and signer_resolution_evidence_digest are required and included. When a valid admission proof exists, both fields are forbidden and that proof's producer_signing_key is the historical producer-key truth."
+          "description": "Detached producer JWS over canonical Event bytes. No Station admission signature is part of the Event proof model."
         },
         "verification_method": {
           "type": "string",
@@ -4587,7 +4324,7 @@
         },
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Required only for the direct/DID-root/native producer regime without station_admission; forbidden otherwise."
+          "description": "Portable historical signer authorization resolving this exact verification method; required on submissions and shared history. The receiving Station may resolve the evidence from any authenticated holder."
         },
         "domain": {
           "type": "string"
@@ -4619,26 +4356,10 @@
         }
       },
       "additionalProperties": false,
-      "description": "Producer Event proof. The signer maps to the complete executed_by when present or actor_id otherwise. Its event_digest covers canonical producer Event bytes including that complete identity and excluding only event_id, proofs, and unsigned. The event-level proof-regime validator enforces exactly one branch: a valid station_admission proof means producer signer evidence fields are absent and the admission-bound producer_signing_key verifies this proof; without such admission both signer evidence fields are present and resolve to this exact verification_method."
+      "description": "The sole Event proof. Independently verifies the complete executed_by when present or actor_id otherwise against portable signer authorization. Native genesis and recovery use their exact registered trust roots. Signature validity is separate from current authorization and history eligibility."
     },
     "event_proof": {
-      "description": "Closed Event proof union. Callers submit producer_event_proof only; the origin Station may append one station_admission proof after successful local admission.",
-      "properties": {
-        "event_digest": {
-          "$ref": "#/$defs/digest"
-        }
-      },
-      "oneOf": [
-        {
-          "$ref": "#/$defs/producer_event_proof"
-        },
-        {
-          "$ref": "#/$defs/station_admission_proof"
-        }
-      ],
-      "required": [
-        "event_digest"
-      ]
+      "$ref": "#/$defs/producer_event_proof"
     },
     "registered_admission_shape": {
       "$comment": "Generated from canonical event_kind_registry.admission_variants; do not hand-edit. Semantic authority verification is additional.",
@@ -7369,6 +7090,72 @@
           "if": {
             "properties": {
               "kind": {
+                "const": "ak.audit.ryw_receipt"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "auth_context"
+                  ]
+                },
+                {
+                  "required": [
+                    "seal_basis"
+                  ]
+                },
+                {
+                  "required": [
+                    "preconditions"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.audit.erasure_receipt"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "auth_context"
+                  ]
+                },
+                {
+                  "required": [
+                    "seal_basis"
+                  ]
+                },
+                {
+                  "required": [
+                    "preconditions"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
                 "const": "ak.self.moderation.report"
               }
             },
@@ -7552,7 +7339,7 @@
       ]
     },
     "shared_history_event": {
-      "$comment": "Generated from canonical history_admission_contract. An exception matches syntax only; its named verifier and retained acceptance evidence are mandatory before shared acceptance. Control intake without an accepted Seal remains pending.",
+      "$comment": "Generated from canonical history_admission_contract. Every receiving Station verifies the portable producer, authority and causal evidence. Security commands require their scoped final decision; ordinary history uses deterministic eligibility. Syntax alone never grants authority.",
       "allOf": [
         {
           "$ref": "#"
@@ -7562,6 +7349,7 @@
             "kind": {
               "enum": [
                 "ak.actor.discovery",
+                "ak.agent.action_approve",
                 "ak.agent.key.authorize",
                 "ak.agent.key.revoke",
                 "ak.agent.provision",
@@ -7594,10 +7382,8 @@
                 "ak.circle.history_access",
                 "ak.circle.member.state",
                 "ak.circle.restore",
-                "ak.circle.seal_commit",
                 "ak.circle.tombstone",
                 "ak.circle.update",
-                "ak.conflict.recovery",
                 "ak.consent.grant",
                 "ak.consent.revoke",
                 "ak.contact.accepted",
@@ -7734,3179 +7520,1381 @@
           ]
         },
         {
-          "anyOf": [
-            {
+          "properties": {
+            "proofs": {
+              "items": {
+                "required": [
+                  "signer_resolution_evidence_ref"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "registered_execution_shape": {
+      "$comment": "Generated from effective cell write execution. The bootstrap reference requires the registered atomic-genesis verifier; presence alone never bypasses security finality.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.strand.watch.set"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "level"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "not": {
+                  "properties": {
+                    "payload": {
+                      "required": [
+                        "level"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.space.create"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "if": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "payload": {
+                      "properties": {
+                        "object": {
+                          "required": [
+                            "child_scope_policy"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "object"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                }
+              ]
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "auth_context"
+                ]
+              },
               "required": [
-                "proofs"
+                "seal_basis"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "seal_basis"
+                ]
+              },
+              "required": [
+                "auth_context"
               ],
-              "properties": {
-                "proofs": {
-                  "contains": {
+              "allOf": [
+                {
+                  "if": {
                     "properties": {
-                      "kind": {
-                        "const": "station_admission"
+                      "payload": {
+                        "required": [
+                          "patch"
+                        ]
                       }
                     },
                     "required": [
-                      "kind"
+                      "payload"
                     ]
                   },
-                  "minContains": 1,
-                  "maxContains": 1
-                }
-              }
-            },
-            {
-              "properties": {
-                "kind": {
-                  "enum": [
-                    "ak.actor.discovery",
-                    "ak.agent.key.authorize",
-                    "ak.agent.key.revoke",
-                    "ak.agent.provision",
-                    "ak.agent.selector_claim",
-                    "ak.applet.discovery",
-                    "ak.applet.managed_actor.provision",
-                    "ak.applet.registration",
-                    "ak.audit.accessed",
-                    "ak.audit.applet_binding.create",
-                    "ak.audit.applet_binding.state",
-                    "ak.audit.release",
-                    "ak.audit.session.authorize",
-                    "ak.audit.session.close",
-                    "ak.audit.session.notice",
-                    "ak.audit.session.request",
-                    "ak.call.create",
-                    "ak.call.recording.start",
-                    "ak.call.state",
-                    "ak.call.summary",
-                    "ak.capability.derived",
-                    "ak.capability.grant",
-                    "ak.capability.relinquish",
-                    "ak.capability.revoke",
-                    "ak.circle.archive",
-                    "ak.circle.create",
-                    "ak.circle.history_access",
-                    "ak.circle.member.state",
-                    "ak.circle.restore",
-                    "ak.circle.tombstone",
-                    "ak.circle.update",
-                    "ak.conflict.recovery",
-                    "ak.consent.grant",
-                    "ak.consent.revoke",
-                    "ak.contact.accepted",
-                    "ak.contact.rejected",
-                    "ak.contact.requested",
-                    "ak.contact.scope.update",
-                    "ak.contact.tombstone",
-                    "ak.container.move_item",
-                    "ak.container.rebalance",
-                    "ak.device.authorize",
-                    "ak.device.list_update",
-                    "ak.device.reanchor",
-                    "ak.device.revoke",
-                    "ak.direct_conversation.bound",
-                    "ak.fork.resolution",
-                    "ak.handle.discovery",
-                    "ak.identity.accountability_grant",
-                    "ak.identity.disclosure_policy",
-                    "ak.identity.resolution.update",
-                    "ak.invite.accept",
-                    "ak.invite.cancel",
-                    "ak.invite.claim",
-                    "ak.invite.create",
-                    "ak.invite.revoke",
-                    "ak.invite.third_party",
-                    "ak.key_backup.active_series",
-                    "ak.member.identity.update",
-                    "ak.member.state",
-                    "ak.message.redact",
-                    "ak.mimi.room_binding",
-                    "ak.mls.commit",
-                    "ak.mls.commit_failed",
-                    "ak.mls.genesis",
-                    "ak.mls.keypackage",
-                    "ak.mls.proposal",
-                    "ak.mls.welcome",
-                    "ak.moderation.decision",
-                    "ak.moderation.decision.lift",
-                    "ak.morph.archive",
-                    "ak.morph.restore",
-                    "ak.morph.stage.set",
-                    "ak.notary.fault.censorship",
-                    "ak.notary.fault.equivocation",
-                    "ak.organization.discovery",
-                    "ak.organization.moderation_policy",
-                    "ak.policy.action",
-                    "ak.policy.rule",
-                    "ak.policy.set",
-                    "ak.profile.create",
-                    "ak.profile.realm_override",
-                    "ak.profile.update",
-                    "ak.realm.alias",
-                    "ak.realm.archive",
-                    "ak.realm.asset_privacy_policy",
-                    "ak.realm.authority.reset",
-                    "ak.realm.create",
-                    "ak.realm.destroy",
-                    "ak.realm.digest_suite_transition",
-                    "ak.realm.discovery",
-                    "ak.realm.freeze",
-                    "ak.realm.history_access",
-                    "ak.realm.inheritance_policy",
-                    "ak.realm.join_rule",
-                    "ak.realm.link",
-                    "ak.realm.media_service",
-                    "ak.realm.notary",
-                    "ak.realm.organization",
-                    "ak.realm.organization_recovery_key.register",
-                    "ak.realm.organization_recovery_key.rotate",
-                    "ak.realm.owner.transfer",
-                    "ak.realm.plaintext_visible_services",
-                    "ak.realm.policy",
-                    "ak.realm.policy_bundle",
-                    "ak.realm.preview_policy",
-                    "ak.realm.profile",
-                    "ak.realm.read_receipt_policy",
-                    "ak.realm.restore",
-                    "ak.realm.schema",
-                    "ak.realm.search_policy",
-                    "ak.realm.set_default_strand",
-                    "ak.realm.tombstone",
-                    "ak.realm.unfreeze",
-                    "ak.realm.upgrade",
-                    "ak.redaction",
-                    "ak.relation.resolve",
-                    "ak.relation.tombstone",
-                    "ak.schema.define",
-                    "ak.self.agent.deactivate",
-                    "ak.self.agent.pause",
-                    "ak.self.agent.resume",
-                    "ak.sidecar.context.attach",
-                    "ak.sidecar.create",
-                    "ak.sovereign.did_policy",
-                    "ak.space.archive",
-                    "ak.space.parent",
-                    "ak.space.restore",
-                    "ak.space.tombstone",
-                    "ak.strand.archive",
-                    "ak.strand.move",
-                    "ak.strand.reorder",
-                    "ak.strand.restore",
-                    "ak.strand.stage.set",
-                    "ak.strand.watch.set"
-                  ]
-                }
-              },
-              "required": [
-                "kind"
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.realm.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "allOf": [
-                        {
-                          "properties": {
-                            "payload": {
-                              "properties": {
-                                "object": {
-                                  "properties": {
-                                    "purpose": {
-                                      "const": "principal_control"
-                                    }
-                                  },
-                                  "required": [
-                                    "purpose"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "object"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "payload"
-                          ]
-                        },
-                        {
-                          "properties": {
-                            "refs": {
-                              "contains": {
-                                "properties": {
-                                  "role": {
-                                    "const": "did_inception"
-                                  },
-                                  "critical": {
-                                    "const": true
-                                  }
-                                },
-                                "required": [
-                                  "role",
-                                  "critical"
-                                ]
-                              },
-                              "minContains": 1,
-                              "maxContains": 1
-                            }
-                          },
-                          "required": [
-                            "refs"
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "not": {
-                        "anyOf": [
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "agent_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "applet_managed_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "applet_managed_actor_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "not": {
-                                      "contains": {
-                                        "properties": {
-                                          "role": {
-                                            "const": "did_inception"
-                                          }
-                                        },
-                                        "required": [
-                                          "role"
-                                        ]
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_contact_round"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_agent_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "collaboration"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.realm.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "allOf": [
-                        {
-                          "properties": {
-                            "payload": {
-                              "properties": {
-                                "object": {
-                                  "properties": {
-                                    "purpose": {
-                                      "const": "agent_control"
-                                    }
-                                  },
-                                  "required": [
-                                    "purpose"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "object"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "payload"
-                          ]
-                        },
-                        {
-                          "required": [
-                            "executed_by",
-                            "authorization_ref"
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "not": {
-                        "anyOf": [
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "applet_managed_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "applet_managed_actor_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "not": {
-                                      "contains": {
-                                        "properties": {
-                                          "role": {
-                                            "const": "did_inception"
-                                          }
-                                        },
-                                        "required": [
-                                          "role"
-                                        ]
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_contact_round"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_agent_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "collaboration"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.realm.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "allOf": [
-                        {
-                          "properties": {
-                            "payload": {
-                              "properties": {
-                                "object": {
-                                  "properties": {
-                                    "purpose": {
-                                      "const": "applet_managed_control"
-                                    }
-                                  },
-                                  "required": [
-                                    "purpose"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "object"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "payload"
-                          ]
-                        },
-                        {
-                          "properties": {
-                            "refs": {
-                              "contains": {
-                                "properties": {
-                                  "role": {
-                                    "const": "applet_managed_actor_provision"
-                                  },
-                                  "critical": {
-                                    "const": true
-                                  }
-                                },
-                                "required": [
-                                  "role",
-                                  "critical"
-                                ]
-                              },
-                              "minContains": 1,
-                              "maxContains": 1
-                            }
-                          },
-                          "required": [
-                            "refs"
-                          ]
-                        },
-                        {
-                          "required": [
-                            "executed_by",
-                            "authorization_ref"
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "not": {
-                        "anyOf": [
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "agent_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "not": {
-                                      "contains": {
-                                        "properties": {
-                                          "role": {
-                                            "const": "did_inception"
-                                          }
-                                        },
-                                        "required": [
-                                          "role"
-                                        ]
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_contact_round"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_agent_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "collaboration"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.realm.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "allOf": [
-                        {
-                          "properties": {
-                            "payload": {
-                              "properties": {
-                                "object": {
-                                  "properties": {
-                                    "purpose": {
-                                      "const": "principal_control"
-                                    }
-                                  },
-                                  "required": [
-                                    "purpose"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "object"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "payload"
-                          ]
-                        },
-                        {
-                          "properties": {
-                            "refs": {
-                              "not": {
-                                "contains": {
-                                  "properties": {
-                                    "role": {
-                                      "const": "did_inception"
-                                    }
-                                  },
-                                  "required": [
-                                    "role"
-                                  ]
-                                }
-                              }
-                            }
-                          }
-                        },
-                        {
-                          "required": [
-                            "executed_by",
-                            "authorization_ref"
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "not": {
-                        "anyOf": [
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "agent_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "applet_managed_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "applet_managed_actor_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_contact_round"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_agent_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "collaboration"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.realm.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "allOf": [
-                        {
-                          "properties": {
-                            "payload": {
-                              "properties": {
-                                "object": {
-                                  "properties": {
-                                    "purpose": {
-                                      "const": "direct_conversation"
-                                    }
-                                  },
-                                  "required": [
-                                    "purpose"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "object"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "payload"
-                          ]
-                        },
-                        {
-                          "properties": {
-                            "refs": {
-                              "contains": {
-                                "properties": {
-                                  "role": {
-                                    "const": "direct_conversation_contact_round"
-                                  },
-                                  "critical": {
-                                    "const": true
-                                  }
-                                },
-                                "required": [
-                                  "role",
-                                  "critical"
-                                ]
-                              },
-                              "minContains": 1,
-                              "maxContains": 1
-                            }
-                          },
-                          "required": [
-                            "refs"
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "not": {
-                        "anyOf": [
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "agent_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "applet_managed_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "applet_managed_actor_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "not": {
-                                      "contains": {
-                                        "properties": {
-                                          "role": {
-                                            "const": "did_inception"
-                                          }
-                                        },
-                                        "required": [
-                                          "role"
-                                        ]
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_agent_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "collaboration"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.realm.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "allOf": [
-                        {
-                          "properties": {
-                            "payload": {
-                              "properties": {
-                                "object": {
-                                  "properties": {
-                                    "purpose": {
-                                      "const": "direct_conversation"
-                                    }
-                                  },
-                                  "required": [
-                                    "purpose"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "object"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "payload"
-                          ]
-                        },
-                        {
-                          "properties": {
-                            "refs": {
-                              "contains": {
-                                "properties": {
-                                  "role": {
-                                    "const": "direct_conversation_agent_provision"
-                                  },
-                                  "critical": {
-                                    "const": true
-                                  }
-                                },
-                                "required": [
-                                  "role",
-                                  "critical"
-                                ]
-                              },
-                              "minContains": 1,
-                              "maxContains": 1
-                            }
-                          },
-                          "required": [
-                            "refs"
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "not": {
-                        "anyOf": [
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "agent_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "applet_managed_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "applet_managed_actor_provision"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "principal_control"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "not": {
-                                      "contains": {
-                                        "properties": {
-                                          "role": {
-                                            "const": "did_inception"
-                                          }
-                                        },
-                                        "required": [
-                                          "role"
-                                        ]
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              {
-                                "required": [
-                                  "executed_by",
-                                  "authorization_ref"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "direct_conversation"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              },
-                              {
-                                "properties": {
-                                  "refs": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "direct_conversation_contact_round"
-                                        },
-                                        "critical": {
-                                          "const": true
-                                        }
-                                      },
-                                      "required": [
-                                        "role",
-                                        "critical"
-                                      ]
-                                    },
-                                    "minContains": 1,
-                                    "maxContains": 1
-                                  }
-                                },
-                                "required": [
-                                  "refs"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "object": {
-                                        "properties": {
-                                          "purpose": {
-                                            "const": "collaboration"
-                                          }
-                                        },
-                                        "required": [
-                                          "purpose"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "object"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.sidecar.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.sidecar.context.attach"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.organization.discovery"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.actor.discovery"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.applet.discovery"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.handle.discovery"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.identity.resolution.update"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.identity.disclosure_policy"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.identity.disclosure_receipt"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.identity.presentation_request"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.identity.presentation_response"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.identity.accountability_grant"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.notary.fault.equivocation"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.notary.fault.censorship"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.member.identity.update"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.message.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "properties": {
-                        "payload": {
-                          "properties": {
-                            "mimi_provenance": {
-                              "properties": {
-                                "provenance": {
-                                  "const": "mimi_facade"
-                                }
-                              },
-                              "required": [
-                                "provenance"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "mimi_provenance"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "payload"
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.message.revise"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "properties": {
-                        "payload": {
-                          "properties": {
-                            "mimi_provenance": {
-                              "properties": {
-                                "provenance": {
-                                  "const": "mimi_facade"
-                                }
-                              },
-                              "required": [
-                                "provenance"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "mimi_provenance"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "payload"
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.message.redact"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "properties": {
-                        "payload": {
-                          "properties": {
-                            "mimi_provenance": {
-                              "properties": {
-                                "provenance": {
-                                  "const": "mimi_facade"
-                                }
-                              },
-                              "required": [
-                                "provenance"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "mimi_provenance"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "payload"
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.agent.provision"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.agent.selector_claim"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.consent.grant"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.consent.revoke"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.requested"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.accepted"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.rejected"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.tombstone"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.scope.update"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.direct_conversation.bound"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.profile.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.profile.update"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.profile.realm_override"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.device.authorize"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.device.reanchor"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.device.revoke"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.device.list_update"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.key_backup.active_series"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.self.moderation.report"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "properties": {
-                        "payload": {
-                          "properties": {
-                            "provenance": {
-                              "const": "mimi_facade"
-                            }
-                          },
-                          "required": [
-                            "provenance"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "payload"
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.self.moderation.report"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "not": {
-                    "anyOf": [
-                      {
-                        "allOf": [
-                          {
-                            "properties": {
-                              "payload": {
-                                "properties": {
-                                  "provenance": {
-                                    "const": "mimi_facade"
-                                  }
-                                },
-                                "required": [
-                                  "provenance"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "payload"
-                            ]
-                          }
-                        ]
-                      }
+                  "then": {
+                    "required": [
+                      "causal_refs"
                     ]
                   }
                 }
               ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.space.update"
+              }
             },
-            {
-              "allOf": [
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "patch"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "child_scope_policy"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.space.update"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "if": {
+              "anyOf": [
                 {
                   "properties": {
-                    "kind": {
-                      "const": "ak.moderation.franking_proof"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.applet.bridge_error"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.applet.managed_actor.provision"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "allOf": [
-                        {
-                          "properties": {
-                            "payload": {
-                              "properties": {
-                                "actor_role": {
-                                  "const": "bot"
-                                }
-                              },
-                              "required": [
-                                "actor_role"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "payload"
-                          ]
-                        }
+                    "payload": {
+                      "required": [
+                        "child_scope_policy"
                       ]
-                    },
-                    {
-                      "not": {
-                        "anyOf": [
-                          {
-                            "allOf": [
-                              {
-                                "properties": {
-                                  "payload": {
-                                    "properties": {
-                                      "actor_role": {
-                                        "const": "ghost"
-                                      }
-                                    },
-                                    "required": [
-                                      "actor_role"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "payload"
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
                     }
+                  },
+                  "required": [
+                    "payload"
                   ]
                 }
               ]
             },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.applet.registration"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
+            "then": {
+              "not": {
+                "required": [
+                  "auth_context"
+                ]
+              },
+              "required": [
+                "seal_basis"
               ]
             },
-            {
+            "else": {
+              "not": {
+                "required": [
+                  "seal_basis"
+                ]
+              },
+              "required": [
+                "auth_context"
+              ],
               "allOf": [
                 {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.sovereign.did_policy"
-                    }
+                  "if": {
+                    "properties": {
+                      "payload": {
+                        "required": [
+                          "patch"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "payload"
+                    ]
                   },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
-              ]
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.capability.relinquish"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                {}
+                  "then": {
+                    "required": [
+                      "causal_refs"
+                    ]
+                  }
+                }
               ]
             }
-          ]
+          }
         },
         {
           "if": {
-            "required": [
-              "proofs"
-            ],
             "properties": {
-              "proofs": {
-                "contains": {
+              "kind": {
+                "const": "ak.mls.welcome"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "recipient_device_id"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "recipient_agent_id"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "recipient_pairwise_actor_id"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.call.state"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "state_transition"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "focus"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "recording_transition": {
+                        "properties": {
+                          "to": {
+                            "const": "stopped"
+                          }
+                        },
+                        "required": [
+                          "to"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "recording_transition"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "recording_transition": {
+                        "required": [
+                          "result"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "recording_transition"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "transcript_transition": {
+                        "properties": {
+                          "to": {
+                            "const": "stopped"
+                          }
+                        },
+                        "required": [
+                          "to"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "transcript_transition"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "transcript_transition": {
+                        "required": [
+                          "result"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "transcript_transition"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "moderation_delta"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "roster_delta"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "mute_override"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.call.state"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "if": {
+              "anyOf": [
+                {
                   "properties": {
-                    "kind": {
-                      "const": "station_admission"
+                    "payload": {
+                      "required": [
+                        "state_transition"
+                      ]
                     }
                   },
                   "required": [
-                    "kind"
+                    "payload"
                   ]
                 },
-                "minContains": 1,
-                "maxContains": 1
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "proofs": {
-                "items": {
+                {
+                  "properties": {
+                    "payload": {
+                      "required": [
+                        "focus"
+                      ]
+                    }
+                  },
                   "required": [
-                    "signer_resolution_evidence_ref"
+                    "payload"
                   ]
+                },
+                {
+                  "properties": {
+                    "payload": {
+                      "properties": {
+                        "recording_transition": {
+                          "properties": {
+                            "to": {
+                              "const": "stopped"
+                            }
+                          },
+                          "required": [
+                            "to"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "recording_transition"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                },
+                {
+                  "properties": {
+                    "payload": {
+                      "properties": {
+                        "transcript_transition": {
+                          "properties": {
+                            "to": {
+                              "const": "stopped"
+                            }
+                          },
+                          "required": [
+                            "to"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "transcript_transition"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                },
+                {
+                  "properties": {
+                    "payload": {
+                      "required": [
+                        "moderation_delta"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                },
+                {
+                  "properties": {
+                    "payload": {
+                      "required": [
+                        "roster_delta"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                },
+                {
+                  "properties": {
+                    "payload": {
+                      "required": [
+                        "mute_override"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                }
+              ]
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "auth_context"
+                ]
+              },
+              "required": [
+                "seal_basis"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "seal_basis"
+                ]
+              },
+              "required": [
+                "auth_context"
+              ],
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "payload": {
+                        "required": [
+                          "patch"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "payload"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "causal_refs"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.call.recording.start"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "capture_kind": {
+                        "const": "recording"
+                      }
+                    },
+                    "required": [
+                      "capture_kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "capture_kind": {
+                        "const": "recording"
+                      }
+                    },
+                    "required": [
+                      "capture_kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "capture_kind": {
+                        "const": "transcript"
+                      }
+                    },
+                    "required": [
+                      "capture_kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "capture_kind": {
+                        "const": "transcript"
+                      }
+                    },
+                    "required": [
+                      "capture_kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.call.recording.start"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "if": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "payload": {
+                      "properties": {
+                        "capture_kind": {
+                          "const": "recording"
+                        }
+                      },
+                      "required": [
+                        "capture_kind"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                },
+                {
+                  "properties": {
+                    "payload": {
+                      "properties": {
+                        "capture_kind": {
+                          "const": "transcript"
+                        }
+                      },
+                      "required": [
+                        "capture_kind"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                }
+              ]
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "auth_context"
+                ]
+              },
+              "required": [
+                "seal_basis"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "seal_basis"
+                ]
+              },
+              "required": [
+                "auth_context"
+              ],
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "payload": {
+                        "required": [
+                          "patch"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "payload"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "causal_refs"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ak.realm.create"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "auth_context"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ak.realm.profile",
+                  "ak.strand.create"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "seal_basis"
+              ]
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "auth_context"
+                ]
+              },
+              {
+                "required": [
+                  "refs"
+                ],
+                "properties": {
+                  "refs": {
+                    "contains": {
+                      "required": [
+                        "role",
+                        "critical"
+                      ],
+                      "properties": {
+                        "role": {
+                          "const": "bootstrap_genesis"
+                        },
+                        "critical": {
+                          "const": true
+                        }
+                      }
+                    },
+                    "minContains": 1,
+                    "maxContains": 1
+                  }
+                }
+              }
+            ],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "payload": {
+                      "required": [
+                        "patch"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "causal_refs"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ak.device.authorize",
+                  "ak.device.reanchor",
+                  "ak.member.state",
+                  "ak.realm.alias",
+                  "ak.realm.discovery",
+                  "ak.realm.history_access",
+                  "ak.realm.join_rule",
+                  "ak.realm.plaintext_visible_services",
+                  "ak.realm.policy_bundle"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "auth_context"
+              ]
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "seal_basis"
+                ]
+              },
+              {
+                "required": [
+                  "refs"
+                ],
+                "properties": {
+                  "refs": {
+                    "contains": {
+                      "required": [
+                        "role",
+                        "critical"
+                      ],
+                      "properties": {
+                        "role": {
+                          "const": "bootstrap_genesis"
+                        },
+                        "critical": {
+                          "const": true
+                        }
+                      }
+                    },
+                    "minContains": 1,
+                    "maxContains": 1
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ak.actor.discovery",
+                  "ak.agent.action_approve",
+                  "ak.agent.key.authorize",
+                  "ak.agent.key.revoke",
+                  "ak.agent.provision",
+                  "ak.agent.selector_claim",
+                  "ak.applet.discovery",
+                  "ak.applet.managed_actor.provision",
+                  "ak.applet.registration",
+                  "ak.audit.applet_binding.create",
+                  "ak.audit.applet_binding.state",
+                  "ak.audit.release",
+                  "ak.audit.session.authorize",
+                  "ak.audit.session.close",
+                  "ak.audit.session.notice",
+                  "ak.audit.session.request",
+                  "ak.call.create",
+                  "ak.capability.derived",
+                  "ak.capability.grant",
+                  "ak.capability.relinquish",
+                  "ak.capability.revoke",
+                  "ak.circle.archive",
+                  "ak.circle.create",
+                  "ak.circle.history_access",
+                  "ak.circle.member.state",
+                  "ak.circle.restore",
+                  "ak.circle.tombstone",
+                  "ak.consent.grant",
+                  "ak.consent.revoke",
+                  "ak.contact.accepted",
+                  "ak.contact.rejected",
+                  "ak.contact.requested",
+                  "ak.contact.scope.update",
+                  "ak.contact.tombstone",
+                  "ak.device.list_update",
+                  "ak.device.revoke",
+                  "ak.direct_conversation.bound",
+                  "ak.fork.resolution",
+                  "ak.handle.discovery",
+                  "ak.identity.accountability_grant",
+                  "ak.identity.disclosure_policy",
+                  "ak.identity.resolution.update",
+                  "ak.invite.accept",
+                  "ak.invite.cancel",
+                  "ak.invite.claim",
+                  "ak.invite.create",
+                  "ak.invite.revoke",
+                  "ak.invite.third_party",
+                  "ak.key_backup.active_series",
+                  "ak.member.identity.update",
+                  "ak.mimi.room_binding",
+                  "ak.mls.commit",
+                  "ak.mls.genesis",
+                  "ak.mls.keypackage",
+                  "ak.moderation.decision",
+                  "ak.moderation.decision.lift",
+                  "ak.organization.discovery",
+                  "ak.organization.moderation_policy",
+                  "ak.policy.rule",
+                  "ak.policy.set",
+                  "ak.realm.archive",
+                  "ak.realm.asset_privacy_policy",
+                  "ak.realm.authority.reset",
+                  "ak.realm.destroy",
+                  "ak.realm.digest_suite_transition",
+                  "ak.realm.freeze",
+                  "ak.realm.inheritance_policy",
+                  "ak.realm.link",
+                  "ak.realm.media_service",
+                  "ak.realm.notary",
+                  "ak.realm.organization",
+                  "ak.realm.organization_recovery_key.register",
+                  "ak.realm.organization_recovery_key.rotate",
+                  "ak.realm.owner.transfer",
+                  "ak.realm.policy",
+                  "ak.realm.preview_policy",
+                  "ak.realm.read_receipt_policy",
+                  "ak.realm.restore",
+                  "ak.realm.schema",
+                  "ak.realm.search_policy",
+                  "ak.realm.tombstone",
+                  "ak.realm.unfreeze",
+                  "ak.realm.upgrade",
+                  "ak.schema.define",
+                  "ak.self.agent.deactivate",
+                  "ak.self.agent.pause",
+                  "ak.self.agent.resume",
+                  "ak.sidecar.context.attach",
+                  "ak.sidecar.create",
+                  "ak.sovereign.did_policy"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "auth_context"
+              ]
+            },
+            "required": [
+              "seal_basis"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ak.agent.sidecar.exchange.control",
+                  "ak.applet.bridge_error",
+                  "ak.audit.accessed",
+                  "ak.call.summary",
+                  "ak.circle.update",
+                  "ak.container.move_item",
+                  "ak.container.rebalance",
+                  "ak.identity.disclosure_receipt",
+                  "ak.identity.presentation_request",
+                  "ak.identity.presentation_response",
+                  "ak.message.create",
+                  "ak.message.redact",
+                  "ak.message.revise",
+                  "ak.mls.commit_failed",
+                  "ak.mls.proposal",
+                  "ak.mls.welcome",
+                  "ak.moderation.franking_proof",
+                  "ak.morph.archive",
+                  "ak.morph.create",
+                  "ak.morph.restore",
+                  "ak.morph.stage.set",
+                  "ak.morph.update",
+                  "ak.notary.fault.censorship",
+                  "ak.notary.fault.equivocation",
+                  "ak.pin.add",
+                  "ak.pin.remove",
+                  "ak.pin.reorder",
+                  "ak.policy.action",
+                  "ak.profile.create",
+                  "ak.profile.realm_override",
+                  "ak.profile.update",
+                  "ak.reaction.add",
+                  "ak.reaction.remove",
+                  "ak.realm.set_default_strand",
+                  "ak.redaction",
+                  "ak.relation.create",
+                  "ak.relation.resolve",
+                  "ak.relation.tombstone",
+                  "ak.relation.update",
+                  "ak.rsvp.set",
+                  "ak.self.moderation.report",
+                  "ak.space.archive",
+                  "ak.space.parent",
+                  "ak.space.restore",
+                  "ak.space.tombstone",
+                  "ak.strand.archive",
+                  "ak.strand.move",
+                  "ak.strand.reorder",
+                  "ak.strand.restore",
+                  "ak.strand.stage.set",
+                  "ak.strand.tracks.update",
+                  "ak.strand.update",
+                  "ak.strand.watch.set",
+                  "ak.view.create",
+                  "ak.view.reconcile",
+                  "ak.view.update"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "seal_basis"
+              ]
+            },
+            "required": [
+              "auth_context"
+            ],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "payload": {
+                      "required": [
+                        "patch"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "causal_refs"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ordinary_publication_event": {
+      "$comment": "Body-proof publication is limited to complete ordinary shared Events; it grants no account session or private account access.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/shared_history_event"
+        },
+        {
+          "required": [
+            "auth_context"
+          ],
+          "not": {
+            "required": [
+              "seal_basis"
+            ]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "ak.actor.discovery",
+                "ak.agent.action_approve",
+                "ak.agent.key.authorize",
+                "ak.agent.key.revoke",
+                "ak.agent.provision",
+                "ak.agent.selector_claim",
+                "ak.agent.sidecar.exchange.control",
+                "ak.applet.bridge_error",
+                "ak.applet.discovery",
+                "ak.applet.managed_actor.provision",
+                "ak.applet.registration",
+                "ak.audit.accessed",
+                "ak.audit.applet_binding.create",
+                "ak.audit.applet_binding.state",
+                "ak.audit.release",
+                "ak.audit.session.authorize",
+                "ak.audit.session.close",
+                "ak.audit.session.notice",
+                "ak.audit.session.request",
+                "ak.call.create",
+                "ak.call.recording.start",
+                "ak.call.state",
+                "ak.call.summary",
+                "ak.capability.derived",
+                "ak.capability.grant",
+                "ak.capability.relinquish",
+                "ak.capability.revoke",
+                "ak.circle.archive",
+                "ak.circle.create",
+                "ak.circle.history_access",
+                "ak.circle.member.state",
+                "ak.circle.restore",
+                "ak.circle.tombstone",
+                "ak.circle.update",
+                "ak.consent.grant",
+                "ak.consent.revoke",
+                "ak.contact.accepted",
+                "ak.contact.rejected",
+                "ak.contact.requested",
+                "ak.contact.scope.update",
+                "ak.contact.tombstone",
+                "ak.container.move_item",
+                "ak.container.rebalance",
+                "ak.device.authorize",
+                "ak.device.list_update",
+                "ak.device.reanchor",
+                "ak.device.revoke",
+                "ak.direct_conversation.bound",
+                "ak.fork.resolution",
+                "ak.handle.discovery",
+                "ak.identity.accountability_grant",
+                "ak.identity.disclosure_policy",
+                "ak.identity.disclosure_receipt",
+                "ak.identity.presentation_request",
+                "ak.identity.presentation_response",
+                "ak.identity.resolution.update",
+                "ak.invite.accept",
+                "ak.invite.cancel",
+                "ak.invite.claim",
+                "ak.invite.create",
+                "ak.invite.revoke",
+                "ak.invite.third_party",
+                "ak.key_backup.active_series",
+                "ak.member.identity.update",
+                "ak.member.state",
+                "ak.message.create",
+                "ak.message.redact",
+                "ak.message.revise",
+                "ak.mimi.room_binding",
+                "ak.mls.commit",
+                "ak.mls.commit_failed",
+                "ak.mls.genesis",
+                "ak.mls.keypackage",
+                "ak.mls.proposal",
+                "ak.mls.welcome",
+                "ak.moderation.decision",
+                "ak.moderation.decision.lift",
+                "ak.moderation.franking_proof",
+                "ak.morph.archive",
+                "ak.morph.create",
+                "ak.morph.restore",
+                "ak.morph.stage.set",
+                "ak.morph.update",
+                "ak.notary.fault.censorship",
+                "ak.notary.fault.equivocation",
+                "ak.organization.discovery",
+                "ak.organization.moderation_policy",
+                "ak.pin.add",
+                "ak.pin.remove",
+                "ak.pin.reorder",
+                "ak.policy.action",
+                "ak.policy.rule",
+                "ak.policy.set",
+                "ak.profile.create",
+                "ak.profile.realm_override",
+                "ak.profile.update",
+                "ak.reaction.add",
+                "ak.reaction.remove",
+                "ak.realm.alias",
+                "ak.realm.archive",
+                "ak.realm.asset_privacy_policy",
+                "ak.realm.authority.reset",
+                "ak.realm.create",
+                "ak.realm.destroy",
+                "ak.realm.digest_suite_transition",
+                "ak.realm.discovery",
+                "ak.realm.freeze",
+                "ak.realm.history_access",
+                "ak.realm.inheritance_policy",
+                "ak.realm.join_rule",
+                "ak.realm.link",
+                "ak.realm.media_service",
+                "ak.realm.notary",
+                "ak.realm.organization",
+                "ak.realm.organization_recovery_key.register",
+                "ak.realm.organization_recovery_key.rotate",
+                "ak.realm.owner.transfer",
+                "ak.realm.plaintext_visible_services",
+                "ak.realm.policy",
+                "ak.realm.policy_bundle",
+                "ak.realm.preview_policy",
+                "ak.realm.profile",
+                "ak.realm.read_receipt_policy",
+                "ak.realm.restore",
+                "ak.realm.schema",
+                "ak.realm.search_policy",
+                "ak.realm.set_default_strand",
+                "ak.realm.tombstone",
+                "ak.realm.unfreeze",
+                "ak.realm.upgrade",
+                "ak.redaction",
+                "ak.relation.create",
+                "ak.relation.resolve",
+                "ak.relation.tombstone",
+                "ak.relation.update",
+                "ak.rsvp.set",
+                "ak.schema.define",
+                "ak.self.agent.deactivate",
+                "ak.self.agent.pause",
+                "ak.self.agent.resume",
+                "ak.self.moderation.report",
+                "ak.sidecar.context.attach",
+                "ak.sidecar.create",
+                "ak.sovereign.did_policy",
+                "ak.space.archive",
+                "ak.space.create",
+                "ak.space.parent",
+                "ak.space.restore",
+                "ak.space.tombstone",
+                "ak.space.update",
+                "ak.strand.archive",
+                "ak.strand.create",
+                "ak.strand.move",
+                "ak.strand.reorder",
+                "ak.strand.restore",
+                "ak.strand.stage.set",
+                "ak.strand.tracks.update",
+                "ak.strand.update",
+                "ak.strand.watch.set",
+                "ak.view.create",
+                "ak.view.reconcile",
+                "ak.view.update"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "refs": {
+              "not": {
+                "contains": {
+                  "required": [
+                    "role"
+                  ],
+                  "properties": {
+                    "role": {
+                      "const": "bootstrap_genesis"
+                    }
+                  }
                 }
               }
             }

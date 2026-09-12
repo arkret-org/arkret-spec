@@ -794,7 +794,8 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
       "verification_method": "did:webvh:z6MkGhostU123:slack-bridge.example#key-1",
       "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "created_at": "2026-04-26T00:00:01Z",
-      "jws": "a..b"
+      "jws": "a..b",
+      "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   ]
 }
@@ -867,7 +868,7 @@ Idempotency-Key: <opaque-string>
 - **hosting / federation（normative）**：四条创建事实只由 `actor_id.account_id.station_id` 指定的接收 Station 保存并重放，不生成 peer Event fan-out。`ak.peer.events.command.submit.v1` 即使 transport/proof 合法也不是 `AppletFormal` admission，单独或普通 Realm bootstrap batch 提交该 PCR genesis MUST 以 `applet_managed_pcr_genesis_requires_closed_aggregate` 拒绝。Ghost 后续写入 Collaboration Realm 的普通 Event 才按该 Realm 的 federation 规则传播。
 - 成功时服务端返回调用方所提交的 Ghost Actor `ak.profile.create` 与 `ak.identity.accountability_grant` durable refs；响应 `authorization_ref` 回显上述 provisioning capability grant，不得回显 accountability ref 冒充授权。
 - 后续 rotation 使用普通 `ak.identity.resolution.update`，其唯一 predecessor/CAS 输入是 envelope `resolution_projection` 的 `head_eq`；payload 不镜像 previous ref。Package/Ghost record anchors 不随 rotation 改写，current 只从 `JCS(actor_id)` 的 PCR cell 解析。
-- `applet_managed_control` PCR 与 human / Agent PCR 使用同一 create-locked Availability holder 规则：successor Seal 的唯一 eligible holder必须从 predecessor closure 中唯一 accepted create 的 actual-author `ActorId` 路由得到，并完整验证其 Station admission proof 与 historical signer evidence；不得回退到不存在的 member-state holder。
+- `applet_managed_control` PCR 与 human / Agent PCR 使用同一 create-locked Availability holder 规则：successor Seal 的唯一 eligible holder必须从 predecessor closure 中唯一 accepted create 的 actual-author `ActorId` 路由得到，并完整验证其 原始 producer proof 与 historical signer evidence；不得回退到不存在的 member-state holder。
 - 对任意 ingress（包括 actor 自签的普通 Event），receiver 一旦由 managed provision/PCR 识别该 authority pair，写入 admission MUST 与该 Event `scope_ref` 对应的 active exact Applet registration、install grant 与 revoke fence 做 AND。Ghost 严格跟随创建它的 exact effective install lifecycle，v1 不定义第二套 per-Ghost revoke 状态或操作；撤销一个 install 后只拒绝该 scope 的新写，最后一个 active effective install 被 fence 后 Bot 与全部 Ghost 才全局拒绝新写。历史读取与 identity-resolution audit 始终可用。
 - **幂等（normative）**：同一 `(applet_id, external_ref.protocol, external_ref.instance_id, external_ref.external_id)` 与同一 `Idempotency-Key` 的 exact replay（包含四条 Event 的 canonical bytes）MUST 返回既有 refs，不得重复提交。`external_ref`是唯一tuple carrier，请求不再镜像`protocol/tenant/external_user_id`。相同 tuple 或 key 携带不同 Event bytes / event ids MUST `duplicate_conflict`；`Idempotency-Key` 的保存必须与原子提交同事务。语义与 §7.3 相同。
 - provision 不隐含任何 Realm membership 或 MLS 入组：ghost 加入 portal Realm 走常规 membership 流程，加入 E2EE group 还需 §12 的独立 E2EE 加入授权。
@@ -955,11 +956,11 @@ Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示
 
 ### 11.1 普通 inbound Event 的首次准入与历史安装证据
 
-管理员授权 exact install，Applet 构造、签署并可靠重试普通 Event，安装绑定的 Station 首次准入并保存原始 accepted Event。producer 与 admission 身份按 `models/event-and-patch.md` §3.1 分开；Applet 不承担 Station 准入历史。
+管理员授权 exact install，Applet 构造、签署并可靠重试普通 Event，任意合资格接收站独立验证安装授权、Applet producer 与 scope 并保存原始 Event；安装绑定不产生普通 Event 的排他准入站。
 
 `ak.edge.applet.command.transaction.v1` 的 `events[]` 按方向验证：Applet→Station MUST 是 producer-only caller submissions；Station→Applet MUST 是完整 accepted Events。HTTP RFC 9421 来源验签逐次执行，不能替代每条 Event 的 producer、grant、epoch 或安装检查。Signal 保留独立规则。
 
-普通 Applet Event 的 Station admission proof MUST 以 `applet_installation_digest` 引用标准 `applet_installation_authority` dependency，完整绑定已接受 registration 与被引用 grant。相同 service 的多个 Applet、相同 Applet 的多个 scope 和历史 epoch 均必须精确选择，不能任取第一条。service 直接行动同样检查 grant；Bot/Ghost 自身 key 仍验证托管身份和签发权；native act-on-behalf 仍要求专属委派。Circle install 不得扩权至 Realm。
+普通 Applet Event 必须用原始 producer 签名的安装坐标与 authority refs 解析标准 `applet_installation_authority` dependency，精确匹配 registration、grant、scope 和历史授权实例。任何 receiver 都独立验证；不能以某站补签代替，也不能任取同 service 的另一安装。Circle 安装不扩权至 Realm。
 
 ## 12. E2EE
 

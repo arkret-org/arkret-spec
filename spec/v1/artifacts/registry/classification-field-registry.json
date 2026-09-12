@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-31",
+  "version": "2026-09-12.6",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -382,33 +382,6 @@
         "e2ee_required"
       ],
       "semantic_axis": "extension_confidentiality_class"
-    },
-    {
-      "context": "schemas/extension-manifest.schema.json#/$defs/reducer_contract_ref/properties/concurrency_class",
-      "allowed_values": [
-        "merge_safe",
-        "exclusive",
-        "security_barrier"
-      ],
-      "semantic_axis": "reducer_concurrency_class"
-    },
-    {
-      "context": "registry/contract-registry.json#/event_kind_registry/cell_contracts/*/concurrency_class",
-      "allowed_values": [
-        "merge_safe",
-        "exclusive",
-        "security_barrier"
-      ],
-      "semantic_axis": "event_concurrency_class"
-    },
-    {
-      "context": "registry/event-kind-registry.json#/event_kinds/*/concurrency_class",
-      "allowed_values": [
-        "merge_safe",
-        "exclusive",
-        "security_barrier"
-      ],
-      "semantic_axis": "event_concurrency_class"
     }
   ],
   "ordered_tier_fields": [

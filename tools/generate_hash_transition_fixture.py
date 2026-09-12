@@ -33,20 +33,7 @@ def digest_raw(digest: str) -> bytes:
 
 
 def control_leaf_preimage(digest: str) -> bytes:
-    return b"\x00" + digest_raw(digest)
-
-
-def completeness_leaf_preimage(events: list[tuple[str, int, str]]) -> bytes:
-    actor_ids = {actor_id for actor_id, _, _ in events}
-    if len(actor_ids) != 1:
-        raise ValueError("fixture completeness helper expects one actor")
-    ordered = sorted(events, key=lambda row: (row[1], row[2]))
-    return b"\x00" + jcs({
-        "actor_id": ordered[0][0],
-        "from_seq": ordered[0][1],
-        "to_seq": ordered[-1][1],
-        "event_digests": [digest for _, _, digest in ordered],
-    }).encode()
+    return b"\x00" + digest.encode("utf-8")
 
 
 def event_id(digest: str, code: int) -> str:
@@ -127,13 +114,9 @@ def main() -> None:
     create_realm_id = "ak:realm:" + create_event_id.rsplit(":", 1)[1]
     genesis_state_leaf = jcs({
         "cell": "ak:cell:ak.component.realm.digest_suite.v1:null",
-        "state": {"value": "blake3"},
+        "state": {"revision_event_id": create_event_id, "value": "blake3"},
     })
     genesis_control_root = blake3_digest(control_leaf_preimage(create_digest))
-    genesis_completeness_preimage = completeness_leaf_preimage([(
-        create["actor_id"], create["actor_seq"], create_digest,
-    )])
-    genesis_completeness_root = blake3_digest(genesis_completeness_preimage)
     genesis_state_root = blake3_digest(b"\x00" + genesis_state_leaf.encode())
     genesis_body = {
         "realm_id": create_realm_id,
@@ -141,12 +124,16 @@ def main() -> None:
         "delta": [create_digest],
         "control_event_set_root": genesis_control_root,
         "state_root": genesis_state_root,
-        "completeness_root": genesis_completeness_root,
         "notary_seq": 0,
         "availability_receipt_digests": [],
         "sealed_at": "2026-08-06T00:00:02.000Z",
         "hlc": "0198943a5000-0000-aabbccdd",
     }
+    genesis_body["configuration_ref"] = create_event_id
+    genesis_body["command_results"] = [{"event_digest": create_digest, "unit_event_digests": [create_digest], "outcome": "committed",
+        "result_digest": blake3_digest(jcs({"event_digest": create_digest, "unit_event_digests": [create_digest], "outcome": "committed",
+            "effects": [{"cell_id": json.loads(genesis_state_leaf)["cell"], "state": json.loads(genesis_state_leaf)["state"]}],
+            "reason_code": None}).encode())}]
     genesis_body_bytes = jcs(genesis_body)
     genesis_seal_digest = blake3_digest(genesis_body_bytes.encode())
 
@@ -190,11 +177,11 @@ def main() -> None:
     )
     previous_leaf = jcs({
         "cell": "ak:cell:ak.component.realm.digest_suite.v1:null",
-        "state": {"value": "sha256"},
+        "state": {"revision_event_id": source["cases"][1]["derived_event_id"], "value": "sha256"},
     })
     next_leaf = jcs({
         "cell": "ak:cell:ak.component.realm.digest_suite.v1:null",
-        "state": {"value": "blake3"},
+        "state": {"revision_event_id": transition_event_id, "value": "blake3"},
     })
     previous_root = sha256(b"\x00" + previous_leaf.encode())
     next_root = blake3_digest(b"\x00" + next_leaf.encode())
@@ -204,30 +191,24 @@ def main() -> None:
         blake3(preimage).digest() for preimage in transition_control_leaf_preimages
     ]
     control_root = blake3_digest(b"\x01" + b"".join(transition_control_leaf_digests))
-    transition_completeness_preimage = completeness_leaf_preimage([
-        (
-            base_event["actor_id"],
-            base_event["actor_seq"],
-            source["cases"][1]["event_digest"],
-        ),
-        (transition["actor_id"], transition["actor_seq"], transition_digest),
-    ])
-    completeness_root = blake3_digest(transition_completeness_preimage)
     transition_body = {
         "realm_id": realm_id,
         "predecessor_refs": [base_seal_id],
         "delta": [transition_digest],
         "control_event_set_root": control_root,
         "state_root": next_root,
-        "completeness_root": completeness_root,
         "notary_seq": 1,
         "availability_receipt_digests": [transition_receipt["receipt_digest"]],
-        "covered_event_digests": covered,
         "previous_state_root": previous_root,
         "previous_digest_algorithm": "sha256",
         "sealed_at": "2026-08-07T00:00:02.000Z",
         "hlc": "019899606c00-0000-aabbccdd",
     }
+    transition_body["configuration_ref"] = source["cases"][1]["derived_event_id"]
+    transition_body["command_results"] = [{"event_digest": transition_digest, "unit_event_digests": [transition_digest], "outcome": "committed",
+        "result_digest": blake3_digest(jcs({"event_digest": transition_digest, "unit_event_digests": [transition_digest], "outcome": "committed",
+            "effects": [{"cell_id": json.loads(next_leaf)["cell"], "state": json.loads(next_leaf)["state"]}],
+            "reason_code": None}).encode())}]
     transition_body_bytes = jcs(transition_body)
     transition_seal_digest = blake3_digest(transition_body_bytes.encode())
     successor = {
@@ -246,6 +227,7 @@ def main() -> None:
 
     fixture = {
         "generated_by": "tools/generate_hash_transition_fixture.py",
+        "scope": "Byte-level suite transition over an isolated registered digest Cell. Symbolic surrounding state and signatures are not a complete Realm execution or cryptographic signature proof.",
         "profile": "ak.profile.hash_transition.v1",
         "version": "2026-08-24",
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.encoding.hash_transition.v1"},
@@ -267,11 +249,9 @@ def main() -> None:
                 "state_root": genesis_state_root,
                 "control_event_leaf_preimage_hex": control_leaf_preimage(create_digest).hex(),
                 "control_event_set_root": genesis_control_root,
-                "completeness_leaf_preimage_hex": genesis_completeness_preimage.hex(),
-                "completeness_root": genesis_completeness_root,
                 "seal_body_canonical_bytes_utf8": genesis_body_bytes,
                 "seal_id": "ak:seal:" + genesis_seal_digest,
-                "notary_signature_payload_digest": genesis_seal_digest,
+                "notary_signature_payload_digest": blake3_digest(jcs({"context": "ak.seal.commit.v1", "seal_digest": genesis_seal_digest, "configuration_ref": genesis_body["configuration_ref"], "notary_seq": 0, "view": 0}).encode()),
                 "expected": {"accepted_live_suite": "blake3", "decision": "accept"},
             },
             {
@@ -295,11 +275,9 @@ def main() -> None:
                 "control_event_leaf_preimages_hex": [
                     preimage.hex() for preimage in transition_control_leaf_preimages
                 ],
-                "completeness_leaf_preimage_hex": transition_completeness_preimage.hex(),
-                "completeness_root": completeness_root,
                 "seal_body_canonical_bytes_utf8": transition_body_bytes,
                 "seal_id": "ak:seal:" + transition_seal_digest,
-                "notary_signature_payload_digest": transition_seal_digest,
+                "notary_signature_payload_digest": blake3_digest(jcs({"context": "ak.seal.commit.v1", "seal_digest": transition_seal_digest, "configuration_ref": transition_body["configuration_ref"], "notary_seq": 1, "view": 0}).encode()),
                 "successor_event_digest_preimage_canonical_bytes_utf8": successor_bytes,
                 "successor_event_digest": successor_digest,
                 "successor_event_id": event_id(successor_digest, 2),
@@ -314,11 +292,11 @@ def main() -> None:
                     "transition_event_uses_new_suite", "transition_receipt_uses_new_suite",
                     "transition_seal_id_uses_old_suite", "transition_seal_payload_digest_uses_old_suite",
                     "transition_control_event_set_root_uses_old_suite",
-                    "transition_completeness_root_uses_old_suite", "mixed_predecessor_live_suites",
-                    "transition_seal_is_not_compaction", "transition_seal_contains_multiple_transition_moves",
+                    "multiple_same_realm_predecessors",
+                    "transition_seal_contains_multiple_transition_moves",
                     "transition_seal_mixes_ordinary_move", "genesis_live_suite_inferred_from_create_event_digest",
                     "realm_state_snapshot_commitment_mismatch", "suite_identity_mismatch", "strength_downgrade",
-                    "previous_state_root_on_non_transition_seal", "old_suite_digest_after_transition",
+                    "previous_state_root_on_non_transition_seal", "old_suite_security_command_after_transition",
                 ],
                 "expected": {"decision": "rejected_seal", "atomic": True, "state_unchanged": True},
             },

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/device-revocation-state.schema.json",
   "title": "Arkret Durable Device Revocation State",
-  "description": "Reducer-owned durable state for an accepted ak.device.revoke Control Move. A revoke is never an Ack-less self-principal PCR Move: accepted Event, canonical ControlProposalAck and this record are committed atomically. The record binds the exact principal authority, device authorization and generation observed at admission; producers cannot author those derived selectors. revocation_pending blocks the five registered action classes on every deployment until the exact proposal is either covered by an accepted Seal or terminated by a valid signed_reject under the same Ack authority contract.",
+  "description": "Durable exact-device revocation fence. A receiver that knows this authenticated pending/revoked state blocks affected new live actions locally. Unknown remote revocation can have a propagation window for ordinary data. Fresh proof issue is not a separate Event admission action. Terminal safety outcomes preserve exact proposal, authorization and generation binding.",
   "oneOf": [
     {
       "$ref": "#/$defs/device_revocation_record"
@@ -67,13 +67,10 @@
         },
         {
           "const": "event_write"
-        },
-        {
-          "const": "station_admission_proof_issue"
         }
       ],
-      "minItems": 5,
-      "maxItems": 5,
+      "minItems": 4,
+      "maxItems": 4,
       "uniqueItems": true
     },
     "gate_action_class": {
@@ -83,8 +80,7 @@
         "session_grant_refresh",
         "keypackage_claim",
         "to_device_write",
-        "event_write",
-        "station_admission_proof_issue"
+        "event_write"
       ]
     },
     "common_record": {

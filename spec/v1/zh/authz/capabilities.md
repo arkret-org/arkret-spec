@@ -178,10 +178,10 @@ Capability grant wire body MUST NOT 携带 registry version、timestamp 或 dige
 
 **确定性 basis 与 freshness 解耦（normative）**：首发 grant 的 issuer 上界校验 MUST 有确定性求值 basis，不得退化为对 §18.2 freshness 的循环依赖（"上界够新才算够新"）。具体：
 
-- issuer 自身有效持有的 effective capability（上界 ancestor 能力）**MUST** 在该 `ak.capability.grant` Control Move 的 **`seal_basis` joined view**（[`event-auth-state-resolution.md` §6.3.1](./event-auth-state-resolution.md) 的 deterministic joined control view）下解析。该 joined view 是确定性的：给定 `seal_basis`，ancestor 能力的撤销 / 存活状态有唯一解，与 freshness 置信判定**正交**——basis 本身固定了"按此 view 看 ancestor 是否仍授权"，而 freshness 只回答"此 basis 是否够新以排除尚未观察到的 revoke"。
+- issuer 自身有效持有的 effective capability 必须从签名 seal_basis 中各 Realm 的确认状态验证，并将可撤销的实际安全读取加入事务 revision/锁集合；执行时重新检查，不能靠 Seal 年龄推断当前资格。
 - 若 issuer 的上界 ancestor 能力在该 `seal_basis` joined view 下**被撤销 / superseded / expired / tombstoned**（即 joined view 下 ancestor 已不授权），首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`），不论 freshness 状态如何——这是 basis 内确定性结果，不是 freshness 问题。
-- 若 issuer 的上界 ancestor 能力在该 joined view 下存活，但该 basis 的 **freshness 为 `unknown`**（[§18.2](#182-撤销新鲜度-revocation-freshness)）：`ak.capability.grant` 属高风险授权动作，**按 §18.2 风险表对高风险动作 `unknown` 即 fail closed** 处理，首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`，附 `freshness_state`），不得在 freshness 不可确认时仍签出依赖该 ancestor 的首发 grant。`stale` 状态按 §18.2 高风险行同样 fail closed。
-- joined view 出现 `⊥`（multi-head / fork quarantine，见 [`event-auth-state-resolution.md` §6.3.1](./event-auth-state-resolution.md)）时该上界分支 MUST fail closed，MUST NOT 任取一个 head 作为上界来源。
+- 若 issuer 的上界 ancestor 能力在该 joined view 下存活，但该 basis 的 **freshness 为 `unknown`**（[§18.2](#182-撤销传播与当前检查)）：`ak.capability.grant` 属高风险授权动作，**按 §18.2 风险表对高风险动作 `unknown` 即 fail closed** 处理，首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`，附 `freshness_state`），不得在 freshness 不可确认时仍签出依赖该 ancestor 的首发 grant。`stale` 状态按 §18.2 高风险行同样 fail closed。
+- 配置、确认前缀或确切授权依赖不能验证时 fail closed/pending；同 Realm 竞争 Seal 不产生可选权限 heads。
 
 该规则使首发 grant 的上界校验有"先按 seal_basis joined view 确定性解析 ancestor 授权，再按 §18.2 对 basis 新鲜度做高风险 fail-closed"的两步确定性算法，消除 §18.2 freshness 与上界校验之间的循环依赖。
 
@@ -305,9 +305,6 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 （名词，写入 `ak.component.realm.discovery.v1`）不是同一事物：前者是读取面，后者是可发现性声明的状态写入。
 二者同时存在是有意的，MUST NOT 互相替代。
 
-`ak.conflict.recovery` 的首段 `conflict` 是 **reducer 冲突恢复域**，与字段轴 `state`（§5）正交；
-该 action 与同名 event kind 一一映射，仅授权 §9.5 定义的 `⊥` 恢复路径，不得解释为一般状态覆盖权。
-
 #### 5.0.1 聚合 admin 覆盖集防权限蠕变（normative）
 
 聚合 admin 动作（`ak.realm.admin`、`ak.policy.manage` 等，见上表第一类）的 `target_event_kinds` 是一个随 registry 演进可能增长的集合。若允许它随 registry 静默膨胀，则一个早先签发、覆盖范围较窄的历史 grant 会因后续向某聚合 action 的 `target_event_kinds` 新增成员而**自动扩大**其实际授权面（权限蠕变 / authority creep）。为关闭该面，v1 固定：
@@ -363,7 +360,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 Strand 权限只覆盖 Strand 自身字段、track entry 和 position / relation 管理。`ak.strand.update` 的 `allowed_write_fields` MUST 把 Strand Description（`content` / `encrypted_content`）与 Synthesis track 正文（`tracks.synthesis.content` / `tracks.synthesis.encrypted_content`）当作互不蕴含的独立路径：允许写其中一组 MUST NOT 自动允许另一组。`ak.strand.tracks.update` 只管理 track 的启用、primary、profile、template 与 track-local metadata，MUST NOT 用来写 Description 或 Synthesis 正文。Message 正文权限按 Strand 的 effective scope 判断：`Strand.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
-若 Circle membership control cell 在当前 CBS basis 下为 `⊥`（`fsm, bottom=reject`），上述两层 AND 的 membership 分支 MUST fail closed：授权结果为 deny，后续依赖该 cell 的 DataEvent / Control Move MUST 返回 `failed_bottom`（`reason=cell_in_bottom_state`），而 `failed_precondition` 仅用于 predicate 本身不成立（cell 持有明确 value 但 predicate 求值为 false）的情形；实现 MUST NOT 把 `⊥` 当作非成员、空成员集或任一候选 membership 状态来继续授权。
+Circle membership 是 `sequenced_state`。缺少必要授权/确认依赖时 pending；已确认非成员时 deny；验证到同高度两个冲突确认时停止该安全域并保留故障证据。不得把安全故障解释成一个可 join 的成员多头状态，普通消息也不因此要求全局最新 Seal。
 
 Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.morph.update` 对应 `ak.strand.read` / `ak.strand.create` / `ak.strand.update`),通过 `allowed_morph_kinds` constraint 进一步限定可创建或操作的 `morph_kind`。
 
@@ -719,16 +716,9 @@ grant SHOULD 同时记录签发时点的 `auth_state_digest` / `auth_frontier`�
 
 ### 10.3 Revoke 因果传播
 
-某条 ref grant 被 revoke 时，所有以它为 ref 的 grant MUST 在该 revoke 的 causal 后继中失效。普通 capability-governed DataEvent 的首次准入与历史保留只使用 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的 origin serializable admission gate：该 gate 已提交 revoke 时阻止新 admission；已先取得有效 `station_admission` 的 Event 永久保留，不按 risk tier、接收时间或 Seal 距离追溯失效。§18.2 的 freshness 风险分级只约束 gate 尚无法建立 current revocation state 时的新请求，不得覆盖已冻结的历史准入结论。
+已确认撤销对所有依赖该 grant 的委托链按 action 与 scope 传递。新 grant 和安全操作在唯一安全确认顺序处检查真实当前前态；祖先已关闭时返回 `grant_revoked_upstream`。
 
-解析 `issuer_authority_refs[]` 时，reducer MUST 主动查询本地已 accepted 的 grant / revoke index。若任一 `kind="grant"` ancestor 在本地已知为 revoked、superseded、expired 或 tombstoned，新 child grant 与尚未取得 `station_admission` 的依赖 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不因 action 风险等级、旧 `seal_ref` 或所谓 causal-distance 宽限而接受。若 origin gate 尚无法确认 current freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关的新 action MUST fail closed，低风险只可进入 pending / limited 模式；依赖补齐后仍须在同一 serializable gate 重验 current state。已取得有效 `station_admission` 的历史 Event 不重新进入本段判定。
-
-`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ak:grant:<44-char-event-token>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次临时 policy decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
-
-1. 该 grant 直接授权的 pending Event MUST fail closed；
-2. 以它为 ref 的 grant MUST 标记 `revoked_upstream`。child grant 的有效性 MUST 取其**所有** ref path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在某条 path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 MUST 降级 fail-closed，MUST NOT 因为存在另一条"仍有效的 alternate path"而保持有效。实现 MUST NOT 把多 ref 当作可漂白单条 path 撤销的冗余授权；多 ref 只增加约束、不放宽约束。child grant 仅当其**每一条** path 上的全部关键 ancestor 都仍有效时才保持有效；
-3. 依赖该 grant 的 allow cache、policy decision cache、projection shortcut 和 server-side cursor authority MUST 在同一 reducer transaction 内失效；
-4. 已 accepted / sealed 的历史 Event 保留审计事实，但后续 snapshot / export MUST NOT 再把它作为"当前仍授权"的证据。
+普通数据的 receiver 使用已验证的缓存授权，未知撤销允许传播窗口；本地已知撤销与 live admission 在同一持久事务串行化。历史 Event 由原授权实例和全部适用关闭 frontier 决定资格，接纳收据不保证永久有效。缺被引用依赖时 pending；仅因无法证明全球没有未知撤销，MUST NOT 强制原站在线或刷新 Seal。
 
 ### 10.4 Revoke 与 relinquish 的分工（normative）
 
@@ -769,7 +759,7 @@ Arkret v1 采用 allow-grant + explicit revoke 模型。
 
 v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id`；registry cell_subject 从 `payload.grant_id` 派生。
 
-**撤销的控制面定位与生效切点（normative）**：`ak.capability.revoke` 是控制面 Control Move。其**授权基准**由信封 `seal_basis` 表达（撤销发起者在其控制面链上当时的 Seal basis），payload **MUST NOT** 携带任何 frontier / event-digest 数组（v1 不存在 `revocation_frontier`；与 [`event-auth-state-resolution.md` §5–§6](./event-auth-state-resolution.md) 的 Control Move 信封纪律一致）。撤销的**生效切点**是覆盖该 revoke 的 **accepted Seal**：按 [`event-auth-state-resolution.md` §6.3](./event-auth-state-resolution.md) 的 Seal 接受规则，revoke 的 effect 在其所属 Control Move 被某个 accepted Seal 的 `delta[]` 覆盖并原子应用后才生效；在该 Seal 被接受之前，revoke 不改变有效权限集合。§18.2 的 freshness 是与生效切点**正交**的窗口置信判定（回答"当前 basis 是否够新、足以排除尚未观察到的 revoke"），而非生效切点本身；freshness 为 `stale` / `unknown` 时按 §18.2 风险表 fail-closed，**MUST NOT** 把"未观察到 revoke"当作"未撤销"。该模型与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke 完全平行（consent 同为 or_set 控制 cell、revoke 在 `seal_basis` view 下解析、被 accepted Seal 覆盖后生效）。
+**撤销的生效切点（normative）**：capability revoke 在唯一安全序列的 committed outcome 生效，并派生精确授权关闭集合。payload 不自报 frontier；Seal 依据完整命令及可获得历史生成关闭证明。普通消息允许未知撤销的传播窗口，获知后立即 gate，历史按所有适用 cut 重算；安全命令在实际执行位置检查授权和 revision。Consent 同样采用 sequenced_state，保留 observed-remove 集合值的完整 dots。
 
 ### 12.1 Grant cell 的确定性收敛（normative）
 
@@ -777,7 +767,7 @@ capability 授权状态投影到 cell family `ak.component.capability.grant.v1`�
 
 - **grant** = 对该 grant cell 的 or_set **add**：add dot = 该 `ak.capability.grant` 事件的 `ak:event:<event_id>:<write_index>`（dot 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value = grant 的 canonical 快照。
 - **revoke** = 对**同一** grant cell 的 or_set **remove**，observe 该 grant 的 add dot（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dot_ids` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 cell；reducer **MUST** 在该 revoke Control Move 的 `seal_basis` view 下把目标 grant 的 add dot 解析为合法 add op 后再 supersede。已被 observe-remove 的 add **MUST NOT** 因同 `grant_id` 的后续 re-add / 重放而复活（remove-after-observed-add 为终态）；多 issuer 并发 revoke 同一 grant 收敛于 or_set 的去重语义。
-- **有效性** = 该 grant cell or_set join 后仍存活（未被 observed-remove）的 add 所对应的 grant 快照。对 `ak.component.capability.grant.v1` 这一 grant cell 而言，`bottom` 对 or_set **inert**：or_set join 永不产生 ⊥，[`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中该 cell 明确登记 `bottom = inert`，reducer **MUST NOT** 据其产生任何 reject 语义（与 [`../identity/consent-model.md`](../identity/consent-model.md) 对 consent or_set `bottom` 的 inert 处理一致）；有效权限集合始终由 or_set join 决定。该 inert 规则只适用于 capability / consent 这类普通 observed-remove 集合；`ak.component.moderation_state.v1` 的 `bottom=expose` 是显式领域冲突处理，按 [`../governance/content-moderation.md`](../governance/content-moderation.md) 的 `moderation_control_split` 规则 fail closed 并暴露冲突状态。
+- **有效性** = 唯一确认序列中尚未被 observed-remove 的 grant add。Cell 模型是 sequenced_state，值为完整活跃 tagged set；revoke 按确切 revision 执行移除。集合元素并存不代表安全分叉，不能通过无序权限 join 或 Bottom 替代确认。
 - **GC / tombstone**：已被 sealed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 cell **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。
 
 conformance：[`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) **MUST** 覆盖 (a) grant → use → revoke → deny 序列、(b) 同一 grant 重复 / 并发 revoke 的幂等去重收敛、(c) revoke 后以同 `grant_id` re-add 仍保持已撤销（终态不复活）。freshness `unknown` 下高风险 action fail-closed 由 §18.2 风险表规范并据其验证。
@@ -910,38 +900,13 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - fast path（capability 快照缓存）**MUST** 只适用于"该 grant 的全部 constraint 的 `evaluation_class` 均为 `stateless` 或 `grant_local`"的 grant；只要 grant 含任一 `external` 或 `realm_state` 类 constraint（见 [`constraint-schema.md` §2.3](./constraint-schema.md) evaluation_class 分类，典型如 `claim_based` / `quota.rate` / `confidentiality` / `field_access` 带 `condition` 等），该 grant 的判定 **MUST** 走完整授权判定，**MUST NOT** 仅凭 fast-path cache 命中放行。该绑定与 §18.1 fast-path cache 的 `auth_state_digest` 失效机制叠加生效，不互相替代。
 - 多 Station 部署中，cache TTL 只是额外保险，MUST NOT 替代 revoke fanout、frontier 对账和 `auth_state_digest` 失效。
 
-### 18.2 撤销新鲜度 (Revocation Freshness)
+### 18.2 撤销传播与当前检查
 
-授权判定要回答两个问题：①当前 CBS basis 下，subject 是否被 grant？②该 basis 是否足够新，以至于"还没看到的 revoke"概率足够低？open_set / threshold Notary profile 下 ②不能凭单节点状态独立断言——必须显式建模 freshness 不确定性。
+普通消息、编辑和其它 `execution=data` 操作不以 Seal 年龄、签名缓存 TTL、heartbeat 或在线 revocation 查询为前置。接收站必须已完整验证 Event 引用的授权和依赖，但不要求取得全球最新状态。未知撤销的传播窗口在持续分区中没有固定上界；获知撤销立即阻止新 live 效果，历史按关闭证明重算。
 
-**Freshness 状态分级**：节点对自己当前 frontier 的新鲜度判定 MUST 落入以下三个状态之一：
+`execution=security` 操作在其唯一确认顺序处重新检查真实权限和前态；quorum 不可用时 pending，不按 low/medium risk 降级为本地授权。显式有限期资格仍按 §6.1 和 [授权归约 §5](./event-auth-state-resolution.md) 验证，普通无期限聊天不因此引入定期授权续签。
 
-- `fresh`：节点已观察到控制面 Seal 更新时间在 `freshness_required_ms` 窗口内，或持有 ≥1 受信 notary / witness 在该窗口内签发的 frontier attestation。
-- `stale`：上一次控制面 Seal 更新或受信 attestation 超出 `freshness_required_ms` 窗口，但仍小于 `freshness_hard_limit_ms`。
-- `unknown`：节点处于网络分区、frontier 来源不可达、notary 长时间无新 Seal、本地时钟与受信时间源 drift 超出 `clock_skew_tolerance_ms`，或上一次控制面 Seal 更新 / 受信 attestation 的年龄 **大于等于** `freshness_hard_limit_ms`。超过 hard limit 的状态 MUST 归入 `unknown`，不得继续按 `stale` 处理。
-
-**`freshness_unknown` ≠ allow**：当判定的状态是 `stale` 或 `unknown` 时，节点 MUST 按动作风险等级强制降级，绝不能因"找不到 revoke 证据"就默认为"未撤销"：
-
-| 动作风险等级 | `fresh` | `stale` | `unknown` |
-| --- | --- | --- | --- |
-| 高风险（**[`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `risk_tier=high` 的全部已登记动作**，例如 `ak.realm.destroy`、`ak.realm.freeze`、`ak.realm.tombstone`、`ak.capability.revoke`、`ak.realm.admin`、`ak.policy.manage`、`ak.schema.define`、`ak.agent.key.authorize` / `ak.agent.key.revoke`、`ak.call.record`、`ak.call.transcribe`、`ak.audit.export` 等；以及按"默认 fail closed"规则被视为高风险的未登记动作） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
-| 中风险（`ak.strand.update`、`ak.circle.member.manage`、`ak.invite.create`、跨 Realm relation 创建、policy bundle 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
-| 高频写入 / 本地 pending tier（按本表显式枚举：`ak.message.create`、`ak.reaction.add`、`ak.read_cursor.advance`、`ak.strand.move`、`ak.strand.reorder`） | allow | allow + 加快后台 Seal 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Event 同步给其他成员、不得 fanout、不得 push notify，直到 freshness 恢复。basis 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Event MUST 静默丢弃，不写入 redaction（因为它从未进入共享 accepted set）。 |
-
-> **本表行归属（normative）**：上表三行是 **freshness 分区降级策略**，其成员按本表**显式枚举**确定，与 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 是两个正交轴。`risk_tier` 在本节只治理两件事：(i) **未登记动作**的 freshness fail-closed 默认（registry 缺失该动作 ⇒ 视为 high ⇒ `unknown` 时 fail closed，见 registry_rules）；(ii) 禁止 grant author 通过 grant-side 标签把高风险动作降级（下方 MUST 列表）。因此 `ak.message.create` / `ak.strand.move` / `ak.strand.reorder` 虽在 registry 中为 `risk_tier=medium`，在分区 `unknown` 下仍按本行「本地 pending」处理——这是有意的离线可用性取舍，**不**构成与 `risk_tier` 的冲突；它们不会被静默放行给其他成员，因此不违反 medium 行的「不污染他人」目标。反向同理：**agent participation effective ceiling 的求值被显式排除在 low-tier「本地 pending / 视为允许」宽松规则之外**——ceiling 任一层 unknown / stale 时 MUST 按最严格值 fold 并 fail closed(不投递、不参与),见上文 `ak.self.agent.participation.resource.replace.v1` 与 [`../models/strand-and-message.md` §9.4](../models/strand-and-message.md)。
-
-设计取舍：低风险 `unknown` allow + 后续重放校验在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 采用本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Event 直接丢弃，无副作用。
-
-实现 MUST：
-
-- 在 `server/describe.limits` 暴露 `freshness_required_ms`、`freshness_hard_limit_ms`、`clock_skew_tolerance_ms`，让客户端协商。任何 registry 中 `risk_tier=high` 或未登记而按默认规则视为 high 的动作，其 `freshness_required_ms` MUST 严格大于 `2 * clock_skew_tolerance_ms`；否则本地时钟偏差可覆盖整个 freshness window，receiver MUST 把配置视为 `schema_violation` / deployment misconfiguration。默认值：高风险 `freshness_required_ms = 180_000`、`freshness_hard_limit_ms = 300_000`；中风险 `freshness_required_ms = 300_000`、`freshness_hard_limit_ms = 600_000`；clock_skew_tolerance_ms = 60_000。
-- 在 `unknown` / `stale` 拒绝响应中返回 `freshness_state`、`last_known_frontier_age_ms`、`notary_status`、`retry_after_ms`，让客户端 UI 区分"被拒绝"和"暂时不能确认"。
-- 客户端在低风险 `unknown` 模式下 MUST 在 UI 中标记本地 pending 写入为 `pending_local`（例如灰色发送中状态），并暴露"分区恢复后可能丢弃"的提示。
-- MUST NOT 用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_digest` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
-- MUST NOT 通过把高风险动作降级为中风险（例如把 `ak.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 字段声明，MUST NOT 接受 grant-side override。
-- 本地 pending 数量 MUST 按 Realm 维度限制在滚动时间窗口内（默认 ≤ 1000 / Realm / 5 minutes）；同一网络分区 episode 持续超过 5 minutes 时，quota 窗口继续滚动计算，不把整个 episode 合并为单一无限长窗口。超过限额后客户端 SHOULD 转为离线模式提示用户，避免 pending 队列爆炸。
-
-**默认 fail closed**：当实现无法确定动作风险等级、或动作来自尚未注册的 capability action 时，freshness 判定 MUST 默认按高风险处理（`stale` / `unknown` 即拒绝），而不是按低风险放行。这条 default 是为了让任何未来引入的高风险动作在进入 capability registry 前不会被旧实现误判为低风险路径。
+风险等级只决定已登记的审批、期限与约束，不能覆盖 execution 分类或把同一数据写入在不同 Station 变成不同模型。
 
 ## 19. 设计决定
 
@@ -968,17 +933,6 @@ Arkret v1 固定：
 - Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。
 - Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof、`../identity/identity-handles.md` 的 claim / VC 规则与 [`../identity/identity-handles.md` §16](../identity/identity-handles.md) 的 presentation 规则。
 
-## 附录 B. 与 UCAN / ZCAP 的关系与差异（informative）
+## 附录 B. 可携带授权与撤销（informative）
 
-> 本附录为 informative 设计背景说明，不构成 normative 约束。它解释 Arkret capability 模型为何采用 grant-as-signed-Event + lattice-revoke，而非 UCAN 风格的 JWT bearer 能力链，并不替换 §2–§12 定义的自有授权模型。
-
-UCAN 与 ZCAP-LD 以可携带的 bearer token / 能力链表达授权：持有者出示一条由 root 经 attenuation 逐级签发的 JWT（或 LD proof）链，验证方就地校验链上签名与 caveat 即可放行，无需中心化状态。这种"无状态 bearer 链"在离线签发与去中心信任路由上很优雅。
-
-Arkret 没有采用该路径，核心原因是 **revoke / attenuation 必须进入可重放的控制面 Seal / cell 收敛与 freshness 判定**：
-
-- Arkret 的 grant 是一条 **signed Event**，进入 reducer 后在 registry cell 上以 lattice 收敛；revoke 同样是 Event（`ak.capability.revoke`），其效果通过 cell 收敛对所有副本可重放、可定序、可审计。授权判定因此能绑定到 DataEvent 的 `seal_ref` 或 Control Move 的 `seal_basis`，并施加 freshness 门槛（见 §18、common-fields freshness 约定）。
-- bearer-token 链对**集中收敛的 revocation freshness 支持较弱**:撤销一条已签发的 UCAN/ZCAP 链通常依赖短 TTL、外部 revocation list 或带外吊销服务，验证方无法仅凭链本身判断"此刻是否仍有效",也难以纳入统一的 frontier / freshness 收敛。对一个以可重放事件流为真相源、且需要分区下 fail-closed 的系统，这一点是关键短板。
-
-因此 Arkret 在核心层坚持 grant-as-signed-Event + lattice-revoke,使授权状态与对象状态共享同一套收敛与 freshness 语义。
-
-未来 Arkret MAY 提供单独登记的 UCAN interop profile，把外部 UCAN 作为 claim / attestation 输入桥接进自有模型（外部 UCAN 仅作为 §7 claim/attestation 一类证据被消费，而不替代内生 grant cell）。在该 profile 进入 active conformance 前，实现 MUST NOT 依赖外部 bearer 能力链直接授权。
+Arkret 使用已确认的 grant Event 及精确委托证据作为可携带授权。grant/revoke 的变更有唯一安全顺序，使用既有 grant 的普通数据可离线并发。传播中的撤销通过作用域、授权实例和关闭集合收敛；短 TTL 不能消除网络分区的取舍。

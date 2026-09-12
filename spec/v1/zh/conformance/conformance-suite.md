@@ -73,7 +73,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 - `ak.profile.mls.minimal_metadata_realm.v1`
 - `ak.profile.traffic_metadata_hardened.v1`
 - `ak.profile.key_backup.memory_hard.v1`
-- `ak.profile.circle_seal_cadence.fixed_5m.v1`
+- 安全域 checkpoint 维护
 
 ## 3. OpenAPI 与 Transport 一致性
 
@@ -108,7 +108,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。以下为优先必测项：
 
 - `ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1`
-  - 输入带有效 `seal_ref` 与 `auth_context` 的 DataEvent。
+  - 输入带有效 `auth_context.authority_refs` 的 DataEvent。
   - 期望 reducer 输出：本地接受、可投影、无需被 Seal 覆盖。
 - `ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1`
   - 输入带有效 `seal_basis` 的 Control Move 及缺失/错误 basis 的负向样例。

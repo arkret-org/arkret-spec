@@ -126,7 +126,7 @@
     },
     "consent_grant_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.consent.grant Control Move and nothing else. consent_id, peer, consent_scope, not_before and expires_at all live in grant_event.event.payload; the holder is taken from the path. consent_id is producer-allocated, so the caller mints it: it is the cell subject (ak:cell:ak.component.consent.grant.v1:<consent_id>), and the or_set add dot is 'ak:event:<enclosing event_id>:<write_index>' (zh/identity/consent-model.md section 3.2). A service that wrote this element itself would be putting consent into replicated cell state that no Event in the log explains.",
+      "description": "Carries the caller-signed ak.consent.grant Control Move and nothing else. consent_id, peer, consent_scope, not_before and expires_at all live in grant_event.event.payload; the holder is taken from the path. consent_id is producer-allocated, so the caller mints it: it is the cell subject (ak:cell:ak.component.consent.grant.v1:<consent_id>), and the security-set add dot is 'ak:event:<enclosing event_id>:<write_index>' (zh/identity/consent-model.md section 3.2). A service that wrote this element itself would be putting consent into replicated cell state that no Event in the log explains.",
       "required": [
         "grant_event"
       ],

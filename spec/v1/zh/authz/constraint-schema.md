@@ -19,7 +19,7 @@ updated: 2026-07-30
 职责切分是 normative：
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
-- **Control Move precondition** 只表达 cell 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。DataEvent 不携带 `preconditions[]`，其数据面约束由 causal refs、`seal_ref` 与 Lattice 规则表达。
+- **Control Move precondition** 只表达 cell 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。DataEvent 不携带 `preconditions[]`，其数据面约束由 causal refs、`auth_context.authority_refs` 与 Lattice 规则表达。
 - **可验证证据** 是运行时 claim / approval / challenge 的动态评估输入。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 由 accepted approval Event 或 reducer 可验证的、绑定原始 request / DataEvent / Control Move canonical hash 的 evidence 满足。
 
 因此，`claim_based` constraint 中的 `required_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有 accepted approval Event 或 reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
@@ -174,7 +174,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `condition.kind` 是封闭的命名 condition enum；未注册的 kind MUST fail closed。v1 enum 见 grant-constraint schema：`object_is_owned_by_actor`、`actor_is_assignee`、`actor_is_responsible`、`actor_is_guardian`、`actor_is_controller`、`object_in_actor_container`、`object_is_unencrypted`、`object_is_encrypted`、`always`、`never`。
 
-**`⊥` / unknown freshness 时 fail closed**：若 condition 依赖的 cell 处于 `⊥`（cas_register bottom）或 freshness 状态为 `unknown`，condition 评估 MUST fail closed，不得 silent allow；该规则对所有 `realm_state` 类 condition 适用。
+**依赖不可判定时 fail closed**：condition 所引用的数据 cell 多头而不能唯一求值，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按确认顺序求值，不存在控制寄存器 Bottom。
 
 实现 MUST NOT 在 `condition` 上引入字符串 DSL 字段；新增 condition 必须先在 grant-constraint schema 的 `condition.kind` enum 中注册，并在本节文档化语义，再由实现使用。
 
@@ -417,7 +417,7 @@ quota authority MUST 同时满足：
 3. authority 不可达、无法证明最新 counter、事务冲突重试耗尽或窗口时刻不可确定时，hard quota MUST fail closed（`rate_limited` / `quota_exceeded` 或 `failed_precondition`），不得降级为 advisory allow。
 4. `burst` 若存在，表示在同一 authority 上附加 token-bucket 容量；refill rate 固定为 `max_operations / period`，bucket capacity 为 `min(burst, max_operations)`，且 fixed-window 内 accepted 总数仍不得超过 `max_operations`。`burst` 绝不增加窗口总预算。未声明 `burst` 时只执行 fixed-window 上限。
 
-`constraint_scope="global"` 的“global”边界仍是该 enforcing service 的 quota domain（含其全部副本 / region），不是全联邦所有独立 service 的隐式共享计数器。若一个 quota 必须跨多个互不共享线性化存储的独立 authority 生效，v1 core 要求 policy 指定一个共同 quota authority 并让所有写入向其原子 reservation；否则 MUST fail closed。[`event-auth-state-resolution.md` §9.3](./event-auth-state-resolution.md) 的 issuer-local data-plane counter 不能自动充当该共同 authority，也不能把完整预算复制给各 issuer；只有注册了额度分配、回收、epoch 与总和不超发证明的独立 escrow profile 才能替代上述单 authority，v1 core 不定义这样的 multi-authority profile。
+`constraint_scope="global"` 的“global”边界仍是该 enforcing service 的 quota domain（含其全部副本 / region），不是全联邦所有独立 service 的隐式共享计数器。若一个 quota 必须跨多个互不共享线性化存储的独立 authority 生效，v1 core 要求 policy 指定一个共同 quota authority 并让所有写入向其原子 reservation；否则 MUST fail closed。[`event-auth-state-resolution.md` §6](./event-auth-state-resolution.md) 的 issuer-local data-plane counter 不能自动充当该共同 authority，也不能把完整预算复制给各 issuer；只有注册了额度分配、回收、epoch 与总和不超发证明的独立 escrow profile 才能替代上述单 authority，v1 core 不定义这样的 multi-authority profile。
 
 ### 8.2 资源限制（constraint_subkind=resource）
 

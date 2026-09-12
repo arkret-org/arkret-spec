@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-08.1",
+  "version": "2026-09-12.7",
   "source_of_truth": true,
   "schema_ref": "schemas/history-key.schema.json#/$defs/history_release_attestation",
   "wire_registry_binding": "HistoryReleaseAttestation.verifier_profile_id is ak.history_release_predicates.v1. The enclosing HistoryKeyResponseRecord.service_proof covers the complete attestation. An unsupported verifier profile is rejected only for the affected object and is never translated to an authorization failure.",
@@ -9,7 +9,7 @@
     "all_or_nothing": true,
     "required_inputs": [
       "byte-identical signed manifest and request/receipt ledgers",
-      "receipt-bound HistoryGovernanceTraversalIntent with exact bootstrap base/current/target SealBasis antichains",
+      "receipt-bound HistoryGovernanceTraversalIntent with exact bootstrap base/current/target SealBasis values with exactly one confirmed head per Realm",
       "the complete retained target-to-base accepted Seal cut, base Seal bodies, delta Control Moves, AvailabilityReceipts, signer-resolution evidence and semantic dependencies",
       "requester current authorization incarnation and replay-derived winning join/reactivation transition",
       "the scope's current monotone history_access value at target",
@@ -22,7 +22,7 @@
       "derive the current requester membership incarnation, winning join/reactivation transition, every winning MLS epoch transition, ciphersuite and content_scheme exclusively from replayed state",
       "require every descriptor range be a subset of canonical request ranges",
       "read the current monotone history_access cell only: since_join requires every epoch >= the replay-derived current incarnation join_epoch; all_history_for_current_members ignores that floor but still requires the current incarnation",
-      "require every transition to be the reducer-effective winning cell value; conflict recovery, Bottom and continuity are reconstructed by normal replay rather than a separate activation witness",
+      "require every transition to be the reducer-effective winning cell value; confirmed outcomes, revisions and continuity are reconstructed by normal replay rather than a separate activation witness",
       "require exporter content_scheme in the winning value; standard MLS is ineligible for history delivery"
     ],
     "failure_rule": "Any missing, extra, stale, Bottom, mismatched, unauthorized or unavailable input rejects the whole manifest before sequence allocation, response record, admission row or attestation write. Partial range admission is forbidden."
@@ -57,7 +57,7 @@
     }
   },
   "seal_view_locator_rule": {
-    "basis": "Each scope slot carries the complete canonical accepted non-quarantined seal_basis antichain. Selecting one accepted Seal leaf is forbidden, including open_set.",
+    "basis": "Each scope slot carries exactly one confirmed Seal head of its Realm. Realm and Circle slots in the same Realm bind the same confirmed prefix. Competing same-Realm heads are invalid.",
     "projection": "RealmCurrentGateProjection and CircleCurrentGateProjection are the only closed projection shapes. They contain current monotone history_access, exact recipient/source authorization incarnation when the registered branch requires it, tombstone facts, and for Circle the parent-Realm intersection plus membership_reconcile_required=false.",
     "digest": "SHA-256(UTF8('ak.history-current-gate-projection-v1') || 0x00 || JCS(current_gate_projection))",
     "cas": "The first durable chunk-enqueue transaction re-resolves the exact basis, rejects any known successor, recomputes every projection field and digest, and CAS-compares the complete basis+projection before writing anything."

@@ -497,7 +497,7 @@ Arkret 的 unknown handling 来自 Lattice bottom：
 
 | Arkret | MIMI |
 | --- | --- |
-| `bottom=reject` 或 unknown core lattice | `must-understand` |
+| `sequenced_state` 安全语义或未知核心状态模型 | `must-understand` |
 | `bottom=expose` | `should-understand` / exposed conflict |
 | 非授权 projection extension | `silently-drop`，但必须保留 raw bytes 或 canonical hash |
 

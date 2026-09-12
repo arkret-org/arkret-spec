@@ -64,130 +64,6 @@
       "reason": "agent_authorization_inactive"
     },
     {
-      "name": "historical_destination_receipt_preserves_admission",
-      "verification_mode": "historical_event",
-      "receipt_matches_event_and_receiver": true,
-      "three_gates_active_at_receipt_time": true,
-      "current_agent_status": "deactivated",
-      "current_controller_account_status": "deactivated",
-      "expected": "verified"
-    },
-    {
-      "name": "historical_current_authority_state_substitution_rejected",
-      "verification_mode": "historical_event",
-      "expected": "rejected",
-      "reason": "agent_signer_evidence_missing",
-      "event_admission_present": false
-    },
-    {
-      "name": "historical_wrong_destination_receipt_rejected",
-      "verification_mode": "historical_event",
-      "receipt_matches_event_and_receiver": false,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch"
-    },
-    {
-      "name": "historical_inactive_gate_at_receipt_time_rejected",
-      "verification_mode": "historical_event",
-      "three_gates_active_at_receipt_time": false,
-      "expected": "rejected",
-      "reason": "agent_authorization_inactive"
-    },
-    {
-      "name": "historical_materialization_exact_replay_is_no_op",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "same_selector_tuple": true,
-      "same_receipt_digest": true,
-      "same_canonical_historical_root": true,
-      "additional_historical_roots_published": 0,
-      "expected": "verified",
-      "materializer_reads_selector_tuple_before_publishing_root": true
-    },
-    {
-      "name": "historical_materialization_same_tuple_other_receipt_is_zero_overwrite",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "same_selector_tuple": true,
-      "same_receipt_digest": false,
-      "same_canonical_historical_root": false,
-      "additional_historical_roots_published": 0,
-      "expected": "rejected",
-      "reason": "duplicate_conflict"
-    },
-    {
-      "name": "historical_materialization_same_tuple_other_root_is_zero_overwrite",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "same_selector_tuple": true,
-      "same_receipt_digest": true,
-      "same_canonical_historical_root": false,
-      "additional_historical_roots_published": 0,
-      "expected": "rejected",
-      "reason": "duplicate_conflict"
-    },
-    {
-      "name": "historical_materialization_other_receiver_service_is_a_distinct_branch",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "same_selector_tuple": false,
-      "selector_component_that_differs": "receiver_id",
-      "additional_historical_roots_published": 1,
-      "expected": "verified"
-    },
-    {
-      "name": "historical_materialization_incomplete_dependency_closure_publishes_no_root",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "recursive_signer_dependency_closure_complete": false,
-      "additional_historical_roots_published": 0,
-      "expected": "unresolved",
-      "reason": "agent_signer_evidence_missing"
-    },
-    {
-      "name": "historical_materialization_lost_receipt_is_never_reminted",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "receipt_permanently_lost": true,
-      "materializer_rebuilds_receipt_from_current_state": false,
-      "additional_historical_roots_published": 0,
-      "expected": "unresolved",
-      "reason": "agent_signer_evidence_missing"
-    },
-    {
-      "name": "receiver_key_rotation_after_accepted_at_preserves_receipt",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "receiver_signing_key_rotated_after_accepted_at": true,
-      "receiver_dependency_resolved_at": "receipt_accepted_at",
-      "expected": "verified"
-    },
-    {
-      "name": "receiver_dependency_resolved_from_current_service_record_rejected",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "receiver_signing_key_rotated_after_accepted_at": true,
-      "receiver_dependency_resolved_at": "verifier_now",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch"
-    },
-    {
-      "name": "receiver_key_revoked_after_accepted_at_does_not_retroact",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "receiver_method_active_at_accepted_at": true,
-      "current_receiver_signing_key_status": "revoked",
-      "expected": "verified"
-    },
-    {
-      "name": "receiver_method_inactive_at_accepted_at_rejected",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "verification_mode": "historical_event",
-      "receiver_method_active_at_accepted_at": false,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch"
-    },
-    {
       "name": "account_gate_never_discloses_local_identity",
       "controller_account_gate_closed_schema": true,
       "contains_service_local_account_id": false,
@@ -253,7 +129,7 @@
       "provenance.kind": "delegated_pcr_genesis",
       "genesis_realm_purpose": "agent_control",
       "expected": "verified",
-      "origin_station_admission_verified": true
+      "original_producer_authority_verified": true
     },
     {
       "name": "organization_pcr_cannot_materialize_agent_active",
@@ -274,21 +150,6 @@
       "key_state_tag": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
       "expected": "rejected",
       "reason": "agent_signing_key_mismatch"
-    },
-    {
-      "name": "historical_mls_leaf_cross_binding_verified",
-      "verification_mode": "historical_event",
-      "matching_basic_leaf_count": 1,
-      "leaf_signature_key_matches_binding": true,
-      "leaf_authorize_event_matches_receipt": true,
-      "expected": "verified"
-    },
-    {
-      "name": "duplicate_or_mismatched_mls_leaf_rejected",
-      "verification_mode": "historical_event",
-      "matching_basic_leaf_count": 2,
-      "expected": "rejected",
-      "reason": "agent_mls_leaf_binding_mismatch"
     },
     {
       "name": "minimal_metadata_forbids_agent_evidence_query",
@@ -374,44 +235,6 @@
       "reason": "agent_authorization_inactive"
     },
     {
-      "name": "historical_same_station_uses_original_admission",
-      "verification_mode": "historical_event",
-      "event_admission_kind": "station_admission",
-      "same_authority_role": true,
-      "same_durable_acceptance": true,
-      "additional_receiver_receipts": 0,
-      "original_frozen_root_matches": true,
-      "expected": "verified",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1"
-    },
-    {
-      "name": "historical_same_station_second_receipt_rejected",
-      "verification_mode": "historical_event",
-      "event_admission_kind": "receiver_receipt",
-      "same_authority_role": true,
-      "same_durable_acceptance": true,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1"
-    },
-    {
-      "name": "historical_other_receiver_requires_own_receipt",
-      "verification_mode": "historical_event",
-      "event_admission_kind": "station_admission",
-      "same_authority_role": false,
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1"
-    },
-    {
-      "name": "historical_original_lease_survives_later_authority_rotation",
-      "verification_mode": "historical_event",
-      "authority_method_resolved_at": "lease_issued_at",
-      "verifier_now_after_lease_expiry": true,
-      "expected": "verified",
-      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1"
-    },
-    {
       "name": "agent_pcr_resume_retains_original_genesis_notary",
       "verification_mode": "current_admission",
       "lifecycle_provenance": "resume_accepted",
@@ -423,9 +246,49 @@
       "name": "controller_device_binding_uses_authorization_event_admitted_key",
       "verification_mode": "current_admission",
       "controller_method_in_principal_did": false,
-      "key_authorization_station_admission_valid": true,
+      "key_authorization_producer_authority_valid": true,
       "binding_matches_admitted_producer_key": true,
       "expected": "verified"
+    },
+    {
+      "name": "historical_portable_producer_evidence_at_any_receiver",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "original_authority_verified": true,
+      "receiver_receipt_required": false,
+      "expected": "verified"
+    },
+    {
+      "name": "historical_missing_original_dependency",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "original_authority_verified": false,
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_missing"
+    },
+    {
+      "name": "historical_cache_ttl_does_not_expire_unlimited_authority",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "lease_cache_expired": true,
+      "real_authority_expired": false,
+      "expected": "verified"
+    },
+    {
+      "name": "historical_applicable_closure_excludes_event",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "producer_signature_valid": true,
+      "inside_all_applicable_cuts": false,
+      "expected": "quarantined"
+    },
+    {
+      "name": "historical_current_key_cannot_replace_original_key",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "only_current_key_supplied": true,
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_missing"
     }
   ]
 }

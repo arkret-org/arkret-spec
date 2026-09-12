@@ -133,7 +133,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Ordinary-human history-response device authority only. signer_id equals the attested AccountId principal; verification_method is that principal DID plus the exact device-id fragment. The source ActorId equals the complete attested AccountId and its sender domain equals the device ID. Verify the retained Station attester closure and device projection at source_proof.created_at, within its positive validity interval. Later expiry does not invalidate accepted history; first enqueue still checks current device/generation and membership. This branch does not authorize DID-document, notary or Control Event signatures."
+      "description": "Verify the exact signed device projection and its attester closure. For ordinary publication the cache expires_at limits current-query freshness only; authorization_window and applicable generation/revocation closures govern actual authority. Preserve the full AccountId, device and signing-key binding. This evidence alone does not authorize notary or root-control actions."
     },
     "agent_signer_evidence": {
       "type": "object",
@@ -163,46 +163,10 @@
         },
         "account_authority_signer_evidence_ref": {
           "$ref": "#/$defs/signer_evidence_ref"
-        },
-        "receiver_signer_evidence_ref": {
-          "$ref": "#/$defs/signer_evidence_ref"
         }
       },
       "additionalProperties": false,
-      "description": "Two current refs authenticate the Agent Authority lease and Account Authority gate. Original Station-admitted genesis and key authorization Events in state authenticate notary delegation and controller device keys. Historical evidence additionally requires receiver_signer_evidence_ref for the original Station admission or distinct receiver receipt; current evidence forbids it. Every canonical root retains complete state.",
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "agent_signer_evidence": {
-                "properties": {
-                  "verification_mode": {
-                    "const": "historical_event"
-                  }
-                },
-                "required": [
-                  "verification_mode"
-                ]
-              }
-            },
-            "required": [
-              "agent_signer_evidence"
-            ]
-          },
-          "then": {
-            "required": [
-              "receiver_signer_evidence_ref"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "receiver_signer_evidence_ref"
-              ]
-            }
-          }
-        }
-      ]
+      "description": "Authenticate the exact Agent Authority and Account Authority proofs and all original producer evidence recursively. Historical verification uses immutable authorization evidence and applicable closure decisions; no receiver admission signature is required."
     }
   }
 }

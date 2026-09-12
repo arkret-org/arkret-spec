@@ -1530,7 +1530,7 @@ def build_sections() -> dict[str, Any]:
             "generator": "tools/generate_history_scale_fixture.py",
             "traversal_intent_digest": "SHA256(UTF8('ak.history-governance-traversal-intent-v1')||0x00||JCS(intent))",
             "streaming_storage": "temporary SQLite work queue plus visited set; one canonical descriptor is live at a time",
-            "fixture_storage": "small replayable open-set cut, dependency objects and aggregate scale summaries only",
+            "fixture_storage": "small replayable confirmed-prefix interval, dependency objects and aggregate scale summaries only",
             "proof_transport": "none; standard Event, Seal and governance-dependency resolve carry retained objects",
             "prewrite_budget": MAX_REQUEST_EPOCHS,
         },

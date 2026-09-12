@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-11.1",
-  "generated_at": "2026-09-11T23:16:51+08:00",
+  "version": "2026-09-12.6",
+  "generated_at": "2026-09-12T09:51:32+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -641,11 +641,6 @@
     "ak.profile.mls.minimal_metadata_realm.v1": "admin",
     "ak.profile.traffic_metadata_hardened.v1": "admin",
     "ak.profile.key_backup.memory_hard.v1": "admin",
-    "ak.profile.circle_seal_cadence.fixed_5m.v1": "admin",
-    "ak.profile.notary.single_signer.v1": "admin",
-    "ak.profile.notary.threshold.v1": "admin",
-    "ak.profile.notary.open_set.v1": "admin",
-    "ak.profile.notary.mixed_recovery.v1": "admin",
     "ak.profile.personal_productivity.v1": "client",
     "ak.profile.draft_sync.v1": "client",
     "ak.profile.file_transfer.v1": "client",
@@ -696,8 +691,7 @@
     "ak.profile.disclosed_audit.e2ee.v1",
     "ak.profile.mls.minimal_metadata_realm.v1",
     "ak.profile.traffic_metadata_hardened.v1",
-    "ak.profile.key_backup.memory_hard.v1",
-    "ak.profile.circle_seal_cadence.fixed_5m.v1"
+    "ak.profile.key_backup.memory_hard.v1"
   ],
   "vector_groups": [
     "ak.vector_group.capability.v1",
@@ -2301,7 +2295,6 @@
         "ak.schema.controller_account_gate_attestation.v1",
         "ak.schema.controller_account_gate_attestation_issue_request.v1",
         "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
-        "ak.schema.agent_signer_admission_receipt.v1",
         "ak.schema.agent_signer_evidence.v1",
         "ak.schema.signer_key_query_request.v1",
         "ak.schema.signer_key_query_outcome.v1"
@@ -5616,154 +5609,6 @@
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
       }
     },
-    "ak.profile.notary.single_signer.v1": {
-      "description": "Notary profile using one did_core actor and that actor's current authorized verification method to issue Seals.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.seal.v1",
-        "ak.schema.realm_state_snapshot.v1"
-      ],
-      "required_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "single_signer_notary",
-          "seal_compaction"
-        ],
-        "unsupported_optional": "fail closed or omit profile claim"
-      }
-    },
-    "ak.profile.notary.threshold.v1": {
-      "description": "Notary profile using k-of-n threshold signatures to issue Seals.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.seal.v1",
-        "ak.schema.realm_state_snapshot.v1"
-      ],
-      "required_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "threshold_notary",
-          "seal_compaction"
-        ],
-        "unsupported_optional": "fail closed or omit profile claim"
-      }
-    },
-    "ak.profile.notary.open_set.v1": {
-      "description": "Notary profile allowing multiple leaf Seals and deterministic Seal view joins.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.seal.v1",
-        "ak.schema.realm_state_snapshot.v1"
-      ],
-      "required_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "seal_dag_join",
-          "bottom_diagnostics"
-        ],
-        "unsupported_optional": "fail closed or omit profile claim"
-      }
-    },
-    "ak.profile.notary.mixed_recovery.v1": {
-      "description": "Notary profile with primary notary and fallback recovery notary.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.seal.v1",
-        "ak.schema.realm_state_snapshot.v1"
-      ],
-      "required_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "recovery_notary",
-          "notary_bottom_pause"
-        ],
-        "unsupported_optional": "fail closed or omit profile claim"
-      }
-    },
     "ak.profile.matrix_compat.v1": {
       "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, and SAS verification message strand. Arkret device authorization remains PCR-native and is outside this compatibility profile. Account-aggregate sync is NOT covered: Arkret v1 chose a streaming push form (ak.self.account.stream.subscribe.v1 / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ak.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
       "enforcement_phases": [
@@ -5962,64 +5807,6 @@
         "unsupported_optional": "omit profile claim or reject weak passphrase_kdf backups"
       }
     },
-    "ak.profile.circle_seal_cadence.fixed_5m.v1": {
-      "description": "Named cadence profile for confidential Circle sub-seal commitments. Implementations claiming this profile MUST emit ak.circle.seal_commit on a fixed time cadence (5 minutes, max jitter 30 seconds), MUST include empty-batch commitments, and MUST NOT use event-count or activity-triggered public commitments. Mobile energy saving may batch private sub-seal upload, but MUST NOT relax the public Realm seal cadence.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.stream.subscribe.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "required_event_kinds": [
-        "ak.circle.seal_commit"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.event_payload.v1"
-      ],
-      "required_fixtures": [
-        "circle-scope-fixture.json"
-      ],
-      "optional_extensions": [],
-      "parameters": {
-        "period_ms": {
-          "default": 300000,
-          "min": 300000,
-          "max": 300000,
-          "rationale": "Public Realm seal commitment cadence is fixed at 5 minutes for this profile."
-        },
-        "max_jitter_ms": {
-          "default": 30000,
-          "min": 0,
-          "max": 30000,
-          "rationale": "Bounded scheduling jitter; implementations MUST NOT encode activity by delaying beyond this window."
-        },
-        "empty_batch_commitments": {
-          "required": true,
-          "rationale": "No-activity intervals still emit commitments to avoid leaking activity frequency."
-        }
-      },
-      "feature_discovery": {
-        "required": [
-          "circle_seal_cadence_fixed_5m",
-          "circle_seal_empty_batch_commitments",
-          "circle_seal_activity_independent_schedule"
-        ],
-        "unsupported_optional": "omit profile claim; confidential Circle deployments MUST NOT claim an event-count cadence as equivalent"
-      }
-    },
     "ak.profile.circle_conformance.v1": {
       "role": "interop",
       "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor content payload (`scope_circle_id` where that object schema defines it), the signed Event `scope_ref`, and the materialized object's `effective_scope`; it also pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Strand / Message / Morph / Relation / Space objects.",
@@ -6046,8 +5833,7 @@
         "ak.circle.archive",
         "ak.circle.restore",
         "ak.circle.tombstone",
-        "ak.circle.member.state",
-        "ak.circle.seal_commit"
+        "ak.circle.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -6840,11 +6626,5 @@
         "unsupported_optional": "do not claim ak.profile.hpke.p256.v1 and reject the P-256 HPKE suite as unsupported"
       }
     }
-  },
-  "notary_profiles": [
-    "ak.profile.notary.single_signer.v1",
-    "ak.profile.notary.threshold.v1",
-    "ak.profile.notary.open_set.v1",
-    "ak.profile.notary.mixed_recovery.v1"
-  ]
+  }
 }

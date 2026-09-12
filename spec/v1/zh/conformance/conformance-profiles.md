@@ -252,7 +252,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-声明 `ak.profile.mls_governance_binding.full.v1` 的服务器 MUST 从 accepted state 计算并验证会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE DataEvent 的普通 `seal_ref` 与 MLS frontier 正交；服务端不得要求同一 Seal 覆盖自身。
+声明 `ak.profile.mls_governance_binding.full.v1` 的服务器 MUST 从 accepted state 计算并验证会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE DataEvent 的普通 `auth_context.authority_refs` 与 MLS frontier 正交；服务端不得要求同一 Seal 覆盖自身。
 
 E2EE 客户端消费自己 Account Station 确认的 exact scope/group/epoch/security-frontier 结果，核对本地 MLS leaves、待签 intent 与 GroupContext extension 的对应关系，执行 MLS Commit/Welcome 密码学处理；MUST NOT 收集治理闭包、验证历史 authority 或自行重建治理 frontier。没有所需服务器结果时，仅相关 scope 保持 pending。该服务器 policy profile 的 proof bundle 与完整 verify/materialize mutation/limit runner 属于服务器或独立审计角色，不是普通 full/e2ee 客户端的继承要求；SDK 是共享代码位置，不代表客户端角色。客户端 conformance 覆盖已确认结果消费、错账号/Realm/scope/group/epoch/basis 绑定、pending 与端到端篡改拒绝。
 
@@ -664,8 +664,8 @@ MUST 支持:
 - Agent management surface 中 list/get 是 read-only；renew-pairing 只轮换 profile-local pairing artifact，不写 durable Event；pause/resume/deactivate 各写一个 lifecycle Event，其中 deactivate 的 accepted terminal parent gate 直接使全部 child authority ineffective，不接受客户端 revoke bundle；grant attach/detach 分别写 Realm-scoped capability grant/revoke Event
 - Longevity-safe 授权链:`ak.agent.key.authorize`、`ak.identity.accountability_grant` 与非 registry-required 的 agent capability grant 的 `expires_at` 均可缺省(revocation-governed);实现 MUST NOT 因缺省 `expires_at` 拒绝这些对象
 - Agent provision request 与 list/get projection 使用必填固有字段 `slug`；Agent selector claim `ak.schema.agent_selector_claim.v1` 与 Actor Profile 投影 hint 使用外部引用字段 `agent_slug`，并支持 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_account_id`（完整 AccountId）的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
-- Draft-only family:`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_approve` / `ak.agent.action_reject`,materialize 为 controller-owned `ak.agent.draft.v1` encrypted account-data
-- Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
+- Draft-only family:`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_reject`,materialize 为 controller-owned `ak.agent.draft.v1` encrypted account-data
+- Draft approval 状态机:`proposed → approved → published`；`ak.agent.action_approve` 在目标 Realm 安全确认中将 nonce 一次分配给完整 approved_event_id，私有 draft 从该确切结果派生状态
 - Event Envelope `actor_id` / `executed_by` / `authorization_ref` attribution，以及从历史 provisioning / registration / accountability evidence 分别验证 accountable actor 与 executor
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - `display_name`与`avatar_blob_ref`不得进入 provision Event或三个 projection；provision完成后只可用既有 `ak.profile.update` 独立 Event，固定 `actor_id=agent_id`、`executed_by=controller_account_id`与 accepted controller delegation。该独立 operation失败不得回滚 provision complete

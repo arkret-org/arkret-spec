@@ -31,20 +31,13 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Station�
 
 联邦场景中没有独立第三方分发服务器角色。Realm 范围传播由参与方 Station 之间的 federation transaction 完成。接收方可以独立验证**已经收到**的 Event Envelope 是否被伪造或篡改，并可在两个已知持有者的同一方向、同一授权披露范围内核对已观察集合；签名、frontier、receipt 或多个 Witness 都不能证明一个从未被任何验证方观察到的 Event 不存在，也不能阻止恶意 source withholding。current-v1 不提供 Realm 历史完整性证明或 completeness authority。
 
-### 2.3 Seal Finality 优于全局同步共识
+### 2.3 安全确认与普通传播
 
-跨域网络延迟不可预测。联邦协议不要求所有 Station 同步参与一个全局共识组；每个 Realm 通过 Seal DAG 表达控制面 ordering commitment。`single_signer`（单 did_core actor）、`threshold`（k-of-n actor 委员会）、`open_set`（开放对等）和 `mixed`（含 sovereign fallback）只是 `notary` control cell value 与 Notary profile 的不同配置；详见 §2.4。
+每个 Realm 的安全状态使用唯一确认序列；普通 Event 使用可携带授权独立接收和因果合流。联邦 Station 不需要全体参与共识。Seal 只用于安全变更，普通数据不等待它推进。
 
-### 2.4 Notary Profile 决定控制面 finality
+### 2.4 Notary 配置
 
-联邦传播按目标 Realm create-locked 的 `notary.kind`（参见 [`../models/realm-and-space.md` §2.3](../models/realm-and-space.md#23-schema-id-与字段)）决定控制面 Seal 的签发方式；DataEvent 仍按签名、`seal_ref` 与 Lattice/CRDT 规则在参与方之间传播：
-
-- **`single_signer`**：单一 did_core actor 的 current authorized verification method 签发 Seal；wire 不把 service DID 或 DID URL 当作 authority member。DataEvent 可由参与方 Station 直接验证并传播；Control Move 由该 actor 的 Seal 覆盖后 `sealed`。
-- **`threshold`**：k-of-n committee 签发 Seal。Control Move finality 需要 threshold signature。
-- **`open_set`**：多个 federation peer / admin DID 可以签发 Seal leaf。Station 之间 push / pull DataEvent、pending Control Move 与 Seal leaf；查询时使用 deterministic control view join。
-- **`mixed`**：正常由主 notary 签发 Seal；主 notary 故障、签发矛盾 Seal 或 notary control cell 变成 `⊥` 时，fallback recovery notary 可以签发恢复 Seal。
-
-跨域 Realm 跨过两个 deployment（A 与 B）时，`notary.kind` 与 genesis notary descriptors 由 Realm create 固定，所有参与 deployment 都按同一 Seal 验证规则处理；不存在 "A 当 hub、B 当 peer mesh" 的分裂状态。
+`notary.kind=quorum` 是唯一配置，n=3f+1、确认需 2f+1，不同 voter 独立且按确切配置验签；f=0 为无副本容错部署。完整协议包含持久投票、prepared 锁和 view change，不能把多签集合直接称为共识。不同 deployment 必须验证同一 Realm 的唯一配置和 lineage；不存在任意多个安全 leaf 的 join 或自动 fallback 新开 lineage。
 
 ## 3. 节点间认证
 
@@ -127,7 +120,7 @@ v1 不定义可复制的 Realm 级 server ACL。`server_acl` 只能作为本地�
 
 跨域联邦接收**收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit.v1`）是**唯一**的 federation Event 接收轨。所有跨 deployment 的 Event 接收——包括 DataEvent、Control Move（含 Move / Anchor / Seal-bearing 控制面事件）——MUST 统一走该单一 sealed Event Envelope 通道：
 
-- 每条联邦接收的载体都是签名 `ak.schema.event.v1` Event Envelope（DataEvent 携带 `seal_ref`，Control Move 携带 `seal_basis`），由 §3 节点间认证 + §4.1 service binding 快照保护，由接收方按 §4.1.0 独立验证签名 / 因果链 / CBS basis / Seal。不存在第二套按对象类型分轨（如把 Move、Anchor、Operation 拆成不同接收 endpoint）的联邦接收形态。
+- 每条联邦接收的载体都是签名 `ak.schema.event.v1` Event Envelope（DataEvent 携带 `auth_context.authority_refs`，Control Move 携带 `seal_basis`），由 §3 节点间认证 + §4.1 service binding 快照保护，由接收方按 §4.1.0 独立验证签名 / 因果链 / CBS basis / Seal。不存在第二套按对象类型分轨（如把 Move、Anchor、Operation 拆成不同接收 endpoint）的联邦接收形态。
 - **实现私有 peer 入站轨 MUST NOT 作为联邦互通入口**：实现可以在自己的 negative-space root（如 `/_<impl>/peer/...`）下保留部署本地的内部接收 / 调试路径，但这类私有轨 MUST NOT 被任何跨厂商 / 跨 deployment 对端当作联邦投递目标，MUST NOT 接受外部 federation peer 的 Move / Anchor / Operation 推送，也 MUST NOT 在 `GET /_arkret/describe` 的 `supported_operation_bundles` 中作为 federation surface 宣告。它们只能降级为**只读调试 / 部署本地内部** affordance，或整体移除；保留时 MUST 在 `profile_limitations()` 等价声明中标注为 deployment-local-only、非互通入口，且 MUST 与 `/_arkret/peer/events` 施加同等或更严的 §3 service-to-service 认证与授权（不得出现"私有轨有 9421 验签、协议轨反而没有"的姿态倒挂——协议轨 `/_arkret/peer/events` 的 §3.2 RFC 9421 service signature 是 MUST，私有轨不得以更弱姿态接收外部流量）。
 - 任一对端把实现私有 peer 轨当作联邦投递目标，或任一接收方在私有轨上接受外部 federation 写入，均视为 federation profile violation；跨 deployment 互通声明（`ak.profile.federation_minimal.v1` 等）只覆盖 `/_arkret/peer/*` 协议轨。
 
@@ -139,7 +132,7 @@ v1 不定义可复制的 Realm 级 server ACL。`server_acl` 只能作为本地�
 
 - `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 均存在；后者必须等于该制品绑定 frontier 下 Realm reducer-profile cell 的 settled value，并位于验证方的 `supported_reducer_profiles`；
 - `ak.mls.commit` 的 MLS GroupContext extensions 中存在固定 codepoint `mls_governance_binding` (`0xF1C0`)，并且 extension bytes、Event payload 与 registered current winning group-state projection 相互匹配；
-- `security_frontier_digest` 必须从 accepted key-access state 独立重算；E2EE DataEvent 的 group/epoch 必须指向当前 digest，普通 `seal_ref` 另行按 Event admission 验证；
+- `security_frontier_digest` 必须从 accepted key-access state 独立重算；E2EE DataEvent 的 group/epoch 必须指向当前 digest，普通 `auth_context.authority_refs` 另行按 Event admission 验证；
 - peer 的 `ServiceDescribe.supported_profiles` / `supported_features` 声明足以支持该下界；仅支持 payload fallback、替换私用 codepoint 或省略 GroupContext extension 的 peer 不满足下界。
 
 `ak.profile.e2ee_relaxed.v1` 是低于上述下界的显式降级声明，而不是另一个 full binding 等价形态。它只允许在 `federation_policy="closed"` 或满足 `encryption-and-audit.md` §2.4.1 federation guard 的 `restricted` Realm 中跨 peer 传播；`open` / `quarantine` federation MUST reject。restricted federation 中，所有参与 peer 还必须在 describe 中声明 `ak.feature.e2ee_relaxed.v1`，并公开不超过 `relaxed_window_max_ms` 的 fanout SLA；无法证明时接收方 MUST fail closed。
@@ -281,7 +274,7 @@ Signature: sig1=:base64...:
 | `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`source-service-id`、`destination-service-id`、`source-trust-domain`、`destination-trust-domain`，以及 `created` / `expires` 参数。有 body 请求 MUST 额外绑定 `content-digest`；无 body 请求 MUST NOT 绑定它。出现 endpoint digest 或 Idempotency-Key 时也 MUST 绑定对应 header。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
 | `Content-Digest` | header | `sha-256=:...:` | conditional | 仅有 body 请求携带（`POST /_arkret/peer/events` required）；MUST 按 [`service-http-binding.md` §2.5.1](./service-http-binding.md) 覆盖 exact canonical HTTP content bytes。接收方 MUST 在 JSON 业务解析与验签前对 exact bytes 重算并校验，且 MUST 拒绝 `sha256=:` alias、非 canonical JSON wire 与 parse-then-canonicalize verification。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。 |
-| `events` | body | `EventFederationSubmission[]` | required | 每项包含完整签名 `event`。普通在线投递必须省略 `authorization_lease` 且 `ingress_receipts[]` 为空；显式离线/延迟投递必须同时携带 lease 与至少一个 lease-bound receipt。Control Move还可携带唯一 `control_proposal_ack` authority set，DataEvent禁止该字段。receiver独立重算 Event digest、当前 admission 与可选离线证据。 |
+| `events` | body | `EventFederationSubmission[]` | required | 每项包含完整签名 `event`。普通在线投递必须省略 `authorization_lease` 且 `ingress_receipts[]` 为空；显式选择有限期延迟执行合同时才携带该合同要求的 lease/receipt；普通离线聊天不要求两者。Control Move还可携带唯一 `control_proposal_ack` authority set，DataEvent禁止该字段。receiver独立重算 Event digest、当前 admission 与可选离线证据。 |
 | `cbs_proof_bundles` | body | `CbsProofBundle[]` | optional | 最多 64 个 receiver-relative CBS 依赖 bundle。bundle 可以是有界、完整可验证的超集，不要求字节级最小；每个内含对象独立验签、重算 root 与 reducer，缺项返回精确 missing refs。 |
 | `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
 | `service_binding_ref.realm_id` | body | `id` | required | 本请求唯一受影响的 Realm；每个 `events[].event.realm_id` 与每个 bundle 中可归属 Realm 的对象 MUST 与其逐字相等。多 Realm 投递 MUST 拆成独立请求。 |
@@ -289,9 +282,9 @@ Signature: sig1=:base64...:
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.destination_kind` | body | `string` | required | 目标服务类型，例如 `station`。 |
 
-Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 profile。接收方对每个 Event 独立读取其 CBS governance basis 中的 `ak.component.realm.reducer_profile.v1` cell：DataEvent 使用 `seal_ref` 认证的 joined control state，Control Move 使用 `seal_basis` 的 frozen predecessor `J(L)`。缺少求值依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`；settled profile 本地未实现时返回 `unsupported_profile`。
+Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 profile。接收方从 Event 的已验证授权上下文解析精确 reducer 合同：普通数据使用 `auth_context.authority_refs`，安全命令使用唯一确认的 `seal_basis`。缺依赖 pending；未实现的合同返回 `unsupported_profile`；不能用接收方较新的合同静默重解释旧写入。
 
-每个 federation Event 必须原样携带 origin `station_admission` proof。接收方重算 canonical Event digest、exact producer proof digest、producer JWS 与 admission JWS，并要求 admission service 等于 Event `actor_id` 的 routing-service projection；Agent Event 还必须带 admission proof 已签入的 `producer_signer_resolution_evidence_ref`。receiver 只复制并绑定这个 content-addressed selector，不接收内联 device/PCR/Agent signer evidence sidecar，也不得由 receiver 或 relay 重签 origin proof。
+每个 federation Event MUST 原样携带唯一 producer proof 及其 `signer_resolution_evidence_ref`。接收方独立重算 Event 身份、验签、解析精确 signer 授权和 `auth_context.authority_refs` 或安全命令的 `seal_basis`。HTTP service signature 只认证传输；来源服务无需等于作者原账号 Station，relay 不重签 Event。普通消息可以由 B 首次接收再传播，Agent 使用同样的可携带证据闭包。缺少必要证据 pending，已知撤销立即限制新 live 投递，持久历史按授权关闭集合重分类。
 
 ### 4.1.0 推送时序
 
@@ -310,7 +303,7 @@ sequenceDiagram
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier)
     Alpha->>Beta: POST /_arkret/peer/events (ak.peer.events.command.submit.v1)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest + receiver-computed canonical body digest<br>service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. 从 CBS basis 读取 reducer-profile cell<br>7. Lattice / Seal
-    Beta-->>Alpha: 200 + accepted / duplicate / rejected / quarantine<br>+ Agent event admissions
+    Beta-->>Alpha: 200 + accepted / duplicate / rejected / quarantine<br>+ 缺失依赖
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
 ```
 
@@ -327,17 +320,7 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
 - 幂等以 `(Source-Service-ID, Destination-Service-ID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 在 `duplicate[]` 中确认（幂等 no-op）而非报错，carried ID 不等于重算 ID MUST 以 `event_id_digest_mismatch` 拒绝；只有 §4.5.1 定义的 full-hash collision evidence 才以 `witness_disagreement` 整组隔离。
 - 批次级重放检测使用 receiver 从已验证 exact body bytes 计算的 canonical digest 与签名覆盖的 `Idempotency-Key`；不引入额外 path 事务 ID。
 - `quarantine[]` 是 `EventsSubmitOutcome` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`。非协议 adapter 的本地展示行为不改变 wire outcome。
-- receiver 对每个 `accepted[] ∪ duplicate[]` 内 Agent Event 返回一个 `agent_event_admissions[]` 项。
-  同 Station、同 authority role、原次接纳为 `station_admission`，携原 accepted Event，不签第二 receipt；不同 receiver
-  或独立接纳为 `receiver_receipt`，其 receipt 与 durable acceptance 同事务保存。exact duplicate 返回原字节，
-  rejected/quarantine/dependency-missing 不生成接纳证明。
-- source outbox 从 tagged 分支验证 Event/Realm/Agent/method、冻结 producer evidence ref、receiver 及原签名时点
-  method，原子保存接纳材料与 historical materialization obligation，才可完成该 Event/receiver 交接。
-- Agent Authority 只读原 admission proof 冻结的 byte-exact CurrentAdmission root，复用 admission_evidence 并附
-  对应 event_admission；不签历史 outer。root、完整递归依赖、CAS 与 selector index 原子可见。原 method 从完整
-  authenticated history 按各 proof 的签署/接纳时刻解析，不能使用当前 head。相同 selector tuple 与同接纳事实
-  返回原 root/no-op；异接纳事实或覆盖原 root 为 duplicate_conflict。矩阵由
-  `ak.vector.federation.agent_admission_receipt_handoff.v1` 固化。
+- Agent Event 与其它 Event 共用逐项 outcome，不产生另一张准入凭证。source 保留原 Event、producer evidence 及所有递归依赖；destination 的成功响应表示本地持久化，不为作者创建 authority。exact retry 返回持久结果。`ak.vector.federation.agent_admission_receipt_handoff.v1` 校验的是这一证据交接和去重边界。
 - 持续同步、批量重试和 frontier 交换通过组合 `ak.peer.events.command.submit.v1`（推送，本节）、`ak.peer.events.read.scan.v1` / `ak.peer.events.read.resolve.v1`（拉取 / backfill / 补洞，§4.2）与 `ak.peer.events.read.frontier.v1`（§4.5）完成；无需额外的有状态事务 endpoint。
 
 **outbox 崩溃 / 重试矩阵（normative）**：destination 在 durable commit 前崩溃不得确认该 Event；commit 后、响应发送前崩溃时，source 的 byte-identical retry 必须取得 `duplicate[]` 中的逐项确认；source 收到合法 outcome 但在持久化 `delivered` 前崩溃时，恢复后必须允许安全重试并由同一 duplicate 语义收敛。destination 从旧备份恢复或丢失 accepted store 后，历史 `delivered`、batch receipt 或 `historical_only.original_outcome` 不得阻止按当前授权执行 backfill；它们也不构成永久 retention 承诺。协议不新增 delivery ledger、`delivery_seq`、通用 signed ACK 或第二套 receipt 作为另一真相源。
@@ -457,7 +440,7 @@ Probe 响应 payload：
 - `head_ids[]` 是当前 accepted frontier 的 canonical EventId；接收方比较两端集合发现差异。Merkle head leaf 的 `event_digest` MUST 从 EventId 内嵌的同源 digest 派生，不得将整个 EventId 字符串冒充 digest。
 - `max_hlc` 是 issuer 在 frontier 处观察到的最大 HLC；用于检测时钟严重偏移。
 - `actor_seq_upper_bounds` 保持 JSON object 外形；每个 property name MUST 是完整 closed `ActorId` 对象的 UTF-8 JCS JSON 字符串，而不是裸 principal DID、Actor 的显示名称或仅 `AccountId`。接收方 MUST 解析并验证完整 Actor，要求 property name 逐字等于该 Actor 的 canonical JSON，并拒绝非规范编码、旧分支和重复 property name。同 principal、不同 Station 的 Account Actor MUST 保持两个独立条目；不得按 principal 去重或补入本机 Station。
-- `frontier_root` 是 canonical Merkle root over `(head_ids[] ∪ sorted(actor_seq_upper_bounds))`，使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 族（`leaf = H(0x00 || leaf_data)`，`node = H(0x01 || left || right)`，空集合 root 同 §6.2.2），不得使用 snapshot Merkle 族。leaf 集合由两类 typed leaf 组成并按 `leaf_sort_key` 的 canonical UTF-8 byte order 升序排列：`head_ids` leaf 的 `leaf_data = canonical_json({"type":"head","event_digest":<digest>})`，`leaf_sort_key = "head:" + <digest>`；`actor_seq_upper_bounds` leaf 的 `leaf_data = canonical_json({"type":"actor_seq_upper_bound","actor_id":<完整 ActorId 对象>,"actor_seq_upper_bound":<integer>})`，`leaf_sort_key = "actor:" + canonical_json(<完整 ActorId 对象>)`。leaf 中的 `actor_id` 是对象，而不是再次编码为 JSON 字符串。
+- `frontier_root` 是 canonical Merkle root over `(head_ids[] ∪ sorted(actor_seq_upper_bounds))`，使用 [`event-auth-state-resolution.md` §11](../authz/event-auth-state-resolution.md) 的 Seal Merkle 族（`leaf = H(0x00 || leaf_data)`，`node = H(0x01 || left || right)`，空集合 root 同 §11），不得使用 snapshot Merkle 族。leaf 集合由两类 typed leaf 组成并按 `leaf_sort_key` 的 canonical UTF-8 byte order 升序排列：`head_ids` leaf 的 `leaf_data = canonical_json({"type":"head","event_digest":<digest>})`，`leaf_sort_key = "head:" + <digest>`；`actor_seq_upper_bounds` leaf 的 `leaf_data = canonical_json({"type":"actor_seq_upper_bound","actor_id":<完整 ActorId 对象>,"actor_seq_upper_bound":<integer>})`，`leaf_sort_key = "actor:" + canonical_json(<完整 ActorId 对象>)`。leaf 中的 `actor_id` 是对象，而不是再次编码为 JSON 字符串。
 - `actor_id` 省略时，响应不得伪造 actor-scoped root；`auth_state_root`、`policy_frontier_root`、`membership_frontier_root` 均省略。携带 `actor_id` 时三者必须同时出现：分别承诺 issuer-local authorization state、Realm policy filtered state root 与该 actor 的 membership/role filtered state root，不得以 `frontier_root` 复制填充。
 - `signature` 的唯一 preimage 是以下九字段对象的 UTF-8 JCS bytes，domain 固定为 `ak.events.frontier.signature.v1`；字段名和集合由 proof-context registry 与 response schema 同时登记：
 
@@ -486,7 +469,7 @@ Probe 响应 payload：
 
 - 每个 challenge/backfill Event MUST 先按 [`encoding.md` §4.0](../conformance/encoding.md) 重算 canonical digest 与完整 Event ID，再用于接受、去重命中、索引写入、sibling 集归约和冲突判断等有副作用用途。未验证 carried ID MAY 仅用于无副作用的候选 bytes 定位。carried ID 不等于重算 ID 时 MUST 以 `event_id_digest_mismatch` 拒绝该输入；MUST NOT quarantine 本地同 carried ID Event，MUST NOT 报 `duplicate_conflict` 或 `witness_disagreement`。
 - confirmed collision evidence 的唯一条件是：两个 byte-distinct canonical Event preimage 均通过完整结构、suite 与 proof 前置检查，并独立重算为同一完整 suite-tagged `event_id`（full-hash collision evidence）。此时 MUST 按 [`operations-sync.md` §12](./operations-sync.md) 整组隔离并报 `witness_disagreement`；不以到达顺序选择 canonical 版本。`duplicate_conflict` 只承载幂等键或非 Event 的 stable identifier 重用，不承载 Event Envelope fork 证据。
-- 上述 probe 检测一旦成立，必须复用 [`operations-sync.md` §12](./operations-sync.md) 的整组追溯处置：此前已 accepted 的同 id 变体也进入 quarantine，数据面 reducer projection 输入被移除，Seal 已覆盖的控制面变体只按 CBS §6.3.2 由后继 fork-resolution compaction Seal 归一。不得因一个变体先到达或来自本地 submit 就保留其普通 accepted 状态。
+- 上述 probe 检测一旦成立，必须复用 [`operations-sync.md` §12](./operations-sync.md) 的整组追溯处置：此前已 accepted 的同 id 变体也进入 quarantine，数据面 reducer projection 输入被移除，Seal 已覆盖的控制面变体只按 安全确认与分叉裁决规则，以后继安全命令解除对应 gate，历史结果不重算。不得因一个变体先到达或来自本地 submit 就保留其普通 accepted 状态。
 - 若冲突来自同一 actor 的不同签名 frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 - 可疑 remote 输入 MAY 在 quarantine 队列中暂存，直到签名、schema、capability、fork resolution 与 operator policy 全部通过。
 - **quarantine 驻留语义（normative 澄清）**：quarantine 是 fail-closed 安全态——quarantined 输入 MUST NOT 推进本地 frontier、MUST NOT 进入 joined view 或授权判定，因此长时间驻留**不影响互操作正确性或一致性**。协议**不**为 quarantine 设 wire 级最大驻留时长或自动转 `rejected` 的超时:fork resolution 依赖 raw replay / quorum witness / operator-approved resolution 等可能耗时的带外动作，设硬超时反而会丢弃合法但解析较慢的分叉。最大驻留时长、是否以及何时人工清退，属 **operator policy**，不在 wire conformance 范围。实现 SHOULD 对超过部署声明阈值仍未解析的 quarantine 条目触发治理健康告警（运维可见)，但 MUST NOT 据此自动接受或静默丢弃。high-assurance profile MAY 声明更严格的 operator-side resolution SLA，但该 SLA 是运营承诺，不改变上述 wire 语义。
@@ -495,7 +478,7 @@ Probe 响应 payload：
   **exact-scope sibling 披露面（MUST）**：托管 Realm S effective joined member 的 Station 还 **MUST** 暴露 `QUERY /_arkret/peer/events/sibling-positions`（`ak.peer.events.read.sibling_positions.v1`），供 §4.5.3 第二阶段的 per-peer alignment 使用。它与上面被禁的 actor-seq range 字段是两件事：range 会把 scan 的 best-effort 分页变成半个历史读，而本面**只接受精确位置**——每个 selector 恰是一个 `(actor_id, actor_seq)` 加上裁决该位置的 accepted `ak.fork.resolution` `event_id`，单次至多 16 个位置，无 cursor、无分页、无 range，响应规模由请求而不是由该 actor 的历史长度决定。规范约束：
 
   - 调用方必须是托管当前 effective joined member 的 Station DID，鉴权、限速与 §4.5.1 frontier probe **同口径**（`(realm_id, peer_id)` 限速 + 固定 timing bucket）。
-  - 某位置只有在 responder 自己的 current joined control view 中存在 settled 且非 `⊥` 的 `ak.component.fork_resolution.v1` cell、其 subject 逐字等于该 `(actor_id, actor_seq)`、且其 resolution Move 就是请求给出的 `fork_resolution_event_id` 时，才进入 `disclosed_positions[]`。其余情况——Realm scope 不可见、peer 未授权、该位置无已裁决 cell、responder 未持有该 resolution Move、本地响应预算不足——**MUST** 合并到同一个不可区分的 `undisclosed_positions[]` 桶，不得携带任何可区分字段或 timing 差异。本面因此只能到达已被恢复权威裁决过的位置，不构成 actor 历史枚举面；它披露的信息严格少于同一批授权 peer 已可调用的 `ak.peer.events.read.scan.v1`。
+  - 某位置只有在 responder 自己的 当前已确认安全状态 中存在 settled 且非 `⊥` 的 `ak.component.fork_resolution.v1` cell、其 subject 逐字等于该 `(actor_id, actor_seq)`、且其 resolution Move 就是请求给出的 `fork_resolution_event_id` 时，才进入 `disclosed_positions[]`。其余情况——Realm scope 不可见、peer 未授权、该位置无已裁决 cell、responder 未持有该 resolution Move、本地响应预算不足——**MUST** 合并到同一个不可区分的 `undisclosed_positions[]` 桶，不得携带任何可区分字段或 timing 差异。本面因此只能到达已被恢复权威裁决过的位置，不构成 actor 历史枚举面；它披露的信息严格少于同一批授权 peer 已可调用的 `ak.peer.events.read.scan.v1`。
   - `disclosed_positions[].siblings[]` 是 responder 在该位置的**完整** canonical sibling 集，不是一页：空数组是"本端在该位置没有任何 Event"这一**肯定**结论，也就是与 `void_all` verdict 对齐的形态。条目按独立重算出的 `event_id` canonical-bytewise 升序、byte-distinct，上限 64 与 [`../models/event-and-patch.md` §2.6](../models/event-and-patch.md) 的跨桶 sibling 上限一致；超限的 over-fork 不得被披露成看似在界内的子集。
   - challenger **MUST** 按本节第一条冲突检测规则先独立重算每条返回 Event 的完整 Event ID，再让它计入集合；carried ID 不得直接采信。
   - 集合完整性是**未签名的否定性断言**，其信任基础与 `ak.peer.events.read.resolve.v1` 响应里的 `missing_event_ids[]` 完全相同：都由 §3 节点间认证信道承载。因此披露与 verdict 不一致时，只表示该 peer 尚未对齐、继续 `peer_stale`，**MUST NOT** 据此产生新的 fork evidence 或 `witness_disagreement`。
@@ -528,7 +511,7 @@ Probe 响应 payload：
   - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Realm frontier（继续 quarantine，不让已确认冲突证据进入普通 accepted view），直到 fork resolution 或重新对齐；
   - **MUST** 通过 §8.6 威胁映射要求的 alarm 通道（operator dashboard / audit log / pager hook）暴露该状态；
   - **MAY** 拒绝向该 peer fanout 争议 scope 内的普通数据面 / 控制面 Event；但用于解除该 `peer_stale` 的 recovery Seal 及其覆盖的 `ak.fork.resolution` Move **不在此拒绝范围内**。challenger MUST 继续经既有 durable outbox 向 stale peer 投递该 Seal / Move；peer 也 MAY 经 `ak.peer.events.read.resolve.v1` 按 `event_id` 点查补取。实现不得以 fanout quarantine 阻断第二阶段 per-peer alignment 所必需的裁决本身。
-- 普通失败造成的 `peer_stale` 在一次成功 exchange 后 MUST 解除；已确认 fork evidence 造成的 `peer_stale` MUST NOT 仅因 root 相等或普通 exchange 成功解除。fork resolution 成功后 **MUST** 解除 `peer_stale` 标记。解除分成两个 MUST NOT 合并的阶段。**第一阶段 local normalization**：当前 joined control view 中 `ak.component.fork_resolution.v1` 的对应 cell 已 settled 且非 `⊥` 后，实现按 verdict 原子重算本地争议 scope、移除 losers 或全部作废输入、保留历史 Seal 已钉住的 bytes 与 reducer 输出，并生成 scope-bound resolution record。**第二阶段 per-peer alignment**：对 over-fork、领域不可 join 与 full-hash collision，某 peer 的 `peer_stale` MUST 在第一阶段完成后，再经该 peer 的 authenticated exact-scope challenge / raw replay 证明其 canonical sibling 集已等于 verdict（`canonical_winner` 时为精确单元素 winner，`void_all` 时为空）才可解除。该 challenge 的**唯一登记面**按 subject 分型，二者都 bounded 且与该 actor 的历史长度无关：`subject.kind=event_id_collision` 用 `ak.peer.events.read.resolve.v1` 点查该 `event_id` 并比对完整 canonical bytes（`void_all` 对应点查为空）；`subject.kind=event_sibling_position` 用 §4.5.1 登记的 `ak.peer.events.read.sibling_positions.v1` 取该精确 `(realm_id, actor_id, actor_seq)` 位置的**完整** sibling 集。MUST NOT 用整 actor 分页 scan、加大预算或后台无限续跑代替：那样 alignment 的可判定性与历史长度成反比，等于没有 bounded 保证。两个分型的判定表由 conformance vector `ak.vector.cbs_lattice.fork_resolution_peer_alignment.v1` 固定。accepted resolution 本身、全局 root 相等、普通 exchange 成功，或另一个 peer 已对齐，**都不足以**清除该 peer。实现只能从上述 accepted cell 投影生成 resolution record，并原子解除匹配的 original evidence scope；其它 unresolved evidence 与普通失败窗口不变。current-v1 不存在历史范围 attestation 或同 scope witness 重一致的解除分支。事务重放 MUST 幂等；若随后观察到该 cell 进入 `⊥` 或出现新的未裁决 subject，MUST 重新 fail closed / quarantine，不得沿用陈旧 clear。已 settled 的 subject **不会**产生新的 verdict：[`../authz/event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md) 要求 `ak.fork.resolution` 携带该 cell 的 `head_eq: null`，因果后继的第二条裁决 MUST `failed_precondition`。因此实现 MUST NOT 为「verdict 改变」保留重算 alignment 的分支；能改变该 cell 的只有 §9.5 的 recovery（仅当它落入 `⊥`），那条路径按上一句重新 fail closed。由于合法 partial replication 下全局 `heads[]` 可永久不同，**MUST NOT** 要求 scope 不同 peer 的全部 heads 重合作为解除条件。
+- 普通失败造成的 `peer_stale` 在一次成功 exchange 后 MUST 解除；已确认 fork evidence 造成的 `peer_stale` MUST NOT 仅因 root 相等或普通 exchange 成功解除。fork resolution 成功后 **MUST** 解除 `peer_stale` 标记。解除分成两个 MUST NOT 合并的阶段。**第一阶段 local normalization**：当前已确认安全状态 中 `ak.component.fork_resolution.v1` 的对应 cell 已 settled 且非 `⊥` 后，实现按 verdict 原子重算本地争议 scope、移除 losers 或全部作废输入、保留历史 Seal 已钉住的 bytes 与 reducer 输出，并生成 scope-bound resolution record。**第二阶段 per-peer alignment**：对 over-fork、领域不可 join 与 full-hash collision，某 peer 的 `peer_stale` MUST 在第一阶段完成后，再经该 peer 的 authenticated exact-scope challenge / raw replay 证明其 canonical sibling 集已等于 verdict（`canonical_winner` 时为精确单元素 winner，`void_all` 时为空）才可解除。该 challenge 的**唯一登记面**按 subject 分型，二者都 bounded 且与该 actor 的历史长度无关：`subject.kind=event_id_collision` 用 `ak.peer.events.read.resolve.v1` 点查该 `event_id` 并比对完整 canonical bytes（`void_all` 对应点查为空）；`subject.kind=event_sibling_position` 用 §4.5.1 登记的 `ak.peer.events.read.sibling_positions.v1` 取该精确 `(realm_id, actor_id, actor_seq)` 位置的**完整** sibling 集。MUST NOT 用整 actor 分页 scan、加大预算或后台无限续跑代替：那样 alignment 的可判定性与历史长度成反比，等于没有 bounded 保证。两个分型的判定表由 conformance vector `ak.vector.cbs_lattice.fork_resolution_peer_alignment.v1` 固定。accepted resolution 本身、全局 root 相等、普通 exchange 成功，或另一个 peer 已对齐，**都不足以**清除该 peer。实现只能从上述 accepted cell 投影生成 resolution record，并原子解除匹配的 original evidence scope；其它 unresolved evidence 与普通失败窗口不变。current-v1 不存在历史范围 attestation 或同 scope witness 重一致的解除分支。事务重放 MUST 幂等；若随后发现无效确认或出现新的未裁决 subject，MUST 重新 fail closed / quarantine，不得沿用陈旧 clear。已 settled 的 subject **不会**产生新的 verdict：[`../authz/event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md) 要求 `ak.fork.resolution` 携带该 cell 的 `head_eq: null`，因果后继的第二条裁决 MUST `failed_precondition`。因此实现 MUST NOT 为「verdict 改变」保留重算 alignment 的分支；该 Cell 不允许后继改写，也不存在以 Bottom 为入口的通用 recovery；确认故障按安全域故障处理。由于合法 partial replication 下全局 `heads[]` 可永久不同，**MUST NOT** 要求 scope 不同 peer 的全部 heads 重合作为解除条件。
 
 启用 high-assurance profile 但实现未实现上述 fail-state 等同于不满足 profile 声明，**MUST NOT** 在 ServiceDescribe profile 声明中声明 `ak.profile.federation.high_assurance.v1`。
 
@@ -542,10 +525,10 @@ Probe 响应 payload：
 
 1. 客户端在提交 `ak.invite.accept`、`ak.member.state{membership="join"}`、`ak.member.state{membership="knock"}` 或 application receipt 前，MUST 通过 §5.3.4 的 `ak.self.realm_join.command.prepare.v1` 从自己的 Station 取得 canonical `realm_id`、已验证 `seal_basis` 与全部待签输入，然后只向 Event `actor_id` 的 routing-service projection 提交。
 2. invitee Station 完成本地 schema、producer proof、session pair 与 device/PCR 状态 admission 后，MAY 从 signed invite 或 inviter 当前 joined-member ActorId routing projection 裁剪 `join_candidates[]`，并按 service DID 去重后选择未过期的 joined-member Station 转发。部署已知 peer、notary、mirror、Directory/search projection 或裸 URL 不得成为候选来源。
-3. 接收 joined-member Station MUST 验证 `realm_id`、producer proof、内嵌 origin Station admission proof、Source-Service-ID 是否等于 Event `actor_id` 的 routing-service projection、candidate provenance，以及 Join Policy / invite / review 链。Candidate 本身不是 authorization grant。
+3. 接收 joined-member Station MUST 验证 `realm_id`、producer proof、内嵌 可携带的 producer signer evidence 与原始授权、Source-Service-ID 的真实传输身份与转发授权（不要求等于 Event author 的 routing-service projection）、candidate provenance，以及 Join Policy / invite / review 链。Candidate 本身不是 authorization grant。
 4. **join-side 接收的最小披露失败语义（normative）**：candidate 服务接收 `ak.invite.accept` / `ak.member.state{membership="join"|"knock"}` / application receipt 时，§3.2 定义的**统一最小披露失败族**（存在性不可区分 + 固定 timing bucket）MUST 同样适用于该接收路径——对外 MUST NOT 可区分"该 `(realm_id, subject)` 不存在 pending invite / 不是该 Realm 成员候选"与"存在但本提交鉴权 / 完整性 / Join Policy 校验失败"。具体而言：对这两类原因 MUST 返回同一 HTTP status 与同一 `reason_code`（沿用 §3.2 的统一鉴权失败码），响应可见字段 MUST NOT 携带 Realm / invite / membership 是否存在的可区分信息，timing MUST 归一到 §3.2 同口径的固定 bucket（≥30 次采样 p95 差异 SHOULD ≤ 50ms，高安全 profile MUST 使 p99 落入同桶）。真实 reason 仅写入接收方审计日志。这把"可探测 `(realm_id, subject)` 是否存在 pending invite"的枚举面在 join-side submission 接收上关闭，与 [`third-party-invites.md` §6](./third-party-invites.md) 的不可枚举 claim 响应口径一致。
 5. 客户端不得读取或选择 federation forwarding candidate，也不得绕过自己的 Station 直投；invitee Station 不得从 Realm metadata、URL hint 或部署配置推导额外 target。
-6. 候选不可达、过期或返回 fail-closed diagnostics 时，invitee Station MAY 在同一有界来源集合中尝试下一个候选。所有重试 MUST 绑定同一 canonical `realm_id` 与 byte-identical accepted Event，不得跨 Realm 重定向或重签 origin admission proof。
+6. 候选不可达、过期或返回 fail-closed diagnostics 时，invitee Station MAY 在同一有界来源集合中尝试下一个候选。所有重试 MUST 绑定同一 canonical `realm_id` 与 byte-identical accepted Event，不得跨 Realm 重定向或重签 producer proof。
 
 ### 5.1 邀请流程
 
@@ -554,7 +537,7 @@ Probe 响应 payload：
 1. 管理员提交 `ak.invite.create` Event，`invitee_account_id` 指向 Bob 的 exact AccountId；邀请的私有 metadata MAY 携带从 inviter 当前 joined-member ActorId routing projection 裁剪的候选提示，但不得把该列表当作授权本身。
 2. 该 Event 通过联邦推送到达 Bob 的 Station；Bob 的客户端 MAY 用 `ak.self.realm_join.read.preview.v1` 查看加入前预览，candidate 解析与刷新只发生在 Bob 的 Station 内部。
 3. Bob 的客户端发现 Invite，决定接受，先用 §5.3.4 准备待签输入，再把签好的 `ak.invite.accept` Event 提交给 Bob 自己的 Station。
-4. Bob 的 Station 完成本地 admission，追加唯一 `station_admission` proof，再按 signed invite / inviter 当前 joined-member ActorId routing projection 将 byte-identical Event 转发给一个已有成员 Station。
+4. Bob 选择的接收 Station 独立验证 producer proof 与授权闭包并持久化，再按 signed invite / inviter 当前 joined-member ActorId routing projection 将 byte-identical Event 转发给一个已有成员 Station。
 5. 接收方验证 invite、完整 membership ActorId、路由投影与 Event proofs 后，仅向 effective joined-member routing services 按 service DID 去重扇出。
 6. 各参与方按 reducer 验证 Invite 有效性并收敛成员状态
 7. 若 Realm 启用了 E2EE，管理员的客户端构造 MLS `Welcome` 消息发给 Bob
@@ -585,9 +568,8 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 ### 5.3 首次跨站加入的引导与结果回传（normative）
 
 本节针对 invitee 的 Station **从未参与该 Realm** 的首次加入。加入分三个互不替代的时点：来源
-Station 完成 origin admission、Realm authority 完成签收、覆盖该 Move 的有效 Seal 生效。来源 admission
-MUST NOT 被表述、投影或消费为 Realm acceptance；origin proof 只证明来源站完成了规定的来源准入并绑定
-exact producer proof 与 Event，不证明目标 Realm 授权。
+接收 Station 完成独立验证、Realm authority 完成签收、覆盖该 Move 的有效 Seal 生效。来源存储确认
+MUST NOT 被表述、投影或消费为 Realm acceptance；来源传输或存储收据只证明对应服务行为，不授予作者权限；目标接收方独立验证原始 producer proof、可携带授权与 Event，不把来源站当作首次准入权威。
 
 **普通在线加入不使用 lease。** `ak.invite.accept`、`ak.member.state{membership="join"|"knock"}` 的普通在线
 提交按 [`../authz/offline-publication.md`](../authz/offline-publication.md) 走 `publication_mode="online"` 的无
@@ -620,9 +602,8 @@ ActorId routing projection；部署已知 peer、notary、mirror、Directory / s
    扫描结果或任何可复用的治理读权限。`request_digest` 与 `expires_at` 只把响应绑定到这一次请求并限制其复用窗口，
    MUST NOT 被解释为该状态在全网最新的证明。整个响应仍受 8 MiB body 上限约束；装不下完整材料时 MUST 整体
    `limit_exceeded`，MUST NOT 截断、分页或降级为部分闭包。
-4. `seal_basis` MUST 是该服务在 `observed_at` 的**完整当前已接受 Seal frontier**：`single_signer` / `threshold`
-   恰一 leaf，`open_set` 是 canonical 排序、去重、非隔离的完整 leaf antichain；压缩成单 head MUST 被拒绝。
-   `digest_algorithm` MUST 由该完整 basis 的已接受 joined projection 验证得到；缺失、为 `Bottom`、join 后不唯一或
+4. `seal_basis` MUST 恰含该服务在 observed_at 已验证的本 Realm 唯一确认 head；候选或冲突 lineage 不得冒充已确认状态。
+   `digest_algorithm` MUST 由该完整 basis 的已确认安全投影 验证得到；缺失、同 Realm 存在竞争 head或
    任一 leaf / predecessor closure 不可验证时 MUST 失败，MUST NOT 猜测默认值。
 5. 未授权申请者、未知 Realm、失效／撤销／跨人邀请以及 join policy 不允许该 intent，MUST 共用一个与不存在
    不可区分的失败，并按 §3.2 同口径固定 timing bucket。`restricted_join` 与 application receipt 在其正式 payload /
@@ -637,18 +618,17 @@ ActorId routing projection；部署已知 peer、notary、mirror、Directory / s
    `ak.invite.create` Control Move。每个 cell MUST 对 `seal_basis` 的**每个 leaf** 各给一份证明并按同一 canonical leaf
    顺序排列：cell 已写入时是该 leaf `state_root` 下该 cell leaf 的 Merkle audit path（`root_field="state_root"`），从未
    写入时是同一 root 下的 sorted-neighbor non-membership proof，两种形态与
-   [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 同形。持有方 MUST NOT
+   [`../authz/event-auth-state-resolution.md` §11](../authz/event-auth-state-resolution.md) 同形。持有方 MUST NOT
    回显自己求得的 cell 值——值由请求方从证明自行导出。除上列 cell 外，响应 MUST NOT 携带任何其它 cell 的证明；本
    operation MUST NOT 因此取得通用非成员治理读取能力。任一 leaf 的必要证明不可构造时，整次请求 MUST
-   `frontier_unavailable`，MUST NOT 只给部分 leaf、MUST NOT 把 `open_set` 压成单 head、MUST NOT 猜默认值。
+   `frontier_unavailable`，MUST NOT 只给部分 leaf、MUST NOT 返回竞争 lineage、MUST NOT 猜默认值。
 8. `applicant_predecessor_events` 是**待验证输入**，不是权威事实：它是持有方在本次观测下，对同一 `realm_id` 与
    申请人完整 account ActorId 所见**最高 accepted actor sequence 上全部已知 sibling** 的 Event envelope，按
    `event_id` bytewise 升序去重排列。持有方 MUST NOT 放入其它 actor、其它 Realm 或该 actor 其它 sequence 的 Event；
    空数组只表示"持有方未观测到"，MUST NOT 被表述为空链、链完整或全网最新的证明。v1 MUST NOT 为该数组另造
    `next_actor_seq`、`frontier_digest` 或对 frontier 完整性的服务签名载体：它们无法被请求方验证，只会诱导实现把远端
    自报当成权威。该数组也 MUST NOT 另带 proof 依赖载体：这些 Event 的 producer proof 由申请人自己的设备密钥签发、
-   station admission proof 由申请人自己的 Station 追加，二者的验证材料按定义都在请求方本地，因此持有方无法、也不需要
-   补充任何验证依赖；本地缺这些材料时连续性本就已断裂，按 §5.3.4 走 `frontier_unavailable`。
+   所有 Event 都只有 producer proof。接收方按其中 signer_resolution_evidence_ref 独立解析历史授权；可以使用已验证缓存或 exact dependency resolve，不能向原站索取额外准入签名。缺必要材料按 §5.3.4 返回 `frontier_unavailable`。
 9. 持有方 MAY 用自身**已有**的已验证治理状态回答本请求，包括其它当前成员经既有授权同步得到的部分；但**持有材料
    MUST NOT 被解释为可以向申请人披露材料**。本 operation 的披露面恰是 step 3 至 step 8 列举的对象；普通同步仍 MUST
    各自满足实际成员身份、操作与数据范围授权，MUST NOT 借其它成员身份扩张申请人的读取权限，也 MUST NOT 把本次引导
@@ -662,9 +642,9 @@ ActorId routing projection；部署已知 peer、notary、mirror、Directory / s
 
 全部验证 MUST 在一个**只读临时验证上下文**内完成，通过之前 MUST NOT author：先验 suite、Seal authority 与 CBS
 predecessor closure，确定本次选用的完整可验证 `seal_basis`；再用请求方自己重算的各 leaf `state_root` 逐 leaf 验证
-`precondition_evidence`，把各 leaf 结果按该 cell 已登记的 lattice 规则 join，得到 exact precondition 值——cell 从未
-写入时值为 `null`，join 结果为 `⊥` 时不是可用前态；最后按既有 Event 接受规则逐条验证
-`applicant_predecessor_events`（closed schema、canonical encoding、producer proof 与 station admission proof、signer
+`precondition_evidence`，每 Realm 只接受一个已确认 head 及其确切 Cell revision/value——cell 从未
+写入时值为 `null`，缺证据或同 Realm 多 head 均不是可用前态；最后按既有 Event 接受规则逐条验证
+`applicant_predecessor_events`（closed schema、canonical encoding、producer proof 与精确 signer evidence、signer
 regime、Realm / actor 作用域与 sequence 连续性）。cell subject 不是从申请人自己的完整 AccountId / account ActorId
 派生、材料跨账号或跨 Realm、`invite_move.event_id` 不等于 join 后的 `live_target` 值、`invite.lifecycle` 不在
 `pending` / `claimed`、必要依赖缺失，或材料与本地已可信观察矛盾时，MUST 拒绝整次引导，MUST NOT 只取"能用的
@@ -741,7 +721,7 @@ durable outbound fence 使用；不能要求尚未加入的客户端另读 membe
 选用的**完整可验证 Seal basis** 按既有规则求值；`accepted_actor_frontier` 另按
 [`../models/event-and-patch.md` §2.6](../models/event-and-patch.md) 从同一 `(realm_id, actor_id)` 的**已接受观察
 状态**派生，取最高 accepted sequence 上全部已知、未 quarantine 的 sibling。二者绑定同一次 prepare 上下文，但 Seal 的
-`completeness_root` MUST NOT 被表述为对该 actor 混合 data / control 链完整性的证明。查询后新增的合法 sibling
+安全 covered 集合只包含已确认成功安全命令，不能证明 actor 混合消息链没有遗漏。查询后新增的合法 sibling
 MUST NOT 追溯使已签 Event 结构非法；本节 MUST NOT 要求全网静止，也 MUST NOT 要求任何一方出示"全网最新"证明。
 
 **观察集合的三个合法来源（normative）**：派生 frontier 的已接受观察集合恰由三者取并，优先级只体现为"本地已验证
@@ -934,7 +914,7 @@ push 见 §4.1，pull / backfill 与成员视图见 §4.2，operation 行见
 
 ### 7.5 Agent Event federation
 
-managed/Agent Event 与其它普通 Event 使用相同 in-envelope Station admission proof。receiver 不接收 Agent signer evidence bundle；origin Station 在 admission 前验证 controller/runtime branch 与当前本地状态。
+managed/Agent Event 与其它普通 Event 使用同一 producer proof 与可携带 signer evidence。每个 receiver 独立验证 controller/runtime 分支和确切授权实例，不要求 origin 在线或补签。
 
 
 ## 8. 安全考量

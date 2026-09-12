@@ -6,27 +6,27 @@
   "profile": "ak.vector_group.cbs_lattice.v1",
   "version": "2026-09-09",
   "notes": [
-    "These vectors pin CBS dual-plane semantics. DataEvent vectors use signed kind + payload + scope_ref + seal_ref and never use preconditions. Control Move vectors use signed kind + payload + scope_ref + seal_basis and may use preconditions. Every cell write is receiver-projected from the registered reducer contract.",
-    "Seal delta entries reference only newly sealed control-plane event digests. Cumulative coverage is derived from predecessor_refs[] plus delta[]. DataEvent digests may appear in data_event_set_root / data_view_root observations, but those roots do not confer control-plane finality.",
-    "Cell ids follow ak:cell:ak.component.<facet-path>.v<n>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous.",
-    "Governance admission cases apply to servers or independent auditors. Ordinary clients trust their authenticated Account Station and do not replay the CBS closure."
+    "Abstract semantic vectors use symbolic Event labels unless a schema_ref is declared.",
+    "Ordinary state is reduced from a fixed verified eligibility context; safety state is replayed in one confirmed Realm order.",
+    "No ordinary Event requires a fresh Seal, origin countersignature or periodic lease.",
+    "Safety certificates and command results are authenticated separately from ordinary snapshots."
   ],
   "lattice_round_trip": {
     "description": "SDK lattice round-trip runner coverage for CBS lattice family vectors exercised through any conforming local lattice implementation.",
     "runner": "ak.suite.authz.cbs_lattice.round_trip.v1",
     "covers_vectors": [
-      "ak.vector.lattice.mv_register_join.v1",
+      "ak.vector.lattice.causal_register_join.v1",
       "ak.vector.lattice.counter_join.v1",
       "ak.vector.lattice.ordered_log_join.v1",
       "ak.vector.lattice.ordered_log_gap.v1",
-      "ak.vector.lattice.fsm_join.v1",
-      "ak.vector.lattice.cas_register_supersession.v1",
+      "ak.vector.lattice.domain_transition_join.v1",
+      "ak.vector.lattice.causal_register_supersession.v1",
       "ak.vector.realm_link.fsm_transition_matrix.v1"
     ],
     "cases": [
       {
-        "vector_id": "ak.vector.lattice.mv_register_join.v1",
-        "lattice": "mv_register",
+        "vector_id": "ak.vector.lattice.causal_register_join.v1",
+        "state_model": "causal_register",
         "assertions": [
           "concurrent_set_surfaces_all_heads",
           "does_not_choose_winner"
@@ -34,7 +34,7 @@
       },
       {
         "vector_id": "ak.vector.lattice.counter_join.v1",
-        "lattice": "counter",
+        "state_model": "counter",
         "assertions": [
           "pn_sum_is_deterministic",
           "inc_dec_replay_order_independent"
@@ -42,7 +42,7 @@
       },
       {
         "vector_id": "ak.vector.lattice.ordered_log_join.v1",
-        "lattice": "ordered_log",
+        "state_model": "ordered_log",
         "assertions": [
           "sparse_actor_sequence_order",
           "sequence_gaps_do_not_block_entries",
@@ -56,7 +56,7 @@
       },
       {
         "vector_id": "ak.vector.lattice.ordered_log_gap.v1",
-        "lattice": "ordered_log",
+        "state_model": "ordered_log",
         "assertions": [
           "sparse_gap_entry_enters_cell_value",
           "no_pending_gap_diagnostic_exists",
@@ -64,35 +64,30 @@
         ]
       },
       {
-        "vector_id": "ak.vector.lattice.fsm_join.v1",
-        "lattice": "fsm",
+        "vector_id": "ak.vector.lattice.domain_transition_join.v1",
+        "state_model": "causal_register",
         "assertions": [
-          "duplicate_same_transition_idempotent",
-          "same_from_different_to_returns_bottom",
-          "reentered_transition_is_a_new_occurrence",
-          "registered_self_loop_does_not_consume_its_state"
+          "domain_transition_checked_on_signed_basis",
+          "concurrent_heads_are_retained",
+          "same_event_replay_is_idempotent",
+          "terminal_effect_cannot_be_revived"
         ]
       },
       {
-        "vector_id": "ak.vector.lattice.cas_register_supersession.v1",
-        "lattice": "cas_register",
+        "vector_id": "ak.vector.lattice.causal_register_supersession.v1",
+        "state_model": "causal_register",
         "assertions": [
-          "an unwritten cell has no head and reads null",
-          "each write is identified by its EventId and supersedes exactly the heads observed in its own signed seal_basis",
-          "a release write is set null, keeps its own head, and stays distinguishable from an unwritten cell",
-          "A -> null -> A reads A, and A -> B -> A -> B reads B",
-          "concurrent writes with different values leave two heads and a bottom=reject cell materializes failed_bottom",
-          "concurrent writes with the same value keep both head identities and a successor that saw only one of them removes only that one",
-          "exact replay of the same identity and canonical effect is idempotent",
-          "merging two verified (covered set, heads) states is associative, commutative, idempotent and agrees with a full causal-history oracle",
-          "Bottom is recomputed per view, so a receiver that later observes the missing leaf converges with one that saw the full history"
+          "same_value_heads_keep_distinct_event_identity",
+          "written_null_keeps_its_head",
+          "successor_covers_only_signed_observed_heads",
+          "join_is_associative_commutative_idempotent_with_fixed_eligibility_context",
+          "reclassification_recomputes_from_retained_history"
         ]
       },
       {
         "vector_id": "ak.vector.realm_link.fsm_transition_matrix.v1",
         "cell_family": "ak.component.realm.link.v1",
-        "lattice": "fsm",
-        "bottom": "reject",
+        "state_model": "causal_register",
         "parameters": {
           "initial_states": [
             "active",
@@ -144,7 +139,7 @@
           "undeclared_transition_rejects_with_realm_link_invalid_transition",
           "tombstoned_is_terminal_except_byte_equivalent_replay",
           "same_event_identity_replay_is_idempotent",
-          "same_basis_different_status_siblings_return_bottom",
+          "same_basis_different_status_siblings_remain_unresolved",
           "general_graph_cycles_are_not_an_admission_error",
           "self_reference_rejects_with_realm_link_self_reference"
         ]
@@ -154,58 +149,42 @@
   "vectors": [
     {
       "name": "data_event_accepts_without_seal_finality",
-      "description": "A message DataEvent is locally accepted when signature, actor chain, seal_ref, auth_context, capability and data-plane Lattice validation pass. It does not wait for Seal coverage.",
-      "event": {
-        "id": "ak:event:AUl7i16DNG_PX5V_-ud5fDx65PwcMpaj4uSW2K4C0Ev9",
-        "plane": "data",
-        "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "auth_context": {
-          "actor_id": {
-            "kind": "service",
-            "service_id": "ak:did_core:webvh:z6mkfixture"
-          },
-          "key_id": "device-1",
-          "key_epoch": 1
-        },
-        "projected_writes": [
-          {
-            "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak.strand.019640c6-8000-7000-8000-000000000000",
-            "op": {
-              "kind": "append",
-              "issuer_seq": 0,
-              "value": {
-                "message_id": "ak:message:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-              }
-            }
+      "vector_id": "ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1",
+      "description": "Any eligible receiver verifies a producer-signed ordinary Event and its portable cached authority without contacting the account origin.",
+      "cases": [
+        {
+          "name": "origin_offline_cached_authority",
+          "origin_online": false,
+          "authority_complete": true,
+          "known_closure": false,
+          "expected": {
+            "accept_live": true,
+            "new_seal_required": false
           }
-        ]
-      },
-      "expected": {
-        "event_state": "data_local",
-        "fanout_allowed": true,
-        "seal_required_for_accept": false
-      },
-      "vector_id": "ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1"
+        },
+        {
+          "name": "referenced_authority_missing",
+          "authority_complete": false,
+          "expected": "pending"
+        },
+        {
+          "name": "known_revocation",
+          "authority_complete": true,
+          "known_closure": true,
+          "expected": "reject_new_live"
+        }
+      ]
     },
     {
       "name": "data_event_observation_does_not_seal",
-      "description": "A Seal may observe DataEvents through data_event_set_root, but that observation is evidence, not control-plane finality.",
-      "data_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-      "seal": {
-        "id": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "predecessor_refs": [],
-        "delta": [
-          "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-        ],
-        "control_event_set_root": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-        "state_root": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
-        "data_event_set_root": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
-      },
+      "vector_id": "ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1",
+      "description": "Ordinary storage and observation never confer safety finality or make a message permanently eligible.",
       "expected": {
-        "data_event_state": "data_observed",
-        "must_not_report_sealed": true
-      },
-      "vector_id": "ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1"
+        "ordinary_data_in_delta": false,
+        "ordinary_data_in_state_root": false,
+        "receipt_is_authority": false,
+        "later_closure_reclassifies": true
+      }
     },
     {
       "name": "control_move_requires_seal_basis_and_seal",
@@ -251,66 +230,49 @@
     },
     {
       "name": "same_batch_does_not_advance_authorization_basis",
-      "description": "An Event earlier in the same submit batch may resolve bytes and causal refs for later Events, but it cannot create a grant used by a later Event in the same batch.",
-      "batch": [
+      "vector_id": "ak.vector.cbs_lattice.same_batch_does_not_advance_authorization_basis.v1",
+      "description": "Transport batching resolves bytes but does not confirm a grant. A data Event cannot use an unconfirmed grant.",
+      "cases": [
         {
-          "id": "ak:event:AYdKcd4Mb1IzAPoctcZYEVvHLuvqQFdhPu0jBrZv-M0Q",
-          "kind": "ak.capability.grant",
-          "plane": "control",
-          "state": "control_pending"
+          "name": "pending_grant_then_message",
+          "grant_confirmed": false,
+          "expected": "pending"
         },
         {
-          "id": "ak:event:Ab7eb0Tjjy_Z3hqSiIz4dhHXnGbiRO-pvXw_EOjPNQO2",
-          "kind": "ak.message.create",
-          "plane": "data",
-          "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "auth_context": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
-            },
-            "key_id": "device-1",
-            "key_epoch": 1
-          }
+          "name": "confirmed_grant_then_message",
+          "grant_confirmed": true,
+          "expected": "evaluate_portable_authority"
         }
-      ],
-      "expected": {
-        "second_event_result": "reject_or_quarantine",
-        "reason": "capability_denied",
-        "same_batch_resolution_only": true
-      },
-      "vector_id": "ak.vector.cbs_lattice.same_batch_does_not_advance_authorization_basis.v1"
+      ]
     },
     {
       "name": "data_plane_conflict_returns_bottom_without_winner",
-      "description": "Concurrent incompatible writes to a data-plane cas_register cell return structured bottom. The reducer must not choose a winner by HLC, actor id, arrival order, or Seal observation order.",
-      "cell": "ak:cell:ak.component.strand.position.v1:ak.strand.0196419b-0000-7000-8000-000000000000",
-      "cell_lattice": {
-        "plane": "data",
-        "lattice": "cas_register",
-        "bottom": "reject"
-      },
-      "data_events": [
-        "ak:event:AWBXj0zw0Z1o7IvjCb_0yBDtqhtrzu_ZSCNIe0Tr9vZt",
-        "ak:event:AdjJRTzdCl1vn2KfFaA-ny4hJDOiZnXaz550z7Eg55Qi"
+      "vector_id": "ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
+      "description": "Concurrent ordinary values retain every authenticated Event identity; projections expose multiple heads.",
+      "state_model": "causal_register",
+      "writes": [
+        {
+          "id": "a",
+          "value": 1,
+          "observed": []
+        },
+        {
+          "id": "b",
+          "value": 2,
+          "observed": []
+        }
       ],
       "expected": {
-        "query": {
-          "status": "bottom",
-          "bottom": {
-            "kind": "conflict",
-            "cells": [
-              "ak:cell:ak.component.strand.position.v1:ak.strand.0196419b-0000-7000-8000-000000000000"
-            ],
-            "event_ids": [
-              "ak:event:AWBXj0zw0Z1o7IvjCb_0yBDtqhtrzu_ZSCNIe0Tr9vZt",
-              "ak:event:AdjJRTzdCl1vn2KfFaA-ny4hJDOiZnXaz550z7Eg55Qi"
-            ]
-          }
-        },
-        "dependent_write_result": "failed_bottom"
-      },
-      "vector_id": "ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1"
+        "covered": [
+          "a",
+          "b"
+        ],
+        "heads": [
+          "a",
+          "b"
+        ],
+        "winner": null
+      }
     },
     {
       "name": "seal_delta_excludes_data_event_digest",
@@ -333,53 +295,50 @@
       "vector_id": "ak.vector.cbs_lattice.seal_delta_excludes_data_event_digest.v1"
     },
     {
-      "name": "open_set_compaction_preserves_control_roots",
-      "description": "A signed compaction Seal must be equivalent to the deterministic control view of its predecessors and preserve control_event_set_root, state_root and fault diagnostics.",
-      "predecessor_refs": [
-        "ak:seal:sha256:3030303030303030303030303030303030303030303030303030303030303030",
-        "ak:seal:sha256:4040404040404040404040404040404040404040404040404040404040404040"
-      ],
-      "compaction_seal": {
-        "id": "ak:seal:sha256:5050505050505050505050505050505050505050505050505050505050505050",
-        "predecessor_refs": [
-          "ak:seal:sha256:3030303030303030303030303030303030303030303030303030303030303030",
-          "ak:seal:sha256:4040404040404040404040404040404040404040404040404040404040404040"
-        ],
-        "delta": [],
-        "covered_event_digests_must_equal": "union(predecessor covered_set)",
-        "control_event_set_root_must_equal": "root(union(predecessor covered_set))",
-        "state_root_must_equal": "recompute(control joined_state(predecessor_refs))"
-      },
-      "expected": {
-        "seal_result": "accept_when_equivalent_else_reject",
-        "preserves_bottom_diagnostics": true,
-        "preserves_signature_chain": true,
-        "compaction_without_signature": "reject"
-      },
-      "vector_id": "ak.vector.cbs_lattice.open_set_compaction_preserves_control_roots.v1"
+      "name": "confirmed_prefix_compaction",
+      "vector_id": "ak.vector.cbs_lattice.confirmed_prefix_compaction.v1",
+      "description": "Compaction authenticates one confirmed safety prefix and never joins competing safety heads.",
+      "cases": [
+        {
+          "name": "one_confirmed_prefix",
+          "expected": "same_security_state_and_outcomes"
+        },
+        {
+          "name": "two_same_height_values",
+          "expected": "halt_security_domain"
+        },
+        {
+          "name": "pending_transaction_omitted",
+          "expected": "reject_incomplete_checkpoint"
+        },
+        {
+          "name": "covered_set_mismatch",
+          "expected": "reject",
+          "reason_code": "covered_set_mismatch"
+        }
+      ]
     },
     {
       "name": "seal_canonical_no_self_reference",
-      "description": "Seal canonical bytes are computed from signed top-level body fields only. The Seal id and notary_signature are excluded from the transcript.",
+      "description": "Byte-level body identity and commit certificate KAT. Symbolic predecessor roots are not an execution-validity proof.",
       "seal_body": {
         "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
         "predecessor_refs": [
           "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         ],
-        "delta": [
-          "sha256:abababababababababababababababababababababababababababababababab"
-        ],
+        "delta": [],
         "control_event_set_root": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
         "state_root": "sha256:efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
-        "completeness_root": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "availability_receipt_digests": [],
         "notary_seq": 7,
         "sealed_at": "2026-06-11T00:00:00.000Z",
-        "hlc": "0189c4d2af00-0000-aabbccdd"
+        "hlc": "0189c4d2af00-0000-aabbccdd",
+        "configuration_ref": "ak:event:AYdKcd4Mb1IzAPoctcZYEVvHLuvqQFdhPu0jBrZv-M0Q",
+        "command_results": []
       },
       "expected": {
-        "id": "ak:seal:sha256:26131d04594849b99dbf6effe62d1aad7c497c922d366415c29dd5838537b301",
-        "notary_signature_payload_digest": "sha256:26131d04594849b99dbf6effe62d1aad7c497c922d366415c29dd5838537b301",
+        "id": "ak:seal:sha256:6c35488b87c40e6f8904e3c1d5e8ffdcbe50cab1bdb55a8be850d3844f1e917c",
+        "notary_signature_payload_digest": "sha256:7bf6f8361bdb1a2c844f75ad97cdba8eecfd9ddec427f67205bb17572d5aec71",
         "valid_result": "accept"
       },
       "attacks": [
@@ -414,267 +373,110 @@
           "reason": "schema_violation"
         }
       ],
-      "vector_id": "ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1"
+      "vector_id": "ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1",
+      "test_key": {
+        "kid": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+        "private_key_seed": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "note": "Public conformance test key only. Production profiles MUST reject this test DID/key domain.",
+        "algorithm": "Ed25519"
+      },
+      "commit_transcript": {
+        "context": "ak.seal.commit.v1",
+        "seal_digest": "sha256:6c35488b87c40e6f8904e3c1d5e8ffdcbe50cab1bdb55a8be850d3844f1e917c",
+        "configuration_ref": "ak:event:AYdKcd4Mb1IzAPoctcZYEVvHLuvqQFdhPu0jBrZv-M0Q",
+        "notary_seq": 7,
+        "view": 0
+      },
+      "certificate": {
+        "kind": "multi_sig",
+        "view": 0,
+        "signatures": [
+          {
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+            "payload_digest": "sha256:7bf6f8361bdb1a2c844f75ad97cdba8eecfd9ddec427f67205bb17572d5aec71",
+            "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ..UJtISK3jMDdbdF6B_p0cnhO2V7Dq0UGBKyKAQZeIkr5m0Z0pRdJyxtGuWK02Ta8w9-5LIlffiJQkcbhOU4kTDw"
+          }
+        ]
+      }
     },
     {
       "name": "cas_mixed_basis",
-      "description": "cas_register admission derives the full active-head identity guard from each write's own signed seal_basis and compares it to the frozen predecessor heads at Seal acceptance; equal business values are not enough.",
-      "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
-      "cell_lattice": {
-        "plane": "control",
-        "lattice": "cas_register",
-        "bottom": "reject"
-      },
-      "pre_state": {
-        "heads": [
-          {
-            "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-            "value": "v1"
-          }
-        ],
-        "settled_value": "v1",
-        "settled_by_seal": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
-      },
+      "vector_id": "ak.vector.cbs_lattice.cas_mixed_basis.v1",
+      "description": "Safety CAS uses the exact last successful Event revision, including same-value and null writes; data conditions only use their signed causal basis.",
+      "state_model": "sequenced_state",
       "cases": [
         {
-          "name": "blind_write_without_basis",
-          "event": {
-            "id": "ak:event:AZqPTsZD6L2d8rgSljZyE1RGiJxXKbHQanDF4Sj1U3kE",
-            "plane": "data",
-            "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
-            "projected_writes": [
-              {
-                "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
-                "op": {
-                  "kind": "set",
-                  "value": "v2"
-                }
-              }
-            ],
-            "basis": null
-          },
-          "expected": {
-            "result": "failed_precondition",
-            "cell_value": "v1",
-            "atomic_rejects_all_projected_writes": true,
-            "note": "With no reconstructable signed basis the reducer cannot derive H_c(B); it MUST fail closed rather than degrade to an unconditional overwrite."
-          }
+          "name": "exact_revision",
+          "expected": "success"
         },
         {
-          "name": "basis_heads_match_frozen_predecessor",
-          "control_move": {
-            "id": "ak:event:AeaeicCk67PpTYiIvF-BvVd3TUktGqz3d9DhGtTf_YzV",
-            "plane": "control",
-            "basis_heads": [
-              "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-            ],
-            "projected_writes": [
-              {
-                "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
-                "op": {
-                  "kind": "set",
-                  "value": "v2"
-                }
-              }
-            ]
-          },
-          "expected": {
-            "result": "accept_after_valid_seal",
-            "cell_value": "v2",
-            "heads_after": [
-              {
-                "event_id": "ak:event:AeaeicCk67PpTYiIvF-BvVd3TUktGqz3d9DhGtTf_YzV",
-                "value": "v2"
-              }
-            ],
-            "replay_order_independent": true,
-            "note": "H_c(B) equals the frozen predecessor H_c(P), so the automatically derived identity guard passes. No wire head_eq is required for this cell."
-          }
+          "name": "equal_value_wrong_revision",
+          "expected": "rejected_cas_conflict"
         },
         {
-          "name": "stale_aba_basis_rejected",
-          "history": [
-            {
-              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-              "value": "v1"
-            },
-            {
-              "event_id": "ak:event:AS2Vj6xTGoP9uYq0mHkRz8fLwCd3NbXeAiKtQrSuVwY1",
-              "value": null
-            },
-            {
-              "event_id": "ak:event:AT7Hn4dQzLm2XcVbNa9KjPwEoRyUiTsGfDhJkLzXcVb2",
-              "value": "v3"
-            },
-            {
-              "event_id": "ak:event:AUq1WeRtYuIoPaSdFgHjKlZxCvBnM3456789012345Ab",
-              "value": null
-            }
-          ],
-          "control_move": {
-            "id": "ak:event:AVbNm4LkJhGfDsAqWeRtYuIoPzXcVbNm1234567890Cd",
-            "plane": "control",
-            "basis_heads": [
-              "ak:event:AS2Vj6xTGoP9uYq0mHkRz8fLwCd3NbXeAiKtQrSuVwY1"
-            ],
-            "projected_writes": [
-              {
-                "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
-                "op": {
-                  "kind": "set",
-                  "value": "v4"
-                }
-              }
-            ]
-          },
-          "expected": {
-            "result": "failed_precondition",
-            "note": "Both the stale basis and the frozen predecessor settle to null, so a whole-value comparison would pass. The head identities differ, so the identity guard rejects the write. This is the ABA case the deleted value-edge join could not express."
-          }
+          "name": "aba_old_revision",
+          "expected": "rejected_cas_conflict"
         },
         {
-          "name": "self_derived_target_needs_no_wire_head_eq",
-          "control_move": {
-            "id": "ak:event:AWc5TgYhUjIkOlPmQnRsBtCvDwExFyGzHaIbJcKdLeM7",
-            "kind": "ak.audit.applet_binding.create",
-            "plane": "control",
-            "preconditions": [],
-            "note": "The binding cell subject is derived from this Event's own event_id, so writing that cell_id into the digest-covered preconditions would be hash-self-referential."
-          },
-          "expected": {
-            "result": "accept_after_valid_seal",
-            "note": "The reducer derives the identity guard after the EventId is computed. Rejecting because preconditions[] carries no head_eq for this cell is non-conforming."
-          }
+          "name": "data_two_offline_writes",
+          "expected": "both_heads_retained"
         }
-      ],
-      "vector_id": "ak.vector.cbs_lattice.cas_mixed_basis.v1"
+      ]
     },
     {
       "name": "auth_context_epoch_pinning_reject",
-      "description": "The source Station evaluates key and credential epoch validity inside the serializable admission gate; peers verify the frozen station_admission proof and never re-evaluate an accepted Event against later revocation.",
+      "vector_id": "ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1",
+      "description": "Producer signing coordinates must match authenticated portable historical key evidence. Receiver signatures are not authority.",
       "cases": [
         {
-          "name": "admission_before_key_revocation_is_retained",
-          "key_id": "device-1",
-          "key_epoch": 4,
-          "serialization_order": [
-            "station_admission",
-            "key_revocation"
-          ],
-          "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "expected": {
-            "result": "accept_and_retain",
-            "station_admission_valid": true,
-            "retroactive_removal_forbidden": true
-          }
+          "name": "key_epoch_mismatch",
+          "expected": "reject"
         },
         {
-          "name": "key_revocation_before_admission_blocks",
-          "key_id": "device-1",
-          "key_epoch": 4,
-          "serialization_order": [
-            "key_revocation",
-            "station_admission"
-          ],
-          "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "expected": {
-            "result": "failed_precondition",
-            "station_admission_appended": false
-          }
+          "name": "missing_referenced_proof",
+          "expected": "pending"
         },
         {
-          "name": "late_delivery_uses_frozen_admission",
-          "key_id": "device-1",
-          "key_epoch": 4,
-          "station_admission_appended_at": "2026-01-01T00:00:00Z",
-          "key_revoked_at": "2026-01-01T00:01:00Z",
-          "first_delivery_at": "2026-01-31T00:01:00Z",
-          "expected": {
-            "result": "accept_and_retain",
-            "peer_rechecks_current_revocation": false,
-            "same_across_receivers": true
-          }
+          "name": "cache_ttl_elapsed_unlimited_authority",
+          "expected": "accept"
         },
         {
-          "name": "epoch_not_valid_at_origin_admission_gate",
-          "key_id": "device-1",
-          "key_epoch": 7,
-          "origin_control_state_contains_epoch": false,
-          "current_did_document_contains_key": true,
-          "expected": {
-            "result": "failed_precondition",
-            "station_admission_appended": false,
-            "must_not_use_current_did_document_fallback": true
-          }
+          "name": "real_authority_expired_no_existence_anchor",
+          "expected": "pending_historical_evidence"
+        },
+        {
+          "name": "closed_generation_outside_cut",
+          "expected": "quarantined"
         }
-      ],
-      "vector_id": "ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1"
+      ]
     },
     {
       "name": "seal_compaction_interval_enforced",
-      "description": "Realm seal_compaction_max_interval_ms is a structural obligation: valid full-coverage compaction enables bootstrap, mismatched coverage rejects, and overdue compaction raises health alarms.",
-      "realm": {
-        "id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
-        "notary": {
-          "kind": "open_set"
-        },
-        "seal_compaction_max_interval_ms": 86400000
-      },
+      "vector_id": "ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1",
+      "description": "Safety checkpoint maintenance is a health obligation; neither an expired maintenance interval nor signer unavailability gates ordinary chat.",
       "cases": [
         {
-          "name": "compaction_within_interval",
-          "predecessor_covered_event_digests": [
-            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-            "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-          ],
-          "delta": [
-            "sha256:3333333333333333333333333333333333333333333333333333333333333333"
-          ],
-          "covered_event_digests": [
-            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-            "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-            "sha256:3333333333333333333333333333333333333333333333333333333333333333"
-          ],
-          "elapsed_since_previous_compaction_ms": 3600000,
+          "name": "overdue_checkpoint",
           "expected": {
-            "seal_result": "accept",
-            "bootstrap_from_compaction": true
+            "health_alarm": true,
+            "ordinary_chat_allowed": true
           }
         },
         {
-          "name": "covered_set_mismatch",
-          "predecessor_covered_event_digests": [
-            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-            "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-          ],
-          "delta": [
-            "sha256:3333333333333333333333333333333333333333333333333333333333333333"
-          ],
-          "covered_event_digests": [
-            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-            "sha256:3333333333333333333333333333333333333333333333333333333333333333"
-          ],
-          "expected": {
-            "seal_result": "reject",
-            "reason": "covered_set_mismatch"
-          }
+          "name": "coverage_mismatch",
+          "expected": "reject_checkpoint"
         },
         {
-          "name": "live_chain_exceeds_interval_without_compaction",
-          "elapsed_since_previous_compaction_ms": 172800000,
-          "expected": {
-            "governance_health_alarm": true,
-            "existing_seals_remain_valid": true,
-            "bootstrap_degraded_to_chain_walk": true
-          }
+          "name": "unresolved_locks_missing",
+          "expected": "reject_checkpoint"
         }
-      ],
-      "vector_id": "ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1"
+      ]
     },
     {
       "name": "inclusion_list_obligation",
       "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by inclusion, signed reject, or pre-state verification failure proof.",
-      "notary_kind": "threshold",
+      "notary_kind": "quorum",
       "notary_proposer_id": "ak:did_core:webvh:z6mkfixturenotaryproposerexample",
       "notary_signer_id": "ak:did_core:webvh:z6mkfixturenotarysignerexample",
       "inclusion_list": {
@@ -734,7 +536,6 @@
           }
         }
       ],
-      "single_signer_profile_expected": "unavailable",
       "vector_id": "ak.vector.cbs_lattice.inclusion_list_obligation.v1"
     },
     {
@@ -1308,11 +1109,11 @@
             "attestation"
           ],
           "expected": "reject",
-          "reason_code": "recovery_capability_not_sealed"
+          "reason_code": "schema_violation"
         },
         {
           "name": "resolution_state_witness_role_rejected",
-          "description": "state_witness attests a cell's legal value before Bottom; the fork-resolution cell has no active head before its first write (it reads null), so the role has no referent here.",
+          "description": "Fork resolution admits exactly one registered recovery_capability reference; a state_witness is an unregistered authority input and cannot replace that capability.",
           "event_kind": "ak.fork.resolution",
           "critical_ref_roles": [
             "recovery_capability",
@@ -1551,126 +1352,61 @@
       "vector_id": "ak.vector.cbs_lattice.threshold_forensic_attribution.v1"
     },
     {
-      "name": "open_set_concurrent_revocation_fail_closed",
-      "description": "The source Station serializes DataEvent admission against the joined multi-leaf control view. Once station_admission is appended atomically, later revocation never removes the accepted Event or its dependents.",
-      "notary_kind": "open_set",
-      "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "joined_leaf_set": [
-        "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      "name": "revocation_propagation_window",
+      "vector_id": "ak.vector.cbs_lattice.revocation_propagation_window.v1",
+      "description": "An unknown removal allows temporary live chat; the same verified closure yields the same historical projection regardless of arrival order.",
+      "events": [
+        "old",
+        "offline",
+        "reply"
       ],
-      "data_event": {
-        "id": "ak:event:Aa3sQafomIX7BjgTvHzCTpGqIqsCtEI6Gfod5-xug1up",
-        "plane": "data",
-        "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "auth_context": {
-          "actor_id": {
-            "kind": "service",
-            "service_id": "ak:did_core:webvh:z6mkfixture"
-          },
-          "key_id": "device-1",
-          "key_epoch": 1
-        }
-      },
+      "closure_allowed": [
+        "old"
+      ],
       "cases": [
         {
-          "name": "concurrent_revoke_branch",
-          "concurrent_control_move": {
-            "kind": "ak.capability.revoke",
-            "grant_id": "ak:grant:AXikJ_OppAbhG0I7SBWrKFxHynEEyYO8-IZ1Lsd9SVu-",
-            "covered_by": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-          },
-          "joined_control_view": {
-            "capability_grant_live": false,
-            "cell_status": "value"
-          },
-          "expected": {
-            "data_event_result": "failed_precondition",
-            "reason": "capability_denied",
-            "station_admission_appended": false
-          }
-        },
-        {
-          "name": "authorization_cell_bottom",
-          "joined_control_view": {
-            "capability_grant_live": "unknown",
-            "cell_status": "bottom"
-          },
-          "expected": {
-            "data_event_result": "fail_closed",
-            "reason": "failed_bottom",
-            "station_admission_appended": false
-          }
-        },
-        {
-          "name": "server_without_joined_view",
-          "verifiable_joined_view": false,
-          "expected": {
-            "data_event_result": "pending_or_fail_closed",
-            "must_not_fanout": true,
-            "must_not_treat_seal_ref_as_sufficient": true
-          }
-        },
-        {
-          "name": "late_revocation_leaf_preserves_admitted_history",
-          "description": "E receives a valid station_admission and materializes data cell X before revoke leaf R reaches the source admission gate. Dependent Event D is then admitted and materializes data cell Y. R blocks later admissions but cannot remove E, D, or their projected writes.",
-          "dependent_data_event": {
-            "id": "ak:event:AaFd64dGxtrDPbCq0cu8KtFv-Ga-z7dOzhEHsiP2eaS7",
-            "plane": "data",
-            "critical_causal_ref": "ak:event:Aa3sQafomIX7BjgTvHzCTpGqIqsCtEI6Gfod5-xug1up",
-            "projected_cell": "data_cell_y"
-          },
-          "sequence": [
-            {
-              "step": "admit_before_revocation",
-              "joined_leaf_set": [
-                "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-              ],
-              "joined_control_view": {
-                "capability_grant_live": true,
-                "cell_status": "value"
-              },
-              "expected": {
-                "data_event_result": "accept",
-                "station_admission_appended": true,
-                "data_cell_x_contains_event_projection": true,
-                "dependent_event_result": "accept",
-                "data_cell_y_contains_dependent_projection": true
-              }
-            },
-            {
-              "step": "revocation_leaf_arrives_late",
-              "newly_joined_leaf": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-              "joined_leaf_set": [
-                "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-              ],
-              "joined_control_view": {
-                "capability_grant_live": false,
-                "cell_status": "value"
-              },
-              "expected": {
-                "data_event_result": "accept_and_retain",
-                "station_admission_still_valid": true,
-                "data_cell_x_projection_retained": true,
-                "dependent_event_result": "accept_and_retain",
-                "dependent_event_projection_retained": true,
-                "retroactive_authorization_recheck": false,
-                "new_admissions_using_revoked_grant_blocked": true
-              }
-            }
+          "name": "message_then_closure",
+          "arrival": [
+            "old",
+            "offline",
+            "reply",
+            "closure"
           ],
           "expected": {
-            "final_data_event_result": "accept_and_retain",
-            "data_cell_x_projection_retained": true,
-            "dependent_event_final_result": "accept_and_retain",
-            "data_cell_y_dependent_projection_retained": true,
-            "retroactive_removal_forbidden": true,
-            "revocation_blocks_only_new_admission": true
+            "eligible": [
+              "old",
+              "reply"
+            ],
+            "quarantined": [
+              "offline"
+            ]
+          }
+        },
+        {
+          "name": "closure_then_history",
+          "arrival": [
+            "closure",
+            "reply",
+            "offline",
+            "old"
+          ],
+          "expected": {
+            "eligible": [
+              "old",
+              "reply"
+            ],
+            "quarantined": [
+              "offline"
+            ]
           }
         }
       ],
-      "vector_id": "ak.vector.cbs_lattice.open_set_concurrent_revocation_fail_closed.v1"
+      "assertions": [
+        "reply_only_references_offline_and_uses_independent_valid_authority",
+        "patch_on_offline_is_not_projected",
+        "receipt_never_makes_offline_permanently_eligible",
+        "known_removal_blocks_new_live_delivery"
+      ]
     },
     {
       "name": "actor_chain_realm_scope",
@@ -1813,290 +1549,62 @@
     },
     {
       "name": "conflict_recovery_move",
-      "description": "A bottom=reject control cell recovers only through a sealed ak.conflict.recovery Control Move projected by the registered cell_ref + reset form; no other kind may declare that form. The registered contract names no lattice, so the target cell decides both which conditions apply and what op the reset becomes. For the causal registers (cas_register and fsm, event-auth-state-resolution.md section 9.5.1) the reset is a new identity write: the signed basis must show divergent heads, the state_witness inclusion requirement and its freshness window do not apply, recovery supersedes only the heads it observed, and arrival-order truncation is forbidden. The remaining bottom=reject lattices keep the pre-conflict state_witness family of requirements below, so the top-level cases here run on an ordered_log bottom=reject cell rather than on a causal register. Section 9.3.1.4 layers the exit from Bottom: the registered sole_recovery_families have no ordinary-write exit and recovery is their only one, while every other causal-register family also heals through an ordinary write that already holds authority for its action. The list never restricts which cells a recovery may target.",
-      "cell": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-      "cell_lattice": "ordered_log",
-      "cell_bottom": "reject",
-      "pre_conflict_value": {
-        "release_revision": 7
-      },
-      "bottom_state": {
-        "status": "bottom",
-        "reason": "conflict"
-      },
-      "valid_recovery_move": {
-        "kind": "ak.conflict.recovery",
-        "payload": {
-          "target_cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-          "resolved_value": {
-            "release_revision": 8
-          }
-        },
-        "plane": "control",
-        "refs": [
-          {
-            "role": "recovery_capability",
-            "critical": true,
-            "id": "ak:grant:AXikJ_OppAbhG0I7SBWrKFxHynEEyYO8-IZ1Lsd9SVu-"
-          },
-          {
-            "role": "state_witness",
-            "critical": true,
-            "id": "ak:seal:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-          }
-        ],
-        "sealed_by": "ak:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-      },
+      "vector_id": "ak.vector.cbs_lattice.authorized_causal_repair.v1",
+      "description": "Ordinary repair is an authorized causal successor. Safety state has one confirmed revision and no multi-head reset protocol.",
       "cases": [
         {
-          "name": "valid_recovery",
-          "expected": {
-            "result": "accept_after_valid_seal",
-            "cell_status": "value",
-            "recovered_value": {
-              "release_revision": 8
-            }
-          }
+          "name": "repair_observes_all_heads",
+          "expected": "single_successor_head"
         },
         {
-          "name": "missing_state_witness",
-          "remove_ref_role": "state_witness",
-          "expected": {
-            "result": "failed_precondition",
-            "reason": "recovery_witness_missing"
-          }
+          "name": "repair_observes_one_head",
+          "expected": "unobserved_branch_retained"
         },
         {
-          "name": "post_conflict_witness",
-          "state_witness_relation": "post_conflict",
-          "expected": {
-            "result": "failed_precondition",
-            "reason": "recovery_witness_post_conflict"
-          }
+          "name": "arbitrary_target_reset",
+          "expected": "reject_unknown_kind"
         },
         {
-          "name": "recovery_capability_not_sealed",
-          "recovery_capability_in_witness": false,
-          "expected": {
-            "result": "failed_precondition",
-            "reason": "recovery_capability_not_sealed"
-          }
-        },
-        {
-          "name": "witness_revoke_lagging",
-          "recovery_capability_revoked_after_witness": true,
-          "expected": {
-            "result": "failed_precondition",
-            "reason": "recovery_witness_revoke_lagging"
-          }
-        },
-        {
-          "name": "unsealed_recovery_move",
-          "sealed_by": null,
-          "expected": {
-            "result": "control_pending",
-            "cell_remains": "bottom",
-            "query_result": "failed_bottom"
-          }
-        },
-        {
-          "name": "reset_on_a_cell_not_in_bottom",
-          "cell_status_before": "value",
-          "expected": {
-            "result": "failed_precondition",
-            "reason": "recovery_target_not_in_bottom",
-            "note": "reset is legal only on a cell already in bottom; on any other state the write is rejected, so recovery cannot be used as a general overwrite channel."
-          }
-        },
-        {
-          "name": "target_cell_mismatch",
-          "payload_target_cell_id": "ak:cell:ak.component.realm.freeze.v1:null",
-          "expected": {
-            "result": "failed_precondition",
-            "reason": "recovery_witness_invalid",
-            "note": "the state_witness must witness the cell named by payload.target_cell_id; witnessing a different cell proves nothing about the one being reset."
-          }
-        },
-        {
-          "name": "ordinary_mls_commit_cannot_recover_bottom",
-          "target_cell_family": "ak.component.mls.epoch.v1",
-          "cell_status_before": "bottom",
-          "operation": "ak.mls.commit",
-          "base_epoch": 7,
-          "next_epoch": 10,
-          "expected": {
-            "result": "failed_bottom",
-            "cell_remains": "bottom",
-            "application_send_gate": "blocked",
-            "note": "ak.component.mls.epoch.v1 is a registered sole_recovery_families member precisely because this ordinary write reads the cell it would have to heal: the base-epoch precondition fails closed under Bottom, so no Commit can ever advance the epoch again."
-          }
-        },
-        {
-          "name": "ordinary_write_heals_a_family_outside_sole_recovery",
-          "target_cell_family": "ak.component.realm.profile.v1",
-          "cell_status_before": "bottom",
-          "operation": "ak.realm.profile",
-          "writer_holds_action_authority": true,
-          "write_precondition_reads_target_cell": false,
-          "expected": {
-            "result": "accept_after_valid_seal",
-            "cell_status": "value",
-            "supersedes": "all_divergent_heads",
-            "note": "section 9.3.1.4: outside sole_recovery_families an authorized ordinary write supersedes every head and converges the cell; it needs no recovery capability and MUST NOT be given a separate reset channel."
-          }
-        },
-        {
-          "name": "unauthorized_ordinary_write_still_cannot_heal",
-          "target_cell_family": "ak.component.realm.profile.v1",
-          "cell_status_before": "bottom",
-          "operation": "ak.realm.profile",
-          "writer_holds_action_authority": false,
-          "expected": {
-            "result": "failed_precondition",
-            "cell_remains": "bottom",
-            "note": "self-healing lifts only the extra block that the target sits in Bottom; every other authorization, lifecycle and business precondition still applies."
-          }
-        },
-        {
-          "name": "ordinary_write_cannot_heal_a_sole_recovery_family",
-          "target_cell_family": "ak.component.realm.authority_root.v1",
-          "cell_status_before": "bottom",
-          "operation": "ak.realm.owner.transfer",
-          "writer_holds_action_authority": true,
-          "expected": {
-            "result": "failed_bottom",
-            "cell_remains": "bottom",
-            "note": "the authority root is the sole genesis base case of the authorization graph, so its own authorization read fails closed under Bottom and nobody is left to author an ordinary write; only ak.conflict.recovery applies."
-          }
-        },
-        {
-          "name": "recovery_targets_a_family_outside_the_list",
-          "target_cell_family": "ak.component.realm.profile.v1",
-          "cell_status_before": "bottom",
-          "operation": "ak.conflict.recovery",
-          "expected": {
-            "result": "accept_after_valid_seal",
-            "cell_status": "value",
-            "note": "sole_recovery_families names where recovery is the ONLY exit; it MUST NOT be implemented as a restriction on which cells a recovery may target, which would strand families that have not been audited."
-          }
-        },
-        {
-          "name": "notary_cell_has_no_recovery_at_all",
-          "target_cell_family": "ak.component.notary.v1",
-          "cell_status_before": "bottom",
-          "operation": "ak.conflict.recovery",
-          "expected": {
-            "result": "no_acceptable_seal",
-            "cell_remains": "bottom",
-            "note": "verifying any Seal first reads the accepted notary configuration, so a recovery Seal for that cell can never be accepted. It is deliberately absent from sole_recovery_families because listing it would imply an exit that does not exist."
-          }
+          "name": "two_confirmed_security_values",
+          "expected": "halt_and_preserve_evidence"
         }
-      ],
-      "vector_id": "ak.vector.cbs_lattice.conflict_recovery_move.v1",
-      "cas_register_recovery": {
-        "cell": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
-        "assertions": [
-          "the signed seal_basis MUST show divergent heads on the target cell; a recovery against a non-divergent cell is failed_precondition",
-          "no state_witness ref is required and recovery_witness_freshness_window_ms does not apply on this path",
-          "the recovery capability is still verified against its registered authority path, including revocation, scope and authority generation",
-          "the covering Seal still compares full heads H_c(B) = H_c(P); a branch that entered P forces a new recovery",
-          "a late branch the recovery basis never covered still merges, and two concurrent divergent recoveries still conflict",
-          "implementations MUST NOT truncate the op history at the last reset by arrival order"
-        ]
-      },
-      "fsm_recovery": {
-        "cell": "ak:cell:ak.component.agent.status.v1:ak:agent:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-        "assertions": [
-          "the reset projects as a transition carrying only to = payload.resolved_value; a set MUST be rejected because fsm accepts no set",
-          "the recovery transition MUST NOT carry a from; under bottom it supersedes two or more divergent heads at once and no single state names them",
-          "admission runs the registered allowed_transitions from every superseded head's to into resolved_value; any head with no such edge rejects the Event",
-          "an empty head set rejects: empty heads are not the divergent-heads proof section 9.5.1 item 1 requires",
-          "a terminal state stays terminal because it carries no outgoing edge but its registered self-loop, so no separate terminal_states lookup is needed",
-          "resolved_value in states follows from the same table membership and needs no separate check",
-          "the recovery head is superseded like any other write: a later registered transition authored against the recovered state moves the cell on"
-        ],
-        "shared_with_cas_register": [
-          "no state_witness ref is required and recovery_witness_freshness_window_ms does not apply on this path",
-          "the recovery capability is still verified against its registered authority path, including revocation, scope and authority generation",
-          "the covering Seal still compares full heads H_c(B) = H_c(P)",
-          "a late branch the recovery basis never covered still merges, and two concurrent divergent recoveries still conflict",
-          "implementations MUST NOT truncate the op history at the last reset by arrival order"
-        ],
-        "executed_by": "ak.vector.lattice.fsm_causal_heads.v1 cases recovery_lifts_the_cell_out_of_bottom, a_recovery_head_is_superseded_like_any_other and concurrent_different_to_recovery_still_conflicts"
-      }
+      ]
     },
     {
       "name": "same_seal_bottom_reject_serialization",
-      "description": "Notary admission serializes mutually exclusive writes to one bottom=reject cell within a single proposed Seal, while preserving bottom semantics across unreachable Seal leaves.",
-      "cell": {
-        "id": "ak:cell:ak.component.realm.policy.v1:null",
-        "lattice": "cas_register",
-        "bottom": "reject",
-        "frozen_predecessor_value": {
-          "revision": 7
-        }
-      },
-      "moves": [
+      "vector_id": "ak.vector.seal.ordered_command_results.v1",
+      "description": "Every safety command is evaluated at its ordered position. Rejected commands remain authenticated outcomes and have no effects.",
+      "state_model": "sequenced_state",
+      "initial_revision": "r0",
+      "commands": [
         {
-          "id": "move-a",
-          "precondition": {
-            "head_eq": 7
-          },
-          "set": {
-            "revision": 8
-          }
+          "id": "a",
+          "expected_revision": "r0",
+          "value": 1
         },
         {
-          "id": "move-b",
-          "precondition": {
-            "head_eq": 7
-          },
-          "set": {
-            "revision": 9
-          }
+          "id": "b",
+          "expected_revision": "r0",
+          "value": 2
         }
       ],
-      "cases": [
-        {
-          "name": "one_included_one_rejected",
-          "same_seal_included": [
-            "move-a"
-          ],
-          "signed_rejected": [
-            {
-              "id": "move-b",
-              "reason_code": "cas_conflict"
-            }
-          ],
-          "expected": "accept_seal"
-        },
-        {
-          "name": "both_in_same_seal",
-          "same_seal_included": [
-            "move-a",
-            "move-b"
-          ],
-          "expected": "rejected_seal"
-        },
-        {
-          "name": "moves_on_unreachable_seal_leaves",
-          "unreachable_leaf_included": [
-            [
-              "move-a"
-            ],
-            [
-              "move-b"
-            ]
-          ],
-          "expected": "bottom_conflict"
-        }
-      ],
-      "vector_id": "ak.vector.seal.same_batch_bottom_reject_serialization.v1"
+      "expected": {
+        "outcomes": [
+          "success",
+          "rejected"
+        ],
+        "revision": "a",
+        "value": 1,
+        "delta": [
+          "a"
+        ],
+        "rejected_reason": "cas_conflict"
+      }
     },
     {
       "name": "realm_alias_single_carrier",
       "vector_id": "ak.vector.event_kind.realm_alias_single_carrier.v1",
-      "description": "A Realm alias has exactly one wire carrier. ak.realm.alias sets ak.component.realm.alias.v1 (cas_register, cell_subject=null, bottom=reject); the closed realm genesis/profile objects carry no alias, and no implementation may keep a fallback input chain over several shapes.",
+      "description": "The Realm alias cell confirms Realm intent; the namespace issuer ledger owns the distinct global name allocation decision.",
       "required_projected_writes": [
         {
           "cell": "ak:cell:ak.component.realm.alias.v1:null",
@@ -2109,9 +1617,9 @@
         },
         "create_time_alias_shape": "registered conditional alias slot in the same ordered atomic Realm bootstrap unit",
         "post_bootstrap_alias_shape": "ordinary Control Move carrying seal_basis",
-        "rename_shape": "successor set on the same cell carrying whole-value head_eq",
+        "rename_shape": "successor using exact revision CAS, followed by namespace activation",
         "release_shape": "explicit {tombstone:true} set; effective resolution treats it as absence and the Realm stays addressable only by realm_id",
-        "resolution_source": "resolve_realm / resolve_target / ak.edge.applet.realm.read.resolve.v1 read the effective cell; directory rows are a projection, not a second source of truth",
+        "resolution_source": "intersection of current confirmed Realm alias intent and unique namespace issuer allocation of the same canonical alias and Realm",
         "authorized_by": [
           "ak.realm.alias",
           "ak.realm.admin"
@@ -2141,7 +1649,7 @@
         {
           "name": "alias_held_by_another_realm",
           "mutation": "declare a canonical alias already held by a different Realm in the same authority realm-alias namespace",
-          "expected": "failed_precondition with reason realm_alias_taken; the alias MUST NOT be re-pointed and the holder MUST tombstone first"
+          "expected": "namespace activation fails with realm_alias_taken; Realm intent does not displace the existing holder"
         },
         {
           "name": "same_string_occupied_in_handle_namespace",
@@ -2151,7 +1659,7 @@
         {
           "name": "concurrent_distinct_alias_declarations",
           "mutation": "two mutually unreachable ak.realm.alias set Moves declare different aliases for the same Realm",
-          "expected": "bottom_conflict (cas_register bottom=reject); resolution fails closed instead of picking a winner"
+          "expected": "at most one command succeeds on the same revision; the other has a confirmed CAS rejection"
         },
         {
           "name": "alias_in_principal_control_realm",
@@ -2581,603 +2089,115 @@
       ]
     },
     {
-      "vector_id": "ak.vector.lattice.fsm_causal_heads.v1",
       "name": "fsm_causal_heads",
-      "description": "`fsm` is a causal register whose active heads carry the transition's `to`. `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis; they are never join-time edges, and the op list is never read as a path. A §9.5.1 recovery write is one of these heads: it carries only `to`, supersedes exactly the divergent heads its basis observed, and is itself superseded by a later transition.",
-      "cell": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-      "cell_lattice": "fsm",
-      "registered": {
-        "initial_state": "active",
-        "states": [
-          "active",
-          "archived",
-          "tombstoned"
-        ],
-        "allowed_transitions": [
-          [
-            "active",
-            "active"
-          ],
-          [
-            "active",
-            "archived"
-          ],
-          [
-            "archived",
-            "active"
-          ],
-          [
-            "active",
-            "tombstoned"
-          ],
-          [
-            "archived",
-            "tombstoned"
-          ],
-          [
-            "tombstoned",
-            "tombstoned"
-          ]
-        ],
-        "terminal_states": [
-          "tombstoned"
-        ]
-      },
-      "assertions": [
-        "state_is_active_write_identities_each_carrying_to",
-        "from_is_admission_against_the_writes_own_basis_not_a_join_edge",
-        "input_order_and_batch_split_do_not_change_the_result",
-        "aba_is_distinguished_from_abab",
-        "a_registered_self_loop_leaves_later_registered_transitions_legal",
-        "concurrent_same_to_writes_keep_every_identity",
-        "concurrent_different_to_writes_read_failed_bottom",
-        "exact_replay_dedupes_by_identity",
-        "a_late_branch_merges_by_the_section_9_3_1_8_formula",
-        "a_missing_dependency_holds_rather_than_trusting_an_unverified_to",
-        "a_recovery_carries_only_to_and_supersedes_every_divergent_head",
-        "a_recovery_head_is_superseded_by_a_later_ordinary_transition",
-        "concurrent_different_to_recovery_still_conflicts",
-        "the_mls_membership_consumer_reads_the_same_state_as_the_lattice"
-      ],
+      "vector_id": "ak.vector.lattice.domain_transition_heads.v1",
+      "description": "Domain transitions are predicates on a causal register, not a separate state type or a join-time path.",
+      "state_model": "causal_register",
       "cases": [
         {
-          "name": "unwritten_cell_reads_its_registered_initial_state",
-          "writes": [],
-          "expected": {
-            "heads": [],
-            "settled": "active",
-            "occupies_state_root_leaf": false,
-            "note": "The one state difference from `cas_register`: an unwritten `fsm` cell reads the registered initial state, not `null`. It still occupies no leaf."
-          }
-        },
-        {
-          "name": "linear_chain_leaves_only_its_terminal_write",
+          "name": "aba_distinct_identities",
           "writes": [
             {
-              "id": "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
+              "id": "a",
+              "value": "archived",
+              "observed": []
             },
             {
-              "id": "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn",
-              "from": "archived",
-              "to": "active",
-              "supersedes": [
-                "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP"
+              "id": "b",
+              "value": "active",
+              "observed": [
+                "a"
               ]
             },
             {
-              "id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
-              "from": "active",
-              "to": "tombstoned",
-              "supersedes": [
-                "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn"
+              "id": "c",
+              "value": "archived",
+              "observed": [
+                "b"
               ]
             }
           ],
           "expected": {
+            "covered": [
+              "a",
+              "b",
+              "c"
+            ],
             "heads": [
-              {
-                "event_id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
-                "to": "tombstoned"
-              }
-            ],
-            "settled": "tombstoned",
-            "occupies_state_root_leaf": true
-          }
-        },
-        {
-          "name": "input_order_permutation_is_one_result",
-          "writes": [
-            {
-              "id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
-              "from": "active",
-              "to": "tombstoned",
-              "supersedes": [
-                "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn"
-              ]
-            },
-            {
-              "id": "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn",
-              "from": "archived",
-              "to": "active",
-              "supersedes": [
-                "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP"
-              ]
-            }
-          ],
-          "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
-                "to": "tombstoned"
-              }
-            ],
-            "settled": "tombstoned",
-            "same_as_case": "linear_chain_leaves_only_its_terminal_write",
-            "note": "A sequential fold reading the op list as a path answers differently here; the causal state does not, because supersession comes from each write's own basis rather than from its neighbour in the list."
-          }
-        },
-        {
-          "name": "batch_split_is_one_result",
-          "batches": [
-            [
-              {
-                "id": "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP",
-                "from": "active",
-                "to": "archived",
-                "supersedes": []
-              }
-            ],
-            [
-              {
-                "id": "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn",
-                "from": "archived",
-                "to": "active",
-                "supersedes": [
-                  "ak:event:AcTeTmVS-r41dDGV1EqJNkO8xD6fCAda3CkFGbkhv9ZP"
-                ]
-              },
-              {
-                "id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
-                "from": "active",
-                "to": "tombstoned",
-                "supersedes": [
-                  "ak:event:Aeb3Fhs5Zv2226-nyotWCYx52-JPnCpQ5jQenXDrAeGn"
-                ]
-              }
+              "c"
             ]
-          ],
-          "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:AQLP6cFeLFv6o6sSFHYUAvW2rnOmBH1NSVOvdC7daSVz",
-                "to": "tombstoned"
-              }
-            ],
-            "settled": "tombstoned",
-            "same_as_case": "linear_chain_leaves_only_its_terminal_write"
           }
         },
         {
-          "name": "aba_is_distinguished_from_abab",
+          "name": "same_value_concurrent_heads",
           "writes": [
             {
-              "id": "ak:event:ARNkN5uyAqEKjWnEEYIyjv5iTzF9fA2o-k5oI8Timp6J",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
+              "id": "a",
+              "value": "active",
+              "observed": []
             },
             {
-              "id": "ak:event:Af4XyTzGgspCeY9971Jbl_2exvGlgiAYoC9F6-x7XpdA",
-              "from": "archived",
-              "to": "active",
-              "supersedes": [
-                "ak:event:ARNkN5uyAqEKjWnEEYIyjv5iTzF9fA2o-k5oI8Timp6J"
+              "id": "b",
+              "value": "active",
+              "observed": []
+            }
+          ],
+          "expected": {
+            "covered": [
+              "a",
+              "b"
+            ],
+            "heads": [
+              "a",
+              "b"
+            ]
+          }
+        },
+        {
+          "name": "partial_repair",
+          "writes": [
+            {
+              "id": "a",
+              "value": "archived",
+              "observed": []
+            },
+            {
+              "id": "b",
+              "value": "active",
+              "observed": []
+            },
+            {
+              "id": "c",
+              "value": "active",
+              "observed": [
+                "a"
               ]
             }
           ],
           "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:Af4XyTzGgspCeY9971Jbl_2exvGlgiAYoC9F6-x7XpdA",
-                "to": "active"
-              }
+            "covered": [
+              "a",
+              "b",
+              "c"
             ],
-            "settled": "active",
-            "contrast_case": "abab_reads_archived"
-          }
-        },
-        {
-          "name": "abab_reads_archived",
-          "writes": [
-            {
-              "id": "ak:event:ARNkN5uyAqEKjWnEEYIyjv5iTzF9fA2o-k5oI8Timp6J",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:Af4XyTzGgspCeY9971Jbl_2exvGlgiAYoC9F6-x7XpdA",
-              "from": "archived",
-              "to": "active",
-              "supersedes": [
-                "ak:event:ARNkN5uyAqEKjWnEEYIyjv5iTzF9fA2o-k5oI8Timp6J"
-              ]
-            },
-            {
-              "id": "ak:event:AWJ_EpARzoN5FYR7zda2iv_hzhylOKDVVIEioKSkbzWR",
-              "from": "active",
-              "to": "archived",
-              "supersedes": [
-                "ak:event:Af4XyTzGgspCeY9971Jbl_2exvGlgiAYoC9F6-x7XpdA"
-              ]
-            }
-          ],
-          "expected": {
             "heads": [
-              {
-                "event_id": "ak:event:AWJ_EpARzoN5FYR7zda2iv_hzhylOKDVVIEioKSkbzWR",
-                "to": "archived"
-              }
-            ],
-            "settled": "archived",
-            "note": "Deduplicating on `(from,to)` collapses this to the same pair as the ABA case and reads `active`. The identities are what tell them apart."
-          }
-        },
-        {
-          "name": "a_registered_self_loop_leaves_later_transitions_legal",
-          "writes": [
-            {
-              "id": "ak:event:AcQyZXE30Xm1yjgmJE63kx0n9CBJ8nEGHIIxIMASw9Rr",
-              "from": "active",
-              "to": "active",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:Af05dsQw0sWqeDwAeflmCDeY6h3UlWxt9nz7hOFYw5lj",
-              "from": "active",
-              "to": "tombstoned",
-              "supersedes": [
-                "ak:event:AcQyZXE30Xm1yjgmJE63kx0n9CBJ8nEGHIIxIMASw9Rr"
-              ]
-            }
-          ],
-          "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:Af05dsQw0sWqeDwAeflmCDeY6h3UlWxt9nz7hOFYw5lj",
-                "to": "tombstoned"
-              }
-            ],
-            "settled": "tombstoned",
-            "note": "`c2` is a registered edge out of `active` and its basis observed only `c1`. Reading the self-loop as `active`'s single out-edge rejects it as a `same_from_different_to` conflict, which is the defect this pins."
-          }
-        },
-        {
-          "name": "concurrent_same_to_keeps_every_identity",
-          "writes": [
-            {
-              "id": "ak:event:AWUV5sLfBQZE2PTAVeVB1s8RT_ZUyfgvTFwIqjMNz-K1",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:AUEv7uCdpimS1oLvrXig40jQC_cqe5UxbECMv4cJAmot",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            }
-          ],
-          "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:AUEv7uCdpimS1oLvrXig40jQC_cqe5UxbECMv4cJAmot",
-                "to": "archived"
-              },
-              {
-                "event_id": "ak:event:AWUV5sLfBQZE2PTAVeVB1s8RT_ZUyfgvTFwIqjMNz-K1",
-                "to": "archived"
-              }
-            ],
-            "settled": "archived",
-            "note": "Two identities, one settled state. Collapsing them loses the head a peer that only saw `d1` must still be told about."
-          }
-        },
-        {
-          "name": "concurrent_different_to_reads_failed_bottom",
-          "writes": [
-            {
-              "id": "ak:event:Af4PSmFSCNeZdRhP9_6xvGxJzk3F-3PTxrhrs2ebyeyw",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:AYXuS_cUDRxRCC7pZ4EiGaT8XRTn4DQRxijgm-eUsZg0",
-              "from": "active",
-              "to": "tombstoned",
-              "supersedes": []
-            }
-          ],
-          "expected": {
-            "settled": "failed_bottom",
-            "bottom_reason": "same_from_different_to",
-            "heads": [
-              {
-                "event_id": "ak:event:AYXuS_cUDRxRCC7pZ4EiGaT8XRTn4DQRxijgm-eUsZg0",
-                "to": "tombstoned"
-              },
-              {
-                "event_id": "ak:event:Af4PSmFSCNeZdRhP9_6xvGxJzk3F-3PTxrhrs2ebyeyw",
-                "to": "archived"
-              }
-            ],
-            "occupies_state_root_leaf": true,
-            "note": "A written cell in `⊥` keeps its leaf, for the same reason a `cas_register` one does: absent from the root, `⊥` and never-written are indistinguishable under a non-membership proof, and they read differently."
-          }
-        },
-        {
-          "name": "exact_replay_dedupes_by_identity",
-          "writes": [
-            {
-              "id": "ak:event:AW4SZfI08xfE3DGRgC58uFt1NhnFdxrB-URiLcNb_gyH",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:AW4SZfI08xfE3DGRgC58uFt1NhnFdxrB-URiLcNb_gyH",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            }
-          ],
-          "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:AW4SZfI08xfE3DGRgC58uFt1NhnFdxrB-URiLcNb_gyH",
-                "to": "archived"
-              }
-            ],
-            "settled": "archived",
-            "contrast_case": "concurrent_same_to_keeps_every_identity",
-            "note": "Same identity, same canonical effect: one head. Two different identities with the same `(from,to)` are two heads. The two cases must not be conflated."
-          }
-        },
-        {
-          "name": "late_branch_merges_by_the_formula",
-          "merge": {
-            "left": {
-              "covered": [
-                "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF",
-                "ak:event:AT5UhoHgELlDQz-0XI8nXZpvMmsfT8kMfEeiRrbwY3my"
-              ],
-              "writes": [
-                {
-                  "id": "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF",
-                  "from": "active",
-                  "to": "archived",
-                  "supersedes": []
-                },
-                {
-                  "id": "ak:event:AT5UhoHgELlDQz-0XI8nXZpvMmsfT8kMfEeiRrbwY3my",
-                  "from": "archived",
-                  "to": "active",
-                  "supersedes": [
-                    "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF"
-                  ]
-                }
-              ]
-            },
-            "right": {
-              "covered": [
-                "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF",
-                "ak:event:ARZh-8tivxKKrx56VUM2e2GdBlmVLUfxefJ1heRKXC3n"
-              ],
-              "writes": [
-                {
-                  "id": "ak:event:AVMEIJZ3IUbAfaUZdSejtO7wmPYmz6XEtE2_Xqwvg-pF",
-                  "from": "active",
-                  "to": "archived",
-                  "supersedes": []
-                },
-                {
-                  "id": "ak:event:ARZh-8tivxKKrx56VUM2e2GdBlmVLUfxefJ1heRKXC3n",
-                  "from": "active",
-                  "to": "archived",
-                  "supersedes": []
-                }
-              ]
-            }
-          },
-          "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:ARZh-8tivxKKrx56VUM2e2GdBlmVLUfxefJ1heRKXC3n",
-                "to": "archived"
-              },
-              {
-                "event_id": "ak:event:AT5UhoHgELlDQz-0XI8nXZpvMmsfT8kMfEeiRrbwY3my",
-                "to": "active"
-              }
-            ],
-            "settled": "failed_bottom",
-            "bottom_reason": "same_from_different_to",
-            "note": "`g1` is superseded on the left and covered on the right, so it drops. `g3` is unknown to the left, so it survives. Union-of-heads would keep `g1` and intersection would drop `g3`; only the section 9.3.1.8 formula is right."
-          }
-        },
-        {
-          "name": "missing_dependency_holds",
-          "writes": [
-            {
-              "id": "ak:event:Acw0I7mKZXU2a3Yf_SllOc3xUG-DjPZ-BmyFh8QCZ2wx",
-              "from": "archived",
-              "to": "tombstoned",
-              "supersedes": []
-            }
-          ],
-          "unreconstructable_basis": true,
-          "expected": {
-            "result": "hold",
-            "settled": "active",
-            "note": "The write claims `from=archived` but its basis cannot be rebuilt, so the reducer cannot check the admission. It holds; it MUST NOT adopt `to` on the strength of an unverified `from`."
-          }
-        },
-        {
-          "name": "recovery_lifts_the_cell_out_of_bottom",
-          "writes": [
-            {
-              "id": "ak:event:AZ9y0YEnB1QYNTiOxfybgpHqxpfEsFRVJdLKQuemxSDL",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:AeMd1QeUAfLc5oxeYOr4EaWLdN1DHfhY8gnwUvL2DFBs",
-              "from": "active",
-              "to": "active",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:AXQIhstHIQiLuOU4NObSQBmTgSpb4jmJ4qXA_qtn10rF",
-              "to": "active",
-              "supersedes": [
-                "ak:event:AZ9y0YEnB1QYNTiOxfybgpHqxpfEsFRVJdLKQuemxSDL",
-                "ak:event:AeMd1QeUAfLc5oxeYOr4EaWLdN1DHfhY8gnwUvL2DFBs"
-              ],
-              "recovery": true
-            }
-          ],
-          "recovery_writes": [
-            "r3"
-          ],
-          "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:AXQIhstHIQiLuOU4NObSQBmTgSpb4jmJ4qXA_qtn10rF",
-                "to": "active"
-              }
-            ],
-            "settled": "active",
-            "note": "The `fsm` escape from `⊥`. The recovery carries only `to`; it supersedes both divergent heads and becomes the cell's single head. It is not a truncation: the two superseded writes stay in the log and stay superseded."
-          }
-        },
-        {
-          "name": "a_recovery_head_is_superseded_like_any_other",
-          "writes": [
-            {
-              "id": "ak:event:AZ9y0YEnB1QYNTiOxfybgpHqxpfEsFRVJdLKQuemxSDL",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:AeMd1QeUAfLc5oxeYOr4EaWLdN1DHfhY8gnwUvL2DFBs",
-              "from": "active",
-              "to": "active",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:AXQIhstHIQiLuOU4NObSQBmTgSpb4jmJ4qXA_qtn10rF",
-              "to": "active",
-              "supersedes": [
-                "ak:event:AZ9y0YEnB1QYNTiOxfybgpHqxpfEsFRVJdLKQuemxSDL",
-                "ak:event:AeMd1QeUAfLc5oxeYOr4EaWLdN1DHfhY8gnwUvL2DFBs"
-              ],
-              "recovery": true
-            },
-            {
-              "id": "ak:event:AbYqLtSXbCUWJEcCr3lFcz4hcm6Bl_S9zFEnpNjFN5MK",
-              "from": "active",
-              "to": "archived",
-              "supersedes": [
-                "ak:event:AXQIhstHIQiLuOU4NObSQBmTgSpb4jmJ4qXA_qtn10rF"
-              ]
-            }
-          ],
-          "recovery_writes": [
-            "r3"
-          ],
-          "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:AbYqLtSXbCUWJEcCr3lFcz4hcm6Bl_S9zFEnpNjFN5MK",
-                "to": "archived"
-              }
-            ],
-            "settled": "archived",
-            "note": "Recovery does not freeze the cell. An ordinary transition authored against the recovered state supersedes the recovery head and moves on, which is only expressible because the recovery is a head rather than a boundary."
-          }
-        },
-        {
-          "name": "concurrent_different_to_recovery_still_conflicts",
-          "writes": [
-            {
-              "id": "ak:event:AUHojdIc1-e1M_WWBEoVtsCtWK3gcma1cb7lRr3YpeFG",
-              "from": "active",
-              "to": "archived",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:Aa4xMEBTnUukZb7tIYWiP9688uvDHsP4gEiu7YsCVN0G",
-              "from": "active",
-              "to": "active",
-              "supersedes": []
-            },
-            {
-              "id": "ak:event:AcwR2PHnZO8FG8QwylQFQJ-oy__my0JFeCZ34vAoegOs",
-              "to": "tombstoned",
-              "supersedes": [
-                "ak:event:AUHojdIc1-e1M_WWBEoVtsCtWK3gcma1cb7lRr3YpeFG",
-                "ak:event:Aa4xMEBTnUukZb7tIYWiP9688uvDHsP4gEiu7YsCVN0G"
-              ],
-              "recovery": true
-            },
-            {
-              "id": "ak:event:AcAwBGtrGojF5vWNhyqhLjExbGx5Xo42Fpcdz5_l9-Sv",
-              "to": "active",
-              "supersedes": [
-                "ak:event:AUHojdIc1-e1M_WWBEoVtsCtWK3gcma1cb7lRr3YpeFG",
-                "ak:event:Aa4xMEBTnUukZb7tIYWiP9688uvDHsP4gEiu7YsCVN0G"
-              ],
-              "recovery": true
-            }
-          ],
-          "recovery_writes": [
-            "i3",
-            "i4"
-          ],
-          "expected": {
-            "heads": [
-              {
-                "event_id": "ak:event:AcAwBGtrGojF5vWNhyqhLjExbGx5Xo42Fpcdz5_l9-Sv",
-                "to": "active"
-              },
-              {
-                "event_id": "ak:event:AcwR2PHnZO8FG8QwylQFQJ-oy__my0JFeCZ34vAoegOs",
-                "to": "tombstoned"
-              }
-            ],
-            "settled": "failed_bottom",
-            "bottom_reason": "same_from_different_to",
-            "note": "Two authorised recoveries, each superseding the same conflicting pair, disagree on `to`. Recovery is an ordinary identity write carrying only its `to`, so it conflicts like any other; arrival order MUST NOT settle it."
+              "b",
+              "c"
+            ]
           }
         }
+      ],
+      "assertions": [
+        "transition_edges_are_checked_on_signed_basis",
+        "terminal_tombstone_is_not_revived",
+        "unwritten_cell_has_no_effect_identity",
+        "data_cell_is_not_in_security_state_root"
       ]
     },
     {
       "vector_id": "ak.vector.lattice.apply_patch_base.v1",
       "name": "apply_patch_base",
-      "description": "An apply_patch resolves against a real object base written by a registered set, or it is refused. event-auth-state-resolution.md section 9.3.1.2 leaves no other way to obtain one: a family may not declare an initial_value, so null is not an implicit initialization and the first patch never becomes the object definition. The base must also be usable -- written by a set on the same family and addressing the same subject, since an append or a transition writes no whole value and another subject shape names another object.",
+      "description": "A patch binds a complete eligible base on the same registered Cell and scope. Ordinary patch validation does not require a new Seal.",
       "cases": [
         {
           "name": "create_then_first_patch_keeps_untouched_fields",
@@ -3187,7 +2207,7 @@
             "ak.space.update patches one field"
           ],
           "expected": {
-            "result": "accept_after_valid_seal",
+            "result": "accept_after_portable_authority_and_base_validation",
             "untouched_fields": "preserved from the create value",
             "note": "the patch composes onto the created object, so fields the patch does not mention keep the values create wrote."
           }
@@ -3239,7 +2259,7 @@
           "operation": "ak.circle.update",
           "expected": {
             "result": "failed_precondition",
-            "note": "this family is cas_register with bottom=reject; an unwritten cell reads null and a patch has no base."
+            "note": "No registered initial write exists, so a patch has no base."
           }
         },
         {
@@ -3251,7 +2271,7 @@
             "ak.strand.tracks.update patches a track path"
           ],
           "expected": {
-            "result": "accept_after_valid_seal",
+            "result": "accept_after_portable_authority_and_base_validation",
             "evaluated_against": "the complete post-patch Strand",
             "authorization": "content paths stay bound by allowed_write_fields; track management stays with ak.strand.tracks.update",
             "note": "both patches compose on the object create wrote, so neither initializes a second authority for the same Strand."
@@ -3262,7 +2282,7 @@
           "family": "ak.component.strand.object.v1",
           "expected": {
             "result": "multi_head",
-            "note": "mv_register exposes both heads over one explicit base; the contract promises causal supersession, not automatic field merging."
+            "note": "causal_register exposes both heads over one explicit base; the contract promises causal supersession, not automatic field merging."
           }
         },
         {
@@ -3332,7 +2352,7 @@
           "family": "ak.component.view.v1",
           "expected": {
             "result": "multi_head",
-            "note": "a whole-value set on mv_register replaces the heads its basis observed; an unobserved concurrent branch stays exposed. A known-good definition is not a privilege to overwrite state it never saw."
+            "note": "a whole-value set on causal_register replaces the heads its basis observed; an unobserved concurrent branch stays exposed. A known-good definition is not a privilege to overwrite state it never saw."
           }
         }
       ]
@@ -3436,135 +2456,36 @@
       ]
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.seal_delta_concurrency_class.v1",
-      "name": "seal_delta_concurrency_class",
-      "description": "A Seal's control delta is one of two shapes and never a mixture: exactly one security_barrier transaction, or a set of non-barrier writes on pairwise disjoint cells. The frozen-predecessor rule means a non-barrier write batched beside a barrier is still judged on the state before that barrier took effect, so at-most-one-barrier would leave the dangerous combination open. The class read is the registered one; it is never switched per request.",
+      "name": "seal_delta_execution_order",
+      "vector_id": "ak.vector.cbs_lattice.seal_delta_execution_order.v1",
+      "description": "Safety commands execute in order; overlapping reads and writes are checked on the actual state at each position. Ordinary writes are excluded.",
       "cases": [
         {
-          "name": "one_barrier_transaction_alone_is_accepted",
-          "delta": [
-            "ak.realm.owner.transfer"
-          ],
-          "expected": {
-            "result": "accept",
-            "note": "shape 1: exactly one barrier and nothing else."
-          }
+          "name": "two_moderators_remove_each_other",
+          "expected": [
+            "first_success",
+            "second_authorization_denied"
+          ]
         },
         {
-          "name": "registered_atomic_unit_counts_as_the_one_barrier_transaction",
-          "delta": [
-            "ak.realm.create bootstrap unit"
-          ],
-          "expected": {
-            "result": "accept",
-            "note": "a registered bootstrap or re-anchor unit is one transaction, not several writes that happen to travel together."
-          }
+          "name": "remove_then_restore_then_act",
+          "expected": "evaluate_each_position"
         },
         {
-          "name": "disjoint_non_barrier_writes_batch",
-          "delta": [
-            "ak.realm.profile on realm A",
-            "ak.strand.stage.set on strand S"
-          ],
-          "expected": {
-            "result": "accept",
-            "note": "shape 2: every member is exclusive or merge_safe and the target cells are disjoint."
-          }
+          "name": "ordinary_message_in_delta",
+          "expected": "reject_seal"
         },
         {
-          "name": "barrier_mixed_with_an_ordinary_write_is_refused",
-          "delta": [
-            "ak.moderation.decision",
-            "ak.strand.update authorized by a moderation-dependent grant"
-          ],
-          "expected": {
-            "result": "rejected_seal",
-            "partial_acceptance": "none",
-            "note": "the ordinary write would be judged on the pre-decision baseline, so the actor the decision demotes would still act. The whole Seal is refused rather than one member dropped."
-          }
+          "name": "registered_atomic_bootstrap",
+          "expected": "all_effects_or_no_effects"
         },
         {
-          "name": "two_barrier_transactions_in_one_seal_are_refused",
-          "delta": [
-            "ak.realm.owner.transfer",
-            "ak.realm.authority.reset"
-          ],
-          "expected": {
-            "result": "rejected_seal",
-            "note": "shape 1 admits exactly one. Two barriers would each be judged before the other took effect."
-          }
+          "name": "producer_chosen_plane",
+          "expected": "reject"
         },
         {
-          "name": "non_barrier_writes_on_one_cell_are_refused",
-          "delta": [
-            "ak.strand.move on strand S",
-            "ak.strand.reorder on strand S"
-          ],
-          "expected": {
-            "result": "rejected_seal",
-            "note": "same cell, so the second would be judged on a pre-state the first has already superseded."
-          }
-        },
-        {
-          "name": "class_is_read_from_the_registry_not_from_the_request",
-          "expected": {
-            "result": "rejected_seal",
-            "note": "ak.moderation.decision is security_barrier whether or not this particular request happens to touch a moderation-dependent grant. An implementation must not downgrade it per request to make a batch fit."
-          }
-        },
-        {
-          "name": "cyclic_read_write_dependency_between_two_moderators",
-          "pre_state": "A and B are both unmarked; the moderation write permission requires the author to be unmarked",
-          "delta": [
-            "W1: A marks B, reads moderation(A), writes moderation(B)",
-            "W2: B marks A, reads moderation(B), writes moderation(A)"
-          ],
-          "expected": {
-            "result": "rejected_seal",
-            "note": "the targets are disjoint and both pass at P, but in either serial order the second author is already disabled by the first. This is a genuine cyclic read-write dependency, so no serialization of the pair exists and the batch must not be accepted. Both writes are security_barrier, so shape 1 already refuses the Seal."
-          }
-        },
-        {
-          "name": "the_same_pair_across_two_seals_is_legal_in_either_order",
-          "sequence": [
-            "Seal 1 carries W1",
-            "Seal 2 carries W2"
-          ],
-          "expected": {
-            "result": "first_accepted_second_refused",
-            "note": "ordering is what makes the pair decidable: whichever lands first disables the other's author, and the second is refused on its own authorization rather than by a batching rule."
-          }
-        },
-        {
-          "name": "lift_restores_the_author_for_a_later_seal",
-          "sequence": [
-            "ak.moderation.decision marks A",
-            "ak.moderation.decision.lift clears A",
-            "A authors a moderation write"
-          ],
-          "expected": {
-            "result": "accept",
-            "note": "lift is a barrier too, so it travels in its own Seal; afterwards A's authorization reads clean."
-          }
-        },
-        {
-          "name": "add_lift_add_does_not_reuse_a_head_identity",
-          "sequence": [
-            "mark A",
-            "lift A",
-            "mark A again"
-          ],
-          "expected": {
-            "head_identities": "three distinct",
-            "note": "the or_set state returns to a business value it held before, but the write identities differ. A barrier signer keying its double-sign lock on the business value would refuse the third legal write; the key must be the causal state identity."
-          }
-        },
-        {
-          "name": "a_refused_seal_rolls_back_whole",
-          "expected": {
-            "stored_effects": "none",
-            "note": "no member of a refused delta is applied, and no cell is driven to Bottom on the way: the refusal happens at admission, before any join."
-          }
+          "name": "invalid_result_digest",
+          "expected": "reject_whole_seal"
         }
       ]
     }

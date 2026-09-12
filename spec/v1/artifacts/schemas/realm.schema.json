@@ -134,7 +134,7 @@
         "null"
       ],
       "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$",
-      "description": "Optional / nullable. AUTHORITATIVE single pointer to the Realm's default discussion Strand (last value projected from ak.realm.set_default_strand; cell ak.component.realm.set_default_strand.v1, cas_register, bottom=reject). A single pointer avoids multi-default dirty state. null / absent means the Realm has no designated default Strand. The reducer rejects a set_default_strand whose strand_id does not resolve to a projected non-tombstoned Strand in this Realm (failed_precondition), so this pointer never dangles. The Strand projection's derived is_default flag is computed as strand_id == this value; clients discover the default Strand deterministically from this field (or the Strand is_default marker) and MUST NOT rely on any Strand-reuses-Realm-token implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
+      "description": "Derived ordinary default-Strand selection from causal_register ak.component.realm.set_default_strand.v1. Concurrent distinct heads are unresolved, never selected by arrival order; only a single eligible non-terminal same-Realm Strand produces an effective default. Selection grants no authority."
     },
     "default_discoverability": {
       "type": "string",
@@ -307,18 +307,11 @@
         "blake3"
       ],
       "default": "sha256",
-      "description": "Digest suite (canonicalization x hash tuple) used for DataEvent ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; migration uses the control-plane transition Move and dual-root Seal defined by event-auth-state-resolution.md §9.3.2."
+      "description": "Digest suite (canonicalization x hash tuple) used for DataEvent ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed ordinary Events retain the suite of their signed authority context. Transition uses the control-plane transition Move and dual-root Seal defined by event-auth-state-resolution.md §13."
     },
     "notary": {
       "$ref": "#/$defs/notary_configuration",
       "description": "Closed notary configuration. Every signer slot freezes actor, DID URL and exact public key. Successor changes are authorized by predecessor-state frozen descriptors before replacement is installed; current DID resolution is never substituted."
-    },
-    "recovery_witness_freshness_window_ms": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 604800000,
-      "default": 86400000,
-      "description": "Maximum signed Seal.sealed_at distance from the conflict-detecting frontier to a state_witness used by a conflict-recovery Move. Receivers compute the non-negative DAG time delta from the witness Seal to the recovery Move's seal_basis leaves; exceeding this value fails closed with recovery_witness_revoke_lagging."
     },
     "proposal_intake_sla_ms": {
       "type": "integer",
@@ -356,26 +349,18 @@
       "minimum": 300000,
       "maximum": 604800000,
       "default": 86400000,
-      "description": "Structural obligation, not advisory: maximum interval between compaction Seals (Seals carrying covered_event_digests[] or an equivalent verifiable full-coverage manifest). Because the cumulative control-plane covered set is defined recursively from predecessor_refs + delta, compaction Seals are the only bounded bootstrap points for new verifiers; a notary that exceeds this interval degrades bootstrap to walking the chain to genesis. open_set deployments MUST use <= 86400000 (24h); threshold deployments MUST use <= 604800000 (7d); single_signer SHOULD use <= 86400000. Receivers SHOULD raise governance health alarms when the live chain exceeds the declared interval. See authz/event-auth-state-resolution.md section 6.2 and conformance vector ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1."
+      "description": "Optional operational reminder for compacting an actively advancing safety log. It never requires an idle Seal, expires an accepted authority reference, or gates ordinary data. Existing verified snapshots and proofs remain reusable while signers are offline."
     },
     "max_authority_lifetime_ms": {
       "type": "integer",
       "minimum": 1,
-      "default": 86400000,
-      "description": "Realm-level maximum lifetime window used when an otherwise unbounded parent grant first delegates. Reducers freeze authority_expiry_seal = first_delegation_sealed_at + effective max_authority_lifetime_ms and MUST NOT refresh it on re-delegation. Effective value is the minimum of this field and any stricter grant, policy, deployment, or profile override. Defaults to 86400000 ms (24h). See zh/authz/capabilities.md §10.1."
+      "description": "Maximum fixed child-chain lifetime only for actions explicitly required to be finite by their risk/constraint contract. Defaults to 24 hours for those actions; first use freezes the bound and redelegation cannot renew it. It does not impose expiry on unbounded ordinary chat/read/organizer authorization.",
+      "default": 86400000
     },
     "bottom_escalation_after_ms": {
       "type": "integer",
       "minimum": 60000,
       "description": "Optional timeout after which unresolved bottom diagnostics should be escalated to recovery governance. Expiry does not choose a winner automatically."
-    },
-    "cell_lattices": {
-      "type": "array",
-      "description": "Optional Realm-specific lattice declarations for extension cell families.",
-      "items": {
-        "$ref": "#/$defs/cell_lattice"
-      },
-      "uniqueItems": true
     },
     "retention_policy_id": {
       "type": "string",
@@ -421,98 +406,6 @@
               "closed",
               "restricted",
               "quarantine"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "$comment": "single_signer notary profiles bind one frozen signer descriptor. controller_organization / recovery_controller_organizations / recovery_members are required ONLY when the deployment can derive a controlling organization (see notary.controller_organization 'when ... can derive it'; decisions/0003 §7 — personal / organization-less Realms legitimately omit them and fall back to per-user recovery). When a controller_organization IS declared, an explicit recovery-notary diversity path MUST accompany it. The distinct-controller arithmetic stays semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
-      "if": {
-        "properties": {
-          "notary": {
-            "properties": {
-              "kind": {
-                "const": "single_signer"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          }
-        },
-        "required": [
-          "notary"
-        ]
-      },
-      "then": {
-        "properties": {
-          "notary": {
-            "required": [
-              "kind",
-              "signer"
-            ],
-            "properties": {
-              "kind": {
-                "const": "single_signer"
-              }
-            },
-            "allOf": [
-              {
-                "$comment": "Organization-controlled single_signer Realms MUST declare the recovery-notary diversity path alongside the controlling organization.",
-                "if": {
-                  "required": [
-                    "controller_organization_id"
-                  ]
-                },
-                "then": {
-                  "required": [
-                    "recovery_signers",
-                    "controller_organization_id",
-                    "recovery_controller_organization_ids"
-                  ],
-                  "properties": {
-                    "recovery_signers": {
-                      "minItems": 1
-                    },
-                    "recovery_controller_organization_ids": {
-                      "minItems": 1
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      "$comment": "Threshold notary committees must declare their equivocation culprit-attribution mode at Realm create time. The arithmetic rule (quorum_intersection iff 2*threshold > signers.length) is reducer/conformance validation; see notary.forensic_attribution $comment.",
-      "if": {
-        "properties": {
-          "notary": {
-            "properties": {
-              "kind": {
-                "const": "threshold"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          }
-        },
-        "required": [
-          "notary"
-        ]
-      },
-      "then": {
-        "properties": {
-          "notary": {
-            "required": [
-              "kind",
-              "signers",
-              "threshold",
-              "forensic_attribution"
             ]
           }
         }
@@ -917,134 +810,39 @@
       "description": "Historical Seal signer truth. verification_method controller must project to actor_id; frozen_public_key_digest is SHA-256 of decoded frozen_public_key_b64u, while key_kind and jose_algorithm determine exact parsing and signature verification. Genesis freezes the first descriptors. A successor ak.realm.notary Move is authorized by predecessor-state descriptors and then installs new descriptors."
     },
     "notary_configuration": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "signer"
-          ],
-          "properties": {
-            "kind": {
-              "const": "single_signer"
-            },
-            "signer": {
-              "$ref": "#/$defs/notary_signer_descriptor"
-            },
-            "recovery_signers": {
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/notary_signer_descriptor"
-              }
-            },
-            "controller_organization_id": {
-              "$ref": "#/$defs/did_core_id"
-            },
-            "recovery_controller_organization_ids": {
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/did_core_id"
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "signers",
-            "threshold",
-            "forensic_attribution"
-          ],
-          "properties": {
-            "kind": {
-              "const": "threshold"
-            },
-            "signers": {
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/notary_signer_descriptor"
-              }
-            },
-            "threshold": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "forensic_attribution": {
-              "enum": [
-                "quorum_intersection",
-                "waived"
-              ]
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "signers"
-          ],
-          "properties": {
-            "kind": {
-              "const": "open_set"
-            },
-            "signers": {
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/notary_signer_descriptor"
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "signer",
-            "recovery_signers"
-          ],
-          "properties": {
-            "kind": {
-              "const": "mixed"
-            },
-            "signer": {
-              "$ref": "#/$defs/notary_signer_descriptor"
-            },
-            "recovery_signers": {
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/notary_signer_descriptor"
-              }
-            },
-            "controller_organization_id": {
-              "$ref": "#/$defs/did_core_id"
-            },
-            "recovery_controller_organization_ids": {
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/did_core_id"
-              }
-            }
-          },
-          "additionalProperties": false
-        }
+      "type": "object",
+      "required": [
+        "kind",
+        "signers",
+        "fault_tolerance",
+        "max_clock_error_ms"
       ],
-      "description": "notary.kind is the sole profile discriminator. Across signers, recovery_signers, and their union, actor_id, verification_method, and frozen_public_key_digest are each duplicate-free; signer and recovery slots are disjoint on all three axes. threshold must not exceed signers.length. Admission enforces these field-wise invariants in addition to JSON structural uniqueness."
+      "properties": {
+        "kind": {
+          "const": "quorum"
+        },
+        "signers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/notary_signer_descriptor"
+          }
+        },
+        "fault_tolerance": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 85
+        },
+        "max_clock_error_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60000
+        }
+      },
+      "additionalProperties": false,
+      "description": "One fixed consensus configuration: n=3*fault_tolerance+1 distinct replicas and quorum=2*fault_tolerance+1. Actor identities, methods and frozen key digests are each unique. f=0 requires one signer and offers no replica fault tolerance. Reconfiguration requires confirmed handoff of the full prefix and prepared locks. max_clock_error_ms is the declared bound for honest voting clocks, not an authority freshness lease."
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -1054,127 +852,6 @@
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
-    },
-    "cell_lattice": {
-      "type": "object",
-      "required": [
-        "cell_family",
-        "lattice",
-        "bottom",
-        "cell_role",
-        "plane"
-      ],
-      "properties": {
-        "cell_family": {
-          "type": "string",
-          "pattern": "^ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
-        },
-        "lattice": {
-          "type": "string",
-          "enum": [
-            "or_set",
-            "mv_register",
-            "cas_register",
-            "fsm",
-            "counter",
-            "ordered_log"
-          ]
-        },
-        "bottom": {
-          "type": "string",
-          "enum": [
-            "reject",
-            "expose"
-          ]
-        },
-        "cell_role": {
-          "type": "string",
-          "enum": [
-            "authorization_root",
-            "policy_root",
-            "notary_root",
-            "membership",
-            "lifecycle",
-            "ui_affordance",
-            "content",
-            "draft",
-            "cosmetic",
-            "audit",
-            "telemetry"
-          ],
-          "description": "Semantic role declared by Realm schema. Security-root roles are restricted to control-plane lattice semantics by the allOf rules below."
-        },
-        "plane": {
-          "type": "string",
-          "enum": [
-            "data",
-            "control"
-          ],
-          "description": "CBS plane for this cell family. authorization_root / policy_root / notary_root / membership / lifecycle MUST be control. Ordinary content / draft / cosmetic cells SHOULD be data unless sealed=true."
-        },
-        "sealed": {
-          "type": "boolean",
-          "description": "Opt-in control-plane finality for an otherwise data-like cell family. When true, plane MUST be control. A data-like family reused as an authorization input for any risk_tier=high capability MUST set sealed=true; ordinary authorization_root declarations are already required to use plane=control."
-        },
-        "parameters": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "$comment": "Security-root roles are always control-plane.",
-          "if": {
-            "properties": {
-              "cell_role": {
-                "enum": [
-                  "authorization_root",
-                  "policy_root",
-                  "notary_root",
-                  "membership",
-                  "lifecycle"
-                ]
-              }
-            },
-            "required": [
-              "cell_role"
-            ]
-          },
-          "then": {
-            "properties": {
-              "plane": {
-                "const": "control"
-              }
-            },
-            "required": [
-              "plane"
-            ]
-          }
-        },
-        {
-          "$comment": "sealed=true is the explicit data-to-control opt-in.",
-          "if": {
-            "properties": {
-              "sealed": {
-                "const": true
-              }
-            },
-            "required": [
-              "sealed"
-            ]
-          },
-          "then": {
-            "properties": {
-              "plane": {
-                "const": "control"
-              }
-            },
-            "required": [
-              "plane"
-            ]
-          }
-        }
-      ]
     }
   },
   "unevaluatedProperties": false

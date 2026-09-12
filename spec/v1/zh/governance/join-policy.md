@@ -12,7 +12,7 @@ updated: 2026-08-29
 
 ## 1. 范围
 
-Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不是独立 Event kind，也没有独立 cell：权威值是 `ak.realm.policy_bundle` payload 的 `join_policy` 组件，随 `ak.component.realm.policy_bundle.v1` 的 `cas_register` 一起收敛。
+Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不是独立 Event kind，也没有独立 cell：权威值是 `ak.realm.policy_bundle` payload 的 `join_policy` 组件，随 `ak.component.realm.policy_bundle.v1` 的 `sequenced_state` 一起收敛。
 
 当前 v1 不定义独立的 join application、review 或 cancel 工作流，也不定义这些概念的 HTTP 包装接口、私有 receipt 或审核队列。`ak.member.state{membership="knock"}` 仅表达无正文的加入意向；结构化申请正文、问卷、人工审核和审核者私有投递均不属于当前协议。
 
@@ -121,7 +121,7 @@ AND，任一失败即拒绝，不受 component `combinator` 影响；其它 gate
 
 跨域 join Event 只通过普通 Event 提交/转发面传输。`RealmJoinCandidate` 仅是 invitee Station 可使用的有界转发提示，不产生 ingress authority；客户端不得直连候选服务绕过自己的 Station。
 
-接收方 MUST 独立验证 Realm、Event producer、origin Station admission proof、candidate provenance、Join Policy、invite/capability 与 CBS basis。Directory/search projection、裸 URL、部署已知 peer 或 mirror 不得成为额外授权来源。
+接收方 MUST 独立验证 Realm、Event producer、可携带的 producer signer evidence 与原始授权、candidate provenance、Join Policy、invite/capability 与 CBS basis。Directory/search projection、裸 URL、部署已知 peer 或 mirror 不得成为额外授权来源。
 
 ## 7. 规范性引用
 

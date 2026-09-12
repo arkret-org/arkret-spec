@@ -1010,6 +1010,8 @@ def check_event_proof_digest_shape(lint: Lint) -> None:
         lint.fail(path, "$defs.event_proof must exist")
         return
 
+    if event_proof.get("$ref") == "#/$defs/producer_event_proof":
+        event_proof = data["$defs"]["producer_event_proof"]
     required = event_proof.get("required") or []
     properties = event_proof.get("properties") or {}
     if "event_digest" not in required or "event_digest" not in properties:

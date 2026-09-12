@@ -87,7 +87,7 @@
     },
     "digest_algorithm": {
       "$ref": "./realm.schema.json#/properties/digest_algorithm",
-      "description": "Effective live Realm digest suite obtained by the issuer from the verified joined projection of the complete seal_basis at as_of. It is covered by the candidate payload digest and proof. Missing, Bottom, non-unique, or unverifiable joined values require omission of the whole candidate; consumers MUST NOT infer the suite from a Seal id or digest prefix."
+      "description": "Effective live Realm digest suite obtained by the issuer from the verified confirmed safety projection of the complete seal_basis at as_of. It is covered by the candidate payload digest and proof. Missing, competing, or unverifiable confirmed values require omission of the whole candidate; consumers MUST NOT infer the suite from a Seal id or digest prefix."
     },
     "priority": {
       "type": "integer",
@@ -118,7 +118,7 @@
     },
     "seal_basis": {
       "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-      "description": "Complete canonical non-empty, duplicate-free Control Move basis for the candidate service's current accepted Realm Seal frontier at as_of. Single-signer and threshold authorities have one leaf; open_set carries the complete non-quarantined leaf antichain. Station candidates MUST include this so pre-join Realm join / invite-accept Control Moves can be signed without a separate membership-gated frontier read. This is a routing/anchoring hint, not membership authorization: the receiving service still validates the submitted basis, its joined digest_algorithm, and the invite."
+      "description": "Exact confirmed safety basis. Every referenced Realm contributes one confirmed head; competing heads from the same Realm are not a valid basis. A cached basis is routing/evidence context, never an independent membership or key-release authorization. Safety commands still validate the exact actual predecessor and registered current gate."
     },
     "as_of": {
       "$ref": "#/$defs/timestamp",

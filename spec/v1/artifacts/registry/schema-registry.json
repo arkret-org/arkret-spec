@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.1",
+  "version": "2026-09-12.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T06:42:59+08:00",
+  "generated_at": "2026-09-12T10:22:27+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -16,7 +16,7 @@
       "schema_id": "ak.schema.account_current_result.v1",
       "file": "schemas/account-current-result.schema.json",
       "status": "active",
-      "description": "Server-trusted typed current cell results, complete MV heads, versioned removal and exact baseline coverage."
+      "description": "Server-trusted typed current cell results, complete causal heads, versioned removal and exact baseline coverage."
     },
     {
       "schema_id": "ak.schema.account_data_encrypted_value.v1",
@@ -143,13 +143,6 @@
         "selector": "account_data key ak.account.agent_sidecar_view_state.*",
         "normative_ref": "zh/models/sidecar.md"
       }
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
-      "file": "schemas/agent-signer-evidence.schema.json",
-      "fragment": "#/$defs/event_admission_receipt",
-      "status": "active",
-      "description": "Destination-signed immutable receipt for the exact Agent signer evidence used when one Event was accepted."
     },
     {
       "schema_id": "ak.schema.agent_signer_evidence.v1",
@@ -350,7 +343,7 @@
       "schema_id": "ak.schema.bottom.v1",
       "file": "schemas/bottom.schema.json",
       "status": "active",
-      "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined"
+      "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses for an unresolved ordinary projection; it is not an authoritative safety Cell value"
     },
     {
       "schema_id": "ak.schema.calendar_event.v1",

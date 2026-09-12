@@ -189,9 +189,9 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 `ak.container.move_item` / `ak.container.rebalance` 是 Realm profile 明确启用的通用容器 Control Move，不由 `container` facet 激活。Profile MUST 声明允许的 `(container object type, item object type, relation_kind)` 三元组；未声明三元组 MUST `unsupported_feature`，facet 出现与否不改变结果。标准 Space(board/list) → Strand placement 继续使用 `ak.strand.move` / `ak.strand.reorder`，MUST NOT 同时启用 generic container event，以避免双 truth source；generic 事件只服务 profile-defined Morph/Strand 等非标准容器。
 
-`ak.container.move_item` payload 为封闭 `container_move_item_payload`：`item_ref`、目标 `container_ref`、`relation_kind`、`rank` 必填，`from_container_ref` 与 `expected_position_digest` 可选。它写 `ak.component.container.position.v1:(container_ref,item_ref)` 的 `cas_register + bottom=reject` cell；同一 item 在 profile 声明 exclusive 时，reducer MUST 原子移除旧 container position 并写新位置。`expected_position_digest` 若存在，必须等于当前 position cell canonical digest，否则 `failed_precondition` `cas_conflict`。排序按 [`../conformance/encoding.md`](../conformance/encoding.md) rank + canonical tie-break；不得由 facet、HLC 或到达顺序选 winner。
+`ak.container.move_item` payload 为封闭 `container_move_item_payload`：`item_ref`、目标 `container_ref`、`relation_kind`、`rank` 必填，`from_container_ref` 与 `expected_position_digest` 可选。它写 `ak.component.container.position.v1:(container_ref,item_ref)` 的 `causal_register + bottom=expose` cell；同一 item 在 profile 声明 exclusive 时，reducer MUST 原子移除旧 container position 并写新位置。`expected_position_digest` 若存在，必须等于当前 position cell canonical digest，否则 `failed_precondition` `cas_conflict`。排序按 [`../conformance/encoding.md`](../conformance/encoding.md) rank + canonical tie-break；不得由 facet、HLC 或到达顺序选 winner。
 
-`ak.container.rebalance` payload 为封闭 `container_rebalance_payload`：`container_ref`、`relation_kind`、`positions[]`、`expected_order_digest` 必填。`positions[].item_ref` MUST 唯一，rank MUST 唯一且符合 canonical rank grammar；整批原子写 `ak.component.container.order.v1:<container_ref>` 的 `cas_register + bottom=reject` cell。`expected_order_digest` 不匹配时整个 Move `cas_conflict`，不得部分改 rank。单次最多 10,000 positions；更大容器必须分层或由 profile 提供独立分页 rebalance 方案。
+`ak.container.rebalance` payload 为封闭 `container_rebalance_payload`：`container_ref`、`relation_kind`、`positions[]`、`expected_order_digest` 必填。`positions[].item_ref` MUST 唯一，rank MUST 唯一且符合 canonical rank grammar；整批原子写 `ak.component.container.order.v1:<container_ref>` 的 `causal_register + bottom=expose` cell。`expected_order_digest` 不匹配时整个 Move `cas_conflict`，不得部分改 rank。单次最多 10,000 positions；更大容器必须分层或由 profile 提供独立分页 rebalance 方案。
 
 ## 6. Schema Contract
 
@@ -219,4 +219,4 @@ Morph `schema_refs[]` 的固定规则见 [§4.1](#41-schema-refs-固定规则nor
 
 ### Morph lifecycle 合同入口
 
-`morph` 的 lifecycle 以 contract registry 中对应 cell family 的 `fsm_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `morph_not_active` / `morph_not_archived`；终态操作对已终态对象返回 `morph_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。
+`morph` 的 lifecycle 以 contract registry 中对应 cell family 的 `transition_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `morph_not_active` / `morph_not_archived`；终态操作对已终态对象返回 `morph_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。

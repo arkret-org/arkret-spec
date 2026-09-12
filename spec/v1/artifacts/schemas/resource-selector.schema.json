@@ -101,11 +101,9 @@
       "type": "string",
       "enum": [
         "exact",
-        "subtree",
-        "children",
         "realm_wide"
       ],
-      "description": "Selector match breadth. exact matches only the named resource; children matches immediate children; subtree matches descendants including nested children; realm_wide is valid only when realm_id is present and limits matching to the named Realm. The normative algorithm is zh/authz/resource-selector-grammar.md ?6."
+      "description": "Authorization selector breadth. exact matches only the named resource; realm_wide is valid only for the registered resource kinds with an explicit realm_id. Neither current navigation ancestry nor creation ancestry expands authorization. Hierarchy traversal belongs to queries, not grant matching. The normative algorithm is zh/authz/resource-selector-grammar.md section 6."
     }
   },
   "allOf": [

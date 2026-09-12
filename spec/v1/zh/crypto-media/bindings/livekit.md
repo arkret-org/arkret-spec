@@ -49,8 +49,8 @@ Issuer MUST NOT 注入：
 
 约束：
 
-- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../media-service-binding.md` §7](../media-service-binding.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `ak.component.call.roster.v1` effective OR-Set 中找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_id_unrecognised`。
-- 客户端 MUST NOT 信任 LiveKit SDK 透传的 `participant.name`、`metadata` 或其它字段作为 actor 身份判定来源；唯一权威来源是 `ak.component.call.roster.v1` effective OR-Set + `participant_binding`。
+- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../media-service-binding.md` §7](../media-service-binding.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `ak.component.call.roster.v1` 已确认活跃集合 中找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_id_unrecognised`。
+- 客户端 MUST NOT 信任 LiveKit SDK 透传的 `participant.name`、`metadata` 或其它字段作为 actor 身份判定来源；唯一权威来源是 `ak.component.call.roster.v1` 已确认活跃集合 + `participant_binding`。
 
 ## 4. E2EE Key Injection
 

@@ -376,13 +376,13 @@
     },
     "agent_action_approve_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.action_approve. Controller approval binds the draft/action request, target, approved payload digest, expiry, and single-use nonce.",
+      "description": "Controller-signed security command binding one complete pre-authored ordinary Event by content-derived EventId. The canonical Event bytes exist before approval, avoiding any digest or Seal self-reference. Confirmation atomically consumes the nonce and authorizes only that exact Event.",
       "required": [
         "approval_id",
         "agent_id",
         "proposed_action",
         "target",
-        "approved_payload_digest",
+        "approved_event_id",
         "approval_nonce",
         "approved_at",
         "expires_at"
@@ -427,14 +427,16 @@
         "target": {
           "$ref": "#/$defs/agent_action_target"
         },
-        "approved_payload_digest": {
-          "$ref": "#/$defs/digest"
+        "approved_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "draft_content_digest": {
           "$ref": "#/$defs/digest"
         },
         "approval_nonce": {
-          "$ref": "#/$defs/non_empty_string"
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,86}$",
+          "description": "At least 128 bits of controller-generated entropy; one immutable allocation per controller ActorId and target Realm. It cannot be released or reassigned."
         },
         "approved_at": {
           "$ref": "#/$defs/timestamp"
@@ -2092,7 +2094,7 @@
     },
     "audit_session_contract": {
       "type": "object",
-      "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The session_state field is the target state of the control-plane FSM cell ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; same-basis conflicting siblings produce Bottom.",
+      "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The session_state field is the target state of the control-plane FSM cell ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; competing commands execute in the confirmed sequence; a stale relevant revision is durably rejected.",
       "required": [
         "binding_id",
         "realm_id",
@@ -2596,7 +2598,7 @@
             },
             "result": {
               "type": "object",
-              "description": "Typed recording outcome for a stopped, ready, or failed segment. It is written to the independent recording result cell and never embedded in the FSM transition op.",
+              "description": "Ordinary capture outcome details. Result status is derived from to and stored with these details. Ready/failed require the exact confirmed stop Event for the same call, segment, capture authority and generation; they cannot modify permission or key access.",
               "properties": {
                 "content_digest": {
                   "$ref": "#/$defs/digest"
@@ -2628,6 +2630,9 @@
                 "failure_message": {
                   "$ref": "#/$defs/non_empty_string",
                   "description": "Human-readable diagnostic for recording_state=failed. It MUST NOT contain recording plaintext or backend direct URLs."
+                },
+                "recording_stop_event_id": {
+                  "$ref": "#/$defs/event_ref"
                 }
               },
               "additionalProperties": false
@@ -2657,6 +2662,56 @@
                       "retention",
                       "artifact"
                     ]
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "to": {
+                    "enum": [
+                      "ready",
+                      "failed"
+                    ]
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              },
+              "then": {
+                "required": [
+                  "result"
+                ],
+                "properties": {
+                  "result": {
+                    "required": [
+                      "recording_stop_event_id"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "to": {
+                    "const": "stopped"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "from": {
+                    "const": "recording"
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "from": {
+                    "const": "stopped"
                   }
                 }
               }
@@ -2694,7 +2749,7 @@
             },
             "result": {
               "type": "object",
-              "description": "Typed transcription outcome for a stopped, ready, or failed segment. It is written to the independent transcript result cell and never embedded in the FSM transition op.",
+              "description": "Ordinary capture outcome details. Result status is derived from to and stored with these details. Ready/failed require the exact confirmed stop Event for the same call, segment, capture authority and generation; they cannot modify permission or key access.",
               "properties": {
                 "content_digest": {
                   "$ref": "#/$defs/digest"
@@ -2717,6 +2772,9 @@
                 "failure_reason_code": {
                   "$ref": "#/$defs/call_capture_failure_reason_code",
                   "description": "Machine reason for transcript_state=failed."
+                },
+                "transcript_stop_event_id": {
+                  "$ref": "#/$defs/event_ref"
                 }
               },
               "additionalProperties": false
@@ -2745,6 +2803,56 @@
                       "transcript_start_event_id",
                       "retention"
                     ]
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "to": {
+                    "enum": [
+                      "ready",
+                      "failed"
+                    ]
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              },
+              "then": {
+                "required": [
+                  "result"
+                ],
+                "properties": {
+                  "result": {
+                    "required": [
+                      "transcript_stop_event_id"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "to": {
+                    "const": "stopped"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "from": {
+                    "const": "transcribing"
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "from": {
+                    "const": "stopped"
                   }
                 }
               }
@@ -3262,34 +3370,6 @@
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest"
-        }
-      },
-      "additionalProperties": false
-    },
-    "circle_seal_commit_payload": {
-      "type": "object",
-      "description": "Reducer-derived payload for ak.circle.seal_commit. Commits an opaque Circle sub-seal head digest into the parent Realm Seal stream at the profile-defined cadence.",
-      "required": [
-        "circle_id",
-        "sub_seal_head_digest",
-        "epoch"
-      ],
-      "properties": {
-        "circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id"
-        },
-        "sub_seal_head_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "covered_seals_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "committed_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -5846,7 +5926,7 @@
       ]
     },
     "join_policy_component": {
-      "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate cell family, and rides inside the ak.component.realm.policy_bundle.v1 cas_register value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/artifact_lint check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
+      "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate cell family, and rides inside the ak.component.realm.policy_bundle.v1 sequenced_state value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/artifact_lint check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
       "type": "object",
       "required": [
         "gates",
@@ -7029,7 +7109,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed Realm Control Move that registers the first active organization recovery key after Realm create is already activated. All duplicated acceptance fields must match byte-for-byte. holder_trusted_basis is the complete canonical holder-pinned accepted Seal antichain containing the Realm-create evidence, or a later holder-pinned basis that causally covers it. Registration is a CAS from no active tuple."
+      "description": "Closed Realm Control Move that registers the first active organization recovery key after Realm create is already activated. All duplicated acceptance fields must match byte-for-byte. holder_trusted_basis is the complete canonical holder-pinned accepted Seal basis with exactly one confirmed head per Realm containing the Realm-create evidence, or a later holder-pinned basis that causally covers it. Registration is a CAS from no active tuple."
     },
     "organization_recovery_key_rotate_payload": {
       "type": "object",
@@ -7129,7 +7209,7 @@
         },
         "holder_trusted_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Complete canonical accepted Seal antichain independently verified and pinned by the holder in the register/rotate acceptance transcript. Direct Seal traversal from this basis to the archive target must replay accepted_key_evidence_ref into the effective registered tuple; a source or service cannot manufacture, narrow or replace the basis."
+          "description": "Complete canonical accepted Seal basis with exactly one confirmed head per Realm independently verified and pinned by the holder in the register/rotate acceptance transcript. Direct Seal traversal from this basis to the archive target must replay accepted_key_evidence_ref into the effective registered tuple; a source or service cannot manufacture, narrow or replace the basis."
         },
         "enc": {
           "type": "string",
@@ -10103,7 +10183,7 @@
     "realm_policy_bundle_payload": {
       "type": "object",
       "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and cell (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here. ak.realm.policy is not a third inline carrier: it only selects an independently defined Policy object by policy_id.",
-      "description": "Enabled Realm policy component set, written wholesale into the ak.component.realm.policy_bundle.v1 cas_register cell: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_frontier_digest MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md section 2.3).",
+      "description": "Enabled Realm policy component set, written wholesale into the ak.component.realm.policy_bundle.v1 sequenced_state cell: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_frontier_digest MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md section 2.3).",
       "required": [
         "policy_revision"
       ],
@@ -10210,9 +10290,6 @@
         "audit_policy": {
           "$ref": "./realm.schema.json#/properties/audit_policy"
         },
-        "recovery_witness_freshness_window_ms": {
-          "$ref": "./realm.schema.json#/properties/recovery_witness_freshness_window_ms"
-        },
         "proposal_intake_sla_ms": {
           "$ref": "./realm.schema.json#/properties/proposal_intake_sla_ms"
         },
@@ -10233,10 +10310,6 @@
         },
         "bottom_escalation_after_ms": {
           "$ref": "./realm.schema.json#/properties/bottom_escalation_after_ms"
-        },
-        "cell_lattices": {
-          "$ref": "./realm.schema.json#/properties/cell_lattices",
-          "description": "Complete current client hint set for Realm-specific cell lattice diagnostics. Registered reducer contracts remain authoritative."
         },
         "preauth": {
           "type": "object",
@@ -10688,7 +10761,7 @@
     },
     "rsvp_entry": {
       "type": "object",
-      "description": "Complete RSVP cell value. The whole entry is the mv_register set value, so every head independently carries the schedule the responder observed plus the response itself.",
+      "description": "Complete RSVP cell value. The whole entry is the causal_register set value, so every head independently carries the schedule the responder observed plus the response itself.",
       "required": [
         "schedule_basis_refs"
       ],
@@ -11122,23 +11195,97 @@
     },
     "space_patch_payload": {
       "type": "object",
-      "description": "Payload class for ak.space.update. Patches Space metadata (title, rank, kind-specific fields) on the Space identified by space_id. Per operations-sync.md §7.3 / §9.3 and realm-and-space.md §3.3, ak.space.update only mutates the Space's own metadata; it MUST NOT PATCH top-level state (archive/restore go through ak.space.archive / ak.space.restore) and MUST NOT move Strands (ak.strand.move / ak.strand.reorder). Reducer rejects update on a non-active Space (reason=space_not_active) — see conformance-vectors.md §6.7.",
+      "description": "Space metadata patch and optional separate child scope policy command. A policy member selects security execution; the patch cannot touch policy, identity, scope or lifecycle, including dotted paths. A combined Event is atomic and requires security finality.",
       "required": [
-        "space_id",
-        "patch"
+        "space_id"
       ],
       "properties": {
         "space_id": {
           "$ref": "#/$defs/space_id"
         },
         "patch": {
-          "$ref": "#/$defs/patch"
+          "allOf": [
+            {
+              "$ref": "#/$defs/patch"
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^child_scope_policy(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^scope_circle_id(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^realm_id(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^id(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^created_by(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^created_at(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^state(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^parent_space_id(?:\\.|$)"
+                }
+              }
+            }
+          ]
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest"
+        },
+        "child_scope_policy": {
+          "$ref": "./space.schema.json#/$defs/child_scope_policy"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "patch"
+          ]
+        },
+        {
+          "required": [
+            "child_scope_policy"
+          ]
+        }
+      ]
     },
     "space_state_transition_payload": {
       "type": "object",
@@ -11524,28 +11671,6 @@
           }
         }
       ]
-    },
-    "state_conflict_recovery_payload": {
-      "type": "object",
-      "description": "Control cell Bottom recovery under section 9.5. The recovery_capability ref supplies registered authority. Only non-causal bottom=reject targets require a pre-conflict state_witness; cas_register/fsm prove divergent heads through the signed basis. Target lattice and authority are semantic verifier inputs, not extra payload fields.",
-      "required": [
-        "target_cell_id",
-        "resolved_value"
-      ],
-      "properties": {
-        "target_cell_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/cell_ref",
-          "description": "The cell being recovered. It MUST be in Bottom when the reducer applies this Event; on any other cell state the write MUST be rejected. This is the only registered kind whose write target is resolved from the payload rather than from a literal cell_family in the registry, because a recovery addresses one cell of an arbitrary family."
-        },
-        "resolved_value": {
-          "description": "The single legal value the cell resolves to. Section 9.5 requires the Move to declare it, so it is signed payload, never reducer-synthesized."
-        },
-        "reason": {
-          "type": "string",
-          "maxLength": 512
-        }
-      },
-      "additionalProperties": false
     },
     "realm_media_service_payload": {
       "$comment": "Payload for ak.realm.media_service. The media descriptor lives under payload.value (a state_payload envelope), never flattened onto payload. This def is closed on purpose: the descriptor is the trust root for media token issuance (service_id, ice_config_endpoint and every foci[].token_endpoint per zh/crypto-media/media-service-binding.md section 2.1), and it was previously typed only as the open state_payload, which let a deployment carry provider-specific token issuer configuration inside a signed Realm policy cell while a spec-shaped consumer read nothing at all. Issuer configuration -- signing key ids, token audiences, TTLs, backend API credentials -- is deployment configuration of the service named by foci[].token_endpoint. It MUST NOT be carried here: putting it in the cell would make an issuer key rotation require a Realm policy Event holding ak.realm.media_service or ak.policy.manage capability, and would publish issuer internals to every Realm member. See zh/crypto-media/media-service-binding.md section 2.",
@@ -12080,7 +12205,7 @@
         },
         "target_space_id": {
           "$ref": "#/$defs/list_space_id",
-          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas_register cell value as 'list_space_id' on the cell at ak:cell:ak.component.strand.position.v1:<board_space_id>:<strand_id>. Writers MUST NOT put 'list_space_id' directly on the ak.strand.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
+          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the causal_register value as 'list_space_id' on the cell at ak:cell:ak.component.strand.position.v1:<board_space_id>:<strand_id>. Writers MUST NOT put 'list_space_id' directly on the ak.strand.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -12269,7 +12394,7 @@
           "description": "Opt-in publication of the level value to non-self projection consumers. Default false. muted MUST NOT be exposed even with level_public=true. MUST be omitted when level is null."
         },
         "expected_value": {
-          "description": "Compiles to cas_register head_eq precondition. Whole-value compare against the cell pre-state: either null (assert no prior record) or { level, level_public? } matching the prior cell value exactly. When omitted, reducers MUST treat it as head_eq null: only the initial write may pass; an existing cell MUST fail_precondition. Omission MUST NOT disable CAS or imply last-write-wins.",
+          "description": "Ordinary watch predicate evaluated only against the signed causal basis. null asserts an unwritten basis; a concrete value must match the selected exact base head. It does not serialize independent offline writes or pick a winner.",
           "oneOf": [
             {
               "type": "null"

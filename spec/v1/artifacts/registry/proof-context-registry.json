@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.1",
+  "version": "2026-09-12.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-11T04:15:00+08:00",
+  "generated_at": "2026-09-12T09:51:32+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -422,7 +422,7 @@
       "transcript_schema_refs": [
         "schemas/event-envelope.schema.json"
       ],
-      "regime_rule": "Exactly one event-level branch applies. With one valid station_admission proof, the producer signer_resolution_evidence_ref is absent and admission.producer_signing_key verifies the bound producer proof. Without admission, signer_resolution_evidence_ref is present, enters this transcript and resolves to the exact producer verification_method; its embedded digest is the sole wire copy (encoding.md 4.0.1)."
+      "regime_rule": "Exactly one producer proof applies. Its required signer_resolution_evidence_ref resolves to the exact original producer verification_method and frozen signing key. Every receiving Station independently verifies this portable evidence. Storage receipts are outside Event proofs and never authorize an Event."
     },
     {
       "context": "ak.extension_manifest_proof.v1",
@@ -834,23 +834,6 @@
           "source": "sha256(RFC8785_JCS(principal_resolution_projection_attestation with proof omitted))"
         }
       ]
-    },
-    {
-      "context": "ak.station_admission_proof.v1",
-      "object_family": "station_event_admission",
-      "binding_fields": [
-        "event_digest",
-        "producer_proof_digest",
-        "producer_verification_method",
-        "producer_signing_key_did",
-        "producer_signer_resolution_evidence_ref?",
-        "signer_resolution_evidence_ref",
-        "applet_installation_digest?",
-        "accepted_at",
-        "verification_method"
-      ],
-      "defined_in": "zh/models/event-and-patch.md#31-station-authority-与准入证明normative",
-      "schema_ref": "schemas/event-envelope.schema.json#/$defs/station_admission_proof"
     },
     {
       "context": "ak.realm_join_candidate_proof.v1",
@@ -1413,23 +1396,6 @@
         "expires_at"
       ],
       "schema_ref": "schemas/agent-signer-evidence.schema.json#/$defs/agent_authority_state_lease"
-    },
-    {
-      "domain": "ak.agent_signer_admission_receipt.v1",
-      "object_family": "agent_event_admission_receipt",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "schema",
-        "event_id",
-        "event_digest",
-        "realm_id",
-        "producer_accepted_at",
-        "accepted_at",
-        "agent_id",
-        "verification_method",
-        "producer_signer_resolution_evidence_ref",
-        "receiver_id"
-      ]
     },
     {
       "domain": "ak.applet.delivery_authentication_record_digest.v1",

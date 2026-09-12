@@ -148,7 +148,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ### 3.2 三个 View event 的写入语义（normative）
 
-三个 kind 写**同一个 cell family** `ak.component.view.v1`（`mv_register`、`bottom=expose`）。
+三个 kind 写**同一个 cell family** `ak.component.view.v1`（`causal_register`、`bottom=expose`）。
 subject 一律是 `id:view` 编码：create 由 `envelope.event_id` 唯一派生该 View 的 id，
 update / reconcile 用 `payload.view_id`，两者归一到同一个 cell。
 
@@ -161,7 +161,7 @@ update / reconcile 用 `payload.view_id`，两者归一到同一个 cell。
 **为什么是一个 family（normative）**：`definition` 引用的就是完整 `view.schema.json`，
 它不是另一种业务对象。三条 Event 的载荷区别可以保留，但没有理由为同一个 View 维护三条
 权威状态链——那样 `ak.view.update` 的 `apply_patch` 会打在一个**从未被写过**的 cell 上，
-而 §9.3.1.2 禁止用 registered `initial_value` 补这个洞：基值只能来自注册的 create / genesis 写入。
+而 因果寄存器合同禁止用 registered `initial_value` 补这个洞：基值只能来自注册的 create / genesis 写入。
 
 由此产生三条约束：
 
@@ -170,7 +170,7 @@ update / reconcile 用 `payload.view_id`，两者归一到同一个 cell。
 - **三条写入采用同一 canonical 对象值口径。**cell 中 MUST NOT 保存可自报的 `id`，
   读取时由 subject 派生；`reconcile.definition` 同样 MUST NOT 携带 `id`，
   否则 create 与 reconcile 会在同一个 cell 里留下两种值形状。
-- **reconcile 的 whole-value `set` 只按 MV 因果关系取代它已观察到的 heads。**
+- **reconcile 的 whole-value `set` 只按 causal_register 因果关系取代它已观察到的 heads。**
   并发但未被观察的分支仍按 §9.2 暴露；「已知良好的定义」不是无条件覆盖全部并发状态的特权。
 
 `ak.view.reconcile` 用于把 View 定义**整体**重新同步到一个已知良好的 `ak.schema.view.v1`

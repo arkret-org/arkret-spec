@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.1",
-  "generated_at": "2026-09-12T06:56:52+08:00",
+  "version": "2026-09-12.9",
+  "generated_at": "2026-09-12T10:15:03+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -594,7 +594,7 @@
       "code": "device_generation_fenced",
       "http_status": 409,
       "scope": "both",
-      "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md and zh/authz/event-auth-state-resolution.md §4.3.",
+      "description": "The receiver knows an authenticated device-generation revocation or the security command fails the current generation revision check. New affected live submissions are fenced; ordinary historical eligibility is recomputed from the signed authority context and authenticated closures, not the receiver arrival time.",
       "type_uri": "https://arkret.org/problems/device_generation_fenced",
       "title": "Device generation fenced"
     },
@@ -1333,14 +1333,6 @@
       "description": "A directory/resolve/search/projection request attempted to obtain a stripped preview, history stub, history snippet, or token-scoped preview that is not allowed by the effective ak.realm.preview_policy. External responses that must be non-enumerating MAY map this to not_found. See zh/governance/history-visibility.md §4.",
       "type_uri": "https://arkret.org/problems/preview_policy_denied",
       "title": "Preview policy denied"
-    },
-    {
-      "code": "notary_recovery_missing",
-      "http_status": 422,
-      "scope": "both",
-      "description": "Realm create rejected: notary.kind=single_signer was configured without the required disjoint recovery signer organization, in violation of zh/authz/event-auth-state-resolution.md §9.3.",
-      "type_uri": "https://arkret.org/problems/notary_recovery_missing",
-      "title": "Notary recovery missing"
     },
     {
       "code": "unsupported_lattice_type",
@@ -2481,7 +2473,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A second ak.agent.provision declared a principal_control_realm_id that another accepted provision already claims. Inside one controller PCR the cas_register, bottom=reject claim cell rejects it; across controllers the Station's local uniqueness index rejects it. Either way the write set is empty and the earlier claim is untouched. See zh/identity/key-management.md §3.6.3."
+      "description": "A second ak.agent.provision declared a principal_control_realm_id that another accepted provision already claims. Inside one controller PCR the sequenced_state claim cell rejects it; across controllers the Station's local uniqueness index rejects it. Either way the write set is empty and the earlier claim is untouched. See zh/identity/key-management.md §3.6.3."
     },
     {
       "code": "agent_pcr_genesis_declaration_missing",
@@ -2860,7 +2852,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "A Move attempted to read or write a bottom=reject cell while the effective value is ⊥. Ordinary CAS writes MUST fail; recovery requires the conflict-recovery witness path. See zh/authz/event-auth-state-resolution.md §5.1 and §8."
+      "description": "An ordinary projection needed one domain value but retains unresolved eligible causal heads. This diagnostic grants no authority and creates no safety state; only an authorized causal successor may resolve the ordinary conflict."
     },
     {
       "code": "challenge_expired",
@@ -3158,7 +3150,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted. Dual-registered as a reason_code and a top-level service code (see codes[])."
+      "description": "The receiver knows an authenticated device-generation revocation or the security command fails the current generation revision check. New affected live submissions are fenced; ordinary historical eligibility is recomputed from the signed authority context and authenticated closures, not the receiver arrival time."
     },
     {
       "code": "device_message_id_conflict",
@@ -4709,14 +4701,6 @@
       "description": "An existing account endpoint lacks the durable account MLS root, dependent snapshot/reference unit, or material claimed by its emitted marker. Ordinary feature APIs MUST stop and enter the existing recovery/pairing path; they MUST NOT mint a replacement root or tree. See zh/identity/key-management.md section 7.3.1."
     },
     {
-      "code": "recovery_capability_not_sealed",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "Conflict-recovery witness's state_root does not contain (or contains a divergent value for) the recovery_capability cell referenced by the grant. See zh/authz/event-auth-state-resolution.md §9.5."
-    },
-    {
       "code": "recovery_evidence_unbound",
       "applies_to": [
         "recovery_transaction"
@@ -4778,46 +4762,6 @@
         "schema_validation"
       ],
       "description": "A recovery proof echoes a challenge value that does not exactly match the server-issued challenge for the referenced recovery_session_id. Servers MUST reject the proof before completing device recovery. See artifacts/schemas/recovery-session.schema.json and zh/identity/security-transactions.md §2."
-    },
-    {
-      "code": "recovery_target_not_in_bottom",
-      "applies_to": [
-        "state_resolution",
-        "auth_decision"
-      ],
-      "description": "An ak.conflict.recovery reset named a target_cell that is not in ⊥. The reset replaces a cell rather than joining into it, so allowing it on a live cell would make recovery a general overwrite channel that bypasses every lattice and every precondition. This is the converse of cell_in_bottom_state, which rejects an ordinary write against a cell that is in ⊥. See zh/authz/event-auth-state-resolution.md §9.5."
-    },
-    {
-      "code": "recovery_witness_invalid",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "Conflict-recovery Move's inclusion proof cannot reconstruct the witness's `state_root`. See zh/authz/event-auth-state-resolution.md §9.5."
-    },
-    {
-      "code": "recovery_witness_missing",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "Conflict-recovery Move is missing the required `refs[role=state_witness]` reference. See zh/authz/event-auth-state-resolution.md §9.5."
-    },
-    {
-      "code": "recovery_witness_post_conflict",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "Conflict-recovery witness frontier has a causal path from one of the sibling Moves that triggered the bottom — i.e., the witness is not strictly pre-conflict. See zh/authz/event-auth-state-resolution.md §9.5."
-    },
-    {
-      "code": "recovery_witness_revoke_lagging",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "Conflict-recovery witness is older than the permitted freshness window, or local frontier has observed a revoke / supersede for the referenced recovery_capability after the witness frontier. Receivers MUST reject stale witness replay. See zh/authz/event-auth-state-resolution.md §9.5."
     },
     {
       "code": "reducer_projection_failed",
@@ -5218,14 +5162,6 @@
         "auth_decision"
       ],
       "description": "`ak.space.restore` rejected because the target Space is not in `archived` state; `tombstoned` is a terminal state and MUST NOT be restored."
-    },
-    {
-      "code": "space_parent_chain_in_bottom_state",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A `match_scope=subtree` / `children` selector required resolving the target Space's ancestor chain under the authorizing operation's CBS basis, but the `ak.space.parent` cell was in a multi-head / bottom (⊥) state. The subtree authorization branch MUST fail closed rather than pick an arbitrary head, otherwise the same grant could authorize divergently across receivers (split authz). See zh/authz/resource-selector-grammar.md §6."
     },
     {
       "code": "space_parent_cycle",

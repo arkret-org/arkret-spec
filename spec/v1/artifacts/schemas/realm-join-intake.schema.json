@@ -364,11 +364,11 @@
         },
         "seal_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Complete current accepted Seal frontier of the holder service for this Realm: exactly one leaf for single_signer and threshold authority, and the complete canonical duplicate-free non-quarantined leaf antichain for open_set. A compressed head is never a substitute."
+          "description": "Exact confirmed safety basis. Every referenced Realm contributes one confirmed head; competing heads from the same Realm are not a valid basis. A cached basis is routing/evidence context, never an independent membership or key-release authorization. Safety commands still validate the exact actual predecessor and registered current gate."
         },
         "digest_algorithm": {
           "$ref": "./realm.schema.json#/properties/digest_algorithm",
-          "description": "Live Realm digest suite obtained from the verified joined projection of the complete seal_basis. Missing, Bottom, non-unique or unverifiable joined values require failure, never a default."
+          "description": "Live Realm digest suite obtained from the verified confirmed safety projection of the complete seal_basis. Missing, competing or unverifiable confirmed values require failure, never a default."
         },
         "encryption_profile": {
           "$ref": "./realm.schema.json#/properties/encryption_profile",
@@ -403,7 +403,7 @@
         },
         "live_target_proofs": {
           "$ref": "#/$defs/realm_join_cell_state_proofs",
-          "description": "Proofs for the ak.component.invite.live_target.v1 cell whose subject the requesting Station derives from the applicant's own complete AccountId. An absent or Bottom joined slot is not a usable pre-state and MUST fail rather than be defaulted."
+          "description": "Proofs for the ak.component.invite.live_target.v1 cell whose subject the requesting Station derives from the applicant's own complete AccountId. An absent or unverified confirmed slot is not a usable pre-state and MUST fail rather than be defaulted."
         },
         "invite_lifecycle_proofs": {
           "$ref": "#/$defs/realm_join_cell_state_proofs",
@@ -418,7 +418,7 @@
     },
     "realm_join_member_state_precondition": {
       "type": "object",
-      "description": "Exact member.state material for a self-authored join or knock. The requesting Station derives the head_eq value from the joined per-leaf results: a never-written cell yields null, a written cell yields its exact fsm state, and a joined Bottom is not a usable pre-state and MUST fail closed instead of being rewritten as null.",
+      "description": "Exact member.state material for a self-authored join or knock. The requesting Station derives the head_eq value from the unique confirmed Realm head: a never-written cell yields null, a written cell yields its registered domain state, and an unverified or competing confirmed state is not a usable pre-state and MUST fail closed instead of being rewritten as null.",
       "required": [
         "intent",
         "member_state_proofs"

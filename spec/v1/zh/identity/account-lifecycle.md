@@ -170,7 +170,7 @@ lease/fence 授权当前 holder 冻结 reservation 并发起 holder-originated c
    current DID mismatch/deactivation 只把独立 external claim 标为 `stale`/`invalid`，MUST NOT 限制、
    解绑、冻结或转移账号/PCR。
 
-账号的唯一外部身份是 closed `AccountId {principal_id, station_id}`；两个字段均为规范化 `did_core_id`，必须作为一个原子值传递和比较。`authority` 表达“为什么有权”，由签名、grant、Station admission、proof 或 receipt 承载；`AccountId` 只表达“是谁”。协议和实现 MUST NOT 重新引入 authority-named identity、只按一个分量比较、把两个分量作为松散 identity 传递，或用 PCR / service-local key 替代 `AccountId`。
+账号的唯一外部身份是 closed `AccountId {principal_id, station_id}`；两个字段均为规范化 `did_core_id`，必须作为一个原子值传递和比较。`authority` 表达“为什么有权”，由签名、grant、producer proof 与已确认授权状态 承载；`AccountId` 只表达“是谁”。协议和实现 MUST NOT 重新引入 authority-named identity、只按一个分量比较、把两个分量作为松散 identity 传递，或用 PCR / service-local key 替代 `AccountId`。
 
 `AccountId` 与创建它的 Station 数据谱系永久绑定。同一 `principal_id` 在另一 Station 上注册会形成新的 `AccountId`、新的账号和新的 PCR lineage，绝不是原账号的搬迁、恢复、接管、合并或别名。原 Station 上的 Event、PCR、投影、设备上下文、session、cursor、to-device queue、push registration、admission 与审计谱系 MUST NOT 迁移、合并、由另一 Station 接管、继承或改写为另一 `station_id`；DID 表示、DID Document、handle 或 resolution 变化不改变该绑定。Station 的进程、数据库、存储副本或同一运营方基础设施 MAY 做运维迁移/复制，但该操作不得改变 wire `AccountId`、权威历史或数据所有权。
 

@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 228,
+    "total_schemas": 227,
     "by_consumer": {
       "declared_wire": 59,
       "event_kind": 3,
       "inbound": 59,
       "outbound": 67,
-      "prose": 112,
+      "prose": 109,
       "prose_only": 2,
       "schema_reference": 141,
-      "startup_compile": 228,
+      "startup_compile": 227,
       "vectors": 124
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 104,
+    "without_vector_coverage": 103,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -88,7 +88,6 @@
     "ak.schema.applet_registration_epoch_evidence.v1",
     "ak.schema.applet_widget_declaration.v1",
     "ak.schema.audit_release_attestation.v1",
-    "ak.schema.authenticated_signer_resolution_evidence.v1",
     "ak.schema.authz_operations.v1",
     "ak.schema.availability_receipt.v1",
     "ak.schema.blob_operations.v1",
@@ -539,21 +538,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
-      "file": "schemas/agent-signer-evidence.schema.json",
-      "consumers": {
-        "schema_reference": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      },
-      "fragment": "#/$defs/event_admission_receipt"
-    },
-    {
       "schema_id": "ak.schema.agent_signer_evidence.v1",
       "file": "schemas/agent-signer-evidence.schema.json",
       "consumers": {
@@ -940,26 +924,13 @@
       "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
       "consumers": {
         "schema_reference": "exact",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "fixture"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.agent_signer_admission_receipt.v1",
-          "ak.schema.agent_signer_evidence.v1",
-          "ak.schema.availability_receipt.v1",
-          "ak.schema.backup_series_erase_confirmation.v1",
-          "ak.schema.controller_account_gate_attestation.v1",
-          "ak.schema.event.v1",
-          "ak.schema.history_key.v1",
-          "ak.schema.keys_operations.v1",
-          "ak.schema.moderation_evidence.v1",
-          "ak.schema.peer_current_signer_evidence_query_outcome.v1",
-          "ak.schema.peer_current_signer_evidence_query_request.v1",
-          "ak.schema.service_operation_dtos.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+        "disposition": "direct",
+        "evidence": "fixture"
       }
     },
     {
@@ -1069,7 +1040,6 @@
       "schema_id": "ak.schema.bottom.v1",
       "file": "schemas/bottom.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact"
       },
@@ -1250,7 +1220,6 @@
           "ak.schema.agent_sidecar_exchange_control.v1",
           "ak.schema.agent_sidecar_exchange_projection.v1",
           "ak.schema.agent_sidecar_view_state.v1",
-          "ak.schema.agent_signer_admission_receipt.v1",
           "ak.schema.agent_signer_evidence.v1",
           "ak.schema.applet.v1",
           "ak.schema.applet_edge_operations.v1",
@@ -2225,13 +2194,16 @@
       "file": "schemas/http-problem-details.schema.json",
       "consumers": {
         "declared_wire": "dynamic_schema_ref",
+        "schema_reference": "fragment",
         "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "dynamic_schema_ref",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.seal.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
       "consumer_binding": {
         "kind": "dynamic_schema_ref",
@@ -2319,7 +2291,6 @@
       "file": "schemas/inclusion-list.schema.json",
       "consumers": {
         "declared_wire": "standalone_schema_alias",
-        "prose": "normative_text",
         "startup_compile": "exact"
       },
       "wire_covered": true,
@@ -3849,7 +3820,6 @@
       "file": "schemas/seal-transparency.schema.json",
       "consumers": {
         "declared_wire": "standalone_schema_alias",
-        "prose": "normative_text",
         "startup_compile": "exact"
       },
       "wire_covered": true,
@@ -4177,7 +4147,6 @@
           "ak.schema.agent_requested_scope_disclosure.v1",
           "ak.schema.agent_selector_claim.v1",
           "ak.schema.agent_sidecar.v1",
-          "ak.schema.agent_signer_admission_receipt.v1",
           "ak.schema.agent_signer_evidence.v1",
           "ak.schema.applet_ghost_authoring_request_basis.v1",
           "ak.schema.applet_install_authoring.v1",

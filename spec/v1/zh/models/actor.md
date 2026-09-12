@@ -110,25 +110,9 @@ Schema id: `ak.schema.actor_profile.v1`
     响应，必须拿到真实 controller 签名的 claim；拿不到就不能广告 / 返回该成功面，
     服务端 MUST NOT 补签，也 MUST NOT 公开 private provision 材料来填满 DTO。
 
-- **Selector bind/unbind（normative）**：复用同一个 `ak.agent.selector_claim` 已签载体和同一 MV cell；`subject_account_id` 为完整 AccountId 时是 bind，为显式 null 时是 unbind。unbind 的 `source_refs` MUST 包含它因果覆盖的 exact bind/provision 来源，且至少一项；controller、slug、来源 heads 必须匹配该 cell，issuer_id 必须等于 controller_subject_id，Event actor 必须是该 controller account；内层 proof 以其历史 DID 文档验签，与 bind 使用相同验证规则。不得以空数组、删除数据库行或过期推断撤销。先求因果当前 heads，再按 expiry/authority/visibility 判有效性；被取代的旧 bind 永不因后继过期或 unbound 复活。多个当前 heads（含 bind/unbind 并发）按歧义规则 fail closed；后继覆盖完整已知 heads 可重新 bind/unbind。null 不指向任何账号，不可返回成功 selector 解析。pending 只属本地过程；当前可解析仍须 active Agent、accountability、可见性和未过期授权，accepted 不表示永久 verified。缓存沿当前基线/失效规则更新，缺当前证据拒绝解析。provision 不伪造内层 claim proof，portable claim 仍要求真实 controller 签名。
+- **Selector bind/unbind（normative）**：`ak.agent.selector_claim` 与 provision 写同一个 `sequenced_state` 安全 Cell。完整 controller AccountId 与 slug 派生唯一 subject；`subject_account_id` 为完整账号时 bind，显式 null 时 unbind。source_refs 必须绑定实际前态的 exact bind/provision 来源，内层 proof 与 envelope actor 均按 controller 的历史授权验证。命令在 Realm 确认序列检查相关 revision；竞争 bind/unbind 至多一个成功，旧命令必须重读并重新签署，不能安装多个安全 heads。
 
-- **为什么该 cell 是 `mv_register` 而不是 `cas_register`（normative rationale）**：
-  这个 family 承载的是一个 selector 的**占位声明**，占位语义通常会让人推断它应该是 CAS。
-  规范选择 `mv_register` 是有意的，实现 MUST NOT 「顺手改成 CAS」：
-  - **排他性不在 lattice 层，而在解析层。** 同一 verified controller principal 下出现多个有效 claim 时，
-    上一条已经要求解析为 ambiguous 并 fail closed。这条领域规则提供的排他保证与 CAS 相同，
-    却不会把 cell 本身推进不可写状态。
-  - **`mv_register` 的因果取代给了 CAS 没有的活性。** 并发的两条 claim 在 MV 下是两个 heads，
-    一条因果覆盖二者的后继 claim 会取代它们并自动收敛；同样的并发在 `cas_register` +
-    `bottom=reject` 下会把 cell 打成 `⊥`，而按
-    [`../authz/event-auth-state-resolution.md` §9.3.1.4](../authz/event-auth-state-resolution.md)
-    该 family 的写入 precondition 读的正是它自己，`⊥` 之后没有主体能 author 普通写——
-    一次 selector 竞争就会永久占死一个 slug。
-  - **它不违反 §9.1 「`mv_register` 在 control plane 禁止作为授权根」。** `agent_slug` 已被上一条
-    禁止进入 grant subject、actor attribution、membership key、delivery decision 与 audit attribution；
-    它只参与 compose-time 的输入别名解析，解析结果还必须另行验证 Agent Actor Profile 与
-    accountability grant。授权根仍是完整 AccountId 与既有 grant 链，不是这个 cell。
-  - 因此本 family 的 `bottom=expose` 只表示读路径暴露多 heads，不构成 `⊥`（§9.1.1）。
+- **Selector 解析（normative）**：先读取唯一已确认值，再检查当前 Agent lifecycle、accountability、visibility 和 expiry。null 或过期不返回成功，也不显露被取代的旧 bind。缺确认材料 fail closed。解析结果仍须独立验证完整 AccountId；selector 不替代成员、grant 或审计责任身份。provision 不伪造内层 claim proof，portable claim 需要真实 controller 签名。
 
 - Event Envelope 不携带主体分类 stamp。审计 / 取证 / offline reader 必须分别保留签名覆盖的 `actor_id` 与可选 `executed_by`，并解析准入时点的 provisioning / registration / installation / accountability / identity 证据；Actor Profile `actor_kind` 只能作为展示分类，不能决定问责主体、executor 或权限。
 
@@ -172,13 +156,13 @@ provision 原子投影问责事实，**后续独立变更仍使用通用 account
   时间条件成立不代表尚未 accepted 的 provision 可以提前生效。
 - **`source_event_ref` 与内层 `proof` MUST NOT 进入业务值。**来源身份已由该 cell 的 head Event
   及其 accepted 证明承载；把 `event_id` 放进值会让语义完全相同的两个背书因来源不同变成异值，
-  从而在同一个 `bottom=reject` cell 上制造假冲突。读取与快照 MUST 保留 head 到源 Event 的
+  而无需把来源身份复制进业务值。读取与快照 MUST 保留 head 到源 Event 的
   可验证关联，MUST NOT 丢掉证据或任选一个来源。
 - 通用 grant 仍验证内层 issuer proof 与 Event proof；provision 只验证其已登记的 controller Event proof，
   MUST NOT 伪造 detached accountability proof，也 MUST NOT 把 provision 冒充独立 grant Event。
 
 统一形状只消除**结构性伪差异**。不同 `not_before`、`expires_at` 或 `grant_status`
-仍是真实不同的决定，按 `cas_register` 的正常规则处理。
+仍是真实不同的决定，按 `sequenced_state` 的确认顺序和实际前置条件处理。
 
 `ak.identity.accountability_grant` 字段:
 

@@ -11,7 +11,7 @@
     "ak.vector.circle.lifecycle_admission_barrier.v1",
     "ak.vector.relation.effective_scope_reducer_managed.v1"
   ],
-  "description": "Machine-contract fixture for signed Event scope_ref, projected object effective_scope, and Circle lifecycle admission. Producer supplies scope_circle_id where the payload owns it and signs the matching scope_ref; the reducer verifies that scope and may materialize effective_scope only in object read projections. Covers source-Station serializable admission ordering, archive and tombstone barriers, restore re-signing, Control Move seal_basis checks, rebind transitions, and negative cases. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §9.2 / §10.2.",
+  "description": "Machine-contract fixture for signed Event scope_ref, projected object effective_scope, and Circle lifecycle admission. Producer supplies scope_circle_id where the payload owns it and signs the matching scope_ref; the reducer verifies that scope and may materialize effective_scope only in object read projections. Covers source-Station serializable admission ordering, archive and tombstone barriers, restore re-signing, Control Move seal_basis checks, rebind transitions, and negative cases. See spec/v1/zh/models/circle.md Â§6.1 / Â§6.2 / Â§7 / Â§9.2 / Â§10.2.",
   "submit_payload_shape": {
     "description": "Generic actor-supplied scope fragment for object payload schemas that own scope_circle_id (for example Strand, Morph, Relation, and scoped Space creation/update). It MUST NOT carry effective_scope. Message and structural-operation payloads that derive scope from accepted target references do not embed this fragment; they still sign Event.scope_ref.",
     "schema": {
@@ -198,105 +198,83 @@
   ],
   "lifecycle_basis_cases": [
     {
-      "name": "data_event_basis_already_archived",
-      "event_plane": "data",
-      "evaluation_basis": "seal_ref",
-      "circle_state_at_basis": "archived",
-      "receiver_current_circle_state": "archived",
+      "name": "cached_active_unknown_archive",
+      "basis_active": true,
+      "closure_known": false,
       "expected": {
-        "result": "failed_precondition",
-        "reason": "circle_not_active"
+        "live": "accept",
+        "history": "eligible"
       }
     },
     {
-      "name": "admission_before_archive_is_retained",
-      "event_plane": "data",
-      "serialization_order": [
-        "station_admission",
-        "ak.circle.archive"
-      ],
-      "circle_state_at_admission": "active",
+      "name": "known_archive_new_live",
+      "basis_active": true,
+      "closure_known": true,
+      "covered_by_cut": false,
       "expected": {
-        "result": "accept_and_retain",
-        "included_in_data_cell_join": true,
-        "retroactive_removal_forbidden": true
+        "live": "reject",
+        "history": "quarantined"
       }
     },
     {
-      "name": "archive_before_admission_blocks",
-      "event_plane": "data",
-      "serialization_order": [
-        "ak.circle.archive",
-        "station_admission"
-      ],
-      "producer_basis_circle_state": "active",
-      "circle_state_at_admission": "archived",
+      "name": "archive_cut_keeps_old_history",
+      "basis_active": true,
+      "closure_known": true,
+      "covered_by_cut": true,
       "expected": {
-        "result": "failed_precondition",
-        "reason": "circle_not_active",
-        "station_admission_appended": false
+        "live": "reject",
+        "history": "eligible"
       }
     },
     {
-      "name": "open_set_joined_archive_blocks_admission",
-      "event_plane": "data",
-      "notary_kind": "open_set",
-      "evaluation_basis": "origin_serializable_joined_control_view",
-      "producer_basis_circle_state": "active",
-      "circle_state_at_admission": "archived",
+      "name": "arrival_before_archive_does_not_freeze_validity",
+      "basis_active": true,
+      "closure_known": true,
+      "covered_by_cut": false,
+      "was_delivered": true,
       "expected": {
-        "result": "failed_precondition",
-        "reason": "circle_not_active",
-        "station_admission_appended": false
+        "live": "reject",
+        "history": "quarantined"
       }
     },
     {
-      "name": "tombstone_before_admission_blocks",
-      "event_plane": "data",
-      "serialization_order": [
-        "ak.circle.tombstone",
-        "station_admission"
-      ],
-      "circle_state_at_admission": "tombstoned",
+      "name": "missing_declared_cut_dependency",
+      "basis_active": true,
+      "closure_known": true,
+      "cut_complete": false,
       "expected": {
-        "result": "failed_precondition",
-        "reason": "circle_not_active",
-        "station_admission_appended": false
+        "live": "reject",
+        "history": "pending"
       }
     },
     {
-      "name": "restore_requires_new_signed_event",
-      "event_plane": "data",
-      "serialization_order": [
-        "ak.circle.archive",
-        "rejected_old_event",
-        "ak.circle.restore"
-      ],
-      "receiver_current_circle_state": "active",
+      "name": "archived_signed_basis",
+      "basis_active": false,
+      "closure_known": true,
       "expected": {
-        "old_event_result": "failed_precondition",
-        "old_event_station_admission_appended": false,
-        "requires_new_event_signed_after_restore": true
+        "live": "reject",
+        "history": "quarantined"
       }
     },
     {
-      "name": "control_move_basis_active",
-      "event_plane": "control",
-      "evaluation_basis": "seal_basis_joined_view",
-      "circle_state_at_basis": "active",
+      "name": "restore_new_generation",
+      "basis_active": true,
+      "closure_known": false,
+      "generation": "restored",
       "expected": {
-        "admission_result": "pending",
-        "seal_revalidation_basis": "frozen_predecessor_joined_governance_state"
+        "live": "accept",
+        "history": "eligible"
       }
     },
     {
-      "name": "control_move_basis_archived",
-      "event_plane": "control",
-      "evaluation_basis": "seal_basis_joined_view",
-      "circle_state_at_basis": "archived",
+      "name": "tombstone_no_restore",
+      "basis_active": true,
+      "closure_known": true,
+      "covered_by_cut": false,
+      "terminal": true,
       "expected": {
-        "result": "failed_precondition",
-        "reason": "circle_not_active"
+        "live": "reject",
+        "history": "quarantined"
       }
     }
   ],
@@ -332,7 +310,13 @@
           },
           "relation_kind": "assigned_to",
           "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
-          "to_ref": {"kind":"account","account_id":{"principal_id":"ak:did_core:web:alice.example.com","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
+          "to_ref": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example.com",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
           "created_by": {
             "kind": "account",
             "account_id": {
@@ -417,7 +401,7 @@
     },
     {
       "name": "signed_scope_ref_tamper",
-      "description": "scope_ref is part of signed Event canonical bytes, so event_digest binds it directly. If a Seal later reports the DataEvent inside data_event_set_root, that root is an observational availability/projection proof, not control-plane finality. Mutating scope_ref after signing changes event_digest; receivers MUST reject with digest_mismatch. No separate scope field is added to seal.schema.json because the Event digest already carries this binding.",
+      "description": "scope_ref is producer-signed and bound by Event identity. Scope mutation invalidates the proof; ordinary data needs no Seal observation.",
       "event_kind": "ak.message.create",
       "original_scope_ref": {
         "kind": "circle",

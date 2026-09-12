@@ -19,7 +19,6 @@
     "audit_release_retroactive_scope_forbidden",
     "authority_scope_custom_unsupported",
     "authority_scope_mismatch",
-    "cell_in_bottom_state",
     "circle_already_terminal",
     "circle_not_archived",
     "circle_short_name_taken",
@@ -72,7 +71,6 @@
     "segment_aead_failed",
     "selector_governance_wildcard_forbidden",
     "selector_missing_realm_scope",
-    "space_parent_chain_in_bottom_state",
     "space_parent_cycle",
     "token_expired",
     "unknown_kind",
@@ -88,7 +86,7 @@
       "code": "invalid_task_fsm_transition",
       "ruling": "2026-09-04-1752 workflow profile stage transition",
       "registry_version": "2026-09-04.2",
-      "why": "Described a Realm-profile-declared task/workflow fsm cell that v1 cannot carry: event kinds, cell families and fsm_contracts are frozen at registration time and no registered producer can write a Realm-declared extension family. zh/models/common-fields.md 5.3.4 rules that v1 has no workflow profile carrier."
+      "why": "Described a Realm-profile-declared task/workflow fsm cell that v1 cannot carry: event kinds, cell families and transition_contracts are frozen at registration time and no registered producer can write a Realm-declared extension family. zh/models/common-fields.md 5.3.4 rules that v1 has no workflow profile carrier."
     },
     {
       "code": "audit_agent_attestation_mismatch",

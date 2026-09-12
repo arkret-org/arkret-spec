@@ -413,8 +413,7 @@
       "submission": "second ak.agent.provision declaring an already claimed principal_control_realm_id",
       "claim_cell": {
         "cell_family": "ak.component.agent.principal_control_realm_claim.v1",
-        "lattice": "cas_register",
-        "bottom": "reject"
+        "state_model": "sequenced_state"
       },
       "expected": {
         "outcome": "rejected",

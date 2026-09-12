@@ -393,13 +393,11 @@ function matches(target, selector):
 
     # fail-closed：非法的 match_scope / kind 组合 MUST 拒绝整个 grant，
     # 不得 `return false` 静默跳过该条目（与 §6 表的 schema_violation 裁决一致）。
-    if selector.match_scope not in {"exact", "children", "subtree", "realm_wide"}:
+    if selector.match_scope not in {"exact", "realm_wide"}:
         raise SchemaViolation("unknown match_scope")
     if selector.match_scope == "realm_wide" and not selector.realm_id:
         raise SchemaViolation("realm_wide selector missing realm_id")
-    # children / subtree 仅对 space 有效；realm_wide 对 space / circle / object / morph 有效（见 §6 表）。
-    if selector.match_scope in {"children", "subtree"} and selector.kind != "space":
-        raise SchemaViolation("children/subtree match_scope only valid for space")
+    # Authorization does not traverse current or creation ancestry.
     if selector.match_scope == "realm_wide" and selector.kind not in {"space", "circle", "object", "morph"}:
         raise SchemaViolation("realm_wide match_scope only valid for space/circle/object/morph")
 
@@ -488,14 +486,6 @@ function matches(target, selector):
         if selector.space_id:
             if selector.match_scope == "exact":
                 return selector.space_id == target.id
-            # children / subtree：target.parent_space_id / target.ancestor_space_ids
-            # MUST 在被授权操作的 CBS basis 下确定性解析；parent cell 多 head / ⊥ 时
-            # MUST fail closed（failed_bottom，space_parent_chain_in_bottom_state），
-            # 不得任取一个 head。见本节 match_scope 表后的 normative 段。
-            if selector.match_scope == "children":
-                return target.parent_space_id == selector.space_id
-            if selector.match_scope == "subtree":
-                return selector.space_id == target.id or selector.space_id in target.ancestor_space_ids
         return selector.match_scope == "realm_wide"
 
     if selector.kind == "circle":
@@ -529,15 +519,11 @@ function matches(target, selector):
 | 值 | 语义 |
 | --- | --- |
 | `exact` | 仅匹配 selector 指定的对象；缺省值。 |
-| `children` | 仅对 `space` 有效，匹配直接子 Space；其它 kind 使用该值 MUST `schema_violation`。 |
-| `subtree` | 仅对 `space` 有效，匹配该 Space 自身及所有后代 Space；后代关系必须来自已验证的 Space parent chain。 |
 | `realm_wide` | 仅在 `realm_id` 存在时有效，匹配该 Realm 内该 kind 的全部资源；缺少 `realm_id` MUST `schema_violation`。 |
 
-**`children` / `subtree` 的 ancestor chain 确定性锚定（normative，防 split authz）**：`children` 的 `target.parent_space_id` 与 `subtree` 的 `target.ancestor_space_ids`（Space parent chain）在并发 reparent 下可能出现多 head（同一 Space 的 parent cell 在不同 head 上指向不同 parent），若授权判定任取一个 head 解析 ancestor chain，则不同节点对"该 Space 是否落在 subtree 内"得出分歧（split authz）。为关闭该面：
+**导航与授权分离（normative）**：Space 的当前 parent、创建时 parent、祖先链与 placement 均不是权限继承路径。授权选择器只按本节登记的显式目标、对象类型与 Realm 范围匹配，不遍历 Space 树。`match_scope=children` 或 `subtree` MUST `schema_violation`，不得静默解释为 `exact`、`realm_wide` 或忽略该条目；包含非法选择器的整个 grant 无效。查询仍可遍历子树，但必须逐对象执行独立的可见性检查，查询结果不能成为授权证明。
 
-- `children` / `subtree` match_scope 的 parent / ancestor chain **MUST** 在**被授权操作的 CBS basis**（DataEvent 的 `seal_ref` 指向的控制面 view，或 Control Move 的 `seal_basis` 指向的控制面 view；见 [`event-auth-state-resolution.md`](./event-auth-state-resolution.md)）下**确定性解析**。给定该 basis，目标 Space 的 parent chain 有唯一解，授权判定 MUST 用该唯一解，MUST NOT 用任意本地最新 head 或其他 basis 解析的 chain。
-- 当目标 Space（或其 ancestor chain 上任一 Space）的 parent cell 在该 basis 下处于**多 head / `⊥`**（并发 reparent 未收敛、fork quarantine 等）时，该 `subtree` / `children` 授权分支 **MUST fail closed**：`matches` 对该目标返回不命中（授权按 deny 处理），相关 DataEvent / Control Move MUST `failed_bottom`（`reason="space_parent_chain_in_bottom_state"`），**MUST NOT** 任取一个 head 作为 parent 来判定命中。这与 §6 matches 算法对非法 match_scope 组合的 fail-closed 裁决一致：宁可拒绝也不在歧义 parent chain 下静默放行。
-- `exact` match_scope 不解析 ancestor chain，不受本规则约束；`realm_wide` 按 `realm_id` 命中、亦不依赖 parent chain。
+操作 Space 自身仍必须具有命中该 Space 的 action、resource selector 与 constraints。该授权不自动扩展到子 Space、Strand、Message 或其它内容。普通 move/reparent 不改变对象的 Realm、Circle、capability 或密钥访问资格；`child_scope_policy` 只能允许或拒绝放置，不能为通过检查而改绑子对象 scope。权限变更必须由相应的显式安全操作完成。用户界面可以帮助批量选择对象，但批准时必须冻结确切对象集合并使用各自已登记的授权操作；后续导航变化不扩大该集合。
 
 Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 检查。
 
@@ -610,6 +596,7 @@ Facet 是 Realm schema / Morph profile 声明后的 hint 或查询标签，不�
 - 支持精确 ID、Realm、Space、Circle、Strand、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema、Blob、Notification、Read Cursor 和 Object 匹配。
 - 拒绝非 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
 - 对非法 selector 返回清晰错误。
+- 拒绝按当前或创建祖先授权的选择器；同一对象仅改变导航位置时，其授权匹配结果 MUST 不变。
 - 在 selector 命中后继续执行 action、constraint、claim、policy、`allowed_tracks` action scope 和 E2EE 检查。
 
 实现 SHOULD：

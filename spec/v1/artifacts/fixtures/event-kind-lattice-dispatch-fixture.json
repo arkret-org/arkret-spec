@@ -29,7 +29,7 @@
     },
     {
       "id": "fsm_family_contract_closure",
-      "rule": "Every lattice=fsm cell family resolves to exactly one closed fsm_contract after template instance parameters are applied; event rows never duplicate the table."
+      "rule": "Every transition-constrained cell family resolves to exactly one closed domain transition contract after template instance parameters are applied; event rows never duplicate the table."
     },
     {
       "id": "actor_private_contract_closure",

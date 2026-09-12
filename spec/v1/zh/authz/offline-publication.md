@@ -10,12 +10,9 @@ updated: 2026-07-30
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-Arkret v1 的普通在线 Event 不需要预先申请 AuthorizationLease：接收服务在一个 transaction 内按最新 accepted state 完成 admission 与持久化。只有调用方明确请求延迟/离线发布窗口时才使用 basis-bound lease；IngressReceipt 仍是可选 seen/availability evidence，不是 Event 有效性或最终性证明。Event `created_at` 和 verifier 本地首次见到时间均不能创造离线发布权限。
+普通 Event 使用已验证缓存授权即可离线创作、直接提交到任意合资格接收站并传播。MUST NOT 因网络断连、原站离线或长期未推进 Seal 要求 AuthorizationLease。AuthorizationLease 只用于调用者显式选择的有限期延迟执行约束，不能替代权限或绕过后来已确认的撤销关闭集合。IngressReceipt 记录签收，不授予历史有效性或安全最终性。
 
-同一边界适用于 Control Move 的 authority Ack intake：普通在线请求显式携带
-`publication_mode=online` 且禁止 `authorization_lease`；只有调用方已明确取得延迟/离线窗口时才携带
-`publication_mode=delayed` 与匹配 lease。无效、过期或不匹配的 delayed lease 必须失败，服务端不得忽略
-lease 后按 online 分支继续。Ack 只是 authority 的持久处理义务，不产生或延长离线窗口，也不替代最终 Seal。
+安全命令的 `publication_mode=online` 禁止 lease；显式 `delayed` 必须提供匹配 lease。无效的已提供 lease 必须拒绝，不能忽略后回退。Ack 表示持久处理义务，不代替安全确认。
 
 ## 1. AuthorizationLease
 
@@ -43,11 +40,7 @@ authority_set_ref, verification_method, created_at, domain?, audience?})`；proo
 等于 lease `issued_at`。proof 条数与唯一 issuer 数必须满足 basis 中已接受的 authority-set policy，
 数组长度本身不等于 quorum。
 
-`basis_ref` 在普通 `single_signer` / `threshold` / `mixed` 发布下是单个 accepted Seal ref；在
-`open_set` 下必须是只含 canonical sorted `leaves[]` 的完整 `seal_basis`，不能用任一单 leaf 冒充 joined view。issuer 与 verifier 均须解析这些 Seal 并重算 union covered set、joined state 与 roots。lease 只能收窄该 basis 中已存在的
-authorization。verifier MUST 从 accepted CBS basis
-验证 issuer/delegation、actor/device、scope、action、risk 与有效期；lease 不能创建 capability，
-不能把 medium/high action 降为 low，也不能跨 scope 使用。
+`basis_ref` 绑定已确认安全状态：单 Realm 为一个 Seal；多 Realm 使用每域恰一个 head 的 canonical `leaves[]`。同域多 leaf 无效。issuer/verifier 独立验证配置、确认前缀和 authority-set policy；lease 只能收窄已有 actor/device、scope、action、risk 与有效期，不创造新的 capability。
 
 三个已注册的 closed genesis family（ordinary Realm founding unit、self-principal PCR
 bootstrap unit 与 accepted controller delegation 精确绑定的 Agent PCR create）
@@ -106,7 +99,7 @@ threshold猜测分支，也不得把不同recovery proof family的issuer拼成�
 | `high` | 1 hour |
 
 未知 action 按 `high`。Realm policy MAY 收紧但不得放宽。高风险 lease 的 issuer quorum MUST
-与同一 `security_barrier` revoke authority set 相交并满足 `2k > n`。
+与同一 安全撤销 authority set 相交并满足 `2k > n`。
 
 ### 1.1 RecoveryTransaction 的 authority ownership
 
@@ -137,40 +130,19 @@ authority_set_ref, verification_method, created_at, domain?, audience?})`；proo
 verification method 严格排序、不得重复，并满足 companion lease 所绑定 authority-set policy 中选定规则的
 issuer 集合与 threshold；单 proof 只在 threshold 为 1 时成立。
 
-Event 必须在 lease `expires_at` 之前被 policy 接受的 ingress 签收。`received_at` 必须由 issuer
-产生、进入签名，且满足 `issued_at <= received_at <= expires_at`。lease 到期后首次出现且没有
-合格 receipt 的 Event 永久拒绝；已有合格 receipt 的相同 event digest 可在之后缓存、重传和
-federation。
+receipt 的签名时间必须落在 companion lease 窗口内，并绑定 exact Event digest 与完整 causal frontier。它证明 policy issuer 声称的签收事实，不证明全球先于撤销，也不能单独作为有限期消息的真实存在时间证明；稳定历史的期限内存在保证使用 [安全域确认 §5](./cbs-profiles.md) 的有界时钟 anchor。
 
-receipt 证明“该 digest 在期限内到达一个被 policy 接受的 ingress”，不证明 Event 已通过
-reducer、已进入数据 projection、已被 peer 看见或已获 Seal finality。
-
-`received_at`只用于签收审计与lease deadline，不决定撤销因果。首次offline ingress必须携完整causal
-证据：exact companion lease、Event digest 与 ingress frontier。receiver按已验证的 lease `basis_ref` 与
-causal order执行四分判定：
-
-`ingress_frontier` 必须是非空、严格
-排序且无重复的 EventId 集合，并包含本 receipt 所签 Event 的 exact EventId。任何缺失、乱序、重复或
-与 Event/lease 不一致的 carrier 都在验签及 causal 判定前拒绝。
-
-1. 已知 revoke/ban frontier `≤ lease.basis_ref`：拒绝authoring；
-2. `lease.basis_ref < revoke/ban frontier`：接受历史authoring，后继Control仍按正常Lattice/Seal投影并支配
-   current delivery/display/effect；不得追溯把已接受Event的author改成未授权；
-3. 依赖未知或frontier closure不完整：返回`dependency_pending`并backfill，不得把缺证据当终局；
-4. 依赖补齐后可证明Event与revoke/ban并发：拒绝。
-
-current session/lifecycle/policy gate只能控制当前交付、展示与新副作用，不能覆盖第二分支的历史authoring结论。
-实现不得以`created_at`、`received_at`、本地到达顺序或wall clock替代causal proof。
+普通消息持久资格统一按原授权和全部适用关闭集合求值。已知撤销禁止新 live 效果；未知撤销允许传播窗口；缺被引用依赖 pending；关闭集合明确排除则 quarantine。producer/receipt 时间和本站首次到达顺序均不能代替该集合判断。
 
 ### 2.0 Publication authority carrier lanes（normative）
 
-普通 Event publication 只有三条互斥 authority lane；选择结果属于已验证 request context，绝不序列化为第四套 submission sidecar：
+每条共享 Event 只有一个 producer proof，并引用精确 signer evidence。普通数据的 `auth_context.authority_refs` 是可携带授权依据，安全命令的 `seal_basis` 是执行前态。请求认证与 Event authority 分开：
 
-1. **online self**：唯一 carrier 是 sender-constrained verified session grant + typed introspection holder/device binding。request context 从 `subject + audience` 构造 exact `AccountId`，并携 `SessionGrantDeviceBinding {device_id, authorization_event_id, model_generation_ref}` selector；它必须与 producer-signed Event 的 exact actual-author `ActorId` 及 `proof.verification_method` 机械交集，再从本地 accepted PCR/device evidence 重放。`EventInitialSubmission` 不增加 publication-authority member，也不得携平行 server sidecar。
-2. **offline/delayed ingress**：唯一 carrier 是 `AuthorizationLease`，且服务在 lease 窗口内成功签收后产生 `IngressReceipt`。online request context 不能代替 lease，lease 也不能塞入 online authority context。
-3. **peer federation**：peer authority 只来自 Event envelope 内已验证的 origin `station_admission` proof。若 peer 转发最初 offline ingress 的 lease/receipt，它们只证明 origin 的历史签收窗口，不替代也不扩展 origin admission proof。
+1. 普通单条提交可使用 `ProofAuthenticatedPublication` 的 body proof，无 SessionGrant、handoff 或原站回调。
+2. 使用会话的请求执行其精确 audience/holder/scope 约束；会话不得改写 Event author，也不代替 Event 授权。
+3. peer federation 认证发送服务的传输权限，接收站仍独立验 Event；来源服务不必是原账号 Station。
 
-Agent online Event 复用 controller session 的同一 online context，并额外交集 Agent 当前 delegated runtime binding 与 portable signer evidence；不得伪造 human device authority。三条 lane 不得启发式 fallback，也不得从裸 Event core、当前 DID、最新 PCR 或全局 device row猜测 authority。
+显式有限期 delayed lease 是附加收窄约束，不是另一套作者身份。已提供但无效的任一凭据必须拒绝，不能启发式 fallback。Agent 同样验证 runtime key、controller 委托和可携带闭包，不冒充 human device。
 
 ### 2.1 提交与重传封装
 
@@ -187,7 +159,7 @@ EventInitialSubmission {
 }
 ```
 
-ingress 直接验证 Event proof、scope 与当前 CBS basis；携带 lease 时还必须验证 lease。若签发 receipt，则必须把它持久化并通过
+ingress 直接验证 Event proof、scope 与所引用的已确认授权闭包；携带 lease 时还必须验证 lease。若签发 receipt，则必须把它持久化并通过
 `EventsSubmitOutcome.ingress_receipts[]` 返回。相同 Event canonical bytes 的幂等重试必须返回
 原 receipt 与首次签发时的 exact companion lease，不得用新的 `received_at` 重签，从而延长已经固定的撤销窗口。
 receipt/lease 的机械配对条件恰为：同一 submission 只有这一份 companion lease、receipt `event_digest` 等于该
@@ -220,7 +192,7 @@ transparency 存档、离线转发与 durable idempotency ledger 必须把 recei
 作为一个不可拆配对保存；只保存 receipt JSON 不构成可复验的 publication evidence。
 
 `control_proposal_ack` 只允许 Control Move，且必须是
-[`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 canonical
+[`event-auth-state-resolution.md` §14](./event-auth-state-resolution.md) 的 canonical
 authority receipt set；DataEvent携带该字段必须拒绝。它不属于通用CBS bundle，也不能由接收
 Station在不持有真实authority key时补签。
 
@@ -258,46 +230,24 @@ device revocation、generation change或authority-set digest变化时清除。Au
 离线可验证事实，协议不定义一个能追溯抹除已分发签名bytes的私有revoke endpoint；撤销必须通过
 accepted CBS capability/device/authority policy变化与bounded TTL生效，client cache清除不能
 替代receiver的basis/revocation验证。离线状态只能使用已持有且未过期的 lease，不得
-把无法联机签发降级为裸 Event。
+把显式 delayed 请求中的签发失败改成另一种请求；未选择 delayed 的普通消息本来就不需要 lease。
 
 签发、ordered batch delivery、founding anchor、exact replay/refresh、stale basis、quorum失败与
 cache清除由`ak.vector.authz.authorization_lease_issuance.v1`固定，至少两个独立runner必须对
 相同request产生相同typed decision与lease canonical digest。
 
-## 3. Profile 与审查风险
+## 3. Issuer 与证明边界
 
-| profile/保障 | issuer 要求 |
-| --- | --- |
-| `single_signer` 基础 | 当前 authority actor 或 basis 中明确委托的 admission signer；允许单 ingress，但必须广告 `single_ingress_censorship_risk=true`。 |
-| `threshold` / `mixed` | Realm policy 指定 admission quorum。 |
-| `open_set` low/medium | basis-bound issuer policy；joined view 补齐后重验。 |
-| 任意 profile high | 与 barrier revoke authority 相交的 quorum。 |
-
-Realm policy MUST 至少能声明多个 issuer、receipt threshold、delegation、transparency、
-failover 与 health endpoint。高保障 profile MUST 使用多 issuer threshold，或一个 issuer 加
-append-only transparency inclusion proof；不得只依赖无审计的单 ingress。
+lease proof 必须满足 exact basis 派生的 `authority_set_policy` 和选定 `authorization_rule_id`，不能跨 rule 拼门限。issuer 授权门限与安全日志的 PBFT voter quorum 是不同合同，不能把“足够多服务签字”当成安全决定。
 
 ## 4. 撤销窗口
 
-最坏撤销窗口是：
-
-```text
-max_remaining_lease_ttl
-+ ingress/transparency propagation bound
-+ verifier dependency fetch bound
-```
-
-其中 propagation bound 硬上限 5 minutes，dependency fetch 连续 8 轮且总 wall-clock budget
-硬上限 10 minutes。实现可以更快 fail closed，但不得宣传撤销窗口“等于 lease TTL”。
-
-Event `created_at` 早于 revoke 不足以接受；后填、回拨或重放 `created_at` 不能替代 receipt。
+普通消息的撤销窗口等于真实证据传播延迟；永久分区中没有有限上界。接收站获知撤销后立即 gate，新旧消息的稳定历史按关闭 frontier 重算。lease TTL、查询 budget、heartbeat 或原站存储时间都不能宣称消除了这个窗口。
 
 ## 5. 最小正反例
 
-正例：medium lease 在第 7 小时签收 Event；第 9 小时 peer 首次收到 Event 与有效 receipt，
-验证 basis 和签名后可继续处理。
+正例：A 离线，B 使用已验证无到期 grant 和 signer evidence 接纳普通消息，不申请新 Seal 或 lease。
 
-反例：Event 声称第 1 小时创建，但直到 lease 到期后才首次出现且无 receipt，永久拒绝。
+反例：B 已知成员撤销，仍把旧缓存当作新 live 发言许可；必须阻止。稍后导入的历史只在所有适用关闭集合包含它时参与投影。
 
-反例：open-set high-risk lease 的 issuer 与 revoke barrier authority 不相交。即使签名有效，
-也没有确定撤销上界，必须拒绝该 lease。
+反例：显式有限期数据只有 producer 自报早期时间和普通签收回执，却没有满足时钟见证合同的期限内 anchor；不得声称已证明期限内合法存在。

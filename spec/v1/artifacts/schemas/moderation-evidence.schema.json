@@ -118,45 +118,15 @@
       },
       "additionalProperties": false
     },
-    "franking_data_event_inclusion_proof": {
-      "type": "object",
-      "required": [
-        "leaf_digest",
-        "leaf_index",
-        "leaf_count",
-        "audit_path"
-      ],
-      "properties": {
-        "leaf_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "leaf_index": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "leaf_count": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "audit_path": {
-          "type": "array",
-          "maxItems": 64,
-          "items": {
-            "$ref": "#/$defs/digest"
-          }
-        }
-      },
-      "additionalProperties": false,
-      "description": "RFC 6962 audit path proving the proof Event digest is included in covering_seal.data_event_set_root."
-    },
     "franking_seal_observation_outcome": {
       "type": "object",
       "required": [
         "proof_event",
         "target_event",
         "covering_seal",
-        "data_event_inclusion_proof",
-        "service_signer_evidence"
+        "service_signer_evidence",
+        "existence_anchor",
+        "ancestry_events"
       ],
       "properties": {
         "proof_event": {
@@ -168,15 +138,25 @@
         "covering_seal": {
           "$ref": "./seal.schema.json"
         },
-        "data_event_inclusion_proof": {
-          "$ref": "#/$defs/franking_data_event_inclusion_proof"
-        },
         "service_signer_evidence": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
+        },
+        "existence_anchor": {
+          "$ref": "./seal.schema.json#/$defs/existence_anchor",
+          "description": "Must exactly equal a covering_seal.existence_anchors member, with the franking grant and generation and an authenticated frontier containing proof_event directly or transitively."
+        },
+        "ancestry_events": {
+          "type": "array",
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          },
+          "description": "Complete canonical EventId-sorted ancestry needed to reach proof_event from the anchor frontier. Exact-ID dependency resolution supplies a missing remainder; incomplete evidence is pending, never verified."
         }
       },
       "additionalProperties": false,
-      "description": "Authorization-gated, independently verifiable observation for one durable franking proof Event. The proof Event payload must equal the requested franking proof bytes and target_event must equal its payload.event_id."
+      "description": "Optional time-existence evidence for a franking proof. Independently verify the Seal quorum and bounded-time anchor, original Event authority, service signer key validity over the full anchor uncertainty interval and exact target. The anchor interval must start no earlier than proof.received_at. This does not prove receiver-claimed delivery time exactly and is not required to send or accept ordinary messages. No data observation root exists."
     },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"

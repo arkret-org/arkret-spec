@@ -80,7 +80,7 @@ winning Add/Commit/Welcome 得到自己的 `join_epoch`，不得从 KeyPackage b
 Winning MLS lineage MUST 从目标已验证 cut 的 registered MLS epoch cell 的有效 `transition_ref` 与 `next_epoch`
 开始，沿每个 Commit 的 `base_epoch_ref` 回溯至该 lineage 的 Genesis，并逐步验证 exact scope/group 与连续 epoch。
 不得枚举 retained Commit 的后继数量来指定 winner：合法 recovery 或贡献规则变化后，失效候选仍可保留在历史中。
-epoch cell 为 Bottom 时保持未决；没有 epoch state 时只表示 MLS 阶段尚未就绪。有效 recovery head 的写入身份
+epoch 确认材料缺失时保持未决；没有 epoch state 时只表示 MLS 阶段尚未就绪。有效 recovery head 的写入身份
 是 recovery Event，其值中的 `transition_ref` 才是被选定的 MLS transition，不能把两者混用。
 Genesis founding membership 和 Add 消费关系都只取这条有效 lineage；未被它消费的 Add 不产生 join floor。
 
@@ -210,10 +210,10 @@ base 到达的并发 branch、missing object 或 fork-quarantine 均 fail closed
 direct traversal 只消费 Seal 与其 `delta[]` 唯一发现的 Control Move；普通 Message/reaction 等 DataEvent 的 digest 不得进入 `delta[]`，也不因
 某个 Seal 的 optional data observation root 出现它而取得控制面 finality。resolve 必须返回该 accepted Seal 在 acceptance 时实际 pin 的
 exact canonical Control Move bytes，并同时提供 registered `apply_seal` 所需的 historical signer evidence、AvailabilityReceipt 及其它 CBS
-依赖。每个 Seal 的 notary、predecessor、delta、control_event_set_root、completeness_root、state_root、frozen-predecessor admission、
-Bottom/recovery 与 joined state 都按核心规则重算。
+依赖。每个 Seal 的 notary、predecessor、delta、control_event_set_root、state_root、frozen-predecessor admission、
+确认命令的成功/拒绝结果、revision 与状态根都按核心规则重算。
 
-Seal 的 `notary_signature` 只使用其 predecessor joined governance state 中 `ak.component.notary.v1` cell 冻结的 signer descriptor 验证；
+Seal 的 `notary_signature` 只使用其 唯一 predecessor 的已确认治理状态 中 `ak.component.notary.v1` cell 冻结的 signer descriptor 验证；
 包含 `ak.realm.notary` rotation Move 的 Seal 仍用旧 descriptor，只有 accepted 后继才使用新 descriptor。Genesis Seal 仅从其完整 Realm
 anchor unit 的 create notary descriptor 取得 founding key。verification method 虽可使用 DID URL 命名，verifier 也不得查询 current DID
 document、当前同名 method 的 key bytes 或本地 latest notary row 来替换上述历史 descriptor。Control Move/Event proof 所需的历史 signer
@@ -222,7 +222,7 @@ evidence 同样按其 content-addressed acceptance pin 解析，不得由 curren
 同一 `event_id` / `event_digest` 后来出现两个不同 digest-preimage canonical bytes 时，direct traversal 的“不得任选 variant”只禁止歧义
 解析与追溯替换，不表示追溯撤销整个 Realm：若 resolve 对一个 selector 返回多份未经 acceptance pin 区分的 variant、返回的 bytes 不等于
 该 Seal 当时 pin 的 bytes，或已丢失该 pin，当前 traversal MUST fail closed，且不得 first-row-wins。此前 accepted Seal 及其后继不得因此
-回滚或重算；最初 receiver 必须按 [`event-auth-state-resolution.md` §6.3.2–§6.3.3](../authz/event-auth-state-resolution.md)
+回滚或重算；最初 receiver 必须按 [`event-auth-state-resolution.md` §15–§15](../authz/event-auth-state-resolution.md)
 保留该 Seal 实际应用的 canonical bytes 与确定性 reducer 输出，拒绝 later-arriving variant 进入普通状态，并由显式按 canonical bytes 指认的
 fork-resolution/recovery 归一。没有 acceptance-time bytes/output pin 的新 verifier 把该覆盖区间视为不可验证；它不能用任一当前可取得的 variant
 重建旧 `state_root`。visited/work state 可 durable 恢复。流式读取原始对象并不意味着验证只需当前对象：精确覆盖索引、
@@ -239,7 +239,7 @@ fork-resolution/recovery 归一。没有 acceptance-time bytes/output pin 的新
 Replay 解释器只由 Realm 冻结的 profile id 选择；profile 的规范语义与 conformance vectors 随实现发布，不作为可寻址运行时工件进入 replay 输入。验签、Event identity 与转发均以收到并持久化的 canonical raw bytes 为准，typed view 只用于已知字段的语义解释，不得通过重序列化改变对象身份。实现不支持该 profile 时只对目标 Realm 返回 `unsupported_profile`，不得降级为权限错误或扩大到连接、账户和其他 Realm。
 
 winning MLS transition、requester join/incarnation 和 scope 当前单向收紧的 history access 均由服务器已验证的 accepted 状态派生；允许按精确输入/规则上下文耐久增量复用，不要求每个用户请求重新 replay；同一 Move 被多个并发 Seal 覆盖不产生可选的
-singular activation Seal。普通 Message/reaction 等 DataEvent 只携既有 accepted `seal_ref` authorization view，不携 `seal_basis`、不进入 Seal.delta、不推进 epoch。
+singular activation Seal。普通 Message/reaction 等 DataEvent 只携既有 accepted `auth_context.authority_refs` authorization view，不携 `seal_basis`、不进入 Seal.delta、不推进 epoch。
 T1 release 不进入 governance proof query；它由 chunk 首次耐久入队事务生成 `HistoryReleaseAttestation`。旧
 `HistoryGovernanceEvidenceChain`、page/root/ownership/selection/activation/auth witness、`epoch_activation_range`、
 `complete_control_state_v1` 与独立客户端 history proof/snapshot carrier 均不存在；这不禁止 `server-trusted-results` 已登记的、有界且按请求授权的 Station 当前结果。
@@ -283,7 +283,7 @@ Request MUST 签入 `requester_author_profile`、与该 profile 逐字匹配的 
 `requester_endpoint_authorization`、exact current `requester_authorization_incarnation`、canonical ranges、接收 HPKE 公钥
 及有效期。Request、signing input 与 receipt 不携带客户端 `trusted_history_base_basis` / `trusted_current_basis`；
 closed wire MUST 拒绝这些旧字段，客户端不固定或验证治理 cut，不为重试保存治理 verification material。
-Release service 在创建事务内从已 accepted 的完整 current antichain 选择并验证 retained target 与 bootstrap cut，
+Release service 在创建事务内从已 accepted 的完整 当前确认 basis 选择并验证 retained target 与 bootstrap cut，
 冻结到 receipt 的 history_traversal_retention；服务器不能遗漏并发 leaf 或把未验证材料标记为 accepted。
 后续 exact retry 保留原请求签名、receipt、capability 及服务器冻结的 cut，不重新选择目标。新增请求可选择新当前 cut。
 `requester_authorization_incarnation` 是 closed scope union：Realm 为 exact `realm_membership_incarnation_ref`；
@@ -332,7 +332,7 @@ variant，同 response_id 异 digest 为永久冲突。
 Agent authority locator 逐字为
 `{agent_id, verification_method, agent_key_authorize_event_id, active_lifecycle_event_id, control_basis, agent_signer_evidence_digest, observed_at, expires_at}`；
 其中 `observed_at` 为 lease.issued_at、gate.issued_at、binding.issued_at、authorization.accepted_at 与 not_before 的最大值；`expires_at` 为 lease、gate、binding 与 authorization 已声明 expires_at 的最小值。该共同窗口必须非空，恢复或刷新不得扩大各来源独立期限。
-其中 `control_basis` 是完整 accepted PCR Seal antichain，`agent_signer_evidence_digest = SHA-256(JCS(complete current AgentSignerEvidence))`。
+其中 `control_basis` 是完整 accepted PCR Seal basis（每 Realm 恰一个确认 head），`agent_signer_evidence_digest = SHA-256(JCS(complete current AgentSignerEvidence))`。
 不得退化为 singular control Seal、含糊的 control/evidence Event ref 或未定义 digest。RHRK source locator 内联完整
 `RhrkHolderAuthorityObservation`，而不是裸 observation digest；该 object 分别绑定 `method_controller_principal_id`、`holder_service_id`、current signing method、accepted key evidence Event、
 archive tuple digest、完整 holder trusted basis 与有效期。外层 `SourceRelayAttestation.service_proof` 已签完整 locator，所以 observation 不再嵌套第二份 proof。
@@ -655,13 +655,13 @@ Realm create → accepted create Seal → `ak.realm.organization_recovery_key.re
 `ak.realm.organization_recovery_key.rotate` 对唯一 active cell 做通用 whole-value CAS：签名 Event MUST 恰好携带一条
 目标为 `ak:cell:ak.component.realm.organization_recovery_key.v1:null` 的 `head_eq`，其 value MUST 是 producer 在
 `seal_basis` 下观察到的完整 current projected tuple；生产 projector 按
-[`../authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md) 把该值复制到
+[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md) 把该值复制到
 lattice `op.from`。不得以 `expected_previous_key_evidence_ref`、Seal ref 或任何 RHRK 专用 fallback 代替 `head_eq`。
 payload 中的 `expected_previous_key_evidence_ref` 与 `expected_previous_key_evidence_seal_ref` 只证明 prior tuple provenance：
 前者必须等于 current projected tuple 的 provenance Event，后者必须是使该 Event 生效的 exact accepted Seal；新 holder
 acceptance 的 trusted basis 必须因果覆盖该 Seal。CAS 与 provenance 任一不成立均 fail closed 且整个 Move 零写入。
 同一 frozen predecessor 上的同批 sibling 必须由 Seal 排重；若互斥 sibling 分别进入不可达 accepted Seal branches，通用
-`cas_register` join 产生 `⊥`，不得按到达顺序选 winner。旧 tuple 保留作历史验证。Circle 不登记独立 key。同一个 Realm key 只服务显式 opt-in scopes。每个
+`sequenced_state` join 产生 `⊥`，不得按到达顺序选 winner。旧 tuple 保留作历史验证。Circle 不登记独立 key。同一个 Realm key 只服务显式 opt-in scopes。每个
 exporter Realm/Circle 独立选择 `none|organization_recovery_key`，不继承父 scope，不复制
 holder/custody tuple。选择后，每个 winning Genesis/Commit Event MUST 在同一签名 Event 中携带
 恰一份本 scope/epoch archive，否则 transition 拒绝。RHRK tuple 固定
@@ -676,7 +676,7 @@ backfill/revoke。Custody 复制、HSM、Shamir 或 threshold 不上 Realm/Circl
 跨服务 holder 可达性只用私有 `ak.peer.organization_recovery_archives.command.replicate.v1`：source scope service 将 exact
 archive、container Event ref、archive-lifetime `HistoryGovernanceTraversalRetention` 复制到 tuple 冻结的
 `holder_service_id`。Archive tuple 保留声明 key provenance 的 `accepted_key_evidence_ref` EventId 与 holder acceptance 已 pin 的 prior
-`holder_trusted_basis` 完整 Seal antichain；没有 singular activation Seal selector。每个 ArchiveListItem 的 traversal intent 只有一个 singleton
+`holder_trusted_basis` 完整 Seal basis（每 Realm 恰一个确认 head）；没有 singular activation Seal selector。每个 ArchiveListItem 的 traversal intent 只有一个 singleton
 `requested_ranges=[{from_epoch:epoch,to_epoch:epoch}]`，base 逐字等于该 tuple 的 holder trusted basis，target basis 经完整 replay 证明
 key-evidence Event 已成为 effective tuple 且 container Event 是该 epoch winning transition。不同 item 逻辑独立，服务可按 digest 物理复用
 retained Event/Seal/dependency bytes。Holder service 由此投影 archive read/list；不创建 ArchiveId、proof package/result object 或 `ak:snapshot`，

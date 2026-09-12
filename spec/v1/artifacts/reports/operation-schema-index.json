@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.5",
+  "version": "2026-09-12.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T06:56:52+08:00",
+  "generated_at": "2026-09-12T10:22:27+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3381,8 +3381,7 @@
           "frontiers",
           "cursor",
           "original_outcome",
-          "agent_membership_cascade",
-          "agent_event_admissions"
+          "agent_membership_cascade"
         ],
         "closed": true
       }
@@ -7405,6 +7404,7 @@
           "cbs_proof_bundles",
           "control_proposal_ack",
           "membership_compensation_evidence",
+          "publication_event",
           "events",
           "unit_kind",
           "idempotency_key",
@@ -7427,7 +7427,8 @@
               "authorization_lease",
               "cbs_proof_bundles",
               "control_proposal_ack",
-              "membership_compensation_evidence"
+              "membership_compensation_evidence",
+              "publication_event"
             ],
             "closed": true
           },
@@ -7497,7 +7498,6 @@
           "cursor",
           "original_outcome",
           "agent_membership_cascade",
-          "agent_event_admissions",
           "unit_kind",
           "event_ids",
           "receipt"
@@ -7524,8 +7524,7 @@
               "frontiers",
               "cursor",
               "original_outcome",
-              "agent_membership_cascade",
-              "agent_event_admissions"
+              "agent_membership_cascade"
             ],
             "closed": true
           },
@@ -9094,15 +9093,17 @@
           "proof_event",
           "target_event",
           "covering_seal",
-          "data_event_inclusion_proof",
-          "service_signer_evidence"
+          "service_signer_evidence",
+          "existence_anchor",
+          "ancestry_events"
         ],
         "properties": [
           "proof_event",
           "target_event",
           "covering_seal",
-          "data_event_inclusion_proof",
-          "service_signer_evidence"
+          "service_signer_evidence",
+          "existence_anchor",
+          "ancestry_events"
         ],
         "closed": true
       }
@@ -9512,7 +9513,8 @@
           "created_by",
           "created_at",
           "authority_binding",
-          "signature"
+          "signature",
+          "eligibility_context"
         ],
         "properties": [
           "id",
@@ -9528,7 +9530,8 @@
           "created_by",
           "created_at",
           "authority_binding",
-          "signature"
+          "signature",
+          "eligibility_context"
         ],
         "closed": true
       }
@@ -9593,10 +9596,12 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome",
         "schema_kind": "object",
         "required": [
-          "seal_body"
+          "seal_body",
+          "view"
         ],
         "properties": [
-          "seal_body"
+          "seal_body",
+          "view"
         ],
         "closed": true
       }
@@ -9614,12 +9619,13 @@
           "delta",
           "control_event_set_root",
           "state_root",
-          "completeness_root",
           "notary_seq",
           "availability_receipt_digests",
           "notary_signature",
           "sealed_at",
-          "hlc"
+          "hlc",
+          "configuration_ref",
+          "command_results"
         ],
         "properties": [
           "id",
@@ -9628,17 +9634,19 @@
           "delta",
           "control_event_set_root",
           "state_root",
-          "completeness_root",
           "notary_seq",
-          "data_view_root",
-          "data_event_set_root",
           "availability_receipt_digests",
           "covered_event_digests",
           "previous_state_root",
           "previous_digest_algorithm",
           "notary_signature",
           "sealed_at",
-          "hlc"
+          "hlc",
+          "configuration_ref",
+          "command_results",
+          "authorization_closures",
+          "existence_anchors",
+          "transaction_records"
         ],
         "closed": true
       },

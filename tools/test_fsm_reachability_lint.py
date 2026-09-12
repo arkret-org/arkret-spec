@@ -77,7 +77,7 @@ class FsmReachabilityLintTest(unittest.TestCase):
 
     def test_two_entry_idioms_fail(self) -> None:
         def mutate(contract):
-            family = contract["event_kind_registry"]["fsm_contracts"][AGENT_FAMILY]
+            family = contract["event_kind_registry"]["transition_contracts"][AGENT_FAMILY]
             family["initial_states"] = ["uninitialized"]
 
         errors = self._run(mutate=mutate)
@@ -89,7 +89,7 @@ class FsmReachabilityLintTest(unittest.TestCase):
         # The entry idiom key set is closed so that a fourth spelling cannot
         # slip in unnoticed and evade the reachability analysis.
         def mutate(contract):
-            family = contract["event_kind_registry"]["fsm_contracts"][AGENT_FAMILY]
+            family = contract["event_kind_registry"]["transition_contracts"][AGENT_FAMILY]
             family["boot_state"] = "active"
 
         errors = self._run(mutate=mutate)
@@ -101,7 +101,7 @@ class FsmReachabilityLintTest(unittest.TestCase):
         # the initial state. So terminality holds exactly as far as the table
         # does, and an edge leaving a terminal state would simply be taken.
         def mutate(contract):
-            family = contract["event_kind_registry"]["fsm_contracts"][AGENT_FAMILY]
+            family = contract["event_kind_registry"]["transition_contracts"][AGENT_FAMILY]
             family["allowed_transitions"].append(["deactivated", "active"])
 
         errors = self._run(mutate=mutate)
@@ -115,7 +115,7 @@ class FsmReachabilityLintTest(unittest.TestCase):
         # escape; `ak.component.realm.link.v1` relies on exactly that so a
         # redeclared tombstone is idempotent rather than a sibling conflict.
         def mutate(contract):
-            family = contract["event_kind_registry"]["fsm_contracts"][AGENT_FAMILY]
+            family = contract["event_kind_registry"]["transition_contracts"][AGENT_FAMILY]
             family["allowed_transitions"].append(["deactivated", "deactivated"])
 
         errors = self._run(mutate=mutate)
@@ -126,7 +126,7 @@ class FsmReachabilityLintTest(unittest.TestCase):
 
     def test_a_terminal_state_outside_states_fails(self) -> None:
         def mutate(contract):
-            family = contract["event_kind_registry"]["fsm_contracts"][AGENT_FAMILY]
+            family = contract["event_kind_registry"]["transition_contracts"][AGENT_FAMILY]
             family["terminal_states"].append("retired")
 
         errors = self._run(mutate=mutate)
@@ -149,7 +149,7 @@ class FsmReachabilityLintTest(unittest.TestCase):
 
     def test_allowed_transition_without_write_fails(self) -> None:
         def mutate(contract):
-            family = contract["event_kind_registry"]["fsm_contracts"][AGENT_FAMILY]
+            family = contract["event_kind_registry"]["transition_contracts"][AGENT_FAMILY]
             family["allowed_transitions"].append(["deactivated", "active"])
 
         errors = self._run(mutate=mutate)

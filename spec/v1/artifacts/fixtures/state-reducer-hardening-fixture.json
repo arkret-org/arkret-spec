@@ -32,21 +32,21 @@
             "event_kind": "ak.strand.update",
             "plane": "data",
             "sealed": false,
-            "lattice": "mv_register",
+            "state_model": "causal_register",
             "cell_subject_field": "payload.target_ref"
           },
           {
             "event_kind": "ak.strand.tracks.update",
             "plane": "data",
             "sealed": false,
-            "lattice": "mv_register",
+            "state_model": "causal_register",
             "cell_subject_field": "payload.target_ref"
           },
           {
             "event_kind": "ak.strand.stage.set",
             "plane": "control",
             "sealed": true,
-            "lattice": "cas_register",
+            "state_model": "causal_register",
             "cell_subject_field": "payload.strand_id"
           }
         ],

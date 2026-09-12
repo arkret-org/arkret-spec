@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-12.1",
+  "version": "2026-09-12.7",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T06:56:52+08:00",
+  "generated_at": "2026-09-12T10:03:44+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -926,7 +926,7 @@
         "payload_too_large",
         "limit_exceeded"
       ],
-      "description": "Unauthorized applicant, unknown Realm, invalid, expired or revoked invite and a join policy that does not admit the declared intent share one non-enumerating 404 not_found under a fixed timing bucket. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A missing, Bottom, non-unique or currently unverifiable accepted basis, digest suite or encryption profile is 503 frontier_unavailable and never a defaulted value. Request canonical bytes above 64 KiB are 413 payload_too_large; a closure that cannot fit the response budget is 413 limit_exceeded and is never truncated. A cell whose value-or-absence proof cannot be constructed for every basis leaf is likewise 503 frontier_unavailable and is never partially returned."
+      "description": "Unauthorized applicant, unknown Realm, invalid, expired or revoked invite and a join policy that does not admit the declared intent share one non-enumerating 404 not_found under a fixed timing bucket. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A missing, competing, unverified or currently unverifiable accepted basis, digest suite or encryption profile is 503 frontier_unavailable and never a defaulted value. Request canonical bytes above 64 KiB are 413 payload_too_large; a closure that cannot fit the response budget is 413 limit_exceeded and is never truncated. A cell whose value-or-absence proof cannot be constructed for every basis leaf is likewise 503 frontier_unavailable and is never partially returned."
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",
@@ -2110,7 +2110,7 @@
         "failed_precondition",
         "payload_too_large"
       ],
-      "description": "An account or Station that does not match the authenticated session, an unknown or hidden Realm, an invalid, expired or revoked invite credential and a join policy that does not admit the declared intent share one non-enumerating 404 not_found. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A basis, digest suite or encryption profile that cannot currently be obtained and verified is 503 frontier_unavailable and never a defaulted value. A pre-state that no longer holds under the current accepted basis is 409 failed_precondition and requires a fresh preparation, never a rewrite of already signed material. Request canonical bytes above 64 KiB are 413 payload_too_large. An actor frontier that cannot be derived, whether from lost history, a missing required predecessor, a joined Bottom pre-state or an authoring record that cannot decide the initial state, is 503 frontier_unavailable and never a defaulted seq=0."
+      "description": "An account or Station that does not match the authenticated session, an unknown or hidden Realm, an invalid, expired or revoked invite credential and a join policy that does not admit the declared intent share one non-enumerating 404 not_found. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A basis, digest suite or encryption profile that cannot currently be obtained and verified is 503 frontier_unavailable and never a defaulted value. A pre-state that no longer holds under the current accepted basis is 409 failed_precondition and requires a fresh preparation, never a rewrite of already signed material. Request canonical bytes above 64 KiB are 413 payload_too_large. An actor frontier that cannot be derived, whether from lost history, a missing required predecessor, an unverified safety pre-state or an authoring record that cannot decide the initial state, is 503 frontier_unavailable and never a defaulted seq=0."
     },
     {
       "operation_id": "ak.self.realm_join.read.application_status.v1",
@@ -2229,7 +2229,7 @@
         "state_mismatch",
         "limit_exceeded"
       ],
-      "description": "not_found hides absent membership and invisible scope/target; frontier_unavailable means accepted state or unique membership is unavailable; state_mismatch rejects a basis other than the current accepted antichain; limit_exceeded rejects body or complete result overflow."
+      "description": "not_found hides absent membership and invisible scope/target; frontier_unavailable means accepted state or unique membership is unavailable; state_mismatch rejects a basis other than the current confirmed basis with exactly one head per Realm; limit_exceeded rejects body or complete result overflow."
     },
     {
       "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
@@ -2285,7 +2285,7 @@
         "seal_signer_unauthorized",
         "state_mismatch"
       ],
-      "description": "Bounded pending Control Move discovery for the caller's own or delegated PCR. frontier_unavailable covers an unavailable or incomplete accepted basis or durable pending index; seal_signer_unauthorized covers a caller that is not the current authorized PCR signer or delegated Agent controller; state_mismatch rejects a basis other than the current accepted antichain. The read creates no cursor, ACK or preparation, and an empty result never attests that a particular Event was accepted."
+      "description": "Bounded pending Control Move discovery for the caller's own or delegated PCR. frontier_unavailable covers an unavailable or incomplete accepted basis or durable pending index; seal_signer_unauthorized covers a caller that is not the current authorized PCR signer or delegated Agent controller; state_mismatch rejects a basis other than the current confirmed basis with exactly one head per Realm. The read creates no cursor, ACK or preparation, and an empty result never attests that a particular Event was accepted."
     },
     {
       "operation_id": "ak.self.seals.read.resolve.v1",

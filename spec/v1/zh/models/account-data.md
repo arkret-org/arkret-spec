@@ -14,7 +14,7 @@ updated: 2026-07-29
 
 本文是 principal/actor-private Account Data 的存储、寻址、加密与 key 派生单一真相源。标准 data type 与产品语义仍由消费方文档定义，并登记在 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)。
 
-账户私有数据 SHOULD 作为 encrypted account data 或 actor-private Event 保存。通常只有 holder 的受信任设备有权读写；Sync / Station 只存储闭合加密 envelope 或不透明 bytes，不解析明文。唯一的例外形态是 registry 中 `storage="plaintext_account_data"` 且 `writer_authorities` 含 `station_cas` 的条目：这类 cell 由服务端在投递流程中写入（例如 `ak.account.invite_delivery`、`ak.account.holder_quarantine`），其明文内容本就是服务端基础设施已持有的材料，服务端不因此获得任何超出其既有信任域的信息；客户端 MUST 按该条目的 `plaintext_schema` 校验后再使用。`holder_event` writer 的每次 `ak.account_data.set` 是对一个 data type + key 的全量覆盖；`station_cas` 不产生、代签或合成该 Event。跨设备并发写入契约见 §5：每个 v1 key 都是 **server-versioned compare-and-set whole-value register**，merge primitive 恒为 §5.1 的 `cas_register`，不得猜测字段级 merge。
+账户私有数据 SHOULD 作为 encrypted account data 或 actor-private Event 保存。通常只有 holder 的受信任设备有权读写；Sync / Station 只存储闭合加密 envelope 或不透明 bytes，不解析明文。唯一的例外形态是 registry 中 `storage="plaintext_account_data"` 且 `writer_authorities` 含 `station_cas` 的条目：这类 cell 由服务端在投递流程中写入（例如 `ak.account.invite_delivery`、`ak.account.holder_quarantine`），其明文内容本就是服务端基础设施已持有的材料，服务端不因此获得任何超出其既有信任域的信息；客户端 MUST 按该条目的 `plaintext_schema` 校验后再使用。`holder_event` writer 的每次 `ak.account_data.set` 是对一个 data type + key 的全量覆盖；`station_cas` 不产生、代签或合成该 Event。跨设备并发写入契约见 §5：每个 v1 key 都是 **server-versioned compare-and-set whole-value register**，merge primitive 恒为 §5.1 的 `server_revision_cas`，不得猜测字段级 merge。
 
 ## 2. Namespace key 与不透明寻址（normative）
 
@@ -75,7 +75,7 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 
 ### 5.4 登记要求
 
-`account-data-key-registry.json` 的每一行 MUST 声明 `writer_authorities`、`holder_self_operations` 与 `deletion_mode`。`writer_authorities` 的 v1 闭集是 `holder_event | station_cas`；一行允许多个 authority 时必须逐项列出。`holder_self_operations` 的闭集是 `put | delete`，空数组表示规范 self PUT/DELETE 均禁止，不得从 storage 类型猜测。`station_cas` MUST 配 `storage="plaintext_account_data"`、非空 `plaintext_schema`，其 `write_event_kinds` 必须为空；`holder_event` MUST 显式列出非空 `write_event_kinds`。v1 的 merge primitive 恒为 `cas_register`。引入任何无协调 merge primitive MUST 通过 registry 版本化重新引入机读分支，并同时登记比较 transcript、tombstone 规则与 active conformance vector；MUST NOT 使用"CAS/LWW"一类不指定比较键与冲突返回的模糊表述。
+`account-data-key-registry.json` 的每一行 MUST 声明 `writer_authorities`、`holder_self_operations` 与 `deletion_mode`。`writer_authorities` 的 v1 闭集是 `holder_event | station_cas`；一行允许多个 authority 时必须逐项列出。`holder_self_operations` 的闭集是 `put | delete`，空数组表示规范 self PUT/DELETE 均禁止，不得从 storage 类型猜测。`station_cas` MUST 配 `storage="plaintext_account_data"`、非空 `plaintext_schema`，其 `write_event_kinds` 必须为空；`holder_event` MUST 显式列出非空 `write_event_kinds`。v1 的 merge primitive 恒为 `server_revision_cas`。引入任何无协调 merge primitive MUST 通过 registry 版本化重新引入机读分支，并同时登记比较 transcript、tombstone 规则与 active conformance vector；MUST NOT 使用"CAS/LWW"一类不指定比较键与冲突返回的模糊表述。
 
 可执行覆盖见 [`../conformance/conformance-vectors.md` §5.10](../conformance/conformance-vectors.md) 的 `ak.vector.account_data.cas_convergence.v1`。
 

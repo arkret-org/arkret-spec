@@ -1581,7 +1581,7 @@ def check_delegated_write_admission_envelope_lock(lint: Lint) -> None:
     from tools.event_admission_contract import schema_definitions
 
     try:
-        expected = schema_definitions(event_registry)
+        expected = schema_definitions(load_json(lint, ARTIFACTS / "registry" / "contract-registry.json")["event_kind_registry"])
     except (KeyError, ValueError) as exc:
         lint.fail(event_path, f"invalid admission projection: {exc}")
         return

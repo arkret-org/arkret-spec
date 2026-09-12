@@ -67,7 +67,8 @@
     "created_by",
     "created_at",
     "authority_binding",
-    "signature"
+    "signature",
+    "eligibility_context"
   ],
   "properties": {
     "id": {
@@ -343,6 +344,35 @@
       "x-canonical-bytes-exclude": [
         "signature"
       ]
+    },
+    "eligibility_context": {
+      "type": "object",
+      "required": [
+        "authority_refs",
+        "closure_command_refs",
+        "reducer_contract_digest"
+      ],
+      "properties": {
+        "authority_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+          }
+        },
+        "closure_command_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          }
+        },
+        "reducer_contract_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact verified authority prefixes, applicable closures and canonical reducer contract. SHA-256(JCS(this object)) is every chunk eligibility_context_digest. Scope visibility is inherited from the manifest and must also agree when comparing projections."
     }
   },
   "allOf": [

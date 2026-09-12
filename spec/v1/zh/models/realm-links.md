@@ -86,7 +86,7 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 - `rejected`
 - `tombstoned`
 
-`ak.realm.link` 写入 `ak.component.realm.link.v1` cell。cell subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`lattice=fsm`、`bottom=reject`、`plane=control`、`sealed=true`。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
+`ak.realm.link` 写入 `ak.component.realm.link.v1` cell。cell subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`state_model=causal_register`、`bottom=expose`、`execution=data`；并发 status 保留多头，导航只有在唯一有效状态下投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
 
 允许的状态迁移如下；`absent` 只表示尚无 cell，不是 wire 状态：
 

@@ -295,7 +295,7 @@
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "Exact Event original producer admission time, never the local receiver acceptance time."
+          "description": "Effective time of the referenced historical authorization fact; not an Event arrival or permanent-history acceptance timestamp."
         }
       },
       "additionalProperties": false,
@@ -321,7 +321,7 @@
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "Exact Event original producer admission time, never the local receiver acceptance time."
+          "description": "Effective time of the referenced historical authorization fact; not an Event arrival or permanent-history acceptance timestamp."
         }
       },
       "additionalProperties": false,

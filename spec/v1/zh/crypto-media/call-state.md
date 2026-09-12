@@ -144,28 +144,30 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 ### 4.1 字段语义（normative）
 
-**Cell 归属（normative）**：`ak.call.state` 的各个正交轴分别写入**各自独立、各自单 lattice 的 cell**，登记在 canonical [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.call.state` `cell_writes[]` 中。一个 cell family 只有一个 `lattice` 与一个 cell 级 `bottom`（[`../authz/event-auth-state-resolution.md` §9 / §9.1.1](../authz/event-auth-state-resolution.md)），因此 v1 **不存在**"同一 cell 内 per-field 判定"或"per-field bottom"的语义：
+**Cell 归属（normative）**：每项 write 先按 canonical registry 的 `condition` 求值。只含 ready/failed 产物更新的 Event 为普通数据；只要含安全 write，整个 Event 原子等待唯一安全确认。
 
-| 承载字段 | cell family | cell_subject | lattice | bottom |
-| --- | --- | --- | --- | --- |
-| `state_transition` | `ak.component.call.state.v1` | `payload.call_id` | `fsm` | `reject` |
-| `focus` | `ak.component.call.focus.v1` | `payload.call_id` | `cas_register` | `reject` |
-| `recording_transition` | `ak.component.call.recording.v1` | composite `[payload.call_id, payload.recording_transition.recording_id]` | `fsm` | `reject` |
-| `recording_transition.result` | `ak.component.call.recording_result.v1` | 同上 | `cas_register` | `reject` |
-| `transcript_transition` | `ak.component.call.transcript.v1` | composite `[payload.call_id, payload.transcript_transition.recording_id]` | `fsm` | `reject` |
-| `transcript_transition.result` | `ak.component.call.transcript_result.v1` | 同上 | `cas_register` | `reject` |
-| `moderation_delta` | `ak.component.call.moderation.v1` | `payload.call_id` | `or_set` | `inert` |
-| `roster_delta` | `ak.component.call.roster.v1` | `payload.call_id` | `or_set` | `inert` |
-| `mute_override` | `ak.component.call.mute_override.v1` | composite `[payload.call_id, payload.mute_override.actor_id, payload.mute_override.device_id]` | `cas_register` | `reject` |
+| 承载字段 | cell family | state_model | 值形状 |
+| --- | --- | --- | --- |
+| `state_transition` | `ak.component.call.state.v1` | `sequenced_state` | 领域状态 |
+| `focus` | `ak.component.call.focus.v1` | `sequenced_state` | register |
+| `recording_transition.to=stopped` | `ak.component.call.recording.v1` | `sequenced_state` | 捕获许可状态 |
+| `recording_transition.result` | `ak.component.call.recording_result.v1` | `causal_register` | `{status,details}` |
+| `transcript_transition.to=stopped` | `ak.component.call.transcript.v1` | `sequenced_state` | 捕获许可状态 |
+| `transcript_transition.result` | `ak.component.call.transcript_result.v1` | `causal_register` | `{status,details}` |
+| `moderation_delta` | `ak.component.call.moderation.v1` | `sequenced_state` | set |
+| `roster_delta` | `ak.component.call.roster.v1` | `sequenced_state` | set |
+| `mute_override` | `ak.component.call.mute_override.v1` | `sequenced_state` | register |
+
+安全状态没有无序 Bottom join。普通结果保留 Event 身份和全部因果 heads，`bottom=expose`；result 不授予采集、密钥或读取权限。精确 subject、条件、投影由 registry 唯一派生。
 
 **未变更的轴 MUST NOT 产生 projected write（normative）**：`payload.call_id` 之外的每个 delta 字段都是可选的，单条 `ak.call.state` MUST 只携带本次实际变更的轴，并且至少携带一个 delta（schema `anyOf`）。上表每条 `cell_writes[]` 都是**条件性**目标；字段存在则对应 write 必需，字段缺席则对应 write MUST NOT 产生。`recording_transition.result` / `transcript_transition.result` 各自额外产生 result cell write。完整 op 由 registry `effect_projection` 派生，producer 不得自选 `from` / `to` / `tag` / `value`。
 
 **捕获态按段切分**：录制 / 转写 cell 的 subject 是 `(call_id, recording_id)` composite，因此同一通话的多段捕获天然落在不同 cell，互不冲突。段键选用 `payload.recording_id` 而不是 start Event 的 `event_id`：`envelope.event_id` 只在 create-once 对象的 `id:<种类>` 派生形态下可用（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），而录制段不是这样的对象——一次通话里有多段捕获，start Event 不是任何一段的身份来源；而 `recording_id` 已经是 `ak.call.recording.start` 的 required 字段、已按 §5 要求在同一通话内逐段唯一、且已是录制 / 转写 key exporter Context 的 member，因此是两侧都能派生的同一个键。`ak.call.recording.start` 按 `payload.capture_kind` 写入 `ak.component.call.recording.v1` 或 `ak.component.call.transcript.v1`，subject 为 `[payload.call_id, payload.recording_id]`；后续 `ak.call.state` 用 `recording_transition.recording_id` / `transcript_transition.recording_id` 指向同一段，其值 MUST 与该段 start event 的 `recording_id` 逐字节相同。`capture_kind` 是 required 字段，MUST NOT 由 missing-field default 推断——它决定目标 cell family。
 
-**捕获 transition 与 result 分离（normative）**：`recording_transition` / `transcript_transition` 自身 MUST 携带 `recording_id`、`from`、`to`，FSM cell 只保存生命周期 state。可选 `result` 写入独立 result CAS cell；不得把 artifact/result 私自塞进 transition op，因为 FSM join 不保存 `op.value`。`recording_start_event_id` / `transcript_start_event_id` 只作 provenance 引用。
+**捕获 transition 与 result 分离（normative）**：开始后安全状态为 capturing；停止命令只把安全状态推进到 stopped。ready/failed 结果必须从 stopped 发布并引用精确 `capture_stop_event_id`，验证 stop 所属 call、段、capture kind 和唯一确认结果。result 保存 `{status,details}`；并发不同结果保持多头供显式后继修订，不能重开捕获。start 的 pending result 与许可创建在同一原子安全命令内生效。
 
 - `focus`：是 `ak.component.call.focus.v1` 的**完整目标值**，`mode` required、`session_focus` optional。首个 committed `session_focus` 后，任何后继 `focus` 写入都 MUST 原样携带它；省略或改写均以 `session_focus_already_committed` 拒绝。`mode` 只允许按 §6 单向升级。
-- `roster_delta`：`op=join` 时 effect 固定为 `add(tag=dot,value=participant)`（`dot` 为本 write 的 canonical OR-Set dot，定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2）；`op=leave` 时固定为 `remove(tag=observed_dot)`，并携带与 observed add value 一致的 `actor_id/device_id`。未知、跨 call 或身份不匹配的 tag MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
+- `roster_delta`：`op=join` 时 effect 固定为 `add(tag=dot,value=participant)`（`dot` 为本 write 的 canonical write dot，定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2）；`op=leave` 时固定为 `remove(tag=observed_dot)`，并携带与 observed add value 一致的 `actor_id/device_id`。未知、跨 call 或身份不匹配的 tag MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
 - `roster_delta.participant` 的 durable 身份最小化：除 Realm policy 明确要求实名审计且已披露外，`actor_id` MUST 使用 call-scoped pairwise DID，`device_id` MUST 使用仅在该 call 内稳定的 typed device alias。`joined_at` 若写入 durable event MUST 向下取整到 5 分钟 bucket。
 - `roster_delta.participant.foci_preferred`：客户端本地 focus 偏好列表；后加入者不得改变已 committed `session_focus`。
 - `roster_delta.participant.participant_id`：来自 token exchange 响应的 SFU-local handle，scope 限 `(call_id, focus_id, sfu_did)`。
@@ -182,7 +184,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   当 `focus.mode ∈ {sfu, mcu}` 或已 committed `session_focus` 时，上述两个字段反而都 MUST
   出现并按本节四项校验。模式分支由包含 roster delta 的同一 accepted call-state basis
   决定，producer 不得自行声明第三个判据。
-- `mute_override`：每个 call leg 独立写入 `ak.component.call.mute_override.v1` CAS cell。`status=active` 时必须携带 `audio_muted/video_muted`；`status=cleared` 时二者必须省略。不同 leg 并发互不冲突，同一 leg 并发改写 fail closed。写入者 MUST 持有 `ak.call.moderate`。
+- `mute_override`：每个 call leg 独立写入 `ak.component.call.mute_override.v1` 安全状态 Cell。`status=active` 时必须携带 `audio_muted/video_muted`；`status=cleared` 时二者必须省略。不同 leg 并发互不冲突，同一 leg 并发改写 fail closed。写入者 MUST 持有 `ak.call.moderate`。
 - `moderation_delta.op=remove_participant`：projected write 固定为 `add(tag=dot,value=removal)`。`kick` MUST 含 `device_id`；`ban` MUST 省略它。`moderation_delta.op=restore_participant` 固定移除 `observed_dot`，且只能移除已观察到、actor 一致的 ban，不能恢复 kick。
 
 高频 speaking、自主 mute/video 状态 SHOULD 走 encrypted Signal Extension；主持人强制静音 MUST 通过 durable `mute_override` 驱动服务端媒体权限。
@@ -206,31 +208,18 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 - **终态集合**：`{ ended, missed, failed, cancelled }`。reducer MUST 拒绝从任一终态转出（单调推进），违反用 `failed_precondition` `reason="call_state_terminal"`。
 - **非法转换通用规则**：源 state 为非终态时，任何不在上表"合法后继"列内的 `state` 转换 MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`（见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；源为终态时用 `call_state_terminal`，二者不混用。
 - **同状态重放**：同一 basis 上重复提交相同 `from -> to` 转换是幂等 no-op；reducer MUST 不产生新的分叉 head，也不得把同值重放当成非法转换。
-- **并发冲突**：同一 `call_id`、同一 CBS basis 下出现两个 sibling `ak.call.state` 转换，且二者的 `to` state 不同，`fsm` join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom` / diagnostic。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest、数据库插入顺序或本地接收顺序选择 winner。冲突恢复必须由后续显式 recovery / operator action 在新的 accepted basis 上提交，不能静默回退。
+- **并发命令**：相同安全前态的竞争命令按唯一确认顺序至多一个成功。其余返回持久前置失败，不形成权限多头。
 - **终态吸收**：一旦某 accepted head 进入终态，任何后续转出都按 `call_state_terminal` 拒绝；终态不能被并发 winner 规则覆盖，因为本状态机没有 winner 规则。
 
-**超时推进（normative）**：`ring_timeout_ms` 默认且最大为 `60,000`；`scheduled_start_grace_ms` 默认且最大为 `300,000`；`connecting_timeout_ms` 默认且最大为 `120,000`。计时锚分别为进入 `ringing` 的 accepted event `created_at`、排期开始时间、进入 `connecting` 的 accepted event `created_at`。focus / token issuer（无 focus 时为 Station）MUST 在窗口到达后以当前 accepted head 为 CAS basis 提交显式状态事件：`ringing → missed`、未在 grace 内开始的 `scheduled → missed`、`connecting → failed`（`state_transition.failure_reason_code="media_negotiation_timeout"`；该成员在 `to="failed"` 时必填、其余转换禁止携带）。计时器本身不得直接改写 reducer state。若迟到的 `active` 与超时终态竞争，仍按上文 sibling conflict / `bottom=reject` 规则处理；提交方 MUST NOT 用本地到达顺序选择 winner。
+**超时推进（normative）**：`ring_timeout_ms` 默认且最大为 `60,000`；`scheduled_start_grace_ms` 默认且最大为 `300,000`；`connecting_timeout_ms` 默认且最大为 `120,000`。计时锚分别为进入 `ringing` 的 accepted event `created_at`、排期开始时间、进入 `connecting` 的 accepted event `created_at`。focus / token issuer（无 focus 时为 Station）MUST 在窗口到达后以当前 accepted head 为 CAS basis 提交显式状态事件：`ringing → missed`、未在 grace 内开始的 `scheduled → missed`、`connecting → failed`（`state_transition.failure_reason_code="media_negotiation_timeout"`；该成员在 `to="failed"` 时必填、其余转换禁止携带）。计时器本身不得直接改写 reducer state。若迟到的 `active` 与超时终态竞争，按唯一安全确认顺序及精确 revision 处理；提交方 MUST NOT 用本地到达顺序选择 winner。
 - **空 roster 终态推进**：当 focus / token issuer 观察到 active media roster 为空时，最后离开的、仍持有 `ak.call.join` 的成员 SHOULD 立即提交 `state_transition={from:"active",to:"ended"}`；focus / token issuer MUST 启动 `call_empty_timeout_ms`（默认且最大 120,000 ms），超时前 roster 仍为空时 MUST 代表该 call 提交同一显式 transition。若没有 focus（纯 P2P），承载该 Realm 的 Station MUST 以相同窗口根据 authenticated ephemeral leave / leg expiry 证据推进终态。任何新 leg 在该窗口内重新加入会取消计时；终态 accepted 后不得复活，重新加入必须创建新 `call_id`。
 
-**录制维度（与通话 state 正交，normative）**：录制只随 `ak.call.recording.start` 从空值进入 `recording`；后续 `recording_transition.to ∈ { stopped, ready, failed }`，人工停止、artifact ready 或失败通过显式 transition 推进。start event 与后续 transition 的 `result` 都写独立 result cell；`to=ready` MUST 携带有效 artifact。
+**录制维度（与通话 state 正交，normative）**：`ak.call.recording.start` 创建一段 capturing 安全状态；唯一后继是 stopped，stopped 不可转回 capturing。新段使用新的 recording_id 并重新经过许可检查。`recording_transition` / `transcript_transition` 的 wire `from/to` 按 schema 的精确分支解释，ready/failed 的 `from=stopped` 是产物 provenance 前置，不是写安全状态。
 
-#### `recording_transition` / `transcript_transition` 受控转换（normative）
-
-`recording_transition` 与 `transcript_transition` 各自绑定单段捕获，与主 `state_transition` 及彼此正交。两者同构，单段转换表如下：
-
-| 捕获态 | 语义 | 合法后继 | 终态? |
-| --- | --- | --- | --- |
-| （缺省=未捕获） | 该 `call_id` 尚无该类捕获段 | 录制为 `recording`、转写为 `transcribing`（均只能由接受 `ak.call.recording.start` 派生） | — |
-| `recording` / `transcribing` | 捕获进行中（录制轴用 `recording`，转写轴用 `transcribing`） | `stopped`、`ready`、`failed` | 否 |
-| `stopped` | 人工停止，可能无 artifact | `ready`（backend 事后产出 artifact） | **是**（除非升级为 `ready`） |
-| `ready` | artifact 已入库 | —（本段终态） | **是** |
-| `failed` | 捕获 / 入库失败 | —（本段终态） | **是** |
-
-- **终态集合**：`{ ready, failed }` 为硬终态；`stopped` 是软终态——只能向 `ready` 升级（同一 `recording_start_event_id`，backend 事后产出可用 artifact），不得转 `failed` 或回 `recording`。`ready` / `failed` 之后对同一捕获段的任何转出 MUST `failed_precondition`，`reason_code="recording_state_transition_invalid"`。
-- **非法转换**：源态为非终态时，任何不在"合法后继"列内的 `recording_transition.from -> recording_transition.to` / `transcript_transition.from -> transcript_transition.to` 转换 MUST `failed_precondition`，`reason_code="recording_state_transition_invalid"`（转写用同一 reason_code）。新一段捕获 MUST 先接受新的 `ak.call.recording.start`（新 `recording_id`，见 §5），不得在终态上原地翻回 `recording`。
-- **正交轴之间互不影响（normative）**：state、focus、每段 capture lifecycle、每段 result、moderation、roster 与每个 leg 的 mute override 分别落在不同 cell；某个 cell 的冲突不得冻结其它轴。
-- **同一轴的并发冲突**：两个并发 sibling `ak.call.state` 对**同一** cell 写入不同 `to` 值时，该 cell 的 fsm join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom`；恢复走 [`../authz/event-auth-state-resolution.md` §9.5](../authz/event-auth-state-resolution.md) 的 control cell `⊥` recovery。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest 或接收顺序选择 winner。
-- **moderation / roster 并发 join**：每个 add 使用 Event id 作为唯一 dot，remove 只引用已观察 dot。不同目标的并发 add 自然并集；remove 不能删除未观察到的并发新 dot。重复 Event id 的 add value 必须逐字节相同，否则拒绝。
+- 停止必须引用确切当前安全 revision；相同前态竞争至多一个成功，失败不改变许可。
+- ready/failed 必须引用已确认 stop，先停止捕获才发布产物。缺 stop 或属于其它段的 stop 均不生效。
+- 结果独立按 causal_register 合流；异值并发不冻结其它段或主通话状态。
+- roster/moderation 的 dots 仍按签名 observed-set 检查，但它们的增删在安全序列中原子执行；不能脱离序列释放 token 或移除访问屏障。
 
 ## 5. 录制与转写
 
@@ -258,7 +247,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 - 需要 `ak.call.record` capability。`ak.call.recording.start` 通过 **required** `capture_kind`(`recording` / `transcript`)区分录制与转写两条平行生命周期(转写见 §5.1)；它选择目标 cell family(`ak.component.call.recording.v1` / `ak.component.call.transcript.v1`)，因此 MUST 显式携带，缺失 MUST `schema_violation`，MUST NOT 由 missing-field default 推断。
 - `payload.mode` MUST 显式携带，封闭为 `audio` / `audio_video`；无缺省值，缺失 MUST `schema_violation`。
 - `payload.visible_notice` MUST 显式为 `true`；客户端 MUST 对所有参会者显示录制中。
-- `payload.result` MUST NOT 携带 `recording_start_event_id` 或 `transcript_start_event_id`：本 Event 的 ID 依赖 payload digest，写入自身 ID 会形成无解自引用。`result.retention.consent_confirmed` MUST 为 `true`，否则 reducer 在创建 capture FSM cell 前拒绝 `recording_consent_required`。Event 完成 digest / ID 校验后，reducer 按 `capture_kind` 把完整 accepted Event identity 写入对应 projected result cell；该 receiver-derived 字段不属于原 Event preimage。start event 原子写入 capture FSM 与独立 result cell，不能先进入捕获态再补交同意事实。
+- `payload.result` MUST NOT 携带 `recording_start_event_id` 或 `transcript_start_event_id`：本 Event 的 ID 依赖 payload digest，写入自身 ID 会形成无解自引用。`result.retention.consent_confirmed` MUST 为 `true`，否则 reducer 在创建 capture 领域状态 cell 前拒绝 `recording_consent_required`。Event 完成 digest / ID 校验后，reducer 按 `capture_kind` 把完整 accepted Event identity 写入对应 projected result cell；该 receiver-derived 字段不属于原 Event preimage。start event 原子写入 capture FSM 与独立 result cell，不能先进入捕获态再补交同意事实。
 - `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ak:*` typed ID；最终持久化产物仍通过 Arkret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ak.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
 - 手动停止录制不注册独立 `ak.call.recording.stop` event；holder of `ak.call.record` 通过 `ak.call.state` 写 `recording_transition={recording_id,from:"recording",to:"stopped"}`。若同时携带 `recording_transition.result`，其中的 `recording_start_event_id` 继续指向该段的 `ak.call.recording.start` 作为 provenance；该 result 写入独立 result cell，不进入 FSM transition op。`stopped` 是该录制段的终态，不要求产生 artifact；若 backend 已经产出可用 artifact，后续 MAY 以同一 `recording_start_event_id` 写 `to="ready"`，否则保持 `stopped`。
 - 同一通话允许多段录制。`ready` / `failed` / `stopped` 之后再次进入 `recording` 时，MUST 先接受新的 `ak.call.recording.start`，且新的 `recording_id` MUST 不同于该 call 任何既有 recording start 的 `recording_id`。物化投影 MAY 只展示最新捕获态，但历史段以各自 `ak.call.recording.start` 与后续 `ak.call.state` event 保持可审计。
@@ -301,7 +290,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 通话可以 P2P 起步（`mode="p2p"`），但当并发参与者人数 **> 2** 时 MUST 从 P2P 收敛到 SFU。
 
-**并发升级收敛性（normative）**：分布式下各设备对"将达 3 人"的本地观测可能不同步，因而多台设备可能并发发起升级。这**不**产生 split-brain：升级 MUST 复用 [`media-service-binding.md` §5](./media-service-binding.md) 的 deterministic, no-vote focus 选举（由 oldest_membership 的 `foci_preferred[0]` 确定性选出 `session_focus`），且 `session_focus` 为 write-once（本文 §6 第 5 条 / §4.1，由 `ak.component.call.focus.v1` 的 `cas_register` CAS precondition 表达），任意子集设备并发发起的升级最终都被同一 `session_focus` 值吸收——首个被接受的 CAS 写入定锚，其余并发 CAS 收敛到同值或以 `session_focus_already_committed` 失败。因此并发升级收敛到同一 SFU focus，不依赖各设备观测同步，也不引入投票或 leader 选举。
+**并发升级收敛性（normative）**：分布式下各设备对"将达 3 人"的本地观测可能不同步，因而多台设备可能并发发起升级。这**不**产生 split-brain：升级 MUST 复用 [`media-service-binding.md` §5](./media-service-binding.md) 的 deterministic, no-vote focus 选举（由 oldest_membership 的 `foci_preferred[0]` 确定性选出 `session_focus`），且 `session_focus` 为 write-once（本文 §6 第 5 条 / §4.1，由 `ak.component.call.focus.v1` 的 `sequenced_state` CAS precondition 表达），任意子集设备并发发起的升级最终都被同一 `session_focus` 值吸收——首个被接受的 CAS 写入定锚，其余并发 CAS 收敛到同值或以 `session_focus_already_committed` 失败。因此并发升级收敛到同一 SFU focus，不依赖各设备观测同步，也不引入投票或 leader 选举。
 
 触发与协商规则:
 
@@ -339,9 +328,9 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 }
 ```
 
-- `ak.call.summary` 写入 `ak.component.call.summary.v1` cell,`cell_subject = payload.call_id`,lattice 为 `cas_register`、`bottom=reject`(write-once;divergent 重写 MUST `call_summary_invalid`)。
-- `final_state` MUST 是某终态，且该 `call_id` 的 `ak:cell:ak.component.call.state.v1:<call_id>` MUST 已存在终态 head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。该前置只看 `state` 轴 cell——某段捕获 cell 处于 `⊥` 或未终结 MUST NOT 阻止 summary 写入。
-- `recording_state` / `transcript_state` 是终态时刻从各捕获段 cell（`ak.component.call.recording.v1` / `ak.component.call.transcript.v1`）镜像的**投影字段**；缺省表示未录制 / 未转写。通话可有多段捕获，因此这两个字段只是给 UI 的摘要投影，MUST NOT 被用作授权判据或任何状态派生输入——需要逐段真相时 MUST 读对应段的 capture cell。多段并存时该投影取哪一段由实现选择且 MUST NOT 进入 conformance 断言。
+- `ak.call.summary` 写入 `ak.component.call.summary.v1`，`cell_subject = payload.call_id`，采用 `execution=data`、`state_model=causal_register`。它无需新 Seal；并发摘要保留全部身份，有权后继可以观察并覆盖有关 heads。摘要不授予通话、捕获或密钥访问权限。
+- `final_state` MUST 是某终态，且该 `call_id` 的 `ak:cell:ak.component.call.state.v1:<call_id>` MUST 已存在终态 head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。该前置只看 `state` 轴 cell——某段捕获结果尚未收敛或捕获未终结 MUST NOT 阻止 summary 写入。
+- `recording_state` / `transcript_state` 是终态时刻从各捕获段 cell（`ak.component.call.recording_result.v1` / `ak.component.call.transcript_result.v1`）镜像的**投影字段**；缺省表示未录制 / 未转写。通话可有多段捕获，因此这两个字段只是给 UI 的摘要投影，MUST NOT 被用作授权判据或任何状态派生输入——需要逐段真相时 MUST 读对应段的 capture cell。多段并存时该字段是 producer 签署的摘要声明；接收站不得自行选择不同段重写持久值。显示逐段状态时读取相同资格上下文内的完整结果集合。
 
 **字段必填 / nullable 语义（normative）**:`ak.call.summary` payload 字段约束如下，reducer / consumer MUST 按此校验，不一致 `schema_violation`:
 

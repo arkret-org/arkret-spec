@@ -28,7 +28,7 @@
         "active may transition to suspended or revoked",
         "suspended may transition to active or revoked",
         "revoked is terminal",
-        "same-basis conflicting target states produce Bottom"
+        "competing commands from the same relevant revision have at most one committed outcome"
       ]
     },
     {
@@ -79,10 +79,10 @@
       "vector_id": "ak.vector.audit.close_release_concurrency.v1",
       "runner": "cotest::conformance::audit_release::run_close_release_concurrency_vector",
       "assertions": [
-        "same-basis close wins and the competing release is rejected",
+        "confirmed close rejects later release; prior release stales a close authored against the previous release log revision",
         "a release accepted in an earlier Seal must appear in close release_refs",
         "release after close is rejected",
-        "release order is Seal coverage then event_digest byte order"
+        "release order is confirmed Seal sequence then command_results position"
       ]
     },
     {

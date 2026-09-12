@@ -52,16 +52,16 @@ tuple/hash subject 不可逆，服务器必须在接纳 writer 时同事务保�
 
 `result` 的唯一分支：
 
-- `status=value, value`：CAS/FSM 的服务器已裁决值，或 OR-set 完整已 join 的元素值集合。空集合与显式
+- `status=value, value`：sequenced_state 的已确认值，或 OR-set 完整已 join 的元素值集合。空集合与显式
   null 依 family 类型表示真实结果，不表示缺响应；不携 dots，不要求客户端 join。
-  从未写入的 CAS/FSM cell 可由服务器确认 null，OR-set 可确认空数组，不得为补基线伪造 Genesis Event。
-- `status=heads, heads[{event_id,value}]`：MV register 的完整非空当前 head 集，按 EventId 解码 token
+  从未写入的 sequenced_state cell 可由服务器确认 null，OR-set 可确认空数组，不得为补基线伪造 Genesis Event。
+- `status=heads, heads[{event_id,value}]`：causal_register 的完整非空当前 head 集，按 EventId 解码 token
   无符号字节升序、身份无重复。每个 value 是该 source write 对应的完整物化 head，不是 update payload
   或 patch；多个 head 都保留。服务器不能按最大时间、到达顺序或任意挑一个 head 代替并发结果。
 - `status=removed`：该 selector 在本次读取视图中已不存在或不再可见的版本化移除。它只删除当前结果，
   不删除 timeline 历史，不自动解释为成员 leave、对象业务 tombstone 或 MLS Remove。
 - `status=unavailable, reason`：reason 闭合为 bottom/limit_exceeded。
-  不可用不是空值或删除。MV 多头不是 Bottom；CAS/FSM 未裁决冲突不得作为已确定 value 安装。
+  不可用不是空值或删除。普通多头由 heads 分支完整返回；安全状态缺确认材料时不得安装猜测值。
 
 Strand/Space/Morph/Relation/Profile/Circle 的当前对象值使用注册的具体对象 schema 派生完整 head 类型，
 保留 create-derived id 和本 cell 全部已物化字段；registry 明确排除由独立 lifecycle、stage、parent、
@@ -73,14 +73,14 @@ create-locked 属性提供完整来源。genesis 中的初始 notary/reducer/dig
 分别由 notary、realm.reducer_profile、realm.digest_suite cell 决定，禁止用旧初始值覆盖它们。
 MLS epoch cell 复用唯一 MlsEpochHead；Genesis 仅允许 `(0,0)`，普通推进必须 `n→n+1`，无 nullable 第二类型。
 
-### 2.1 OR-set 领域当前投影
+### 2.1 集合领域当前投影
 
 remove_observed/remove_dots 是服务器操作，绝不进入 current 值。某些领域把 remove 作为 add 断言保留在
 审计 cell；它们不能作为活跃条目发送给客户端再求领域默认视图。registry 的 domain_current 分支明确为：
 
 - agent.key：服务器执行 key-management 的完整有效授权 fold，active 结果返回精确 method、public-key
   digest、accountability、scope/audience 交集、最早有限 expiry 和全部活跃 authorization Event refs。
-  method/accountability 等不可合并事实冲突时 unavailable/bottom；无授权、已撤销、到期或父 lifecycle
+  method/accountability 等安全事实缺少可验证确认状态时 unavailable；无授权、已撤销、到期或父 lifecycle
   不活跃或 scope/actions/resources/audience 交集为空使用 closed inactive reason（empty_scope）。revoke transition marker 不是 active authorization，不交客户端 fold。
 - pin：pins 为服务器按 pins.md 已完成因果 heads、remove 和 reorder-note 继承判定的完整 active Pin
   payload；source_event_ids 列出组成此结果的真实 add/reorder 来源，供 encrypted note 的 exact读取与
@@ -157,7 +157,7 @@ publisher 必须在验证完整 accepted 状态后发布已确认空值；数据
 ## 5. 预算与失败
 
 每 current.entries 最多100项，受 account frame 8 MiB canonical /16 MiB wire 和 round 16 MiB/16 frames
-总预算共同约束。分页只能在完整 selector 之间切分，不能把一半 MV heads 作为全部当前头安装。
+总预算共同约束。分页只能在完整 selector 之间切分，不能把一半 因果 heads 作为全部当前头安装。
 固定 `MAX_ATOMIC_CURRENT_ENTRY_CANONICAL_BYTES = 7 MiB (7,340,032 bytes)`，计数对象为完整
 CurrentResultEntry 的 RFC 8785 UTF-8 字节，包括 selector、target、revision 和完整 result/head 封装。
 producer、持久索引和 receiver MUST 使用同一固定上限；它不随 coverage、调用方或当前帧余量改变。
@@ -178,7 +178,7 @@ Unicode code point，JCS 每个 code point 保守按最多6 bytes计（包含 JS
 直接当UTF-8字节上限。`tools/test_current_result_budget.py` 的冻结向量验证此上界、临界值与
 不同合法 coverage 下相同 entry 字节不变；schema 边界变化 MUST 同时更新并重新证明此预算。
 
-最大合法 Event 不等于所有 head 合集都可装入一帧。Bottom 同样是该 revision 的固定裁决结果；这些结果可以记录 seen，
+最大合法 Event 不等于所有 head 合集都可装入一帧。普通单值消费无法消解的冲突同样绑定该查询 revision；这些结果可以记录 seen，
 但不能解除依赖有效值的操作 pending。它们与同 revision 的 value 不得互换。暂时读取或服务失败使用
 既有 Realm unavailable，不产生、安装或记录 seen 的 selector 结果，也不能声明 baseline complete。
 Realm 整体当前权威结果不可计算时使用既有 `realms[id].unavailable`，不能伪造完整空基线。

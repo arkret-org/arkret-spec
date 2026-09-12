@@ -1255,7 +1255,7 @@
       "name": "rsvp_effective_projection_causal_successor_dominates",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
       "precondition": "the same responder rewrites an earlier RSVP while observing it",
-      "action": "join the mv_register cell in either arrival order",
+      "action": "join the causal_register cell in either arrival order",
       "semantic_outcome": "accept",
       "expected_projection": "one head remains and the result is independent of arrival order, HLC, created_at and event_id"
     },

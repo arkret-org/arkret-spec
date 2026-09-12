@@ -2174,18 +2174,40 @@ def check_cbs_seal_canonical_fixture(lint: Lint) -> None:
     seal_id = "ak:seal:" + digest
     if expected.get("id") != seal_id:
         lint.fail(path, f"Seal canonical vector id must be {seal_id}")
-    if expected.get("notary_signature_payload_digest") != digest:
-        lint.fail(path, f"Seal canonical vector signature payload digest must be {digest}")
+    certificate = vector.get("certificate", {})
+    transcript = {
+        "context": "ak.seal.commit.v1", "seal_digest": digest,
+        "configuration_ref": body.get("configuration_ref"),
+        "notary_seq": body.get("notary_seq"), "view": certificate.get("view"),
+    }
+    transcript_bytes = canonical_json(transcript).encode("utf-8")
+    payload_digest = "sha256:" + hashlib.sha256(transcript_bytes).hexdigest()
+    if vector.get("commit_transcript") != transcript:
+        lint.fail(path, "Seal commit transcript does not bind its exact body and view")
+    if expected.get("notary_signature_payload_digest") != payload_digest:
+        lint.fail(path, f"Seal signature payload digest must be {payload_digest}")
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+        key = vector["test_key"]
+        public_key = Ed25519PublicKey.from_public_bytes(base64.urlsafe_b64decode(key["public_key"] + "="))
+        for signature in certificate["signatures"]:
+            protected, detached, encoded_signature = signature["jws"].split(".")
+            header = json.loads(base64.urlsafe_b64decode(protected + "=" * (-len(protected) % 4)))
+            if detached or header != {"alg": "Ed25519", "kid": key["kid"]}:
+                raise ValueError("wrong protected header or non-detached payload")
+            if signature["verification_method"] != key["kid"] or signature["payload_digest"] != payload_digest:
+                raise ValueError("wrong signer or transcript digest")
+            payload = base64.urlsafe_b64encode(transcript_bytes).rstrip(b"=").decode("ascii")
+            public_key.verify(base64.urlsafe_b64decode(encoded_signature + "=" * (-len(encoded_signature) % 4)),
+                              (protected + "." + payload).encode("ascii"))
+    except Exception as exc:
+        lint.fail(path, f"Seal certificate KAT signature verification failed: {exc}")
     if expected.get("valid_result") != "accept":
         lint.fail(path, "Seal canonical positive vector must expect accept")
 
     schema_instance = copy.deepcopy(body)
     schema_instance["id"] = seal_id
-    schema_instance["notary_signature"] = {
-        "verification_method": "did:key:z6MkCbsFixtureNotary#notary-1",
-        "payload_digest": digest,
-        "jws": "eyJhbGciOiJFZERTQSJ9..AA",
-    }
+    schema_instance["notary_signature"] = certificate
     check_json_instance_against_schema(
         lint,
         path,
@@ -3775,8 +3797,8 @@ def check_reducer_profile_registry(lint: Lint) -> None:
             lint.fail(registry_path, f"{profile_id} status must be active")
         if not isinstance(row.get("governs"), list) or not row["governs"]:
             lint.fail(registry_path, f"{profile_id} must declare governs[]")
-        if not isinstance(row.get("supported_lattices"), list) or not row["supported_lattices"]:
-            lint.fail(registry_path, f"{profile_id} must declare supported_lattices[]")
+        if not isinstance(row.get("supported_state_models"), list) or not row["supported_state_models"]:
+            lint.fail(registry_path, f"{profile_id} must declare supported_state_models[]")
         edges = row.get("upgrade_edges")
         if not isinstance(edges, list):
             lint.fail(registry_path, f"{profile_id}.upgrade_edges must be an array")
@@ -3916,10 +3938,10 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
         "genesis_base_equals_target",
         "successor_base_equals_target",
         "strict_descendant",
-        "open_set_multi_leaf",
+        "confirmed_prefix_two_steps",
     }
     if not isinstance(cases, list) or {row.get("name") for row in cases if isinstance(row, dict)} != expected_names:
-        lint.fail(path, "MLS governance fixture must cover equal, descendant and open-set antichain cases")
+        lint.fail(path, "MLS governance fixture must cover equal, descendant and multi-step confirmed-prefix cases")
         return
     for index, row in enumerate(cases):
         if not isinstance(row, dict):
@@ -3972,7 +3994,7 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
         "successor_without_base_group_state_ref",
         "concurrent_unreachable_basis",
         "response_exceeds_byte_limit",
-        "single_head_substitutes_open_set",
+        "multiple_same_realm_heads",
         "multi_leaf_missing_branch",
         "multi_leaf_duplicate_branch",
         "multi_leaf_cross_root_witness",
@@ -4337,12 +4359,12 @@ def check_history_scale_fixture(lint: Lint) -> None:
             if rotate.get("preconditions") != expected_precondition:
                 lint.fail(path, "RHRK rotate must carry the exact whole-value signed head_eq")
             # event-auth-state-resolution.md section 9.3.1.4 deleted the rule that
-            # copied a Move's head_eq into `op.from`, so a projected cas_register
+            # copied a Move's head_eq into `op.from`, so a projected sequenced_state
             # set MUST NOT carry a predecessor value at all. Causality travels as
             # the head identities the Seal admission path derives from the Move's
             # own signed basis. The signed business head_eq above is unaffected.
             if not isinstance(projected_op, dict) or "from" in projected_op:
-                lint.fail(path, "a projected cas_register set MUST NOT carry op.from")
+                lint.fail(path, "a projected sequenced_state set MUST NOT carry op.from")
             seal_ref_value = (
                 seal.get("seal_id") if isinstance(seal, dict) else None
             )
@@ -4362,8 +4384,8 @@ def check_history_scale_fixture(lint: Lint) -> None:
             if isinstance(row, dict)
         }
         if concurrency_names != {
-            "same_seal_sibling_is_rejected_before_join",
-            "incomparable_accepted_branches_join_bottom",
+            "same_seal_stale_revision_has_rejected_outcome",
+            "conflicting_confirmed_security_values_halt_domain",
         }:
             lint.fail(path, "RHRK CAS concurrency cases are incomplete")
 

@@ -229,24 +229,30 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
         "purpose": "collaboration",
         "genesis_salt": "EjRWeJCrze8SNFZ4kKvN7xI0VniQq83vEjRWeJCrze8",
         "trust_domain": "ak:trust_domain:did.webvh.defense.example",
-        "schema_refs": ["ak.schema.realm.v1"],
+        "schema_refs": [
+          "ak.schema.realm.v1"
+        ],
         "reducer_profile": "ak.reducer.core.v1",
         "digest_algorithm": "sha256",
         "security_class": "high_assurance",
         "encryption_profile": "mls_rfc9420",
         "notary": {
-          "kind": "single_signer",
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL"
-            },
-            "verification_method": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example#notary-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-          }
+          "kind": "quorum",
+          "signers": [
+            {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL"
+              },
+              "verification_method": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example#notary-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+            }
+          ],
+          "fault_tolerance": 0,
+          "max_clock_error_ms": 1000
         }
       }
     }
@@ -269,18 +275,25 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
   },
   {
     "kind": "ak.realm.join_rule",
-    "payload": {"value": "restricted"}
+    "payload": {
+      "value": "restricted"
+    }
   },
   {
     "kind": "ak.realm.history_access",
-    "payload": {"from": null, "to": "since_join"}
+    "payload": {
+      "from": null,
+      "to": "since_join"
+    }
   },
   {
     "kind": "ak.realm.discovery",
     "payload": {
       "value": {
         "discoverability": "unlisted",
-        "directory_visibility": {"public_directory": false}
+        "directory_visibility": {
+          "public_directory": false
+        }
       }
     }
   },
@@ -301,7 +314,7 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 ]
 ```
 
-示例选择 **`notary.kind=single_signer`**，但 sovereign deployment profile 本身不替 Realm 选择 notary。每个 Realm create 冻结完整 ActorId、DID URL verification method、exact key bytes/digest 与 JOSE 算法；后续 Seal 始终按 predecessor-state frozen descriptor 验签，不依赖 current DID 解析。Station 可托管 signer 所属主体，但 hosting service DID 不因此成为 notary wire identity（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。DataEvent 仍按签名、`seal_ref`、capability 与 Lattice/CRDT 本地接受；membership、policy、capability、notary、lifecycle、MLS epoch 等 Control Move 必须被当前 notary 的 Seal 覆盖后才 `sealed`。组织间共享 Realm MAY 独立选择 `notary.kind=threshold|mixed`；notary 变更是 Control Move，由旧控制面 basis 授权并由后续 Seal finality。`federation_policy` 只由 `ak.realm.policy_bundle` 承载，与 notary kind 正交。
+示例采用 f=0 quorum，配置在 create 显式冻结。跨组织 Realm 可配置 n=3f+1 的独立 voter；变更经过旧配置确认的 handoff。普通 Event 按已验证缓存授权接纳，安全命令按唯一序列生效，federation_policy 与 notary 配置正交。
 
 推荐 policy：
 

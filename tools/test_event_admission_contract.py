@@ -68,7 +68,7 @@ class EventAdmissionContractTest(unittest.TestCase):
         history = copy.deepcopy(definitions["shared_history_event"])
         history["allOf"].pop(0)  # Selector test only; complete Events are tested below.
         validator = Draft202012Validator(history)
-        classes = self.canonical["history_admission_contract"]["without_station_admission"]["selected_native_admission"]["admission_classes"]
+        classes = self.canonical["history_admission_contract"]["native_admission_classes"]
         covered = set()
         for row in self.canonical["event_kinds"]:
             if row.get("wire_scope") != "durable_event":
@@ -117,22 +117,20 @@ class EventAdmissionContractTest(unittest.TestCase):
             validator = Draft202012Validator({"$ref": schema_ref}, registry=self.resources)
             self.assertEqual(validator.is_valid(instance), case["expect_valid"], case["name"])
             tested += 1
-        self.assertGreaterEqual(tested, 18)
+        self.assertGreaterEqual(tested, 14)
 
-    def test_control_finality_ignores_current_receiver_state_and_origin_proof(self):
-        contract = self.canonical["history_admission_contract"]["control_history_evaluation"]
-        for rule in contract["rules"]:
-            self.assertLessEqual(set(rule["when"]), set(contract["allowed_inputs"]))
-            self.assertFalse(set(rule["when"]) & set(contract["forbidden_inputs"]))
-        for case in read("fixtures/station-admission-fixture.json")["control_finality_cases"]:
-            for barrier, origin in itertools.product([False, True], repeat=2):
-                state = dict(case, receiver_current_barrier=barrier, origin_admission_proof_present=origin)
-                matches = [r["result"] for r in contract["rules"] if all(state[k] == v for k, v in r["when"].items())]
-                self.assertEqual(matches, [case["expected"]], case["name"])
+    def test_history_contract_excludes_receiver_order_and_receipt_authority(self):
+        contract = self.canonical["history_admission_contract"]
+        self.assertFalse(contract["receipt_authorizes_event"])
+        self.assertFalse(contract["ordinary_event"]["requires_origin_signature"])
+        self.assertFalse(contract["ordinary_event"]["requires_new_seal"])
+        self.assertIn("receiver_arrival_order", contract["history_forbidden_inputs"])
+        self.assertIn("receiver_current_wall_clock", contract["history_forbidden_inputs"])
+        self.assertEqual(contract["security_event"]["finality"], "unique_scoped_seal_decision")
 
     def test_native_history_cannot_omit_original_signer_evidence(self):
         case = next(c for c in read("fixtures/schema-validation-fixture.json")["schema_validation_cases"]
-                    if c["name"] == "shared_history_policy_recovery_without_station_admission_shape_valid")
+                    if c["name"] == "shared_history_policy_recovery_producer_only_shape_valid")
         event = copy.deepcopy(case["instance"])
         del event["proofs"][0]["signer_resolution_evidence_ref"]
         validator = Draft202012Validator(
@@ -142,7 +140,7 @@ class EventAdmissionContractTest(unittest.TestCase):
 
     def test_capability_class_cannot_be_added_to_native_exceptions(self):
         registry = copy.deepcopy(self.canonical)
-        registry["history_admission_contract"]["without_station_admission"]["selected_native_admission"]["admission_classes"].append("capability_gated")
+        registry["history_admission_contract"]["native_admission_classes"].append("capability_gated")
         with self.assertRaises(ValueError):
             schema_definitions(registry)
 

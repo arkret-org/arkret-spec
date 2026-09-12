@@ -849,7 +849,11 @@
         "authorized_generation_ref": 1,
         "device_status": "active",
         "attested_at": "2026-08-31T00:00:00.000Z",
-        "expires_at": "2026-08-31T01:00:00.000Z"
+        "expires_at": "2026-08-31T01:00:00.000Z",
+        "authorization_window": {
+          "not_before": "2026-08-31T00:00:00.000Z",
+          "expires_at": null
+        }
       }
     },
     {
@@ -866,7 +870,11 @@
         "attested_at": "2026-08-31T00:00:00.000Z",
         "expires_at": "2026-08-31T01:00:00.000Z",
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "station_id": "ak:did_core:web:ps.example"
+        "station_id": "ak:did_core:web:ps.example",
+        "authorization_window": {
+          "not_before": "2026-08-31T00:00:00.000Z",
+          "expires_at": null
+        }
       },
       "first_expected_error": "contains:'account_id' is a required property"
     },
@@ -1032,18 +1040,22 @@
         "security_class": "high_assurance",
         "encryption_profile": "mls_rfc9420",
         "notary": {
-          "kind": "single_signer",
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
-            },
-            "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-          }
+          "kind": "quorum",
+          "signers": [
+            {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
+              },
+              "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+            }
+          ],
+          "fault_tolerance": 0,
+          "max_clock_error_ms": 1000
         },
         "founding_device_descriptor": {
           "descriptor_version": 1,
@@ -1648,18 +1660,22 @@
         "encryption_profile": "mls_rfc9420",
         "content_scheme": "mls_rfc9420",
         "notary": {
-          "kind": "single_signer",
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample"
-            },
-            "verification_method": "did:webvh:z6mkfixturenotaryacmeexample:acme.example#key-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-          }
+          "kind": "quorum",
+          "signers": [
+            {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample"
+              },
+              "verification_method": "did:webvh:z6mkfixturenotaryacmeexample:acme.example#key-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+            }
+          ],
+          "fault_tolerance": 0,
+          "max_clock_error_ms": 1000
         },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
@@ -1691,18 +1707,22 @@
         "encryption_profile": "mls_rfc9420",
         "content_scheme": "mls_rfc9420",
         "notary": {
-          "kind": "single_signer",
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:webvh:z6mkfixture"
-            },
-            "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-          }
+          "kind": "quorum",
+          "signers": [
+            {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixture"
+              },
+              "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+            }
+          ],
+          "fault_tolerance": 0,
+          "max_clock_error_ms": 1000
         },
         "fields": {
           "purpose": "principal_control"
@@ -1738,18 +1758,22 @@
         "history_access": "since_join",
         "encryption_profile": "none",
         "notary": {
-          "kind": "single_signer",
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:webvh:z6mkfixture"
-            },
-            "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-          }
+          "kind": "quorum",
+          "signers": [
+            {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixture"
+              },
+              "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+            }
+          ],
+          "fault_tolerance": 0,
+          "max_clock_error_ms": 1000
         },
         "fields": {
           "purpose": "principal_control"
@@ -1836,18 +1860,22 @@
         "encryption_profile": "mls_rfc9420",
         "content_scheme": "mls_rfc9420",
         "notary": {
-          "kind": "single_signer",
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample"
-            },
-            "verification_method": "did:webvh:z6mkfixturenotaryacmeexample:acme.example#key-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-          }
+          "kind": "quorum",
+          "signers": [
+            {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample"
+              },
+              "verification_method": "did:webvh:z6mkfixturenotaryacmeexample:acme.example#key-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+            }
+          ],
+          "fault_tolerance": 0,
+          "max_clock_error_ms": 1000
         },
         "created_at": "2026-04-26T00:00:00.000Z",
         "alias": "general:acme.example"
@@ -1881,18 +1909,22 @@
         "encryption_profile": "mls_rfc9420",
         "content_scheme": "mls_rfc9420",
         "notary": {
-          "kind": "single_signer",
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
-            },
-            "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-          }
+          "kind": "quorum",
+          "signers": [
+            {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
+              },
+              "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+            }
+          ],
+          "fault_tolerance": 0,
+          "max_clock_error_ms": 1000
         },
         "fields": {
           "purpose": "agent_control"
@@ -2041,27 +2073,49 @@
         "preconditions": [],
         "payload": {
           "schema": "ak.schema.erasure_receipt.v1",
-          "receipt_id": "ak:receipt:019a6aa0-0200-7000-8000-000000000000",
-          "transaction_id": "ak:transaction:019a6aa0-0000-7000-8000-0000000000dd",
-          "issuer_id": "ak:did_core:webvh:z6mkfixtureerasureexample",
+          "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000030",
+          "trigger": {
+            "kind": "account_status_record",
+            "account_status_record_id": "ak:account_status_record:AUPhm9XGSn2ah7YYExswNu0yaccqupAufE2bFvqEoD5N"
+          },
+          "issuer_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
           "subject": {
             "kind": "principal",
-            "subject_ref": "did:webvh:z6mkfixture:alice.example"
+            "subject_ref": "ak:did_core:webvh:z6mkfixtureerasedaccountexample"
           },
           "scope": {
             "storage_boundary": "account_private_store"
           },
           "outcome": "completed",
           "erased_classes": [
-            "account_private_state"
+            "account_private_state",
+            "push_routes"
           ],
-          "retained_stub_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "completed_at": "2026-05-20T00:00:00.000Z",
+          "retained_stub_digest": "sha256:aa67f34cd4e055246b8a73abe15734c39945b5c0e2e5693c00cada4e13d93e59",
+          "retained_stub": {
+            "stub_schema": "ak.schema.erasure_verification_stub.v1",
+            "subject": {
+              "kind": "principal",
+              "subject_ref": "ak:did_core:webvh:z6mkfixtureerasedaccountexample"
+            },
+            "scope": {
+              "storage_boundary": "account_private_store"
+            },
+            "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000030",
+            "trigger": {
+              "kind": "account_status_record",
+              "account_status_record_id": "ak:account_status_record:AUPhm9XGSn2ah7YYExswNu0yaccqupAufE2bFvqEoD5N"
+            },
+            "completed_at": "2026-08-02T00:10:00.000Z"
+          },
+          "legal_hold_ref": null,
+          "completed_at": "2026-08-02T00:10:00.000Z",
+          "issued_at": "2026-08-02T00:10:00.000Z",
           "proofs": [
             {
-              "verification_method": "did:webvh:z6mkfixtureerasureexample:erasure.example#key-1",
-              "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-              "signature": "base64url-signature"
+              "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
+              "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "signature": "receipt-signature-base64url-placeholder"
             }
           ]
         },
@@ -2074,7 +2128,12 @@
             "jws": "a..b",
             "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
-        ]
+        ],
+        "seal_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        }
       }
     },
     {
@@ -2125,18 +2184,22 @@
             "security_class": "high_assurance",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "single_signer",
-              "signer": {
-                "actor_id": {
-                  "kind": "service",
-                  "service_id": "ak:did_core:webvh:z6mkfixture"
-                },
-                "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-                "key_kind": "ed25519_raw32",
-                "jose_algorithm": "Ed25519",
-                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-              }
+              "kind": "quorum",
+              "signers": [
+                {
+                  "actor_id": {
+                    "kind": "service",
+                    "service_id": "ak:did_core:webvh:z6mkfixture"
+                  },
+                  "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+                  "key_kind": "ed25519_raw32",
+                  "jose_algorithm": "Ed25519",
+                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+                }
+              ],
+              "fault_tolerance": 0,
+              "max_clock_error_ms": 1000
             },
             "founding_device_descriptor": {
               "descriptor_version": 1,
@@ -2214,18 +2277,22 @@
             "security_class": "high_assurance",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "single_signer",
-              "signer": {
-                "actor_id": {
-                  "kind": "service",
-                  "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
-                },
-                "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
-                "key_kind": "ed25519_raw32",
-                "jose_algorithm": "Ed25519",
-                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-              }
+              "kind": "quorum",
+              "signers": [
+                {
+                  "actor_id": {
+                    "kind": "service",
+                    "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
+                  },
+                  "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
+                  "key_kind": "ed25519_raw32",
+                  "jose_algorithm": "Ed25519",
+                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+                }
+              ],
+              "fault_tolerance": 0,
+              "max_clock_error_ms": 1000
             }
           }
         },
@@ -2289,18 +2356,22 @@
             "security_class": "high_assurance",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "single_signer",
-              "signer": {
-                "actor_id": {
-                  "kind": "service",
-                  "service_id": "ak:did_core:webvh:z6mkfixture"
-                },
-                "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-                "key_kind": "ed25519_raw32",
-                "jose_algorithm": "Ed25519",
-                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-              }
+              "kind": "quorum",
+              "signers": [
+                {
+                  "actor_id": {
+                    "kind": "service",
+                    "service_id": "ak:did_core:webvh:z6mkfixture"
+                  },
+                  "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+                  "key_kind": "ed25519_raw32",
+                  "jose_algorithm": "Ed25519",
+                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+                }
+              ],
+              "fault_tolerance": 0,
+              "max_clock_error_ms": 1000
             },
             "founding_device_descriptor": {
               "descriptor_version": 1,
@@ -2371,18 +2442,22 @@
             "security_class": "standard",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "single_signer",
-              "signer": {
-                "actor_id": {
-                  "kind": "service",
-                  "service_id": "ak:did_core:webvh:z6mkfixture"
-                },
-                "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-                "key_kind": "ed25519_raw32",
-                "jose_algorithm": "Ed25519",
-                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-              }
+              "kind": "quorum",
+              "signers": [
+                {
+                  "actor_id": {
+                    "kind": "service",
+                    "service_id": "ak:did_core:webvh:z6mkfixture"
+                  },
+                  "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+                  "key_kind": "ed25519_raw32",
+                  "jose_algorithm": "Ed25519",
+                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+                }
+              ],
+              "fault_tolerance": 0,
+              "max_clock_error_ms": 1000
             }
           }
         },
@@ -2657,16 +2732,32 @@
         ],
         "control_event_set_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "completeness_root": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         "notary_seq": 1,
         "notary_signature": {
-          "verification_method": "did:webvh:z6mkfixturenotaryexample:notary.example#key-1",
-          "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-          "jws": "a..b"
+          "kind": "multi_sig",
+          "view": 0,
+          "signatures": [
+            {
+              "verification_method": "did:webvh:z6mkfixturenotaryexample:notary.example#key-1",
+              "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "jws": "a..b"
+            }
+          ]
         },
         "sealed_at": "2026-05-20T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
-        "availability_receipt_digests": []
+        "availability_receipt_digests": [],
+        "configuration_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+        "command_results": [
+          {
+            "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "outcome": "committed",
+            "result_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "unit_event_digests": [
+              "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            ]
+          }
+        ]
       }
     },
     {
@@ -3026,20 +3117,26 @@
             "kind": "cell",
             "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
             "state": {
-              "heads": [
-                {
-                  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-                  "value": null
-                }
-              ]
-            }
+              "revision_event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+              "value": null
+            },
+            "state_model": "sequenced_state"
           },
           {
             "kind": "cell",
             "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
             "state": {
-              "value": "archived"
-            }
+              "heads": [
+                {
+                  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                  "value": "archived"
+                }
+              ],
+              "covered_event_ids": [
+                "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
+              ]
+            },
+            "state_model": "causal_register"
           }
         ],
         "conflict_records": [
@@ -3050,7 +3147,12 @@
         ],
         "soft_failed": [],
         "quarantined": [],
-        "erasure_stubs": []
+        "erasure_stubs": [],
+        "eligibility_context_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "replay_events": [],
+        "replay_authority_refs": [
+          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ]
       }
     },
     {
@@ -3074,13 +3176,19 @@
               "value": {
                 "schema": "ak.schema.strand.v1"
               }
-            }
+            },
+            "state_model": "causal_register"
           }
         ],
         "conflict_records": [],
         "soft_failed": [],
         "quarantined": [],
-        "erasure_stubs": []
+        "erasure_stubs": [],
+        "eligibility_context_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "replay_events": [],
+        "replay_authority_refs": [
+          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ]
       },
       "first_expected_error": "contains:object"
     },
@@ -3104,13 +3212,19 @@
                   "value": null
                 }
               ]
-            }
+            },
+            "state_model": "causal_register"
           }
         ],
         "conflict_records": [],
         "soft_failed": [],
         "quarantined": [],
-        "erasure_stubs": []
+        "erasure_stubs": [],
+        "eligibility_context_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "replay_events": [],
+        "replay_authority_refs": [
+          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ]
       },
       "first_expected_error": "contains:kind"
     },
@@ -3128,14 +3242,23 @@
             "kind": "cell",
             "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
             "state": {
-              "heads": []
-            }
+              "heads": [],
+              "covered_event_ids": [
+                "ak:event:AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              ]
+            },
+            "state_model": "causal_register"
           }
         ],
         "conflict_records": [],
         "soft_failed": [],
         "quarantined": [],
-        "erasure_stubs": []
+        "erasure_stubs": [],
+        "eligibility_context_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "replay_events": [],
+        "replay_authority_refs": [
+          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ]
       },
       "first_expected_error": "contains:heads"
     },
@@ -3154,14 +3277,21 @@
             "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
             "state": {
               "value": "archived",
-              "heads": []
-            }
+              "heads": [],
+              "covered_event_ids": []
+            },
+            "state_model": "causal_register"
           }
         ],
         "conflict_records": [],
         "soft_failed": [],
         "quarantined": [],
-        "erasure_stubs": []
+        "erasure_stubs": [],
+        "eligibility_context_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "replay_events": [],
+        "replay_authority_refs": [
+          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ]
       },
       "first_expected_error": "contains:state"
     },
@@ -3180,13 +3310,19 @@
             "id": "ak:cell:ak.private.account_data.v1:ak.account_data.theme",
             "state": {
               "value": "dark"
-            }
+            },
+            "state_model": "causal_register"
           }
         ],
         "conflict_records": [],
         "soft_failed": [],
         "quarantined": [],
-        "erasure_stubs": []
+        "erasure_stubs": [],
+        "eligibility_context_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "replay_events": [],
+        "replay_authority_refs": [
+          "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ]
       },
       "first_expected_error": "contains:does not match"
     },
@@ -7161,18 +7297,22 @@
         },
         "intended_purpose": "collaboration",
         "notary": {
-          "kind": "single_signer",
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:web:station.example"
-            },
-            "verification_method": "did:web:station.example#seal-key-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-          }
+          "kind": "quorum",
+          "signers": [
+            {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:web:station.example"
+              },
+              "verification_method": "did:web:station.example#seal-key-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          ],
+          "fault_tolerance": 0,
+          "max_clock_error_ms": 1000
         }
       }
     },
@@ -7202,18 +7342,22 @@
         },
         "intended_purpose": "collaboration",
         "notary": {
-          "kind": "single_signer",
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:web:station.example"
-            },
-            "verification_method": "did:web:station.example#seal-key-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-          }
+          "kind": "quorum",
+          "signers": [
+            {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:web:station.example"
+              },
+              "verification_method": "did:web:station.example#seal-key-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          ],
+          "fault_tolerance": 0,
+          "max_clock_error_ms": 1000
         },
         "method_history_evidence": {}
       },
@@ -7512,12 +7656,17 @@
             "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ],
-        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "seal_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        }
       },
       "expect_valid": true
     },
     {
-      "name": "shared_history_policy_recovery_without_station_admission_shape_valid",
+      "name": "shared_history_policy_recovery_producer_only_shape_valid",
       "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
       "instance": {
         "event_id": "ak:event:AZ_M1lc88FCmqIsZCG8zm2Di8QPrjkU_nacnkIJWoMqb",
@@ -7568,7 +7717,12 @@
             "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ],
-        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "seal_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        }
       },
       "expect_valid": true
     },
@@ -7631,7 +7785,12 @@
             "role": "attestation",
             "critical": false
           }
-        ]
+        ],
+        "seal_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        }
       },
       "expect_valid": true
     },
@@ -7694,203 +7853,18 @@
             "role": "did_recovery_anchor",
             "critical": false
           }
-        ]
+        ],
+        "seal_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        }
       },
       "expect_valid": false,
       "first_expected_error": "contains:not valid under"
     },
     {
-      "name": "event_envelope_causal_recovery_without_old_value_witness_valid",
-      "schema_ref": "schemas/event-envelope.schema.json",
-      "instance": {
-        "event_id": "ak:event:AZ_M1lc88FCmqIsZCG8zm2Di8QPrjkU_nacnkIJWoMqb",
-        "kind": "ak.conflict.recovery",
-        "scope_ref": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
-        },
-        "actor_id": {
-          "kind": "account",
-          "account_id": {
-            "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-          }
-        },
-        "actor_seq": 0,
-        "created_at": "2026-05-20T00:00:00.000Z",
-        "hlc": "01970e589d21-0001-a13f9c2e",
-        "prev_refs": [],
-        "payload": {
-          "target_cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-          "resolved_value": {
-            "release_revision": 8
-          }
-        },
-        "proofs": [
-          {
-            "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-7100-7000-8000-000000000000",
-            "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "created_at": "2026-05-20T00:00:00.000Z",
-            "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-          }
-        ],
-        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "refs": [
-          {
-            "id": "ak:event:AZ_M1lc88FCmqIsZCG8zm2Di8QPrjkU_nacnkIJWoMqb",
-            "role": "recovery_capability",
-            "critical": true
-          }
-        ],
-        "seal_basis": {
-          "leaves": [
-            "ak:seal:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-          ]
-        },
-        "preconditions": [
-          {
-            "cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-            "predicate": {
-              "op": "head_in",
-              "values": [
-                "a",
-                "b"
-              ]
-            }
-          }
-        ]
-      },
-      "expect_valid": true
-    },
-    {
-      "name": "event_envelope_recovery_without_authority_ref_invalid",
-      "schema_ref": "schemas/event-envelope.schema.json",
-      "instance": {
-        "event_id": "ak:event:AZ_M1lc88FCmqIsZCG8zm2Di8QPrjkU_nacnkIJWoMqb",
-        "kind": "ak.conflict.recovery",
-        "scope_ref": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
-        },
-        "actor_id": {
-          "kind": "account",
-          "account_id": {
-            "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-          }
-        },
-        "actor_seq": 0,
-        "created_at": "2026-05-20T00:00:00.000Z",
-        "hlc": "01970e589d21-0001-a13f9c2e",
-        "prev_refs": [],
-        "payload": {
-          "target_cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-          "resolved_value": {
-            "release_revision": 8
-          }
-        },
-        "proofs": [
-          {
-            "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-7100-7000-8000-000000000000",
-            "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "created_at": "2026-05-20T00:00:00.000Z",
-            "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-          }
-        ],
-        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "seal_basis": {
-          "leaves": [
-            "ak:seal:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-          ]
-        },
-        "preconditions": [
-          {
-            "cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-            "predicate": {
-              "op": "head_in",
-              "values": [
-                "a",
-                "b"
-              ]
-            }
-          }
-        ]
-      },
-      "expect_valid": false,
-      "first_expected_error": "contains:'refs' is a required property"
-    },
-    {
-      "name": "event_envelope_recovery_noncritical_authority_invalid",
-      "schema_ref": "schemas/event-envelope.schema.json",
-      "instance": {
-        "event_id": "ak:event:AZ_M1lc88FCmqIsZCG8zm2Di8QPrjkU_nacnkIJWoMqb",
-        "kind": "ak.conflict.recovery",
-        "scope_ref": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
-        },
-        "actor_id": {
-          "kind": "account",
-          "account_id": {
-            "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-          }
-        },
-        "actor_seq": 0,
-        "created_at": "2026-05-20T00:00:00.000Z",
-        "hlc": "01970e589d21-0001-a13f9c2e",
-        "prev_refs": [],
-        "payload": {
-          "target_cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-          "resolved_value": {
-            "release_revision": 8
-          }
-        },
-        "proofs": [
-          {
-            "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-7100-7000-8000-000000000000",
-            "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "created_at": "2026-05-20T00:00:00.000Z",
-            "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-          }
-        ],
-        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "refs": [
-          {
-            "id": "ak:event:AZ_M1lc88FCmqIsZCG8zm2Di8QPrjkU_nacnkIJWoMqb",
-            "role": "recovery_capability",
-            "critical": false
-          }
-        ],
-        "seal_basis": {
-          "leaves": [
-            "ak:seal:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-          ]
-        },
-        "preconditions": [
-          {
-            "cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-            "predicate": {
-              "op": "head_in",
-              "values": [
-                "a",
-                "b"
-              ]
-            }
-          }
-        ]
-      },
-      "expect_valid": false,
-      "first_expected_error": "contains:does not contain items"
-    },
-    {
-      "name": "event_federation_producer_only_capability_message_invalid",
+      "name": "event_federation_portable_capability_message_valid",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission",
       "instance": {
         "event": {
@@ -7912,10 +7886,12 @@
           "created_at": "2026-05-02T00:00:00.000Z",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "prev_refs": [],
-          "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "auth_context": {
             "key_id": "ed25519-2026-05-fixture",
-            "key_epoch": 1
+            "key_epoch": 1,
+            "authority_refs": [
+              "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ]
           },
           "payload": {
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
@@ -7948,17 +7924,17 @@
               "created_at": "2026-05-02T00:00:00.000Z",
               "domain": "arkret-event-v1",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-              "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321"
+              "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+              "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
           ]
         },
         "ingress_receipts": []
       },
-      "expect_valid": false,
-      "first_expected_error": "contains:not valid under"
+      "expect_valid": true
     },
     {
-      "name": "shared_history_producer_only_capability_message_invalid",
+      "name": "shared_history_portable_capability_message_valid",
       "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
       "instance": {
         "event_id": "ak:event:AU8zhdv9qb5YNCn4IpB825xiCAo6UflWz425VZcCA_Mh",
@@ -7979,10 +7955,12 @@
         "created_at": "2026-05-02T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
-        "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_context": {
           "key_id": "ed25519-2026-05-fixture",
-          "key_epoch": 1
+          "key_epoch": 1,
+          "authority_refs": [
+            "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          ]
         },
         "payload": {
           "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
@@ -8015,15 +7993,15 @@
             "created_at": "2026-05-02T00:00:00.000Z",
             "domain": "arkret-event-v1",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-            "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321"
+            "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
       },
-      "expect_valid": false,
-      "first_expected_error": "contains:not valid under"
+      "expect_valid": true
     },
     {
-      "name": "shared_history_registration_without_station_admission_shape_valid",
+      "name": "shared_history_registration_producer_only_shape_valid",
       "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
       "instance": {
         "event_id": "ak:event:AYxR3x8XzJq98DtNm0VdXYF_WWWXYCr4rq6OdNetx1ll",
@@ -8069,18 +8047,22 @@
             "security_class": "high_assurance",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "single_signer",
-              "signer": {
-                "actor_id": {
-                  "kind": "service",
-                  "service_id": "ak:did_core:webvh:z6mkfixture"
-                },
-                "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-                "key_kind": "ed25519_raw32",
-                "jose_algorithm": "Ed25519",
-                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-              }
+              "kind": "quorum",
+              "signers": [
+                {
+                  "actor_id": {
+                    "kind": "service",
+                    "service_id": "ak:did_core:webvh:z6mkfixture"
+                  },
+                  "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+                  "key_kind": "ed25519_raw32",
+                  "jose_algorithm": "Ed25519",
+                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+                }
+              ],
+              "fault_tolerance": 0,
+              "max_clock_error_ms": 1000
             },
             "founding_device_descriptor": {
               "descriptor_version": 1,
@@ -8111,71 +8093,6 @@
       "expect_valid": true
     },
     {
-      "name": "shared_history_sealed_control_shape_without_station_admission_shape_valid",
-      "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
-      "instance": {
-        "event_id": "ak:event:AZ_M1lc88FCmqIsZCG8zm2Di8QPrjkU_nacnkIJWoMqb",
-        "kind": "ak.conflict.recovery",
-        "scope_ref": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
-        },
-        "actor_id": {
-          "kind": "account",
-          "account_id": {
-            "principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-          }
-        },
-        "actor_seq": 0,
-        "created_at": "2026-05-20T00:00:00.000Z",
-        "hlc": "01970e589d21-0001-a13f9c2e",
-        "prev_refs": [],
-        "payload": {
-          "target_cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-          "resolved_value": {
-            "release_revision": 8
-          }
-        },
-        "proofs": [
-          {
-            "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-7100-7000-8000-000000000000",
-            "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "created_at": "2026-05-20T00:00:00.000Z",
-            "jws": "a..b",
-            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-          }
-        ],
-        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "refs": [
-          {
-            "id": "ak:event:AZ_M1lc88FCmqIsZCG8zm2Di8QPrjkU_nacnkIJWoMqb",
-            "role": "recovery_capability",
-            "critical": true
-          }
-        ],
-        "seal_basis": {
-          "leaves": [
-            "ak:seal:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-          ]
-        },
-        "preconditions": [
-          {
-            "cell_id": "ak:cell:ak.component.audit.release.v1:ak:audit_release:AY9WrPRKKFmB5v6VmZC9qMYPmRLBWNzRy4mUvT0BQ2sT",
-            "predicate": {
-              "op": "head_in",
-              "values": [
-                "a",
-                "b"
-              ]
-            }
-          }
-        ]
-      },
-      "expect_valid": true
-    },
-    {
       "name": "event_federation_admitted_capability_message_shape_valid",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission",
       "instance": {
@@ -8198,10 +8115,12 @@
           "created_at": "2026-05-02T00:00:00.000Z",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "prev_refs": [],
-          "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "auth_context": {
             "key_id": "ed25519-2026-05-fixture",
-            "key_epoch": 1
+            "key_epoch": 1,
+            "authority_refs": [
+              "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ]
           },
           "payload": {
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
@@ -8234,18 +8153,8 @@
               "created_at": "2026-05-02T00:00:00.000Z",
               "domain": "arkret-event-v1",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-              "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321"
-            },
-            {
-              "kind": "station_admission",
-              "verification_method": "did:webvh:z6mkfixturestationexample:station.example#key-1",
               "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
-              "producer_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              "producer_verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
-              "producer_signing_key_did": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
-              "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-              "accepted_at": "2026-05-02T00:00:00.000Z",
-              "jws": "a..b"
+              "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
           ]
         },
@@ -8254,7 +8163,7 @@
       "expect_valid": true
     },
     {
-      "name": "event_federation_read_row_producer_only_message_invalid",
+      "name": "event_federation_read_row_portable_message_valid",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventReadRow",
       "instance": {
         "event_id": "ak:event:AU8zhdv9qb5YNCn4IpB825xiCAo6UflWz425VZcCA_Mh",
@@ -8275,10 +8184,12 @@
         "created_at": "2026-05-02T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
-        "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_context": {
           "key_id": "ed25519-2026-05-fixture",
-          "key_epoch": 1
+          "key_epoch": 1,
+          "authority_refs": [
+            "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          ]
         },
         "payload": {
           "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
@@ -8311,15 +8222,15 @@
             "created_at": "2026-05-02T00:00:00.000Z",
             "domain": "arkret-event-v1",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-            "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321"
+            "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
       },
-      "expect_valid": false,
-      "first_expected_error": "contains:not valid under"
+      "expect_valid": true
     },
     {
-      "name": "shared_history_timeline_producer_only_message_invalid",
+      "name": "shared_history_timeline_portable_message_valid",
       "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/timeline",
       "instance": {
         "events": [
@@ -8342,10 +8253,12 @@
             "created_at": "2026-05-02T00:00:00.000Z",
             "hlc": "01970e589d21-0001-a13f9c2e",
             "prev_refs": [],
-            "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "auth_context": {
               "key_id": "ed25519-2026-05-fixture",
-              "key_epoch": 1
+              "key_epoch": 1,
+              "authority_refs": [
+                "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              ]
             },
             "payload": {
               "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
@@ -8378,18 +8291,18 @@
                 "created_at": "2026-05-02T00:00:00.000Z",
                 "domain": "arkret-event-v1",
                 "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-                "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321"
+                "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+                "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             ]
           }
         ],
         "limited": false
       },
-      "expect_valid": false,
-      "first_expected_error": "contains:not valid under"
+      "expect_valid": true
     },
     {
-      "name": "shared_history_event_stream_producer_only_message_invalid",
+      "name": "shared_history_event_stream_portable_message_valid",
       "schema_ref": "schemas/events-subscribe-frame.schema.json",
       "instance": {
         "kind": "event",
@@ -8414,10 +8327,12 @@
           "created_at": "2026-05-02T00:00:00.000Z",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "prev_refs": [],
-          "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "auth_context": {
             "key_id": "ed25519-2026-05-fixture",
-            "key_epoch": 1
+            "key_epoch": 1,
+            "authority_refs": [
+              "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ]
           },
           "payload": {
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
@@ -8450,13 +8365,13 @@
               "created_at": "2026-05-02T00:00:00.000Z",
               "domain": "arkret-event-v1",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-              "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321"
+              "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+              "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
           ]
         }
       },
-      "expect_valid": false,
-      "first_expected_error": "contains:not valid under"
+      "expect_valid": true
     },
     {
       "name": "ak_realm_archive_empty",

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/bottom.schema.json",
   "title": "Arkret Bottom Diagnostics",
-  "description": "Structured diagnostic for cell join values that resolve to bottom (⊥). Surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined under the current CBS query basis. See spec/v1/zh/authz/event-auth-state-resolution.md §5.1.",
+  "description": "Non-authoritative diagnostic for unresolved ordinary projections or verification failures. This object never replaces a canonical Cell state, a confirmed security command outcome, or a safety recovery protocol.",
   "type": "object",
   "required": [
     "kind",
@@ -19,7 +19,7 @@
         "notary_split",
         "schema_error"
       ],
-      "description": "Why the join produced bottom. 'conflict' = concurrent cas_register / fsm divergence on safety-critical cell. 'invalid_transition' = fsm op violates allowed_transitions. 'missing_dependency' = event ref to absent / failed prior event. 'unauthorized' = event issuer lacks capability for the op (verifier-side). 'notary_split' = multiple Seal leaves diverge on next-seal authority. 'schema_error' = lattice op or value violates declared cell schema."
+      "description": "Projection diagnostic only. Concurrent ordinary causal heads may require domain resolution; missing dependencies remain pending; unauthorized inputs are quarantined or rejected. Safety commands have durable committed/rejected outcomes and never join into a competing authority value."
     },
     "cell_ids": {
       "type": "array",
@@ -29,7 +29,7 @@
         "type": "string",
         "pattern": "^ak:cell:ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
       },
-      "description": "Cell ids participating in the bottom diagnostic. Multi-cell when a multi-cell Control Move atomically failed across linked cells."
+      "description": "Exact Cell ids involved in the diagnostic. A failed security command has its separate durable outcome and does not write this diagnostic into those Cells."
     },
     "event_ids": {
       "type": "array",
@@ -38,11 +38,11 @@
         "type": "string",
         "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
       },
-      "description": "Reducer-input event ids whose effects (or precondition checks) produced this bottom. Empty allowed when the cell's bottom is structural (e.g. notary cell schema_error) and not tied to a specific event."
+      "description": "Event identities involved in the diagnostic. Absence does not establish an unwritten Cell or authorize an operation."
     },
     "seal_view": {
       "type": "object",
-      "description": "Seal leaves and control frontier under which this bottom was observed. Diagnostics MUST pin this so the receiver can reproduce the join without ambiguity.",
+      "description": "Confirmed safety basis at observation, with exactly one head per Realm. Ordinary projection replay additionally requires the complete eligible Event evidence; these leaves alone do not reproduce ordinary data state.",
       "required": [
         "leaves"
       ],
@@ -59,7 +59,7 @@
         "state_root": {
           "type": "string",
           "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-          "description": "Control-plane state_root at observation time (recompute from Seal leaves). Optional when the diagnostic is emitted before state_root is computable."
+          "description": "Optional confirmed safety state_root for a single Realm only. It is not an ordinary data or diagnostic root."
         }
       },
       "additionalProperties": false
@@ -67,7 +67,7 @@
     "heads": {
       "type": "array",
       "uniqueItems": true,
-      "description": "When kind=conflict and the cell's lattice exposes multiple candidate heads (mv_register, or_set with conflicting tag values), the candidate values. Implementations MUST NOT pick a winner from this array; it is for UI / audit only.",
+      "description": "Candidate values for an unresolved ordinary causal projection. Distinct head identities are retained even for equal values; no arrival-order winner is selected. This diagnostic does not replace canonical Cell state.",
       "items": true
     },
     "details": {

@@ -1555,7 +1555,7 @@
         {
           "name": "concurrent_old_basis_root_write_rejected",
           "expected_state_matches": false,
-          "security_barrier_conflict": true,
+          "relevant_safety_revision_changed": true,
           "expected": {
             "accepted": false,
             "reason_code": "realm_authority_root_conflict"

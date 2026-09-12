@@ -1093,7 +1093,7 @@
           "expected_error": "schema_violation"
         }
       ],
-      "mv_register_cases": [
+      "causal_register_cases": [
         {
           "name": "causal_successor_dominates",
           "first_status": "tentative",

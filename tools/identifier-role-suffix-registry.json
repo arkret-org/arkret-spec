@@ -977,35 +977,43 @@
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/2/then/properties/result/properties/value",
+      "pointer": "/$defs/entry/allOf/1/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
+      "terminal_categories": [
+        "typed_object_id"
+      ]
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/3/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
         "did_core_id"
-      ],
-      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+      ]
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/41/then/properties/result/properties/value",
+      "pointer": "/$defs/entry/allOf/42/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
         "typed_object_id"
-      ],
-      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+      ]
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/89/then/properties/result/properties/value",
+      "pointer": "/$defs/entry/allOf/90/then/properties/result/properties/heads/items/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
         "typed_object_id"
-      ],
-      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+      ]
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/98/then/properties/result/properties/value",
+      "pointer": "/$defs/entry/allOf/100/then/properties/result/properties/heads/items/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
         "typed_object_id"
-      ],
-      "reason": "This fixed slot carries one complete registry-typed cell value, including an OR-set collection or identity scalar; selector dispatch, not the slot name, determines its closed type."
+      ]
     }
   ]
 }

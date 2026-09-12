@@ -206,7 +206,8 @@
         "authorized_generation_ref",
         "device_status",
         "attested_at",
-        "expires_at"
+        "expires_at",
+        "authorization_window"
       ],
       "properties": {
         "account_id": {
@@ -238,7 +239,31 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Hard freshness bound. A consumer performing a security-sensitive action MUST refetch at or after this instant; a cache never extends it."
+          "description": "Fresh current-query cache deadline only. Expiry does not revoke the signed device authorization or prohibit ordinary publication with verified cached evidence. Security operations use their stricter registered current-state gate."
+        },
+        "authorization_window": {
+          "type": "object",
+          "required": [
+            "not_before",
+            "expires_at"
+          ],
+          "properties": {
+            "not_before": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            },
+            "expires_at": {
+              "anyOf": [
+                {
+                  "$ref": "./time.schema.json#/$defs/timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "description": "Exact source device authorization window. null expiry means no time limit. This is distinct from attestation cache freshness; ordinary publication uses this window and applicable revocation closures."
         }
       },
       "additionalProperties": false

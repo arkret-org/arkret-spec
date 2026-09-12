@@ -20,7 +20,7 @@
         "did_core_id": "Stable principal or service core that issued a proof, receipt, claim, or registry statement."
       },
       "occurrences_by_profile": {
-        "actor_id": 1,
+        "actor_id": 3,
         "did_core_id": 37
       },
       "reason": "The enclosing schema decides whether issuer authority requires an exact routed actor or a stable DID core; each occurrence remains closed to one carrier."
@@ -153,7 +153,7 @@
       ]
     },
     {
-      "schema_path": "account-current-result.schema.json#/$defs/value_circle_metadata/anyOf/1/properties/created_by",
+      "schema_path": "account-current-result.schema.json#/$defs/value_circle_metadata/properties/created_by",
       "property_name": "created_by",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -163,7 +163,7 @@
       ]
     },
     {
-      "schema_path": "account-current-result.schema.json#/$defs/value_circle_metadata/anyOf/1/properties/updated_by",
+      "schema_path": "account-current-result.schema.json#/$defs/value_circle_metadata/properties/updated_by",
       "property_name": "updated_by",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -1594,36 +1594,6 @@
     },
     {
       "schema_path": "agent-signer-evidence.schema.json#/$defs/controller_account_gate_attestation/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/event_admission_receipt/properties/agent_id",
-      "property_name": "agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/event_admission_receipt/properties/receiver_id",
-      "property_name": "receiver_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/event_admission_receipt/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",
@@ -3461,36 +3431,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "event-envelope.schema.json#/$defs/station_admission_proof/properties/producer_signing_key_did",
-      "property_name": "producer_signing_key_did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:key:z[1-9A-HJ-NP-Za-km-z]+$"
-      ]
-    },
-    {
-      "schema_path": "event-envelope.schema.json#/$defs/station_admission_proof/properties/producer_verification_method",
-      "property_name": "producer_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-envelope.schema.json#/$defs/station_admission_proof/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
       ]
     },
     {
@@ -7554,6 +7494,26 @@
       ]
     },
     {
+      "schema_path": "realm-state-snapshot-chunk.schema.json#/$defs/counter_state/properties/value/items/properties/issuer_id",
+      "property_name": "issuer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "realm-state-snapshot-chunk.schema.json#/$defs/log_state/properties/value/items/properties/issuer_id",
+      "property_name": "issuer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "realm-state-snapshot-chunk.schema.json#/$defs/non_accepted_input/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -7591,46 +7551,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "realm.schema.json#/$defs/notary_configuration/oneOf/0/properties/controller_organization_id",
-      "property_name": "controller_organization_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "realm.schema.json#/$defs/notary_configuration/oneOf/0/properties/recovery_controller_organization_ids",
-      "property_name": "recovery_controller_organization_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "realm.schema.json#/$defs/notary_configuration/oneOf/3/properties/controller_organization_id",
-      "property_name": "controller_organization_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "realm.schema.json#/$defs/notary_configuration/oneOf/3/properties/recovery_controller_organization_ids",
-      "property_name": "recovery_controller_organization_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {

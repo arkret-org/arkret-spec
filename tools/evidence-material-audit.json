@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 398,
+  "audited_occurrence_count": 388,
   "registrations": [
     {
       "file": "account-current-result.schema.json",
@@ -126,13 +126,6 @@
       "reason": "Frozen admission-time material with original same-Station admission or distinct receiver receipt."
     },
     {
-      "file": "agent-signer-evidence.schema.json",
-      "key": "producer_signer_resolution_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Content-addressed locator paired with the exact producer signer-evidence digest."
-    },
-    {
       "file": "applet-install-authoring.schema.json",
       "key": "registration_epoch_evidence",
       "occurrences": 3,
@@ -191,7 +184,7 @@
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "agent_signer_evidence",
-      "occurrences": 3,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -216,13 +209,6 @@
         "attestation"
       ],
       "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "receiver_signer_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
@@ -357,7 +343,7 @@
     {
       "file": "contract-registry.json",
       "key": "required_evidence",
-      "occurrences": 6,
+      "occurrences": 4,
       "disposition": "registry_contract",
       "reason": "Declares required adapter and shared-history verifier evidence categories; registry policy metadata, never an additional wire evidence carrier."
     },
@@ -678,15 +664,8 @@
     },
     {
       "file": "event-envelope.schema.json",
-      "key": "producer_signer_resolution_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Content-addressed producer evidence locator signed into the Station admission transcript."
-    },
-    {
-      "file": "event-envelope.schema.json",
       "key": "signer_resolution_evidence_ref",
-      "occurrences": 2,
+      "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
@@ -700,7 +679,7 @@
     {
       "file": "event-kind-registry.json",
       "key": "required_evidence",
-      "occurrences": 3,
+      "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Generated shared-history verifier dependency categories from canonical history_admission_contract; no wire object is introduced."
     },
@@ -1108,7 +1087,7 @@
     {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 34,
+      "occurrences": 33,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
     },

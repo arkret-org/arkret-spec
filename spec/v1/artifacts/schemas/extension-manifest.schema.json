@@ -203,9 +203,7 @@
       "type": "object",
       "required": [
         "reducer_contract_id",
-        "digest",
-        "lattice_profile_ref",
-        "concurrency_class"
+        "digest"
       ],
       "properties": {
         "reducer_contract_id": {
@@ -214,21 +212,10 @@
         },
         "digest": {
           "$ref": "#/$defs/digest"
-        },
-        "lattice_profile_ref": {
-          "type": "string",
-          "pattern": "^ak\\.profile\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
-        },
-        "concurrency_class": {
-          "type": "string",
-          "enum": [
-            "merge_safe",
-            "exclusive",
-            "security_barrier"
-          ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Digest-bound registered reducer contract. Execution, state models and conditional writes come only from that contract; the manifest cannot choose a different synchronization class or state profile."
     }
   }
 }

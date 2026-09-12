@@ -98,7 +98,7 @@ operation/idempotency，但两phase的canonical bytes与幂等记录彼此独立
 不得产生第二Event、第二receipt或第二lineage head。
 
 对 human self-principal PCR，commit 的 exact Event 已由 current active accepted device 以 canonical
-`{holder}#{device_id}` method 签名；该 device method 同时是 current `single_signer(holder actor_id)` authority，因此这是
+`{holder}#{device_id}` method 签名；该 device method 同时是 current f=0 quorum holder authority，因此这是
 authority-authored Move，不得再要求一份独立 Control Proposal Ack，也不得因 Station 不持有
 holder 私钥而返回 `quorum_unreachable`。commit 仍须把 Event 写入 pending Control index；只有后继
 device-signed accepted Seal 覆盖该 digest 后 Contact effect 才 materialize。Agent delegation、
@@ -287,7 +287,7 @@ respond/reject prepare **MUST** 提交列表的 `peer` 与 `request_event_ref`�
 
 glare 在证据齐备前保持 `pending_outgoing`，齐备后直接投影 `accepted`，两者都不可 respond/reject。实现 **MUST NOT** 因收到并发 request 将已有 outgoing proposal 改判 `pending_incoming`，也不为不可回应另造 `contact_state`。
 
-**Contact verified mirror（normative）**：接收服务器 **MUST** 在 ingest 时验证 canonical Event ID/digest、producer proof、origin Station admission、receipt 签名、`accepted_at` 时点 issuer service key，以及 exact Event/actor/peer/target holder 绑定，随后将 exact signed Event bytes、receipt 和 verified 记录 CAS 耐久提交。未完成任一项的材料不能进入可回应列表。
+**Contact verified mirror（normative）**：接收服务器 **MUST** 在 ingest 时验证 canonical Event ID/digest、producer proof、原始 producer proof 与可携带授权、receipt 签名、`accepted_at` 时点 issuer service key，以及 exact Event/actor/peer/target holder 绑定，随后将 exact signed Event bytes、receipt 和 verified 记录 CAS 耐久提交。未完成任一项的材料不能进入可回应列表。
 
 mirror 是 principal-private 存储，**MUST NOT** 进入接收方 canonical Realm Event store 或推进 reducer、Seal、CBS frontier、`state_root`；仅供服务器 prepare、联邦和审计使用。self/peer Event resolve **MUST NOT** 以 Contact mirror 或 receipt 赋予 requester PCR 读取权限。移出 `pending_incoming` 后列表不再返回申请附言；私有材料可按 retention 保留。
 
@@ -460,7 +460,7 @@ carrier 是 `ak.self.events.command.submit.v1` request union 中显式登记的 
 
 ### 5.6 联邦例外
 
-Realm 尚不存在时无法取得普通 member federation authority，因此 Direct Conversation founding exception 只允许 Contact round 中完整 founder `ActorId` 所路由的服务向 invitee 自己的 Station 投递该 atomic unit、source acceptance receipt 与 bounded founding-authority dependencies。接收方必须验证 transport source、四条 Event actual author 的 route、producer proof 与 origin admission proof 一致，并要求目标 pair 命中本地 Contact round；不得要求或比较 PCR id/genesis receipt。
+Realm 尚不存在时无法取得普通 member federation authority，因此 Direct Conversation founding exception 只允许 Contact round 中完整 founder `ActorId` 所路由的服务向 invitee 自己的 Station 投递该 atomic unit、source acceptance receipt 与 bounded founding-authority dependencies。接收方必须验证 transport source、四条 Event actual author 的 route、producer proof、原子 bootstrap 授权和 exact participant pair 一致，并要求目标 pair 命中本地 Contact round；不得要求或比较 PCR id/genesis receipt。
 
 该例外的 carrier **MUST** 是 `ak.peer.events.command.submit.v1` request union 中显式登记的 discriminated
 branch `DirectConversationFoundingFederationSubmission`（discriminator
@@ -535,7 +535,7 @@ founder **MUST** 一次提交恰好四条 Event：
 `seal_ref`/`auth_context`），并叠加同批 staged authority-root proof。两者的免 basis 落点分别登记在
 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md) 与
 [`../authz/event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 的封闭列表。
-`ak.strand.create` 平时是携 `seal_ref + auth_context` 的 DataEvent，batch admission **MUST** 在本 unit 之外
+`ak.strand.create` 平时是携 `auth_context` 的 DataEvent，batch admission **MUST** 在本 unit 之外
 拒绝它的 no-basis 形态。
 
 Genesis Seal **MUST** 覆盖四条 Event、普通 Realm create 的全部 required founding writes 与 §6.2 的固定投影；**MUST NOT** 先 Seal create 再补任一 member join 与 Strand。这也是 `ak.strand.create` 必须免 basis 的原因：它被同一张 Seal 覆盖，无法引用那张尚不存在的 Seal。
@@ -647,7 +647,7 @@ binding_digest = H("ak.direct-conversation.binding-digest.v1", binding_object)
 
 `H` 的精确定义见 §2：实际前像为 `UTF8("ak.direct-conversation.binding-digest.v1\n") || RFC8785_JCS(binding_object)`，结果为 `sha256:<lowercase-hex>`。`created_at`、Event envelope 的 author/proof 与 `binding_digest` 本身都不在 `binding_object` 中，因而不存在“先放入再排除”或自指前像。实现 **MUST** 执行 [`ak.vector.direct_conversation.binding_digest.v1`](../../artifacts/registry/vector-registry.json) 的逐字节 KAT，**MUST NOT** 使用无 domain 的 `SHA256(JCS(payload - created_at))`。
 
-binding cell **MUST** 为 `or_set`，contract concurrency class 为 `merge_safe`。core OR-Set 元素身份仍是 [`../models/event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 Event dot，registry 仍精确投影 `tag={dot:true}, value=payload`；`(binding_digest, envelope.actor_id)` 是 Direct Conversation 领域视图的 **endorsement identity / 去重键**，不是 core OR-Set tag，也不是 wire 字段。同一 participant 对同一 digest 的多条 Event 在领域视图只计一个 endorsement；双方对相同 semantic payload 并发签名是两个兼容 add，**MUST NOT** 产生 `⊥`；不同 digest **MUST** 在 effect projection 前拒绝并触发 `suspended` 诊断。`found` 至少需要一份合法 endorsement；部署 **MAY** 登记要求双方 endorsement 的更高 profile，但 base **MUST NOT** 因两人同时 endorse 而失败。
+binding cell **MUST** 使用 `sequenced_state`、`value_shape=set`，由 Realm 的唯一确认序列执行。元素 tag 仍按注册 Event dot 派生，value 为 payload；`(binding_digest,envelope.actor_id)` 只是领域 endorsement 去重键。同一 participant 对同一 digest 的顺序确认记录只计一个 endorsement。双方对相同 semantic payload 的签名可以共存，但同旧 revision 的竞争命令不能跳过 CAS：后执行者若前态已变则重新 author 后再确认。不同 binding digest 在投影前拒绝并产生 suspended 诊断。found 至少需要一份合法已确认 endorsement；base 不要求双方同时在线。
 
 **发送证据与展示引用（normative）。** `ak.direct_conversation.bound` 是 `sealed=true` 的 Control Move；
 仅存入 ingress 或出现在查询投影中不等于可授权。普通 participant Message 的唯一 critical
@@ -663,7 +663,7 @@ binding cell **MUST** 为 `or_set`，contract concurrency class 为 `merge_safe`
 不重建 group、不放松 current Contact、membership、endpoint 或 lifecycle gate。该规则不取代 §7.2
 尚未建立 binding 时的 provisional founder Message authority。
 
-binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 `mls_group_id` 或 consume receipt，也 **MUST NOT** 改变 membership、MLS、policy 或 Realm 坐标；若未来增加此类字段，**MUST** 拆为独立 `security_barrier` Move。
+binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 `mls_group_id` 或 consume receipt，也 **MUST NOT** 改变 membership、MLS、policy 或 Realm 坐标；若未来增加此类字段，**MUST** 拆为独立安全命令。
 
 日常写 authority 唯一来自 `ak.authority.direct_conversation_participant.v1` 与 current accepted binding、exact-two membership、双方 current directional Contact heads、唯一 group 的 exact-pair winning state 及 action-specific lifecycle gate 的交集。技术 root、`created_by`、founder 身份、本地 slot 与普通 grant **MUST NOT** 替代该 evaluator。root mask 只允许 current materialization 的精确 founding/repair effects；`found` 后 **MUST NOT** 恢复 owner/admin authority。
 
@@ -789,7 +789,7 @@ Conformance **MUST** 覆盖：
 - pair materialization conflict：模拟受信 service 对同 pair 签出两份不同 unit/receipt 时两 Realm 全部冻结，**MUST NOT** 按 Realm token 词法顺序或到达时间选 winner，也 **MUST NOT** 发 tombstone；
 - 同对象 token 不同 Genesis 继续走 `object_identity_conflict`，**MUST NOT** 与 pair materialization conflict 合并为一个 selector；
 - 终态：`destroy` 与任意 `tombstone` 拒绝；合法 archive/freeze 及其反向操作沿普通路径生效且坐标不变；违规 terminal 后 slot 保持关闭且 resolver `suspended`；
-- binding：逐字节 KAT 覆盖固定 domain、closed `binding_object`、participants / authorization refs 换序归一、`created_at` 与 Event author/proof 排除，任一语义字段改变必须产生不同 digest；双方并发同 semantic endorsement 得到两个 core OR-Set dot 且不 `⊥`；同 actor 重复在领域视图只计一个；不同 semantic digest 在 effect projection 前拒绝；current Contact/service refresh 不改 binding digest；
+- binding：逐字节 KAT 覆盖固定 domain、closed `binding_object`、participants / authorization refs 换序归一、`created_at` 与 Event author/proof 排除，任一语义字段改变必须产生不同 digest；双方同 semantic endorsement 经顺序确认得到两个独立 dot；同前态竞争时后者必须重试新 revision；同 actor 重复在领域视图只计一个；不同 semantic digest 在 effect projection 前拒绝；current Contact/service refresh 不改 binding digest；
 - owned Agent：controller↔own-Agent 只携 `direct_conversation_agent_provision` 时命中 DM variant；改用 `purpose="agent_control"`（那是 PCR genesis 分支，见 [`./key-management.md` §3.6.3](./key-management.md)）、同时携两个 DM roles 或 DM/PCR variants 多命中均零写入拒绝；Agent↔第三方分别覆盖 founder=Agent 与 founder=other；
 - 隐私：非 participant 对任意阶段的 pair 查询与不存在逐字相同。
 

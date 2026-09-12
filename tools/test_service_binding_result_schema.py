@@ -27,7 +27,7 @@ class ServiceBindingResultSchemaTests(unittest.TestCase):
         return {"request_id": "ak:request:01964137-0000-7000-8000-000000000010", "account_id": self.account(), "intended_purpose": "collaboration"}
 
     def genesis_outcome(self):
-        return {**self.genesis_request(), "notary": {"kind": "single_signer", "signer": self.signer()}}
+        return {**self.genesis_request(), "notary": {"kind": "quorum", "signers": [self.signer()], "fault_tolerance": 0, "max_clock_error_ms": 1000}}
 
     def media_request(self):
         return {"request_id": "ak:request:01964137-0000-7000-8000-000000000011", "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"}
@@ -59,10 +59,10 @@ class ServiceBindingResultSchemaTests(unittest.TestCase):
         self.assert_every_member_required(validator, self.genesis_outcome())
         for key in self.signer():
             changed = self.genesis_outcome()
-            del changed["notary"]["signer"][key]
+            del changed["notary"]["signers"][0][key]
             self.assertFalse(validator.is_valid(changed), key)
         changed = self.genesis_outcome()
-        changed["notary"]["signer"]["verification_method"] = "did:web:station.example"
+        changed["notary"]["signers"][0]["verification_method"] = "did:web:station.example"
         self.assertFalse(validator.is_valid(changed))
         for key in ["method_history_evidence", "normalized_did_document", "projection_attestation", "realm_id", "expires_at"]:
             changed = self.genesis_outcome()

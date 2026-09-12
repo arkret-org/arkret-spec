@@ -296,7 +296,7 @@ Principal、Account、Device、Realm 外定位信息或解匿名目录；服务�
 ak.mls.welcome MUST 携带 commit_ref，并与同一 Commit、recipient 和 claimed KeyPackage 逐字段闭合。Delivery/Station sync surface 必须原样保留完整 payload；不得转发缺 claim、commit_ref、binding 或 ciphertext 的缩减 envelope。
 #### 2.5.2 Send gate 与 self-heal
 
-E2EE DataEvent 必须声明 mls_group_id、epoch 与 security_frontier_digest，并携带普通 Event admission 所需的 seal_ref。receiver 接受 application message 当且仅当：
+E2EE DataEvent 必须声明 mls_group_id、epoch 与 security_frontier_digest，并携带普通 Event admission 所需的 auth_context.authority_refs。receiver 接受 application message 当且仅当：
 
 1. 自己 Station 已按完整 accepted view 通过 Event 的 seal_ref / CBS admission；客户端不重放此治理判断；
 2. group 与 scope 匹配；
@@ -324,12 +324,12 @@ Peer server 的 `ak.peer.seals.read.mls_governance_proof.v1` 独立使用 `read_
 query 绑定完整 canonical proof_base_basis/proof_target_basis、local_mls_leaves、group_binding purpose、
 base_group_state_ref、Genesis proposal、epochs、binding_profile 与 byte_limit。base 必须是该 peer 已验证的
 accepted cut；target 必须支配 base，base==target 合法。已证明不可达返回 mls_governance_anchor_unreachable，
-必需材料缺失返回 frontier_unavailable。服务不得替换 antichain、选择任意单 leaf 或截断结果。
+必需材料缺失返回 frontier_unavailable。服务不得替换已指定的唯一确认 head 或截断结果。
 
 Peer verifier MUST 逐条验证 target 的每个 branch 与其签署的 state_root；验证完整 predecessor closure、
 每个 Seal.delta 对应的 every-and-only Events、历史 signer/notary 与 registered dependencies，再以普通 reducer
-计算整个 target antichain 的 joined state。notary 轮换必须由 predecessor authority 授权，不能用 current key
-替代历史授权。sparse Merkle membership、range boundaries/nonmembership 和 provenance 必须闭合；Bottom、
+验证唯一 target head 的确认状态和确切安全 Cell 证明。notary 轮换必须由 predecessor authority 授权，不能用 current key
+替代历史授权。sparse Merkle membership、range boundaries/nonmembership 和 provenance 必须闭合；安全确认故障、
 recovery reset 与 missing 语义由普通 reducer 决定，禁止临时 JSON merge。最后按同一 frontier registry、Genesis
 binding 和 exact leaves 计算 security_frontier_digest。每个 content-addressed Event/Seal 都按其完整摘要验证；
 event_ids 仅列 sparse provenance，不能替代完整 delta 解析。query_digest/page_digest、1 MiB 完整响应上限、
@@ -341,7 +341,7 @@ digest，而 active leaf revoke 必须影响它。自己 Station 的结果消费
 #### 2.5.4 SealBasis 信任来源（normative）
 
 普通客户端的治理信任来源是已认证账号所属的 Station。`RealmSealFrontierView` 是该 Station 已验证的
-完整 accepted antichain 与 live digest-suite 结果；客户端核对账号会话/Realm 和签署意图即可使用，MUST NOT
+唯一已确认 Realm head 与 live digest-suite 结果；客户端核对账号会话/Realm 和签署意图即可使用，MUST NOT
 再次从 genesis 建立 T1/T2/T3 治理 pin。配对、Welcome、备份和旧设备迁移均不需要增加治理检查点或 witness。
 MLS 本地快照与私钥的端到端保护继续适用；它们不承担证明自己 Station 诚实的职责。
 
@@ -350,10 +350,10 @@ MLS 本地快照与私钥的端到端保护继续适用；它们不承担证明�
 并由 create.payload.object.notary 的有效 genesis authority 签署。PCR 按 principal DID 的已验证 inception
 与 critical did_inception root anchor unit 建立锚，不能套用 event-derived create 规则。
 
-服务器从已验证 basis 前移时，必须验证全部新增 Seal/Event 与依赖、完整 antichain 的可达性及 joined state，
+服务器从已验证 basis 前移时，必须验证全部新增 Seal/Event 与依赖、唯一确认前缀的可达性及安全状态，
 原子持久化 accepted bytes、验证状态和派生索引；不能仅因另一个服务器提供 frontier、proof 或错误建议而替换
 自身 accepted basis。跨请求/用户/重启复用按[服务器信任与结果 §4](../sync/server-trusted-results.md#4-服务器验证复用)。
-服务器 verifier 向量继续覆盖错 genesis、错 notary、篡改 predecessor 与缩减 antichain；这些不是客户端冷启动任务。
+服务器 verifier 向量继续覆盖错 genesis、错 notary、篡改 predecessor 与缺失确认前缀；这些不是客户端冷启动任务。
 
 ### 2.6 KeyPackage Claim 生命周期
 
@@ -612,7 +612,7 @@ content_aad = JCS(reconstruct_pre_encryption_header(outer_signed_event, exact_gr
 
 `sender_domain` 不上 wire，只取 producer 在 seal 前冻结的最终 producer proof verification method / signer，并与 exact active
 Leaf BasicCredential identity 交叉验证：ordinary 从 verification-method fragment 投影 canonical DeviceId；Agent 与 minimal
-从 verified signer/actor 投影 canonical ActorId。station_admission proof 不参与。Producer proof 自身后生成且不进入 EventId
+从 verified signer/actor 投影 canonical ActorId。存储回执不参与。Producer proof 自身后生成且不进入 EventId
 preimage；若最终 proof method 与冻结值不同，admission 必须先拒绝，receiver 重构 AAD 也必然 open 失败。Producer 以原子 CAS 在
 `(mls_group_id,epoch,sender_domain)` 域耐久预留 counter；崩溃可留下 gap，但不得复用、回退或 random fallback。
 counter 耗尽或状态无法证明时必须先推进 epoch。Nonce 不上 wire；counter 只出现于 exporter `encryption_context`，nonce 由其机械派生。
@@ -751,13 +751,7 @@ producer、Station 与 receiver MUST 复算比较。普通 Realm/Circle/Sidecar 
 
 Genesis 接受规则：
 
-1. 创建者必须在 `governance_binding.security_frontier_digest` 所覆盖的 accepted key-access state下有创建该 MLS group 的权限；通常需要 `ak.mls.genesis` 或包含该动作的管理 grant。
-2. `governance_binding.next_epoch` MUST 为 `0`；若包含 `previous_epoch`，也 MUST 为 `0`。
-3. 同一 effective scope（其 `mls_group_id` 已由上式唯一派生）的 genesis/epoch/key-schedule cell 使用 `cas_register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Control Move 必须 fail closed，直到 recovery Control Move 修复；不同 group id 不能创建另一个 cell。
-4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `ak.mls.commit` Control Move，其 `base_epoch=0`、`base_epoch_ref` 指向 effective `ak.mls.genesis`、`next_epoch=1`。
-5. 新加入成员的 `ak.mls.welcome` MUST 引用 effective genesis 或后续 effective commit 派生出的 epoch state；客户端不得从未被 accepted Seal 覆盖的 welcome / ratchet tree 本地推断 group authority。
-6. `effective_scope.kind = "sidecar"` 的 genesis 另有创建者约束：`Event.actor_id` MUST 是 account 分支，且 `Event.actor_id.account_id` MUST 逐字等于该 Sidecar 的 `controller_account_id`；`Event.executed_by` MUST 缺席——该 Event 是 Agent PCR 后继 Seal 覆盖的 effectless `ak.mls.genesis`，MUST 由 controller device 直接签名（见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)）；signer regime MUST 是 ordinary device regime，且上式投影出的 creator device MUST 是该 controller 在该 Event 的 accepted basis 上 active 的 accepted device。Agent、Applet、service 或任何 delegated signer 一律拒绝。
-7. 对尚无 accepted Genesis 的 scope/group，`governance_binding.content_scheme` 与 `durability_policy` 必须逐字等于产出该 `security_frontier_digest` 的 0→0 query 中 `proposed_group_genesis_binding`。Admission 必须在写入前验证 proposal-bound query/cache identity 与 signed Genesis transcript 的相等性；不一致返回 `mls_genesis_binding_proposal_mismatch` 且零写入。并发 Genesis 的输家按 winning accepted binding 重新查询，不得沿用自身 proposal。Genesis accepted 后，这对字段永久来自 accepted state，任何 caller override 都拒绝。
+3. 同一 effective scope 的 genesis/epoch/key-schedule 使用 `sequenced_state`。同一前态的竞争 genesis/Commit 必须经过唯一安全确认；至多一个成功，失败者不安装 staged state。不同 group id 不能绕过同一 scope 的唯一槽位。
 
 **创建者客户端自举与恢复（normative）**：加密 Realm 的 bootstrap unit 已 accepted 后，创建者客户端
 MUST 把 Realm-default scope 从“Realm 已接受”推进到“epoch-0 MLS 可写”，不得依赖一次性的 UI task、页面存活
@@ -889,11 +883,7 @@ MLS authoring authority 立即停止，同一 binding 投影为 `suspended`，�
 旧 epoch 的历史解密仍逐次按 receipt-bound direct Seal replay、current 单向收紧 history_access、incarnation/join floor、首次入队 current gate 与本地 key availability 判定，
 恢复不得自动补发旧 epoch key。
 
-### 5.4 并发 Commit
-如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
-- 节点 MUST 以 accepted Seal view 下的 `mls_epoch_cell` / `key_schedule_cell` Lattice 结果为准。互不可达候选不会按时间或 actor 自动选 winner。
-- 若并发 Commit Control Move 都满足各自 precondition 但写入同一 `cas_register` epoch cell 的不同值，该 cell 返回 `⊥`；后续 E2EE DataEvent fail closed。普通 `ak.mls.commit` 在 `bottom=reject` 下必须以 `failed_bottom` 拒绝；唯一恢复入口是满足 recovery capability、严格 pre-conflict witness、freshness 与 Seal 条件的 `ak.conflict.recovery` Control Move。
-- 只有 effective Commit Control Move 能成为合法的下一个 Epoch。未被 accepted Seal 覆盖或导致 bottom 的 Commit 客户端 MUST 丢弃本地 epoch 变更并拉取当前 Seal view。
+- 并发 Commit 只允许唯一安全确认结果生效。客户端持久保留 exact outbound bytes 与 staged state，超时查询同一命令结果；确认失败才销毁暂存并从当前状态重建。epoch 数字不能选 fork winner，不存在通过通用冲突恢复随意合并 MLS 密钥状态的路径。
 
 MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 

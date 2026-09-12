@@ -357,7 +357,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 1. 验证 service-to-service authentication，绑定 Source/Destination service `did_core_id`、trust domain、Content-Digest 与 idempotency key；接收方从已验证的 exact canonical body bytes 内部计算 request digest。
 2. 验证 `Destination-Service-ID == invite_address.account_id.station_id`。
 3. 验证 `invite_address.service_resolution`，要求完整证据的 `service_id` 等于 `invite_address.account_id.station_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
-4. 验证 invite_event.kind 为 ak.invite.create、内容绑定的 Event / Invite ID、Realm ID、producer 签名及 origin Station admission proof。验证必须复用现有 Event proof 合同，独立认证 Station 控制密钥及其对 producer key 的绑定；不得相信发送者自报公钥或仅使用 Source-Service-ID。保留目标、有效期及重放约束。
+4. 验证 invite_event.kind 为 ak.invite.create、内容绑定的 Event / Invite ID、Realm ID、producer 签名及 可携带的 producer signer evidence 与原始授权。验证必须复用现有 Event proof 合同，独立认证 Station 控制密钥及其对 producer key 的绑定；不得相信发送者自报公钥或仅使用 Source-Service-ID。保留目标、有效期及重放约束。
    first-contact receiver 尚无 Realm visibility 时，MAY 以 admission proof 内 content-addressed
    `signer_resolution_evidence_ref` 向该 origin Station 的 `ak.peer.seals.read.governance_dependencies.v1` 精确解析
    **origin Station 自身**的 `AuthenticatedSignerResolutionEvidence::Service`。该例外只公开服务 DID 的历史方法证据：

@@ -23,9 +23,9 @@ Arkret 是面向协作对象的分布式发布、传播、查询与收敛协议�
 
 Arkret v1 采用 **CBS**（Control-plane Basis-committed Sealing）：
 
-- 数据面事件（DataEvent）解决普通协作写入：消息、reaction、read cursor 的持久投影、协作对象字段、排序、计数等。DataEvent 由 actor 签名、按 `seal_ref` 验证授权，通过 cell Lattice / CRDT 收敛；它不等待 Seal 才成为本地可接受事实。
+- 数据面事件（DataEvent）解决普通协作写入：消息、reaction、read cursor 的持久投影、协作对象字段、排序、计数等。DataEvent 由 actor 签名、按 `auth_context.authority_refs` 验证授权，通过 cell Lattice / CRDT 收敛；它不等待 Seal 才成为本地可接受事实。
 - 控制面事件（Control Move）解决治理写入：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 明确声明 `sealed=true` 的对象。Control Move 由 Seal 覆盖后才取得 `sealed` finality。
-- Seal 只对控制面给出 finality；它可以携带数据面的观测承诺（例如 `data_view_root` / `data_event_set_root`），但这些根只证明对应 observation，不把数据面升级为控制面 finality。控制面 include 所需的 AvailabilityReceipt 由 signed `availability_receipt_digests[]` 逐项承诺，不再有 `availability_root`。
+- Seal 只确认安全命令及其顺序结果。普通消息不进入 Seal 的 delta 或 state_root；安全命令 bytes 的可用性由 signed `availability_receipt_digests[]` 逐项承诺。
 
 同步层必须支持 actor 侧可验证发布、append-only 审计日志、离线写入、跨服务传播、选择性同步、最终一致投影、以及控制面问责。
 
@@ -37,11 +37,11 @@ Reducer-input Event 分为两类，二者 wire shape 互斥：
 
 | 类型 | 必须字段 | 禁止字段 | 收敛语义 |
 | --- | --- | --- | --- |
-| DataEvent | `scope_ref`、`seal_ref`、`auth_context` | `preconditions`、`seal_basis` | reducer 从 kind + payload 派生 data-plane writes；签名、actor chain、授权与 Lattice 验证通过即可本地接受。 |
+| DataEvent | `scope_ref`、`auth_context` | `seal_basis` | reducer 从 kind + payload 派生 data-plane writes；preconditions 仅检查签名因果基底；签名、actor chain、授权与 Lattice 验证通过即可本地接受。 |
 | Control Move | `scope_ref`、`seal_basis` | `seal_ref`、`auth_context` | reducer 派生 control-plane writes；进入 pending control set，直到被有效 Seal 覆盖才生效。 |
 | Anchor Unit | `scope_ref`；kind 仅限 `ak.realm.create` genesis bootstrap 与 `ak.device.reanchor` recovery unit | `seal_ref`、`auth_context`、`seal_basis` | 封闭例外；必须按 CBS 非空 genesis / transaction 规则验证。 |
 
-`preconditions[]` 仅属于 Control Move。DataEvent 不使用全局 CAS precondition；需要强单值、硬配额、跨 cell 原子性或不可自动合并语义的对象，MUST 在 Realm schema 中声明为 control plane（或使用专门 per-object sequencer），不得伪装成轻量数据面写入。
+`preconditions[]` 仅属于 Control Move。DataEvent 不使用全局 CAS precondition；需要强单值、硬配额、跨 cell 原子性或不可自动合并语义的对象，MUST 在 Realm schema 中声明为 control plane，不得伪装成轻量数据面写入。
 
 ### 2.1 DataEvent
 
@@ -50,12 +50,11 @@ DataEvent 是数据面写入。它的核心字段如下：
 | 字段 | 含义 |
 | --- | --- |
 | reducer contract | 从 kind + payload 派生数据面 cell 与 Lattice 操作；全部目标 MUST 为 `plane="data"`。 |
-| `seal_ref` | 已接受的 Seal id，表示授权验证使用的控制面基准。 |
-| `auth_context` | 签名 DID、key epoch、可选 credential epoch 与 capability refs。 |
+| `auth_context` | 签名 key 坐标、capability refs 与已确认的 `authority_refs`；长期缓存不因签署者离线失效。 |
 | `causal_refs[]` | 业务因果 hash 引用；用于投影、线程、排序与缺依赖诊断，不证明范围完整性。 |
 | `refs[]` | 语义引用；例如 `authorized_by`、`parent_event`、`attestation`、`after`。 |
 
-DataEvent 验证通过后可以立即进入本地 accepted set、fanout、同步和投影。Seal 后续 MAY 观测到该 DataEvent，并通过 `data_event_set_root` 或 `data_view_root` 暴露 `observed` 证明；未被观测不否定该 DataEvent 的签名事实和本地可接受性。
+DataEvent 完整验证后可立即本地投递、fanout 和同步；收到新的授权关闭证据后，按同一证据集合重算历史资格与业务投影。普通观察或复制不提供永久有效保证。
 
 ### 2.2 Control Move
 
@@ -63,7 +62,7 @@ Control Move 是控制面写入。它的核心字段如下：
 
 | 字段 | 含义 |
 | --- | --- |
-| `seal_basis.leaves[]` | 签名时采用的 Seal leaf 集合。 |
+| `seal_basis.leaves[]` | 每个参与 Realm 恰一个确认 head；同 Realm 多 leaf 无效。 |
 | `preconditions[]` | 可选控制面 pre-state predicate。 |
 | reducer contract | 从 kind + payload 派生控制面 cell 与 Lattice 操作；全部目标 MUST 为 `plane="control"`。 |
 
@@ -102,27 +101,22 @@ Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_sco
 
 接收方 MUST：
 
-1. 确认 Event 携带签名 `scope_ref`、`seal_ref`、`auth_context`，且不携带 `preconditions` 或 `seal_basis`。
-2. 确认 `seal_ref` 指向本 Realm 已接受的 Seal。
-3. 在该 Seal 的控制面 `state_root` / KeyView 下验证 actor/key binding、key epoch、credential epoch、capability refs、policy、membership、Realm lifecycle、Circle lifecycle 与 object scope；这里的 actor/key binding 校验是对 pinned auth-state 的确定性求值，不是对当前 DID Document 的在线重解析。Circle `state=active` MUST 在该 `seal_ref` view 中求值，不得读取 receiver 当前 projection。
-4. 若这是 caller 首次提交，唯一 origin Station 在追加 `station_admission` 的同一 serializable gate 中读取当前 capability、device、membership 与 lifecycle barrier；barrier 已先提交则拒绝，依赖不全则 pending。若这是 federation/backfill accepted Event，则验证原 origin admission proof 及冻结依赖，不以 receiver 当前状态追溯重判。具体见 [`event-auth-state-resolution.md` §4.3](../authz/event-auth-state-resolution.md)。
-5. 从注册的 reducer contract 重算全部 cell writes，确认它们只命中 data plane cell，且 cell family 的 Lattice 操作合法。
-6. 将 DataEvent 纳入本地 data accepted set，并按 cell Lattice join 重算数据面 projection。
+1. 首次提交由任意合资格接收站独立验证 producer、授权与因果证据，和本地已知 revoke fence 串行持久化。普通消息不要求新 Seal 或原站确认。federation/backfill 按相同证据闭包求历史资格，后续关闭可使此前暂时接纳的消息进入隔离，历史导入不触发 live 副作用。
 
-DataEvent 的安全问题主要是签名伪造、授权过期、写入不属于 data plane、以及不可合并冲突。签名伪造由 DID/key 与 Event proof 解决；授权基准由 `seal_ref` 解决；事件冲突由 Lattice / CRDT / bottom diagnostic 解决。
+DataEvent 的安全问题主要是签名伪造、授权过期、写入不属于 data plane、以及不可合并冲突。签名伪造由 DID/key 与 Event proof 解决；授权基准由已验证 `auth_context.authority_refs` 提供；事件冲突由 Lattice / CRDT / bottom diagnostic 解决。
 
 ### 3.2 Control Move 验证
 
 接收方 MUST：
 
 1. 对非 anchor-unit 的 Control Move，确认 Event 携带签名 `scope_ref`、`seal_basis`，且不携带 `seal_ref` 或 `auth_context`。
-2. 确认 `seal_basis.leaves[]` canonical sorted、duplicate-free 且均为已接受 Seal；从这些 Seal 合成 view 并重算 `control_event_set_root` 与 `state_root`，Event 不重复声明 roots。
-3. 在该 control basis 下验证 signer、capability、policy、membership、Realm lifecycle、Circle lifecycle 与 object scope；Circle `state=active` MUST 在 `seal_basis.leaves[]` 合成的 joined control view 中求值，并在 Seal 接受时由 `apply_seal` step 8 对冻结 predecessor joined governance state 重验。
+2. 确认 `seal_basis.leaves[]` canonical sorted、duplicate-free、每 Realm 恰一个已确认 head，并独立验证各域配置与 quorum 证明。Event 不重复声明 roots。
+3. 从签名 basis 验证 signer、capability、policy、membership、Realm/Circle lifecycle 与 scope；在唯一确认的实际执行位置，重验授权及全部实际读写 Cell 的 revision。跨域依赖按安全事务锁定，不能用旧 basis 的值比较代替身份比较。
 4. 求值 `preconditions[]`；任一 predicate 不成立则拒绝该 Control Move。
-5. 从注册的 reducer contract 重算全部 cell writes，确认它们只命中 control plane cell。
+5. 从注册 reducer 的条件重算有效 write，确认至少一个 security write，且全部效果构成注册的同一原子命令。仅登记的 bootstrap unit 可携带 D 初始效果。
 6. 将该 Control Move 放入控制面 pending set，等待 Seal 覆盖。
 
-Control Move 被有效 Seal 覆盖后，接收方重放控制面覆盖集，计算 control cell Lattice 与 `state_root`。root 匹配则该 Move 进入 `sealed`；root 不匹配或 Seal 签名、slot、delta、root、batch 验证失败，则拒绝该 Seal 并产生问责证据。
+Control Move 按 Seal 的 command_results 顺序产生持久 committed/rejected 结果；只有 committed 的安全效果进入 delta 与 state_root。投票副本必须重放并验证结果；非投票接收者按已验证配置 quorum 和有权读取的确切状态证明验证。结构、签名、顺序或 root 不成立时拒绝该 Seal。
 
 #### 3.2.1 Anchor Unit 验证
 
@@ -141,7 +135,7 @@ Seal 的 wire contract 见 [`seal.schema.json`](../../artifacts/schemas/seal.sch
 - 控制面 reducer 重放后的 `state_root` 与 Seal 声明一致。
 - inclusion list / receipt obligation / fault evidence 规则。
 
-`data_view_root` 与 `data_event_set_root` 只证明 notary 在该 Seal 观察到的数据面集合；它们不得用于改变 DataEvent 的控制面授权结果。`availability_receipt_digests[]` 只约束对应 Control Move bytes 的可用性义务。
+普通消息不依赖数据观察根。`availability_receipt_digests[]` 只约束对应安全命令 bytes 的可用性义务。
 
 ## 4. Event-first 发布模型
 
@@ -149,7 +143,7 @@ Seal 的 wire contract 见 [`seal.schema.json`](../../artifacts/schemas/seal.sch
 flowchart TB
     subgraph P ["Producer"]
         P1["build signed Event"]
-        P2["DataEvent: kind + payload + seal_ref + auth_context"]
+        P2["DataEvent: kind + payload + auth_context"]
         P3["Control Move: kind + payload + seal_basis"]
         P1 --> P2
         P1 --> P3
@@ -157,7 +151,7 @@ flowchart TB
 
     subgraph S ["Station / Station sync surface"]
         S1["schema + signature + actor chain"]
-        S2["DataEvent verify at seal_ref"]
+        S2["DataEvent verify portable authority"]
         S3["Control Move verify at seal_basis"]
         S4["data accepted + fanout"]
         S5["control pending"]
@@ -182,7 +176,7 @@ flowchart TB
 
 - Producer 与 Consumer 都可以从 signed Event 与 Seal proof 独立验证历史。
 - Station sync surface 是传播与投影服务，不是签名事实的来源；它不能伪造 actor Event。
-- DataEvent 可以离线产生，但必须选择一个可验证且足够新鲜的 `seal_ref`。
+- DataEvent 可以离线产生，使用完整已验证的缓存授权即可，不要求新 Seal 或缓存新鲜度续租。
 - Control Move 的 finality 来自 Seal，而不是到达顺序。
 
 ## 5. 批量提交与 partial accept
@@ -198,7 +192,7 @@ Event 仅可作为后续 Event 的解析材料：
 
 - 可以解析 bytes、Event ID、actor chain、`prev_refs[]`、`causal_refs[]` 或 payload-level causal reference。
 - 不得作为后续 Event 的授权基准。
-- DataEvent 的授权基准始终是该 Event 自己的 `seal_ref`。
+- DataEvent 的授权基准是自身签名 `auth_context.authority_refs`。
 - Control Move 的授权与 precondition 基准始终是该 Event 自己的 `seal_basis`。
 - 同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant/policy，不会在同批后续 Event 的授权判定中提前生效。
 
@@ -270,7 +264,7 @@ v1 不定义跨所有查询响应通用的 `basis` / `grade` 包装。operation 
 
 Arkret 不用全局链决定普通协作写入顺序。状态收敛由 cell family 的 Lattice / CRDT 规则定义：
 
-- OR-Set、ordered log、RGA、PN-counter、escrow counter 等可合并 cell MUST 对输入顺序不敏感。
+- 普通 or_set、ordered_log 与已注册 issuer-local counter 在相同资格证据下 MUST 对输入顺序不敏感。安全 sequenced_state 按确认顺序执行，不适用无序 join。
 - 单值、硬配额、跨 cell 原子性和不可交换操作不得放在 data plane，除非使用专门 sequencer。
 - 并发不可合并时，reducer MUST 产生 structured bottom / conflict diagnostic，而不是用 HLC、actor id、数据库自增 ID、本地到达顺序或 Station sync surface 顺序挑选 winner。
 - Timeline 展示顺序是 projection，MUST NOT 反向写入 canonical state、授权判断或 Lattice winner。
@@ -284,7 +278,7 @@ Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明以
 - `id`（snapshot 自身 id）
 - `realm_id`
 - `reducer_profile` 与 `schema_profile_refs`（reducer / schema profile refs）
-- `state_digest`（**必填**）——语义只有一个，由 [`../conformance/realm-state-snapshot-schema.md` §4](../conformance/realm-state-snapshot-schema.md) 给出：对该 Snapshot 全部 chunk `items[]`（封闭的单一 `cell` 分支，每个 item 是一个 Realm-scope reducer cell 与其 §6.2.1 `state_object`）求 RFC 6962 Merkle root，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`H` 随 Realm 的 live digest suite。`security_class` **MUST NOT** 切换该摘要的算法或承诺对象，也 MUST NOT 把它替换成 Seal 的治理 `state_root`：leaf 定义相同，但 leaf **集合**不同——`state_root` 只覆盖控制面 cell，`state_digest` 覆盖 Realm-scope 的控制面与数据面全部已写入 cell。`state_digest`、`control_event_set_root` 与下面的 `event_set_commitment` 三者承诺三个不同对象，MUST 分别校验，MUST NOT 互相代入。
+- `state_digest`（**必填**）——语义只有一个，由 [`../conformance/realm-state-snapshot-schema.md` §4](../conformance/realm-state-snapshot-schema.md) 给出：对该 Snapshot 全部 chunk `items[]`（封闭的单一 `cell` 分支，每个 item 是一个 Realm-scope reducer cell 与其 §11 `state_object`）求 RFC 6962 Merkle root，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §11](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`H` 随 Realm 的 live digest suite。`security_class` **MUST NOT** 切换该摘要的算法或承诺对象，也 MUST NOT 把它替换成 Seal 的治理 `state_root`：leaf 定义相同，但 leaf **集合**不同——`state_root` 只覆盖控制面 cell，`state_digest` 覆盖 Realm-scope 的控制面与数据面全部已写入 cell。`state_digest`、`control_event_set_root` 与下面的 `event_set_commitment` 三者承诺三个不同对象，MUST 分别校验，MUST NOT 互相代入。
 - `event_set_commitment`（绑定"哪些事件产生该状态"的承诺，与 `state_digest` 各自独立、**均必填**；接纳外部 snapshot 的服务器 MUST 验证它）
 - `frontier`（covered Event frontier / Seal basis）
 - `chunks`（chunk digests）
@@ -327,19 +321,15 @@ Snapshot 后续恢复流程：
 - `event_id` 的 raw 33-octet token（suite wire_code + full 32-octet event_digest）是 Event 相等、exact replay、canonical store 与最终去重真相源。
 - 只有相同 `event_id` 且相同 canonical preimage 的重复投递才是 exact duplicate，并 MAY 作为幂等成功处理。携带相同 ID 但重算结果不同是 `event_id_digest_mismatch`，必须在进入 ID bucket 前拒绝，不能影响既有 accepted Event。
 - 若两个不同 canonical preimage 在同一 suite 下重算出同一个 `event_id`，这是完整 hash collision evidence。提交响应 MUST 拒绝新到变体；本地状态处置 MUST 把该 ID 的全部已验证变体作为一组进入 quarantine，包括此前已 accepted 的变体、由任一变体创建的 Event-derived object、未 final writes，以及引用该 ID 的后继。先到顺序、较早 accepted 或字典序都不能证明哪一变体“正确”。
-- 节点 MUST 从所有 data cell join 输入移除这些变体经 reducer 派生的 writes；尚未被 accepted Seal 覆盖的 Control Move 同样移除。已被 accepted Seal 覆盖的控制面事实不得从 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。碰撞下两个变体的 `event_digest` 相同，Seal 承诺无法指认覆盖的是哪一个 preimage，因此归一裁决按 canonical bytes 指认、历史 Seal 输入不得事后重算、碰撞区间不得被 compaction 跨越——见 [`event-auth-state-resolution.md` §6.3.3](../authz/event-auth-state-resolution.md)。
+- 节点 MUST 从所有 data cell join 输入移除这些变体经 reducer 派生的 writes；尚未被 accepted Seal 覆盖的 Control Move 同样移除。已被 accepted Seal 覆盖的控制面事实不得从 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。碰撞下两个变体的 `event_digest` 相同，Seal 承诺无法指认覆盖的是哪一个 preimage，因此归一裁决按 canonical bytes 指认、历史 Seal 输入不得事后重算、碰撞区间不得被 compaction 跨越——见 [`event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md)。
 - submit、probe、backfill 或本地审计任一路径发现完整 hash collision，都 MUST 执行同一整组 quarantine。raw/quarantine 查询以完整 Event ID 定位碰撞 bucket，并返回全部已知 canonical 变体，不得 first-row-wins。operator-approved 解除只接受 recovery Seal 覆盖的 `ak.fork.resolution`：`subject.kind=event_id_collision` 时 `conflict_evidence.kind=full_hash_collision` 必须携恰两个 locator，每个 locator 或内联完整 canonical preimage bytes，或按 `ak.schema.collision_variant_record.v1` 引用（接近 1 MiB 的原 Event 必须走引用分支，否则 resolution Event 自身越界）；winner 必须以同一完整 bytes 的 locator 指认或使用 `void_all`；digest-only winner 以 `witness_disagreement` 拒绝。碰撞组跨 Realm 时，本 Realm 的裁决只治理本 Realm 内的投影，不改写其它 Realm 的变体。raw replay 只用于取得全部已知变体，最终解除仍必须由上述 accepted fork-resolution authority 驱动；current-v1 不存在历史范围 attestation 或同 scope witness quorum 解除分支，任何普通成功、root 相等或数据库直清都不是解除 authority。
-- **accepted `canonical_winner` 归一是本条整组 quarantine 的唯一封闭豁免（normative）**：当本 Realm 已有一条 accepted 的 `ak.fork.resolution`，其 `subject.kind=event_id_collision`、subject 逐字等于该 `event_id`、`verdict.kind=canonical_winner`，且待准入 bytes 与该 verdict 的 `conflict_evidence.variants[winner_index]` 解出的 bytes 逐字相等时，receiver MUST 按 [`../authz/event-auth-state-resolution.md` §6.3.3](../authz/event-auth-state-resolution.md) 第 3 点把 winner 准入为该 ID 的 accepted 变体，并 MUST NOT 因此报 `witness_disagreement` 或再次整组 quarantine。豁免的触发条件只有这一条：**不存在满足上述四项的 accepted `ak.fork.resolution` 时，第二个 preimage 仍按本节整组 quarantine**，普通提交 MUST NOT 触发它；winner 仍 MUST 独立通过结构 / suite / `realm_id` / `event_id` 重算前置检查，并按 §6.3.3 第 3 点复用该 `event_id` 已验证的 proof 集合重跑 binding 校验；loser 保留为 forensic 变体，其派生 writes 按本节既有规则移除。MUST NOT 用 `event_digest`、另一 suite discriminator、长度或局部 byte slice 指认待准入变体，也 MUST NOT 经私有 endpoint、operator 命令或数据库直写完成取代。
+- **accepted `canonical_winner` 归一是本条整组 quarantine 的唯一封闭豁免（normative）**：当本 Realm 已有一条 accepted 的 `ak.fork.resolution`，其 `subject.kind=event_id_collision`、subject 逐字等于该 `event_id`、`verdict.kind=canonical_winner`，且待准入 bytes 与该 verdict 的 `conflict_evidence.variants[winner_index]` 解出的 bytes 逐字相等时，receiver MUST 按 [`../authz/event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md) 第 3 点把 winner 准入为该 ID 的 accepted 变体，并 MUST NOT 因此报 `witness_disagreement` 或再次整组 quarantine。豁免的触发条件只有这一条：**不存在满足上述四项的 accepted `ak.fork.resolution` 时，第二个 preimage 仍按本节整组 quarantine**，普通提交 MUST NOT 触发它；winner 仍 MUST 独立通过结构 / suite / `realm_id` / `event_id` 重算前置检查，并按 §15 第 3 点复用该 `event_id` 已验证的 proof 集合重跑 binding 校验；loser 保留为 forensic 变体，其派生 writes 按本节既有规则移除。MUST NOT 用 `event_digest`、另一 suite discriminator、长度或局部 byte slice 指认待准入变体，也 MUST NOT 经私有 endpoint、operator 命令或数据库直写完成取代。
 
 ## 13. 授权时序
 
 授权不能只看墙上时钟。CBS 的授权时序规则是：
 
-- DataEvent 按自身 `seal_ref` 指向的控制面 Seal 验证授权。
-- Control Move 按自身 `seal_basis` 指向的控制面 view 验证授权和 precondition。
-- revoke、grant、membership、policy 与 lifecycle 的当前有效性由 origin admission gate 的 current accepted control state 判定；已取得有效 `station_admission` 的历史 Event 不因后来控制面变化失效。
-- 同批提交不会让授权变更提前影响后续 Event。
-- 无法解析必要控制面 proof 或 freshness 的写入 MUST fail closed 或 quarantine，不得按 HLC、本地到达顺序或服务端当前数据库猜测授权有效。
+- revoke、grant、membership、policy 与安全生命周期按已确认前缀执行；普通消息使用缓存授权，历史资格按全部适用关闭集合重算。接收记录不授予不可撤销的有效性。
 
 ## 14. 可见性、密文负载与 E2EE 索引
 
@@ -347,7 +337,7 @@ ACL 不等于密文保护。Station sync surface 可以转发不透明密文，�
 
 字段可见性分级：
 
-- Event Envelope 顶层路由、因果与签名归属元数据：`event_id`、`realm_id`、签名 `scope_ref`、`kind`、`prev_refs[]`、可选非空 `causal_refs[]` / `refs[]`、`actor_id`、`actor_seq`、`hlc`、`seal_ref` 或 `seal_basis`、以及 schema 声明的 `executed_by`、`authorization_ref`、`applet_id`、`external_ref`。
+- Event Envelope 顶层路由、因果与签名归属元数据：`event_id`、`realm_id`、签名 `scope_ref`、`kind`、`prev_refs[]`、可选非空 `causal_refs[]` / `refs[]`、`actor_id`、`actor_seq`、`hlc`、`auth_context` 或 `seal_basis`、以及 schema 声明的 `executed_by`、`authorization_ref`、`applet_id`、`external_ref`。
 - 明文业务元数据：轻量状态、rank、due date 等；若足以暴露敏感内容，接收服务必须列入 Realm policy 的 plaintext-visible service。
 - 不透明加密负载：message body、附件内容、私有对象字段等。
 

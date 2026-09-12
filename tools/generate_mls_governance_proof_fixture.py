@@ -90,7 +90,7 @@ def frontier_entry(target_ref: str, index: int) -> tuple[dict[str, Any], str, st
     cell = f"ak:cell:ak.component.member.state.v1:did.web.member-{index}.example"
     value = {"head": "join", "target_seal_ref": target_ref}
     event_id = content_id("event", f"mls-governance-frontier-provenance-{index}")
-    preimage = jcs({"cell": cell, "state": {"value": value}})
+    preimage = jcs({"cell": cell, "state": {"revision_event_id": event_id, "value": value}})
     leaf_digest = sha(ZERO + preimage)
     entry = {
         "cell_id": cell,
@@ -138,7 +138,7 @@ def body(refs: list[str], target_refs: list[str], edges: list[tuple[str, str]]) 
     branches = []
     event_ids = []
     for index, target_ref in enumerate(sorted(target_refs)):
-        if len(target_refs) > 1:
+        if edges:
             entry, event_id, state_root = frontier_entry(target_ref, index)
             event_ids.append(event_id)
             ranges = [
@@ -188,7 +188,7 @@ def make_case(
     genesis: bool = False,
 ) -> dict[str, Any]:
     q = query(basis(*base_refs), basis(*target_refs), genesis=genesis)
-    page_body = body(sorted(set(base_refs + target_refs)), target_refs, edges)
+    page_body = body(sorted(set(base_refs + target_refs + [r for edge in edges for r in edge])), target_refs, edges)
     q_digest = query_digest(q)
     page_digest = sha(DOMAIN + ZERO + q_digest.encode("utf-8") + ZERO + jcs(page_body))
     outcome = {"query_digest": q_digest, **page_body, "page_digest": page_digest}
@@ -223,7 +223,7 @@ def build() -> dict[str, Any]:
         make_case("genesis_base_equals_target", [s1], [s1], [], genesis=True),
         make_case("successor_base_equals_target", [s1], [s1], []),
         make_case("strict_descendant", [s1], [s2], [(s2, s1)]),
-        make_case("open_set_multi_leaf", [s1, s2], [s3, s4], [(s3, s1), (s4, s2)]),
+        make_case("confirmed_prefix_two_steps", [s1], [s3], [(s3, s2), (s2, s1)]),
     ]
     schema_validator = validator()
     for case in cases:
@@ -271,8 +271,8 @@ def build() -> dict[str, Any]:
                 "response_count": 0,
             },
             {
-                "name": "single_head_substitutes_open_set",
-                "mutation": "drop one leaf from the complete open_set target antichain",
+                "name": "multiple_same_realm_heads",
+                "mutation": "supply two incomparable heads for the same group Realm",
                 "expected": "reject_incomplete_target_basis",
                 "response_count": 0,
             },
@@ -316,7 +316,7 @@ def build() -> dict[str, Any]:
         "runner_rules": [
             "Validate every positive query and outcome against the read_request/read_outcome schema.",
             "Treat proof_base_basis and proof_target_basis as canonical complete Seal antichains.",
-            "base==target is valid; strict descendant and open_set multi-leaf are valid only with complete predecessor closure.",
+            "base==target is valid; a strict descendant is valid only with the complete unique predecessor chain.",
             "The stateless operation never transports bulk epoch activation evidence.",
         ],
     }

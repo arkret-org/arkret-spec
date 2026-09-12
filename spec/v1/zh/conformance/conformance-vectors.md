@@ -8,10 +8,10 @@ updated: 2026-09-10
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
 
-`ak.vector.identity.station_admission.v1` 覆盖 `AccountId` 终身单 account / 单 PCR genesis 唯一性：deactivation 后同一 Station replacement account 仍拒绝；deployment policy 可拒绝 reactivation，policy allow 也必须在 completed PCR recovery closure 后只恢复原 account/PCR 并绑定更高 device generation；另一 Station 完整 onboarding 是独立选择而非强制恢复路径。该向量还覆盖 Event 完整 `ActorId` 的 producer 签名、由实际 author ActorId 唯一导出的 origin service、producer proof 精确绑定、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `station-admission-fixture.json` 的全部 semantic cases；任何以裸 principal/PCR identifier 比较外部 account equality、deactivation 后释放同 pair uniqueness、用 account auth/admin 绕过 PCR recovery、复活旧 generation 资源、接收服务重签或独立 signer-evidence sidecar 都不合格。
+`ak.vector.identity.independent_admission.v1` 覆盖完整 AccountId 的单账号/PCR 唯一性、恢复 generation、原始 producer proof、B 站独立接纳与撤销后的历史重分类。测试器 MUST 运行 `independent-admission-fixture.json` 的全部案例；裸 principal 比较、原站补签依赖、换站重签及以收据永久冻结资格均不合格。
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
-2. CBS · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
+2. CBS · Lattice（DataEvent acceptance、Control Move Seal finality、causal_register、安全确认序列）
 3. Redaction（约束与可见性）
 4. Capability（authority chain、revoke、approval）
 5. Sync（client sync、pagination、snapshot、MLS epoch backfill）
@@ -38,11 +38,11 @@ MIMI Provider Facade 的 active interop vector 集合与数量以 [`vector-regis
 
 形式化 proof obligations 至少 SHOULD 覆盖：
 
-- CBS / open_set 多 leaf 下 per-cell lattice join `J(L)` 是纯函数，且与输入顺序、接收方、墙钟无关；所有 conformant reducer 对同一 accepted Seal frontier 收敛到同一 cell value。
-- 并发分支撤销 fail closed：grant / capability revoke 与被授权 Event 并发时，joined control view MUST 重判并拒绝不再满足授权的 Event。
+- 普通数据在同一资格上下文的 per-cell join 是纯函数，且与输入顺序、接收方、墙钟无关；所有 conformant reducer 对同一完整可见证据 K、确认前缀与 selector 产生相同普通投影。
+- 并发分支撤销 fail closed：grant / capability revoke 与普通 Event 并发时，未知撤销允许暂时投递；相同关闭证据集合下 MUST 得到相同历史资格。
 - Capability authority 单调衰减：`child.actions ⊆ issuer authority actions`、resource selector 不放宽、约束不放宽、`authority_expiry_seal` 只能收窄或固定，不能被 child grant 延长。
 - Authority graph 无环，且环检测在并发分支合并、离线 replay 与 migration context 下结果一致。
-- Control-cell bottom / conflict-recovery 只能按 `event-auth-state-resolution.md` §9.5 的唯一 recovery Move 出 ⊥，其它路径 fail closed。
+- 安全命令按唯一确认顺序执行并检查实际相关 revision；竞争失败不安装 Bottom，不存在通用 Cell reset 或安全 lineage join。
 
 工具栈不在 v1 固定：TLA+ 适合状态机 / lattice 收敛，Tamarin / ProVerif 适合协议认证与攻击者模型，Alloy / property-based runner 可覆盖结构不变量。profile MAY 选择不同工具，但输出必须能被 reviewer 复现，并把每个 proof obligation 映射到规范章节、registry row 或 vector id。
 
@@ -669,7 +669,7 @@ content_aad = JCS(pre_encryption_header)
 
 Standard MLS 使用该 AAD 作为 RFC 9420 authenticated_data 且 wire 无 counter；exporter 才使用 per-sender K_content 与
 `I2OSP(counter,AEAD.Nn)`。向量必须覆盖修改 `version`/`content_type`、最终 producer verification method 与 seal 前冻结 method 不同、
-station_admission proof 冒充 producer，以及 sender leaf 零/多匹配；全部在 decrypt/admission 前 fail closed。
+服务存储回执冒充 producer，以及 sender leaf 零/多匹配；全部在 decrypt/admission 前 fail closed。
 
 机器向量同时覆盖 standard branch（counter absent）与 exporter branch（counter required），并对 outer scope/kind、derived
 group id、group-state scheme、epoch、sender domain、counter 与 routing context 各做单字段 mutation。Wire envelope 若复制
@@ -787,7 +787,7 @@ fixture 同时固化以下向量（2026-07-03 起）：
 以下 vector id 的具体断言由对应领域正文定义；本节提供 conformance registry 的统一锚点：
 
 - `ak.vector.aead.full_width_counter_nonce.v1`
-- `ak.vector.lattice.mv_register_join.v1`
+- `ak.vector.lattice.causal_register_join.v1`
 - `ak.vector.lattice.counter_join.v1`
 - `ak.vector.lattice.ordered_log_join.v1`
 - `ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1`
@@ -815,7 +815,7 @@ Expected：`expected_multibase` / `expected_principal_id_key` MUST byte-for-byte
 
 `ak.vector.scalability.circle_count_limit.v1` MUST 同时覆盖：（a）已有 1,000 个 active Circle 的 Realm 再提交 `ak.circle.create`；（b）已有 256 个 active MLS-backed Circle membership 的 actor 再加入一个 MLS-backed Circle。两者均 MUST 以 `failed_precondition`、`reason_code=circle_count_exceeded` 拒绝且不得改变状态。体量状态由 runner 按 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的 generator 描述构造，不要求 fixture 字面展开全部对象。
 
-`ak.vector.scalability.envelope_size_limit.v1` 只测完整 canonical accepted Event Envelope；v1 不定义 “Event/Operation envelope” 混合对象。Runner MUST 生成精确 1,048,576 bytes 的候选 accepted Event（包含 producer proof 与待原子提交的 `station_admission` proof，不含 read-view `unsigned`）作为接受边界，并生成 1,048,577 bytes 的超限输入；producer 在签名前必须预留完整 proof 集预算，源站不得通过签后改写已签字段来满足上限。超限输入 MUST 在 commit 前以 `payload_too_large` 拒绝；self/peer submit 携带 `unsigned` 必须在 reducer 前 `schema_violation`。同一 vector 还必须生成含 Add 的 Commit 所对应的 inline `ak.mls.welcome` 完整候选：恰好 1,048,576 bytes 可继续发送 Commit，1,048,577 bytes 必须在任何 Commit 网络写入和 post-Commit state 安装前终止该 generation。
+`ak.vector.scalability.envelope_size_limit.v1` 只测完整 canonical accepted Event Envelope；v1 不定义 “Event/Operation envelope” 混合对象。Runner MUST 生成精确 1,048,576 bytes 的候选 accepted Event（包含唯一 producer proof 与 signer evidence ref，不含 read-view `unsigned`）作为接受边界，并生成 1,048,577 bytes 的超限输入；producer 在签名前必须预留完整 proof 集预算，源站不得通过签后改写已签字段来满足上限。超限输入 MUST 在 commit 前以 `payload_too_large` 拒绝；self/peer submit 携带 `unsigned` 必须在 reducer 前 `schema_violation`。同一 vector 还必须生成含 Add 的 Commit 所对应的 inline `ak.mls.welcome` 完整候选：恰好 1,048,576 bytes 可继续发送 Commit，1,048,577 bytes 必须在任何 Commit 网络写入和 post-Commit state 安装前终止该 generation。
 
 `ak.vector.scalability.http_header_limits.v1` MUST 至少覆盖：128-char `Idempotency-Key` 接受、129-char 拒绝；非 ASCII / 非 canonical alphabet 拒绝；HTTP header aggregate 32 KiB 接受、32 KiB + 1 byte 拒绝；超限输入不得建立 replay-cache entry、不得构造无界签名 transcript。
 
@@ -859,33 +859,18 @@ ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1
 
 输入：
 
-- DataEvent 携带签名 `scope_ref`、`seal_ref` 与 `auth_context`，不携带 `seal_basis` 或 `preconditions`；writes 由 reducer vector 重算。
+- DataEvent 携带签名 `scope_ref` 与 `auth_context`，不携带 `seal_basis` 或 `preconditions`；writes 由 reducer vector 重算。
 - `seal_ref` 指向的 Seal view 可验证，actor chain / signature / capability 均通过。
 
 期望：
 
 - DataEvent 进入 `data_local` / `data_seen` 状态并可本地投影。
 - 不需要等待该 DataEvent 出现在任何 Seal 覆盖集。
-- Seal 只能通过 `data_event_set_root` / `data_view_root` 提供观察性证明，不赋予数据面 sealed finality。
+- 普通消息不进入安全 covered 集合，也不需要任何 Seal 观察证明。
 
-### 2.3 Vector: 观察性 Data Root 不产生 Sealed 状态
+### 2.3 Vector: 普通数据不需要 Seal 观察根
 
-向量名称：
-
-```text
-ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1
-```
-
-输入：
-
-- Seal 携带 `data_event_set_root`，该 root 包含某 DataEvent digest。
-- 同一 Seal 的 `delta[]` 与递归覆盖集不包含该 DataEvent digest。
-
-期望：
-
-- DataEvent 的证据状态最多为 `data_observed`，不得升级为 `control_sealed`。
-- 客户端不得用观察性 data root 满足 Control Move `seal_basis` 或治理 freshness。
-- `data_observed` 可用于可用性或轻客户端提示，但不是控制面 finality，也不证明历史无遗漏。
+`ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1`：普通消息只经过本地独立验证和因果复制。向 Seal 注入 data_view_root、data_event_set_root 或 completeness_root 必须 schema 拒绝；普通消息不因被存储、复制或快照覆盖而变为安全命令。
 
 ### 2.4 Vector: Control Move 必须有 Basis 且由 Seal 覆盖
 
@@ -948,11 +933,11 @@ Expected：
 
 这两条 vector 验证服务器 materializer 与独立 peer verifier，MUST NOT 要求普通客户端执行治理重放；self 结果的请求绑定、旧 proof 字段拒绝与 epoch head 检查按[服务器信任与结果 §5](../sync/server-trusted-results.md#5-mls-绑定结果)独立验收。
 
-两条 active vector 共用 [`mls-governance-proof-fixture.json`](../../artifacts/fixtures/mls-governance-proof-fixture.json) 的同一份 byte-level KAT。server-consumer runner MUST 从 fixture 的 accepted Seal DAG、完整 covered Event 集与 joined control state 重建一个有界 `group_security_frontier` exact outcome，逐字节复算 query、base/target `SealBasis`、Event/Seal descriptors、sparse witnesses、`page_digest` 与 `security_frontier_digest`，并与 fixture 的 exact expected outcome 比较；SDK-consumer runner MUST 以同一 outcome、Commit transcript binding 与本地完整 trusted basis 执行 [`encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md#251-security-binding-payload) 的固定验证顺序。近端 KAT 不生成 chunk、manifest 或 Bundle；批量/旧历史由独立 direct traversal KAT 从 receipt-bound target 反向发现完整 Seal cut、解析 Event/typed dependencies 并拓扑重放。具体执行入口以 fixture `runner` 元数据为准。只加载 fixture、只做 schema validation、只检查 `governance_binding.previous_epoch/next_epoch` 或只返回一个总 pass 均不构成通过。
+两条 active vector 共用 [`mls-governance-proof-fixture.json`](../../artifacts/fixtures/mls-governance-proof-fixture.json) 的同一份 byte-level KAT。server-consumer runner MUST 从 fixture 的隔离序列化输入与状态证明材料 重建一个有界 `group_security_frontier` exact outcome，逐字节复算 query、base/target `SealBasis`、Event/Seal descriptors、sparse witnesses、`page_digest` 与 `security_frontier_digest`，并与 fixture 的 exact expected outcome 比较；SDK-consumer runner MUST 以同一 outcome、Commit transcript binding 与本地完整 trusted basis 执行 [`encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md#251-security-binding-payload) 的固定验证顺序。近端 KAT 不生成 chunk、manifest 或 Bundle；批量/旧历史由独立 direct traversal KAT 从 receipt-bound target 反向发现完整 Seal cut、解析 Event/typed dependencies 并拓扑重放。具体执行入口以 fixture `runner` 元数据为准。只加载 fixture、只做 schema validation、只检查 `governance_binding.previous_epoch/next_epoch` 或只返回一个总 pass 均不构成通过。
 
-Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transport commitments，覆盖：服务端自报但本地未信任的 base leaf、open-set basis 缺 leaf/多 leaf/乱序、`base == target` 正例、并发或不可达 target、断裂/分叉 Seal DAG、错误 notary authority；covered digest/state leaf/frontier Event 的缺失、多余、重复和乱序；frontier Event proof 与跨 Realm/scope；sparse path/boundary/nonmembership 的缺失或多余；Realm/group/epoch/profile/reducer binding，以及 `security_frontier_digest` 不匹配。任一 reject case 都不得持久化 verified outcome 或推进 MLS epoch。
+Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transport commitments，覆盖：服务端自报但本地未信任的 base leaf、每 Realm 单 head 的 basis 缺 leaf/多 leaf/乱序、`base == target` 正例、并发或不可达 target、断裂/分叉 安全确认序列、错误 notary authority；covered digest/state leaf/frontier Event 的缺失、多余、重复和乱序；frontier Event proof 与跨 Realm/scope；sparse path/boundary/nonmembership 的缺失或多余；Realm/group/epoch/profile/reducer binding，以及 `security_frontier_digest` 不匹配。任一 reject case 都不得持久化 verified outcome 或推进 MLS epoch。
 
-Materializer matrix MUST 覆盖精确有效输出、`base == target` 与 ancestor→descendant 正例，以及并发/不可达 basis（`mls_governance_anchor_unreachable`）、必需 Seal/Event/witness 缺失（`frontier_unavailable`）、撤销后的 notary、control-cell Bottom、scope visibility denial 与 exact response 超界（`mls_governance_proof_bounds_exceeded`）；失败时 response count 必须为 0，不能输出 partial outcome 或替换 basis。两条 runner 在同一 profile certification job 中还 MUST 执行 companion `ak.vector.scalability.mls_governance_proof_bounds.v1` 的全部 `limit-1 / limit / limit+1` 与 exact-response cases，并记录每 case 的 stage、reason/error、response count、query/outcome digest、epoch transition 与 peak buffer bytes。
+Materializer matrix MUST 覆盖精确有效输出、`base == target` 与 ancestor→descendant 正例，以及并发/不可达 basis（`mls_governance_anchor_unreachable`）、必需 Seal/Event/witness 缺失（`frontier_unavailable`）、撤销后的 notary、安全确认分叉、scope visibility denial 与 exact response 超界（`mls_governance_proof_bounds_exceeded`）；失败时 response count 必须为 0，不能输出 partial outcome 或替换 basis。两条 runner 在同一 profile certification job 中还 MUST 执行 companion `ak.vector.scalability.mls_governance_proof_bounds.v1` 的全部 `limit-1 / limit / limit+1` 与 exact-response cases，并记录每 case 的 stage、reason/error、response count、query/outcome digest、epoch transition 与 peak buffer bytes。
 
 MLS group tracker 的 companion matrix MUST 另外对 `ak.peer.mls.read.group_state_material.v1` 执行：两组 ref/raw
 bytes 完全匹配的 accepted genesis 正例；Event id、scope、group 或 epoch cross-binding；缺 ref、ref suite 不等于 Realm
@@ -988,12 +973,12 @@ Arkret 不复制易漂移的外部密码学金值；本向量直接 pin MLS WG `
 
 `vector_id`: `ak.vector.mls.security_frontier_key_access_only.v1`
 
-本 vector 固定 [`encryption-and-audit.md` §2.5.2](../crypto-media/encryption-and-audit.md#252-send-gate-与-self-heal) 的两条结构性规则：security frontier 只吸收改变密钥访问资格的 closed cell set，普通 DataEvent 的 `seal_ref` 与 MLS frontier 正交。
+本 vector 固定 [`encryption-and-audit.md` §2.5.2](../crypto-media/encryption-and-audit.md#252-send-gate-与-self-heal) 的两条结构性规则：security frontier 只吸收改变密钥访问资格的 closed cell set，普通 DataEvent 的授权依据与 MLS frontier 分别验证。
 
 Steps：
 
 1. 从 accepted state 重算 digest `F`，提交 `ak.mls.commit C` 绑定 `F` 并推进 epoch。
-2. 接受只改变 display metadata、普通 capability、moderation 或 routing 的 Control Move，再提交 E2EE application DataEvent；其 `seal_ref=S` 指向最新 accepted Seal。
+2. 接受只改变 display metadata、普通 capability、moderation 或 routing 的 Control Move，再提交 E2EE application DataEvent；其 auth_context.authority_refs 可以继续引用原有效授权，无需刷新到 S。
 3. 接受一次实际撤销当前 MLS leaf 的 device/Agent runtime key revoke，令重算 digest 变为 `F2`，但尚未接受绑定 `F2` 的新 Commit。
 
 Expected：
@@ -1010,7 +995,7 @@ Expected：
 官方 SDK 的 compile-fail/type-error runner MUST 执行
 [`sdk-event-type-axes-fixture.json`](../../artifacts/fixtures/sdk-event-type-axes-fixture.json)。它至少证明：
 
-- `ControlMove` 缺 `seal_basis`、`DataEvent` 缺 `seal_ref/auth_context` 无法产生可提交值；
+- `ControlMove` 缺 `seal_basis`、`DataEvent` 缺 `auth_context` 无法产生可提交值；
 - 普通 raw Event batch 不能因 CBS 条件字段缺失而被推断为 `AnchorUnit`；
 - `MlsCommitPayload` 缺完整 Commit bytes、epoch 或 `security_frontier_digest` 无法构造；
 - plain application payload 不能误走 MLS Commit validator，`MlsEncryptedPayload<T>` 不能序列化为 plain payload；
@@ -1057,13 +1042,13 @@ ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1
 
 输入：
 
-- 两个 DataEvent 并发写同一 `cas_register + bottom=reject` 数据面 cell。
-- 两者 `seal_ref` 均有效，但 causal refs 互不可达。
+- 两个 DataEvent 并发写同一 `causal_register` 数据面 cell。
+- 两者已签 `auth_context.authority_refs` 均有效，但 causal refs 互不可达。
 
 期望：
 
 - `query(cell)` 返回 structured `Bottom{kind="conflict"}`。
-- 依赖该 cell 的后续 DataEvent / Control Move MUST `failed_bottom`，直到显式 conflict-recovery event 修复。
+- 需要单值的消费面 MUST `failed_bottom`；有权后继观察并覆盖相关 heads 可以修复，不存在任意 Cell reset Event。
 - 实现不得用 HLC、actor id、event id 或本地接收顺序选择 winner。
 
 ### 2.7 Vector: Seal Delta 排除 DataEvent Digest
@@ -1077,29 +1062,17 @@ ak.vector.cbs_lattice.seal_delta_excludes_data_event_digest.v1
 输入：
 
 - Seal 的 `delta[]` 中混入一个 DataEvent digest。
-- 该 DataEvent 可能已在 `data_event_set_root` 中出现。
+- 该 DataEvent 即使已被多站复制，也不能进入安全 delta。
 
 期望：
 
 - Seal MUST reject。
 - `delta[]` 只能包含新纳入覆盖集的控制面 Control Move event digest。
-- DataEvent digest 只能进入观察性 roots，不得出现在控制面 Seal 覆盖集。
+- DataEvent digest 可以进入普通快照摘要，不得出现在控制面 Seal 覆盖集。
 
-### 2.8 Vector: Open Set Compaction 保留控制 Roots
+### 2.8 Vector: 安全前缀压缩
 
-向量名称：
-
-```text
-ak.vector.cbs_lattice.open_set_compaction_preserves_control_roots.v1
-```
-
-输入与期望（多 case 矩阵）：
-
-1. **Genesis case**：`predecessor_refs=[]` 仅在 genesis Seal 上合法。
-2. **Non-genesis empty predecessors**：`predecessor_refs=[]` 但 `delta[]` 非空 MUST reject。
-3. **Multi-leaf Seal view**：`seal_view(leaves)` 是纯本地函数（不需签名、不是新 Seal object、deterministic）。
-4. **Signed compaction**：要把多 leaf 持久压缩成单 Seal 必须由合法 notary 签发；否则只能作为 view 使用。
-5. **Root preservation**：compaction 后的 `control_event_set_root` 与 `state_root` MUST 等于按 leaves 重算的控制面 roots；`data_event_set_root` / `data_view_root` 若出现，仍只具观察性语义。
+`ak.vector.cbs_lattice.confirmed_prefix_compaction.v1`：压缩必须保留同 Realm 唯一确认前缀的全部安全效果、revision、拒绝结果和未决事务锁。不能把竞争安全 lineage 合并为新权限状态。普通消息不进入压缩的 covered set。
 
 ### 2.8.1 Vector: Seal canonical bytes 去自引用（normative）
 
@@ -1111,17 +1084,17 @@ ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1
 
 输入与期望（多 case 矩阵）：
 
-1. **Base case**：构造 Seal body fields `{realm_id, predecessor_refs, delta, control_event_set_root, state_root, completeness_root, notary_seq, sealed_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `seal_canonical_bytes`；`id = "ak:seal:sha256:" || hex(H(seal_canonical_bytes))`；`notary_signature.payload_digest == H(seal_canonical_bytes)`。Verifier MUST 重算 coverage、completeness 与 state 三类 root 后 accept。
+1. **Base case**：使用 `seal.schema.json` 的完整 unsigned body 计算内容地址；notary certificate 的每个签名覆盖 `JCS({context:"ak.seal.commit.v1",seal_digest,configuration_ref,notary_seq,view})`。Verifier 分别重算 body digest、commit transcript digest、命令结果与安全 roots，不把两种摘要混为一谈。
 2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `seal_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
-3. **sig-in-canonical-bytes attack**：若 producer 把 `notary_signature` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
+3. **sig-in-canonical-bytes attack**：若 producer 把 `notary_signature` certificate 也进入 canonical bytes，`id` 重算会失败；verifier MUST reject。证明 signature 不签自己。
 4. **key reorder attack**：取 valid Seal，把 canonical JSON key 顺序打乱（例如 `delta` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
 5. **proof injection attack**：取 valid Seal，注入未定义字段 `extra_proof`。`additionalProperties=false` 的 schema 在 (b) 校验阶段就 reject；若实现错误地 allow 之，hash 会变 → `digest_mismatch`。
 6. **non-digest delta value attack**：构造 `delta=["not-a-digest"]`；schema `delta[]` items 必须匹配 control-plane `event_digest` (`<algo>:<hex>`)，非 digest 形态 MUST `schema_violation` 立即被拒（早于 hash 校验）。
 
 期望：
 
-- case 1 accept；case 2/3/4/5/6 reject。
-- 接收方 verifier 在 reject 时 MUST 返回 `digest_mismatch`（case 2/3/4）、`signature_invalid`（case 3 的签名路径）或 `schema_violation`（case 5/6），不得回退到"prose 形态化"判断。
+- case 1/4 accept；case 2/3/5/6 reject。
+- 接收方 verifier 在 reject 时 MUST 返回 `digest_mismatch`（case 2/3）、`signature_invalid`（case 3 的签名路径）或 `schema_violation`（case 5/6），不得回退到"prose 形态化"判断。
 
 ### 2.9 Vector: state_root 增量重算等价于全量重算
 
@@ -1133,24 +1106,24 @@ ak.vector.state_root.incremental.v1
 
 输入：
 
-- 一个已被接受的 Seal `A0`，其控制面覆盖集写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2.1 缓存 `cell → leaf_digest` 表。
+- 一个已被接受的 Seal `A0`，其控制面覆盖集写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 缓存 `cell → leaf_digest` 表。
 - 一个新的 Seal `A1`（`predecessor_refs=[A0]`），控制面 `delta[]` 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
 - 一个 corner-case Seal `A2`：`delta[]` 是空 set（无新 control write）。
-- 一个 schema-evolution case `A3`：`delta[]` 包含一个新 cell（之前从未有过 write），并用 lattice 的 ⊥/tombstone 机制终止一个旧 cell。
+- 一个 schema-evolution case `A3`：`delta[]` 包含一个新 cell（之前从未有过 write），并通过已登记的安全领域终态写终止一个旧 cell。
 
 期望：
 
 每个 case MUST 同时计算：
 
 - `state_root_incremental`：仅对受影响 cell 重算 leaf_digest 与 Merkle 分支，复用 `A0` 缓存。
-- `state_root_full`：丢弃缓存，按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2.1 / §6.2.2 从 Seal 覆盖集全量重算所有 cell 的 leaf_digest 与 Merkle root。
+- `state_root_full`：丢弃缓存，按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 / §11 从 Seal 覆盖集全量重算所有 cell 的 leaf_digest 与 Merkle root。
 
 判定要求：
 
 - `state_root_incremental == state_root_full` 在所有四个 case 上 MUST 成立，bit-exact。
 - 缓存的 `leaf_digest` 表 MUST 在 `apply_seal` 接受 Seal 后更新；保留旧 leaf_digest 导致 next-seal 增量重算偏离全量结果即视为实现 bug。
 - A2（空 `delta[]`）情况下 `state_root_incremental` MUST 直接复用 `A0.state_root`；不得因为"没有 cell 可重算"而错误地返回空 Merkle root（`H("")`）或 null。
-- A3（新增 cell + 旧 cell tombstone）case 验证两点：(a) 新 cell 的 leaf_digest 进入 sorted leaf 列表（按 `cell_wire` Unicode 升序）；(b) 已终止 cell 仍以其 `Bottom` 或 tombstone 后的 lattice value 编码 leaf_digest，不被简单从 leaf 列表移除。
+- A3（新增 cell + 旧 cell tombstone）case 验证两点：(a) 新 cell 的 leaf_digest 进入 sorted leaf 列表（按 `cell_wire` Unicode 升序）；(b) 已终止 cell 仍以最后成功写入的 revision 与完整终态 value 编码 leaf_digest，不被简单从 leaf 列表移除。
 
 失败条件：
 
@@ -1159,7 +1132,7 @@ ak.vector.state_root.incremental.v1
 - 受影响 cell 集合按 receive order 而非 `cell_wire` lex order 排序。
 - A2 case 下错把 `state_root` 重置为空摘要。
 
-实现 MUST 在 conformance 报告中分别报告四个 case 的 `state_root_incremental` 与 `state_root_full`，并标记 pass / fail。该 vector 验证 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2.1 / §6.2.2 中"增量与全量必须等价"的要求。
+实现 MUST 在 conformance 报告中分别报告四个 case 的 `state_root_incremental` 与 `state_root_full`，并标记 pass / fail。该 vector 验证 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 / §11 中"增量与全量必须等价"的要求。
 
 ### 2.10 Vector: `ak.strand.tracks.update` 原子 patch
 
@@ -1179,7 +1152,7 @@ ak.vector.strand_tracks_update.atomic.v1
 
 期望：
 
-- **Case A**: reducer 应用 patch 后，`Strand.tracks.synthesis.is_primary == false` 且 `Strand.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，mv_register cell 一次 atomic update。
+- **Case A**: reducer 应用 patch 后，`Strand.tracks.synthesis.is_primary == false` 且 `Strand.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，causal_register cell 一次 atomic update。
 - **Case B**: reducer 接受合并后状态 `{ synthesis: {is_primary: true, enabled: true}, discussion: {is_primary: false, enabled: false, profile: "review"} }`；中间过程 MUST 在同一 cell update 内完成，不得分裂为多个独立 cell write。`tracks` 的 key 仍精确为 registry 中的 `discussion` / `synthesis`。
 - **Case C**: reducer MUST 在 projected writes 应用前（cell update 之前）校验合并后 `tracks` map 至多 1 个 entry `is_primary=true`；不满足 MUST `schema_violation`，整条 Event 拒绝，Strand `tracks` 不发生任何变化。
 - **Case D**: reducer MUST 在应用 patch 前把 path 中的 TrackName 与 active registry 集合比较；未登记名称 MUST `schema_violation`，不得创建 `review` track，Strand `tracks` 不发生任何变化。
@@ -1187,7 +1160,7 @@ ak.vector.strand_tracks_update.atomic.v1
 判定要求：
 
 - patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`——selector segment 不是 `ak.schema.patch.v1` 的一部分（§4.2.1）。
-- `ak.strand.tracks.update` 写入的 cell 是 `ak:cell:ak.component.strand.object.v1:<strand_id>`（mv_register）——与 `ak.strand.create` / `ak.strand.update` 同一个 cell，因为 patch 需要一个由注册 create 写入的真实对象基值（[`../authz/event-auth-state-resolution.md` §9.3.1.2](../authz/event-auth-state-resolution.md)）。reducer 校验合并后 invariant 在 cell update 之前完成，并对**完整** post-patch Strand 求值。两条 Event 的授权区别保留：内容路径受 `allowed_write_fields` 约束，track 管理路径仍由 `ak.strand.tracks.update` 管辖。
+- `ak.strand.tracks.update` 写入的 cell 是 `ak:cell:ak.component.strand.object.v1:<strand_id>`（causal_register）——与 `ak.strand.create` / `ak.strand.update` 同一个 cell，因为 patch 需要一个由注册 create 写入的真实对象基值（[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。reducer 校验合并后 invariant 在 cell update 之前完成，并对**完整** post-patch Strand 求值。两条 Event 的授权区别保留：内容路径受 `allowed_write_fields` 约束，track 管理路径仍由 `ak.strand.tracks.update` 管辖。
 
 失败条件：
 
@@ -1241,135 +1214,17 @@ runner MUST 从
 失败条件：实现把禁令推广到 `metadata.*`（造成无法清除的字段），或只对明文/密文其中一种形态生效，
 或把 redactable path 上的 `set` 也拒绝（造成正文不可编辑）。
 
-### 2.11 Vector: `fsm` 家族 join 幂等与并发冲突
+### 2.11 Vector: 领域转移与执行模型
 
-向量名称：
+`ak.vector.lattice.domain_transition_join.v1`、`ak.vector.lattice.domain_transition_heads.v1` 检查领域转移表，而不声明另一个共享状态类型。
 
-```text
-ak.vector.lattice.fsm_join.v1
-```
+普通 lifecycle 使用 causal_register：同一 Event 重放幂等；不同身份的同值写保留两头；active→archived→active→archived 的最后一步是新写；有权后继观察多头后可修复；terminal tombstone 不可复活。每次转移对签名因果 basis 检查，合并时不按业务值接因果边。
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `fsm` lattice 的 join 规则：“同一 CBS basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 ⊥。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。”
+安全 lifecycle 使用 sequenced_state：只按唯一确认顺序执行，真实前态与 revision 不符则持久拒绝；两个相同基底竞争不产生权限多头。`ak.vector.seal.ordered_command_results.v1` 包含同一 Seal 有序两命令，第一成功、第二 stale 拒绝；delta 仅含成功者，command_results 含两个有序结果。伪造第二成功必须整体拒绝该 Seal。
 
-输入（cell schema：`fsm`，`bottom=reject`，`parameters.initial_state="invited"`，`allowed_transitions` 含 `(invited,join)`、`(invited,decline)`）：
+### 2.12 Vector: 安全 revision 与 ABA
 
-- **Case A — 幂等收敛**：同一 CBS basis 内两条并发 Event 各自对同一 fsm cell 提交 transition `(from="invited", to="join")`（相同 `(from,to)`，不同 actor / event id / HLC）。
-- **Case B — 并发冲突 ⊥**：同一 CBS basis 内两条并发 Event 分别提交 `(from="invited", to="join")` 与 `(from="invited", to="decline")`（同 `from` 不同 `to`）。
-- **Case C — 重入不是重放**：可逆 family（`allowed_transitions` 含 `(active,archived)` 与 `(archived,active)`）上依次提交 `active→archived`、`archived→active`、`active→archived` 三条**因果有序**的 transition。
-- **Case D — 已登记 self-loop 不吃掉后继**：`allowed_transitions` 含 `(active,active)` 的 family 上依次提交 `active→active` 与 `active→tombstoned`。
-
-期望：
-
-- **Case A**：join 收敛到 `state == "join"`，MUST NOT 返回 ⊥；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
-- **Case B**：join MUST 返回 ⊥；`query(cell)` 返回 structured `Bottom{kind="conflict"}` 诊断。该 cell 配置 `bottom=reject`，后续依赖该 cell 的 Event MUST `failed_bottom`，直到 §8 conflict-recovery 路径修复。
-- **Case C**：读 `archived`。**幂等判据 MUST NOT 只看 `(from,to)` 对**：cell 合法回到 `active` 后就重新站在该状态的出边起点上，此时同一 `(active,archived)` 是一次**新的**转移而不是第一条的重放。只按 `(from,to)` 去重的实现会把第三条折掉并读出 `active`——这与 §9.3.1.4 为 `cas_register` 删除值接边 join 时点名的 `A→B→A` / `A→B→A→B` 是同一个失效，在每个可逆 `object_lifecycle` family 与 membership 上都可达。
-- **Case D**：读 `tombstoned`。已登记的 self-loop 是合法的重复声明，MUST NOT 被记成「该状态唯一的出边」，否则随后一条 registry 明确允许的转移会被误判成 `same_from_different_to` 冲突。
-- 四个 case 中实现均 MUST NOT 用 HLC、actor id、event id 或本地接收顺序选择状态机 winner。
-
-失败条件：
-
-- Case A 把幂等重复 transition 错判为冲突返回 ⊥。
-- Case B 选出任一 `to` 作为 winner 继续推进，或冲突诊断在两个 reducer 间不一致。
-- Case C 读出 `active`（把重入当成重放）。
-- Case D 返回 ⊥（把 self-loop 当成该状态已用掉的出边）。
-- transition `(from,to)` 不在 `allowed_transitions` 表内却未返回 ⊥ / 未被 validate_op 拒绝。
-
-**「不同到达顺序得到同一结果」由 §2.11.2 承载**：它需要一个 `cas_register` 早已拥有、
-而 `fsm` 直到 §9.3.1.5–§9.3.1.8 才获得的对应物——按写入身份而非按输入序列定义的状态。
-本节固定转移表准入与同 basis 冲突判定；顺序无关性、ABA、迟到分支与并发 recovery 在 §2.11.2。
-
-#### 2.11.1 Vector: same-Seal `bottom=reject` 排重
-
-向量名称 `ak.vector.seal.same_batch_bottom_reject_serialization.v1`。构造两条基于同一 frozen predecessor、命中同一 `cas_register` 或 `fsm` `bottom=reject` cell 且 projected writes 互斥的 Control Move。Case A 的 notary 只 include 一条并对另一条 signed-reject `cas_conflict`（或 defer）；Seal MUST accept。Case B 的同一 Seal `delta[]` include 两条；`apply_seal` MUST 拒绝整个 Seal 为 `rejected_seal`，不得物化 `failed_bottom`。Case C 把两条 Move 放在不可达的并发 Seal leaf；joined view 仍 MUST 按 lattice 返回 `Bottom{kind="conflict"}`，证明排重义务不改变真正跨 leaf 并发语义。
-
-#### 2.11.2 Vector: `fsm` 因果 heads（顺序无关性与迟到分支）
-
-向量名称：
-
-```text
-ak.vector.lattice.fsm_causal_heads.v1
-```
-
-本向量固化 [`event-auth-state-resolution.md` §9.3.1.5–§9.3.1.8](../authz/event-auth-state-resolution.md)：
-`fsm` 与 `cas_register` 是同一套因果状态，每个活跃 head 携带该写入的 `to`；`from`、`states` 与
-`allowed_transitions` 是写入对**自身签名 basis** 的准入断言，不是 join 时的接边依据。上一节
-§2.11 固定的是转移表准入与同 basis 的冲突判定，本节固定的是**状态代数**——它才是「不同到达顺序
-得到同一结果」的来源。机器 fixture 是
-[`cbs-lattice-fixture.json`](../../artifacts/fixtures/cbs-lattice-fixture.json) 的
-`ak.vector.lattice.fsm_causal_heads.v1` 块。
-
-输入：每个 case 给出一组写入 `{id, from, to, supersedes[]}`，其中 `supersedes` 是该写入自身已验证
-basis 观察到的完整 head 身份集合（reducer 派生，不上 wire）；`registered` 给出该 family 的
-`initial_state` / `states` / `allowed_transitions` / `terminal_states`。
-
-期望：
-
-- **未写入**读登记的 `initial_state`，且不占 `state_root` leaf。这是 `fsm` 与 `cas_register`
-  唯一的状态差别。
-- **顺序置换与分批合并**：`linear_chain_leaves_only_its_terminal_write`、
-  `input_order_permutation_is_one_result`、`batch_split_is_one_result` 三个 case MUST 得到同一
-  heads 与同一 settled 值。按输入顺序折叠的实现在第二个 case 上就会分叉。
-- **ABA**：`aba_is_distinguished_from_abab` 读 `active`，`abab_reads_archived` 读 `archived`。
-  按 `(from,to)` 去重的实现两个都读 `active`。
-- **已登记 self-loop**：`a_registered_self_loop_leaves_later_transitions_legal` 读 `tombstoned`。
-  把 self-loop 记成「该状态唯一出边」的实现会把后继判成冲突。
-- **同值并发与重放**：`concurrent_same_to_keeps_every_identity` 保留**两个** head 并读同值；
-  `exact_replay_dedupes_by_identity` 只保留**一个**。两者 MUST NOT 被合并成同一条判据——
-  前者是两个真实并发写入，后者是同一个写入到达两次。
-- **异值并发**：`concurrent_different_to_reads_failed_bottom` 读 `failed_bottom`，Bottom 诊断
-  reason 为 `same_from_different_to`，且该 cell **仍占 `state_root` leaf**（§6.2.1）。
-- **迟到分支**：`late_branch_merges_by_the_formula` MUST 按 §9.3.1.8 的合并式求值——
-  取 heads 的并集会把已被取代的 `g1` 复活，取交集会丢掉对方从没见过的 `g3`；两者都错。
-- **缺依赖**：`missing_dependency_holds` MUST hold 或 fail closed，MUST NOT 因为写入自称
-  `from=archived` 就采信它的 `to`。
-- **并发 recovery**：`concurrent_different_to_recovery_still_conflicts` 仍读 `failed_bottom`。
-  recovery 是一次有权的新身份写入，不因「它是 recovery」而免于冲突，更不由到达顺序裁定。
-
-失败条件：
-
-- 任意两个只在输入顺序或分批方式上不同的 case 得到不同结果。
-- `aba_is_distinguished_from_abab` 与 `abab_reads_archived` 读出相同 settled 值。
-- `concurrent_same_to_keeps_every_identity` 只保留一个 head，或
-  `exact_replay_dedupes_by_identity` 保留两个。
-- `⊥` 的 `fsm` cell 未进入 `state_root`。
-- 迟到分支合并用了并集或交集。
-- `missing_dependency_holds` 物化出 `tombstoned`。
-
-**消费面一并覆盖（normative）**：MLS membership、governance proof 与 Station notary 各自持有的
-membership transition 折叠是本 lattice 的消费者。runner MUST 对这些消费面执行同一组 case——
-保留一份按 `(from,to)` 去重或按 `recovery_reset` 切片的并行实现，等于让同一个 cell 在两个消费面上
-读出不同状态（§9.3.1.8）。
-
-### 2.12 Vector: `cas_register` 因果身份守卫（stale basis 与 ABA 拒绝）
-
-向量名称：
-
-```text
-ak.vector.cbs_lattice.cas_mixed_basis.v1
-```
-
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1.3 的写入准入：每个 `cas_register` 写入的基线是它**自身签名的 `seal_basis`**，Seal 准入按 §6.3 step 8b 比较该 cell 的**完整活跃 head 身份集合** `H_c(B) = H_c(P)`。该守卫对每个注册目标自动派生，不要求 wire 重复携带 `head_eq`；业务另行登记的 `head_eq` 继续签名并执行。
-
-输入（`cas_register` cell，未写入初始态为 `null`；前置 Seal 已由 Event `E1` 写入 `value_1`，因此 `H = {E1: "value_1"}`）：
-
-- **Case A — 无 basis 的盲写**：一条声明使用 CAS 语义的 DataEvent 写入 `value_2`，没有可重建的签名 basis。
-- **Case B — 基线正确的写入**：一条 Control Move 写入 `value_2`，其签名 `seal_basis` 重建出的 `H_c(B) = {E1}`，与冻结 predecessor 基线一致。
-- **Case C — stale ABA**：`E1` 之后由 `E2` 释放（`set null`，`H = {E2: null}`），再由 `E3` 占用（`H = {E3: ...}`），最后由 `E4` 再次释放（`H = {E4: null}`）。此时提交一条**基线停留在 `H = {E2}`** 的写入：它的业务 settled value（`null`）与冻结基线的业务 settled value（同为 `null`）**逐字节相同**。
-- **Case D — 自派生目标**：`ak.audit.applet_binding.create` 写入其 binding cell，该 cell 的 subject 派生自本 Event 自己的 `event_id`，因此 `preconditions[]` 内**没有**该 cell 的 `head_eq` 条目。`ak.call.create` 写入的 call state cell 同理，只是 lattice 为 `fsm`（§2.11.2）——两者同为因果寄存器，守卫形态一致。
-
-期望：
-
-- **Case A**：receiver MUST 以 `failed_precondition` 拒绝整个 Event（多 cell 原子性，不得部分应用其余 projected writes）；cell 保持 `value_1`。缺 basis 就无法派生 `H_c(B)`，MUST NOT 退化成无条件覆盖。
-- **Case B**：Control Move 接受并在被 accepted Seal 覆盖后使 cell 收敛到 `value_2`，`H = {E_B: "value_2"}`；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
-- **Case C**：MUST 以 `failed_precondition` 拒绝——`H_c(B) = {E2} ≠ {E4} = H_c(P)`。**业务值相等不足以通过**：这是身份守卫封闭的 stale ABA，whole-value 比较无法表达它。
-- **Case D**：MUST 接受。守卫由 reducer 在 EventId 算出后自动派生并执行，实现 MUST NOT 因为 `preconditions[]` 里缺该 cell 的 `head_eq` 而拒绝它，也 MUST NOT 要求 producer 把自身 `event_id` 派生的 `cell_id` 写进被 digest 覆盖的签名前像（哈希自引用，§9.3.1.3）。
-
-失败条件：
-
-- Case A 被当作 first set 放行。
-- Case C 因两边业务 settled value 都是 `null` 而被放行（**本向量的核心负例**）。
-- Case D 因「每个目标 cell 都必须有 wire `head_eq`」的旧读法被拒。
-- 任何实现保留按 `(value, from)` 接边、pair 去重或极大链枚举的 CAS join（§9.3.1.4 已整体删除该定义）。
+`ak.vector.cbs_lattice.cas_mixed_basis.v1`：S cell 在 E1 写 A、E2 写 null、E3 再写 A 后，携 E1 基底的命令仍 stale；业务值重新相等不能通过身份守卫。D cell 的条件只对其签名因果基底检查，并发双方均可合法产生 heads，不得借该条件宣称分区下独占成功。
 
 ### 2.13 Vector: `ordered_log` sparse actor sequence
 
@@ -1379,7 +1234,7 @@ ak.vector.cbs_lattice.cas_mixed_basis.v1
 ak.vector.lattice.ordered_log_gap.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1：`issuer_seq` 必须等于 envelope `actor_seq`，在单个 cell 内是稀疏坐标而非独立连续计数器。
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6：`issuer_seq` 必须等于 envelope `actor_seq`，在单个 cell 内是稀疏坐标而非独立连续计数器。
 
 输入（ordered_log cell，`bottom=inert`）：
 
@@ -1397,54 +1252,15 @@ ak.vector.lattice.ordered_log_gap.v1
 - Case A 因 per-cell seq 缺口产生 pending、返回 ⊥、截断 prefix 或排除 seq 3。
 - Case B 重算结果依赖本地接收顺序。
 
-### 2.14 Vector: auth_context epoch pinning 拒绝过期 key
+### 2.14 Vector: 缓存授权与关闭集合
 
-向量名称：
+`ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1`：原站断连、无期限 grant、已完整验证 signer evidence 的 B 可以接受普通消息，短缓存 TTL 到期和 Seal 年龄不改变这个结论。实际 key 授权尚未生效、显式过期或本地已知撤销阻止新 live 提交。
 
-```text
-ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1
-```
+同一历史消息在撤销到达前可暂时接纳；关闭集合包含它则保留 eligible，排除它则 quarantine；缺精确关闭/因果依赖 pending。A/B 以相反顺序收到相同完整证据必须得到相同最终分类，接收时间和存储收据不得成为永久资格证据。
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.1、§4.3：key / credential epoch 必须在源站串行化准入门中按已解析控制面状态验证；一旦源站原子追加有效 `station_admission`，后到撤销不得追溯改写该 Event。
+### 2.15 Vector: 无周期 Seal 写入门槛
 
-输入：
-
-- **Case A — 先准入后撤销**：源站在 key K 仍有效时完成串行化校验并原子追加 `station_admission`，随后接受撤销 K 的控制面状态。
-- **Case B — 先撤销后准入**：撤销 K 已进入源站的准入门控制面状态，producer 仍提交指向撤销前 epoch / Seal 的普通 capability DataEvent。
-- **Case C — epoch 与准入基线不符**：`auth_context.key_epoch` 在源站准入门解析的控制面状态中不存在或已被替换。
-
-期望：
-
-- Case A：所有 receiver MUST 验证冻结的 `station_admission` 并永久保留 Event；后到撤销不得移除 Event 或其已接受后继。
-- Case B：源站 MUST `failed_precondition` 且不得追加 `station_admission`；普通 capability DataEvent 不得绕过准入门直接进入 accepted history。
-- Case C：源站 MUST `failed_precondition`，不得回退到 producer 提供的旧 Seal 或 receiver 当前 DID 文档判定。
-
-失败条件：撤销后仍为 Case B 追加准入证明；对 Case A 作追溯移除；peer 依据自己的当前控制面状态重跑源站授权；无 `station_admission` 的普通 capability DataEvent 进入 accepted history。Runner 不得要求未登记的 `query_grade` 响应字段。
-
-### 2.15 Vector: compaction Seal 节律义务
-
-向量名称：
-
-```text
-ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1
-```
-
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2 的结构性义务与 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `seal_compaction_max_interval_ms`。
-
-输入：
-
-- Realm 声明 `seal_compaction_max_interval_ms = X`。
-- **Case A**：notary 在 X 内签发携带 `covered_event_digests[]` 的 compaction Seal，其内容等于递归闭包。
-- **Case B**：compaction Seal 的 `covered_event_digests[]` 与 `delta[] ∪ predecessor 覆盖集` 不一致。
-- **Case C**：live chain 超过 X 仍无 compaction Seal。
-
-期望：
-
-- Case A：receiver 接受；新 verifier 可从该 Seal 接链 bootstrap，不必走链到 genesis。
-- Case B：receiver MUST 拒绝该 Seal（`rejected_seal`）。
-- Case C：receiver SHOULD 触发治理健康告警；既有 Seal 仍有效（义务是告警与 bootstrap 退化，不是回滚）。
-
-失败条件：Case B 被接受；Case A 的 bootstrap 仍要求 genesis 全链。
+`ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1`：空闲超过 compaction 提醒时间不使授权失效，不强制生成普通消息 Seal，不阻断缓存授权下聊天。实际存在未决安全义务时只按该义务的已签 Ack/deadline 产生健康诊断，不能全 Realm 阻断无关数据。
 
 ### 2.16 Vector: inclusion list 收录义务
 
@@ -1470,7 +1286,7 @@ ak.vector.cbs_lattice.inclusion_list_obligation.v1
 - Case A/B/C：Seal 可接受。
 - Case D：receiver MUST 拒绝该 Seal（`rejected_seal`，reason=`inclusion_list_violation`）。
 - Case E：构成 §7.1 equivocation evidence（list_seq 复用 slot 语义）。
-- `single_signer` profile 下该机制不可用，实现 MUST NOT 伪造 inclusion list 语义。
+- `quorum_f0` profile 下该机制不可用，实现 MUST NOT 伪造 inclusion list 语义。
 
 失败条件：Case D 的 Seal 被接受；Case E 不产生 fault 证据。
 
@@ -1492,7 +1308,7 @@ ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1
 期望：
 
 - 验签 + slot 规则通过即接受该 Control Move（验签即授权，reducer MUST NOT 要求 grant）；fault 记录进入 `ak.component.notary_fault.v1` cell（or_set）。
-- fault 记录生效后：N 的后续 Seal MUST 被拒绝；`S_a`、`S_b` 及其后继进入 `fork_quarantine`，普通 joined governance view MUST NOT 纳入；依赖该分支且无法从非隔离分支求值的查询 MUST fail closed，不得以未登记的 `grade=forked` 字段替代隔离。
+- fault 记录生效后：N 的后续 Seal MUST 被拒绝；`S_a`、`S_b` 及其后继进入 `fork_quarantine`，不得将二者合并成权限 view；依赖该分支且无法从非隔离分支求值的查询 MUST fail closed，不得以未登记的 `grade=forked` 字段替代隔离。
 - 仍有其余合法 signer 时 Realm MUST NOT 整体 pause；无剩余合法 signer 时进入 `notary_paused`，仅 recovery 路径可恢复。
 - 两个 Seal 不满足 slot 规则（不同 signer 或不同 seq）时，该 Move MUST `failed_precondition`——合法并发 leaf 不构成 fault。
 
@@ -1506,7 +1322,7 @@ ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1
 ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.3.3 与
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §15 与
 [`operations-sync.md`](../sync/operations-sync.md) §12 在**同一 suite 下两个不同 canonical preimage
 重算出同一 `event_id`** 时的处置。它与 §2.17 的分叉不同：那里各 sibling 的 `event_digest` 不同，这里逐字节相同。
 
@@ -1552,100 +1368,17 @@ ak.vector.cbs_lattice.threshold_forensic_attribution.v1
 
 失败条件：Case B/C 被接受；Case D 通过 schema 校验。
 
-### 2.19 Vector: open_set 并发撤销 fail closed
+### 2.19 Vector: 分区撤销传播
 
-向量名称：
+`ak.vector.cbs_lattice.revocation_propagation_window.v1`：未见撤销的 B 继续普通聊天；已知撤销的 A 拒绝该旧资格的新 live 发言。证据互通后，两边按同一 cut 求资格；多个 cut 取交集，重新加入不能复用旧 generation。不存在开放安全 leaf join 或按 receiver 到达顺序永久保留的分支。
 
-```text
-ak.vector.cbs_lattice.open_set_concurrent_revocation_fail_closed.v1
-```
+### 2.19.1 Vector: Circle 生命周期关闭
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 与 §6.3：`open_set` notary profile 下，源站必须把撤销状态与 DataEvent 准入放入同一串行化边界；peer 只验证冻结的 `station_admission`，不得事后重跑授权或移除历史。
+`ak.vector.circle.lifecycle_admission_barrier.v1`：Circle archive/tombstone 与父 Realm 成员 cascade 在同一安全域确认关闭。已知关闭立即 gate；未知关闭允许传播窗口；历史按适用关闭集合重算。普通对象 archive 不生成授权 cut。restore 产生新的有效使用区间，但不复活旧关闭排除的 Event。
 
-输入（fixture：[`cbs-lattice-fixture.json`](../../artifacts/fixtures/cbs-lattice-fixture.json) `open_set_concurrent_revocation_fail_closed`）：
+### 2.20 Vector: 普通多头修复与安全分叉拒绝
 
-- **Case A**：joined control view 已包含 capability revoke；DataEvent 的 producer basis 仍指向 grant leaf，随后到达源站准入门。
-- **Case B**：承载授权判定的 control cell 在并发 join 后进入 `⊥`，且 `bottom=reject`。
-- **Case C**：接纳外部事件的服务器只持有单 leaf 视图，无法独立验证 multi-leaf union basis。
-- **Case D**：源站先为 DataEvent `E` 原子追加有效准入证明，再接受并物化依赖 `E` 的 DataEvent `D`；撤销 leaf `R` 后到。
-
-期望：
-
-- Case A：源站 MUST fail closed 且不得追加 `station_admission`；producer basis 不能覆盖准入门的 joined control view。
-- Case B：依赖该 cell 的 DataEvent 与 Control Move MUST fail closed（`cell_in_bottom_state` / `failed_bottom`）。
-- Case C：接纳服务器 MUST hold pending 或 fail closed，MUST NOT 用单 leaf 授权结论接受该 DataEvent。
-- Case D：`E`、`D` 及其 projected writes MUST 永久保留；撤销 `R` 只阻止其后新的准入，不得把已接受历史转回 pending 或制造 `dependency_missing`。
-
-失败条件：用 producer 的单 leaf 绕过 joined control view；接纳服务器无法验证完整准入状态时仍接受；peer 重跑当前授权；撤销后追溯移除 `E`、`D` 或任何已接受 projected write。
-
-### 2.19.1 Vector: Circle lifecycle admission barrier
-
-向量名称：
-
-```text
-ak.vector.circle.lifecycle_admission_barrier.v1
-```
-
-本向量固化 [`circle.md`](../models/circle.md) §6.1 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3：Circle lifecycle 是源站串行化准入门的授权输入；archive / tombstone 只阻止后续准入，不得追溯改写已获有效证明的 Event。
-
-输入（fixture：[`circle-scope-fixture.json`](../../artifacts/fixtures/circle-scope-fixture.json) `lifecycle_basis_cases`）：
-
-- **Case A — 准入时 inactive**：源站准入门解析的 joined control view 中 Circle 已 archived。
-- **Case B — 先准入后 archive**：Circle active 时源站原子追加 `station_admission`，后继控制面状态再 archive Circle。
-- **Case C — 先 archive 后准入**：archive 已进入源站 joined control view，producer 仍提交基于旧 active leaf 的 Event。
-- **Case D — tombstone barrier**：tombstone 已进入源站准入门控制面状态，producer 提交基于旧 active leaf 的 Event。
-- **Case E — restore barrier**：archive 后的旧 Event 未获准入；restore 只允许 producer 基于恢复后的新状态重新签发并请求新准入。
-- **Case F — Control Move**：分别在 active / archived 的 `seal_basis` joined view admission，并登记 Seal step 8 的冻结 predecessor 重验基线。
-
-期望：
-
-- Case A：源站 MUST `failed_precondition`，reason=`circle_not_active`，且不得追加准入证明。
-- Case B：所有 receiver MUST 验证准入证明并永久保留 Event；archive 不得改变其 accepted status。
-- Case C / D：源站 MUST `failed_precondition`，reason=`circle_not_active`，且不得用 producer 的旧 leaf 绕过 barrier。
-- Case E：restore MUST NOT 追溯准入旧签名 Event；producer 必须基于 restore 后状态重新签发。
-- Case F：admission 与 Seal 重验都只读取登记的 CBS 基线，不读取本地当前 projection。
-
-失败条件：peer 因当前 Circle projection 不同而重判已获准入的 Event；archive / tombstone 追溯移除历史；restore 后接受 archive 前未获准入的旧签名 Event；Control Move 不在 `seal_basis` / Seal frozen predecessor view 中重验。
-
-### 2.20 Vector: conflict-recovery Move
-
-向量名称：
-
-```text
-ak.vector.cbs_lattice.conflict_recovery_move.v1
-```
-
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.5 与 §9.3.1.4：`bottom=reject` control cell 进入 `⊥` 后如何回到单值。**出路按 cell family 分层**——已登记 `sole_recovery_families` 的 family 没有普通写出路，只能由 conflict-recovery Move 恢复；其余因果寄存器 family 还可以由一次对该 action 本来就有权的普通写自愈。conflict-recovery Move 本身对任何处于 `⊥` 的因果寄存器 cell 都可用，清单 MUST NOT 被实现成对目标的限制。pre-conflict `state_witness` 与撤销新鲜度这一族要求只适用于**非**因果寄存器的 `bottom=reject` lattice（registry 中今天是 `ordered_log`），因此下面 Case A–E 跑在 `ak.component.audit.release.v1` 上；因果寄存器按 §9.5.1 求值，不要求 witness。
-
-输入（fixture：[`cbs-lattice-fixture.json`](../../artifacts/fixtures/cbs-lattice-fixture.json) `conflict_recovery_move`）：
-
-- **Case A**：合法 recovery Move，`refs[]` 同时携带 critical `recovery_capability` 与 `state_witness`，witness 可重建 pre-conflict `state_root`，recovery capability 已 sealed 且未被撤销。
-- **Case B**：缺失 `state_witness` 或 witness inclusion proof 无法重建 `state_root`。
-- **Case C**：`state_witness` 已位于冲突之后，或与触发 `⊥` 的 sibling Move 有因果路径。
-- **Case D**：`recovery_capability` 未 sealed、未出现在 witness state root 中，或 local frontier 已观察到晚于 witness 的 revoke / supersede。
-- **Case E**：recovery Move 未经控制面 Seal 接受。
-- **Case F — MLS 普通 Commit 绕过**：`ak.component.mls.epoch.v1` 已因并发 Commit 进入 `⊥`，producer 再提交普通 `ak.mls.commit` 试图直接推进 epoch。
-- **Case G — 清单外 family 的普通写自愈**：`ak.component.realm.profile.v1` 处于 `⊥`，一个对 `ak.realm.profile` 本来就有权、且自身 precondition 不读该 cell 的主体提交普通写。
-- **Case H — 无权主体不因 `⊥` 获得写入权**：同 Case G，但主体对该 action 无权。
-- **Case I — 清单内 family 无普通写出路**：`ak.component.realm.authority_root.v1` 处于 `⊥`，当前 controller 提交 `ak.realm.owner.transfer`。
-- **Case J — recovery 不受清单限制**：conflict-recovery Move 指向清单外的 `ak.component.realm.profile.v1`。
-- **Case K — notary cell 没有任何出路**：conflict-recovery Move 指向 `ak.component.notary.v1`。
-
-期望：
-
-- Case A：reducer MAY 把该 `bottom=reject` cell 从 `⊥` 解析为 recovery Move 声明的单一合法值；后续依赖该 cell 的判定按恢复后的 sealed state 执行。
-- Case B：MUST 拒绝（`recovery_witness_missing` / `recovery_witness_invalid`）。
-- Case C：MUST 拒绝（`recovery_witness_post_conflict`）。
-- Case D：MUST 拒绝（`recovery_capability_not_sealed` / `recovery_witness_revoke_lagging`）。
-- Case E：MUST 拒绝；unsealed recovery Move 不得改变 `⊥` cell。
-- Case F：MUST `failed_bottom`，epoch cell 保持 `⊥`，application send gate 保持关闭；MLS 不得另设恢复入口。该 family 正因为此才登记进 `sole_recovery_families`——它的 base-epoch 业务 precondition 读的就是这个待恢复的 cell。
-- Case G：MUST 接受并取代该 cell 的**全部** heads，cell 回到单值；不需要 recovery capability，也 MUST NOT 为它另造 reset 通道或按到达顺序截断历史。
-- Case H：MUST 拒绝。自愈只解除「目标恰好处于 `⊥`」这一项额外阻断，其余授权、生命周期与业务 precondition 全部照旧。
-- Case I：MUST `failed_bottom`。authority-root 是授权图的唯一 genesis base case，`⊥` 下它自身的授权读取即 fail closed，因此没有任何主体能 author 这条普通写。
-- Case J：MUST 接受。`sole_recovery_families` 只说明「哪些 family 没有普通写出路」，把它实现成对 recovery 目标的拒绝条件会让尚未逐条审计的 family 变成永久死格。
-- Case K：MUST 不存在可被接受的 recovery Seal——验签任何 Seal 都要先读该 cell 的已接受 notary 配置。该 family 因此 MUST NOT 出现在 `sole_recovery_families` 里：列进去等于宣称一条并不存在的出路。
-
-失败条件：清单内 family 的普通 Control Move（包括 `ak.mls.commit`、`ak.realm.owner.transfer`）在 `⊥` 下被接受；清单外 family 的合法自愈写被拒；无权主体因目标处于 `⊥` 而获得写入权；把 `sole_recovery_families` 实现成 recovery 目标的拒绝条件；`ak.component.notary.v1` 出现在该清单中；对因果寄存器 recovery 强制要求 `state_witness` 或套用新鲜度窗口；post-conflict witness 被接受；recovery capability 未 sealed 或已撤销仍生效；未 sealed 的 recovery Move 改变 canonical state；同一 fixture 用重复 `vector_id` 另行表达 MLS 特例。
+`ak.vector.cbs_lattice.authorized_causal_repair.v1`：普通有权后继观察精确 heads 并写入新值，覆盖已见身份，保留未见并发分支。隔离写不能覆盖合法旧值；不同资格上下文必须合并原始证据后重算。任意目标 reset 或通用权限恢复 Event 必须拒绝。安全状态只接受唯一确认前缀，发现两个矛盾最终证书时保存故障证据、停止该域安全推进，不能任选一个控制值。
 
 ### 2.21 Vector: `ordered_log` sibling-set join
 
@@ -1655,7 +1388,7 @@ ak.vector.cbs_lattice.conflict_recovery_move.v1
 ak.vector.lattice.ordered_log_join.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 的 grow-only Event-set join；[`encoding.md` §4.2](./encoding.md) 只稳定序列化顺序，不产生 winner。
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6 的 grow-only Event-set join；[`encoding.md` §4.2](./encoding.md) 只稳定序列化顺序，不产生 winner。
 
 输入（ordered_log cell，`bottom=inert`；fixture：[`cbs-lattice-fixture.json`](../../artifacts/fixtures/cbs-lattice-fixture.json) `ak.vector.lattice.ordered_log_join.v1`）：
 
@@ -2142,20 +1875,11 @@ ak.vector.realm_state_snapshot.inclusion_challenge.v1
 ak.vector.realm_state_snapshot.state_digest_recompute.v1
 ```
 
-本向量固化 [`realm-state-snapshot-schema.md`](./realm-state-snapshot-schema.md) §3 / §4：chunk payload（`ak.schema.realm_state_snapshot_chunk.v1`）的 `items[]` 是 reducer cell，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`state_digest` 是这些 leaf 的 RFC 6962 root。机器 fixture 是 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_state_digest` 块，由 `ak.suite.sync.core.v1` runner 承载；fixture 里每个 digest 都由 fixture 自身的 bytes 重算得到，不存在占位值。
+本向量固定 snapshot 自身的 byte-level digest，机器来源是 `sync-fixture.json` 的 `snapshot_state_digest`，由 `tools/regenerate_snapshot_state_fixture.py` 重算。snapshot leaf 为 `JCS({cell,state_model,state})`，与 Seal 仅包含安全 Cell 的 leaf 集合及形状不同，不能比较两个 root 就宣称普通快照得到安全确认。
 
-输入：
+输入覆盖 causal_register、sequenced_state、or_set 与 ordered_log 的完整内部 state；内置 family 没有 counter，不能为凑类型数量伪造一个 family。每个 leaf 使用 RFC6962 的 0x00 前缀；树递归按小于长度的最大 2 次幂分割，内节点用 0x01，空树为 H(empty)。CellRef 排序与跨 chunk 去重是强制的，chunk 分割不能改变 root。SHA-256 与 BLAKE3 分别重算。
 
-1. 一组 `ak.schema.realm_state_snapshot_chunk.v1` payload，其 `items[]` 覆盖 `cas_register`（含业务值 `null` 与异值 `⊥` 的 heads）、`mv_register`、`fsm`、`or_set`、`ordered_log` 五种 lattice 的 cell；`leaves[]` 逐 item 给出 `leaf_preimage` 与 `leaf`。
-2. `digest_algorithm`——该 Realm 的 live digest suite；`sha256` 与 `blake3` 各至少一例。
-3. 声明的 `state_digest`；含 `conflict_records` / `erasure_stubs` 的 case 另给出期望的 `verification_hints.*_digest`。
-
-期望：
-
-- verifier MUST 对每个 item 重算 `H(0x00 || canonical_json({"cell": id, "state": state}))`，按 `items` 顺序（跨 chunk 按 `index` 升序拼接）以 `H(0x01 || left || right)` 与奇数层提升组合，得到与声明相同的 `state_digest`；chunk 边界不同不改变结果；空 `items` 得到 `H` over 空字节。
-- `kind` 不是 `"cell"` 的 item——包括旧 `object` 分支与 `cas_cell` 字面——MUST 拒绝。`state` 形状与 registry 登记的 lattice 不符（`cas_register` 带 `value`、其它 lattice 带 `heads`）、空 `heads`、`heads` 未按解码 token 升序、`items` 未按 `id` code point 升序、跨 chunk 重复 `id`、`ak.private.*` family、chunk `reducer_profile` 与 manifest 不符，MUST 分别拒绝。
-- `⊥` cell 作为 `conflict_records[]` 的 `bottom_cell` 行、erasure stub 作为 `erasure_stubs[]` 行时，`state_digest` 不变；对应的 `verification_hints.conflict_records_digest` / `erasure_stubs_digest` 按 §3 的列表 digest 规则重算一致。
-- 声明的 `state_digest` 与重算值不一致 MUST 拒绝；两个 conformant verifier 对同一 fixture MUST 得到相同 accept / reject 结论。
+摘要相符只通过字节检查。真正恢复仍须验证 family/model、完整资格上下文、原始 Event、coverage 和关闭依赖。fixture 中显式为空的 replay evidence 不构成恢复成功证据；缺材料 pending，不得从摘要相符推断历史完整。错模型、错 root、重复 Cell、覆盖缺失和上下文不符分别有拒绝/待证用例。
 
 ### 3.8 Vector: snapshot restore covered membership
 
@@ -2168,7 +1892,7 @@ ak.vector.realm_state_snapshot.restore_covered_membership.v1
 本向量固化 [`realm-state-snapshot-schema.md`](./realm-state-snapshot-schema.md) §3
 「恢复后仍须能精确回答 membership」：从 snapshot 恢复的 receiver 对「某个旧 Event 是否属于该 view 的
 覆盖集 `C`」只有三种合法答复——`covered`、`not_covered`、以及**缺证据时的 hold**。把 hold 折成
-`not_covered` 会让 [`../authz/event-auth-state-resolution.md` §9.3.1.4](../authz/event-auth-state-resolution.md)
+`not_covered` 会让 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)
 的合并式把迟到分支当作「对方从没见过」，复活已被取代的写入；这条向量正是把该折叠固定为拒绝。机器 fixture 是
 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_restore_covered_membership` 块，
 由 `ak.suite.sync.core.v1` runner 承载。它的 `event_set_source` 指向同文件的 `snapshot_inclusion_challenge`：
@@ -3532,20 +3256,11 @@ Expected：
 - 补齐后 reducer MUST deterministically 从 soft-fail 转为 accepted，并更新 covered event set。
 - 永久缺失或冲突时 MUST 转为 rejected / failed_precondition，不得无限留在 soft-fail。
 
-### 9.11 Vector: Lattice LWW Open Set
+### 9.11 Vector: Concurrent Heads Have No Implicit Winner
 
-`vector_id`: `ak.vector.lattice.lww_open_set.v1`
+`vector_id`: `ak.vector.lattice.concurrent_heads_no_winner.v1`
 
-Steps：
-
-1. 构造同一 seal view 中多个 sibling write，它们对同一 open-set cell 产生竞争状态。
-2. 所有 sibling 带相同 logical time，但 actor / event id / canonical digest tiebreaker 不同。
-3. 两个 conformant reducer 以不同输入顺序重放。
-
-Expected：
-
-- sibling 集合与 tiebreaker MUST 产出同一 winner。
-- 任一实现出现不同 winner、不同 bottom 或不同 covered event set，均视为 reducer bug。
+同一普通 Cell 的两个并发写即使 logical time 相同，也保留两个 Event 身份。交换输入顺序、批次和副本合并顺序均得到相同 heads/coverage。按 HLC、actor、digest 或接收顺序选单一 winner 必须判为不合格；安全 Cell 则使用唯一确认顺序，禁止把这个数据 join 用于权限决定。
 
 ### 9.12 Vector: E2EE Relaxed Window Exceeds Ceiling
 
@@ -3975,7 +3690,7 @@ Expected：
 Runner MUST 执行 `device-revocation-pending-fixture.json` 的全部 semantic cases，并至少覆盖：
 
 1. revoke 在 schema / proof / authority / exact current device+PCR generation / precondition / admission 与 mandatory canonical Ack 全部通过后，以单一事务持久化 accepted Event、Ack、derived record、pending index；无 Ack 零写入，不能套用 self-principal PCR Ack-less 例外。
-2. pending 时 base、E2EE 与 hardening profile 对 session issue/refresh、KeyPackage claim、to-device write、Event write、Station admission-proof issuance 全部 fail closed 且零业务写；可区分本地主体操作使用 `device_revocation_pending`，KeyPackage anti-enumeration surface 保持 `claim_failed`，不得因 profile 改变 gate 结论。
+2. pending 时 base、E2EE 与 hardening profile 对 session issue/refresh、KeyPackage claim、to-device write、Event write、普通 live 提交 全部 fail closed 且零业务写；可区分本地主体操作使用 `device_revocation_pending`，KeyPackage anti-enumeration surface 保持 `claim_failed`，不得因 profile 改变 gate 结论。
 3. Account Authority 只可凭 `ak.peer.device_revocations.command.check.v1` 的 fresh signed exact-intent receipt 铸造/刷新 grant；origin 在同一事务从自身 durable projection 派生 selector、同一 durable order 线性化、receipt 最长30秒且不能由 cache/private RPC 替代。introspection 不承载可复用 receipt；origin Station 对每个 protected self request 在本地事务读取 durable gate。
    - returning human 使用 `returning_session_grant_issue`，不携 expected binding但强制 accepted-device proof；registration/recovery 使用 `session_grant_issue` 且禁带该 proof；两类 `allow` receipt 的 derived selectors 逐字成为 grant `device_binding`，客户端自报 Event/generation 无法进入。
    - expected binding 两字段必须同时出现或同时缺省，且只有两个 issue action 可缺省；refresh 必须携 predecessor binding。与 derived 值不等时 decision 为 `generation_mismatch`，receipt 不回携新 binding。
@@ -4097,7 +3812,7 @@ Expected：
 - 第 1–3 步依次接受，accepted revision 为 1、2、3；rotation 是 whole-value successor，revoke schema 不接受任何 active secret 字段。
 - 第 4 步全部 fail closed：缺字段是 `schema_violation`，其余是 `cas_conflict`，且 revision 与 durable value 均不改变。
 - 第 5 步仍返回 `cas_conflict`、revision 保持 3；实现只保留不可恢复旧 target 的 subject digest / revision / outcome 最小状态。
-- 任一实现不得使用 CBS `preconditions`、arrival-order LWW、`cas_register` Bottom 或 `push_gateway_did` 私有别名替代本向量。
+- 任一实现不得使用 CBS `preconditions`、arrival-order LWW、`causal_register` Bottom 或 `push_gateway_did` 私有别名替代本向量。
 
 ## 11. Agent & Sidecar Vectors
 
@@ -4278,7 +3993,7 @@ Expected:
 - Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；单一 provision Event及其 accountability/selector/realm-id-claim projections 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
 - `PCR_A` 逐字等于 controller 在第 1 步本地算出的值；genesis accepted 时 `ak.component.agent.status.v1` 从 `uninitialized` 迁到 `active`，且这是唯一能离开 `uninitialized` 的写入。`purpose != "agent_control"` 的 create MUST NOT 触发该写入。
 - `PCR_A` 与 `PCR_C` MUST 由同一 Station 承载；反查与 realm-id claim 唯一性都是本地判定。
-- 八个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id，也不得扩大 Agent 的内容权限。变体 F MUST 以 `event_id_digest_mismatch` 被拒（§6.0.1 B 类禁令），变体 G MUST 零写入拒绝，变体 H 的第二条 provision MUST 被 `cas_register` / `bottom=reject` claim cell 拒绝。
+- 八个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id，也不得扩大 Agent 的内容权限。变体 F MUST 以 `event_id_digest_mismatch` 被拒（§6.0.1 B 类禁令），变体 G MUST 零写入拒绝，变体 H 的第二条 provision MUST 被安全 claim 的确切 revision 前置条件拒绝。
 
 ### 11.2.3 Vector: Agent PCR History-only Backup
 
@@ -4981,7 +4696,7 @@ Expected:
 
 Steps:
 
-1. Backend signal `ParticipantConnected` with `participant_id=ak:rtc_participant:<unknown>`，无对应 call roster effective OR-Set 项。
+1. Backend signal `ParticipantConnected` with `participant_id=ak:rtc_participant:<unknown>`，无对应 call roster 已确认活跃集合 项。
 
 Expected:
 
@@ -5084,16 +4799,16 @@ Expected:
 Steps:
 
 1. 在同一 accepted basis 上提交 `ringing -> connecting`。
-2. 以相同 `from`、相同 `to`、相同 `call_id` 重放等价转换（不同传输重试或 duplicate submit）。
+2. 重发相同完整 canonical Event bytes；另以新 Event 身份发送同值转换作为独立案例。
 
 Expected:
 
-- 重放 MUST 是幂等 no-op：结果仍为 `connecting`，不产生 sibling conflict。
+- exact Event 重放 MUST 幂等；新 Event 即使业务值相同也保留不同身份，并独立执行领域转移验证。
 - 实现 MAY 返回 duplicate / accepted-noop 等本地结果，但 MUST NOT 返回 `call_state_transition_invalid`。
 
-### 12.15 Call State — Concurrent Sibling Bottom
+### 12.15 Call State — Concurrent Lifecycle Heads
 
-`vector_id`: `ak.vector.call_state.concurrent_sibling_bottom.v1`
+`vector_id`: `ak.vector.call_state.ordered_competing_transitions.v1`
 
 Steps:
 
@@ -5102,9 +4817,8 @@ Steps:
 
 Expected:
 
-- `ak.component.call.state.v1` 的 `fsm` join MUST 返回 `Bottom{kind="conflict"}`，并按 `bottom=reject` 暴露 `failed_bottom` / diagnostic。
-- 实现 MUST NOT 用 HLC、`created_at`、actor id、event id、event digest、数据库顺序或接收顺序选择 `active` 或 `missed` 作为 winner。
-- 后续依赖该 call state 的写入 MUST fail closed，直到显式 recovery 在新的 accepted basis 上修复冲突。
+- `ak.component.call.state.v1` 使用 `sequenced_state`；两个命令在唯一确认顺序逐个执行，至多一个通过原 revision，另一个持久拒绝。
+- 确认顺序不由 receiver 到达顺序、HLC 或摘要排序代替。合法重试返回原 command outcome，不产生权限多头。
 
 ### 12.16 Call State — Recording Retention & Audit Lock
 
@@ -5172,7 +4886,7 @@ Steps:
 Expected:
 
 - 第 1 步 MUST 拒绝 `call_moderation_unauthorised`。
-- 第 2 步被 kick 设备 MUST 拆除媒体；token issuer / SFU 据 moderation effective OR-Set 拒绝其重接 `call_participant_removed`，但同 actor 重新发起新 join 不受阻。
+- 第 2 步被 kick 设备 MUST 拆除媒体；token issuer / SFU 据 moderation 已确认活跃集合 拒绝其重接 `call_participant_removed`，但同 actor 重新发起新 join 不受阻。
 - 第 4 步 token issuer MUST 拒绝 `call_participant_removed`，直到 ban 在本通话生命周期内被解除。
 
 ### 12.19 Call State — P2P→SFU Upgrade & Summary Gate
@@ -5343,7 +5057,7 @@ Runner MUST 加载 [`franking-proof-transcript-fixture.json`](../../artifacts/fi
 
 `vector_id`: `ak.vector.moderation.review_resolution_fold.v1`
 
-本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §2.6：active moderation decisions 是可 join 的 OR-Set，普通多 entry 必须按 `hard_deny > quarantine > require_review > none` 取最严格 effective decision；active `require_review` add 是 pending-review 的 canonical carrier，解除必须原子 lift 全部适用 review gates，并在 allow 路径重新执行当前 authz。
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §2.6：active moderation decisions 是顺序确认的活跃 tagged set，普通多 entry 必须按 `hard_deny > quarantine > require_review > none` 取最严格 effective decision；active `require_review` add 是 pending-review 的 canonical carrier，解除必须原子 lift 全部适用 review gates，并在 allow 路径重新执行当前 authz。
 
 Cases / Expected：
 
@@ -5426,7 +5140,7 @@ Expected：
 
 Steps：
 
-1. 对 DataEvent 从 `seal_ref` 认证的 joined control state 读取 `ak.component.realm.reducer_profile.v1`；对 Control Move 从 `seal_basis` 的 frozen predecessor `J(L)` 读取。
+1. 对 DataEvent 从 auth_context.authority_refs 固定的已验证授权状态读取 reducer 合同；对 Control Move 从签名 seal_basis 读取并在实际执行位置重验相关 revision。
 2. 验证 Event 与 `service_binding_ref` 均没有 reducer profile 字段。
 3. 将 settled profile 与 receiver 的 `supported_reducer_profiles[]` 比较。
 4. 对 `ak.realm.upgrade`，先由 source profile 验证 Event，再检查 target registry row 与 source→target edge。
@@ -5693,7 +5407,7 @@ Expected：
 
 ### 20.1 Binding 与 Session FSM
 
-`ak.vector.audit.binding_fsm.v1` MUST 覆盖 `active <-> suspended`、到 terminal `revoked`、revoked 后恢复拒绝与 same-basis sibling Bottom。`ak.vector.audit.session_fsm.v1` MUST 覆盖 `request -> authorize -> notice -> close`、失败流程的 early close、跳阶段拒绝、重复阶段与 terminal replay。Runner 的状态和值必须来自 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 登记的 cell family / lattice / parameters，不能维护另一套迁移表。
+`ak.vector.audit.binding_fsm.v1` MUST 覆盖 `active <-> suspended`、到 terminal `revoked`、revoked 后恢复拒绝与 同前置 revision 的竞争写最多一个成功、其余持久拒绝。`ak.vector.audit.session_fsm.v1` MUST 覆盖 `request -> authorize -> notice -> close`、失败流程的 early close、跳阶段拒绝、重复阶段与 terminal replay。Runner 的状态和值必须来自 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 登记的 cell family / state_model / parameters，不能维护另一套迁移表。
 
 ### 20.2 Release 安全门
 
@@ -5701,7 +5415,7 @@ Expected：
 
 ### 20.3 Close 并发与 RYW-before-output
 
-`ak.vector.audit.close_release_concurrency.v1` MUST 覆盖 same-basis close-vs-release 的 close-wins 裁决、更早 accepted release 的完整 `release_refs[]` freeze、post-close release 拒绝与同 Seal 内 `event_digest` 排序。`ak.vector.audit.ryw_before_output.v1` MUST 证明 material 在 release accepted 且取得 profile-valid RYW receipt 前不会输出；`attested_hardware` 分支还必须验证独立 witness 与 policy digest / eligibility proof 一致。Runner 必须检查输出至多一次，不能把“已构造 wrapped material”误当成“已允许交付”。
+`ak.vector.audit.close_release_concurrency.v1` MUST 覆盖 close-vs-release 按确认顺序执行：close 先确认则 release 拒绝；release 先确认则旧 close 必须因 release log revision 改变而拒绝并重新构造、更早 accepted release 的完整 `release_refs[]` freeze、post-close release 拒绝与同 Seal 内按 command_results 顺序执行。`ak.vector.audit.ryw_before_output.v1` MUST 证明 material 在 release accepted 且取得 profile-valid RYW receipt 前不会输出；`attested_hardware` 分支还必须验证独立 witness 与 policy digest / eligibility proof 一致。Runner 必须检查输出至多一次，不能把“已构造 wrapped material”误当成“已允许交付”。
 
 ## 21. Arkret 私有 MLS 派生与持久化向量
 
@@ -5918,7 +5632,7 @@ Expected:
 - 正例：`ak.invite.create` 携带 `ak.component.invite.live_target.v1` 的 `head_eq: null`，原子写 lifecycle 与 slot；slot subject 是 `canonical_json(payload.invitee_account_id)` 的单分量 composite，**不含 `realm_id`**。
 - 负例：第 1 步的第二条 create MUST `failed_precondition` + `reason_code="invite_live_target_occupied"`，不进 canonical history、零 cell write、零投影、零通知；`error.details` 严格通过 [`service-operation-dtos.schema.json#/$defs/InviteLiveTargetOccupiedProblem`](../../artifacts/schemas/service-operation-dtos.schema.json)，即只含 `reason_code` / `invite_id` / `create_event_id`。MUST NOT 返回 `cas_conflict`，MUST NOT 作为幂等成功返回既有 `invite_id`。
 - 正例：第 2 步的两条并发 create 争用同一个 cell，恰好一条获胜，结果由 CBS basis 唯一确定，与任何实现私有唯一索引或数据库插入先后无关。
-- 正例：第 3 步的重新邀请被接受（终态 Move 已释放格子）。释放写是 `set null`；新 create 的 `head_eq: null` 再次成立，同时 Seal 准入按 §6.3 step 8b 要求它的基线 heads 等于释放写的身份——**一条基线停留在更早那次空格上的 create MUST 被拒**，即使两次的业务值同为 `null`。
+- 正例：第 3 步的重新邀请被接受（终态 Move 已释放格子）。释放写是 `set null`；新 create 的 `head_eq: null` 再次成立，同时 Seal 准入按 安全状态的确切 revision 守卫 要求它的基线 heads 等于释放写的身份——**一条基线停留在更早那次空格上的 create MUST 被拒**，即使两次的业务值同为 `null`。
 - 负例：第 4 步的新 create 仍 MUST `invite_live_target_occupied`——`expires_at` 到达不释放格子，只有已登记的 `ak.invite.revoke(target_state="expired")` 才释放。
 - 负例：第 5 步直接重发 create MUST `invite_live_target_occupied`；先 `ak.invite.revoke(target_state="revoked")` 再 create MUST 被接受。`send_failed` 分支的 `ak.invite.revoke` payload MUST NOT 携带 `invitee_account_id`（schema `if/then`），因而不派生 slot 释放写。
 - 负例：第 6 步两种形态 MUST 都以 `failed_precondition` + `reducer_projection_failed` 原子拒绝（`stored_field_matches_payload` 的两个方向）。前者保证 3PID invite 不能释放别人的 direct slot，后者保证 direct invite 不能靠省略字段把格子永久占住。
@@ -5938,10 +5652,10 @@ Steps:
 
 Expected:
 
-- 并发 ban MUST 在 `ak.component.call.moderation.v1`（`or_set`）合并，不产生冲突，通话 `state` 轴完全不受影响。
+- ban MUST 在 `ak.component.call.moderation.v1`（`sequenced_state`）按确认顺序执行，stale revision 拒绝后重试，通话 `state` 轴完全不受影响。
 - 冲突的 `recording_transition.to` 只把该段 `ak.component.call.recording.v1` 打入 `⊥` / `failed_bottom`；`ak.component.call.state.v1` 仍可接受 `active -> ended`。段 cell 的 subject 是 `[payload.call_id, payload.recording_transition.recording_id]`，因此另一段捕获（不同 `recording_id`）完全不受影响（正例）。
 - `recording_transition` / `transcript_transition` 必须携带 `recording_id`；与该段 `ak.call.recording.start` 的 `recording_id` 不逐字节相同时，写入落在另一个 cell，MUST 以 `recording_state_transition_invalid` 拒绝（不得静默新建一段捕获）。
-- roster join / moderation remove 的 OR-Set add tag 必须精确等于本 write 的 canonical dot `ak:event:<event_id>:<write_index>`，value 必须精确等于对应 payload value；leave / restore 的 remove tag 必须精确等于 `observed_dot`。mute override 必须精确 set 完整 `mute_override` 对象。任何无法由 Event 与 registry 唯一导出的投影均 MUST `reducer_projection_failed`。
+- roster join / moderation remove 的安全集合 add tag 必须精确等于本 write 的 canonical dot `ak:event:<event_id>:<write_index>`，value 必须精确等于对应 payload value；leave / restore 的 remove tag 必须精确等于 `observed_dot`。mute override 必须精确 set 完整 `mute_override` 对象。任何无法由 Event 与 registry 唯一导出的投影均 MUST `reducer_projection_failed`。
 - capture lifecycle 与 result 是两个独立 target：FSM write 只含精确 `from` / `to`，result write 只 set 完整 result。不得把 result 塞入 transition op，也不得因一个目标冲突冻结另一个轴。
 - 未变更的轴不得由 reducer contract 命中；把未变更轴派生为 same-value write 视为不合规（负例）。
 - `focus` projected write 必须 set 完整 focus 对象；`session_focus` 二次写入不同值或 mode 更新时省略已 committed focus 均 MUST 以 `session_focus_already_committed` 失败（`ak.component.call.focus.v1` 的 CAS 负例）。
@@ -6111,7 +5825,7 @@ Expected:
 - 正例：同一已认证批准方的 exact replay 在 stage 消费或清理后仍返回同一 outcome，异请求或异 holder 拒绝；并发与断连后重试不重复 Event、目录写入或 stage 消费。
 - 正例：保存的 payload descriptor、challenge digest 与 signature 在 stage 清理后仍可验签；challenge 来源的信任仍取决于原 admission evidence。
 
-### 23.11 RSVP typed composite subject 与 `mv_register` 收敛
+### 23.11 RSVP typed composite subject 与 `causal_register` 收敛
 
 `vector_id`: `ak.vector.calendar.rsvp_composite_subject.v1`
 
@@ -6464,7 +6178,7 @@ Authority lease、独立 controller gate、controller binding、key/lifecycle wi
 同一 fixture 固化 historical materialization，规则见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)
 与 [`../sync/federation.md` §4.1.1](../sync/federation.md)。Runner MUST 覆盖：
 
-1. 同 Station、同 authority role、同次接纳只用 `station_admission` 分支内原 accepted Event，不生成第二 receipt；
+1. 所有接收站独立验证相同 producer proof 与可携带授权闭包，不签 Event 准入回执。
    同站原始接纳使用 `receiver_receipt` 分支必须拒绝。
 2. 其它 authority 或不同接纳事实使用 receiver receipt；两分支不能替代对方所证明的接纳事实。
 3. selector tuple `(agent_id,verification_method,event_id,receiver_id)` 同接纳事实 exact replay 返回原 root/no-op；
@@ -6487,24 +6201,19 @@ runner MUST 执行 `privacy-security-fixture.json` 的 Actor Profile accountabil
   条目的 Profile 写入必须拒绝；
 - 任何“接受 Event，但从数组剔除无 grant 条目后再写入”的结果均不符合本向量。
 
-## 30. cas_register 因果 heads join closure vector
+## 30. causal_register 因果 heads join closure vector
 
-`vector_id`: `ak.vector.lattice.cas_register_supersession.v1`
+`vector_id`: `ak.vector.lattice.causal_register_supersession.v1`
 
-规则正文见 [`../authz/event-auth-state-resolution.md` §9.3.1.1 至 §9.3.1.4](../authz/event-auth-state-resolution.md)。
+规则正文见 [因果寄存器](../authz/event-auth-state-resolution.md#6-因果寄存器)。Runner MUST 验证：
 
-Runner MUST 覆盖：
-
-1. **未写入读 `null`**：空 heads 的 cell settled value 是 `null`，且该 cell 不占 `state_root` leaf；
-2. **线性生命周期**：declaration → tombstone → 再 declaration，每次写入取代它在自身签名 basis 下观察到的全部 heads，最终只剩一个 head，不落 `⊥`；
-3. **释放为 `null` 是一次有身份的写入**：`set null` 之后 heads 非空、业务读 `null`、且该 cell **仍在** `state_root` 中，与「从未写入」可区分；
-4. **ABA / ABAB 可区分**：`A → null → A` 读 `A`；`A → B → A` 与 `A → B → A → B` 分别读 `A` 与 `B`（按 value 接边求值会在这两组输入上给出相同答案，因此这样的实现 MUST 失败）；
-5. **并发异值落 `⊥`**：两个互不可见的写入产生两个异值 head，`bottom=reject` cell 物化 `failed_bottom`；
-6. **同值并发保留全部身份**：两个互不可见的写入产生同值的两个 head 时，业务读该值，但两个 EventId MUST 都保留在 heads 与 `state_root` leaf 中；随后只观察到其中一个分支的后继 MUST NOT 删掉它没见过的那个 head；
-7. **exact replay 幂等**：同身份、同 canonical effect 的重复投影不产生第二个 head；同身份、不同 effect MUST 走验证错误 / §6.3.3 碰撞路径，MUST NOT 交给 lattice 选一个；
-8. **合并的 ACI**：对任意两/三个已验证状态 `(C,H)`，§9.3.1.4 的合并式满足结合律、交换律、幂等性，且与「对完整因果历史求活跃写入集合」的独立 oracle 逐例一致；
-9. **`⊥` 非粘滞**：并发分支各写 `A`、`B` 后各自在未见对方时续写同一个 `T`；只观察到部分 leaf 的 receiver 与观察到完整历史的 receiver MUST 在补齐 leaf 后收敛到同一结果（读 `T`）；
-10. **任意 prefix-closed 覆盖子集**重算得到该子集的确定性历史 view。
+1. 未写入与写过 null 可区分；后者保留完整 Event 身份和覆盖集。
+2. 后继只覆盖签名因果上下文中的 heads，业务值不作为写入身份；ABA 与同值并发均保留身份差异。
+3. 并发异值保留多头；同值多头可以显示同值，但不能合并身份或吞掉未观察分支。
+4. 相同身份的 exact replay 幂等；相同身份异 bytes 进入碰撞验证，不按摘要挑选赢家。
+5. 对固定资格上下文中的全部 prefix-closed 子集，C/H 合并满足 ACI，与完整因果图 oracle 一致。
+6. 关闭证据改变资格上下文时先重算 eligible 效果，再归约；被隔离的后继不覆盖仍合法的前态。不同上下文的快照不得直接 join。
+7. D Cell 只进入普通 snapshot state_digest，永远不进入 Seal state_root。snapshot 必须保存 C/H 和足以重分类的历史证据。
 
 ## 31. Key backup delete authority closure vector
 
@@ -6602,7 +6311,7 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 Runner MUST 覆盖：
 
 1. peer/self submit 成功 outcome 为每个 accepted/duplicate Agent Event 返回唯一 `agent_event_admissions[]`。
-   原同站同 authority role 同次接纳只能携 `station_admission.accepted_event`；不同接纳使用 `receiver_receipt.receipt`。
+   历史 wrapper 只保留原授权证据与适用关闭引用，不依赖某接收站的接纳签名。
    非 Agent、rejected、quarantine 与 dependency-missing 不生成此项。
 2. 独立 receipt 与对应 durable acceptance 同事务提交，失败整体回滚；原同站接纳直接复用原 Event proof，不签第二 receipt。
 3. 不同 receiver 的接纳独立按 receiver_id 存储；exact duplicate 返回第一次保存的 byte-identical 接纳材料，不重写时间或method。
@@ -6687,15 +6396,15 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
 
 1. JCS 只使用 closed ASCII string/non-negative integer subset，object key 按 code point 排序且无空白；所有 domain tag 与 `0x00` separator
    取 fixture 的 machine constants。
-2. 小型 KAT 必须构造 schema-valid `HistoryGovernanceTraversalIntent/Retention`、完整 open-set base/current/target `SealBasis`、
+2. 小型 KAT 必须构造 schema-valid `HistoryGovernanceTraversalIntent/Retention`、完整 每 Realm 单 head 的 base/current/target `SealBasis`、
    `AuthenticatedSignerResolutionEvidence`、`MinimalMetadataMlsLeafSignerEvidence`、`AvailabilityReceipt` 与三分支
    `GovernanceDependencyResolveOutcome`，并重算各自 canonical digest；replay 解释器只按 Realm profile id 选择。
 3. Direct traversal runner 使用 disk-backed work queue 从每个 target leaf 沿 signed `predecessor_refs` 反向遍历到 exact base cut；每个区间
    predecessor 必须在 cut 内或恰为 base leaf，每个 base leaf 必须被消费，target 必须支配独立 current anti-rollback basis。随后按拓扑运行标准
    `apply_seal`，按 digest 解析每个 `Seal.delta` Control Move、AvailabilityReceipt、signer-resolution evidence、registry snapshot/artifact 与其它
-   registered dependency，重算 roots、Bottom/recovery、winner、join/incarnation、ciphersuite/content scheme 及 current monotone history access。
+   registered dependency，重算 roots、确认命令结果、revision、membership incarnation、ciphersuite/content scheme 及 current monotone history access。
    `direct_traversal_replay_kat` 另以 Genesis + successor 的最小两 Seal 拓扑执行三项真实 replay：历史 frozen notary key 正签名必须通过；同一
-   `verification_method` 换成 current key 所作的 successor 签名必须按 predecessor joined notary descriptor 拒绝，且目标 Seal、verified outcome 与业务
+   `verification_method` 换成 current key 所作的 successor 签名必须按 predecessor 确认的 notary descriptor 拒绝，且目标 Seal、verified outcome 与业务
    callback 均不提交（为派生历史 state 而完成的 Genesis 临时 replay 不算违规）；同一 claimed digest 对应两份不同 digest-preimage Event 的
    resolver response 必须在选边及 replay 前整次拒绝，replayed Seal 计数为零。该 collision 是 ingestion seam 的符号化注入，不宣称制造真实
    SHA-256 collision；这些 case name 不是 wire reason code。普通 DataEvent 不进入 `Seal.delta`，已 Seal 历史后来发现 collision 的不回滚规则复用
@@ -6736,9 +6445,9 @@ membership/policy/control metadata，但不能读取 closure 外 DataEvent、gen
    分别 MUST 返回 `frontier_unavailable` 且零写入；MUST NOT 退回 `seq=0`，MUST NOT 通过重新入群或新 device
    generation 重置该 actor 链。恢复后重试 MUST 成功。
 5. **exact cell 证明**：`member_join` / `knock` 的 `ak.component.member.state.v1` 分别覆盖已写入（`join` / `knock` /
-   `leave` / `ban`）与从未写入（sorted-neighbor non-membership，导出值 `null`）两类，逐 leaf 验证后按 lattice join；
-   多 leaf `open_set` 缺任一 leaf 证明、重复 leaf、第二个 `cell_id`、audit path 与请求方重算 `state_root` 不符、
-   非成员方向的 neighbor 排序不 bracket `cell_id`、以及 join 结果为 `⊥`，MUST 分别拒绝且不得默认为 `null`。
+   `leave` / `ban`）与从未写入（sorted-neighbor non-membership，导出值 `null`）两类，验证所属 Realm 的唯一确认 head 及其 Cell revision；
+   同 Realm 多 leaf、重复 leaf、第二个未声明 `cell_id`、audit path 与重算 `state_root` 不符、
+   非成员方向的 neighbor 排序不 bracket `cell_id`、以及存在竞争安全确认后继，MUST 分别拒绝且不得默认为 `null`。
 6. **invite 分支**：`live_target` 占格值等于 `invite_move.event_id`（内容寻址自证），`invite.lifecycle` 为 `pending` /
    `claimed` 才可 author；`send_failed`、终态、已过 `expires_at`、跨人 invite、以及 `invite_move` 与占格值不等，MUST
    分别拒绝，且对外与不存在共用同一不可枚举失败与固定 timing bucket。
@@ -6748,3 +6457,9 @@ membership/policy/control metadata，但不能读取 closure 外 DataEvent、gen
 8. **查询后并发**：验证并签名之后才出现的同 sequence 合法 sibling MUST NOT 追溯使已签 Event 结构非法；实现 MUST NOT
    为此声称可以检测或证明并发不存在。
 9. **响应预算**：完整材料超出 8 MiB body 上限时整体 `limit_exceeded`，MUST NOT 截断、分页或返回部分闭包。
+
+## 安全创建与解除的序列验证
+
+`ak.call.create` MUST 在目标 Realm 的确认序列中写入已登记的初始安全 Call 状态；重复同一 Event 返回原 outcome，另一创建使用它自身派生的 CallId，不能替换已有 Call 的初始安全 revision。普通摘要通过 ak.call.summary 写入，不得进入 Seal.delta 或安全 state_root。
+
+`ak.moderation.decision.lift` MUST 仅移除在签名 basis 实际观察到的精确决定，并在确认执行位置检查相关安全 Cell revision。两个同前置 revision 的解除至多一个成功；未知 tag、跨 target、跨 Realm 和无权 controller 均拒绝且零部分效果。先前不可逆 redaction 不因解除 moderation 决定而恢复内容。

@@ -254,7 +254,7 @@ Account subscribe `delta` frame 包含以下 stream：
 | Stream | 持久性 | 用途 |
 | --- | --- | --- |
 | `timeline` | 持久 | Realm 内 accepted events |
-| `current` | 持久投影 | 服务器已裁决的完整 cell/object 当前结果、MV heads、移除及不可用 |
+| `current` | 持久投影 | 服务器已裁决的完整 cell/object 当前结果、因果 heads、移除及不可用 |
 | `state_at_window_start` | 派生 | `timeline.limited=true` 时 window 起点 seal 状态，见 §5 |
 | `account_data` | 私有持久 | 标签、UI 偏好、recent emoji、push rules |
 | `to_device` | 设备队列 | key verification、secret sharing、device messages（队列删除只由 §10.1 显式 ack 驱动，不随 cursor 推进） |
@@ -402,7 +402,7 @@ current 结果不跨消息缓存；backfill 和 live 按需处理都保留真实
 
 `current` 只按 [current results](./current-results.md) 的 selector/revision 安装。
 旧 `state` / `state_after` 容器已移除；客户端不对 timeline 应用 reducer 来计算当前状态。
-当前治理、DataEvent MV heads、删除、Bottom 和可见性均由自己的 Station 裁决。
+当前治理、DataEvent 因果 heads、删除、Bottom 和可见性均由自己的 Station 裁决。
 历史展示上下文不能覆盖当前结果；当前结果也不改写历史消息的端到端认证或密文。
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
@@ -432,8 +432,8 @@ current 结果不跨消息缓存；backfill 和 live 按需处理都保留真实
 - 字段范围仅限三类 context：`actor_profiles`（window 内出现的 actor）、`realm_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
 - 三个字段都必须出现；`actor_profiles` 为 closed entry array，每行必须携完整 `actor_id: ActorId`，其余只允许 `display_name` / `avatar_blob_ref`；按 RFC 8785 JCS(actor_id) 的无符号 UTF-8 字节升序排列，同一 ActorId 不得重复（即使 display 字段不同）。它不是以 principal DID 为 key 的 map；同一 principal 在两个 Station 上的 account 必须保留各自 ActorId 和显示投影，客户端不得合并。`realm_metadata` 只允许 `title` / `summary` / `join_rule` / `collaboration_role`。`collaboration_role` 仅在服务端已验证注册 profile 与 Realm genesis discriminator 后输出，v1 唯一值为 `direct_conversation`；客户端不得从 title、category、tag 或成员数重建该字段。`e2ee_epoch` 必须为 `null` 或 `{epoch: non-negative integer, key_ref: non-empty string}`。各层对象均为 closed DTO，未知字段必须按 `schema_violation` 拒绝。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前查询 basis"。
-- 服务端可以沿 Seal DAG 回溯控制面 basis，并按 DataEvent 因果闭包或观察性 `data_event_set_root` 定位 window 起点，再按各 Lattice 的 deterministic join 取 cell value 派生该状态；不可用时退路径 (b)。HLC 只能作为定位候选历史 view 的非权威索引 hint，MUST NOT 作为 cell value 选择键或状态判断依据。
-- **单一 canonical 定位规则（normative）**：上一条提到 window 起点可由 DataEvent 因果闭包或观察性 `data_event_set_root` 定位，但这两条路径对同一 limited timeline 的 window 起点**可能定位到不同的 cell view**（渲染层 display name / `realm_metadata` / `e2ee_epoch` 错位），"是否分歧"本身没有确定判据。为消除双路径歧义，凡实现选择给出 `state_at_window_start` 确定值，**MUST**（不再是 SHOULD）使用唯一 canonical 定位规则：**以该 limited timeline 首事件逐字携带的 `seal_ref` 为唯一 control basis，并对该事件 `prev_refs` 因果闭包做 deterministic join 取 cell value**；不得在 Seal DAG leaf 中另选“最近”Seal。首事件缺少可验证 `seal_ref` 或因果闭包时必须走下述回退路径。该规则对同一输入跨实现产出同一渲染投影，因此不存在"两条路径产出不同 cell view"的合法分歧。由于本字段是 projection-only、不入协议状态，实现仍 MUST NOT 把它当作权威 cell value 对外承诺。
+- 服务端按事件的已签授权上下文与因果闭包重放历史投影；HLC 只用于查找候选，不选择 Cell 值。
+- **窗口起点（normative）**：`state_at_window_start` 使用窗口首事件逐字携带的 `auth_context.authority_refs` 与完整 `prev_refs` 因果闭包，并按该上下文适用的已验证关闭集合重算。缺任一必要依赖时使用下述回退路径，不能另选“最近”Seal。该值只是渲染投影，不授予当前操作权限。
 
 **(b) 标记 `preview_only=true`** (回退路径)：
 

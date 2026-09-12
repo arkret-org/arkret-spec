@@ -151,8 +151,8 @@ see_also:
 | --- | --- |
 | `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
-| `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / cas_register / cascade。 |
-| `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + cas_register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / server_revision_cas / cascade。 |
+| `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + server_revision_cas cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
 | `models/calendar-event.md` | Calendar Strand 的 `schema_refs` 激活、schedule fields、LocalDateTime 半开区间、RFC 8984 recurrence v1 子集、TZDB 版本绑定、schedule revision frontier、attendees 与 `ak.rsvp.set` 完整 entry 收敛。 |
 | `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle encryption profile 与父 Realm floor、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/sidecar.md` | Agent Sidecar 独立对象、Event-derived 身份、native scope、Realm-scoped desired/effective 派生集合、独立 MLS、context view 映射、存在性隐私与专用 UI 不变量。 |
@@ -178,7 +178,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
-| `authz/cbs-profiles.md` | CBS 授权集合 profile、并发类别、genesis ingress authority 与 proof bundle；提案有界决议和终态见 `authz/event-auth-state-resolution.md` §7.2。 |
+| `authz/cbs-profiles.md` | CBS 授权集合 profile、并发类别、genesis ingress authority 与 proof bundle；提案有界决议和终态见 `authz/event-auth-state-resolution.md` §14。 |
 | `authz/offline-publication.md` | AuthorizationLease、IngressReceipt 与离线发布窗口。 |
 | `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |
 | `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |
@@ -194,7 +194,7 @@ see_also:
 | --- | --- |
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/server-trusted-results.md` | 客户端信任自己 Station 的治理结果、服务器验证复用及端到端职责。 |
-| `sync/current-results.md` | 服务器 typed current selector、完整 MV heads、版本化替代/删除与有界基线。 |
+| `sync/current-results.md` | 服务器 typed current selector、完整 因果 heads、版本化替代/删除与有界基线。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、服务器当前结果、to_device。 |
 | `sync/signal.md` | encrypted-only Signal Extension send / subscribe rail、可见分类与 TTL。 |
 | `sync/service-surface.md` | 最小服务面与实际服务组合：Station、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |

@@ -1,174 +1,20 @@
-"""Mutation tests for the registered sole-recovery family list.
-
-zh/authz/event-auth-state-resolution.md section 9.3.1.4 makes the exit from
-Bottom layered by family: where the write's own authorization or business
-precondition reads the cell itself, Bottom leaves nobody able to author an
-ordinary write, so recovery is the only exit. The list names that group, lives in
-the registry rather than in prose alone, and must keep the notary cell out --
-verifying any Seal reads that cell, so listing it would imply an exit that does
-not exist. The list never restricts which cells a recovery may target.
-"""
-
-from __future__ import annotations
-
-import copy
+"""Reject arbitrary Cell reset and the retired recovery kind."""
+from pathlib import Path
 import json
-import re
 import sys
 import unittest
-from pathlib import Path
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-
 from tools.artifact_lint import core, foundation
-
-EVENT_REGISTRY = ROOT / "spec" / "v1" / "artifacts" / "registry" / "event-kind-registry.json"
-RECOVERY_KIND = core.CONFLICT_RECOVERY_KIND
-NEGATED_HEAD_EQ = re.compile(r"(?:^|[^A-Za-z])(?:no|without)(?:[^.A-Za-z][^.]{0,24})?$")
-EXPECTED_ALLOWLIST = [
-    "ak.component.fork_resolution.v1",
-    "ak.component.identity.resolution.v1",
-    "ak.component.invite.live_target.v1",
-    "ak.component.mls.epoch.v1",
-    "ak.component.realm.authority_root.v1",
-    "ak.component.realm.organization_recovery_key.v1",
-    "ak.component.realm.reducer_profile.v1",
-]
-
-
-def _declares_self_head_eq(row: dict, family: str) -> bool:
-    """True when this writer requires a head_eq on `family`'s own cell.
-
-    Registry rows carry the requirement in admission prose rather than in a
-    structured field, so the match must be positive: an occurrence negated by
-    "no" or "without" states the opposite and MUST NOT count.
-    """
-    text = json.dumps(row, ensure_ascii=False)
-    return any(
-        not NEGATED_HEAD_EQ.search(text[max(0, match.start() - 24) : match.start()])
-        for match in re.finditer("head_eq", text)
-    )
-
-
-def _recovery_write(registry: dict) -> dict:
-    row = next(row for row in registry["event_kinds"] if row["event_kind"] == RECOVERY_KIND)
-    return row["cell_writes"][0]
-
-
-class ShippedAllowlistTest(unittest.TestCase):
-    def test_shipped_list_is_the_registered_seven(self) -> None:
-        registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
-        self.assertEqual(
-            _recovery_write(registry)["sole_recovery_families"], EXPECTED_ALLOWLIST
-        )
-
-    def test_every_listed_family_is_a_written_cas_register(self) -> None:
-        """The list is the cas_register half only.
-
-        Every fsm family is sole-recovery by construction: section 9.3.1.7 item 2
-        makes an ordinary transition's `from` equal the settled value, which does
-        not exist under Bottom. Listing one would suggest this registry is the
-        source of truth for fsm too, so an fsm family here is a defect.
-        """
-        registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
-        by_lattice: dict[str, set[str]] = {}
-        for row in registry["event_kinds"]:
-            for write in row.get("cell_writes") or []:
-                family = write.get("cell_family")
-                if family and write.get("lattice") in ("cas_register", "fsm"):
-                    by_lattice.setdefault(write["lattice"], set()).add(family)
-        for family in _recovery_write(registry)["sole_recovery_families"]:
-            self.assertIn(family, by_lattice["cas_register"], family)
-            self.assertNotIn(family, by_lattice["fsm"], family)
-
-    def test_every_cas_family_with_a_self_reading_writer_is_listed(self) -> None:
-        """The audit that produced the list, kept executable.
-
-        A cas_register family whose every writer declares a head_eq on that same
-        family has no ordinary-write exit once it is in Bottom, because head_eq
-        fails closed there. Such a family must be listed or it becomes a dead cell.
-
-        The predicate reads the declaration, not the word: a row that documents
-        the absence of a self head_eq -- ak.relation.resolve says the Move
-        "carries no head_eq on its own" cell so a Bottom group stays healable by
-        one further authorized resolve -- is not a self-reading writer, and a
-        bare substring search over the row would misread that sentence as its
-        opposite.
-        """
-        registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
-        writers: dict[str, list[dict]] = {}
-        for row in registry["event_kinds"]:
-            for write in row.get("cell_writes") or []:
-                if write.get("lattice") == "cas_register" and write.get("cell_family"):
-                    writers.setdefault(write["cell_family"], []).append(row)
-        listed = set(_recovery_write(registry)["sole_recovery_families"])
-        for family, rows in writers.items():
-            if all(_declares_self_head_eq(row, family) for row in rows):
-                self.assertIn(family, listed, family)
-
-    def test_notary_cell_is_not_allowlisted(self) -> None:
-        registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
-        self.assertNotIn(
-            core.NOTARY_CELL_FAMILY, _recovery_write(registry)["sole_recovery_families"]
-        )
-
-
-class AllowlistLintTest(unittest.TestCase):
-    def _lint_mutated_write(self, mutate) -> list[str]:
-        registry = core.parse_json_text(EVENT_REGISTRY.read_text(encoding="utf-8"))
-        write = copy.deepcopy(_recovery_write(registry))
-        mutate(write)
-        lint = core.Lint()
-        foundation.lint_conflict_recovery_write(
-            lint, EVENT_REGISTRY, f"{RECOVERY_KIND} cell_writes[0]", RECOVERY_KIND, write
-        )
-        return [str(failure) for failure in lint.errors]
-
-    def test_unmutated_write_passes(self) -> None:
-        self.assertEqual(self._lint_mutated_write(lambda write: None), [])
-
-    def test_missing_allowlist_fails(self) -> None:
-        failures = self._lint_mutated_write(
-            lambda write: write.pop("sole_recovery_families")
-        )
-        self.assertTrue(any("sole_recovery_families" in f for f in failures), failures)
-
-    def test_empty_allowlist_fails(self) -> None:
-        failures = self._lint_mutated_write(
-            lambda write: write.update(sole_recovery_families=[])
-        )
-        self.assertTrue(any("non-empty" in f for f in failures), failures)
-
-    def test_notary_family_is_rejected(self) -> None:
-        def mutate(write: dict) -> None:
-            write["sole_recovery_families"] = sorted(
-                [*EXPECTED_ALLOWLIST, core.NOTARY_CELL_FAMILY]
-            )
-
-        failures = self._lint_mutated_write(mutate)
-        self.assertTrue(any(core.NOTARY_CELL_FAMILY in f for f in failures), failures)
-
-    def test_unsorted_allowlist_fails(self) -> None:
-        failures = self._lint_mutated_write(
-            lambda write: write.update(sole_recovery_families=list(reversed(EXPECTED_ALLOWLIST)))
-        )
-        self.assertTrue(any("sorted" in f for f in failures), failures)
-
-    def test_duplicate_family_fails(self) -> None:
-        failures = self._lint_mutated_write(
-            lambda write: write.update(
-                sole_recovery_families=[EXPECTED_ALLOWLIST[0], *EXPECTED_ALLOWLIST]
-            )
-        )
-        self.assertTrue(any("repeat" in f for f in failures), failures)
-
-    def test_non_canonical_family_fails(self) -> None:
-        failures = self._lint_mutated_write(
-            lambda write: write.update(sole_recovery_families=["realm.authority_root"])
-        )
-        self.assertTrue(any("canonical" in f for f in failures), failures)
-
-
+PATH = ROOT / "spec/v1/artifacts/registry/event-kind-registry.json"
+class DynamicResetRejectionTest(unittest.TestCase):
+    def test_retired_kind_has_no_registration(self):
+        registry = json.loads(PATH.read_text(encoding="utf-8"))
+        self.assertNotIn(core.CONFLICT_RECOVERY_KIND, {r["event_kind"] for r in registry["event_kinds"]})
+    def test_no_kind_can_reset_an_arbitrary_cell(self):
+        for kind in [core.CONFLICT_RECOVERY_KIND, "ak.realm.policy", "ak.message.create"]:
+            lint = core.Lint()
+            foundation.lint_conflict_recovery_write(lint, PATH, kind, kind, {"cell_ref": {"field": "payload.target_cell_id"}, "effect_projection": {"kind": "reset"}})
+            self.assertTrue(lint.errors)
 if __name__ == "__main__":
     unittest.main()

@@ -681,37 +681,13 @@ GET /_arkret/self/realm-state-snapshot/head?realm_id=<id>
 
 Sync 响应 SHOULD 在每条 reducer-input Event 上携带其当前协议状态字段（`event_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`data_local` / `data_observed` / `control_pending` / `control_sealed` / `failed_precondition` / `failed_plane` / `failed_bottom` / `rejected_seal` / `fork_quarantine`。
 
-State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回结构化 Bottom 诊断，schema 参见 [`schemas/bottom.schema.json`](../../artifacts/schemas/bottom.schema.json) 与 `ak.schema.bottom.v1`：
+普通 `causal_register` 的多头 MUST 完整保留；通用 current result 返回 `status=heads`，需要单值却不能确定结果的消费面返回 `unavailable` 并附冲突诊断。不得把多头当成权限或到达顺序赢家。
 
-```json
-{
-  "cell": "ak:cell:ak.component.realm.policy.v1:null",
-  "status": "bottom",
-  "bottom": {
-    "kind": "conflict",
-    "cells": ["ak:cell:ak.component.realm.policy.v1:null"],
-    "event_ids": [
-      "ak:event:AZX1GsdimKJVck-Bj3-kzDNnYkXrZ76QLZGeTiOWlbBR…",
-      "ak:event:ARs--JcXpC9xvf_GqjOGJpBUzlc1X5_5KkF53AKeLGQF…"
-    ],
-    "basis": {
-      "leaves": ["ak:seal:sha256:dddd…"],
-      "state_root": "sha256:eeee…"
-    },
-    "heads": [{"…": "candidate-A"}, {"…": "candidate-B"}],
-    "details": {}
-  }
-}
-```
+诊断的唯一 closed shape 见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)：`kind`、`cell_ids` 及该 schema 明确允许的可选诊断字段。它不是 Cell 状态、命令 outcome 或安全恢复载体；不得使用额外的 `cells`、`basis` 镜像。安全 Cell 只有唯一已确认 revision；缺依赖保持 unavailable，已证明的安全确认分叉停止争议后继的授权消费，不能通过通用 recovery 生成另一条合法 lineage。
 
-规则：
+`event_state="fork_quarantine"` 表示争议 Event 被隔离，按 [Actor 分叉规则](../authz/event-auth-state-resolution.md) §15 处理；它不允许重写已经确认的安全历史。`bottom_escalation_after_ms` 只控制普通冲突的带外提示；超时不选赢家、不扩权。
 
-- `bottom=reject` cell 的 query MUST 返回 `status:"bottom"` 与诊断；客户端 / 授权路径 MUST NOT 把 `heads` 当作 allow。
-- `bottom=expose` cell 的 query MAY 返回 `status:"conflict"` 暴露多 head 给 projection / UI；同样不得用作授权 allow。
-- `event_state="fork_quarantine"` 表达控制面 Seal 分叉已被证明；UI 与自动化 MUST 停止基于该 fork 的普通治理 allow，直到 recovery path 给出新的 sealed basis。
-- `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
-
-`/_arkret/self/account/subscribe` / `/_arkret/self/events` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（精确 wire 形态见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)；HTTP 字段位置以 [`service-http-binding.md`](service-http-binding.md) 与 OpenAPI 为准）。
+`/_arkret/self/account/subscribe` / `/_arkret/self/events` 只在各自 schema 已登记的位置携带诊断，精确字段由 OpenAPI 与对应响应类型决定。
 
 ### 5.4 明文与服务信任
 

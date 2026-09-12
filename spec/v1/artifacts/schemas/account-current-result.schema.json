@@ -121,10 +121,17 @@
     "value_agent_selector_claim": {
       "anyOf": [
         {
-          "$ref": "./agent-provision.schema.json"
+          "type": "null"
         },
         {
-          "$ref": "./agent-selector-claim.schema.json"
+          "anyOf": [
+            {
+              "$ref": "./agent-provision.schema.json"
+            },
+            {
+              "$ref": "./agent-selector-claim.schema.json"
+            }
+          ]
         }
       ]
     },
@@ -231,17 +238,36 @@
     "value_call_recording_result": {
       "anyOf": [
         {
-          "type": "null"
+          "type": "object",
+          "required": [
+            "status",
+            "details"
+          ],
+          "properties": {
+            "status": {
+              "const": "pending"
+            },
+            "details": {
+              "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload/properties/result"
+            }
+          },
+          "additionalProperties": false
         },
         {
-          "anyOf": [
-            {
-              "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload/properties/result"
+          "type": "object",
+          "required": [
+            "status",
+            "details"
+          ],
+          "properties": {
+            "status": {
+              "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/to"
             },
-            {
+            "details": {
               "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/result"
             }
-          ]
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -265,17 +291,36 @@
     "value_call_transcript_result": {
       "anyOf": [
         {
-          "type": "null"
+          "type": "object",
+          "required": [
+            "status",
+            "details"
+          ],
+          "properties": {
+            "status": {
+              "const": "pending"
+            },
+            "details": {
+              "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload/properties/result"
+            }
+          },
+          "additionalProperties": false
         },
         {
-          "anyOf": [
-            {
-              "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload/properties/result"
+          "type": "object",
+          "required": [
+            "status",
+            "details"
+          ],
+          "properties": {
+            "status": {
+              "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/transcript_transition/properties/to"
             },
-            {
+            "details": {
               "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/transcript_transition/properties/result"
             }
-          ]
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -331,14 +376,7 @@
       ]
     },
     "value_call_summary": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/call_summary_payload"
-        }
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/call_summary_payload"
     },
     "value_capability_derived": {
       "type": "array",
@@ -372,286 +410,279 @@
       ]
     },
     "value_circle_metadata": {
-      "anyOf": [
-        {
-          "type": "null"
+      "description": "Circle — an intra-Realm scoped event/message boundary with its own membership, history_access and optional independent MLS group. Parent Realm membership supplies only the current-membership intersection gate; history_access is never dynamically inherited.",
+      "type": "object",
+      "required": [
+        "id",
+        "schema",
+        "realm_id",
+        "title",
+        "display",
+        "directory_visibility",
+        "join_rule",
+        "encryption_profile",
+        "created_by",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id",
+          "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
         },
-        {
-          "description": "Circle — an intra-Realm scoped event/message boundary with its own membership, history_access and optional independent MLS group. Parent Realm membership supplies only the current-membership intersection gate; history_access is never dynamically inherited.",
+        "schema": {
+          "const": "ak.schema.circle.v1"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Parent Realm. create-locked; Circle never re-binds to another Realm."
+        },
+        "profile_ref": {
+          "type": "string",
+          "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$",
+          "description": "Optional create-locked Circle semantic profile discriminator. Ordinary Circles omit it. Profile-specific creation paths MUST persist their registered profile id. Agent Sidecar is a separate ak.schema.agent_sidecar.v1 object and MUST NOT be represented by this field."
+        },
+        "title": {
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
+        },
+        "summary": {
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 2048
+        },
+        "display": {
+          "$ref": "./circle.schema.json#/$defs/display"
+        },
+        "directory_visibility": {
+          "type": "string",
+          "enum": [
+            "members",
+            "realm_members"
+          ],
+          "description": "Who may see this Circle exists as a directory entry. 'members' means only Circle members see its title/display/member_ids. 'realm_members' exposes directory metadata only and does NOT grant event or history access."
+        },
+        "join_rule": {
+          "type": "string",
+          "enum": [
+            "invite",
+            "knock",
+            "public"
+          ],
+          "description": "How an actor becomes a Circle member. 'public' lets any active parent-Realm member self-join; it does not make the Circle globally discoverable. 'knock' requires the application/approval flow. 'invite' requires Circle admin add or invite."
+        },
+        "content_encryption_floor": {
+          "type": "string",
+          "enum": [
+            "allow_plaintext",
+            "e2ee_required"
+          ],
+          "description": "Optional Circle-local content encryption floor. When omitted, the Circle inherits the parent Realm's content_encryption_floor. Effective floor = max(parent Realm content_encryption_floor, this field). May only tighten, never widen, the parent Realm floor, and the effective floor is a one-way ratchet: once e2ee_required has been accepted it MUST NOT be lowered back to allow_plaintext (reducer rejects with content_encryption_floor_downgrade). e2ee_required is only meaningful when encryption_profile='mls_rfc9420'; a Circle with encryption_profile='none' MUST keep allow_plaintext. See zh/models/circle.md §7."
+        },
+        "metadata_encryption_floor": {
+          "type": "string",
+          "enum": [
+            "allow_plaintext",
+            "e2ee_required"
+          ],
+          "description": "Optional Circle-local metadata encryption floor (binary, symmetric with content_encryption_floor: allow_plaintext | e2ee_required). When omitted, the Circle inherits parent Realm's metadata_encryption_floor. May only tighten, never widen, parent Realm floor; the effective floor is a one-way ratchet (reducer rejects a lowering write with metadata_encryption_floor_downgrade)."
+        },
+        "agent_participation": {
           "type": "object",
+          "description": "Optional wrapped five-bit Agent ceiling. When present every bit is explicit and may only tighten the parent Realm ceiling.",
           "required": [
-            "id",
-            "schema",
-            "realm_id",
-            "title",
-            "display",
-            "directory_visibility",
-            "join_rule",
-            "encryption_profile",
-            "created_by",
-            "created_at"
+            "agent"
           ],
           "properties": {
-            "id": {
-              "$ref": "./common-ids.schema.json#/$defs/circle_id",
-              "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
-            },
-            "schema": {
-              "const": "ak.schema.circle.v1"
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id",
-              "description": "Parent Realm. create-locked; Circle never re-binds to another Realm."
-            },
-            "profile_ref": {
-              "type": "string",
-              "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$",
-              "description": "Optional create-locked Circle semantic profile discriminator. Ordinary Circles omit it. Profile-specific creation paths MUST persist their registered profile id. Agent Sidecar is a separate ak.schema.agent_sidecar.v1 object and MUST NOT be represented by this field."
-            },
-            "title": {
-              "$ref": "string-profiles.schema.json#/$defs/display_text_256"
-            },
-            "summary": {
-              "$ref": "string-profiles.schema.json#/$defs/short_text",
-              "maxLength": 2048
-            },
-            "display": {
-              "$ref": "./circle.schema.json#/$defs/display"
-            },
-            "directory_visibility": {
-              "type": "string",
-              "enum": [
-                "members",
-                "realm_members"
-              ],
-              "description": "Who may see this Circle exists as a directory entry. 'members' means only Circle members see its title/display/member_ids. 'realm_members' exposes directory metadata only and does NOT grant event or history access."
-            },
-            "join_rule": {
-              "type": "string",
-              "enum": [
-                "invite",
-                "knock",
-                "public"
-              ],
-              "description": "How an actor becomes a Circle member. 'public' lets any active parent-Realm member self-join; it does not make the Circle globally discoverable. 'knock' requires the application/approval flow. 'invite' requires Circle admin add or invite."
-            },
-            "content_encryption_floor": {
-              "type": "string",
-              "enum": [
-                "allow_plaintext",
-                "e2ee_required"
-              ],
-              "description": "Optional Circle-local content encryption floor. When omitted, the Circle inherits the parent Realm's content_encryption_floor. Effective floor = max(parent Realm content_encryption_floor, this field). May only tighten, never widen, the parent Realm floor, and the effective floor is a one-way ratchet: once e2ee_required has been accepted it MUST NOT be lowered back to allow_plaintext (reducer rejects with content_encryption_floor_downgrade). e2ee_required is only meaningful when encryption_profile='mls_rfc9420'; a Circle with encryption_profile='none' MUST keep allow_plaintext. See zh/models/circle.md §7."
-            },
-            "metadata_encryption_floor": {
-              "type": "string",
-              "enum": [
-                "allow_plaintext",
-                "e2ee_required"
-              ],
-              "description": "Optional Circle-local metadata encryption floor (binary, symmetric with content_encryption_floor: allow_plaintext | e2ee_required). When omitted, the Circle inherits parent Realm's metadata_encryption_floor. May only tighten, never widen, parent Realm floor; the effective floor is a one-way ratchet (reducer rejects a lowering write with metadata_encryption_floor_downgrade)."
-            },
-            "agent_participation": {
-              "type": "object",
-              "description": "Optional wrapped five-bit Agent ceiling. When present every bit is explicit and may only tighten the parent Realm ceiling.",
-              "required": [
-                "agent"
-              ],
-              "properties": {
-                "agent": {
-                  "$ref": "./principal-operations.schema.json#/$defs/participation_bits"
-                }
-              },
-              "additionalProperties": false
-            },
-            "encryption_profile": {
-              "type": "string",
-              "enum": [
-                "none",
-                "mls_rfc9420"
-              ],
-              "description": "Circle content encryption profile. create-locked. 'none' means plaintext delivery/query/projection isolation only and is allowed only when the parent Realm policy floor allows plaintext. 'mls_rfc9420' means the Circle owns an independent MLS group and MUST NOT derive its keys from the Realm-default MLS group."
-            },
-            "content_scheme": {
-              "type": "string",
-              "enum": [
-                "mls_rfc9420",
-                "mls_exporter_aead_v1"
-              ],
-              "description": "Create/Genesis-locked MLS content scheme. Required exactly for an MLS-backed Circle and immutable for the derived group lifetime."
-            },
-            "mls_group_id": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "Reducer-derived base64url_no_pad(utf8(canonical CircleId)). Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
-            },
-            "durability_policy": {
-              "type": "string",
-              "enum": [
-                "none",
-                "organization_recovery_key"
-              ],
-              "description": "Create/Genesis-locked exporter durability policy. Required exactly for mls_exporter_aead_v1; absent otherwise."
-            },
-            "created_by": {
-              "$ref": "./common-ids.schema.json#/$defs/actor_id"
-            },
-            "created_at": {
-              "$ref": "./circle.schema.json#/$defs/timestamp"
-            },
-            "updated_by": {
-              "$ref": "./common-ids.schema.json#/$defs/actor_id"
-            },
-            "updated_at": {
-              "$ref": "./circle.schema.json#/$defs/timestamp"
+            "agent": {
+              "$ref": "./principal-operations.schema.json#/$defs/participation_bits"
             }
           },
-          "allOf": [
-            {
-              "if": {
-                "properties": {},
-                "required": []
-              },
-              "then": {
-                "required": []
+          "additionalProperties": false
+        },
+        "encryption_profile": {
+          "type": "string",
+          "enum": [
+            "none",
+            "mls_rfc9420"
+          ],
+          "description": "Circle content encryption profile. create-locked. 'none' means plaintext delivery/query/projection isolation only and is allowed only when the parent Realm policy floor allows plaintext. 'mls_rfc9420' means the Circle owns an independent MLS group and MUST NOT derive its keys from the Realm-default MLS group."
+        },
+        "content_scheme": {
+          "type": "string",
+          "enum": [
+            "mls_rfc9420",
+            "mls_exporter_aead_v1"
+          ],
+          "description": "Create/Genesis-locked MLS content scheme. Required exactly for an MLS-backed Circle and immutable for the derived group lifetime."
+        },
+        "mls_group_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "Reducer-derived base64url_no_pad(utf8(canonical CircleId)). Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
+        },
+        "durability_policy": {
+          "type": "string",
+          "enum": [
+            "none",
+            "organization_recovery_key"
+          ],
+          "description": "Create/Genesis-locked exporter durability policy. Required exactly for mls_exporter_aead_v1; absent otherwise."
+        },
+        "created_by": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "created_at": {
+          "$ref": "./circle.schema.json#/$defs/timestamp"
+        },
+        "updated_by": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "updated_at": {
+          "$ref": "./circle.schema.json#/$defs/timestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {},
+            "required": []
+          },
+          "then": {
+            "required": []
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "encryption_profile": {
+                "const": "none"
               }
             },
-            {
-              "if": {
-                "properties": {
-                  "encryption_profile": {
-                    "const": "none"
-                  }
-                },
-                "required": [
-                  "encryption_profile"
-                ]
-              },
-              "then": {
-                "not": {
-                  "anyOf": [
-                    {
-                      "required": [
-                        "content_scheme"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "mls_group_id"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "durability_policy"
-                      ]
-                    }
+            "required": [
+              "encryption_profile"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "content_scheme"
                   ]
                 },
-                "properties": {
-                  "content_encryption_floor": {
-                    "const": "allow_plaintext"
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "encryption_profile": {
-                    "const": "mls_rfc9420"
-                  }
+                {
+                  "required": [
+                    "mls_group_id"
+                  ]
                 },
-                "required": [
-                  "encryption_profile"
-                ]
-              },
-              "then": {
-                "required": [
-                  "content_scheme"
-                ]
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "content_scheme": {
-                    "const": "mls_rfc9420"
-                  }
-                },
-                "required": [
-                  "content_scheme"
-                ]
-              },
-              "then": {
-                "properties": {},
-                "not": {
+                {
                   "required": [
                     "durability_policy"
                   ]
                 }
+              ]
+            },
+            "properties": {
+              "content_encryption_floor": {
+                "const": "allow_plaintext"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "encryption_profile": {
+                "const": "mls_rfc9420"
               }
             },
+            "required": [
+              "encryption_profile"
+            ]
+          },
+          "then": {
+            "required": [
+              "content_scheme"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "content_scheme": {
+                "const": "mls_rfc9420"
+              }
+            },
+            "required": [
+              "content_scheme"
+            ]
+          },
+          "then": {
+            "properties": {},
+            "not": {
+              "required": [
+                "durability_policy"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "content_scheme": {
+                "const": "mls_exporter_aead_v1"
+              }
+            },
+            "required": [
+              "content_scheme"
+            ]
+          },
+          "then": {
+            "required": [
+              "durability_policy"
+            ]
+          }
+        },
+        {
+          "oneOf": [
             {
+              "required": [
+                "id"
+              ],
               "if": {
                 "properties": {
-                  "content_scheme": {
-                    "const": "mls_exporter_aead_v1"
+                  "encryption_profile": {
+                    "const": "mls_rfc9420"
                   }
                 },
                 "required": [
-                  "content_scheme"
+                  "encryption_profile"
                 ]
               },
               "then": {
                 "required": [
-                  "durability_policy"
+                  "mls_group_id"
                 ]
               }
             },
             {
-              "oneOf": [
-                {
-                  "required": [
-                    "id"
-                  ],
-                  "if": {
-                    "properties": {
-                      "encryption_profile": {
-                        "const": "mls_rfc9420"
-                      }
-                    },
+              "not": {
+                "anyOf": [
+                  {
                     "required": [
-                      "encryption_profile"
+                      "id"
                     ]
                   },
-                  "then": {
+                  {
                     "required": [
                       "mls_group_id"
                     ]
                   }
-                },
-                {
-                  "not": {
-                    "anyOf": [
-                      {
-                        "required": [
-                          "id"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "mls_group_id"
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
+                ]
+              }
             }
-          ],
-          "unevaluatedProperties": false
+          ]
         }
-      ]
+      ],
+      "unevaluatedProperties": false
     },
     "value_circle_history_access": {
       "anyOf": [
@@ -698,24 +729,10 @@
       }
     },
     "value_container_position": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/container_move_item_payload"
-        }
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/container_move_item_payload"
     },
     "value_container_order": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/container_rebalance_payload"
-        }
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/container_rebalance_payload"
     },
     "value_device_authorization": {
       "type": "array",
@@ -856,7 +873,14 @@
       "$ref": "./event-payload.schema.json#/$defs/message_revise_payload"
     },
     "value_mimi_room_binding": {
-      "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload"
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload"
+        }
+      ]
     },
     "value_mls_epoch": {
       "anyOf": [
@@ -905,17 +929,10 @@
     "value_morph_lifecycle": {
       "anyOf": [
         {
-          "type": "null"
+          "const": "active"
         },
         {
-          "anyOf": [
-            {
-              "const": "active"
-            },
-            {
-              "const": "archived"
-            }
-          ]
+          "const": "archived"
         }
       ]
     },
@@ -1088,14 +1105,7 @@
       "unevaluatedProperties": false
     },
     "value_morph_stage": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/morph_stage_set_payload/properties/stage"
-        }
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/morph_stage_set_payload/properties/stage"
     },
     "value_notary_fault": {
       "type": "array",
@@ -1258,14 +1268,7 @@
       "additionalProperties": false
     },
     "value_profile_realm_override": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/profile_realm_override_payload"
-        }
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/profile_realm_override_payload"
     },
     "value_message_reactions": {
       "$ref": "./account-current-result.schema.json#/$defs/projected_reactions"
@@ -1420,14 +1423,7 @@
       ]
     },
     "value_realm_profile": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/realm_profile_payload"
-        }
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/realm_profile_payload"
     },
     "value_realm_destroy": {
       "anyOf": [
@@ -1648,14 +1644,7 @@
       ]
     },
     "value_realm_set_default_strand": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/realm_set_default_strand_payload/properties/strand_id"
-        }
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/realm_set_default_strand_payload/properties/strand_id"
     },
     "value_realm_tombstone": {
       "anyOf": [
@@ -1791,24 +1780,10 @@
       "unevaluatedProperties": false
     },
     "value_relation_conflict_resolution": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/relation_resolve_payload"
-        }
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/relation_resolve_payload"
     },
     "value_relation_lifecycle": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "const": "tombstoned"
-        }
-      ]
+      "const": "tombstoned"
     },
     "value_calendar_rsvp": {
       "$ref": "./event-payload.schema.json#/$defs/rsvp_set_payload/properties/entry"
@@ -1836,20 +1811,13 @@
     "value_space_lifecycle": {
       "anyOf": [
         {
-          "type": "null"
+          "const": "active"
         },
         {
-          "anyOf": [
-            {
-              "const": "active"
-            },
-            {
-              "const": "archived"
-            },
-            {
-              "const": "tombstoned"
-            }
-          ]
+          "const": "archived"
+        },
+        {
+          "const": "tombstoned"
         }
       ]
     },
@@ -1881,10 +1849,6 @@
         "scope_circle_id": {
           "$ref": "./common-ids.schema.json#/$defs/circle_id",
           "description": "Optional Circle scope for this Space object's own metadata and scoped structural relation facts. Space still does not own a security boundary; it only places its metadata into an existing Circle scope. Omitted means Realm-default scope."
-        },
-        "child_scope_policy": {
-          "$ref": "./space.schema.json#/$defs/child_scope_policy",
-          "description": "Reducer-enforced placement/encryption policy for child resources created in or moved into this Space."
         },
         "kind": {
           "type": "string",
@@ -2013,13 +1977,33 @@
       ],
       "unevaluatedProperties": false
     },
-    "value_space_parent": {
+    "value_space_child_scope_policy": {
       "anyOf": [
         {
           "type": "null"
         },
         {
+          "anyOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/space_patch_payload/properties/child_scope_policy"
+            },
+            {
+              "$ref": "./space.schema.json#/properties/child_scope_policy"
+            }
+          ]
+        }
+      ]
+    },
+    "value_space_parent": {
+      "anyOf": [
+        {
           "$ref": "./event-payload.schema.json#/$defs/space_parent_payload/properties/parent_space_id"
+        },
+        {
+          "$ref": "./space.schema.json#/properties/parent_space_id"
+        },
+        {
+          "const": null
         }
       ]
     },
@@ -2053,17 +2037,10 @@
     "value_strand_lifecycle": {
       "anyOf": [
         {
-          "type": "null"
+          "const": "active"
         },
         {
-          "anyOf": [
-            {
-              "const": "active"
-            },
-            {
-              "const": "archived"
-            }
-          ]
+          "const": "archived"
         }
       ]
     },
@@ -2400,82 +2377,61 @@
     "value_strand_position": {
       "anyOf": [
         {
-          "type": "null"
+          "type": "object",
+          "required": [
+            "list_space_id",
+            "rank"
+          ],
+          "properties": {
+            "list_space_id": {
+              "$ref": "./event-payload.schema.json#/$defs/strand_move_payload/properties/target_space_id"
+            },
+            "rank": {
+              "$ref": "./event-payload.schema.json#/$defs/strand_move_payload/properties/rank"
+            }
+          },
+          "additionalProperties": false
         },
         {
-          "anyOf": [
-            {
-              "type": "object",
-              "required": [
-                "list_space_id",
-                "rank"
-              ],
-              "properties": {
-                "list_space_id": {
-                  "$ref": "./event-payload.schema.json#/$defs/strand_move_payload/properties/target_space_id"
-                },
-                "rank": {
-                  "$ref": "./event-payload.schema.json#/$defs/strand_move_payload/properties/rank"
-                }
-              },
-              "additionalProperties": false
+          "type": "object",
+          "required": [
+            "list_space_id",
+            "rank"
+          ],
+          "properties": {
+            "list_space_id": {
+              "$ref": "./event-payload.schema.json#/$defs/strand_reorder_payload/properties/space_id"
             },
-            {
-              "type": "object",
-              "required": [
-                "list_space_id",
-                "rank"
-              ],
-              "properties": {
-                "list_space_id": {
-                  "$ref": "./event-payload.schema.json#/$defs/strand_reorder_payload/properties/space_id"
-                },
-                "rank": {
-                  "$ref": "./event-payload.schema.json#/$defs/strand_reorder_payload/properties/rank"
-                }
-              },
-              "additionalProperties": false
+            "rank": {
+              "$ref": "./event-payload.schema.json#/$defs/strand_reorder_payload/properties/rank"
             }
-          ]
+          },
+          "additionalProperties": false
         }
       ]
     },
     "value_strand_stage": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/strand_stage_set_payload/properties/stage"
-        }
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/strand_stage_set_payload/properties/stage"
     },
     "value_strand_watch": {
       "anyOf": [
         {
-          "type": "null"
+          "type": "object",
+          "required": [
+            "level"
+          ],
+          "properties": {
+            "level": {
+              "$ref": "./event-payload.schema.json#/$defs/strand_watch_set_payload/properties/level"
+            },
+            "level_public": {
+              "$ref": "./event-payload.schema.json#/$defs/strand_watch_set_payload/properties/level_public"
+            }
+          },
+          "additionalProperties": false
         },
         {
-          "anyOf": [
-            {
-              "type": "object",
-              "required": [
-                "level"
-              ],
-              "properties": {
-                "level": {
-                  "$ref": "./event-payload.schema.json#/$defs/strand_watch_set_payload/properties/level"
-                },
-                "level_public": {
-                  "$ref": "./event-payload.schema.json#/$defs/strand_watch_set_payload/properties/level_public"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "const": null
-            }
-          ]
+          "const": null
         }
       ]
     },
@@ -2822,6 +2778,16 @@
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },
       "additionalProperties": false
+    },
+    "value_agent_approval_consumption": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload/properties/approved_event_id"
+        }
+      ]
     },
     "target": {
       "oneOf": [
@@ -3276,6 +3242,9 @@
                   "$ref": "#/$defs/value_space_metadata"
                 },
                 {
+                  "$ref": "#/$defs/value_space_child_scope_policy"
+                },
+                {
                   "$ref": "#/$defs/value_space_parent"
                 },
                 {
@@ -3298,6 +3267,9 @@
                 },
                 {
                   "$ref": "#/$defs/value_view"
+                },
+                {
+                  "$ref": "#/$defs/value_agent_approval_consumption"
                 }
               ]
             }
@@ -3617,6 +3589,9 @@
                         "$ref": "#/$defs/value_space_metadata"
                       },
                       {
+                        "$ref": "#/$defs/value_space_child_scope_policy"
+                      },
+                      {
                         "$ref": "#/$defs/value_space_parent"
                       },
                       {
@@ -3639,6 +3614,9 @@
                       },
                       {
                         "$ref": "#/$defs/value_view"
+                      },
+                      {
+                        "$ref": "#/$defs/value_agent_approval_consumption"
                       }
                     ]
                   }
@@ -3750,6 +3728,46 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_actor_discovery"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "selector": {
+                "properties": {
+                  "cell_id": {
+                    "pattern": "^ak:cell:ak\\.component\\.agent\\.approval_consumption\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "result": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "value",
+                      "removed",
+                      "unavailable"
+                    ]
+                  },
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_agent_approval_consumption"
                   }
                 }
               }
@@ -3903,19 +3921,13 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_agent_selector_claim"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_agent_selector_claim"
                   }
                 }
               }
@@ -4435,13 +4447,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_call_recording_result"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_call_recording_result"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -4555,13 +4573,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_call_summary"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_call_summary"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -4635,13 +4659,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_call_transcript_result"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_call_transcript_result"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -4875,13 +4905,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_circle_metadata"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_circle_metadata"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -4995,13 +5031,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_container_order"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_container_order"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -5035,13 +5077,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_container_position"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_container_position"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -5641,19 +5689,13 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_mimi_room_binding"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_mimi_room_binding"
                   }
                 }
               }
@@ -5847,13 +5889,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_morph_lifecycle"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_morph_lifecycle"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -5887,13 +5935,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_morph_stage"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_morph_stage"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -6302,13 +6356,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_profile_realm_override"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_profile_realm_override"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7142,13 +7202,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_realm_profile"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_realm_profile"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7342,13 +7408,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_realm_set_default_strand"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_realm_set_default_strand"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7422,13 +7494,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_relation_conflict_resolution"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_relation_conflict_resolution"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7462,13 +7540,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_relation_lifecycle"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_relation_lifecycle"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7607,7 +7691,7 @@
               "selector": {
                 "properties": {
                   "cell_id": {
-                    "pattern": "^ak:cell:ak\\.component\\.space\\.lifecycle\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
+                    "pattern": "^ak:cell:ak\\.component\\.space\\.child_scope_policy\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
                   }
                 }
               }
@@ -7634,7 +7718,53 @@
                     ]
                   },
                   "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_space_lifecycle"
+                    "$ref": "./account-current-result.schema.json#/$defs/value_space_child_scope_policy"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "selector": {
+                "properties": {
+                  "cell_id": {
+                    "pattern": "^ak:cell:ak\\.component\\.space\\.lifecycle\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "result": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "heads",
+                      "removed",
+                      "unavailable"
+                    ]
+                  },
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_space_lifecycle"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7714,13 +7844,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_space_parent"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_space_parent"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7754,13 +7890,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_strand_lifecycle"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_strand_lifecycle"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7840,13 +7982,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_strand_position"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_strand_position"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7880,13 +8028,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_strand_stage"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_strand_stage"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7920,13 +8074,19 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "value",
+                      "heads",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_strand_watch"
+                  "heads": {
+                    "items": {
+                      "properties": {
+                        "value": {
+                          "$ref": "./account-current-result.schema.json#/$defs/value_strand_watch"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -7990,6 +8150,9 @@
                       "anyOf": [
                         {
                           "pattern": "^ak:cell:ak\\.component\\.actor\\.discovery\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
+                        },
+                        {
+                          "pattern": "^ak:cell:ak\\.component\\.agent\\.approval_consumption\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
                         },
                         {
                           "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
@@ -8275,6 +8438,9 @@
                         },
                         {
                           "pattern": "^ak:cell:ak\\.component\\.sovereign\\.did_policy\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
+                        },
+                        {
+                          "pattern": "^ak:cell:ak\\.component\\.space\\.child_scope_policy\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
                         },
                         {
                           "pattern": "^ak:cell:ak\\.component\\.space\\.lifecycle\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"

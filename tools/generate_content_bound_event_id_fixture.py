@@ -62,8 +62,8 @@ def main() -> int:
                     notary = realm_object.get("notary")
                     if not isinstance(notary, dict) or "kind" not in notary:
                         errors.append(f"{case['name']}: Realm create lacks closed notary configuration")
-                    elif notary.get("kind") == "single_signer":
-                        signer = notary.get("signer")
+                    elif notary.get("kind") == "quorum":
+                        signer = notary.get("signers", [None])[0]
                         required_signer_fields = {
                             "actor_id",
                             "verification_method",
@@ -73,7 +73,7 @@ def main() -> int:
                             "frozen_public_key_digest",
                         }
                         if not isinstance(signer, dict) or set(signer) != required_signer_fields:
-                            errors.append(f"{case['name']}: single_signer notary lacks exact frozen signer descriptor")
+                            errors.append(f"{case['name']}: quorum notary lacks exact frozen signer descriptor")
         body_hex, event_id = derive(suite_code, digest_hex)
         if case.get("event_id_bytes_hex") != body_hex:
             errors.append(f"{case['name']}: body bytes mismatch")

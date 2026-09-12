@@ -166,23 +166,22 @@ SECURITY_CLOSURE_VECTOR_IDS = {
     "ak.vector.consent.scope_cascade.v1",
     "ak.vector.consent.cache_invalidation.v1",
     "ak.vector.sync.soft_fail_reconcile.v1",
-    "ak.vector.lattice.lww_open_set.v1",
+    "ak.vector.lattice.concurrent_heads_no_winner.v1",
     "ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
 }
 
 
 REGISTRY_LATTICES = {
     "or_set",
-    "mv_register",
-    "cas_register",
-    "fsm",
+    "causal_register",
+    "sequenced_state",
     "counter",
     "ordered_log",
 }
 
 REGISTRY_BOTTOMS = {"reject", "expose", "inert"}
 
-REGISTRY_PLANES = {"data", "control"}
+REGISTRY_PLANES = {"data", "control", "conditional"}
 
 # zh/conformance/encoding.md 4.1 closes the set of top-level `cell_subject`
 # kinds. `canonical_json` and `string_set_digest` are `components[]`

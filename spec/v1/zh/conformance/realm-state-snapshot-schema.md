@@ -117,7 +117,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 [`../authz/event-auth-state-resolution.md` §12](../authz/event-auth-state-resolution.md) 所说的
 「某个 accepted Seal 的 materialized proof」，它携带的当前态就是 reducer 自己的状态：按
 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) `cell_writes[]` 登记的 cell
-与其 lattice join 结果。v1 没有登记任何「cell → canonical object」的组装规则——`ak.strand.create` 只把
+与其注册模型的完整状态。v1 没有登记任何「cell → canonical object」的组装规则——`ak.strand.create` 只把
 `payload.object` 写进 `ak.component.strand.object.v1`，metadata / tracks / lifecycle / stage / position
 各在自己的 cell 里——因此 snapshot MUST NOT 携带渲染后的对象：那会让 `state_digest` 取决于某一家实现的
 私有 renderer。consumer 从 cell 派生展示对象的方式与它从 Event 重放派生的方式相同；对象的 `created_by` /
@@ -126,17 +126,15 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 `items[]` 是封闭的单分支联合，每个元素逐字为 `{"kind": "cell", "id": <cell_wire_id>, "state": <state_object>}`：
 
 - `kind` 逐字为 `"cell"`；`id` 是完整 canonical cell 引用 `ak:cell:<component>:<subject>`（[`encoding.md` §4](./encoding.md)）。
-- `state` 逐字是 [`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的 `<state_object>`，形状由该 cell family 登记的 lattice 唯一决定：`cas_register` 为 `{"heads":[{"event_id","value"}]}`（`heads[]` 按解码后 33-octet token 的 unsigned lexicographic 升序、身份唯一，与 §6.2.1 一致），其余 lattice 为 `{"value": <joined lattice value>}`。两种形状互斥且不得多带成员；`state` 形状与 registry 登记的 lattice 不符 MUST 拒绝（`schema_violation`）。
-- item 不携带 `object`、`source_event_id`、lattice 名或 family 名等冗余成员：写入身份已在 lattice 状态内（CAS `heads`、`or_set` dot、`ordered_log` entry），family 在 `id` 内。**单个 `source_event_id` 表达不了多个活跃写入**，实现 MUST NOT 从中挑最后一个。
-- **成员判据（normative）**：一个 cell 出现在 `items[]` 当且仅当 (a) 它属于 `cell_writes[]` 登记的 Realm reducer cell family——`actor_private_contracts` 的 `ak.private.*` family 不是 Realm 共识状态，MUST NOT 出现；(b) 它是 Realm-scope cell（见下条）；(c) `cas_register`：在 snapshot frontier 下活跃 heads `H_c` 非空（业务值 `null` 与异值 `⊥` 都是成员）；其它 lattice：joined 值为确定的非 `⊥` 值。从未写入的 cell MUST NOT 出现。非 `cas_register` 的 `⊥` cell 不是 leaf（与 §6.2.1 一致），但 MUST 以 `{"kind":"bottom_cell","cell_ref":…}` 列入 `conflict_records[]`，使恢复方对它 fail closed，而不是读成「从未写入」。
-- **v1 snapshot 是 Realm-scope（normative）**：manifest 只有 `realm_id`、没有 scope 选择器，因此 `items[]` MUST 且只能包含由 `scope_ref.kind ∈ {realm, realm_genesis}` 的 accepted Event 写入的 cell；Circle-scope（`scope_ref.kind="circle"`）与 Sidecar-scope 的 cell MUST NOT 出现，它们由各自 scope 的同步路径引导。理由：`state_digest` 必须只是 `(scope, frontier)` 的函数而不是读者的函数——按调用方可见性裁剪 items 会让同一 frontier 出现多个「正确」digest；而把 Circle 内容装进 Realm snapshot 会把它披露给非 Circle 成员。需要按 scope 分片的 snapshot 时 MUST 先给 manifest 登记显式 scope 字段（新 schema 版本），MUST NOT 用 `x_` 扩展或私有约定夹带。
-- **加密对象（normative）**：`state.value` 是 registry projection 从 accepted Event payload 投影出的值本身；payload 里的 `encrypted_content` / `encrypted_metadata` 等 envelope 就是该值。issuer MUST NOT 解密、重加密或以明文替换，即使它持有密钥——两个 issuer 对同一 frontier MUST 算出逐字节相同的 leaf。
-- **不做逐调用方字段过滤（normative）**：snapshot 不是读 DTO，`items[]` 不按调用方可见性裁剪字段；可见性由上文 scope 规则与 snapshot 自身的读取授权保证。
-- `items` MUST 按 `id` 的 Unicode code point 升序排列（等价于 UTF-8 字节序，与 §6.2.1 leaf 顺序相同），跨全部 chunk 不得出现重复 `id`；`reducer_profile` MUST 与 manifest 逐字相等。
-- tombstone / archive / redaction 都是 reducer-input Event，其结果就是普通 cell 状态（lifecycle `fsm` cell、`ak.component.object.redaction.v1` 等）；不存在独立的「stub 分支」，也不需要 reducer profile 另行声明。
+- 每个 item 必须声明与 canonical family 相同的 `state_model`。`causal_register` 的 state 是 `{covered_event_ids,heads}`，每个 head 是 `{event_id,value}`；覆盖身份与头身份去重，head 必须属于覆盖集合。`sequenced_state` 是 `{revision_event_id,value}`，其它集合/日志/计数模型使用 schema 的完整状态形状。模型不匹配或只给显示值均拒绝。
+- 写过的 null、多值 heads 和已删除 dots 都必须保留；未写入者无 item，不能用缺席表示多头冲突。private family 不进入共享快照。每个 CellRef 在整个 manifest 唯一，按 canonical CellRef 排序分块。
+- 每个 chunk 的 `eligibility_context_digest` 必须等于 `SHA-256(JCS(manifest.eligibility_context))`；该上下文精确绑定已确认 authority refs、关闭命令和 reducer 合同。相同 scope/上下文才可直接合并普通状态；不同上下文先合并原始证据再重算资格与 coverage。
+- `replay_events` 与 `replay_authority_refs` 是可重算材料，不是可丢弃的附件。恢复方必须取得活跃与未来关闭可能重新显露的旧值、原 producer 证明、因果及授权闭包。缺材料 pending；完整性根不能替代内容可用性。不得只凭快照签名任意删除覆盖历史。
+
+- tombstone / archive / redaction 都是 reducer-input Event，其结果就是普通 cell 状态（普通 lifecycle causal_register cell、`ak.component.object.redaction.v1` 等）；不存在独立的「stub 分支」，也不需要 reducer profile 另行声明。
 - **hard erasure（normative）**：若某 cell 的 canonical 值已因 hard erasure（存储边界内的删除动作，不是 Event）而无法复现，issuer MUST NOT 伪造或以占位值代替该 leaf；该 cell MUST NOT 出现在 `items[]`，而 MUST 以 `{"cell_ref", "stub"}` 列入 `erasure_stubs[]`，`stub` 是被 erasure receipt `retained_stub_digest` 绑定的 `ak.schema.erasure_verification_stub.v1`（[`erasure-verification-stub.schema.json`](../../artifacts/schemas/erasure-verification-stub.schema.json)）。consumer MUST 把它解释为 `[erased]` 占位，MUST NOT 解释为「从未存在」。含 erasure stub 的 snapshot 的 `state_digest` 与未裁剪 issuer 的不可比，consumer MUST NOT 据此判定分叉。
 - **四个附加列表的承诺（normative）**：`conflict_records[]`、`soft_failed[]`、`quarantined[]`、`erasure_stubs[]` 都不是 `state_digest` 的 leaf。manifest `verification_hints.<list>_digest` = `<suite>:hex(H(canonical_json(<该列表按 chunk index 升序拼接成的数组>)))`，`H` 与 `state_digest` 同 suite。`erasure_stubs_digest` 在任一 chunk 的 `erasure_stubs[]` 非空时 MUST 存在；high-assurance snapshot MUST 通过 `verification_hints` 提交这些集合的 digest，不能静默隐藏影响授权、可见性、E2EE epoch 或对象状态的非 accepted 输入或 `⊥` cell。
-- **恢复后仍须能精确回答 membership（normative）**：从 snapshot 恢复的 receiver MUST 仍能精确回答「某个旧 Event 是否属于该 view 的覆盖集 `C`」，否则 §9.3.1.4 的合并式无法对迟到分支求值（迟到分支会被误当作「对方从没见过」而复活已取代的写入）。实现 MUST 保留共享 membership 索引，或按现有 root 取得有效证明；缺证据时 MUST hold / fail closed，MUST NOT 当成 `false`。未经有权 fence，实现 MUST NOT 只保留最近 N 次写入、删除 `value=null` 的 head，或删除「该 Event 曾被覆盖」这一事实。本条的三值判定（`covered` / `not_covered` / hold）与两条取证路径由 active 向量 `ak.vector.realm_state_snapshot.restore_covered_membership.v1`（[`conformance-vectors.md` §3.8](./conformance-vectors.md)）承载，机器 fixture 是 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_restore_covered_membership` 块。
+- **恢复后仍须能精确回答 membership（normative）**：从 snapshot 恢复的 receiver MUST 仍能精确回答「某个旧 Event 是否属于该 view 的覆盖集 `C`」，否则 因果寄存器 C/H 合并式无法对迟到分支求值（迟到分支会被误当作「对方从没见过」而复活已取代的写入）。实现 MUST 保留共享 membership 索引，或按现有 root 取得有效证明；缺证据时 MUST hold / fail closed，MUST NOT 当成 `false`。未经有权 fence，实现 MUST NOT 只保留最近 N 次写入、删除 `value=null` 的 head，或删除「该 Event 曾被覆盖」这一事实。本条的三值判定（`covered` / `not_covered` / hold）与两条取证路径由 active 向量 `ak.vector.realm_state_snapshot.restore_covered_membership.v1`（[`conformance-vectors.md` §3.8](./conformance-vectors.md)）承载，机器 fixture 是 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_restore_covered_membership` 块。
 - content-addressed `chunk_ref` 的内嵌 suite/digest MUST 覆盖 chunk payload 的 canonical JSON bytes，是该 bytes 的唯一 wire commitment；descriptor 不携 sibling `digest`。Manifest `state_digest` 不直接覆盖 descriptor 文本，而覆盖下节定义的 cell leaves。
 
 conformance：`ak.vector.realm_state_snapshot.state_digest_recompute.v1`（[`conformance-vectors.md` §3.7](./conformance-vectors.md)）固定五种 lattice 的 leaf 原像、leaf、root、suite、chunk 边界与全部拒绝路径；两个实现对同一 fixture MUST 算出同一 `state_digest`。
@@ -147,27 +145,11 @@ Snapshot-assisted pruning 只能删除或压缩某个存储边界内的 raw payl
 
 ## 4. State Hash
 
-`state_digest` MUST 是 §3 `items[]` 全部 cell leaves 之上的 Merkle root，且 leaf 定义与
-[`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md) 的治理
-`state_root` leaf **逐字节相同**。Snapshot 因此是字面意义上的 Seal materialized proof：control plane cell
-在 snapshot 中的 leaf 就是它在覆盖该 frontier 的 Seal `state_root` 中的 leaf，恢复方可以直接用 Seal 的
-inclusion proof 校验它们；data plane cell 只由 `state_digest` 承诺。
+快照 `state_digest` 承诺全部已声明 Cell 状态；manifest 签名额外绑定可见 scope 和资格上下文；它不等于 Seal 的安全 `state_root`，也不证明全网消息收齐。普通数据不需要 covering Seal。
 
-Leaf：
+leaf_data 恰为 `JCS({cell:item.id,state_model:item.state_model,state:item.state})` 的 UTF-8 字节，按 CellRef 的 Unicode code point 升序。每个 chunk 先验内容摘要、模型、完整原始材料和资格上下文，再进行归约比对。所有 chunks 合并后用 RFC6962 的 H(0x00 || leaf_data)、H(0x01 || left || right) 和空树规则重算 state_digest；不重复提升奇数尾节点。suite 从 manifest 已认证的 reducer/Realm 授权上下文解析，不能依据待验证值自选。
 
-```text
-leaf_preimage = canonical_json({"cell": <id>, "state": <state_object>})
-leaf          = H(0x00 || leaf_preimage_utf8_bytes)
-```
-
-- `<id>` / `<state_object>` 逐字取自 item 的 `id` / `state`（`cas_register` 为 `{"heads":[…]}`，其余 lattice 为 `{"value":…}`）；`canonical_json` 按 [`encoding.md` §2](./encoding.md)。
-- `H` 是该 Realm 当前 live digest suite（[`encoding.md` §3.3](./encoding.md) 的 Realm 级 suite 排他），与 Seal `state_root` 同 suite；`state_digest` 的 wire 前缀随之为 `sha256:` 或 `blake3:`。
-- 内部节点为 `H(0x01 || left_raw || right_raw)`；奇数层尾节点提升到上一层且不复制；单 leaf root 等于带 `0x00` 前缀的 leaf hash（[`encoding.md` §3.3.1](./encoding.md)、§6.2.2）。
-- leaf 顺序 = `items[]` 顺序（`id` code point 升序，跨 chunk 按 `index` 升序拼接）；树构造本身不排序。同一 `id` 不得出现多个 leaf。
-- 空 Realm 或空 reducer output MAY 产生 `covered_event_count = 0` 与空 `frontier.event_ids`；此时 `state_digest` MUST 是 `H` over 空字节（`sha256` 时为 `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`）。
-- `conflict_records[]` / `soft_failed[]` / `quarantined[]` / `erasure_stubs[]` 不是 leaf（§3）。
-
-旧式 `sha256(kind || ":" || id || ":" || sha256(canonical_json(object)))` 双重包装的 leaf，以及任何无 `0x00` / `0x01` 域分隔的组合，MUST 被当作 root mismatch 拒绝。不同 reducer profile 产生的 `state_digest` 不保证可比较，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 equivalent profile。
+manifest 签名同时绑定 `eligibility_context`、chunk 列表、state_digest 与 event_set_commitment。相同 Cell 显示值而不同覆盖身份、授权上下文或 tombstone，必须产生不同被签材料。只校验 state_digest 相同不能跳过 eligibility_context 比较。恢复后的已知撤销更新可重新分类旧 Event，必须保留足够原始数据；明确硬删除的数据只能报告不可恢复。
 
 ## 5. Snapshot Signature
 

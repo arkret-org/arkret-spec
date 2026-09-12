@@ -160,7 +160,7 @@ v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设�
 - 引入备用 encoding 的 profile（id 形如 `ak.profile.encoding.cbor.v1`）MUST 在 digest-suite registry 注册对应 suite（如 `cbor.sha256`），并交付该 suite 的 activation requirements：deterministic 编码细则、CDDL、**schema 无关**的 JSON ↔ 该编码类型映射（string→text string、integer→integer 的哑映射；归一化 MUST NOT 依赖 schema 知识，否则 digest 会随 schema registry 版本漂移）、以及 per-suite conformance vectors。
 - 备用 encoding profile 还 MUST 明确 proof envelope 的编码边界，不能只定义 object digest：若继续使用 §6 `detached_jws`，profile MUST 钉定 proof binding object 的 canonical bytes、JWS protected header 与备用编码正文之间的映射，并交付逐字节签名向量；若改用 COSE，则 MUST 另行登记版本化 proof profile，钉定 `COSE_Sign1` protected headers、algorithm id、external AAD / payload binding、proof-context domain separation、verification order 与负向向量。声明 CBOR encoding **不自动等于**声明 COSE proof，receiver MUST NOT 在两种 proof 形态间猜测或静默转换。
 - **归一化编码是 Realm 级声明**：Realm 在 create event 的 `digest_algorithm` 字段锁定唯一 suite（§3.3），该声明是权威；事件 envelope 的 `requirements.features[]` 声明对应 encoding profile 作为能力要求，但 MUST NOT 与 Realm 声明的 suite 冲突。未声明备用 suite 的 Realm 一律按 canonical JSON 解析。
-- 由于 Realm 级 suite 排他（§3.3），同一 Realm 内不存在 JSON 与备用编码两套并行 digest，**跨编码的双向 digest 等价向量不是验证路径的需求**；仅当 profile 提供 json→备用编码的 suite transition 路径时，MUST 给出 transition Seal 双 root 向量（见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.2）。
+- 由于 Realm 级 suite 排他（§3.3），同一 Realm 内不存在 JSON 与备用编码两套并行 digest，**跨编码的双向 digest 等价向量不是验证路径的需求**；仅当 profile 提供 json→备用编码的 suite transition 路径时，MUST 给出 transition Seal 双 root 向量（见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13）。
 - 实现 MAY 出于调试 / 退化传输目的输出备用编码 Realm 中对象的 JSON 渲染视图，但该视图是 informational 投影：MUST NOT 进入签名、digest、`prev_refs` 解析或任何 canonical 路径。
 
 ## 3. Hash
@@ -209,14 +209,14 @@ v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm d
 通过服务层 DTO 的固定 SHA-256 alias 收窄；相反，跨 Realm 服务 transcript/CAS（例如 SecurityTransaction
 `prepared_plan_digest`）必须由 owning contract 显式固定为 SHA-256，不能让 caller 自选 suite。
 
-**Realm 级 suite 排他（normative）**：一个 Realm 同一时刻 MUST 只有一个 live digest suite；Realm 内所有后续 Seal / Event digest / state_root / receipt digest MUST 使用同一 suite。接收方在 Realm 上下文中遇到 suite prefix 与该 Realm 声明不符的 digest MUST 按 `schema_violation` 拒绝，即使该 suite 本身是 receiver 支持的 active suite——这条排他规则消除“同一语义对象在同一 Realm 内拥有两个合法 digest”的去重 / 重放二义性（`duplicate_conflict` 配对、`prev_refs` 解析、幂等键均依赖单一 digest 定义）。桥接例外由 [`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md) 完整定义：固定 SHA-256 身份布局的 Realm create Event 可被声明初始 suite 的首 Seal 原样引用；Transition Move Event、其 receipt 与 snapshot commitment 仍用旧 suite，Transition Seal 的 id、notary payload、累计 Merkle roots 与 post-state root 已用新 suite；Transition Seal 内对旧 Event、receipt 与 predecessor 的 typed 引用保留原值。跨 Realm 引用按 digest 值自带的 suite prefix 验证，无需上下文。
+**Realm 级 suite 排他（normative）**：每个确认安全位置只有一个 live digest suite，后继安全命令、Seal 和安全 roots 使用该 suite。普通 Event 按自己已签授权上下文中的 suite 固定身份；与升级并发的合法离线旧 suite 数据仍可验证，接收站不能用最新 suite 重哈希或因先看到升级就拒绝。各历史 typed 引用保留原值。genesis 固定 SHA-256 身份桥接、transition 前后双 root、snapshot commitment 和旧引用处理见 [Hash suite transition](../authz/event-auth-state-resolution.md#13-hash-suite-transition)。同一 Event 不得通过改用其它 suite 生成另一合法身份；升级后重新 author 的 Event 是新的显式写入。
 
-切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ak.profile.hash_transition.v1` snapshot commitment + signed compaction Seal 在 frontier 上做一次 suite transition Seal，新旧 suite 都能在 transition Seal 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.2（digest suite transition）。
+切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ak.profile.hash_transition.v1` snapshot commitment + signed compaction Seal 在 frontier 上做一次 suite transition Seal，新旧 suite 都能在 transition Seal 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13（digest suite transition）。
 
 ### 3.3.1 Snapshot / Event-set Merkle Root 编码
 
 Snapshot reducer output root 与 snapshot event-set commitment MUST 使用
-[`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md)
+[`event-auth-state-resolution.md` §11](../authz/event-auth-state-resolution.md)
 定义的同一套 RFC 6962 域分隔 Merkle 组合规则；领域章节只定义 `leaf_data`
 与 leaf 顺序。本节钉定 snapshot 的领域映射：
 
@@ -391,7 +391,7 @@ Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile �
     | `kind` = `composite` / `tuple` | 复合 subject，按 §9.5 取 `base64url_nopad(sha256(canonical_json(components_array)))`；产出只含 base64url 字符，不再经过本表。 |
 
     `uri` 必须编码 `%` 本身，否则 `…/rooms/a%2Fb` 与 `…/rooms/a/b` 会折叠到同一 subject——那是两个不同的对象，等于给外部 provider 一条构造别名、劫持或阻断他人 cell 的路径。这也是 `uri` 不能沿用 `did` 约定的原因。该变换在已归一化的 canonical URI 上是单射且可逆的；产出 subject MUST NOT 再次编码或解码。`uri` subject 的正反例由 `ak.vector.encoding.cell_subject_uri.v1` 唯一闭合。
-  - **Null subject（per-Realm / per-envelope 单例 cell，normative）**：registry 中 `cell_subject` 声明为 JSON `null` 的 cell family，其 canonical wire subject 段固定为字面 ASCII 四字符 `null`，即 `ak:cell:<component>:null`。选定字面 `null` 而非空串或省略末段，是因为 `ak:cell:<component>:` 的空末段无法与“末段被截断”区分，而截断形态本身必须拒绝。这类 cell 由 Event envelope 的 `realm_id` 定位（Realm-scoped 单例）；实现 MUST NOT 把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `agent_principal_control` 等 [`../models/realm-and-space.md` §2.8.3](../models/realm-and-space.md) 的 prose 层术语）或任何 payload 派生值写进该 subject 段，也 MUST NOT 从 payload 重复字段派生第二个 cell key。任何偏离字面 `null` 的写法 MUST 拒绝（`schema_violation`）——subject 既进入 `state_root` leaf preimage、又是 leaf 的排序键（[`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)），编码分歧会直接导致跨实现 `rejected_seal`。若某个 family 确实需要区分同一 Realm 内的多个实例，它 MUST 在 registry 中声明非 null 的 `cell_subject`，而不是把区分值塞进 null subject 段。
+  - **Null subject（per-Realm / per-envelope 单例 cell，normative）**：registry 中 `cell_subject` 声明为 JSON `null` 的 cell family，其 canonical wire subject 段固定为字面 ASCII 四字符 `null`，即 `ak:cell:<component>:null`。选定字面 `null` 而非空串或省略末段，是因为 `ak:cell:<component>:` 的空末段无法与“末段被截断”区分，而截断形态本身必须拒绝。这类 cell 由 Event envelope 的 `realm_id` 定位（Realm-scoped 单例）；实现 MUST NOT 把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `agent_principal_control` 等 [`../models/realm-and-space.md` §2.8.3](../models/realm-and-space.md) 的 prose 层术语）或任何 payload 派生值写进该 subject 段，也 MUST NOT 从 payload 重复字段派生第二个 cell key。任何偏离字面 `null` 的写法 MUST 拒绝（`schema_violation`）——subject 既进入 `state_root` leaf preimage、又是 leaf 的排序键（[`../authz/event-auth-state-resolution.md` §11](../authz/event-auth-state-resolution.md)），编码分歧会直接导致跨实现 `rejected_seal`。若某个 family 确实需要区分同一 Realm 内的多个实例，它 MUST 在 registry 中声明非 null 的 `cell_subject`，而不是把区分值塞进 null subject 段。
 - `ak:mls:<profile>:<profile_id>`、`ak:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
 - `ak:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUID object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
 
@@ -418,7 +418,7 @@ Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile �
 
 需要单值语义的 domain MUST 使用注册的 CAS/FSM、显式 conflict/review 状态，或对**完整候选集**定义单调且 fail-closed 的领域 projection；不得把本节 comparator 包装成领域规则重新引入 winner。
 
-现行允许引用本节的语义面只有 [`models/strand-and-message.md` §9.5.1](../models/strand-and-message.md) 的默认 revision 展示，以及 [`authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md) 对完整 `ordered_log` entry set 的 canonical 序列化。Relation 与 account status 的 canonical/authorization projection不得引用本节。
+现行允许引用本节的语义面只有 [`models/strand-and-message.md` §9.5.1](../models/strand-and-message.md) 的默认 revision 展示，以及 [`authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md) 对完整 `ordered_log` entry set 的 canonical 序列化。Relation 与 account status 的 canonical/authorization projection不得引用本节。
 
 ### 4.3 本节 tie-break 规则的 conformance 入口
 
@@ -477,9 +477,7 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 
 Event proof 有三个语境，不得仅凭“是否已有 admission proof”把 caller submit 与 retained history 合并：
 
-1. caller 首次提交态只有一个 producer proof，且 MUST 省略 `signer_resolution_evidence_ref`；origin 在本地解析并验证 producer key 后追加 admission proof，该 ref 不得临时写入再剥离，因为它属于 producer 签名字节；
-2. accepted / federation Event 含一个 producer proof与一个 `station_admission` proof，producer proof MUST 省略该 ref；历史 device/Agent producer key 由 admission 签入的 `producer_signing_key` 与 `producer_signer_resolution_evidence_ref` 验证，Station 自身历史 key由 admission 的 service signer evidence 验证；
-3. retained direct-history Event 没有 admission proof，producer proof MUST 携带 `signer_resolution_evidence_ref`，它进入上述 binding object 并解析为该 `verification_method` 的 exact 历史证据。
+2. 首次提交、accepted 与 federation Event 均恰含一个 producer proof，且必须携带 `signer_resolution_evidence_ref`。按该不可变证据解析 exact signing key、原授权实例和依赖，再独立验证签名；接收服务不向 Event 增加准入签名。
 
 `ak.schema.event.v1` 只对单个 envelope 可观察的闭合形状负责：admission 存在时机械禁止 producer pair；无 admission 时pair 允许成对出现或成对省略。`EventSubmitEnvelope` 的 producer-submission validator 与 direct-history replay validator MUST分别收紧第 1、3 项，任一调用面不得把基础 JSON Schema 的允许集误当成完整准入判据。
 
@@ -1001,7 +999,7 @@ rank_between(left, right):
 
 `ak.component.calendar.rsvp.v1` 的三元组固定 arity 3，按顺序为 `payload.event_ref`、`payload.occurrence`、`canonical_json(envelope.actor_id)`；第三项是完整 ActorId 的 JCS string，不是 principal DID。`envelope.actor_id` 是 accountable responder，delegated execution 下不得改用 `executed_by`。实例级 RSVP 的 `payload.occurrence` 是 [`calendar-event.md` §8](../models/calendar-event.md) 的 canonical string——all-day 为 `YYYY-MM-DD`，timed 为整秒 `YYYY-MM-DDTHH:mm:ss[Zone]`，其中 Zone 是已签名的 canonical IANA Zone name。v1 的 timed local anchor 与 occurrence key 都收窄到整秒，因此不存在两个不同 subsecond occurrence 折叠到同一 key 的情况；实现 MUST NOT 接受带小数秒、offset 或 `Z` 的 occurrence，也 MUST NOT 在 receiver 侧把非 canonical 值改写后再派生 subject——cell 地址来自**已签名的原值**，非 canonical 输入 MUST 以 `rsvp_occurrence_not_canonical` 拒绝。series 级 RSVP 的 digest preimage 固定保留第二项 JSON null；ActorId 则以 JCS string 作为第三项保留，具体 bytes 由 `encoding-fixture.json` 的 `ak.vector.calendar.rsvp_composite_subject.v1` 固定。实现 MUST NOT 把 null 改写成字符串 `"null"`、空串或 `"series"` sentinel。payload 中即使出现同名 `actor_id` 也不得遮蔽 `envelope.actor_id`。`payload.entry` 是该 cell 的 lattice value（见 [`calendar-event.md` §8.3](../models/calendar-event.md)），不参与 subject 派生。
 
-`ak.component.identity.accountability.v1` 的第三个 component 固定使用 `context="ak.accountability_scope_set.v1"` 的 `string_set_digest`。`accountability_scope` 的 string 与 singleton-array 写法、以及同一合法 array 的任意排列，MUST 命中同一 cell；不同 exact scope set MUST 命中不同 cell。`active` 与 `revoked` 状态不进入 subject，因此同一 exact set 的撤销写回同一 `cas_register`。子集 revoke 只命中子集自己的 cell，不得对超集做隐式集合差；同一 issuer/subject 可同时有多个 active exact-set cell，其 projection scope 是所有当前 active cell 的集合并集。
+`ak.component.identity.accountability.v1` 的第三个 component 固定使用 `context="ak.accountability_scope_set.v1"` 的 `string_set_digest`。`accountability_scope` 的 string 与 singleton-array 写法、以及同一合法 array 的任意排列，MUST 命中同一 cell；不同 exact scope set MUST 命中不同 cell。`active` 与 `revoked` 状态不进入 subject，因此同一 exact set 的撤销写回同一 `sequenced_state`。子集 revoke 只命中子集自己的 cell，不得对超集做隐式集合差；同一 issuer/subject 可同时有多个 active exact-set cell，其 projection scope 是所有当前 active cell 的集合并集。
 
 两个 call capture family 的第二个 component 固定取 **payload** 的 `recording_id`（start event 取 `payload.recording_id`，后续 `ak.call.state` 取 `payload.recording_result.recording_id` 或 `payload.transcript_result.recording_id`），不得改用 Event envelope 的 `event_id`。同一 `recording_id` 的 start 与状态更新因此落入同一 cell；不同 recording 不会共享 cell。`ak.call.recording.start.capture_kind` 决定写 recording 还是 transcript family；`ak.call.state` 只有在相应 `recording_state` / `transcript_state` 出现时才写对应 family。
 
@@ -1016,7 +1014,7 @@ _Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各
 | 编码对象 | canonical 定义位置 |
 | --- | --- |
 | Cell subject 编码(复合 subject hash 形态、标准复合 subject 表) | 本文 §9.5 |
-| `state_root` 的 Merkle 编码与 inclusion 规则（治理 `state_root` leaf/node 域分隔 + 统一 Seal Merkle 组合规则） | [`authz/event-auth-state-resolution.md` §6.2.1 / §6.2.2](../authz/event-auth-state-resolution.md) |
+| `state_root` 的 Merkle 编码与 inclusion 规则（治理 `state_root` leaf/node 域分隔 + 统一 Seal Merkle 组合规则） | [`authz/event-auth-state-resolution.md` §11 / §11](../authz/event-auth-state-resolution.md) |
 | `state_root` / Seal hash 的 wire 形态与 algo 固定规则 | 本文 §3.3 |
 | Hash wire 形态(`<suite>:<hex>`)与 Digest Suite registered set | 本文 §3.1 / §3.2 |
 | Cell tuple 引用形态(`ak:cell:<component>:<subject>`) | 本文 §4(special forms) |

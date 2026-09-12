@@ -242,7 +242,7 @@
               }
             ]
           },
-          "description": "Recursive closure excluding only exact known_signer_evidence_refs. The consumer verifies received objects plus locally retained authenticated objects; missing or wrong dependencies remain unresolved. Required edges include the original StationAdmission signer_resolution_evidence_ref of genesis, key authorization, lifecycle and applicable historical admission Events. PCR notary keys come from the accepted genesis frozen descriptor or state.accepted_delegated_notary_signers, never a separate controller DID leaf. Unused surplus is rejected."
+          "description": "Recursive closure excluding only exact known_signer_evidence_refs. The consumer verifies received objects plus locally retained authenticated objects; missing or wrong dependencies remain unresolved. Required edges include the original producer proof signer_resolution_evidence_ref of genesis, key authorization, lifecycle and applicable historical admission Events. PCR notary keys come from the accepted genesis frozen descriptor or state.accepted_delegated_notary_signers, never a separate controller DID leaf. Unused surplus is rejected."
         }
       },
       "additionalProperties": false

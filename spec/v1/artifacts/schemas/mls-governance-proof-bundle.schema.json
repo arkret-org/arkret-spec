@@ -149,11 +149,23 @@
         },
         "proof_base_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Canonical complete verified accepted base antichain. The caller MUST also hold the crash-safe local predecessor joined verification checkpoint for this exact basis; the wire field is not a standalone trust source."
+          "description": "Exactly one confirmed head in the group enclosing Realm. Base is equal to or an ancestor of target; incomparable same-Realm heads are invalid.",
+          "properties": {
+            "leaves": {
+              "minItems": 1,
+              "maxItems": 1
+            }
+          }
         },
         "proof_target_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Canonical complete accepted target antichain. It dominates proof_base_basis: every base leaf is retained or is an ancestor of a target leaf. The service never substitutes a single arbitrary head."
+          "description": "Exactly one confirmed head in the group enclosing Realm. Base is equal to or an ancestor of target; incomparable same-Realm heads are invalid.",
+          "properties": {
+            "leaves": {
+              "minItems": 1,
+              "maxItems": 1
+            }
+          }
         },
         "byte_limit": {
           "type": "integer",
@@ -312,7 +324,7 @@
         "leaf_canonical_preimage_b64u": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "Unpadded base64url of the exact leaf_data bytes. For state_root this is RFC 8785 JCS UTF-8 of {cell,state:{value}}. For control_event_set_root this is the raw digest bytes obtained by decoding the selected Event digest suite prefix."
+          "description": "Unpadded base64url of the exact leaf_data bytes. For state_root this is RFC 8785 JCS UTF-8 of {cell,state:{revision_event_id,value}}. For control_event_set_root this is the full typed Event digest UTF-8 bytes, including its suite prefix."
         },
         "leaf_digest": {
           "$ref": "#/$defs/digest",
@@ -594,11 +606,12 @@
           "items": {
             "$ref": "#/$defs/frontier_branch_projection"
           },
-          "description": "Canonical UTF-8 order by target_seal_ref and every-and-only the query proof_target_basis leaves."
+          "description": "Canonical UTF-8 order by target_seal_ref and every-and-only the query proof_target_basis leaves.",
+          "maxItems": 1
         }
       },
       "additionalProperties": false,
-      "description": "Per-target-leaf signed projections. The verifier validates every branch independently, then uses complete accepted-Seal replay and the generated lattice registry to join the full target antichain before deriving one security_frontier_digest."
+      "description": "Per-target-leaf signed projections. The verifier checks the single target Realm head, exact quorum and proof cells before deriving security_frontier_digest. No merge of competing safety states is defined."
     },
     "group_security_frontier_outcome": {
       "type": "object",
@@ -624,7 +637,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "A deterministic, complete near-current response for the exact query_digest and its caller-retained group-binding selector and canonical base/target antichains. Bulk history authorization and activation are reconstructed by direct accepted-Seal traversal and are not fields or profiles of this response."
+      "description": "A deterministic, complete near-current response for the exact query_digest and its caller-retained group-binding selector and canonical base/target confirmed heads. Bulk history authorization and activation are reconstructed by direct accepted-Seal traversal and are not fields or profiles of this response."
     },
     "read_request": {
       "$ref": "#/$defs/group_security_frontier_request"
@@ -663,7 +676,13 @@
         },
         "seal_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Exact complete accepted target basis supplied by the authenticated Account Station. No local replay checkpoint or proof base is required."
+          "description": "Exactly one confirmed head in the group enclosing Realm. Base is equal to or an ancestor of target; incomparable same-Realm heads are invalid.",
+          "properties": {
+            "leaves": {
+              "minItems": 1,
+              "maxItems": 1
+            }
+          }
         },
         "base_group_state_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
@@ -910,7 +929,13 @@
         },
         "seal_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Exact complete accepted target basis supplied by the authenticated Account Station. No local replay checkpoint or proof base is required."
+          "description": "Exactly one confirmed head in the group enclosing Realm. Base is equal to or an ancestor of target; incomparable same-Realm heads are invalid.",
+          "properties": {
+            "leaves": {
+              "minItems": 1,
+              "maxItems": 1
+            }
+          }
         },
         "base_group_state_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",

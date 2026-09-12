@@ -107,7 +107,7 @@ class MirrorRemovalLockTest(_MutatingLint):
 
     def test_signer_evidence_digest_required_reintroduction_fails(self) -> None:
         def mutate(schema) -> None:
-            schema["$defs"]["station_admission_proof"]["required"].append("signer_resolution_evidence_digest")
+            schema["$defs"]["producer_event_proof"]["required"].append("signer_resolution_evidence_digest")
 
         errors = self._lock("event-envelope.schema.json", mutate)
         self.assertTrue(any("signer_resolution_evidence_digest must be derived" in error for error in errors), errors)
@@ -178,11 +178,11 @@ class SiblingDigestPatternGateTest(_MutatingLint):
 
     def test_stale_exemption_row_fails(self) -> None:
         def mutate(schema) -> None:
-            del schema["properties"]["data_view_root"]
+            del schema["properties"]["state_root"]
 
         errors = self._sibling("seal.schema.json", mutate)
         self.assertTrue(
-            any("exempts seal.schema.json $.properties.data_view_root, which no longer exists" in error for error in errors),
+            any("exempts seal.schema.json $.properties.state_root, which no longer exists" in error for error in errors),
             errors,
         )
 

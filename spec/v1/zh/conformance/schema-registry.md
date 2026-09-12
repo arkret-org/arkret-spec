@@ -201,10 +201,10 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.strand.move` | Strand move between Lists |
 | `ak.strand.reorder` | Strand reorder within List |
 | `ak.strand.tracks.update` | Strand tracks map patch（`ak.schema.patch.v1` payload；详见 [`../models/strand-and-message.md` §4.8](../models/strand-and-message.md)） |
-| `ak.strand.watch.set` | Set / clear per-(strand, actor) watch subscription (writes cas_register cell `ak.component.strand.watch.v1`; derives `watches` Relation) |
+| `ak.strand.watch.set` | Set / clear per-(strand, actor) watch subscription (writes causal_register cell `ak.component.strand.watch.v1`; derives `watches` Relation) |
 | `ak.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
 | `ak.space.update` | Space metadata patch |
-| `ak.space.parent` | Space parent declaration (cas_register cell) |
+| `ak.space.parent` | Space parent declaration (causal_register cell) |
 | `ak.space.archive` | Space archive (reversible UI hide) |
 | `ak.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
 | `ak.space.tombstone` | Space tombstone (irreversible; contained Strands MUST be relocated first) |

@@ -3199,6 +3199,7 @@ paths:
           type: string
           const: ak.self.events.read.scan.v1
       security:
+      - {}
       - sessionGrantAuth: []
         dpopProof: []
       - httpMessageSignature: []
@@ -3232,6 +3233,19 @@ paths:
           description: '`param_invalid` — unrecognized `order` value, malformed cursor, or invalid selector.'
     post:
       operationId: ak.self.events.command.submit
+      x-arkret-proof-auth-schema:
+        $ref: '../schemas/service-operation-dtos.schema.json#/$defs/ProofAuthenticatedPublication'
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+        proof_field: event.proofs
+        notes: >-
+          The no-session branch MUST validate
+          service-operation-dtos.schema.json#/$defs/ProofAuthenticatedPublication
+          and independently verify the original producer, cached authority,
+          scope, dependencies and locally known revocation fences. It accepts
+          only a single ordinary shared Event and grants no account access.
+          Invalid supplied credentials fail closed and never fall through.
       parameters:
       - name: Arkret-Operation
         in: header

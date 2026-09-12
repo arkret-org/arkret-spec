@@ -146,7 +146,7 @@ class OrSetTagLintTest(unittest.TestCase):
 
     def test_remove_observed_is_not_defined_for_other_lattices(self) -> None:
         failures = self._lint_projection(
-            "mv_register", {"kind": "or_set_remove_observed"}
+            "causal_register", {"kind": "or_set_remove_observed"}
         )
         self.assertTrue(failures)
 

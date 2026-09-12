@@ -210,7 +210,6 @@
           "kind": "accepted_event_envelope_canonical_bytes",
           "encoded_size_bytes": 1048576,
           "include_all_proofs": true,
-          "include_station_admission": true,
           "include_unsigned": false
         }
       },
@@ -227,7 +226,6 @@
           "kind": "accepted_event_envelope_canonical_bytes",
           "encoded_size_bytes": 1048577,
           "include_all_proofs": true,
-          "include_station_admission": true,
           "include_unsigned": false
         }
       },
@@ -281,8 +279,7 @@
           "producer_envelope_bytes": 1048500,
           "accepted_candidate_bytes": 1048577,
           "proof_kinds": [
-            "producer_event",
-            "station_admission"
+            "producer_event"
           ]
         }
       },

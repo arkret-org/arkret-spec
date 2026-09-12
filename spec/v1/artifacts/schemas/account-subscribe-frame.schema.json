@@ -634,7 +634,7 @@
               },
               "event_state_reason_code": {
                 "type": "string",
-                "description": "Optional short reason code (e.g., 'recovery_witness_missing'). For failure detail beyond the enum."
+                "description": "Optional short reason code (e.g., 'cell_in_bottom_state'). For failure detail beyond the enum."
               }
             },
             "additionalProperties": false
@@ -642,7 +642,7 @@
         },
         "bottoms": {
           "type": "array",
-          "description": "Structured Bottom diagnostics for cells whose effective Lattice join resolved to ⊥ under the current CBS query basis. Each entry pins (cell, status, bottom). See zh/sync/service-surface.md §5.3.",
+          "description": "Non-authoritative diagnostics for unresolved ordinary projections. Safety state is never a joined competing value. See zh/sync/service-surface.md §5.3.",
           "items": {
             "type": "object",
             "required": [

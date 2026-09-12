@@ -84,14 +84,25 @@
           ],
           "control_event_set_root": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
           "state_root": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
-          "completeness_root": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
           "notary_seq": 1,
           "availability_receipt_digests": [
             "sha256:6666666666666666666666666666666666666666666666666666666666666666"
           ],
           "sealed_at": "2026-09-10T00:00:00.000Z",
-          "hlc": "0000019f69bd-0000-00000001"
-        }
+          "hlc": "0000019f69bd-0000-00000001",
+          "configuration_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+          "command_results": [
+            {
+              "event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "outcome": "committed",
+              "result_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "unit_event_digests": [
+                "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+              ]
+            }
+          ]
+        },
+        "view": 0
       }
     },
     {

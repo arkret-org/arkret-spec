@@ -500,7 +500,7 @@
         },
         "holder_trusted_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Holder-durable canonical accepted Seal antichain supplied in the accepted register/rotate holder-acceptance proof. The accepted_key_evidence_ref Event and its effective registered tuple are verified by replay from this basis; no singular activation Seal is carried."
+          "description": "Holder-durable canonical accepted Seal basis with exactly one confirmed head per Realm supplied in the accepted register/rotate holder-acceptance proof. The accepted_key_evidence_ref Event and its effective registered tuple are verified by replay from this basis; no singular activation Seal is carried."
         }
       },
       "additionalProperties": false
@@ -614,7 +614,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Honest-service locator for a complete canonical accepted non-quarantined Seal frontier and its closed current gate. open_set uses the full antichain, never a selected leaf. The enqueue CAS re-resolves this exact basis and projection and rejects any known successor or projection change."
+      "description": "Exact confirmed safety basis. Every referenced Realm contributes one confirmed head; competing heads from the same Realm are not a valid basis. A cached basis is routing/evidence context, never an independent membership or key-release authorization. Safety commands still validate the exact actual predecessor and registered current gate."
     },
     "realm_seal_view_locator": {
       "allOf": [
@@ -701,7 +701,7 @@
         },
         "pcr_seal_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Complete accepted non-quarantined PCR Seal frontier; open_set never selects one leaf."
+          "description": "Exact confirmed safety basis. Every referenced Realm contributes one confirmed head; competing heads from the same Realm are not a valid basis. A cached basis is routing/evidence context, never an independent membership or key-release authorization. Safety commands still validate the exact actual predecessor and registered current gate."
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -3046,7 +3046,7 @@
         },
         "holder_trusted_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Holder-pinned canonical accepted Seal antichain from the accepted register/rotate tuple. Cursor and every returned archive bind it byte-for-byte."
+          "description": "Holder-pinned canonical accepted Seal basis with exactly one confirmed head per Realm from the accepted register/rotate tuple. Cursor and every returned archive bind it byte-for-byte."
         },
         "from_epoch": {
           "type": "integer",
@@ -3254,7 +3254,7 @@
     },
     "membership_authority_request_body": {
       "type": "object",
-      "description": "One exact current Realm/Circle membership at the requested current accepted antichain. Account Station query, not a history proof. Canonical body at most 64 KiB.",
+      "description": "One exact current Realm/Circle membership at the requested current confirmed basis with exactly one head per Realm. Account Station query, not a history proof. Canonical body at most 64 KiB.",
       "required": [
         "effective_scope",
         "actor_id",

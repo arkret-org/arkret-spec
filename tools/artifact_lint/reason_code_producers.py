@@ -4,7 +4,7 @@ Ruling ``2026-09-04-1752`` (workflow profile stage transition): a whole
 state-machine semantics had been "promised" to implementations through a single
 error-code registry entry (``invalid_task_fsm_transition``) that no event kind,
 reducer contract, operation mapping, schema, fixture or profile ever produced.
-``fsm_contracts`` has ``check_fsm_state_reachability``; the error-code registry
+``transition_contracts`` has ``check_fsm_state_reachability``; the error-code registry
 had no reachability gate of its own, so prose could mint a code and the
 machine contract never noticed. This check closes that hole as a ratchet:
 

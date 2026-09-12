@@ -9,6 +9,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+try:
+    from .event_execution_contract import schema_definition as execution_schema
+except ImportError:
+    from event_execution_contract import schema_definition as execution_schema
+
 
 def nested(path: str, value: dict) -> dict:
     for part in reversed(path.split(".")):
@@ -71,9 +76,9 @@ def selected_branches(row: dict) -> list[tuple[str, dict]]:
 
 
 def schema_definitions(registry: dict) -> dict:
-    guards, native, controls, durable = [], [], [], []
+    guards, durable = [], []
     contract = registry["history_admission_contract"]
-    native_classes = set(contract["without_station_admission"]["selected_native_admission"]["admission_classes"])
+    native_classes = set(contract["native_admission_classes"])
     known_classes = set(registry["admission_class_definitions"])
     if not native_classes <= known_classes or native_classes & {"capability_gated", "conditional", "deny"}:
         raise ValueError("history native exceptions must name explicit non-capability admission classes")
@@ -84,27 +89,33 @@ def schema_definitions(registry: dict) -> dict:
         durable.append(kind)
         kind_guard = {"properties": {"kind": {"const": kind}}, "required": ["kind"]}
         branches = selected_branches(row)
+        if kind not in registry["cell_contracts"]:
+            guards.append({"if": kind_guard, "then": {"not": {"anyOf": [
+                {"required": [field]} for field in ("auth_context", "seal_basis", "preconditions")
+            ]}}})
         if row.get("admission") == "conditional":
             guards.append({"if": kind_guard, "then": {"anyOf": [g for a, g in branches if a != "deny"]}})
-        cell = registry.get("cell_contracts", {}).get(kind, row)
-        if cell.get("plane") == "control" and cell.get("sealed") is True:
-            controls.append(kind)
-        for admission, guard in branches:
-            if admission in native_classes:
-                native.append({"allOf": [kind_guard, guard]})
-    station = {"required": ["proofs"], "properties": {"proofs": {"contains": {"properties": {"kind": {"const": "station_admission"}}, "required": ["kind"]}, "minContains": 1, "maxContains": 1}}}
     return {
+        "ordinary_publication_event": {
+            "$comment": "Body-proof publication is limited to complete ordinary shared Events; it grants no account session or private account access.",
+            "allOf": [
+                {"$ref": "#/$defs/shared_history_event"},
+                {"required": ["auth_context"], "not": {"required": ["seal_basis"]}},
+                {"properties": {"kind": {"enum": sorted(registry["cell_contracts"])}}},
+                {"properties": {"refs": {"not": {"contains": {"required": ["role"], "properties": {"role": {"const": "bootstrap_genesis"}}}}}}},
+            ],
+        },
+        "registered_execution_shape": execution_schema(registry),
         "registered_admission_shape": {
             "$comment": "Generated from canonical event_kind_registry.admission_variants; do not hand-edit. Semantic authority verification is additional.",
             "allOf": guards,
         },
         "shared_history_event": {
-            "$comment": "Generated from canonical history_admission_contract. An exception matches syntax only; its named verifier and retained acceptance evidence are mandatory before shared acceptance. Control intake without an accepted Seal remains pending.",
+            "$comment": "Generated from canonical history_admission_contract. Every receiving Station verifies the portable producer, authority and causal evidence. Security commands require their scoped final decision; ordinary history uses deterministic eligibility. Syntax alone never grants authority.",
             "allOf": [
                 {"$ref": "#"},
                 {"properties": {"kind": {"enum": sorted(durable)}}, "required": ["kind"]},
-                {"anyOf": [station, {"properties": {"kind": {"enum": sorted(controls)}}, "required": ["kind"]}, *native]},
-                {"if": station, "else": {"properties": {"proofs": {"items": {"required": ["signer_resolution_evidence_ref"]}}}}},
+                {"properties": {"proofs": {"items": {"required": ["signer_resolution_evidence_ref"]}}}},
             ],
         },
     }
@@ -116,14 +127,16 @@ def synchronize(root: Path, *, check: bool) -> None:
     path = artifacts / "schemas/event-envelope.schema.json"
     schema = json.loads(path.read_text(encoding="utf-8"))
     definitions = schema_definitions(registry)
-    reference = {"$ref": "#/$defs/registered_admission_shape"}
+    references = [{"$ref": "#/$defs/registered_admission_shape"},
+                  {"$ref": "#/$defs/registered_execution_shape"}]
     if check:
-        if schema["allOf"].count(reference) != 1 or any(schema["$defs"].get(k) != v for k, v in definitions.items()):
+        if any(schema["allOf"].count(ref) != 1 for ref in references) or any(schema["$defs"].get(k) != v for k, v in definitions.items()):
             raise ValueError("Event admission schema projection drift; run artifact_pipeline.py generate")
     else:
         schema["$defs"].update(definitions)
-        if reference not in schema["allOf"]:
-            schema["allOf"].append(reference)
+        for reference in references:
+            if reference not in schema["allOf"]:
+                schema["allOf"].append(reference)
         path.write_text(json.dumps(schema, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     for binding in registry["history_admission_contract"]["consumer_schema_bindings"]:
         target_path = artifacts / binding["schema"]

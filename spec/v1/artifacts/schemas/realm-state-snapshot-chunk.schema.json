@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-state-snapshot-chunk.schema.json",
   "title": "Arkret Snapshot Chunk Payload",
-  "description": "Canonical JSON payload behind one snapshot manifest chunks[].chunk_ref (zh/conformance/realm-state-snapshot-schema.md section 3). It carries the Realm reducer state itself: every item is one written Realm-scope reducer cell with the exact state_object that event-auth-state-resolution.md section 6.2.1 gives the governance state_root leaf, so the snapshot state_digest leaves and the Seal state_root leaves are the same bytes. There is no materialized-object branch: canonical objects are derived locally from these cells, never shipped as a second, renderer-dependent form.",
+  "description": "A snapshot chunk binds exact reducer state and the verified evidence needed to recompute authorization eligibility. Ordinary data state is not a Seal state_root leaf. Different eligibility contexts merge raw evidence and recompute, never directly join projected heads.",
   "type": "object",
   "required": [
     "chunk_kind",
@@ -13,7 +13,10 @@
     "conflict_records",
     "soft_failed",
     "quarantined",
-    "erasure_stubs"
+    "erasure_stubs",
+    "eligibility_context_digest",
+    "replay_events",
+    "replay_authority_refs"
   ],
   "properties": {
     "chunk_kind": {
@@ -39,14 +42,14 @@
       "items": {
         "$ref": "#/$defs/cell_item"
       },
-      "description": "Written Realm-scope reducer cells, sorted by id in Unicode code point ascending order with no duplicate id across the whole snapshot. Membership is section 3 of realm-state-snapshot-schema.md: cas_register cells with a non-empty active head set, every other cell with a determinate non-bottom joined value. Never-written cells, non-cas_register bottom cells (see conflict_records), actor-private ak.private.* families and cells written under a Circle or Sidecar scope_ref MUST NOT appear."
+      "description": "Written cells sorted by canonical CellRef, unique across the manifest. state_model must match the canonical family contract. Ordinary causal heads retain effect identities and coverage; security cells retain their last successful command revision."
     },
     "conflict_records": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/conflict_record"
       },
-      "description": "Undecided or conflicting material the reducer output cannot represent as a leaf: non-cas_register cells in bottom, and non-accepted Event inputs. Committed through manifest verification_hints.conflict_records_digest."
+      "description": "Unresolved non-business inputs, never an alternate security-state winner. Ordinary concurrent heads belong in their causal state. Quarantined inputs have no business supersession power."
     },
     "soft_failed": {
       "type": "array",
@@ -68,6 +71,25 @@
         "$ref": "#/$defs/erasure_stub_record"
       },
       "description": "Cells whose canonical value the issuer can no longer reproduce because a hard erasure (a storage act, not an Event) removed it. They are not state_digest leaves; each row carries the ak.schema.erasure_verification_stub.v1 bound by the erasure receipt. Committed through manifest verification_hints.erasure_stubs_digest."
+    },
+    "eligibility_context_digest": {
+      "$ref": "./event-envelope.schema.json#/$defs/digest",
+      "description": "Must equal the manifest eligibility context digest. Mismatched contexts cannot directly join projected Cell state."
+    },
+    "replay_events": {
+      "type": "array",
+      "items": {
+        "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
+      },
+      "description": "Complete original verified Event bytes required for eligibility recomputation, including retired values that may become visible after a cut. Ordered by canonical Event identity and unique across chunks. Hard erasure uses the explicit erasure-stub contract and cannot claim recoverability."
+    },
+    "replay_authority_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+      },
+      "description": "Exact safety history dependencies. Resolve and verify these and all transitive producer evidence before using state; a digest without reachable material is not recoverability."
     }
   },
   "additionalProperties": false,
@@ -83,11 +105,12 @@
     },
     "cell_item": {
       "type": "object",
-      "description": "One written reducer cell. `state` is exactly the section 6.2.1 state_object of that cell's registered lattice: {\"heads\": [...]} for cas_register, {\"value\": <joined lattice value>} for every other lattice. The two shapes are mutually exclusive and neither may carry extra members, so a cell's snapshot state and its state_root leaf preimage {\"cell\": id, \"state\": state} are one definition.",
+      "description": "One registered Cell state; identity and state_model must match the canonical registry. No implementation-defined model is permitted. The registered Cell family also fixes the full value schema and shape. Schema validation of this generic carrier alone is insufficient; a wrong family/value combination is rejected before restore.",
       "required": [
         "kind",
         "id",
-        "state"
+        "state",
+        "state_model"
       ],
       "properties": {
         "kind": {
@@ -98,59 +121,127 @@
           "description": "Canonical cell tuple reference ak:cell:<component>:<subject> (encoding.md section 4). It is the leaf sort key."
         },
         "state": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/value_state"
-            },
-            {
-              "$ref": "#/$defs/heads_state"
-            }
+          "type": "object"
+        },
+        "state_model": {
+          "enum": [
+            "causal_register",
+            "sequenced_state",
+            "or_set",
+            "ordered_log",
+            "counter"
           ]
         }
       },
-      "additionalProperties": false
-    },
-    "value_state": {
-      "type": "object",
-      "description": "state_object of a materialized non-cas_register cell: the joined lattice value under the snapshot frontier, verbatim. Encrypted envelopes projected from Event payloads stay envelopes; the issuer never decrypts, re-encrypts or substitutes.",
-      "required": [
-        "value"
-      ],
-      "properties": {
-        "value": {}
-      },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state_model": {
+                "const": "causal_register"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/heads_state"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state_model": {
+                "const": "sequenced_state"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/sequenced_state"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state_model": {
+                "const": "or_set"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/set_state"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state_model": {
+                "const": "ordered_log"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/log_state"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state_model": {
+                "const": "counter"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/counter_state"
+              }
+            }
+          }
+        }
+      ]
     },
     "heads_state": {
       "type": "object",
-      "description": "state_object of a written cas_register cell: the complete active head set, sorted by the decoded 33-octet event_id token in unsigned lexicographic ascending order, identities unique. Empty heads is not a legal leaf (an unwritten cell is not a member); a null value or diverging values are members.",
       "required": [
+        "covered_event_ids",
         "heads"
       ],
       "properties": {
+        "covered_event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          }
+        },
         "heads": {
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "#/$defs/cas_head"
+            "$ref": "#/$defs/effect_head"
           }
         }
       },
-      "additionalProperties": false
-    },
-    "cas_head": {
-      "type": "object",
-      "required": [
-        "event_id",
-        "value"
-      ],
-      "properties": {
-        "event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "value": {}
-      },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "C/H at one verified eligibility context. covered and heads use exact Event identities for this Cell. Head identities are unique and contained in covered. Retired values must remain available through replay evidence whenever future reclassification could reveal them."
     },
     "conflict_record": {
       "oneOf": [
@@ -164,7 +255,7 @@
     },
     "bottom_cell_record": {
       "type": "object",
-      "description": "A written non-cas_register cell whose join under the snapshot frontier is bottom. It has no state_digest leaf (section 6.2.1) but MUST be listed so a receiver restoring from the snapshot fails closed on it instead of reading it as never written.",
+      "description": "Unresolved domain projection. It does not replace a causal head set or represent multiple successful security decisions.",
       "required": [
         "kind",
         "cell_ref"
@@ -242,6 +333,155 @@
         }
       },
       "additionalProperties": false
+    },
+    "effect_head": {
+      "type": "object",
+      "required": [
+        "event_id",
+        "value"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "sequenced_state": {
+      "type": "object",
+      "required": [
+        "revision_event_id",
+        "value"
+      ],
+      "properties": {
+        "revision_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "value": {}
+      },
+      "additionalProperties": false,
+      "description": "Last successful command identity plus its complete value. Written null differs from never-written. Rejected commands do not modify this state."
+    },
+    "set_state": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "object",
+          "required": [
+            "adds",
+            "removed_tag_ids"
+          ],
+          "properties": {
+            "adds": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "tag_id",
+                  "value"
+                ],
+                "properties": {
+                  "tag_id": {
+                    "type": "string",
+                    "pattern": "^ak:event:[A-Za-z0-9_-]{44}:[0-9]+$"
+                  },
+                  "value": {}
+                },
+                "additionalProperties": false
+              }
+            },
+            "removed_tag_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^ak:event:[A-Za-z0-9_-]{44}:[0-9]+$"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "description": "Observed-remove state. Adds and removal tombstones are retained and sorted by canonical tag. Equal tags must have identical canonical values. Removal only covers dots observed in the signed basis; no arbitrary value-based removal."
+    },
+    "log_state": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "event_digest",
+              "issuer_id",
+              "issuer_seq",
+              "value"
+            ],
+            "properties": {
+              "event_digest": {
+                "$ref": "./seal.schema.json#/$defs/event_digest"
+              },
+              "issuer_id": {
+                "$ref": "#/$defs/actor_id"
+              },
+              "issuer_seq": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "value": {}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete immutable entry set. Exact Event digest is identity; canonical ordering is registered in lattice_contracts. Sparse actor sequence numbers do not block inclusion or choose a sibling winner."
+    },
+    "counter_state": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "issuer_id",
+              "positive",
+              "negative"
+            ],
+            "properties": {
+              "issuer_id": {
+                "$ref": "#/$defs/actor_id"
+              },
+              "positive": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "negative": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Unique registered single-writer issuer components, canonical ActorId order. Join uses per-issuer maxima; totals never decrease. A family must register exclusive issuer ownership and authenticated cumulative update rules before use. No v1 built-in family currently uses this model; arbitrary issuer self-selection is forbidden."
     }
   }
 }

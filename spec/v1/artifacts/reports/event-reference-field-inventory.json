@@ -7,8 +7,8 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 196,
-    "digest_copy_or_commitment": 17,
+    "complete_event_id": 205,
+    "digest_copy_or_commitment": 18,
     "external_event_namespace": 1
   },
   "fields": [
@@ -224,12 +224,6 @@
     },
     {
       "schema": "agent-signer-evidence.schema.json",
-      "json_pointer": "/$defs/agent_lifecycle_witness/properties/cell_heads/items/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-signer-evidence.schema.json",
       "json_pointer": "/$defs/agent_pause_provenance/properties/pause_event_id",
       "field": "pause_event_id",
       "classification": "complete_event_id"
@@ -250,12 +244,6 @@
       "schema": "agent-signer-evidence.schema.json",
       "json_pointer": "/$defs/authorization/properties/transition_event_id",
       "field": "transition_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-signer-evidence.schema.json",
-      "json_pointer": "/$defs/event_admission_receipt/properties/event_id",
-      "field": "event_id",
       "classification": "complete_event_id"
     },
     {
@@ -524,12 +512,6 @@
     },
     {
       "schema": "event-envelope.schema.json",
-      "json_pointer": "/$defs/event_proof/properties/event_digest",
-      "field": "event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "event-envelope.schema.json",
       "json_pointer": "/$defs/external_ref/properties/event_id",
       "field": "event_id",
       "classification": "external_event_namespace"
@@ -537,12 +519,6 @@
     {
       "schema": "event-envelope.schema.json",
       "json_pointer": "/$defs/producer_event_proof/properties/event_digest",
-      "field": "event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "event-envelope.schema.json",
-      "json_pointer": "/$defs/station_admission_proof/properties/event_digest",
       "field": "event_digest",
       "classification": "digest_copy_or_commitment"
     },
@@ -556,6 +532,12 @@
       "schema": "event-envelope.schema.json",
       "json_pointer": "/properties/prev_refs",
       "field": "prev_refs",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/agent_action_approve_payload/properties/approved_event_id",
+      "field": "approved_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -584,8 +566,20 @@
     },
     {
       "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/call_state_payload/properties/recording_transition/properties/result/properties/recording_stop_event_id",
+      "field": "recording_stop_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
       "json_pointer": "/$defs/call_state_payload/properties/transcript_transition/properties/result/properties/transcript_start_event_id",
       "field": "transcript_start_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/call_state_payload/properties/transcript_transition/properties/result/properties/transcript_stop_event_id",
+      "field": "transcript_stop_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -1010,20 +1004,38 @@
     },
     {
       "schema": "realm-state-snapshot-chunk.schema.json",
-      "json_pointer": "/$defs/cas_head/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "realm-state-snapshot-chunk.schema.json",
       "json_pointer": "/$defs/conflicting_input_record/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
     },
     {
       "schema": "realm-state-snapshot-chunk.schema.json",
+      "json_pointer": "/$defs/effect_head/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "realm-state-snapshot-chunk.schema.json",
+      "json_pointer": "/$defs/heads_state/properties/covered_event_ids",
+      "field": "covered_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "realm-state-snapshot-chunk.schema.json",
+      "json_pointer": "/$defs/log_state/properties/value/items/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "realm-state-snapshot-chunk.schema.json",
       "json_pointer": "/$defs/non_accepted_input/properties/event_id",
       "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "realm-state-snapshot-chunk.schema.json",
+      "json_pointer": "/$defs/sequenced_state/properties/revision_event_id",
+      "field": "revision_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -1072,6 +1084,54 @@
       "schema": "resource-selector.schema.json",
       "json_pointer": "/properties/event_id",
       "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "seal.schema.json",
+      "json_pointer": "/$defs/authorization_closure/properties/authorization_event_id",
+      "field": "authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "seal.schema.json",
+      "json_pointer": "/$defs/authorization_closure/properties/command_event_id",
+      "field": "command_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "seal.schema.json",
+      "json_pointer": "/$defs/authorization_closure/properties/generation_event_id",
+      "field": "generation_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "seal.schema.json",
+      "json_pointer": "/$defs/command_result/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "seal.schema.json",
+      "json_pointer": "/$defs/command_result/properties/unit_event_digests",
+      "field": "unit_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "seal.schema.json",
+      "json_pointer": "/$defs/existence_anchor/properties/authorization_event_id",
+      "field": "authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "seal.schema.json",
+      "json_pointer": "/$defs/existence_anchor/properties/generation_event_id",
+      "field": "generation_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "seal.schema.json",
+      "json_pointer": "/$defs/transaction_manifest/properties/command_event_id",
+      "field": "command_event_id",
       "classification": "complete_event_id"
     },
     {

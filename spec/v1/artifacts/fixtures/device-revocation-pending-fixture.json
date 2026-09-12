@@ -51,13 +51,11 @@
         "session_grant_issue_or_refresh",
         "keypackage_claim",
         "to_device_write",
-        "event_write",
-        "station_admission_proof_issue"
+        "event_write"
       ],
       "invariants": [
         "base and E2EE/hardening profiles have identical results",
         "all failed actions have zero domain writes",
-        "no new station_admission proof is appended",
         "local distinguishable operations use device_revocation_pending while KeyPackage anti-enumeration surfaces preserve opaque claim_failed"
       ]
     },

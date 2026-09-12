@@ -44,16 +44,32 @@
         ],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "completeness_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "notary_seq": 0,
         "notary_signature": {
-          "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
-          "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "jws": "e30..c2ln"
+          "kind": "multi_sig",
+          "view": 0,
+          "signatures": [
+            {
+              "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+              "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "jws": "e30..c2ln"
+            }
+          ]
         },
         "sealed_at": "2026-07-16T00:00:00.000Z",
         "hlc": "0000019f69bd-0000-00000001",
-        "availability_receipt_digests": []
+        "availability_receipt_digests": [],
+        "configuration_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+        "command_results": [
+          {
+            "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "outcome": "committed",
+            "result_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "unit_event_digests": [
+              "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            ]
+          }
+        ]
       }
     },
     {
@@ -78,16 +94,32 @@
         ],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "completeness_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "notary_seq": 0,
         "notary_signature": {
-          "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
-          "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "jws": "e30..c2ln"
+          "kind": "multi_sig",
+          "view": 0,
+          "signatures": [
+            {
+              "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+              "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "jws": "e30..c2ln"
+            }
+          ]
         },
         "sealed_at": "2026-07-16T00:00:00.000Z",
         "hlc": "0000019f69bd-0000-00000001",
-        "availability_receipt_digests": []
+        "availability_receipt_digests": [],
+        "configuration_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+        "command_results": [
+          {
+            "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "outcome": "committed",
+            "result_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "unit_event_digests": [
+              "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            ]
+          }
+        ]
       }
     },
     {
@@ -97,7 +129,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "device_generation_fenced",
       "predecessor_notary": {
-        "mode": "single_signer",
+        "mode": "quorum_f0",
         "signers": [
           "did:webvh:z6mkfixture:alice.example"
         ]
@@ -114,16 +146,23 @@
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "completeness_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "notary_seq": 1,
         "notary_signature": {
-          "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
-          "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "jws": "e30..c2ln"
+          "kind": "multi_sig",
+          "view": 0,
+          "signatures": [
+            {
+              "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+              "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "jws": "e30..c2ln"
+            }
+          ]
         },
         "sealed_at": "2026-07-16T00:00:01.000Z",
         "hlc": "0000019f69bd-0000-00000002",
-        "availability_receipt_digests": []
+        "availability_receipt_digests": [],
+        "configuration_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+        "command_results": []
       }
     },
     {
@@ -133,7 +172,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "state_mismatch",
       "predecessor_notary": {
-        "mode": "single_signer",
+        "mode": "quorum_f0",
         "signers": [
           "did:webvh:z6mkfixture:alice.example"
         ]
@@ -150,16 +189,23 @@
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "completeness_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "notary_seq": 1,
         "notary_signature": {
-          "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
-          "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "jws": "e30..c2ln"
+          "kind": "multi_sig",
+          "view": 0,
+          "signatures": [
+            {
+              "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+              "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "jws": "e30..c2ln"
+            }
+          ]
         },
         "sealed_at": "2026-07-16T00:00:01.000Z",
         "hlc": "0000019f69bd-0000-00000002",
-        "availability_receipt_digests": []
+        "availability_receipt_digests": [],
+        "configuration_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+        "command_results": []
       }
     },
     {
@@ -169,7 +215,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "seal_signer_unauthorized",
       "predecessor_notary": {
-        "mode": "single_signer",
+        "mode": "quorum_f0",
         "signers": [
           "did:webvh:z6mkfixture:alice.example"
         ]
@@ -186,16 +232,23 @@
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "completeness_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "notary_seq": 1,
         "notary_signature": {
-          "verification_method": "did:webvh:z6mkfixturemalloryexample:mallory.example#device-9",
-          "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "jws": "e30..c2ln"
+          "kind": "multi_sig",
+          "view": 0,
+          "signatures": [
+            {
+              "verification_method": "did:webvh:z6mkfixturemalloryexample:mallory.example#device-9",
+              "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "jws": "e30..c2ln"
+            }
+          ]
         },
         "sealed_at": "2026-07-16T00:00:01.000Z",
         "hlc": "0000019f69bd-0000-00000002",
-        "availability_receipt_digests": []
+        "availability_receipt_digests": [],
+        "configuration_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+        "command_results": []
       }
     },
     {
@@ -205,7 +258,7 @@
       "semantic_outcome": "defer",
       "expected_reason_code": "seal_deferred_future_skew",
       "predecessor_notary": {
-        "mode": "single_signer",
+        "mode": "quorum_f0",
         "signers": [
           "did:webvh:z6mkfixture:alice.example"
         ]
@@ -223,16 +276,23 @@
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "completeness_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "notary_seq": 1,
         "notary_signature": {
-          "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
-          "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "jws": "e30..c2ln"
+          "kind": "multi_sig",
+          "view": 0,
+          "signatures": [
+            {
+              "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+              "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "jws": "e30..c2ln"
+            }
+          ]
         },
         "sealed_at": "2099-07-16T00:00:01.000Z",
         "hlc": "0000019f69bd-0000-00000002",
-        "availability_receipt_digests": []
+        "availability_receipt_digests": [],
+        "configuration_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+        "command_results": []
       }
     },
     {

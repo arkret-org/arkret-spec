@@ -587,7 +587,7 @@
         "predecessor_refs": {
           "type": "array",
           "minItems": 1,
-          "maxItems": 64,
+          "maxItems": 1,
           "uniqueItems": true,
           "items": {
             "type": "string",
@@ -604,19 +604,20 @@
             "type": "string",
             "pattern": "^sha256:[0-9a-f]{64}$"
           },
-          "description": "The exact accepted uncovered Control Event set the client intends to place in Seal.delta, byte-wise ascending and duplicate-free."
+          "description": "Exact accepted pending security command digests, sorted and duplicate-free. This order is the command_results execution order; rejected commands are excluded from delta."
         },
         "hlc": {
           "$ref": "./seal.schema.json#/$defs/hlc"
         }
       },
       "additionalProperties": false,
-      "description": "Prepare one ordinary human/Agent PCR successor Seal from the exact current accepted predecessor basis and accepted uncovered Control Event digests. The caller freezes hlc once for retries. The Account Station validates the history, admission, authority, cell effects and roots, and chooses sealed_at. No client history replay or availability evidence download is required. The Account Station freezes exactly one canonical request and one unsigned body per (realm_id, signer slot, predecessor basis) signing-slot fence before any body is returned, so a retry MUST resend this exact canonical request. A different request on the same fence is refused with seal_signer_slot_fenced instead of receiving a second signable body."
+      "description": "Prepare a successor for a human or Agent PCR configured with quorum f=0. The authenticated Account Station is the explicitly trusted execution delegate for this client surface; it validates dependencies, authorization and ordered results and durably freezes one body plus view per signing slot. This surface is not the distributed replica voting protocol. Multi-replica domains use the consensus certificate contract and cannot substitute this trusted preparation response for independent replica validation."
     },
     "SealPrepareOutcome": {
       "type": "object",
       "required": [
-        "seal_body"
+        "seal_body",
+        "view"
       ],
       "properties": {
         "seal_body": {
@@ -628,10 +629,10 @@
               "properties": {
                 "predecessor_refs": {
                   "minItems": 1,
-                  "maxItems": 64
+                  "maxItems": 1
                 },
                 "delta": {
-                  "minItems": 1,
+                  "minItems": 0,
                   "maxItems": 1024,
                   "items": {
                     "pattern": "^sha256:[0-9a-f]{64}$"
@@ -651,9 +652,6 @@
                   "pattern": "^sha256:[0-9a-f]{64}$"
                 },
                 "state_root": {
-                  "pattern": "^sha256:[0-9a-f]{64}$"
-                },
-                "completeness_root": {
                   "pattern": "^sha256:[0-9a-f]{64}$"
                 }
               },
@@ -688,10 +686,15 @@
               }
             }
           ]
+        },
+        "view": {
+          "type": "integer",
+          "const": 0,
+          "description": "The f=0 PCR signing view. The client signs the exact ak.seal.commit.v1 transcript with this view and the returned body digest."
         }
       },
       "additionalProperties": false,
-      "description": "Bounded ordinary PCR signing input from the caller's authenticated Account Station. The client MUST compare realm_id, predecessor_refs, delta and hlc with its frozen request, require the ordinary SHA-256 PCR shape, and sign exactly the canonical body. It MUST NOT fetch the predecessor closure, reproduce roots or download holder authority dependencies. The Station durably retains and verifies availability evidence. Prepared does not mean committed: submit still rechecks current authority and atomically accepts the signed Seal. No cumulative covered_event_digests or dependencies are returned. The returned body is frozen by a durable signing-slot fence: the exact canonical request replays it byte for byte across internal timeouts, lease loss, cache eviction, failover and restart, because the device may already have signed it offline. The fence opens a new signing position only when the predecessor basis actually advances or the signer slot formally rotates, its device generation advances, or an equivocation fault is accepted."
+      "description": "The client checks realm_id, exact predecessor, configuration, hlc and command_results digest order against its frozen request, derives delta from successful outcomes, computes the body ID, then signs JCS({context:\"ak.seal.commit.v1\",seal_digest,configuration_ref,notary_seq,view}). It never signs raw body bytes as a commit. The authenticated Account Station is trusted to reproduce state and results on this f=0 client surface. Body and view are durably fenced together across retries, restart and handoff; timeout cannot open another signing position."
     },
     "AccountCursorRevokeOutcome": {
       "type": "object",
@@ -2472,7 +2475,7 @@
     },
     "EventFederationSubmission": {
       "type": "object",
-      "description": "Event publication transported between peers. Validate history_admission_contract: ordinary capability DataEvents require their original station_admission; producer-only native/control shapes require their registered authority or accepted-Seal evidence. A Control Move without established Seal finality remains pending. Receivers validate frozen historical dependencies, never reinterpret an existing origin admission or accepted Seal with current barriers. Online federation has empty ingress_receipts; delayed federation retains its lease and receipts. MLS and compensation evidence remain required where applicable.",
+      "description": "Shared Event transport preserves the unique producer proof and portable signer evidence reference. Each receiver independently verifies exact authority, scope and dependencies. Ordinary history is classified using applicable authorization closures; security commands require their unique confirmed decision. Missing declared evidence stays pending. Storage receipts never authorize an Event.",
       "required": [
         "event",
         "ingress_receipts"
@@ -2513,6 +2516,10 @@
         },
         "membership_compensation_evidence": {
           "$ref": "#/$defs/MembershipCompensationSubmissionEvidence"
+        },
+        "publication_event": {
+          "$ref": "./event-envelope.schema.json#/$defs/ordinary_publication_event",
+          "description": "Only for ak.agent.action_approve: complete pre-authored ordinary Event, whose event_id equals payload.approved_event_id. An immutable dependency, not an already-authorized publication. Verify every ordinary rule except the matching approval obligation before confirming the approval."
         }
       },
       "allOf": [
@@ -2550,6 +2557,37 @@
         },
         {
           "$ref": "#/$defs/MlsFrontierLeavesPresence"
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "properties": {
+                  "kind": {
+                    "const": "ak.agent.action_approve"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "publication_event"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "publication_event"
+              ]
+            }
+          }
         }
       ],
       "additionalProperties": false
@@ -2587,7 +2625,7 @@
           "items": {
             "$ref": "./cbs-proof-bundle.schema.json"
           },
-          "description": "Optional receiver-relative dependency bundles for the Event seal_ref or seal_basis. Bundles are transport evidence, not Event fields."
+          "description": "Optional dependency bundles for the exact cached authority_refs or safety seal_basis. They need not contain a newly created Seal; missing referenced evidence remains pending."
         },
         "control_proposal_ack": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
@@ -2595,6 +2633,10 @@
         },
         "membership_compensation_evidence": {
           "$ref": "#/$defs/MembershipCompensationSubmissionEvidence"
+        },
+        "publication_event": {
+          "$ref": "./event-envelope.schema.json#/$defs/ordinary_publication_event",
+          "description": "Only for ak.agent.action_approve: complete pre-authored ordinary Event, whose event_id equals payload.approved_event_id. An immutable dependency, not an already-authorized publication. Verify every ordinary rule except the matching approval obligation before confirming the approval."
         }
       },
       "allOf": [
@@ -2603,6 +2645,37 @@
         },
         {
           "$ref": "#/$defs/MlsFrontierLeavesPresence"
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "properties": {
+                  "kind": {
+                    "const": "ak.agent.action_approve"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "publication_event"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "publication_event"
+              ]
+            }
+          }
         }
       ],
       "additionalProperties": false
@@ -3392,7 +3465,7 @@
     },
     "AgentMembershipCascadeFederationSubmission": {
       "type": "object",
-      "description": "Federation form of the registered Agent cascade unit. Every nested Event already carries its origin Station admission proof; the destination replays the same exact-set and atomicity rules.",
+      "description": "Federation form of the registered Agent cascade unit. Every nested Event carries the unchanged original producer proof and portable signer evidence; the destination replays the same exact-set and atomicity rules.",
       "required": [
         "unit_kind",
         "cascade_mode",
@@ -3578,7 +3651,7 @@
     },
     "EventsSubmitFederationBatchRequestBody": {
       "type": "object",
-      "description": "Ordinary Realm-scoped federation service-to-service ak.peer.events.command.submit.v1 request body. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original station_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar.",
+      "description": "Shared Event transport preserves the unique producer proof and portable signer evidence reference. Each receiver independently verifies exact authority, scope and dependencies. Ordinary history is classified using applicable authorization closures; security commands require their unique confirmed decision. Missing declared evidence stays pending. Storage receipts never authorize an Event.",
       "required": [
         "service_binding_ref",
         "events"
@@ -3778,15 +3851,6 @@
         "agent_membership_cascade": {
           "$ref": "#/$defs/AgentMembershipCascadeOutcome",
           "description": "Present only for the registered agent_membership_cascade request branch. Exact replay returns the original byte-identical outcome."
-        },
-        "agent_event_admissions": {
-          "type": "array",
-          "maxItems": 500,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./agent-signer-evidence.schema.json#/$defs/event_admission"
-          },
-          "description": "Each accepted or duplicate Agent Event carries exactly its original same-Station admission or distinct receiver receipt. Original same-Station acceptance forbids a second receipt."
         }
       },
       "allOf": [
@@ -7586,6 +7650,45 @@
           ]
         }
       }
+    },
+    "ProofAuthenticatedPublication": {
+      "description": "Single ordinary Event authenticated by its own producer proof. This branch is available without an account session, handoff, origin callback or authority freshness lease. It cannot publish security commands or atomic bootstrap units. Invalid supplied transport credentials are rejected rather than ignored. Exact replay is idempotent.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/EventInitialSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "$ref": "./event-envelope.schema.json#/$defs/ordinary_publication_event"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "authorization_lease"
+                ]
+              },
+              {
+                "required": [
+                  "control_proposal_ack"
+                ]
+              },
+              {
+                "required": [
+                  "membership_compensation_evidence"
+                ]
+              },
+              {
+                "required": [
+                  "mls_frontier_leaves"
+                ]
+              }
+            ]
+          }
+        }
+      ]
     }
   }
 }

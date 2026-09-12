@@ -12,7 +12,7 @@
     "ak.vector.call_state.transition_matrix.v1",
     "ak.vector.call_state.terminal_absorbing.v1",
     "ak.vector.call_state.replay_same_state_noop.v1",
-    "ak.vector.call_state.concurrent_sibling_bottom.v1",
+    "ak.vector.call_state.ordered_competing_transitions.v1",
     "ak.vector.call_state.axis_cell_split.v1"
   ],
   "cases": [
@@ -69,10 +69,10 @@
     },
     {
       "name": "concurrent_sibling_bottom",
-      "vector_id": "ak.vector.call_state.concurrent_sibling_bottom.v1",
+      "vector_id": "ak.vector.call_state.ordered_competing_transitions.v1",
       "runner": "cotest::conformance::call_state_core::run_concurrent_sibling_bottom_vector",
       "assertions": [
-        "same-basis ringing to active and ringing to missed siblings produce Bottom",
+        "ringing to active and ringing to missed compete in the confirmed sequence; the stale revision is rejected",
         "the Bottom kind is conflict",
         "no deterministic winner is selected from the sibling heads"
       ]
@@ -93,7 +93,7 @@
         "any derived projection kind, tag, value, from, or to mismatch fails with reducer_projection_failed",
         "an unchanged axis produces no projected write and a redundant same-value write is rejected",
         "focus CAS sets the complete focus value and cannot omit or replace a committed session_focus",
-        "same-basis state siblings writing different to values still produce Bottom conflict"
+        "different target states at one prior revision are serialized; no competing safety value is installed"
       ]
     }
   ]

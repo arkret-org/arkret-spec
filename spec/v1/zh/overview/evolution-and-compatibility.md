@@ -51,13 +51,13 @@ ak:cell:ak.component.realm.reducer_profile.v1:null
 
 1. `ak.realm.create.payload.object.reducer_profile` 提供 genesis 值。
 2. `ak.realm.upgrade.payload.target_reducer_profile` 是唯一后继写入口；该 Control Move 必须用标准 `head_eq` precondition 绑定 source profile。
-3. profile cell 使用 `cas_register`、`bottom=reject`、`plane=control`，并完全复用 CBS join、Bottom 与 conflict recovery。
+3. profile cell 使用 `sequenced_state`、`plane=control`，按唯一确认序列执行；竞争升级按相关 revision 检查拒绝，不合并安全权限。
 4. profile ID 的已发布语义不可原地修改；语义变化必须注册新的 ID 和从 source 到 target 的确定性 upgrade edge。
 5. upgrade Event 本身由 source profile 解释；治理 basis 已包含该 upgrade 的后继才由 target profile 解释。
 
 当前 v1 registry 没有 active upgrade edge，因此任何 `ak.realm.upgrade` 都按 §4 以 `failed_precondition` 拒绝；这是已裁决的 v1 边界，不是隐式成功或实现缺省。首个后继 reducer profile 只能在同一发布中同时登记 source→target edge，并满足 `reducer-profile-registry.json#upgrade_release_gate` 要求的成功 transition、source `head_eq` precondition、未注册 target、未声明 edge 与并发 upgrade 冲突五类向量后发布。
 
-普通 Event 不声明 reducer profile。DataEvent 从其 `seal_ref` 认证的 joined control state 读取 cell；Control Move 从 `seal_basis` 的 frozen predecessor `J(L)` 读取。实现不得从本地 latest state、软件默认值、接收顺序或调用方字段推断。
+普通 Event 不声明 reducer profile。DataEvent 从其已签 `auth_context.authority_refs` 固定的授权状态读取 reducer 合同；Control Move 从 `seal_basis` 绑定的确认前缀读取，并按实际执行位置重验相关 revision。实现不得从本地 latest state、软件默认值、接收顺序或调用方字段推断。
 
 ## 3. Profile carrier 边界
 
@@ -79,7 +79,7 @@ Reducer profile 只出现在以下 canonical 位置：
 - `supported_profiles[]`：实现、部署或产品 conformance profile；
 - `supported_features[]`：可选功能。
 
-目标 Realm 的 active reducer profile 不在本地实现集合时，该 Realm 操作返回 `unsupported_profile`；其它 Realm 不受影响。缺少计算 profile cell 所需的 CBS 依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`、reason=`cell_in_bottom_state`。
+目标 Realm 的 active reducer profile 不在本地实现集合时，该 Realm 操作返回 `unsupported_profile`；其它 Realm 不受影响。缺少计算 profile cell 所需的 CBS 依赖返回 `dependency_missing`；已证明的安全确认分叉按安全域故障处理，停止基于争议后继扩权。
 
 Reducer upgrade target 的词法形状不合法时返回 `schema_violation`；target 未注册时返回 `unsupported_profile`；registry 中不存在 source→target edge 时返回 `failed_precondition`。
 
@@ -157,7 +157,7 @@ HTTP path 不承载版本（§6）出于同一逻辑的传输面推论：URL 里
 
 ### 9.3 为什么共识语义单独走 reducer profile
 
-describe 协商是**成对**的：A 与 B 各自声明，交集只约束这一对连接。但 Realm 的共识语义（Event admission、cell projection、lattice join、state root、security frontier）必须对**所有成员、所有时间点**的验证者给出同一答案，否则同一 Realm 会在不同实现上分叉。所以它不走 describe，而是写进 Realm 自身的 governance 状态（reducer-profile singleton cell，§2），每条 Event 从**它自己的** CBS basis 读取该 cell——任何时候重放历史，每条 Event 都由它当时生效的语义解释，与验证者本地软件的新旧无关。升级共识语义因此不是"发布新软件"，而是 Realm 内一次可审计的显式治理动作（`ak.realm.upgrade`），带 `head_eq` 前置条件、由 source profile 解释、经 registry 声明的 upgrade edge 门禁（`reducer-profile-registry.json#upgrade_release_gate`）。
+describe 协商是**成对**的：A 与 B 各自声明，交集只约束这一对连接。但 Realm 的共识语义（Event admission、cell projection、lattice join、state root、security frontier）必须对**所有成员、所有时间点**的验证者给出同一答案，否则同一 Realm 会在不同实现上分叉。所以它不走 describe，而是写进 Realm 自身的 governance 状态（reducer-profile singleton cell，§2），普通 Event 从自身已签授权上下文读取该 Cell，安全命令按其确认执行位置验证该 Cell——任何时候重放历史，每条 Event 都由它当时生效的语义解释，与验证者本地软件的新旧无关。升级共识语义因此不是"发布新软件"，而是 Realm 内一次可审计的显式治理动作（`ak.realm.upgrade`），带 `head_eq` 前置条件、由 source profile 解释、经 registry 声明的 upgrade edge 门禁（`reducer-profile-registry.json#upgrade_release_gate`）。
 
 ### 9.4 典型混合版本场景
 

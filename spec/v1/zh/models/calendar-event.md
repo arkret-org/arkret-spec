@@ -188,7 +188,7 @@ Envelope 在 E2EE 下同样是明文，因此 target admission 不构成解密�
 
 ### 8.3 收敛
 
-RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `mv_register` 收敛；cell subject 固定为 [`encoding.md` §9.5.2](../conformance/encoding.md) 的 `[payload.event_ref, payload.occurrence, envelope.actor_id]`。`schedule_basis_refs` 不进入 subject，但 MUST 进入 cell value。
+RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `causal_register` 收敛；cell subject 固定为 [`encoding.md` §9.5.2](../conformance/encoding.md) 的 `[payload.event_ref, payload.occurrence, envelope.actor_id]`。`schedule_basis_refs` 不进入 subject，但 MUST 进入 cell value。
 
 registry 为该 cell write 登记 `effect_projection = set(payload.entry)`：**整个 entry** 是 lattice set value，因此每个 head 都独立携带 basis 与 response。receiver MUST 从 Event payload 重算 reducer projection；无法唯一投影、写目标数量错误或投影值与 payload entry 不一致，MUST 以 `reducer_projection_failed` 拒绝整个 Event。Event wire 不携带 reducer write。
 

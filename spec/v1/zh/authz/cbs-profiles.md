@@ -1,352 +1,107 @@
 ---
-title: CBS profile、并发类别与终态
+title: 安全域确认与跨域事务
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-30
+updated: 2026-09-12
 ---
 
-# CBS profile、并发类别与终态
+本文规范关键字按 [规范语言](../conformance/normative-language.md) 解释。
 
-本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+## 1. 安全域与配置
 
-本章是 CBS finality profile、控制操作并发类别、genesis 及依赖 bundle
-的唯一规范来源。Seal 是唯一控制状态接受事实。
+v1 的安全域标识就是 RealmId。一个 Realm 的权限、成员、硬唯一槽位、密钥访问和 MLS 安全状态共享一条确认序列。Circle 仍按 scope 隔离授权和读权限，但不产生另一条可能与父 Realm 撤销并行生效的安全序列。不同 Realm 的确认独立；普通数据完全不进入该序列。不能根据 Event 名称推测是否需要 Seal，必须对 canonical registry 的有效 write 求值。
 
-## 1. Finality profile
+`notary_configuration.kind=quorum` 是唯一配置。`n=3f+1`，其中 f 为 `fault_tolerance`，每次确认需要恰 `2f+1` 个不同 voter。f=0 是单副本、无故障容错的配置。actor、verification_method、frozen key digest 三个维度都必须唯一；同一配置内多个 key 不把一个 voter 变成多票。不得用多个配置的签名拼 quorum。
 
-Realm genesis MUST 签名并 create-lock `notary.kind`；不存在并行的 `notary_profile` 字段：
+配置由 `realm.create` 或已确认 `realm.notary` Event 身份引用。成员不能因进程重启、时钟前进或租约超时自启新 lineage。notary 只拥有排序和确认职责，不取得 controller 许可或客户端 MLS 私钥。
 
-| profile | Seal 形态 | conformance |
-| --- | --- | --- |
-| `single_signer` | 单 did_core actor/current authorized verification method、单 predecessor 链 | Kernel 基础 profile，MUST 支持 |
-| `threshold` | k-of-n、单 predecessor 链 | 可选独立 profile |
-| `mixed` | primary authority 加独立 recovery authority、单 predecessor 链 | 可选独立 profile |
-| `open_set` | 多 leaf Seal DAG | 高成本可选 profile |
+## 2. 提案、执行和确认
 
-profile 变更必须由变更前 profile 下 accepted Control Move 完成。receiver 不支持目标 profile 时
-MUST fail closed；不得按单个 Event 降级或偷换 profile。只声明单链 profile 的实现不需要运行
-open-set vectors。
+Seal 的 `realm_id/configuration_ref/notary_seq/predecessor_refs` 唯一绑定安全位置。`view` 只在 `notary_signature` certificate 内，不能改变 Seal identity。genesis 高度 0、无 predecessor；其它高度恰为已确认 predecessor 加一。predecessor 必须是同 Realm 的唯一确认 Seal。Seal 的内容地址输入是去除 `id` 与 `notary_signature` 后的完整 canonical body；更改 command 顺序、结果、前态、配置或任何关闭证据都会改变 Seal digest。commit JWS 签 `JCS({context:"ak.seal.commit.v1",seal_digest,configuration_ref,notary_seq,view})`，其中 seal_digest 是 canonical body 摘要。不同 view 对同一 body 的证书不产生两个 Seal 身份。
 
-## 2. 控制并发类别
+`command_results` 给出原子 command unit 的实际执行顺序。每项 `unit_event_digests` 是已登记 unit 的确切成员顺序，`event_digest` 等于首成员；单命令为单元素数组。bootstrap/cascade 只能使用各自已登记的 unit 验证器，任意批次不能自行组成 unit。整个确认历史中同一 Event 只进入一个 unit。所有命令的原始 Event、依赖与结果内容必须可用并独立验证。`result_digest` 按 seal schema 的封闭投影从实际注册写入后的完整状态与 reason_code 重算，禁止哈希任意 HTTP response。失败 effects 为空；成功 effects 按 CellRef 排序，每个触及 Cell 只保留执行完该 unit 全部有序 write 后的一个完整 state，包括 bootstrap D 初始值。命令在其顺序位置重新执行授权、确切前置 revision、领域约束和全部写入。`delta` 恰为本 Seal committed units 内所有 security 成员摘要的 canonical sorted set；bootstrap D 成员共享原子 outcome 但不进入该集合；普通数据与失败命令不在其中。
 
-每个 control reducer contract MUST 固定声明以下一类，producer 不得选择：
+没有有效 security write 的普通命令禁止送入 Seal。bootstrap 的 D 初始值作为已登记安全创建事务的原子结果存在，不能把后续普通更新借此升级为安全命令。普通提交不得等待新的 Seal、KeyView、完整性根、周期签名或原账号 Station。
 
-| 类别 | 语义 |
-| --- | --- |
-| `merge_safe` | 可交换集合或 append-only evidence；open-set leaf 可自动 join。 |
-| `exclusive` | 单值 policy/lifecycle；并发不可比较写进入 `⊥`，依赖方 fail closed，随后走显式 recovery。 |
-| `security_barrier` | authority、membership、device revoke、MLS epoch 等；open-set 必须有相交 quorum。 |
+相同基底的竞争命令最多一个通过身份前置条件。相同业务值、释放后重新成为 null、重复 epoch 号不能替代 revision 身份。拒绝无业务效果；exact retry 返回已持久结果。超时只表示结果未知，调用者查询同一命令，不产生另一个可能重复执行的命令。
 
-**该分类是安全承载字段，由门禁强制（normative）**：`concurrency_class` 不是编写约定。
-它划出的是「哪些 Move 之间必须串行」，任何按它放宽串行化的规则（例如按类别决定一张 Seal
-能携带几个控制事务）都直接依赖它的正确性，因此下面两条 MUST 由 artifact 门禁执行，
-MUST NOT 只作为审阅习惯：
+## 3. 持久投票与 view change
 
-1. **每个 `sealed=true` 的 control event kind MUST 声明 `concurrency_class`。**
-   缺失即门禁失败；实现 MUST NOT 从 kind 拼写、category 或 payload 形状推断它。
-2. **同一个 cell family MUST NOT 同时被 `security_barrier` kind 与非 barrier kind 写入**，
-   唯一例外是下面的 object-genesis 形态。否则该 family 会出现两种互相矛盾的串行化承诺：
-   barrier 写要求对同 scope 的并发 barrier 串行，非 barrier 写明确声明不要求全局串行，
-   而它们落在同一个 cell 上。
+安全性要求至少 n-f 个 replica 遵守以下 PBFT 规则，签名 quorum 本身不证明实现遵守了规则。每个 replica 在发送任何投票前持久化配置、高度、view、完整提案 digest、prepare 证明及已确认 prefix。崩溃恢复先恢复这些记录，不允许清空后重新投票。
 
-**分类判据：授权判定读它，就必须是 `security_barrier`（normative）**：
-一个 control kind 若写入**任何一个可能被授权 allow/deny 求值读取的 cell family**，
-它 MUST 登记为 `security_barrier`，MUST NOT 登记为 `exclusive` 或 `merge_safe`。
-理由是写偏差：非 barrier 分类向调用方承诺「不需要与无关操作串行」，
-于是它可以与另一条写共享同一个冻结前态；若那条写的授权恰好读它写的 cell，
-两条都在旧前态通过，结果是被本次决定降权的主体仍以降权前的基线行使了权限——
-与 `remove(A)` / `grant(admin,A)` 的写偏差同型。
-lattice 的可交换性不提供保护：写偏差不是 join 的性质，是两条写共享过期前态的性质。
+每高度只处理 predecessor 已确认的提案。primary 是 canonical voter 顺序中的 `view mod n`；voter 先验证提案与重放结果，再对同一坐标至多发送一个 prepare。得到 2f+1 个不同 voter 的同值 prepare 后，持久化 prepared certificate，再发送绑定同一值的 commit。得到 2f+1 个 commit 才确认。prepare、commit 和 view-change 使用不同签名域，不能跨阶段计票。prepare 使用 `context="ak.seal.prepare.v1"` 和相同坐标，view-change 使用 `context="ak.seal.view_change.v1"` 并绑定完整新 view 及证据集合。prepared 记录保护该已投值；本地超时不能解锁。合法 new-view 集合选择了更高 prepared view 的值时，replica 在验证完整证据并持久化新 view 后转投所选值；不能为保留一个较低本地 prepare 永久拒绝合法 new view。选择继承某 prepared 值时必须逐字保留其 body，不能改结果或时间。最终 `notary_signature` 只承载 commit 签名。
 
-v1 中命中该判据的是 `ak.moderation.decision` 与 `ak.moderation.decision.lift`
-（写 `ak.component.moderation_state.v1`）。[`capabilities.md` §18.1](./capabilities.md)
-允许 grant 的 `subject` 是引用 moderation state 字段的 condition selector，
-也允许 typed constraint 引用该 cell，因此授权判定确实读它。
-二者据此登记为 `security_barrier`。该 cell 的 subject 是 `payload.target_ref`，
-逐 moderation 目标一个 cell，所以串行化只发生在**同一目标**上，
-不同目标的并发 moderation 决定互不影响。
+超时可请求递增 view，不解锁已 prepared 的值。新 view 的 primary 收集 2f+1 个不同 voter 的 view-change 记录，每份包括已确认 prefix 及该高度最高 prepared certificate。按最高 prepared view 唯一选值；同 view 不同 prepared 值属于可验证故障，不能任选。没有 prepared certificate 才能提出新值。所有 replica 验证完整 view-change 集及选值规则后才进入新 view。落后 replica 必须先取得和验证所需已确认 prefix。
 
-**这不改变 moderation 的定位。**它仍是 deny / quarantine 后置层，不是 capability 来源：
-`depends_on_moderation_state` 依旧只是缓存失效 hint（[`constraint-schema.md` §18.1.1](./constraint-schema.md)），
-真正的依赖仍落在 condition selector 与 typed constraint 上。
-本条约束的是**写入方的并发类别**，不是 moderation 在授权链里的位置。
+不超过 f 个 Byzantine replica 时，两个 quorum 的交集至少 f+1，因此不可能合法确认两个相同高度的不同值。发现双确认时停止该安全域、保留证据，不做 digest 选胜者、不把权限 join 成多值，也不影响无关域普通消息的密码学验证。活性依赖最终通信、至少 2f+1 可用 replica 及公平重试，不承诺永久分区中推进安全决定。
 
-**object-genesis 例外（normative，封闭）**：当某 family 上的**全部** barrier 写入的
-`cell_subject` 都只从 `envelope.event_id` 派生时，第 2 条不适用。这类写入只能创建一个
-以本 Event 身份命名的**新** cell，因此它与后续针对既有 subject 的非 barrier 写入
-在结构上不可能落到同一个 cell：genesis 被接受之前该 cell 不存在，之后 genesis 也无法重放到
-同一 subject。v1 中唯一命中该例外的是 `ak.component.call.state.v1`
-（`ak.call.create` 是 barrier genesis，`ak.call.state` 是 `exclusive` 转移）。
-例外的判据是 subject 来源，不是 kind 名单；新增 genesis/operate 形态自动适用，
-而任何**不**从 `envelope.event_id` 派生 subject 的 barrier 写入都必须重新满足第 2 条。
+### 3.1 复制协议签名输入
 
-在 `single_signer`、`threshold`、`mixed` 的单链中，Seal predecessor 顺序提供 barrier。
-`open_set` Realm 没有单链顺序，barrier 由**目标 cell 自身的 CAS 加相交 quorum**提供；v1 **不**引入
-一个额外的 protocol-singleton barrier cell（那需要一个未登记的 cell family 与一个未登记的信封字段，
-两者都不存在，因此该形态无法被任何实现或门禁验证）。每个 `security_barrier` Move MUST：
+prepare 与 commit 的 canonical transcript 都恰含 `context,seal_digest,configuration_ref,notary_seq,view`，context 分别为 `ak.seal.prepare.v1` 与 `ak.seal.commit.v1`。realm 与 predecessor 由 seal_digest 的完整 body 传递绑定。签名采用 Seal `signature` 的同一 closed JWS carrier，但 payload_digest 必须按对应 phase transcript 计算，不能把 prepare 签名放进最终 commit certificate。
 
-1. 对它写入的**每一个**注册目标 cell **派生并执行身份守卫**：从该 Move 自身签名的 `seal_basis` 重建该 cell
-   的完整活跃 head 身份集合（[`event-auth-state-resolution.md` §9.3.1.1](./event-auth-state-resolution.md)），
-   并在 Seal 准入时按 §9.3.1.3 第 3 项与冻结 predecessor 基线逐身份比较。
-   **本条 MUST NOT 被读成「每个目标 cell 都要在 wire 携带一条 `head_eq`」**：`ak.audit.applet_binding.create`
-   与 `ak.call.create` 的目标 cell subject 派生自本 Event 自己的 `event_id`，把该 `cell_id` 写进被 digest
-   覆盖的 `preconditions[]` 会形成哈希自引用（§9.3.1.3「自派生目标的守卫形态」）。已登记的业务
-   `head_eq` 条件仍 MUST 签名并执行；`preconditions[]` 为空数组不代表绕过 barrier；
-2. 携带同一 barrier authority set 的 k-of-n attestations，且满足下面「容错假设与相交不等式」一段的约束；
-3. 让每个 attestation 只签 `control_move_digest` 与该 Move 的 `preconditions[]` 的 canonical 序列，
-   不引入第二套 parent 表达；签名 transcript 沿用已绑定 `seal_basis` 的 `control_move_digest` + `preconditions`，
-   MUST NOT 新增第二套 parent 字段；
-4. 由 signer 持久化 `(Realm, authority_set_ref, cell, canonical sorted head identities, control_move_digest)`，
-   并拒绝为同一 `(Realm, authority_set_ref, cell, canonical sorted head identities)` 签第二个不同的
-   `control_move_digest`。多目标 cell 的锁定与签名持久化 MUST 原子执行。
+prepared certificate 恰为 `{seal_body,view,signatures}`；signatures 必须为同一 body/view 的 2f+1 个 prepare 签名，按 verification_method 排序。view-change 的 unsigned statement 恰为 `{realm_id,configuration_ref,notary_seq,new_view,confirmed_predecessor_ref,prepared}`，prepared 为该 voter 最高 prepared certificate 或 null。genesis 的 confirmed_predecessor_ref 为 null；其它高度为已确认 predecessor。签名输入恰为 `JCS({context:"ak.seal.view_change.v1",statement:<该完整对象>})`，以同一 signature carrier 传送。new-view certificate 是按 signer 排序的恰 2f+1 项 `{statement,signature}`；所有 statement 的 realm/configuration/height/new_view/predecessor 必须相同，每个 prepared.view 严格小于 new_view，且递归验证完整 body 与 prepare quorum。重复 signer、任意额外字段或不满足最高 view 选值规则均拒绝。
 
-**锁键 MUST 是 head 身份集合（normative）**：signer MUST NOT 以业务值
-`(authority_set_ref, cell, expected_head 业务值)` 作锁键——在「空位 → 占用 → 释放回空位」之后，下一轮
-**合法**请求的业务 expected head 与上一轮相同，会被误判成双签。signer 同样 MUST NOT 改用整个 basis leaf
-digest 作锁键：只要多覆盖一个无关 Seal 就改变键，同一 cell 状态因此可能获得第二套签名。head **身份**集合
-只在该 cell 真正被写过之后才改变，因此它是唯一满足两侧要求的键：同一状态只签同一 digest；一次新的释放
-Event 产生新的 head 身份，下一轮可以再次签名。
-signer MUST 从已验证 basis 派生完整 head 身份，MUST NOT 相信调用方自报的 head token。
-非 `cas_register` 的 `security_barrier` cell 同样 MUST 使用稳定的因果状态身份作锁键，MUST NOT 只修
-`cas_register` 而给 `fsm` 保留业务值锁。
+投票消息的传输、重试与本地存储格式不属于公开 Service API，但上述签名对象、计票规则和选择结果属于规范。实现不能因为使用另一种内部传输而改变证书字节或阈值。
 
-**容错假设与相交不等式（normative）**：大小为 `k` 的两个集合在 `n` 个 signer 中至少交于 `2k-n` 个。
-若最多 `f` 个 signer 可能双签，要保证任意两个 quorum 的交集中**至少有一个诚实 signer**，需要 `2k > n + f`；
-只写 `2k > n` 仅保证存在共同 signer，而那个唯一的共同人可能恰是恶意 signer（例如 `n=3, k=2`）。
-若同时要求 `f` 个 signer 不可达时仍能凑齐 quorum，则需 `k ≤ n - f`；两者同时满足要求 `n ≥ 3f + 1`。
-`open_set` barrier policy **MUST** 明确声明其容错假设 `f` 并满足上述不等式；未声明或不满足时
-**MUST NOT** 宣称该部署具有 Byzantine 串行化保证。这是计数证明，不由测试数量替代；本节不要求为 CAS
-引入任何新的共识实现。
+## 4. 配置 handoff
 
-**本条不取代 forensic attribution 的 `2k > n`（normative）**：
-[`event-auth-state-resolution.md` §7.1](./event-auth-state-resolution.md) 的
-`notary.forensic_attribution` 判据是 `2k > n`，两条不等式各自成立、**不得互相代入**。它们断言的不是
-同一件事：`2k > n` 保证任意两个 quorum 有共同成员，因此该成员**必然**双签，可被**事后指认**——这在
-共同成员恰是恶意 signer 时仍然成立，恰恰是那时才有指认对象。`2k > n + f` 保证交集中至少有一个**诚实**
-signer，因此并发 barrier Move **事前**无法各自凑齐 quorum——这是安全性，不是问责。实现 MUST NOT 因为
-一个 Realm 满足 `2k > n` 就宣称它具备 barrier 串行化保证，也 MUST NOT 因为一个部署未声明 `f` 就削弱
-`forensic_attribution` 的既有算术校验。
+旧配置确认 `realm.notary` 时冻结最后可写高度和新配置 bytes。新配置每个 voter 必须取得并验证完整已确认 prefix、终态结果、prepared 事务及锁后才达到本地 ready，才能给第一个后继 Seal 投票。第一个后继的完整新配置 commit quorum 就是交接确认，不另发未定义的 ready wire object。后继只引用旧配置的最后 Seal。ready 只是投票前的本地资格，不能执行命令或改写交接内容。
 
-第 2 条的 quorum 相交与第 4 条的 signer 单调性合起来给出与单链 predecessor 等价的效果：两个针对同一
-cell head 身份集合的并发 barrier Move 必然有一个共同 signer，而该 signer 只会为该身份集合签一个 digest。
-不同 cell 上的并发 barrier Move 本就互不相关，`security_barrier` 的登记语义（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)
-`concurrency_class_definitions`）也只要求它对**同一 signed scope** 内的并发 barrier 串行化。
+旧配置在确认 handoff 后拒绝新业务高度，只提供已确认数据与交接证明。新配置未 ready 时安全命令等待；普通消息继续按已验证授权缓存工作。备份、自报新 controller 或过期时间都不能跳过 handoff。恢复必须使用事先确认的独立恢复权，且保持唯一 lineage 与未决锁。
 
-`authority_set_ref` 在所有 CBS authority/quorum 场景中统一为
-`{authority_set_id, authority_set_digest}`：id 是登记的 `ak.authority_set.*.v1` policy
-symbol，digest 是该 policy 在当前 CBS basis 中的 canonical digest。任何 signer、lease、
-receipt 或 barrier verifier 都 MUST 同时校验 id 与 digest，不得用可变名称解析替代 basis-bound
-policy bytes。需要跨服务或离线验证的对象 MUST 携带完整
-`ak.schema.authority_set_policy.v1` concrete policy；接收方按
-`authority-set-policy-registry.json` 的 template 从 accepted basis 与 CBS closure 重新派生，
-并校验 `SHA-256(JCS(policy))`。inline policy 与 registry row 均不得替代 accepted source。
+## 5. 授权关闭与有限期
 
-barrier attestation 没有独立 height、state root、历史日志或可被 DataEvent 引用的 id；它随
-Control Move 被 Seal 覆盖，不构成第二套 checkpoint。有效双签是可归责 equivocation，相关
-分支 MUST fail closed 并进入 recovery。
+`authorization_closures` 每项精确绑定本 Seal 成功撤销命令、目标授权 Event、generation Event、scope、actions 和完整 Event frontier。授权 Event 指向 grant、设备/身份授权或成员实例的登记起点；generation 不得用可重复的业务状态名称替代。frontier 的完整祖先闭包就是允许保留的历史集。多个适用关闭集合取交集。
 
-**authority set 换届与「签了但未获 Seal」的锁（normative）**：authority set 切换 MUST 按已登记的
-generation / fence 规则验证，**MUST NOT** 通过更换 `authority_set_ref` 清空旧锁却继续宣称同一 quorum 的
-证明仍然适用——跨配置的安全性需要单独证明「旧配置已关闭、新配置已启用」。此外，一条已被 signer 签名
-但最终没有获得 Seal 覆盖的 proposal 会占住它那把锁。**超时清锁不安全**：旧签名仍可流通。因此实现 MUST
-维持现有显式 recovery / fence 的失效路径；没有可验证的失效证据就 MUST NOT 解锁，也 MUST NOT 承诺该
-barrier 无条件可用。CAS 合并的收敛性（§9.3.1.4）不等于无冲突线性化、分区期间可用，或所有治理操作一定完成。
+关闭条目必须由命令语义派生，不能因为 notary 见过某条聊天而随意产生。撤销不用等所有接收站，因而真实离线消息也可能被排除。每个 receiver 使用相同证据重算 eligible/pending/quarantined；已发生的展示不可回滚，历史导入不得再触发 live 效果。完整规则见 [授权与状态归约](./event-auth-state-resolution.md)。
 
-“子集继续工作”只无条件适用于 `merge_safe`。不得宣传所有 open-set 治理操作都可在 quorum
-不可达时继续。
+有限期资格的 `existence_anchors` 绑定授权 Event、generation 和精确 Event frontier；安全域从确切授权状态派生有效窗，不接受 producer 复制的到期时间。每个 anchor 的 frontier 及祖先必须在 prepare 前完整可用并通过历史授权校验。该可选字段只服务显式有限期许可；不得要求无期限聊天定期取得 anchor。
 
-## 3. Seal 唯一性与 genesis
+设配置声明诚实 replica 的真实 UTC 时钟误差至多 ε=`max_clock_error_ms`。首次 prepare anchor 或带显式期限的安全命令时，replica MUST 确认本机可信时钟与 `sealed_at` 相差不超过 ε，且所有被锚定或批准的 Event 已存在；该批 Event 已存在这一观测时点于是落在 `[sealed_at-2ε,sealed_at+2ε]`。整个区间必须位于资格有效窗内才签 prepare；时钟不能保证误差界就不投这种票。view change 只能继承完整的原 prepared certificate，不对旧数据重新声明早期存在。commit 可以晚到，但不能改原 body 或该时间证明。
 
-submitted、pending、receipt、transparency entry、availability receipt、snapshot 和 compaction
-均不改变控制状态。只有 Control Move 进入一个密码学有效、其 covered set 与 `state_root`
-重算一致的 accepted Seal 后才生效。
+该证明不声称 Event 的实际创建时间位于此区间，只证明资格有效期内已经存在。至少 f+1 个诚实 prepare voter 保证时间见证；quorum 的安全假设和时钟误差假设均属于该保证的前提。没有合格 anchor 的有限期数据可在 live 有效窗暂时接纳，稳定历史保持待证；完整关闭/到期证据已排除其资格时进入 quarantine。producer 时间、普通 IngressReceipt、期后新建的倒签 Seal 均不能补这个证明。无期限普通聊天不需要 anchor，也不需要周期 Seal。
 
-空 genesis Seal 非法。首 Seal MUST 原子覆盖完整 Realm bootstrap unit。该 unit 内的 `ak.realm.create` MUST 物化**五条无条件 registered write**，并执行所有命中的 registered purpose-conditional write，
-逐条与 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)
-的注册投影一致（该节是唯一权威来源，本清单不得与其漂移）：
+## 6. 跨 Realm 原子性
 
-1. signed genesis intent（`ak.component.realm.genesis.v1`）；
-2. create 审计日志条目（`ak.component.realm.create.v1`，`issuer_seq=0`）；
-3. founding notary（`ak.component.notary.v1`）；
-4. reducer profile（`ak.component.realm.reducer_profile.v1`）；
-5. founding authority root cell（`ak.component.realm.authority_root.v1`），其
-   `controller_actor_id` / `controller_epoch` / `authority_generation`
-   由 create envelope 的 `actor_id` 与冻结 profile 规则确定性派生。
+只读缓存授权不等于跨域原子事务。若一个操作的不变量要求多个 Realm 的安全资源同时变化，prepare 前必须冻结完整参与 Realm 集、每域读写 CellRef、确切前态、命令内容摘要，以及唯一 decision Realm。participant 按 RealmId canonical 顺序拿锁，锁同时覆盖影响授权的读取资源。
 
-第 3 条冻结的 founding notary 值是历史 Seal signer 事实，`purpose` 为 `collaboration` 或
-`direct_conversation` 时，普通已认证客户端 MUST 通过
-[server-trusted-results.md §5.8](../sync/server-trusted-results.md) 的
-`ak.self.genesis_notary.read.resolve.v1` 从自己的 Station 取得完整 `notary` 值并逐字写入
-`payload.object.notary`。Station 按 [event-auth-state-resolution.md §6.5](./event-auth-state-resolution.md#65-notary-control-cellnormative)
-的默认与本部署已接纳 policy 选定每个 descriptor 并返回 exact `verification_method`；客户端
-MUST NOT 以固定 fragment、DID 字符串拼接、describe 字段或另取的当前 DID Document 构造 signer，
-也 MUST NOT 为核对它下载 service DID method history。该结果只是签署输入：它不创建 Realm、不预留
-标识、不授予 authoring 权限，caller 仍按本节规则 author 并签署完整 bootstrap unit。identity-control
-genesis（`principal_control`、`agent_control`、`applet_managed_control`）的 signer 由各自已接纳的
-身份规则确定，MUST NOT 从该入口取得。
+每个 prepare 是参与域的确认记录，持久绑定完全相同的事务摘要和参与集合。commit 需要全部参与者的 exact prepare 证明；commit/abort 由唯一 decision 域确认且互斥。参与者只能凭该终态生效及解锁，不能超时自行 abort。晚到 prepare 不重新打开已 abort 的事务；handoff 保留未决锁。
 
-普通 Collaboration 的 policy bundle、join rule、history access、discovery、alias/plaintext/delivery 与 creator membership 是同一 bootstrap registry 中按序签名的显式 facet。`direct_conversation`、`principal_control`、`agent_control` 不携该普通 history facet；create reducer 分别按 `payload.object.purpose` 命中的注册条件原子写入 `ak.component.realm.history_access.v1: null -> since_join`。另有 `initial_resolution` 与 Agent status 条件写。缺槽、错序、漏写或条件路径不闭合时整个 unit MUST 原子拒绝。
+prepare 不释放密钥或执行外部副作用。单次 approval 的 nonce 必须在同一确认事务中唯一消费。外部 sink 还必须接受幂等键/fencing 或提供可恢复执行 owner；Event 去重不能代替外部动作幂等。结果未知时保留待核实状态，不能换 Event 再执行一次。decision quorum 不可用可以阻塞安全事务，但不把普通聊天拖进该事务。
 
-对 MLS-backed scope，首 Seal 还 MUST 声明将由后续 `ak.mls.genesis` 建立 epoch-0 binding 的
-bootstrap requirement；epoch-0 binding 本身由首个覆盖 `ak.mls.genesis` 的 Seal 验证。
+### 6.1 封闭事务载体与执行
 
-创建者的 root authority 只来自第 5 条 authority-root cell。v1 **没有** founding
-`ak.capability.grant`：不得要求、也不得接受"紧随 create 的封闭 self grant"作为 genesis 必需项；
-缺少该 cell 时整个 bootstrap unit MUST 原子拒绝（`failed_precondition`，
-`reason="realm_authority_root_missing"`）。base policy（`ak.realm.policy_bundle`）与其它初始 facet 的必选/条件规则由 §2.5 的 bootstrap registry 唯一决定；实现不得把它们降级成 create 后可补写的普通 follow-up。
+Seal 的 `transaction_records` 是唯一事务载体，kind 恰为 prepare/commit/abort/apply。每项携完整同一 `transaction_manifest`：command_event_id、canonical 排序的 participants 和 decision_realm_id。participant 恰含 realm_id、basis_ref、read_cell_refs、write_cell_refs；决策 Realm 固定为排序第一项，不由 coordinator 随意选择。每个 basis 必须在原命令的签名 seal_basis 中，完整读写集由注册 reducer 与全部授权检查的实际依赖重算，漏锁、额外资源或未登记效果均拒绝。
 
-缺少任一 founding required cell、使用空 `control_event_set_root`、或先接受空 Seal 再补
-authority（含 authority-root cell），均为 `genesis_seal_invalid`。MLS epoch-0 binding 不属于可在 `ak.mls.genesis`
-之前物化的 founding cell；其后续 Seal 义务不得被解释为允许补写其它 founding authority。
+按参与 Realm 顺序逐域 prepare，域内按 CellRef 顺序申请读/写冲突锁。锁取得前重新验证完整前态；前态已改变则由 decision 域确认 abort。prepare 不把原命令列入 command_results/delta，也不把候选权限暴露为有效。普通只读缓存资格的 D 消息不是事务参与者。
 
-## 4. Proposal 有界决议
+commit Seal 只由固定 decision 域签发，必须携按 participant 顺序排列、每域恰一个 same-manifest prepare Seal；缺任一不能 commit。abort 可以在未集齐 prepare 时确认，但不得与已有 commit 竞争成两个终态。participant 收到决定后以 apply 记录原子落实 staged 效果或丢弃候选并释放锁；重复 apply 无额外效果。迟到 prepare 在已知 abort 下拒绝，尚未知终态的锁必须待确切决定补齐。
 
-authority 接受 proposal ingress 时签发的 Control Proposal Ack MUST 包含：
+逻辑事务终态在 decision Seal 确认时唯一确定，participant 的异步 apply 不创造另一个业务决定。读取尚未物化的安全结果时必须补齐并应用该决定或返回 pending，不能拿部分 apply 宣称事务部分成功。command_results/delta 只在原命令的效果所属域 apply 成功时包含该命令；读取参与域不会凭空产生业务 write。所有 auxiliary records 由完整 Seal body 认证并随连续安全 prefix 重放，不能用只含 Cell 的 state_root 冒充 prepared-lock 完整证明。
 
-```text
-proposal_digest, received_at, decision_due_at, absolute_due_at,
-defer_count, authority_set_ref, authority_acks[]
-```
+### 6.2 依赖、隔离与取得证明
 
-**闭合 genesis 的 ingress authority**：普通路径中的 `authority_set_ref` 来自已经生效的
-Realm authority set。ordinary Realm 与 Agent PCR 的登记闭合 genesis Event 虽然免
-`seal_basis`，仍是 Control Move，因而在 durable proposal ingress 时 **MUST 各自具有 Control
-Proposal Ack**；`AnchorUnit` transport context 只证明无 basis 单元的闭合形态，不得据此让这两类
-durable ingress 省略 receipt。receipt、canonical Event、pending Control index 与 wakeup MUST
-按本文件的统一提交规则原子落库，不能先接受 Event 再等待首 Seal 时补 pending row。这里的“具有”
-约束的是 durable ingress 事务，不等于所有来源都必须在
-`EventInitialSubmission.control_proposal_ack` 中预先携带 Control Proposal Ack；wire 责任由下列两个来源决定。
+跨域参与集合由安全执行的实际权威依赖闭包派生：命令目标写入、所有 preconditions/pre_state_requirements 的安全 Cell，以及当前授权校验读取的 PCR generation、设备/Agent key、父 grant、成员、scope、policy、单次消费状态，逐一记录所属 Realm 和 CellRef；不存在项也锁其确切目标，禁止幻读。只验证不可变历史签名 bytes 不取得状态锁；普通 D 的缓存授权不进入该集合。实现必须完成全部规则求值而不能因短路先遇 allow 就漏掉其它适用限制。父授权链有上限且参与域超过 schema 上限时拒绝，不截断。
 
-human self-principal PCR 的 `[ak.realm.create, ak.device.authorize]` genesis unit 是唯一闭合 genesis
-例外：它不是向外部 authority 提交的 proposal。create 的 identity-root commitment、founding device
-对 exact authorize payload/Event 的 possession proof 与整单元原子验证已经闭合内容授权；因此该 unit
-**MUST NOT** 携 AuthorizationLease 或 Control Proposal Ack，但两条 canonical Event、pending Control
-index 与首 Seal obligation 仍必须原子建立。不得把此例外扩大到 ordinary Realm、Agent PCR、
-organization PCR 或 re-anchor/recovery。
-这里的 identity-root / founding-device “proof”均指各 Event 的唯一 producer proof。首次 admission
-落库后，两条 canonical Event 可各自按 federation 规则追加一个已验证的
-`station_admission` proof；后续为首个 successor Seal 重放 genesis 时，validator 必须接受
-`[producer, station_admission]` 的 accepted-Event 形态并继续只用 producer proof 判断
-identity-root / founding-device authority。不得把 admission proof 误计为第二个 author。
+各域 prepare 的 staged 结果与锁由该域复制日志持久化，服务端在验证原始 Event 与跨域 `seal_basis` 后派生内部事务记录，不接受 producer 自报读写集作为权威。既有 self/peer Seal submit 接收完整 Seal；依赖通过每个目标 Realm 的 exact Seal/Event resolve 独立取得，一个 CbsProofBundle 始终只承载其 target Realm。不同 Realm 的 bundle 不能混成一个，也不得为满足跨域验证绕过原有 PCR/Circle disclosure 权限；证明不足返回 pending，不能降级使用当前查询布尔值。
 
-该 authority set 正由单元创建，不能循环要求尚未生效的 founding notary state 作为 receipt
-验证前提，但允许以下两个互斥且可独立验证的 ingress authority 来源：
+单次批准按 §8 绑定具体 target Realm、批准 nonce、操作种类与预先签署的完整普通 EventId。消费只在该 target Realm 的安全事务发生；同一 controller/Realm/nonce 不能用于另一个命令，已签批准不能复制到另一 Realm。批准者账户/PCR 的可撤销资格若要求当前有效，同样进入读锁集合。副作用执行记录随唯一 command outcome 恢复，未知执行结果不得产生第二次授权。
 
-1. 若 founding signer authority 可从单元外的已接受证据与候选 genesis 完整确定，则该 signer
-   MAY 直接签 receipt。Agent PCR 的唯一此类路径是：从候选 signed create 重算 founding
-   `NotaryValue` / `authority_set_ref`，再以 accepted Agent DID delegation 验证当前 controller
-   device；receipt signer 是 controller device，不能伪装成 Agent key。候选 create、Agent DID、
-   controller DID、Realm 与 `authorization_ref` 任一不闭合即 fail closed。
-2. 否则，完成全量预准入并为同一有序单元签发 `AuthorizationLease` 的 Station MAY
-   签发 receipt；receipt 的 `authority_set_ref` MUST 等于这些 lease 的
-   `authority_set_digest`，且每个 receipt 仍逐一绑定 exact Event digest，并以自身真实 admission
-   verification method 产生唯一 `authority_acks[0]`。此路径的 caller MUST 为完整单元逐项携带
-   同序 lease，MUST NOT 预填 `control_proposal_ack`；admitting Station 在重新验证
-   完整 lease-bound unit 后、提交事务内签发 receipt。这样 receipt 时间与 durable ingress 是同一
-   事实，也避免单 Event receipt 请求无法独立重建完整 genesis unit 的循环。
+## 7. 证明消费
 
-第二条不是把 Station 冒充为 founding notary，也不得与其它服务 receipt 拼成虚构
-notary quorum。两条路径都只确认 ingress，不产生授权、accepted state 或 finality；首个 accepted
-Seal 仍 MUST 由单元声明的 founding notary 签署并独立重算 genesis state。已有 accepted Realm
-authority、reanchor、recovery 或普通 Control Move 不得使用第二条例外。
+CbsProofBundle、exact Seal resolve、governance dependency resolve 继续承载可验证的安全状态证明。多域 `seal_basis.leaves` 每域恰一个已确认 head，canonical 排列；同域多 leaf 无效。不能从缺失证明推导未撤销，也不能以额外 service 回执替换 quorum。
 
-两条来源在 wire 上互斥：来源 1 的 caller 携带 authority-signed
-`control_proposal_ack`；来源 2 的 caller 携带完整 anchor-unit lease set 且 Ack 字段为空，
-由同一 admitting server 在原子 ingress 中产生并返回 receipt。实现不得同时接受两种证据，也不得
-把来源 2 的 lease 当作可调用单 Event receipt endpoint 的凭据。
+客户端 MLS Commit 保留 staged state 和 exact outbound bytes，唯一确认后安装；明确拒绝后才销毁暂存并重建。epoch 数字不是 fork winner。已知移除者的新发言立即被 gate 阻止；未见移除的分区副本仍可能暂时接纳旧 epoch，这是允许的撤销传播窗口。
 
-**authority-authored self-principal PCR Move**：human PCR genesis 已由 accepted Seal 建立后，若
-Control Move 同时满足 `realm_id=principal_control_realm_id(actor_id)`、current notary profile 为
-`single_signer(actor_id)`、唯一 producer proof method 精确为该 principal 当前 active accepted device 的 canonical DID URL（该 URL
-由 principal 当前 `did` 构成且 fragment 等于 `device_id`，不得把 `principal_id` 直接拼接 fragment），并通过 generation/fence、current Seal basis 与完整 Event signature 校验，
-则该 device 就是 proposal authority 且已经 author exact Move；这不是需要另一个 authority 签收的
-proposal。此类 Move **MUST** 省略独立 Control Proposal Ack，admitting service 仍须原子持久化
-canonical Event 与无 Ack 的 pending Control row，并只在同一 current device（或随后合法替代 authority）
-签署的 accepted successor Seal 覆盖该 digest 后 materialize effect。duplicate 必须回放首次 admission，
-不得补签 Ack 或推进期限。任一 profile、principal、device method、accepted generation 或 Seal basis不匹配
-都必须 fail closed，且不得使用本例外。Agent controller delegation、organization governance、
-ordinary Realm、re-anchor/recovery 与任意 threshold/mixed notary 继续走上文的显式 Ack/quorum 轨道。
-首次 admission 后的 canonical Event 会按 federation 规则追加且仅追加一个已验证的
-`station_admission` proof；Ack-less authority 重验必须只选择唯一 producer proof，并忽略该
-transport-origin attestation。实现不得因 admission proof 的存在把已接受 Event 误判为多 producer，
-也不得把 admission proof 当作 producer authority 或接受两个 producer proofs。
+## 8. 单次 Agent 批准的发布
 
-Proposal 决议窗口上限、Realm 参数跨字段约束、signed defer、terminal decision、逾期
-censorship evidence、finality 边界与机读合同的唯一规范来源是
-[`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation)。
-本节只定义上述 ingress authority 与 Ack-less 例外，不复述决议参数或 deadline 语义。
+`ak.agent.action_approve` 是目标 Realm 的安全命令，同时完成批准与 nonce 唯一分配；它不再是等待各接收站分别消费的私有批准。payload.approved_event_id 绑定 Agent 预先签署的完整普通 Event；后者不引用未来的 approval 或 Seal，因此没有内容地址自引用。提交 wrapper 必须携带 publication_event，其 bytes 在批准前可用于验证，但不得提前业务投递。
 
-## 5. CbsProofBundle
+批准的 actor 必须是该 Agent 的当前合法 controller，禁止 executed_by 代替实际 controller 签署；目标 Event 的完整 Agent AccountId、signer、Realm/scope、proposed_action、target、draft_content_digest（若存在）与批准内容全部匹配。执行器先验证原 Event 的全部规则，仅将正在确认的这一个 approval obligation 留待本命令满足；其它缺少的许可、批准或依赖不能跳过。controller/PCR/key/grant 的实际当前安全读取加入跨 Realm 事务，期限在安全确认的有界时钟规则下验证。
 
-peer durable submit 或 dependency response MAY 携带：
+唯一消费 Cell 是 `ak.component.agent.approval_consumption.v1`，subject 为 `[canonical_json(controller ActorId), approval_nonce]`，所在域恰为原 Event 的 Realm。初态必须未写入，成功值为完整 approved_event_id，revision 为批准命令 EventId。nonce 不释放；竞争批准至多一个成功，失败无发布效果。exact retry 返回原 outcome。批准者对不同 Realm 的批准是不同显式权限，不接受复制到另一个 Realm。
 
-```text
-CbsProofBundle {
-  target_seal_ref,
-  seals[],
-  control_moves[],
-  inclusion_proofs[],
-  availability_proofs[]
-}
-```
+确认后原 Event 按 D 模型发布，发送及重试保持 exact bytes。接收者用现有 cbs_proof_bundles 携带/解析该批准命令的 covering Seal 和确切消费 Cell 证明；这是允许的相关依赖，即使其 Seal 晚于原 Event 的 auth_context。必须校验消费值等于当前 EventId，不能用同内容、同 nonce 或同 Agent 的其它 Event 代替。cbs_proof_bundles 本身不授权。存储者必须与原 Event 一并保留这份证明，历史分类仍执行其它适用关闭约束。
 
-bundle 不签名、不创建新身份，也不是真相源。receiver MUST 独立验证对象 digest、签名、
-profile、predecessor/leaf closure、inclusion proof、state root 与 reducer 输出。
-`single_signer`/`threshold`/`mixed` 按 predecessor digest/range 补齐；`open_set` 按 target leaves
-补 ancestry closure。sender MAY 发送完整、可验证的有界超集；receiver 不得要求字节相同的
-“最小 bundle”。
-
-每个 bundle 只服务一个 `target_seal_ref`。全部可归属 Realm 的 Seal、Control Move、proof
-与 receipt MUST 属于 target 的同一 Realm；跨 Realm 对象是永久 `schema_violation`，不得当成
-缺依赖。数组必须按各对象 canonical id/digest 的 UTF-8 bytes 严格递增排列并去重；receiver
-MUST 拒绝乱序或重复输入，不得静默排序/删项后继续。超集只允许包含从 target 沿 predecessor /
-leaf、Seal delta/covered set、inclusion 或 availability obligation 可达的对象；不可达对象是
-过度披露与放大输入，MUST 拒绝。
-
-验证顺序固定为：
-
-```text
-结构、Realm、数量与 canonical order
-→ 对象 id/digest/signature
-→ predecessor/leaf 与 inclusion/availability proof
-→ covered Control Move canonical acceptance
-→ roots 与 reducer 重算
-→ target Seal projection
-→ 引用 target 的 Event authorization
-```
-
-同批到达但尚未进入合法 accepted Seal 的 Control Move 不能授权后续 Event。验证失败不得产生
-Event、Seal、reducer、projection 或 frontier 的部分副作用；实现 MAY 缓存已独立验证的原始对象，
-但缓存不是 accepted state。
-
-Kernel 硬上限：
-
-- canonical bundle body ≤ 8 MiB；
-- `seals[]` ≤ 256；
-- `control_moves[]` ≤ 1,024；
-- 两类 proof（`inclusion_proofs` 与 `availability_proofs`）**合计** ≤ 2,048。[`cbs-proof-bundle.schema.json`](../../artifacts/schemas/cbs-proof-bundle.schema.json) 对每个数组单独声明 `maxItems: 2048` 只是粗过滤，合计上界由 receiver 按本条强制；
-- 从 target leaf 向 genesis 的单路径深度 ≤ 4,096；
-- dependency fetch 最多连续 8 轮；每轮必须使 missing set 严格缩小。
-
-超限返回 `limit_exceeded`，不得按部分 bundle 改变控制状态。依赖不足返回
-`dependency_missing` 并给出精确、UTF-8 bytewise 排序、去重且有界的
-`missing_seal_refs[]` 与 `missing_event_digests[]`；结构性 Event 引用缺失另用
-`missing_event_ids[]`。对象完整但授权失败使用已登记的最窄 capability/policy reason（无更窄
-reason 时才用 `policy_denied`），不得新增含混的泛化“authorization rejected”reason，也不得与缺依赖混淆。
-
-peer dependency fetch 复用 `QUERY /_arkret/peer/events/resolve` 的只读
-`PeerEventsResolveRequestBody` / `PeerEventsResolveOutcome`。resolve 响应不得直接接受 Event 或
-Seal；闭包补齐后仍须通过新的 peer submit 请求重新求值。收到任何 submit 响应后，后续求值必须
-使用新的 `Idempotency-Key`；只有完全未收到响应的逐字节 transport retry 才复用原 key。
-
-## 6. 最小正反例
-
-正例：single-chain receiver 缺两个 predecessor，收到含三个 Seal 的可验证超集，忽略多余
-已知 Seal 后接受 target。
-
-反例：open-set 高风险 membership Move 只有不相交的两个少数签名集合。即使两个分支各自形成
-普通 Seal，也必须拒绝，不能用本地到达顺序选 winner。
-
-反例：Control Proposal Ack 到期但未进 Seal。该 proposal 仍未接受；客户端只产生 fault evidence，
-不得把 receipt 投影成治理状态。
+批准确认和待发布 outbox 必须原子持久化，崩溃只恢复原 Event；目标数据缺失时 pending，不换身份重建。私有 draft 的 published 状态从已确认批准与确切发布结果派生，不是共享准入权威。外部副作用仍要求唯一 command outcome 与下游幂等/fencing。未要求单次批准的普通 Agent 消息完全不走此流程。

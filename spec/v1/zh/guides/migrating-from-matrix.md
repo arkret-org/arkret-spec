@@ -258,10 +258,10 @@ Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 
 
 Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain difference 并自动选出 winner。Arkret v1 不再有全局 winner 算法：
 
-- Move 是多 cell 原子 CAS，precondition 不成立则整个 Move 失败。
-- Seal 是 ordering authority 对 Move frontier 的承诺，Hub、threshold、peer mesh 都只是 notary cell 的不同 value。
-- Lattice `join()` 对每个 cell 返回 value 或 `⊥`；安全关键 cell 使用 `bottom=reject` fail closed，不自动猜 winner。
-- 冲突修复是普通 Move（例如 `head_in [A,B]` + recovery capability），不是特殊裁决路径。
+- 普通数据采用因果寄存器、OR-set、日志或分片计数器；接收站独立验证，未知撤销允许传播窗口。
+- 安全命令在每 Realm 唯一确认序列中执行，实际读取/写入 revision 与授权必须重验，竞争 CAS 至多一个成功。
+- Seal 只确认安全状态，不覆盖普通消息。配置统一为 n=3f+1、2f+1 quorum，包含 f=0 单副本部署。
+- 普通多头通过有权因果后继消解；安全状态不做无序 join，也不存在任意 Cell reset。
 
 ### 6.4 Component Lattice
 
@@ -269,7 +269,7 @@ Matrix state event 没有显式的 cell 代数。Arkret v1 的 registry / Realm 
 
 - `cell_family`（稳定 `ak.component.*.v<n>` URI）
 - `cell_subject`（null、payload field 或 composite descriptor）
-- `lattice`（`or_set` / `mv_register` / `cas_register` / `fsm` / `counter` / `ordered_log`）
+- `state_model`（普通 `causal_register` / `or_set` / `counter` / `ordered_log`，安全 `sequenced_state`）
 - `bottom`（`reject` / `expose` / `inert`）
 
 Receiver 不识别核心 lattice type 时 fail closed，扩展 cell family 通过 schema/profile 显式 opt-in（规范见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9 与 [`models/common-fields.md`](../models/common-fields.md) §3）。
@@ -279,13 +279,13 @@ Receiver 不识别核心 lattice type 时 fail closed，扩展 cell family 通�
 Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引入 **MLS Governance Binding**（profile `ak.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
 - **Commit 侧** —— 每个 `ak.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把唯一 `security_frontier_digest` 哈希进 MLS transcript；digest 只覆盖会改变密钥访问资格的 closed state。
-- **Lattice 侧** —— MLS Commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 active security-frontier projection。E2EE message DataEvent 的普通 `seal_ref` 只用于 Event admission；MLS gate 独立检查消息 group/epoch 对应的 digest 是否仍等于当前 key-access frontier。
+- **Lattice 侧** —— MLS Commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 active security-frontier projection。E2EE message DataEvent 的普通 `auth_context.authority_refs` 只用于 Event admission；MLS gate 独立检查消息 group/epoch 对应的 digest 是否仍等于当前 key-access frontier。
 
 **理由**：member/leaf remove、device revoke 和 key-access policy 收紧被新 MLS epoch 覆盖后才限制新消息密钥；普通 capability、metadata 或 moderation 变化没有改变谁持有 epoch key，不应机械阻塞发送。active projection 使 Commit 所覆盖的精确 digest 可确定性查询，governance / recovery Move 不依赖它，因此 MLS 卡住不会阻止冲突修复。
 
 ### 6.6 Holder-Private Consent
 
-Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ak.consent.grant` / `ak.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `ak:cell:ak.component.consent.grant.v1:<consent_id>` cell（or_set, bottom=inert），作为 invite 与明确登记的非 Contact action 前置 gate；Contact/Personal DM只读取双方方向性 Contact heads，绝不读取 Consent。MIMI `request_consent` / `update_consent` 直接映射到这套独立机制。
+Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ak.consent.grant` / `ak.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `ak:cell:ak.component.consent.grant.v1:<consent_id>` cell（sequenced_state，value_shape=set），作为 invite 与明确登记的非 Contact action 前置 gate；Contact/Personal DM只读取双方方向性 Contact heads，绝不读取 Consent。MIMI `request_consent` / `update_consent` 直接映射到这套独立机制。
 
 **理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Move on consent cell 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 
@@ -305,7 +305,7 @@ Arkret 可以继续吸收 Matrix 的成熟经验：
 - [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Security Frontier Binding：`governance_binding.security_frontier_digest` 与 current winning group-state projection
 - [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) — device 密钥记录、prekey / fallback / KeyPackage claim、to-device 验证状态机、`push_target_id`、key backup envelope
 - [`identity/key-management.md`](../identity/key-management.md) — inception / principal / recovery / device / session / agent / KeyPackage 密钥层级，`backup_kind` 域隔离，社交恢复
-- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or_set lattice）
+- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（sequenced_state 安全集合）
 - [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) — MIMI policy component / consent 互译
 - [`extensions/applet-integration.md`](../extensions/applet-integration.md)
 - [`identity/identity-did.md`](../identity/identity-did.md)

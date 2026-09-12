@@ -7,21 +7,19 @@
     "spec/v1/artifacts/registry/event-kind-registry.json"
   ],
   "generated_by": "tools/artifact_lint (check_apply_patch_base_producers)",
-  "description": "Ledger of cell families that a registered apply_patch write targets while no registered write produces a base value for them. An apply_patch needs a base, and event-auth-state-resolution.md section 9.3.1.2 forbids closing the gap with a registered initial_value: the base must come from a registered create or genesis write. Opened 2026-09-07 with four entries by review/spec-open/2026-09-07-1305-four-apply-patch-targets-have-no-registered-producer.md and emptied the same day by decisions/0029. families_without_base_producer only shrinks; a new entry is a defect, not a baseline update. resolved_families is kept as the record of what each fix was.",
+  "description": "Ledger of cell families that a registered apply_patch write targets while no registered write produces a base value for them. An apply_patch needs a base, and event-auth-state-resolution.md section 6 forbids closing the gap with a registered initial_value: the base must come from a registered create or genesis write. Opened 2026-09-07 with four entries by review/spec-open/2026-09-07-1305-four-apply-patch-targets-have-no-registered-producer.md and emptied the same day by decisions/0029. families_without_base_producer only shrinks; a new entry is a defect, not a baseline update. resolved_families is kept as the record of what each fix was.",
   "families_without_base_producer": [],
   "resolved_families": [
     {
       "cell_family": "ak.component.circle.metadata.v1",
       "patch_writer": "ak.circle.update",
-      "lattice": "cas_register",
-      "note": "control-plane cas_register; its settled value is null until the first patch, so the object's truth is defined by an update rather than by a create. Highest priority of the four.",
+      "note": "Historical missing-base defect: a first patch could not supply its own base. The registered create now produces the initial value.",
       "resolved": "2026-09-07",
       "resolution": "ak.circle.create now sets payload.object on id:circle(envelope.event_id), atomically with the existing create-log and history-access effects."
     },
     {
       "cell_family": "ak.component.strand.metadata.v1",
       "patch_writer": "ak.strand.update",
-      "lattice": "mv_register",
       "note": "ak.strand.create writes ak.component.strand.object.v1 instead, so create and update land on different families.",
       "resolved": "2026-09-07",
       "resolution": "family retired; ak.strand.update patches ak.component.strand.object.v1, which ak.strand.create sets."
@@ -29,7 +27,6 @@
     {
       "cell_family": "ak.component.strand.tracks.v1",
       "patch_writer": "ak.strand.tracks.update",
-      "lattice": "mv_register",
       "note": "no create or genesis writer registers a base for the tracks subtree.",
       "resolved": "2026-09-07",
       "resolution": "family retired; ak.strand.tracks.update patches ak.component.strand.object.v1 for the same reason."
@@ -37,7 +34,6 @@
     {
       "cell_family": "ak.component.view.update.v1",
       "patch_writer": "ak.view.update",
-      "lattice": "mv_register",
       "note": "ak.view.create writes ak.component.view.create.v1 and ak.view.reconcile a third family; the update and reconcile subjects are also a bare string rather than id:view.",
       "resolved": "2026-09-07",
       "resolution": "family retired; create, update and reconcile all address ak.component.view.v1 with an id:view subject."

@@ -1,0 +1,193 @@
+{
+  "suite": "independent_admission",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.identity.independent_admission.v1"
+  },
+  "version": "2026-09-08",
+  "covers_vectors": [
+    "ak.vector.identity.independent_admission.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-station-authority-与准入证明normative",
+  "semantic_cases": [
+    {
+      "name": "account_id_is_complete_external_identity",
+      "given": "the same principal_id exists on two Stations",
+      "action": "compare accounts, memberships, Contacts or grants",
+      "expected": "equal_only_when_principal_id_and_station_id_both_match",
+      "invariants": [
+        "PCR ids and receipt digests are not equality inputs",
+        "each Station enforces create-once lineage uniqueness for its pair"
+      ]
+    },
+    {
+      "name": "same_core_two_station_accounts_never_merge_state",
+      "given": "the same normalized principal_id completes onboarding independently on Station A and Station B",
+      "action": "resolve, sync, federate, recover or operate either AccountId",
+      "expected": "two_independent_station_bound_accounts",
+      "invariants": [
+        "AccountId A and AccountId B differ because station_id differs",
+        "Event history and PCR lineage never migrate, merge or inherit across the two AccountIds",
+        "device context and active generation never merge or authorize the other AccountId",
+        "session grants and cursors are valid only for their original AccountId and Station audience",
+        "to-device queues and push registrations remain partitioned by their original AccountId",
+        "Station admission proofs remain signed by and attributable to the original station_id",
+        "neither Station may take over, redirect or rewrite the other Station's data lineage",
+        "DID representation, DID Document, handle and service route changes do not alter either AccountId"
+      ]
+    },
+    {
+      "name": "deactivated_pair_rejects_local_replacement_account",
+      "given": "an account for (principal_id, station_id) is deactivated and its lifetime uniqueness tombstone remains",
+      "action": "create a replacement account for the same pair on that Station",
+      "expected": "reject",
+      "invariants": [
+        "deactivation never releases pair uniqueness",
+        "no second PCR lineage or account_id is allocated on the same Station"
+      ]
+    },
+    {
+      "name": "deactivated_pair_policy_denies_reactivation",
+      "given": "the original account is deactivated and the deployment account-governance policy denies reactivation",
+      "action": "request recovery completion for that same account and PCR",
+      "expected": "reject",
+      "reason_code": "account_deactivated",
+      "invariants": [
+        "no account status, PCR, session or device authority write occurs",
+        "pair uniqueness and the original account binding remain reserved"
+      ]
+    },
+    {
+      "name": "account_auth_cannot_reactivate_without_pcr_recovery",
+      "given": "the original account is deactivated and fresh account authentication or admin approval succeeds but no completed PCR recovery closure exists",
+      "action": "request active status or a Standard grant",
+      "expected": "reject",
+      "reason_code": "account_deactivated",
+      "invariants": [
+        "account authentication and admin policy do not authorize a PCR replacement device",
+        "current DID control is insufficient unless the accepted PCR recovery policy enabled that factor"
+      ]
+    },
+    {
+      "name": "completed_recovery_reactivates_original_account",
+      "given": "the original account is deactivated, deployment policy allows reactivation, and the same PCR has a verified completed recovery receipt and completion attestation for a higher current device generation",
+      "action": "complete recovery grant issuance",
+      "expected": "reactivate_original_account_and_issue_new_generation_grant",
+      "invariants": [
+        "the original AccountId components and PCR lineage are unchanged",
+        "the Account Authority appends exactly one deactivated-to-active successor",
+        "the Standard grant binds the exact replacement device authorization Event and new generation",
+        "old sessions, devices, KeyPackages, delegations, push routes and pending deliveries remain terminal"
+      ]
+    },
+    {
+      "name": "deactivated_principal_may_onboard_at_another_station",
+      "given": "an account is deactivated on Station A",
+      "action": "create an account for the same principal_id on Station B",
+      "expected": "accept_after_full_onboarding",
+      "invariants": [
+        "the new account has a distinct station_id and account_id",
+        "the old account, session, device and KeyPackage resources remain terminal",
+        "onboarding at another Station is an independent holder choice, not a mandatory deactivation recovery path"
+      ]
+    },
+    {
+      "name": "direct_to_b_with_origin_offline",
+      "given": {
+        "origin_online": false,
+        "producer_proof_valid": true,
+        "portable_authority_complete": true,
+        "known_revocation": false
+      },
+      "expected": "accept_live",
+      "invariants": [
+        "same_full_account_id",
+        "no_new_account_at_b",
+        "no_station_countersignature",
+        "no_session_introspection",
+        "no_new_seal"
+      ]
+    },
+    {
+      "name": "pending_device_is_not_authorized",
+      "given": {
+        "device_activation_confirmed": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "missing_cited_evidence",
+      "given": {
+        "portable_authority_complete": false
+      },
+      "expected": "pending"
+    },
+    {
+      "name": "known_revocation_serializes_with_live_gate",
+      "given": {
+        "known_revocation": true
+      },
+      "expected": "reject_new_live"
+    },
+    {
+      "name": "historical_cut_includes_event",
+      "given": {
+        "valid_original_authority": true,
+        "in_all_applicable_cuts": true
+      },
+      "expected": "eligible"
+    },
+    {
+      "name": "historical_cut_excludes_event",
+      "given": {
+        "valid_original_authority": true,
+        "in_all_applicable_cuts": false,
+        "previously_delivered": true
+      },
+      "expected": "quarantined"
+    },
+    {
+      "name": "applet_crossed_installation_coordinates",
+      "given": {
+        "installation_matches_signed_producer_context": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "exact_retry",
+      "given": {
+        "same_canonical_event": true
+      },
+      "expected": "same_result_no_duplicate_effects"
+    }
+  ],
+  "control_finality_cases": [
+    {
+      "name": "unconfirmed_command",
+      "confirmed": false,
+      "dependencies_complete": true,
+      "expected": "pending"
+    },
+    {
+      "name": "confirmed_success_then_later_revoke",
+      "confirmed": true,
+      "dependencies_complete": true,
+      "outcome": "success",
+      "expected": "preserve_confirmed_outcome"
+    },
+    {
+      "name": "confirmed_rejection",
+      "confirmed": true,
+      "dependencies_complete": true,
+      "outcome": "rejected",
+      "expected": "no_effects"
+    },
+    {
+      "name": "missing_confirmed_prefix",
+      "confirmed": true,
+      "dependencies_complete": false,
+      "expected": "pending"
+    }
+  ]
+}

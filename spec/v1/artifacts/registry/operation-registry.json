@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.2",
+  "version": "2026-09-12.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T06:56:52+08:00",
+  "generated_at": "2026-09-12T10:22:27+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -526,7 +526,8 @@
       "mq": "edge.applet.actor.query.resolve",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view"
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view",
+      "notes": ""
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
@@ -611,7 +612,7 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": " Directional Event proof contract: Applet-to-Station events are producer-only caller submissions; Station-to-Applet events retain one producer and one original station_admission. Installed Applet origin is the exact verified installation target, including direct service actions; accepted admission binds applet_installation_digest resolved as the standard applet_installation_authority governance dependency. HTTP source signature never substitutes for Event producer, exact scope, grant, epoch or native act-on-behalf authority. Signals retain their independent proof regime."
+      "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. Signals retain their independent proof regime."
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -638,7 +639,8 @@
       "mq": "edge.applet.query.describe",
       "body_class": "non_streaming_json",
       "success_shape_kind": "service_describe",
-      "response_schema_ref": "schemas/service-describe.schema.json"
+      "response_schema_ref": "schemas/service-describe.schema.json",
+      "notes": ""
     },
     {
       "operation_id": "ak.edge.applet.read.ping.v1",
@@ -647,7 +649,8 @@
       "mq": "edge.applet.query.ping",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome"
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.edge.applet.read.protocol_metadata.v1",
@@ -656,7 +659,8 @@
       "mq": "edge.applet.query.protocol_metadata",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata"
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata",
+      "notes": ""
     },
     {
       "operation_id": "ak.edge.applet.realm.read.resolve.v1",
@@ -665,7 +669,8 @@
       "mq": "edge.applet.realm.query.resolve",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view"
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
+      "notes": ""
     },
     {
       "operation_id": "ak.edge.applet.third_party_locations.read.list.v1",
@@ -674,7 +679,8 @@
       "mq": "edge.applet.third_party_locations.query.list",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list"
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list",
+      "notes": ""
     },
     {
       "operation_id": "ak.edge.applet.third_party_users.read.list.v1",
@@ -683,7 +689,8 @@
       "mq": "edge.applet.third_party_users.query.list",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list"
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list",
+      "notes": ""
     },
     {
       "operation_id": "ak.edge.push.command.notify.v1",
@@ -699,7 +706,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.edge.push.command.register_device.v1",
@@ -718,7 +726,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.edge.push.command.unregister_device.v1",
@@ -736,7 +745,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.command.announce.v1",
@@ -761,7 +771,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.command.withdraw.v1",
@@ -785,7 +796,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.push.command.register.v1",
@@ -804,7 +816,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.describe.v1",
@@ -813,7 +826,8 @@
       "mq": "find.directory.query.describe",
       "body_class": "non_streaming_json",
       "success_shape_kind": "service_describe",
-      "response_schema_ref": "schemas/service-describe.schema.json"
+      "response_schema_ref": "schemas/service-describe.schema.json",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.list_handles_for_subject.v1",
@@ -823,7 +837,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
-      "response_schema_ref": "schemas/list-handles-for-subject-response.schema.json"
+      "response_schema_ref": "schemas/list-handles-for-subject-response.schema.json",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
@@ -833,7 +848,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",
@@ -843,7 +859,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.resolve_handle.v1",
@@ -853,7 +870,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.resolve_organization.v1",
@@ -863,7 +881,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.resolve_realm.v1",
@@ -873,7 +892,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.resolve_target.v1",
@@ -883,7 +903,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.search_actors.v1",
@@ -893,7 +914,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.search_organizations.v1",
@@ -903,7 +925,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.search_realms.v1",
@@ -913,7 +936,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.find.directory.read.search_users.v1",
@@ -923,7 +947,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome"
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.gate.account.command.abandon_identity_creation.v1",
@@ -1416,7 +1441,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.open.mimi.command.proxy_download.v1",
@@ -1438,7 +1464,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.open.mimi.command.report_abuse.v1",
@@ -1459,7 +1486,8 @@
         "event_kinds": [
           "ak.self.moderation.report"
         ]
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.open.mimi.command.request_consent.v1",
@@ -1478,7 +1506,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.open.mimi.command.submit_message.v1",
@@ -1497,7 +1526,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.open.mimi.command.update_consent.v1",
@@ -1556,7 +1586,8 @@
             }
           }
         ]
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
@@ -1575,7 +1606,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.open.mimi.read.identifiers.v1",
@@ -1585,7 +1617,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome"
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.open.mimi.read.provider_directory.v1",
@@ -1594,7 +1627,8 @@
       "mq": "open.mimi.query.provider_directory",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
-      "response_schema_ref": "schemas/mimi-interop.schema.json"
+      "response_schema_ref": "schemas/mimi-interop.schema.json",
+      "notes": ""
     },
     {
       "operation_id": "ak.open.service.read.resolution.v1",
@@ -1794,7 +1828,7 @@
       "http": "POST /_arkret/peer/events",
       "grpc": "PeerEvents/Submit",
       "mq": "peer.events.command.submit",
-      "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; explicit delayed/offline publication carries the lease and at least one original lease-bound IngressReceipt. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/join/action/executor/single-use evaluator as initial submission. Request-level CbsProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer. The request union additionally registers the discriminated direct_conversation_founding branch for the Direct Conversation founding exception of zh/sync/federation.md section 4.0.4: it carries exactly four ordered EventFederationSubmission items (Realm create, peer membership join, main Strand create, founder membership join), the source DirectConversationFoundingAcceptanceReceipt and bounded dependencies, and it omits service_binding_ref because the Realm does not yet exist at the receiver. The receiver freshly verifies transport source authority over founder_id, cutover/fence continuity when the receipt came from a pre-migration service, destination binding to the local participant, body closure, recomputed founding_unit_digest and coordinates, and the full direct_conversation_genesis admission before admitting the unit at one atomic boundary. The agent_membership_cascade branch preserves the origin-signed controller terminal Event and Agent transitions and applies the same exact controller pair/generation, pre-state exact-set, signer and atomicity rules as self submission. A missing dependency for either registered unit is a retryable top-level HTTP 409 dependency_missing with zero writes, never a per-item partial and never a permanent rejection.",
+      "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; an explicitly selected finite delayed-execution contract carries its required lease/receipt; ordinary offline chat requires neither. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/join/action/executor/single-use evaluator as initial submission. Request-level CbsProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer. The request union additionally registers the discriminated direct_conversation_founding branch for the Direct Conversation founding exception of zh/sync/federation.md section 4.0.4: it carries exactly four ordered EventFederationSubmission items (Realm create, peer membership join, main Strand create, founder membership join), the source DirectConversationFoundingAcceptanceReceipt and bounded dependencies, and it omits service_binding_ref because the Realm does not yet exist at the receiver. The receiver freshly verifies transport source authority over founder_id, cutover/fence continuity when the receipt came from a pre-migration service, destination binding to the local participant, body closure, recomputed founding_unit_digest and coordinates, and the full direct_conversation_genesis admission before admitting the unit at one atomic boundary. The agent_membership_cascade branch preserves the origin-signed controller terminal Event and Agent transitions and applies the same exact controller pair/generation, pre-state exact-set, signer and atomicity rules as self submission. A missing dependency for either registered unit is a retryable top-level HTTP 409 dependency_missing with zero writes, never a per-item partial and never a permanent rejection.",
       "body_class": "non_streaming_json",
       "max_items": 500,
       "success_shape_kind": "typed_response",
@@ -2023,7 +2057,7 @@
       "http": "POST /_arkret/peer/realm-joins/bootstrap",
       "grpc": "PeerRealmJoin/Bootstrap",
       "mq": "peer.realm_join.query.bootstrap",
-      "notes": "Bounded first-contact join bootstrap served by an existing joined-member Station to the applicant's own Station. The holder verifies service-to-service authentication, applicant_account_id.station_id equals the Source-Service-ID, itself as Destination-Service-ID, the exact invite in its accepted state for invite_accept, and the current join policy for member_join and knock. It returns only the join_rule, complete accepted seal_basis, live digest_algorithm and encryption_profile of that Realm plus one receiver-relative dependency bundle per basis leaf, and it never returns roster, message history, MLS material, unrelated cells or a reusable governance read grant. Missing, Bottom, non-unique or unverifiable joined values fail instead of defaulting. Unauthorized applicants, unknown Realms and invalid or revoked invites share one non-enumerating not_found under a fixed timing bucket. Registered intents are invite_accept, member_join and knock; restricted_join and application receipts are unsupported_feature. It also returns the exact-precondition evidence for the single control cell the declared intent will bind: per basis leaf either a state_root inclusion audit path or a sorted-neighbor non-membership proof, plus the occupying invite lifecycle and the exact ak.invite.create Control Move on the invite branch. It also returns the applicant's own predecessor Events at the highest accepted actor sequence the holder observes. Both are unverified input: an empty predecessor array proves neither an empty chain nor completeness, and no next_actor_seq, frontier_digest or service signature over frontier completeness exists. Holding material is not permission to disclose it: ordinary sync still requires its own membership, operation and data-scope authorization. A closure that cannot fit the response budget is limit_exceeded and is never truncated.",
+      "notes": "Bounded first-contact join bootstrap served by an existing joined-member Station to the applicant's own Station. The holder verifies service-to-service authentication, applicant_account_id.station_id equals the Source-Service-ID, itself as Destination-Service-ID, the exact invite in its accepted state for invite_accept, and the current join policy for member_join and knock. It returns only the join_rule, complete accepted seal_basis, live digest_algorithm and encryption_profile of that Realm plus one receiver-relative dependency bundle per basis leaf, and it never returns roster, message history, MLS material, unrelated cells or a reusable governance read grant. Missing, competing or unverifiable confirmed values fail instead of defaulting. Unauthorized applicants, unknown Realms and invalid or revoked invites share one non-enumerating not_found under a fixed timing bucket. Registered intents are invite_accept, member_join and knock; restricted_join and application receipts are unsupported_feature. It also returns the exact-precondition evidence for the single control cell the declared intent will bind: per basis leaf either a state_root inclusion audit path or a sorted-neighbor non-membership proof, plus the occupying invite lifecycle and the exact ak.invite.create Control Move on the invite branch. It also returns the applicant's own predecessor Events at the highest accepted actor sequence the holder observes. Both are unverified input: an empty predecessor array proves neither an empty chain nor completeness, and no next_actor_seq, frontier_digest or service signature over frontier completeness exists. Holding material is not permission to disclose it: ordinary sync still requires its own membership, operation and data-scope authorization. A closure that cannot fit the response budget is limit_exceeded and is never truncated.",
       "body_class": "non_streaming_json",
       "max_items": 64,
       "success_shape_kind": "typed_response",
@@ -2059,7 +2093,7 @@
       "http": "POST /_arkret/peer/seals/governance-dependencies",
       "grpc": "PeerSeals/GovernanceDependencies",
       "mq": "peer.seals.read.governance_dependencies",
-      "notes": "Authenticated S2S exact resolve of five registered governance-dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, MinimalMetadataMlsLeafSignerEvidence, and CollisionVariantRecord. Omitted history_traversal_access normally uses ordinary Realm/federation visibility. Its only pre-visibility exception is exact content-addressed AuthenticatedSignerResolutionEvidence whose branch is Service and signer_id equals the responding service itself, so a first-contact receiver can verify that service's historical admission signature without gaining Principal, AccountDevice, Agent, third-party service, Seal, Control Move, membership, roster, or general dependency visibility. The optional pending_archive_replica branch is the sole retained-cut exception. Member request replicas never authorize traversal. Unknown, unauthorized, outside-cut and missing selectors are same-shape; complete bounds failure returns no partial items or cursor. Includes content-addressed applet_installation_authority dependencies containing the original accepted registration_event and capability_grant_event; consumers authenticate both Events and derive the historical install target before verifying an Applet admission controller.",
+      "notes": "Authenticated S2S exact resolve of five registered governance-dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, MinimalMetadataMlsLeafSignerEvidence, and CollisionVariantRecord. Omitted history_traversal_access normally uses ordinary Realm/federation visibility. Its only pre-visibility exception is exact content-addressed AuthenticatedSignerResolutionEvidence whose branch is Service and signer_id equals the responding service itself, so a first-contact receiver can verify that service's historical producer signature without gaining Principal, AccountDevice, Agent, third-party service, Seal, Control Move, membership, roster, or general dependency visibility. The optional pending_archive_replica branch is the sole retained-cut exception. Member request replicas never authorize traversal. Unknown, unauthorized, outside-cut and missing selectors are same-shape; complete bounds failure returns no partial items or cursor. Includes content-addressed applet_installation_authority dependencies containing the original accepted registration_event and capability_grant_event; consumers authenticate both Events and derive the historical install target before verifying an Applet admission controller.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 8388608,
       "success_shape_kind": "typed_response",
@@ -2075,7 +2109,7 @@
       "http": "POST /_arkret/peer/seals/mls-governance-proof",
       "grpc": "PeerSeals/MlsGovernanceProof",
       "mq": "peer.seals.read.mls_governance_proof",
-      "notes": "Near-current S2S group_security_frontier query only. It binds exact base/target Seal antichains and the closed selector. A pre-Genesis 0 -> 0 request carries proposed_group_genesis_binding in its digest/cache identity; accepted-state requests forbid it and use the winning immutable Genesis binding. Bulk or old history uses receipt/replica-bound direct Seal traversal through standard Event, Seal and governance-dependency resolve. Exact canonical request bytes are bounded by 8 MiB; the complete response remains independently bounded by 1 MiB.",
+      "notes": "Near-current S2S group_security_frontier query only. It binds exact base/target Seal bases with exactly one confirmed head per Realm and the closed selector. A pre-Genesis 0 -> 0 request carries proposed_group_genesis_binding in its digest/cache identity; accepted-state requests forbid it and use the winning immutable Genesis binding. Bulk or old history uses receipt/replica-bound direct Seal traversal through standard Event, Seal and governance-dependency resolve. Exact canonical request bytes are bounded by 8 MiB; the complete response remains independently bounded by 1 MiB.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 8388608,
       "success_shape_kind": "typed_response",
@@ -2146,7 +2180,8 @@
       "mq": "root.identity.document.resource.get",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView"
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView",
+      "notes": ""
     },
     {
       "operation_id": "ak.root.identity.log.read.list.v1",
@@ -2155,7 +2190,8 @@
       "mq": "root.identity.log.query.list",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome"
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.root.identity.organization_registration.command.ensure.v1",
@@ -2278,7 +2314,8 @@
       "mq": "root.identity.receipts.query.list",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome"
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.root.identity.recovery_policy.command.publish.v1",
@@ -2364,7 +2401,8 @@
       "mq": "root.identity.recovery_session.resource.get",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state"
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
+      "notes": ""
     },
     {
       "operation_id": "ak.root.identity.registry.read.describe.v1",
@@ -2373,7 +2411,8 @@
       "mq": "root.identity.registry.query.describe",
       "body_class": "non_streaming_json",
       "success_shape_kind": "service_describe",
-      "response_schema_ref": "schemas/service-describe.schema.json"
+      "response_schema_ref": "schemas/service-describe.schema.json",
+      "notes": ""
     },
     {
       "operation_id": "ak.root.identity.service_registration.command.ensure.v1",
@@ -2451,7 +2490,8 @@
       "mq": "self.account.query.describe",
       "body_class": "non_streaming_json",
       "success_shape_kind": "service_describe",
-      "response_schema_ref": "schemas/service-describe.schema.json"
+      "response_schema_ref": "schemas/service-describe.schema.json",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.account.read.viewer.v1",
@@ -2558,7 +2598,8 @@
         "event_kinds": [
           "ak.self.agent.deactivate"
         ]
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.agent.command.pause.v1",
@@ -2580,7 +2621,8 @@
         "event_kinds": [
           "ak.self.agent.pause"
         ]
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.agent.command.provision.v1",
@@ -2598,7 +2640,8 @@
         "event_kinds": [
           "ak.agent.provision"
         ]
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.agent.command.renew_pairing.v1",
@@ -2618,7 +2661,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.agent.command.resume.v1",
@@ -2640,7 +2684,8 @@
         "event_kinds": [
           "ak.self.agent.resume"
         ]
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get.v1",
@@ -2649,7 +2694,8 @@
       "mq": "self.agent.participation.resource.get",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.agent.participation.resource.replace.v1",
@@ -2675,7 +2721,8 @@
       "mq": "self.agent.query.list",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list"
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.agent.resource.get.v1",
@@ -2748,7 +2795,8 @@
           "ak.identity.accountability_grant",
           "ak.profile.create"
         ]
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.applet.command.revoke.v1",
@@ -2786,7 +2834,8 @@
         "completion_condition": "all_required_events_accepted_or_duplicate_and_all_external_local_steps_accepted",
         "restart_recovery": "resume_exact_persisted_submissions_and_pending_steps",
         "first_revoke_acceptance_fences_future_writes": true
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.applet.ghost.command.preview.v1",
@@ -2825,7 +2874,8 @@
           "ak.identity.accountability_grant",
           "ak.profile.create"
         ]
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.applet.install.command.preview.v1",
@@ -2841,7 +2891,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "No Event is admitted, but the Station atomically persists the branch-subject winner, exact unsigned payload, exact signed request, and superseded generations before returning"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.applet.revoke.command.preview.v1",
@@ -2857,7 +2908,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "query_only_recomputed_revoke_plan"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.authorization_leases.command.issue.v1",
@@ -2906,7 +2958,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome"
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.blob.command.presign.v1",
@@ -2936,7 +2989,8 @@
       "grpc": "SelfBlob/Get",
       "mq": "self.blob.resource.get",
       "body_class": "binary_stream",
-      "success_shape_kind": "binary_stream"
+      "success_shape_kind": "binary_stream",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.blob.resource.head.v1",
@@ -2944,7 +2998,8 @@
       "grpc": "SelfBlob/Head",
       "mq": "self.blob.resource.head",
       "body_class": "binary_stream",
-      "success_shape_kind": "metadata_headers"
+      "success_shape_kind": "metadata_headers",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.blob.upload.create.v1",
@@ -2961,7 +3016,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.call.media.exchange.issue_token.v1",
@@ -3095,7 +3151,7 @@
       "http": "POST /_arkret/self/consent/cells/grant",
       "grpc": "SelfConsent/Grant",
       "mq": "self.consent.command.grant",
-      "notes": "Submits the caller-signed ak.consent.grant Control Move carried in grant_event through ordinary Event admission. payload.consent_id is the producer-allocated cell subject and the or_set add dot is 'ak:event:<enclosing event_id>:<write_index>', so the service chooses neither and MUST NOT synthesize the Event. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
+      "notes": "Submits the caller-signed ak.consent.grant Control Move carried in grant_event through ordinary Event admission. payload.consent_id is the producer-allocated cell subject and the security-set add dot is 'ak:event:<enclosing event_id>:<write_index>', so the service chooses neither and MUST NOT synthesize the Event. The authenticated actor MUST be authorized to write the holder's consent (the exact current authority-root controller; root_control_only forbids independent controller/Agent delegation).",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -3401,7 +3457,8 @@
       "mq": "self.device_messages.query.list",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome"
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.direct_conversation.read.resolve.v1",
@@ -3419,7 +3476,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbsProofBundle values are independently verified publication evidence outside the Event digest. Before accepting a device-authored Event or appending station_admission, the origin Station reads the exact durable device revocation state in the same admission transaction; revocation_pending returns device_revocation_pending and zero Event/proof writes. Accepted ak.device.revoke is Ack-required and atomically writes its derived exact device/generation pending record. For a locally authored Realm Event, canonical acceptance, the complete distinct recipient-service target set and every target outbox intent commit atomically. A missing route creates durable pending_route and never rejects the Event; each send rechecks the frozen exact joined-member ActorId routing authority, authority loss terminally cancels the old target, and submit exposes only pending_delivery_count; clients derive delivery state as pending iff the count is non-zero. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The direct_conversation_founding branch remains its closed four-Event atomic unit: Realm create, peer membership join, main Strand create and founder membership join. The agent_membership_cascade branch is the only controller-cascade carrier: atomic_self_leave accepts the controller terminal Event and the exact pre-state Agent leave set all-or-nothing; emergency_terminal accepts a third-party terminal Event and atomically freezes a durable exact-set cleanup intent without synthesizing Agent Events; emergency_cleanup accepts only the same initiator's complete signed Agent leave set and commits it atomically. Effective Agent membership is invalid immediately after the terminal transition, independent of cleanup completion. Exact replay returns the original byte-identical outcome, while the same cleanup intent with different canonical content is duplicate_conflict.",
+      "notes": "A single ordinary Event may authenticate itself using ProofAuthenticatedPublication at any eligible receiver, retaining its full original ActorId/AccountId. No SessionGrant, origin handoff, origin device-check callback or fresh authority lease is required for that branch. Security, batch, private and atomic bootstrap requests keep their registered authentication requirements. Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbsProofBundle values are independently verified publication evidence outside the Event digest. Before live acceptance, each receiving Station checks all locally known exact device revocation fences in the same durable admission transaction; revocation_pending returns device_revocation_pending and zero Event/proof writes. Accepted ak.device.revoke is Ack-required and atomically writes its derived exact device/generation pending record. For a locally authored Realm Event, canonical acceptance, the complete distinct recipient-service target set and every target outbox intent commit atomically. A missing route creates durable pending_route and never rejects the Event; each send rechecks the frozen exact joined-member ActorId routing authority, authority loss terminally cancels the old target, and submit exposes only pending_delivery_count; clients derive delivery state as pending iff the count is non-zero. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The direct_conversation_founding branch remains its closed four-Event atomic unit: Realm create, peer membership join, main Strand create and founder membership join. The agent_membership_cascade branch is the only controller-cascade carrier: atomic_self_leave accepts the controller terminal Event and the exact pre-state Agent leave set all-or-nothing; emergency_terminal accepts a third-party terminal Event and atomically freezes a durable exact-set cleanup intent without synthesizing Agent Events; emergency_cleanup accepts only the same initiator's complete signed Agent leave set and commits it atomically. Effective Agent membership is invalid immediately after the terminal transition, independent of cleanup completion. Exact replay returns the original byte-identical outcome, while the same cleanup intent with different canonical content is duplicate_conflict.",
       "body_class": "non_streaming_json",
       "max_items": 1000,
       "success_shape_kind": "typed_response",
@@ -3435,6 +3492,16 @@
           "$request.controller_transition.event.kind",
           "$request.agent_transitions[*].event.kind"
         ]
+      },
+      "body_proof_admission": {
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProofAuthenticatedPublication",
+        "principal_source": "event.executed_by_or_actor_id",
+        "identity_rewrite": false,
+        "requires_session": false,
+        "requires_origin_callback": false,
+        "requires_new_seal": false,
+        "invalid_supplied_transport_credentials": "reject",
+        "response_scope": "exact_submitted_event_only"
       }
     },
     {
@@ -3456,7 +3523,8 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "service_describe",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody",
-      "response_schema_ref": "schemas/service-describe.schema.json"
+      "response_schema_ref": "schemas/service-describe.schema.json",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.events.read.frontier.v1",
@@ -3498,7 +3566,8 @@
       "mq": "self.events.resource.get",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventView"
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventView",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.events.stream.subscribe.v1",
@@ -3796,7 +3865,8 @@
       "mq": "self.keys.backups.query.list",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list"
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.keys.backups.resource.delete.v1",
@@ -3829,7 +3899,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.keys.command.claim.v1",
@@ -3849,7 +3920,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.claim.v1",
@@ -3892,7 +3964,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
@@ -3913,7 +3986,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.keys.keypackages.upload.create.v1",
@@ -3935,7 +4009,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.keys.read.lookup.v1",
@@ -3968,7 +4043,8 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
+      },
+      "notes": ""
     },
     {
       "operation_id": "ak.self.media.read.ice_config.v1",
@@ -3978,14 +4054,15 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
-      "response_schema_ref": "schemas/ice-config-response.schema.json"
+      "response_schema_ref": "schemas/ice-config-response.schema.json",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.media_service_binding.read.resolve.v1",
       "http": "POST /_arkret/self/media-service-bindings/query",
       "grpc": "SelfMediaServiceBinding/Resolve",
       "mq": "self.media_service_binding.query.resolve",
-      "notes": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted ak.component.realm.media_service.v1 cell. Membership visibility and the anchored cell are evaluated under one accepted antichain; the caller supplies no service id, DID, base URL or candidate origin. The result resolves service identity, purpose and route only: it releases no media key, no backend token and no plaintext-visibility authorization, and expires_at bounds route and key reuse to at most 300 seconds. Invisible Realm or absent anchor returns not_found; unresolved accepted state returns temporarily_unavailable. Request and complete response canonical JSON are each bounded to 64 KiB.",
+      "notes": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted ak.component.realm.media_service.v1 cell. Membership visibility and the anchored cell are evaluated under one confirmed basis with exactly one head per Realm; the caller supplies no service id, DID, base URL or candidate origin. The result resolves service identity, purpose and route only: it releases no media key, no backend token and no plaintext-visibility authorization, and expires_at bounds route and key reuse to at most 300 seconds. Invisible Realm or absent anchor returns not_found; unresolved accepted state returns temporarily_unavailable. Request and complete response canonical JSON are each bounded to 64 KiB.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 65536,
       "max_items": 16,
@@ -4037,7 +4114,7 @@
       "http": "POST /_arkret/self/moderation/franking/seal-observation",
       "grpc": "SelfModeration/FrankingSealObservation",
       "mq": "self.moderation.read.franking_seal_observation",
-      "notes": "Authorization-gated data-plane observation returning the exact durable franking proof Event, its target Event, the first covering signed Seal, an RFC 6962 inclusion path against data_event_set_root, and historical service signer evidence. It never substitutes a control-plane delta proof.",
+      "notes": "Optional authenticated existence anchor for the exact franking proof Event, its target and service key validity interval. Return the exact Seal anchor and necessary original ancestry; ordinary chat never waits for this evidence.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request",
@@ -4210,7 +4287,8 @@
       "mq": "self.realm_state_snapshot.query.manifest_head",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
-      "response_schema_ref": "schemas/realm-state-snapshot.schema.json"
+      "response_schema_ref": "schemas/realm-state-snapshot.schema.json",
+      "notes": ""
     },
     {
       "operation_id": "ak.self.relation_conflicts.read.candidates.v1",
@@ -4229,7 +4307,7 @@
       "http": "POST /_arkret/self/seals/prepare",
       "grpc": "SelfSeals/Prepare",
       "mq": "self.seals.command.prepare",
-      "notes": "Prepare an ordinary device-signed human/Agent PCR successor Seal. The authenticated Account Station validates exact current predecessor basis, accepted uncovered Control Moves, current signer authority, effective cell effects, roots and availability holder eligibility. It durably stores receipt and historical authority dependencies and returns only the bounded unsigned Seal body. Client binds realm, basis, exact delta and frozen HLC then signs canonical bytes; no client governance history or dependency verification. Before the first body leaves the service the Station MUST atomically and durably freeze one canonical request and body digest for the (realm_id, signer slot, predecessor basis) signing-slot fence. That exact canonical request always replays the byte-identical body; every other request on the same fence is refused with seal_signer_slot_fenced and zero writes. Internal timeouts, lease release or expiry, cache eviction, failover and restart MUST NOT release the fence, because the device may already have signed offline; only an actually advanced predecessor basis, a formal notary rotation, an advanced signer device generation or an accepted equivocation fault opens a new signing position. Preparation is not Seal admission; submit rechecks authority, freshness and current basis. Digest transitions and compaction are outside this operation.",
+      "notes": "Prepare only an f=0 device-signed human/Agent PCR successor Seal. The authenticated Account Station validates the exact confirmed predecessor, configuration, ordered command outcomes, full final effects and availability dependencies. It durably freezes the complete canonical request, body and view=0 before responding. Client compares Realm, predecessor, configuration, requested execution order and HLC, then signs the canonical ak.seal.commit.v1 transcript, not raw body bytes. Exact retry returns the identical result. Timeout, cache eviction and restart do not release the fence; only a confirmed successor or legal configuration handoff advances it. This operation is not multi-replica prepare/view-change transport. Ordinary data needs no prepare. Digest transitions and compaction use their registered paths.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "canonical_hash",
@@ -4247,7 +4325,7 @@
       "http": "POST /_arkret/self/seals",
       "grpc": "SelfSeals/Submit",
       "mq": "self.seals.command.submit",
-      "notes": "Submit one client-signed Seal directly. A Seal is not an Event and never uses EventInitialSubmission. Except for the canonical genesis exception, the signature MUST satisfy predecessor governance notary actor/threshold rules. The receiver recomputes Seal id, recursive coverage, completeness_root, state_root, signer authority and signature.",
+      "notes": "Submit a complete Seal and its commit quorum certificate directly. Recompute stable body identity, single predecessor continuity, ordered command results, registered effects, safety roots, configuration and ak.seal.commit.v1 signatures. Ordinary data cannot enter the safety delta.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "canonical_hash",
@@ -4265,7 +4343,7 @@
       "http": "QUERY /_arkret/self/seals/frontier",
       "grpc": "SelfSeals/Frontier",
       "mq": "self.seals.read.frontier",
-      "notes": "Realm Seal frontier discovery. Returns the complete canonical accepted Seal antichain, governance health and observation coordinate.",
+      "notes": "Realm Seal frontier discovery. Returns the complete canonical accepted Seal basis with exactly one confirmed head per Realm, governance health and observation coordinate.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
@@ -4300,7 +4378,7 @@
       "http": "POST /_arkret/self/seals/membership-authority",
       "grpc": "SelfSeals/MembershipAuthority",
       "mq": "self.seals.read.membership_authority",
-      "notes": "Current accepted membership incarnation for one exact Realm/Circle and ActorId at the current antichain. Recheck current requester visibility and target membership; no client replay, all-members list or history closure. Request and complete response each at most 64 KiB.",
+      "notes": "Current accepted membership incarnation for one exact Realm/Circle and ActorId at the current confirmed basis. Recheck current requester visibility and target membership; no client replay, all-members list or history closure. Request and complete response each at most 64 KiB.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 65536,
       "success_shape_kind": "typed_response",
@@ -4457,7 +4535,7 @@
       "http": "POST /_arkret/self/signer-keys/query",
       "grpc": "SelfSignerKeys/Resolve",
       "mq": "self.signer_keys.query.resolve",
-      "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Historical receiver is this authenticated recipient Station and the Event must be locally accepted and readable; Device history uses the original signed Station admission key, Agent history preserves frozen authority. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Exactly one resolved/unavailable result per selector; no portable closure, caller-selected receiver, or current-directory substitution for history.",
+      "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Historical receiver is this authenticated recipient Station and the Event must be locally accepted and readable; Device and Agent history independently resolve the original producer key from portable immutable authorization evidence and apply known closure decisions. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Exactly one resolved/unavailable result per selector; no portable closure, caller-selected receiver, or current-directory substitution for history.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",
@@ -4502,7 +4580,8 @@
       "mq": "server.query.describe",
       "body_class": "non_streaming_json",
       "success_shape_kind": "service_describe",
-      "response_schema_ref": "schemas/service-describe.schema.json"
+      "response_schema_ref": "schemas/service-describe.schema.json",
+      "notes": ""
     }
   ],
   "success_shape_kind_definitions": {

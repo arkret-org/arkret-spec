@@ -1451,7 +1451,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.lattice.lww_open_set.v1",
+      "vector_id": "ak.vector.lattice.concurrent_heads_no_winner.v1",
       "steps": [
         {
           "name": "input_order_independent_winner",
@@ -1470,7 +1470,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "ak.vector.lattice.lww_open_set.v1",
+              "vector_id": "ak.vector.lattice.concurrent_heads_no_winner.v1",
               "preconditions": {
                 "siblings": [
                   "ak:event:AUlycOVeLSbMf8PaE6qF8aMP-psSJxmcjHUKaRk30Aph",

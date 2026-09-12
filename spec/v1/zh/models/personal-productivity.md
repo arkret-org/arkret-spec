@@ -47,7 +47,7 @@ Event ID 或 Message ID。值必须验证为 `ak.schema.personal_productivity.v1
 plaintext value，并在写入 account-data 前加密。`message_payload` MUST 同时省略 `event_id` 与
 `message_id`，计划中不得预铸、缓存或暗示未来的最终 Event / Message 身份。
 
-同一 `scheduled_send_id` 的计划更新完全沿用 encrypted account-data `cas_register`：
+同一 `scheduled_send_id` 的计划更新完全沿用 encrypted account-data `server_revision_cas`：
 写入方携带 `expected_revision`，revision 不匹配返回 `cas_conflict` 并由客户端解密、
 合并后重试；服务端不得解密 payload，也不得为该 key 另造
 `duplicate_conflict`。

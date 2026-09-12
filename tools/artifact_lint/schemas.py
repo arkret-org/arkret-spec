@@ -223,7 +223,6 @@ _INLINE_DID_KEY_ENCODING_POINTERS = {
     "device-pairing.schema.json#/$defs/device_pairing_target_proof/properties/device_public_key_did/pattern",
     "keys-operations.schema.json#/$defs/did_key/pattern",
     "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key_did/pattern",
-    "event-envelope.schema.json#/$defs/station_admission_proof/properties/producer_signing_key_did/pattern",
 }
 
 
@@ -2685,7 +2684,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     # Mis-routed dispatch detector: each (kind, payload_class) pair must either
     # appear in KIND_PAYLOAD_RENAME_EXEMPTIONS verbatim, or embed the kind's
     # last dot-segment as a case-insensitive substring of the class name.
-    # Catches typo / copy-paste errors like `ak.self.agent.command.pause.v1 → agent_resume_payload`.
+    # Catches typo / copy-paste errors like `ak.self.agent.command.pause.v1 â†’ agent_resume_payload`.
     seen_pairs: set[tuple[str, str]] = set()
     for kind, class_name in collect_payload_dispatch_pairs(data):
         if (kind, class_name) in seen_pairs:
@@ -3053,8 +3052,8 @@ def check_preimage_event_identity_commitments(lint: Lint) -> None:
     `payload` and `refs`. Class A (the enclosing Event's own identity or a retype of it)
     and class B (a not-yet-formed sibling of the same atomic unit or ordered submit
     batch) have no fixed point, so they are unconstructible and are rejected here
-    unconditionally. Class C — a one-way forward declaration naming a later Event from
-    another submission whose bytes the author already froze — is constructible and is
+    unconditionally. Class C â€” a one-way forward declaration naming a later Event from
+    another submission whose bytes the author already froze â€” is constructible and is
     allowed only when `preimage-identity-exemption-registry.json` carries an active row
     for exactly that field.
 
@@ -3276,7 +3275,6 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("signer-key-operations.schema.json", ("$defs", "historical_account_device_selector"), "event_id", "event_digest"),
     ("signer-key-operations.schema.json", ("$defs", "historical_agent_selector"), "event_id", "event_digest"),
     ("agent-signer-evidence.schema.json", ("$defs", "account_status_event_basis"), "status_event_id", "status_event_digest"),
-    ("agent-signer-evidence.schema.json", ("$defs", "event_admission_receipt"), "event_id", "event_digest"),
     ("audit-ryw-receipt.schema.json", (), "audit_event_id", "audit_event_digest"),
     ("event-payload.schema.json", ("$defs", "audit_accessed_payload"), "paired_event_id", "paired_event_digest"),
     ("history-key.schema.json", ("$defs", "event_candidate_binding", "properties", "event_binding_key"), "event_id", "event_digest"),
@@ -3300,15 +3298,11 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationDelegationCore"), "join_event_id", "join_event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MembershipJoinAcceptedProof"), "join_event_id", "join_event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "ReferenceLockedEventStub"), "event_id", "event_digest"),
-    ("event-envelope.schema.json", ("$defs", "station_admission_proof"), "signer_resolution_evidence_ref", "signer_resolution_evidence_digest"),
-    ("event-envelope.schema.json", ("$defs", "station_admission_proof"), "producer_signer_resolution_evidence_ref", "producer_signer_resolution_evidence_digest"),
     ("event-envelope.schema.json", ("$defs", "producer_event_proof"), "signer_resolution_evidence_ref", "signer_resolution_evidence_digest"),
     ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "principal_signer_evidence"), "attester_signer_evidence_ref", "attester_signer_evidence_digest"),
     ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "attester_signer_evidence_ref", "attester_signer_evidence_digest"),
     ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "account_authority_signer_evidence_ref", "account_authority_signer_evidence_digest"),
-    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "receiver_signer_evidence_ref", "receiver_signer_evidence_digest"),
     ("availability-receipt.schema.json", (), "holder_signer_evidence_ref", "holder_signer_evidence_digest"),
-    ("agent-signer-evidence.schema.json", ("$defs", "event_admission_receipt"), "producer_signer_resolution_evidence_ref", "producer_signer_resolution_evidence_digest"),
     ("history-key.schema.json", ("$defs", "history_key_response_signing_input"), "source_signer_evidence_ref", "source_signer_evidence_digest"),
     ("history-key.schema.json", ("$defs", "minimal_metadata_mls_leaf_signer_evidence"), "identity_link_signer_evidence_ref", "identity_link_signer_evidence_digest"),
     ("history-key.schema.json", ("$defs", "history_key_response_record"), "release_service_signer_evidence_ref", "release_service_signer_evidence_digest"),
@@ -3901,84 +3895,24 @@ def check_classification_context_paths(lint: Lint) -> None:
 
 
 def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
-    """Pin Circle lifecycle to the source-Station serializable admission barrier."""
+    """Verify receiver-local gates and deterministic Circle closure classification."""
     path = ARTIFACTS / "fixtures" / "circle-scope-fixture.json"
     data = load_json(lint, path)
-    if not isinstance(data, dict):
-        return
-
-    vector_id = "ak.vector.circle.lifecycle_admission_barrier.v1"
-    covers = data.get("covers_vectors", [])
-    if not isinstance(covers, list) or vector_id not in covers:
-        lint.fail(path, f"covers_vectors must include {vector_id}")
-
-    rows = data.get("lifecycle_basis_cases")
-    if not isinstance(rows, list):
-        lint.fail(path, "lifecycle_basis_cases must be an array")
-        return
-    cases = {
-        row.get("name"): row
-        for row in rows
-        if isinstance(row, dict) and isinstance(row.get("name"), str)
-    }
-    required_names = {
-        "data_event_basis_already_archived",
-        "admission_before_archive_is_retained",
-        "archive_before_admission_blocks",
-        "open_set_joined_archive_blocks_admission",
-        "tombstone_before_admission_blocks",
-        "restore_requires_new_signed_event",
-        "control_move_basis_active",
-        "control_move_basis_archived",
-    }
-    missing = sorted(required_names - cases.keys())
-    if missing:
-        lint.fail(path, f"missing Circle lifecycle basis case(s): {missing}")
-        return
-
-    archived = cases["data_event_basis_already_archived"]
-    if archived.get("evaluation_basis") != "seal_ref" or archived.get("circle_state_at_basis") != "archived":
-        lint.fail(path, "data_event_basis_already_archived must evaluate archived state at seal_ref")
-    if archived.get("expected") != {"result": "failed_precondition", "reason": "circle_not_active"}:
-        lint.fail(path, "an inactive Circle in the Event basis must reject with circle_not_active")
-
-    admitted = cases["admission_before_archive_is_retained"].get("expected", {})
-    if admitted.get("result") != "accept_and_retain" or admitted.get("retroactive_removal_forbidden") is not True:
-        lint.fail(path, "an Event admitted before archive must remain accepted permanently")
-
-    for name in (
-        "archive_before_admission_blocks",
-        "open_set_joined_archive_blocks_admission",
-        "tombstone_before_admission_blocks",
-    ):
-        expected = cases[name].get("expected", {})
-        if expected.get("result") != "failed_precondition" or expected.get("reason") != "circle_not_active":
-            lint.fail(path, f"{name} must fail with circle_not_active")
-        if expected.get("station_admission_appended") is not False:
-            lint.fail(path, f"{name} must not append station_admission")
-
-    concurrent = cases["open_set_joined_archive_blocks_admission"]
-    if concurrent.get("evaluation_basis") != "origin_serializable_joined_control_view":
-        lint.fail(path, "open_set archive must be evaluated in the origin serializable joined control view")
-
-    restore_expected = cases["restore_requires_new_signed_event"].get("expected", {})
-    if restore_expected.get("requires_new_event_signed_after_restore") is not True:
-        lint.fail(path, "restore must require a new Event signed after restore")
-
-    control_active = cases["control_move_basis_active"]
-    control_archived = cases["control_move_basis_archived"]
-    control_active_expected = control_active.get("expected", {})
-    if control_active.get("evaluation_basis") != "seal_basis_joined_view":
-        lint.fail(path, "active Control Move case must evaluate seal_basis joined view")
-    if (
-        not isinstance(control_active_expected, dict)
-        or control_active_expected.get("seal_revalidation_basis")
-        != "frozen_predecessor_joined_governance_state"
-    ):
-        lint.fail(path, "Control Move must be revalidated at the Seal frozen predecessor state")
-    if control_archived.get("expected") != {"result": "failed_precondition", "reason": "circle_not_active"}:
-        lint.fail(path, "archived Circle in Control Move basis must reject with circle_not_active")
-
+    rows = data.get("lifecycle_basis_cases", []) if isinstance(data, dict) else []
+    if len(rows) < 8:
+        lint.fail(path, "Circle lifecycle vectors must cover cached authority, cut inclusion and exclusion, missing dependencies and restore")
+    for row in rows:
+        live = "accept" if row.get("basis_active") and not row.get("closure_known") else "reject"
+        if not row.get("basis_active"):
+            history = "quarantined"
+        elif row.get("closure_known") and row.get("cut_complete", True) is False:
+            history = "pending"
+        elif row.get("closure_known") and not row.get("covered_by_cut"):
+            history = "quarantined"
+        else:
+            history = "eligible"
+        if row.get("expected") != {"live": live, "history": history}:
+            lint.fail(path, f"{row.get('name')} does not follow verified authorization and closure membership")
 
 
 def check_did_and_device_constraints(lint: Lint) -> None:
@@ -4482,8 +4416,8 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             lint.fail(document_contract_path, f"legacy service type {forbidden_type} must not be registered")
 
     # A rejected DID service type is only allowed to be *named by the rule that
-    # rejects it*. Anywhere else in the artifact tree — a fixture value, an error
-    # description, a schema enum — it reads as a second, dual-read spelling of
+    # rejects it*. Anywhere else in the artifact tree â€” a fixture value, an error
+    # description, a schema enum â€” it reads as a second, dual-read spelling of
     # `ArkretService` + `serviceKind`, which is exactly what the closure forbids.
     rejection_rule_paths = {
         "contract-registry.json": "$.did_document_contract_registry.registry_rules[3]",
@@ -4666,8 +4600,8 @@ def check_fsm_state_reachability(lint: Lint) -> None:
     if not isinstance(contract, dict):
         return
     event_kind_registry = contract.get("event_kind_registry") or {}
-    fsm_contracts = event_kind_registry.get("fsm_contracts") or {}
-    fsm_templates = event_kind_registry.get("fsm_templates") or {}
+    transition_contracts = event_kind_registry.get("transition_contracts") or {}
+    transition_templates = event_kind_registry.get("transition_templates") or {}
     cell_contracts = event_kind_registry.get("cell_contracts") or {}
     schema_files = _supply_schema_files(lint)
     payload_refs: dict[str, str] = {}
@@ -4680,12 +4614,12 @@ def check_fsm_state_reachability(lint: Lint) -> None:
     writes_by_family: dict[str, list[tuple[str, dict[str, Any]]]] = {}
     for event_kind, cell_contract in cell_contracts.items():
         for write in cell_contract.get("cell_writes") or []:
-            if write.get("lattice") != "fsm":
+            if "transition_contract" not in write:
                 continue
             family = write.get("cell_family")
             projection = write.get("effect_projection") or {}
             if family and projection.get("kind") in ("transition", "transition_to"):
-                writes_by_family.setdefault(family, []).append((event_kind, projection))
+                writes_by_family.setdefault(family, []).append((event_kind, {**projection, "write_condition": write.get("condition", {})}))
 
     fsm_exemption_rows = [
         row
@@ -4701,20 +4635,20 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         )
     fsm_used_rows: set[str] = set()
 
-    for template_name, template in fsm_templates.items():
+    for template_name, template in transition_templates.items():
         unknown = set(template.keys()) - _FSM_TEMPLATE_KEYS
         if unknown:
             lint.fail(
                 registry_path,
-                f"fsm_templates.{template_name}: unknown keys {sorted(unknown)}",
+                f"transition_templates.{template_name}: unknown keys {sorted(unknown)}",
             )
 
-    for family, declared in fsm_contracts.items():
+    for family, declared in transition_contracts.items():
         unknown = set(declared.keys()) - _FSM_CONTRACT_KEYS
         if unknown:
             lint.fail(
                 registry_path,
-                f"fsm_contracts.{family}: unknown keys {sorted(unknown)}; the "
+                f"transition_contracts.{family}: unknown keys {sorted(unknown)}; the "
                 "entry idiom key set is closed",
             )
             continue
@@ -4726,17 +4660,17 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         if len(entry_keys) != 1:
             lint.fail(
                 registry_path,
-                f"fsm_contracts.{family}: exactly one of initial_state / "
+                f"transition_contracts.{family}: exactly one of initial_state / "
                 f"initial_states / template must be declared, found {entry_keys}",
             )
             continue
         contract_view = declared
         if "template" in declared:
-            template = fsm_templates.get(declared["template"])
+            template = transition_templates.get(declared["template"])
             if not isinstance(template, dict):
                 lint.fail(
                     registry_path,
-                    f"fsm_contracts.{family}: unknown template {declared['template']}",
+                    f"transition_contracts.{family}: unknown template {declared['template']}",
                 )
                 continue
             contract_view = dict(template)
@@ -4745,33 +4679,28 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             )
         states = list(contract_view.get("states") or [])
         if not states:
-            lint.fail(registry_path, f"fsm_contracts.{family}: states must be non-empty")
+            lint.fail(registry_path, f"transition_contracts.{family}: states must be non-empty")
             continue
         # One vocabulary for the whole control plane. These two fields are read
         # by nobody at runtime, which is how four spellings of one rule and one
         # unimplementable rule accumulated: `same_transition_same_basis_noop`
         # (plus `_status_`, `_stage_`, `_to_state_`) named `(from,to)` + basis,
-        # while `event-auth-state-resolution.md` §9.3.1.5 dedupes by Event
+        # while `event-auth-state-resolution.md` Â§9.3.1.5 dedupes by Event
         # identity and keeps two same-`(from,to)` identities as two heads; and
         # `identical_transition_only_otherwise_reject` promised a rejection the
-        # lattice cannot deliver, because §9.3.1.7 item 5 rejects only inside one
-        # Seal batch and genuinely concurrent different-`to` writes are `⊥`.
+        # lattice cannot deliver, because Â§9.3.1.7 item 5 rejects only inside one
+        # Seal batch and genuinely concurrent different-`to` writes are `âŠ¥`.
         # A documentary field that contradicts the section it documents is worse
         # than none, so the values are pinned here.
         if contract_view.get("idempotent_replay") != "same_event_identity_replay_noop":
             lint.fail(
                 registry_path,
-                f"fsm_contracts.{family}: idempotent_replay must be "
+                f"transition_contracts.{family}: idempotent_replay must be "
                 "same_event_identity_replay_noop; replay is deduplicated by Event identity "
                 "(section 9.3.1.5), not by (from,to) or by basis",
             )
-        if contract_view.get("concurrent_sibling_conflict") != "bottom":
-            lint.fail(
-                registry_path,
-                f"fsm_contracts.{family}: concurrent_sibling_conflict must be bottom; "
-                "section 9.3.1.7 item 5 rejects only same-batch different-to writes, and "
-                "genuinely concurrent ones resolve to bottom rather than to a winner",
-            )
+        if "concurrent_sibling_conflict" in contract_view:
+            lint.fail(registry_path, f"transition_contracts.{family}: concurrency is defined by the registered execution model, not a transition-table bottom")
         entry_states = []
         if contract_view.get("initial_state") in states:
             entry_states.append(contract_view["initial_state"])
@@ -4781,22 +4710,22 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             else:
                 lint.fail(
                     registry_path,
-                    f"fsm_contracts.{family}: initial state {state} not in states",
+                    f"transition_contracts.{family}: initial state {state} not in states",
                 )
         allowed = {
             tuple(_FSM_ABSENT if value is None else value for value in pair)
             for pair in contract_view.get("allowed_transitions") or []
         }
         # A terminal state has to be terminal in the table, not just by
-        # convention. Nothing reads `terminal_states` at runtime — the SDK's
-        # `Fsm` holds only the transition table and the initial state — so if
+        # convention. Nothing reads `terminal_states` at runtime â€” the SDK's
+        # `Fsm` holds only the transition table and the initial state â€” so if
         # the table carried an edge out of a terminal state, the machine would
         # take it and the declaration would be decoration. Self-loops stay
         # legal: `ak.component.realm.link.v1` declares `(tombstoned,
         # tombstoned)` so a repeated declaration is idempotent rather than a
         # sibling conflict.
         #
-        # `event-auth-state-resolution.md` §9.5.1 names this check as the
+        # `event-auth-state-resolution.md` Â§9.5.1 names this check as the
         # registry invariant its fsm recovery admission rests on: that admission
         # checks only `allowed_transitions` membership out of each superseded
         # head, and "a recovery out of a terminal state is refused" is equivalent
@@ -4807,7 +4736,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             if state not in states:
                 lint.fail(
                     registry_path,
-                    f"fsm_contracts.{family}: terminal state {state} not in states",
+                    f"transition_contracts.{family}: terminal state {state} not in states",
                 )
         escaping = sorted(
             f"{source} -> {target}"
@@ -4817,7 +4746,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         if escaping:
             lint.fail(
                 registry_path,
-                f"fsm_contracts.{family}: terminal state has an outgoing transition "
+                f"transition_contracts.{family}: terminal state has an outgoing transition "
                 f"{escaping}; terminality is enforced by the table alone, so an edge "
                 "out of a terminal state makes the declaration meaningless",
             )
@@ -4840,6 +4769,9 @@ def check_fsm_state_reachability(lint: Lint) -> None:
                 )
             else:
                 to_states = list(states)
+            condition = projection.get("write_condition", {})
+            if condition.get("kind") == "field_equals" and condition.get("field") == to_source.get("field"):
+                to_states = [value for value in to_states if value == condition.get("const")]
             if projection.get("kind") == "transition":
                 from_source = projection.get("from") or {}
                 if "const" in from_source:
@@ -4861,7 +4793,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
                     if to_state not in states:
                         lint.fail(
                             registry_path,
-                            f"fsm_contracts.{family}: {event_kind} writes to "
+                            f"transition_contracts.{family}: {event_kind} writes to "
                             f"undeclared state {to_state}",
                         )
                         continue
@@ -4882,7 +4814,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
                 ):
                     lint.fail(
                         registry_path,
-                        f"fsm_contracts.{family}: {event_kind} writes "
+                        f"transition_contracts.{family}: {event_kind} writes "
                         f"{from_source['const']} -> {to_source['const']} "
                         "outside allowed_transitions",
                     )
@@ -4890,7 +4822,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         if not entry_states and not any(edge[0] == _FSM_ABSENT for edge in edges):
             lint.fail(
                 registry_path,
-                f"fsm_contracts.{family}: no entry — neither an initial state "
+                f"transition_contracts.{family}: no entry â€” neither an initial state "
                 "nor an absent-state creation write exists",
             )
             continue
@@ -4912,7 +4844,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         if unreachable:
             lint.fail(
                 registry_path,
-                f"fsm_contracts.{family}: states unreachable from the entry set "
+                f"transition_contracts.{family}: states unreachable from the entry set "
                 f"through registered writes: {unreachable}",
             )
         covered_pairs = set()
@@ -4924,7 +4856,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         if dead_allowed:
             lint.fail(
                 registry_path,
-                f"fsm_contracts.{family}: allowed transitions with no registered "
+                f"transition_contracts.{family}: allowed transitions with no registered "
                 f"write: {dead_allowed}",
             )
         if waived_unreachable or waived_dead:

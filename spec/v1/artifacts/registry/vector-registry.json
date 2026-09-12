@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.1",
+  "version": "2026-09-12.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T06:19:17+08:00",
+  "generated_at": "2026-09-12T10:22:27+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -135,7 +135,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.controller_lifecycle.v1",
@@ -147,7 +148,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
@@ -173,7 +175,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.membership_cascade.v1",
@@ -198,7 +201,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.mls_keypackage_authorization.v1",
@@ -225,7 +229,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.participation.ceiling_tighten.v1",
@@ -237,7 +242,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.participation.effective_intersection.v1",
@@ -249,7 +255,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.participation.selection_cas.v1",
@@ -261,7 +268,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.participation.session_overlay.v1",
@@ -273,7 +281,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.participation.third_party_mention_gate.v1",
@@ -285,7 +294,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
@@ -351,7 +361,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.requested_scope_privacy.v1",
@@ -390,7 +401,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.agent.signer_evidence_binding.v1",
@@ -505,7 +517,7 @@
         "ak.profile.attested_audit.e2ee.v1",
         "ak.profile.disclosed_audit.e2ee.v1"
       ],
-      "description": "Audit binding is a closed control-plane FSM: active and suspended may transition as registered, revoked is terminal, and same-basis conflicting siblings produce Bottom.",
+      "description": "Audit binding is a closed control-plane FSM: active and suspended may transition as registered, revoked is terminal, and competing safety commands are serialized and stale relevant revisions are rejected.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/audit-release-fixture.json"
@@ -604,7 +616,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.auth.session_grant_issuer_record.v1",
@@ -807,7 +820,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "RSVP derives a typed composite subject from payload event_ref, nullable occurrence, and the explicitly sourced envelope actor_id; causal successors dominate while concurrent mv_register heads remain exposed independently of HLC.",
+      "description": "RSVP derives a typed composite subject from payload event_ref, nullable occurrence, and the explicitly sourced envelope actor_id; causal successors dominate while concurrent causal_register heads remain exposed independently of HLC.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
@@ -914,10 +927,11 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
-      "vector_id": "ak.vector.call_state.concurrent_sibling_bottom.v1",
+      "vector_id": "ak.vector.call_state.ordered_competing_transitions.v1",
       "status": "active",
       "domain": "call_state",
       "applies_to_profiles": [
@@ -978,7 +992,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.call_state.recording_result_artifact_shape.v1",
@@ -1083,7 +1098,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.capability.authority_audit.v1",
@@ -1246,7 +1262,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.capability.moderation_dependency.v1",
@@ -1283,7 +1300,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.capability.revoke_rollback.v1",
@@ -1295,7 +1313,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.capability.unified_authority_constraints.v1",
@@ -1369,6 +1388,19 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
+      ],
+      "description": ""
+    },
+    {
+      "vector_id": "ak.vector.cbs_lattice.authorized_causal_repair.v1",
+      "status": "active",
+      "domain": "cbs_lattice",
+      "applies_to_fixtures": [
+        "cbs-lattice-fixture.json"
+      ],
+      "description": "Ordinary conflicting heads remain visible and can be covered by an authorized successor with exact observed causal context. No generic reset, arbitrary Cell rewrite or safety-lineage join is permitted.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
@@ -1378,22 +1410,22 @@
       "applies_to_fixtures": [
         "cbs-lattice-fixture.json"
       ],
-      "description": "cas_register admission derives a full active-head identity guard from each write's own signed seal_basis and compares H_c(B) to the frozen predecessor H_c(P) at Seal acceptance: a write with no reconstructable basis fails closed, a write whose basis heads equal the frozen baseline is accepted, a stale ABA write whose business settled value is byte-identical (null before and after a claim/release round) is rejected because its head identities differ, and a self-derived target cell whose subject comes from the Event's own event_id is accepted without any wire head_eq, since demanding one would make the signed preimage hash-self-referential.",
+      "description": "Safety commands compare exact revisions derived from signed basis, including ABA; ordinary commands validate only their signed causal basis and retain concurrent heads.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.conflict_recovery_move.v1",
+      "vector_id": "ak.vector.cbs_lattice.confirmed_prefix_compaction.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
         "cbs-lattice-fixture.json"
       ],
-      "description": "bottom=reject control cell recovery accepts only a sealed conflict-recovery Move with valid recovery_capability and pre-conflict state_witness; negative cases pin recovery_witness_* reasons.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1",
@@ -1404,7 +1436,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1",
@@ -1415,7 +1448,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1",
@@ -1426,7 +1460,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
@@ -1437,7 +1472,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.cbs_lattice.fork_resolution_peer_alignment.v1",
@@ -1460,7 +1496,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1",
@@ -1471,27 +1508,17 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.open_set_compaction_preserves_control_roots.v1",
+      "vector_id": "ak.vector.cbs_lattice.revocation_propagation_window.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
         "cbs-lattice-fixture.json"
       ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.cbs_lattice.open_set_concurrent_revocation_fail_closed.v1",
-      "status": "active",
-      "domain": "cbs_lattice",
-      "applies_to_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "description": "open_set concurrent revocation is evaluated against the joined control view; revoked or bottom authorization cells fail closed without a freshness window.",
+      "description": "A partition unaware of revocation may continue ordinary publication; a verified revocation immediately fences affected new live submissions and its authenticated causal closure determines eventual historical eligibility.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
@@ -1505,7 +1532,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1",
@@ -1528,16 +1556,17 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.seal_delta_concurrency_class.v1",
+      "vector_id": "ak.vector.cbs_lattice.seal_delta_execution_order.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
         "cbs-lattice-fixture.json"
       ],
-      "description": "A Seal's control delta is exactly one security_barrier transaction or a set of non-barrier writes on pairwise disjoint cells, never a mixture, and the class comes from the registry rather than from what a request happens to touch. Covers a lone barrier, a registered atomic unit as that one transaction, a disjoint non-barrier batch, and the refusals: a barrier mixed with an ordinary write, two barriers, two non-barrier writes on one cell, and a per-request class downgrade. Also fixes the cyclic read-write dependency between two moderators that no serial order satisfies, the same pair being legal across two Seals in either order, lift restoring the author, add-lift-add producing three distinct head identities so a signer lock keyed on the business value would wrongly refuse the third write, and a refused delta storing nothing.",
+      "description": "Safety command_results determine execution order; each command checks actual relevant read/write revisions and authorization at its position. Overlap is allowed but stale state is rejected. Ordinary Events never enter delta, registered atomic units have all-or-nothing effects, and producer-selected execution classes are forbidden.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
@@ -1551,7 +1580,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1",
@@ -1562,7 +1592,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.cbs_lattice.threshold_forensic_attribution.v1",
@@ -1573,7 +1604,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.circle.content_floor_below_realm_rejected.v1",
@@ -1585,7 +1617,8 @@
       "source_refs": [
         "spec/v1/artifacts/profiles/conformance-profiles.json",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
@@ -1598,7 +1631,8 @@
         "spec/v1/zh/models/circle.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
@@ -1635,7 +1669,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.consent.cache_invalidation.v1",
@@ -1647,7 +1682,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.consent.scope_cascade.v1",
@@ -1659,7 +1695,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.constraint.quota_linearizable_authority.v1",
@@ -1751,7 +1788,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.content.long_text_e2ee.v1",
@@ -1763,7 +1801,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.content.long_text_lifecycle.v1",
@@ -1775,7 +1814,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.content.long_text_normalization.v1",
@@ -1787,7 +1827,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.crypto.keypackage_write_transcripts.v1",
@@ -1813,7 +1854,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.device.directory_unavailable_not_empty.v1",
@@ -1864,7 +1906,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.device_pairing.accepted_device_attestation.v1",
@@ -1899,7 +1942,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.did_binding.document_digest_kat.v1",
@@ -2064,7 +2108,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.announce_bad_signature.v1",
@@ -2076,7 +2121,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.announce_bidirectional_opt_in.v1",
@@ -2088,7 +2134,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.announce_directory_not_authorized.v1",
@@ -2100,7 +2147,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.announce_signature_stale.v1",
@@ -2112,7 +2160,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.announce_source_ref_access_bounds.v1",
@@ -2137,7 +2186,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.operator_takedown_audit.v1",
@@ -2149,7 +2199,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.organization_badge_verification.v1",
@@ -2161,7 +2212,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.organization_search.v1",
@@ -2173,7 +2225,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.pairwise_did_exclusion.v1",
@@ -2185,7 +2238,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.policy_revision_rollback.v1",
@@ -2197,7 +2251,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.public_realm_search.v1",
@@ -2209,7 +2264,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.pull_mode_refresh_verification.v1",
@@ -2221,7 +2277,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.reannounce_idempotent_ttl.v1",
@@ -2233,7 +2290,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.resolve_agent_selector_failure_blinding.v1",
@@ -2271,7 +2329,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.restricted_claim_presentation.v1",
@@ -2283,7 +2342,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.result_common_fields.v1",
@@ -2295,7 +2355,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.stale_result_rejection.v1",
@@ -2307,7 +2368,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.takedown_reannounce_rejected.v1",
@@ -2319,7 +2381,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.ttl_expiry_removal.v1",
@@ -2331,7 +2394,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.unlisted_exact_resolve.v1",
@@ -2343,7 +2407,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.directory.withdraw_blinded_not_found.v1",
@@ -2355,7 +2420,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.dnd.schedule_boundary_validation.v1",
@@ -2381,7 +2447,8 @@
       "source_refs": [
         "spec/v1/artifacts/profiles/conformance-profiles.json",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.e2ee.in_place_enable.v1",
@@ -2393,7 +2460,8 @@
       "source_refs": [
         "spec/v1/artifacts/profiles/conformance-profiles.json",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
@@ -2405,7 +2473,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.e2ee.metadata_floor_downgrade_rejected.v1",
@@ -2417,7 +2486,8 @@
       "source_refs": [
         "spec/v1/artifacts/profiles/conformance-profiles.json",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
@@ -2429,7 +2499,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.canonical_event_tie_break.v1",
@@ -2442,7 +2513,8 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/conformance/encoding.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.canonical_json.basic.v1",
@@ -2467,7 +2539,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.canonical_json.utf16_supplementary_order.v1",
@@ -2518,7 +2591,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.crypto.es256_detached_jws.v1",
@@ -2569,7 +2643,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.digest.blake3.v1",
@@ -2594,7 +2669,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.event_batch_receipt_digest.v1",
@@ -2619,7 +2695,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.extension_slot_roundtrip.v1",
@@ -2631,7 +2708,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-profiles.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.hlc_logical_overflow.v1",
@@ -2643,7 +2721,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.hlc_order.v1",
@@ -2655,7 +2734,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.multibase_did_key.core.v1",
@@ -2667,7 +2747,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.open_registry_unknown_roundtrip.v1",
@@ -2679,7 +2760,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-profiles.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.or_set_dot_and_batch_tag.v1",
@@ -2743,7 +2825,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.reject_feff_injection.v1",
@@ -2755,7 +2838,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.reject_invalid_cursor.core.v1",
@@ -2767,7 +2851,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.reject_malformed_hlc.v1",
@@ -2779,7 +2864,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.reject_malformed_json.v1",
@@ -2791,7 +2877,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.reject_non_nfc_string.v1",
@@ -2803,7 +2890,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.reject_noncanonical_numbers.v1",
@@ -2815,7 +2903,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.reject_structure_depth_exceeded.v1",
@@ -2840,7 +2929,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.signature_binding_payload_audience.v1",
@@ -2852,7 +2942,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.signature_binding_payload_domain.v1",
@@ -2864,7 +2955,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.signature_binding_payload_domain_audience.v1",
@@ -2876,7 +2968,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.encoding.string_profile_acct_uri.v1",
@@ -2992,7 +3085,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-profiles.md",
         "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.event_id.content_bound.v1",
@@ -3030,7 +3124,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.event_kind.realm_alias_single_carrier.v1",
@@ -3039,7 +3134,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cbs_lattice.v1"
       ],
-      "description": "ak.realm.alias is the only wire carrier of a Realm alias: declaration / tombstone shapes, the create-time bootstrap follow-up and post-bootstrap seal_basis shapes, head_eq rename, issuer-authority binding, namespace occupancy, disjointness from the handle namespace, cas_register bottom on concurrent distinct declarations, and rejection of alias on the closed Realm object or in a PCR.",
+      "description": "Realm alias intent uses a sequenced_state cell; namespace activation separately enforces unique names across Realms. Resolution requires both facts, stale revision rejects and ordinary RealmId chat does not depend on the issuer.",
       "source_refs": [
         "spec/v1/zh/discovery/object-addressing.md",
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
@@ -3055,7 +3150,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.fanout.route_miss.v1",
@@ -3107,7 +3203,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.federation.realm_join_authoring_inputs.v1",
@@ -3153,7 +3250,7 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "Federation push carries one Realm's bounded, receiver-verifiable CbsProofBundle superset rooted at DataEvent seal_ref and Control Event seal_basis leaves on the sole peer Event write rail; receivers reject unreachable bundle objects, resolve Control Events and basis Seals topologically before DataEvents, and never grant same-batch unsealed authority or advance actor frontiers from proof transport.",
+      "description": "Federation push carries one Realm's bounded, receiver-verifiable CbsProofBundle superset rooted at signed DataEvent auth_context.authority_refs and Control Event seal_basis leaves on the sole peer Event write rail; receivers reject unreachable bundle objects, resolve Control Events and basis Seals topologically before DataEvents, and never grant same-batch unsealed authority or advance actor frontiers from proof transport.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -3256,7 +3353,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.history_key.client_convergence.v1",
@@ -3440,7 +3538,8 @@
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.identity.did_webvh_v1_adapter.v1",
@@ -3455,7 +3554,8 @@
       "source_refs": [
         "spec/v1/zh/identity/identity-did.md",
         "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.identity.did_webvh_witness_rail.v1",
@@ -3486,6 +3586,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.independent_admission.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "independent-admission-fixture.json"
+      ],
+      "description": "Lifetime AccountId uniqueness including deactivation tombstones and cross-Station replacement, signed exact Event ActorId, route-derived origin-only admission, exact producer-proof binding and replica preservation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/independent-admission-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.identity.internationalized_identifier_profiles.v1",
       "status": "active",
       "domain": "identity",
@@ -3511,7 +3624,8 @@
       "source_refs": [
         "spec/v1/artifacts/schemas/key-transparency.schema.json",
         "spec/v1/artifacts/fixtures/key-transparency-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.identity.organization_registration.v1",
@@ -3606,7 +3720,8 @@
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
@@ -3621,7 +3736,8 @@
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.identity.recovery_policy_publication.v1",
@@ -3649,7 +3765,8 @@
       "source_refs": [
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.identity.recovery_transcript.v1",
@@ -3689,20 +3806,8 @@
       "source_refs": [
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.identity.station_admission.v1",
-      "status": "active",
-      "domain": "identity",
-      "applies_to_fixtures": [
-        "station-admission-fixture.json"
       ],
-      "description": "Lifetime AccountId uniqueness including deactivation tombstones and cross-Station replacement, signed exact Event ActorId, route-derived origin-only admission, exact producer-proof binding and replica preservation.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/station-admission-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      "description": ""
     },
     {
       "vector_id": "ak.vector.identity_link.eager_invalidation.v1",
@@ -3714,7 +3819,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.identity_link.minimal_metadata_author_credential.v1",
@@ -3739,7 +3845,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.invite.claim_expiry_canonical_time.v1",
@@ -3749,7 +3856,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.invite.claim_reducer_state_machine.v1",
@@ -3776,7 +3884,8 @@
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/sync/third-party-invites.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.invite.failure_indistinguishable.v1",
@@ -3799,7 +3908,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.invite.membership_transition_atomicity.v1",
@@ -3809,7 +3919,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.invite.new_source_quota_effective_bounds.v1",
@@ -3819,7 +3930,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.invite.new_source_quota_holder_admission.v1",
@@ -3829,7 +3941,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.invite.oob_code_entropy.v1",
@@ -3841,7 +3954,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.invite.provisioning_activation_binding.v1",
@@ -3865,7 +3979,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.join_policy.gate_axis_orthogonality.v1",
@@ -3875,7 +3990,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.key_backup.delete_authority.v1",
@@ -3913,7 +4029,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.key_backup.recovery_session_manifest_capacity.v1",
@@ -3950,7 +4067,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.keypackage.group_capability_floor.v1",
@@ -4068,7 +4186,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.lattice.apply_patch_base.v1",
@@ -4083,17 +4202,42 @@
       ]
     },
     {
-      "vector_id": "ak.vector.lattice.cas_register_supersession.v1",
+      "vector_id": "ak.vector.lattice.causal_register_join.v1",
       "status": "active",
       "domain": "lattice",
       "applies_to_vector_groups": [
         "ak.vector_group.cbs_lattice.v1"
       ],
-      "description": "cas_register join is the causal-identity function over the verified covered set: an unwritten cell has no head and reads null; each write is identified by its EventId and supersedes exactly the heads it observed in its own signed seal_basis; a release write is set null and keeps its own head, so an unwritten cell and a released cell are distinguishable in the state commitment; A->null->A reads A and A->B->A->B reads B, which the deleted value-edge maximal-chain definition could not distinguish; concurrent writes with different values leave two heads and the bottom=reject cell materializes failed_bottom; concurrent writes with the same value keep both identities; exact replay of the same identity and effect is idempotent; the two-state merge is associative, commutative and idempotent and agrees with a full causal-history oracle; and Bottom is a function of the view, not a sticky local flag.",
+      "description": "causal_register join/validate_op convergence for the same CBS Event set.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.lattice.causal_register_supersession.v1",
+      "status": "active",
+      "domain": "lattice",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cbs_lattice.v1"
+      ],
+      "description": "Identity-preserving causal register C/H join under one verified eligibility context. Same-value and written-null identities remain distinct, ABA and partial observation preserve unseen branches, and reclassification recomputes from retained evidence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
         "spec/v1/zh/authz/event-auth-state-resolution.md"
       ]
+    },
+    {
+      "vector_id": "ak.vector.lattice.concurrent_heads_no_winner.v1",
+      "status": "active",
+      "domain": "lattice",
+      "applies_to_fixtures": [
+        "security-closure-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.lattice.counter_join.v1",
@@ -4108,7 +4252,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.lattice.fsm_causal_heads.v1",
+      "vector_id": "ak.vector.lattice.domain_transition_heads.v1",
       "status": "active",
       "domain": "lattice",
       "applies_to_fixtures": [
@@ -4122,37 +4266,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.lattice.fsm_join.v1",
+      "vector_id": "ak.vector.lattice.domain_transition_join.v1",
       "status": "active",
       "domain": "lattice",
       "applies_to_vector_groups": [
         "ak.vector_group.cbs_lattice.v1"
       ],
       "description": "fsm join: identical (from,to) sibling transitions converge idempotently; same-from different-to siblings return bottom (reject path).",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.lattice.lww_open_set.v1",
-      "status": "active",
-      "domain": "lattice",
-      "applies_to_fixtures": [
-        "security-closure-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.lattice.mv_register_join.v1",
-      "status": "active",
-      "domain": "lattice",
-      "applies_to_vector_groups": [
-        "ak.vector_group.cbs_lattice.v1"
-      ],
-      "description": "mv_register join/validate_op convergence for the same CBS Event set.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
@@ -4194,7 +4314,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.media_binding.focus_selection_oldest_membership.v1",
@@ -4207,7 +4328,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.media_binding.participant_binding_required.v1",
@@ -4220,7 +4342,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.media_binding.participant_id_unrecognised.v1",
@@ -4233,7 +4356,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.media_binding.recording_artifact_via_arkret_blob.v1",
@@ -4246,7 +4370,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.media_binding.recording_exporter_label.v1",
@@ -4261,7 +4386,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.media_binding.session_focus_no_split_brain.v1",
@@ -4274,7 +4400,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.media_binding.token_exchange_minimal.v1",
@@ -4287,7 +4414,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.media_binding.token_issuer_unauthorised.v1",
@@ -4300,7 +4428,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.media_binding.unknown_type_fail_closed.v1",
@@ -4313,7 +4442,8 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/media-binding-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.message.poll_reducer.v1",
@@ -4497,7 +4627,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.mls.governance_proof.materializer.v1",
@@ -4596,7 +4727,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "Proves that MLS security_frontier_digest includes only registered key-access state: unrelated capability/metadata Seal changes and the DataEvent's own seal_ref do not change it, while an active MLS leaf revoke blocks sending until a new Commit covers the rederived frontier.",
+      "description": "Proves that MLS security_frontier_digest includes only registered key-access state: unrelated capability/metadata Seal changes and the DataEvent's ordinary authorization references do not change it, while an active MLS leaf revoke blocks sending until a new Commit covers the rederived frontier.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/crypto-media/encryption-and-audit.md",
@@ -4744,7 +4875,8 @@
       "source_refs": [
         "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.patch.path_grammar_bounds.v1",
@@ -4768,7 +4900,7 @@
       "applies_to_fixtures": [
         "state-reducer-hardening-fixture.json"
       ],
-      "description": "Pins strand update/tracks update to data-plane mv_register target_ref routing while stage.set remains control CAS; reducer projections are recomputed from the single causal_refs base head, remain independent of receiver-local current heads, hold on missing dependencies, and reject missing/multiple bases or non-canonical projected post-state with reducer_projection_failed.",
+      "description": "Pins strand update/tracks update to data-plane causal_register target_ref routing while stage.set follows its registered execution contract; reducer projections are recomputed from the single causal_refs base head, remain independent of receiver-local current heads, hold on missing dependencies, and reject missing/multiple bases or non-canonical projected post-state with reducer_projection_failed.",
       "source_refs": [
         "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
@@ -4798,7 +4930,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.projection.pagination_shape.v1",
@@ -4810,7 +4943,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.proof_context.transcript.account_binding_receipt.v1",
@@ -5716,7 +5850,7 @@
       "vector_id": "ak.vector.proof_context.transcript.principal_resolution_projection_attestation.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.principal_resolution_projection_attestation_proof.v1: digest input is the `attestation` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.station_admission_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.principal_resolution_projection_attestation_proof.v1: digest input is the `attestation` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.producer_event_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.principal_resolution_projection_attestation_proof.v1"
       ],
@@ -5848,21 +5982,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.proof_context.transcript.station_event_admission.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.station_admission_proof.v1: digest input deletes exactly `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm_join_candidate_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.station_admission_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.proof_context.transcript.third_party_invite_acceptance_attestation.v1",
       "status": "active",
       "domain": "proof_context",
@@ -5902,7 +6021,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.psi.oprf_two_round_shape.v1",
@@ -5914,7 +6034,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.psi.padding_and_cardinality.v1",
@@ -5926,7 +6047,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.psi.quota_blinded_denial.v1",
@@ -5938,7 +6060,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.push.broadcast_mention_controls.v1",
@@ -5950,7 +6073,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.push.device_route_revision_cas.v1",
@@ -5990,7 +6114,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.push.wakeup_policy.v1",
@@ -6002,7 +6127,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.reaction.remove_wins_join.v1",
@@ -6014,7 +6140,8 @@
       "source_refs": [
         "spec/v1/zh/models/strand-and-message.md",
         "spec/v1/artifacts/fixtures/reaction-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.reaction.routing_hmac_kat.v1",
@@ -6064,7 +6191,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cbs_lattice.v1"
       ],
-      "description": "Realm Link FSM: all declared initial states and transitions are accepted, tombstoned is terminal except byte-equivalent replay, undeclared transitions reject with realm_link_invalid_transition, same-basis divergent siblings return bottom, general graph cycles remain valid, and self-reference rejects with realm_link_self_reference.",
+      "description": "Realm Link FSM: all declared initial states and transitions are accepted, tombstoned is terminal except byte-equivalent replay, undeclared transitions reject with realm_link_invalid_transition, competing same-revision transitions are serialized and stale commands reject without changing the confirmed state, general graph cycles remain valid, and self-reference rejects with realm_link_self_reference.",
       "source_refs": [
         "spec/v1/zh/models/realm-links.md",
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
@@ -6079,7 +6206,8 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/realm-organization-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.realm_state_snapshot.inclusion_challenge.v1",
@@ -6158,7 +6286,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.redaction.message_target_exclusive_kind.v1",
@@ -6184,7 +6313,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.redaction.preserve_fields.v1",
@@ -6196,7 +6326,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.redaction.realm_state_snapshot_pruning_stub.v1",
@@ -6208,7 +6339,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.redaction.space_target_ref_schema.v1",
@@ -6220,7 +6352,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
@@ -6240,7 +6373,7 @@
       "vector_id": "ak.vector.relation.conflict_resolution.v1",
       "status": "active",
       "domain": "relation",
-      "description": "ak.relation.resolve is the single registered carrier that settles one Relation primary conflict domain: retain_candidate keeps exactly one covered head with its original RelationId, void_all leaves no active edge for the covered set while preserving the facts and permitting a later lawful create. The frozen baseline is an independent data-plane commitment that binds realm, domain, member_count, canonical bytewise-ascending order and every member; a root, a bare count or seventeen inclusion proofs prove nothing. A missing, superseded, duplicate or foreign member and a retained id outside the baseline all reject the whole Move with relation_conflict_baseline_stale and zero cell writes, an update head enters the candidate set while a tombstoned Relation leaves it, and an exact replay stays idempotent. Sixteen bounds only the ordinary diagnostic: a seventeen-head group is repaired through the same carrier, a large group omits the inline list and is verified page by page over the prev_page_digest chain where a gap discards the whole material. Same-outcome concurrent resolutions keep both identities without Bottom, different-outcome ones reach Bottom and keep require_review, and one further authorized resolve heals that Bottom without conflict-recovery capability.",
+      "description": "ak.relation.resolve is the single registered carrier that settles one Relation primary conflict domain: retain_candidate keeps exactly one covered head with its original RelationId, void_all leaves no active edge for the covered set while preserving the facts and permitting a later lawful create. The frozen baseline is an independent data-plane commitment that binds realm, domain, member_count, canonical bytewise-ascending order and every member; a root, a bare count or seventeen inclusion proofs prove nothing. A missing, superseded, duplicate or foreign member and a retained id outside the baseline all reject the whole Move with relation_conflict_baseline_stale and zero cell writes, an update head enters the candidate set while a tombstoned Relation leaves it, and an exact replay stays idempotent. Sixteen bounds only the ordinary diagnostic: a seventeen-head group is repaired through the same carrier, a large group omits the inline list and is verified page by page over the prev_page_digest chain where a gap discards the whole material. Same-outcome concurrent resolutions keep both identities without Bottom, different-outcome ones reach Bottom and keep require_review, and one further authorized resolve heals that Bottom without a generic reset capability.",
       "applies_to_fixtures": [
         "state-reducer-hardening-fixture.json"
       ],
@@ -6272,7 +6405,8 @@
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/models/relation.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.batch_page_byte_count.v1",
@@ -6284,7 +6418,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.batch_page_limits.v1",
@@ -6296,7 +6431,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.capability_limits.v1",
@@ -6308,7 +6444,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.circle_count_limit.v1",
@@ -6321,7 +6458,8 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.content_encoding_forbidden.v1",
@@ -6331,7 +6469,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.cursor_selector_limits.v1",
@@ -6356,7 +6495,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.event_ref_role_limits.v1",
@@ -6368,7 +6508,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.http_body_preparse_limit.v1",
@@ -6378,7 +6519,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.http_header_limits.v1",
@@ -6389,7 +6531,8 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.mls_governance_proof_bounds.v1",
@@ -6415,7 +6558,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.operation_body_size_limit.v1",
@@ -6427,7 +6571,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.protocol_window_limits.v1",
@@ -6452,7 +6597,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.refs_limit.v1",
@@ -6465,7 +6611,8 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.scalability.relation_expansion_depth.v1",
@@ -6490,7 +6637,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sdk.event_type_axes.v1",
@@ -6543,10 +6691,11 @@
         "spec/v1/zh/conformance/conformance-profiles.md",
         "spec/v1/artifacts/schemas/sdk-conformance-claim.schema.json",
         "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
-      "vector_id": "ak.vector.seal.same_batch_bottom_reject_serialization.v1",
+      "vector_id": "ak.vector.seal.ordered_command_results.v1",
       "status": "active",
       "domain": "seal",
       "applies_to_vector_groups": [
@@ -6764,7 +6913,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sidecar.ensure_idempotent.v1",
@@ -6776,7 +6926,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sidecar.exchange_binding_closed_loop.v1",
@@ -6827,7 +6978,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sidecar.explicit_publish.v1",
@@ -6852,7 +7004,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sidecar.hosted_ui_matrix.v1",
@@ -6877,7 +7030,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sidecar.mls_effective_access.v1",
@@ -6889,7 +7043,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sidecar.multi_agent_publish.v1",
@@ -6901,7 +7056,8 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sidecar.non_disclosure_surface_matrix.v1",
@@ -6952,7 +7108,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.signal.device_authorization_domain.v1",
@@ -7004,7 +7161,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.signal.sequence_high_water.v1",
@@ -7029,7 +7187,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.strand_tracks_update.atomic.v1",
@@ -7041,7 +7200,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sync.cursor_binding.v1",
@@ -7079,7 +7239,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     },
     {
       "vector_id": "ak.vector.sync.state_at_window_start.v1",
@@ -7158,7 +7319,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": ""
     }
   ]
 }

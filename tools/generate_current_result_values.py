@@ -44,6 +44,7 @@ def source(kind,spec,write):
         if not values:raise ValueError((kind,spec['field']))
         return values
     if 'const' in spec:return [{'const':spec['const']}]
+    if 'object_without_fields' in spec:return field(kind,spec['object_without_fields']['field'])
     if 'envelope_field' in spec:return [{'ref':'schemas/event-envelope.schema.json#/properties/'+spec['envelope_field']}]
     if spec.get('projected_value'):
         return [{'projected':write['value_projection']}]
@@ -53,8 +54,8 @@ errors=[]
 for kind,contract in catalog['event_kind_registry']['cell_contracts'].items():
     for write in contract['cell_writes']:
         family=write.get('cell_family')
-        if family is None or write.get('lattice')=='ordered_log':continue
-        row=families.setdefault(family,{'lattice':write['lattice'],'values':[],'writers':[]})
+        if family is None or write.get('value_shape')=='log':continue
+        row=families.setdefault(family,{'state_model':write['state_model'],'values':[],'writers':[]})
         row['writers'].append(kind)
         effect=write['effect_projection'];op=effect['kind']
         try:
@@ -137,8 +138,8 @@ for family,row in families.items():
                         variants.append({'type':'object','required':[m['name'] for m in members if not m.get('optional')],'properties':props,'additionalProperties':False})
         dedup={json.dumps(v,sort_keys=True):v for v in variants};variants=[dedup[k] for k in sorted(dedup)]
         value=variants[0] if len(variants)==1 else {'anyOf':variants}
-    if row['lattice']=='or_set' and bindings[family]['result_projection']=='joined_value':value={'type':'array','uniqueItems':True,'items':value}
-    elif row['lattice'] in ['cas_register','fsm']:
+    if bindings[family]['value_shape']=='set' and bindings[family]['result_projection']=='joined_value':value={'type':'array','uniqueItems':True,'items':value}
+    elif row['state_model']=='sequenced_state' and bindings[family]['value_shape']=='register':
         value={'anyOf':[{'type':'null'},value]}
     value_defs[name]=value
 
@@ -148,7 +149,7 @@ if next(member for member in genesis_epoch['value_projection']['members'] if mem
 
 for family,row in families.items():
     binding=bindings[family]
-    if binding['lattice']!=row['lattice'] or binding['source_event_kinds']!=sorted(set(row['writers'])):
+    if binding['state_model']!=row['state_model'] or binding['source_event_kinds']!=sorted(set(row['writers'])):
         raise SystemExit('Current-result source contract drift: '+family)
 path=root/'schemas/account-current-result.schema.json'
 actual=json.loads(path.read_text(encoding='utf-8'))
@@ -165,8 +166,8 @@ for family,binding in bindings.items():
     patterns.append(pattern)
     targets={'object':['realm','strand','event'],'pin_scope':['realm','strand']}.get(binding['target_class'],[binding['target_class']])
     value={'$ref':'./'+binding['value_schema_ref'].removeprefix('schemas/')}
-    result={'status':{'enum':['heads' if binding['lattice']=='mv_register' else 'value','removed','unavailable']}}
-    if binding['lattice']=='mv_register':result['heads']={'items':{'properties':{'value':value}}}
+    result={'status':{'enum':['heads' if binding['state_model']=='causal_register' else 'value','removed','unavailable']}}
+    if binding['state_model']=='causal_register':result['heads']={'items':{'properties':{'value':value}}}
     else:result['value']=value
     conditions.append({'if':{'properties':{'selector':{'properties':{'cell_id':{'pattern':pattern}}}}},'then':{'properties':{'target':{'properties':{'kind':{'enum':targets}}},'result':{'properties':result}}}})
 conditions.append({'if':{'properties':{'selector':{'properties':{'cell_id':{'$ref':'./event-envelope.schema.json#/$defs/cell_ref','not':{'anyOf':[{'pattern':p} for p in patterns]}}}}}},'then':{'properties':{'result':{'properties':{'status':{'enum':['removed','unavailable']}}}}}})

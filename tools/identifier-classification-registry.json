@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 684,
-    "typed_object_id": 1160,
+    "responsibility_identity_material": 680,
+    "typed_object_id": 1173,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -941,14 +941,6 @@
       "occurrences": 2,
       "example_path": "event-envelope.schema.json#/$defs/identity_resolution_head_precondition/properties/cell_id",
       "reason": "Closed constant in the registered ak:cell typed-object identifier namespace."
-    },
-    {
-      "name": "recovery_controller_organization_ids",
-      "terminal_signature": "[]",
-      "category": "responsibility_identity_material",
-      "occurrences": 1,
-      "example_path": "realm.schema.json#/allOf/1/then/properties/notary/allOf/0/then/properties/recovery_controller_organization_ids",
-      "reason": "Constraint refinement branch of a DID-core list declared by the base object; this branch only makes it required."
     }
   ]
 }

@@ -105,12 +105,6 @@ PROJECTION_OVERRIDES: dict[str, dict[str, Any]] = {
         "schema_body": False,
         "shared_event_envelope": True,
     },
-    "station_event_admission": {
-        "subject_pointer": "",
-        "removed_members": EVENT_ENVELOPE_REMOVED,
-        "schema_body": False,
-        "shared_event_envelope": True,
-    },
     "directory_governance_request": {
         "subject_pointer": "",
         "removed_members": ["governance_proof"],

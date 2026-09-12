@@ -52,13 +52,6 @@
       "value": "ak:cell:ak.private.account_data.v1:ak.account_data.theme",
       "category": "deliberate_negative_vector",
       "reason": "Case realm_state_snapshot_chunk_actor_private_family_rejected declares expect_valid false; an actor-private ak.private.* family is exactly what realm-state-snapshot-chunk.schema.json cell_ref must reject (realm-state-snapshot-schema.md section 3: actor-private cells are not Realm consensus state)."
-    },
-    {
-      "pointer": "sync-fixture.json#/snapshot_state_digest/cases/15/chunks/0/items/6/id",
-      "position": "value",
-      "value": "ak:cell:ak.private.account_data.v1:ak.account_data.theme",
-      "category": "deliberate_negative_vector",
-      "reason": "Case actor_private_family_is_rejected of ak.vector.realm_state_snapshot.state_digest_recompute.v1 expects reject; the ak.private.* family only exists in the vector to be refused."
     }
   ]
 }
