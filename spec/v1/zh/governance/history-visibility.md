@@ -206,7 +206,7 @@ v1 member history recovery 的 `trusted_history_base_basis` 是自己 Station �
 base 到达的并发 branch、missing object 或 fork-quarantine 均 fail closed。
 
 实际完整重放角色使用 SQLite 或等价 disk-backed work queue+visited set，从 target 反向发现完整 cut，再按拓扑 base→target 运行标准 `apply_seal`。
-完整重放消费 Seal、全部 command_results（包括失败命令）、delta、配置/事务记录及注册依赖；普通 Message/reaction 等 DataEvent 的 digest 不得进入 `delta[]`，也不因
+完整重放消费 Seal、全部 command_results（包括失败命令）、delta、配置/事务记录及注册依赖；普通 Message/reaction 等 ordinary Event 的 digest 不得进入 `delta[]`，也不因
 某个 Seal 的 optional data observation root 出现它而取得控制面 finality。resolve 必须返回该 accepted Seal 在 acceptance 时实际 pin 的
 exact canonical Control Move bytes，并同时提供 registered `apply_seal` 所需的 historical signer evidence、AvailabilityReceipt 及其它 CBS
 依赖。每个 Seal 的 notary、predecessor、delta、control_event_set_root、state_root、frozen-predecessor admission、
@@ -237,7 +237,7 @@ fork-resolution/recovery 归一。没有 acceptance-time bytes/output pin 的新
 
 Replay 解释器只由 Realm 冻结的 profile id 选择；profile 的规范语义与 conformance vectors 随实现发布，不作为可寻址运行时工件进入 replay 输入。验签、Event identity 与转发均以收到并持久化的 canonical raw bytes 为准，typed view 只用于已知字段的语义解释，不得通过重序列化改变对象身份。实现不支持该 profile 时只对目标 Realm 返回 `unsupported_profile`，不得降级为权限错误或扩大到连接、账户和其他 Realm。
 
-winning MLS transition、requester join/incarnation 和 scope 当前单向收紧的 history access 均由服务器已验证的 accepted 状态派生；允许按精确输入/规则上下文耐久增量复用，不要求每个用户请求重新 replay；同一 Realm 只有单一确认 lineage，epoch 必须绑定该 lineage 上唯一 accepted winning transition。普通 Message/reaction 等 DataEvent 只携既有 accepted `auth_context.authority_refs` authorization view，不携 `seal_basis`、不进入 Seal.delta、不推进 epoch。
+winning MLS transition、requester join/incarnation 和 scope 当前单向收紧的 history access 均由服务器已验证的 accepted 状态派生；允许按精确输入/规则上下文耐久增量复用，不要求每个用户请求重新 replay；同一 Realm 只有单一确认 lineage，epoch 必须绑定该 lineage 上唯一 accepted winning transition。普通 Message/reaction 等 ordinary Event 只携既有 accepted `auth_context.authority_refs` authorization view，不携 `seal_basis`、不进入 Seal.delta、不推进 epoch。
 T1 release 不进入 governance proof query；它由 chunk 首次耐久入队事务生成 `HistoryReleaseAttestation`。旧
 `HistoryGovernanceEvidenceChain`、page/root/ownership/selection/activation/auth witness、`epoch_activation_range`、
 `complete_control_state_v1` 与独立客户端 history proof/snapshot carrier 均不存在；这不禁止 `server-trusted-results` 已登记的、有界且按请求授权的 Station 当前结果。
@@ -708,7 +708,7 @@ archive-lifetime traversal retention。非投票 holder 按 cbs-profiles §9 认
 不存在 `ArchiveId` 或第二个 archive-get surface。服务只返回历史 tuple 中
 `holder_service_id` 与当前认证 holder service authority 逐字节相符，且 `holder_signing_ref` 的当前 method-controller 投影仍等于 `method_controller_principal_id` 的行；unknown scope、无匹配、tuple 失配、过期/无权 holder
 均使用同形 `not_found`。Organization Recovery holder 的正常消费使用有权读取的最小 quorum 结论，不因持有恢复密钥而自动取得无关私有控制历史。需要独立重放审计时必须另外满足原始对象的 scope 披露政策；不能使用普通 service attestation 代替 quorum。archive 真实持久化、receipt、holder key 绑定与 GC gate 保持不变。
-Traversal access 仍只允许 target→base cut 的 Seal、其 delta Control Move 与 registered dependencies：不得读取无关 DataEvent、执行 generic timeline scan、获得 membership 或 send 权。
+Traversal access 仍只允许 target→base cut 的 Seal、其 delta Control Move 与 registered dependencies：不得读取无关 ordinary Event、执行 generic timeline scan、获得 membership 或 send 权。
 Holder service 首次 durable accept replica 时分配严格单调
 `archive_sequence`；list 按 `(archive_sequence,container_event_ref)` 升序，cursor 绑定 exact `holder_service_id`、`method_controller_principal_id`、完整 query digest
 （含 Event provenance 与 Seal trusted anchor）及最后 ordering tuple。延迟到达的旧 epoch 只能取得更大 sequence，不会插入旧 cursor 前。

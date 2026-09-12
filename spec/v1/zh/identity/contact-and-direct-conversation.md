@@ -535,7 +535,7 @@ founder **MUST** 一次提交恰好四条 Event：
 `auth_context`），并叠加同批 staged authority-root proof。两者的免 basis 落点分别登记在
 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md) 与
 [`../authz/event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 的封闭列表。
-`ak.strand.create` 平时是携 `auth_context` 的 DataEvent，batch admission **MUST** 在本 unit 之外
+`ak.strand.create` 平时是携 `auth_context` 的 ordinary Event，batch admission **MUST** 在本 unit 之外
 拒绝它的 no-basis 形态。
 
 Genesis Seal **MUST** 覆盖四条 Event、普通 Realm create 的全部 required founding writes 与 §6.2 的固定投影；**MUST NOT** 先 Seal create 再补任一 member join 与 Strand。这也是 `ak.strand.create` 必须免 basis 的原因：它被同一张 Seal 覆盖，无法引用那张尚不存在的 Seal。

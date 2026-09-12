@@ -12,7 +12,7 @@ sidebar:
 
 ## 1. 唯一当前状态来源
 
-普通客户端信任自己的 Account Station 对治理、可见性、DataEvent heads 和 reducer 的判定。
+普通客户端信任自己的 Account Station 对治理、可见性、ordinary Event heads 和 reducer 的判定。
 `account-subscribe-frame` 的每 Realm `current {entries}` 是当前状态安装来源，替代并删除 `state`、
 `state_after` Event 容器。原始 timeline Event、`state_at_window_start` 展示上下文、MLS 私有 tree 和
 当前结果分别保存；不能从 Event kind、HLC、`effects` 或最后到达的 Event 推导当前值。

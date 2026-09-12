@@ -11,8 +11,8 @@
     "entrypoint": "ak.suite.audit.release.v1"
   },
   "covers_vectors": [
-    "ak.vector.audit.binding_fsm.v1",
-    "ak.vector.audit.session_fsm.v1",
+    "ak.vector.audit.binding_transitions.v1",
+    "ak.vector.audit.session_transitions.v1",
     "ak.vector.audit.release_recipient_binding.v1",
     "ak.vector.audit.release_window.v1",
     "ak.vector.audit.binding_and_authorization_gate.v1",
@@ -21,9 +21,9 @@
   ],
   "cases": [
     {
-      "name": "binding_fsm",
-      "vector_id": "ak.vector.audit.binding_fsm.v1",
-      "runner": "cotest::conformance::audit_release::run_binding_fsm_vector",
+      "name": "binding_transitions",
+      "vector_id": "ak.vector.audit.binding_transitions.v1",
+      "runner": "cotest::conformance::audit_release::run_binding_transitions_vector",
       "assertions": [
         "active may transition to suspended or revoked",
         "suspended may transition to active or revoked",
@@ -32,9 +32,9 @@
       ]
     },
     {
-      "name": "session_fsm",
-      "vector_id": "ak.vector.audit.session_fsm.v1",
-      "runner": "cotest::conformance::audit_release::run_session_fsm_vector",
+      "name": "session_transitions",
+      "vector_id": "ak.vector.audit.session_transitions.v1",
+      "runner": "cotest::conformance::audit_release::run_session_transitions_vector",
       "assertions": [
         "request authorize notice close is accepted",
         "request or authorize may close an aborted session",

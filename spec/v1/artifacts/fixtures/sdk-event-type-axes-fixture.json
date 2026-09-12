@@ -18,8 +18,8 @@
       "expected": "compile_fail_or_inaccessible_constructor"
     },
     {
-      "name": "data_event_requires_admission_basis",
-      "outer_shape": "DataEvent",
+      "name": "ordinary_event_requires_admission_basis",
+      "outer_shape": "ordinary_event",
       "omitted_fields": [
         "seal_ref",
         "auth_context"
@@ -44,8 +44,8 @@
       "expected": "compile_fail_or_inaccessible_constructor"
     },
     {
-      "name": "plain_data_event_rejects_mls_commit_validator",
-      "outer_shape": "DataEvent",
+      "name": "plain_ordinary_event_rejects_mls_commit_validator",
+      "outer_shape": "ordinary_event",
       "payload_shape": "PlainPayload<MessageContent>",
       "attempt": "validate_as_mls_commit",
       "expected": "type_error"
@@ -58,7 +58,7 @@
     },
     {
       "name": "verified_submission_matches_service_schema",
-      "outer_shape": "DataEvent",
+      "outer_shape": "ordinary_event",
       "payload_shape": "MlsEncryptedPayload<MessageContent>",
       "expected": "sdk_bytes_pass_event_schema_canonicalization_and_proof_transcript"
     }

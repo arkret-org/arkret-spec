@@ -36,7 +36,7 @@
       "contains_two_current_authority_refs_and_event_admission_dependencies": true
     },
     {
-      "name": "current_stale_lease_is_unresolved",
+      "name": "current_stale_attestation_is_unresolved",
       "verification_mode": "current_admission",
       "all_current_windows_valid": false,
       "expected": "unresolved",
@@ -197,7 +197,7 @@
     },
     {
       "name": "current_state_substitution_rejected",
-      "state_digest_matches_lease": false,
+      "state_digest_matches_attestation": false,
       "expected": "rejected",
       "reason": "agent_signing_key_mismatch"
     },
@@ -222,14 +222,14 @@
     },
     {
       "name": "current_gate_expiry_shortens_effective_deadline",
-      "lease_remaining_seconds": 200,
+      "attestation_query_window_remaining_seconds": 200,
       "gate_remaining_seconds": 0,
       "expected": "unresolved",
       "reason": "agent_signer_evidence_stale"
     },
     {
       "name": "current_known_revocation_invalidates_before_deadline",
-      "lease_remaining_seconds": 200,
+      "attestation_query_window_remaining_seconds": 200,
       "observed_revocation": true,
       "expected": "rejected",
       "reason": "agent_authorization_inactive"
@@ -267,10 +267,10 @@
       "reason": "agent_signer_evidence_missing"
     },
     {
-      "name": "historical_cache_ttl_does_not_expire_unlimited_authority",
+      "name": "historical_query_window_expiry_does_not_invalidate_evidence",
       "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
       "verification_mode": "historical_event",
-      "lease_cache_expired": true,
+      "attestation_query_window_expired": true,
       "real_authority_expired": false,
       "expected": "verified"
     },

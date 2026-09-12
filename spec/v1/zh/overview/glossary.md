@@ -125,11 +125,11 @@ see_also:
 | Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |
 | Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
 | Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值；只可用于 timeline 诊断，不参与协议状态 winner。 |
-| Data Plane | 数据面 | 普通协作写入所在平面：消息、reaction、对象字段、排序、协作文本、计数等。DataEvent 签名与授权验证通过后按 Lattice / CRDT 本地接受；Seal 只可对其作观测承诺。 |
+| Data Plane | 数据面 | 普通协作写入所在平面：消息、reaction、对象字段、排序、协作文本、计数等。ordinary Event 签名与授权验证通过后按登记的 state model 本地接受；Seal 只可对其作观测承诺。 |
 | Control Plane | 控制面 | 治理写入所在平面：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 声明 `sealed=true` 的对象。Control Move 只有被 Seal 覆盖并进入控制面 `state_root` 后才 `sealed`。 |
-| CBS | 控制面基线承诺封存 | `Control-plane Basis-committed Sealing` 的唯一缩写，逐词取首字母 **C**ontrol-plane / **B**asis-committed / **S**ealing。DataEvent 按自身 `auth_context.authority_refs` 验证，Control Move 按自身 `seal_basis` 验证并由 Seal 取得 finality。CBS 不表示 Collaboration Base。 |
+| CBS | 控制面基线承诺封存 | `Control-plane Basis-committed Sealing` 的唯一缩写，逐词取首字母 **C**ontrol-plane / **B**asis-committed / **S**ealing。ordinary Event 按自身 `auth_context.authority_refs` 验证，Control Move 按自身 `seal_basis` 验证并由 Seal 取得 finality。CBS 不表示 Collaboration Base。 |
 | Authority Set | 权威集合 | 在某个 CBS basis 下决定 signer、quorum、delegation 与 revocation authority 的已接受 policy。wire 引用统一为 `{authority_set_id, authority_set_digest}`，不得只按可变名称解析。 |
-| DataEvent | 数据事件 | 数据面 reducer-input Event；携带签名 `scope_ref` 与 `auth_context`，writes 由 kind + payload 派生。 |
+| ordinary Event | 数据事件 | 数据面 reducer-input Event；携带签名 `scope_ref` 与 `auth_context`，writes 由 kind + payload 派生。 |
 | Control Move | 控制动作 | 控制面 reducer-input Event；携带签名 `scope_ref` 与 `seal_basis`，可携带 `preconditions[]`，writes 由 kind + payload 派生。 |
 | CbsProofBundle | CBS 依赖证明包 | 不签名、不创建身份的 receiver-relative dependency bundle；携带目标 Seal、Control Move、inclusion proof 与 availability proof 的有界可验证超集。receiver 必须独立验签、重算 root 与 reducer 输出。 |
 | AuthorizationLease | 授权租约 | 绑定 accepted CBS basis、主体、设备、scope、action、risk tier 与短期有效期的签名发布许可；它只能收窄既有授权，不能创建 capability。 |
@@ -169,7 +169,7 @@ see_also:
 | Materialized State | 物化状态 | Reducer 输出的当前态对象，如 Strand、Relation、View。 |
 | Frontier | 前沿（边界族） | 已验证的协议边界/集合承诺，不是不透明续传 token。必须用限定名区分：Actor/Causal Frontier 是 Event envelope `prev_refs` 与 per-actor sequence 所表达的因果边界；Realm Seal Frontier 是某 Realm 唯一 confirmed Seal head 及多 Realm `seal_basis` 的来源；MLS Security Frontier 是进入 MLS transcript 的 governance digest（见 MLS Security Frontier Binding）；Visibility Frontier 是 join/invite/history policy 所允许的可见历史边界。字段形状与验证规则由各 owner 文档定义，四者不得互换，也不得用 Cursor 代替。 |
 | state_root | 状态根 | Seal 承诺的治理状态 authenticated root：Reducer 把已 sealed Control Move 的 registry-derived writes 归约为控制面 cell values 的可验证 root，由 Seal 的签名 transcript 承载。Event 的 `seal_basis` 只含 `leaves[]` 并通过所引 Seal 间接绑定该 root；不得把 root 复制进 basis。它是 capability / membership / policy inclusion proof 的锚点。单源 normative 定义在 [`../authz/event-auth-state-resolution.md` §11](../authz/event-auth-state-resolution.md)。 |
-| epoch | 代际 | 单调递增的"代际"计数，按上下文落在三个语义簇，各有专题文档承载权威定义：(1) **MLS key epoch**——MLS group 每次 commit 推进的密钥代际，见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)；(2) **授权 epoch pinning**——DataEvent `auth_context` 对 `key_epoch` / `credential_epoch` 的 pinning，见 [`../authz/event-auth-state-resolution.md` §4](../authz/event-auth-state-resolution.md)；(3) **history visibility epoch 边界**，见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。本条仅作术语指针，不重复承载各簇规则；具体语义以对应专题文档为准。 |
+| epoch | 代际 | 单调递增的"代际"计数，按上下文落在三个语义簇，各有专题文档承载权威定义：(1) **MLS key epoch**——MLS group 每次 commit 推进的密钥代际，见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)；(2) **授权 epoch pinning**——ordinary Event `auth_context` 对 `key_epoch` / `credential_epoch` 的 pinning，见 [`../authz/event-auth-state-resolution.md` §4](../authz/event-auth-state-resolution.md)；(3) **history visibility epoch 边界**，见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。本条仅作术语指针，不重复承载各簇规则；具体语义以对应专题文档为准。 |
 | Causal Barrier | 因果一致性屏障 | 客户端或可选受托 projection 服务在返回查询结果前，依据本地 sync frontier 等待特定写入前沿到达的机制；用于保障 read-your-writes 体验。定义见 [`overview/architecture.md` §3.4](./architecture.md)。 |
 | read-your-writes barrier | 读己之所写屏障 | Causal Barrier 在"读到自己刚提交的写入"这一场景下的别名；由 barrier `cursor` 表达，绑定 causal frontier。语义同 Causal Barrier，见 [`overview/architecture.md` §3.4 / §6.3](./architecture.md) 与 [`sync/client-sync.md`](../sync/client-sync.md)。 |
 | Lazy Link | 惰性链接 | 节点处理深度 Graph / Space-hierarchy 查询遇到跨 Realm 引用时，截断返回的不解引用占位链接。其 normative 规则（截断行为、MUST NOT 越权自动化拼接外部图谱、跨域级联展示由有多域权限的客户端主动合成）单源定义在 [`overview/architecture.md` §6.5](./architecture.md)；本条仅作术语指针，不重复承载该规则。 |

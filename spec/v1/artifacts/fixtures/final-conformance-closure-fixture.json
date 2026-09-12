@@ -321,7 +321,7 @@
       "assertions": [
         "commit_binds_rederived_security_frontier_digest",
         "unrelated_governance_does_not_change_security_frontier",
-        "dataevent_seal_ref_is_orthogonal_to_security_frontier",
+        "ordinary_event_has_no_seal_ref_and_security_frontier_is_independent",
         "active_leaf_revoke_pauses_sending_until_new_commit"
       ],
       "cases": [

@@ -231,7 +231,7 @@ Circle 只参与读取和操作授权，不属于冲突 key；不同 Circle 下�
 
 ### 6.3 冻结基线与修复材料（normative）
 
-**控制面授权基线与数据面候选完整性是两件事。** `auth_context.authority_refs` 冻结的是授权依据，单独携带它 MUST NOT 被当作"全部 Relation DataEvent 已被观察"的证明；`causal_refs`、逐 Event inclusion proof、`ak.relation.update` 的 `expected_state_digest` 与 projection diagnostic 同样都不是完整组证明。因此 `payload.baseline` 是独立登记的**数据面完整集合承诺**：
+**控制面授权基线与数据面候选完整性是两件事。** `auth_context.authority_refs` 冻结的是授权依据，单独携带它 MUST NOT 被当作"全部 Relation ordinary Event 已被观察"的证明；`causal_refs`、逐 Event inclusion proof、`ak.relation.update` 的 `expected_state_digest` 与 projection diagnostic 同样都不是完整组证明。因此 `payload.baseline` 是独立登记的**数据面完整集合承诺**：
 
 - 成员是该域在本基线下的**全部活跃候选 head**：每个未 tombstone 的目标 Relation 的每个活跃 head EventId。`create` 贡献它自己的 EventId；`update` 按正式 patch base 与已验证业务因果取代同一 Relation 的被覆盖版本，其**新 EventId MUST 进入候选集**，MUST NOT 永远用 create EventId 代替；`tombstone` 按自身 sealed lifecycle 合同结束目标 Relation，该 Relation 退出候选集，但它 MUST NOT 被解释为已对其它分支作出整体裁决。内容版本、生命周期与组裁决三者的已验证贡献分别参与派生，MUST NOT 被压成一个按通用可达性消边的集合。
 - 成员的 canonical 顺序是完整 `ak:event:` token 的 **bytewise UTF-8 升序**，去重后唯一。顺序只用于 canonical 编码与分页，MUST NOT 提供胜者。

@@ -264,7 +264,7 @@ operation 已定义的有界分页/typed unavailable，不得截断完整事实�
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
-| 单个 DataEvent canonical size | 1 MiB | 与 §2.1.1 同一测量对象与同一数值；超过时 MUST reject 为 `payload_too_large`。 |
+| 单个 ordinary Event canonical size | 1 MiB | 与 §2.1.1 同一测量对象与同一数值；超过时 MUST reject 为 `payload_too_large`。 |
 | 单个 Control Move canonical size | 1 MiB | 与 §2.1.1 同一测量对象与同一数值；超过时 MUST reject 为 `payload_too_large`。 |
 | 单个 Control Move 的 `preconditions[]` 项数 | 256 | 这是 wire schema 的 `maxItems`；超过时 MUST reject。 |
 | 单个 Event 的 reducer-projected cell write 数 | 128 | receiver 从 registry 重算；与 Event Envelope `cell_writes.maxItems=128` 使用同一上限。任何 projection（包括 `ak.patch.apply` 的 cell 展开）超过时 MUST `reducer_projection_failed`，协议设计者需拆成多个 Event 或使用已注册的 typed control transaction；registry 不得给某 kind 登记更高局部上限。 |
@@ -281,7 +281,7 @@ operation 已定义的有界分页/typed unavailable，不得截断完整事实�
 | `proposal_absolute_deadline_ms` | 90,000 ms（90s，default）；`minimum=1`；`maximum=259,200,000`（72h） | `realm.schema.json`；从 Ack signed `received_at` 起不可延长的决议绝对窗口。defer 必须原样保留 `absolute_due_at`；与 decision window 的相对约束见上一行。 |
 | 单个 pending Control Move 累计 defer 数（`max_proposal_defers`）| 2（default 与 protocol maximum）| `realm.schema.json`；每次 defer 绑定原 Ack、closed reason 与递增 deadline；两窗口相等时 MUST 为 `0`，否则不存在合法的递增 deadline。超过仍未 include / signed-reject 构成 decision-overdue / censorship evidence（[`event-auth-state-resolution.md` §14](../authz/event-auth-state-resolution.md)）。 |
 
-CBS fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
+CBS fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 ordinary Event 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
 
 同一资源的上限只能有一个 canonical 数值：通用 Event 上限约束所有具体 Event kind，具体
 projection / patch / profile 只能声明相同或更低的值，不得扩大它。发布门禁 MUST 解析 registry
@@ -302,10 +302,10 @@ projection / patch / profile 只能声明相同或更低的值，不得扩大它
 渐进恢复阶段：
 
 1. **Seal probe**：先查询 Realm 唯一 confirmed Seal head、可用 snapshot manifest 和缺失 ref 的 source。
-2. **Targeted dependency fetch**：按精确 missing DataEvent、Control Move、Seal predecessor 与 critical refs 拉取；允许有界可验证超集，不把传输优化算法变成共识规则。
-3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 DataEvent 与 Control Move。
+2. **Targeted dependency fetch**：按精确 missing ordinary Event、Control Move、Seal predecessor 与 critical refs 拉取；允许有界可验证超集，不把传输优化算法变成共识规则。
+3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 ordinary Event 与 Control Move。
 4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 CBS query basis 的只读 projection，并显式标记 query basis incomplete。
-5. **Write revalidation**：任何新 Control Move 必须在提交前以当前 confirmed Seal state 重新验证 preconditions；DataEvent 必须补齐其已签授权依赖并应用已知关闭，不要求最新 Seal 或定期刷新；不得继承 partial view 的乐观允许结果。
+5. **Write revalidation**：任何新 Control Move 必须在提交前以当前 confirmed Seal state 重新验证 preconditions；ordinary Event 必须补齐其已签授权依赖并应用已知关闭，不要求最新 Seal 或定期刷新；不得继承 partial view 的乐观允许结果。
 
 长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Seal predecessor-chain 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Event / Seal。
 

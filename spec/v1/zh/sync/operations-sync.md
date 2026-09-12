@@ -23,7 +23,7 @@ Arkret 是面向协作对象的分布式发布、传播、查询与收敛协议�
 
 Arkret v1 采用 **CBS**（Control-plane Basis-committed Sealing）：
 
-- 数据面事件（DataEvent）解决普通协作写入：消息、reaction、read cursor 的持久投影、协作对象字段、排序、计数等。DataEvent 由 actor 签名、按 `auth_context.authority_refs` 验证授权，通过 cell Lattice / CRDT 收敛；它不等待 Seal 才成为本地可接受事实。
+- 数据面事件（ordinary Event）解决普通协作写入：消息、reaction、read cursor 的持久投影、协作对象字段、排序、计数等。ordinary Event 由 actor 签名、按 `auth_context.authority_refs` 验证授权，通过注册的 cell state model 收敛；它不等待 Seal 才成为本地可接受事实。
 - 控制面事件（Control Move）解决治理写入：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 明确声明 `sealed=true` 的对象。Control Move 由 Seal 覆盖后才取得 `sealed` finality。
 - Seal 只确认安全命令及其顺序结果。普通消息不进入 Seal 的 delta 或 state_root；安全命令 bytes 的可用性由 signed `availability_receipt_digests[]` 逐项承诺。
 
@@ -37,24 +37,24 @@ Reducer-input Event 分为两类，二者 wire shape 互斥：
 
 | 类型 | 必须字段 | 禁止字段 | 收敛语义 |
 | --- | --- | --- | --- |
-| DataEvent | `scope_ref`、`auth_context` | `seal_basis` | reducer 从 kind + payload 派生 data-plane writes；preconditions 仅检查签名因果基底；签名、actor chain、授权与 Lattice 验证通过即可本地接受。 |
+| ordinary Event | `scope_ref`、`auth_context` | `seal_basis` | reducer 从 kind + payload 派生 data-plane writes；preconditions 仅检查签名因果基底；签名、actor chain、授权与注册 state-model 验证通过即可本地接受。 |
 | Control Move | `scope_ref`、`seal_basis` | `seal_ref`、`auth_context` | reducer 派生 control-plane writes；进入 pending control set，直到被有效 Seal 覆盖才生效。 |
 | Anchor Unit | `scope_ref`；kind 仅限 `ak.realm.create` genesis bootstrap 与 `ak.device.reanchor` recovery unit | `seal_ref`、`auth_context`、`seal_basis` | 封闭例外；必须按 CBS 非空 genesis / transaction 规则验证。 |
 
-`preconditions[]` 仅属于 Control Move。DataEvent 不使用全局 CAS precondition；需要强单值、硬配额、跨 cell 原子性或不可自动合并语义的对象，MUST 在 Realm schema 中声明为 control plane，不得伪装成轻量数据面写入。
+`preconditions[]` 仅属于 Control Move。ordinary Event 不使用全局 CAS precondition；需要强单值、硬配额、跨 cell 原子性或不可自动合并语义的对象，MUST 在 Realm schema 中声明为 control plane，不得伪装成轻量数据面写入。
 
-### 2.1 DataEvent
+### 2.1 ordinary Event
 
-DataEvent 是数据面写入。它的核心字段如下：
+ordinary Event 是数据面写入。它的核心字段如下：
 
 | 字段 | 含义 |
 | --- | --- |
-| reducer contract | 从 kind + payload 派生数据面 cell 与 Lattice 操作；全部目标 MUST 为 `plane="data"`。 |
+| reducer contract | 从 kind + payload 派生普通 cell write；全部目标 MUST 为 `execution="data"`。 |
 | `auth_context` | 签名 key 坐标、capability refs 与已确认的 `authority_refs`；长期缓存不因签署者离线失效。 |
 | `causal_refs[]` | 业务因果 hash 引用；用于投影、线程、排序与缺依赖诊断，不证明范围完整性。 |
 | `refs[]` | 语义引用；例如 `authorized_by`、`parent_event`、`attestation`、`after`。 |
 
-DataEvent 完整验证后可立即本地投递、fanout 和同步；收到新的授权关闭证据后，按同一证据集合重算历史资格与业务投影。普通观察或复制不提供永久有效保证。
+ordinary Event 完整验证后可立即本地投递、fanout 和同步；收到新的授权关闭证据后，按同一证据集合重算历史资格与业务投影。普通观察或复制不提供永久有效保证。
 
 ### 2.2 Control Move
 
@@ -62,9 +62,9 @@ Control Move 是控制面写入。它的核心字段如下：
 
 | 字段 | 含义 |
 | --- | --- |
-| `seal_basis.leaves[]` | 每个参与 Realm 恰一个确认 head；同 Realm 多 leaf 无效。 |
+| `seal_basis.leaves[]` | 每个参与 Realm 恰一个确认 head；同 Realm 多 leaf 无效。跨 Realm 的 `SealBasis.leaves[]` 不是 Seal 自身的同 Realm 前驱集合，不能表达同 Realm DAG 或 fork。 |
 | `preconditions[]` | 可选控制面 pre-state predicate。 |
-| reducer contract | 从 kind + payload 派生控制面 cell 与 Lattice 操作；全部目标 MUST 为 `plane="control"`。 |
+| reducer contract | 从 kind + payload 派生安全 cell write；全部目标 MUST 为 `execution="security"`。 |
 
 Control Move 的签名、actor chain、basis、precondition 和授权验证通过后，服务 MAY 返回 signed receipt 表示已经进入控制面待检查集合。它只有在有效 Seal 覆盖其 digest 且 `state_root` 重算一致后，才成为 `sealed`。
 
@@ -97,13 +97,13 @@ Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_sco
 
 通用验证通过后，按 CBS 类型分流。
 
-### 3.1 DataEvent 验证
+### 3.1 ordinary Event 验证
 
 接收方 MUST：
 
 1. 首次提交由任意合资格接收站独立验证 producer、授权与因果证据，和本地已知 revoke fence 串行持久化。普通消息不要求新 Seal 或原站确认。federation/backfill 按相同证据闭包求历史资格，后续关闭可使此前暂时接纳的消息进入隔离，历史导入不触发 live 副作用。
 
-DataEvent 的安全问题主要是签名伪造、授权过期、写入不属于 data plane、以及不可合并冲突。签名伪造由 DID/key 与 Event proof 解决；授权基准由已验证 `auth_context.authority_refs` 提供；事件冲突由 Lattice / CRDT / bottom diagnostic 解决。
+ordinary Event 的安全问题主要是签名伪造、授权过期、写入不属于 data plane、以及不可合并冲突。签名伪造由 DID/key 与 Event proof 解决；授权基准由已验证 `auth_context.authority_refs` 提供；普通因果冲突由 `causal_register` 的多 head 结果显式暴露；其它 state model 按各自登记规则收敛。
 
 ### 3.2 Control Move 验证
 
@@ -143,7 +143,7 @@ Seal 的 wire contract 见 [`seal.schema.json`](../../artifacts/schemas/seal.sch
 flowchart TB
     subgraph P ["Producer"]
         P1["build signed Event"]
-        P2["DataEvent: kind + payload + auth_context"]
+        P2["ordinary Event: kind + payload + auth_context"]
         P3["Control Move: kind + payload + seal_basis"]
         P1 --> P2
         P1 --> P3
@@ -151,7 +151,7 @@ flowchart TB
 
     subgraph S ["Station / Station sync surface"]
         S1["schema + signature + actor chain"]
-        S2["DataEvent verify portable authority"]
+        S2["ordinary Event verify portable authority"]
         S3["Control Move verify at seal_basis"]
         S4["data accepted + fanout"]
         S5["control pending"]
@@ -162,7 +162,7 @@ flowchart TB
 
     subgraph C ["Consumer"]
         C1["sync events / receipts / seals"]
-        C2["data Lattice / CRDT projection"]
+        C2["ordinary state-model projection"]
         C3["control state_root verification"]
         C4["local evidence state: data-local / observed / control-sealed"]
         C1 --> C2 --> C4
@@ -176,7 +176,7 @@ flowchart TB
 
 - Producer 与 Consumer 都可以从 signed Event 与 Seal proof 独立验证历史。
 - Station sync surface 是传播与投影服务，不是签名事实的来源；它不能伪造 actor Event。
-- DataEvent 可以离线产生，使用完整已验证的缓存授权即可，不要求新 Seal 或缓存新鲜度续租。
+- ordinary Event 可以离线产生，使用完整已验证的缓存授权即可，不要求新 Seal 或缓存新鲜度续租。
 - Control Move 的 finality 来自 Seal，而不是到达顺序。
 
 ## 5. 批量提交与 partial accept
@@ -192,7 +192,7 @@ Event 仅可作为后续 Event 的解析材料：
 
 - 可以解析 bytes、Event ID、actor chain、`prev_refs[]`、`causal_refs[]` 或 payload-level causal reference。
 - 不得作为后续 Event 的授权基准。
-- DataEvent 的授权基准是自身签名 `auth_context.authority_refs`。
+- ordinary Event 的授权基准是自身签名 `auth_context.authority_refs`。
 - Control Move 的授权与 precondition 基准始终是该 Event 自己的 `seal_basis`。
 - 同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant/policy，不会在同批后续 Event 的授权判定中提前生效。
 
@@ -226,7 +226,7 @@ Event Batch Receipt（schema [`event-batch-receipt.schema.json`](../../artifacts
 
 ### 6.2 AvailabilityReceipt
 
-AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifacts/schemas/availability-receipt.schema.json)）证明 holder 在某 retention window 内承诺保存指定 Event bytes 或 blob bytes。Seal 直接签入其 full canonical `receipt_digest`；完整 receipt 与历史 signer evidence 经 typed governance-dependency resolve 获取。它不替代事件签名、授权验证或 Lattice 收敛。
+AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifacts/schemas/availability-receipt.schema.json)）证明 holder 在某 retention window 内承诺保存指定 Event bytes 或 blob bytes。Seal 直接签入其 full canonical `receipt_digest`；完整 receipt 与历史 signer evidence 经 typed governance-dependency resolve 获取。它不替代事件签名、授权验证或 state-model 收敛。
 
 ### 6.3 Audit RYW Receipt
 
@@ -262,14 +262,14 @@ v1 不定义跨所有查询响应通用的 `basis` / `grade` 包装。operation 
 
 ## 9. 冲突与收敛
 
-Arkret 不用全局链决定普通协作写入顺序。状态收敛由 cell family 的 Lattice / CRDT 规则定义：
+Arkret 不用全局链决定普通协作写入顺序。状态收敛由 cell family 登记的 state-model 规则定义：
 
 - 普通 or_set、ordered_log 与已注册 issuer-local counter 在相同资格证据下 MUST 对输入顺序不敏感。安全 sequenced_state 按确认顺序执行，不适用无序 join。
 - 单值、硬配额、跨 cell 原子性和不可交换操作不得放在 data plane，除非使用专门 sequencer。
 - 并发不可合并时，reducer MUST 产生 structured bottom / conflict diagnostic，而不是用 HLC、actor id、数据库自增 ID、本地到达顺序或 Station sync surface 顺序挑选 winner。
-- Timeline 展示顺序是 projection，MUST NOT 反向写入 canonical state、授权判断或 Lattice winner。
+- Timeline 展示顺序是 projection，MUST NOT 反向写入 canonical state、授权判断或 state-model result。
 
-DataEvent 的 `causal_refs[]` 可以帮助投影层稳定排序和诊断缺依赖；它不是全局 completeness proof。
+ordinary Event 的 `causal_refs[]` 可以帮助投影层稳定排序和诊断缺依赖；它不是全局 completeness proof。
 
 ## 10. Snapshot
 
@@ -341,19 +341,19 @@ ACL 不等于密文保护。Station sync surface 可以转发不透明密文，�
 - 明文业务元数据：轻量状态、rank、due date 等；若足以暴露敏感内容，接收服务必须列入 Realm policy 的 plaintext-visible service。
 - 不透明加密负载：message body、附件内容、私有对象字段等。
 
-MLS / E2EE 语义见 [`encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)。控制面 MLS epoch 属 Control Move；普通加密消息仍是 DataEvent。
+MLS / E2EE 语义见 [`encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)。控制面 MLS epoch 属 Control Move；普通加密消息仍是 ordinary Event。
 
 ## 15. 设计决定
 
 Arkret v1 固定：
 
 - signed Event Envelope 是 actor 发布单元。
-- DataEvent 是普通协作数据面的默认写入单元。
+- ordinary Event 是普通协作数据面的默认写入单元。
 - Control Move 是治理状态和强不变量的写入单元。
 - Seal 只给控制面 finality；对数据面的 root 是观测承诺。
 - Event 签名、accepted DID/key binding 和 capability 检查解决伪造事件问题；DID authority
   resolution 只在身份 / key binding 建立、变更或显式 freshness 触发时执行。
-- 数据面的核心分布式问题是冲突、可用性、可见性与观测证明；冲突由 Lattice / CRDT / bottom diagnostic 解决。
+- 数据面的核心分布式问题是冲突、可用性、可见性与观测证明；冲突由 `causal_register` 多 head 与其它登记 state model 解决。
 - 密文负载可以由不解密的 Station sync surface 转发。
 - hard erasure 只能删除本地 payload / blob / 派生内容，并保留事件图验证所需的最小 verification stub；Event subject 的 `event_id` 本身保留完整 `(digest suite wire_code, event_digest)`。这只能保留已记录的身份，不能在 canonical bytes 已擦除后重新证明原 hash 正确。不得重写 Event hash 或伪装事件从未存在。
 

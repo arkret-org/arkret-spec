@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.17",
+  "version": "2026-09-12.18",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T16:05:55+08:00",
+  "generated_at": "2026-09-12T16:20:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -178,7 +178,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:c0c04d8b2190e80df688b864c729ef6890faecf3b097c867364c6987a731e781",
+      "section_digest": "sha256:57cb719dfff7ad4011028cc953228e79f3e5a35796a702208a5a3f44c093cbab",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id, its independently verifiable unique producer proof and signer evidence, and a destination-signed claim receipt without separate PCR/device/Agent history sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal, and a minimal-metadata Realm-local pairwise actor is no exception: its Realm state stays keyed by the complete ActorId, and only the two closed out-of-Realm matching sites (consent peer, KeyPackage claim) use (realm_id, principal_id), which its did:key principal already pins; every MLS epoch binds the security frontier for its accepted key-access state, while a non-voting consumer may verify an authenticated scope-authorized quorum conclusion under the same fault bound without replaying unrelated private control history; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis. Realm/Circle Proposal/Commit wire inputs are complete PublicMessage MLSMessages; voting replicas check public signatures/tree transitions and persist exact consumed-proposal leaf provenance without member MAC secrets. Remove+Add always creates new provenance even when the leaf tuple is unchanged; minimal identities remain pairwise and Sidecar keeps its separate contract. Ordinary clients obtain exact historical Agent signing keys from their own Station instead of replaying public governance; they still verify the actual producer signature and historical MLS binding. Current self signing-key results serve only their requesting validation/in-flight identical query and cannot be reused for future Signals or operations. Message prepare distinguishes local plaintext intent from the encrypted wire request: the client freezes AAD inputs and encrypts locally, checks returned ciphertext/metadata and bindings byte-for-byte, and exact retry never consumes another sender counter. Plaintext is rejected under e2ee_required; the two-request path assumes send readiness and local MLS state.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -237,7 +237,7 @@
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1",
-        "ak.vector.cbs_lattice.seal_delta_excludes_data_event_digest.v1",
+        "ak.vector.cbs_lattice.seal_delta_excludes_ordinary_event_digest.v1",
         "ak.vector.cbs_lattice.confirmed_prefix_compaction.v1",
         "ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1",
         "ak.vector.federation.reducer_profile_resolution.v1",
@@ -250,7 +250,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:cc44746e31ebfebe809b52ae45cf17d3a07a94b1634f12de865755ae409aedef",
+      "section_digest": "sha256:42537a9aed8c63dc01001188e2e3c3078f96282af74e55b6cb776b3e2e3ff667",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -300,7 +300,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:a46f4523f941535c6a314feac9744a1812a8a3e4b78304fd310319907564b332",
+      "section_digest": "sha256:f51ae6602b2738f1b78bbe7712e8d552a94578084d960f1dbea1c16ede207367",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -317,7 +317,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#6-reducer-总则",
-      "section_digest": "sha256:7de56d0aeade9e74fdbad92bf02bb7e7d7119638cee9f6e49599fee14235c5e9",
+      "section_digest": "sha256:f43e3ba049bdd77e421e0bd793ce268d8b60173a069a4d444ede8ed20c88dee6",
       "requirement": "Every reducer-input event kind declares a closed cell contract (cell family, subject, lattice, bottom, effect projection); an unregistered projection MUST NOT be improvised.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -424,7 +424,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:54acb33cd70b196a3b41bd8ad27d010c3710b2eb4bef1d81518dcb67bfe415cd",
+      "section_digest": "sha256:60a845a3adf6b338a8c44d215b4f6dc21a22600c538e36ec613a676198852e72",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -446,7 +446,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:54acb33cd70b196a3b41bd8ad27d010c3710b2eb4bef1d81518dcb67bfe415cd",
+      "section_digest": "sha256:60a845a3adf6b338a8c44d215b4f6dc21a22600c538e36ec613a676198852e72",
       "requirement": "An accepted ordinary-Realm or Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -528,7 +528,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:54acb33cd70b196a3b41bd8ad27d010c3710b2eb4bef1d81518dcb67bfe415cd",
+      "section_digest": "sha256:60a845a3adf6b338a8c44d215b4f6dc21a22600c538e36ec613a676198852e72",
       "requirement": "Historical deadline faults remain auditable but are not embedded in current frontier health. An incomplete bounded pending sample explicitly carries pending_proposals_complete=false and cannot prove absence of a safety gate; it does not invalidate an independently verified Seal basis.",
       "testability_grade": "audit",
       "test_plan": "Exercise 129 and 1000 late accepted obligations, verify current health and complete paginated retained history; exercise 129 pending obligations and validate explicit incompleteness without deletion. Verify target revoke gates independently of the diagnostic sample."
@@ -598,7 +598,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:54acb33cd70b196a3b41bd8ad27d010c3710b2eb4bef1d81518dcb67bfe415cd",
+      "section_digest": "sha256:60a845a3adf6b338a8c44d215b4f6dc21a22600c538e36ec613a676198852e72",
       "requirement": "A Control Proposal Ack intake request explicitly selects online or delayed publication. Online forbids an AuthorizationLease and re-evaluates current accepted authority; delayed requires an independently valid Event-bound lease. A malformed, invalid or expired delayed request never downgrades to online, and neither branch turns the Ack into a lease or a Seal.",
       "testability_grade": "audit",
       "test_plan": "Validate schema and shared SDK positive cases for online without a lease and delayed with a matching lease; reject online with a lease, delayed without one, invalid or expired leases, mode replacement, Event substitution and cross-actor or cross-scope lease reuse. Verify exact retry preserves the first durable Ack and deadline."

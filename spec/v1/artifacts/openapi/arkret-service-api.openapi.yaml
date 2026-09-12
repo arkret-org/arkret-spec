@@ -8155,7 +8155,7 @@ paths:
         schema:
           type: string
           const: ak.self.moderation.command.report.v1
-      description: Accepts exactly one direct-holder signed ak.self.moderation.report DataEvent in report_event.
+      description: Accepts exactly one direct-holder signed ak.self.moderation.report ordinary Event in report_event.
         The authenticated session principal must equal both event.actor_id and payload.reporter. The signed Event
         realm/scope must equal the accepted target's derived governance scope; absent, invisible and scope-mismatched
         targets all return not_found. The service forwards exact bytes through ordinary Event admission and never

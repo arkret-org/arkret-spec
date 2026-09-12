@@ -1,6 +1,6 @@
 {
   "version": "2026-09-12.12",
-  "generated_at": "2026-09-12T16:05:55+08:00",
+  "generated_at": "2026-09-12T15:37:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1418,7 +1418,7 @@
       "code": "failed_plane",
       "http_status": 412,
       "scope": "both",
-      "description": "CBS plane invariant failed: the registered reducer projection for a Control Move targeted a data-plane cell, or a DataEvent targeted a control-plane cell. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes).",
+      "description": "CBS plane invariant failed: the registered reducer projection for a Control Move targeted a data-plane cell, or a ordinary Event targeted a control-plane cell. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes).",
       "type_uri": "https://arkret.org/problems/failed_plane",
       "title": "Failed plane"
     },
@@ -3121,12 +3121,12 @@
       "description": "Sub-reason carried by the ak.invite.revoke that moves a pending Invite to target_state=send_failed: the delivery service could not reach the private invite delivery target after its retry budget. It is a delivery diagnostic only and MUST NOT leak the 3PID plaintext, the invite token or a verification code. See zh/models/governance-objects.md section 5 and zh/sync/third-party-invites.md section 6.1."
     },
     {
-      "code": "delta_contains_data_event",
+      "code": "delta_contains_ordinary_event",
       "applies_to": [
         "event_auth_state",
         "state_resolution"
       ],
-      "description": "A Seal delta contained a data-plane (DataEvent) digest. A Seal delta MUST carry newly sealed control-plane event digests only; including a DataEvent digest is a Seal validation failure and receivers MUST reject the Seal (rejected_seal). See models/event-and-patch.md and fixtures/cbs-lattice-fixture.json."
+      "description": "A Seal delta contained a data-plane (ordinary Event) digest. A Seal delta MUST carry newly sealed control-plane event digests only; including a ordinary Event digest is a Seal validation failure and receivers MUST reject the Seal (rejected_seal). See models/event-and-patch.md and fixtures/cbs-lattice-fixture.json."
     },
     {
       "code": "dependency_missing",
@@ -4286,7 +4286,7 @@
         "event_envelope",
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when a DataEvent's registered reducer projection targets a control-plane cell. Data-plane events MUST only project writes to data-plane cell families; the receiver MUST reject the envelope instead of applying a cross-plane write. See zh/authz/event-auth-state-resolution.md §4."
+      "description": "Sub-reason for schema_violation when a ordinary Event's registered reducer projection targets a control-plane cell. Data-plane events MUST only project writes to data-plane cell families; the receiver MUST reject the envelope instead of applying a cross-plane write. See zh/authz/event-auth-state-resolution.md §4."
     },
     {
       "code": "policy_denied",

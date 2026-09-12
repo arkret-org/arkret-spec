@@ -28,7 +28,7 @@
       "type": "array",
       "maxItems": 1024,
       "uniqueItems": true,
-      "description": "Control Move Event envelopes only. Semantic validation MUST reject DataEvent, Anchor Unit, actor-private, or unknown non-control Event shapes even when the generic Event Envelope schema is otherwise valid.",
+      "description": "Control Move Event envelopes only. Semantic validation MUST reject ordinary Event, Anchor Unit, actor-private, or unknown non-control Event shapes even when the generic Event Envelope schema is otherwise valid.",
       "items": {
         "$ref": "./event-envelope.schema.json"
       }

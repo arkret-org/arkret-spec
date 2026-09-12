@@ -1679,20 +1679,13 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     lint.fail(event_path, f"{write_ref} execution and state_model disagree")
                 if write.get("value_shape") not in {"register", "set", "log", "counter"}:
                     lint.fail(event_path, f"{write_ref} requires a registered value_shape")
-                if write_model == "sequenced_state" and "bottom" in write:
-                    lint.fail(event_path, f"{write_ref} sequenced_state cannot declare a join bottom")
-                if write_model != "sequenced_state" and write_bottom not in REGISTRY_BOTTOMS:
-                    lint.fail(event_path, f"{write_ref} has unknown bottom {write_bottom!r}")
-                elif write_model == "or_set" and write_bottom == "reject":
-                    # zh/authz/event-auth-state-resolution.md section 9.1.1: the
-                    # or_set join never produces bottom, so an or_set bottom can
-                    # never be an authorization rejection. inert is the default;
-                    # expose is legal only where the owning domain document
-                    # defines the exposed multi-head handling.
+                if write_model == "causal_register":
+                    if write_bottom not in REGISTRY_BOTTOMS:
+                        lint.fail(event_path, f"{write_ref} causal_register has unknown bottom {write_bottom!r}")
+                elif "bottom" in write:
                     lint.fail(
                         event_path,
-                        f"{write_ref} declares bottom=reject on an or_set; an or_set bottom "
-                        "MUST be inert or expose and MUST NOT fail authorization closed",
+                        f"{write_ref} declares bottom on {write_model}; only ordinary causal_register may produce Bottom",
                     )
                 write_key = json.dumps(
                     [write_family, write.get("cell_subject")],
