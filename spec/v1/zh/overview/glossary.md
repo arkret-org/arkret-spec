@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-08
+updated: 2026-09-12
 see_also:
   - ../index.md
   - architecture.md
@@ -118,7 +118,7 @@ see_also:
 | Account Authority | 账号准入入口（canonical, Station surface） | Station 对客户端发布的唯一 `/_arkret/gate/account/*` 逻辑入口，承载注册、session grant、恢复、device pairing 与登出。客户端只从 Station 的 `auth_metadata.account_authority.gate_account_base_url` 发现它。它不是独立 `service_kind`、service DID、service registration、role profile 或 federation identity；内部 Auth Server 进程对 peer 与 discovery 透明。 |
 | Authentication Method Provider | 认证方法提供方 | Passkey、OIDC、SSO 等认证方法或标准 issuer。它 MAY 是外部 IdP，但只向 Account Authority 提供认证结果，不取得账号、Station、Realm 或 Event authority，也不复用 Arkret Auth Server role。 |
 | Push Gateway | 推送网关（canonical, service role） | 承载 push notification 分发的服务角色（`service_kind=push_gateway`）：把 Realm 事件唤醒转换为平台推送（APNs / FCM 等），profile 覆盖 blind wakeup（`ak.profile.push_gateway.blind_wakeup.v1`，不泄露内容）与 visible notification（`ak.profile.push_gateway.visible_notification.v1`）。作为 `plaintext_visible_services` 之一时其可见明文范围受披露义务约束。服务角色一览（informative）见 [`sync/service-surface.md` §2.5](../sync/service-surface.md)；`service_kind` 机读真源见 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json)；推送语义见 [`discovery/push-notifications.md`](../discovery/push-notifications.md)。 |
-| Moderation Service | 审核服务（optional service role） | 只有 Realm/组织显式委托且实体拥有独立 service DID/签名、plaintext visibility 或 legal-hold authority 时才是独立角色。普通 report intake、local queue 与 Station ACL 是 Station capability；`Compliance Server` 不是 canonical 角色。 |
+| Moderation Service | 审核服务（optional service role） | 只有 Realm/组织显式委托且存在独立身份、明文可见性或特定对象保留/删除约束时才是独立角色。legal hold 不授予读取、解密或额外签署权，具体边界见 [service-surface §2.5](../sync/service-surface.md)。普通 report intake、local queue 与 Station ACL 是 Station capability；`Compliance Server` 不是 canonical 角色。 |
 | Archive Node | 归档节点 | 按明确 history visibility 与 capability 保存/提供归档材料的可选角色；持有副本不自动获得明文读取权。 |
 | Key Recovery Service | 密钥恢复服务 | 按独立密钥持有和恢复 policy 返回最小必要 epoch material / backup envelope 的可选角色。 |
 | Recovery Service | 账号恢复服务 | 仅在具有独立恢复 authority 与显式委托时出现的可选角色，不自动继承 Archive Node 或 Key Recovery Service 权限。 |

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.20",
+  "version": "2026-09-12.21",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T18:13:19+08:00",
+  "generated_at": "2026-09-12T18:42:19+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -163,7 +163,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:0ec8bc89610d81b157661f211073fad600d26ad71043d6a4a3473e4ab44525d1",
+      "section_digest": "sha256:25b85833c0a52cf3f0f382dc0fc5b8d725d877cfcbfe3be991b73fb8adb8b344",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -624,6 +624,16 @@
       "requirement": "Non-voting consumers authenticate exact quorum conclusions without unrelated private replay. A signing participant alone cannot replace the configured quorum; contexts, Realm/configuration, query scope and target are bound. Absence differs from written null. Execution, current authorization and end-to-end cryptography remain separate.",
       "testability_grade": "audit",
       "test_plan": "tools/test_seal_conclusions.py runs schema and real Ed25519 consumer vectors for quorum thresholds, wrong configuration/context/target, selector omission, absence/null, interval bounds, bootstrap and resolve carriers. It does not prove production PBFT signing, handoff durability, live revocation or complete join/history execution; those remain in arkret-work 2247/1636/1701."
+    },
+    {
+      "clause_id": "AK-NC-048",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#12-普通客户端的-station-接入normative",
+      "section_digest": "sha256:5315de37b49380c9bf2ffaaf44fa7e33d02551c0d623a1d17349c441157560d9",
+      "requirement": "Ordinary clients bootstrap from an independently selected Station origin, fetch public describe without credentials or redirects, and durably compare identity and authentication bindings before authentication or credential reuse. Changes require explicit re-enrollment and fresh authentication; client DID-history replay is not required and independent server verification remains mandatory.",
+      "testability_grade": "audit",
+      "test_plan": "Run SDK models-discovery station_connection cases for selected/preconfigured identity, split authority, issuer replacement, inert changes and invalid routes; run http-client public bootstrap redirect/encoding/size negatives. Run Inkson durable store restart, concurrent installation, corruption and explicit replacement cases, OIDC issuer tests and native/wasm compilation. Audit connection and callback gating, frozen authentication context and credential disposal at explicit re-enrollment. These focused checks do not prove a complete live cross-Station deployment or browser authentication flow."
     }
   ]
 }

@@ -3,7 +3,7 @@ title: Architecture
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-10
+updated: 2026-09-12
 see_also:
   - ../sync/operations-sync.md
   - ../sync/service-surface.md
@@ -474,14 +474,20 @@ Arkret 固定以下架构取向：
 
 | 关系 | 协议允许依赖的结论 | 仍须由消费方独立完成 | 不提供的保证与残余风险 |
 | --- | --- | --- | --- |
-| 用户设备 ↔ 自己 Station | 建立账号会话前，客户端先固定预期 Station 身份与认证绑定；会话建立后，普通客户端信任该 Station 对本次完整 AccountId、operation、Realm/scope、对象和观察坐标给出的治理接纳、当前授权及 signer 结果。精确结果合同见 [`sync/server-trusted-results.md` §1–§2](../sync/server-trusted-results.md#1-信任方与角色)。 | 客户端核对响应与请求、账号、scope、basis、对象和待签字节的绑定；保管设备私钥；验证实际 Event/内容签名、MLS、附件、备份和设备带外信任；签名前核对用户意图。 | Station 可拒绝、延迟、遗漏或回滚服务视图，并可对自己负责的服务器验证结果撒谎或 equivocate；base v1 普通客户端不通过完整治理重放独立发现这类谎言。Station 仍不能生成它不持有密钥的有效用户/设备签名，也不能仅凭服务器身份解密端到端密文。独立检测恶意自己 Station 需要另行部署审计者、witness 或高保证 profile，不能由普通结果消费流程暗示。 |
+| 用户设备 ↔ 自己 Station | 建立账号会话前，客户端按 [server-trusted-results §1.2](../sync/server-trusted-results.md#12-普通客户端的-station-接入normative) 从明确选择/预配起点持久固定预期 Station 身份与认证绑定；会话建立后，普通客户端信任该 Station 对本次完整 AccountId、operation、Realm/scope、对象和观察坐标给出的治理接纳、当前授权及 signer 结果。精确结果合同见 [`sync/server-trusted-results.md` §1–§2](../sync/server-trusted-results.md#1-信任方与角色)。 | 客户端核对响应与请求、账号、scope、basis、对象和待签字节的绑定；保管设备私钥；验证实际 Event/内容签名、MLS、附件、备份和设备带外信任；签名前核对用户意图。 | Station 可拒绝、延迟、遗漏或回滚服务视图，并可对自己负责的服务器验证结果撒谎或 equivocate；base v1 普通客户端不通过完整治理重放独立发现这类谎言。Station 仍不能生成它不持有密钥的有效用户/设备签名，也不能仅凭服务器身份解密端到端密文。独立检测恶意自己 Station 需要另行部署审计者、witness 或高保证 profile，不能由普通结果消费流程暗示。 |
 | 同一用户的不同设备 | PCR 中已接受且 current generation 为 active 的设备授权，只证明该设备当前可代表相应 Account 执行已授予动作；用户完成带外验证后，客户端可另行记录设备信任。 | 每台设备证明私钥持有；新设备按授权链与 generation 接纳；设备密钥变化、撤销、fence 和带外验证状态分别处理；端到端秘密只经已登记的配对、加密 to-device、backup 或 recovery 流程传递。 | 同属一个 principal 或 Account 不等于设备彼此可信，不允许自动复制私钥、MLS state 或“已验证”标记。一个被攻陷的已授权设备可在其 capability 内作恶，吊销不能追回其已经看见的明文或旧 epoch 密钥。权威规则见 [`crypto-media/device-lifecycle.md` §5–§10](../crypto-media/device-lifecycle.md#5-device-authorization-chain)。 |
 | 同一 Station 的不同用户 | 各用户分别信任该 Station 对自己已认证 Account 会话给出的 scoped 结果；Station 可执行本地接纳、投递和授权检查。 | 用户之间仍按完整 ActorId、Event proof、capability、membership、MLS sender 与内容认证互相验证；服务端必须执行账号和 Realm 隔离。 | 共用 Station 不建立用户间信任、联系人关系、membership、读取权或设备信任。Station 被攻陷可能同时影响多个本地账号的可用性、元数据和服务器结果；未加密或 policy 明确委托的明文也在其可见边界内。 |
 | 同一 principal 在不同 Station 的 Account | 每个完整 AccountId 都是独立账号与信任上下文；只有显式、已验证的绑定或协议事件才能建立它们之间的关系。 | 分别认证 Station、会话、设备 generation、ActorId 与 operation scope；跨站引用不得丢弃 `station_id` 或只按 principal DID 合并。 | 相同 principal 分量不证明两个 Account、设备集合、消息队列、push target、权限或历史相同，也不授权一个 Station 代表另一 Station。 |
 | 跨 Station 用户 | 用户可依赖自己的 Station 已验证并按本次 operation 返回的远端治理、设备或 signer 结果；共享事实仍以签名 Event、Seal、membership/capability 和端到端密码学为准。 | 客户端核对完整双方 AccountId/ActorId、Realm/scope、实际 producer 签名、MLS/内容绑定和 freshness；远端取材由自己 Station 走 peer 面完成，客户端不向远端 Station 交付自己的 SessionGrant/DPoP。 | 用户不因 federation、同 Realm 或对方 Station 的自报 verified 状态而直接信任对方。远端 Station 的已签 attestation 提供归责，不在密码学上阻止其为自己的账号发布虚假服务器断言；恶意源还可 withholding、选择性转发或提供不完整观察。 |
 | Station ↔ Station | 没有默认互信。接收 Station 只在本地 peer policy、Realm 业务授权和请求级认证全部通过后，接受某个有界 federation transaction。 | 接收方独立验证 service DID/method evidence、delegation/endpoint、HTTP message signature、双方 service/trust-domain、body digest、replay/freshness、Event proof、capability、Seal/basis 和目标绑定。 | allowlist、TLS、可解析 DID、有效服务签名或已知 peer 只证明相应层的身份/准入，不证明业务授权、内容真实、历史完整或对方善意。current-v1 不证明从未观察到的 Event 不存在，也不阻止 source withholding；见 [`sync/federation.md` §2–§3](../sync/federation.md#2-设计原则)。 |
 | 同一 Realm/Circle 的用户或 Agent | accepted membership 与 capability 只证明主体可在相应 effective scope 内执行特定动作；MLS membership 证明相应 epoch 的密码学参与资格。 | 每个接收方继续验证 Event、授权状态、scope、MLS epoch/sender、内容 schema，并把不可信内容当作潜在恶意输入。 | 共处 Realm/Circle 不建立人际信任、设备信任或内容真实性的额外保证。E2EE 防止未持钥服务读取正文，不阻止合法成员泄露已解密内容、提交恶意内容或观察其有权看到的元数据。 |
-| 客户端/Station ↔ Directory、Push、Blob、Media、Projection、Applet 等第三方服务 | 只依赖 DID/service delegation、Realm policy、operation contract 和 `plaintext_visible_services` 明确授予的最小职责。 | 调用方验证服务身份、用途、audience、scope、输入/输出绑定、有效期、内容 hash/AEAD 与撤销状态；不能把服务自报 verified 当作授权。 | 被委托一种职责不获得其它职责；传输密文不等于可见明文，获准看明文也不等于能代签、决定 membership 或成为真相源。第三方仍可拒绝服务、记录其可见元数据或在权限范围内返回错误结果。 |
+| Realm 消费方 / 非投票 Station ↔ Notary 确认组 | 合法配置的 quorum 裁决控制状态 finality；普通客户端经自己 Station 消费 scoped 结果，非投票站按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 认证精确结论。 | 实际验证者认证独立配置起点、连续交接、quorum、target/selectors 与完整结果；投票/执行副本仍完整验证；客户端继续验证实际 producer proof 与 E2EE。 | 超出每配置 Byzantine 容错假设时可产生错误状态/授权结论，不一定呈现可检测双确认；已知冲突停止受影响安全域。withholding 可阻断治理与冷查询。quorum 仍不能生成未持钥 producer 的真实签名。 |
+| 账号 ↔ trusted_recovery_service | 账号事先在 accepted policy 精确登记的单服务可作为 OR 方法授权本次整个账号控制权恢复。 | 接收者按 [key-management §8–§8.2](../identity/key-management.md#8-recovery-policy) 验 exact account、replacement key、session/challenge、policy、有效期、设备 PoP 与原子消费；policy 发布/撤销仍由该节已有合法授权者执行。 | 被登记服务失陷可滥用其恢复权，但 reanchor/unlock 不自动解密历史、授予任意业务写入或删除 active backup。显式 policy revoke 使未完成授权失效；普通 rotate 的 frozen session 与已 accepted reanchor 不追溯回滚按 §8.1 处理。 |
+| 用户 / native actor ↔ delegated Applet 或 Agent | 已接受 delegation/grant 可允许 executor 用自己的 key 代表 actor 写入；不是冒充 actor 私钥。 | 核对 actor、executed_by、authorization_ref、实际签名与 scope；Applet 另按 [applet-integration §11](../extensions/applet-integration.md#11-masquerading-与-delegated-agent) 验 exact resources、registration_epoch 与安装主体。UI 展示 actor 与 executor 双身份。 | 双身份归责不等于每条 Event 要求两份密码学签名。受托 executor 可在授权内作恶；Applet 不是唯一代表签署路径，Agent 亦按 §7 处理。 |
+| Controller ↔ Agent ↔ runtime 宿主 | 默认独立 Agent 模型只依赖显式 grant、approval、控制通道、审计与授权副本。 | 按 [encryption-and-audit §4](../crypto-media/encryption-and-audit.md) 分离 Controller/Agent 密钥域；分别核对 Agent 的业务授权与宿主可接触的 key、MLS state、明文和 tool credential。 | 第三方托管形成端点受托边界，宿主失陷影响其实际可访问的所有 Agent/凭据，只有有效隔离才限制为单 Agent。kill switch 不迫使恶意宿主服从或追回旧秘密；controller 身份不自动取得 Agent key/全部明文。同 principal 托管设备及本地 HD 例外按该节处理。 |
+| 用户 / Station ↔ Account Authority 与 Authentication Method Provider | Authority 负责 Station 认证 TCB 内的 handoff、grant ledger/status 与认证新鲜度；IdP 只提供其账号因子的认证输入。 | Authority 与 Station 分别保留签发/原材料重验与业务准入，不能以同一部署或 transport 认证替代；Agent pairing 必须有 controller-signed Event 与 accepted activation。 | IdP、仅 issuer key、Authority/ledger/status 与整站失陷不同，逐项半径见 [server-threat-model §2.1a](../security/server-threat-model.md)。同一 wire role 不合并逻辑职责，也不保证内部组件永不单独失陷。 |
+| Station 运营方/管理员 ↔ 本站用户 | 依 operation 与部署 policy 管理账号状态、服务接纳、ACL、投递、保留及合法可见审计数据。 | 按 [account-lifecycle §5–§10](../identity/account-lifecycle.md#5-locked) 验高风险操作授权/新鲜度；export、quarantine 与恢复分别遵循其合同，不从管理员身份推导全部权限。 | 管理员可影响可用性、元数据与其合法可见明文；不能凭管理身份生成未持钥用户签名、解密 E2EE 或绕过 accepted recovery policy。控制整站时适用恶意自己 Station 的残余风险，不能把合规义务当作密码学保证。 |
+| 客户端/Station ↔ Directory、Push、Blob、Media、Projection、Moderation 等第三方服务 | 只依赖 DID/service delegation、Realm policy、operation contract 和 plaintext visibility 明确授予的具体职责。 | 由相应角色验证身份、用途、audience、scope、输入/输出绑定、有效期与撤销；客户端继续检查 hash/AEAD。Moderation 的保留/删除权限按 [service-surface §2.5](../sync/service-surface.md) 分离。 | 被委托一种职责不获得其它职责；传输密文、读取明文、保留数据、代表签署与决定 membership 分别授权，legal hold 不附赠解密或读取权。服务仍可 withholding、记录可见元数据或返回错误结果。 |
 
 矩阵中的“自己 Station”始终指当前完整 AccountId 的 `station_id` 所标识、在会话建立前已经固定身份且由当前认证上下文调用的 Station；不是当前 URL、Directory 搜索结果、远端 Realm 服务、同 principal 的另一 Station 或任意能返回相似 JSON 的服务。服务器可信结果只替代客户端侧的治理闭包验证工作，不替代服务器首次接纳远端材料时的验证，也不替代端到端客户端职责。
 
@@ -550,6 +556,20 @@ Realm 构成了协作图的硬性隔离边界：
 7. **残余风险**：明确哪些攻击被密码学阻止，哪些只有可归责证据，哪些只能由 policy/审计缓解，哪些仍允许拒绝服务、withholding、equivocation、合法成员泄露或已授权端点作恶。
 
 若一项设计不能给出上述答案，应先补充所属领域 prose 与 conformance 场景，再增加 wire 字段或交互轮次；不得用未定义的“信任服务”、客户端完整历史重放或把所有参与方放进同一 TCB 来掩盖边界。
+
+### 6.7 客户端攻击面索引
+
+本节只索引领域合同，不新建攻击分类或重复 wire 规则。
+
+| 攻击面 | 客户端保留的检查与权威入口 |
+| --- | --- |
+| 首次接入、认证地址替换、跨账号凭据误投 | [server-trusted-results §1.2](../sync/server-trusted-results.md#12-普通客户端的-station-接入normative)：显式起点、持久身份/认证绑定、变化后重新接入。 |
+| QR/SAS/设备配对 relay 与 Agent candidate 替换 | [device-lifecycle §10](../crypto-media/device-lifecycle.md)、[key-management §3.6.1](../identity/key-management.md)：核对用户意图、带外显示与 exact key；同一 Station 的多个自报 proof 不构成独立确认。 |
+| 邀请、alias 钓鱼与恶意 Directory 候选 | [object-addressing §3.3 / §5.1](../discovery/object-addressing.md)、[discovery-directory §9](../discovery/discovery-directory.md)：canonical 身份/目标展示、候选不等于授权，不把 landing origin 当目标 Realm 身份。 |
+| 恶意 Applet widget 与 delegated executor 冒充 | [applet-integration §11 / §17](../extensions/applet-integration.md)：显式委托、双身份展示、widget 沙箱和能力隔离。 |
+| 恶意同组成员、富文本/附件/stream preview | [signal §7](../sync/signal.md)、[encryption-and-audit](../crypto-media/encryption-and-audit.md)、[media-and-blob](../crypto-media/media-and-blob.md)：producer/MLS/AEAD、replay 与对象绑定、不可信内容消毒；preview 不等于最终提交。 |
+| 同 principal 设备或 runtime 宿主失陷 | 本节 §6.0 与 [device-lifecycle §5–§10](../crypto-media/device-lifecycle.md)：已授权端点仍可作恶，撤销不能追回既有明文/旧密钥。 |
+| 自己 Station 对多设备 equivocate 或回滚 | [server-trusted-results §1.1–§3](../sync/server-trusted-results.md)：保留既知绑定、撤销与 E2EE；base v1 不承诺独立发现任意治理谎报，不恢复客户端完整历史重放。 |
 
 ## 7. AI 与人类共用同一协议
 

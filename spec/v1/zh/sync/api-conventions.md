@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-10
+updated: 2026-09-12
 ---
 
 ## 0. 规范语言
@@ -220,7 +220,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。Station 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base_url` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session.v1`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
+认证与授权服务器可以分离。普通客户端 MUST 先按 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative) 建立或核对持久 Station/认证绑定，再发送账号凭据；独立 origin 的 Authority 不改变该要求。Station 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base_url` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session.v1`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
 
 ```json
 {
@@ -255,7 +255,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 issuer-ledger session grant 状态；Station 校验 grant 时通过 Account Authority / Auth-side 内省或等价可信本地状态 fail closed。verifier 还 MUST 从 JWT signed claims 按 [`../identity/key-management.md` §6.1](../identity/key-management.md) 重算 issuance preimage、suite-tagged ID 与 `jti`，并拒绝非 canonical public-JWK JCS、claim tamper 或 ID mismatch。
 - `methods[]` 只描述 service account 登录或恢复入口；它不改变 DID 控制权规则。密码、邮箱验证码、passkey 和 OIDC session 必须通过 `did_binding_methods` 绑定到 DID / device 后才能用于协议写入。
 - Account-first registration 的首设备 authority 来自 identity-root control transcript 与 founding device proof；service discovery 不发布设备 authority pin。Account Authority 只能 relay exact signed genesis unit并验证 receipt。
-- 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更，客户端不得静默沿用过期 issuer。
+- 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更；客户端 MUST 使相关发现缓存失效并按 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative) 比较持久绑定，不得静默沿用过期 issuer，也不得把已有凭据直接转交新 issuer/Authority。
 
 ### 3.2 Sender-constrained（proof-of-possession）会话出示
 
@@ -660,7 +660,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 ### 11.1 服务发现缓存与委托
 
-服务入口唯一来自经 method adapter 验证的 DID Document。域名 bootstrap 仅暴露 resolution_url 等发现线索；接收方必须验证 service_id/kind、完整原生历史、已接受 method 状态、当前查询的新鲜度、唯一 ArkretService endpoint、describe 二跳一致性，以及业务 policy/delegation。缓存按 [service-surface.md §2.6](./service-surface.md) 有界使用，HTTP TTL 不能延长证据或授权有效性。失败不得推进 method 状态或续期路由；service core 改变必须重新授权业务绑定。
+对 [service-surface §2.6](./service-surface.md) 的独立验证角色，服务入口唯一来自经 method adapter 验证的 DID Document；普通客户端自己 Station 的接入与认证绑定按 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative)，不承担此处方法历史验证。独立验证路径的域名 bootstrap 仅暴露 resolution_url 等发现线索；接收方必须验证 service_id/kind、完整原生历史、已接受 method 状态、当前查询的新鲜度、唯一 ArkretService endpoint、describe 二跳一致性，以及业务 policy/delegation。缓存按 [service-surface.md §2.6](./service-surface.md) 有界使用，HTTP TTL 不能延长证据或授权有效性。失败不得推进 method 状态或续期路由；service core 改变必须重新授权业务绑定。
 
 ### 11.2 出站网络目标策略与 SSRF 防护
 

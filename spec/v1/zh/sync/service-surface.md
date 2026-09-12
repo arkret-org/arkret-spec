@@ -3,7 +3,7 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-28
+updated: 2026-09-12
 see_also:
   - service-http-binding.md
   - operations-sync.md
@@ -120,7 +120,7 @@ Station 同时是业务数据所在地、`AccountId {principal_id, station_id}` 
 | Media Service / TURN / SFU | transform、delivery、ICE relay 或 selective forwarding；各自按实际 service DID、密钥、可见性与委托边界登记，不使用复合媒体角色。 |
 | Push Gateway | 外部投递与 APNs/FCM/厂商适配边界，不持有 Station 业务数据 authority。 |
 | Applet Service / Agent Runtime | 受注册授权的扩展服务或执行环境；按 capability 写回，不取得账号业务数据 authority。 |
-| Moderation Service | 仅限 Realm/组织显式委托且拥有独立 service DID/签名、plaintext visibility 或 legal-hold authority 的外部审核实体。 |
+| Moderation Service | 仅限 Realm/组织显式委托的独立审核实体；按实际 service DID/签名、plaintext visibility 或特定对象的保留/删除约束区分职责。legal hold 的阻止删除、授权解除与审计按 [device-lifecycle §12.2](../crypto-media/device-lifecycle.md#122-retention-and-erasure) 和 [call-state §5.2](../crypto-media/call-state.md#52-录制--转写-retention-policynormative) 执行，不因 hold 获得明文读取、解密或额外签署权。 |
 | Archive Node / Key Recovery Service / Recovery Service | 按实际历史可见性、密钥持有和恢复 authority 分别授权，不得用含混总称赋予全部权限。 |
 | Notary / MIMI Provider Facade | 分别为独立密码学角色和互操作 facade；只在相应 Realm/profile 实际委托时出现。 |
 
@@ -128,7 +128,7 @@ REST namespace 第一段路径（`self` / `gate` / `root` / `find` / `peer` / `o
 
 #### 2.5.1 Account Authority 与认证方法发现
 
-Station 的根级 `/_arkret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base_url`，客户端发起的 Arkret `/_arkret/gate/account/*` 请求都 MUST 从该 base 派生。客户端不得按 operation 猜测内部进程。部署 MAY 在认证 TCB 内使用网关、反代或独立 Auth Server 进程处理这些操作，但该组件是 deployment-private：不得拥有公开 `service_kind`、role profile、service registration、role-local Describe、federation identity 或 peer-discoverable endpoint。`ak.gate.account.command.logout_auth_session.v1` 是 Account Authority 内部终结认证 session 的 typed 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base_url` 派生。
+Station 的根级 `/_arkret/describe` 是客户端登录 / account flow 的启动入口；普通客户端先按 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative) 建立并持久核对 Station 与认证绑定。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base_url`，客户端发起的 Arkret `/_arkret/gate/account/*` 请求都 MUST 从该 base 派生。客户端不得按 operation 猜测内部进程。部署 MAY 在认证 TCB 内使用网关、反代或独立 Auth Server 进程处理这些操作，但该组件是 deployment-private：不得拥有公开 `service_kind`、role profile、service registration、role-local Describe、federation identity 或 peer-discoverable endpoint。`ak.gate.account.command.logout_auth_session.v1` 是 Account Authority 内部终结认证 session 的 typed 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base_url` 派生。
 
 `auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Arkret 不定义 `/_arkret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Arkret 的桥是 Account Authority 的 `POST {gate_account_base_url}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
@@ -145,7 +145,7 @@ Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](.
 
 ### 2.6 Service DID 权威入口与路由解析（normative）
 
-服务身份、控制密钥与业务入口 MUST 来自同一经 DID method adapter 独立验证的状态。业务绑定持久 service_id（did_core_id）和预期 service_kind；解析时 MUST 验证 project(did) == service_id，并从该 DID Document 选择唯一对应的 ArkretService entry。entry.id MUST 是该文档 DID 的非空 fragment 标识，type MUST 为 ArkretService，serviceKind MUST 等于预期 service_kind，serviceEndpoint MUST 为 canonical absolute HTTPS base URL。不得在同一 kind 下选择多个 entry，也不得按数组顺序挑选入口。规范化要求 scheme / host 小写、去默认端口、消解 dot segment、无 userinfo / query / fragment、path 恰有一个 trailing slash。入口不规范、歧义、错误 service/core/type 均 MUST 拒绝。
+本节规定服务器、registry、联邦接收方与独立审计者的服务身份验证，以及末段所述独立消费；普通客户端自己 Station 的接入按 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative)。上述独立验证角色使用的服务身份、控制密钥与业务入口 MUST 来自同一经 DID method adapter 独立验证的状态。业务绑定持久 service_id（did_core_id）和预期 service_kind；解析时 MUST 验证 project(did) == service_id，并从该 DID Document 选择唯一对应的 ArkretService entry。entry.id MUST 是该文档 DID 的非空 fragment 标识，type MUST 为 ArkretService，serviceKind MUST 等于预期 service_kind，serviceEndpoint MUST 为 canonical absolute HTTPS base URL。不得在同一 kind 下选择多个 entry，也不得按数组顺序挑选入口。规范化要求 scheme / host 小写、去默认端口、消解 dot segment、无 userinfo / query / fragment、path 恰有一个 trailing slash。入口不规范、歧义、错误 service/core/type 均 MUST 拒绝。
 
 公开 ak.open.service.read.resolution.v1（GET /_arkret/open/services/{service_id}/resolution）向成员与非成员返回 AuthenticatedServiceResolution：service_id、service_kind、method_history_evidence、normalized_did_document。它是可独立验证的原生证据载体，不是 resolver 的可信声明，也不签发独立地址记录。服务入口、当前 DID、method head / version 和 service control reference 只允许从该证据派生；不得另签地址声明覆盖文档。邀请、配置 URL、inline carrier、镜像和缓存均只提供发现线索，不能单独授予路由或业务权限。
 
@@ -163,7 +163,7 @@ WebVH DID 托管位置迁移须满足原生 portability 前置条件并保持 SC
 
 服务路由只保留 DID 方法原生状态，不创建额外的地址历史或签名发布状态机。DID method 原生历史及冻结历史 signer evidence 继续保留；可路由不代表 Realm 授权，历史签名必须验证签发位置的密钥与业务权威，不能用当前文档替代。
 
-本节的 method-native 验证职责属于接纳外部材料的角色：服务器、联邦接收方、identity registry 与独立审计者。已建立账号会话的普通客户端在已登记用途上改为消费自己 Station 的已验证结果：Realm genesis notary 用 [server-trusted-results.md §5.8](./server-trusted-results.md)，已加入 Realm 的媒体服务绑定用同文件 §5.9；两者都返回派生 `ServiceResolutionProjection` 或冻结 signer descriptor，不返回 method evidence，客户端只核对请求/会话/route 与结果内的确定性绑定。尚未登记此类结果的场景——例如尚未建立账号会话时的接入引导，或匿名消费公开 Directory 候选——仍由该角色自行按本节验证，MUST NOT 因为存在自己 Station 的结果面就直接信任陌生 URL 的自报。
+本节的 method-native 验证职责属于接纳外部材料的角色：服务器、联邦接收方、identity registry 与独立审计者。已建立账号会话的普通客户端在已登记用途上改为消费自己 Station 的已验证结果：Realm genesis notary 用 [server-trusted-results.md §5.8](./server-trusted-results.md)，已加入 Realm 的媒体服务绑定用同文件 §5.9；两者都返回派生 `ServiceResolutionProjection` 或冻结 signer descriptor，不返回 method evidence，客户端只核对请求/会话/route 与结果内的确定性绑定。普通客户端尚未建立账号会话时，自己 Station 的接入专用合同见 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative)，不执行本节的 method-native 历史验证。匿名 Directory 等独立消费仍需明确承担本节的验证者；未验证候选不能变成自己的 Station 或自报 verified。该接入合同不改变服务器、registry、联邦接收方及独立审计者的原生验证与 freshness 义务。
 
 ## 3. 通用服务描述接口
 

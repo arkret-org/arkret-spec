@@ -3,7 +3,7 @@ title: Service HTTP/JSON Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-29
+updated: 2026-09-12
 ---
 
 ## 0. 规范语言
@@ -176,6 +176,8 @@ B 类——产品 / 运维能力，被实现误放进协议段，按 (b) 归位�
 - 幂等键：写接口使用 `Idempotency-Key` header、`event_id`、`request_id` 或 canonical request hash。
 - 失败时使用标准 Problem Details。
 
+认证方式与 namespace 是不同维度；上述认证方式是操作契约的例示，不是新建的封闭认证 registry。路径段不得推导某种凭证足以授权。端点表中“部署受信 registration bearer / admin credential”仅指由该部署配置、限定调用方和 operation 的本地凭证；接收方 MUST 验证其有效性、用途与最小权限，并沿用该操作的审计和撤销规则。它不是公共 wire role、普通 SessionGrant 或任意 `root` 操作的通行证，MUST NOT 替代 client-signed inception、DID control proof、producer signature、capability 或 recovery policy。部署内 S2S bearer 同样只用于明确登记的 S2S operation。
+
 JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST 以 `contract-registry.json#operation_registry`、OpenAPI binding 和被 `request_schema_ref` / `response_schema_ref` 指向的 JSON Schema 为准；字段表只提供人类阅读索引，字段集合快照由 [`operation-schema-index.json`](../../artifacts/reports/operation-schema-index.json) 生成。
 
 默认规则：
@@ -258,7 +260,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 类型简写：`did_core_id` 为 Arkret 稳定业务身份，`did` 为包含 method-specific resolution 的标准 bare DID，本文历史表格中未细分的 `did` 项须按对应 machine schema 解释；`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`events` 为 Event Envelope 数组。service identity 的业务字段默认是 `did_core_id`；只有注册 / resolution 合同中显式命名的 `did` 才携带 resolution。
 
-`GET /_arkret/describe` 是二跳 endpoint confirmation：调用方先独立验证 `AuthenticatedServiceResolution` 的 DID 原生证据、当前状态、service identity/type 及唯一 canonical HTTPS 服务入口。Describe 的 `service_id`、`service_kind`、`service_resolution` 和 HTTP JSON base URL MUST 与该验证结果及实际请求 URL 一致。调用方先消费 `protocol_version`，形状合法但不等于 `"1.0"` 时以 `unsupported_protocol_version` 拒绝路由。动态 limits、profile 和 feature 不构成身份权威。
+普通客户端自己 Station 的首次接入与重连 MUST 按 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative)，从显式选择/预配起点读取 describe 并比较持久身份与认证绑定，不重放 DID 原生历史。以下路由、原生状态和缓存规则适用于 [service-surface §2.6](./service-surface.md) 所述独立验证角色。对这些角色，`GET /_arkret/describe` 是二跳 endpoint confirmation：调用方先独立验证 `AuthenticatedServiceResolution` 的 DID 原生证据、当前状态、service identity/type 及唯一 canonical HTTPS 服务入口。Describe 的 `service_id`、`service_kind`、`service_resolution` 和 HTTP JSON base URL MUST 与该验证结果及实际请求 URL 一致。调用方先消费 `protocol_version`，形状合法但不等于 `"1.0"` 时以 `unsupported_protocol_version` 拒绝路由。动态 limits、profile 和 feature 不构成身份权威。
 
 `resolution_url` MUST 是 canonical absolute HTTPS URL，指向 `GET /_arkret/open/services/{service_id}/resolution`。内联完整证据和 URL 均只是发现载体；方法验证成功后，从验证后的服务入口派生下次 resolution URL。同一 service core 的合法入口更新只刷新路由，core 改变必须经过新的业务 binding 授权。
 
@@ -270,7 +272,7 @@ Realm link 写入使用 `POST /_arkret/self/events`（`ak.self.events.command.su
 
 | Endpoint | Request 类型 | Auth / 访问限制 | Success 类型 |
 | --- | --- | --- | --- |
-| `GET /_arkret/describe` | query: none 或 `service_kind?`（必须是 `service-kind-registry.json` 中 active 且 `valid_in` 含 `service_describe` 的值）。一个 public binding 只暴露一个角色时 MAY 省略；共享 binding 暴露多个角色时调用方 MUST 指定，省略返回 `param_missing`；指定未暴露/非法值返回 `param_invalid`。 | `public_metadata`；不得返回私有 topology、secret 或未授权 internal endpoint。该 endpoint 只是对已有候选 URL 的二跳确认，不能作为 `did_core_id` 首跳 resolver。禁止 redirect、`Content-Encoding` 与超过 1 MiB（1,048,576 bytes）的 canonical response；不得截断 binding rows。 | role-scoped `ServiceDescribe`（`ak.schema.service_describe.v1`；`service_kind` MUST 与 query 一致，`supported_operation_bundles` / profile / auth / limits / plaintext visibility 只描述该角色；必须含 `service_id: did_core_id`、`service_resolution`、`trust_domain`、claim-level 字段、`auth_metadata`、`plaintext_visibility`、`development_mode`，且 `development_mode=true` 时 `verified_profiles=[]`；Station MUST 在 `auth_metadata.account_authority` 发布 Account Authority） |
+| `GET /_arkret/describe` | query: none 或 `service_kind?`（必须是 `service-kind-registry.json` 中 active 且 `valid_in` 含 `service_describe` 的值）。一个 public binding 只暴露一个角色时 MAY 省略；共享 binding 暴露多个角色时调用方 MUST 指定，省略返回 `param_missing`；指定未暴露/非法值返回 `param_invalid`。 | `public_metadata`；不得返回私有 topology、secret 或未授权 internal endpoint。该 endpoint 在独立原生验证路径中是二跳确认，不能作为裸 `did_core_id` resolver；普通客户端自己 Station 接入时则按 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative) 从已选择的 origin 建立/比较绑定。禁止 redirect、`Content-Encoding` 与超过 1 MiB（1,048,576 bytes）的 canonical response；不得截断 binding rows。 | role-scoped `ServiceDescribe`（`ak.schema.service_describe.v1`；`service_kind` MUST 与 query 一致，`supported_operation_bundles` / profile / auth / limits / plaintext visibility 只描述该角色；必须含 `service_id: did_core_id`、`service_resolution`、`trust_domain`、claim-level 字段、`auth_metadata`、`plaintext_visibility`、`development_mode`，且 `development_mode=true` 时 `verified_profiles=[]`；Station MUST 在 `auth_metadata.account_authority` 发布 Account Authority） |
 | `GET /_arkret/open/services/{service_id}/resolution` | path `service_id: did_core_id`（RFC 3986 percent-encoded） | `public_metadata`；可限流；禁止 redirect、content encoding 和超过 1 MiB（1,048,576 bytes）的 canonical 响应；不得另施加 64 KiB 的旧 record-only 上限。 | 当前完整 `AuthenticatedServiceResolution`（signed `AuthenticatedServiceResolution` + method-history evidence + normalized DID Document）；`record.service_id` MUST 等于 path，时间序为 `issued_at <= refresh_after < expires_at`。该 operation 只发布可验证路由材料，不创建授权。 |
 | `GET /_arkret/root/identity/describe` | query: none | `public_metadata`；可限流。 | `ServiceDescribe`；identity-specific 能力通过 `supported_features` / `limits` / 扩展字段表达。 |
 | `POST /_arkret/root/identity/resolve` | body `{did: did, requested_evidence_kinds?: enum(did_webvh)[]}` | `public_metadata`；private DID MAY require `user_session` 或 presentation proof；请求 `did_webvh` 而 resolver 无法从完整已验证 history 派生时 MUST fail closed。 | `{did_document, key_log_head?, seq?, receipts?, method_evidence?: closed did_webvh {version_id,log_head_digest,control_key_digest}}` |

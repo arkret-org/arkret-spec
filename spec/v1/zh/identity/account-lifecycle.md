@@ -3,7 +3,7 @@ title: Account Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-20
+updated: 2026-09-12
 ---
 
 ## 0. 规范语言
@@ -47,7 +47,7 @@ grant、owner/admin/notary/recovery authority、设备授权或 PCR。Realm 的�
 
 ## 2.1 服务账号登录与找回
 
-服务账号 MAY 使用用户名/密码、passkey、WebAuthn、OAuth/OIDC、企业 SSO 或类似集中认证服务的登录方式。它们只证明调用方通过了某个 account service 的认证，不能直接证明 DID principal 所有权。
+普通客户端 MUST 先按 [server-trusted-results §1.2](../sync/server-trusted-results.md#12-普通客户端的-station-接入normative) 从明确选择/预配的 Station 建立并持久核对身份与认证绑定；首次接入不要求客户端重放 DID 方法历史。服务账号 MAY 使用用户名/密码、passkey、WebAuthn、OAuth/OIDC、企业 SSO 或类似集中认证服务的登录方式。它们只证明调用方通过了某个 account service 的认证，不能直接证明 DID principal 所有权。
 
 登录成功后，account service / auth service MUST 将会话绑定到完整 `AccountId={principal_id,station_id}` 与该账号的设备，例如签发短期 `ak.session.grant`、登记 device binding，或要求客户端提交 identity control proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。`ak.session.grant` 是 Account Authority issuer-ledger credential，不是 Event：issuer 从 closed immutable `ak.session_grant.issuance.v1` preimage 派生 33-octet / 44-character suite-tagged full-digest token，签 JWT，并要求 JWT `jti` 逐字节等于该 typed ID。其 ID derivation、canonical JWK、nonce 与 verifier 规则见 [`key-management.md` §6](./key-management.md)。这个 ID 不是 Event ID，也不是 `ak:grant:` Capability GrantId；三者的 parser、存储索引与 API strong type MUST 分开。
 
