@@ -236,7 +236,7 @@ Agent 初次签发的 request identity 由完整
 
 ##### Agent signing-key binding 与 portable signer evidence（normative）
 
-本节 portable evidence 的消费、lease 缓存和治理验证规则适用于 Station/peer 验证者。普通客户端使用
+本节 portable evidence 的消费、attestation 直接查询窗口和治理验证规则适用于 Station/peer 验证者。普通客户端使用
 [server-trusted-results §5.6](../sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥)
 的 self key 结果，current 每次查询且不跨未来 Signal/操作复用，historical 精确绑定原 Event/receiver；
 不缓存或 hydrate 本节完整 authority 闭包。controller签署完整authorize Event与客户端真实内容验签不变。
@@ -1421,5 +1421,5 @@ Arkret v1 对设备、会话和恢复要求如下：
 PCR 治理事实的非投票消费按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative)：
 key authorization/lifecycle/generation 的确认性可由合法 PCR quorum 结论证明，不重放整条 PCR 控制流。
 本章原始 genesis/controller delegation、实际 producer 历史公钥与签名、method-native 身份根、独立 Account gate
-和 Agent authority lease 仍各自验证；目标 Realm notary 或普通 Station service key 不因此取得 PCR 签名资格。
+和 Agent authority attestation 仍各自验证；目标 Realm notary 或普通 Station service key 不因此取得 PCR 签名资格。
 稳定材料耐久共享，只验证新增事实；已知撤销立即失效相应当前资格，历史签名事实不由 current resolver 重建。
